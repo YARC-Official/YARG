@@ -53,7 +53,7 @@ namespace YARG.Helpers
 
         private static readonly Regex StyleRegex = new(@"^<[^>\s]*>", RegexOptions.Compiled);
 
-        private static readonly Dictionary<string, Func<SongMetadata, string>> Keywords = new()
+        private static readonly Dictionary<string, Func<SongMetadata, string>> _keywords = new()
         {
             {
                 "song", x => x.Name
@@ -73,7 +73,7 @@ namespace YARG.Helpers
             {
                 "speed_percent", _ =>
                 {
-                    if (GlobalVariables.Instance.SongSpeed == 1f)
+                    if (Mathf.Approximately(GlobalVariables.Instance.SongSpeed, 1f))
                     {
                         return string.Empty;
                     }
@@ -86,7 +86,7 @@ namespace YARG.Helpers
             }
         };
 
-        private static readonly Dictionary<string, Func<SongMetadata, bool>> Conditions = new()
+        private static readonly Dictionary<string, Func<SongMetadata, bool>> _conditions = new()
         {
             {
                 "song", x => !string.IsNullOrEmpty(x.Name)
@@ -104,7 +104,7 @@ namespace YARG.Helpers
                 "charter", x => !string.IsNullOrEmpty(x.Charter)
             },
             {
-                "changed_speed", _ => GlobalVariables.Instance.SongSpeed == 1f
+                "changed_speed", _ => Mathf.Approximately(GlobalVariables.Instance.SongSpeed, 1f)
             }
         };
 
@@ -154,7 +154,7 @@ namespace YARG.Helpers
                             ifMode = true;
                             tokenList.Remove(token);
                         }
-                        else if (Keywords.TryGetValue(token.Value, out var keyword))
+                        else if (_keywords.TryGetValue(token.Value, out var keyword))
                         {
                             token.Value = keyword(song);
                             token.TokenType = TokenType.String;
@@ -185,7 +185,7 @@ namespace YARG.Helpers
                         {
                             ifMode = false;
                         }
-                        else if (Conditions.TryGetValue(token.Value, out var condition))
+                        else if (_conditions.TryGetValue(token.Value, out var condition))
                         {
                             // If the condition is not met, drop the line
                             if (!condition(song))

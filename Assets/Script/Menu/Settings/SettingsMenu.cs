@@ -146,7 +146,7 @@ namespace YARG.Menu.Settings
         public void RefreshAndKeepPosition()
         {
             // Everything gets recreated, so we must cache the index before hand
-            int beforeIndex = _settingsNavGroup.SelectedIndex;
+            var beforeIndex = _settingsNavGroup.SelectedIndex;
 
             UpdateSettings(false);
             RefreshPreview();

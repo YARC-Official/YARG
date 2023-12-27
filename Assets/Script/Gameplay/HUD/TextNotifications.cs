@@ -13,8 +13,7 @@ namespace YARG.Gameplay.HUD
         private int _streak;
         private int _nextStreakCount;
 
-        private string _nextNotification;
-        private bool   _notificationPending;
+        private TextNotificationQueue _notificationQueue = new();
 
         private readonly PerformanceTextScaler _scaler = new(2f);
         private Coroutine _coroutine;
@@ -31,6 +30,15 @@ namespace YARG.Gameplay.HUD
             {
                 StopCoroutine(_coroutine);
             }
+        }
+
+        public void ShowNewHighScore()
+        {
+            // Don't build up notifications during a solo
+            if (!gameObject.activeSelf) return;
+
+            // Queue the  notification
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NewHighScore, "NEW HIGHSCORE"));
         }
 
         public void UpdateNoteStreak(int streak)
@@ -54,8 +62,7 @@ namespace YARG.Gameplay.HUD
             // Queue the note streak notification
             if (_streak >= _nextStreakCount)
             {
-                _nextNotification = $"{_nextStreakCount}-NOTE STREAK";
-                _notificationPending = true;
+                _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NoteStreak, $"{_nextStreakCount}-NOTE STREAK"));
                 NextNoteStreakNotification();
             }
         }
@@ -65,15 +72,16 @@ namespace YARG.Gameplay.HUD
             // Never update this if text notifications are disabled
             if (SettingsManager.Settings.DisableTextNotifications.Value) return;
 
-            if (_coroutine == null && _notificationPending)
+            if (_coroutine == null && _notificationQueue.Count > 0)
             {
-                _coroutine = StartCoroutine(ShowNextNotification());
+                var textNotification = _notificationQueue.Dequeue();
+                _coroutine = StartCoroutine(ShowNextNotification(textNotification.Text));
             }
         }
 
-        private IEnumerator ShowNextNotification()
+        private IEnumerator ShowNextNotification(string notificationText)
         {
-            _text.text = _nextNotification;
+            _text.text = notificationText;
 
             _scaler.ResetAnimationTime();
 
@@ -88,7 +96,6 @@ namespace YARG.Gameplay.HUD
 
             _text.text = string.Empty;
             _coroutine = null;
-            _notificationPending = false;
         }
 
         private void NextNoteStreakNotification()
@@ -112,7 +119,7 @@ namespace YARG.Gameplay.HUD
 
         public void ForceReset()
         {
-            _notificationPending = false;
+            _notificationQueue.Clear();
             _nextStreakCount = 0;
             _streak = 0;
         }

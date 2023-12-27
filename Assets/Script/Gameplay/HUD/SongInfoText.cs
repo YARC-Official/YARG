@@ -3,6 +3,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using YARG.Helpers;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -16,21 +17,25 @@ namespace YARG.Gameplay.HUD
 
         private void Start()
         {
-            // Start fading out
-            StartCoroutine(FadeCoroutine());
+            if (!SettingsManager.Settings.KeepSongInfoVisible.Value)
+            {
+                // Start fading out
+                StartCoroutine(FadeCoroutine());
+            }
 
             var lines = SongToText.ToStyled(SongToText.FORMAT_LONG, GameManager.Song);
 
             string finalText = "";
             foreach (var line in lines)
             {
+                // Add styles to each styling
                 finalText += line.Style switch
                 {
-                    SongToText.Style.Header => 
+                    SongToText.Style.Header =>
                         $"<size=100%><font-weight=800>{line.Text}</font-weight></size>",
                     SongToText.Style.SubHeader =>
                         $"<size=90%><alpha=#90><i><font-weight=600>{line.Text}</font-weight></i></size>",
-                    _ => 
+                    _ =>
                         $"<size=80%><alpha=#66><i><font-weight=600>{line.Text}</font-weight></i></size>"
                 } + "\n";
             }

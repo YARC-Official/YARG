@@ -46,6 +46,7 @@ namespace YARG.Settings.Metadata
         };
 
         private static readonly Dictionary<Type, BasePreset> _lastSelectedPresetOfType = new();
+        private static readonly List<string> _ignoredPathUpdates = new();
 
         private PresetSubTab CurrentSubTab => _presetTabs
             .FirstOrDefault(i => i.CustomContent == SelectedContent);
@@ -88,6 +89,8 @@ namespace YARG.Settings.Metadata
 
         public override void OnTabEnter()
         {
+            _ignoredPathUpdates.Clear();
+
             _watcher = new FileSystemWatcher(CustomContentManager.CustomizationDirectory, "*.json")
             {
                 EnableRaisingEvents = true,
@@ -109,6 +112,13 @@ namespace YARG.Settings.Metadata
 
         private void OnPresetChanged(string path)
         {
+            if (_ignoredPathUpdates.Contains(path))
+            {
+                Debug.Log("Ignored preset change.");
+                _ignoredPathUpdates.Remove(path);
+                return;
+            }
+
             // Find which custom content container uses the directory of the preset
             foreach (var content in CustomContentManager.CustomContentContainers)
             {
@@ -226,6 +236,11 @@ namespace YARG.Settings.Metadata
         public static T GetLastSelectedPreset<T>(CustomContent<T> customContent) where T : BasePreset
         {
             return (T) GetLastSelectedBasePreset(customContent);
+        }
+
+        public static void IgnorePathUpdate(string path)
+        {
+            _ignoredPathUpdates.Add(path);
         }
     }
 }

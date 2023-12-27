@@ -8,6 +8,7 @@ using YARG.Core.Engine;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
+using YARG.Scores;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Player
@@ -23,6 +24,8 @@ namespace YARG.Gameplay.Player
         public double SpawnTimeOffset => (ZeroFadePosition + 2 + -STRIKE_LINE_POS) / NoteSpeed;
 
         protected TrackView TrackView { get; private set; }
+
+        protected int? CurrentHighScore { get; private set; }
 
         [field: Header("Visuals")]
         [field: SerializeField]
@@ -74,13 +77,15 @@ namespace YARG.Gameplay.Player
         protected List<Beatline> Beatlines;
         protected int BeatlineIndex;
 
-        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView)
+        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, int? currentHighScore)
         {
             if (IsInitialized) return;
 
             Initialize(index, player, chart);
 
             TrackView = trackView;
+
+            CurrentHighScore = currentHighScore;
 
             Beatlines = SyncTrack.Beatlines;
             BeatlineIndex = 0;
@@ -171,11 +176,11 @@ namespace YARG.Gameplay.Player
         private int CurrentMultipler = 0;
         private int PreviousMultipler = 0;
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView)
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, int? currentHighScore)
         {
             if (IsInitialized) return;
 
-            base.Initialize(index, player, chart, trackView);
+            base.Initialize(index, player, chart, trackView, currentHighScore);
 
             SetupTheme(player.Profile.GameMode);
 
@@ -404,6 +409,20 @@ namespace YARG.Gameplay.Player
             base.FinishDestruction();
 
             GameManager.BeatEventHandler.Unsubscribe(StarpowerBar.PulseBarIfAble);
+        }
+
+        public override void UpdateWithTimes(double inputTime)
+        {
+            base.UpdateWithTimes(inputTime);
+
+            Score = Stats.Score;
+            Combo = Stats.Combo;
+
+            if (CurrentHighScore != null && !IsNewHighScore && Score > CurrentHighScore)
+            {
+                IsNewHighScore = true;
+                TrackView.ShowNewHighScore();
+            }
         }
     }
 }
