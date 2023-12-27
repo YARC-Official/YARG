@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Input;
+using YARG.Player;
 
 namespace YARG.Menu.ProfileInfo
 {
@@ -14,11 +15,30 @@ namespace YARG.Menu.ProfileInfo
 
         [Space]
         [SerializeField]
-        private Image _pressedIndicator;
+        private Image _rawPressedIndicator;
+        [SerializeField]
+        private Image _calibratedPressedIndicator;
+
+        [Space]
+        [SerializeField]
+        private ValueSlider _debounceSlider;
+
+        public override void Init(EditBindsTab editBindsTab, YargPlayer player, ButtonBinding binding)
+        {
+            base.Init(editBindsTab, player, binding);
+
+            _debounceSlider.SetValueWithoutNotify(binding.DebounceThreshold);
+        }
 
         protected override void OnStateChanged()
         {
-            _pressedIndicator.color = _binding.State ? _pressedColor : _releasedColor;
+            _rawPressedIndicator.color = _binding.RawState ? _pressedColor : _releasedColor;
+            _calibratedPressedIndicator.color = _binding.State ? _pressedColor : _releasedColor;
+        }
+
+        public void OnDebounceValueChanged(float value)
+        {
+            _binding.DebounceThreshold = (long) value;
         }
     }
 }

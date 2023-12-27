@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using YARG.Input;
 using YARG.Player;
 
@@ -17,7 +17,7 @@ namespace YARG.Menu.ProfileInfo
 
         protected TBinding _binding;
 
-        public void Init(EditBindsTab editBindsTab, YargPlayer player, TBinding binding)
+        public virtual void Init(EditBindsTab editBindsTab, YargPlayer player, TBinding binding)
         {
             _binding = binding;
 
