@@ -83,7 +83,10 @@ namespace YARG.Gameplay.Player
 
         protected void Start()
         {
-            SantrollerHaptics = Player.Bindings.GetDevicesByType<ISantrollerHaptics>();
+            if (Player.Bindings is not null)
+            {
+                SantrollerHaptics = Player.Bindings.GetDevicesByType<ISantrollerHaptics>();
+            }
 
             if (!GameManager.IsReplay)
             {
