@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace YARG.Menu.Navigation
 {
     public sealed class NavigationGroup : MonoBehaviour
     {
-        public static NavigationGroup CurrentNavigationGroup { get; private set;  }
+        public static NavigationGroup CurrentNavigationGroup { get; private set; }
 
         private readonly List<NavigatableBehaviour> _navigatables = new();
 
@@ -21,9 +21,20 @@ namespace YARG.Menu.Navigation
         [SerializeField]
         private bool _selectFirst;
 
-        public NavigatableBehaviour SelectedBehaviour { get; private set; }
+        public int Count => _navigatables.Count;
 
-        public int SelectedIndex => _navigatables.IndexOf(SelectedBehaviour);
+        public int? SelectedIndex { get; private set; } = null;
+
+        public NavigatableBehaviour SelectedBehaviour
+        {
+            get
+            {
+                if (SelectedIndex is not {} index || index < 0 || index >= _navigatables.Count)
+                    return null;
+
+                return _navigatables[index];
+            }
+        }
 
         public delegate void SelectionAction(NavigatableBehaviour selected, SelectionOrigin selectionOrigin);
         public event SelectionAction SelectionChanged;
@@ -34,8 +45,7 @@ namespace YARG.Menu.Navigation
             {
                 foreach (var navigatable in GetComponentsInChildren<NavigatableBehaviour>())
                 {
-                    navigatable.NavigationGroup = this;
-                    _navigatables.Add(navigatable);
+                    _AddNavigatable(navigatable);
                 }
             }
         }
@@ -47,57 +57,54 @@ namespace YARG.Menu.Navigation
                 CurrentNavigationGroup = this;
             }
 
-            if (_selectFirst && SelectedIndex < 0)
+            if (_selectFirst && SelectedBehaviour == null)
             {
                 SelectFirst();
             }
         }
 
-        public void AddNavigatable(NavigatableBehaviour n)
+        private void _AddNavigatable(NavigatableBehaviour navigatable)
         {
-            _navigatables.Add(n);
-            n.NavigationGroup = this;
+            if (_navigatables.Contains(navigatable))
+                throw new InvalidOperationException($"Navigation group {this} already contains navigatable {navigatable}!");
+
+            _navigatables.Add(navigatable);
+            navigatable.NavigationGroup = this;
+            navigatable.SelectionStateChanged += OnSelectionStateChanged;
         }
 
-        public void AddNavigatable(GameObject n)
+        public void AddNavigatable(NavigatableBehaviour navigatable)
         {
-            AddNavigatable(n.GetComponent<NavigatableBehaviour>());
+            if (_addAllChildrenOnAwake)
+            {
+                Debug.LogWarning($"Navigation group {this} has 'Add All Children On Awake' enabled but is being added to manually! This is most likely an error and will result in duplicate entries, so it has been disabled.");
+                _addAllChildrenOnAwake = false;
+            }
+
+            _AddNavigatable(navigatable);
         }
 
-        public void RemoveNavigatable(NavigatableBehaviour n)
+        public void AddNavigatable(GameObject gameObj)
         {
-            _navigatables.Remove(n);
+            if (!gameObj.TryGetComponent<NavigatableBehaviour>(out var navigatable))
+                return;
+
+            AddNavigatable(navigatable);
+        }
+
+        public void RemoveNavigatable(NavigatableBehaviour navigatable)
+        {
+            if (SelectedBehaviour == navigatable && SelectedBehaviour != null)
+                SelectedBehaviour.SetSelected(false, SelectionOrigin.Programmatically);
+
+            _navigatables.Remove(navigatable);
+            navigatable.NavigationGroup = null;
         }
 
         public void ClearNavigatables()
         {
+            ClearSelection();
             _navigatables.Clear();
-        }
-
-        public void DeselectAll()
-        {
-            foreach (var navigatable in _navigatables)
-            {
-                navigatable.SetSelected(false, SelectionOrigin.Programmatically);
-            }
-        }
-
-        public void SetSelectedFromNavigatable(NavigatableBehaviour navigatableBehaviour, SelectionOrigin selectionOrigin)
-        {
-            SelectedBehaviour = navigatableBehaviour;
-            SelectionChanged?.Invoke(navigatableBehaviour, selectionOrigin);
-        }
-
-        public void SelectLast()
-        {
-            _navigatables[^1].SetSelected(true, SelectionOrigin.Programmatically);
-        }
-
-        public void SelectAt(int index)
-        {
-            if (index >= _navigatables.Count) return;
-
-            _navigatables[index].SetSelected(true, SelectionOrigin.Programmatically);
         }
 
         public void SelectFirst()
@@ -105,41 +112,90 @@ namespace YARG.Menu.Navigation
             SelectAt(0);
         }
 
+        public void SelectLast()
+        {
+            SelectAt(_navigatables.Count - 1);
+        }
+
         public void SelectNext()
         {
-            int selected = SelectedIndex;
-            if (selected < 0) return;
-
-            selected++;
-
-            // DON'T loop the value
-            if (selected >= _navigatables.Count)
-            {
+            if (SelectedIndex is not {} selected || selected < 0 || selected >= _navigatables.Count - 1)
                 return;
-            }
 
-            _navigatables[selected].SetSelected(true, SelectionOrigin.Navigation);
+            SelectAt(selected + 1, SelectionOrigin.Navigation);
         }
 
         public void SelectPrevious()
         {
-            int selected = SelectedIndex;
-            if (selected < 0) return;
-
-            selected--;
-
-            // DON'T loop the value
-            if (selected < 0)
-            {
+            if (SelectedIndex is not {} selected || selected <= 0)
                 return;
+
+            SelectAt(selected - 1, SelectionOrigin.Navigation);
+        }
+
+        public void SelectAt(int? index, SelectionOrigin selectionOrigin = SelectionOrigin.Programmatically)
+        {
+            if (index == SelectedIndex || _navigatables.Count < 1)
+                return;
+
+            if (index < 0 || index >= _navigatables.Count)
+                throw new ArgumentOutOfRangeException(nameof(index), index, $"Index must be between 0 and the count of navigatables ({_navigatables.Count})!");
+
+            if (SelectedBehaviour != null)
+                SelectedBehaviour.SetSelected(false, selectionOrigin);
+
+            SelectedIndex = index;
+            if (SelectedBehaviour != null)
+                SelectedBehaviour.SetSelected(true, selectionOrigin);
+
+            SelectionChanged?.Invoke(SelectedBehaviour, selectionOrigin);
+        }
+
+        private void OnSelectionStateChanged(NavigatableBehaviour navigatableBehaviour, bool selected,
+            SelectionOrigin selectionOrigin)
+        {
+            int? index;
+            if (selected)
+            {
+                if (SelectedBehaviour == navigatableBehaviour)
+                    return;
+
+                index = _navigatables.IndexOf(navigatableBehaviour);
+                if (index < 0)
+                    throw new ArgumentException("The navigation item being selected is not present in the list!");
+            }
+            else
+            {
+                if (SelectedBehaviour != navigatableBehaviour)
+                    return;
+
+                index = null;
             }
 
-            _navigatables[selected].SetSelected(true, SelectionOrigin.Navigation);
+            // Avoid a redundant runthrough of this code by deselecting the previous before
+            // setting the index, so that the SelectedBehaviour != navigatableBehaviour check above happens
+            var previousSelection = SelectedBehaviour;
+            SelectedIndex = index;
+            if (previousSelection != null)
+                previousSelection.SetSelected(false, selectionOrigin);
+
+            SelectionChanged?.Invoke(SelectedBehaviour, selectionOrigin);
+            if (selected)
+                SetAsCurrent();
+        }
+
+        public void ClearSelection()
+        {
+            foreach (var navigatable in _navigatables)
+            {
+                navigatable.SetSelected(false, SelectionOrigin.Programmatically);
+            }
         }
 
         public void ConfirmSelection()
         {
-            _navigatables[SelectedIndex].Confirm();
+            if (SelectedBehaviour != null)
+                SelectedBehaviour.Confirm();
         }
 
         public void SetAsCurrent()
