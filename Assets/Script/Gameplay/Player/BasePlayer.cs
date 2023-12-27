@@ -13,8 +13,6 @@ namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : GameplayBehaviour
     {
-        protected SyncTrack SyncTrack { get; private set; }
-
         public YargPlayer Player { get; private set; }
 
         public float NoteSpeed
@@ -39,8 +37,6 @@ namespace YARG.Gameplay.Player
         /// </remarks>
         public double InputCalibration => -Player.Profile.InputCalibrationSeconds;
 
-        protected BaseInputViewer InputViewer { get; private set; }
-
         public abstract BaseEngine BaseEngine { get; }
 
         public abstract BaseStats Stats { get; }
@@ -52,19 +48,26 @@ namespace YARG.Gameplay.Player
         public HitWindowSettings HitWindow { get; protected set; }
 
         public int Score { get; protected set; }
+
         public int Combo { get; protected set; }
 
         public int NotesHit   { get; protected set; }
+
         public int TotalNotes { get; protected set; }
 
         public bool IsFc { get; protected set; }
 
-        protected bool IsInitialized { get; private set; }
-
-        private List<GameInput> _replayInputs;
         public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
 
-        public List<ISantrollerHaptics> SantrollerHaptics = new();
+        protected SyncTrack SyncTrack { get; private set; }
+
+        protected bool IsInitialized { get; private set; }
+
+        protected List<ISantrollerHaptics> SantrollerHaptics { get; private set; } = new();
+
+        protected BaseInputViewer InputViewer { get; private set; }
+
+        private List<GameInput> _replayInputs;
 
         private int _replayInputIndex;
 
@@ -275,13 +278,9 @@ namespace YARG.Gameplay.Player
                     : SfxSample.StarPowerRelease);
             }
 
-            if (status)
+            foreach (var haptics in SantrollerHaptics)
             {
-                SantrollerHaptics.ForEach(kit => kit.SetStarPowerActive(true));
-            }
-            else
-            {
-                SantrollerHaptics.ForEach(kit => kit.SetStarPowerActive(false));
+                haptics.SetStarPowerActive(status);
             }
         }
 

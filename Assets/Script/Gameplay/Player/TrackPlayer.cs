@@ -341,7 +341,11 @@ namespace YARG.Gameplay.Player
             if (CurrentMultipler != PreviousMultipler)
             {
                 PreviousMultipler = CurrentMultipler;
-                SantrollerHaptics.ForEach(kit => kit.SetMultiplier( (uint)CurrentMultipler) );
+
+                foreach (var haptics in SantrollerHaptics)
+                {
+                    haptics.SetMultiplier((uint)CurrentMultipler);
+                }
             }
         }
 
@@ -355,7 +359,10 @@ namespace YARG.Gameplay.Player
 
             ShouldMuteStem = true;
 
-            SantrollerHaptics.ForEach(kit => kit.SetMultiplier(0));
+            foreach (var haptics in SantrollerHaptics)
+            {
+                haptics.SetMultiplier(0);
+            }
         }
 
         protected virtual void OnOverstrum()
@@ -370,13 +377,21 @@ namespace YARG.Gameplay.Player
         protected virtual void OnSoloStart(SoloSection solo)
         {
             TrackView.StartSolo(solo);
-            SantrollerHaptics.ForEach(kit => kit.SetSolo(true));
+
+            foreach (var haptic in SantrollerHaptics)
+            {
+                haptic.SetSolo(true);
+            }
         }
 
         protected virtual void OnSoloEnd(SoloSection solo)
         {
             TrackView.EndSolo(solo.SoloBonus);
-            SantrollerHaptics.ForEach(kit => kit.SetSolo(false));
+
+            foreach (var haptic in SantrollerHaptics)
+            {
+                haptic.SetSolo(false);
+            }
         }
 
         protected virtual void OnStarPowerPhraseHit(TNote note)
