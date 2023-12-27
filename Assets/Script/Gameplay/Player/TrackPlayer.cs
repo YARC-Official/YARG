@@ -173,6 +173,9 @@ namespace YARG.Gameplay.Player
 
         private InstrumentDifficulty<TNote> OriginalNoteTrack { get; set; }
 
+        private int CurrentMultipler = 0;
+        private int PreviousMultipler = 0;
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, int? currentHighScore)
         {
             if (IsInitialized) return;
@@ -248,6 +251,7 @@ namespace YARG.Gameplay.Player
         {
             int maxMultiplier = stats.IsStarPowerActive ? 8 : 4;
             bool groove = stats.ScoreMultiplier == maxMultiplier;
+            CurrentMultipler = stats.ScoreMultiplier;
 
             TrackMaterial.SetTrackScroll(songTime, NoteSpeed);
             TrackMaterial.GrooveMode = groove;
@@ -339,6 +343,15 @@ namespace YARG.Gameplay.Player
             NotesHit++;
 
             ShouldMuteStem = false;
+            if (CurrentMultipler != PreviousMultipler)
+            {
+                PreviousMultipler = CurrentMultipler;
+
+                foreach (var haptics in SantrollerHaptics)
+                {
+                    haptics.SetMultiplier((uint)CurrentMultipler);
+                }
+            }
         }
 
         protected virtual void OnNoteMissed(int index, TNote note)
@@ -350,6 +363,11 @@ namespace YARG.Gameplay.Player
             }
 
             ShouldMuteStem = true;
+
+            foreach (var haptics in SantrollerHaptics)
+            {
+                haptics.SetMultiplier(0);
+            }
         }
 
         protected virtual void OnOverstrum()
@@ -364,11 +382,21 @@ namespace YARG.Gameplay.Player
         protected virtual void OnSoloStart(SoloSection solo)
         {
             TrackView.StartSolo(solo);
+
+            foreach (var haptic in SantrollerHaptics)
+            {
+                haptic.SetSolo(true);
+            }
         }
 
         protected virtual void OnSoloEnd(SoloSection solo)
         {
             TrackView.EndSolo(solo.SoloBonus);
+
+            foreach (var haptic in SantrollerHaptics)
+            {
+                haptic.SetSolo(false);
+            }
         }
 
         protected virtual void OnStarPowerPhraseHit(TNote note)

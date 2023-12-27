@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using PlasticBand.Haptics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
@@ -11,8 +13,6 @@ namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : GameplayBehaviour
     {
-        protected SyncTrack SyncTrack { get; private set; }
-
         public YargPlayer Player { get; private set; }
 
         public float NoteSpeed
@@ -37,8 +37,6 @@ namespace YARG.Gameplay.Player
         /// </remarks>
         public double InputCalibration => -Player.Profile.InputCalibrationSeconds;
 
-        protected BaseInputViewer InputViewer { get; private set; }
-
         public abstract BaseEngine BaseEngine { get; }
 
         public abstract BaseStats Stats { get; }
@@ -50,18 +48,27 @@ namespace YARG.Gameplay.Player
         public HitWindowSettings HitWindow { get; protected set; }
 
         public int Score { get; protected set; }
+
         public int Combo { get; protected set; }
 
         public int NotesHit   { get; protected set; }
+
         public int TotalNotes { get; protected set; }
 
         public bool IsFc { get; protected set; }
         public bool IsNewHighScore { get; protected set; }
 
+        public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
+
+        protected SyncTrack SyncTrack { get; private set; }
+
         protected bool IsInitialized { get; private set; }
 
+        protected List<ISantrollerHaptics> SantrollerHaptics { get; private set; } = new();
+
+        protected BaseInputViewer InputViewer { get; private set; }
+
         private List<GameInput> _replayInputs;
-        public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
 
         private int _replayInputIndex;
 
@@ -76,6 +83,8 @@ namespace YARG.Gameplay.Player
 
         protected void Start()
         {
+            SantrollerHaptics = Player.Bindings.GetDevicesByType<ISantrollerHaptics>();
+
             if (!GameManager.IsReplay)
             {
                 SubscribeToInputEvents();
@@ -200,11 +209,29 @@ namespace YARG.Gameplay.Player
         private void SubscribeToInputEvents()
         {
             Player.Bindings.SubscribeToGameplayInputs(Player.Profile.GameMode, OnGameInput);
+            Player.Bindings.DeviceAdded += OnDeviceAdded;
         }
 
         private void UnsubscribeFromInputEvents()
         {
             Player.Bindings.UnsubscribeFromGameplayInputs(Player.Profile.GameMode, OnGameInput);
+            Player.Bindings.DeviceAdded -= OnDeviceRemoved;
+        }
+
+        private void OnDeviceAdded(InputDevice device)
+        {
+            if (device is ISantrollerHaptics haptics)
+            {
+                SantrollerHaptics.Add(haptics);
+            }
+        }
+
+        private void OnDeviceRemoved(InputDevice device)
+        {
+            if (device is ISantrollerHaptics haptics)
+            {
+                SantrollerHaptics.Remove(haptics);
+            }
         }
 
         protected void OnGameInput(ref GameInput input)
@@ -235,6 +262,12 @@ namespace YARG.Gameplay.Player
             {
                 GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
             }
+
+            foreach (var haptics in SantrollerHaptics)
+            {
+                haptics.SetStarPowerFill((float)Stats.StarPowerAmount);
+
+            }
         }
 
         protected virtual void OnStarPowerStatus(bool status)
@@ -244,6 +277,11 @@ namespace YARG.Gameplay.Player
                 GlobalVariables.AudioManager.PlaySoundEffect(status
                     ? SfxSample.StarPowerDeploy
                     : SfxSample.StarPowerRelease);
+            }
+
+            foreach (var haptics in SantrollerHaptics)
+            {
+                haptics.SetStarPowerActive(status);
             }
         }
 
