@@ -268,8 +268,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var haptics in SantrollerHaptics)
             {
-                haptics.SetStarPowerFill((float)Stats.StarPowerAmount);
-
+                haptics.SetStarPowerFill((float) Stats.StarPowerAmount);
             }
         }
 
