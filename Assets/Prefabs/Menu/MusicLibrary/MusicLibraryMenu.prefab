@@ -929,6 +929,7 @@ MonoBehaviour:
     type: 3}
   _viewObjectParent: {fileID: 4030813026311060847}
   _scrollbar: {fileID: 4671384087136440526}
+  _viewAligner: {fileID: 0}
   _searchField: {fileID: 4030813025972567531}
   _subHeader: {fileID: 2557806454790739688}
   _sidebar: {fileID: 5958352451011471034}
@@ -3868,8 +3869,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 418
-  m_PreferredHeight: 836
+  m_PreferredWidth: 418.2469
+  m_PreferredHeight: 836.4938
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -4057,8 +4058,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 417
-  m_PreferredHeight: 417
+  m_PreferredWidth: 417.2469
+  m_PreferredHeight: 417.2469
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -6041,7 +6042,7 @@ PrefabInstance:
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e,
         type: 3}
       propertyPath: m_Value
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
@@ -6115,7 +6116,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _defaultGroup: 1
   _canBeCurrent: 1
-  _addAllChildrenOnAwake: 1
+  _addAllChildrenOnAwake: 0
   _selectFirst: 1
 --- !u!114 &3708412150294039787
 MonoBehaviour:

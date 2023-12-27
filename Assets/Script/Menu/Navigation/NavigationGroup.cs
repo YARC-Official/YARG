@@ -45,7 +45,7 @@ namespace YARG.Menu.Navigation
             {
                 foreach (var navigatable in GetComponentsInChildren<NavigatableBehaviour>())
                 {
-                    AddNavigatable(navigatable);
+                    _AddNavigatable(navigatable);
                 }
             }
         }
@@ -63,7 +63,7 @@ namespace YARG.Menu.Navigation
             }
         }
 
-        public void AddNavigatable(NavigatableBehaviour navigatable)
+        private void _AddNavigatable(NavigatableBehaviour navigatable)
         {
             if (_navigatables.Contains(navigatable))
                 throw new InvalidOperationException($"Navigation group {this} already contains navigatable {navigatable}!");
@@ -71,6 +71,17 @@ namespace YARG.Menu.Navigation
             _navigatables.Add(navigatable);
             navigatable.NavigationGroup = this;
             navigatable.SelectionStateChanged += OnSelectionStateChanged;
+        }
+
+        public void AddNavigatable(NavigatableBehaviour navigatable)
+        {
+            if (_addAllChildrenOnAwake)
+            {
+                Debug.LogWarning($"Navigation group {this} has 'Add All Children On Awake' enabled but is being added to manually! This is most likely an error and will result in duplicate entries, so it has been disabled.");
+                _addAllChildrenOnAwake = false;
+            }
+
+            _AddNavigatable(navigatable);
         }
 
         public void AddNavigatable(GameObject gameObj)
