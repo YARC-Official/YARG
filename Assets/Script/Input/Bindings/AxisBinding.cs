@@ -199,7 +199,7 @@ namespace YARG.Input
 
     public class AxisBinding : ControlBinding<float, SingleAxisBinding>
     {
-        private float _currentValue;
+        public float State { get; protected set; }
 
         public AxisBinding(string name, int action) : base(name, action)
         {
@@ -224,10 +224,10 @@ namespace YARG.Input
             }
 
             // Ignore if state is unchanged
-            if (Mathf.Approximately(_currentValue, max))
+            if (Mathf.Approximately(State, max))
                 return;
 
-            _currentValue = max;
+            State = max;
             FireInputEvent(time, max);
         }
 

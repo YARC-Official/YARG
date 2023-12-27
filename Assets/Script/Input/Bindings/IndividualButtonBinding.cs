@@ -33,13 +33,15 @@ namespace YARG.Input
 
         private void ProcessNextState(double time, bool state)
         {
+            RawState = state;
+
             // Ignore repeat presses/releases within the debounce threshold
             _debounceTimer.Update(state);
             if (!_debounceTimer.HasElapsed)
                 return;
 
             _debounceTimer.Restart();
-            _currentValue = _debounceTimer.Value;
+            State = _debounceTimer.Value;
             FireInputEvent(time, state);
         }
 
@@ -62,13 +64,15 @@ namespace YARG.Input
             }
 
             // Only send a post-debounce event if the state changed
-            if (anyFinished && state != _currentValue)
+            if (anyFinished && state != State)
             {
                 ProcessNextState(updateTime, state);
+                FireStateChanged();
             }
-            else if (_debounceTimer.HasElapsed)
+            else if (_debounceTimer.HasElapsed && _debounceTimer.Value != State)
             {
                 ProcessNextState(updateTime, _debounceTimer.Value);
+                FireStateChanged();
             }
         }
     }

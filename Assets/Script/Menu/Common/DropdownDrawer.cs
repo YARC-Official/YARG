@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Helpers.Extensions;
@@ -9,18 +8,8 @@ namespace YARG.Menu
     {
         [SerializeField]
         private GameObject _foldout;
-
-        [Space]
-        [SerializeField]
-        private TextMeshProUGUI _text;
         [SerializeField]
         private GameObject _arrow;
-
-        public string Text
-        {
-            get => _text.text;
-            set => _text.text = value;
-        }
 
         private bool _drawerOpened;
         public bool DrawerOpened
@@ -65,10 +54,12 @@ namespace YARG.Menu
             _drawerOpened = open;
             _foldout.SetActive(open);
 
-            // Flip the arrow graphic
-            float arrowScale = open ? -1f : 1f;
-            _arrow.transform.localScale = _arrow.transform.localScale.WithY(arrowScale);
-
+            if (_arrow != null)
+            {
+                // Flip the arrow graphic
+                float arrowScale = open ? -1f : 1f;
+                _arrow.transform.localScale = _arrow.transform.localScale.WithY(arrowScale);
+            }
         }
 
         public void ToggleDrawer() => DrawerOpened = !DrawerOpened;

@@ -185,6 +185,8 @@ namespace YARG.Input
         where TState : struct
         where TBinding : SingleBinding<TState>
     {
+        public event Action StateChanged;
+
         private List<SerializedInputControl> _unresolvedBindings = new();
 
         protected List<TBinding> _bindings = new();
@@ -468,11 +470,17 @@ namespace YARG.Input
 
             binding.UpdateState();
             OnStateChanged(binding, eventPtr.time);
+            FireStateChanged();
         }
 
         void IInputStateChangeMonitor.NotifyTimerExpired(InputControl control, double time, long monitorIndex, int timerIndex) { }
 
         protected abstract void OnStateChanged(TBinding binding, double time);
+
+        protected void FireStateChanged()
+        {
+            StateChanged?.Invoke();
+        }
 
 #nullable enable
         protected virtual SerializedInputControl? SerializeControl(TBinding binding)

@@ -123,11 +123,11 @@ MonoBehaviour:
   _bindsList: {fileID: 5238812332355880149}
   _gameModeViewPrefab: {fileID: 1863348019200065187, guid: 5e596ac70b41442439015a49fd038aba,
     type: 3}
-  _buttonGroupPrefab: {fileID: 2707649550654538269, guid: d03ff859a75fb154e9155e4eef90fbe1,
+  _buttonGroupPrefab: {fileID: 2533602271579289954, guid: dab9c3ea83a2a0d43948a5c0dd53bf72,
     type: 3}
-  _axisGroupPrefab: {fileID: 7688733309676602893, guid: 6860df3c693c9ba46931633c47ef9bc0,
+  _axisGroupPrefab: {fileID: 3950604665545716148, guid: 0d6e57f58330d61429300b43cfbc01f4,
     type: 3}
-  _integerGroupPrefab: {fileID: 5508683284850322875, guid: 16d9523327fb86a41961489f941431c7,
+  _integerGroupPrefab: {fileID: 777512555580489659, guid: 2c9b962f8dbdf8947b897c21e3b49819,
     type: 3}
 --- !u!1 &1195205481145062489
 GameObject:

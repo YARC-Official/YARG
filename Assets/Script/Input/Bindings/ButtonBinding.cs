@@ -165,7 +165,8 @@ namespace YARG.Input
             set => _debounceTimer.TimeThreshold = value;
         }
 
-        protected bool _currentValue;
+        public bool RawState { get; protected set; }
+        public bool State { get; protected set; }
 
         public ButtonBinding(string name, int action) : base(name, action)
         {
@@ -215,8 +216,10 @@ namespace YARG.Input
 
         private void ProcessNextState(double time, bool state)
         {
+            RawState = state;
+
             // Ignore if state is unchanged
-            if (_currentValue == state)
+            if (State == state)
                 return;
 
             // Ignore repeat presses/releases within the debounce threshold
@@ -225,7 +228,7 @@ namespace YARG.Input
                 return;
 
             _debounceTimer.Restart();
-            _currentValue = _debounceTimer.Value;
+            State = _debounceTimer.Value;
             FireInputEvent(time, state);
         }
 
@@ -248,10 +251,12 @@ namespace YARG.Input
             if (state is {} value)
             {
                 ProcessNextState(updateTime, value);
+                FireStateChanged();
             }
             else if (_debounceTimer.HasElapsed)
             {
                 ProcessNextState(updateTime, _debounceTimer.Value);
+                FireStateChanged();
             }
         }
 
