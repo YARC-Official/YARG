@@ -94,8 +94,8 @@ namespace YARG.Menu.Navigation
 
         public void RemoveNavigatable(NavigatableBehaviour navigatable)
         {
-            if (SelectedBehaviour == navigatable && SelectedBehaviour != null)
-                SelectedBehaviour.SetSelected(false, SelectionOrigin.Programmatically);
+            // if (SelectedBehaviour == navigatable && SelectedBehaviour != null)
+            //     SelectedBehaviour.SetSelected(false, SelectionOrigin.Programmatically);
 
             _navigatables.Remove(navigatable);
             navigatable.NavigationGroup = null;
