@@ -26,7 +26,7 @@ namespace YARG.Menu.Navigation
 
         protected virtual void OnDestroy()
         {
-            // SetSelected(false, SelectionOrigin.Programmatically);
+            SetSelected(false, SelectionOrigin.Programmatically);
 
             if (NavigationGroup != null)
                 NavigationGroup.RemoveNavigatable(this);
