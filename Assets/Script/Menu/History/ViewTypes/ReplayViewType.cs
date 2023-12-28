@@ -21,7 +21,12 @@ namespace YARG.Menu.History
             _replayEntry = replayEntry;
 
             var songsByHash = GlobalVariables.Instance.SongContainer.SongsByHash;
-            _songMetadata = songsByHash.GetValueOrDefault(replayEntry.SongChecksum)[0];
+
+            var songsForHash = songsByHash.GetValueOrDefault(replayEntry.SongChecksum);
+            if (songsForHash is not null)
+            {
+                _songMetadata = songsForHash[0];
+            }
         }
 
         public override string GetPrimaryText(bool selected)
@@ -31,9 +36,7 @@ namespace YARG.Menu.History
 
         public override string GetSecondaryText(bool selected)
         {
-            if (_songMetadata is null) return string.Empty;
-
-            return _songMetadata.Artist;
+            return FormatAs(_replayEntry.ArtistName, TextType.Secondary, selected);
         }
 
         public override async UniTask<Sprite> GetIcon()

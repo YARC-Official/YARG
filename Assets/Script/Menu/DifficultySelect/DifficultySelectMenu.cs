@@ -104,7 +104,7 @@ namespace YARG.Menu.DifficultySelect
             ChangePlayer(0);
 
             _loadingPhrase.text = RichTextUtils.StripRichTextTags(
-                GlobalVariables.Instance.CurrentSong.LoadingPhrase, RichTextUtils.BAD_TAGS);
+                GlobalVariables.Instance.CurrentSong.LoadingPhrase, RichTextTags.BadTags);
         }
 
         private void UpdateForPlayer()

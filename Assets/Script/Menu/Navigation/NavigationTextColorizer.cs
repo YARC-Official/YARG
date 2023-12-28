@@ -33,6 +33,11 @@ namespace YARG.Menu.Navigation
             OnSelectionStateChanged(_navigatableBehaviour.Selected);
         }
 
+        private void OnSelectionStateChanged(NavigatableBehaviour navigatable, bool selected, SelectionOrigin selectionOrigin)
+        {
+            OnSelectionStateChanged(selected);
+        }
+
         private void OnSelectionStateChanged(bool selected)
         {
             for (int i = 0; i < _texts.Length; i++)

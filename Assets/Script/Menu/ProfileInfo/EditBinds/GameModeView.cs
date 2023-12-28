@@ -15,23 +15,23 @@ namespace YARG.Menu.ProfileInfo
         private EditBindsTab _editBindsTab;
 
         private GameMode _gameMode;
-        private bool _isMenu;
+        private bool _isMenuBindings;
 
         public void Init(GameMode gameMode, EditBindsTab editBindsTab)
         {
             _editBindsTab = editBindsTab;
 
             _gameMode = gameMode;
-            _isMenu = false;
+            _isMenuBindings = false;
 
             _gameModeName.StringReference = LocaleHelper.StringReference($"GameMode.{gameMode}");
         }
 
-        public void InitAsMenu(EditBindsTab editBindsTab)
+        public void InitAsMenuBindings(EditBindsTab editBindsTab)
         {
             _editBindsTab = editBindsTab;
 
-            _isMenu = true;
+            _isMenuBindings = true;
 
             _gameModeName.StringReference = LocaleHelper.StringReference("GameMode.Menu");
         }
@@ -40,7 +40,12 @@ namespace YARG.Menu.ProfileInfo
         {
             base.OnSelectionChanged(selected);
 
-            if (_isMenu)
+            if (!selected)
+            {
+                return;
+            }
+
+            if (_isMenuBindings)
             {
                 _editBindsTab.RefreshMenuBindings();
             }
