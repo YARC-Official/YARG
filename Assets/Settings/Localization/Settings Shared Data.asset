@@ -899,6 +899,22 @@ MonoBehaviour:
     m_Key: Tab.Sound
     m_Metadata:
       m_Items: []
+  - m_Id: 100076407547957248
+    m_Key: Setting.General.AlbumArtBackground
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100076571352305664
+    m_Key: Setting.General.AlbumArtBackground.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100447153650601984
+    m_Key: Setting.General.OverrideToAlbumBg
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100447279752351744
+    m_Key: Setting.General.OverrideToAlbumBg.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

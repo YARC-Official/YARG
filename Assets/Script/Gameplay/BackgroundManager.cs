@@ -1,14 +1,22 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using YARG.Core.Song;
 using YARG.Core.Extensions;
 using YARG.Core.Venue;
 using YARG.Helpers;
+using YARG.Helpers.Extensions;
 using YARG.Venue;
+using System.Text.RegularExpressions;
+using TMPro;
+using JetBrains.Annotations;
+using YARG.Gameplay.HUD;
+using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay
 {
@@ -19,6 +27,19 @@ namespace YARG.Gameplay
         private VideoPlayer _videoPlayer;
         [SerializeField]
         private RawImage _backgroundImage;
+
+        [SerializeField]
+        private RawImage _coverBackgroundImage;
+        [SerializeField]
+        private RawImage _coverImageOnePlayer;
+        [SerializeField]
+        private RawImage _coverImageTwoPlayer;
+        [SerializeField]
+        private RawImage _coverImageThreePlayer;
+        [SerializeField]
+        private RawImage _blackTransparency;
+
+        public SongMetadata Song { get; }
 
         private VenueInfo _venueInfo;
 
@@ -106,6 +127,42 @@ namespace YARG.Gameplay
                     {
                         _backgroundImage.gameObject.SetActive(true);
                         _backgroundImage.texture = texture;
+                    }
+                    break;
+                case BackgroundType.Album:
+                    await GameManager.Song.SetRawImageToAlbumCover(_coverBackgroundImage, CancellationToken.None); // Grabs album cover and applies it to the objects
+                        
+                    _coverImageOnePlayer.texture = _coverBackgroundImage.texture;
+                    _coverImageTwoPlayer.texture = _coverBackgroundImage.texture;
+                    _coverImageThreePlayer.texture = _coverBackgroundImage.texture;
+                        
+                    _coverBackgroundImage.gameObject.SetActive(true);
+                    _blackTransparency.gameObject.SetActive(true); // Really dumb way of darkening the background image, just a big semi-transparent black box that fills the screen
+
+                    int playerCount = 0;
+                    foreach (var player in GameManager.Players)
+                    {
+                        if (player is not Gameplay.Player.VocalsPlayer)
+                            playerCount++;
+                    }
+
+                    if (playerCount == 1)
+                    {
+                        _coverImageOnePlayer.gameObject.SetActive(true);
+                        _coverImageTwoPlayer.gameObject.SetActive(false);
+                        _coverImageThreePlayer.gameObject.SetActive(false);
+                    }
+                    if (playerCount == 2)
+                    {
+                        _coverImageOnePlayer.gameObject.SetActive(false);
+                        _coverImageTwoPlayer.gameObject.SetActive(true);
+                        _coverImageThreePlayer.gameObject.SetActive(false);
+                    }
+                    if (playerCount >= 3)
+                    {
+                        _coverImageOnePlayer.gameObject.SetActive(false);
+                        _coverImageTwoPlayer.gameObject.SetActive(false);
+                        _coverImageThreePlayer.gameObject.SetActive(true);
                     }
                     break;
             }

@@ -5,6 +5,12 @@ using YARG.Helpers;
 using YARG.Settings;
 using YARG.Core.Song;
 using YARG.Core.Venue;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
+using System.Runtime.InteropServices;
+using YARG.Helpers.Extensions;
+using YARG.Song;
+using UnityEngine.UI;
 
 namespace YARG.Venue
 {
@@ -51,12 +57,20 @@ namespace YARG.Venue
                 return GetVenuePathFromGlobal();
             }
 
+             // If album bg override is enabled, jump to that
+            if (SettingsManager.Settings.OverrideToAlbumBg.Value)
+            {
+                return CreateBgFromAlbum(song);
+            }
+                
+
             if (song.IniData != null)
             {
                 var stream = song.IniData.GetBackgroundStream(
                     BackgroundType.Yarground |
                     BackgroundType.Video |
-                    BackgroundType.Image);
+                    BackgroundType.Image |
+                    BackgroundType.Album);
 
                 if (stream.Item2 != null)
                     return new VenueInfo(songSource, stream.Item1, stream.Item2);
@@ -118,8 +132,45 @@ namespace YARG.Venue
                     }
                 }
             }
+            // If all fails, create background from album, if enabled
+            if (SettingsManager.Settings.AlbumArtBackground.Value)
+            {
+                return CreateBgFromAlbum(song);
+            }
+            else // If disabled, jump to global venues
+            {
+                return GetVenuePathFromGlobal();
+            }
+        }
+        public static VenueInfo? CreateBgFromAlbum(SongMetadata song)
+        {
+            const VenueSource songSource = VenueSource.Song;
+            string adirectory = song.Directory;
             
+            string[] albumNames =
+            {
+                "album"
+            };
 
+            string[] albumExtensions = 
+            {
+                ".png", ".jpg", ".jpeg"
+            };
+
+            foreach (var aname in albumNames)
+            {
+                var aFile = Path.Combine(adirectory, aname);
+                foreach (var ext in albumExtensions)
+                {
+                    string albumPath = aFile + ext;
+
+                    if (File.Exists(albumPath))
+                    {
+                        var stream = File.OpenRead(albumPath);
+                        return new(songSource, BackgroundType.Album, stream);
+                    }
+                }
+            }
             // If all of this fails, we can load a global venue
             return GetVenuePathFromGlobal();
         }

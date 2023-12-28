@@ -55,6 +55,8 @@ namespace YARG.Settings
             }
 
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
+            public ToggleSetting AlbumArtBackground { get; } = new(true);
+            public ToggleSetting OverrideToAlbumBg { get; } = new(false);
 
             public void OpenCalibrator()
             {
