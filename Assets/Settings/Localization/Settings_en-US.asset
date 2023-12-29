@@ -144,10 +144,6 @@ MonoBehaviour:
       the audio play later.
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619349
-    m_Localized: Disable Per Song Backgrounds
-    m_Metadata:
-      m_Items: []
   - m_Id: 53693768667619351
     m_Localized: Cursor Show Time
     m_Metadata:
@@ -287,11 +283,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53704501379850241
     m_Localized: Removes all kick notes (drums only).
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850242
-    m_Localized: Disables custom backgrounds in songs and shows the ones in your
-      venue folder instead.
     m_Metadata:
       m_Items: []
   - m_Id: 53704501379850244
@@ -948,23 +939,28 @@ MonoBehaviour:
       song. Otherwise, it will fade out after 10 seconds.
     m_Metadata:
       m_Items: []
-  - m_Id: 100076407547957248
-    m_Localized: Album Art Becomes Background
+  - m_Id: 100857862591025152
+    m_Localized: Background Mode
     m_Metadata:
       m_Items: []
-  - m_Id: 100076571352305664
-    m_Localized: If a song has no background image/video, the game will use the album
-      artwork and song metadata to create a background. Overridden by Disable Per
-      Song Backgrounds. Good for chart previews!
+  - m_Id: 100857921143508992
+    m_Localized: Choose how the game handles background and venues.
     m_Metadata:
       m_Items: []
-  - m_Id: 100447153650601984
-    m_Localized: Override to Album Artwork Background
+  - m_Id: 100858817524994048
+    m_Localized: Default / Chart Backgrounds
     m_Metadata:
       m_Items: []
-  - m_Id: 100447279752351744
-    m_Localized: If enabled, album artwork will take precedence over included images
-      or videos for the background.
+  - m_Id: 100859254395310080
+    m_Localized: Global Venues Only
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100859368945946624
+    m_Localized: Album Art as Background
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100859965451472896
+    m_Localized: Override to Album Art
     m_Metadata:
       m_Items: []
   references:

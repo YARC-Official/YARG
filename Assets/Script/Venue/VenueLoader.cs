@@ -11,6 +11,8 @@ using System.Runtime.InteropServices;
 using YARG.Helpers.Extensions;
 using YARG.Song;
 using UnityEngine.UI;
+using YARG.Gameplay;
+using YARG.Gameplay.HUD;
 
 namespace YARG.Venue
 {
@@ -18,6 +20,14 @@ namespace YARG.Venue
     {
         Global,
         Song,
+    }
+
+    public enum VenueMode
+    {
+        Default,
+        GlobalVenuesOnly,
+        AlbumAsBackground,
+        OverrideToAlbumAsBackground
     }
 
     public readonly struct VenueInfo
@@ -52,13 +62,13 @@ namespace YARG.Venue
             const VenueSource songSource = VenueSource.Song;
 
             // If local backgrounds are disabled, skip right to global
-            if (SettingsManager.Settings.DisablePerSongBackgrounds.Value)
+            if (SettingsManager.Settings.BackgroundMode.Value == VenueMode.GlobalVenuesOnly)
             {
                 return GetVenuePathFromGlobal();
             }
 
              // If album bg override is enabled, jump to that
-            if (SettingsManager.Settings.OverrideToAlbumBg.Value)
+            if (SettingsManager.Settings.BackgroundMode.Value == VenueMode.OverrideToAlbumAsBackground)
             {
                 return CreateBgFromAlbum(song);
             }
@@ -133,7 +143,7 @@ namespace YARG.Venue
                 }
             }
             // If all fails, create background from album, if enabled
-            if (SettingsManager.Settings.AlbumArtBackground.Value)
+            if (SettingsManager.Settings.BackgroundMode.Value == VenueMode.AlbumAsBackground)
             {
                 return CreateBgFromAlbum(song);
             }

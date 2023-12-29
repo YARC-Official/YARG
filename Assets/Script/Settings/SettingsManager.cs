@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Helpers;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
@@ -28,9 +29,7 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Venues"),
                 new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),
-                nameof(Settings.DisablePerSongBackgrounds),
-                nameof(Settings.AlbumArtBackground),
-                nameof(Settings.OverrideToAlbumBg),
+                nameof(Settings.BackgroundMode),
 
                 new HeaderMetadata("Calibration"),
                 new ButtonRowMetadata(nameof(Settings.OpenCalibrator)),
