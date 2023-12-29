@@ -56,7 +56,10 @@ namespace YARG.Gameplay.Player
 
             // Get the notes from the specific harmony or solo part
             var multiTrack = chart.GetVocalsTrack(Player.Profile.CurrentInstrument);
-            var track = multiTrack.Parts[Player.Profile.HarmonyIndex];
+            var partIndex = Player.Profile.CurrentInstrument == Instrument.Harmony
+                ? Player.Profile.HarmonyIndex
+                : 0;
+            var track = multiTrack.Parts[partIndex];
 
             OriginalNoteTrack = track.CloneAsInstrumentDifficulty();
             player.Profile.ApplyModifiers(OriginalNoteTrack);
