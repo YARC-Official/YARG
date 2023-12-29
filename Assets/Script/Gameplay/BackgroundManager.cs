@@ -144,12 +144,12 @@ namespace YARG.Gameplay
                     if (playerCount == 1)
                     {
                         RectTransform _albumCoverRt = _coverImage.GetComponent<RectTransform>(); 
-                        _albumCoverRt.anchoredPosition = new Vector3(-555, -0, 5);
+                        _albumCoverRt.anchoredPosition = new Vector3(-555, -55, 5);
                     }
                     if (playerCount == 2)
                     {
                         RectTransform _albumCoverRt = _coverImage.GetComponent<RectTransform>(); 
-                        _albumCoverRt.anchoredPosition = new Vector3(40, 175, 5);
+                        _albumCoverRt.anchoredPosition = new Vector3(40, 170, 5);
                     }
                     if (playerCount >= 3)
                     {

@@ -63,12 +63,12 @@ namespace YARG.Gameplay.HUD
                     if (playerCount == 1)
                     {
                         RectTransform _albumTextRt = _albumText.GetComponent<RectTransform>(); 
-                        _albumTextRt.anchoredPosition = new Vector3(400, -500, -2);
+                        _albumTextRt.anchoredPosition = new Vector3(415, -600, -2);
                     }
                     if (playerCount == 2)
                     {
                         RectTransform _albumTextRt = _albumText.GetComponent<RectTransform>(); 
-                        _albumTextRt.anchoredPosition = new Vector3(-160, -800, -2);
+                        _albumTextRt.anchoredPosition = new Vector3(-160, -775, -2);
                         string realign = "<align=center>";
                         _albumText.text = $"{realign}{aFinalText}";
                     }
