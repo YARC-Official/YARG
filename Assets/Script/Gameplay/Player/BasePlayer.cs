@@ -189,11 +189,7 @@ namespace YARG.Gameplay.Player
                     }
 
                     BaseEngine.QueueInput(ref input);
-
-                    if (InputViewer != null)
-                    {
-                        InputViewer.OnInput(input);
-                    }
+                    OnInputQueued(input);
 
                     _replayInputIndex++;
                 }
@@ -251,12 +247,8 @@ namespace YARG.Gameplay.Player
             if (InterceptInput(ref input)) return;
 
             BaseEngine.QueueInput(ref input);
+            OnInputQueued(input);
             _replayInputs.Add(input);
-
-            if (InputViewer != null)
-            {
-                InputViewer.OnInput(input);
-            }
         }
 
         protected virtual void OnStarPowerPhraseHit()
@@ -288,6 +280,14 @@ namespace YARG.Gameplay.Player
         }
 
         protected abstract bool InterceptInput(ref GameInput input);
+
+        protected virtual void OnInputQueued(GameInput input)
+        {
+            if (InputViewer != null)
+            {
+                InputViewer.OnInput(input);
+            }
+        }
 
         protected static int[] PopulateStarScoreThresholds(float[] multiplierThresh, int baseScore)
         {

@@ -18,8 +18,12 @@ namespace YARG.Gameplay.Visuals
         private bool _setShaderProperties = true;
 
         private Material _material;
-
         private TrackPlayer _player;
+
+        private float _whammyFactor;
+
+        private float _secondaryAmplitudeTime;
+        private float _tertiaryAmplitudeTime;
 
         private void Awake()
         {
@@ -72,6 +76,11 @@ namespace YARG.Gameplay.Visuals
             _material.SetFloat(_primaryAmplitude, 0f);
             _material.SetFloat(_secondaryAmplitude, 0f);
             _material.SetFloat(_tertiaryAmplitude, 0f);
+
+            _whammyFactor = 0f;
+
+            _secondaryAmplitudeTime = 0f;
+            _tertiaryAmplitudeTime = 0f;
         }
 
         public void UpdateSustainLine(float noteSpeed)
@@ -92,19 +101,27 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateAnimation(float noteSpeed)
         {
+            // TODO: Reduce the amount of magic numbers lol
+
             if (!_setShaderProperties) return;
 
-            // float whammy = ((NotePool) pool).WhammyFactor * 1.5f;
-            float whammy = 0f;
+            // Update whammy factor
+            if (_player is FiveFretPlayer player)
+            {
+                // Make sure to lerp it to prevent jumps
+                _whammyFactor = Mathf.Lerp(_whammyFactor, player.WhammyFactor, Time.deltaTime * 6f);
+            }
+
+            float whammy = _whammyFactor * 1.5f;
 
             // Update the amplitude times
-            float secondaryAmplitudeTime = Time.time * (4f + whammy);
-            float tertiaryAmplitudeTime = Time.time * (1.7f + whammy);
+            _secondaryAmplitudeTime += Time.deltaTime * (4f + whammy);
+            _tertiaryAmplitudeTime += Time.deltaTime * (1.7f + whammy);
 
             // Change line amplitude
             _material.SetFloat(_primaryAmplitude, 0.18f + whammy * 0.2f);
-            _material.SetFloat(_secondaryAmplitude, Mathf.Sin(secondaryAmplitudeTime) * (whammy + 0.5f));
-            _material.SetFloat(_tertiaryAmplitude, Mathf.Sin(tertiaryAmplitudeTime) * (whammy * 0.1f + 0.1f));
+            _material.SetFloat(_secondaryAmplitude, Mathf.Sin(_secondaryAmplitudeTime) * (whammy + 0.5f));
+            _material.SetFloat(_tertiaryAmplitude, Mathf.Sin(_tertiaryAmplitudeTime) * (whammy * 0.1f + 0.1f));
 
             // Move line forward
             float forwardSub = Time.deltaTime * noteSpeed / 2.5f * (1f + whammy * 0.1f);

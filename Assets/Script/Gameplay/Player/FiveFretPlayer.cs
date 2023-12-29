@@ -27,6 +27,8 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
+        public float WhammyFactor { get; private set; }
+
         protected override InstrumentDifficulty<GuitarNote> GetNotes(SongChart chart)
         {
             var track = chart.GetFiveFretTrack(Player.Profile.CurrentInstrument).Clone();
@@ -190,6 +192,17 @@ namespace YARG.Gameplay.Player
             if (input.GetAction<GuitarAction>() == GuitarAction.StarPower && GameManager.IsPractice) return true;
 
             return false;
+        }
+
+        protected override void OnInputQueued(GameInput input)
+        {
+            base.OnInputQueued(input);
+
+            // Update the whammy factor
+            if (input.GetAction<GuitarAction>() == GuitarAction.Whammy)
+            {
+                WhammyFactor = Mathf.Clamp01(input.Axis);
+            }
         }
     }
 }
