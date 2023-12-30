@@ -105,7 +105,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: AntiGhosting
+      name: Ghosting
       rect:
         serializedVersion: 2
         x: 0
@@ -454,8 +454,8 @@ TextureImporter:
       AllHopos: 1133985084
       AllStrums: 1402975760
       AllTaps: 2121361537
-      AntiGhosting: 960618387
       DynamicHitWindow: -1908706152
+      Ghosting: 960618387
       HoposToTaps: 1309754347
       InfiniteFrontEnd: -1660463282
       ModifierIcons_14: -2147107449

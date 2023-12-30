@@ -8,7 +8,7 @@ namespace YARG.Menu.ScoreScreen
 {
     public class ModifierIcon : MonoBehaviour
     {
-        private const string ANTI_GHOSTING      = "AntiGhosting";
+        private const string GHOSTING           = "Ghosting";
         private const string INFINITE_FRONT_END = "InfiniteFrontEnd";
         private const string DYNAMIC_HIT_WINDOW = "DynamicHitWindow";
 
@@ -34,11 +34,11 @@ namespace YARG.Menu.ScoreScreen
             switch (gameMode)
             {
                 case GameMode.FiveFretGuitar:
-                    // Anti-Ghosting Icon
-                    if (enginePreset.FiveFretGuitar.AntiGhosting)
+                    // Ghosting Icon
+                    if (!enginePreset.FiveFretGuitar.AntiGhosting)
                     {
                         var icon = Instantiate(prefab, parent);
-                        icon.InitializeCustom(ANTI_GHOSTING);
+                        icon.InitializeCustom(GHOSTING);
                     }
 
                     // Infinite Front-End Icon
