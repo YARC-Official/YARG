@@ -90,11 +90,7 @@ namespace YARG.Helpers
 
             // Get song scanning paths
             SongCachePath = Path.Combine(PersistentDataPath, "songcache.bin");
-#if UNITY_EDITOR
             BadSongsPath = Path.Combine(PersistentDataPath, "badsongs.txt");
-#else
-            BadSongsPath = Path.Combine(ExecutablePath, "badsongs.txt");
-#endif
 
             // Get the launcher paths
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
