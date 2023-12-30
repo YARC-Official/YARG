@@ -1,4 +1,4 @@
-﻿using System;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,65 +8,56 @@ namespace YARG.Menu.ScoreScreen
     {
         public enum ScoreCardColor
         {
-            Blue,
-            Gold,
-            Red,
-            Gray
+            Blue = 0,
+            Gold = 1,
+            Red  = 2,
+            Gray = 3
         }
 
         [SerializeField]
         private Image[] _coloredImages;
         [SerializeField]
+        private TextMeshProUGUI[] _coloredHeaders;
+
+        [Space]
+        [SerializeField]
         private Image _background;
+        [SerializeField]
+        private Image _bottomTag;
 
         [Space]
         [SerializeField]
-        private Sprite _blueBackground;
+        private Sprite[] _backgrounds;
         [SerializeField]
-        private Sprite _goldBackground;
-        [SerializeField]
-        private Sprite _redBackground;
-        [SerializeField]
-        private Sprite _grayBackground;
+        private Sprite[] _tags;
 
         [Space]
         [SerializeField]
-        private Color _blueColor;
+        private Color[] _colors;
         [SerializeField]
-        private Color _goldColor;
-        [SerializeField]
-        private Color _redColor;
-        [SerializeField]
-        private Color _grayColor;
+        private Color[] _headerColors;
 
         private ScoreCardColor _scoreCardColor;
 
-        public Color CurrentColor => _scoreCardColor switch
-        {
-            ScoreCardColor.Blue => _blueColor,
-            ScoreCardColor.Gold => _goldColor,
-            ScoreCardColor.Red  => _redColor,
-            ScoreCardColor.Gray => _grayColor,
-            _                   => throw new Exception("Unreachable.")
-        };
+        public Color CurrentColor => _colors[(int) _scoreCardColor];
+        public Color HeaderColor => _headerColors[(int) _scoreCardColor];
 
         public void SetCardColor(ScoreCardColor scoreCardColor)
         {
             _scoreCardColor = scoreCardColor;
 
-            _background.sprite = scoreCardColor switch
-            {
-                ScoreCardColor.Blue => _blueBackground,
-                ScoreCardColor.Gold => _goldBackground,
-                ScoreCardColor.Red  => _redBackground,
-                ScoreCardColor.Gray => _grayBackground,
-                _                   => throw new Exception("Unreachable.")
-            };
-
             foreach (var image in _coloredImages)
             {
                 image.color = CurrentColor;
             }
+
+            foreach (var text in _coloredHeaders)
+            {
+                text.color = HeaderColor;
+            }
+
+            _background.sprite = _backgrounds[(int) scoreCardColor];
+            _bottomTag.sprite = _tags[(int) scoreCardColor];
         }
     }
 }

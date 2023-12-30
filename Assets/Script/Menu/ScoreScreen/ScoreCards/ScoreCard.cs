@@ -2,7 +2,10 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
+using YARG.Core;
 using YARG.Core.Engine;
+using YARG.Core.Extensions;
+using YARG.Core.Game;
 using YARG.Data;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
@@ -13,37 +16,47 @@ namespace YARG.Menu.ScoreScreen
     public abstract class ScoreCard<T> : MonoBehaviour where T : BaseStats
     {
         [SerializeField]
+        private ModifierIcon _modifierIconPrefab;
+
+        [Space]
+        [SerializeField]
         protected TextMeshProUGUI AccuracyPercent;
 
+        [Space]
         [SerializeField]
         private TextMeshProUGUI _playerName;
-
         [SerializeField]
         private TextMeshProUGUI _instrument;
-
         [SerializeField]
         private TextMeshProUGUI _difficulty;
 
+        [Space]
         [SerializeField]
         private TextMeshProUGUI _score;
-
         [SerializeField]
         private StarView _starView;
-
         [SerializeField]
-        private TextMeshProUGUI _notesHit;
+        private Transform _modifierIconContainer;
 
-        [SerializeField]
-        private TextMeshProUGUI _maxStreak;
-
-        [SerializeField]
-        private TextMeshProUGUI _notesMissed;
-
-        [SerializeField]
-        private TextMeshProUGUI _starpowerPhrases;
-
+        [Space]
         [SerializeField]
         private Image _instrumentIcon;
+
+        [Space]
+        [SerializeField]
+        private GameObject _tagGameObject;
+        [SerializeField]
+        private TextMeshProUGUI _tagText;
+
+        [Space]
+        [SerializeField]
+        private TextMeshProUGUI _notesHit;
+        [SerializeField]
+        private TextMeshProUGUI _maxStreak;
+        [SerializeField]
+        private TextMeshProUGUI _notesMissed;
+        [SerializeField]
+        private TextMeshProUGUI _starpowerPhrases;
 
         private ScoreCardColorizer _colorizer;
 
@@ -83,14 +96,17 @@ namespace YARG.Menu.ScoreScreen
             if (Player.Profile.IsBot)
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Gray);
+                ShowTag("Bot");
             }
             else if (Stats.MaxCombo == totalNotes)
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Gold);
+                ShowTag("Full Combo");
             }
             else
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
+                HideTag();
             }
 
             _score.text = Stats.Score.ToString("N0");
@@ -105,6 +121,32 @@ namespace YARG.Menu.ScoreScreen
             _instrumentIcon.sprite = Addressables
                 .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.CurrentInstrument.ToResourceName()}]")
                 .WaitForCompletion();
+
+            // Set engine preset icons
+            ModifierIcon.SpawnEnginePresetIcons(_modifierIconPrefab, _modifierIconContainer,
+                Player.EnginePreset, Player.Profile.CurrentInstrument.ToGameMode());
+
+            // Set modifier icons
+            foreach (var modifier in EnumExtensions<Modifier>.Values)
+            {
+                if (modifier == Modifier.None) continue;
+
+                if (!Player.Profile.IsModifierActive(modifier)) continue;
+
+                var icon = Instantiate(_modifierIconPrefab, _modifierIconContainer);
+                icon.InitializeForModifier(modifier);
+            }
+        }
+
+        private void ShowTag(string tagText)
+        {
+            _tagGameObject.SetActive(true);
+            _tagText.text = tagText;
+        }
+
+        private void HideTag()
+        {
+            _tagGameObject.SetActive(false);
         }
 
         protected string WrapWithColor(object s)

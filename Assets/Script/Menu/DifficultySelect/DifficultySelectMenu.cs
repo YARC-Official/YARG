@@ -13,7 +13,6 @@ using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
-using YARG.Menu.Persistent;
 using YARG.Player;
 
 namespace YARG.Menu.DifficultySelect

@@ -7,7 +7,6 @@ using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.Extensions;
 using YARG.Core.Venue;
-using YARG.Helpers;
 using YARG.Venue;
 
 namespace YARG.Gameplay
