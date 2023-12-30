@@ -27,6 +27,8 @@ namespace YARG.Menu.ScoreScreen
         private StarView _bandStarView;
         [SerializeField]
         private TextMeshProUGUI _bandScore;
+        [SerializeField]
+        private Scrollbar _horizontalScrollBar;
 
         [Space]
         [SerializeField]
@@ -101,6 +103,15 @@ namespace YARG.Menu.ScoreScreen
                         break;
                     }
                 }
+            }
+
+            // Make sure to update the canvases since we *just* added the score cards
+            Canvas.ForceUpdateCanvases();
+
+            // If the scroll bar is active, make it all the way to the left
+            if (_horizontalScrollBar.gameObject.activeSelf)
+            {
+                _horizontalScrollBar.value = 0f;
             }
         }
     }

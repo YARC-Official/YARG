@@ -67,6 +67,11 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 965049647434591145, guid: 1b5d8949b9f2d7345a0fed53e687c843,
+        type: 3}
+      propertyPath: m_Name
+      value: Modifier Icons
+      objectReference: {fileID: 0}
     - target: {fileID: 1516494443395727076, guid: 1b5d8949b9f2d7345a0fed53e687c843,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -1100,33 +1105,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d22ff6ebddc4c11b824f5443b50a15c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _modifierIconPrefab: {fileID: 0}
-  AccuracyPercent: {fileID: 7674939556346006151}
-  _playerName: {fileID: 7674939555648136362}
-  _instrument: {fileID: 7674939555338052806}
-  _difficulty: {fileID: 7674939556132660770}
-  _score: {fileID: 7674939555971226258}
-  _starView: {fileID: 1834059107583459115}
-  _modifierIconContainer: {fileID: 3934590174063300853}
-  _instrumentIcon: {fileID: 805087794968686801}
-  _tagGameObject: {fileID: 0}
-  _tagText: {fileID: 0}
-  _notesHit: {fileID: 6177436150762148499}
-  _maxStreak: {fileID: 6669027642699322304}
-  _notesMissed: {fileID: 687220980320161962}
-  _starpowerPhrases: {fileID: 8737214957484668560}
---- !u!114 &8960343160157875094
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7674939555848454480}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 329b6f43a62f40fd8f2c188182678c87, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
   _modifierIconPrefab: {fileID: 6951785427522793347, guid: 5dceab9d08cb4eb45942a7d6202fcede,
     type: 3}
   AccuracyPercent: {fileID: 7674939556346006151}
@@ -1135,7 +1113,7 @@ MonoBehaviour:
   _difficulty: {fileID: 7674939556132660770}
   _score: {fileID: 7674939555971226258}
   _starView: {fileID: 1834059107583459115}
-  _modifierIconContainer: {fileID: 0}
+  _modifierIconContainer: {fileID: 3934590174063300853}
   _instrumentIcon: {fileID: 805087794968686801}
   _tagGameObject: {fileID: 7674939556658737215}
   _tagText: {fileID: 5733543237124308199}
@@ -1143,7 +1121,6 @@ MonoBehaviour:
   _maxStreak: {fileID: 6669027642699322304}
   _notesMissed: {fileID: 687220980320161962}
   _starpowerPhrases: {fileID: 8737214957484668560}
-  _overhits: {fileID: 2974647992237571564}
 --- !u!114 &7674939555971226258 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2885240813424434787, guid: 1b5d8949b9f2d7345a0fed53e687c843,
@@ -1322,15 +1299,3 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7ceadb1ec3f67f64e8ca8ca3a866cd96, type: 3}
---- !u!114 &2974647992237571564 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7098550245714764604, guid: 7ceadb1ec3f67f64e8ca8ca3a866cd96,
-    type: 3}
-  m_PrefabInstance: {fileID: 5461475741024722640}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
