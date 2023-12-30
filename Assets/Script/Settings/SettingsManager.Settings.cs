@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Gameplay.HUD;
+using YARG.Gameplay;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Menu.Persistent;
@@ -54,7 +55,13 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
-            public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
+            public DropdownSetting<VenueMode> BackgroundMode { get; } = new(VenueMode.AlbumAsBackground)
+            {
+                VenueMode.Default,
+                VenueMode.GlobalVenuesOnly,
+                VenueMode.AlbumAsBackground,
+                VenueMode.OverrideToAlbumAsBackground
+            };
 
             public void OpenCalibrator()
             {

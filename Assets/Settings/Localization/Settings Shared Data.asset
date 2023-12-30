@@ -223,14 +223,6 @@ MonoBehaviour:
     m_Key: Setting.General.AudioCalibration.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619349
-    m_Key: Setting.General.DisablePerSongBackgrounds
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850242
-    m_Key: Setting.General.DisablePerSongBackgrounds.Description
-    m_Metadata:
-      m_Items: []
   - m_Id: 79799556705734656
     m_Key: Setting.General.InputDeviceLogging
     m_Metadata:
@@ -897,6 +889,30 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10936772512309248
     m_Key: Tab.Sound
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100857862591025152
+    m_Key: Setting.General.BackgroundMode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100857921143508992
+    m_Key: Setting.General.BackgroundMode.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100858817524994048
+    m_Key: Dropdown.General.BackgroundMode.Default
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100859254395310080
+    m_Key: Dropdown.General.BackgroundMode.GlobalVenuesOnly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100859368945946624
+    m_Key: Dropdown.General.BackgroundMode.AlbumAsBackground
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100859965451472896
+    m_Key: Dropdown.General.BackgroundMode.OverrideToAlbumAsBackground
     m_Metadata:
       m_Items: []
   m_Metadata:

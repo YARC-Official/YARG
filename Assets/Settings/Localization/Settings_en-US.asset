@@ -144,10 +144,6 @@ MonoBehaviour:
       the audio play later.
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619349
-    m_Localized: Disable Per Song Backgrounds
-    m_Metadata:
-      m_Items: []
   - m_Id: 53693768667619351
     m_Localized: Cursor Show Time
     m_Metadata:
@@ -287,11 +283,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53704501379850241
     m_Localized: Removes all kick notes (drums only).
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850242
-    m_Localized: Disables custom backgrounds in songs and shows the ones in your
-      venue folder instead.
     m_Metadata:
       m_Items: []
   - m_Id: 53704501379850244
@@ -946,6 +937,30 @@ MonoBehaviour:
   - m_Id: 98954526485504000
     m_Localized: If enabled, it keeps the song info visible throughout the entire
       song. Otherwise, it will fade out after 10 seconds.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100857862591025152
+    m_Localized: Background Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100857921143508992
+    m_Localized: Choose how the game handles background and venues.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100858817524994048
+    m_Localized: Default / Chart Backgrounds First
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100859254395310080
+    m_Localized: Global Backgrounds Only
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100859368945946624
+    m_Localized: Album Art Background as Last Resort
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100859965451472896
+    m_Localized: 'Override to Always Album Art Background '
     m_Metadata:
       m_Items: []
   references:

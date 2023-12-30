@@ -1,14 +1,22 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using YARG.Core.Song;
 using YARG.Core.Extensions;
 using YARG.Core.Venue;
 using YARG.Helpers;
+using YARG.Helpers.Extensions;
 using YARG.Venue;
+using System.Text.RegularExpressions;
+using TMPro;
+using JetBrains.Annotations;
+using YARG.Gameplay.HUD;
+using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay
 {
@@ -19,6 +27,15 @@ namespace YARG.Gameplay
         private VideoPlayer _videoPlayer;
         [SerializeField]
         private RawImage _backgroundImage;
+
+        [SerializeField]
+        private RawImage _coverBackgroundImage;
+        [SerializeField]
+        private RawImage _coverImage;
+        [SerializeField]
+        private RawImage _blackTransparency;
+
+        public SongMetadata Song { get; }
 
         private VenueInfo _venueInfo;
 
@@ -106,6 +123,38 @@ namespace YARG.Gameplay
                     {
                         _backgroundImage.gameObject.SetActive(true);
                         _backgroundImage.texture = texture;
+                    }
+                    break;
+                case BackgroundType.Album:
+                    await GameManager.Song.SetRawImageToAlbumCover(_coverBackgroundImage, CancellationToken.None); // Grabs album cover and applies it to the objects
+                        
+                    _coverImage.texture = _coverBackgroundImage.texture;
+                    
+                    _coverBackgroundImage.gameObject.SetActive(true);
+                    _blackTransparency.gameObject.SetActive(true); // Really dumb way of darkening the background image, just a big semi-transparent black box that fills the screen
+                    _coverImage.gameObject.SetActive(true);
+
+                    int playerCount = 0;
+                    foreach (var player in GameManager.Players)
+                    {
+                        if (player is not Gameplay.Player.VocalsPlayer)
+                            playerCount++;
+                    }
+
+                    if (playerCount == 1)
+                    {
+                        RectTransform _albumCoverRt = _coverImage.GetComponent<RectTransform>(); 
+                        _albumCoverRt.anchoredPosition = new Vector3(-555, -55, 5);
+                    }
+                    if (playerCount == 2)
+                    {
+                        RectTransform _albumCoverRt = _coverImage.GetComponent<RectTransform>(); 
+                        _albumCoverRt.anchoredPosition = new Vector3(40, 170, 5);
+                    }
+                    if (playerCount >= 3)
+                    {
+                        RectTransform _albumCoverRt = _coverImage.GetComponent<RectTransform>(); 
+                        _albumCoverRt.anchoredPosition = new Vector3 (-340, 0, 5);
                     }
                     break;
             }
