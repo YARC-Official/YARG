@@ -198,79 +198,62 @@ namespace YARG.Song
 
         private class SearchNode : IComparable<SearchNode>
         {
-            public readonly int NameIndex;
-            public readonly string leftOverName;
-            public readonly int ArtistIndex;
-            public readonly string leftoverArtist;
             public readonly SongMetadata Song;
+            public readonly int Rank;
+
+            private readonly int NameIndex;
+            private readonly int ArtistIndex;
 
             public SearchNode(SongMetadata song, string argument)
             {
                 Song = song;
                 NameIndex = song.Name.SortStr.IndexOf(argument, StringComparison.Ordinal);
-                if (NameIndex >= 0)
-                {
-                    leftOverName = song.Name.SortStr[NameIndex..];
-                }
-
                 ArtistIndex = song.Artist.SortStr.IndexOf(argument, StringComparison.Ordinal);
-                if (ArtistIndex >= 0)
+
+                Rank = NameIndex;
+                if (Rank < 0 || (ArtistIndex >= 0 && ArtistIndex < Rank))
                 {
-                    leftoverArtist = song.Artist.SortStr[ArtistIndex..];
+                    Rank = ArtistIndex;
                 }
             }
 
             public int CompareTo(SearchNode other)
             {
+                if (Rank != other.Rank)
+                {
+                    return Rank - other.Rank;
+                }
+
                 if (NameIndex >= 0)
                 {
-                    if (IsNameLessThan(other))
+                    if (other.NameIndex < 0)
                     {
-                        return -1;
+                        // Prefer Name to Artist for equality
+                        // other.ArtistIndex guaranteed valid
+                        return NameIndex <= other.ArtistIndex ? -1 : 1;
                     }
-                }
-                // We're guaranteed by the "Where() linq" calls before reaching this point
-                // that this.ArtistIndex is defined if this.NameIndex isn't
-                else if (IsArtistLessThan(other))
-                {
-                    return -1;
-                }
-                return 1;
-            }
 
-            private bool IsNameLessThan(SearchNode other)
-            {
-                if (other.NameIndex < 0)
-                {
-                    if (other.ArtistIndex < 0 || NameIndex <= other.ArtistIndex)
+                    if (NameIndex != other.NameIndex)
                     {
-                        return true;
+                        return NameIndex - other.NameIndex;
                     }
+                    return Song.Name.CompareTo(other.Song.Name);
                 }
-                else if (NameIndex < other.NameIndex ||
-                    (NameIndex == other.NameIndex && leftOverName.CompareTo(other.leftOverName) < 0))
-                {
-                    return true;
-                }
-                return false;
-            }
 
-            private bool IsArtistLessThan(SearchNode other)
-            {
-                if (other.ArtistIndex < 0)
+                // this.ArtistIndex guaranteed valid from this point
+
+                if (other.NameIndex >= 0)
                 {
-                    // Artist < name instead of <= to preserve consistent behavior
-                    if (other.NameIndex < 0 || ArtistIndex < other.NameIndex)
-                    {
-                        return true;
-                    }
+                    return ArtistIndex < other.NameIndex ? -1 : 1;
                 }
-                else if (ArtistIndex < other.ArtistIndex ||
-                    (ArtistIndex == other.ArtistIndex && leftoverArtist.CompareTo(other.leftoverArtist) < 0))
+
+                // other.ArtistIndex guaranteed valid from this point
+
+                if (ArtistIndex != other.ArtistIndex)
                 {
-                    return true;
+                    return ArtistIndex - other.ArtistIndex;
                 }
-                return false;
+                return Song.Artist.CompareTo(other.Song.Artist);
             }
         }
 
@@ -325,7 +308,7 @@ namespace YARG.Song
             var nodes = new SearchNode[songs.Count];
             Parallel.For(0, songs.Count, i => nodes[i] = new SearchNode(songs[i], argument));
             var results = nodes
-                .Where(node => node.NameIndex != -1 || node.ArtistIndex != -1)
+                .Where(node => node.Rank >= 0)
                 .OrderBy(i => i)
                 .Select(i => i.Song).ToList();
             return new() { { "Search Results", results } };
