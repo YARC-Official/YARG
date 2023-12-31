@@ -91,8 +91,9 @@ namespace YARG.Gameplay.Player
 
         private Range _viewRange = Range.Default;
         private Range _targetRange;
-        private Range _changeSpeed;
-        private float _changeTimer;
+        private Range _previousRange;
+        private double _changeStartTime;
+        private double _changeEndTime;
 
         public bool HarmonyShowing => _vocalsTrack.Instrument == Instrument.Harmony;
 
@@ -176,20 +177,23 @@ namespace YARG.Gameplay.Player
             // Update the range
             if (IsRangeChanging)
             {
-                float newMin = _viewRange.Min + _changeSpeed.Min * Time.deltaTime;
-                float newMax = _viewRange.Max + _changeSpeed.Max * Time.deltaTime;
-
-                _viewRange.Min = newMin;
-                _viewRange.Max = newMax;
-
-                _changeTimer -= Time.deltaTime;
+                double time = GameManager.RealVisualTime;
+                float changePercent = (float) YargMath.InverseLerpD(_changeStartTime, _changeEndTime, time);
 
                 // If the change has finished, stop!
-                if (_changeTimer <= 0f)
+                if (changePercent >= 1f)
                 {
                     IsRangeChanging = false;
                     _viewRange.Min = _targetRange.Min;
                     _viewRange.Max = _targetRange.Max;
+                }
+                else
+                {
+                    float newMin = Mathf.Lerp(_previousRange.Min, _targetRange.Min, changePercent);
+                    float newMax = Mathf.Lerp(_previousRange.Max, _targetRange.Max, changePercent);
+
+                    _viewRange.Min = newMin;
+                    _viewRange.Max = newMax;
                 }
             }
 
@@ -216,6 +220,7 @@ namespace YARG.Gameplay.Player
             if (IsRangeChanging) return;
 
             // Get the min and max range
+            _previousRange = _viewRange;
             _targetRange = new Range(float.MaxValue, float.MinValue);
             foreach (var part in _vocalsTrack.Parts)
             {
@@ -245,13 +250,9 @@ namespace YARG.Gameplay.Player
                 _targetRange = Range.Default;
             }
 
-            // Get speed from the change time
-            _changeSpeed = new Range(
-                (_targetRange.Min - _viewRange.Min) / changeTime,
-                (_targetRange.Max - _viewRange.Max) / changeTime);
-
             // Start the change!
-            _changeTimer = changeTime;
+            _changeStartTime = GameManager.VisualTime;
+            _changeEndTime = GameManager.VisualTime + changeTime;
             IsRangeChanging = true;
         }
 
