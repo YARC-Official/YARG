@@ -17,6 +17,13 @@ namespace YARG.Gameplay.HUD
 
         private void Start()
         {
+            if (GameManager.IsPractice)
+            {
+                // Don't show anything in practice mode
+                Destroy(gameObject);
+                return;
+            }
+
             if (!SettingsManager.Settings.KeepSongInfoVisible.Value)
             {
                 // Start fading out
