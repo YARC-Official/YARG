@@ -12,7 +12,6 @@ namespace YARG.Gameplay.Visuals
 
         private double _minimumTime;
         private bool _isStarpower;
-        private bool _isTalkie;
 
         private int _harmonyIndex;
 
@@ -24,29 +23,26 @@ namespace YARG.Gameplay.Visuals
         public float Width => _lyricText.GetPreferredValues().x;
 
         public void Initialize(LyricEvent lyric, double minTime, double lyricLength,
-            bool isStarpower, bool isTalkie, int harmonyIndex)
+            bool isStarpower, int harmonyIndex)
         {
             _lyricRef = lyric;
             _lyricLength = lyricLength;
 
             _minimumTime = minTime;
             _isStarpower = isStarpower;
-            _isTalkie = isTalkie;
 
             _harmonyIndex = harmonyIndex;
         }
 
         protected override void InitializeElement()
         {
-            // TODO: This check doesn't actually work currently
-            // Need to add more flag handling to YARG.Core first
-            if (_lyricRef.Text.StartsWith('$') && _harmonyIndex != 0)
+            if (_lyricRef.HarmonyHidden && _harmonyIndex != 0)
                 _lyricText.text = string.Empty;
             else
                 _lyricText.text = _lyricRef.Text;
 
             // If it's a talkie, italicize it
-            _lyricText.fontStyle = _isTalkie ? FontStyles.Italic : FontStyles.Normal;
+            _lyricText.fontStyle = _lyricRef.NonPitched ? FontStyles.Italic : FontStyles.Normal;
 
             // Disable automatically if the text is just nothing
             if (string.IsNullOrEmpty(_lyricText.text))
