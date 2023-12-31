@@ -22,7 +22,7 @@ namespace YARG.Gameplay.Player
                 CurrentPhraseInBounds &&
                 _noteOrLyricIndex < CurrentPhrase.PhraseParentNote.ChildNotes.Count;
 
-            public TextEvent CurrentLyric =>
+            public LyricEvent CurrentLyric =>
                 CurrentPhrase.Lyrics[_noteOrLyricIndex];
             public bool CurrentLyricInBounds =>
                 CurrentPhraseInBounds &&

@@ -7,7 +7,7 @@ namespace YARG.Gameplay.Visuals
 {
     public class VocalLyricElement : VocalElement
     {
-        private TextEvent _lyricRef;
+        private LyricEvent _lyricRef;
         private double _lyricLength;
 
         private double _minimumTime;
@@ -23,7 +23,7 @@ namespace YARG.Gameplay.Visuals
 
         public float Width => _lyricText.GetPreferredValues().x;
 
-        public void Initialize(TextEvent lyric, double minTime, double lyricLength,
+        public void Initialize(LyricEvent lyric, double minTime, double lyricLength,
             bool isStarpower, bool isTalkie, int harmonyIndex)
         {
             _lyricRef = lyric;

@@ -17,7 +17,7 @@ namespace YARG.Gameplay.Player
             double.NegativeInfinity, double.NegativeInfinity, double.NegativeInfinity
         };
 
-        public bool TrySpawnLyric(TextEvent lyric, VocalNote probableNotePair, bool isStarpower, int harmIndex)
+        public bool TrySpawnLyric(LyricEvent lyric, VocalNote probableNotePair, bool isStarpower, int harmIndex)
         {
             // Skip this frame if the pool is full
             if (!_pools[harmIndex].CanSpawnAmount(1))
