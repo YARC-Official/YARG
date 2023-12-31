@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -8,8 +7,6 @@ namespace YARG.Gameplay.Visuals
 {
     public class VocalLyricElement : VocalElement
     {
-        private static readonly Regex _lyricDiacriticRegex = new(@"\+|#|\^|\*|\%|\$|\/|", RegexOptions.Compiled);
-
         private TextEvent _lyricRef;
         private double _lyricLength;
 
@@ -41,7 +38,12 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
-            _lyricText.text = GetLyricText(_lyricRef.Text);
+            // TODO: This check doesn't actually work currently
+            // Need to add more flag handling to YARG.Core first
+            if (_lyricRef.Text.StartsWith('$') && _harmonyIndex != 0)
+                _lyricText.text = string.Empty;
+            else
+                _lyricText.text = _lyricRef.Text;
 
             // If it's a talkie, italicize it
             _lyricText.fontStyle = _isTalkie ? FontStyles.Italic : FontStyles.Normal;
@@ -71,26 +73,6 @@ namespace YARG.Gameplay.Visuals
 
         protected override void HideElement()
         {
-        }
-
-        private string GetLyricText(string lyricText)
-        {
-            // Get rid of extra spaces
-            lyricText = lyricText.Trim();
-
-            // If '$', hide the lyric if not on HARM1
-            if (lyricText.StartsWith('$') && _harmonyIndex != 0)
-            {
-                return string.Empty;
-            }
-
-            // Special replacements
-            lyricText = lyricText.Replace('=', '-');
-            lyricText = lyricText.Replace('_', ' ');
-            lyricText = lyricText.Replace('§', '\u203F');
-
-            // Remove all other diacritics
-            return _lyricDiacriticRegex.Replace(lyricText, "");
         }
     }
 }

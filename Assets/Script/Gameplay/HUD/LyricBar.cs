@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using TMPro;
@@ -18,8 +18,6 @@ namespace YARG.Gameplay.HUD
 
     public class LyricBar : GameplayBehaviour
     {
-        private static readonly Regex _lyricDiacriticRegex = new(@"#|\^|\*|\%|\$|\/|", RegexOptions.Compiled);
-
         [SerializeField]
         private GameObject _normalBackground;
         [SerializeField]
@@ -28,7 +26,7 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _lyricText;
 
-        private List<VocalsPhrase> _vocalPhrases;
+        private LyricsTrack _lyrics;
         private int _currentPhraseIndex = 0;
         private int _currentLyricIndex = 0;
 
@@ -65,39 +63,35 @@ namespace YARG.Gameplay.HUD
 
         protected override void OnChartLoaded(SongChart chart)
         {
-            var vocalsPart = chart.Vocals.Parts[0];
-
-            // If not vocals, hide the lyric bar
-            if (vocalsPart.NotePhrases.Count <= 0)
-            {
+            _lyrics = chart.Lyrics;
+            if (_lyrics.Phrases.Count < 0)
                 gameObject.SetActive(false);
-                return;
-            }
-
-            _vocalPhrases = vocalsPart.NotePhrases;
         }
 
         private void Update()
         {
             const double PHRASE_DISTANCE_THRESHOLD = 1.0;
+
+            var phrases = _lyrics.Phrases;
+
             // If the current phrase ended AND
-            while (_currentPhraseIndex < _vocalPhrases.Count && _vocalPhrases[_currentPhraseIndex].TimeEnd <= GameManager.SongTime &&
+            while (_currentPhraseIndex < phrases.Count && phrases[_currentPhraseIndex].TimeEnd <= GameManager.SongTime &&
                  // Was the last phrase
-                (_currentPhraseIndex + 1 == _vocalPhrases.Count ||
+                (_currentPhraseIndex + 1 == phrases.Count ||
                  // OR if the next phrase is one second or more away (leading to an empty bar)
-                 _vocalPhrases[_currentPhraseIndex + 1].Time - _vocalPhrases[_currentPhraseIndex].TimeEnd >= PHRASE_DISTANCE_THRESHOLD ||
+                 phrases[_currentPhraseIndex + 1].Time - phrases[_currentPhraseIndex].TimeEnd >= PHRASE_DISTANCE_THRESHOLD ||
                  // OR if the next phrase should be started
-                 _vocalPhrases[_currentPhraseIndex + 1].Time <= GameManager.SongTime))
+                 phrases[_currentPhraseIndex + 1].Time <= GameManager.SongTime))
             {
                 _currentPhraseIndex++;
                 _currentLyricIndex = 0;
                 _lyricText.text = null;
             }
 
-            if (_currentPhraseIndex == _vocalPhrases.Count || GameManager.SongTime < _vocalPhrases[_currentPhraseIndex].Time)
+            if (_currentPhraseIndex == phrases.Count || GameManager.SongTime < phrases[_currentPhraseIndex].Time)
                 return;
 
-            var lyrics = _vocalPhrases[_currentPhraseIndex].Lyrics;
+            var lyrics = phrases[_currentPhraseIndex].Lyrics;
 
             // Check following lyrics
             int currIndex = _currentLyricIndex;
@@ -115,7 +109,9 @@ namespace YARG.Gameplay.HUD
             while (i < currIndex)
             {
                 var lyric = lyrics[i++];
-                output.Append(GetDisplayTextWithSpace(lyric.Text));
+                output.Append(lyric.Text);
+                if (!lyric.JoinWithNext && i < lyrics.Count)
+                    output.Append(' ');
             }
 
             // End highlight
@@ -124,40 +120,13 @@ namespace YARG.Gameplay.HUD
             while (i < lyrics.Count)
             {
                 var lyric = lyrics[i++];
-                output.Append(GetDisplayTextWithSpace(lyric.Text));
+                output.Append(lyric.Text);
+                if (!lyric.JoinWithNext && i < lyrics.Count)
+                    output.Append(' ');
             }
 
             _currentLyricIndex = currIndex;
             _lyricText.text = output.ToString();
-        }
-
-        private string GetDisplayTextWithSpace(string lyricText)
-        {
-            // Get rid of extra spaces
-            lyricText = lyricText.Trim();
-
-            // If this is a connector, just return nothing
-            if (lyricText == "+")
-            {
-                return string.Empty;
-            }
-
-            // Special replacements
-            lyricText = lyricText.Replace('=', '-');
-            lyricText = lyricText.Replace('_', ' ');
-            lyricText = lyricText.Replace('§', '‿');
-
-            // Remove all other diacritics
-            lyricText = _lyricDiacriticRegex.Replace(lyricText, "");
-
-            if (lyricText.EndsWith('-'))
-            {
-                // If this is a syllable, return with the dash removed
-                return lyricText[..^1];
-            }
-
-            // If not, just return it with a space
-            return lyricText + " ";
         }
     }
 }
