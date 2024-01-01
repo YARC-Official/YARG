@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 
@@ -52,8 +52,11 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Set line info
+            float width = VocalTrack.CurrentNoteWidth;
             foreach (var line in _lineRenderers)
             {
+                line.startWidth = width;
+                line.endWidth = width;
                 line.positionCount = _points.Count;
                 for (int i = 0; i < _points.Count; i++)
                 {

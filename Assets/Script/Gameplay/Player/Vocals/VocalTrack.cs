@@ -99,6 +99,8 @@ namespace YARG.Gameplay.Player
 
         public bool HarmonyShowing => _vocalsTrack.Instrument == Instrument.Harmony;
 
+        public float CurrentNoteWidth => (_currentTrackTop - TRACK_BOTTOM) / (_viewRange.Max - _viewRange.Min);
+
         private void Start()
         {
             Assert.AreEqual(_notePools.Length, 3,
