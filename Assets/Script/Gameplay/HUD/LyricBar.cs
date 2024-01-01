@@ -64,7 +64,7 @@ namespace YARG.Gameplay.HUD
         protected override void OnChartLoaded(SongChart chart)
         {
             _lyrics = chart.Lyrics;
-            if (_lyrics.Phrases.Count < 0)
+            if (_lyrics.Phrases.Count < 1)
                 gameObject.SetActive(false);
         }
 
