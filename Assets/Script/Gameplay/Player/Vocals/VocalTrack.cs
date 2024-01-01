@@ -44,7 +44,7 @@ namespace YARG.Gameplay.Player
 
         private const float TRACK_BOTTOM = -0.53f;
 
-        private const float MINIMUM_SEMITONE_RANGE = 20;
+        private const float MINIMUM_SEMITONE_RANGE = 10;
 
         private const double MINIMUM_SHIFT_TIME = 0.25;
 
@@ -255,7 +255,7 @@ namespace YARG.Gameplay.Player
 
         private void ChangeRange(VocalsPitchRange range)
         {
-            // Ensure range is above a minimum size (20 semitones, 10 in each direction)
+            // Ensure range is at least a minimum size
             float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
             float rangeMin = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), range.MinimumPitch);
             float rangeMax = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), range.MaximumPitch);
