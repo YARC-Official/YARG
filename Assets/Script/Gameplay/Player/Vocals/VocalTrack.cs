@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -12,11 +13,6 @@ namespace YARG.Gameplay.Player
     {
         private struct Range
         {
-            // These are basically just random numbers
-            // public static readonly Range Default = new(55f, 75f);
-            // TODO: Make the default range very large until proper range shifting is implemented
-            public static readonly Range Default = new(40f, 87f);
-
             public float Min;
             public float Max;
 
@@ -46,6 +42,10 @@ namespace YARG.Gameplay.Player
         private const float TRACK_TOP_HARMONY = 0.53f;
 
         private const float TRACK_BOTTOM = -0.53f;
+
+        private const float MINIMUM_SEMITONE_RANGE = 20;
+
+        private const double MINIMUM_SHIFT_TIME = 0.25;
 
         [SerializeField]
         private GameObject _vocalPlayerPrefab;
@@ -89,9 +89,11 @@ namespace YARG.Gameplay.Player
         private VocalsTrack _originalVocalsTrack;
         private VocalsTrack _vocalsTrack;
 
-        private Range _viewRange = Range.Default;
+        private Range _viewRange;
         private Range _targetRange;
         private Range _previousRange;
+
+        private int _nextRangeIndex = 1;
         private double _changeStartTime;
         private double _changeEndTime;
 
@@ -158,6 +160,12 @@ namespace YARG.Gameplay.Player
                 _starpowerMaterial = _soloStarpowerOverlay.material;
             }
 
+            // Set pitch range
+            ChangeRange(_vocalsTrack.RangeShifts[0]);
+            _viewRange = _targetRange;
+            _previousRange = _targetRange;
+            _changeEndTime = _changeStartTime;
+
             // Hide overlay
             _starpowerMaterial.SetFloat(_alphaMultiplier, 0f);
         }
@@ -174,10 +182,11 @@ namespace YARG.Gameplay.Player
 
         private void Update()
         {
+            double time = GameManager.RealVisualTime;
+
             // Update the range
             if (IsRangeChanging)
             {
-                double time = GameManager.RealVisualTime;
                 float changePercent = (float) YargMath.InverseLerpD(_changeStartTime, _changeEndTime, time);
 
                 // If the change has finished, stop!
@@ -195,6 +204,19 @@ namespace YARG.Gameplay.Player
                     _viewRange.Min = newMin;
                     _viewRange.Max = newMax;
                 }
+            }
+
+            // Track upcoming range changes
+            var ranges = _vocalsTrack.RangeShifts;
+            int lastRangeIndex = _nextRangeIndex;
+            while (_nextRangeIndex < ranges.Count && ranges[_nextRangeIndex].Time < time)
+            {
+                _nextRangeIndex++;
+            }
+
+            if (lastRangeIndex != _nextRangeIndex && _nextRangeIndex < ranges.Count)
+            {
+                ChangeRange(ranges[_nextRangeIndex]);
             }
 
             // Try to spawn lyrics and notes
@@ -215,44 +237,19 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void CalculateAndChangeRange(double noteRangeStart, double noteRangeEnd, float changeTime)
+        private void ChangeRange(VocalsPitchRange range)
         {
-            if (IsRangeChanging) return;
-
-            // Get the min and max range
-            _previousRange = _viewRange;
-            _targetRange = new Range(float.MaxValue, float.MinValue);
-            foreach (var part in _vocalsTrack.Parts)
-            {
-                foreach (var note in part.NotePhrases.SelectMany(i => i.PhraseParentNote.ChildNotes))
-                {
-                    // If the note time is less than the range start,
-                    // skip until we're in the range.
-                    if (note.TotalTimeEnd < noteRangeStart) continue;
-
-                    // If the note time is more than the range end,
-                    // we're done.
-                    if (note.Time > noteRangeEnd) break;
-
-                    // Get the lowest and highest pitch in the note
-                    float lowest = note.ChordEnumerator().Min(i => i.Pitch);
-                    float highest = note.ChordEnumerator().Max(i => i.Pitch);
-
-                    // Set the new target range values
-                    if (lowest < _targetRange.Min) _targetRange.Min = lowest;
-                    if (highest > _targetRange.Max) _targetRange.Max = highest;
-                }
-            }
-
-            // If there are no notes in the range, then just use the default range
-            if (float.IsInfinity(_targetRange.Max) || float.IsInfinity(_targetRange.Min))
-            {
-                _targetRange = Range.Default;
-            }
+            // Ensure range is above a minimum size (20 semitones, 10 in each direction)
+            float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
+            float rangeMin = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), range.MinimumPitch);
+            float rangeMax = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), range.MaximumPitch);
 
             // Start the change!
+            _previousRange = _viewRange;
+            _targetRange = new Range(rangeMin, rangeMax);
+
             _changeStartTime = GameManager.VisualTime;
-            _changeEndTime = GameManager.VisualTime + changeTime;
+            _changeEndTime = GameManager.VisualTime + Math.Max(MINIMUM_SHIFT_TIME, range.ShiftLength);
             IsRangeChanging = true;
         }
 
