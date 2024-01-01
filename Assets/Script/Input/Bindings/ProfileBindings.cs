@@ -7,6 +7,7 @@ using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Input.Serialization;
+using YARG.Player;
 
 namespace YARG.Input
 {
@@ -151,7 +152,8 @@ namespace YARG.Input
         {
             foreach (var device in InputSystem.devices)
             {
-                OnDeviceAdded(device);
+                if (!PlayerContainer.IsDeviceTaken(device))
+                    OnDeviceAdded(device);
             }
 
             if (_unresolvedMic is not null)
