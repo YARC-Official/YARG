@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 
@@ -32,7 +32,7 @@ namespace YARG.Gameplay.Visuals
             UpdateLinePoints();
         }
 
-        private void UpdateLinePoints()
+        public void UpdateLinePoints()
         {
             // Create points
             _points.Clear();
@@ -64,10 +64,6 @@ namespace YARG.Gameplay.Visuals
 
         protected override void UpdateElement()
         {
-            if (VocalTrack.IsRangeChanging)
-            {
-                UpdateLinePoints();
-            }
         }
 
         protected override void HideElement()

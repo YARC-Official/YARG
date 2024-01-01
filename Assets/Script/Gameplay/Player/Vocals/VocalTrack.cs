@@ -6,6 +6,7 @@ using UnityEngine.Assertions;
 using UnityEngine.Serialization;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Gameplay.Visuals;
 
 namespace YARG.Gameplay.Player
 {
@@ -84,11 +85,10 @@ namespace YARG.Gameplay.Player
         private float _currentTrackTop = TRACK_TOP;
         private Material _starpowerMaterial;
 
-        public bool IsRangeChanging { get; private set; }
-
         private VocalsTrack _originalVocalsTrack;
         private VocalsTrack _vocalsTrack;
 
+        private bool _isRangeChanging;
         private Range _viewRange;
         private Range _targetRange;
         private Range _previousRange;
@@ -184,28 +184,6 @@ namespace YARG.Gameplay.Player
         {
             double time = GameManager.RealVisualTime;
 
-            // Update the range
-            if (IsRangeChanging)
-            {
-                float changePercent = (float) YargMath.InverseLerpD(_changeStartTime, _changeEndTime, time);
-
-                // If the change has finished, stop!
-                if (changePercent >= 1f)
-                {
-                    IsRangeChanging = false;
-                    _viewRange.Min = _targetRange.Min;
-                    _viewRange.Max = _targetRange.Max;
-                }
-                else
-                {
-                    float newMin = Mathf.Lerp(_previousRange.Min, _targetRange.Min, changePercent);
-                    float newMax = Mathf.Lerp(_previousRange.Max, _targetRange.Max, changePercent);
-
-                    _viewRange.Min = newMin;
-                    _viewRange.Max = newMax;
-                }
-            }
-
             // Track upcoming range changes
             var ranges = _vocalsTrack.RangeShifts;
             int lastRangeIndex = _nextRangeIndex;
@@ -217,6 +195,42 @@ namespace YARG.Gameplay.Player
             if (lastRangeIndex != _nextRangeIndex && _nextRangeIndex < ranges.Count)
             {
                 ChangeRange(ranges[_nextRangeIndex]);
+            }
+
+            // Update the range
+            if (_isRangeChanging)
+            {
+                float changePercent = (float) YargMath.InverseLerpD(_changeStartTime, _changeEndTime, time);
+
+                // If the change has finished, stop!
+                if (changePercent >= 1f)
+                {
+                    _isRangeChanging = false;
+                    _viewRange.Min = _targetRange.Min;
+                    _viewRange.Max = _targetRange.Max;
+                }
+                else
+                {
+                    float newMin = Mathf.Lerp(_previousRange.Min, _targetRange.Min, changePercent);
+                    float newMax = Mathf.Lerp(_previousRange.Max, _targetRange.Max, changePercent);
+
+                    _viewRange.Min = newMin;
+                    _viewRange.Max = newMax;
+                }
+
+                // Update notes to match new range values
+                // Doing this in VocalNoteElement.UpdateElement is less reliable
+                // and doesn't correctly update in the last frame of the range shift
+                foreach (var pool in _notePools)
+                {
+                    foreach (var pooled in pool.AllSpawned)
+                    {
+                        if (pooled is not VocalNoteElement note)
+                            continue;
+
+                        note.UpdateLinePoints();
+                    }
+                }
             }
 
             // Try to spawn lyrics and notes
@@ -250,7 +264,7 @@ namespace YARG.Gameplay.Player
 
             _changeStartTime = GameManager.VisualTime;
             _changeEndTime = GameManager.VisualTime + Math.Max(MINIMUM_SHIFT_TIME, range.ShiftLength);
-            IsRangeChanging = true;
+            _isRangeChanging = true;
         }
 
         public float GetPosForTime(double time)
