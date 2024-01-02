@@ -106,6 +106,7 @@ namespace YARG.Gameplay.Player
                 _ => throw new InvalidOperationException("Unreachable")
             };
 
+            // The hit window size should not be scaled here, since it represents pitch, not timing
             HitWindow = new HitWindowSettings(windowSize, 0.03, 1, false);
             EngineParams = new VocalsEngineParameters(HitWindow, hitPercent, true,
                 IMicDevice.UPDATES_PER_SECOND, StarMultiplierThresholds);
