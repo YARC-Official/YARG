@@ -323,8 +323,8 @@ namespace YARG.Gameplay
                         // Since all players have to select the same vocals
                         // type (solo/harmony) this works no problem.
                         var chart = player.Profile.CurrentInstrument == Instrument.Vocals
-                                ? Chart.Vocals
-                                : Chart.Harmony;
+                            ? Chart.Vocals
+                            : Chart.Harmony;
                         VocalTrack.Initialize(chart);
 
                         _lyricBar.SetActive(false);

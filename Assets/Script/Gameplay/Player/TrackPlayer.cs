@@ -77,7 +77,8 @@ namespace YARG.Gameplay.Player
         protected List<Beatline> Beatlines;
         protected int BeatlineIndex;
 
-        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, int? currentHighScore)
+        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
+            int? currentHighScore)
         {
             if (IsInitialized) return;
 
@@ -173,8 +174,8 @@ namespace YARG.Gameplay.Player
 
         private InstrumentDifficulty<TNote> OriginalNoteTrack { get; set; }
 
-        private int CurrentMultipler = 0;
-        private int PreviousMultipler = 0;
+        private int _currentMultiplier;
+        private int _previousMultiplier;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, int? currentHighScore)
         {
@@ -251,7 +252,7 @@ namespace YARG.Gameplay.Player
         {
             int maxMultiplier = stats.IsStarPowerActive ? 8 : 4;
             bool groove = stats.ScoreMultiplier == maxMultiplier;
-            CurrentMultipler = stats.ScoreMultiplier;
+            _currentMultiplier = stats.ScoreMultiplier;
 
             TrackMaterial.SetTrackScroll(songTime, NoteSpeed);
             TrackMaterial.GrooveMode = groove;
@@ -343,13 +344,13 @@ namespace YARG.Gameplay.Player
             NotesHit++;
 
             ShouldMuteStem = false;
-            if (CurrentMultipler != PreviousMultipler)
+            if (_currentMultiplier != _previousMultiplier)
             {
-                PreviousMultipler = CurrentMultipler;
+                _previousMultiplier = _currentMultiplier;
 
                 foreach (var haptics in SantrollerHaptics)
                 {
-                    haptics.SetMultiplier((uint)CurrentMultipler);
+                    haptics.SetMultiplier((uint)_currentMultiplier);
                 }
             }
         }
