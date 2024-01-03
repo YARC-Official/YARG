@@ -6,7 +6,6 @@ using YARG.Core;
 using YARG.Core.Engine;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
-using YARG.Data;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Player;

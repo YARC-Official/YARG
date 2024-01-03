@@ -1,7 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Song;
-using YARG.Data;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Scores;
