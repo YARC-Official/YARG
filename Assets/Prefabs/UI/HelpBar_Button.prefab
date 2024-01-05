@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1996683174773469899}
   - component: {fileID: 5189735305709361124}
   m_Layer: 5
-  m_Name: Text
+  m_Name: Button Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -66,7 +66,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: _
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 19b7115073766a24aa48ceca884dcbf5, type: 2}
   m_sharedMaterial: {fileID: 4249517445589659644, guid: 19b7115073766a24aa48ceca884dcbf5,
@@ -94,10 +94,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 22
+  m_fontSizeBase: 22
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 0
   m_fontSizeMax: 999
   m_fontStyle: 0
@@ -198,7 +198,7 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
+  m_Transition: 2
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 1, g: 0.8895351, b: 0, a: 1}
@@ -208,10 +208,11 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
+    m_HighlightedSprite: {fileID: 21300000, guid: d3b0f548d717a64409a784af245a58cf,
+      type: 3}
+    m_PressedSprite: {fileID: 21300000, guid: b511bbfffd0ea184ba6ffda09d17f88c, type: 3}
+    m_SelectedSprite: {fileID: 21300000, guid: d3b0f548d717a64409a784af245a58cf, type: 3}
+    m_DisabledSprite: {fileID: 21300000, guid: b511bbfffd0ea184ba6ffda09d17f88c, type: 3}
   m_AnimationTriggers:
     m_NormalTrigger: Normal
     m_HighlightedTrigger: Highlighted
@@ -219,7 +220,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 1121126666004639308}
+  m_TargetGraphic: {fileID: 5439468768656205435}
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
@@ -249,7 +250,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _buttonImage: {fileID: 5439468768656205435}
   _buttonBackground: {fileID: 7617404234607777830}
-  _text: {fileID: 1121126666004639308}
+  _buttonLabel: {fileID: 1121126666004639308}
+  _buttonText: {fileID: 5189735305709361124}
 --- !u!114 &440116509921864197
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -297,15 +299,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.14117648}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 0d800d674d4c3bc43a6a61be9aec873b, type: 3}
+  m_Type: 2
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -424,7 +426,7 @@ GameObject:
   - component: {fileID: 6075722541447563082}
   - component: {fileID: 1121126666004639308}
   m_Layer: 5
-  m_Name: Button Description
+  m_Name: Button Label
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
