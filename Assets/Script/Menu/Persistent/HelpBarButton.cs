@@ -23,13 +23,13 @@ namespace YARG.Menu.Persistent
 
         private NavigationScheme.Entry? _entry;
 
-        private Color32 ButtonBackgroundColor;
+        private Color _buttonBackgroundColor;
 
         public void SetInfoFromSchemeEntry(NavigationScheme.Entry entry)
         {
             _entry = entry;
             var icons = MenuData.NavigationIcons;
-            ButtonBackgroundColor = icons.GetColor(entry.Action);
+            _buttonBackgroundColor = icons.GetColor(entry.Action);
 
             _buttonLabel.text = entry.DisplayName;
             _buttonLabel.color = Color.white;
@@ -38,32 +38,32 @@ namespace YARG.Menu.Persistent
 
             // Set the icon color
             _buttonImage.sprite = icons.GetIcon(entry.Action);
-            _buttonImage.color = ButtonBackgroundColor;
-            _buttonBackground.color = new Color32(255, 255, 255, 0);
+            _buttonImage.color = _buttonBackgroundColor;
+            _buttonBackground.color = Color.clear;
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            _buttonBackground.color = ButtonBackgroundColor;
-            _buttonImage.color = ButtonBackgroundColor;
+            _buttonBackground.color = _buttonBackgroundColor;
+            _buttonImage.color = _buttonBackgroundColor;
             _buttonLabel.color = Color.white;
             _buttonText.color = Color.white;
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            _buttonBackground.color = new Color32(255, 255, 255, 0);
-            _buttonImage.color = ButtonBackgroundColor;
+            _buttonBackground.color = Color.clear;
+            _buttonImage.color = _buttonBackgroundColor;
             _buttonLabel.color = Color.white;
             _buttonText.color = Color.white;
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            _buttonBackground.color = new Color32(75, 75, 75, 255);
-            _buttonImage.color = new Color32(100, 100, 100, 255);
-            _buttonLabel.color = new Color32(100, 100, 100, 255);
-            _buttonText.color = new Color32(255, 255, 255, 25);
+            _buttonBackground.color = Color.grey;
+            _buttonImage.color = Color.grey;
+            _buttonLabel.color = Color.grey;
+            _buttonText.color = Color.grey;
         }
 
         public void OnClick()
