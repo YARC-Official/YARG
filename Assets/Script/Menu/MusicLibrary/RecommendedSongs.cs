@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Core.Song;
 using YARG.Helpers.Extensions;
+using YARG.Scores;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -44,7 +45,7 @@ namespace YARG.Menu.MusicLibrary
         private static void AddMostPlayedSongs()
         {
             // Get the top ten most played songs
-            var mostPlayed = ScoreManager.SongsByPlayCount().Take(10).ToList();
+            var mostPlayed = ScoreContainer.GetMostPlayedSongs(10);
 
             // If no songs were played, skip
             if (mostPlayed.Count <= 0)

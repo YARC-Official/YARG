@@ -40,8 +40,6 @@ namespace YARG
             // Fast scan (cache read) on startup
             QueueSongRefresh(true);
 
-            Queue(ScoreManager.FetchScores, "Reading scores...");
-
             await StartLoad();
         }
 

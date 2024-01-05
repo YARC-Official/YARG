@@ -284,10 +284,10 @@ namespace Editor
                 string packageName = packageReference.Attributes["Include"].Value;
                 string packageVersion = packageReference.Attributes["Version"].Value;
 
-                // Check for an existing installed package
-                var packageIdentifier = new NugetPackageIdentifier(packageName, packageVersion);
+                // Check for an existing installed package.
+                // Don't use `package.InRange` because it incorrectly compares beta versions.
                 var existingPackage = NugetHelper.InstalledPackages.FirstOrDefault((package) =>
-                    package.Id == packageName && package.InRange(packageIdentifier));
+                    package.Id == packageName && package.Version == packageVersion);
                 if (existingPackage is not null)
                 {
                     // Add to references
@@ -298,7 +298,7 @@ namespace Editor
                 // Search for the package on NuGet
                 foreach (var package in NugetHelper.Search(packageName))
                 {
-                    if (package.Title != packageName || !package.InRange(packageIdentifier))
+                    if (package.Title != packageName || package.Version != packageVersion)
                         continue;
 
                     // Install the package

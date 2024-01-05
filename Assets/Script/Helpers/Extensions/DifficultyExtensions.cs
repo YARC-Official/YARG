@@ -1,7 +1,7 @@
 using System;
 using YARG.Core;
 
-namespace YARG.Data
+namespace YARG.Helpers.Extensions
 {
     public static class DifficultyExtensions
     {
@@ -42,7 +42,7 @@ namespace YARG.Data
                 Difficulty.Hard       => "Hard",
                 Difficulty.Expert     => "Expert",
                 Difficulty.ExpertPlus => "Expert+",
-    
+
                 _ => "Unknown"
             };
         }
