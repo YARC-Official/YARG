@@ -2,6 +2,7 @@ using System;
 using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Core.Replays;
 using YARG.Input;
 using YARG.Settings.Customization;
 using YARG.Themes;
@@ -20,35 +21,13 @@ namespace YARG.Player
         /// </summary>
         public bool SittingOut;
 
-        public bool InputsEnabled { get; private set; } = false;
+        public bool InputsEnabled { get; private set; }
         public ProfileBindings Bindings { get; private set; }
 
-        public EnginePreset EnginePreset =>
-            CustomContentManager.EnginePresets.GetPresetById(Profile.EnginePreset)
-            ?? EnginePreset.Default;
-
-        public ThemePreset ThemePreset =>
-            CustomContentManager.ThemePresets.GetPresetById(Profile.ThemePreset)
-            ?? ThemePreset.Default;
-
-        // This is done so that we can override the color profile for the player for replays
-        public ColorProfile ColorProfile
-        {
-            get
-            {
-                if (_isOverrideColorProfile)
-                {
-                    return _colorProfile;
-                }
-
-                return CustomContentManager.ColorProfiles.GetPresetById(Profile.ColorProfile)
-                    ?? ColorProfile.Default;
-            }
-        }
-
-        public CameraPreset CameraPreset =>
-            CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
-            ?? CameraPreset.Default;
+        public EnginePreset EnginePreset { get; private set; }
+        public ThemePreset  ThemePreset  { get; private set; }
+        public ColorProfile ColorProfile { get; private set; }
+        public CameraPreset CameraPreset { get; private set; }
 
         /// <summary>
         /// Overrides the engine parameters in the gameplay player.
@@ -56,12 +35,10 @@ namespace YARG.Player
         /// </summary>
         public BaseEngineParameters EngineParameterOverride { get; set; }
 
-        private bool _isOverrideColorProfile;
-        private ColorProfile _colorProfile;
-
         public YargPlayer(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
         {
             SwapToProfile(profile, bindings, resolveDevices);
+            SetPresetsFromProfile();
         }
 
         public void SwapToProfile(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
@@ -83,7 +60,36 @@ namespace YARG.Player
 
             // Re-enable inputs
             if (enabled)
+            {
                 EnableInputs();
+            }
+        }
+
+        public void SetPresetsFromProfile()
+        {
+            EnginePreset = CustomContentManager.EnginePresets.GetPresetById(Profile.EnginePreset)
+                ?? EnginePreset.Default;
+            ThemePreset = CustomContentManager.ThemePresets.GetPresetById(Profile.ThemePreset)
+                ?? ThemePreset.Default;
+            ColorProfile = CustomContentManager.ColorProfiles.GetPresetById(Profile.ColorProfile)
+                ?? ColorProfile.Default;
+            CameraPreset = CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
+                ?? CameraPreset.Default;
+        }
+
+        public void SetPresetsFromReplay(ReplayPresetContainer presetContainer)
+        {
+            var colorProfile = presetContainer.GetColorProfile(Profile.ColorProfile);
+            if (colorProfile is not null)
+            {
+                ColorProfile = colorProfile;
+            }
+
+            var cameraPreset = presetContainer.GetCameraPreset(Profile.CameraPreset);
+            if (cameraPreset is not null)
+            {
+                CameraPreset = cameraPreset;
+            }
         }
 
         public void EnableInputs()
@@ -108,17 +114,6 @@ namespace YARG.Player
             InputManager.UnregisterPlayer(this);
 
             InputsEnabled = false;
-        }
-
-        public void OverrideColorProfile(ColorProfile profile)
-        {
-            _isOverrideColorProfile = true;
-            _colorProfile = profile;
-        }
-
-        public void ResetColorProfile()
-        {
-            _isOverrideColorProfile = false;
         }
 
         private void OnMenuInput(ref GameInput input)

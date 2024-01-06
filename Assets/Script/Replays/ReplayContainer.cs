@@ -107,33 +107,22 @@ namespace YARG.Replays
 
             int bandScore = 0;
             double bandStars = 0;
-            var colorProfiles = new List<ColorProfile>();
 
             // Loop through all of the players
             for (int i = 0; i < players.Count; i++)
             {
-                replay.PlayerNames[i] = players[i].Player.Profile.Name;
-                replay.Frames[i] = CreateReplayFrame(i, players[i]);
+                var player = players[i];
 
-                bandScore += players[i].Score;
-                bandStars += players[i].GetStarsPercent();
+                replay.PlayerNames[i] = player.Player.Profile.Name;
+                replay.Frames[i] = CreateReplayFrame(i, player);
 
-                // Insert color profile into the list if it doesn't exist, otherwise use the index of the existing one
-                // (saves space in the replay file by only writing once)
-                var playerColors = players[i].Player.ColorProfile;
-                if (!colorProfiles.Contains(playerColors))
-                {
-                    colorProfiles.Add(playerColors);
-                    replay.Frames[i].PlayerInfo.ColorProfileId = colorProfiles.Count - 1;
-                }
-                else
-                {
-                    replay.Frames[i].PlayerInfo.ColorProfileId = colorProfiles.IndexOf(playerColors);
-                }
+                bandScore += player.Score;
+                bandStars += player.GetStarsPercent();
+
+                // Make sure preset files are saved
+                replay.ReplayPresetContainer.StoreColorProfile(player.Player.ColorProfile);
+                replay.ReplayPresetContainer.StoreCameraPreset(player.Player.CameraPreset);
             }
-
-            replay.ColorProfileCount = colorProfiles.Count;
-            replay.ColorProfiles = colorProfiles.ToArray();
 
             replay.BandScore = bandScore;
             replay.BandStars = StarAmountHelper.GetStarsFromInt((int) bandStars);

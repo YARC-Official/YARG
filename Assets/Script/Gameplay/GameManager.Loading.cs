@@ -8,7 +8,6 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Replays;
-using YARG.Core.Song;
 using YARG.Gameplay.Player;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -195,12 +194,13 @@ namespace YARG.Gameplay
 
             Replay = replayFile.Replay;
 
+            // Create YargPlayers from the replay frames
             var players = new List<YargPlayer>();
             foreach (var frame in Replay.Frames)
             {
                 var yargPlayer = new YargPlayer(frame.PlayerInfo.Profile, null, false);
 
-                yargPlayer.OverrideColorProfile(Replay.ColorProfiles[frame.PlayerInfo.ColorProfileId]);
+                yargPlayer.SetPresetsFromReplay(Replay.ReplayPresetContainer);
                 yargPlayer.EngineParameterOverride = frame.EngineParameters;
 
                 players.Add(yargPlayer);
@@ -284,7 +284,17 @@ namespace YARG.Gameplay
                 index++;
 
                 // Skip if the player is sitting out
-                if (player.SittingOut) continue;
+                if (player.SittingOut)
+                {
+                    continue;
+                }
+
+                // Don't do this if it's a replay, because the replay
+                // would've already set its own presets at this point
+                if (!IsReplay)
+                {
+                    player.SetPresetsFromProfile();
+                }
 
                 if (player.Profile.GameMode != GameMode.Vocals)
                 {
