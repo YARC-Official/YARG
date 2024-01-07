@@ -213,11 +213,15 @@ namespace YARG.Input
 
         private static void OnDeviceChange(InputDevice device, InputDeviceChange change)
         {
+            // Ignore the VariantDevice containers from PlasticBand
+            // TODO: Not very elegant, need a better solution from the PlasticBand side
+            if (device.layout.Contains("Variant"))
+                return;
+
             switch (change)
             {
                 case InputDeviceChange.Added:
                     // Ignore if the device was disabled before being added
-                    // Necessary for VariantDevice devices in PlasticBand
                     if (!device.enabled)
                     {
                         _disabledDevices.Add(device);
