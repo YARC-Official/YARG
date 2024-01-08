@@ -16,28 +16,17 @@ MonoBehaviour:
     m_Code: en-US
   m_SharedData: {fileID: 11400000, guid: 56b585007d526c847adec3eb05f44424, type: 2}
   m_Metadata:
-    m_Items: []
+    m_Items:
+    - rid: 6231510915024158722
   m_TableData:
-  - m_Id: 25388931303727104
-    m_Localized: A Game Started By
+  - m_Id: 104461055275950080
+    m_Localized: 'Contributed To: {0:list:{}|, |, }
+
+
+      {1:list:{}|, |, and }'
     m_Metadata:
-      m_Items: []
-  - m_Id: 25388969404784640
-    m_Localized: Lead Artist
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25389008676052992
-    m_Localized: Contributors
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25509635210731520
-    m_Localized: Special Thanks
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25519120012664832
-    m_Localized: Lead Charter
-    m_Metadata:
-      m_Items: []
+      m_Items:
+      - rid: 6231510915024158722
   - m_Id: 45803154252881920
     m_Localized: Five Fret Guitar
     m_Metadata:
@@ -298,6 +287,66 @@ MonoBehaviour:
     m_Localized: More Than A Year
     m_Metadata:
       m_Items: []
+  - m_Id: 104459735215235072
+    m_Localized: OpenSource
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735215235074
+    m_Localized: The YARC Launcher
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735219429376
+    m_Localized: YARG
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735219429378
+    m_Localized: Artist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735219429379
+    m_Localized: Charter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735219429380
+    m_Localized: Developer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735219429381
+    m_Localized: Moderator
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735219429382
+    m_Localized: Contributors
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735219429383
+    m_Localized: A Game Started By
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735219429384
+    m_Localized: Lead Artist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735219429385
+    m_Localized: Lead Charter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735219429386
+    m_Localized: Maintainers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104459735219429387
+    m_Localized: Special Thanks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104466915423281152
+    m_Localized: The Official YARG Setlist
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6231510915024158722
+      type: {class: SmartFormatTag, ns: UnityEngine.Localization.Metadata, asm: Unity.Localization}
+      data:
+        m_Entries: 01e01563931d730100e01561931d730100e095bcc61e7301

@@ -19,7 +19,7 @@ namespace YARG.Menu.Main
 
         private void Start()
         {
-            _versionText.text = GlobalVariables.CURRENT_VERSION.ToString();
+            _versionText.text = GlobalVariables.CURRENT_VERSION;
 
             // Show the anti-piracy dialog if it hasn't been shown already
             // Also only show it once per game launch
@@ -84,6 +84,11 @@ namespace YARG.Menu.Main
         public void Replays()
         {
             MenuManager.Instance.PushMenu(MenuManager.Menu.History);
+        }
+
+        public void Credits()
+        {
+            MenuManager.Instance.PushMenu(MenuManager.Menu.Credits);
         }
 
         public void Settings()

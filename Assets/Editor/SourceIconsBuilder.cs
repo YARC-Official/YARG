@@ -5,7 +5,6 @@ using System.Net;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
-using YARG.Helpers;
 using YARG.Song;
 
 namespace Editor
