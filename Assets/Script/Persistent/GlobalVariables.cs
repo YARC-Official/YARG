@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
@@ -32,7 +33,12 @@ namespace YARG
     {
         public const string CURRENT_VERSION = "v0.12.0";
 
+        private const string OFFLINE_ARG = "-offline";
+
         public List<YargPlayer> Players { get; private set; }
+
+        public static IReadOnlyList<string> CommandLineArguments { get; private set; }
+        public static bool OfflineMode { get; private set; }
 
         public static IAudioManager AudioManager { get; private set; }
 
@@ -56,9 +62,28 @@ namespace YARG
         protected override void SingletonAwake()
         {
             Debug.Log($"YARG {CURRENT_VERSION}");
-
             YargTrace.AddListener(new YargUnityTraceListener());
 
+            // Get command line args
+            // The first element is always the file name, however check just in case
+            var args = System.Environment.GetCommandLineArgs();
+            if (args.Length >= 1)
+            {
+                CommandLineArguments = args[1..].ToList();
+            }
+            else
+            {
+                CommandLineArguments = new List<string>();
+            }
+
+            // Check for offline mode
+            OfflineMode = CommandLineArguments.Contains(OFFLINE_ARG);
+            if (OfflineMode)
+            {
+                Debug.Log("Playing in offline mode");
+            }
+
+            // Initialize important classes
             PathHelper.Init();
             ReplayContainer.Init();
             ScoreContainer.Init();
@@ -80,6 +105,14 @@ namespace YARG
             Shader.SetGlobalFloat("_IsFading", 1f);
         }
 
+        private void Start()
+        {
+            SettingsManager.LoadSettings();
+            InputManager.Initialize();
+
+            LoadScene(SceneIndex.Menu);
+        }
+
         protected override void SingletonDestroy()
         {
             SettingsManager.SaveSettings();
@@ -95,14 +128,6 @@ namespace YARG
             // Set alpha fading (on the tracks) to off
             Shader.SetGlobalFloat("_IsFading", 0f);
 #endif
-        }
-
-        private void Start()
-        {
-            SettingsManager.LoadSettings();
-            InputManager.Initialize();
-
-            LoadScene(SceneIndex.Menu);
         }
 
         private void LoadSceneAdditive(SceneIndex scene)

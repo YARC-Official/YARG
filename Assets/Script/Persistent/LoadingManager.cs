@@ -87,22 +87,29 @@ namespace YARG
             // Handle official setlist invisibly if it is installed
             string setlistPath = PathHelper.SetlistPath;
             if (!string.IsNullOrEmpty(setlistPath) && !directories.Contains(setlistPath))
+            {
                 directories.Add(setlistPath);
+            }
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var task = Task.Run(() => CacheHandler.RunScan(fast, PathHelper.SongCachePath, PathHelper.BadSongsPath, true, directories));
+
+            var task = Task.Run(() =>
+                CacheHandler.RunScan(fast, PathHelper.SongCachePath, PathHelper.BadSongsPath, true, directories));
             while (!task.IsCompleted)
             {
                 UpdateSongUi();
                 await UniTask.NextFrame();
             }
+
             stopwatch.Stop();
 
             Debug.Log($"Scan time: {stopwatch.Elapsed.TotalSeconds}s");
 
             // Remove official setlist path so it doesn't show up in the list of folders
             if (!string.IsNullOrEmpty(setlistPath))
+            {
                 directories.Remove(setlistPath);
+            }
 
             GlobalVariables.Instance.SongContainer = new SongContainer(task.Result);
         }

@@ -150,7 +150,10 @@ namespace YARG.Song
 
         public static async UniTask LoadSources(Action<string> updateText)
         {
-            await DownloadSources(updateText);
+            if (!GlobalVariables.OfflineMode)
+            {
+                await DownloadSources(updateText);
+            }
 
             updateText("Reading sources...");
             await UniTask.RunOnThreadPool(ReadSources);
