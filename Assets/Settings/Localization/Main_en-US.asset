@@ -343,6 +343,10 @@ MonoBehaviour:
     m_Localized: The Official YARG Setlist
     m_Metadata:
       m_Items: []
+  - m_Id: 104872015748784128
+    m_Localized: Community
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:

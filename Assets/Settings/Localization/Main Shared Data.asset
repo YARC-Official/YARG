@@ -19,6 +19,10 @@ MonoBehaviour:
     m_Key: Credits.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 104872015748784128
+    m_Key: Credits.Description.Repos.Community
+    m_Metadata:
+      m_Items: []
   - m_Id: 104459735215235072
     m_Key: Credits.Description.Repos.OpenSource
     m_Metadata:
