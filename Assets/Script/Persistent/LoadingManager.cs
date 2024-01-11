@@ -94,7 +94,8 @@ namespace YARG
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             var task = Task.Run(() =>
-                CacheHandler.RunScan(fast, PathHelper.SongCachePath, PathHelper.BadSongsPath, true, directories));
+                CacheHandler.RunScan(fast, PathHelper.SongCachePath, PathHelper.BadSongsPath, true, true, directories));
+
             while (!task.IsCompleted)
             {
                 UpdateSongUi();
