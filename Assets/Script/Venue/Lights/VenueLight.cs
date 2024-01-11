@@ -10,12 +10,14 @@ namespace YARG.Venue
 
     public enum VenueLightLocation
     {
-        Left,
-        Right,
-        Front,
-        Back,
-        Center,
-        Crowd,
+        Generic = 0,
+
+        Left    = 1,
+        Right   = 2,
+        Front   = 3,
+        Back    = 4,
+        Center  = 5,
+        Crowd   = 6
     }
 
     [RequireComponent(typeof(Light))]
@@ -45,7 +47,7 @@ namespace YARG.Venue
 
         private void Update()
         {
-            var lightState = _lightManager.MainLightState;
+            var lightState = _lightManager.GetLightStateFor(Location);
 
             _light.intensity = _defaultIntensity * lightState.Intensity;
 

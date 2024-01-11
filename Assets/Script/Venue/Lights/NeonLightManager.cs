@@ -25,7 +25,7 @@ namespace YARG.Venue
 
         private void Update()
         {
-            var lightState = _lightManager.MainLightState;
+            var lightState = _lightManager.GenericLightState;
 
             // Update all of the materials
             foreach (var material in _neonMaterials)
