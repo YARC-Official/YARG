@@ -268,7 +268,7 @@ namespace YARG.Gameplay
 
             if (_loadState != LoadFailureState.None) return;
 
-            BeatEventHandler = new(Chart.SyncTrack);
+            BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
             _chartLoaded?.Invoke(Chart);
         }
 

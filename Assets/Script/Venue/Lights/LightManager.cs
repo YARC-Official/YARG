@@ -1,34 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
+using YARG.Core.Chart;
+using YARG.Gameplay;
 
 namespace YARG.Venue
 {
-    public class LightManager : MonoSingleton<LightManager>
+    public class LightManager : GameplayBehaviour
     {
-        public enum LightAnimation
-        {
-            None = 0,
-            ManualCool,
-            ManualWarm,
-            Dischord,
-            Stomp,
-            LoopCool,
-            LoopWarm,
-            Harmony,
-            Frenzy,
-            Silhouettes,
-            Searchlights,
-            Sweep,
-            StrobeFast,
-            StrobeSlow,
-            BlackoutFast,
-            BlackoutSlow,
-            FlareFast,
-            FlareSlow,
-            BRE,
-            Verse,
-            Chorus,
-        }
-
         public class LightState
         {
             /// <summary>
@@ -43,63 +21,78 @@ namespace YARG.Venue
             public Color? Color;
         }
 
-        public LightAnimation Animation { get; private set; }
+        public LightingType Animation { get; private set; }
         public int AnimationFrame { get; private set; }
 
         public LightState MainLightState { get; private set; }
 
-        private float _32NoteUpdate;
-        private int _32NoteIndex;
+        private List<LightingEvent> _lightingEvents;
 
-        private void Start()
+        private int _lightingEventIndex;
+        private int _beatIndex;
+
+        protected override void OnChartLoaded(SongChart chart)
         {
-            MainLightState = new();
+            MainLightState = new LightState();
 
-            // TODO: FIX
-            // VenueManager.OnEventReceive += VenueEvent;
+            _lightingEvents = chart.VenueTrack.Lighting;
+
+            // 1/8th of a beat is a 32nd note
+            GameManager.BeatEventHandler.Subscribe(UpdateLightAnimation, new(1f / 8f));
         }
 
-        protected override void SingletonDestroy()
+        protected override void GameplayDestroy()
         {
-            // TODO: FIX
-            // VenueManager.OnEventReceive -= VenueEvent;
+            GameManager.BeatEventHandler.Unsubscribe(UpdateLightAnimation);
         }
 
         private void Update()
         {
-            // TODO: FIX
-            // _32NoteUpdate += 1f / Play.Instance.CurrentBeatsPerSecond * Time.deltaTime;
-
-            bool thirtySecondNote = false;
-            if (_32NoteUpdate >= 1f / 32f)
+            // Look for new lighting events
+            while (_lightingEventIndex < _lightingEvents.Count &&
+                _lightingEvents[_lightingEventIndex].Time <= GameManager.VisualTime)
             {
-                _32NoteIndex++;
-                _32NoteUpdate = 0f;
-                thirtySecondNote = true;
+                var current = _lightingEvents[_lightingEventIndex];
+
+                switch (current.Type)
+                {
+                    case LightingType.Keyframe_Next:
+                        AnimationFrame++;
+                        break;
+                    case LightingType.Keyframe_Previous:
+                        AnimationFrame--;
+                        break;
+                    case LightingType.Keyframe_First:
+                        AnimationFrame = 0;
+                        break;
+                    default:
+                        Debug.Log($"Event set to {current.Type}");
+                        Animation = current.Type;
+                        AnimationFrame = 0;
+                        break;
+                }
+
+                _lightingEventIndex++;
             }
 
-            UpdateLightAnimation(thirtySecondNote);
             UpdateLightStates();
         }
 
-        private void UpdateLightAnimation(bool thirtySecondNote)
+        private void UpdateLightAnimation()
         {
-            if (!thirtySecondNote)
-            {
-                return;
-            }
+            _beatIndex++;
 
             switch (Animation)
             {
-                case LightAnimation.StrobeFast:
-                case LightAnimation.Frenzy:
-                case LightAnimation.FlareFast:
-                case LightAnimation.BRE:
+                case LightingType.Strobe_Fast:
+                case LightingType.Frenzy:
+                case LightingType.Flare_Fast:
+                case LightingType.BigRockEnding:
                     AnimationFrame++;
                     break;
-                case LightAnimation.StrobeSlow:
-                case LightAnimation.FlareSlow:
-                    if (_32NoteIndex % 2 == 1)
+                case LightingType.Strobe_Slow:
+                case LightingType.Flare_Slow:
+                    if (_beatIndex % 2 == 1)
                     {
                         AnimationFrame++;
                     }
@@ -114,78 +107,28 @@ namespace YARG.Venue
 
             switch (Animation)
             {
-                case LightAnimation.BlackoutFast:
+                case LightingType.Blackout_Fast:
                     MainLightState.Intensity = Mathf.Lerp(MainLightState.Intensity, 0f, Time.deltaTime * 15f);
                     break;
-                case LightAnimation.BlackoutSlow:
+                case LightingType.Blackout_Slow:
                     MainLightState.Intensity = Mathf.Lerp(MainLightState.Intensity, 0f, Time.deltaTime * 10f);
                     break;
-                case LightAnimation.Stomp:
-                case LightAnimation.FlareSlow:
-                case LightAnimation.Dischord:
-                case LightAnimation.Searchlights:
-                case LightAnimation.Sweep:
-                case LightAnimation.Silhouettes:
-                case LightAnimation.StrobeFast:
-                case LightAnimation.Frenzy:
-                case LightAnimation.FlareFast:
-                case LightAnimation.BRE:
-                case LightAnimation.StrobeSlow:
+                case LightingType.Stomp:
+                case LightingType.Flare_Slow:
+                case LightingType.Dischord:
+                case LightingType.Searchlights:
+                case LightingType.Sweep:
+                case LightingType.Silhouettes:
+                case LightingType.Strobe_Fast:
+                case LightingType.Frenzy:
+                case LightingType.Flare_Fast:
+                case LightingType.BigRockEnding:
+                case LightingType.Strobe_Slow:
                     MainLightState.Intensity = AnimationFrame % 2 == 0 ? 1f : 0f;
                     break;
                 default:
                     MainLightState.Intensity = 1f;
                     break;
-            }
-        }
-
-        private void VenueEvent(string eventName)
-        {
-            if (eventName.StartsWith("venue_lightFrame_"))
-            {
-                eventName = eventName.Replace("venue_lightFrame_", "");
-                switch (eventName)
-                {
-                    case "next":
-                        AnimationFrame++;
-                        break;
-                    case "previous":
-                        AnimationFrame--;
-                        break;
-                    case "first":
-                        AnimationFrame = 0;
-                        break;
-                }
-            }
-            else if (eventName.StartsWith("venue_light_"))
-            {
-                eventName = eventName.Replace("venue_light_", "");
-                Animation = eventName switch
-                {
-                    "manual_cool"   => LightAnimation.ManualCool,
-                    "manual_warm"   => LightAnimation.ManualWarm,
-                    "dischord"      => LightAnimation.Dischord,
-                    "stomp"         => LightAnimation.Stomp,
-                    "loop_cool"     => LightAnimation.LoopCool,
-                    "loop_warm"     => LightAnimation.LoopWarm,
-                    "harmony"       => LightAnimation.Harmony,
-                    "frenzy"        => LightAnimation.Frenzy,
-                    "silhouettes"   => LightAnimation.Silhouettes,
-                    "searchlights"  => LightAnimation.Searchlights,
-                    "sweep"         => LightAnimation.Sweep,
-                    "strobe_fast"   => LightAnimation.StrobeFast,
-                    "strobe_slow"   => LightAnimation.StrobeSlow,
-                    "blackout_fast" => LightAnimation.BlackoutFast,
-                    "blackout_slow" => LightAnimation.BlackoutSlow,
-                    "flare_fast"    => LightAnimation.FlareFast,
-                    "flare_slow"    => LightAnimation.FlareSlow,
-                    "bre"           => LightAnimation.BRE,
-                    "verse"         => LightAnimation.Verse,
-                    "chorus"        => LightAnimation.Chorus,
-                    _               => LightAnimation.None
-                };
-
-                AnimationFrame = 0;
             }
         }
     }
