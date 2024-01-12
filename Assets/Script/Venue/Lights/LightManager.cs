@@ -41,11 +41,19 @@ namespace YARG.Venue
         private Color[] _warmColors;
         [SerializeField]
         private Color[] _coolColors;
+        [SerializeField]
+        private Color[] _dissonantColors;
+        [SerializeField]
+        private Color[] _harmoniousColors;
+        [SerializeField]
+        private Color _silhouetteColor;
 
         private List<LightingEvent> _lightingEvents;
 
         private Gradient _warmGradient;
         private Gradient _coolGradient;
+        private Gradient _dissonantGradient;
+        private Gradient _harmoniousGradient;
 
         private int _lightingEventIndex;
         private int _beatIndex;
@@ -58,7 +66,7 @@ namespace YARG.Venue
 
             // If the color arrays are empty, add basic ones for safety
 
-            if (_warmColors.Length <= 0)
+            if (_warmColors is not { Length: > 0 })
             {
                 _warmColors = new[]
                 {
@@ -67,7 +75,7 @@ namespace YARG.Venue
                 };
             }
 
-            if (_coolColors.Length <= 0)
+            if (_coolColors is not { Length: > 0 })
             {
                 _coolColors = new[]
                 {
@@ -76,9 +84,31 @@ namespace YARG.Venue
                 };
             }
 
+            if (_dissonantColors is not { Length: > 0 })
+            {
+                _dissonantColors = new[]
+                {
+                    Color.red,
+                    Color.green,
+                    Color.blue,
+                };
+            }
+
+            if (_harmoniousColors is not { Length: > 0 })
+            {
+                _harmoniousColors = new[]
+                {
+                    Color.yellow,
+                    Color.red,
+                    Color.blue,
+                };
+            }
+
             // Setup gradients
             _warmGradient = CreateGradient(_warmColors);
             _coolGradient = CreateGradient(_coolColors);
+            _dissonantGradient = CreateGradient(_dissonantColors);
+            _harmoniousGradient = CreateGradient(_harmoniousColors);
 
             // 1/8th of a beat is a 32nd note
             GameManager.BeatEventHandler.Subscribe(UpdateLightAnimation, new(1f / 8f));
@@ -160,11 +190,26 @@ namespace YARG.Venue
 
                 switch (Animation)
                 {
+                    case LightingType.Verse:
+                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _coolGradient, _warmGradient);
+                        break;
+                    case LightingType.Chorus:
+                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _warmGradient, _coolGradient);
+                        break;
                     case LightingType.Blackout_Fast:
                         _lightStates[i] = BlackOut(_lightStates[i], 15f);
                         break;
                     case LightingType.Blackout_Slow:
                         _lightStates[i] = BlackOut(_lightStates[i], 10f);
+                        break;
+                    case LightingType.BigRockEnding:
+                    case LightingType.Dischord:
+                    case LightingType.Frenzy:
+                        _lightStates[i] = AutoGradient(_lightStates[i], _dissonantGradient);
+                        break;
+                    case LightingType.Cool_Automatic:
+                    case LightingType.Cool_Manual:
+                        _lightStates[i] = AutoGradient(_lightStates[i], _coolGradient);
                         break;
                     case LightingType.Flare_Fast:
                         _lightStates[i] = Flare(_lightStates[i], 15f);
@@ -172,24 +217,21 @@ namespace YARG.Venue
                     case LightingType.Flare_Slow:
                         _lightStates[i] = Flare(_lightStates[i], 10f);
                         break;
-                    case LightingType.Stomp:
+                    case LightingType.Harmony:
+                        _lightStates[i] = AutoGradient(_lightStates[i], _harmoniousGradient);
+                        break;
+                    case LightingType.Silhouettes:
+                    case LightingType.Silhouettes_Spotlight:
+                        _lightStates[i] = Silhouette(_lightStates[i], location);
+                        break;
                     case LightingType.Strobe_Fast:
                     case LightingType.Strobe_Slow:
+                    case LightingType.Stomp:
                         _lightStates[i] = Strobe(_lightStates[i]);
                         break;
                     case LightingType.Warm_Automatic:
                     case LightingType.Warm_Manual:
-                        _lightStates[i] = GradientAutomatic(_lightStates[i], _warmGradient);
-                        break;
-                    case LightingType.Cool_Automatic:
-                    case LightingType.Cool_Manual:
-                        _lightStates[i] = GradientAutomatic(_lightStates[i], _coolGradient);
-                        break;
-                    case LightingType.Verse:
-                        _lightStates[i] = SplitGradient(_lightStates[i], location, _coolGradient, _warmGradient);
-                        break;
-                    case LightingType.Chorus:
-                        _lightStates[i] = SplitGradient(_lightStates[i], location, _warmGradient, _coolGradient);
+                        _lightStates[i] = AutoGradient(_lightStates[i], _warmGradient);
                         break;
                     default:
                         _lightStates[i].Intensity = 1f;
