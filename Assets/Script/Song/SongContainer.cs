@@ -55,7 +55,7 @@ namespace YARG.Song
                 foreach (var node in list)
                 {
                     string key = node.Key;
-                    if ((attribute is SongAttribute.Genre or SongAttribute.Source) && key.Length > 0 && char.IsLower(key[0]))
+                    if (attribute == SongAttribute.Genre && key.Length > 0 && char.IsLower(key[0]))
                     {
                         key = char.ToUpperInvariant(key[0]).ToString();
                         if (node.Key.Length > 1)
