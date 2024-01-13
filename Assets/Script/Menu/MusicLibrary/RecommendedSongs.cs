@@ -46,15 +46,11 @@ namespace YARG.Menu.MusicLibrary
         {
             // Get the top ten most played songs
             var mostPlayed = ScoreContainer.GetMostPlayedSongs(10);
-
-            // If no songs were played, skip
-            if (mostPlayed.Count <= 0)
+            if (mostPlayed.Count > 0)
             {
-                return;
+                AddMostPlayedSongs(mostPlayed);
+                AddSongsFromTopPlayedArtists(mostPlayed);
             }
-
-            AddMostPlayedSongs(mostPlayed);
-            AddSongsFromTopPlayedArtists(mostPlayed);
         }
 
         private static void AddMostPlayedSongs(List<SongMetadata> mostPlayed)
@@ -65,71 +61,35 @@ namespace YARG.Menu.MusicLibrary
                 for (int t = 0; t < TRIES; t++)
                 {
                     var song = mostPlayed.Pick();
-
-                    if (_recommendedSongs.Contains(song))
+                    if (!_recommendedSongs.Contains(song))
                     {
-                        continue;
+                        _recommendedSongs.Add(song);
+                        break;
                     }
-
-                    _recommendedSongs.Add(song);
-                    break;
                 }
             }
         }
 
         private static void AddSongsFromTopPlayedArtists(List<SongMetadata> mostPlayed)
         {
-            // Pick 1 or 2...
-            int choices = 2;
-            if (Random.value <= 0.5f)
-            {
-                choices = 1;
-            }
-
-            // ...random songs from artists that are in the most played (ten tries each)
+            var artists = GlobalVariables.Instance.SongContainer.GetSortedSongList(SongAttribute.Artist);
+            // Pick 1 or 2 random songs from artists that are in the most played (ten tries each)
+            int choices = Random.Range(1, 3);
             for (int i = 0; i < choices; i++)
             {
                 for (int t = 0; t < TRIES; t++)
                 {
-                    // Pick a random song, and get all of the songs from that artist
-                    var sameArtistSongs = GetAllSongsFromArtist(mostPlayed.Pick().Artist);
+                    // Pick a random song made by an artist in the mostPlayed list
+                    var song = artists[mostPlayed.Pick().Artist].Pick();
 
-                    // If the artist only has one song, it is guaranteed to not pass the rest of the ifs
-                    if (sameArtistSongs.Count <= 1)
+                    // Add if not in most played songs and wasn't already recommended
+                    if (!mostPlayed.Contains(song) && !_recommendedSongs.Contains(song))
                     {
-                        continue;
+                        _recommendedSongs.Add(song);
+                        break;
                     }
-
-                    // Pick a random song from that artist
-                    var song = sameArtistSongs.Pick();
-
-                    // Skip if included in most played songs
-                    if (mostPlayed.Contains(song))
-                    {
-                        continue;
-                    }
-
-                    // Skip if already included in recommendedSongs
-                    if (_recommendedSongs.Contains(song))
-                    {
-                        continue;
-                    }
-
-                    // Add
-                    _recommendedSongs.Add(song);
-                    break;
                 }
             }
-        }
-
-        private static List<SongMetadata> GetAllSongsFromArtist(string artist)
-        {
-            return GlobalVariables.Instance.SongContainer.GetSortedSongList(SongAttribute.Artist)[artist];
-        }
-
-        private static string RemoveDiacriticsAndArticle(string value)
-        {
-            return SongSearching.RemoveDiacriticsAndArticle(value);
         }
 
         private static void AddRandomSong()
@@ -137,43 +97,27 @@ namespace YARG.Menu.MusicLibrary
             // Try to add a YARG setlist song (we love bias!)
             if (Random.value <= 0.6f)
             {
-                var yargSongs = GlobalVariables.Instance.SongContainer.Songs
-                    .Where(i => i.Source.SortStr == "yarg").ToList();
-
-                // Skip if the user has no YARG songs :(
-                if (yargSongs.Count <= 0)
+                var sources = GlobalVariables.Instance.SongContainer.GetSortedSongList(SongAttribute.Source);
+                if (sources.TryGetValue("yarg", out var yargSongs))
                 {
-                    goto RandomSong;
+                    var song = yargSongs.Pick();
+                    if (!_recommendedSongs.Contains(song))
+                    {
+                        _recommendedSongs.Add(song);
+                        return;
+                    }
                 }
-
-                var song = yargSongs.Pick();
-
-                // Skip if the song was already in recommended
-                if (_recommendedSongs.Contains(song))
-                {
-                    goto RandomSong;
-                }
-
-                // Add the YARG song
-                _recommendedSongs.Add(song);
-
-                return;
             }
-
-        RandomSong:
 
             // Add a completely random song (ten tries)
             for (int t = 0; t < TRIES; t++)
             {
-                var song = ((IList<SongMetadata>) GlobalVariables.Instance.SongContainer.Songs).Pick();
-
-                if (_recommendedSongs.Contains(song))
+                var song = GlobalVariables.Instance.SongContainer.GetRandomSong();
+                if (!_recommendedSongs.Contains(song))
                 {
-                    continue;
+                    _recommendedSongs.Add(song);
+                    break;
                 }
-
-                _recommendedSongs.Add(song);
-                break;
             }
         }
     }

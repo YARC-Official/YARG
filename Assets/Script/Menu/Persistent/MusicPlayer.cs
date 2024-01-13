@@ -54,7 +54,7 @@ namespace YARG.Menu.Persistent
 
         private async UniTask NextSong()
         {
-            var song = GlobalVariables.Instance.SongContainer.Songs[Random.Range(0, GlobalVariables.Instance.SongContainer.Songs.Count)];
+            var song = GlobalVariables.Instance.SongContainer.GetRandomSong();
             await UniTask.RunOnThreadPool(() => song.LoadAudio(GlobalVariables.AudioManager, 1f, SongStem.Crowd));
 
             // Set song title text

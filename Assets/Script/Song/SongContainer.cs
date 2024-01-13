@@ -2,6 +2,7 @@
 using YARG.Core.Song.Cache;
 using YARG.Core.Song;
 using System;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Song
 {
@@ -84,6 +85,11 @@ namespace YARG.Song
                 SongAttribute.Instrument => Instruments,
                 _ => throw new Exception("stoopid"),
             };
+        }
+
+        public SongMetadata GetRandomSong()
+        {
+            return _songs.Pick();
         }
     }
 }
