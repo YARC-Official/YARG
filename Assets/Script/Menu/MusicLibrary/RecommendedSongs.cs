@@ -124,9 +124,7 @@ namespace YARG.Menu.MusicLibrary
 
         private static List<SongMetadata> GetAllSongsFromArtist(string artist)
         {
-            return GlobalVariables.Instance.SongContainer.Songs
-                .Where(i => RemoveDiacriticsAndArticle(i.Artist) == RemoveDiacriticsAndArticle(artist))
-                .ToList();
+            return GlobalVariables.Instance.SongContainer.GetSortedSongList(SongAttribute.Artist)[artist];
         }
 
         private static string RemoveDiacriticsAndArticle(string value)
