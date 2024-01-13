@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
@@ -40,7 +41,8 @@ namespace YARG.Gameplay.Player
             if (!GameManager.IsReplay)
             {
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds);
+                bool isBass = Player.Profile.CurrentInstrument == Instrument.FiveFretBass;
+                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
             }
             else
             {
@@ -136,7 +138,7 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateVisuals(double songTime)
         {
-            UpdateBaseVisuals(Engine.EngineStats, songTime);
+            UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
 
             for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
             {

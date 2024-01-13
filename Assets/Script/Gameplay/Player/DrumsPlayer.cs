@@ -162,7 +162,7 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateVisuals(double songTime)
         {
-            UpdateBaseVisuals(Engine.EngineStats, songTime);
+            UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
         }
 
         protected override void ResetVisuals()

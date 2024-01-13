@@ -7,6 +7,7 @@ using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Engine.Vocals.Engines;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
@@ -108,8 +109,8 @@ namespace YARG.Gameplay.Player
 
             // The hit window size should not be scaled here, since it represents pitch, not timing
             HitWindow = new HitWindowSettings(windowSize, 0.03, 1, false);
-            EngineParams = new VocalsEngineParameters(HitWindow, hitPercent, true,
-                IMicDevice.UPDATES_PER_SECOND, StarMultiplierThresholds);
+            EngineParams = new VocalsEngineParameters(HitWindow, EnginePreset.DEFAULT_MAX_MULTIPLIER,
+                StarMultiplierThresholds, hitPercent, true, IMicDevice.UPDATES_PER_SECOND);
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams);
 

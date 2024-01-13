@@ -248,10 +248,16 @@ namespace YARG.Gameplay.Player
             ResetVisuals();
         }
 
-        protected void UpdateBaseVisuals(BaseStats stats, double songTime)
+        protected void UpdateBaseVisuals(BaseStats stats, BaseEngineParameters engineParams, double songTime)
         {
-            int maxMultiplier = stats.IsStarPowerActive ? 8 : 4;
+            int maxMultiplier = engineParams.MaxMultiplier;
+            if (stats.IsStarPowerActive)
+            {
+                maxMultiplier *= 2;
+            }
+
             bool groove = stats.ScoreMultiplier == maxMultiplier;
+
             _currentMultiplier = stats.ScoreMultiplier;
 
             TrackMaterial.SetTrackScroll(songTime, NoteSpeed);
