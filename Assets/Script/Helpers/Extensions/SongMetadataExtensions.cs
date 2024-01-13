@@ -111,7 +111,7 @@ namespace YARG.Helpers.Extensions
 
         private static void LoadIniAudio(SongMetadata.IIniMetadata iniData, IAudioManager manager, float speed, params SongStem[] ignoreStems)
         {
-            var stems = iniData.GetAudioStreams();
+            var stems = iniData.GetAudioStreams(ignoreStems);
             manager.LoadSong(stems, speed);
         }
 
