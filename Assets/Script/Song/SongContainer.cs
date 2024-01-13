@@ -42,20 +42,20 @@ namespace YARG.Song
                 _songs.AddRange(node.Value);
             _songs.TrimExcess();
 
-            _sortArtists = Convert(cache.Artists);
-            _sortAlbums = Convert(cache.Albums);
-            _sortGenres = Convert(cache.Genres);
-            _sortCharters = Convert(cache.Charters);
-            _sortPlaylists = Convert(cache.Playlists);
-            _sortSources = Convert(cache.Sources);
+            _sortArtists = Convert(cache.Artists, SongAttribute.Artist);
+            _sortAlbums = Convert(cache.Albums, SongAttribute.Album);
+            _sortGenres = Convert(cache.Genres, SongAttribute.Genre);
+            _sortCharters = Convert(cache.Charters, SongAttribute.Charter);
+            _sortPlaylists = Convert(cache.Playlists, SongAttribute.Playlist);
+            _sortSources = Convert(cache.Sources, SongAttribute.Source);
 
-            static SortedDictionary<string, List<SongMetadata>> Convert(SortedDictionary<SortString, List<SongMetadata>> list)
+            static SortedDictionary<string, List<SongMetadata>> Convert(SortedDictionary<SortString, List<SongMetadata>> list, SongAttribute attribute)
             {
                 SortedDictionary<string, List<SongMetadata>> map = new();
                 foreach (var node in list)
                 {
                     string key = node.Key;
-                    if (key.Length > 0 && char.IsLower(key[0]))
+                    if ((attribute is SongAttribute.Genre or SongAttribute.Source) && key.Length > 0 && char.IsLower(key[0]))
                     {
                         key = char.ToUpperInvariant(key[0]).ToString();
                         if (node.Key.Length > 1)
