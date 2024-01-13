@@ -130,6 +130,10 @@ MonoBehaviour:
     m_Localized: Yellow Pad (Second)
     m_Metadata:
       m_Items: []
+  - m_Id: 62653236004642816
+    m_Localized: Star Power Activate
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

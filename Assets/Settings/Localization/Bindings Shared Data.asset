@@ -127,6 +127,10 @@ MonoBehaviour:
     m_Key: Menu.Yellow
     m_Metadata:
       m_Items: []
+  - m_Id: 62653236004642816
+    m_Key: Vocals.StarPower
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
