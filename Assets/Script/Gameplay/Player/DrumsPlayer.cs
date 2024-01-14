@@ -27,8 +27,6 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private KickFret _kickFret;
 
-        public override BaseStats Stats => Engine?.EngineStats;
-
         public override float[] StarMultiplierThresholds { get; } =
         {
             0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.29f

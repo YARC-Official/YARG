@@ -39,19 +39,17 @@ namespace YARG.Gameplay.Player
 
         public abstract BaseEngine BaseEngine { get; }
 
-        public abstract BaseStats Stats { get; }
+        public BaseStats BaseStats => BaseEngine.BaseStats;
+        public BaseEngineParameters BaseParameters => BaseEngine.BaseParameters;
 
         public abstract float[] StarMultiplierThresholds { get; }
-
         public abstract int[] StarScoreThresholds { get; protected set; }
 
         public HitWindowSettings HitWindow { get; protected set; }
 
-        public int Score { get; protected set; }
-
-        public int Combo { get; protected set; }
-
-        public int NotesHit   { get; protected set; }
+        public int Score => BaseStats.Score;
+        public int Combo => BaseStats.Combo;
+        public int NotesHit => BaseStats.NotesHit;
 
         public int TotalNotes { get; protected set; }
 
@@ -260,7 +258,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var haptics in SantrollerHaptics)
             {
-                haptics.SetStarPowerFill((float) Stats.StarPowerAmount);
+                haptics.SetStarPowerFill((float) BaseStats.StarPowerAmount);
             }
         }
 

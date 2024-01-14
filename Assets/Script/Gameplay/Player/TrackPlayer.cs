@@ -226,7 +226,6 @@ namespace YARG.Gameplay.Player
         protected void ResetNoteCounters()
         {
             NoteIndex = 0;
-            NotesHit = 0;
             TotalNotes = Notes.Sum(i => Engine.GetNumberOfNotes(i));
         }
 
@@ -347,8 +346,6 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
-            NotesHit++;
-
             ShouldMuteStem = false;
             if (_currentMultiplier != _previousMultiplier)
             {
@@ -421,9 +418,6 @@ namespace YARG.Gameplay.Player
         public override void UpdateWithTimes(double inputTime)
         {
             base.UpdateWithTimes(inputTime);
-
-            Score = Stats.Score;
-            Combo = Stats.Combo;
 
             if (CurrentHighScore != null && !IsNewHighScore && Score > CurrentHighScore)
             {

@@ -350,7 +350,7 @@ namespace YARG.Gameplay
                 PlayerScores = _players.Select(player => new PlayerScoreCard
                 {
                     Player = player.Player,
-                    Stats = player.Stats
+                    Stats = player.BaseStats
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars
@@ -378,10 +378,10 @@ namespace YARG.Gameplay
                     EnginePresetId = profile.EnginePreset,
 
                     Score = player.Score,
-                    Stars = StarAmountHelper.GetStarsFromInt(player.Stats.Stars),
+                    Stars = StarAmountHelper.GetStarsFromInt(player.BaseStats.Stars),
 
-                    NotesHit = player.Stats.NotesHit,
-                    NotesMissed = player.Stats.NotesMissed,
+                    NotesHit = player.BaseStats.NotesHit,
+                    NotesMissed = player.BaseStats.NotesMissed,
                     IsFc = player.IsFc
                 });
             }

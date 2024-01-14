@@ -22,7 +22,6 @@ namespace YARG.Gameplay.Player
         public VocalsEngine           Engine       { get; private set; }
 
         public override BaseEngine BaseEngine => Engine;
-        public override BaseStats Stats => Engine.EngineStats;
 
         [SerializeField]
         private GameObject _needleVisualContainer;
@@ -331,14 +330,6 @@ namespace YARG.Gameplay.Player
             }
 
             return (closest, octaveShift);
-        }
-
-        public override void UpdateWithTimes(double inputTime)
-        {
-            base.UpdateWithTimes(inputTime);
-
-            Score = Engine.EngineStats.Score;
-            Combo = Engine.EngineStats.Combo;
         }
 
         public override void SetPracticeSection(uint start, uint end)
