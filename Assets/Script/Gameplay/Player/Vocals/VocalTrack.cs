@@ -186,17 +186,12 @@ namespace YARG.Gameplay.Player
         {
             double time = GameManager.RealVisualTime;
 
-            // Track upcoming range changes
+            // Handle range changes
             var ranges = _vocalsTrack.RangeShifts;
-            int lastRangeIndex = _nextRangeIndex;
             while (_nextRangeIndex < ranges.Count && ranges[_nextRangeIndex].Time < time)
             {
-                _nextRangeIndex++;
-            }
-
-            if (lastRangeIndex != _nextRangeIndex && _nextRangeIndex < ranges.Count)
-            {
                 ChangeRange(ranges[_nextRangeIndex]);
+                _nextRangeIndex++;
             }
 
             // Update the range
