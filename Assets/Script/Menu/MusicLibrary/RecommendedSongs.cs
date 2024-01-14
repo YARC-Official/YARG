@@ -72,7 +72,7 @@ namespace YARG.Menu.MusicLibrary
 
         private static void AddSongsFromTopPlayedArtists(List<SongMetadata> mostPlayed)
         {
-            var artists = GlobalVariables.Instance.SongContainer.GetSortedSongList(SongAttribute.Artist);
+            var artists = GlobalVariables.Instance.SongContainer.Artists;
             // Pick 1 or 2 random songs from artists that are in the most played (ten tries each)
             int choices = Random.Range(1, 3);
             for (int i = 0; i < choices; i++)
@@ -80,7 +80,9 @@ namespace YARG.Menu.MusicLibrary
                 for (int t = 0; t < TRIES; t++)
                 {
                     // Pick a random song made by an artist in the mostPlayed list
-                    var song = artists[mostPlayed.Pick().Artist].Pick();
+                    if (!artists.TryGetValue(mostPlayed.Pick().Artist, out var artistSongs))
+                        continue;
+                    var song = artistSongs.Pick();
 
                     // Add if not in most played songs and wasn't already recommended
                     if (!mostPlayed.Contains(song) && !_recommendedSongs.Contains(song))
