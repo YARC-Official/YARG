@@ -182,6 +182,10 @@ MonoBehaviour:
   - {fileID: 4302007297606639045}
   - {fileID: 4944235696632696688}
   - {fileID: 4302288126089979348}
+  _lineWidthMultipliers:
+  - 1
+  - 0.625
+  - 0.3125
 --- !u!1 &6000084519217476783
 GameObject:
   m_ObjectHideFlags: 0
