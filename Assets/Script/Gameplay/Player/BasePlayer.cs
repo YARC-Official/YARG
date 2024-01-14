@@ -47,7 +47,7 @@ namespace YARG.Gameplay.Player
 
         public HitWindowSettings HitWindow { get; protected set; }
 
-        public int Score => BaseStats.Score;
+        public int Score => BaseStats.TotalScore;
         public int Combo => BaseStats.Combo;
         public int NotesHit => BaseStats.NotesHit;
 

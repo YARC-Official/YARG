@@ -108,7 +108,7 @@ namespace YARG.Menu.ScoreScreen
                 HideTag();
             }
 
-            _score.text = Stats.Score.ToString("N0");
+            _score.text = Stats.TotalScore.ToString("N0");
             _starView.SetStars(Stats.Stars);
 
             _notesHit.text = $"{WrapWithColor(Stats.NotesHit)} / {totalNotes}";
