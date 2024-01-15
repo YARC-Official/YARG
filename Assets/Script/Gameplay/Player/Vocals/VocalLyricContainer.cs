@@ -17,7 +17,7 @@ namespace YARG.Gameplay.Player
             double.NegativeInfinity, double.NegativeInfinity, double.NegativeInfinity
         };
 
-        public bool TrySpawnLyric(TextEvent lyric, VocalNote probableNotePair, bool isStarpower, int harmIndex)
+        public bool TrySpawnLyric(LyricEvent lyric, VocalNote probableNotePair, bool isStarpower, int harmIndex)
         {
             // Skip this frame if the pool is full
             if (!_pools[harmIndex].CanSpawnAmount(1))
@@ -27,11 +27,10 @@ namespace YARG.Gameplay.Player
 
             // Get the info from the probably note pair, IF it exists
             double length = probableNotePair?.TotalTimeLength ?? 0;
-            bool isTalkie = probableNotePair?.IsNonPitched ?? true;
 
             // Spawn the vocal lyric
             var obj = (VocalLyricElement) _pools[harmIndex].TakeWithoutEnabling();
-            obj.Initialize(lyric, _lastLyricEdgeTime[harmIndex], length, isStarpower, isTalkie, harmIndex);
+            obj.Initialize(lyric, _lastLyricEdgeTime[harmIndex], length, isStarpower, harmIndex);
             obj.EnableFromPool();
 
             // Set the edge time

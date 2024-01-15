@@ -16,6 +16,8 @@ namespace YARG.Gameplay.Visuals
 
         [SerializeField]
         private LineRenderer[] _lineRenderers;
+        [SerializeField]
+        private float[] _lineWidthMultipliers;
 
         private readonly List<Vector3> _points = new();
 
@@ -29,10 +31,11 @@ namespace YARG.Gameplay.Visuals
                 line.material.color = color;
             }
 
+            Debug.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length);
             UpdateLinePoints();
         }
 
-        private void UpdateLinePoints()
+        public void UpdateLinePoints()
         {
             // Create points
             _points.Clear();
@@ -52,22 +55,27 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Set line info
-            foreach (var line in _lineRenderers)
+            float width = VocalTrack.CurrentNoteWidth;
+            for (int lineIndex = 0; lineIndex < _lineRenderers.Length; lineIndex++)
             {
+                var line = _lineRenderers[lineIndex];
+
+                // Would have liked to just use widthMultiplier here, but
+                // that doesn't seem to work correctly for some reason
+                float lineWidth = width * _lineWidthMultipliers[lineIndex];
+                line.startWidth = lineWidth;
+                line.endWidth = lineWidth;
+
                 line.positionCount = _points.Count;
-                for (int i = 0; i < _points.Count; i++)
+                for (int pointIndex = 0; pointIndex < _points.Count; pointIndex++)
                 {
-                    line.SetPosition(i, _points[i]);
+                    line.SetPosition(pointIndex, _points[pointIndex]);
                 }
             }
         }
 
         protected override void UpdateElement()
         {
-            if (VocalTrack.IsRangeChanging)
-            {
-                UpdateLinePoints();
-            }
         }
 
         protected override void HideElement()
