@@ -60,52 +60,14 @@ namespace YARG.Gameplay.Player
             engine.OnNoteMissed += OnNoteMissed;
             engine.OnOverstrum += OnOverstrum;
 
+            engine.OnSustainStart += OnSustainStart;
+            engine.OnSustainEnd += OnSustainEnd;
+
             engine.OnSoloStart += OnSoloStart;
             engine.OnSoloEnd += OnSoloEnd;
 
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerStatus += OnStarPowerStatus;
-
-            engine.OnSustainStart += (parent) =>
-            {
-                foreach (var note in parent.ChordEnumerator())
-                {
-                    if (parent.IsDisjoint && parent != note)
-                    {
-                        continue;
-                    }
-
-                    if (note.Fret != 0)
-                    {
-                        _fretArray.SetSustained(note.Fret - 1, true);
-                    }
-                }
-            };
-
-            engine.OnSustainEnd += (parent, timeEnded, dropped) =>
-            {
-                foreach (var note in parent.ChordEnumerator())
-                {
-                    if (parent.IsDisjoint && parent != note)
-                    {
-                        continue;
-                    }
-
-                    (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd(dropped);
-
-                    if (note.Fret != 0)
-                    {
-                        _fretArray.SetSustained(note.Fret - 1, false);
-                    }
-                }
-
-                // Mute the stem if you let go of the sustain too early.
-                // Leniency is handled by the engine's sustain burst threshold.
-                if (!parent.IsDisjoint && dropped)
-                {
-                    ShouldMuteStem = true;
-                }
-            };
 
             return engine;
         }
@@ -183,6 +145,47 @@ namespace YARG.Gameplay.Player
             foreach (var note in chordParent.ChordEnumerator())
             {
                 (NotePool.GetByKey(note) as FiveFretNoteElement)?.MissNote();
+            }
+        }
+
+        private void OnSustainStart(GuitarNote parent)
+        {
+            foreach (var note in parent.ChordEnumerator())
+            {
+                if (parent.IsDisjoint && parent != note)
+                {
+                    continue;
+                }
+
+                if (note.Fret != 0)
+                {
+                    _fretArray.SetSustained(note.Fret - 1, true);
+                }
+            }
+        }
+
+        private void OnSustainEnd(GuitarNote parent, double timeEnded, bool dropped)
+        {
+            foreach (var note in parent.ChordEnumerator())
+            {
+                if (parent.IsDisjoint && parent != note)
+                {
+                    continue;
+                }
+
+                (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd(dropped);
+
+                if (note.Fret != 0)
+                {
+                    _fretArray.SetSustained(note.Fret - 1, false);
+                }
+            }
+
+            // Mute the stem if you let go of the sustain too early.
+            // Leniency is handled by the engine's sustain burst threshold.
+            if (!parent.IsDisjoint && dropped)
+            {
+                ShouldMuteStem = true;
             }
         }
 
