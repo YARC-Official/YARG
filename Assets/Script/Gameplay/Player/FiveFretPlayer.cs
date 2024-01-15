@@ -82,7 +82,7 @@ namespace YARG.Gameplay.Player
                 }
             };
 
-            engine.OnSustainEnd += (parent, timeEnded) =>
+            engine.OnSustainEnd += (parent, timeEnded, dropped) =>
             {
                 foreach (var note in parent.ChordEnumerator())
                 {
@@ -91,7 +91,7 @@ namespace YARG.Gameplay.Player
                         continue;
                     }
 
-                    (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd();
+                    (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd(dropped);
 
                     if (note.Fret != 0)
                     {
@@ -100,9 +100,8 @@ namespace YARG.Gameplay.Player
                 }
 
                 // Mute the stem if you let go of the sustain too early.
-                // Add a small threshold to prevent the stem from muting
-                // if you let go a little bit too early.
-                if (!parent.IsDisjoint && parent.TimeEnd - timeEnded > SUSTAIN_END_MUTE_THRESHOLD)
+                // Leniency is handled by the engine's sustain burst threshold.
+                if (!parent.IsDisjoint && dropped)
                 {
                     ShouldMuteStem = true;
                 }
