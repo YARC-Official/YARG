@@ -248,6 +248,10 @@ namespace YARG.Menu.Settings
             // Save on close
             SettingsManager.SaveSettings();
             CustomContentManager.SaveAll();
+
+            //This is a bit of a hack to update the CurrentNavigationGroup again.
+            //ideally the settings menu should work just like every other menu so this isn't needed
+            MenuManager.Instance.ReactivateCurrentMenu();
         }
     }
 }

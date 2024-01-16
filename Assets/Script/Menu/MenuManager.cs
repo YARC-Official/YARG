@@ -101,5 +101,21 @@ namespace YARG.Menu
                 throw new InvalidOperationException($"Failed to open menu {menu}.");
             }
         }
+
+        public void ReactivateCurrentMenu()
+        {
+            var menu = _openMenus.Peek();
+
+            // Show the under one
+            if (_menus.TryGetValue(menu, out var newMenu))
+            {
+                newMenu.gameObject.SetActive(false);
+                newMenu.gameObject.SetActive(true);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Failed to activate menu {menu}.");
+            }
+        }
     }
 }
