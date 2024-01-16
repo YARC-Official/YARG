@@ -163,7 +163,11 @@ namespace YARG.Gameplay.Player
             }
 
             // Set pitch range
-            ChangeRange(_vocalsTrack.RangeShifts[0]);
+            // If a song has all talkies, it won't have any range shifts
+            if (_vocalsTrack.RangeShifts.Count >= 1)
+            {
+                ChangeRange(_vocalsTrack.RangeShifts[0]);
+            }
             _viewRange = _targetRange;
             _previousRange = _targetRange;
             _changeEndTime = _changeStartTime;
