@@ -119,10 +119,16 @@ namespace YARG.Menu.Navigation
 
         public void SelectNext()
         {
-            // If the selection is invalid...
-            if (SelectedIndex is not { } selected || selected < 0 || selected >= _navigatables.Count - 1)
+            // Allows the user to quickly select an option without needing mouse
+            if (SelectedIndex is null)
             {
                 SelectFirst();
+                return;
+            }
+
+            // If the selection will go out of range...
+            if (SelectedIndex is not { } selected || selected < 0 || selected >= _navigatables.Count - 1)
+            {
                 return;
             }
 
@@ -131,10 +137,16 @@ namespace YARG.Menu.Navigation
 
         public void SelectPrevious()
         {
+            // Allows the user to quickly select an option without needing mouse
+            if (SelectedIndex is null)
+            {
+                SelectLast();
+                return;
+            }
+
             // If the selection is invalid...
             if (SelectedIndex is not { } selected || selected <= 0)
             {
-                SelectLast();
                 return;
             }
 
