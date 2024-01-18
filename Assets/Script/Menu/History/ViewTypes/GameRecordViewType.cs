@@ -100,6 +100,7 @@ namespace YARG.Menu.History
             // We're good!
             GlobalVariables.Instance.IsReplay = true;
             GlobalVariables.Instance.CurrentReplay = replayEntry;
+            GlobalVariables.Instance.CurrentSong = _songMetadata;
 
             GlobalVariables.AudioManager.UnloadSong();
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
