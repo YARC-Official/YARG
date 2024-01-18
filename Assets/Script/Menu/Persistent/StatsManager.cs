@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -117,7 +118,7 @@ namespace YARG.Menu.Persistent
             }
 
             // Display the FPS
-            _fpsText.text = $"<b>FPS:</b> {fps:N1}";
+            _fpsText.SetTextFormat("<b>FPS:</b> {0:N1}", fps);
         }
 
         private void UpdateMemoryStats()
@@ -129,33 +130,48 @@ namespace YARG.Menu.Persistent
             long nativeMemory = Profiler.GetTotalAllocatedMemoryLong();
             long totalMemory = managedMemory + nativeMemory;
 
+            var managedUsage = GetMemoryUsage(managedMemory);
+            var nativeUsage = GetMemoryUsage(nativeMemory);
+            var totalUsage = GetMemoryUsage(totalMemory);
+
             // Display the memory usage
-            _memoryText.text = $"<b>Memory:</b> {GetMemoryUsage(totalMemory)} " +
-                $"(managed: {GetMemoryUsage(managedMemory)}, native: {GetMemoryUsage(nativeMemory)})";
+            using var builder = ZString.CreateStringBuilder(true);
+
+            const string memoryFormat = "{0:0.00} {1}";
+
+            builder.Append("<b>Memory:</b> ");
+            builder.AppendFormat(memoryFormat, totalUsage.usage, totalUsage.suffix);
+            builder.Append(" (managed: ");
+            builder.AppendFormat(memoryFormat, managedUsage.usage, managedUsage.suffix);
+            builder.Append(", native: ");
+            builder.AppendFormat(memoryFormat, nativeUsage.usage, nativeUsage.suffix);
+            builder.Append(")");
+
+            _memoryText.SetText(builder);
         }
 
-        private static string GetMemoryUsage(long bytes)
+        private static (float usage, string suffix) GetMemoryUsage(long bytes)
         {
             const float UNIT_FACTOR = 1024f;
             const float UNIT_THRESHOLD = 1.1f * UNIT_FACTOR;
 
             // Bytes
             if (bytes < UNIT_THRESHOLD)
-                return $"{bytes:N0} B";
+                return (bytes, "B");
 
             // Kilobytes
             float kilobytes = bytes / UNIT_FACTOR;
             if (kilobytes < UNIT_THRESHOLD)
-                return $"{kilobytes:N0} KB";
+                return (kilobytes, "KB");
 
             // Megabytes
             float megaBytes = kilobytes / UNIT_FACTOR;
             if (megaBytes < UNIT_THRESHOLD)
-                return $"{megaBytes:N1} MB";
+                return (megaBytes, "MB");
 
             // Gigabytes
             float gigaBytes = megaBytes / UNIT_FACTOR;
-            return $"{gigaBytes:N2} GB";
+            return (gigaBytes, "GB");
         }
     }
 }
