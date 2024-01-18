@@ -6,11 +6,6 @@ namespace YARG
 {
     public class YargUnityTraceListener : IYargTraceListener
     {
-        public void Assert(bool condition, string message)
-        {
-            Debug.Assert(condition, message);
-        }
-
         public void LogMessage(YargTraceType type, string message)
         {
             switch (type)
@@ -23,6 +18,9 @@ namespace YARG
                     break;
                 case YargTraceType.Error:
                     Debug.LogError(message);
+                    break;
+                case YargTraceType.AssertFail:
+                    Debug.Assert(false, message);
                     break;
             }
         }
