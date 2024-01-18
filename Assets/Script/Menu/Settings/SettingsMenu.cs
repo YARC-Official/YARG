@@ -129,6 +129,14 @@ namespace YARG.Menu.Settings
 
             var settingNav = selected.GetComponent<BaseSettingNavigatable>();
 
+            // If we're not selecting a setting (for example, buttons) then skip
+            if (settingNav == null)
+            {
+                _settingName.StringReference = LocaleHelper.EmptyString;
+                _settingDescription.StringReference = LocaleHelper.EmptyString;
+                return;
+            }
+
             _settingName.StringReference = LocaleHelper.StringReference(
                 "Settings", $"Setting.{CurrentTab.Name}.{settingNav.UnlocalizedName}");
 

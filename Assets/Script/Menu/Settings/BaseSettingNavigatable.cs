@@ -36,6 +36,12 @@ namespace YARG.Menu.Settings
             _activeBackground.SetActive(true);
         }
 
+        protected override void OnSelectionChanged(bool selected)
+        {
+            base.OnSelectionChanged(selected);
+            OnDisable();
+        }
+
         private void OnDisable()
         {
             // If the visual's nav scheme is still in the stack, make sure to pop it.

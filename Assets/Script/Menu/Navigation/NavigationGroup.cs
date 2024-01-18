@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace YARG.Menu.Navigation
 {
     public sealed class NavigationGroup : MonoBehaviour
     {
-        public static NavigationGroup CurrentNavigationGroup { get; private set; }
+        private static readonly List<NavigationGroup> _navGroupsStack = new();
+
+        public static NavigationGroup CurrentNavigationGroup => _navGroupsStack.Count <= 0
+            ? null
+            : _navGroupsStack[^1];
 
         private readonly List<NavigatableBehaviour> _navigatables = new();
 
@@ -54,12 +59,21 @@ namespace YARG.Menu.Navigation
         {
             if (_defaultGroup)
             {
-                CurrentNavigationGroup = this;
+                _navGroupsStack.Add(this);
             }
 
             if (_selectFirst && SelectedBehaviour == null)
             {
                 SelectFirst();
+            }
+        }
+
+        private void OnDisable()
+        {
+            // Remove this navigation group from the stack
+            if (_navGroupsStack.Contains(this))
+            {
+                _navGroupsStack.Remove(this);
             }
         }
 
@@ -201,7 +215,9 @@ namespace YARG.Menu.Navigation
 
             SelectionChanged?.Invoke(SelectedBehaviour, selectionOrigin);
             if (selected)
-                SetAsCurrent();
+            {
+                PushNavGroupToStack();
+            }
         }
 
         public void ClearSelection()
@@ -215,15 +231,28 @@ namespace YARG.Menu.Navigation
         public void ConfirmSelection()
         {
             if (SelectedBehaviour != null)
+            {
                 SelectedBehaviour.Confirm();
+            }
         }
 
-        public void SetAsCurrent()
+        public void PushNavGroupToStack()
         {
-            if (_canBeCurrent)
+            if (_canBeCurrent && CurrentNavigationGroup != this)
             {
-                CurrentNavigationGroup = this;
+                _navGroupsStack.Add(this);
             }
+        }
+
+        public void SelectLastNavGroup()
+        {
+            if (CurrentNavigationGroup != this)
+            {
+                return;
+            }
+
+            ClearSelection();
+            _navGroupsStack.Remove(this);
         }
     }
 }

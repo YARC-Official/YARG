@@ -55,7 +55,10 @@ namespace YARG.Settings.Metadata
                     {
                         // Spawn the button
                         var go = Object.Instantiate(_buttonPrefab, container);
-                        go.GetComponent<SettingsButton>().SetInfo(Name, buttonRow.Buttons);
+
+                        var buttonGroup = go.GetComponent<SettingsButton>();
+                        buttonGroup.SetInfo(Name, buttonRow.Buttons);
+                        navGroup.AddNavigatable(buttonGroup);
 
                         break;
                     }
@@ -76,6 +79,7 @@ namespace YARG.Settings.Metadata
 
                         var visual = SpawnSettingVisual(setting, container);
                         visual.AssignSetting(Name, field.FieldName);
+
                         _settingVisuals.Add(field.FieldName, visual);
                         navGroup.AddNavigatable(visual.gameObject);
 
