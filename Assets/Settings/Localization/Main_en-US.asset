@@ -347,6 +347,33 @@ MonoBehaviour:
     m_Localized: Community
     m_Metadata:
       m_Items: []
+  - m_Id: 108143941611020288
+    m_Localized: 'Currently, the replay system is in beta, <b>and <i>may</i> provide
+      inconsistent scores/stats</b>, especially for guitar.
+
+
+      The end goal
+      is for replays to be reliable and accurate, and we''re working on fixing these
+      problems!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 108143941619408896
+    m_Localized: Replays Are In Beta
+    m_Metadata:
+      m_Items: []
+  - m_Id: 108143941619408897
+    m_Localized: 'One or more of the songs you scanned were corrupted, formatted
+      incorrectly, or encrypted, and <b>could not be loaded into the game.</b>
+
+
+      For
+      more info, please check the file located at `{}`.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 108143941619408898
+    m_Localized: Some Songs Could Not Be Scanned
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:

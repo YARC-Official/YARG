@@ -58,6 +58,9 @@ namespace YARG.Menu.Persistent
 
             dialog.DontShowAgainAction = dontShowAgainAction;
 
+            dialog.ClearButtons();
+            dialog.AddDialogButton("I Understand", MenuData.Colors.ConfirmButton, ClearDialog);
+
             return dialog;
         }
 

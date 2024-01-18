@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using YARG.Helpers;
-using YARG.Menu.Data;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Settings;
 using YARG.Menu.Navigation;
@@ -25,7 +24,7 @@ namespace YARG.Menu.Main
             // Also only show it once per game launch
             if (!_antiPiracyDialogShown && SettingsManager.Settings.ShowAntiPiracyDialog)
             {
-                var dialog = DialogManager.Instance.ShowOneTimeMessage(
+                DialogManager.Instance.ShowOneTimeMessage(
                     LocaleHelper.LocalizeString("Dialogs.AntiPiracy.Title"),
                     LocaleHelper.LocalizeString("Dialogs.AntiPiracy"),
                     () =>
@@ -33,10 +32,6 @@ namespace YARG.Menu.Main
                         SettingsManager.Settings.ShowAntiPiracyDialog = false;
                         SettingsManager.SaveSettings();
                     });
-
-                dialog.ClearButtons();
-                dialog.AddDialogButton("I Understand", MenuData.Colors.ConfirmButton,
-                    DialogManager.Instance.ClearDialog);
 
                 _antiPiracyDialogShown = true;
             }

@@ -2,7 +2,10 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Song;
+using YARG.Helpers;
+using YARG.Menu.Persistent;
 using YARG.Replays;
+using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Menu.History
@@ -51,6 +54,27 @@ namespace YARG.Menu.History
         {
             if (_songMetadata is null) return;
 
+            PlayReplay().Forget();
+        }
+
+        private async UniTaskVoid PlayReplay()
+        {
+            // Show warning
+            if (SettingsManager.Settings.ShowEngineInconsistencyDialog)
+            {
+                var dialog = DialogManager.Instance.ShowOneTimeMessage(
+                    LocaleHelper.LocalizeString("Dialogs.EngineInconsistency.Title"),
+                    LocaleHelper.LocalizeString("Dialogs.EngineInconsistency"),
+                    () =>
+                    {
+                        SettingsManager.Settings.ShowEngineInconsistencyDialog = false;
+                        SettingsManager.SaveSettings();
+                    });
+
+                await dialog.WaitUntilClosed();
+            }
+
+            // We're good!
             GlobalVariables.Instance.IsReplay = true;
             GlobalVariables.Instance.CurrentReplay = _replayEntry;
 

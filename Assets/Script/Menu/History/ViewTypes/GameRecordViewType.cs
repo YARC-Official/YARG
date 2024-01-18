@@ -1,13 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Replays;
 using YARG.Core.Song;
+using YARG.Helpers;
 using YARG.Menu.Persistent;
 using YARG.Replays;
 using YARG.Scores;
+using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Menu.History
@@ -43,6 +46,11 @@ namespace YARG.Menu.History
         {
             if (_songMetadata is null) return;
 
+            PlayReplay().Forget();
+        }
+
+        private async UniTaskVoid PlayReplay()
+        {
             // Get the replay path
             var path = Path.Combine(ScoreContainer.ScoreReplayDirectory, GameRecord.ReplayFileName);
             if (!File.Exists(path))
@@ -72,6 +80,21 @@ namespace YARG.Menu.History
                 DialogManager.Instance.ShowMessage("Cannot Play Replay",
                     "The replay's hash does not match the hash present in the database. Was the database modified?");
                 return;
+            }
+
+            // Show warning
+            if (SettingsManager.Settings.ShowEngineInconsistencyDialog)
+            {
+                var dialog = DialogManager.Instance.ShowOneTimeMessage(
+                    LocaleHelper.LocalizeString("Dialogs.EngineInconsistency.Title"),
+                    LocaleHelper.LocalizeString("Dialogs.EngineInconsistency"),
+                    () =>
+                    {
+                        SettingsManager.Settings.ShowEngineInconsistencyDialog = false;
+                        SettingsManager.SaveSettings();
+                    });
+
+                await dialog.WaitUntilClosed();
             }
 
             // We're good!

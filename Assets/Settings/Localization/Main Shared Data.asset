@@ -87,6 +87,22 @@ MonoBehaviour:
     m_Key: Dialogs.AntiPiracy.Title
     m_Metadata:
       m_Items: []
+  - m_Id: 108143941611020288
+    m_Key: Dialogs.EngineInconsistency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 108143941619408896
+    m_Key: Dialogs.EngineInconsistency.Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 108143941619408897
+    m_Key: Dialogs.BadSongs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 108143941619408898
+    m_Key: Dialogs.BadSongs.Title
+    m_Metadata:
+      m_Items: []
   - m_Id: 62731776066707476
     m_Key: Difficulty.Easy
     m_Metadata:

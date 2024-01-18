@@ -18,12 +18,17 @@ namespace YARG.Settings
     {
         public class SettingContainer
         {
-            #region Hidden Settings
-
+            /// <summary>
+            /// Whether or not the settings are currently in the process of being loaded.
+            /// </summary>
             public static bool IsLoading = true;
 
-            public List<string> SongFolders          = new();
-            public bool         ShowAntiPiracyDialog = true;
+            #region Hidden Settings
+
+            public List<string> SongFolders = new();
+
+            public bool ShowAntiPiracyDialog          = true;
+            public bool ShowEngineInconsistencyDialog = true;
 
             #endregion
 
