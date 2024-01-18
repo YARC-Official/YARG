@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -13,6 +14,7 @@ using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Player;
 
 namespace YARG.Menu.DifficultySelect
@@ -312,6 +314,17 @@ namespace YARG.Menu.DifficultySelect
             // When the user(s) have selected all of their difficulties, move on
             if (_playerIndex >= PlayerContainer.Players.Count)
             {
+                // If everyone is sitting out, show a warning and boot back to music library
+                if (PlayerContainer.Players.All(i => i.SittingOut))
+                {
+                    MenuManager.Instance.PopMenu();
+
+                    DialogManager.Instance.ShowMessage("Nobody's Playing!",
+                        "You tried to play a song with every player sitting out.");
+
+                    return;
+                }
+
                 // This will always work (as it's set up in the input field)
                 // The max speed that the game can keep up with is 4995%
                 float speed = float.Parse(_speedInput.text.TrimEnd('%')) / 100f;
