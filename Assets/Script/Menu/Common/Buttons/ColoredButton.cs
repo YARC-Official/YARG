@@ -12,16 +12,25 @@ namespace YARG.Menu
 
         [Space]
         [SerializeField]
-        private Image _background;
+        private Image[] _backgroundImages;
         [SerializeField]
         private TextMeshProUGUI _text;
 
         public TextMeshProUGUI Text => _text;
 
+        private Color _backgroundColor;
         public Color BackgroundColor
         {
-            get => _background.color;
-            set => _background.color = value;
+            get => _backgroundColor;
+            private set
+            {
+                _backgroundColor = value;
+
+                foreach (var image in _backgroundImages)
+                {
+                    image.color = value;
+                }
+            }
         }
 
         public Button.ButtonClickedEvent OnClick => _button.onClick;
@@ -32,7 +41,7 @@ namespace YARG.Menu
         /// </summary>
         public void SetBackgroundAndTextColor(Color background)
         {
-            _background.color = background;
+            BackgroundColor = background;
             _text.color = MenuData.Colors.GetBestTextColor(background);
         }
 
@@ -48,7 +57,7 @@ namespace YARG.Menu
         /// </param>
         public void SetBackgroundAndTextColor(Color background, Color brightColor, Color darkColor)
         {
-            _background.color = background;
+            BackgroundColor = background;
             _text.color = MenuColors.GetBestTextColor(background, brightColor, darkColor);
         }
     }

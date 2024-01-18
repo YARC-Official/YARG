@@ -168,9 +168,9 @@ namespace YARG.Menu.Navigation
             UpdateHelpBar().Forget();
         }
 
-        public void ForceHideMusicPlayer()
+        public bool IsMusicPlayShowing()
         {
-            HelpBar.Instance.MusicPlayer.gameObject.SetActive(false);
+            return _schemeStack.Peek().AllowsMusicPlayer;
         }
 
         private async UniTask UpdateHelpBar()

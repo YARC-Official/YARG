@@ -8,6 +8,8 @@ namespace YARG.Menu.Navigation
     {
         [SerializeField]
         private bool _selectOnHover;
+        [SerializeField]
+        private bool _selectOnClick = true;
 
         [Space]
         [SerializeField]
@@ -48,7 +50,10 @@ namespace YARG.Menu.Navigation
 
         public virtual void OnPointerDown(PointerEventData eventData)
         {
-            SetSelected(true, SelectionOrigin.Mouse);
+            if (_selectOnClick)
+            {
+                SetSelected(true, SelectionOrigin.Mouse);
+            }
         }
 
         public virtual void Confirm()

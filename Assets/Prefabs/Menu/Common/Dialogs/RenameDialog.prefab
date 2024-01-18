@@ -283,6 +283,36 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6080972867433807800, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6080972867433807800, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6080972867433807800, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6080972867433807800, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6080972867433807800, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6080972867433807800, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6655195098187159850, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -352,10 +382,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _dialogButtonContainer: {fileID: 8881493900837318351}
-  _dialogButtonPrefab: {fileID: 7647390644060677083, guid: 23b94837fb849574ebf1ad7d180706e3,
+  _navigationGroup: {fileID: 5984098070616351355}
+  _dialogButtonPrefab: {fileID: 2095609304296693110, guid: 1391aeff5bdd1ce40b9b1a76d237c1eb,
     type: 3}
   <Title>k__BackingField: {fileID: 4482219752188333422}
   _inputField: {fileID: 2172344838720481961}
+--- !u!114 &5984098070616351355 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2988686423750906361, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+    type: 3}
+  m_PrefabInstance: {fileID: 8823179537337856898}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7792aa537b804208a803f971074a1a45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &8881493900837318351 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 86514725792275789, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,

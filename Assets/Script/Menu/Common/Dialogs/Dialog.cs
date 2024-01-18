@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Data;
+using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Dialogs
 {
@@ -12,15 +13,35 @@ namespace YARG.Menu.Dialogs
         [SerializeField]
         private Transform _dialogButtonContainer;
         [SerializeField]
+        private NavigationGroup _navigationGroup;
+        [SerializeField]
         private ColoredButton _dialogButtonPrefab;
 
         [field: Space]
         [field: SerializeField]
         public TextMeshProUGUI Title { get; private set; }
 
+        private void OnEnable()
+        {
+            Navigator.Instance.PushScheme(new NavigationScheme(new() {
+                NavigationScheme.Entry.NavigateSelect,
+                NavigationScheme.Entry.NavigateUp,
+                NavigationScheme.Entry.NavigateDown
+            }, Navigator.Instance.IsMusicPlayShowing()));
+        }
+
+        private void OnDisable()
+        {
+            Navigator.Instance.PopScheme();
+        }
+
         public ColoredButton AddDialogButton(string text, UnityAction action)
         {
             var button = Instantiate(_dialogButtonPrefab, _dialogButtonContainer);
+
+            // Add the navigatable button, and select it
+            var nav = button.GetComponentInChildren<NavigatableUnityButton>();
+            _navigationGroup.AddNavigatable(nav);
 
             button.Text.text = text;
             button.OnClick.AddListener(action);
@@ -37,16 +58,6 @@ namespace YARG.Menu.Dialogs
             return button;
         }
 
-        public ColoredButton AddDialogButton(string text, Color backgroundColor, Color textColor, UnityAction action)
-        {
-            var button = AddDialogButton(text, action);
-
-            button.BackgroundColor = backgroundColor;
-            button.Text.color = textColor;
-
-            return button;
-        }
-
         public virtual void ClearDialog()
         {
             Title.text = null;
@@ -58,6 +69,7 @@ namespace YARG.Menu.Dialogs
         public void ClearButtons()
         {
             _dialogButtonContainer.DestroyChildren();
+            _navigationGroup.ClearNavigatables();
         }
 
         public virtual void Submit()

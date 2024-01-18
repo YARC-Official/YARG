@@ -544,6 +544,36 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6483140438232177734, guid: bb2052d9134d6de48bb6671a51b88fad,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6483140438232177734, guid: bb2052d9134d6de48bb6671a51b88fad,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6483140438232177734, guid: bb2052d9134d6de48bb6671a51b88fad,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6483140438232177734, guid: bb2052d9134d6de48bb6671a51b88fad,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6483140438232177734, guid: bb2052d9134d6de48bb6671a51b88fad,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6483140438232177734, guid: bb2052d9134d6de48bb6671a51b88fad,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7902889086974151647, guid: bb2052d9134d6de48bb6671a51b88fad,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -592,6 +622,18 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 5448616610803521984}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8034392034882792391 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2657892391881945607, guid: bb2052d9134d6de48bb6671a51b88fad,
+    type: 3}
+  m_PrefabInstance: {fileID: 5448616610803521984}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7792aa537b804208a803f971074a1a45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &8426371489238462664 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4570348543142078728, guid: bb2052d9134d6de48bb6671a51b88fad,
@@ -617,7 +659,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _dialogButtonContainer: {fileID: 5131088869666482035}
-  _dialogButtonPrefab: {fileID: 7647390644060677083, guid: 23b94837fb849574ebf1ad7d180706e3,
+  _navigationGroup: {fileID: 8034392034882792391}
+  _dialogButtonPrefab: {fileID: 2095609304296693110, guid: 1391aeff5bdd1ce40b9b1a76d237c1eb,
     type: 3}
   <Title>k__BackingField: {fileID: 162172039236830418}
   <Message>k__BackingField: {fileID: 4120778854092949750}

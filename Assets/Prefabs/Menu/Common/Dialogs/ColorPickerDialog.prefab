@@ -990,6 +990,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _dialogButtonContainer: {fileID: 86514725792275789}
+  _navigationGroup: {fileID: 8735247483363161334}
   _dialogButtonPrefab: {fileID: 3360767889368627293, guid: 34c40e475ccd134499483956b84275ea,
     type: 3}
   <Title>k__BackingField: {fileID: 4919672518943997676}
@@ -1442,6 +1443,7 @@ GameObject:
   m_Component:
   - component: {fileID: 86514725792275789}
   - component: {fileID: 6045818409976304751}
+  - component: {fileID: 8735247483363161334}
   m_Layer: 5
   m_Name: Dialog Button Container
   m_TagString: Untagged
@@ -1496,6 +1498,22 @@ MonoBehaviour:
   m_ChildScaleWidth: 1
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &8735247483363161334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4717351307676392729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7792aa537b804208a803f971074a1a45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _defaultGroup: 0
+  _canBeCurrent: 0
+  _addAllChildrenOnAwake: 0
+  _selectFirst: 0
 --- !u!1 &5541150335014847060
 GameObject:
   m_ObjectHideFlags: 0

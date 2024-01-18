@@ -119,16 +119,24 @@ namespace YARG.Menu.Navigation
 
         public void SelectNext()
         {
-            if (SelectedIndex is not {} selected || selected < 0 || selected >= _navigatables.Count - 1)
+            // If the selection is invalid...
+            if (SelectedIndex is not { } selected || selected < 0 || selected >= _navigatables.Count - 1)
+            {
+                SelectFirst();
                 return;
+            }
 
             SelectAt(selected + 1, SelectionOrigin.Navigation);
         }
 
         public void SelectPrevious()
         {
-            if (SelectedIndex is not {} selected || selected <= 0)
+            // If the selection is invalid...
+            if (SelectedIndex is not { } selected || selected <= 0)
+            {
+                SelectLast();
                 return;
+            }
 
             SelectAt(selected - 1, SelectionOrigin.Navigation);
         }
