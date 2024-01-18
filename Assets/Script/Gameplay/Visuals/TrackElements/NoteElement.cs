@@ -88,8 +88,12 @@ namespace YARG.Gameplay.Visuals
             OnNoteStateChanged();
         }
 
-        public virtual void SustainEnd()
+        public virtual void SustainEnd(bool dropped)
         {
+            // Don't drop sustains during the sustain burst window
+            if (!dropped)
+                return;
+
             SustainState = SustainState.Missed;
             OnNoteStateChanged();
         }
