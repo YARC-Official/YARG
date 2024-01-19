@@ -26,7 +26,8 @@ namespace YARG.Input
                 bool inverted = Inverted;
                 _invertSign = value ? -1 : 1;
 
-                // (see above)
+                // This state change won't be propogated to the main binding, however calibration settings
+                // should never be changed outside of the binding menu, so that should be fine
                 if (inverted != Inverted)
                 {
                     State = CalculateState(RawState);
@@ -43,8 +44,7 @@ namespace YARG.Input
                 bool pressed = IsPressed;
                 _pressPoint = value;
 
-                // This state change won't be propogated to the main binding, however calibration settings
-                // should never be changed outside of the binding menu, so that should be fine
+                // (see above)
                 if (pressed != IsPressed)
                 {
                     State = CalculateState(RawState);
