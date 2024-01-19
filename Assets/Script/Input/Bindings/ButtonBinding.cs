@@ -11,7 +11,7 @@ namespace YARG.Input
     public class SingleButtonBinding : SingleBinding<float>
     {
         private const bool INVERT_DEFAULT = false;
-        private const long DEBOUNCE_DEFAULT = 0;
+        private const long DEBOUNCE_DEFAULT = 5;
 
         private DebounceTimer<float> _debounceTimer = new();
 
@@ -155,7 +155,7 @@ namespace YARG.Input
 
     public class ButtonBinding : ControlBinding<float, SingleButtonBinding>
     {
-        protected const long DEBOUNCE_DEFAULT = 0;
+        protected const long DEBOUNCE_DEFAULT = 5;
 
         protected DebounceTimer<bool> _debounceTimer = new();
 
