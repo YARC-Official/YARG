@@ -36,6 +36,7 @@ namespace YARG.Menu.ProfileInfo
         {
             _editBindsTab = editBindsTab;
             _player = player;
+            _binding = binding;
 
             _bindingNameText.StringReference = binding.Name;
 
