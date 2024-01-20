@@ -30,7 +30,7 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private ParticleGroup _hittingParticleGroup;
 
-        public override float[] StarMultiplierThresholds { get; } =
+        public override float[] StarMultiplierThresholds { get; protected set; } =
         {
             0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.18f
         };

@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
@@ -13,16 +12,24 @@ namespace YARG.Gameplay.Player
     {
         private const double SUSTAIN_END_MUTE_THRESHOLD = 0.1;
 
+        private static float[] GuitarStarMultiplierThresholds => new[]
+        {
+            0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f
+        };
+
+        private static float[] BassStarMultiplierThresholds => new[]
+        {
+            0.21f, 0.50f, 0.90f, 2.77f, 4.62f, 6.78f
+        };
+
         public GuitarEngineParameters EngineParams { get; private set; }
 
         [Header("Five Fret Specific")]
         [SerializeField]
         private FretArray _fretArray;
 
-        public override float[] StarMultiplierThresholds { get; } =
-        {
-            0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f
-        };
+        public override float[] StarMultiplierThresholds { get; protected set; } =
+            GuitarStarMultiplierThresholds;
 
         public override int[] StarScoreThresholds { get; protected set; }
 
@@ -36,10 +43,16 @@ namespace YARG.Gameplay.Player
 
         protected override GuitarEngine CreateEngine()
         {
+            // If on bass, replace the star multiplier threshold
+            bool isBass = Player.Profile.CurrentInstrument == Instrument.FiveFretBass;
+            if (isBass)
+            {
+                StarMultiplierThresholds = BassStarMultiplierThresholds;
+            }
+
             if (!GameManager.IsReplay)
             {
                 // Create the engine params from the engine preset
-                bool isBass = Player.Profile.CurrentInstrument == Instrument.FiveFretBass;
                 EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
             }
             else

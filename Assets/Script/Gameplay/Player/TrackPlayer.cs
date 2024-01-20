@@ -8,7 +8,6 @@ using YARG.Core.Engine;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
-using YARG.Scores;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Player

@@ -42,7 +42,7 @@ namespace YARG.Gameplay.Player
         public BaseStats BaseStats => BaseEngine.BaseStats;
         public BaseEngineParameters BaseParameters => BaseEngine.BaseParameters;
 
-        public abstract float[] StarMultiplierThresholds { get; }
+        public abstract float[] StarMultiplierThresholds { get; protected set; }
         public abstract int[] StarScoreThresholds { get; protected set; }
 
         public HitWindowSettings HitWindow { get; protected set; }
