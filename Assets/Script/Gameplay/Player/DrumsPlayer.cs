@@ -2,7 +2,6 @@
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
 using YARG.Core.Game;
@@ -11,7 +10,6 @@ using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Player;
-using YARG.Scores;
 
 namespace YARG.Gameplay.Player
 {
@@ -227,6 +225,26 @@ namespace YARG.Gameplay.Player
             // Remember that drums treat each note separately
 
             (NotePool.GetByKey(note) as DrumsNoteElement)?.MissNote();
+        }
+
+        protected override void OnStarPowerPhraseHit()
+        {
+            base.OnStarPowerPhraseHit();
+
+            foreach (var note in NotePool.AllSpawned)
+            {
+                (note as DrumsNoteElement)?.OnStarPowerUpdated();
+            }
+        }
+
+        protected override void OnStarPowerStatus(bool status)
+        {
+            base.OnStarPowerStatus(status);
+
+            foreach (var note in NotePool.AllSpawned)
+            {
+                (note as DrumsNoteElement)?.OnStarPowerUpdated();
+            }
         }
 
         protected override bool InterceptInput(ref GameInput input)

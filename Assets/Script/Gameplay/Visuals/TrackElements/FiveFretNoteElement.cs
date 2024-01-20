@@ -133,9 +133,9 @@ namespace YARG.Gameplay.Visuals
             UpdateColor();
         }
 
-        protected override void OnStarPowerStateChanged()
+        public override void OnStarPowerUpdated()
         {
-            base.OnStarPowerStateChanged();
+            base.OnStarPowerUpdated();
 
             UpdateColor();
         }

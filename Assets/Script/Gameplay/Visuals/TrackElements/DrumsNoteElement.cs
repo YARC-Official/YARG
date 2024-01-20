@@ -35,9 +35,9 @@ namespace YARG.Gameplay.Visuals
             ParentPool.Return(this);
         }
 
-        protected override void OnStarPowerStateChanged()
+        public override void OnStarPowerUpdated()
         {
-            base.OnStarPowerStateChanged();
+            base.OnStarPowerUpdated();
 
             UpdateColor();
         }

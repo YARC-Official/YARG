@@ -57,7 +57,7 @@ namespace YARG.Gameplay.Visuals
             // Get colors
             var colorNoStarPower = colors.GetNoteColor(NoteRef.Pad);
             var color = colorNoStarPower;
-            if (NoteRef.IsStarPowerActivator && Player.Engine.EngineStats.StarPowerAmount >= 0.5)
+            if (NoteRef.IsStarPowerActivator && Player.Engine.EngineStats.CanStarPowerActivate)
             {
                 color = colors.ActivationNote;
             }

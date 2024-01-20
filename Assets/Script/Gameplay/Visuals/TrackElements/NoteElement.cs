@@ -50,14 +50,20 @@ namespace YARG.Gameplay.Visuals
 
         protected override void UpdateElement()
         {
+            // Call OnStarPowerUpdated if the star power state of the note changes
             if (_lastStarPowerState != NoteRef.IsStarPower)
             {
-                OnStarPowerStateChanged();
+                OnStarPowerUpdated();
                 _lastStarPowerState = NoteRef.IsStarPower;
             }
         }
 
-        protected virtual void OnStarPowerStateChanged()
+        /// <summary>
+        /// Called whenever the star power state of the note changes.
+        /// May also be called when the player activates or gains star power,
+        /// depending on the player class.
+        /// </summary>
+        public virtual void OnStarPowerUpdated()
         {
             // If we still have star power, skip
             if (NoteRef.IsStarPower) return;
@@ -76,28 +82,40 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        /// <summary>
+        /// Called when the player hits this note.
+        /// </summary>
         public virtual void HitNote()
         {
             SustainState = SustainState.Hitting;
             OnNoteStateChanged();
         }
 
+        /// <summary>
+        /// Called when the player misses this note.
+        /// </summary>
         public virtual void MissNote()
         {
             SustainState = SustainState.Missed;
             OnNoteStateChanged();
         }
 
+        /// <summary>
+        /// Called when the sustain of this note ends.
+        /// </summary>
+        /// <param name="dropped">Whether or not the sustain was dropped.</param>
         public virtual void SustainEnd(bool dropped)
         {
             // Don't drop sustains during the sustain burst window
-            if (!dropped)
-                return;
+            if (!dropped) return;
 
             SustainState = SustainState.Missed;
             OnNoteStateChanged();
         }
 
+        /// <summary>
+        /// Called when the state of this note changes.
+        /// </summary>
         protected virtual void OnNoteStateChanged()
         {
         }
