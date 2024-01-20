@@ -23,11 +23,17 @@ namespace YARG.Menu.Dialogs
 
         private void OnEnable()
         {
-            Navigator.Instance.PushScheme(new NavigationScheme(new() {
+            Navigator.Instance.PushScheme(GetNavigationScheme());
+        }
+
+        protected virtual NavigationScheme GetNavigationScheme()
+        {
+            return new NavigationScheme(new()
+            {
                 NavigationScheme.Entry.NavigateSelect,
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown
-            }, Navigator.Instance.IsMusicPlayShowing()));
+            }, Navigator.Instance.IsMusicPlayShowing());
         }
 
         private void OnDisable()
@@ -41,7 +47,10 @@ namespace YARG.Menu.Dialogs
 
             // Add the navigatable button, and select it
             var nav = button.GetComponentInChildren<NavigatableUnityButton>();
-            _navigationGroup.AddNavigatable(nav);
+            if (nav != null)
+            {
+                _navigationGroup.AddNavigatable(nav);
+            }
 
             button.Text.text = text;
             button.OnClick.AddListener(action);

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Core.Input;
+using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 
 namespace YARG.Menu.Dialogs
@@ -61,6 +63,15 @@ namespace YARG.Menu.Dialogs
             {
                 _sliderDict.Add(sliderPair.Type, sliderPair.Slider);
             }
+        }
+
+        protected override NavigationScheme GetNavigationScheme()
+        {
+            return new NavigationScheme(new()
+            {
+                new NavigationScheme.Entry(MenuAction.Green, "Confirm", Submit),
+                new NavigationScheme.Entry(MenuAction.Red, "Cancel", DialogManager.Instance.ClearDialog)
+            }, Navigator.Instance.IsMusicPlayShowing());
         }
 
         public void Initialize(Color initialColor)
