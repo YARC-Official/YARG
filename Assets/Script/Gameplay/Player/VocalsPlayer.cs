@@ -60,10 +60,9 @@ namespace YARG.Gameplay.Player
                 ? Player.Profile.HarmonyIndex
                 : 0;
             var track = multiTrack.Parts[partIndex];
+            player.Profile.ApplyVocalModifiers(track);
 
             OriginalNoteTrack = track.CloneAsInstrumentDifficulty();
-            player.Profile.ApplyModifiers(OriginalNoteTrack);
-
             NoteTrack = OriginalNoteTrack;
 
             // Create and start an input context for the mic

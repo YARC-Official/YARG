@@ -335,7 +335,7 @@ namespace YARG.Gameplay
                         var chart = player.Profile.CurrentInstrument == Instrument.Vocals
                             ? Chart.Vocals
                             : Chart.Harmony;
-                        VocalTrack.Initialize(chart);
+                        VocalTrack.Initialize(chart, player);
 
                         _lyricBar.SetActive(false);
                         vocalTrackInitialized = true;

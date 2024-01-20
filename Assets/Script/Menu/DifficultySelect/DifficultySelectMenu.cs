@@ -54,6 +54,8 @@ namespace YARG.Menu.DifficultySelect
         private ModifierItem _modifierItemPrefab;
 
         private int _playerIndex;
+        private int _vocalModifierSelectIndex = -1;
+
         private State _lastMenuState;
         private State _menuState;
 
@@ -102,6 +104,7 @@ namespace YARG.Menu.DifficultySelect
 
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
+            _vocalModifierSelectIndex = -1;
             ChangePlayer(0);
 
             _loadingPhrase.text = RichTextUtils.StripRichTextTags(
@@ -170,33 +173,50 @@ namespace YARG.Menu.DifficultySelect
                     });
                 }
 
-                // Create modifiers body text
-                string modifierText = "";
-                if (player.Profile.CurrentModifiers == Modifier.None)
+                // Only allow vocal modifiers to be selected once (so they don't conflict)
+                if (player.Profile.CurrentInstrument.ToGameMode() != GameMode.Vocals ||
+                    _vocalModifierSelectIndex == -1 ||
+                    _vocalModifierSelectIndex == _playerIndex)
                 {
-                    // If there are no modifiers, then just say "none"
-                    modifierText = Modifier.None.ToLocalizedName();
-                }
-                else
-                {
-                    // Combine all modifiers
-                    foreach (var modifier in _possibleModifiers)
+                    // Create modifiers body text
+                    string modifierText = "";
+                    if (player.Profile.CurrentModifiers == Modifier.None)
                     {
-                        if (!player.Profile.IsModifierActive(modifier)) continue;
-
-                        modifierText += modifier.ToLocalizedName() + "\n";
+                        // If there are no modifiers, then just say "none"
+                        modifierText = Modifier.None.ToLocalizedName();
                     }
-                    modifierText = modifierText.Trim();
-                }
+                    else
+                    {
+                        // Combine all modifiers
+                        foreach (var modifier in _possibleModifiers)
+                        {
+                            if (!player.Profile.IsModifierActive(modifier)) continue;
 
-                CreateItem("Modifiers", modifierText, _lastMenuState == State.Modifiers, () =>
-                {
-                    _menuState = State.Modifiers;
-                    UpdateForPlayer();
-                });
+                            modifierText += modifier.ToLocalizedName() + "\n";
+                        }
+
+                        modifierText = modifierText.Trim();
+                    }
+
+                    CreateItem("Modifiers", modifierText, _lastMenuState == State.Modifiers, () =>
+                    {
+                        _menuState = State.Modifiers;
+                        UpdateForPlayer();
+                    });
+                }
 
                 // Ready button
-                CreateItem("Ready", _lastMenuState == State.Main, _difficultyGreenPrefab, () => ChangePlayer(1));
+                CreateItem("Ready", _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
+                {
+                    // If the player just selected vocal modifiers, don't show them again
+                    if (player.Profile.CurrentInstrument.ToGameMode() == GameMode.Vocals &&
+                        _vocalModifierSelectIndex == -1)
+                    {
+                        _vocalModifierSelectIndex = _playerIndex;
+                    }
+
+                    ChangePlayer(1);
+                });
             }
 
             // Only show if there is more than one play, only if there is instruments available
@@ -205,6 +225,13 @@ namespace YARG.Menu.DifficultySelect
                 // Sit out button
                 CreateItem("Sit Out", _possibleInstruments.Count <= 0, _difficultyRedPrefab, () =>
                 {
+                    // If the user went back to sit out, and the vocal modifiers were selected,
+                    // deselect them.
+                    if (_vocalModifierSelectIndex == _playerIndex)
+                    {
+                        _vocalModifierSelectIndex = -1;
+                    }
+
                     player.SittingOut = true;
                     ChangePlayer(1);
                 });
@@ -323,6 +350,25 @@ namespace YARG.Menu.DifficultySelect
                         "You tried to play a song with every player sitting out.");
 
                     return;
+                }
+
+                // Ensure all vocal players have the same modifiers active
+                if (_vocalModifierSelectIndex != -1)
+                {
+                    // Call the player with the selected modifiers, the "primary player"
+                    var primaryPlayer = PlayerContainer.Players[_vocalModifierSelectIndex];
+
+                    // Copy modifiers to all other vocal players
+                    foreach (var player in PlayerContainer.Players)
+                    {
+                        if (player.SittingOut) continue;
+                        if (player == primaryPlayer) continue;
+
+                        if (player.Profile.CurrentInstrument.ToGameMode() == GameMode.Vocals)
+                        {
+                            player.Profile.CopyModifiers(primaryPlayer.Profile);
+                        }
+                    }
                 }
 
                 // This will always work (as it's set up in the input field)

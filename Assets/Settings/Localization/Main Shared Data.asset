@@ -87,20 +87,20 @@ MonoBehaviour:
     m_Key: Dialogs.AntiPiracy.Title
     m_Metadata:
       m_Items: []
-  - m_Id: 108143941611020288
-    m_Key: Dialogs.EngineInconsistency
-    m_Metadata:
-      m_Items: []
-  - m_Id: 108143941619408896
-    m_Key: Dialogs.EngineInconsistency.Title
-    m_Metadata:
-      m_Items: []
   - m_Id: 108143941619408897
     m_Key: Dialogs.BadSongs
     m_Metadata:
       m_Items: []
   - m_Id: 108143941619408898
     m_Key: Dialogs.BadSongs.Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 108143941611020288
+    m_Key: Dialogs.EngineInconsistency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 108143941619408896
+    m_Key: Dialogs.EngineInconsistency.Title
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707476
@@ -269,6 +269,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 66002229933760512
     m_Key: Modifier.TapsToHopos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 109152412145934336
+    m_Key: Modifier.UnpitchedOnly
     m_Metadata:
       m_Items: []
   - m_Id: 77970180245151744

@@ -374,6 +374,10 @@ MonoBehaviour:
     m_Localized: Some Songs Could Not Be Scanned
     m_Metadata:
       m_Items: []
+  - m_Id: 109152412145934336
+    m_Localized: Unpitched Only
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:

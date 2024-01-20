@@ -399,7 +399,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ModifierIcons_14
+      name: UnpitchedOnly
       rect:
         serializedVersion: 2
         x: 1024
@@ -458,7 +458,6 @@ TextureImporter:
       Ghosting: 960618387
       HoposToTaps: 1309754347
       InfiniteFrontEnd: -1660463282
-      ModifierIcons_14: -2147107449
       ModifierIcons_15: 1841026791
       ModifierIcons_3: -1638818548
       ModifierIcons_4: 1692867385
@@ -467,6 +466,7 @@ TextureImporter:
       ModifierIcons_7: -1355680061
       NoKicks: -1200274759
       TapsToHopos: 1609936924
+      UnpitchedOnly: -2147107449
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

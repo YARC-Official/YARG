@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Serialization;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay.Visuals;
+using YARG.Player;
 
 namespace YARG.Gameplay.Player
 {
@@ -125,9 +125,17 @@ namespace YARG.Gameplay.Player
             return renderTexture;
         }
 
-        public void Initialize(VocalsTrack vocalsTrack)
+        public void Initialize(VocalsTrack vocalsTrack, YargPlayer primaryPlayer)
         {
             _originalVocalsTrack = vocalsTrack;
+
+            // Apply the modifiers of the primary player. All players should have the
+            // same modifier(s) chosen.
+            foreach (var part in _originalVocalsTrack.Parts)
+            {
+                primaryPlayer.Profile.ApplyVocalModifiers(part);
+            }
+
             _vocalsTrack = _originalVocalsTrack.Clone();
 
             // Create trackers and indices
