@@ -4,22 +4,16 @@ using YARG.Input;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class ButtonBindView : BindView<float, ButtonBinding, SingleButtonBinding>
+    public class SingleButtonBindView : SingleBindView<float, ButtonBinding, SingleButtonBinding>
     {
         [SerializeField]
         private AxisDisplay _rawValueDisplay;
         [SerializeField]
-        private Image _rawPressedIndicator;
+        private ButtonDisplay _rawPressedIndicator;
         [SerializeField]
         private AxisDisplay _calibratedValueDisplay;
         [SerializeField]
-        private Image _calibratedPressedIndicator;
-
-        [Space]
-        [SerializeField]
-        private Color _pressedColor;
-        [SerializeField]
-        private Color _releasedColor;
+        private ButtonDisplay _calibratedPressedIndicator;
 
         [Space]
         [SerializeField]
@@ -29,9 +23,9 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private ValueSlider _debounceSlider;
 
-        public override void Init(EditBindsTab editBindsTab, ButtonBinding binding, SingleButtonBinding singleBinding)
+        public override void Init(ButtonBinding binding, SingleButtonBinding singleBinding)
         {
-            base.Init(editBindsTab, binding, singleBinding);
+            base.Init(binding, singleBinding);
 
             // Set with notify for propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;
@@ -52,8 +46,8 @@ namespace YARG.Menu.ProfileInfo
             _rawValueDisplay.Value = SingleBinding.RawState;
             _calibratedValueDisplay.Value = state;
 
-            _rawPressedIndicator.color = SingleBinding.IsPressedRaw ? _pressedColor : _releasedColor;
-            _calibratedPressedIndicator.color = SingleBinding.IsPressed ? _pressedColor : _releasedColor;
+            _rawPressedIndicator.IsPressed = SingleBinding.IsPressedRaw;
+            _calibratedPressedIndicator.IsPressed = SingleBinding.IsPressed;
         }
 
         public void OnInvertChanged(bool value)

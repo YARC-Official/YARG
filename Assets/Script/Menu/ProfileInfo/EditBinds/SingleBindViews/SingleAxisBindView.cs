@@ -4,7 +4,7 @@ using YARG.Input;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class AxisBindView : BindView<float, AxisBinding, SingleAxisBinding>
+    public class SingleAxisBindView : SingleBindView<float, AxisBinding, SingleAxisBinding>
     {
         [SerializeField]
         private AxisDisplay _rawValueDisplay;
@@ -23,9 +23,9 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private ValueSlider _lowerDeadzoneSlider;
 
-        public override void Init(EditBindsTab editBindsTab, AxisBinding binding, SingleAxisBinding singleBinding)
+        public override void Init(AxisBinding binding, SingleAxisBinding singleBinding)
         {
-            base.Init(editBindsTab, binding, singleBinding);
+            base.Init(binding, singleBinding);
 
             // Set with notify for value corrections and propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;

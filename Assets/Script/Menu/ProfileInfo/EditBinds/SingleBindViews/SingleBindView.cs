@@ -4,7 +4,7 @@ using YARG.Input;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public abstract class BindView<TState, TBinding, TSingle> : MonoBehaviour
+    public abstract class SingleBindView<TState, TBinding, TSingle> : MonoBehaviour
         where TState : struct
         where TBinding : ControlBinding<TState, TSingle>
         where TSingle : SingleBinding<TState>
@@ -13,13 +13,11 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private TextMeshProUGUI _bindText;
 
-        protected EditBindsTab EditBindsTab;
         protected TBinding Binding;
         protected TSingle SingleBinding;
 
-        public virtual void Init(EditBindsTab editBindsTab, TBinding binding, TSingle singleBinding)
+        public virtual void Init(TBinding binding, TSingle singleBinding)
         {
-            EditBindsTab = editBindsTab;
             Binding = binding;
             SingleBinding = singleBinding;
 

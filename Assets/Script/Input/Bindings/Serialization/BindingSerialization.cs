@@ -48,6 +48,7 @@ namespace YARG.Input.Serialization
 
     public class SerializedControlBinding
     {
+        public Dictionary<string, string> Parameters = new();
         public List<SerializedInputControl> Controls = new();
     }
 
@@ -126,7 +127,7 @@ namespace YARG.Input.Serialization
         {
             try
             {
-                var serialized = SerializeBindingsV1(bindings);
+                var serialized = SerializeBindingsV2(bindings);
                 string bindingsJson = JsonConvert.SerializeObject(serialized, Formatting.Indented);
                 File.WriteAllText(bindingsPath, bindingsJson);
             }
@@ -158,6 +159,7 @@ namespace YARG.Input.Serialization
                 {
                     0 => DeserializeBindingsV0(jObject),
                     1 => DeserializeBindingsV1(jObject),
+                    2 => DeserializeBindingsV2(jObject),
                     _ => throw new NotImplementedException($"Unhandled bindings version {version}!")
                 };
 

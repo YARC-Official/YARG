@@ -56,6 +56,8 @@ namespace YARG.Input
         /// </summary>
         public bool Enabled { get; protected set; } = false;
 
+        protected double _lastEventTime;
+
         public ControlBinding(string name, int action)
         {
             Key = name;
@@ -125,6 +127,7 @@ namespace YARG.Input
 
             try
             {
+                _lastEventTime = input.Time;
                 InputProcessed?.Invoke(ref input);
             }
             catch (Exception ex)
@@ -182,6 +185,8 @@ namespace YARG.Input
         where TState : struct
         where TBinding : SingleBinding<TState>
     {
+        public event Action StateChanged;
+
         private List<SerializedInputControl> _unresolvedBindings = new();
 
         protected List<TBinding> _bindings = new();
@@ -194,7 +199,11 @@ namespace YARG.Input
 #nullable enable
         public override SerializedControlBinding? Serialize()
         {
-            var serialized = new SerializedControlBinding();
+            var serialized = new SerializedControlBinding()
+            {
+                Parameters = SerializeParameters()
+            };
+
             foreach (var binding in _bindings)
             {
                 var serializedBind = SerializeControl(binding);
@@ -217,6 +226,8 @@ namespace YARG.Input
             if (serialized is null || serialized.Controls is null)
                 return;
 
+            DeserializeParameters(serialized.Parameters);
+
             foreach (var binding in serialized.Controls)
             {
                 if (binding is null || string.IsNullOrEmpty(binding.ControlPath) || binding.Device is null ||
@@ -233,6 +244,9 @@ namespace YARG.Input
                 _unresolvedBindings.Add(binding);
             }
         }
+
+        protected virtual Dictionary<string, string> SerializeParameters() => new();
+        protected virtual void DeserializeParameters(Dictionary<string, string> parameters) {}
 #nullable disable
 
         public override bool IsControlCompatible(InputControl control)
@@ -456,11 +470,17 @@ namespace YARG.Input
 
             binding.UpdateState();
             OnStateChanged(binding, eventPtr.time);
+            FireStateChanged();
         }
 
         void IInputStateChangeMonitor.NotifyTimerExpired(InputControl control, double time, long monitorIndex, int timerIndex) { }
 
         protected abstract void OnStateChanged(TBinding binding, double time);
+
+        protected void FireStateChanged()
+        {
+            StateChanged?.Invoke();
+        }
 
 #nullable enable
         protected virtual SerializedInputControl? SerializeControl(TBinding binding)

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,27 +10,27 @@ using YARG.Core;
 
 namespace YARG.Input.Serialization
 {
-    // Version 1: Start of versioning. Adds version number and restructures format for clarity.
+    // Version 2: Adds parameters to control bindings.
 
     // Unchanged data types
-    using SerializedInputDeviceV1 = SerializedInputDeviceV0;
-    using SerializedMicV1 = SerializedMicV0;
+    using SerializedInputDeviceV2 = SerializedInputDeviceV0;
+    using SerializedMicV2 = SerializedMicV0;
 
-    public class SerializedBindingsV1
+    public class SerializedBindingsV2
     {
-        public const int VERSION = 1;
+        public const int VERSION = 2;
 
         public int Version = VERSION;
-        public Dictionary<Guid, SerializedProfileBindingsV1> Profiles = new();
+        public Dictionary<Guid, SerializedProfileBindingsV2> Profiles = new();
 
         [JsonConstructor]
-        public SerializedBindingsV1() { }
+        public SerializedBindingsV2() { }
 
-        public SerializedBindingsV1(SerializedBindings serialized)
+        public SerializedBindingsV2(SerializedBindings serialized)
         {
             foreach (var (id, bind) in serialized.Profiles)
             {
-                Profiles[id] = new SerializedProfileBindingsV1(bind);
+                Profiles[id] = new SerializedProfileBindingsV2(bind);
             }
         }
 
@@ -47,31 +46,31 @@ namespace YARG.Input.Serialization
         }
     }
 
-    public class SerializedProfileBindingsV1
+    public class SerializedProfileBindingsV2
     {
-        public List<SerializedInputDeviceV1> Devices = new();
-        public SerializedMicV1? Microphone;
+        public List<SerializedInputDeviceV2> Devices = new();
+        public SerializedMicV2? Microphone;
 
-        public Dictionary<GameMode, SerializedBindingCollectionV1> ModeMappings = new();
-        public SerializedBindingCollectionV1? MenuMappings;
+        public Dictionary<GameMode, SerializedBindingCollectionV2> ModeMappings = new();
+        public SerializedBindingCollectionV2? MenuMappings;
 
         [JsonConstructor]
-        public SerializedProfileBindingsV1() { }
+        public SerializedProfileBindingsV2() { }
 
-        public SerializedProfileBindingsV1(SerializedProfileBindings serialized)
+        public SerializedProfileBindingsV2(SerializedProfileBindings serialized)
         {
-            Devices.AddRange(serialized.Devices.Select((device) => new SerializedInputDeviceV1(device)));
+            Devices.AddRange(serialized.Devices.Select((device) => new SerializedInputDeviceV2(device)));
 
             if (serialized.Microphone is not null)
-                Microphone = new SerializedMicV1(serialized.Microphone);
+                Microphone = new SerializedMicV2(serialized.Microphone);
 
             foreach (var (gameMode, bindings) in serialized.ModeMappings)
             {
-                ModeMappings[gameMode] = new SerializedBindingCollectionV1(this, bindings);
+                ModeMappings[gameMode] = new SerializedBindingCollectionV2(this, bindings);
             }
 
             if (serialized.MenuMappings is not null)
-                MenuMappings = new SerializedBindingCollectionV1(this, serialized.MenuMappings);
+                MenuMappings = new SerializedBindingCollectionV2(this, serialized.MenuMappings);
         }
 
         public SerializedProfileBindings Deserialize()
@@ -95,22 +94,22 @@ namespace YARG.Input.Serialization
         }
     }
 
-    public class SerializedBindingCollectionV1
+    public class SerializedBindingCollectionV2
     {
-        public Dictionary<string, SerializedControlBindingV1> Bindings = new();
+        public Dictionary<string, SerializedControlBindingV2> Bindings = new();
 
         [JsonConstructor]
-        public SerializedBindingCollectionV1() { }
+        public SerializedBindingCollectionV2() { }
 
-        public SerializedBindingCollectionV1(SerializedProfileBindingsV1 binds, SerializedBindingCollection serialized)
+        public SerializedBindingCollectionV2(SerializedProfileBindingsV2 binds, SerializedBindingCollection serialized)
         {
             foreach (var (id, serializedBinds) in serialized.Bindings)
             {
-                Bindings[id] = new SerializedControlBindingV1(binds, serializedBinds);
+                Bindings[id] = new SerializedControlBindingV2(binds, serializedBinds);
             }
         }
 
-        public SerializedBindingCollection Deserialize(SerializedProfileBindingsV1 binds)
+        public SerializedBindingCollection Deserialize(SerializedProfileBindingsV2 binds)
         {
             var converted = new SerializedBindingCollection();
             foreach (var (id, serializedBinds) in Bindings)
@@ -122,21 +121,33 @@ namespace YARG.Input.Serialization
         }
     }
 
-    public class SerializedControlBindingV1
+    public class SerializedControlBindingV2
     {
-        public List<SerializedInputControlV1> Controls = new();
+        public Dictionary<string, string> Parameters = new();
+        public List<SerializedInputControlV2> Controls = new();
 
         [JsonConstructor]
-        public SerializedControlBindingV1() { }
+        public SerializedControlBindingV2() { }
 
-        public SerializedControlBindingV1(SerializedProfileBindingsV1 binds, SerializedControlBinding serialized)
+        public SerializedControlBindingV2(SerializedProfileBindingsV2 binds, SerializedControlBinding serialized)
         {
-            Controls.AddRange(serialized.Controls.Select((bind) => new SerializedInputControlV1(binds, bind)));
+            foreach (var (name, value) in serialized.Parameters)
+            {
+                Parameters.Add(name, value);
+            }
+
+            Controls.AddRange(serialized.Controls.Select((bind) => new SerializedInputControlV2(binds, bind)));
         }
 
-        public SerializedControlBinding Deserialize(SerializedProfileBindingsV1 binds)
+        public SerializedControlBinding Deserialize(SerializedProfileBindingsV2 binds)
         {
             var control = new SerializedControlBinding();
+
+            foreach (var (name, value) in Parameters)
+            {
+                control.Parameters.Add(name, value);
+            }
+
             foreach (var bind in Controls)
             {
                 var deserialized = bind.Deserialize(binds);
@@ -148,23 +159,25 @@ namespace YARG.Input.Serialization
     
             return control;
         }
+
+        public bool ShouldSerializeParameters() => Parameters.Count > 0;
     }
 
-    public class SerializedInputControlV1
+    public class SerializedInputControlV2
     {
         public int DeviceIndex = -1;
-        public SerializedInputDeviceV1? Device;
+        public SerializedInputDeviceV2? Device;
 
         public string ControlPath;
         public Dictionary<string, string> Parameters = new();
 
         [JsonConstructor]
-        public SerializedInputControlV1()
+        public SerializedInputControlV2()
         {
             ControlPath = string.Empty;
         }
 
-        public SerializedInputControlV1(SerializedProfileBindingsV1 binds, SerializedInputControl serialized)
+        public SerializedInputControlV2(SerializedProfileBindingsV2 binds, SerializedInputControl serialized)
         {
             int deviceIndex = binds.Devices.FindIndex(
                 (device) => device.Layout == serialized.Device.Layout && device.Hash == serialized.Device.Hash);
@@ -177,7 +190,7 @@ namespace YARG.Input.Serialization
             Parameters = serialized.Parameters;
         }
 
-        public SerializedInputControl? Deserialize(SerializedProfileBindingsV1 binds)
+        public SerializedInputControl? Deserialize(SerializedProfileBindingsV2 binds)
         {
             if (DeviceIndex >= 0)
             {
@@ -209,15 +222,15 @@ namespace YARG.Input.Serialization
 
     public static partial class BindingSerialization
     {
-        private static SerializedBindingsV1 SerializeBindingsV1(SerializedBindings serialized)
+        private static SerializedBindingsV2 SerializeBindingsV2(SerializedBindings serialized)
         {
-            return new SerializedBindingsV1(serialized);
+            return new SerializedBindingsV2(serialized);
         }
 
-        private static SerializedBindings? DeserializeBindingsV1(JObject obj)
+        private static SerializedBindings? DeserializeBindingsV2(JObject obj)
         {
-            var serialized = obj.ToObject<SerializedBindingsV1>();
-            if (serialized is null || serialized.Version != SerializedBindingsV1.VERSION)
+            var serialized = obj.ToObject<SerializedBindingsV2>();
+            if (serialized is null || serialized.Version != SerializedBindingsV2.VERSION)
                 return null;
 
             return serialized.Deserialize();

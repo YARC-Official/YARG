@@ -12,15 +12,15 @@ namespace YARG.Input
         private const float MINIMUM_DEFAULT = -1f;
         private const float MAXIMUM_DEFAULT = 1f;
 
-        private const float UPPER_DEADZONE_DEFAULT = 0f;
         private const float LOWER_DEADZONE_DEFAULT = 0f;
+        private const float UPPER_DEADZONE_DEFAULT = 0f;
 
-        private float _invertSign = 1;
-        private float _minimum;
-        private float _maximum;
+        private float _invertSign = INVERT_DEFAULT ? -1 : 1;
+        private float _minimum = MINIMUM_DEFAULT;
+        private float _maximum = MAXIMUM_DEFAULT;
 
-        private float _lowerDeadzone;
-        private float _upperDeadzone;
+        private float _lowerDeadzone = LOWER_DEADZONE_DEFAULT;
+        private float _upperDeadzone = UPPER_DEADZONE_DEFAULT;
 
         public bool Inverted
         {
@@ -199,7 +199,7 @@ namespace YARG.Input
 
     public class AxisBinding : ControlBinding<float, SingleAxisBinding>
     {
-        private float _currentValue;
+        public float State { get; protected set; }
 
         public AxisBinding(string name, int action) : base(name, action)
         {
@@ -224,10 +224,10 @@ namespace YARG.Input
             }
 
             // Ignore if state is unchanged
-            if (Mathf.Approximately(_currentValue, max))
+            if (Mathf.Approximately(State, max))
                 return;
 
-            _currentValue = max;
+            State = max;
             FireInputEvent(time, max);
         }
 

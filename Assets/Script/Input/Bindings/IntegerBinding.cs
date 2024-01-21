@@ -28,7 +28,7 @@ namespace YARG.Input
 
     public class IntegerBinding : ControlBinding<int, SingleIntegerBinding>
     {
-        private int _currentValue;
+        public int State { get; protected set; }
 
         public IntegerBinding(string name, int action) : base(name, action)
         {
@@ -53,10 +53,10 @@ namespace YARG.Input
             }
 
             // Ignore if state is unchanged
-            if (_currentValue == max)
+            if (State == max)
                 return;
 
-            _currentValue = max;
+            State = max;
             FireInputEvent(time, max);
         }
 
