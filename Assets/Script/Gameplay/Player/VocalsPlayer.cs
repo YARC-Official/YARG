@@ -171,7 +171,7 @@ namespace YARG.Gameplay.Player
         /// <summary>
         /// Calculate if the engine considers this point in time as singing.
         /// </summary>
-        private double GetTimeThreshold(double lastTime)
+        private static double GetTimeThreshold(double lastTime)
         {
             // Add an arbitrary value to prevent it from hiding too fast
             return lastTime + 1f / IMicDevice.UPDATES_PER_SECOND + 0.05;
@@ -196,7 +196,13 @@ namespace YARG.Gameplay.Player
             // Update HUD
             _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier, (float) Engine.EngineStats.StarPowerAmount);
 
-            if (GameManager.SongTime >= GetTimeThreshold(Engine.State.LastSingTime))
+            // Get the appropriate sing time
+            var singTime = GameManager.InputTime - Player.Profile.InputCalibrationSeconds;
+
+            // Get whether or not the player has sang within the time threshold.
+            // We gotta use a threshold here because microphone inputs are passed every X seconds,
+            // not in a constant stream.
+            if (singTime >= GetTimeThreshold(Engine.State.LastSingTime))
             {
                 // Hide the needle if there's no singing
                 if (_needleVisualContainer.activeSelf)
@@ -221,7 +227,7 @@ namespace YARG.Gameplay.Player
                 var transformCache = transform;
                 float lastNotePitch = _lastTargetNote?.PitchAtSongTime(GameManager.SongTime) ?? -1f;
 
-                if (_lastTargetNote is not null && GameManager.SongTime < GetTimeThreshold(Engine.State.LastHitTime))
+                if (_lastTargetNote is not null && singTime < GetTimeThreshold(Engine.State.LastHitTime))
                 {
                     // Show particles if hitting
                     _hittingParticleGroup.Play();
