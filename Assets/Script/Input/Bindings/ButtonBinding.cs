@@ -13,9 +13,12 @@ namespace YARG.Input
         private const bool INVERT_DEFAULT = false;
         private const long DEBOUNCE_DEFAULT = 5;
 
-        private DebounceTimer<float> _debounceTimer = new();
+        private DebounceTimer<float> _debounceTimer = new()
+        {
+            TimeThreshold = DEBOUNCE_DEFAULT,
+        };
 
-        private float _invertSign = 1;
+        private float _invertSign = INVERT_DEFAULT ? -1 : 1;
         private float _pressPoint;
 
         public bool Inverted
@@ -157,7 +160,10 @@ namespace YARG.Input
     {
         protected const long DEBOUNCE_DEFAULT = 5;
 
-        protected DebounceTimer<bool> _debounceTimer = new();
+        protected DebounceTimer<bool> _debounceTimer = new()
+        {
+            TimeThreshold = DEBOUNCE_DEFAULT,
+        };
 
         public long DebounceThreshold
         {
