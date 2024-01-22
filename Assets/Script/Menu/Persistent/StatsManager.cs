@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -42,6 +44,8 @@ namespace YARG.Menu.Persistent
 
         private int _screenRefreshRate;
 
+        private List<float> _frameTimes = new();
+
         private float _nextUpdateTime;
 
         protected override void SingletonAwake()
@@ -77,6 +81,8 @@ namespace YARG.Menu.Persistent
 
         private void Update()
         {
+            _frameTimes.Add(Time.unscaledDeltaTime);
+
             // Wait for next update period
             if (Time.unscaledTime < _nextUpdateTime) return;
 
@@ -92,7 +98,9 @@ namespace YARG.Menu.Persistent
             if (!IsShowing(Stat.FPS)) return;
 
             // Get FPS
-            int fps = (int) (1f / Time.unscaledDeltaTime);
+            // Averaged to smooth out brief lag frames
+            float fps = 1f / _frameTimes.Average();
+            _frameTimes.Clear();
 
             // Color the circle sprite based on the FPS
             if (fps < _screenRefreshRate / 2)
@@ -109,7 +117,7 @@ namespace YARG.Menu.Persistent
             }
 
             // Display the FPS
-            _fpsText.text = $"<b>FPS:</b> {fps}";
+            _fpsText.text = $"<b>FPS:</b> {fps:N1}";
         }
 
         private void UpdateMemoryStats()
