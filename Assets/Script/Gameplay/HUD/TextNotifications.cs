@@ -41,6 +41,11 @@ namespace YARG.Gameplay.HUD
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NewHighScore, "NEW HIGHSCORE"));
         }
 
+        public void ShowFullCombo()
+        {
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.FullCombo, "FULL COMBO"));
+        }
+
         public void UpdateNoteStreak(int streak)
         {
             // Don't build up notifications during a solo

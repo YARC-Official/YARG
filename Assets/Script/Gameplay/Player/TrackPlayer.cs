@@ -355,6 +355,11 @@ namespace YARG.Gameplay.Player
                     haptics.SetMultiplier((uint)_currentMultiplier);
                 }
             }
+
+            if (index == Notes.Count - 1 && IsFc)
+            {
+                TrackView.ShowFullCombo();
+            }
         }
 
         protected virtual void OnNoteMissed(int index, TNote note)
