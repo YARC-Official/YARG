@@ -11,9 +11,9 @@ namespace YARG.Menu.ProfileInfo
         where TSingle : SingleBinding<TState>
     {
         [SerializeField]
-        private BindHeader _header;
+        protected BindHeader _header;
         [SerializeField]
-        private TView _viewPrefab;
+        protected TView _viewPrefab;
 
         protected TBinding _binding;
 
@@ -40,9 +40,16 @@ namespace YARG.Menu.ProfileInfo
 
         protected abstract void OnStateChanged();
 
-        public void RefreshBindings()
+        public virtual void RefreshBindings()
         {
-            _header.RefreshBindings<TView, TState, TBinding, TSingle>(_viewPrefab, _binding, _binding.Bindings);
+            _header.ClearBindings();
+
+            foreach (var control in _binding.Bindings)
+            {
+                _header.AddBinding<TView, TState, TBinding, TSingle>(_viewPrefab, _binding, control);
+            }
+
+            _header.RebuildBindingsLayout();
         }
     }
 }

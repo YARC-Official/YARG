@@ -1044,6 +1044,8 @@ MonoBehaviour:
   _header: {fileID: 6733099219279619449}
   _viewPrefab: {fileID: 5745454451089538340, guid: de3185df8a569dc469035ef221298a7f,
     type: 3}
+  _midiNoteViewPrefab: {fileID: 4088131391707082840, guid: 31b7f5b27b042d440999b5fb06fa6af6,
+    type: 3}
   _rawPressedIndicator: {fileID: 3751894253984833320}
   _calibratedPressedIndicator: {fileID: 2506975313662514460}
   _debounceSlider: {fileID: 9112754373932611760}

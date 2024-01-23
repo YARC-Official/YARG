@@ -100,21 +100,23 @@ namespace YARG.Menu.ProfileInfo
             _dropdownArrow.transform.localScale = _dropdownArrow.transform.localScale.WithY(arrowScale);
         }
 
-        public void RefreshBindings<TView, TState, TBinding, TSingle>(TView viewPrefab,
-            TBinding binding, IReadOnlyList<TSingle> controls)
+        public void ClearBindings()
+        {
+            _bindingList.ClearDrawer();
+        }
+
+        public void AddBinding<TView, TState, TBinding, TSingle>(TView viewPrefab, TBinding binding, TSingle control)
             where TView : SingleBindView<TState, TBinding, TSingle>
             where TState : struct
             where TBinding : ControlBinding<TState, TSingle>
             where TSingle : SingleBinding<TState>
         {
-            _bindingList.ClearDrawer();
+            var bindView = _bindingList.AddNewWithoutRebuild(viewPrefab);
+            bindView.Init(binding, control);
+        }
 
-            foreach (var control in controls)
-            {
-                var bindView = _bindingList.AddNewWithoutRebuild(viewPrefab);
-                bindView.Init(binding, control);
-            }
-
+        public void RebuildBindingsLayout()
+        {
             _bindingList.RebuildLayout();
         }
 

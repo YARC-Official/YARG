@@ -10,6 +10,7 @@ namespace YARG.Menu.ProfileInfo
     [RequireComponent(typeof(RectTransform))]
     public class AxisDisplay : UIBehaviour
     {
+        //! Value ordering must not change, as these are serialized by value to prefabs
         public enum Mode
         {
             AxisCalibration,
@@ -17,6 +18,7 @@ namespace YARG.Menu.ProfileInfo
 
             AxisDisplay,
             ButtonDisplay,
+            UnsignedDisplay,
         }
 
         [SerializeField]
