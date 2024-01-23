@@ -17,7 +17,11 @@ namespace YARG.Gameplay
 
             public float GetVolumeLevel()
             {
-                if (Total == 0) return 1f;
+                if (Total == 0)
+                {
+                    return 1f;
+                }
+
                 return (float) (Total - Muted) / Total;
             }
         }
@@ -68,7 +72,18 @@ namespace YARG.Gameplay
                 state.Muted--;
             }
 
-            GlobalVariables.AudioManager.SetStemVolume(stem, state.GetVolumeLevel());
+            var volume = state.GetVolumeLevel();
+            GlobalVariables.AudioManager.SetStemVolume(stem, volume);
+
+            // Mute all of the stems for songs with multiple drum stems
+            // TODO: Implement proper drum stem muting
+            if (stem == SongStem.Drums)
+            {
+                GlobalVariables.AudioManager.SetStemVolume(SongStem.Drums1, volume);
+                GlobalVariables.AudioManager.SetStemVolume(SongStem.Drums2, volume);
+                GlobalVariables.AudioManager.SetStemVolume(SongStem.Drums3, volume);
+                GlobalVariables.AudioManager.SetStemVolume(SongStem.Drums4, volume);
+            }
         }
 
         private void OnAudioEnd()
