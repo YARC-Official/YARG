@@ -95,7 +95,7 @@ namespace YARG
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             var task = Task.Run(() =>
-                CacheHandler.RunScan(fast, PathHelper.SongCachePath, PathHelper.BadSongsPath, MULTITHREADING, true, directories));
+                CacheHandler.RunScan(fast, PathHelper.SongCachePath, PathHelper.BadSongsPath, MULTITHREADING, true, false, directories));
 
             while (!task.IsCompleted)
             {
