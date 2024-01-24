@@ -309,6 +309,11 @@ namespace YARG.Gameplay
             _isReplaySaved = false;
 
             _debugText.gameObject.SetActive(_isShowDebugText);
+
+            foreach (var player in _players)
+            {
+                player.SendInputsOnResume();
+            }
         }
 
         public void SetPaused(bool paused)

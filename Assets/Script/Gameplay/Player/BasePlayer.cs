@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -7,6 +8,7 @@ using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
 using YARG.Gameplay.HUD;
+using YARG.Input;
 using YARG.Player;
 
 namespace YARG.Gameplay.Player
@@ -57,6 +59,9 @@ namespace YARG.Gameplay.Player
         public bool IsNewHighScore { get; protected set; }
 
         public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
+
+        private Dictionary<int, GameInput> LastInputs { get; } = new();
+        private Dictionary<int, GameInput> InputsToSendOnResume { get; } = new();
 
         protected SyncTrack SyncTrack { get; private set; }
 
@@ -231,10 +236,38 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        public void SendInputsOnResume()
+        {
+            foreach (var originalInput in InputsToSendOnResume.Values)
+            {
+                var input = new GameInput(InputManager.CurrentInputTime, originalInput.Action, originalInput.Integer);
+                OnGameInput(ref input);
+            }
+
+            InputsToSendOnResume.Clear();
+        }
+
         protected void OnGameInput(ref GameInput input)
         {
             // Ignore while paused
-            if (GameManager.Paused) return;
+            if (GameManager.Paused)
+            {
+                if (LastInputs.TryGetValue(input.Action, out var lastInput))
+                {
+                    if (lastInput.Button != input.Button)
+                    {
+                        InputsToSendOnResume[input.Action] = input;
+                    }
+                    else
+                    {
+                        InputsToSendOnResume.Remove(input.Action);
+                    }
+                }
+
+                return;
+            }
+
+            LastInputs[input.Action] = input;
 
             double adjustedTime = GameManager.GetCalibratedRelativeInputTime(input.Time);
             // Apply input offset
