@@ -462,14 +462,6 @@ namespace YARG.Menu.DifficultySelect
                 _possibleDifficulties.Add(difficulty);
             }
 
-            // TODO: Remove Expert+
-            // This is temporary until we replace expert+ with a modifier
-            if (profile.CurrentInstrument is Instrument.ProDrums or Instrument.FourLaneDrums or Instrument.FiveLaneDrums &&
-                _possibleDifficulties.Contains(Difficulty.Expert))
-            {
-                _possibleDifficulties.Add(Difficulty.ExpertPlus);
-            }
-
             // Set the difficulty to a valid one
             if (!_possibleDifficulties.Contains(profile.CurrentDifficulty) && _possibleDifficulties.Count > 0)
             {
