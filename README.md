@@ -1,35 +1,30 @@
-> [!WARNING]
-> YARG is **not done yet**! Expect incomplete features and bugs!
+<p align="center">
+  <picture>
+    <img alt="YARG Gameplay" src="./Images/Banner.png" width="100%">
+  </picture>
+</p>
 
-<br/>
+<p align="center">
+    <i>YARG (a.k.a. Yet Another Rhythm Game)</i>
+</p>
 
-<div align="center">
-  <img src="Images/Logo_Dark.png#gh-light-mode-only" width="60%" alt="YARG">
-  <img src="Images/Logo_White.png#gh-dark-mode-only" width="60%" alt="YARG">
-
-  <br/>
-  <br/>
-
+<p align="center">
   <a href="https://twitter.com/YARGGame">
-    <img src="Images/Socials/Twitter.png" width="48px" height="48px" alt="Twitter">
+    <img src="./Images/Socials/Twitter.png" width="38px" height="38px" alt="Twitter">
   </a>
   <a href="https://discord.gg/sqpu4R552r">
-    <img src="Images/Socials/Discord.png" height="48px" width="48px" alt="Discord">
+    <img src="./Images/Socials/Discord.png" height="38px" width="38px" alt="Discord">
   </a>
   <a href="https://reddit.com/r/yarg">
-    <img src="Images/Socials/Reddit.png" height="48px" width="48px" alt="Discord">
+    <img src="./Images/Socials/Reddit.png" height="38px" width="38px" alt="Discord">
   </a>
+</p>
 
-  <br/>
-  <br/>
+---
 
-  <img src="Images/Image.png" width="90%" alt="README gif">
+YARG (a.k.a. Yet Another Rhythm Game) is a free, open-source, plastic guitar game that is still in development. It supports guitar (five fret), drums (plastic or e-kit), vocals, pro-guitar, and more! YARG is still in active development, so there may be bugs and missing features.
 
-  <br/>
-  <br/>
-</div>
-
-# 👉 Disclaimer
+## 👉 Disclaimer
 
 > [!IMPORTANT]
 > **YARG stands firmly against all forms of piracy.** We neither support nor endorse piracy, as it is a violation of copyright law with serious legal consequences. Our platform's importable content—designed for creators to share their work and for educational purposes—does not justify or excuse piracy.
@@ -38,7 +33,7 @@
 >
 > YARG stands for "Yet Another Rhythm Game" and NOT for pirates.
 
-# 📃 Table of Contents
+## 📃 Table of Contents
 
 - [👉 Disclaimer](#-disclaimer)
 - [📃 Table of Contents](#-table-of-contents)
@@ -54,11 +49,11 @@
 - [📦 External Assets and Libraries](#-external-assets-and-libraries)
 - [💸 Donate](#-donate)
 
-# 📥 Downloading and Playing
+## 📥 Downloading and Playing
 
 **It is recommended you download YARG via the [YARC Launcher](https://github.com/YARC-Official/YARC-Launcher/releases/).** Downloading the portable option is not recommended as some features may not work.
 
-## YARC Launcher (All Platforms)
+### YARC Launcher (All Platforms)
 
 > [!IMPORTANT]
 > If you are on Linux, there are some additional things you need to do in order for controllers to work. See the Linux section for more info.
@@ -73,7 +68,7 @@
 8. Finally, press "Play Stable"!
 9. Additionally, if you want some songs, install "YARG Setlist" which is also on the left in the YARC Launcher.
 
-## Linux
+### Linux
 
 There are some dependencies that will be needed in order for HID devices (such as PS3 and Wii instruments) to work.
 
@@ -90,12 +85,12 @@ There are some dependencies that will be needed in order for HID devices (such a
   - The file name may differ if desired, but it must come before `73-seat-late.rules`!
 3. Reboot your system to apply the new udev rule, then you should be all good to go!
 
-# 🔨 Building/Contributing
+## 🔨 Building/Contributing
 
 > [!IMPORTANT]
-> ### ⚠️ If you wish to contribute, use the `dev` branch. Your PR will NOT be merged if it's on `master`. ⚠️
+> #### ⚠️ If you wish to contribute, use the `dev` branch. Your PR will NOT be merged if it's on `master`. ⚠️
 
-## Setup Instructions
+### Setup Instructions
 
 > [!WARNING]
 >
@@ -129,14 +124,14 @@ There are some dependencies that will be needed in order for HID devices (such a
 7. Load in **without** entering safe mode. Click "Ignore".
 
    ![](Images/Contributing/unityignore.png)
-   
+
 8. Ensure all dependencies have been built/restored:
   - Both of these steps should be performed automatically when Unity starts up, but they can be performend manually if needed.
   - Click on `YARG` on the top menu bar, then click on `Rebuild YARG.Core (Debug)`.
   - Click on `NuGet` on the top menu bar, then click on `Restore Packages`.
 9. You're ready to go!
 
-## Unity YAML Merge Tool
+### Unity YAML Merge Tool
 
 Sometimes merge conflicts may happen between Unity scenes. These can be much more difficult to resolve than other merge conflicts, so we recommend using the Unity YAML merge tool to resolve these instead of attempting to do so manually.
 
@@ -159,15 +154,15 @@ Resolving conflicts:
 2. If the conflict doesn't resolve automatically, open the command prompt and use `git merge-tool`.
 3. Verify that the conflict was resolved correctly, then commit/continue the merge.
 
-# ✍️ Contributing
+## ✍️ Contributing
 
 If you want to contribute, please feel free! It's recommended you join [our Discord](https://discord.gg/sqpu4R552r) so we can provide feedback quickly.
 
-# 🛡️ License
+## 🛡️ License
 
 YARG is licensed under the [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.en.html) (or later) - see the [`LICENSE`](LICENSE) file for details.
 
-# 🧰 External Licenses
+## 🧰 External Licenses
 
 Some libraries/assets are **packaged** with the source code have licenses that must be included.
 
@@ -183,7 +178,7 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 
 Please note that other libraries are **not** directly packaged within the source code, and are to be installed by NuGet, Unity's packaged manager, or via a Git submodule.
 
-# 📦 External Assets and Libraries
+## 📦 External Assets and Libraries
 
 These are assets that are installed by NuGet, Unity's packaged manager, or via a Git submodule. These have varying licenses, but can all be downloaded/accessed by the links given.
 
@@ -204,6 +199,6 @@ These are assets that are installed by NuGet, Unity's packaged manager, or via a
 | [Unity-Dependencies-Hunter](https://github.com/AlexeyPerov/Unity-Dependencies-Hunter) | Library | Unity Editor Utility
 | [tmpro-dynamic-data-cleaner](https://github.com/STARasGAMES/tmpro-dynamic-data-cleaner) | Library | Prevent Git Change Spam
 
-# 💸 Donate
+## 💸 Donate
 
 Some people have expressed interest in donating. This is an open-source project and therefore donating is not required. If you do want to still help out, spread the word or contribute!
