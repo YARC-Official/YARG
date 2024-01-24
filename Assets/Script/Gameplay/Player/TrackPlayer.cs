@@ -356,7 +356,7 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            if (index == Notes.Count - 1 && IsFc)
+            if (index == Notes.Count - 1 && IsFc && note.ParentOrSelf.WasFullyHit())
             {
                 TrackView.ShowFullCombo();
             }
