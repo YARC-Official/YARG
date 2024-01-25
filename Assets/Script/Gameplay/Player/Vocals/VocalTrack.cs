@@ -46,7 +46,7 @@ namespace YARG.Gameplay.Player
 
         private const float NOTE_WIDTH_MULTIPLIER = 1.5f;
 
-        private const float MINIMUM_SEMITONE_RANGE = 10;
+        private const float MINIMUM_SEMITONE_RANGE = 20;
 
         private const double MINIMUM_SHIFT_TIME = 0.25;
 
@@ -265,7 +265,7 @@ namespace YARG.Gameplay.Player
 
         private void ChangeRange(VocalsPitchRange range)
         {
-            // Pad out range based on note width 
+            // Pad out range based on note width
             float minPitch = range.MinimumPitch - NOTE_WIDTH_MULTIPLIER / 2;
             float maxPitch = range.MaximumPitch + NOTE_WIDTH_MULTIPLIER / 2;
 
