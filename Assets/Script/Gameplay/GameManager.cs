@@ -361,8 +361,18 @@ namespace YARG.Gameplay
                 BandStars = (int) BandStars
             };
 
-            _isReplaySaved = false;
-            var replayInfo = SaveReplay(Song.SongLengthSeconds, true);
+            (string Name, HashWrapper Hash)? replayInfo;
+            try
+            {
+                _isReplaySaved = false;
+                replayInfo = SaveReplay(Song.SongLengthSeconds, true);
+            }
+            catch (Exception e)
+            {
+                replayInfo = null;
+                Debug.LogError("Failed to save replay!");
+                Debug.LogException(e);
+            }
 
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
@@ -450,16 +460,12 @@ namespace YARG.Gameplay
             }
 
             var hash = ReplayIO.WriteReplay(entry.ReplayPath, replay);
-
-            Debug.Log("Wrote replay");
-            _isReplaySaved = true;
-
-            // If the hash could not be retrieved, return null
             if (hash == null)
             {
                 return null;
             }
 
+            _isReplaySaved = true;
             return (name, hash.Value);
         }
 
