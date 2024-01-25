@@ -152,8 +152,6 @@ namespace YARG.Audio.BASS
                 // Query number of bytes in the recording buffer
                 int available = Bass.ChannelGetData(_cleanRecordHandle, IntPtr.Zero, (int)DataFlags.Available);
 
-                Debug.Log($"Clean length: {available}");
-
                 // Getting channel data removes it from the buffer (clearing it)
                 if (Bass.ChannelGetData(_cleanRecordHandle, IntPtr.Zero, available) == -1)
                 {
@@ -164,8 +162,6 @@ namespace YARG.Audio.BASS
             if(_processedRecordHandle != 0)
             {
                 int available = Bass.ChannelGetData(_processedRecordHandle, IntPtr.Zero, (int)DataFlags.Available);
-
-                Debug.Log($"Processed length: {available}");
 
                 if (Bass.ChannelGetData(_processedRecordHandle, IntPtr.Zero, available) == -1)
                 {
