@@ -261,7 +261,9 @@ namespace YARG.Menu.DifficultySelect
                 bool selected = CurrentPlayer.Profile.CurrentDifficulty == difficulty;
                 CreateItem(difficulty.ToLocalizedName(), selected, () =>
                 {
-                    CurrentPlayer.Profile.CurrentDifficulty = difficulty;
+                    CurrentPlayer.Profile.CurrentDifficulty
+                        = CurrentPlayer.Profile.DifficultyFallback
+                        = difficulty;
 
                     _menuState = State.Main;
                     UpdateForPlayer();
@@ -462,11 +464,23 @@ namespace YARG.Menu.DifficultySelect
                 _possibleDifficulties.Add(difficulty);
             }
 
-            // Set the difficulty to a valid one
-            if (!_possibleDifficulties.Contains(profile.CurrentDifficulty) && _possibleDifficulties.Count > 0)
+            var diff = (int)profile.DifficultyFallback;
+            while (diff >= (int)Difficulty.Beginner && !_possibleDifficulties.Contains((Difficulty)diff))
             {
-                profile.CurrentDifficulty = _possibleDifficulties[0];
+                --diff;
             }
+
+            if (diff < (int) Difficulty.Beginner)
+            {
+                diff = (int) profile.DifficultyFallback;
+                while (diff < (int) Difficulty.ExpertPlus)
+                {
+                    ++diff;
+                    if (_possibleDifficulties.Contains((Difficulty) diff))
+                        break;
+                }
+            }
+            profile.CurrentDifficulty = (Difficulty)diff;
         }
 
         private void OnDisable()
