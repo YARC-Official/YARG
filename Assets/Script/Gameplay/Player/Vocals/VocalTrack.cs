@@ -44,6 +44,8 @@ namespace YARG.Gameplay.Player
 
         private const float TRACK_BOTTOM = -0.53f;
 
+        private const float NOTE_WIDTH_MULTIPLIER = 1.5f;
+
         private const float MINIMUM_SEMITONE_RANGE = 10;
 
         private const double MINIMUM_SHIFT_TIME = 0.25;
@@ -99,7 +101,8 @@ namespace YARG.Gameplay.Player
 
         public bool HarmonyShowing => _vocalsTrack.Instrument == Instrument.Harmony;
 
-        public float CurrentNoteWidth => (_currentTrackTop - TRACK_BOTTOM) / (_viewRange.Max - _viewRange.Min);
+        public float CurrentNoteWidth =>
+            ((_currentTrackTop - TRACK_BOTTOM) / (_viewRange.Max - _viewRange.Min)) * NOTE_WIDTH_MULTIPLIER;
 
         private void Start()
         {
@@ -262,10 +265,14 @@ namespace YARG.Gameplay.Player
 
         private void ChangeRange(VocalsPitchRange range)
         {
+            // Pad out range based on note width 
+            float minPitch = range.MinimumPitch - NOTE_WIDTH_MULTIPLIER / 2;
+            float maxPitch = range.MaximumPitch + NOTE_WIDTH_MULTIPLIER / 2;
+
             // Ensure range is at least a minimum size
             float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
-            float rangeMin = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), range.MinimumPitch);
-            float rangeMax = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), range.MaximumPitch);
+            float rangeMin = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), minPitch);
+            float rangeMax = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), maxPitch);
 
             // Start the change!
             _previousRange = _viewRange;
