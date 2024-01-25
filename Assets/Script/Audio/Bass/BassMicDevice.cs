@@ -141,6 +141,55 @@ namespace YARG.Audio.BASS
             return 0;
         }
 
+        public int Reset()
+        {
+            if (!_initialized || _disposed) return 0;
+
+            _frameQueue.Clear();
+
+            if(_cleanRecordHandle != 0)
+            {
+                // Query number of bytes in the recording buffer
+                int available = Bass.ChannelGetData(_cleanRecordHandle, IntPtr.Zero, (int)DataFlags.Available);
+
+                Debug.Log($"Clean length: {available}");
+
+                // Getting channel data removes it from the buffer (clearing it)
+                if (Bass.ChannelGetData(_cleanRecordHandle, IntPtr.Zero, available) == -1)
+                {
+                    return (int) Bass.LastError;
+                }
+            }
+
+            if(_processedRecordHandle != 0)
+            {
+                int available = Bass.ChannelGetData(_processedRecordHandle, IntPtr.Zero, (int)DataFlags.Available);
+
+                Debug.Log($"Processed length: {available}");
+
+                if (Bass.ChannelGetData(_processedRecordHandle, IntPtr.Zero, available) == -1)
+                {
+                    return (int) Bass.LastError;
+                }
+            }
+
+            if(_monitorPlaybackHandle != 0)
+            {
+                // Undefined position flag in ManagedBass. Will flush the buffer of a decoding channel when setting the position
+                // By default channels are flushed when setting the position, but this is not the case for decoding channels.
+                const int bassPosFlush = 0x1000000;
+
+                // This channel isn't a decoding channel so the flag technically isn't needed. But in the event it is changed to one,
+                // then this will ensure it continues to work.
+                if (!Bass.ChannelSetPosition(_monitorPlaybackHandle, 0, (PositionFlags) bassPosFlush))
+                {
+                    return (int) Bass.LastError;
+                }
+            }
+
+            return 0;
+        }
+
         public bool DequeueOutputFrame(out MicOutputFrame frame)
         {
             frame = new MicOutputFrame();

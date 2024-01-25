@@ -283,6 +283,9 @@ namespace YARG.Gameplay
             {
                 index++;
 
+                // Reset microphone (resets channel buffers)
+                player.Bindings.Microphone?.Reset();
+
                 // Skip if the player is sitting out
                 if (player.SittingOut)
                 {

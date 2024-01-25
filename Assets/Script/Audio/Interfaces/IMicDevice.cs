@@ -57,6 +57,12 @@ namespace YARG.Audio
         public int Initialize();
 
         /// <summary>
+        /// Resets the microphone streams and clears all buffers.
+        /// </summary>
+        /// <returns>0 if successful, otherwise an error code.</returns>
+        public int Reset();
+
+        /// <summary>
         /// Dequeues an output frame from the microphone.
         /// </summary>
         /// <returns>
