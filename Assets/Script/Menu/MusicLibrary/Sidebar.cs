@@ -193,7 +193,7 @@ namespace YARG.Menu.MusicLibrary
             if (parts.HasInstrument(Instrument.ProGuitar_17Fret) || parts.HasInstrument(Instrument.ProGuitar_22Fret))
             {
                 var values = parts.GetValues(Instrument.ProGuitar_17Fret);
-                if (values.intensity == -1)
+                if (values.Intensity == -1)
                     values = parts.GetValues(Instrument.ProGuitar_22Fret);
                 _difficultyRings[5].SetInfo("realGuitar", "ProGuitar", values);
             }
@@ -206,7 +206,7 @@ namespace YARG.Menu.MusicLibrary
             if (parts.HasInstrument(Instrument.ProBass_17Fret) || parts.HasInstrument(Instrument.ProBass_22Fret))
             {
                 var values = parts.GetValues(Instrument.ProBass_17Fret);
-                if (values.intensity == -1)
+                if (values.Intensity == -1)
                     values = parts.GetValues(Instrument.ProBass_22Fret);
                 _difficultyRings[6].SetInfo("realBass", "ProBass", values);
             }

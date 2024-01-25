@@ -36,31 +36,31 @@ namespace YARG.Menu.MusicLibrary
             var icon = Addressables.LoadAssetAsync<Sprite>($"InstrumentIcons[{assetName}]").WaitForCompletion();
             _instrumentIcon.sprite = icon;
 
-            if (values.subTracks == 0)
+            if (values.SubTracks == 0)
             {
-                values.intensity = -1;
+                values.Intensity = -1;
             }
-            else if (values.intensity < 0)
+            else if (values.Intensity < 0)
             {
-                values.intensity = 0;
+                values.Intensity = 0;
             }
-            else if (values.intensity > 6)
+            else if (values.Intensity > 6)
             {
-                values.intensity = 6;
+                values.Intensity = 6;
             }
 
             // Set ring sprite
-            int index = values.intensity + 1;
+            int index = values.Intensity + 1;
             _ringSprite.sprite = _ringSprites[index];
 
             // Set instrument opacity
             Color color = _instrumentIcon.color;
-            color.a = values.intensity > -1 ? 1f : 0.2f;
+            color.a = values.Intensity > -1 ? 1f : 0.2f;
             _instrumentIcon.color = color;
 
             // Set search filter by instrument
             _searchButton.onClick.RemoveAllListeners();
-            if (values.subTracks > 0)
+            if (values.SubTracks > 0)
             {
                 _searchButton.onClick.AddListener(() => SearchFilter(filter));
             }
