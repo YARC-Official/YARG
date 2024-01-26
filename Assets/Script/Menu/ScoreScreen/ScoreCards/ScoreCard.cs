@@ -114,7 +114,7 @@ namespace YARG.Menu.ScoreScreen
             _notesHit.text = $"{WrapWithColor(Stats.NotesHit)} / {totalNotes}";
             _maxStreak.text = WrapWithColor(Stats.MaxCombo);
             _notesMissed.text = WrapWithColor(Stats.NotesMissed);
-            _starpowerPhrases.text = $"{WrapWithColor(Stats.PhrasesHit)} / {Stats.PhrasesHit + Stats.PhrasesMissed}";
+            _starpowerPhrases.text = $"{WrapWithColor(Stats.StarPowerPhrasesHit)} / {Stats.TotalStarPowerPhrases}";
 
             // Set background icon
             _instrumentIcon.sprite = Addressables
