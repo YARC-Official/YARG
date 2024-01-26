@@ -284,20 +284,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93c23e1d66ed4059a05caa976b3d1f7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  starObjects:
+  _starObjects:
   - {fileID: 1682100932898782573}
   - {fileID: 7229847859671621566}
   - {fileID: 4096561045326221240}
   - {fileID: 481869321003389834}
   - {fileID: 500244737860305069}
-  goldMeterObjects:
+  _goldMeterParent: {fileID: 6244827274338962148}
+  _goldMeterObjects:
   - {fileID: 4378126842520780952}
   - {fileID: 8433043820256494874}
   - {fileID: 2302898695580999361}
   - {fileID: 5527681620171533673}
   - {fileID: 4489824478613844875}
-  goldMeterParent: {fileID: 6244827274338962148}
-  goldMeterLine: {fileID: 525818391533477391}
+  _goldMeterLine: {fileID: 525818391533477391}
 --- !u!1 &1682100932476655700
 GameObject:
   m_ObjectHideFlags: 0
@@ -444,7 +444,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _scoreText: {fileID: 1682100931862694993}
-  _starDisplay: {fileID: 3417901565077600796}
+  _starScoreDisplay: {fileID: 3417901565077600796}
   _songProgressBar: {fileID: 4228396685661071210}
   _songTimer: {fileID: 6897601373631971078}
 --- !u!1 &2302898695580999361
@@ -460,7 +460,7 @@ GameObject:
   - component: {fileID: 6456167629200309535}
   - component: {fileID: 8620784197245606575}
   m_Layer: 5
-  m_Name: GoldMeter (2)
+  m_Name: Gold Meter 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -752,7 +752,7 @@ GameObject:
   - component: {fileID: 940648099923840721}
   - component: {fileID: 4819006430197446505}
   m_Layer: 5
-  m_Name: GoldMeter
+  m_Name: Gold Meter 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -845,7 +845,7 @@ GameObject:
   - component: {fileID: 4701563596160720979}
   - component: {fileID: 8032515304976199742}
   m_Layer: 5
-  m_Name: GoldMeter (4)
+  m_Name: Gold Meter 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -938,7 +938,7 @@ GameObject:
   - component: {fileID: 8709202184598420613}
   - component: {fileID: 3250496088617558255}
   m_Layer: 5
-  m_Name: GoldMeter (3)
+  m_Name: Gold Meter 4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1031,7 +1031,7 @@ GameObject:
   - component: {fileID: 525818391533477391}
   - component: {fileID: 5803113163605131659}
   m_Layer: 5
-  m_Name: MeterLine
+  m_Name: Meter Line
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1416,7 +1416,7 @@ GameObject:
   - component: {fileID: 7483353381526979316}
   - component: {fileID: 1763409327275880813}
   m_Layer: 5
-  m_Name: GoldMeter (1)
+  m_Name: Gold Meter 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1556,7 +1556,7 @@ PrefabInstance:
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}
       propertyPath: m_Name
-      value: 2Star
+      value: Star 2
       objectReference: {fileID: 0}
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}
@@ -1742,7 +1742,7 @@ PrefabInstance:
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}
       propertyPath: m_Name
-      value: 1Star
+      value: Star 1
       objectReference: {fileID: 0}
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}
@@ -1918,7 +1918,7 @@ PrefabInstance:
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}
       propertyPath: m_Name
-      value: 4Star
+      value: Star 4
       objectReference: {fileID: 0}
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}
@@ -2094,7 +2094,7 @@ PrefabInstance:
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}
       propertyPath: m_Name
-      value: 5Star
+      value: Star 5
       objectReference: {fileID: 0}
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}
@@ -2270,7 +2270,7 @@ PrefabInstance:
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}
       propertyPath: m_Name
-      value: 3Star
+      value: Star 3
       objectReference: {fileID: 0}
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}

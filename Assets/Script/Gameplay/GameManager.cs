@@ -57,6 +57,10 @@ namespace YARG.Gameplay
 
         private SongRunner _songRunner;
 
+        /// <remarks>
+        /// This is not initialized on awake, but rather, in
+        /// <see cref="GameplayBehaviour.OnChartLoaded"/>.
+        /// </remarks>
         public BeatEventHandler BeatEventHandler { get; private set; }
 
         public PracticeManager  PracticeManager  { get; private set; }
@@ -99,9 +103,9 @@ namespace YARG.Gameplay
         public bool IsReplay   { get; private set; }
         public bool IsPractice { get; private set; }
 
-        public int    BandScore { get; private set; }
-        public int    BandCombo { get; private set; }
-        public double BandStars { get; private set; }
+        public int   BandScore { get; private set; }
+        public int   BandCombo { get; private set; }
+        public float BandStars { get; private set; }
 
         public Replay Replay { get; private set; }
 

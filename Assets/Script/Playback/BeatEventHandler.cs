@@ -47,10 +47,10 @@ namespace YARG.Playback
             }
         }
 
-        private SyncTrack _sync;
+        private readonly SyncTrack _sync;
 
-        private int _tempoIndex = 0;
-        private int _timeSigIndex = 0;
+        private int _tempoIndex;
+        private int _timeSigIndex;
 
         private readonly Dictionary<Action, State> _states = new();
         private readonly List<Action> _removeStates = new();
@@ -61,6 +61,21 @@ namespace YARG.Playback
             _sync = sync;
         }
 
+        /// <summary>
+        /// Subscribes to a beat event.
+        /// </summary>
+        /// <param name="action">The action to be called when the beat occurs.</param>
+        /// <param name="beatRate">See <see cref="Info.BeatRate"/>.</param>
+        public void Subscribe(Action action, float beatRate)
+        {
+            Subscribe(action, new Info(beatRate));
+        }
+
+        /// <summary>
+        /// Subscribes to a beat event.
+        /// </summary>
+        /// <param name="action">The action to be called when the beat occurs.</param>
+        /// <param name="info">The settings for the beat event.</param>
         public void Subscribe(Action action, Info info)
         {
             _addStates.Add((action, new State(info)));

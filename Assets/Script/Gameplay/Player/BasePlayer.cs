@@ -332,9 +332,9 @@ namespace YARG.Gameplay.Player
             return starScoreThresh;
         }
 
-        public double GetStarsPercent()
+        public float GetStarsPercent()
         {
-            double stars = 0;
+            float stars = 0f;
 
             for (int i = 0; i < StarScoreThresholds.Length; i++)
             {
@@ -355,7 +355,7 @@ namespace YARG.Gameplay.Player
 
                 // Then, we just gotta get the progress into the next star.
                 int bound = i != 0 ? StarScoreThresholds[i - 1] : 0;
-                stars += (double) (Score - bound) / (StarScoreThresholds[i] - bound);
+                stars += (float) (Score - bound) / (StarScoreThresholds[i] - bound);
 
                 break;
             }

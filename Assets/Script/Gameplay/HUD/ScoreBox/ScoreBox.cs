@@ -19,13 +19,13 @@ namespace YARG.Gameplay.HUD
     {
         private const string SCORE_PREFIX = "<mspace=0.538em>";
 
-        private const string TIME_FORMAT       = "m\\:ss";
-        private const string TIME_FORMAT_HOURS = "h\\:mm\\:ss";
+        private const string TIME_FORMAT       = @"m\:ss";
+        private const string TIME_FORMAT_HOURS = @"h\:mm\:ss";
 
         [SerializeField]
         private TextMeshProUGUI _scoreText;
         [SerializeField]
-        private StarDisplay _starDisplay;
+        private StarScoreDisplay _starScoreDisplay;
 
         [Space]
         [SerializeField]
@@ -63,7 +63,7 @@ namespace YARG.Gameplay.HUD
                 _bandScore = GameManager.BandScore;
                 _scoreText.text = SCORE_PREFIX + _bandScore.ToString("N0");
 
-                _starDisplay.SetStars(GameManager.BandStars);
+                _starScoreDisplay.SetStars(GameManager.BandStars);
             }
 
             // Update song progress

@@ -106,7 +106,7 @@ namespace YARG.Replays
             };
 
             int bandScore = 0;
-            double bandStars = 0;
+            float bandStars = 0f;
 
             // Loop through all of the players
             for (int i = 0; i < players.Count; i++)

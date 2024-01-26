@@ -22,7 +22,7 @@ namespace YARG.Integration.StageKit
             _continuous = continuous;
             _patternList = patternList;
 
-            _gameManager.BeatEventHandler.Subscribe(OnBeat, new(beatsPerCycle / _patternList.Length));
+            _gameManager.BeatEventHandler.Subscribe(OnBeat, beatsPerCycle / _patternList.Length);
         }
 
         public override void OnBeat()
