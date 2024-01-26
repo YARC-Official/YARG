@@ -2,11 +2,14 @@
 using ManagedBass;
 using UnityEngine;
 using YARG.Core.Audio;
+using YARG.Input;
 
 namespace YARG.Audio.BASS
 {
     public class BassSampleChannel : ISampleChannel
     {
+        private const double PLAYBACK_SUPPRESS_THRESHOLD = 0.05f;
+
         public SfxSample Sample { get; }
 
         private readonly IAudioManager _manager;
@@ -15,6 +18,8 @@ namespace YARG.Audio.BASS
 
         private int _sfxHandle;
 
+        private double _lastPlaybackTime;
+
         private bool _disposed;
 
         public BassSampleChannel(IAudioManager manager, string path, int playbackCount, SfxSample sample)
@@ -22,6 +27,8 @@ namespace YARG.Audio.BASS
             _manager = manager;
             _path = path;
             _playbackCount = playbackCount;
+
+            _lastPlaybackTime = -1;
 
             Sample = sample;
         }
@@ -52,11 +59,19 @@ namespace YARG.Audio.BASS
         {
             if (_sfxHandle == 0) return;
 
+            // Suppress playback if the last instance of this sample was too recent
+            if (InputManager.CurrentInputTime - _lastPlaybackTime < PLAYBACK_SUPPRESS_THRESHOLD)
+            {
+                return;
+            }
+
             int channel = Bass.SampleGetChannel(_sfxHandle);
 
             double volume = _manager.GetVolumeSetting(SongStem.Sfx) * AudioHelpers.SfxVolume[(int) Sample];
             if (!Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, volume) || !Bass.ChannelPlay(channel))
                 Debug.LogError($"Failed to play sample channel: {Bass.LastError}");
+
+            _lastPlaybackTime = InputManager.CurrentInputTime;
         }
 
         public void Dispose()
