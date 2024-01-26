@@ -562,13 +562,13 @@ namespace YARG.Menu.DifficultySelect
             }
 
             // Otherwise, we can do this
-            return parts.HasDifficulty(instrument, difficulty) || instrument switch
+            return parts[instrument][difficulty] || instrument switch
             {
                 // Allow 5 -> 4-lane conversions to be played on 4-lane
                 Instrument.FourLaneDrums or
-                Instrument.ProDrums      => parts.HasDifficulty(Instrument.FiveLaneDrums, difficulty),
+                Instrument.ProDrums      => parts[Instrument.FiveLaneDrums][difficulty],
                 // Allow 4 -> 5-lane conversions to be played on 5-lane
-                Instrument.FiveLaneDrums => parts.HasDifficulty(Instrument.ProDrums, difficulty),
+                Instrument.FiveLaneDrums => parts[Instrument.ProDrums][difficulty],
                 _ => false
             };
         }

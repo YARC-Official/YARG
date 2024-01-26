@@ -156,20 +156,20 @@ namespace YARG.Menu.MusicLibrary
             */
 
 
-            _difficultyRings[0].SetInfo("guitar", "FiveFretGuitar", parts.GetValues(Instrument.FiveFretGuitar));
-            _difficultyRings[1].SetInfo("bass", "FiveFretBass", parts.GetValues(Instrument.FiveFretBass));
+            _difficultyRings[0].SetInfo("guitar", "FiveFretGuitar", parts[Instrument.FiveFretGuitar]);
+            _difficultyRings[1].SetInfo("bass", "FiveFretBass", parts[Instrument.FiveFretBass]);
 
             // 5-lane or 4-lane
             if (parts.GetDrumType() == DrumsType.FiveLane)
             {
-                _difficultyRings[2].SetInfo("ghDrums", "FiveLaneDrums", parts.GetValues(Instrument.FiveLaneDrums));
+                _difficultyRings[2].SetInfo("ghDrums", "FiveLaneDrums", parts[Instrument.FiveLaneDrums]);
             }
             else
             {
-                _difficultyRings[2].SetInfo("drums", "FourLaneDrums", parts.GetValues(Instrument.FourLaneDrums));
+                _difficultyRings[2].SetInfo("drums", "FourLaneDrums", parts[Instrument.FourLaneDrums]);
             }
 
-            _difficultyRings[3].SetInfo("keys", "Keys", parts.GetValues(Instrument.Keys));
+            _difficultyRings[3].SetInfo("keys", "Keys", parts[Instrument.Keys]);
 
             if (parts.HasInstrument(Instrument.Harmony))
             {
@@ -181,43 +181,43 @@ namespace YARG.Menu.MusicLibrary
                         _ => "vocals"
                     },
                     "Harmony",
-                    parts.GetValues(Instrument.Harmony)
+                    parts[Instrument.Harmony]
                 );
             }
             else
             {
-                _difficultyRings[4].SetInfo("vocals", "Vocals", parts.GetValues(Instrument.Vocals));
+                _difficultyRings[4].SetInfo("vocals", "Vocals", parts[Instrument.Vocals]);
             }
 
             // Protar or Co-op
             if (parts.HasInstrument(Instrument.ProGuitar_17Fret) || parts.HasInstrument(Instrument.ProGuitar_22Fret))
             {
-                var values = parts.GetValues(Instrument.ProGuitar_17Fret);
+                var values = parts[Instrument.ProGuitar_17Fret];
                 if (values.Intensity == -1)
-                    values = parts.GetValues(Instrument.ProGuitar_22Fret);
+                    values = parts[Instrument.ProGuitar_22Fret];
                 _difficultyRings[5].SetInfo("realGuitar", "ProGuitar", values);
             }
             else
             {
-                _difficultyRings[5].SetInfo("guitarCoop", "FiveFretCoopGuitar", parts.GetValues(Instrument.FiveFretCoopGuitar));
+                _difficultyRings[5].SetInfo("guitarCoop", "FiveFretCoopGuitar", parts[Instrument.FiveFretCoopGuitar]);
             }
 
             // ProBass or Rhythm
             if (parts.HasInstrument(Instrument.ProBass_17Fret) || parts.HasInstrument(Instrument.ProBass_22Fret))
             {
-                var values = parts.GetValues(Instrument.ProBass_17Fret);
+                var values = parts[Instrument.ProBass_17Fret];
                 if (values.Intensity == -1)
-                    values = parts.GetValues(Instrument.ProBass_22Fret);
+                    values = parts[Instrument.ProBass_22Fret];
                 _difficultyRings[6].SetInfo("realBass", "ProBass", values);
             }
             else
             {
-                _difficultyRings[6].SetInfo("rhythm", "FiveFretRhythm", parts.GetValues(Instrument.FiveFretRhythm));
+                _difficultyRings[6].SetInfo("rhythm", "FiveFretRhythm", parts[Instrument.FiveFretRhythm]);
             }
 
             _difficultyRings[7].SetInfo("trueDrums", "TrueDrums", new PartValues(-1));
-            _difficultyRings[8].SetInfo("realKeys", "ProKeys", parts.GetValues(Instrument.ProKeys));
-            _difficultyRings[9].SetInfo("band", "Band", parts.GetValues(Instrument.Band));
+            _difficultyRings[8].SetInfo("realKeys", "ProKeys", parts[Instrument.ProKeys]);
+            _difficultyRings[9].SetInfo("band", "Band", parts[Instrument.Band]);
         }
 
         public async void LoadAlbumCover()
