@@ -283,8 +283,12 @@ namespace YARG.Gameplay
             {
                 index++;
 
-                // Reset microphone (resets channel buffers)
-                player.Bindings.Microphone?.Reset();
+                if (!IsReplay)
+                {
+                    // Reset microphone (resets channel buffers)
+                    // We probably wanna do this no matter what, so put it up here
+                    player.Bindings.Microphone?.Reset();
+                }
 
                 // Skip if the player is sitting out
                 if (player.SittingOut)
@@ -292,10 +296,10 @@ namespace YARG.Gameplay
                     continue;
                 }
 
-                // Don't do this if it's a replay, because the replay
-                // would've already set its own presets at this point
                 if (!IsReplay)
                 {
+                    // Don't do this if it's a replay, because the replay
+                    // would've already set its own presets at this point
                     player.SetPresetsFromProfile();
                 }
 
