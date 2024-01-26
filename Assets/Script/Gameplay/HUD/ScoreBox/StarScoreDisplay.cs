@@ -49,7 +49,10 @@ namespace YARG.Gameplay.HUD
         {
             // TODO: Use animation triggers instead
             // These arguments are required for it to properly loop
-            _goldMeterParentAnimator.Play(ANIMATION_GOLD_METER, -1, 0f);
+            if (_goldMeterParent.activeSelf)
+            {
+                _goldMeterParentAnimator.Play(ANIMATION_GOLD_METER, -1, 0f);
+            }
         }
 
         public void SetStars(float stars)
