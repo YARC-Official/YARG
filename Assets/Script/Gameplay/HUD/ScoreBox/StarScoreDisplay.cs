@@ -67,7 +67,7 @@ namespace YARG.Gameplay.HUD
             {
                 if (topStar > _currentStar)
                 {
-                    for (int i = _currentStar; i < topStar; ++i)
+                    for (int i = _currentStar; i < topStar && i < _starObjects.Length; i++)
                     {
                         SetStarProgress(_starObjects[i], 1);
                     }
@@ -95,7 +95,7 @@ namespace YARG.Gameplay.HUD
             }
             else if (stars >= 6f)
             {
-                foreach(var star in _starObjects)
+                foreach (var star in _starObjects)
                 {
                     star.GetComponent<Animator>().Play(ANIMATION_GOLD);
                 }
