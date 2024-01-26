@@ -125,7 +125,7 @@ namespace YARG.Replays
             }
 
             replay.BandScore = bandScore;
-            replay.BandStars = StarAmountHelper.GetStarsFromInt((int) bandStars);
+            replay.BandStars = StarAmountHelper.GetStarsFromInt((int) (bandStars / players.Count));
 
             return replay;
         }
