@@ -18,8 +18,6 @@ namespace YARG.Audio
 
         private readonly IAudioManager _manager;
 
-        private UniTask _loopTask;
-
         public PreviewContext(IAudioManager manager)
         {
             _manager = manager;
@@ -34,9 +32,8 @@ namespace YARG.Audio
                     _manager.SetPosition(PreviewStartTime);
                     _manager.FadeIn(volume);
 
-                    await UniTask.WaitUntil(() => cancelToken.IsCancellationRequested || (_manager.IsPlaying &&
-                        (_manager.CurrentPositionD >= PreviewEndTime ||
-                            _manager.CurrentPositionD >= _manager.AudioLengthD)));
+                    await UniTask.WaitUntil(() => cancelToken.IsCancellationRequested ||
+                        !_manager.IsPlaying || _manager.CurrentPositionD >= PreviewEndTime);
 
                     await _manager.FadeOut();
                 }
