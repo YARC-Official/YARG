@@ -91,6 +91,8 @@ namespace YARG.Gameplay
             if (IsPractice)
             {
                 PracticeManager.ResetPractice();
+                // Audio is paused automatically at this point, so we need to start it again
+                GlobalVariables.AudioManager.Play();
                 return;
             }
 
