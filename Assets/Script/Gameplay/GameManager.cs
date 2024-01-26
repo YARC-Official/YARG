@@ -186,19 +186,19 @@ namespace YARG.Gameplay
             // Update players
             int totalScore = 0;
             int totalCombo = 0;
+            float totalStars = 0f;
             foreach (var player in _players)
             {
                 player.UpdateWithTimes(_songRunner.InputTime);
 
                 totalScore += player.Score;
                 totalCombo += player.Combo;
+                totalStars += player.Stars;
             }
 
             BandScore = totalScore;
             BandCombo = totalCombo;
-
-            // Get the band stars
-            BandStars = _players.Sum(player => player.GetStarsPercent()) / _players.Count;
+            BandStars = totalStars / _players.Count;
 
             // Debug text
             // Note: this must come last in the update sequence!
@@ -397,7 +397,7 @@ namespace YARG.Gameplay
                     EnginePresetId = profile.EnginePreset,
 
                     Score = player.Score,
-                    Stars = StarAmountHelper.GetStarsFromInt(player.BaseStats.Stars),
+                    Stars = StarAmountHelper.GetStarsFromInt((int) player.Stars),
 
                     NotesHit = player.BaseStats.NotesHit,
                     NotesMissed = player.BaseStats.NotesMissed,

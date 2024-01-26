@@ -49,6 +49,8 @@ namespace YARG.Gameplay.Player
 
         public HitWindowSettings HitWindow { get; protected set; }
 
+        public float Stars => BaseStats.Stars;
+
         public int Score => BaseStats.TotalScore;
         public int Combo => BaseStats.Combo;
         public int NotesHit => BaseStats.NotesHit;
@@ -330,37 +332,6 @@ namespace YARG.Gameplay.Player
             }
 
             return starScoreThresh;
-        }
-
-        public float GetStarsPercent()
-        {
-            float stars = 0f;
-
-            for (int i = 0; i < StarScoreThresholds.Length; i++)
-            {
-                // Skip until we reach the progressing threshold
-                if (Score > StarScoreThresholds[i])
-                {
-                    if (i == StarScoreThresholds.Length - 1)
-                    {
-                        stars += 6f;
-                    }
-
-                    continue;
-                }
-
-                // Otherwise, get the progress.
-                // There is at least this amount of stars.
-                stars += i;
-
-                // Then, we just gotta get the progress into the next star.
-                int bound = i != 0 ? StarScoreThresholds[i - 1] : 0;
-                stars += (float) (Score - bound) / (StarScoreThresholds[i] - bound);
-
-                break;
-            }
-
-            return stars;
         }
     }
 }

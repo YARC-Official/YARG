@@ -117,7 +117,7 @@ namespace YARG.Replays
                 replay.Frames[i] = CreateReplayFrame(i, player);
 
                 bandScore += player.Score;
-                bandStars += player.GetStarsPercent();
+                bandStars += player.Stars;
 
                 // Make sure preset files are saved
                 replay.ReplayPresetContainer.StoreColorProfile(player.Player.ColorProfile);

@@ -109,7 +109,7 @@ namespace YARG.Menu.ScoreScreen
             }
 
             _score.text = Stats.TotalScore.ToString("N0");
-            _starView.SetStars(Stats.Stars);
+            _starView.SetStars((int) Stats.Stars);
 
             _notesHit.text = $"{WrapWithColor(Stats.NotesHit)} / {totalNotes}";
             _maxStreak.text = WrapWithColor(Stats.MaxCombo);
