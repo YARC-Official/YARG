@@ -375,6 +375,7 @@ namespace YARG.Input
         {
             Microphone?.Dispose();
             Microphone = null;
+            _unresolvedMic = null;
         }
 
         public void Dispose()
