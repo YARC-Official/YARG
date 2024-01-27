@@ -6,7 +6,7 @@ namespace YARG.Playback
 {
     public class BeatEventHandler
     {
-        public readonly struct Info
+        private class BeatAction
         {
             /// <summary>
             /// The number of beats for the rate at which this event should occur at.
@@ -29,21 +29,74 @@ namespace YARG.Playback
             /// </remarks>
             public readonly double Offset;
 
-            public Info(float rate, double offset = 0)
+            /// <summary>
+            /// The action to call at the set beat rate.
+            /// </summary>
+            public readonly Action Action;
+
+            private uint _lastTick;
+
+            private int _tempoIndex;
+            private int _timeSigIndex;
+
+            public BeatAction(float beatRate, double offset, Action action)
             {
-                BeatRate = rate;
+                BeatRate = beatRate;
                 Offset = offset;
+                Action = action;
             }
-        }
 
-        private class State
-        {
-            public readonly Info Info;
-            public uint LastTick;
-
-            public State(Info info)
+            public void Reset()
             {
-                Info = info;
+                _lastTick = 0;
+                _tempoIndex = 0;
+                _timeSigIndex = 0;
+            }
+
+            public void Update(double songTime, SyncTrack sync)
+            {
+                var tempos = sync.Tempos;
+                var timeSigs = sync.TimeSignatures;
+
+                int endTempoIndex = _tempoIndex;
+                int endTimeSigIndex = _timeSigIndex;
+
+                while (endTempoIndex + 1 < tempos.Count && tempos[endTempoIndex + 1].Time < songTime)
+                    endTempoIndex++;
+                while (endTimeSigIndex + 1 < timeSigs.Count && timeSigs[endTimeSigIndex + 1].Time < songTime)
+                    endTimeSigIndex++;
+
+                // Determine end tick so we know when to stop updating
+                double endTime = songTime - Offset;
+                uint endTick = sync.TimeToTick(endTime, tempos[_tempoIndex]);
+
+                // We need to process tempo map info individually for each event, or else
+                // it's possible for a later tempo/time signature to be used too early
+                bool actionDone = false;
+                while (true)
+                {
+                    var currentTempo = tempos[_tempoIndex];
+                    var currentTimeSig = timeSigs[_timeSigIndex];
+
+                    uint ticksPerBeat = currentTimeSig.GetTicksPerBeat(sync);
+                    uint ticksPerEvent = (uint) (ticksPerBeat * BeatRate);
+                    uint currentTick = _lastTick + ticksPerEvent;
+
+                    if (currentTick > endTick)
+                        break;
+                    _lastTick = currentTick;
+
+                    if (!actionDone)
+                    {
+                        Action();
+                        actionDone = true;
+                    }
+
+                    while (_tempoIndex + 1 < _tempoIndex && tempos[_tempoIndex + 1].Tick < currentTick)
+                        _tempoIndex++;
+                    while (_timeSigIndex + 1 < _timeSigIndex && timeSigs[_timeSigIndex + 1].Tick < currentTick)
+                        _timeSigIndex++;
+                }
             }
         }
 
@@ -52,9 +105,9 @@ namespace YARG.Playback
         private int _tempoIndex;
         private int _timeSigIndex;
 
-        private readonly Dictionary<Action, State> _states = new();
+        private readonly Dictionary<Action, BeatAction> _states = new();
         private readonly List<Action> _removeStates = new();
-        private readonly List<(Action, State)> _addStates = new();
+        private readonly List<(Action, BeatAction)> _addStates = new();
 
         public BeatEventHandler(SyncTrack sync)
         {
@@ -65,20 +118,11 @@ namespace YARG.Playback
         /// Subscribes to a beat event.
         /// </summary>
         /// <param name="action">The action to be called when the beat occurs.</param>
-        /// <param name="beatRate">See <see cref="Info.BeatRate"/>.</param>
-        public void Subscribe(Action action, float beatRate)
+        /// <param name="beatRate">See <see cref="BeatAction.BeatRate"/>.</param>
+        /// <param name="offset">See <see cref="BeatAction.Offset"/>.</param>
+        public void Subscribe(Action action, float beatRate, double offset = 0)
         {
-            Subscribe(action, new Info(beatRate));
-        }
-
-        /// <summary>
-        /// Subscribes to a beat event.
-        /// </summary>
-        /// <param name="action">The action to be called when the beat occurs.</param>
-        /// <param name="info">The settings for the beat event.</param>
-        public void Subscribe(Action action, Info info)
-        {
-            _addStates.Add((action, new State(info)));
+            _addStates.Add((action, new BeatAction(beatRate, offset, action)));
         }
 
         public void Unsubscribe(Action action)
@@ -90,7 +134,7 @@ namespace YARG.Playback
         {
             foreach (var state in _states.Values)
             {
-                state.LastTick = 0;
+                state.Reset();
             }
 
             _tempoIndex = 0;
@@ -120,9 +164,6 @@ namespace YARG.Playback
             var tempos = _sync.Tempos;
             var timeSigs = _sync.TimeSignatures;
 
-            int previousTempoIndex = _tempoIndex;
-            int previousTimeSigIndex = _timeSigIndex;
-
             while (_tempoIndex + 1 < tempos.Count && tempos[_tempoIndex + 1].Time < songTime)
                 _tempoIndex++;
             while (_timeSigIndex + 1 < timeSigs.Count && timeSigs[_timeSigIndex + 1].Time < songTime)
@@ -131,46 +172,10 @@ namespace YARG.Playback
             var finalTempo = tempos[_tempoIndex];
             var finalTimeSig = timeSigs[_timeSigIndex];
 
-            // Update per action now
-            foreach (var (action, state) in _states)
+            // Update actions
+            foreach (var state in _states.Values)
             {
-                double endTime = songTime - state.Info.Offset;
-                uint endTick = _sync.TimeToTick(endTime, finalTempo);
-
-                bool actionDone = false;
-
-                // We need to process tempo map info individually for each event, or else
-                // it's possible for a later tempo/time signature to be used too early
-                int currentTempoIndex = previousTempoIndex;
-                int currentTimeSigIndex = previousTimeSigIndex;
-                while (true)
-                {
-                    var currentTempo = tempos[currentTempoIndex];
-                    var currentTimeSig = timeSigs[currentTimeSigIndex];
-
-                    // Get the ticks per denominator beat so we can use it to determine when to call the action.
-                    uint ticksPerBeat = (uint) (_sync.Resolution * (4.0 / currentTimeSig.Denominator));
-                    uint ticksPerEvent = (uint) (ticksPerBeat * state.Info.BeatRate);
-
-                    // Progress event tick
-                    uint currentTick = state.LastTick + ticksPerEvent;
-                    if (currentTick > endTick)
-                        break;
-                    state.LastTick = currentTick;
-
-                    // Call action
-                    if (!actionDone)
-                    {
-                        action();
-                        actionDone = true;
-                    }
-
-                    // Progress tempo map info
-                    while (currentTempoIndex + 1 < _tempoIndex && tempos[currentTempoIndex + 1].Tick < currentTick)
-                        currentTempoIndex++;
-                    while (currentTimeSigIndex + 1 < _timeSigIndex && timeSigs[currentTimeSigIndex + 1].Tick < currentTick)
-                        currentTimeSigIndex++;
-                }
+                state.Update(songTime, _sync);
             }
         }
     }
