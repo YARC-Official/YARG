@@ -433,7 +433,7 @@ namespace Editor
         private static StreamReader RunCommand(string command, string args, string progMsg, string progInfo, float progress)
         {
             // Run the command
-            var process = Process.Start(new ProcessStartInfo()
+            using var process = Process.Start(new ProcessStartInfo()
             {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
                 FileName = $"{command}.exe",
