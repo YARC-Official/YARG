@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,8 +8,8 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Song;
 using YARG.Helpers;
+using YARG.Helpers.Extensions;
 using YARG.Player;
-using YARG.Song;
 
 namespace YARG.Scores
 {
@@ -179,14 +179,17 @@ namespace YARG.Scores
                     $"BY `Count` DESC LIMIT {maxCount}";
                 var playCounts = _db.Query<PlayCountRecord>(query);
 
-                // Convert list of HashWrapper to list of SongMetadata
-                return playCounts
-                    .Select(i => new HashWrapper(i.SongChecksum))
-                    .Select(i => GlobalVariables.Instance.SongContainer.SongsByHash
-                        .GetValueOrDefault(i)?
-                        .FirstOrDefault())
-                    .Where(i => i is not null)
-                    .ToList();
+                var allSongs = GlobalVariables.Instance.SongContainer.SongsByHash;
+                var mostPlayed = new List<SongMetadata>();
+                foreach (var record in playCounts)
+                {
+                    var hash = new HashWrapper(record.SongChecksum);
+                    if (allSongs.TryGetValue(hash, out var list))
+                    {
+                        mostPlayed.Add(list.Pick());
+                    }
+                }
+                return mostPlayed;
             }
             catch (Exception e)
             {
