@@ -96,6 +96,13 @@ namespace YARG.Gameplay
             // Disable until everything's loaded
             enabled = false;
 
+#if UNITY_EDITOR
+            Debug.Log($"Loading song {Song.Name} - {Song.Artist}");
+#else
+            // Leading newline to help split up log files
+            Debug.Log($"\nLoading song {Song.Name} - {Song.Artist}");
+#endif
+
             // Load song
             if (IsReplay)
             {

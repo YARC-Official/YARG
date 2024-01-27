@@ -143,6 +143,13 @@ namespace YARG.Gameplay
 
         private void OnDestroy()
         {
+#if UNITY_EDITOR
+            Debug.Log("Exiting song");
+#else
+            // Trailing newline to help split up log files
+            Debug.Log("Exiting song\n");
+#endif
+
             if (Navigator.Instance != null)
             {
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
