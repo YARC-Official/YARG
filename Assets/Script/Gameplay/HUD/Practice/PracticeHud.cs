@@ -1,4 +1,5 @@
 ﻿using System;
+using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -54,7 +55,7 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            speedPercentText.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
+            speedPercentText.SetTextFormat("{0:0}%", GameManager.SelectedSongSpeed * 100f);
 
             int notesHit = 0;
             int totalNotes = 0;
@@ -73,8 +74,8 @@ namespace YARG.Gameplay.HUD
                 _percentHit = (float)notesHit / totalNotes;
             }
 
-            notesHitTotalText.text = $"{notesHit}/{totalNotes}";
-            percentHitText.text = $"{Mathf.FloorToInt(_percentHit * 100)}%";
+            notesHitTotalText.SetTextFormat("{0}/{1}", notesHit, totalNotes);
+            percentHitText.SetTextFormat("{0}%", Mathf.FloorToInt(_percentHit * 100));
 
             while(_currentSectionIndex < _sections.Length && GameManager.SongTime >= _sections[_currentSectionIndex].TimeEnd)
             {
@@ -82,7 +83,7 @@ namespace YARG.Gameplay.HUD
 
                 if(_currentSectionIndex < _sections.Length)
                 {
-                    sectionText.text = $"{_sections[_currentSectionIndex].Name}";
+                    sectionText.text = _sections[_currentSectionIndex].Name;
                 }
             }
         }
@@ -93,14 +94,14 @@ namespace YARG.Gameplay.HUD
             {
                 _bestPercentHit = _percentHit;
 
-                bestPercentText.text = $"{Mathf.FloorToInt(_percentHit * 100)}%";
+                bestPercentText.SetTextFormat("{0}%", Mathf.FloorToInt(_percentHit * 100));
             }
 
             _currentSectionIndex = 0;
 
             if(_sections.Length > 0)
             {
-                sectionText.text = $"{_sections[_currentSectionIndex].Name}";
+                sectionText.text = _sections[_currentSectionIndex].Name;
             }
         }
 
@@ -119,7 +120,7 @@ namespace YARG.Gameplay.HUD
             _bestPercentHit = 0f;
 
             bestPercentText.text = "0%";
-            sectionText.text = $"{_sections[_currentSectionIndex].Name}";
+            sectionText.text = _sections[_currentSectionIndex].Name;
         }
     }
 }

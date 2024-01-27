@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using Cysharp.Text;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -64,7 +65,7 @@ namespace YARG.Gameplay.HUD
 
             // Set some dummy text
             _soloTopText.text = "0%";
-            _soloBottomText.text = $"0/{_solo.NoteCount}";
+            _soloBottomText.SetTextFormat("0/{0}", _solo.NoteCount);
 
             // Fade in the box
             yield return _soloBoxCanvasGroup
@@ -76,8 +77,8 @@ namespace YARG.Gameplay.HUD
         {
             if (_soloEnded) return;
 
-            _soloTopText.text = $"{HitPercent}%";
-            _soloBottomText.text = $"{_solo.NotesHit}/{_solo.NoteCount}";
+            _soloTopText.SetTextFormat("{0}%", HitPercent);
+            _soloBottomText.SetTextFormat("{0}/{1}", _solo.NotesHit, _solo.NoteCount);
         }
 
         public void EndSolo(int soloBonus, Action endCallback)
@@ -116,7 +117,7 @@ namespace YARG.Gameplay.HUD
             _soloFullText.colorGradientPreset = gradient;
 
             // Display final hit percentage
-            _soloFullText.text = $"{HitPercent}%";
+            _soloFullText.SetTextFormat("{0}%", HitPercent);
 
             yield return new WaitForSeconds(1f);
 
@@ -139,7 +140,7 @@ namespace YARG.Gameplay.HUD
             yield return new WaitForSeconds(1f);
 
             // Show point bonus
-            _soloFullText.text = $"{soloBonus:N0}\nPOINTS";
+            _soloFullText.SetTextFormat("{0:N0}\nPOINTS", soloBonus);
 
             yield return new WaitForSeconds(1f);
 

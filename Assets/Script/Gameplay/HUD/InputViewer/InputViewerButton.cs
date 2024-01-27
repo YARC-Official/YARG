@@ -1,6 +1,8 @@
-﻿using TMPro;
+﻿using Cysharp.Text;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.HUD
 {
@@ -74,13 +76,9 @@ namespace YARG.Gameplay.HUD
 
         public void UpdateVisual()
         {
-            WriteDoubleToBuffer(_inputTimeBuffer, _inputTime);
-            WriteDoubleToBuffer(_holdTimeBuffer, _holdTime);
-            WriteIntToBuffer(_pressCountBuffer, _pressCount);
-
-            _inputTimeText.SetCharArray(_inputTimeBuffer, 0, _inputTimeBuffer.Length);
-            _holdTimeText.SetCharArray(_holdTimeBuffer, 0, _holdTimeBuffer.Length);
-            _pressCountText.SetCharArray(_pressCountBuffer, 0, _pressCountBuffer.Length);
+            _inputTimeText.SetText(_inputTime);
+            _holdTimeText.SetText(_holdTime);
+            _pressCountText.SetText(_pressCount);
 
             var color = ButtonColor;
             color.a = _isPressed ? 0.8f : DISABLED_ALPHA;
@@ -105,117 +103,7 @@ namespace YARG.Gameplay.HUD
             {
                 _holdTime = _gameManager.InputTime - _holdStartTime + GameManager.SONG_START_DELAY;
 
-                WriteDoubleToBuffer(_holdTimeBuffer, _holdTime);
-                _holdTimeText.SetCharArray(_holdTimeBuffer, 0, _holdTimeBuffer.Length);
-            }
-        }
-
-        private static void WriteDoubleToBuffer(char[] buffer, double num)
-        {
-            const int fractionLength = 3;
-
-            if (num == 0)
-            {
-                buffer[0] = '0';
-                buffer[1] = '.';
-                buffer[2] = '0';
-                buffer[3] = '0';
-                buffer[4] = '0';
-            }
-
-            // Clear buffer
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                buffer[i] = '\0';
-            }
-
-            int whole = (int) num;
-            int fraction = (int) ((num - whole) * 1000);
-
-            // -1 for decimal point
-            int integerLength = buffer.Length - fractionLength - 1;
-
-            // Write whole number
-            int wholeEndIndex = integerLength - 1;
-            int index = wholeEndIndex;
-
-            if (whole == 0)
-            {
-                buffer[wholeEndIndex] = '0';
-            }
-
-            while (whole > 0 && index >= 0)
-            {
-                buffer[index--] = (char) ('0' + (whole % 10));
-                whole /= 10;
-            }
-
-            index = integerLength;
-
-            // Write decimal point
-            buffer[index++] = '.';
-
-            // Write fraction
-            buffer[index++] = (char) ('0' + (fraction / 100));
-
-            fraction %= 100;
-            buffer[index++] = (char) ('0' + (fraction / 10));
-
-            fraction %= 10;
-            buffer[index] = (char) ('0' + fraction);
-
-            TrimNullStart(buffer);
-        }
-
-        private static void WriteIntToBuffer(char[] buffer, int num)
-        {
-            // Clear buffer
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                buffer[i] = '\0';
-            }
-
-            if (num == 0)
-            {
-                buffer[0] = '0';
-                return;
-            }
-
-            int index = buffer.Length - 1;
-            while (num > 0 && index >= 0)
-            {
-                buffer[index--] = (char) ('0' + (num % 10));
-                num /= 10;
-            }
-
-            TrimNullStart(buffer);
-        }
-
-        private static void TrimNullStart(char[] buffer)
-        {
-            bool nonNullFound = false;
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                if (buffer[i] != '\0')
-                {
-                    nonNullFound = true;
-                    break;
-                }
-            }
-
-            if (!nonNullFound)
-            {
-                return;
-            }
-
-            while (buffer[0] == '\0')
-            {
-                for (int i = 0; i < buffer.Length - 1; i++)
-                {
-                    buffer[i] = buffer[i + 1];
-                }
-
-                buffer[^1] = '\0';
+                _holdTimeText.SetText(_holdTime);
             }
         }
     }

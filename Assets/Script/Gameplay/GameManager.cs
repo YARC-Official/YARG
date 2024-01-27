@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using Cysharp.Text;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -212,42 +213,38 @@ namespace YARG.Gameplay
             // Any updates happening after this will not reflect until the next frame
             if (_isShowDebugText)
             {
-                _debugText.text = null;
+                using var text = ZString.CreateStringBuilder(true);
 
                 if (_players[0] is FiveFretPlayer fiveFretPlayer)
                 {
-                    byte buttonMask = fiveFretPlayer.Engine.State.ButtonMask;
-                    int noteIndex = fiveFretPlayer.Engine.State.NoteIndex;
-                    var ticksPerBeat = fiveFretPlayer.Engine.State.TicksEveryBeat;
-                    var ticksPerMeasure = fiveFretPlayer.Engine.State.TicksEveryMeasure;
-                    double starPower = fiveFretPlayer.Engine.EngineStats.StarPowerAmount;
+                    var state = fiveFretPlayer.Engine.State;
+                    var stats = fiveFretPlayer.Engine.EngineStats;
 
-                    _debugText.text +=
-                        $"Note index: {noteIndex}\n" +
-                        $"Buttons: {buttonMask}\n" +
-                        $"Star Power: {starPower:0.0000}\n" +
-                        $"Ticks per beat: {ticksPerBeat}\n" +
-                        $"Ticks per measure: {ticksPerMeasure}\n";
+                    text.AppendFormat("Note index: {0}\n", state.NoteIndex);
+                    text.AppendFormat("Buttons: {0}\n", state.ButtonMask);
+                    text.AppendFormat("Star Power: {0:0.0000}\n", stats.StarPowerAmount);
+                    text.AppendFormat("Ticks per beat: {0}\n", state.TicksEveryBeat);
+                    text.AppendFormat("Ticks per measure: {0}\n", state.TicksEveryMeasure);
                 }
                 else if (_players[0] is DrumsPlayer drumsPlayer)
                 {
-                    int noteIndex = drumsPlayer.Engine.State.NoteIndex;
+                    var state = drumsPlayer.Engine.State;
 
-                    _debugText.text +=
-                        $"Note index: {noteIndex}\n";
+                    text.AppendFormat("Note index: {0}\n", state.NoteIndex);
                 }
 
-                _debugText.text +=
-                    $"Song time: {_songRunner.SongTime:0.000000}\n" +
-                    $"Visual time: {_songRunner.VisualTime:0.000000}\n" +
-                    $"Input time: {_songRunner.InputTime:0.000000}\n" +
-                    $"Pause time: {_songRunner.PauseStartTime:0.000000}\n" +
-                    $"Sync difference: {_songRunner.SyncVisualTime - _songRunner.SyncSongTime:0.000000}\n" +
-                    $"Sync start delta: {_songRunner.SyncStartDelta:0.000000}\n" +
-                    $"Speed adjustment: {_songRunner.SyncSpeedAdjustment:0.00}\n" +
-                    $"Speed multiplier: {_songRunner.SyncSpeedMultiplier}\n" +
-                    $"Input base: {_songRunner.InputTimeBase:0.000000}\n" +
-                    $"Input offset: {_songRunner.InputTimeOffset:0.000000}\n";
+                text.AppendFormat("Song time: {0:0.000000}\n", _songRunner.SongTime);
+                text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
+                text.AppendFormat("Input time: {0:0.000000}\n", _songRunner.InputTime);
+                text.AppendFormat("Pause time: {0:0.000000}\n", _songRunner.PauseStartTime);
+                text.AppendFormat("Sync difference: {0:0.000000}\n", _songRunner.SyncVisualTime - _songRunner.SyncSongTime);
+                text.AppendFormat("Sync start delta: {0:0.000000}\n", _songRunner.SyncStartDelta);
+                text.AppendFormat("Speed adjustment: {0:0.00}\n", _songRunner.SyncSpeedAdjustment);
+                text.AppendFormat("Speed multiplier: {0}\n", _songRunner.SyncSpeedMultiplier);
+                text.AppendFormat("Input base: {0:0.000000}\n", _songRunner.InputTimeBase);
+                text.AppendFormat("Input offset: {0:0.000000}\n", _songRunner.InputTimeOffset);
+
+                _debugText.SetText(text);
             }
         }
 

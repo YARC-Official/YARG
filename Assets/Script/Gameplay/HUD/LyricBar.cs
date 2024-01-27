@@ -1,6 +1,4 @@
-using System.Collections.Generic;
-using System.Text;
-using System.Text.RegularExpressions;
+using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -99,12 +97,15 @@ namespace YARG.Gameplay.HUD
                 currIndex++;
 
             // No update necessary
-            if (_lyricText.text != null && _currentLyricIndex == currIndex)
+            if (_currentLyricIndex == currIndex)
                 return;
 
             // Construct lyrics to be displayed
+            using var output = ZString.CreateStringBuilder(true);
+
             // Start highlight
-            StringBuilder output = new("<color=#5CB9FF>");
+            output.Append("<color=#5CB9FF>");
+
             int i = 0;
             while (i < currIndex)
             {
@@ -126,7 +127,7 @@ namespace YARG.Gameplay.HUD
             }
 
             _currentLyricIndex = currIndex;
-            _lyricText.text = output.ToString();
+            _lyricText.SetText(output);
         }
     }
 }

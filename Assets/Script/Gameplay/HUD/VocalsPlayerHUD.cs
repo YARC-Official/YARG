@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -46,7 +47,10 @@ namespace YARG.Gameplay.HUD
         {
             _comboMeterFillTarget = phrasePercent;
 
-            _multiplierText.text = multiplier != 1 ? $"{multiplier}<sub>x</sub>" : string.Empty;
+            if (multiplier != 1)
+                _multiplierText.SetTextFormat("{0}<sub>x</sub>", multiplier);
+            else
+                _multiplierText.text = string.Empty;
 
             _starPowerFill.fillAmount = starPowerPercent;
         }

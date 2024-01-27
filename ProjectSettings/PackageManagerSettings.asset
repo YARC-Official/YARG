@@ -40,6 +40,7 @@ MonoBehaviour:
     m_Scopes:
     - com.coffee.softmask-for-ugui
     - com.cysharp.unitask
+    - com.cysharp.zstring
     - com.github-glitchenzo.nugetforunity
     - com.marijnzwemmer.unity-toolbar-extender
     - com.openupm
@@ -47,7 +48,7 @@ MonoBehaviour:
     m_IsDefault: 0
     m_Capabilities: 0
     m_ConfigSource: 4
-  m_UserSelectedRegistryName: Keijiro
+  m_UserSelectedRegistryName: package.openupm.com
   m_UserAddingNewScopedRegistry: 0
   m_RegistryInfoDraft:
     m_Modified: 0
