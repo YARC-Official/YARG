@@ -53,13 +53,13 @@ namespace YARG.Venue
 
             if (song.IniData != null)
             {
-                var stream = song.IniData.GetBackgroundStream(
+                var (type, stream) = song.IniData.GetBackgroundStream(
                     BackgroundType.Yarground |
                     BackgroundType.Video |
                     BackgroundType.Image);
 
-                if (stream.Item2 != null)
-                    return new VenueInfo(songSource, stream.Item1, stream.Item2);
+                if (stream != null)
+                    return new VenueInfo(songSource, type, stream);
             }
             else if (song.RBData is SongMetadata.RBUnpackedCONMetadata)
             {
