@@ -55,9 +55,13 @@ namespace YARG.Playback
 
             public void Update(double songTime, SyncTrack sync)
             {
+                // Apply offset up-front
+                songTime -= Offset;
+
                 var tempos = sync.Tempos;
                 var timeSigs = sync.TimeSignatures;
 
+                // Determine end tick so we know when to stop updating
                 int endTempoIndex = _tempoIndex;
                 int endTimeSigIndex = _timeSigIndex;
 
@@ -66,9 +70,7 @@ namespace YARG.Playback
                 while (endTimeSigIndex + 1 < timeSigs.Count && timeSigs[endTimeSigIndex + 1].Time < songTime)
                     endTimeSigIndex++;
 
-                // Determine end tick so we know when to stop updating
-                double endTime = songTime - Offset;
-                uint endTick = sync.TimeToTick(endTime, tempos[_tempoIndex]);
+                uint endTick = sync.TimeToTick(songTime, tempos[_tempoIndex]);
 
                 // We need to process tempo map info individually for each event, or else
                 // it's possible for a later tempo/time signature to be used too early
