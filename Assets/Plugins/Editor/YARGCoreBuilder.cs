@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Xml;
 using NugetForUnity;
 using UnityEditor;
@@ -442,7 +443,17 @@ namespace Editor
                 RedirectStandardError = true,
                 CreateNoWindow = true,
             });
-            process.WaitForExit();
+
+            while (!process.HasExited)
+            {
+                if (EditorUtility.DisplayCancelableProgressBar("Running command", command, 0f))
+                {
+                    process.Kill();
+                    throw new Exception($"Command was cancelled!");
+                }
+
+                Thread.Sleep(100);
+            }
 
             // Bail out on error
             var output = process.StandardOutput;
