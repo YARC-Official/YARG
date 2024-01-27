@@ -435,11 +435,7 @@ namespace Editor
             // Run the command
             using var process = Process.Start(new ProcessStartInfo()
             {
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-                FileName = $"{command}.exe",
-#else
                 FileName = command,
-#endif
                 Arguments = args,
                 UseShellExecute = false, // Must be false to redirect input/output/error
                 RedirectStandardOutput = true,
