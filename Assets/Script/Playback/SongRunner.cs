@@ -369,10 +369,8 @@ namespace YARG.Playback
             RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
             RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
 
-#if UNITY_EDITOR
-            Debug.Log($"Set input time base.\nNew base: {InputTimeBase:0.000000}, new offset: {InputTimeOffset:0.000000}, new visual time: {VisualTime:0.000000}, new input time: {InputTime:0.000000}\n"
+            EditorDebug.Log($"Set input time base.\nNew base: {InputTimeBase:0.000000}, new offset: {InputTimeOffset:0.000000}, new visual time: {VisualTime:0.000000}, new input time: {InputTime:0.000000}\n"
                 + $"Old base: {previousBase:0.000000}, old offset: {previousOffset:0.000000}, old visual time: {previousVisualTime:0.000000}, old input time: {previousInputTime:0.000000}");
-#endif
         }
 
         private void SetInputBaseChecked(double inputBase)
@@ -417,10 +415,8 @@ namespace YARG.Playback
             // SetInputBase(seekTime + AudioCalibration);
             // RealSongTime = seekTime;
 
-#if UNITY_EDITOR
-            Debug.Log($"Set song time to {time:0.000000} (delay: {delayTime:0.000000}).\n" +
+            EditorDebug.Log($"Set song time to {time:0.000000} (delay: {delayTime:0.000000}).\n" +
                 $"Seek time: {seekTime:0.000000}, resulting song time: {SongTime:0.000000}");
-#endif
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
@@ -464,10 +460,8 @@ namespace YARG.Playback
 
             _pauseSync = false;
 
-#if UNITY_EDITOR
-            Debug.Log($"Set song speed to {speed:0.00}.\n"
+            EditorDebug.Log($"Set song speed to {speed:0.00}.\n"
                 + $"Song time: {SongTime:0.000000}, visual time: {VisualTime:0.000000}, input time: {InputTime:0.000000}");
-#endif
         }
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
@@ -489,9 +483,7 @@ namespace YARG.Playback
             PauseStartTime = RealVisualTime;
             GlobalVariables.AudioManager.Pause();
 
-#if UNITY_EDITOR
-            Debug.Log($"Paused at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
-#endif
+            EditorDebug.Log($"Paused at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
         }
 
         /// <summary>
@@ -516,9 +508,7 @@ namespace YARG.Playback
                 GlobalVariables.AudioManager.Play();
             }
 
-#if UNITY_EDITOR
-            Debug.Log($"Resumed at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
-#endif
+            EditorDebug.Log($"Resumed at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
         }
 
         public void SetPaused(bool paused)

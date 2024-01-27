@@ -154,10 +154,8 @@ namespace YARG.Gameplay
                 Destroy(PracticeManager);
             }
 
-#if UNITY_EDITOR
             // Log constant values
-            Debug.Log($"Audio calibration: {_songRunner.AudioCalibration}, video calibration: {_songRunner.VideoCalibration}, song offset: {_songRunner.SongOffset}");
-#endif
+            EditorDebug.Log($"Audio calibration: {_songRunner.AudioCalibration}, video calibration: {_songRunner.VideoCalibration}, song offset: {_songRunner.SongOffset}");
 
             // Loaded, enable updates
             enabled = true;
