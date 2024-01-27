@@ -19,7 +19,8 @@ namespace Editor
     public class YARGCoreBuilder : AssetPostprocessor, IPreprocessBuildWithReport
     {
         private const string OUTPUT_FOLDER = "Assets/Plugins/YARG.Core";
-        private const string HASH_PATH = "Assets/Plugins/YARG.Core/YARG.Core.hash";
+        private const string HASH_PATH = OUTPUT_FOLDER + "/YARG.Core.hash";
+        private const string REBUILD_LOCK_PATH = OUTPUT_FOLDER + "/__reload_lock";
 
         // NugetForUnity doesn't expose their list of Unity pre-installed references,
         // and I'd rather not re-implement it ourselves lol
@@ -35,8 +36,11 @@ namespace Editor
         // For automatically building in the Editor upon any recompilations
         static YARGCoreBuilder()
         {
-            // Don't do anything if entering play mode
-            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
+            AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
+
+            // Don't rebuild when entering play mode or reloading assemblies
+            if (EditorApplication.isPlayingOrWillChangePlaymode || File.Exists(REBUILD_LOCK_PATH))
                 return;
 
             BuildYARGCoreDLL();
@@ -55,6 +59,21 @@ namespace Editor
         [MenuItem("YARG/Rebuild YARG.Core (Release)", false, 0)]
         public static void BuildRelease() => BuildYARGCoreDLL(force: true, debug: false);
 
+        private static void OnBeforeAssemblyReload()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+            AssemblyReloadEvents.afterAssemblyReload -= OnAfterAssemblyReload;
+
+            if (!File.Exists(REBUILD_LOCK_PATH))
+                File.Create(REBUILD_LOCK_PATH).Dispose();
+        }
+
+        private static void OnAfterAssemblyReload()
+        {
+            if (File.Exists(REBUILD_LOCK_PATH))
+                File.Delete(REBUILD_LOCK_PATH);
+        }
+
         // Undocumented post-process hooks called by IDE packages
         // For the first two, return can be either void if no content modifications are made,
         // or string if the contents are being modified
@@ -68,7 +87,7 @@ namespace Editor
             string submodule = Path.Combine(projectRoot, "YARG.Core");
             if (!Directory.Exists(submodule))
             {
-                Debug.LogError($"Submodule {"YARG.Core"} does not exist!");
+                Debug.LogError("YARG.Core submodule does not exist!");
                 return contents;
             }
 
