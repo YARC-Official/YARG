@@ -127,13 +127,11 @@ namespace YARG.Gameplay
                     _videoStartTime < 0 && GameManager.SongTime < -_videoStartTime)
                     return;
 
+                if (_videoEndTime == 0)
+                    return;
+
                 _videoStarted = true;
                 _videoPlayer.Play();
-                if (VIDEO_PATH != null)
-                {
-                    File.Delete(VIDEO_PATH);
-                    VIDEO_PATH = null;
-                }
 
                 // Disable after starting the video if it's not from the song folder
                 // or if video end time is not specified
