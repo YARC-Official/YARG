@@ -223,10 +223,16 @@ namespace YARG.Audio.BASS
             Debug.Log("Finished loading SFX");
         }
 
-        public void LoadSong(IDictionary<SongStem, Stream> stems, float speed)
+        public void LoadSong(Dictionary<SongStem, Stream> stems, float speed)
         {
             Debug.Log("Loading song");
             UnloadSong();
+
+            if (stems.Count == 0)
+            {
+                Debug.Log("No stems present");
+                return;
+            }
 
             _mixer = new BassStemMixer(this);
             if (!_mixer.Create())
@@ -269,7 +275,7 @@ namespace YARG.Audio.BASS
 
             // Verify data
             if (stream is null)
-                throw new ArgumentNullException(nameof(stream));
+                throw new ArgumentNullException("stream");
 
             var usesYARGEncryption = stream.Read<int>(Core.IO.Endianness.Little) switch
             {
