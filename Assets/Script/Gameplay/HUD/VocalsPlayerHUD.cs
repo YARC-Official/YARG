@@ -3,15 +3,18 @@ using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Core.Chart;
 
 namespace YARG.Gameplay.HUD
 {
-    public class VocalsPlayerHUD : MonoBehaviour
+    public class VocalsPlayerHUD : GameplayBehaviour
     {
         [SerializeField]
         private Image _comboMeterFill;
         [SerializeField]
         private Image _starPowerFill;
+        [SerializeField]
+        private Image _starPowerPulse;
 
         [Space]
         [SerializeField]
@@ -24,13 +27,23 @@ namespace YARG.Gameplay.HUD
         private readonly PerformanceTextScaler _scaler = new(2f);
         private Coroutine _currentCoroutine;
 
-        private void Awake()
+        private bool _shouldPulse;
+
+        protected override void OnChartLoaded(SongChart chart)
         {
             _performanceText.text = string.Empty;
+
+            GameManager.BeatEventHandler.Subscribe(PulseBar, 1f);
+        }
+
+        protected override void GameplayDestroy()
+        {
+            GameManager.BeatEventHandler.Unsubscribe(PulseBar);
         }
 
         private void Update()
         {
+            // Update combo meter
             if (_comboMeterFillTarget == 0f)
             {
                 // Go to zero instantly
@@ -41,18 +54,42 @@ namespace YARG.Gameplay.HUD
                 _comboMeterFill.fillAmount = Mathf.Lerp(_comboMeterFill.fillAmount,
                     _comboMeterFillTarget, Time.deltaTime * 12f);
             }
+
+            // Update pulse
+            if (_starPowerPulse.color.a > 0f)
+            {
+                var c = _starPowerPulse.color;
+                c.a -= Time.deltaTime * 6f;
+                _starPowerPulse.color = c;
+            }
         }
 
-        public void UpdateInfo(float phrasePercent, int multiplier, float starPowerPercent)
+        private void PulseBar()
+        {
+            if (_shouldPulse)
+            {
+                _starPowerPulse.color = Color.white;
+            }
+        }
+
+        public void UpdateInfo(float phrasePercent, int multiplier,
+            float starPowerPercent, bool isStarPowerActive)
         {
             _comboMeterFillTarget = phrasePercent;
 
             if (multiplier != 1)
+            {
                 _multiplierText.SetTextFormat("{0}<sub>x</sub>", multiplier);
+            }
             else
+            {
                 _multiplierText.text = string.Empty;
+            }
 
             _starPowerFill.fillAmount = starPowerPercent;
+            _starPowerPulse.fillAmount = starPowerPercent;
+
+            _shouldPulse = isStarPowerActive || starPowerPercent >= 0.5;
         }
 
         public void ShowPhraseHit(double hitPercent)

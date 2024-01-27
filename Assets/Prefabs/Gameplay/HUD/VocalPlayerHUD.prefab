@@ -141,12 +141,12 @@ GameObject:
   - component: {fileID: 5445152407736844049}
   - component: {fileID: 1624612988817992822}
   m_Layer: 5
-  m_Name: Overlay
+  m_Name: Pulse
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &6247734888477751247
 RectTransform:
   m_ObjectHideFlags: 0
@@ -188,7 +188,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -196,10 +196,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 17503f0323d61984db8c462253580678, type: 3}
-  m_Type: 0
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
@@ -565,6 +565,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _comboMeterFill: {fileID: 3517124486690461051}
   _starPowerFill: {fileID: 2645155200500214333}
+  _starPowerPulse: {fileID: 1624612988817992822}
   _multiplierText: {fileID: 7522242773574872378}
   _performanceText: {fileID: 5195889013095187048}
 --- !u!114 &1764426022282786346
