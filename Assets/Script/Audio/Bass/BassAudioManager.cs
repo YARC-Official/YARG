@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -230,8 +230,7 @@ namespace YARG.Audio.BASS
 
             if (stems.Count == 0)
             {
-                Debug.Log("No stems present");
-                return;
+                throw new Exception("No stems were provided!");
             }
 
             _mixer = new BassStemMixer(this);
@@ -390,8 +389,7 @@ namespace YARG.Audio.BASS
 
             if (_mixer.GetChannels(SongStem.Song).Length > 0)
             {
-                Debug.LogError($"Custom File already loaded!");
-                return;
+                throw new Exception("Custom File already loaded!");
             }
 
             if (_mixer.AddChannel(stemChannel) != 0)
@@ -439,7 +437,7 @@ namespace YARG.Audio.BASS
 
             if (_mixer.Play() != 0)
             {
-                Debug.Log($"Play error: {Bass.LastError}");
+                Debug.LogError($"Play error: {Bass.LastError}");
             }
 
             IsPlaying = _mixer.IsPlaying;
@@ -454,7 +452,7 @@ namespace YARG.Audio.BASS
 
             if (_mixer.Pause() != 0)
             {
-                Debug.Log($"Pause error: {Bass.LastError}");
+                Debug.LogError($"Pause error: {Bass.LastError}");
             }
 
             IsPlaying = _mixer.IsPlaying;
