@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -225,7 +225,7 @@ namespace YARG.Audio.BASS
 
         public void LoadSong(Dictionary<SongStem, Stream> stems, float speed)
         {
-            Debug.Log("Loading song");
+            EditorDebug.Log("Loading song");
             UnloadSong();
 
             if (stems.Count == 0)
@@ -256,7 +256,7 @@ namespace YARG.Audio.BASS
                 }
             }
 
-            Debug.Log($"Loaded {_mixer.StemsLoaded} stems");
+            EditorDebug.Log($"Loaded {_mixer.StemsLoaded} stems");
 
             // Setup audio length
             AudioLengthD = _mixer.LeadChannel.LengthD;
@@ -270,7 +270,7 @@ namespace YARG.Audio.BASS
 
         public void LoadMogg(Stream stream, List<MoggStemMap> stemMaps, float speed)
         {
-            Debug.Log("Loading mogg song");
+            EditorDebug.Log("Loading mogg song");
             UnloadSong();
 
             // Verify data
@@ -357,7 +357,7 @@ namespace YARG.Audio.BASS
                 }
             }
 
-            Debug.Log($"Loaded {mixer.StemsLoaded} stems");
+            EditorDebug.Log($"Loaded {mixer.StemsLoaded} stems");
 
             // Setup audio length
             AudioLengthD = mixer.LeadChannel.LengthD;
@@ -373,7 +373,7 @@ namespace YARG.Audio.BASS
 
         public void LoadCustomAudioFile(Stream audiostream, float speed)
         {
-            Debug.Log("Loading custom audio file");
+            EditorDebug.Log("Loading custom audio file");
             UnloadSong();
 
             _mixer = new BassStemMixer(this);
@@ -399,7 +399,7 @@ namespace YARG.Audio.BASS
                 throw new Exception($"Failed to add stem to mixer: {Bass.LastError}");
             }
 
-            Debug.Log($"Loaded {_mixer.StemsLoaded} stems");
+            EditorDebug.Log($"Loaded {_mixer.StemsLoaded} stems");
 
             // Setup audio length
             AudioLengthD = _mixer.LeadChannel.LengthD;

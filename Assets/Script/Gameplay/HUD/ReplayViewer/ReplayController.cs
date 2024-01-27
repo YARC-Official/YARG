@@ -196,7 +196,7 @@ namespace YARG.Gameplay.HUD
 
         private void SetReplayTime(double time)
         {
-            Debug.Log("Set replay time to " + time);
+            EditorDebug.Log("Set replay time to " + time);
 
             // Do this before we do it for the players so the notes don't get destroyed early
             GameManager.SetSongTime(time, 0);
