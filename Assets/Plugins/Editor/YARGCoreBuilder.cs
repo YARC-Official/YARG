@@ -115,10 +115,11 @@ namespace Editor
                 string projectFile = projectFiles[i];
                 try
                 {
-                    EditorUtility.DisplayProgressBar("Adding YARG.Core Projects to Solution",
+                    RunCommand("dotnet", @$"sln ""{tempFile}"" add ""{projectFile}""",
+                        "Adding YARG.Core Projects to Solution",
                         $"Adding {Path.GetFileName(projectFile)} ({i + 1} of {projectFiles.Count})",
-                        i / projectFiles.Count);
-                    RunCommand("dotnet", @$"sln ""{tempFile}"" add ""{projectFile}""").Dispose();
+                        (float) i / projectFiles.Count
+                    ).Dispose();
                 }
                 catch (Exception ex)
                 {
@@ -185,8 +186,7 @@ namespace Editor
                     Directory.CreateDirectory(OUTPUT_FOLDER);
 
                 // Check the current commit hash
-                EditorUtility.DisplayProgressBar("Building YARG.Core", "Checking Git commit hash", 0f);
-                if (!force && !CheckCommitHash())
+                if (!force && !CheckCommitHash(progress: 0f))
                     return;
 
                 Debug.Log("Rebuilding YARG.Core...");
@@ -197,12 +197,10 @@ namespace Editor
                 string projectPath = Path.Join(submodulePath, "YARG.Core.csproj");
 
                 // Ensure all package references are resolved in Unity
-                EditorUtility.DisplayProgressBar("Building YARG.Core", "Restoring packages", 0.1f);
-                var packages = RestorePackages(projectPath);
+                var packages = RestorePackages(projectPath, progressStart: 0.1f, progressEnd: 0.4f);
 
                 // Build the project
-                EditorUtility.DisplayProgressBar("Building YARG.Core", "Building project", 0.4f);
-                string buildOutput = BuildProject(projectPath, debug);
+                string buildOutput = BuildProject(projectPath, debug, progress: 0.4f);
                 Debug.Log($"Built YARG.Core to {buildOutput}");
 
                 // Copy output files to plugin folder
@@ -224,10 +222,10 @@ namespace Editor
             }
         }
 
-        private static bool CheckCommitHash()
+        private static bool CheckCommitHash(float progress)
         {
             // Check the current commit hash
-            string currentHash = GetCurrentCommitHash();
+            string currentHash = GetCurrentCommitHash(progress);
             if (File.Exists(HASH_PATH) && File.ReadAllText(HASH_PATH) == currentHash)
                 return false;
 
@@ -284,7 +282,7 @@ namespace Editor
             }
         }
 
-        private static HashSet<string> RestorePackages(string projectFilePath)
+        private static HashSet<string> RestorePackages(string projectFilePath, float progressStart, float progressEnd)
         {
             // Load project file
             var projectFile = new XmlDocument();
@@ -299,6 +297,9 @@ namespace Editor
             var packageReferences = projectFile.GetElementsByTagName("PackageReference");
             for (int index = 0; index < packageReferences.Count; index++)
             {
+                float progress = Mathf.Lerp(progressStart, progressEnd, (float) index / packageReferences.Count);
+                EditorUtility.DisplayProgressBar("Building YARG.Core", "Restoring packages", progress);
+
                 // Get package info
                 var packageReference = packageReferences[index];
                 string packageName = packageReference.Attributes["Include"].Value;
@@ -353,12 +354,13 @@ namespace Editor
             }
         }
 
-        private static string BuildProject(string projectFile, bool debug)
+        private static string BuildProject(string projectFile, bool debug, float progress)
         {
             // Fire up `dotnet` to publish the project
             string command = debug ? "build" : "publish";
             var output = RunCommand("dotnet",
-                @$"{command} ""{projectFile}"" /property:GenerateFullPaths=true /consoleloggerparameters:NoSummary");
+                @$"{command} ""{projectFile}"" /nologo /p:GenerateFullPaths=true /consoleloggerparameters:NoSummary",
+                "Building YARG.Core", "Building project", progress);
 
             string outputPath = "";
             do
@@ -396,11 +398,12 @@ namespace Editor
             return outputPath;
         }
 
-        private static string GetCurrentCommitHash()
+        private static string GetCurrentCommitHash(float progress)
         {
             // Ask Git what the current hash is for each submodule
             // (no way to target just a specific submodule, as far as I can tell)
-            var output = RunCommand("git", @"submodule foreach ""git rev-parse HEAD""");
+            var output = RunCommand("git", @"submodule foreach ""git rev-parse HEAD""",
+                "Building YARG.Core", "Checking Git commit hash", progress);
 
             // Find the line that has the commit hash
             // The output is formatted like this:
@@ -427,7 +430,7 @@ namespace Editor
             return hash;
         }
 
-        private static StreamReader RunCommand(string command, string args)
+        private static StreamReader RunCommand(string command, string args, string progMsg, string progInfo, float progress)
         {
             // Run the command
             var process = Process.Start(new ProcessStartInfo()
@@ -446,7 +449,7 @@ namespace Editor
 
             while (!process.HasExited)
             {
-                if (EditorUtility.DisplayCancelableProgressBar("Running command", command, 0f))
+                if (EditorUtility.DisplayCancelableProgressBar(progMsg, progInfo, progress))
                 {
                     process.Kill();
                     throw new Exception($"Command was cancelled!");
