@@ -49,7 +49,7 @@ namespace YARG.Gameplay.HUD
         {
             // TODO: Use animation triggers instead
             // These arguments are required for it to properly loop
-            if (_goldMeterParent.activeSelf)
+            if (_goldMeterParent.activeInHierarchy)
             {
                 _goldMeterParentAnimator.Play(ANIMATION_GOLD_METER, -1, 0f);
             }
