@@ -28,6 +28,8 @@ namespace YARG.Gameplay
 
         private readonly Dictionary<SongStem, StemState> _stemStates = new();
 
+        private int _starPowerActivations = 0;
+
         private async UniTask LoadAudio()
         {
             // The stem states are initialized in "CreatePlayers"
@@ -55,6 +57,24 @@ namespace YARG.Gameplay
             if (_loadState != LoadFailureState.None) return;
 
             _songLoaded?.Invoke();
+        }
+
+        private void StarPowerClap()
+        {
+            if (_starPowerActivations < 1)
+                return;
+
+            GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.Clap);
+        }
+
+        public void ChangeStarPowerStatus(bool active)
+        {
+            if (!SettingsManager.Settings.ClapsInStarpower.Value)
+                return;
+
+            _starPowerActivations += active ? 1 : -1;
+            if (_starPowerActivations < 0)
+                _starPowerActivations = 0;
         }
 
         public void ChangeStemMuteState(SongStem stem, bool muted)

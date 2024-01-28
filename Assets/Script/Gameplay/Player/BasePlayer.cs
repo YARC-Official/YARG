@@ -297,18 +297,20 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected virtual void OnStarPowerStatus(bool status)
+        protected virtual void OnStarPowerStatus(bool active)
         {
             if (!GameManager.Paused)
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(status
+                GlobalVariables.AudioManager.PlaySoundEffect(active
                     ? SfxSample.StarPowerDeploy
                     : SfxSample.StarPowerRelease);
             }
 
+            GameManager.ChangeStarPowerStatus(active);
+
             foreach (var haptics in SantrollerHaptics)
             {
-                haptics.SetStarPowerActive(status);
+                haptics.SetStarPowerActive(active);
             }
         }
 
