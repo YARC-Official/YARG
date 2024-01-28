@@ -104,7 +104,7 @@ namespace YARG.Menu.MusicLibrary
             _subHeader.text = LibraryMode switch
             {
                 MusicLibraryMode.QuickPlay => "Quickplay",
-                MusicLibraryMode.Practice  => "Practice",
+                MusicLibraryMode.Practice => "Practice",
                 _ => throw new Exception("Unreachable.")
             };
 
@@ -161,7 +161,8 @@ namespace YARG.Menu.MusicLibrary
             foreach (var section in _sortedSongs)
             {
                 // Create header
-                list.Add(new SortHeaderViewType(section.Key, section.Value.Count));
+                string key = Sort == SongAttribute.Source ? SongSources.SourceToGameName(section.Key) : section.Key;
+                list.Add(new SortHeaderViewType(key, section.Value.Count));
 
                 // Add all of the songs
                 list.AddRange(section.Value.Select(song => new SongViewType(this, song)));
@@ -287,7 +288,7 @@ namespace YARG.Menu.MusicLibrary
         private void OnDisable()
         {
             if (Navigator.Instance == null) return;
-            
+
             // Save index
             _savedIndex = SelectedIndex;
 
