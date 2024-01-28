@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
@@ -116,6 +117,21 @@ namespace YARG.Gameplay.Player
             {
                 _fretArray.SetPressed((int) fret, Engine.IsFretHeld(fret));
             }
+        }
+
+        public override void SetStarPowerFX(bool status)
+        {
+            var instrument = Player.Profile.CurrentInstrument;
+            var playerStem = instrument.ToSongStem();
+
+            // Try to fallback to guitar stem if specific stem is not available
+            if (!GlobalVariables.AudioManager.HasStem(playerStem))
+            {
+                playerStem = SongStem.Guitar;
+            }
+
+            GameManager.ChangeStemReverbState(playerStem, status);
+            base.SetStarPowerFX(status);
         }
 
         protected override void ResetVisuals()

@@ -145,6 +145,11 @@ namespace YARG.Gameplay.Player
 
         public abstract void SetPracticeSection(uint start, uint end);
 
+        public virtual void SetStarPowerFX(bool status)
+        {
+            GameManager.ChangeStemReverbState(SongStem.Song, status);
+        }
+
         public virtual void SetReplayTime(double time)
         {
             _replayInputIndex = BaseEngine.ProcessUpToTime(time, ReplayInputs);
@@ -304,6 +309,8 @@ namespace YARG.Gameplay.Player
                 GlobalVariables.AudioManager.PlaySoundEffect(status
                     ? SfxSample.StarPowerDeploy
                     : SfxSample.StarPowerRelease);
+
+                SetStarPowerFX(status);
             }
 
             foreach (var haptics in SantrollerHaptics)
