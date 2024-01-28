@@ -34,7 +34,7 @@ namespace YARG.Playback
             /// </summary>
             public readonly Action Action;
 
-            private uint _lastTick;
+            private int _beatsHandled = -1;
 
             private int _tempoIndex;
             private int _timeSigIndex;
@@ -48,7 +48,7 @@ namespace YARG.Playback
 
             public void Reset()
             {
-                _lastTick = 0;
+                _beatsHandled = -1;
                 _tempoIndex = 0;
                 _timeSigIndex = 0;
             }
@@ -63,35 +63,24 @@ namespace YARG.Playback
                 var tempos = sync.Tempos;
                 var timeSigs = sync.TimeSignatures;
 
-                // Determine end tick so we know when to stop updating
+                // Progress tempo map
                 while (_tempoIndex + 1 < tempos.Count && tempos[_tempoIndex + 1].Time < songTime)
                     _tempoIndex++;
 
-                uint endTick = sync.TimeToTick(songTime, tempos[_tempoIndex]);
-
-                // We need to process tempo map info individually for each event, or else
-                // it's possible for a later tempo/time signature to be used too early
-                bool actionDone = false;
-                while (true)
+                while (_timeSigIndex + 1 < timeSigs.Count && timeSigs[_timeSigIndex + 1].Time < songTime)
                 {
-                    var currentTimeSig = timeSigs[_timeSigIndex];
+                    _timeSigIndex++;
+                    // Reset beats for each new time signature
+                    _beatsHandled = -1;
+                }
 
-                    uint ticksPerBeat = currentTimeSig.GetTicksPerBeat(sync);
-                    uint ticksPerEvent = (uint) (ticksPerBeat * BeatRate);
-                    uint currentTick = _lastTick + ticksPerEvent;
-
-                    if (currentTick > endTick)
-                        break;
-                    _lastTick = currentTick;
-
-                    if (!actionDone)
-                    {
-                        Action();
-                        actionDone = true;
-                    }
-
-                    while (_timeSigIndex + 1 < _timeSigIndex && timeSigs[_timeSigIndex + 1].Tick < currentTick)
-                        _timeSigIndex++;
+                // Progress beat count
+                double progress = timeSigs[_timeSigIndex].GetBeatProgress(songTime, sync, tempos[_tempoIndex]);
+                int beatCount = (int) (progress / BeatRate);
+                if (beatCount > _beatsHandled)
+                {
+                    _beatsHandled = beatCount;
+                    Action();
                 }
             }
         }
