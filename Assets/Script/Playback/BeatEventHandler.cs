@@ -62,13 +62,8 @@ namespace YARG.Playback
                 var timeSigs = sync.TimeSignatures;
 
                 // Determine end tick so we know when to stop updating
-                int endTempoIndex = _tempoIndex;
-                int endTimeSigIndex = _timeSigIndex;
-
-                while (endTempoIndex + 1 < tempos.Count && tempos[endTempoIndex + 1].Time < songTime)
-                    endTempoIndex++;
-                while (endTimeSigIndex + 1 < timeSigs.Count && timeSigs[endTimeSigIndex + 1].Time < songTime)
-                    endTimeSigIndex++;
+                while (_tempoIndex + 1 < tempos.Count && tempos[_tempoIndex + 1].Time < songTime)
+                    _tempoIndex++;
 
                 uint endTick = sync.TimeToTick(songTime, tempos[_tempoIndex]);
 
@@ -77,7 +72,6 @@ namespace YARG.Playback
                 bool actionDone = false;
                 while (true)
                 {
-                    var currentTempo = tempos[_tempoIndex];
                     var currentTimeSig = timeSigs[_timeSigIndex];
 
                     uint ticksPerBeat = currentTimeSig.GetTicksPerBeat(sync);
@@ -94,8 +88,6 @@ namespace YARG.Playback
                         actionDone = true;
                     }
 
-                    while (_tempoIndex + 1 < _tempoIndex && tempos[_tempoIndex + 1].Tick < currentTick)
-                        _tempoIndex++;
                     while (_timeSigIndex + 1 < _timeSigIndex && timeSigs[_timeSigIndex + 1].Tick < currentTick)
                         _timeSigIndex++;
                 }
@@ -104,8 +96,8 @@ namespace YARG.Playback
 
         private readonly SyncTrack _sync;
 
-        private int _tempoIndex;
-        private int _timeSigIndex;
+        // private int _tempoIndex;
+        // private int _timeSigIndex;
 
         private readonly Dictionary<Action, BeatAction> _states = new();
         private readonly List<Action> _removeStates = new();
@@ -139,8 +131,8 @@ namespace YARG.Playback
                 state.Reset();
             }
 
-            _tempoIndex = 0;
-            _timeSigIndex = 0;
+            // _tempoIndex = 0;
+            // _timeSigIndex = 0;
         }
 
         public void Update(double songTime)
@@ -162,6 +154,7 @@ namespace YARG.Playback
             // Skip until in the chart
             if (songTime < 0) return;
 
+#if false // Not necessary currently, but might be in the future
             // Update the current sync track info
             var tempos = _sync.Tempos;
             var timeSigs = _sync.TimeSignatures;
@@ -173,6 +166,7 @@ namespace YARG.Playback
 
             var finalTempo = tempos[_tempoIndex];
             var finalTimeSig = timeSigs[_timeSigIndex];
+#endif
 
             // Update actions
             foreach (var state in _states.Values)
