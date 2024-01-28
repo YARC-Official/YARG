@@ -44,7 +44,7 @@ namespace YARG.Gameplay
                 try
                 {
                     Song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed);
-                    SongLength = GlobalVariables.AudioManager.AudioLengthD;
+                    SongLength = GlobalVariables.AudioManager.AudioLengthD + SONG_END_DELAY;
                     GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
                 }
                 catch (Exception ex)
@@ -109,21 +109,7 @@ namespace YARG.Gameplay
 
         private void OnAudioEnd()
         {
-            if (IsPractice)
-            {
-                PracticeManager.ResetPractice();
-                // Audio is paused automatically at this point, so we need to start it again
-                GlobalVariables.AudioManager.Play();
-                return;
-            }
-
-            if (IsReplay)
-            {
-                Pause(false);
-                return;
-            }
-
-            EndSong();
+            EndSong().Forget();
         }
     }
 }

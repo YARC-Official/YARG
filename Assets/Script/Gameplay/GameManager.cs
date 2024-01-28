@@ -33,6 +33,7 @@ namespace YARG.Gameplay
     public partial class GameManager : MonoBehaviour
     {
         public const double SONG_START_DELAY = SongRunner.SONG_START_DELAY;
+        public const double SONG_END_DELAY = SONG_START_DELAY;
 
         [Header("References")]
         [SerializeField]
@@ -346,17 +347,25 @@ namespace YARG.Gameplay
         public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
             => _songRunner.GetCalibratedRelativeInputTime(timeFromInputSystem);
 
-        private void EndSong()
+        private async UniTask EndSong()
         {
             if (IsPractice)
             {
                 PracticeManager.ResetPractice();
+                // Audio is paused automatically at this point, so we need to start it again
+                GlobalVariables.AudioManager.Play();
+                return;
+            }
+
+            await UniTask.WaitUntil(() => _songRunner.SongTime >= SongLength);
+
+            if (IsReplay)
+            {
+                Pause(false);
                 return;
             }
 
             GlobalVariables.AudioManager.UnloadSong();
-
-            if (IsReplay) return;
 
             // Pass the score info to the stats screen
             GlobalVariables.Instance.ScoreScreenStats = new ScoreScreenStats
