@@ -216,7 +216,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void FinishInitialization()
         {
-            GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBarIfAble, 1f);
+            GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar, 1f);
 
             TrackMaterial.Initialize(ZeroFadePosition, FadeSize);
             CameraPositioner.Initialize(Player.CameraPreset);
@@ -416,7 +416,7 @@ namespace YARG.Gameplay.Player
         {
             base.FinishDestruction();
 
-            GameManager.BeatEventHandler.Unsubscribe(StarpowerBar.PulseBarIfAble);
+            GameManager.BeatEventHandler.Unsubscribe(StarpowerBar.PulseBar);
         }
 
         public override void UpdateWithTimes(double inputTime)

@@ -64,12 +64,12 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private void PulseBar()
+        private void PulseBar(Beatline beat)
         {
-            if (_shouldPulse)
-            {
-                _starPowerPulse.color = Color.white;
-            }
+            if (!_shouldPulse || beat.Type == BeatlineType.Weak)
+                return;
+
+            _starPowerPulse.color = Color.white;
         }
 
         public void UpdateInfo(float phrasePercent, int multiplier,

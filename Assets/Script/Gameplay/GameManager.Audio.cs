@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Audio;
+using YARG.Core.Chart;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 
@@ -59,9 +60,9 @@ namespace YARG.Gameplay
             _songLoaded?.Invoke();
         }
 
-        private void StarPowerClap()
+        private void StarPowerClap(Beatline beat)
         {
-            if (_starPowerActivations < 1)
+            if (_starPowerActivations < 1 || beat.Type == BeatlineType.Weak)
                 return;
 
             GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.Clap);

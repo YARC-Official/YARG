@@ -26,11 +26,11 @@ namespace YARG.Gameplay.HUD
 
         private Animator _goldMeterParentAnimator;
 
-        private IEnumerator<Beatline> _measures;
-
         private int _currentStar;
         private bool _isGoldAchieved;
+
         private float _goldMeterHeight;
+        private int _goldMeterBeatCount;
 
         protected override void OnChartLoaded(SongChart chart)
         {
@@ -45,12 +45,16 @@ namespace YARG.Gameplay.HUD
             GameManager.BeatEventHandler.Unsubscribe(PulseGoldMeter);
         }
 
-        private void PulseGoldMeter()
+        private void PulseGoldMeter(Beatline beat)
         {
-            // TODO: Use animation triggers instead
-            // These arguments are required for it to properly loop
-            if (_goldMeterParent.activeInHierarchy)
+            if (beat.Type == BeatlineType.Weak)
+                return;
+
+            _goldMeterBeatCount++;
+            if (_goldMeterBeatCount % 2 == 0 && _goldMeterParent.activeInHierarchy)
             {
+                // TODO: Use animation triggers instead
+                // These arguments are required for it to properly loop
                 _goldMeterParentAnimator.Play(ANIMATION_GOLD_METER, -1, 0f);
             }
         }

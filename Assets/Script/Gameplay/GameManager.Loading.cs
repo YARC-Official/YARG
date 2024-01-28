@@ -161,7 +161,7 @@ namespace YARG.Gameplay
                 Destroy(PracticeManager);
             }
 
-            BeatEventHandler.Subscribe(StarPowerClap, 1,
+            BeatEventHandler.Subscribe(StarPowerClap,
                 _songRunner.AudioCalibration - GlobalVariables.AudioManager.PlaybackBufferLength);
 
             // Log constant values

@@ -4,7 +4,7 @@ using YARG.Core.Chart;
 
 namespace YARG.Playback
 {
-    public enum BeatEventMode
+    public enum TempoMapEventMode
     {
         /// <summary>
         /// Fire events relative to beats (relative to time signature).
@@ -38,7 +38,13 @@ namespace YARG.Playback
 
     public class BeatEventHandler
     {
-        private class BeatAction
+        private interface IBeatAction
+        {
+            void Update(double songTime, SyncTrack sync);
+            void Reset();
+        }
+
+        private class TempoMapAction : IBeatAction
         {
             /// <summary>
             /// The number of beats for the rate at which this event should occur at.
@@ -61,14 +67,14 @@ namespace YARG.Playback
             /// <summary>
             /// The action to call at the set beat rate.
             /// </summary>
-            private readonly BeatEventMode _mode;
+            private readonly TempoMapEventMode _mode;
 
             private int _eventsHandled = -1;
 
             private int _tempoIndex;
             private int _timeSigIndex;
 
-            public BeatAction(float beatRate, double offset, Action action, BeatEventMode mode)
+            public TempoMapAction(Action action, float beatRate, double offset, TempoMapEventMode mode)
             {
                 _beatRate = beatRate;
                 _offset = offset;
@@ -109,9 +115,9 @@ namespace YARG.Playback
                 var tempo = tempos[_tempoIndex];
                 double progress = _mode switch
                 {
-                    BeatEventMode.Beat => timeSig.GetBeatProgress(songTime, sync, tempo),
-                    BeatEventMode.Quarter => timeSig.GetQuarterNoteProgress(songTime, sync, tempo),
-                    BeatEventMode.Measure => timeSig.GetMeasureProgress(songTime, sync, tempo),
+                    TempoMapEventMode.Beat => timeSig.GetBeatProgress(songTime, sync, tempo),
+                    TempoMapEventMode.Quarter => timeSig.GetQuarterNoteProgress(songTime, sync, tempo),
+                    TempoMapEventMode.Measure => timeSig.GetMeasureProgress(songTime, sync, tempo),
                     _ => throw new NotImplementedException($"Unhandled beat event mode {_mode}!")
                 };
 
@@ -124,14 +130,52 @@ namespace YARG.Playback
             }
         }
 
+        private class BeatlineAction : IBeatAction
+        {
+            private readonly double _offset;
+            private readonly Action<Beatline> _action;
+
+            private int _beatlineIndex;
+
+            public BeatlineAction(Action<Beatline> action, double offset)
+            {
+                _action = action;
+                _offset = offset;
+            }
+
+            public void Reset()
+            {
+                _beatlineIndex = 0;
+            }
+
+            public void Update(double songTime, SyncTrack sync)
+            {
+                // Apply offset up-front
+                songTime -= _offset;
+                if (songTime < 0)
+                    return;
+
+                var beatlines = sync.Beatlines;
+                while (_beatlineIndex + 1 < beatlines.Count && beatlines[_beatlineIndex + 1].Time < songTime)
+                {
+                    // Deliberately call with each beatline
+                    // Since there are multiple kinds of beatline, we don't want to
+                    // end up skipping events that rely on specific types
+                    _action(beatlines[++_beatlineIndex]);
+                }
+            }
+        }
+
         private readonly SyncTrack _sync;
 
         // private int _tempoIndex;
         // private int _timeSigIndex;
 
-        private readonly Dictionary<Action, BeatAction> _states = new();
-        private readonly List<Action> _removeStates = new();
-        private readonly List<(Action, BeatAction)> _addStates = new();
+        private readonly Dictionary<Delegate, IBeatAction> _states = new();
+
+        // Necessary to allow adding or removing subscriptions within event handlers
+        private readonly List<(Delegate, IBeatAction)> _addStates = new();
+        private readonly List<Delegate> _removeStates = new();
 
         public BeatEventHandler(SyncTrack sync)
         {
@@ -139,17 +183,34 @@ namespace YARG.Playback
         }
 
         /// <summary>
-        /// Subscribes to a beat event.
+        /// Subscribes to a beat event using the tempo map as the driver.
         /// </summary>
         /// <param name="action">The action to be called when the beat occurs.</param>
-        /// <param name="beatRate">See <see cref="BeatAction._beatRate"/>.</param>
-        /// <param name="offset">See <see cref="BeatAction._offset"/>.</param>
-        public void Subscribe(Action action, float beatRate, double offset = 0, BeatEventMode mode = BeatEventMode.Beat)
+        /// <param name="beatRate">The beat rate to use for the event (see <see cref="TempoMapEventMode"/>).</param>
+        /// <param name="offset">The constant offset to use for the event.</param>
+        /// <param name="mode">The tempo map mode to use for the event.</param>
+        public void Subscribe(Action action, float beatRate, double offset = 0,
+            TempoMapEventMode mode = TempoMapEventMode.Beat)
         {
-            _addStates.Add((action, new BeatAction(beatRate, offset, action, mode)));
+            _addStates.Add((action, new TempoMapAction(action, beatRate, offset, mode)));
+        }
+
+        /// <summary>
+        /// Subscribes to a beat event using beatlines as the driver.
+        /// </summary>
+        /// <param name="action">The action to be called when the beat occurs.</param>
+        /// <param name="offset">The constant offset to use for the event.</param>
+        public void Subscribe(Action<Beatline> action, double offset = 0)
+        {
+            _addStates.Add((action, new BeatlineAction(action, offset)));
         }
 
         public void Unsubscribe(Action action)
+        {
+            _removeStates.Add(action);
+        }
+
+        public void Unsubscribe(Action<Beatline> action)
         {
             _removeStates.Add(action);
         }
@@ -167,18 +228,13 @@ namespace YARG.Playback
 
         public void Update(double songTime)
         {
-            // Add and remove states from the _state list outside the main loop to prevent enumeration errors.
-            // (aka removing things from the list while it loops)
+            // Add/remove new subscriptions
             foreach (var (action, state) in _addStates)
-            {
                 _states.Add(action, state);
-            }
-            _addStates.Clear();
-
             foreach (var action in _removeStates)
-            {
                 _states.Remove(action);
-            }
+
+            _addStates.Clear();
             _removeStates.Clear();
 
             // Skip until in the chart
