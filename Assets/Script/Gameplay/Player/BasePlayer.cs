@@ -73,6 +73,7 @@ namespace YARG.Gameplay.Player
 
         protected BaseInputViewer InputViewer { get; private set; }
 
+        protected int  _lastCombo;
         protected bool _isStemMuted;
 
         private List<GameInput> _replayInputs;

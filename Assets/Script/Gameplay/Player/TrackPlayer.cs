@@ -346,6 +346,8 @@ namespace YARG.Gameplay.Player
             {
                 TrackView.ShowFullCombo();
             }
+
+            _lastCombo = Combo;
         }
 
         protected virtual void OnNoteMissed(int index, TNote note)
@@ -357,6 +359,13 @@ namespace YARG.Gameplay.Player
             }
 
             SetStemMuteState(true);
+
+            if (_lastCombo >= 10)
+            {
+                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+            }
+
+            _lastCombo = Combo;
 
             foreach (var haptics in SantrollerHaptics)
             {
@@ -371,6 +380,11 @@ namespace YARG.Gameplay.Player
                 ComboMeter.SetFullCombo(false);
                 IsFc = false;
             }
+
+            _lastCombo = Combo;
+
+            // Need an overstrum sound
+            //GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.Overstrum);
         }
 
         protected virtual void OnSoloStart(SoloSection solo)

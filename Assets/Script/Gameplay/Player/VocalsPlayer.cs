@@ -129,6 +129,18 @@ namespace YARG.Gameplay.Player
                 {
                     IsFc = false;
                 }
+
+                _lastCombo = Combo;
+            };
+
+            engine.OnNoteMissed += (_, _) =>
+            {
+                if (_lastCombo >= 2)
+                {
+                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+                }
+
+                _lastCombo = Combo;
             };
 
             return engine;
