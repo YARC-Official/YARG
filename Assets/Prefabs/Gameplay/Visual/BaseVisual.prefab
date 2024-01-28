@@ -217,7 +217,7 @@ MeshRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 21
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &24723221875665680
 MonoBehaviour:
@@ -2076,7 +2076,7 @@ GameObject:
   - component: {fileID: 4832313740132043227}
   - component: {fileID: 7382692604558754829}
   - component: {fileID: 277336160789584779}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: HitWindow
   m_TagString: Untagged
   m_Icon: {fileID: 0}

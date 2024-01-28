@@ -16,7 +16,7 @@ Material:
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: 3021
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -50,7 +50,7 @@ Material:
     m_Floats:
     - SpriteNum: 0
     - _QueueControl: 0
-    - _QueueOffset: 0
+    - _QueueOffset: 21
     - _SpriteIndex: 10
     - _SpriteNum: 0
     m_Colors:
