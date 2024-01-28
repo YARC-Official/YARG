@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
@@ -161,8 +162,13 @@ namespace YARG.Menu.MusicLibrary
             foreach (var section in _sortedSongs)
             {
                 // Create header
-                string key = Sort == SongAttribute.Source ? SongSources.SourceToGameName(section.Key) : section.Key;
-                list.Add(new SortHeaderViewType(key, section.Value.Count));
+                var displayName = section.Key;
+                if (Sort == SongAttribute.Source)
+                {
+                    bool success = SongSources.TryGetSource(section.Key, out var parsedSource);
+                    displayName = success ? parsedSource.GetDisplayName() : $"{parsedSource.GetDisplayName()}/{section.Key}";
+                }
+                list.Add(new SortHeaderViewType(displayName, section.Value.Count));
 
                 // Add all of the songs
                 list.AddRange(section.Value.Select(song => new SongViewType(this, song)));
