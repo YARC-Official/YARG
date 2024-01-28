@@ -46,6 +46,7 @@
   - [Windows](#windows)
   - [Mac](#mac)
   - [Linux](#linux)
+  - [Android](#android)
   - [In-Game Setup](#in-game-setup)
 - [🔨 Building](#-building)
     - [⚠️ If you wish to contribute, use the `dev` branch. Your PR will NOT be merged if it's on `master`. ⚠️](#️-if-you-wish-to-contribute-use-the-dev-branch-your-pr-will-not-be-merged-if-its-on-master-️)
@@ -108,6 +109,13 @@
   - Without this file, YARG will not be able to access HID devices without special permissions such as being run with `sudo`, which is not recommended.
   - The file name may differ if desired, but it must come before `73-seat-late.rules`!
 7. Reboot your system to apply the new udev rule, then you should be all good to go!
+
+## Android
+
+1. Go to [the latest release](https://github.com/EdwardplayzYT/YARG-Android/releases/latest)
+2. Download the .apk
+3. On your phone, go to your files manager
+4. Open and install the apk (you might need to grant permission, or your phone might not let you depending on your user permissions)
 
 ## In-Game Setup
 
