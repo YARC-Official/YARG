@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
@@ -104,7 +105,7 @@ namespace YARG.Menu.MusicLibrary
             _subHeader.text = LibraryMode switch
             {
                 MusicLibraryMode.QuickPlay => "Quickplay",
-                MusicLibraryMode.Practice  => "Practice",
+                MusicLibraryMode.Practice => "Practice",
                 _ => throw new Exception("Unreachable.")
             };
 
@@ -129,16 +130,16 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 _currentSong = song.SongMetadata;
-
-                // Make sure to cancel the preview
-                if (!_previewCanceller.IsCancellationRequested)
-                {
-                    _previewCanceller.Cancel();
-                }
             }
             else
             {
                 _currentSong = null;
+            }
+
+            // Cancel the active song preview
+            if (!_previewCanceller.IsCancellationRequested)
+            {
+                _previewCanceller.Cancel();
             }
         }
 
@@ -161,7 +162,13 @@ namespace YARG.Menu.MusicLibrary
             foreach (var section in _sortedSongs)
             {
                 // Create header
-                list.Add(new SortHeaderViewType(section.Key, section.Value.Count));
+                var displayName = section.Key;
+                if (Sort == SongAttribute.Source)
+                {
+                    bool success = SongSources.TryGetSource(section.Key, out var parsedSource);
+                    displayName = success ? parsedSource.GetDisplayName() : $"{parsedSource.GetDisplayName()}/{section.Key}";
+                }
+                list.Add(new SortHeaderViewType(displayName, section.Value.Count));
 
                 // Add all of the songs
                 list.AddRange(section.Value.Select(song => new SongViewType(this, song)));
@@ -287,7 +294,7 @@ namespace YARG.Menu.MusicLibrary
         private void OnDisable()
         {
             if (Navigator.Instance == null) return;
-            
+
             // Save index
             _savedIndex = SelectedIndex;
 

@@ -948,6 +948,14 @@ MonoBehaviour:
       song. Otherwise, it will fade out after 10 seconds.
     m_Metadata:
       m_Items: []
+  - m_Id: 111744086983954432
+    m_Localized: Star Power Claps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 111744428001841152
+    m_Localized: Enables claps to the beat while Star Power is active.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

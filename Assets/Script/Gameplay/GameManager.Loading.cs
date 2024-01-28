@@ -161,6 +161,9 @@ namespace YARG.Gameplay
                 Destroy(PracticeManager);
             }
 
+            BeatEventHandler.Subscribe(StarPowerClap,
+                _songRunner.AudioCalibration - GlobalVariables.AudioManager.PlaybackBufferLength);
+
             // Log constant values
             EditorDebug.Log($"Audio calibration: {_songRunner.AudioCalibration}, video calibration: {_songRunner.VideoCalibration}, song offset: {_songRunner.SongOffset}");
 

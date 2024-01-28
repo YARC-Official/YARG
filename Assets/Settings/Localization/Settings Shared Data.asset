@@ -735,6 +735,14 @@ MonoBehaviour:
     m_Key: Setting.Sound.BassVolume.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 111744086983954432
+    m_Key: Setting.Sound.ClapsInStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 111744428001841152
+    m_Key: Setting.Sound.ClapsInStarpower.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 53693768667619374
     m_Key: Setting.Sound.CrowdVolume
     m_Metadata:

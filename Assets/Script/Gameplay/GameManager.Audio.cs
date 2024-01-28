@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Audio;
+using YARG.Core.Chart;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 
@@ -28,6 +29,8 @@ namespace YARG.Gameplay
         }
 
         private readonly Dictionary<SongStem, StemState> _stemStates = new();
+
+        private int _starPowerActivations = 0;
 
         private async UniTask LoadAudio()
         {
@@ -58,6 +61,24 @@ namespace YARG.Gameplay
             if (_loadState != LoadFailureState.None) return;
 
             _songLoaded?.Invoke();
+        }
+
+        private void StarPowerClap(Beatline beat)
+        {
+            if (_starPowerActivations < 1 || beat.Type == BeatlineType.Weak)
+                return;
+
+            GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.Clap);
+        }
+
+        public void ChangeStarPowerStatus(bool active)
+        {
+            if (!SettingsManager.Settings.ClapsInStarpower.Value)
+                return;
+
+            _starPowerActivations += active ? 1 : -1;
+            if (_starPowerActivations < 0)
+                _starPowerActivations = 0;
         }
 
         public void ChangeStemMuteState(SongStem stem, bool muted)

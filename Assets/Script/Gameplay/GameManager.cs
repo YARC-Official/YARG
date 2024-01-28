@@ -157,6 +157,7 @@ namespace YARG.Gameplay
             }
             GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
             _songRunner.Dispose();
+            BeatEventHandler.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)

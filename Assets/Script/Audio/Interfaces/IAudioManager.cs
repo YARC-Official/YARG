@@ -20,6 +20,8 @@ namespace YARG.Audio
         public double MasterVolume { get; }
         public double SfxVolume { get; }
 
+        public double PlaybackBufferLength { get; }
+
         public double CurrentPositionD { get; }
         public double AudioLengthD { get; }
 

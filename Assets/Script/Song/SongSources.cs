@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
@@ -282,11 +283,11 @@ namespace YARG.Song
                     {
                         var parsed = new ParsedSource(source.icon, source.names, source.type switch
                         {
-                            "game"    => SourceType.Game,
+                            "game" => SourceType.Game,
                             "charter" => SourceType.Charter,
-                            "rb"      => SourceType.RB,
-                            "gh"      => SourceType.GH,
-                            _         => SourceType.Custom
+                            "rb" => SourceType.RB,
+                            "gh" => SourceType.GH,
+                            _ => SourceType.Custom
                         }, sources.type == "base");
 
                         foreach (var id in source.ids)
@@ -332,6 +333,18 @@ namespace YARG.Song
         }
 
         public static string SourceToGameName(string id) => GetSource(id).GetDisplayName();
+
+        public static bool TryGetSource(string id, out ParsedSource parsedSource)
+        {
+            if (_sources.TryGetValue(id, out parsedSource))
+            {
+                return true;
+            }
+
+            parsedSource = _sources["$DEFAULT$"];
+            return false;
+        }
+
         public static async UniTask<Sprite> SourceToIcon(string id) => await GetSource(id).GetIcon();
     }
 }

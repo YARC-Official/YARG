@@ -32,6 +32,8 @@ namespace YARG.Audio.BASS
         public double MasterVolume { get; private set; }
         public double SfxVolume { get; private set; }
 
+        public double PlaybackBufferLength { get; private set; }
+
         public double CurrentPositionD => GetPosition();
         public double AudioLengthD { get; private set; }
 
@@ -71,6 +73,8 @@ namespace YARG.Audio.BASS
             Bass.DeviceBufferLength = 10;
             Bass.PlaybackBufferLength = BassHelpers.PLAYBACK_BUFFER_LENGTH;
             Bass.DeviceNonStop = true;
+
+            PlaybackBufferLength = Bass.PlaybackBufferLength / 1000.0;
 
             // Affects Windows only. Forces device names to be in UTF-8 on Windows rather than ANSI.
             Bass.Configure(Configuration.UnicodeDeviceInformation, true);
