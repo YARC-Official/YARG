@@ -238,21 +238,13 @@ namespace YARG.Playback
             RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
 
             // Calculate song time
-            if (RealSongTime < SongOffset)
+            if (GlobalVariables.AudioManager.IsPlaying)
             {
-                // Drive song time using visual time until it's time to start the audio
-                RealSongTime = RealVisualTime - AudioCalibration;
-                if (RealSongTime >= SongOffset)
-                {
-                    // Start audio
-                    GlobalVariables.AudioManager.Play();
-                    // Seek to calculated time to keep everything in sync
-                    GlobalVariables.AudioManager.SetPosition(RealSongTime - SongOffset);
-                }
+                RealSongTime = GlobalVariables.AudioManager.CurrentPositionD + SongOffset;
             }
             else
             {
-                RealSongTime = GlobalVariables.AudioManager.CurrentPositionD + SongOffset;
+                RealSongTime = RealVisualTime - AudioCalibration;
             }
 
             // Check for unexpected backwards time jumps
@@ -286,6 +278,23 @@ namespace YARG.Playback
             const double INITIAL_SYNC_THRESH = 0.015;
             const double ADJUST_SYNC_THRESH = 0.005;
             const float SPEED_ADJUSTMENT = 0.05f;
+
+            // Wait until it's time to start the audio
+            while (true)
+            {
+                // Song time is driven using visual time when the audio isn't running
+                double currentTime = SyncVisualTime - AudioCalibration;
+                if (currentTime >= SongOffset)
+                {
+                    // Start audio
+                    GlobalVariables.AudioManager.Play();
+                    // Seek to calculated time to keep everything in sync
+                    GlobalVariables.AudioManager.SetPosition(currentTime - SongOffset);
+                    break;
+                }
+
+                Thread.Yield();
+            }
 
             for (; _runSync; _finishedSyncing.Set(), Thread.Sleep(5))
             {
