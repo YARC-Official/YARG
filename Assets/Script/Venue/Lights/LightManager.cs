@@ -3,6 +3,7 @@ using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Extensions;
 using YARG.Gameplay;
+using YARG.Playback;
 using Random = UnityEngine.Random;
 
 namespace YARG.Venue
@@ -111,7 +112,7 @@ namespace YARG.Venue
             _harmoniousGradient = CreateGradient(_harmoniousColors);
 
             // 1/8th of a beat is a 32nd note
-            GameManager.BeatEventHandler.Subscribe(UpdateLightAnimation, 1f / 8f);
+            GameManager.BeatEventHandler.Subscribe(UpdateLightAnimation, 1f / 8f, mode: BeatEventMode.Quarter);
         }
 
         protected override void GameplayDestroy()

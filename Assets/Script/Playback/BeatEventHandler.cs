@@ -4,51 +4,81 @@ using YARG.Core.Chart;
 
 namespace YARG.Playback
 {
+    public enum BeatEventMode
+    {
+        /// <summary>
+        /// Fire events relative to beats (relative to time signature).
+        /// </summary>
+        /// <remarks>
+        /// 1 = every beat, 2 = every 2 beats, 0.5 = every beat and every half-beat, etc.
+        /// A time signature of x/4 will make events occur relative to 1/4th steps,
+        /// x/8 will make events occur relative to 1/8th steps, etc.
+        /// </remarks>
+        Beat,
+
+        /// <summary>
+        /// Fire events relative to quarter notes (absolute).
+        /// </summary>
+        /// <remarks>
+        /// 1 = 1/4th note, 2 = 1/2nd note, 0.5 = 1/8th note, etc.
+        /// Time signature does not affect this rate.
+        /// </remarks>
+        Quarter,
+
+        /// <summary>
+        /// Fire events relative to measures.
+        /// </summary>
+        /// <remarks>
+        /// 1 = 1 measure, 2 = 2 measures, 0.5 = half-measure, etc.
+        /// With a rate of 1, a time signature of 4/4 will make events occur every 4 quarter notes,
+        /// 6/8 will make events occur every 6 eighth notes, etc.
+        /// </remarks>
+        Measure,
+    }
+
     public class BeatEventHandler
     {
         private class BeatAction
         {
             /// <summary>
             /// The number of beats for the rate at which this event should occur at.
-            /// This value is relative to the current time signature's denominator.
             /// </summary>
-            /// <remarks>
-            /// 1 = every beat, 2 = every 2 beats, 0.5 = every beat and every half-beat, etc.
-            /// A time signature of x/4 will make events occur relative to 1/4th steps,
-            /// x/8 will make events occur relative to 1/8th steps, etc.
-            /// </remarks>
-            public readonly float BeatRate;
+            private readonly float _beatRate;
 
             /// <summary>
             /// The offset of the event in seconds.
-            /// This is a constant offset for every firing of the event,
-            /// where positive values delay the event, and negative values make it early.
             /// </summary>
             /// <remarks>
             /// 0.05 = 50 ms late, -0.025 = 25 ms early.
             /// </remarks>
-            public readonly double Offset;
+            private readonly double _offset;
 
             /// <summary>
             /// The action to call at the set beat rate.
             /// </summary>
-            public readonly Action Action;
+            private readonly Action _action;
 
-            private int _beatsHandled = -1;
+            /// <summary>
+            /// The action to call at the set beat rate.
+            /// </summary>
+            private readonly BeatEventMode _mode;
+
+            private int _eventsHandled = -1;
 
             private int _tempoIndex;
             private int _timeSigIndex;
 
-            public BeatAction(float beatRate, double offset, Action action)
+            public BeatAction(float beatRate, double offset, Action action, BeatEventMode mode)
             {
-                BeatRate = beatRate;
-                Offset = offset;
-                Action = action;
+                _beatRate = beatRate;
+                _offset = offset;
+                _action = action;
+                _mode = mode;
             }
 
             public void Reset()
             {
-                _beatsHandled = -1;
+                _eventsHandled = -1;
                 _tempoIndex = 0;
                 _timeSigIndex = 0;
             }
@@ -56,7 +86,7 @@ namespace YARG.Playback
             public void Update(double songTime, SyncTrack sync)
             {
                 // Apply offset up-front
-                songTime -= Offset;
+                songTime -= _offset;
                 if (songTime < 0)
                     return;
 
@@ -71,16 +101,25 @@ namespace YARG.Playback
                 {
                     _timeSigIndex++;
                     // Reset beats for each new time signature
-                    _beatsHandled = -1;
+                    _eventsHandled = -1;
                 }
 
                 // Progress beat count
-                double progress = timeSigs[_timeSigIndex].GetBeatProgress(songTime, sync, tempos[_tempoIndex]);
-                int beatCount = (int) (progress / BeatRate);
-                if (beatCount > _beatsHandled)
+                var timeSig = timeSigs[_timeSigIndex];
+                var tempo = tempos[_tempoIndex];
+                double progress = _mode switch
                 {
-                    _beatsHandled = beatCount;
-                    Action();
+                    BeatEventMode.Beat => timeSig.GetBeatProgress(songTime, sync, tempo),
+                    BeatEventMode.Quarter => timeSig.GetQuarterNoteProgress(songTime, sync, tempo),
+                    BeatEventMode.Measure => timeSig.GetMeasureProgress(songTime, sync, tempo),
+                    _ => throw new NotImplementedException($"Unhandled beat event mode {_mode}!")
+                };
+
+                int eventCount = (int) (progress / _beatRate);
+                if (eventCount > _eventsHandled)
+                {
+                    _eventsHandled = eventCount;
+                    _action();
                 }
             }
         }
@@ -103,11 +142,11 @@ namespace YARG.Playback
         /// Subscribes to a beat event.
         /// </summary>
         /// <param name="action">The action to be called when the beat occurs.</param>
-        /// <param name="beatRate">See <see cref="BeatAction.BeatRate"/>.</param>
-        /// <param name="offset">See <see cref="BeatAction.Offset"/>.</param>
-        public void Subscribe(Action action, float beatRate, double offset = 0)
+        /// <param name="beatRate">See <see cref="BeatAction._beatRate"/>.</param>
+        /// <param name="offset">See <see cref="BeatAction._offset"/>.</param>
+        public void Subscribe(Action action, float beatRate, double offset = 0, BeatEventMode mode = BeatEventMode.Beat)
         {
-            _addStates.Add((action, new BeatAction(beatRate, offset, action)));
+            _addStates.Add((action, new BeatAction(beatRate, offset, action, mode)));
         }
 
         public void Unsubscribe(Action action)
