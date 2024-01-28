@@ -573,6 +573,13 @@ namespace YARG.Audio.BASS
         public void SetPosition(double position, bool desyncCompensation = true)
             => _mixer?.SetPosition(position, desyncCompensation);
 
+        public bool HasStem(SongStem stem)
+        {
+            if (_mixer is null) return false;
+
+            return _mixer.Channels.ContainsKey(stem) && _mixer.Channels[stem].Count > 0;
+        }
+
         private void OnSongEnd()
         {
             Pause();

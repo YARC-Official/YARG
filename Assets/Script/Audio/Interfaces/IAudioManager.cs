@@ -67,5 +67,7 @@ namespace YARG.Audio
 
         public double GetPosition(bool desyncCompensation = true);
         public void SetPosition(double position, bool desyncCompensation = true);
+
+        public bool HasStem(SongStem stem);
     }
 }
