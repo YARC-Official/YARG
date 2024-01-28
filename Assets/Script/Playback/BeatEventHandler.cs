@@ -57,6 +57,8 @@ namespace YARG.Playback
             {
                 // Apply offset up-front
                 songTime -= Offset;
+                if (songTime < 0)
+                    return;
 
                 var tempos = sync.Tempos;
                 var timeSigs = sync.TimeSignatures;
