@@ -119,7 +119,30 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        public override void SetStarPowerFX(bool status)
+        public override void SetStemMuteState(bool muted)
+        {
+            if (_isStemMuted == muted)
+            {
+                return;
+            }
+
+            var stem = Player.Profile.CurrentInstrument.ToSongStem();
+
+            // Try to fallback to guitar stem if specific stem is not available
+            if (!GlobalVariables.AudioManager.HasStem(stem))
+            {
+                stem = SongStem.Guitar;
+                if(!GlobalVariables.AudioManager.HasStem(stem))
+                {
+                    return;
+                }
+            }
+
+            GameManager.ChangeStemMuteState(stem, muted);
+            _isStemMuted = muted;
+        }
+
+        public override void SetStarPowerFX(bool active)
         {
             var instrument = Player.Profile.CurrentInstrument;
             var playerStem = instrument.ToSongStem();
@@ -130,8 +153,8 @@ namespace YARG.Gameplay.Player
                 playerStem = SongStem.Guitar;
             }
 
-            GameManager.ChangeStemReverbState(playerStem, status);
-            base.SetStarPowerFX(status);
+            GameManager.ChangeStemReverbState(playerStem, active);
+            base.SetStarPowerFX(active);
         }
 
         protected override void ResetVisuals()
@@ -214,7 +237,7 @@ namespace YARG.Gameplay.Player
             // Leniency is handled by the engine's sustain burst threshold.
             if (!parent.IsDisjoint && dropped)
             {
-                ShouldMuteStem = true;
+                SetStemMuteState(true);
             }
         }
 

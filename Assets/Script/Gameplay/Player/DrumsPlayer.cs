@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
@@ -159,6 +160,31 @@ namespace YARG.Gameplay.Player
         protected override void UpdateVisuals(double songTime)
         {
             UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
+        }
+
+        public override void SetStemMuteState(bool muted)
+        {
+            if (!_isStemMuted && muted)
+            {
+                return;
+            }
+
+            var stem = Player.Profile.CurrentInstrument.ToSongStem();
+
+            // TODO Drums needs specific handling
+
+            // Try to fallback to drums stem if specific stem is not available
+            if (!GlobalVariables.AudioManager.HasStem(stem))
+            {
+                stem = SongStem.Drums;
+                if(!GlobalVariables.AudioManager.HasStem(stem))
+                {
+                    return;
+                }
+            }
+
+            GameManager.ChangeStemMuteState(stem, muted);
+            _isStemMuted = muted;
         }
 
         protected override void ResetVisuals()

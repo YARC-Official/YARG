@@ -93,9 +93,8 @@ namespace YARG.Gameplay
             }
             else
             {
-                state.Muted--;
+                state.Muted = Math.Max(0, state.Muted - 1);
             }
-
             var volume = state.GetVolumeLevel();
             GlobalVariables.AudioManager.SetStemVolume(stem, volume);
 
@@ -122,19 +121,10 @@ namespace YARG.Gameplay
             }
             else
             {
-                state.ReverbCount--;
+                state.ReverbCount = Math.Max(0, state.ReverbCount - 1);
             }
 
-            if(state.ReverbCount > 0)
-            {
-                GlobalVariables.AudioManager.ApplyReverb(stem, true);
-                EditorDebug.Log($"Applied reverb to {stem}");
-            }
-            else
-            {
-                GlobalVariables.AudioManager.ApplyReverb(stem, false);
-                EditorDebug.Log($"Removed reverb from {stem}");
-            }
+            GlobalVariables.AudioManager.ApplyReverb(stem, state.ReverbCount > 0);
         }
 
         private void OnAudioEnd()

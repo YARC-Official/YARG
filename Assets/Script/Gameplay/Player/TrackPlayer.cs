@@ -59,20 +59,6 @@ namespace YARG.Gameplay.Player
 
         public Vector2 HUDViewportPosition => TrackCamera.WorldToViewportPoint(_hudLocation.position);
 
-        private bool _shouldMuteStem;
-        public bool ShouldMuteStem
-        {
-            get => _shouldMuteStem;
-            protected set
-            {
-                // Skip if there's no change
-                if (value == _shouldMuteStem) return;
-
-                _shouldMuteStem = value;
-                GameManager.ChangeStemMuteState(Player.Profile.CurrentInstrument.ToSongStem(), value);
-            }
-        }
-
         protected List<Beatline> Beatlines;
         protected int BeatlineIndex;
 
@@ -111,7 +97,7 @@ namespace YARG.Gameplay.Player
         {
             // "Muting a stem" isn't technically a visual,
             // but it's a form of feedback so we'll put it here.
-            ShouldMuteStem = false;
+            SetStemMuteState(false);
 
             ComboMeter.SetFullCombo(IsFc);
             TrackView.ForceReset();
@@ -345,7 +331,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
-            ShouldMuteStem = false;
+            SetStemMuteState(false);
             if (_currentMultiplier != _previousMultiplier)
             {
                 _previousMultiplier = _currentMultiplier;
@@ -370,7 +356,7 @@ namespace YARG.Gameplay.Player
                 IsFc = false;
             }
 
-            ShouldMuteStem = true;
+            SetStemMuteState(true);
 
             foreach (var haptics in SantrollerHaptics)
             {

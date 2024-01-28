@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Audio;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals;
@@ -351,6 +352,11 @@ namespace YARG.Gameplay.Player
 
             Engine = CreateEngine();
             ResetPracticeSection();
+        }
+
+        public override void SetStemMuteState(bool muted)
+        {
+            // Vocals has no stem muting
         }
 
         protected override bool InterceptInput(ref GameInput input)
