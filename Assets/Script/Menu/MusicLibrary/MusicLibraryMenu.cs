@@ -130,16 +130,16 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 _currentSong = song.SongMetadata;
-
-                // Make sure to cancel the preview
-                if (!_previewCanceller.IsCancellationRequested)
-                {
-                    _previewCanceller.Cancel();
-                }
             }
             else
             {
                 _currentSong = null;
+            }
+
+            // Cancel the active song preview
+            if (!_previewCanceller.IsCancellationRequested)
+            {
+                _previewCanceller.Cancel();
             }
         }
 
