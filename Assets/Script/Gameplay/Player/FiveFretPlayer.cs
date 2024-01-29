@@ -151,10 +151,16 @@ namespace YARG.Gameplay.Player
             if (!GlobalVariables.AudioManager.HasStem(playerStem))
             {
                 playerStem = SongStem.Guitar;
+
+                // Fall back to Song stem if guitar stem is not available
+                if(!GlobalVariables.AudioManager.HasStem(playerStem))
+                {
+                    base.SetStarPowerFX(active);
+                    return;
+                }
             }
 
             GameManager.ChangeStemReverbState(playerStem, active);
-            base.SetStarPowerFX(active);
         }
 
         protected override void ResetVisuals()
