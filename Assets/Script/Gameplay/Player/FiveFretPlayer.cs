@@ -206,8 +206,7 @@ namespace YARG.Gameplay.Player
 
             var overstrumSample = SfxSample.Overstrum1 + Random.Range(0, 3);
 
-            // Wait until overstrum SFX are finalised before enabling this
-            //GlobalVariables.AudioManager.PlaySoundEffect(overstrumSample);
+            GlobalVariables.AudioManager.PlaySoundEffect(overstrumSample);
         }
 
         private void OnSustainStart(GuitarNote parent)
