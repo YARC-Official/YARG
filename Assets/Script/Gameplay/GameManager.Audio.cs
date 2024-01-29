@@ -44,7 +44,6 @@ namespace YARG.Gameplay
                 try
                 {
                     Song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed);
-                    SongLength = GlobalVariables.AudioManager.AudioLengthD + SONG_END_DELAY;
                     GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
                 }
                 catch (Exception ex)
@@ -57,6 +56,27 @@ namespace YARG.Gameplay
 
             if (_loadState != LoadFailureState.None) return;
 
+            double audioLength = GlobalVariables.AudioManager.AudioLengthD;
+            double chartLength = Chart.GetEndTime();
+            double endTime = Chart.GetEndEvent()?.Time ?? -1;
+
+            // - Chart < Audio < [end] -> Audio
+            // - Audio < Chart < [end] -> Chart
+            // - [end] < Chart < Audio -> Audio
+            // - [end] < Audio < Chart -> Chart
+            if ((endTime >= audioLength && endTime >= chartLength) ||
+                endTime <= audioLength && endTime <= chartLength)
+            {
+                SongLength = Math.Max(audioLength, chartLength);
+            }
+            // - Audio < [end] < Chart -> Chart
+            // - Chart < [end] < Audio -> [end]
+            else
+            {
+                SongLength = Math.Max(chartLength, endTime);
+            }
+
+            SongLength += SONG_END_DELAY;
             _songLoaded?.Invoke();
         }
 
