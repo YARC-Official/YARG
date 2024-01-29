@@ -36,7 +36,7 @@ namespace YARG.Gameplay
         {
             // The stem states are initialized in "CreatePlayers"
             _stemStates.Clear();
-            _stemStates.Add(SongStem.Keys, new StemState
+            _stemStates.Add(SongStem.Song, new StemState
                 { Total = 1});
 
             bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
