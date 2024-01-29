@@ -21,7 +21,7 @@ namespace YARG.Song
             int prevFilterIndex = 0;
             while (currFilterIndex < currentFilters.Count && prevFilterIndex < filters.Count)
             {
-                while (currentFilters[currFilterIndex].StartsWith(filters[prevFilterIndex].Item1))
+                while (currentFilters[currFilterIndex].StartsWith(filters[prevFilterIndex].Filter))
                 {
                     ++prevFilterIndex;
                     if (prevFilterIndex == filters.Count)
@@ -30,7 +30,7 @@ namespace YARG.Song
                     }
                 }
 
-                if (prevFilterIndex == 0 || currentFilters[currFilterIndex] != filters[prevFilterIndex - 1].Item1)
+                if (prevFilterIndex == 0 || currentFilters[currFilterIndex] != filters[prevFilterIndex - 1].Filter)
                 {
                     break;
                 }
@@ -49,7 +49,7 @@ namespace YARG.Song
             while (currFilterIndex < currentFilters.Count)
             {
                 var filter = currentFilters[currFilterIndex];
-                var searchList = SearchSongs(filter, filters[prevFilterIndex - 1].Item2);
+                var searchList = SearchSongs(filter, filters[prevFilterIndex - 1].Songs);
 
                 if (prevFilterIndex < filters.Count)
                 {
@@ -68,7 +68,12 @@ namespace YARG.Song
             {
                 filters.RemoveRange(prevFilterIndex, filters.Count - prevFilterIndex);
             }
-            return filters[prevFilterIndex - 1].Item2;
+            return filters[prevFilterIndex - 1].Songs;
+        }
+
+        public bool IsUnspecified()
+        {
+            return filters[^1].Filter.attribute == SongAttribute.Unspecified;
         }
 
         private class FilterNode : IEquatable<FilterNode>
@@ -113,7 +118,7 @@ namespace YARG.Song
             }
         }
 
-        private List<(FilterNode, IReadOnlyDictionary<string, List<SongMetadata>>)> filters = new();
+        private List<(FilterNode Filter, IReadOnlyDictionary<string, List<SongMetadata>> Songs)> filters = new();
 
         private static List<FilterNode> GetFilters(string[] split)
         {

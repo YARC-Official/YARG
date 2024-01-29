@@ -251,8 +251,7 @@ namespace YARG.Menu.MusicLibrary
             if (_searchField.text.Length > _currentSearch.Length ||
                 !SetIndexTo(i => i is SongViewType view && view.SongMetadata == _currentSong))
             {
-                // Reason: Gotta take "Random Song" header into account
-                SelectedIndex = string.IsNullOrEmpty(_searchField.text) ? 2 : 1;
+                SelectedIndex = _searchContext.IsUnspecified() ? 1 : 2;
             }
             _currentSearch = _searchField.text;
         }
