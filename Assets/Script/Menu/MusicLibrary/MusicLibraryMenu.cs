@@ -165,8 +165,18 @@ namespace YARG.Menu.MusicLibrary
                 var displayName = section.Key;
                 if (Sort == SongAttribute.Source)
                 {
-                    bool success = SongSources.TryGetSource(section.Key, out var parsedSource);
-                    displayName = success ? parsedSource.GetDisplayName() : $"{parsedSource.GetDisplayName()}/{section.Key}";
+                    if (SongSources.TryGetSource(section.Key, out var parsedSource))
+                    {
+                        displayName = parsedSource.GetDisplayName();
+                    }
+                    else if (section.Key.Length > 0)
+                    {
+                        displayName = section.Key;
+                    }
+                    else
+                    {
+                        displayName = SongSources.Default.GetDisplayName();
+                    }
                 }
                 list.Add(new SortHeaderViewType(displayName, section.Value.Count));
 
