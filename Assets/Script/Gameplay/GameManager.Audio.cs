@@ -85,7 +85,7 @@ namespace YARG.Gameplay
         {
             if (!SettingsManager.Settings.MuteOnMiss.Value) return;
 
-            if (!GlobalVariables.AudioManager.HasStem(stem) || !_stemStates.TryGetValue(stem, out var state)) return;
+            if (!_stemStates.TryGetValue(stem, out var state)) return;
 
             if (muted)
             {
@@ -113,7 +113,7 @@ namespace YARG.Gameplay
         {
             if (!SettingsManager.Settings.UseStarpowerFx.Value) return;
 
-            if (!GlobalVariables.AudioManager.HasStem(stem) || !_stemStates.TryGetValue(stem, out var state)) return;
+            if (!_stemStates.TryGetValue(stem, out var state)) return;
 
             if (reverb)
             {
@@ -124,7 +124,19 @@ namespace YARG.Gameplay
                 state.ReverbCount = Math.Max(0, state.ReverbCount - 1);
             }
 
-            GlobalVariables.AudioManager.ApplyReverb(stem, state.ReverbCount > 0);
+            bool reverbActive = state.ReverbCount > 0;
+
+            GlobalVariables.AudioManager.ApplyReverb(stem, reverbActive);
+
+            // Reverb all of the stems for songs with multiple drum stems
+            // TODO: Implement proper drum stem reverbing
+            if (stem == SongStem.Drums)
+            {
+                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums1, reverbActive);
+                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums2, reverbActive);
+                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums3, reverbActive);
+                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums4, reverbActive);
+            }
         }
 
         private void OnAudioEnd()

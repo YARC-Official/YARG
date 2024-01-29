@@ -164,27 +164,43 @@ namespace YARG.Gameplay.Player
 
         public override void SetStemMuteState(bool muted)
         {
-            if (!_isStemMuted && muted)
+            if (_isStemMuted == muted)
             {
                 return;
             }
 
-            var stem = Player.Profile.CurrentInstrument.ToSongStem();
+            bool anyDrumsStems = GlobalVariables.AudioManager.HasStem(SongStem.Drums) ||
+                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums1) ||
+                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums2) ||
+                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums3) ||
+                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums4);
 
-            // TODO Drums needs specific handling
-
-            // Try to fallback to drums stem if specific stem is not available
-            if (!GlobalVariables.AudioManager.HasStem(stem))
+            // Don't mute if no drum stems are available
+            if (!anyDrumsStems)
             {
-                stem = SongStem.Drums;
-                if(!GlobalVariables.AudioManager.HasStem(stem))
-                {
-                    return;
-                }
+                return;
             }
 
-            GameManager.ChangeStemMuteState(stem, muted);
+            GameManager.ChangeStemMuteState(SongStem.Drums, muted);
             _isStemMuted = muted;
+        }
+
+        public override void SetStarPowerFX(bool active)
+        {
+            bool anyDrumsStems = GlobalVariables.AudioManager.HasStem(SongStem.Drums) ||
+                GlobalVariables.AudioManager.HasStem(SongStem.Drums1) ||
+                GlobalVariables.AudioManager.HasStem(SongStem.Drums2) ||
+                GlobalVariables.AudioManager.HasStem(SongStem.Drums3) ||
+                GlobalVariables.AudioManager.HasStem(SongStem.Drums4);
+
+            // Fall back to Song stem if drums stem is not available
+            if(!anyDrumsStems)
+            {
+                base.SetStarPowerFX(active);
+                return;
+            }
+
+            GameManager.ChangeStemReverbState(SongStem.Drums, active);
         }
 
         protected override void ResetVisuals()
