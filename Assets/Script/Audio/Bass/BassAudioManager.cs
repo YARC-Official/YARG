@@ -207,7 +207,7 @@ namespace YARG.Audio.BASS
 
                 if (!File.Exists(sfxPath))
                 {
-                    Debug.LogError($"SFX {sfxPath} does not exist!");
+                    Debug.LogWarning($"SFX Sample {sfxFile} does not exist!");
                     continue;
                 }
 
