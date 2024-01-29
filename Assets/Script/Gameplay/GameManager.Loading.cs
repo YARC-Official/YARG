@@ -214,7 +214,7 @@ namespace YARG.Gameplay
                 players.Add(yargPlayer);
             }
 
-            _yargPlayers = players;
+            YargPlayers = players;
         }
 
         private async UniTask LoadChart()
@@ -272,7 +272,7 @@ namespace YARG.Gameplay
             bool vocalTrackInitialized = false;
 
             int index = -1;
-            foreach (var player in _yargPlayers)
+            foreach (var player in YargPlayers)
             {
                 index++;
 

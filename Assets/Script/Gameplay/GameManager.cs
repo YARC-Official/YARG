@@ -52,8 +52,12 @@ namespace YARG.Gameplay
         [SerializeField]
         private TextMeshProUGUI _debugText;
 
-        private IReadOnlyList<YargPlayer> _yargPlayers;
-        private List<BasePlayer>          _players;
+        /// <summary>
+        /// Equal to either <see cref="PlayerContainer.Players"/> or the players in the replay.
+        /// </summary>
+        public IReadOnlyList<YargPlayer> YargPlayers { get; private set;}
+
+        private List<BasePlayer> _players;
 
         public bool IsSongStarted { get; private set; } = false;
 
@@ -124,7 +128,7 @@ namespace YARG.Gameplay
             PracticeManager = GetComponent<PracticeManager>();
             BackgroundManager = GetComponent<BackgroundManager>();
 
-            _yargPlayers = PlayerContainer.Players;
+            YargPlayers = PlayerContainer.Players;
 
             Song = GlobalVariables.Instance.CurrentSong;
             IsReplay = GlobalVariables.Instance.IsReplay;
