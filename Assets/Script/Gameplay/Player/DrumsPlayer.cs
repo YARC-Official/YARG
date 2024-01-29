@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
@@ -159,6 +160,47 @@ namespace YARG.Gameplay.Player
         protected override void UpdateVisuals(double songTime)
         {
             UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
+        }
+
+        public override void SetStemMuteState(bool muted)
+        {
+            if (_isStemMuted == muted)
+            {
+                return;
+            }
+
+            bool anyDrumsStems = GlobalVariables.AudioManager.HasStem(SongStem.Drums) ||
+                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums1) ||
+                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums2) ||
+                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums3) ||
+                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums4);
+
+            // Don't mute if no drum stems are available
+            if (!anyDrumsStems)
+            {
+                return;
+            }
+
+            GameManager.ChangeStemMuteState(SongStem.Drums, muted);
+            _isStemMuted = muted;
+        }
+
+        public override void SetStarPowerFX(bool active)
+        {
+            bool anyDrumsStems = GlobalVariables.AudioManager.HasStem(SongStem.Drums) ||
+                GlobalVariables.AudioManager.HasStem(SongStem.Drums1) ||
+                GlobalVariables.AudioManager.HasStem(SongStem.Drums2) ||
+                GlobalVariables.AudioManager.HasStem(SongStem.Drums3) ||
+                GlobalVariables.AudioManager.HasStem(SongStem.Drums4);
+
+            // Fall back to Song stem if drums stem is not available
+            if(!anyDrumsStems)
+            {
+                base.SetStarPowerFX(active);
+                return;
+            }
+
+            GameManager.ChangeStemReverbState(SongStem.Drums, active);
         }
 
         protected override void ResetVisuals()

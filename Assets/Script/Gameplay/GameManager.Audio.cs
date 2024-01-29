@@ -11,10 +11,11 @@ namespace YARG.Gameplay
 {
     public partial class GameManager
     {
-        public class StemState
+        public struct StemState
         {
             public int Total;
             public int Muted;
+            public int ReverbCount;
 
             public float GetVolumeLevel()
             {
@@ -35,6 +36,8 @@ namespace YARG.Gameplay
         {
             // The stem states are initialized in "CreatePlayers"
             _stemStates.Clear();
+            _stemStates.Add(SongStem.Song, new StemState
+                { Total = 1});
 
             bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
             GlobalVariables.AudioManager.Options.UseMinimumStemVolume = isYargSong;
@@ -110,9 +113,8 @@ namespace YARG.Gameplay
             }
             else
             {
-                state.Muted--;
+                state.Muted = Math.Max(0, state.Muted - 1);
             }
-
             var volume = state.GetVolumeLevel();
             GlobalVariables.AudioManager.SetStemVolume(stem, volume);
 
@@ -124,6 +126,36 @@ namespace YARG.Gameplay
                 GlobalVariables.AudioManager.SetStemVolume(SongStem.Drums2, volume);
                 GlobalVariables.AudioManager.SetStemVolume(SongStem.Drums3, volume);
                 GlobalVariables.AudioManager.SetStemVolume(SongStem.Drums4, volume);
+            }
+        }
+
+        public void ChangeStemReverbState(SongStem stem, bool reverb)
+        {
+            if (!SettingsManager.Settings.UseStarpowerFx.Value) return;
+
+            if (!_stemStates.TryGetValue(stem, out var state)) return;
+
+            if (reverb)
+            {
+                state.ReverbCount++;
+            }
+            else
+            {
+                state.ReverbCount = Math.Max(0, state.ReverbCount - 1);
+            }
+
+            bool reverbActive = state.ReverbCount > 0;
+
+            GlobalVariables.AudioManager.ApplyReverb(stem, reverbActive);
+
+            // Reverb all of the stems for songs with multiple drum stems
+            // TODO: Implement proper drum stem reverbing
+            if (stem == SongStem.Drums)
+            {
+                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums1, reverbActive);
+                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums2, reverbActive);
+                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums3, reverbActive);
+                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums4, reverbActive);
             }
         }
 

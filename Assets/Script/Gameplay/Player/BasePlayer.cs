@@ -73,6 +73,9 @@ namespace YARG.Gameplay.Player
 
         protected BaseInputViewer InputViewer { get; private set; }
 
+        protected int  _lastCombo;
+        protected bool _isStemMuted;
+
         private List<GameInput> _replayInputs;
 
         private int _replayInputIndex;
@@ -144,6 +147,14 @@ namespace YARG.Gameplay.Player
         protected abstract void UpdateVisuals(double time);
 
         public abstract void SetPracticeSection(uint start, uint end);
+
+        // TODO Make this more generic
+        public abstract void SetStemMuteState(bool muted);
+
+        public virtual void SetStarPowerFX(bool active)
+        {
+            GameManager.ChangeStemReverbState(SongStem.Song, active);
+        }
 
         public virtual void SetReplayTime(double time)
         {
@@ -304,6 +315,8 @@ namespace YARG.Gameplay.Player
                 GlobalVariables.AudioManager.PlaySoundEffect(active
                     ? SfxSample.StarPowerDeploy
                     : SfxSample.StarPowerRelease);
+
+                SetStarPowerFX(active);
             }
 
             GameManager.ChangeStarPowerStatus(active);
