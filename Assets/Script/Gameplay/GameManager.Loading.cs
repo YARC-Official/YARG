@@ -241,21 +241,6 @@ namespace YARG.Gameplay
                     return;
                 }
 
-                // Ensure sync track is present
-                var syncTrack = Chart.SyncTrack;
-                if (syncTrack.Beatlines is null or { Count: < 1 })
-                {
-                    Chart.SyncTrack.GenerateBeatlines(Chart.GetLastTick());
-                }
-
-                // Set length of the final section
-                if (Chart.Sections.Count > 0)
-                {
-                    uint lastTick = Chart.GetLastTick();
-                    Chart.Sections[^1].TickLength = lastTick;
-                    Chart.Sections[^1].TimeLength = Chart.SyncTrack.TickToTime(lastTick);
-                }
-
                 // Autogenerate venue stuff
                 if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
                 {
