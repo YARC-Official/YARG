@@ -382,9 +382,6 @@ namespace YARG.Gameplay.Player
             }
 
             _lastCombo = Combo;
-
-            // Need an overstrum sound
-            //GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.Overstrum);
         }
 
         protected virtual void OnSoloStart(SoloSection solo)
