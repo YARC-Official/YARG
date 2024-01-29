@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.Extensions;
+using YARG.Core.IO;
 using YARG.Core.Venue;
 using YARG.Venue;
 
@@ -80,17 +81,25 @@ namespace YARG.Gameplay
                     bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
                     break;
                 case BackgroundType.Video:
-                    if (stream is FileStream fs)
-                        _videoPlayer.url = fs.Name;
-                    else
+                    switch (stream)
                     {
-                        // UNFORTUNATELY, Videoplayer can't use streams, so video files
-                        // MUST BE FULLY DECRYPTED
-                        VIDEO_PATH = Application.persistentDataPath + "/video.mp4";
-                        using var tmp = File.OpenWrite(VIDEO_PATH);
-                        File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary);
-                        stream.CopyTo(tmp);
-                        _videoPlayer.url = VIDEO_PATH;
+                        case FileStream fs:
+                        {
+                            _videoPlayer.url = fs.Name;
+                            break;
+                        }
+                        case SngFileStream sngStream:
+                        {
+                            // UNFORTUNATELY, Videoplayer can't use streams, so video files
+                            // MUST BE FULLY DECRYPTED
+
+                            VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
+                            using var tmp = File.OpenWrite(VIDEO_PATH);
+                            File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
+                            stream.CopyTo(tmp);
+                            _videoPlayer.url = VIDEO_PATH;
+                            break;
+                        }
                     }
 
                     _videoPlayer.enabled = true;
