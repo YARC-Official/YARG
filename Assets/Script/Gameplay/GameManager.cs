@@ -113,6 +113,8 @@ namespace YARG.Gameplay
 
         public IReadOnlyList<BasePlayer> Players => _players;
 
+        private bool _endingSong;
+
         private bool _isShowDebugText;
         private bool _isReplaySaved;
 
@@ -209,6 +211,10 @@ namespace YARG.Gameplay
             BandScore = totalScore;
             BandCombo = totalCombo;
             BandStars = totalStars / _players.Count;
+
+            // End song if needed (required for the [end] event)
+            if (_songRunner.SongTime >= SongLength && !_endingSong)
+                EndSong().Forget();
 
             // Debug text
             // Note: this must come last in the update sequence!
@@ -349,6 +355,9 @@ namespace YARG.Gameplay
 
         private async UniTask EndSong()
         {
+            if (_endingSong)
+                return;
+
             if (IsPractice)
             {
                 PracticeManager.ResetPractice();
@@ -357,6 +366,7 @@ namespace YARG.Gameplay
                 return;
             }
 
+            _endingSong = true;
             await UniTask.WaitUntil(() => _songRunner.SongTime >= SongLength);
 
             if (IsReplay)
