@@ -251,7 +251,7 @@ namespace YARG.Menu.MusicLibrary
             if (_searchField.text.Length > _currentSearch.Length ||
                 !SetIndexTo(i => i is SongViewType view && view.SongMetadata == _currentSong))
             {
-                SelectedIndex = _searchContext.IsUnspecified() ? 1 : 2;
+                SelectedIndex = _searchContext.IsUnspecified() || _sortedSongs.Count == 1 ? 1 : 2;
             }
             _currentSearch = _searchField.text;
         }

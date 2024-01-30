@@ -17,6 +17,16 @@ namespace YARG.Song
             };
             currentFilters.AddRange(GetFilters(value.Split(';')));
 
+            for (int i = 1; i < currentFilters.Count; i++)
+            {
+                if (currentFilters[i].attribute == SongAttribute.Instrument)
+                {
+                    currentFilters[0] = currentFilters[i];
+                    currentFilters.RemoveAt(i);
+                    break;
+                }
+            }
+
             int currFilterIndex = 0;
             int prevFilterIndex = 0;
             while (currFilterIndex < currentFilters.Count && prevFilterIndex < filters.Count)
@@ -41,7 +51,13 @@ namespace YARG.Song
             if (currFilterIndex == 0)
             {
                 filters.Clear();
-                filters.Add((currentFilters[0], GlobalVariables.Instance.SongContainer.GetSortedSongList(sort)));
+                var filter = currentFilters[0];
+                var songs = GlobalVariables.Instance.SongContainer.GetSortedSongList(filter.attribute);
+                if (filter.attribute == SongAttribute.Instrument)
+                {
+                    songs = FilterInstruments(songs, filter.argument);
+                }
+                filters.Add((filter, songs));
                 prevFilterIndex = 1;
                 currFilterIndex = 1;
             }
@@ -212,7 +228,7 @@ namespace YARG.Song
 
             if (arg.attribute == SongAttribute.Instrument)
             {
-                return SearchByInstrument(searchList, arg.argument);
+                return FilterInstruments(searchList, arg.argument);
             }
 
             Predicate<SongMetadata> match = arg.attribute switch
@@ -312,19 +328,19 @@ namespace YARG.Song
             return new() { { "Search Results", results } };
         }
 
-        private static SortedDictionary<string, List<SongMetadata>> SearchByInstrument(IReadOnlyDictionary<string, List<SongMetadata>> searchList, string argument)
+        private static SortedDictionary<string, List<SongMetadata>> FilterInstruments(IReadOnlyDictionary<string, List<SongMetadata>> searchList, string argument)
         {
             var instruments = ((Instrument[]) Enum.GetValues(typeof(Instrument)))
-                    .Where(ins => ins.ToString().Contains(argument, StringComparison.OrdinalIgnoreCase))
-                    .ToArray();
+                .Select(ins => ins.ToString())
+                .Where(str => str.Contains(argument, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
 
             SortedDictionary<string, List<SongMetadata>> result = new();
             foreach (var node in searchList)
             {
-                var entries = node.Value.FindAll(entry => entry.Parts.GetInstruments().Intersect(instruments).Any());
-                if (entries.Count > 0)
+                if (instruments.Contains(node.Key))
                 {
-                    result.Add(node.Key, entries);
+                    result.Add(node.Key, node.Value);
                 }
             }
             return result;
