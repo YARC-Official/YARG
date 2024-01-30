@@ -98,6 +98,9 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.SelectedSongSpeed"/>
         public float SelectedSongSpeed => _songRunner.SelectedSongSpeed;
 
+        /// <inheritdoc cref="SongRunner.Started"/>
+        public bool Started => _songRunner.Started;
+
         /// <inheritdoc cref="SongRunner.Paused"/>
         public bool Paused => _songRunner.Paused;
 

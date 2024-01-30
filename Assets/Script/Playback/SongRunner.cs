@@ -127,6 +127,11 @@ namespace YARG.Playback
         public float ActualSongSpeed => SelectedSongSpeed + _syncSpeedAdjustment;
 
         /// <summary>
+        /// Whether or not the runner has been started.
+        /// </summary>
+        public bool Started { get; private set; }
+
+        /// <summary>
         /// Whether or not the song is currently paused.
         /// </summary>
         public bool Paused => PendingPauses > 0;
@@ -173,6 +178,14 @@ namespace YARG.Playback
         /// <summary>
         /// Creates a new song runner with the given speed and calibration values.
         /// </summary>
+        /// <remarks>
+        /// The created song runner will be in a partially initialized, unstarted state.
+        /// Full initialization is done lazily to prevent timing issues from loading lag,
+        /// the first call to <see cref="Update"/> will initialize and start the runner.
+        /// <br/>
+        /// Since the runner starts paused, anything that might potentially interact with it before
+        /// starting must respect the paused state, otherwise incorrect behavior may happen.
+        /// </remarks>
         /// <param name="songSpeed">
         /// The percentage song speed, where 1f == 100%.
         /// </param>
@@ -197,14 +210,10 @@ namespace YARG.Playback
             AudioCalibration = (-audioCalibration / 1000.0) - VideoCalibration;
             SongOffset = -songOffset;
 
-            // Initialize times
+            _syncThread = new Thread(SyncThread) { IsBackground = true };
+
             InitializeSongTime(SongOffset);
             GlobalVariables.AudioManager.SetPosition(0);
-
-            // Start sync thread
-            _runSync = true;
-            _syncThread = new Thread(SyncThread) { IsBackground = true };
-            _syncThread.Start();
         }
 
         ~SongRunner()
@@ -231,8 +240,28 @@ namespace YARG.Playback
             }
         }
 
+        private void Start()
+        {
+            // Re-initialize song times to avoid lag issues
+            InitializeSongTime(SongOffset);
+
+            // Start sync thread
+            _runSync = true;
+            _syncThread.Start();
+        }
+
         public void Update()
         {
+            // Runner is lazy-started to avoid timing issues with lag
+            if (!Started)
+            {
+                Start();
+                Started = true;
+            }
+
+            if (Paused)
+                return;
+
             // Update input/visual time
             RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
             RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);

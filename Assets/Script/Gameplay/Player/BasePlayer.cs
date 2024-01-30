@@ -130,7 +130,7 @@ namespace YARG.Gameplay.Player
 
         public virtual void UpdateWithTimes(double inputTime)
         {
-            if (GameManager.Paused)
+            if (!GameManager.Started || GameManager.Paused)
             {
                 return;
             }
@@ -262,6 +262,10 @@ namespace YARG.Gameplay.Player
 
         protected void OnGameInput(ref GameInput input)
         {
+            // Ignore completely if the song hasn't started yet
+            if (!GameManager.Started)
+                return;
+
             // Ignore while paused
             if (GameManager.Paused)
             {
