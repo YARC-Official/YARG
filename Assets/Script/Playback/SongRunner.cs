@@ -291,8 +291,6 @@ namespace YARG.Playback
                 {
                     // Start audio
                     GlobalVariables.AudioManager.Play();
-                    // Seek to calculated time to keep everything in sync
-                    GlobalVariables.AudioManager.SetPosition(currentTime - SongOffset);
                     break;
                 }
             }
