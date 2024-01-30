@@ -33,7 +33,7 @@ namespace YARG.Input
                 // should never be changed outside of the binding menu, so that should be fine
                 if (inverted != Inverted)
                 {
-                    State = CalculateState(RawState);
+                    State = CalculateState(Control.value);
                     InvokeStateChanged(State);
                 }
             }
@@ -50,7 +50,7 @@ namespace YARG.Input
                 // (see above)
                 if (pressed != IsPressed)
                 {
-                    State = CalculateState(RawState);
+                    State = CalculateState(Control.value);
                     InvokeStateChanged(State);
                 }
             }
@@ -65,12 +65,9 @@ namespace YARG.Input
             set => _debounceTimer.TimeThreshold = value;
         }
 
-        public float RawState { get; private set; }
         public float PreviousState { get; private set; }
 
         public bool IsPressed => State >= PressPoint;
-        public bool IsPressedRaw => RawState >= PressPoint;
-
         public bool WasPreviouslyPressed => PreviousState >= PressPoint;
 
         public SingleButtonBinding(InputControl<float> control) : base(control)
@@ -126,8 +123,7 @@ namespace YARG.Input
             PreviousState = State;
 
             // Read new state
-            RawState = Control.value;
-            _debounceTimer.Update(CalculateState(RawState));
+            _debounceTimer.Update(CalculateState(Control.value));
 
             // Wait for debounce to end
             if (!_debounceTimer.HasElapsed)
@@ -168,7 +164,6 @@ namespace YARG.Input
             set => _debounceTimer.TimeThreshold = value;
         }
 
-        public bool RawState { get; protected set; }
         public bool State { get; protected set; }
 
         public ButtonBinding(string name, int action) : base(name, action)
@@ -214,8 +209,6 @@ namespace YARG.Input
                 state |= binding.IsPressed;
             }
 
-            RawState = state;
-
             // Ignore if state is unchanged
             if (state == State)
                 return;
@@ -253,7 +246,6 @@ namespace YARG.Input
             if (!anyFinished)
                 return;
 
-            RawState = state;
             _debounceTimer.Update(state);
             if (!_debounceTimer.HasElapsed)
                 return;

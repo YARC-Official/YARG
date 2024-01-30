@@ -12,9 +12,7 @@ namespace YARG.Menu.ProfileInfo
 
         [Space]
         [SerializeField]
-        private ButtonDisplay _rawPressedIndicator;
-        [SerializeField]
-        private ButtonDisplay _calibratedPressedIndicator;
+        private ButtonDisplay _pressedIndicator;
 
         [Space]
         [SerializeField]
@@ -29,8 +27,7 @@ namespace YARG.Menu.ProfileInfo
 
         protected override void OnStateChanged()
         {
-            _rawPressedIndicator.IsPressed = _binding.RawState;
-            _calibratedPressedIndicator.IsPressed = _binding.State;
+            _pressedIndicator.IsPressed = _binding.State;
         }
 
         public void OnDebounceValueChanged(float value)

@@ -28,8 +28,6 @@ namespace YARG.Input
                 }
             }
 
-            RawState = pressed;
-
             // Ignore repeat presses/releases within the debounce threshold
             _debounceTimer.Update(pressed);
             if (!_debounceTimer.HasElapsed)
