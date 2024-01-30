@@ -23,10 +23,9 @@ namespace YARG.Input
             set => _timeThreshold = Math.Clamp(value, 0, DEBOUNCE_TIME_MAX);
         }
 
-        public bool Enabled => TimeThreshold > 0;
-        public bool HasElapsed => !_timer.IsRunning || _timer.ElapsedMilliseconds >= TimeThreshold;
-
-        public T Value { get; private set; }
+        public bool Enabled => _timeThreshold > 0;
+        public bool IsRunning => _timer.IsRunning;
+        public bool HasElapsed => !_timer.IsRunning || _timer.ElapsedMilliseconds >= _timeThreshold;
 
         public void Start()
         {
@@ -36,16 +35,17 @@ namespace YARG.Input
             _timer.Start();
         }
 
-        public void Reset()
+        public T Stop()
         {
             _timer.Reset();
-            Value = _postDebounceValue;
+            return _postDebounceValue;
         }
 
-        public void Restart()
+        public T Restart()
         {
-            Reset();
+            var value = Stop();
             Start();
+            return value;
         }
 
         public void Update(T value)

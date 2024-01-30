@@ -133,9 +133,7 @@ namespace YARG.Input
             if (!_debounceTimer.HasElapsed)
                 return;
 
-            _debounceTimer.Restart();
-            State = _debounceTimer.Value;
-
+            State = _debounceTimer.Restart();
             InvokeStateChanged(State);
         }
 
@@ -146,11 +144,10 @@ namespace YARG.Input
 
         public bool UpdateDebounce()
         {
-            if (!_debounceTimer.HasElapsed)
+            if (!_debounceTimer.IsRunning || !_debounceTimer.HasElapsed)
                 return false;
 
-            _debounceTimer.Reset();
-            State = _debounceTimer.Value;
+            State = _debounceTimer.Stop();
             InvokeStateChanged(State);
             return true;
         }
@@ -217,15 +214,10 @@ namespace YARG.Input
                 state |= binding.IsPressed;
             }
 
-            ProcessNextState(time, state);
-        }
-
-        private void ProcessNextState(double time, bool state)
-        {
             RawState = state;
 
             // Ignore if state is unchanged
-            if (State == state)
+            if (state == State)
                 return;
 
             // Ignore repeat presses/releases within the debounce threshold
@@ -233,9 +225,11 @@ namespace YARG.Input
             if (!_debounceTimer.HasElapsed)
                 return;
 
-            _debounceTimer.Restart();
-            State = _debounceTimer.Value;
+            State = _debounceTimer.Restart();
             FireInputEvent(time, state);
+
+            // Already fired in ControlBinding
+            // FireStateChanged();
         }
 
         public override void UpdateForFrame(double updateTime)
@@ -245,25 +239,33 @@ namespace YARG.Input
 
         private void UpdateDebounce(double updateTime)
         {
-            bool? state = false;
+            bool anyFinished = false;
+            bool state = false;
             foreach (var binding in _bindings)
             {
                 if (!binding.UpdateDebounce())
                     continue;
 
+                anyFinished = true;
                 state |= binding.IsPressed;
             }
 
-            if (state is {} value)
-            {
-                ProcessNextState(updateTime, value);
-                FireStateChanged();
-            }
-            else if (_debounceTimer.HasElapsed)
-            {
-                ProcessNextState(updateTime, _debounceTimer.Value);
-                FireStateChanged();
-            }
+            if (!anyFinished)
+                return;
+
+            RawState = state;
+            _debounceTimer.Update(state);
+            if (!_debounceTimer.HasElapsed)
+                return;
+
+            state = _debounceTimer.Stop();
+            // Ignore if state is unchanged
+            if (state == State)
+                return;
+
+            State = state;
+            FireInputEvent(updateTime, state);
+            FireStateChanged();
         }
 
         protected override SingleButtonBinding CreateBinding(ActuationSettings settings, InputControl<float> control)

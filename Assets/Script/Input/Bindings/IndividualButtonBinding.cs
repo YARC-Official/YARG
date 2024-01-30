@@ -28,52 +28,18 @@ namespace YARG.Input
                 }
             }
 
-            ProcessNextState(time, pressed);
-        }
-
-        private void ProcessNextState(double time, bool state)
-        {
-            RawState = state;
+            RawState = pressed;
 
             // Ignore repeat presses/releases within the debounce threshold
-            _debounceTimer.Update(state);
+            _debounceTimer.Update(pressed);
             if (!_debounceTimer.HasElapsed)
                 return;
 
-            _debounceTimer.Restart();
-            State = _debounceTimer.Value;
-            FireInputEvent(time, state);
-        }
+            State = _debounceTimer.Restart();
+            FireInputEvent(time, pressed);
 
-        public override void UpdateForFrame(double updateTime)
-        {
-            UpdateDebounce(updateTime);
-        }
-
-        private void UpdateDebounce(double updateTime)
-        {
-            bool anyFinished = false;
-            bool state = false;
-            foreach (var binding in _bindings)
-            {
-                if (!binding.UpdateDebounce())
-                    continue;
-
-                anyFinished = true;
-                state |= binding.IsPressed;
-            }
-
-            // Only send a post-debounce event if the state changed
-            if (anyFinished && state != State)
-            {
-                ProcessNextState(updateTime, state);
-                FireStateChanged();
-            }
-            else if (_debounceTimer.HasElapsed && _debounceTimer.Value != State)
-            {
-                ProcessNextState(updateTime, _debounceTimer.Value);
-                FireStateChanged();
-            }
+            // Already fired in ControlBinding
+            // FireStateChanged();
         }
     }
 }
