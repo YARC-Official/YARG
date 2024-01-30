@@ -282,6 +282,12 @@ namespace YARG.Playback
             // Wait until it's time to start the audio
             while (true)
             {
+                if (_pauseSync)
+                {
+                    Thread.Yield();
+                    continue;
+                }
+
                 // Song time is driven using visual time when the audio isn't running
                 double currentTime = SyncVisualTime - AudioCalibration;
                 if (currentTime >= SongOffset)
@@ -490,6 +496,7 @@ namespace YARG.Playback
             // Visual time is used for pause time since it's closer to when
             // the song runner is actually being updated; the asserts in Update get hit otherwise
             PauseStartTime = RealVisualTime;
+            _pauseSync = true;
             GlobalVariables.AudioManager.Pause();
 
             EditorDebug.Log($"Paused at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
@@ -516,6 +523,8 @@ namespace YARG.Playback
             {
                 GlobalVariables.AudioManager.Play();
             }
+
+            _pauseSync = false;
 
             EditorDebug.Log($"Resumed at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
         }
