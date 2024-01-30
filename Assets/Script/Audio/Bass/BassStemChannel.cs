@@ -154,8 +154,8 @@ namespace YARG.Audio.BASS
 
             LengthD = GetLengthInSeconds();
 
-            // Set position to trigger delay compensation
-            SetPosition(0);
+            // Set position to trigger desync compensation
+            SetPosition(0, bufferCompensation: false);
 
             return 0;
         }
@@ -401,9 +401,11 @@ namespace YARG.Audio.BASS
             }
         }
 
-        private double GetDesyncOffset()
+        private double GetDesyncOffset(bool bufferCompensation = true)
         {
-            double desync = BassHelpers.PLAYBACK_BUFFER_DESYNC;
+            // Playback buffer compensation is optional
+            // All other desync compensation is always done
+            double desync = bufferCompensation ? _manager.PlaybackBufferLength : 0;
 
             // Hack to get desync of pitch-bent channels
             if (_streamHandles.PitchFX != 0 && _reverbHandles.PitchFX != 0)
@@ -420,7 +422,7 @@ namespace YARG.Audio.BASS
             return desync;
         }
 
-        public double GetPosition(bool desyncCompensation = true)
+        public double GetPosition(bool bufferCompensation = true)
         {
             // BassMix.ChannelGetPosition is very wonky when seeking
             // compared to Bass.ChannelGetPosition
@@ -442,16 +444,14 @@ namespace YARG.Audio.BASS
                 return -1;
             }
 
-            if (desyncCompensation)
-                seconds -= GetDesyncOffset();
+            seconds -= GetDesyncOffset(bufferCompensation);
 
             return seconds;
         }
 
-        public void SetPosition(double position, bool desyncCompensation = true)
+        public void SetPosition(double position, bool bufferCompensation = true)
         {
-            if (desyncCompensation)
-                position += GetDesyncOffset();
+            position += GetDesyncOffset(bufferCompensation);
 
             long bytes = Bass.ChannelSeconds2Bytes(StreamHandle, position);
             if (bytes < 0)

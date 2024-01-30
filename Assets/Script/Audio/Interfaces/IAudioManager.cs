@@ -67,8 +67,8 @@ namespace YARG.Audio
         public void SetSpeed(float speed);
         public void SetWhammyPitch(SongStem stem, float percent);
 
-        public double GetPosition(bool desyncCompensation = true);
-        public void SetPosition(double position, bool desyncCompensation = true);
+        public double GetPosition(bool bufferCompensation = true);
+        public void SetPosition(double position, bool bufferCompensation = true);
 
         public bool HasStem(SongStem stem);
     }

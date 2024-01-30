@@ -218,7 +218,6 @@ namespace YARG.Playback
             _syncThread = new Thread(SyncThread) { IsBackground = true };
 
             InitializeSongTime(SongOffset);
-            GlobalVariables.AudioManager.SetPosition(0);
         }
 
         ~SongRunner()
@@ -320,7 +319,8 @@ namespace YARG.Playback
                     continue;
 
                 // Song time is driven using visual time when the audio isn't running
-                double currentTime = SyncVisualTime - AudioCalibration;
+                // Playback buffer needs to be accounted for to prevent backwards seeking
+                double currentTime = SyncVisualTime - AudioCalibration + GlobalVariables.AudioManager.PlaybackBufferLength;
                 if (currentTime >= SongOffset)
                 {
                     // Start audio

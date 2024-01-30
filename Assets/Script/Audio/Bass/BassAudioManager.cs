@@ -567,15 +567,15 @@ namespace YARG.Audio.BASS
                 channel.SetWhammyPitch(percent);
         }
 
-        public double GetPosition(bool desyncCompensation = true)
+        public double GetPosition(bool bufferCompensation = true)
         {
             if (_mixer is null) return -1;
 
-            return _mixer.GetPosition(desyncCompensation);
+            return _mixer.GetPosition(bufferCompensation);
         }
 
-        public void SetPosition(double position, bool desyncCompensation = true)
-            => _mixer?.SetPosition(position, desyncCompensation);
+        public void SetPosition(double position, bool bufferCompensation = true)
+            => _mixer?.SetPosition(position, bufferCompensation);
 
         public bool HasStem(SongStem stem)
         {

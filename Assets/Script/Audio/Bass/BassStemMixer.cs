@@ -150,7 +150,7 @@ namespace YARG.Audio.BASS
             return 0;
         }
 
-        public double GetPosition(bool desyncCompensation = true)
+        public double GetPosition(bool bufferCompensation = true)
         {
             // No channel in this case
             if (LeadChannel is null)
@@ -158,10 +158,10 @@ namespace YARG.Audio.BASS
                 return -1;
             }
 
-            return LeadChannel.GetPosition(desyncCompensation);
+            return LeadChannel.GetPosition(bufferCompensation);
         }
 
-        public void SetPosition(double position, bool desyncCompensation = true)
+        public void SetPosition(double position, bool bufferCompensation = true)
         {
             if (LeadChannel is null)
             {
@@ -179,7 +179,7 @@ namespace YARG.Audio.BASS
             {
                 foreach (var channel in stem)
                 {
-                    channel.SetPosition(position, desyncCompensation);
+                    channel.SetPosition(position, bufferCompensation);
                 }
             }
 
