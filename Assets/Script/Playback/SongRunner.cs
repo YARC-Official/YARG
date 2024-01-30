@@ -280,13 +280,10 @@ namespace YARG.Playback
             const float SPEED_ADJUSTMENT = 0.05f;
 
             // Wait until it's time to start the audio
-            while (true)
+            for (; _runSync; Thread.Yield())
             {
                 if (_pauseSync)
-                {
-                    Thread.Yield();
                     continue;
-                }
 
                 // Song time is driven using visual time when the audio isn't running
                 double currentTime = SyncVisualTime - AudioCalibration;
@@ -298,8 +295,6 @@ namespace YARG.Playback
                     GlobalVariables.AudioManager.SetPosition(currentTime - SongOffset);
                     break;
                 }
-
-                Thread.Yield();
             }
 
             for (; _runSync; _finishedSyncing.Set(), Thread.Sleep(5))
