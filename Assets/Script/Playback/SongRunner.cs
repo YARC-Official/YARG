@@ -150,6 +150,11 @@ namespace YARG.Playback
         /// The input time at which the song was paused.
         /// </summary>
         public double PauseStartTime { get; private set; }
+
+        /// <summary>
+        /// Whether or not to resume audio playback when <see cref="Resume"/> is called.
+        /// </summary>
+        private bool _playAudioOnResume = false;
         #endregion
 
         #region Audio syncing
@@ -518,6 +523,7 @@ namespace YARG.Playback
             // Visual time is used for pause time since it's closer to when
             // the song runner is actually being updated; the asserts in Update get hit otherwise
             PauseStartTime = RealVisualTime;
+            _playAudioOnResume = GlobalVariables.AudioManager.IsPlaying;
             _pauseSync = true;
             GlobalVariables.AudioManager.Pause();
 
@@ -541,7 +547,7 @@ namespace YARG.Playback
                 SetInputBaseChecked(PauseStartTime);
             }
 
-            if (RealSongTime >= SongOffset)
+            if (_playAudioOnResume)
             {
                 GlobalVariables.AudioManager.Play();
             }
