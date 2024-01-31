@@ -1,104 +1,44 @@
 ﻿using System;
 using Discord;
 using UnityEngine;
+using UnityEngine.Localization;
+using YARG.Helpers;
 
 namespace YARG.Integration
 {
-    // TODO: Fix this
-
     public class DiscordController : MonoSingleton<DiscordController>
     {
+        private const long APPLICATION_ID = 1091177744416637028;
+
+#if UNITY_EDITOR || YARG_TEST_BUILD
+        private const string LARGE_TEXT_KEY = "Discord.Default.LargeText.Dev";
+        private const string LARGE_ICON_KEY = "icon_dev";
+#elif YARG_NIGHTLY_BUILD
+        private const string LARGE_TEXT_KEY = "Discord.Default.LargeText.Nightly";
+        private const string LARGE_ICON_KEY = "icon_nightly";
+#else
+        private const string LARGE_TEXT_KEY = "Discord.Default.LargeText.Stable";
+        private const string LARGE_ICON_KEY = "icon_stable";
+#endif
+
         private Discord.Discord _discord;
 
-        public Activity CurrentActivity
-        {
-            set
-            {
-                _discord?.GetActivityManager().UpdateActivity(value, result =>
-                {
-                    if (result != Result.Ok)
-                    {
-                        Debug.LogWarning("Discord Activity Error: " + result);
-                    }
-                });
-            }
-        }
+        private bool _wasInGameplay;
+        private bool _wasPaused;
 
-        [Serializable]
-        private struct DistinctDetails
-        {
-            public string DefaultDetails;
-            public string DefaultState;
-            public string DefaultLargeImage;
-            public string DefaultLargeText;
-        }
-
-        private DistinctDetails _defaultDetails;
-
-        [SerializeField]
-        private long _applicationID = 1091177744416637028;
-
-        [Space]
-        [Header("Default Values")]
-        [SerializeField]
-        private DistinctDetails _stableDetails = new()
-        {
-            DefaultDetails = "Hello there ladies and gentlemen!",
-            DefaultState = "Are you ready to rock?",
-            DefaultLargeImage = "icon_stable",
-            DefaultLargeText = "Yet Another Rhythm Game"
-        };
-
-        [SerializeField]
-        private DistinctDetails _nightlyDetails = new()
-        {
-            DefaultDetails = "Hello there ladies and gentlemen!",
-            DefaultState = "Are you ready to test?",
-            DefaultLargeImage = "icon_nightly",
-            DefaultLargeText = "Yet Another Rhythm Game - Nightly Build"
-        };
-
-        [SerializeField]
-        private DistinctDetails _devDetails = new()
-        {
-            DefaultDetails = "Hello there ladies and gentlemen!",
-            DefaultState = "Are you ready to develop?",
-            DefaultLargeImage = "icon_dev",
-            DefaultLargeText = "Yet Another Rhythm Game - Developer Build"
-        };
-
-        // string name comes from the assets uploaded to the app
-        private string _currentLargeImage;
-
-        // little overlay on the bottom right of the small image
-        private string _currentSmallImage;
-
-        // Tooltip for smallImage
-        private string _currentSmallText;
-        private string _songName;
-        private string _artistName;
-
-        // Start of YARG, doesn't stop
         private long _gameStartTime;
+        private long _songStartTime;
+        private long _pauseTime;
 
         private void Start()
         {
-            // Get the correct details to display
-#if UNITY_EDITOR
-            _defaultDetails = _devDetails;
-#elif YARG_NIGHTLY_BUILD
-            _defaultDetails = _nightlyDetails;
-#else
-            _defaultDetails = _stableDetails;
-#endif
-
             // Listen to the changing of states
             GameStateFetcher.GameStateChange += OnGameStateChange;
 
             // Create the Discord instance
             try
             {
-                _discord = new Discord.Discord(_applicationID, (ulong) CreateFlags.NoRequireDiscord);
+                _discord = new Discord.Discord(APPLICATION_ID, (ulong) CreateFlags.NoRequireDiscord);
             }
             catch (Exception e)
             {
@@ -109,7 +49,7 @@ namespace YARG.Integration
                 return;
             }
 
-            // Start the activity
+            // Get the start time of the game (Discord requires it in this format)
             _gameStartTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             // Set default activity
@@ -118,7 +58,95 @@ namespace YARG.Integration
 
         private void OnGameStateChange(GameStateFetcher.State state)
         {
+            if (state.CurrentScene != SceneIndex.Gameplay)
+            {
+                _wasInGameplay = false;
+                _wasPaused = false;
 
+                SetDefaultActivity();
+                return;
+            }
+
+            var song = state.SongMetadata;
+
+            if (song is null)
+            {
+                return;
+            }
+
+            // If it's the first time entering the song, collect all the info we need
+
+            if (!_wasInGameplay)
+            {
+                _songStartTime = GetUnixTime();
+            }
+
+            _wasInGameplay = true;
+
+            // Deal with pausing
+
+            if (state.Paused)
+            {
+                // Deal with starting to pause...
+
+                _pauseTime = GetUnixTime();
+
+                _wasPaused = true;
+            }
+            else if (_wasPaused)
+            {
+                // Deal with unpausing...
+
+                var timePausedFor = GetUnixTime() - _pauseTime;
+                _songStartTime += timePausedFor;
+
+                _wasPaused = false;
+            }
+
+            // Localize Discord Rich Presence
+
+            var discordDetails = LocaleHelper.StringReference("Discord.Song.Name");
+            discordDetails.Arguments = new object[]
+            {
+                song.Name, song.Artist
+            };
+
+            LocalizedString discordState;
+            if (state.Paused)
+            {
+                discordState = LocaleHelper.StringReference("Discord.Song.Paused");
+            }
+            else
+            {
+                discordState = LocaleHelper.StringReference("Discord.Song.Album");
+                discordState.Arguments = new object[]
+                {
+                    song.Album
+                };
+            }
+
+            // Get activity
+
+            var activity = new Activity
+            {
+                Assets =
+                {
+                    // The image and key are defined in the Discord developer portal
+                    LargeImage = LARGE_ICON_KEY,
+                    LargeText = LocaleHelper.LocalizeString(LARGE_TEXT_KEY)
+                },
+                Details = discordDetails.GetLocalizedString(),
+                State = discordState.GetLocalizedString(),
+                Timestamps =
+                {
+                    // If it's paused, don't show the time elapsed
+                    Start = state.Paused ? 0 : _songStartTime
+                }
+            };
+
+            // Set activity
+
+            SetActivity(activity);
         }
 
         private void Update()
@@ -145,6 +173,11 @@ namespace YARG.Integration
             GameStateFetcher.GameStateChange -= OnGameStateChange;
         }
 
+        private void OnApplicationQuit()
+        {
+            TryDispose();
+        }
+
         private void TryDispose()
         {
             if (_discord == null)
@@ -165,52 +198,39 @@ namespace YARG.Integration
             }
         }
 
-        private void OnApplicationQuit()
+        private void SetActivity(Activity activity)
         {
-            TryDispose();
+            _discord?.GetActivityManager().UpdateActivity(activity, result =>
+            {
+                if (result != Result.Ok)
+                {
+                    Debug.LogWarning("Discord Activity Error: " + result);
+                }
+            });
         }
 
         private void SetDefaultActivity()
         {
-            CurrentActivity = new Activity
+            SetActivity(new Activity
             {
                 Assets =
                 {
-                    LargeImage = _defaultDetails.DefaultLargeImage,
-                    LargeText = _defaultDetails.DefaultLargeText,
-                    SmallImage = string.Empty,
-                    SmallText = string.Empty
+                    // The image and key are defined in the Discord developer portal
+                    LargeImage = LARGE_ICON_KEY,
+                    LargeText = LocaleHelper.LocalizeString(LARGE_TEXT_KEY)
                 },
-                Details = _defaultDetails.DefaultDetails,
-                State = _defaultDetails.DefaultState,
+                Details = LocaleHelper.LocalizeString("Discord.Default.Details"),
+                State = LocaleHelper.LocalizeString("Discord.Default.State"),
                 Timestamps =
                 {
                     Start = _gameStartTime
                 }
-            };
+            });
         }
 
-        private void SetActivity(string smallImage, string smallText, string details, string state, long startTimeStamp,
-            long endTimeStamp)
+        private static long GetUnixTime()
         {
-            CurrentActivity = new Activity
-            {
-                Assets =
-                {
-                    LargeImage =
-                        _defaultDetails
-                            .DefaultLargeImage, //the YARG logo and tooltip does not change, at this point in time.
-                    LargeText = _defaultDetails.DefaultLargeText,
-                    SmallImage = smallImage,
-                    SmallText = smallText,
-                },
-                Details = details,
-                State = state,
-                Timestamps =
-                {
-                    Start = startTimeStamp, End = endTimeStamp,
-                }
-            };
+            return DateTimeOffset.Now.ToUnixTimeMilliseconds();
         }
     }
 }
