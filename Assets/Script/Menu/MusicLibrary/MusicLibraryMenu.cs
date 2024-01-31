@@ -31,9 +31,16 @@ namespace YARG.Menu.MusicLibrary
         public static MusicLibraryMode LibraryMode;
 
         public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
+        
 
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
+        private static bool _doRefresh = true;
+
+        public static void SetRefresh()
+        {
+            _doRefresh = true;
+        }
 
         [Space]
         [SerializeField]
@@ -96,7 +103,15 @@ namespace YARG.Menu.MusicLibrary
             _recommendedSongs = null;
 
             // Get songs
-            UpdateSearch(true);
+            if (_doRefresh)
+            {
+                Refresh();
+                _doRefresh = false;
+            }
+            else
+            {
+                UpdateSearch(true);
+            }
 
             // Restore index
             SelectedIndex = _savedIndex;
@@ -238,11 +253,23 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
+        private void Refresh()
+        {
+            _currentSearch = _searchField.text = string.Empty;
+            _sortedSongs = _searchContext.Refresh(Sort);
+
+            SetRecommendedSongs();
+            RequestViewListUpdate();
+
+            if (_currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongMetadata.Directory == _currentSong.Directory))
+            {
+                SelectedIndex = _sortedSongs.Count == 1 ? 1 : 2;
+            }
+        }
+
         private void UpdateSearch(bool force)
         {
             if (!force && _currentSearch == _searchField.text) return;
-
-            SetRecommendedSongs();
 
             _sortedSongs = _searchContext.Search(_searchField.text, Sort);
 
