@@ -31,7 +31,7 @@ namespace YARG.Menu.MusicLibrary
         public static MusicLibraryMode LibraryMode;
 
         public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
-        
+
 
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
@@ -195,8 +195,30 @@ namespace YARG.Menu.MusicLibrary
                 }
                 list.Add(new SortHeaderViewType(displayName, section.Value.Count));
 
-                // Add all of the songs
-                list.AddRange(section.Value.Select(song => new SongViewType(this, song)));
+                if (Sort == SongAttribute.Artist)
+                {
+                    // If sorting by artist, group and display songs by album
+                    var songsByAlbum = section.Value.GroupBy(songMetaData => songMetaData.Album);
+
+                    foreach (var songList in songsByAlbum.Where(list => list.Count() <= 1))
+                    {
+                        // Albums with 1 song grouped on top
+                        list.AddRange(songList.Select(song => new SongViewType(this, song)));
+                    }
+
+                    foreach (var songList in songsByAlbum.Where(list => list.Count() > 1).OrderBy(sort => sort.Key))
+                    {
+                        // Order albums alphabetically, then add album name subheader if multiple songs
+                        list.Add(new SortSubHeaderViewType(songList.Key, songList.Count()));
+                        // Add songs in album track order
+                        list.AddRange(songList.OrderBy(song => song.AlbumTrack).Select(song => new SongViewType(this, song)));
+                    }
+                }
+                else
+                {
+                    // If not sorting by artist, add all of the songs
+                    list.AddRange(section.Value.Select(song => new SongViewType(this, song)));
+                }
             }
 
             if (!string.IsNullOrEmpty(_searchField.text))
