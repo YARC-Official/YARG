@@ -263,7 +263,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (_currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongMetadata.Directory == _currentSong.Directory))
             {
-                SelectedIndex = _sortedSongs.Count == 1 ? 1 : 2;
+                _savedIndex = 2;
             }
         }
 
