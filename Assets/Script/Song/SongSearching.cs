@@ -9,6 +9,15 @@ namespace YARG.Song
 {
     public class SongSearching
     {
+        public IReadOnlyDictionary<string, List<SongMetadata>> Refresh(SongAttribute sort)
+        {
+            searches.Clear();
+            var filter = new FilterNode(sort, string.Empty);
+            var songs = GlobalVariables.Instance.SongContainer.GetSortedSongList(sort);
+            searches.Add(new SearchNode(filter, songs));
+            return songs;
+        }
+
         public IReadOnlyDictionary<string, List<SongMetadata>> Search(string value, SongAttribute sort)
         {
             var currentFilters = new List<FilterNode>()
@@ -17,20 +26,30 @@ namespace YARG.Song
             };
             currentFilters.AddRange(GetFilters(value.Split(';')));
 
+            for (int i = 1; i < currentFilters.Count; i++)
+            {
+                if (currentFilters[i].attribute == SongAttribute.Instrument)
+                {
+                    currentFilters[0] = currentFilters[i];
+                    currentFilters.RemoveAt(i);
+                    break;
+                }
+            }
+
             int currFilterIndex = 0;
             int prevFilterIndex = 0;
-            while (currFilterIndex < currentFilters.Count && prevFilterIndex < filters.Count)
+            while (currFilterIndex < currentFilters.Count && prevFilterIndex < searches.Count)
             {
-                while (currentFilters[currFilterIndex].StartsWith(filters[prevFilterIndex].Item1))
+                while (currentFilters[currFilterIndex].StartsWith(searches[prevFilterIndex].Filter))
                 {
                     ++prevFilterIndex;
-                    if (prevFilterIndex == filters.Count)
+                    if (prevFilterIndex == searches.Count)
                     {
                         break;
                     }
                 }
 
-                if (prevFilterIndex == 0 || currentFilters[currFilterIndex] != filters[prevFilterIndex - 1].Item1)
+                if (prevFilterIndex == 0 || currentFilters[currFilterIndex] != searches[prevFilterIndex - 1].Filter)
                 {
                     break;
                 }
@@ -40,8 +59,14 @@ namespace YARG.Song
             // Apply new sort
             if (currFilterIndex == 0)
             {
-                filters.Clear();
-                filters.Add((currentFilters[0], GlobalVariables.Instance.SongContainer.GetSortedSongList(sort)));
+                searches.Clear();
+                var filter = currentFilters[0];
+                var songs = GlobalVariables.Instance.SongContainer.GetSortedSongList(filter.attribute);
+                if (filter.attribute == SongAttribute.Instrument)
+                {
+                    songs = FilterInstruments(songs, filter.argument);
+                }
+                searches.Add(new SearchNode(filter, songs));
                 prevFilterIndex = 1;
                 currFilterIndex = 1;
             }
@@ -49,26 +74,31 @@ namespace YARG.Song
             while (currFilterIndex < currentFilters.Count)
             {
                 var filter = currentFilters[currFilterIndex];
-                var searchList = SearchSongs(filter, filters[prevFilterIndex - 1].Item2);
+                var searchList = SearchSongs(filter, searches[prevFilterIndex - 1].Songs);
 
-                if (prevFilterIndex < filters.Count)
+                if (prevFilterIndex < searches.Count)
                 {
-                    filters[prevFilterIndex] = new(filter, searchList);
+                    searches[prevFilterIndex] = new(filter, searchList);
                 }
                 else
                 {
-                    filters.Add(new(filter, searchList));
+                    searches.Add(new(filter, searchList));
                 }
 
                 ++currFilterIndex;
                 ++prevFilterIndex;
             }
 
-            if (prevFilterIndex < filters.Count)
+            if (prevFilterIndex < searches.Count)
             {
-                filters.RemoveRange(prevFilterIndex, filters.Count - prevFilterIndex);
+                searches.RemoveRange(prevFilterIndex, searches.Count - prevFilterIndex);
             }
-            return filters[prevFilterIndex - 1].Item2;
+            return searches[prevFilterIndex - 1].Songs;
+        }
+
+        public bool IsUnspecified()
+        {
+            return searches[^1].Filter.attribute == SongAttribute.Unspecified;
         }
 
         private class FilterNode : IEquatable<FilterNode>
@@ -113,7 +143,19 @@ namespace YARG.Song
             }
         }
 
-        private List<(FilterNode, IReadOnlyDictionary<string, List<SongMetadata>>)> filters = new();
+        private class SearchNode
+        {
+            public readonly FilterNode Filter;
+            public IReadOnlyDictionary<string, List<SongMetadata>> Songs;
+
+            public SearchNode(FilterNode filter, IReadOnlyDictionary<string, List<SongMetadata>> songs)
+            {
+                Filter = filter;
+                Songs = songs;
+            }
+        }
+
+        private List<SearchNode> searches = new();
 
         private static List<FilterNode> GetFilters(string[] split)
         {
@@ -207,7 +249,7 @@ namespace YARG.Song
 
             if (arg.attribute == SongAttribute.Instrument)
             {
-                return SearchByInstrument(searchList, arg.argument);
+                return FilterInstruments(searchList, arg.argument);
             }
 
             Predicate<SongMetadata> match = arg.attribute switch
@@ -235,7 +277,7 @@ namespace YARG.Song
             return result;
         }
 
-        private class SearchNode : IComparable<SearchNode>
+        private class UnspecifiedSortNode : IComparable<UnspecifiedSortNode>
         {
             public readonly SongMetadata Song;
             public readonly int Rank;
@@ -243,7 +285,7 @@ namespace YARG.Song
             private readonly int NameIndex;
             private readonly int ArtistIndex;
 
-            public SearchNode(SongMetadata song, string argument)
+            public UnspecifiedSortNode(SongMetadata song, string argument)
             {
                 Song = song;
                 NameIndex = song.Name.SortStr.IndexOf(argument, StringComparison.Ordinal);
@@ -256,7 +298,7 @@ namespace YARG.Song
                 }
             }
 
-            public int CompareTo(SearchNode other)
+            public int CompareTo(UnspecifiedSortNode other)
             {
                 if (Rank != other.Rank)
                 {
@@ -298,8 +340,8 @@ namespace YARG.Song
 
         private static SortedDictionary<string, List<SongMetadata>> UnspecifiedSearch(IReadOnlyList<SongMetadata> songs, string argument)
         {
-            var nodes = new SearchNode[songs.Count];
-            Parallel.For(0, songs.Count, i => nodes[i] = new SearchNode(songs[i], argument));
+            var nodes = new UnspecifiedSortNode[songs.Count];
+            Parallel.For(0, songs.Count, i => nodes[i] = new UnspecifiedSortNode(songs[i], argument));
             var results = nodes
                 .Where(node => node.Rank >= 0)
                 .OrderBy(i => i)
@@ -307,19 +349,19 @@ namespace YARG.Song
             return new() { { "Search Results", results } };
         }
 
-        private static SortedDictionary<string, List<SongMetadata>> SearchByInstrument(IReadOnlyDictionary<string, List<SongMetadata>> searchList, string argument)
+        private static SortedDictionary<string, List<SongMetadata>> FilterInstruments(IReadOnlyDictionary<string, List<SongMetadata>> searchList, string argument)
         {
             var instruments = ((Instrument[]) Enum.GetValues(typeof(Instrument)))
-                    .Where(ins => ins.ToString().Contains(argument, StringComparison.OrdinalIgnoreCase))
-                    .ToArray();
+                .Select(ins => ins.ToString())
+                .Where(str => str.Contains(argument, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
 
             SortedDictionary<string, List<SongMetadata>> result = new();
             foreach (var node in searchList)
             {
-                var entries = node.Value.FindAll(entry => entry.Parts.GetInstruments().Intersect(instruments).Any());
-                if (entries.Count > 0)
+                if (instruments.Contains(node.Key))
                 {
-                    result.Add(node.Key, entries);
+                    result.Add(node.Key, node.Value);
                 }
             }
             return result;

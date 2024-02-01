@@ -33,6 +33,7 @@ namespace YARG.Gameplay
     public partial class GameManager : MonoBehaviour
     {
         public const double SONG_START_DELAY = SongRunner.SONG_START_DELAY;
+        public const double SONG_END_DELAY = SONG_START_DELAY;
 
         [Header("References")]
         [SerializeField]
@@ -51,8 +52,12 @@ namespace YARG.Gameplay
         [SerializeField]
         private TextMeshProUGUI _debugText;
 
-        private IReadOnlyList<YargPlayer> _yargPlayers;
-        private List<BasePlayer>          _players;
+        /// <summary>
+        /// Equal to either <see cref="PlayerContainer.Players"/> or the players in the replay.
+        /// </summary>
+        public IReadOnlyList<YargPlayer> YargPlayers { get; private set;}
+
+        private List<BasePlayer> _players;
 
         public bool IsSongStarted { get; private set; } = false;
 
@@ -93,6 +98,9 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.SelectedSongSpeed"/>
         public float SelectedSongSpeed => _songRunner.SelectedSongSpeed;
 
+        /// <inheritdoc cref="SongRunner.Started"/>
+        public bool Started => _songRunner.Started;
+
         /// <inheritdoc cref="SongRunner.Paused"/>
         public bool Paused => _songRunner.Paused;
 
@@ -112,6 +120,8 @@ namespace YARG.Gameplay
 
         public IReadOnlyList<BasePlayer> Players => _players;
 
+        private bool _endingSong;
+
         private bool _isShowDebugText;
         private bool _isReplaySaved;
 
@@ -121,7 +131,7 @@ namespace YARG.Gameplay
             PracticeManager = GetComponent<PracticeManager>();
             BackgroundManager = GetComponent<BackgroundManager>();
 
-            _yargPlayers = PlayerContainer.Players;
+            YargPlayers = PlayerContainer.Players;
 
             Song = GlobalVariables.Instance.CurrentSong;
             IsReplay = GlobalVariables.Instance.IsReplay;
@@ -157,6 +167,7 @@ namespace YARG.Gameplay
             }
             GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
             _songRunner.Dispose();
+            BeatEventHandler.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
@@ -207,6 +218,10 @@ namespace YARG.Gameplay
             BandScore = totalScore;
             BandCombo = totalCombo;
             BandStars = totalStars / _players.Count;
+
+            // End song if needed (required for the [end] event)
+            if (_songRunner.SongTime >= SongLength && !_endingSong)
+                EndSong().Forget();
 
             // Debug text
             // Note: this must come last in the update sequence!
@@ -345,17 +360,29 @@ namespace YARG.Gameplay
         public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
             => _songRunner.GetCalibratedRelativeInputTime(timeFromInputSystem);
 
-        private void EndSong()
+        private async UniTask EndSong()
         {
+            if (_endingSong)
+                return;
+
             if (IsPractice)
             {
                 PracticeManager.ResetPractice();
+                // Audio is paused automatically at this point, so we need to start it again
+                GlobalVariables.AudioManager.Play();
+                return;
+            }
+
+            _endingSong = true;
+            await UniTask.WaitUntil(() => _songRunner.SongTime >= SongLength);
+
+            if (IsReplay)
+            {
+                Pause(false);
                 return;
             }
 
             GlobalVariables.AudioManager.UnloadSong();
-
-            if (IsReplay) return;
 
             // Pass the score info to the stats screen
             GlobalVariables.Instance.ScoreScreenStats = new ScoreScreenStats

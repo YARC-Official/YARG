@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -8,6 +9,7 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
+using YARG.Helpers;
 using YARG.Menu.Navigation;
 using YARG.Song;
 
@@ -57,6 +59,14 @@ namespace YARG.Menu.ScoreScreen
             var song = GlobalVariables.Instance.CurrentSong;
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
+
+            // Set speed text (if not at 100% speed)
+            if (!Mathf.Approximately(GlobalVariables.Instance.SongSpeed, 1f))
+            {
+                var speed = GlobalVariables.Instance.SongSpeed.ToString("P0", LocaleHelper.PercentFormat);
+
+                _songTitle.text += $" ({speed})";
+            }
 
             // Set the band score and stars
             _bandStarView.SetStars(scoreScreenStats.BandStars);

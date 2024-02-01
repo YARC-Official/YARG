@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
@@ -118,6 +119,50 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        public override void SetStemMuteState(bool muted)
+        {
+            if (_isStemMuted == muted)
+            {
+                return;
+            }
+
+            var stem = Player.Profile.CurrentInstrument.ToSongStem();
+
+            // Try to fallback to guitar stem if specific stem is not available
+            if (!GlobalVariables.AudioManager.HasStem(stem))
+            {
+                stem = SongStem.Guitar;
+                if(!GlobalVariables.AudioManager.HasStem(stem))
+                {
+                    return;
+                }
+            }
+
+            GameManager.ChangeStemMuteState(stem, muted);
+            _isStemMuted = muted;
+        }
+
+        public override void SetStarPowerFX(bool active)
+        {
+            var instrument = Player.Profile.CurrentInstrument;
+            var playerStem = instrument.ToSongStem();
+
+            // Try to fallback to guitar stem if specific stem is not available
+            if (!GlobalVariables.AudioManager.HasStem(playerStem))
+            {
+                playerStem = SongStem.Guitar;
+
+                // Fall back to Song stem if guitar stem is not available
+                if(!GlobalVariables.AudioManager.HasStem(playerStem))
+                {
+                    base.SetStarPowerFX(active);
+                    return;
+                }
+            }
+
+            GameManager.ChangeStemReverbState(playerStem, active);
+        }
+
         protected override void ResetVisuals()
         {
             base.ResetVisuals();
@@ -161,6 +206,18 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected override void OnOverstrum()
+        {
+            base.OnOverstrum();
+
+            const int min = (int) SfxSample.Overstrum1;
+            const int max = (int) SfxSample.Overstrum4;
+
+            var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
+
+            GlobalVariables.AudioManager.PlaySoundEffect(randomOverstrum);
+        }
+
         private void OnSustainStart(GuitarNote parent)
         {
             foreach (var note in parent.ChordEnumerator())
@@ -198,7 +255,7 @@ namespace YARG.Gameplay.Player
             // Leniency is handled by the engine's sustain burst threshold.
             if (!parent.IsDisjoint && dropped)
             {
-                ShouldMuteStem = true;
+                SetStemMuteState(true);
             }
         }
 

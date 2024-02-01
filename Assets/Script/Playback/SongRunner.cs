@@ -127,6 +127,11 @@ namespace YARG.Playback
         public float ActualSongSpeed => SelectedSongSpeed + _syncSpeedAdjustment;
 
         /// <summary>
+        /// Whether or not the runner has been started.
+        /// </summary>
+        public bool Started { get; private set; }
+
+        /// <summary>
         /// Whether or not the song is currently paused.
         /// </summary>
         public bool Paused => PendingPauses > 0;
@@ -145,6 +150,11 @@ namespace YARG.Playback
         /// The input time at which the song was paused.
         /// </summary>
         public double PauseStartTime { get; private set; }
+
+        /// <summary>
+        /// Whether or not to resume audio playback when <see cref="Resume"/> is called.
+        /// </summary>
+        private bool _playAudioOnResume = false;
         #endregion
 
         #region Audio syncing
@@ -173,6 +183,14 @@ namespace YARG.Playback
         /// <summary>
         /// Creates a new song runner with the given speed and calibration values.
         /// </summary>
+        /// <remarks>
+        /// The created song runner will be in a partially initialized, unstarted state.
+        /// Full initialization is done lazily to prevent timing issues from loading lag,
+        /// the first call to <see cref="Update"/> will initialize and start the runner.
+        /// <br/>
+        /// Since the runner starts paused, anything that might potentially interact with it before
+        /// starting must respect the paused state, otherwise incorrect behavior may happen.
+        /// </remarks>
         /// <param name="songSpeed">
         /// The percentage song speed, where 1f == 100%.
         /// </param>
@@ -197,14 +215,9 @@ namespace YARG.Playback
             AudioCalibration = (-audioCalibration / 1000.0) - VideoCalibration;
             SongOffset = -songOffset;
 
-            // Initialize times
-            InitializeSongTime(SongOffset);
-            GlobalVariables.AudioManager.SetPosition(0);
-
-            // Start sync thread
-            _runSync = true;
             _syncThread = new Thread(SyncThread) { IsBackground = true };
-            _syncThread.Start();
+
+            InitializeSongTime(SongOffset);
         }
 
         ~SongRunner()
@@ -231,28 +244,40 @@ namespace YARG.Playback
             }
         }
 
+        private void Start()
+        {
+            // Re-initialize song times to avoid lag issues
+            InitializeSongTime(SongOffset);
+
+            // Start sync thread
+            _runSync = true;
+            _syncThread.Start();
+        }
+
         public void Update()
         {
+            // Runner is lazy-started to avoid timing issues with lag
+            if (!Started)
+            {
+                Start();
+                Started = true;
+            }
+
+            if (Paused)
+                return;
+
             // Update input/visual time
             RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
             RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
 
             // Calculate song time
-            if (RealSongTime < SongOffset)
+            if (GlobalVariables.AudioManager.IsPlaying)
             {
-                // Drive song time using visual time until it's time to start the audio
-                RealSongTime = RealVisualTime - AudioCalibration;
-                if (RealSongTime >= SongOffset)
-                {
-                    // Start audio
-                    GlobalVariables.AudioManager.Play();
-                    // Seek to calculated time to keep everything in sync
-                    GlobalVariables.AudioManager.SetPosition(RealSongTime - SongOffset);
-                }
+                RealSongTime = GlobalVariables.AudioManager.CurrentPositionD + SongOffset;
             }
             else
             {
-                RealSongTime = GlobalVariables.AudioManager.CurrentPositionD + SongOffset;
+                RealSongTime = RealVisualTime - AudioCalibration;
             }
 
             // Check for unexpected backwards time jumps
@@ -286,6 +311,23 @@ namespace YARG.Playback
             const double INITIAL_SYNC_THRESH = 0.015;
             const double ADJUST_SYNC_THRESH = 0.005;
             const float SPEED_ADJUSTMENT = 0.05f;
+
+            // Wait until it's time to start the audio
+            for (; _runSync; Thread.Yield())
+            {
+                if (_pauseSync)
+                    continue;
+
+                // Song time is driven using visual time when the audio isn't running
+                // Playback buffer needs to be accounted for to prevent backwards seeking
+                double currentTime = SyncVisualTime - AudioCalibration + GlobalVariables.AudioManager.PlaybackBufferLength;
+                if (currentTime >= SongOffset)
+                {
+                    // Start audio
+                    GlobalVariables.AudioManager.Play();
+                    break;
+                }
+            }
 
             for (; _runSync; _finishedSyncing.Set(), Thread.Sleep(5))
             {
@@ -481,6 +523,8 @@ namespace YARG.Playback
             // Visual time is used for pause time since it's closer to when
             // the song runner is actually being updated; the asserts in Update get hit otherwise
             PauseStartTime = RealVisualTime;
+            _playAudioOnResume = GlobalVariables.AudioManager.IsPlaying;
+            _pauseSync = true;
             GlobalVariables.AudioManager.Pause();
 
             EditorDebug.Log($"Paused at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
@@ -503,10 +547,12 @@ namespace YARG.Playback
                 SetInputBaseChecked(PauseStartTime);
             }
 
-            if (RealSongTime >= SongOffset)
+            if (_playAudioOnResume)
             {
                 GlobalVariables.AudioManager.Play();
             }
+
+            _pauseSync = false;
 
             EditorDebug.Log($"Resumed at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
         }

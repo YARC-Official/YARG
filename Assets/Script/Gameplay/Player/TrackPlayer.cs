@@ -59,20 +59,6 @@ namespace YARG.Gameplay.Player
 
         public Vector2 HUDViewportPosition => TrackCamera.WorldToViewportPoint(_hudLocation.position);
 
-        private bool _shouldMuteStem;
-        public bool ShouldMuteStem
-        {
-            get => _shouldMuteStem;
-            protected set
-            {
-                // Skip if there's no change
-                if (value == _shouldMuteStem) return;
-
-                _shouldMuteStem = value;
-                GameManager.ChangeStemMuteState(Player.Profile.CurrentInstrument.ToSongStem(), value);
-            }
-        }
-
         protected List<Beatline> Beatlines;
         protected int BeatlineIndex;
 
@@ -111,7 +97,7 @@ namespace YARG.Gameplay.Player
         {
             // "Muting a stem" isn't technically a visual,
             // but it's a form of feedback so we'll put it here.
-            ShouldMuteStem = false;
+            SetStemMuteState(false);
 
             ComboMeter.SetFullCombo(IsFc);
             TrackView.ForceReset();
@@ -216,7 +202,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void FinishInitialization()
         {
-            GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBarIfAble, 1f);
+            GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar, 1f);
 
             TrackMaterial.Initialize(ZeroFadePosition, FadeSize);
             CameraPositioner.Initialize(Player.CameraPreset);
@@ -345,7 +331,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
-            ShouldMuteStem = false;
+            SetStemMuteState(false);
             if (_currentMultiplier != _previousMultiplier)
             {
                 _previousMultiplier = _currentMultiplier;
@@ -360,6 +346,8 @@ namespace YARG.Gameplay.Player
             {
                 TrackView.ShowFullCombo();
             }
+
+            _lastCombo = Combo;
         }
 
         protected virtual void OnNoteMissed(int index, TNote note)
@@ -370,7 +358,14 @@ namespace YARG.Gameplay.Player
                 IsFc = false;
             }
 
-            ShouldMuteStem = true;
+            SetStemMuteState(true);
+
+            if (_lastCombo >= 10)
+            {
+                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+            }
+
+            _lastCombo = Combo;
 
             foreach (var haptics in SantrollerHaptics)
             {
@@ -385,6 +380,8 @@ namespace YARG.Gameplay.Player
                 ComboMeter.SetFullCombo(false);
                 IsFc = false;
             }
+
+            _lastCombo = Combo;
         }
 
         protected virtual void OnSoloStart(SoloSection solo)
@@ -416,7 +413,7 @@ namespace YARG.Gameplay.Player
         {
             base.FinishDestruction();
 
-            GameManager.BeatEventHandler.Unsubscribe(StarpowerBar.PulseBarIfAble);
+            GameManager.BeatEventHandler.Unsubscribe(StarpowerBar.PulseBar);
         }
 
         public override void UpdateWithTimes(double inputTime)

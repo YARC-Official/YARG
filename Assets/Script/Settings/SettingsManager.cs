@@ -72,7 +72,7 @@ namespace YARG.Settings
                 // nameof(Settings.UseWhammyFx),
                 // nameof(Settings.WhammyPitchShiftAmount),
                 // nameof(Settings.WhammyOversampleFactor),
-                // nameof(Settings.ClapsInStarpower),
+                nameof(Settings.ClapsInStarpower),
                 // nameof(Settings.ReverbInStarpower),
                 nameof(Settings.UseChipmunkSpeed),
             },

@@ -12,6 +12,7 @@ namespace YARG.Audio.BASS
         public const double PLAYBACK_BUFFER_DESYNC = PLAYBACK_BUFFER_LENGTH / 1000.0;
 
         public const float SONG_VOLUME_MULTIPLIER = 0.7f;
+        public const float REVERB_VOLUME_MULTIPLIER = 0.85f;
 
         public const int FADE_TIME_MILLISECONDS = 1000;
 
@@ -37,7 +38,7 @@ namespace YARG.Audio.BASS
 
         public static readonly PeakEQParameters HighEqParams = new()
         {
-            fBandwidth = 0.75f, fCenter = 6000.0f, fGain = 2f
+            fBandwidth = 0.75f, fCenter = 6000.0f, fGain = 2.25f
         };
 
         public static readonly DXReverbParameters DXReverbParams = new()
@@ -47,7 +48,7 @@ namespace YARG.Audio.BASS
 
         public static readonly ReverbParameters FreeverbParams = new()
         {
-            fDryMix = 0.5f, fWetMix = 1.5f, fRoomSize = 0.75f, fDamp = 0.5f, fWidth = 1.0f, lMode = 0
+            fDryMix = 0.5f, fWetMix = 1.5f, fRoomSize = 0.8f, fDamp = 0.6f, fWidth = 1.0f, lMode = 0
         };
 
         public static int FXAddParameters(int streamHandle, EffectType type, IEffectParameter parameters,

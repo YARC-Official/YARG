@@ -20,6 +20,8 @@ namespace YARG.Audio
         public double MasterVolume { get; }
         public double SfxVolume { get; }
 
+        public double PlaybackBufferLength { get; }
+
         public double CurrentPositionD { get; }
         public double AudioLengthD { get; }
 
@@ -65,7 +67,11 @@ namespace YARG.Audio
         public void SetSpeed(float speed);
         public void SetWhammyPitch(SongStem stem, float percent);
 
-        public double GetPosition(bool desyncCompensation = true);
-        public void SetPosition(double position, bool desyncCompensation = true);
+        public double GetPosition(bool bufferCompensation = true);
+        public void SetPosition(double position, bool bufferCompensation = true);
+
+        public int GetData(float[] buffer);
+
+        public bool HasStem(SongStem stem);
     }
 }

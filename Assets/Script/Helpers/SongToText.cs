@@ -43,12 +43,14 @@ namespace YARG.Helpers
         }
 
         // These are temporary until advanced settings
-        public const string FORMAT_LONG = "<header> song (speed_percent)\n" +
+        public const string FORMAT_LONG =
+            "<header> song (speed_percent)\n" +
             "<sub_header> artist\n" +
             "album, year\n" +
             "if charter then \"Charter:\" charter";
 
-        public const string FORMAT_SHORT = "<header> song (speed_percent)\n" +
+        public const string FORMAT_SHORT =
+            "<header> song (speed_percent)\n" +
             "<sub_header> artist";
 
         private static readonly Regex StyleRegex = new(@"^<[^>\s]*>", RegexOptions.Compiled);
@@ -78,10 +80,7 @@ namespace YARG.Helpers
                         return string.Empty;
                     }
 
-                    return GlobalVariables.Instance.SongSpeed.ToString("P0", new NumberFormatInfo
-                    {
-                        PercentPositivePattern = 1, PercentNegativePattern = 1
-                    });
+                    return GlobalVariables.Instance.SongSpeed.ToString("P0", LocaleHelper.PercentFormat);
                 }
             }
         };

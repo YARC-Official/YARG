@@ -27,9 +27,11 @@ namespace YARG.Audio
 
         public int Pause();
 
-        public double GetPosition(bool desyncCompensation = true);
+        public double GetPosition(bool bufferCompensation = true);
 
-        public void SetPosition(double position, bool desyncCompensation = true);
+        public void SetPosition(double position, bool bufferCompensation = true);
+
+        public int GetData(float[] buffer);
 
         public void SetPlayVolume(bool fadeIn);
 

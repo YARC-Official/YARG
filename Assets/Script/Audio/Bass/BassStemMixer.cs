@@ -150,7 +150,7 @@ namespace YARG.Audio.BASS
             return 0;
         }
 
-        public double GetPosition(bool desyncCompensation = true)
+        public double GetPosition(bool bufferCompensation = true)
         {
             // No channel in this case
             if (LeadChannel is null)
@@ -158,10 +158,10 @@ namespace YARG.Audio.BASS
                 return -1;
             }
 
-            return LeadChannel.GetPosition(desyncCompensation);
+            return LeadChannel.GetPosition(bufferCompensation);
         }
 
-        public void SetPosition(double position, bool desyncCompensation = true)
+        public void SetPosition(double position, bool bufferCompensation = true)
         {
             if (LeadChannel is null)
             {
@@ -179,7 +179,7 @@ namespace YARG.Audio.BASS
             {
                 foreach (var channel in stem)
                 {
-                    channel.SetPosition(position, desyncCompensation);
+                    channel.SetPosition(position, bufferCompensation);
                 }
             }
 
@@ -193,6 +193,17 @@ namespace YARG.Audio.BASS
 
             if (_sourceStream != 0 && _sourceIsSplit && !BassMix.SplitStreamReset(_sourceStream))
                 Debug.LogError($"Failed to reset stream: {Bass.LastError}");
+        }
+
+        public int GetData(float[] buffer)
+        {
+            int data = Bass.ChannelGetData(_mixerHandle, buffer, (int) (DataFlags.FFT256));
+            if (data < 0)
+            {
+                return (int) Bass.LastError;
+            }
+
+            return data;
         }
 
         public void SetPlayVolume(bool fadeIn)

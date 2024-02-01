@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
@@ -146,7 +147,11 @@ namespace YARG.Song
             "base", "extra"
         };
 
+        private const string DEFAULT_KEY = "$DEFAULT$";
+
         private static readonly Dictionary<string, ParsedSource> _sources = new();
+        private static ParsedSource _default;
+        public static ParsedSource Default => _default;
 
         public static async UniTask LoadSources(Action<string> updateText)
         {
@@ -282,16 +287,20 @@ namespace YARG.Song
                     {
                         var parsed = new ParsedSource(source.icon, source.names, source.type switch
                         {
-                            "game"    => SourceType.Game,
+                            "game" => SourceType.Game,
                             "charter" => SourceType.Charter,
-                            "rb"      => SourceType.RB,
-                            "gh"      => SourceType.GH,
-                            _         => SourceType.Custom
+                            "rb" => SourceType.RB,
+                            "gh" => SourceType.GH,
+                            _ => SourceType.Custom
                         }, sources.type == "base");
 
                         foreach (var id in source.ids)
                         {
                             _sources.Add(id, parsed);
+                            if (id == DEFAULT_KEY)
+                            {
+                                _default = parsed;
+                            }
                         }
                     }
                 }
@@ -315,23 +324,29 @@ namespace YARG.Song
         {
             // If this method is called, the "custom" icon will likely not exist,
             // however, the icon loader deals with this.
-            _sources.Add("$DEFAULT$", new ParsedSource("custom", new()
+            _default = new ParsedSource("custom", new()
             {
                 { "en-US", "Unknown" }
-            }, SourceType.Custom, true));
+            }, SourceType.Custom, true);
+            _sources.Add(DEFAULT_KEY, _default);
         }
 
-        public static ParsedSource GetSource(string id)
+        public static bool TryGetSource(string id, out ParsedSource parsedSource)
         {
-            if (_sources.TryGetValue(id, out var parsedSource))
-            {
-                return parsedSource;
-            }
-
-            return _sources["$DEFAULT$"];
+            return _sources.TryGetValue(id, out parsedSource);
         }
 
-        public static string SourceToGameName(string id) => GetSource(id).GetDisplayName();
-        public static async UniTask<Sprite> SourceToIcon(string id) => await GetSource(id).GetIcon();
+        public static ParsedSource GetSourceOrDefault(string id)
+        {
+            if (!TryGetSource(id, out var parsedSource))
+            {
+                parsedSource = _default;
+            }
+            return parsedSource;
+        }
+
+        public static string SourceToGameName(string id) => GetSourceOrDefault(id).GetDisplayName();
+
+        public static async UniTask<Sprite> SourceToIcon(string id) => await GetSourceOrDefault(id).GetIcon();
     }
 }

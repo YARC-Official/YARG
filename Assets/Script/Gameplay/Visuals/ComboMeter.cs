@@ -42,7 +42,7 @@ namespace YARG.Gameplay.Visuals
                 _multiplierText.text = string.Empty;
 
             int index = combo % 10;
-            if (multiplier != 1 && index == 0)
+            if (combo != 0 && index == 0)
             {
                 index = 10;
             }

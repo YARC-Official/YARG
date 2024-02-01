@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
@@ -30,9 +31,16 @@ namespace YARG.Menu.MusicLibrary
         public static MusicLibraryMode LibraryMode;
 
         public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
+        
 
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
+        private static bool _doRefresh = true;
+
+        public static void SetRefresh()
+        {
+            _doRefresh = true;
+        }
 
         [Space]
         [SerializeField]
@@ -95,7 +103,15 @@ namespace YARG.Menu.MusicLibrary
             _recommendedSongs = null;
 
             // Get songs
-            UpdateSearch(true);
+            if (_doRefresh)
+            {
+                Refresh();
+                _doRefresh = false;
+            }
+            else
+            {
+                UpdateSearch(true);
+            }
 
             // Restore index
             SelectedIndex = _savedIndex;
@@ -104,7 +120,7 @@ namespace YARG.Menu.MusicLibrary
             _subHeader.text = LibraryMode switch
             {
                 MusicLibraryMode.QuickPlay => "Quickplay",
-                MusicLibraryMode.Practice  => "Practice",
+                MusicLibraryMode.Practice => "Practice",
                 _ => throw new Exception("Unreachable.")
             };
 
@@ -129,16 +145,16 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 _currentSong = song.SongMetadata;
-
-                // Make sure to cancel the preview
-                if (!_previewCanceller.IsCancellationRequested)
-                {
-                    _previewCanceller.Cancel();
-                }
             }
             else
             {
                 _currentSong = null;
+            }
+
+            // Cancel the active song preview
+            if (!_previewCanceller.IsCancellationRequested)
+            {
+                _previewCanceller.Cancel();
             }
         }
 
@@ -161,7 +177,23 @@ namespace YARG.Menu.MusicLibrary
             foreach (var section in _sortedSongs)
             {
                 // Create header
-                list.Add(new SortHeaderViewType(section.Key, section.Value.Count));
+                var displayName = section.Key;
+                if (Sort == SongAttribute.Source)
+                {
+                    if (SongSources.TryGetSource(section.Key, out var parsedSource))
+                    {
+                        displayName = parsedSource.GetDisplayName();
+                    }
+                    else if (section.Key.Length > 0)
+                    {
+                        displayName = section.Key;
+                    }
+                    else
+                    {
+                        displayName = SongSources.Default.GetDisplayName();
+                    }
+                }
+                list.Add(new SortHeaderViewType(displayName, section.Value.Count));
 
                 // Add all of the songs
                 list.AddRange(section.Value.Select(song => new SongViewType(this, song)));
@@ -221,11 +253,23 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
+        private void Refresh()
+        {
+            _currentSearch = _searchField.text = string.Empty;
+            _sortedSongs = _searchContext.Refresh(Sort);
+
+            SetRecommendedSongs();
+            RequestViewListUpdate();
+
+            if (_currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongMetadata.Directory == _currentSong.Directory))
+            {
+                _savedIndex = 2;
+            }
+        }
+
         private void UpdateSearch(bool force)
         {
             if (!force && _currentSearch == _searchField.text) return;
-
-            SetRecommendedSongs();
 
             _sortedSongs = _searchContext.Search(_searchField.text, Sort);
 
@@ -234,8 +278,7 @@ namespace YARG.Menu.MusicLibrary
             if (_searchField.text.Length > _currentSearch.Length ||
                 !SetIndexTo(i => i is SongViewType view && view.SongMetadata == _currentSong))
             {
-                // Reason: Gotta take "Random Song" header into account
-                SelectedIndex = string.IsNullOrEmpty(_searchField.text) ? 2 : 1;
+                SelectedIndex = _searchContext.IsUnspecified() || _sortedSongs.Count == 1 ? 1 : 2;
             }
             _currentSearch = _searchField.text;
         }
@@ -287,7 +330,7 @@ namespace YARG.Menu.MusicLibrary
         private void OnDisable()
         {
             if (Navigator.Instance == null) return;
-            
+
             // Save index
             _savedIndex = SelectedIndex;
 

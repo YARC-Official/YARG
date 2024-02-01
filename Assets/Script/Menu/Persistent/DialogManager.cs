@@ -109,7 +109,7 @@ namespace YARG.Menu.Persistent
             dialog.DeleteAction = deleteAction;
 
             dialog.ClearButtons();
-            dialog.AddDialogButton("Cancel", MenuData.Colors.ConfirmButton, ClearDialog);
+            dialog.AddDialogButton("Cancel", MenuData.Colors.BrightButton, ClearDialog);
             dialog.AddDialogButton("Delete", MenuData.Colors.CancelButton, () => _currentDialog.Submit());
 
             return dialog;

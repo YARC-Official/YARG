@@ -161,6 +161,9 @@ namespace YARG.Gameplay
                 Destroy(PracticeManager);
             }
 
+            BeatEventHandler.Subscribe(StarPowerClap,
+                _songRunner.AudioCalibration - GlobalVariables.AudioManager.PlaybackBufferLength);
+
             // Log constant values
             EditorDebug.Log($"Audio calibration: {_songRunner.AudioCalibration}, video calibration: {_songRunner.VideoCalibration}, song offset: {_songRunner.SongOffset}");
 
@@ -211,7 +214,7 @@ namespace YARG.Gameplay
                 players.Add(yargPlayer);
             }
 
-            _yargPlayers = players;
+            YargPlayers = players;
         }
 
         private async UniTask LoadChart()
@@ -236,21 +239,6 @@ namespace YARG.Gameplay
                 {
                     _loadState = LoadFailureState.Rescan;
                     return;
-                }
-
-                // Ensure sync track is present
-                var syncTrack = Chart.SyncTrack;
-                if (syncTrack.Beatlines is null or { Count: < 1 })
-                {
-                    Chart.SyncTrack.GenerateBeatlines(Chart.GetLastTick());
-                }
-
-                // Set length of the final section
-                if (Chart.Sections.Count > 0)
-                {
-                    uint lastTick = Chart.GetLastTick();
-                    Chart.Sections[^1].TickLength = lastTick;
-                    Chart.Sections[^1].TimeLength = Chart.SyncTrack.TickToTime(lastTick);
                 }
 
                 // Autogenerate venue stuff
@@ -284,7 +272,7 @@ namespace YARG.Gameplay
             bool vocalTrackInitialized = false;
 
             int index = -1;
-            foreach (var player in _yargPlayers)
+            foreach (var player in YargPlayers)
             {
                 index++;
 

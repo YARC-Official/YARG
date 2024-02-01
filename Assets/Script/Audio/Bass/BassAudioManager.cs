@@ -32,6 +32,8 @@ namespace YARG.Audio.BASS
         public double MasterVolume { get; private set; }
         public double SfxVolume { get; private set; }
 
+        public double PlaybackBufferLength { get; private set; }
+
         public double CurrentPositionD => GetPosition();
         public double AudioLengthD { get; private set; }
 
@@ -71,6 +73,8 @@ namespace YARG.Audio.BASS
             Bass.DeviceBufferLength = 10;
             Bass.PlaybackBufferLength = BassHelpers.PLAYBACK_BUFFER_LENGTH;
             Bass.DeviceNonStop = true;
+
+            PlaybackBufferLength = Bass.PlaybackBufferLength / 1000.0;
 
             // Affects Windows only. Forces device names to be in UTF-8 on Windows rather than ANSI.
             Bass.Configure(Configuration.UnicodeDeviceInformation, true);
@@ -203,7 +207,7 @@ namespace YARG.Audio.BASS
 
                 if (!File.Exists(sfxPath))
                 {
-                    Debug.LogError($"SFX {sfxPath} does not exist!");
+                    Debug.LogWarning($"SFX Sample {sfxFile} does not exist!");
                     continue;
                 }
 
@@ -563,15 +567,32 @@ namespace YARG.Audio.BASS
                 channel.SetWhammyPitch(percent);
         }
 
-        public double GetPosition(bool desyncCompensation = true)
+        public double GetPosition(bool bufferCompensation = true)
         {
             if (_mixer is null) return -1;
 
-            return _mixer.GetPosition(desyncCompensation);
+            return _mixer.GetPosition(bufferCompensation);
         }
 
-        public void SetPosition(double position, bool desyncCompensation = true)
-            => _mixer?.SetPosition(position, desyncCompensation);
+        public void SetPosition(double position, bool bufferCompensation = true)
+            => _mixer?.SetPosition(position, bufferCompensation);
+
+        public int GetData(float[] buffer)
+        {
+            if (_mixer == null)
+            {
+                return -1;
+            }
+
+            return _mixer.GetData(buffer);
+        }
+
+        public bool HasStem(SongStem stem)
+        {
+            if (_mixer is null) return false;
+
+            return _mixer.Channels.ContainsKey(stem) && _mixer.Channels[stem].Count > 0;
+        }
 
         private void OnSongEnd()
         {

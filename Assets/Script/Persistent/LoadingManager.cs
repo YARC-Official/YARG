@@ -7,6 +7,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Core.Song.Cache;
 using YARG.Helpers;
+using YARG.Menu.MusicLibrary;
 using YARG.Settings;
 using YARG.Song;
 
@@ -114,6 +115,7 @@ namespace YARG
             }
 
             GlobalVariables.Instance.SongContainer = new SongContainer(task.Result);
+            MusicLibraryMenu.SetRefresh();
         }
 
         private void SetLoadingText(string phrase, string sub = null)

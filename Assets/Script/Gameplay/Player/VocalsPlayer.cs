@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Audio;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals;
@@ -128,6 +129,18 @@ namespace YARG.Gameplay.Player
                 {
                     IsFc = false;
                 }
+
+                _lastCombo = Combo;
+            };
+
+            engine.OnNoteMissed += (_, _) =>
+            {
+                if (_lastCombo >= 2)
+                {
+                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+                }
+
+                _lastCombo = Combo;
             };
 
             return engine;
@@ -351,6 +364,11 @@ namespace YARG.Gameplay.Player
 
             Engine = CreateEngine();
             ResetPracticeSection();
+        }
+
+        public override void SetStemMuteState(bool muted)
+        {
+            // Vocals has no stem muting
         }
 
         protected override bool InterceptInput(ref GameInput input)

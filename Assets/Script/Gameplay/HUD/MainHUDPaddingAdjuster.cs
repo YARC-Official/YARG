@@ -1,18 +1,20 @@
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
-using YARG.Player;
+using YARG.Core.Chart;
 
 namespace YARG.Gameplay.HUD
 {
-    public class MainHUDPaddingAdjuster : MonoBehaviour
+    public class MainHUDPaddingAdjuster : GameplayBehaviour
     {
         [SerializeField]
         private float _topPaddingForVocals = 128f;
 
-        private void Start()
+        protected override void OnChartLoaded(SongChart chart)
         {
-            bool usePadding = PlayerContainer.Players
+            // At the time the chart is loaded, all of the players should be initialized/added
+
+            bool usePadding = GameManager.YargPlayers
                 .Where(player => !player.SittingOut)
                 .Any(player => player.Profile.GameMode == GameMode.Vocals);
 
