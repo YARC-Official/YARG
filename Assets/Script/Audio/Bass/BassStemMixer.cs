@@ -195,6 +195,17 @@ namespace YARG.Audio.BASS
                 Debug.LogError($"Failed to reset stream: {Bass.LastError}");
         }
 
+        public int GetData(float[] buffer)
+        {
+            int data = Bass.ChannelGetData(_mixerHandle, buffer, (int) (DataFlags.FFT256));
+            if (data < 0)
+            {
+                return (int) Bass.LastError;
+            }
+
+            return data;
+        }
+
         public void SetPlayVolume(bool fadeIn)
         {
             foreach (var stem in Channels.Values)
