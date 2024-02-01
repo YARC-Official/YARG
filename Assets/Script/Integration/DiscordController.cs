@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using Cysharp.Threading.Tasks;
 using Discord;
 using UnityEngine;
 using UnityEngine.Localization;
+using YARG.Core.Song;
 using YARG.Helpers;
 
 namespace YARG.Integration
@@ -9,6 +14,8 @@ namespace YARG.Integration
     public class DiscordController : MonoSingleton<DiscordController>
     {
         private const long APPLICATION_ID = 1091177744416637028;
+
+        private const string ALBUM_API_URL = "https://api.enchor.us/album-art";
 
 #if UNITY_EDITOR || YARG_TEST_BUILD
         private const string LARGE_TEXT_KEY = "Discord.Default.LargeText.Dev";
@@ -23,12 +30,17 @@ namespace YARG.Integration
 
         private Discord.Discord _discord;
 
+        // Keep track of this in case we want to update the value asynchronously
+        private Activity _activity;
+
         private bool _wasInGameplay;
         private bool _wasPaused;
 
         private long _gameStartTime;
         private long _songStartTime;
         private long _pauseTime;
+
+        private string _albumUrl;
 
         private void Start()
         {
@@ -58,10 +70,18 @@ namespace YARG.Integration
 
         private void OnGameStateChange(GameStateFetcher.State state)
         {
+            // Skip if Discord is not initialized
+            if (_discord is null)
+            {
+                return;
+            }
+
             if (state.CurrentScene != SceneIndex.Gameplay)
             {
                 _wasInGameplay = false;
                 _wasPaused = false;
+
+                _albumUrl = null;
 
                 SetDefaultActivity();
                 return;
@@ -75,16 +95,12 @@ namespace YARG.Integration
             }
 
             // If it's the first time entering the song, collect all the info we need
-
             if (!_wasInGameplay)
             {
                 _songStartTime = GetUnixTime();
             }
 
-            _wasInGameplay = true;
-
             // Deal with pausing
-
             if (state.Paused)
             {
                 // Deal with starting to pause...
@@ -126,12 +142,10 @@ namespace YARG.Integration
             }
 
             // Get activity
-
-            var activity = new Activity
+            _activity = new Activity
             {
                 Assets =
                 {
-                    // The image and key are defined in the Discord developer portal
                     LargeImage = LARGE_ICON_KEY,
                     LargeText = LocaleHelper.LocalizeString(LARGE_TEXT_KEY)
                 },
@@ -144,14 +158,65 @@ namespace YARG.Integration
                 }
             };
 
-            // Set activity
+            // If the album art was already loaded at this point, set it
+            UpdateActivityWithAlbumArt();
 
-            SetActivity(activity);
+            SetActivity(_activity);
+
+            // Attempt to load album art (this will automatically update the activity)
+            if (!_wasInGameplay && _albumUrl is null)
+            {
+                LoadAlbumArt(song).Forget();
+            }
+
+            _wasInGameplay = true;
+        }
+
+        private async UniTask LoadAlbumArt(SongMetadata song)
+        {
+            // Try to get the album art from the Chorus Encore API
+            try
+            {
+                using var client = new HttpClient();
+
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(ALBUM_API_URL),
+                    Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                    {
+                        ["name"] = song.Name,
+                        ["artist"] = song.Artist,
+                        ["charter"] = song.Charter
+                    })
+                };
+
+                var response = await client.SendAsync(request);
+
+                // If it's a 404 (the chart was not found) we can safely skip
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return;
+                }
+
+                // If it's a non-404 and a non-success code, we should throw
+                response.EnsureSuccessStatusCode();
+
+                _albumUrl = await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("Failed to fetch album art for song. See error below for more details.");
+                Debug.LogException(e);
+            }
+
+            UpdateActivityWithAlbumArt();
+            SetActivity(_activity);
         }
 
         private void Update()
         {
-            if (_discord == null)
+            if (_discord is null)
             {
                 return;
             }
@@ -196,6 +261,20 @@ namespace YARG.Integration
                 Debug.Log("Failed to dispose of Discord client.");
                 Debug.LogException(e);
             }
+        }
+
+        private void UpdateActivityWithAlbumArt()
+        {
+            if (_albumUrl is null)
+            {
+                return;
+            }
+
+            // Make the small icon YARG instead of the big one
+            _activity.Assets.SmallImage = LARGE_ICON_KEY;
+
+            // Discord supports URLs as the large image
+            _activity.Assets.LargeImage = _albumUrl;
         }
 
         private void SetActivity(Activity activity)
