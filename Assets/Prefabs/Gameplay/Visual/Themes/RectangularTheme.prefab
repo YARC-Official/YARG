@@ -210,7 +210,7 @@ MonoBehaviour:
   <StarPowerVariant>k__BackingField: 0
   _coloredMaterials:
   - Mesh: {fileID: 5691484211434715446}
-    MaterialIndex: 1
+    MaterialIndex: 3
     EmissionMultiplier: 8
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
@@ -1858,9 +1858,19 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 4d4a54b04f5b07c45a8de58f3bae1527, type: 2}
     - target: {fileID: -7511558181221131132, guid: c58cec31fa674ce43a64f4fff3bb71b4,
         type: 3}
+      propertyPath: m_Materials.Array.data[1]
+      value: 
+      objectReference: {fileID: 2100000, guid: 6e9aa1bbf5c8b26499d80da4d187f13a, type: 2}
+    - target: {fileID: -7511558181221131132, guid: c58cec31fa674ce43a64f4fff3bb71b4,
+        type: 3}
       propertyPath: m_Materials.Array.data[2]
       value: 
       objectReference: {fileID: 2100000, guid: 4f16b31c50c947444a8d68c0c930610d, type: 2}
+    - target: {fileID: -7511558181221131132, guid: c58cec31fa674ce43a64f4fff3bb71b4,
+        type: 3}
+      propertyPath: m_Materials.Array.data[3]
+      value: 
+      objectReference: {fileID: 2100000, guid: cf6aa9e372eb77e4c812e426443a9f34, type: 2}
     - target: {fileID: 919132149155446097, guid: c58cec31fa674ce43a64f4fff3bb71b4,
         type: 3}
       propertyPath: m_Name
