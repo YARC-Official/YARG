@@ -28,8 +28,8 @@ stuff should be in their appropriate areas).
 -23 | -# RESERVED #-
 -22 | -# RESERVED #-
 -21 | -# RESERVED #-
--20 | -# RESERVED #-
--19 | -# RESERVED #-
+-20 | Note sides
+-19 | Note sides
 -18 | Track trims
 -17 | Track trims
 -16 | Track trims
