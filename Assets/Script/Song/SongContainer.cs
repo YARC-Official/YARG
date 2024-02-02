@@ -39,6 +39,7 @@ namespace YARG.Song
         private readonly List<SongCategory> _sortSources = new();
         private readonly List<SongCategory> _sortArtistAlbums = new();
         private readonly List<SongCategory> _sortSongLengths = new();
+        private readonly List<SongCategory> _sortDatesAdded = new();
         private readonly List<SongCategory> _sortInstruments = new();
 
         public IReadOnlyDictionary<string, List<SongMetadata>> Titles => _songCache.Titles;
@@ -46,6 +47,7 @@ namespace YARG.Song
         public IReadOnlyDictionary<string, List<SongMetadata>> ArtistAlbums => _songCache.ArtistAlbums;
         public IReadOnlyDictionary<string, List<SongMetadata>> SongLengths => _songCache.SongLengths;
         public IReadOnlyDictionary<string, List<SongMetadata>> Instruments => _songCache.Instruments;
+        public IReadOnlyDictionary<DateTime, List<SongMetadata>> AddedDates => _songCache.DatesAdded;
         public IReadOnlyDictionary<SortString, List<SongMetadata>> Artists => _songCache.Artists;
         public IReadOnlyDictionary<SortString, List<SongMetadata>> Albums => _songCache.Albums;
         public IReadOnlyDictionary<SortString, List<SongMetadata>> Genres => _songCache.Genres;
@@ -78,6 +80,12 @@ namespace YARG.Song
             _sortArtistAlbums = Cast(cache.ArtistAlbums);
             _sortSongLengths = Cast(cache.SongLengths);
             _sortInstruments = Cast(cache.Instruments);
+
+            _sortDatesAdded = new();
+            foreach (var node in cache.DatesAdded)
+            {
+                _sortDatesAdded.Add(new(node.Key.ToLongDateString(), node.Value));
+            }
 
             static List<SongCategory> Convert(SortedDictionary<SortString, List<SongMetadata>> list, SongAttribute attribute)
             {
@@ -121,6 +129,7 @@ namespace YARG.Song
                 SongAttribute.Source => _sortSources,
                 SongAttribute.Artist_Album => _sortArtistAlbums,
                 SongAttribute.SongLength => _sortSongLengths,
+                SongAttribute.DateAdded => _sortDatesAdded,
                 SongAttribute.Instrument => _sortInstruments,
                 _ => throw new Exception("stoopid"),
             };
