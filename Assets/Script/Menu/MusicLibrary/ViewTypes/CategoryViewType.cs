@@ -5,6 +5,7 @@ using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Data;
+using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -29,8 +30,7 @@ namespace YARG.Menu.MusicLibrary
             GenreCountText = $"{CountOf(songsUnderCategory, i => i.Genre)} genres";
         }
 
-        public CategoryViewType(string primary, int songCount,
-            IReadOnlyDictionary<string, List<SongMetadata>> songsUnderCategory)
+        public CategoryViewType(string primary, int songCount, IReadOnlyList<SongCategory> songsUnderCategory)
         {
             _primary = primary;
             _songCount = songCount;
@@ -41,9 +41,9 @@ namespace YARG.Menu.MusicLibrary
 
             foreach (var n in songsUnderCategory)
             {
-                sources += CountOf(n.Value, i => i.Source);
-                charters += CountOf(n.Value, i => i.Charter);
-                genres += CountOf(n.Value, i => i.Genre);
+                sources += CountOf(n.Songs, i => i.Source);
+                charters += CountOf(n.Songs, i => i.Charter);
+                genres += CountOf(n.Songs, i => i.Genre);
             }
 
             SourceCountText = $"{sources} sources";

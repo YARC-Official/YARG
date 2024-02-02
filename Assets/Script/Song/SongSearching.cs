@@ -9,7 +9,7 @@ namespace YARG.Song
 {
     public class SongSearching
     {
-        public IReadOnlyDictionary<string, List<SongMetadata>> Refresh(SongAttribute sort)
+        public IReadOnlyList<SongCategory> Refresh(SongAttribute sort)
         {
             searches.Clear();
             var filter = new FilterNode(sort, string.Empty);
@@ -18,7 +18,7 @@ namespace YARG.Song
             return songs;
         }
 
-        public IReadOnlyDictionary<string, List<SongMetadata>> Search(string value, SongAttribute sort)
+        public IReadOnlyList<SongCategory> Search(string value, SongAttribute sort)
         {
             var currentFilters = new List<FilterNode>()
             {
@@ -146,9 +146,9 @@ namespace YARG.Song
         private class SearchNode
         {
             public readonly FilterNode Filter;
-            public IReadOnlyDictionary<string, List<SongMetadata>> Songs;
+            public IReadOnlyList<SongCategory> Songs;
 
-            public SearchNode(FilterNode filter, IReadOnlyDictionary<string, List<SongMetadata>> songs)
+            public SearchNode(FilterNode filter, IReadOnlyList<SongCategory> songs)
             {
                 Filter = filter;
                 Songs = songs;
@@ -235,14 +235,14 @@ namespace YARG.Song
             return nodes;
         }
 
-        private static SortedDictionary<string, List<SongMetadata>> SearchSongs(FilterNode arg, IReadOnlyDictionary<string, List<SongMetadata>> searchList)
+        private static List<SongCategory> SearchSongs(FilterNode arg, IReadOnlyList<SongCategory> searchList)
         {
             if (arg.attribute == SongAttribute.Unspecified)
             {
                 List<SongMetadata> entriesToSearch = new();
                 foreach (var entry in searchList)
                 {
-                    entriesToSearch.AddRange(entry.Value);
+                    entriesToSearch.AddRange(entry.Songs);
                 }
                 return UnspecifiedSearch(entriesToSearch, arg.argument);
             }
@@ -265,13 +265,13 @@ namespace YARG.Song
                 _ => throw new Exception("Unhandled seacrh filter")
             };
 
-            SortedDictionary<string, List<SongMetadata>> result = new();
+            List<SongCategory> result = new();
             foreach (var node in searchList)
             {
-                var entries = node.Value.FindAll(match);
+                var entries = node.Songs.FindAll(match);
                 if (entries.Count > 0)
                 {
-                    result.Add(node.Key, entries);
+                    result.Add(new SongCategory(node.Category, entries));
                 }
             }
             return result;
@@ -338,7 +338,7 @@ namespace YARG.Song
             }
         }
 
-        private static SortedDictionary<string, List<SongMetadata>> UnspecifiedSearch(IReadOnlyList<SongMetadata> songs, string argument)
+        private static List<SongCategory> UnspecifiedSearch(IReadOnlyList<SongMetadata> songs, string argument)
         {
             var nodes = new UnspecifiedSortNode[songs.Count];
             Parallel.For(0, songs.Count, i => nodes[i] = new UnspecifiedSortNode(songs[i], argument));
@@ -346,22 +346,22 @@ namespace YARG.Song
                 .Where(node => node.Rank >= 0)
                 .OrderBy(i => i)
                 .Select(i => i.Song).ToList();
-            return new() { { "Search Results", results } };
+            return new() { new SongCategory("Search Results", results) };
         }
 
-        private static SortedDictionary<string, List<SongMetadata>> FilterInstruments(IReadOnlyDictionary<string, List<SongMetadata>> searchList, string argument)
+        private static List<SongCategory> FilterInstruments(IReadOnlyList<SongCategory> searchList, string argument)
         {
             var instruments = ((Instrument[]) Enum.GetValues(typeof(Instrument)))
                 .Select(ins => ins.ToString())
                 .Where(str => str.Contains(argument, StringComparison.OrdinalIgnoreCase))
                 .ToArray();
 
-            SortedDictionary<string, List<SongMetadata>> result = new();
+            List<SongCategory> result = new();
             foreach (var node in searchList)
             {
-                if (instruments.Contains(node.Key))
+                if (instruments.Contains(node.Category))
                 {
-                    result.Add(node.Key, node.Value);
+                    result.Add(node);
                 }
             }
             return result;

@@ -58,7 +58,8 @@ namespace YARG.Menu.MusicLibrary
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
         private readonly SongSearching _searchContext = new();
-        private IReadOnlyDictionary<string, List<SongMetadata>> _sortedSongs;
+        private IReadOnlyList<SongCategory> _sortedSongs;
+        
 
         private PreviewContext _previewContext;
         private CancellationTokenSource _previewCanceller = new();
@@ -162,7 +163,7 @@ namespace YARG.Menu.MusicLibrary
             if (_sortedSongs is null || GlobalVariables.Instance.SongContainer.Songs.Count <= 0) return list;
 
             // Get the number of songs
-            int count = _sortedSongs.Sum(section => section.Value.Count);
+            int count = _sortedSongs.Sum(section => section.Songs.Count);
 
             // Return if there are no songs that match the search criteria
             if (count == 0) return list;
@@ -171,26 +172,26 @@ namespace YARG.Menu.MusicLibrary
             foreach (var section in _sortedSongs)
             {
                 // Create header
-                var displayName = section.Key;
+                var displayName = section.Category;
                 if (Sort == SongAttribute.Source)
                 {
-                    if (SongSources.TryGetSource(section.Key, out var parsedSource))
+                    if (SongSources.TryGetSource(section.Category, out var parsedSource))
                     {
                         displayName = parsedSource.GetDisplayName();
                     }
-                    else if (section.Key.Length > 0)
+                    else if (section.Category.Length > 0)
                     {
-                        displayName = section.Key;
+                        displayName = section.Category;
                     }
                     else
                     {
                         displayName = SongSources.Default.GetDisplayName();
                     }
                 }
-                list.Add(new SortHeaderViewType(displayName, section.Value.Count));
+                list.Add(new SortHeaderViewType(displayName, section.Songs.Count));
 
                 // Add all of the songs
-                list.AddRange(section.Value.Select(song => new SongViewType(this, song)));
+                list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
             }
 
             if (!string.IsNullOrEmpty(_searchField.text))

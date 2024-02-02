@@ -6,17 +6,40 @@ using YARG.Helpers.Extensions;
 
 namespace YARG.Song
 {
+    public readonly struct SongCategory
+    {
+        public readonly string Category;
+        public readonly List<SongMetadata> Songs;
+
+        public SongCategory(string category, List<SongMetadata> songs)
+        {
+            Category = category;
+            Songs = songs;
+        }
+
+        public void Deconstruct(out string category, out List<SongMetadata> songs)
+        {
+            category = Category;
+            songs = Songs;
+        }
+    }
+
     public class SongContainer
     {
         private readonly SongCache _songCache = new();
         private readonly List<SongMetadata> _songs = new();
 
-        private readonly SortedDictionary<string, List<SongMetadata>> _sortArtists = new();
-        private readonly SortedDictionary<string, List<SongMetadata>> _sortAlbums = new();
-        private readonly SortedDictionary<string, List<SongMetadata>> _sortGenres = new();
-        private readonly SortedDictionary<string, List<SongMetadata>> _sortCharters = new();
-        private readonly SortedDictionary<string, List<SongMetadata>> _sortPlaylists = new();
-        private readonly SortedDictionary<string, List<SongMetadata>> _sortSources = new();
+        private readonly List<SongCategory> _sortTitles = new();
+        private readonly List<SongCategory> _sortArtists = new();
+        private readonly List<SongCategory> _sortAlbums = new();
+        private readonly List<SongCategory> _sortGenres = new();
+        private readonly List<SongCategory> _sortYears = new();
+        private readonly List<SongCategory> _sortCharters = new();
+        private readonly List<SongCategory> _sortPlaylists = new();
+        private readonly List<SongCategory> _sortSources = new();
+        private readonly List<SongCategory> _sortArtistAlbums = new();
+        private readonly List<SongCategory> _sortSongLengths = new();
+        private readonly List<SongCategory> _sortInstruments = new();
 
         public IReadOnlyDictionary<string, List<SongMetadata>> Titles => _songCache.Titles;
         public IReadOnlyDictionary<string, List<SongMetadata>> Years => _songCache.Years;
@@ -50,9 +73,15 @@ namespace YARG.Song
             _sortPlaylists = Convert(cache.Playlists, SongAttribute.Playlist);
             _sortSources = Convert(cache.Sources, SongAttribute.Source);
 
-            static SortedDictionary<string, List<SongMetadata>> Convert(SortedDictionary<SortString, List<SongMetadata>> list, SongAttribute attribute)
+            _sortTitles = Cast(cache.Titles);
+            _sortYears = Cast(cache.Years);
+            _sortArtistAlbums = Cast(cache.ArtistAlbums);
+            _sortSongLengths = Cast(cache.SongLengths);
+            _sortInstruments = Cast(cache.Instruments);
+
+            static List<SongCategory> Convert(SortedDictionary<SortString, List<SongMetadata>> list, SongAttribute attribute)
             {
-                SortedDictionary<string, List<SongMetadata>> map = new();
+                List<SongCategory> sections = new(list.Count);
                 foreach (var node in list)
                 {
                     string key = node.Key;
@@ -62,27 +91,37 @@ namespace YARG.Song
                         if (node.Key.Length > 1)
                             key += node.Key.Str[1..];
                     }
-                    map.Add(key, node.Value);
+                    sections.Add(new(key, node.Value));
                 }
-                return map;
+                return sections;
+            }
+
+            static List<SongCategory> Cast(SortedDictionary<string, List<SongMetadata>> list)
+            {
+                List<SongCategory> sections = new(list.Count);
+                foreach (var section in list)
+                {
+                    sections.Add(new SongCategory(section.Key, section.Value));
+                }
+                return sections;
             }
         }
 
-        public IReadOnlyDictionary<string, List<SongMetadata>> GetSortedSongList(SongAttribute sort)
+        public IReadOnlyList<SongCategory> GetSortedSongList(SongAttribute sort)
         {
             return sort switch
             {
-                SongAttribute.Name => Titles,
+                SongAttribute.Name => _sortTitles,
                 SongAttribute.Artist => _sortArtists,
                 SongAttribute.Album => _sortAlbums,
                 SongAttribute.Genre => _sortGenres,
-                SongAttribute.Year => Years,
+                SongAttribute.Year => _sortYears,
                 SongAttribute.Charter => _sortCharters,
                 SongAttribute.Playlist => _sortPlaylists,
                 SongAttribute.Source => _sortSources,
-                SongAttribute.Artist_Album => ArtistAlbums,
-                SongAttribute.SongLength => SongLengths,
-                SongAttribute.Instrument => Instruments,
+                SongAttribute.Artist_Album => _sortArtistAlbums,
+                SongAttribute.SongLength => _sortSongLengths,
+                SongAttribute.Instrument => _sortInstruments,
                 _ => throw new Exception("stoopid"),
             };
         }
