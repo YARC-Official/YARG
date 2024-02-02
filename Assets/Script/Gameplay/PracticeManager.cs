@@ -76,6 +76,11 @@ namespace YARG.Gameplay
 
         private void OnNavigationEvent(NavigationContext ctx)
         {
+            if (GameManager.Paused)
+            {
+                return;
+            }
+
             switch (ctx.Action)
             {
                 // Song speed
@@ -87,14 +92,8 @@ namespace YARG.Gameplay
                     GameManager.AdjustSongSpeed(0.05f);
                     _practiceHud.ResetStats();
                     break;
-
                 // Reset
                 case MenuAction.Select:
-                    if (GameManager.Paused)
-                    {
-                        return;
-                    }
-
                     ResetPractice();
                     break;
             }
