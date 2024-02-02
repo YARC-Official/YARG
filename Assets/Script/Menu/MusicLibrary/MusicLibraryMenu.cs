@@ -31,8 +31,8 @@ namespace YARG.Menu.MusicLibrary
         public static MusicLibraryMode LibraryMode;
 
         public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
-        
 
+        private static List<SongMetadata> _recommendedSongs;
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
         private static bool _doRefresh = true;
@@ -59,7 +59,6 @@ namespace YARG.Menu.MusicLibrary
 
         private readonly SongSearching _searchContext = new();
         private IReadOnlyDictionary<string, List<SongMetadata>> _sortedSongs;
-        private List<SongMetadata> _recommendedSongs;
 
         private PreviewContext _previewContext;
         private CancellationTokenSource _previewCanceller = new();
@@ -100,8 +99,6 @@ namespace YARG.Menu.MusicLibrary
             // Restore search
             _searchField.text = _currentSearch;
 
-            _recommendedSongs = null;
-
             // Get songs
             if (_doRefresh)
             {
@@ -111,10 +108,9 @@ namespace YARG.Menu.MusicLibrary
             else
             {
                 UpdateSearch(true);
+                // Restore index
+                SelectedIndex = _savedIndex;
             }
-
-            // Restore index
-            SelectedIndex = _savedIndex;
 
             // Set proper text
             _subHeader.text = LibraryMode switch
@@ -170,8 +166,6 @@ namespace YARG.Menu.MusicLibrary
 
             // Return if there are no songs that match the search criteria
             if (count == 0) return list;
-
-            SetRecommendedSongs();
 
             // Foreach section in the sorted songs...
             foreach (var section in _sortedSongs)
@@ -241,8 +235,6 @@ namespace YARG.Menu.MusicLibrary
 
         private void SetRecommendedSongs()
         {
-            if (_recommendedSongs != null) return;
-
             if (GlobalVariables.Instance.SongContainer.Songs.Count > 0)
             {
                 _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
@@ -263,7 +255,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (_currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongMetadata.Directory == _currentSong.Directory))
             {
-                _savedIndex = 2;
+                SelectedIndex = 2;
             }
         }
 
