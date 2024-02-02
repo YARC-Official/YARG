@@ -224,12 +224,10 @@ namespace YARG.Gameplay.Player
                 NoteTrack.Notes[^1].OverrideNextNote();
             }
 
-            IsFc = true;
-
             BeatlineIndex = 0;
             ResetNoteCounters();
 
-            ResetVisuals();
+            base.ResetPracticeSection();
         }
 
         protected void UpdateBaseVisuals(BaseStats stats, BaseEngineParameters engineParams, double songTime)
