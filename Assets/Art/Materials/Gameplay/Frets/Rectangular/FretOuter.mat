@@ -1,5 +1,18 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-3264594167707169303
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 5
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -7,23 +20,26 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: NoteTapCenter
-  m_Shader: {fileID: -6465566751694194690, guid: 0c474304b74472f4a8b212da29713486,
+  m_Name: FretOuter
+  m_Shader: {fileID: -6465566751694194690, guid: 06f88d70f43ce884d98e3a4d54c6491d,
     type: 3}
-  m_ValidKeywords:
-  - _SHINE
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3010
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 9596bdd90f6f2e4478d1ae61652dd0da, type: 3}
+        m_Texture: {fileID: 2800000, guid: 163bbbd0261479d428609a15944dffcc, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BaseTex:
+        m_Texture: {fileID: 2800000, guid: 163bbbd0261479d428609a15944dffcc, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -46,12 +62,8 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _Emission_Map:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 163bbbd0261479d428609a15944dffcc, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -67,11 +79,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ShineMap:
-        m_Texture: {fileID: 2800000, guid: c8d4301f741cf7d4e842c707fd93da3e, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _Shine_Map:
-        m_Texture: {fileID: 2800000, guid: c8d4301f741cf7d4e842c707fd93da3e, type: 3}
+        m_Texture: {fileID: 2800000, guid: 56df8b1b48030204082fe4efc1e88215, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
@@ -111,11 +119,13 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
-    - _QueueOffset: 10
+    - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _SHINE: 1
-    - _Shine_Amount: 0.2
-    - _Smoothness: 0
+    - _ShineAmount: 1
+    - _ShineBrightness: 0.1
+    - _ShineHue: 20
+    - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -123,22 +133,8 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Color: {r: 0, g: 1, b: 0.8823528, a: 1}
+    - _BaseColor: {r: 0, g: 0.83644104, b: 1, a: 1}
+    - _Color: {r: 0, g: 0.83644104, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Emission_Color: {r: 1, g: 1, b: 1, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
---- !u!114 &4067275020928741895
-MonoBehaviour:
-  m_ObjectHideFlags: 11
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  version: 5
