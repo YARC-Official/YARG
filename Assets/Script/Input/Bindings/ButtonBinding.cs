@@ -228,7 +228,7 @@ namespace YARG.Input
             // Already fired in ControlBinding
             // FireStateChanged();
 
-            // Only start debounce on button press
+            // Only start collective debounce on button press
             if (State && !_debounceTimer.IsRunning)
                 _debounceTimer.Start(time);
         }
