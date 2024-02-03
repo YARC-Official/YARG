@@ -23,13 +23,13 @@ namespace YARG.Input
             set => _timeThreshold = Math.Clamp(value, 0, DEBOUNCE_TIME_MAX);
         }
 
-        public bool Enabled => _timeThreshold > 0;
+        public bool IsEnabled => _timeThreshold > 0;
         public bool IsRunning => _timer.IsRunning;
         public bool HasElapsed => !_timer.IsRunning || _timer.ElapsedMilliseconds >= _timeThreshold;
 
         public void Start()
         {
-            if (!Enabled)
+            if (!IsEnabled)
                 return;
 
             _timer.Start();

@@ -28,16 +28,20 @@ namespace YARG.Input
                 }
             }
 
-            // Ignore repeat presses/releases within the debounce threshold
+            // Ignore presses/releases within the debounce threshold
             _debounceTimer.Update(pressed);
             if (!_debounceTimer.HasElapsed)
                 return;
 
-            State = _debounceTimer.Restart();
-            FireInputEvent(time, pressed);
+            State = _debounceTimer.Stop();
+            FireInputEvent(time, State);
 
             // Already fired in ControlBinding
             // FireStateChanged();
+
+            // Only start debounce on button press
+            if (State && !_debounceTimer.IsRunning)
+                _debounceTimer.Start();
         }
     }
 }
