@@ -118,18 +118,18 @@ namespace YARG.Input
             return serialized;
         }
 
-        public override void UpdateState()
+        public override void UpdateState(double time)
         {
             PreviousState = State;
 
             // Read new state
-            _debounceTimer.Update(CalculateState(Control.value));
+            _debounceTimer.UpdateValue(CalculateState(Control.value));
 
             // Wait for debounce to end
-            if (!_debounceTimer.HasElapsed)
+            if (!_debounceTimer.HasElapsed(time))
                 return;
 
-            State = _debounceTimer.Restart();
+            State = _debounceTimer.Restart(time);
             InvokeStateChanged(State);
         }
 
@@ -138,9 +138,9 @@ namespace YARG.Input
             return rawValue * _invertSign;
         }
 
-        public void UpdateDebounce()
+        public void UpdateDebounce(double time)
         {
-            if (!_debounceTimer.IsRunning || !_debounceTimer.HasElapsed)
+            if (!_debounceTimer.IsRunning || !_debounceTimer.HasElapsed(time))
                 return;
 
             State = _debounceTimer.Stop();
@@ -209,7 +209,7 @@ namespace YARG.Input
                 if (other == binding)
                     continue;
 
-                other.UpdateDebounce();
+                other.UpdateDebounce(time);
                 state |= other.IsPressed;
             }
 
@@ -218,8 +218,8 @@ namespace YARG.Input
                 return;
 
             // Ignore presses/releases within the debounce threshold
-            _debounceTimer.Update(state);
-            if (!_debounceTimer.HasElapsed)
+            _debounceTimer.UpdateValue(state);
+            if (!_debounceTimer.HasElapsed(time))
                 return;
 
             State = _debounceTimer.Stop();
@@ -230,7 +230,7 @@ namespace YARG.Input
 
             // Only start debounce on button press
             if (State && !_debounceTimer.IsRunning)
-                _debounceTimer.Start();
+                _debounceTimer.Start(time);
         }
 
         public override void UpdateForFrame(double updateTime)
@@ -244,13 +244,13 @@ namespace YARG.Input
             bool collectiveState = false;
             foreach (var binding in _bindings)
             {
-                binding.UpdateDebounce();
+                binding.UpdateDebounce(updateTime);
                 collectiveState |= binding.IsPressed;
             }
 
             // Ignore presses/releases within the debounce threshold
-            _debounceTimer.Update(collectiveState);
-            if (!_debounceTimer.HasElapsed)
+            _debounceTimer.UpdateValue(collectiveState);
+            if (!_debounceTimer.HasElapsed(updateTime))
                 return;
 
             bool state = _debounceTimer.Stop();

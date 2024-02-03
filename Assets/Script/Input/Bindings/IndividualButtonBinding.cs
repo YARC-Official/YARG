@@ -20,7 +20,7 @@ namespace YARG.Input
                 if (other == binding)
                     continue;
 
-                other.UpdateDebounce();
+                other.UpdateDebounce(time);
                 othersPressed |= other.IsPressed;
             }
 
@@ -34,8 +34,8 @@ namespace YARG.Input
                 return;
 
             // Ignore presses/releases within the debounce threshold
-            _debounceTimer.Update(pressed);
-            if (!_debounceTimer.HasElapsed)
+            _debounceTimer.UpdateValue(pressed);
+            if (!_debounceTimer.HasElapsed(time))
                 return;
 
             State = _debounceTimer.Stop();
@@ -46,7 +46,7 @@ namespace YARG.Input
 
             // Only start debounce on button press
             if (State && !_debounceTimer.IsRunning)
-                _debounceTimer.Start();
+                _debounceTimer.Start(time);
         }
     }
 }
