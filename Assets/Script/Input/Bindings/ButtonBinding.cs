@@ -8,14 +8,27 @@ using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
+    public enum DebounceMode
+    {
+        /// <summary>Activates on press only.</summary>
+        Press,
+
+        /// <summary>Activates on release only.</summary>
+        Release,
+
+        /// <summary>Activates on both press and release.</summary>
+        PressAndRelease,
+    }
+
     public class SingleButtonBinding : SingleBinding<float>
     {
         private const bool INVERT_DEFAULT = false;
-        private const long DEBOUNCE_DEFAULT = 5;
+        private const DebounceMode DEBOUNCE_MODE_DEFAULT = DebounceMode.Press;
+        private const long DEBOUNCE_THRESHOLD_DEFAULT = 5;
 
         private DebounceTimer<float> _debounceTimer = new()
         {
-            TimeThreshold = DEBOUNCE_DEFAULT,
+            TimeThreshold = DEBOUNCE_THRESHOLD_DEFAULT,
         };
 
         private float _invertSign = INVERT_DEFAULT ? -1 : 1;
@@ -56,6 +69,8 @@ namespace YARG.Input
             }
         }
 
+        public DebounceMode DebounceMode { get; set; } = DEBOUNCE_MODE_DEFAULT;
+
         /// <summary>
         /// The debounce time threshold, in milliseconds. Use 0 or less to disable debounce.
         /// </summary>
@@ -95,9 +110,15 @@ namespace YARG.Input
 
             PressPoint = pressPoint;
 
-            if (!serialized.Parameters.TryGetValue(nameof(DebounceThreshold), out string debounceText) ||
-                !long.TryParse(debounceText, out long debounceThreshold))
-                debounceThreshold = DEBOUNCE_DEFAULT;
+            if (!serialized.Parameters.TryGetValue(nameof(DebounceMode), out string modeText) ||
+                !Enum.TryParse<DebounceMode>(modeText, out var debounceMode))
+                debounceMode = DEBOUNCE_MODE_DEFAULT;
+
+            DebounceMode = debounceMode;
+
+            if (!serialized.Parameters.TryGetValue(nameof(DebounceThreshold), out string thresholdText) ||
+                !long.TryParse(thresholdText, out long debounceThreshold))
+                debounceThreshold = DEBOUNCE_THRESHOLD_DEFAULT;
 
             DebounceThreshold = debounceThreshold;
         }
@@ -112,7 +133,9 @@ namespace YARG.Input
                 serialized.Parameters.Add(nameof(Inverted), Inverted.ToString().ToLower());
             if (Math.Abs(PressPoint - Control.GetPressPoint()) >= 0.001)
                 serialized.Parameters.Add(nameof(PressPoint), PressPoint.ToString());
-            if (DebounceThreshold != DEBOUNCE_DEFAULT)
+            if (DebounceMode != DEBOUNCE_MODE_DEFAULT)
+                serialized.Parameters.Add(nameof(DebounceMode), DebounceMode.ToString());
+            if (DebounceThreshold != DEBOUNCE_THRESHOLD_DEFAULT)
                 serialized.Parameters.Add(nameof(DebounceThreshold), DebounceThreshold.ToString());
 
             return serialized;
@@ -129,7 +152,15 @@ namespace YARG.Input
             if (!_debounceTimer.HasElapsed(time))
                 return;
 
-            State = _debounceTimer.Restart(time);
+            State = _debounceTimer.Stop();
+
+            if (DebounceMode == DebounceMode.PressAndRelease ||
+                (IsPressed && DebounceMode == DebounceMode.Press) ||
+                (!IsPressed && DebounceMode == DebounceMode.Release))
+            {
+                _debounceTimer.Start(time);
+            }
+
             InvokeStateChanged(State);
         }
 
