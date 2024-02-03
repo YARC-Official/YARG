@@ -13,20 +13,25 @@ namespace YARG.Input
 
         protected override void OnStateChanged(SingleButtonBinding binding, double time)
         {
+            // Update debounce on all bindings
+            bool othersPressed = false;
+            foreach (var other in _bindings)
+            {
+                if (other == binding)
+                    continue;
+
+                other.UpdateDebounce();
+                othersPressed |= other.IsPressed;
+            }
+
             bool pressed = binding.IsPressed;
             // For axes/analog buttons
             if (pressed == binding.WasPreviouslyPressed)
                 return;
 
             // Don't send a release event until all other bindings are released
-            if (!pressed)
-            {
-                foreach (var otherBinding in _bindings)
-                {
-                    if (otherBinding.IsPressed)
-                        return;
-                }
-            }
+            if (!pressed && othersPressed)
+                return;
 
             // Ignore presses/releases within the debounce threshold
             _debounceTimer.Update(pressed);

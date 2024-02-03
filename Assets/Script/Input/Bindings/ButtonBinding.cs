@@ -138,14 +138,14 @@ namespace YARG.Input
             return rawValue * _invertSign;
         }
 
-        public bool UpdateDebounce()
+        public void UpdateDebounce()
         {
             if (!_debounceTimer.IsRunning || !_debounceTimer.HasElapsed)
-                return false;
+                return;
 
             State = _debounceTimer.Stop();
             InvokeStateChanged(State);
-            return true;
+            return;
         }
     }
 
@@ -201,12 +201,16 @@ namespace YARG.Input
                 return actuated;
         }
 
-        protected override void OnStateChanged(SingleButtonBinding _, double time)
+        protected override void OnStateChanged(SingleButtonBinding binding, double time)
         {
-            bool state = false;
-            foreach (var binding in _bindings)
+            bool state = binding.IsPressed;
+            foreach (var other in _bindings)
             {
-                state |= binding.IsPressed;
+                if (other == binding)
+                    continue;
+
+                other.UpdateDebounce();
+                state |= other.IsPressed;
             }
 
             // Ignore if state is unchanged
