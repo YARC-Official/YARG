@@ -37,22 +37,17 @@ namespace YARG.Gameplay
         public bool HasSelectedSection    { get; private set; }
         public bool HasUpdatedAbPositions { get; private set; }
 
-        protected override void GameplayAwake()
-        {
-            Navigator.Instance.NavigationEvent += OnNavigationEvent;
-        }
-
         private void Start()
         {
-            if (GameManager.IsPractice)
-            {
-                _practiceHud.gameObject.SetActive(true);
-                _scoreDisplayObject.SetActive(false);
-            }
-            else
+            if (!GameManager.IsPractice)
             {
                 Destroy(this);
+                return;
             }
+
+            Navigator.Instance.NavigationEvent += OnNavigationEvent;
+            _practiceHud.gameObject.SetActive(true);
+            _scoreDisplayObject.SetActive(false);
         }
 
         protected override void GameplayDestroy()
