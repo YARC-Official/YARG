@@ -19,6 +19,8 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private ValueSlider _velocityThresholdSlider;
         [SerializeField]
+        private TMP_Dropdown _debounceModeDropdown;
+        [SerializeField]
         private ValueSlider _debounceSlider;
 
         public override void Init(ButtonBinding binding, SingleButtonBinding singleBinding)
@@ -28,6 +30,7 @@ namespace YARG.Menu.ProfileInfo
             // Set with notify for propogation to other components
             _velocityThresholdSlider.SetValueWithoutNotify(MAX_VELOCITY); // Ensure change event is fired, this starts at 1
             _velocityThresholdSlider.Value = (int) (singleBinding.PressPoint * MAX_VELOCITY);
+            _debounceModeDropdown.value = (int) singleBinding.DebounceMode;
             _debounceSlider.Value = singleBinding.DebounceThreshold;
 
             singleBinding.StateChanged += OnStateChanged;
@@ -55,6 +58,11 @@ namespace YARG.Menu.ProfileInfo
             float pressPoint = value / MAX_VELOCITY;
             SingleBinding.PressPoint = pressPoint;
             _valueDisplay.PressPoint = -1f + (pressPoint * 2f);
+        }
+
+        public void OnDebounceModeChanged(int value)
+        {
+            SingleBinding.DebounceMode = (DebounceMode) value;
         }
 
         public void OnDebounceValueChanged(float value)

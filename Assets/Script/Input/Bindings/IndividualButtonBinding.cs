@@ -13,67 +13,40 @@ namespace YARG.Input
 
         protected override void OnStateChanged(SingleButtonBinding binding, double time)
         {
+            // Update debounce on all bindings
+            bool othersPressed = false;
+            foreach (var other in _bindings)
+            {
+                if (other == binding)
+                    continue;
+
+                other.UpdateDebounce(time);
+                othersPressed |= other.IsPressed;
+            }
+
             bool pressed = binding.IsPressed;
             // For axes/analog buttons
             if (pressed == binding.WasPreviouslyPressed)
                 return;
 
             // Don't send a release event until all other bindings are released
-            if (!pressed)
-            {
-                foreach (var otherBinding in _bindings)
-                {
-                    if (otherBinding.IsPressed)
-                        return;
-                }
-            }
-
-            ProcessNextState(time, pressed);
-        }
-
-        private void ProcessNextState(double time, bool state)
-        {
-            RawState = state;
-
-            // Ignore repeat presses/releases within the debounce threshold
-            _debounceTimer.Update(state);
-            if (!_debounceTimer.HasElapsed)
+            if (!pressed && othersPressed)
                 return;
 
-            _debounceTimer.Restart();
-            State = _debounceTimer.Value;
-            FireInputEvent(time, state);
-        }
+            // Ignore presses/releases within the debounce threshold
+            _debounceTimer.UpdateValue(pressed);
+            if (!_debounceTimer.HasElapsed(time))
+                return;
 
-        public override void UpdateForFrame(double updateTime)
-        {
-            UpdateDebounce(updateTime);
-        }
+            State = _debounceTimer.Stop();
+            FireInputEvent(time, State);
 
-        private void UpdateDebounce(double updateTime)
-        {
-            bool anyFinished = false;
-            bool state = false;
-            foreach (var binding in _bindings)
-            {
-                if (!binding.UpdateDebounce())
-                    continue;
+            // Already fired in ControlBinding
+            // FireStateChanged();
 
-                anyFinished = true;
-                state |= binding.IsPressed;
-            }
-
-            // Only send a post-debounce event if the state changed
-            if (anyFinished && state != State)
-            {
-                ProcessNextState(updateTime, state);
-                FireStateChanged();
-            }
-            else if (_debounceTimer.HasElapsed && _debounceTimer.Value != State)
-            {
-                ProcessNextState(updateTime, _debounceTimer.Value);
-                FireStateChanged();
-            }
+            // Only start debounce on button press
+            if (State && !_debounceTimer.IsRunning)
+                _debounceTimer.Start(time);
         }
     }
 }
