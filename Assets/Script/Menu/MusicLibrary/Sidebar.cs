@@ -256,11 +256,11 @@ namespace YARG.Menu.MusicLibrary
 
             string value = type switch
             {
-                "source"  => songEntry.Source,
-                "album"   => songEntry.Album,
+                "source"  => songEntry.Source.SortStr,
+                "album"   => songEntry.Album.SortStr,
                 "year"    => songEntry.Year,
-                "charter" => songEntry.Charter,
-                "genre"   => songEntry.Genre,
+                "charter" => songEntry.Charter.SortStr,
+                "genre"   => songEntry.Genre.SortStr,
                 _         => throw new Exception("Unreachable")
             };
 
