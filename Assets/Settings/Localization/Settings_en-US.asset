@@ -145,7 +145,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619349
-    m_Localized: Disable Per Song Backgrounds
+    m_Localized: Disable Per-Song Backgrounds
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619351
@@ -954,6 +954,15 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 111744428001841152
     m_Localized: Enables claps to the beat while Star Power is active.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 114727832880271360
+    m_Localized: Disable Global Backgrounds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 114727863477719040
+    m_Localized: Disables custom backgrounds from your venue folder and shows the
+      ones in songs instead.
     m_Metadata:
       m_Items: []
   references:

@@ -223,6 +223,14 @@ MonoBehaviour:
     m_Key: Setting.General.AudioCalibration.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 114727832880271360
+    m_Key: Setting.General.DisableGlobalBackgrounds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 114727863477719040
+    m_Key: Setting.General.DisableGlobalBackgrounds.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 53693768667619349
     m_Key: Setting.General.DisablePerSongBackgrounds
     m_Metadata:

@@ -28,6 +28,7 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Venues"),
                 new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),
+                nameof(Settings.DisableGlobalBackgrounds),
                 nameof(Settings.DisablePerSongBackgrounds),
 
                 new HeaderMetadata("Calibration"),
