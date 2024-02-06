@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -23,8 +24,10 @@ namespace YARG.Gameplay.Player
         private bool _fiveLaneMode;
         [SerializeField]
         private FretArray _fretArray;
+        [FormerlySerializedAs("_kickFrets")]
+        [FormerlySerializedAs("_kickFret")]
         [SerializeField]
-        private KickFret _kickFret;
+        private KickFretFlash _kickFretFlash;
 
         public override float[] StarMultiplierThresholds { get; protected set; } =
         {
@@ -126,7 +129,7 @@ namespace YARG.Gameplay.Player
                 }
                 else
                 {
-                    _kickFret.PlayHitAnimation(false);
+                    _kickFretFlash.PlayHitAnimation(false);
                 }
             };
 
@@ -146,15 +149,13 @@ namespace YARG.Gameplay.Player
             _fretArray.FretCount = !_fiveLaneMode ? 4 : 5;
 
             _fretArray.Initialize(
-                SetupFretTheme(Player.Profile.GameMode),
+                Player.ThemePreset,
+                Player.Profile.GameMode,
                 colors,
                 Player.Profile.LeftyFlip);
 
             // Particle 0 is always kick fret
-            _kickFret.Initialize(
-                colors.GetParticleColor(0).ToUnityColor(),
-                colors.GetFretColor(0).ToUnityColor(),
-                colors.GetFretInnerColor(0).ToUnityColor());
+            _kickFretFlash.Initialize(colors.GetParticleColor(0).ToUnityColor());
         }
 
         protected override void UpdateVisuals(double songTime)
@@ -255,7 +256,7 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                _kickFret.PlayHitAnimation(true);
+                _kickFretFlash.PlayHitAnimation(true);
                 CameraPositioner.Bounce();
             }
         }

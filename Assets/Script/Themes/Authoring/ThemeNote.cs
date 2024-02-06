@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace YARG.Themes
@@ -25,17 +23,6 @@ namespace YARG.Themes
 
     public class ThemeNote : MonoBehaviour
     {
-        [Serializable]
-        public struct MeshMaterialIndex
-        {
-            public MeshRenderer Mesh;
-            public int MaterialIndex;
-
-            [Space]
-            public float EmissionMultiplier;
-            public float EmissionAddition;
-        }
-
         [field: Space]
         [field: SerializeField]
         public ThemeNoteType NoteType { get; private set; }
@@ -44,12 +31,12 @@ namespace YARG.Themes
 
         [Space]
         [SerializeField]
-        private MeshMaterialIndex[] _coloredMaterials;
+        private MeshEmissionMaterialIndex[] _coloredMaterials;
         [SerializeField]
-        private MeshMaterialIndex[] _coloredMaterialsNoStarPower;
+        private MeshEmissionMaterialIndex[] _coloredMaterialsNoStarPower;
 
-        public IEnumerable<MeshMaterialIndex> ColoredMaterials => _coloredMaterials;
-        public IEnumerable<MeshMaterialIndex> ColoredMaterialsNoStarPower => _coloredMaterialsNoStarPower;
+        public IEnumerable<MeshEmissionMaterialIndex> ColoredMaterials => _coloredMaterials;
+        public IEnumerable<MeshEmissionMaterialIndex> ColoredMaterialsNoStarPower => _coloredMaterialsNoStarPower;
 
         private void OnDrawGizmos()
         {

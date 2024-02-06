@@ -13,7 +13,7 @@ namespace YARG.Gameplay.Visuals
             public float EmissionMultiplier;
             public float EmissionAddition;
 
-            public static MaterialInfo From(ThemeNote.MeshMaterialIndex a)
+            public static MaterialInfo From(MeshEmissionMaterialIndex a)
             {
                 return new MaterialInfo
                 {

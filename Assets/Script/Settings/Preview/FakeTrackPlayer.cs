@@ -23,6 +23,8 @@ namespace YARG.Settings.Preview
             public delegate FakeNoteData CreateFakeNoteFunc(double time);
 
             public int FretCount;
+            public bool UseKickFrets;
+
             public FretColorProviderFunc FretColorProviderGetter;
             public CreateFakeNoteFunc CreateFakeNote;
         }
@@ -34,6 +36,8 @@ namespace YARG.Settings.Preview
                 new Info
                 {
                     FretCount = 5,
+                    UseKickFrets = false,
+
                     FretColorProviderGetter = (colorProfile) => colorProfile.FiveFretGuitar,
                     CreateFakeNote = (time) =>
                     {
@@ -105,9 +109,9 @@ namespace YARG.Settings.Preview
             var theme = ThemePreset.Default;
 
             // Create frets and put then on the right layer
-            var fret = ThemeManager.Instance.CreateFretPrefabFromTheme(theme, _selectedGameMode);
             _fretArray.FretCount = CurrentGameModeInfo.FretCount;
-            _fretArray.Initialize(fret,
+            _fretArray.UseKickFrets = CurrentGameModeInfo.UseKickFrets;
+            _fretArray.Initialize(theme, _selectedGameMode,
                 CurrentGameModeInfo.FretColorProviderGetter(ColorProfile.Default), false);
             _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
 

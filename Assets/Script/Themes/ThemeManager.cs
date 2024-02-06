@@ -48,25 +48,54 @@ namespace YARG.Themes
 
         public GameObject CreateFretPrefabFromTheme(ThemePreset preset, GameMode gameMode)
         {
+            return CreatePrefabFromTheme<ThemeFret, Fret>(preset, gameMode);
+        }
+
+        public GameObject CreateKickFretPrefabFromTheme(ThemePreset preset, GameMode gameMode)
+        {
+            return CreatePrefabFromTheme<ThemeKickFret, KickFret>(preset, gameMode);
+        }
+
+        private GameObject CreatePrefabFromTheme<TTheme, TBind>(ThemePreset preset, GameMode gameMode)
+            where TBind : MonoBehaviour, IThemeBindable<TTheme>
+        {
             // Get the theme container
             var container = GetThemeContainer(preset, gameMode);
-            if (container is null) return null;
+            if (container is null)
+            {
+                return null;
+            }
 
-            // Try to get and return a cached version
-            var cached = container.FretCache.GetValueOrDefault(gameMode);
-            if (cached != null) return cached;
-            // ...otherwise we'll have to create it
+            // Try to get the prefab cache
+            Dictionary<GameMode, GameObject> prefabCache;
+            if (container.PrefabCache.TryGetValue(typeof(TTheme), out var cache))
+            {
+                prefabCache = cache;
+            }
+            else
+            {
+                prefabCache = new Dictionary<GameMode, GameObject>();
+                container.PrefabCache[typeof(TTheme)] = prefabCache;
+            }
+
+            // Try to get and return a cached version, otherwise we'll have to create it
+            var cached = prefabCache.GetValueOrDefault(gameMode);
+            if (cached != null)
+            {
+                return cached;
+            }
 
             // Duplicate the prefab
-            var themeFret = container.GetThemeComponent().GetFretModelForGameMode(gameMode);
-            var gameObject = Instantiate(themeFret, transform);
+            var prefab = container.GetThemeComponent().GetModelForGameMode<TTheme>(gameMode);
+            var gameObject = Instantiate(prefab, transform);
 
             // Set info
-            Fret.CreateFromThemeFret(gameObject.GetComponent<ThemeFret>());
+            var bindComp = gameObject.AddComponent<TBind>();
+            bindComp.ThemeBind = gameObject.GetComponent<TTheme>();
 
             // Disable and return
             gameObject.SetActive(false);
-            container.FretCache[gameMode] = gameObject;
+            prefabCache[gameMode] = gameObject;
             return gameObject;
         }
 

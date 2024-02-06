@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using YARG.Helpers.Authoring;
 
 namespace YARG.Themes
 {
@@ -10,23 +9,11 @@ namespace YARG.Themes
     // Changing the serialized fields in this file will result in older themes
     // not working properly. Only change if you need to.
 
-    public class ThemeFret : MonoBehaviour
+    public class ThemeKickFret : MonoBehaviour
     {
-        private const float FRET_SIZE = 2f / 5f;
-
         [Space]
         [SerializeField]
         private MeshMaterialIndex[] _coloredMaterials;
-        [SerializeField]
-        private MeshMaterialIndex[] _innerMaterials;
-
-        [field: Space]
-        [field: SerializeField]
-        public EffectGroup HitEffect { get; private set; }
-        [field: SerializeField]
-        public EffectGroup SustainEffect { get; private set; }
-        [field: SerializeField]
-        public EffectGroup PressedEffect { get; private set; }
 
         [field: Space]
         [field: SerializeField]
@@ -35,7 +22,7 @@ namespace YARG.Themes
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawWireCube(transform.position, new Vector3(FRET_SIZE, 0f, FRET_SIZE));
+            Gizmos.DrawWireCube(transform.position, new Vector3(1f, 0f, 1f));
         }
 
         /// <summary>
@@ -44,14 +31,6 @@ namespace YARG.Themes
         public IEnumerable<Material> GetColoredMaterials()
         {
             return _coloredMaterials.Select(i => i.Mesh.materials[i.MaterialIndex]);
-        }
-
-        /// <summary>
-        /// Warning! This can be slow. Cache values if needed repeatedly.
-        /// </summary>
-        public IEnumerable<Material> GetInnerColoredMaterials()
-        {
-            return _innerMaterials.Select(i => i.Mesh.materials[i.MaterialIndex]);
         }
     }
 }

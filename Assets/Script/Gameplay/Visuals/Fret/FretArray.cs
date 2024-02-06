@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
+using YARG.Core;
 using YARG.Core.Game;
+using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -12,24 +14,34 @@ namespace YARG.Gameplay.Visuals
 
         [FormerlySerializedAs("_fretCount")]
         public int FretCount;
+        public bool UseKickFrets;
+
         [SerializeField]
         private float _trackWidth = 2f;
 
-        private GameObject _fretPrefab;
+        [Space]
+        [SerializeField]
+        private Transform _leftKickFretPosition;
+        [SerializeField]
+        private Transform _rightKickFretPosition;
 
         private readonly List<Fret> _frets = new();
+        private readonly List<KickFret> _kickFrets = new();
 
-        public IReadOnlyList<Fret> Frets => _frets;
-
-        public void Initialize(GameObject fretPrefab, ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
+        public void Initialize(ThemePreset themePreset, GameMode gameMode,
+            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
         {
-            _fretPrefab = fretPrefab;
+            var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
+                themePreset, gameMode);
+            var kickFretPrefab = ThemeManager.Instance.CreateKickFretPrefabFromTheme(
+                themePreset, gameMode);
 
+            // Spawn in normal frets
             _frets.Clear();
             for (int i = 0; i < FretCount; i++)
             {
                 // Spawn
-                var fret = Instantiate(_fretPrefab, transform);
+                var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);
 
                 // Position
@@ -45,6 +57,25 @@ namespace YARG.Gameplay.Visuals
                 _frets.Add(fretComp);
             }
 
+            _kickFrets.Clear();
+            if (UseKickFrets)
+            {
+                // Spawn in kick frets
+                var leftKick = Instantiate(kickFretPrefab, transform);
+                leftKick.SetActive(true);
+                var rightKick = Instantiate(kickFretPrefab, transform);
+                rightKick.SetActive(true);
+
+                // Position kick frets
+                leftKick.transform.localPosition = _leftKickFretPosition.localPosition;
+                rightKick.transform.localPosition = _rightKickFretPosition.localPosition;
+                rightKick.transform.localScale = rightKick.transform.localScale.InvertX();
+
+                // Add kick frets
+                _kickFrets.Add(leftKick.GetComponent<KickFret>());
+                _kickFrets.Add(rightKick.GetComponent<KickFret>());
+            }
+
             InitializeColor(fretColorProvider);
         }
 
@@ -56,6 +87,11 @@ namespace YARG.Gameplay.Visuals
                     fretColorProvider.GetFretColor(i + 1),
                     fretColorProvider.GetFretInnerColor(i + 1),
                     fretColorProvider.GetParticleColor(i + 1));
+            }
+
+            foreach (var kick in _kickFrets)
+            {
+                kick.Initialize(fretColorProvider.GetFretColor(0));
             }
         }
 
@@ -90,6 +126,14 @@ namespace YARG.Gameplay.Visuals
             if (particles)
             {
                 _frets[index].PlayHitParticles();
+            }
+        }
+
+        public void PlayKickFretAnimation()
+        {
+            foreach (var kick in _kickFrets)
+            {
+                kick.PlayHitAnimation();
             }
         }
 

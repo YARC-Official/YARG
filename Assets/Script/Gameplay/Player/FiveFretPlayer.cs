@@ -94,7 +94,8 @@ namespace YARG.Gameplay.Player
 
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
             _fretArray.Initialize(
-                SetupFretTheme(Player.Profile.GameMode),
+                Player.ThemePreset,
+                Player.Profile.GameMode,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip);
         }
@@ -103,10 +104,7 @@ namespace YARG.Gameplay.Player
         {
             base.ResetPracticeSection();
 
-            for (int i = 0; i < _fretArray.Frets.Count; i++)
-            {
-                _fretArray.SetSustained(i, false);
-            }
+            _fretArray.ResetAll();
         }
 
         protected override void UpdateVisuals(double songTime)
