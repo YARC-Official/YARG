@@ -94,13 +94,14 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
+        private static readonly SortString _YARGSOURCE = "yarg";
         private static void AddRandomSong()
         {
             // Try to add a YARG setlist song (we love bias!)
             if (Random.value <= 0.6f)
             {
-                var sources = GlobalVariables.Instance.SongContainer.GetSortedSongList(SongAttribute.Source);
-                if (sources.TryGetValue("yarg", out var yargSongs))
+                var sources = GlobalVariables.Instance.SongContainer.Sources;
+                if (sources.TryGetValue(_YARGSOURCE, out var yargSongs))
                 {
                     var song = yargSongs.Pick();
                     if (!_recommendedSongs.Contains(song))

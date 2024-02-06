@@ -28,6 +28,7 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Venues"),
                 new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),
+                nameof(Settings.DisableGlobalBackgrounds),
                 nameof(Settings.DisablePerSongBackgrounds),
 
                 new HeaderMetadata("Calibration"),
@@ -139,7 +140,12 @@ namespace YARG.Settings
 
         public static void SaveSettings()
         {
-            File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(Settings, Formatting.Indented));
+            // If the game tries to save the settings before they are loaded, it can wipe the settings file
+            // (such as closing the game before they load)
+            if (SettingContainer.IsLoading || Settings is not null)
+            {
+                File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(Settings, Formatting.Indented));
+            }
         }
 
         public static void DeleteSettings()

@@ -383,6 +383,10 @@ MonoBehaviour:
     m_Key: Time.Yesterday
     m_Metadata:
       m_Items: []
+  - m_Id: 112914116042452992
+    m_Key: SongAttribute.DateAdded
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -59,6 +59,7 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
+            public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
 
             public void OpenCalibrator()

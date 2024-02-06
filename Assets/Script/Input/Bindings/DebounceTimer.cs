@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 
 namespace YARG.Input
 {
@@ -7,8 +6,10 @@ namespace YARG.Input
     {
         public const long DEBOUNCE_TIME_MAX = 25;
 
-        private Stopwatch _timer = new();
-        private long _timeThreshold = 0;
+        // double.MinValue is used to simplify HasElapsed,
+        // as it should result in true when not enabled
+        private double _startTime = double.MinValue;
+        private double _timeThreshold = 0;
         private T _postDebounceValue;
 
         /// <summary>
@@ -16,39 +17,41 @@ namespace YARG.Input
         /// </summary>
         public long TimeThreshold
         {
-            get => _timeThreshold;
+            get => (long) (_timeThreshold * 1000);
             // Limit debounce amount to 0-25 ms
             // Any larger and input registration will be very bad, the max will limit to 40 inputs per second
             // If someone needs a larger amount their controller is just busted lol
-            set => _timeThreshold = Math.Clamp(value, 0, DEBOUNCE_TIME_MAX);
+            set => _timeThreshold = Math.Clamp(value, 0, DEBOUNCE_TIME_MAX) / 1000.0;
         }
 
-        public bool Enabled => TimeThreshold > 0;
-        public bool HasElapsed => !_timer.IsRunning || _timer.ElapsedMilliseconds >= TimeThreshold;
+        public bool IsEnabled => _timeThreshold > 0;
+        public bool IsRunning => _startTime != double.MinValue;
 
-        public T Value { get; private set; }
-
-        public void Start()
+        public void Start(double time)
         {
-            if (!Enabled)
+            if (!IsEnabled)
                 return;
 
-            _timer.Start();
+            _startTime = time;
         }
 
-        public void Reset()
+        public T Stop()
         {
-            _timer.Reset();
-            Value = _postDebounceValue;
+            _startTime = double.MinValue;
+            return _postDebounceValue;
         }
 
-        public void Restart()
+        public T Restart(double time)
         {
-            Reset();
-            Start();
+            var value = Stop();
+            Start(time);
+            return value;
         }
 
-        public void Update(T value)
+        public bool HasElapsed(double time)
+            => time >= (_startTime + _timeThreshold);
+
+        public void UpdateValue(T value)
         {
             _postDebounceValue = value;
         }

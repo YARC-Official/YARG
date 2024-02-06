@@ -126,7 +126,15 @@ namespace YARG.Gameplay.Player
         }
 
         protected abstract void ResetVisuals();
-        public abstract void ResetPracticeSection();
+
+        public virtual void ResetPracticeSection()
+        {
+            _lastCombo = 0;
+
+            IsFc = true;
+
+            ResetVisuals();
+        }
 
         public virtual void UpdateWithTimes(double inputTime)
         {

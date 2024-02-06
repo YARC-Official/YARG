@@ -156,7 +156,7 @@ namespace YARG.Input
         {
         }
 
-        public virtual void UpdateState()
+        public virtual void UpdateState(double time)
         {
             State = Control.value;
             InvokeStateChanged(State);
@@ -468,7 +468,7 @@ namespace YARG.Input
                 return;
             }
 
-            binding.UpdateState();
+            binding.UpdateState(eventPtr.time);
             OnStateChanged(binding, eventPtr.time);
             FireStateChanged();
         }

@@ -106,13 +106,14 @@ There are some dependencies that will be needed in order for HID devices (such a
 2. Make sure you have the latest version of [Blender](https://www.blender.org/) installed. This is for loading models, even if you don't plan on editing them.
 3. Clone the repository. If you are not familiar with git, [GitHub Desktop](https://desktop.github.com/) or [Visual Studio Code](https://code.visualstudio.com/) plus the [GitLens extension](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) are both good GUI options. If, however, you want to use the command-line:
    1. Download [Git](https://git-scm.com/downloads). Be sure it is added to system path.
-   2. Open the command prompt in the directory you want to store the repository.
-   3. Clone the project repository:
-   4. Type in `git clone -b dev --recursive <repository url>.git`, replacing `<repository url>` with either:
+   2. Also download [Git LFS](https://git-lfs.com), and install it with the `git lfs install` command.
+   3. Open the command prompt in the directory you want to store the repository.
+   4. Clone the project repository:
+   5. Type in `git clone -b dev --recursive <repository url>.git`, replacing `<repository url>` with either:
       - your fork's URL if you made one, or
       - the main repository's URL (`https://github.com/YARC-Official/YARG`) if you just want to build the game.
       - A complete example using the main repository's URL is `git clone -b dev --recursive https://github.com/YARC-Official/YARG.git`.
-   5. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
+   6. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
 4. Install Unity Hub and Unity `2021.3.21f1` (LTS).
    1. Download and install [Unity Hub](https://unity.com/download).
    2. Sign-in/create an account with a personal license (free).
