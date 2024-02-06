@@ -33,8 +33,6 @@ namespace YARG.Gameplay.Visuals
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
                 themePreset, gameMode);
-            var kickFretPrefab = ThemeManager.Instance.CreateKickFretPrefabFromTheme(
-                themePreset, gameMode);
 
             // Spawn in normal frets
             _frets.Clear();
@@ -60,6 +58,9 @@ namespace YARG.Gameplay.Visuals
             _kickFrets.Clear();
             if (UseKickFrets)
             {
+                var kickFretPrefab = ThemeManager.Instance.CreateKickFretPrefabFromTheme(
+                    themePreset, gameMode);
+
                 // Spawn in kick frets
                 var leftKick = Instantiate(kickFretPrefab, transform);
                 leftKick.SetActive(true);
