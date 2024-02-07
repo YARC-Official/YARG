@@ -207,6 +207,7 @@ namespace YARG.Gameplay
             GameManager.VocalTrack.ResetPracticeSection();
 
             GameManager.SetSongTime(TimeStart);
+            GameManager.Resume(inputCompensation: false);
         }
 
         private Section[] GetSectionsInPractice(uint start, uint end)
