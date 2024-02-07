@@ -86,34 +86,51 @@ namespace YARG.Menu.MusicLibrary
                 _cancellationToken = null;
             }
 
-            if (viewType is CategoryViewType categoryViewType)
+            switch (viewType)
             {
-                // Hide album art
-                _albumCover.texture = null;
-                _albumCover.color = Color.clear;
-                _album.text = string.Empty;
-
-                _source.text = categoryViewType.SourceCountText;
-                _charter.text = categoryViewType.CharterCountText;
-                _genre.text = categoryViewType.GenreCountText;
-
-                _year.text = string.Empty;
-                _length.text = string.Empty;
-
-                // Hide all difficulty rings
-                foreach (var difficultyRing in _difficultyRings)
-                {
-                    difficultyRing.gameObject.SetActive(false);
-                }
-
-                return;
+                case SongViewType songViewType:
+                    ShowSongInfo(songViewType);
+                    break;
+                case CategoryViewType categoryViewType:
+                    ClearSidebar();
+                    ShowCategoryInfo(categoryViewType);
+                    break;
+                default:
+                    ClearSidebar();
+                    break;
             }
+        }
 
-            if (viewType is not SongViewType songViewType)
+        private void ShowCategoryInfo(CategoryViewType categoryViewType)
+        {
+            _source.text = categoryViewType.SourceCountText;
+            _charter.text = categoryViewType.CharterCountText;
+            _genre.text = categoryViewType.GenreCountText;
+        }
+
+        private void ClearSidebar()
+        {
+            // Hide album art
+            _albumCover.texture = null;
+            _albumCover.color = Color.clear;
+            _album.text = string.Empty;
+
+            _year.text = string.Empty;
+            _length.text = string.Empty;
+
+            _source.text = string.Empty;
+            _charter.text = string.Empty;
+            _genre.text = string.Empty;
+
+            // Hide all difficulty rings
+            foreach (var difficultyRing in _difficultyRings)
             {
-                return;
+                difficultyRing.gameObject.SetActive(false);
             }
+        }
 
+        private void ShowSongInfo(SongViewType songViewType)
+        {
             var songEntry = songViewType.SongMetadata;
 
             _album.text = songEntry.Album;
