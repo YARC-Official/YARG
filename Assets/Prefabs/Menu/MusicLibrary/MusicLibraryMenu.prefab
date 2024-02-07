@@ -2363,8 +2363,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SelectedSongView, Assembly-CSharp
+      - m_Target: {fileID: 5958352451011471034}
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.Sidebar, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -2556,8 +2556,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SelectedSongView, Assembly-CSharp
+      - m_Target: {fileID: 5958352451011471034}
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.Sidebar, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -2565,7 +2565,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: source
+          m_StringArgument: genre
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!1 &5958352450542003452
@@ -2822,8 +2822,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SelectedSongView, Assembly-CSharp
+      - m_Target: {fileID: 5958352451011471034}
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.Sidebar, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -2831,7 +2831,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: source
+          m_StringArgument: year
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!1 &5958352450550469784
@@ -3739,8 +3739,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SelectedSongView, Assembly-CSharp
+      - m_Target: {fileID: 5958352451011471034}
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.Sidebar, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -3748,7 +3748,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: source
+          m_StringArgument: charter
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!1 &5958352451011471038
