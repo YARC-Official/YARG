@@ -37,7 +37,7 @@ namespace YARG.Gameplay.HUD
             _goldMeterParentAnimator = _goldMeterParent.GetComponent<Animator>();
             _goldMeterHeight = GetComponent<RectTransform>().rect.height;
 
-            GameManager.BeatEventHandler.Subscribe(PulseGoldMeter, 2f);
+            GameManager.BeatEventHandler.Subscribe(PulseGoldMeter);
         }
 
         protected override void GameplayDestroy()

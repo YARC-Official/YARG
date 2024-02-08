@@ -145,7 +145,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619349
-    m_Localized: Disable Per Song Backgrounds
+    m_Localized: Disable Per-Song Backgrounds
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619351
@@ -1009,6 +1009,13 @@ MonoBehaviour:
   - m_Id: 113193936720388096
     m_Localized: Any channel set here will be set to max (255) on game start. Useful
       for fixtures that have a master dimmer channel.
+  - m_Id: 114727832880271360
+    m_Localized: Disable Global Backgrounds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 114727863477719040
+    m_Localized: Disables custom backgrounds from your venue folder and shows the
+      ones in songs instead.
     m_Metadata:
       m_Items: []
   references:

@@ -8,14 +8,27 @@ using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
+    public enum DebounceMode
+    {
+        /// <summary>Activates on press only.</summary>
+        Press,
+
+        /// <summary>Activates on release only.</summary>
+        Release,
+
+        /// <summary>Activates on both press and release.</summary>
+        PressAndRelease,
+    }
+
     public class SingleButtonBinding : SingleBinding<float>
     {
         private const bool INVERT_DEFAULT = false;
-        private const long DEBOUNCE_DEFAULT = 5;
+        private const DebounceMode DEBOUNCE_MODE_DEFAULT = DebounceMode.Press;
+        private const long DEBOUNCE_THRESHOLD_DEFAULT = 5;
 
         private DebounceTimer<float> _debounceTimer = new()
         {
-            TimeThreshold = DEBOUNCE_DEFAULT,
+            TimeThreshold = DEBOUNCE_THRESHOLD_DEFAULT,
         };
 
         private float _invertSign = INVERT_DEFAULT ? -1 : 1;
@@ -33,7 +46,7 @@ namespace YARG.Input
                 // should never be changed outside of the binding menu, so that should be fine
                 if (inverted != Inverted)
                 {
-                    State = CalculateState(RawState);
+                    State = CalculateState(Control.value);
                     InvokeStateChanged(State);
                 }
             }
@@ -50,11 +63,13 @@ namespace YARG.Input
                 // (see above)
                 if (pressed != IsPressed)
                 {
-                    State = CalculateState(RawState);
+                    State = CalculateState(Control.value);
                     InvokeStateChanged(State);
                 }
             }
         }
+
+        public DebounceMode DebounceMode { get; set; } = DEBOUNCE_MODE_DEFAULT;
 
         /// <summary>
         /// The debounce time threshold, in milliseconds. Use 0 or less to disable debounce.
@@ -65,12 +80,9 @@ namespace YARG.Input
             set => _debounceTimer.TimeThreshold = value;
         }
 
-        public float RawState { get; private set; }
         public float PreviousState { get; private set; }
 
         public bool IsPressed => State >= PressPoint;
-        public bool IsPressedRaw => RawState >= PressPoint;
-
         public bool WasPreviouslyPressed => PreviousState >= PressPoint;
 
         public SingleButtonBinding(InputControl<float> control) : base(control)
@@ -98,9 +110,15 @@ namespace YARG.Input
 
             PressPoint = pressPoint;
 
-            if (!serialized.Parameters.TryGetValue(nameof(DebounceThreshold), out string debounceText) ||
-                !long.TryParse(debounceText, out long debounceThreshold))
-                debounceThreshold = DEBOUNCE_DEFAULT;
+            if (!serialized.Parameters.TryGetValue(nameof(DebounceMode), out string modeText) ||
+                !Enum.TryParse<DebounceMode>(modeText, out var debounceMode))
+                debounceMode = DEBOUNCE_MODE_DEFAULT;
+
+            DebounceMode = debounceMode;
+
+            if (!serialized.Parameters.TryGetValue(nameof(DebounceThreshold), out string thresholdText) ||
+                !long.TryParse(thresholdText, out long debounceThreshold))
+                debounceThreshold = DEBOUNCE_THRESHOLD_DEFAULT;
 
             DebounceThreshold = debounceThreshold;
         }
@@ -115,26 +133,33 @@ namespace YARG.Input
                 serialized.Parameters.Add(nameof(Inverted), Inverted.ToString().ToLower());
             if (Math.Abs(PressPoint - Control.GetPressPoint()) >= 0.001)
                 serialized.Parameters.Add(nameof(PressPoint), PressPoint.ToString());
-            if (DebounceThreshold != DEBOUNCE_DEFAULT)
+            if (DebounceMode != DEBOUNCE_MODE_DEFAULT)
+                serialized.Parameters.Add(nameof(DebounceMode), DebounceMode.ToString());
+            if (DebounceThreshold != DEBOUNCE_THRESHOLD_DEFAULT)
                 serialized.Parameters.Add(nameof(DebounceThreshold), DebounceThreshold.ToString());
 
             return serialized;
         }
 
-        public override void UpdateState()
+        public override void UpdateState(double time)
         {
             PreviousState = State;
 
             // Read new state
-            RawState = Control.value;
-            _debounceTimer.Update(CalculateState(RawState));
+            _debounceTimer.UpdateValue(CalculateState(Control.value));
 
             // Wait for debounce to end
-            if (!_debounceTimer.HasElapsed)
+            if (!_debounceTimer.HasElapsed(time))
                 return;
 
-            _debounceTimer.Restart();
-            State = _debounceTimer.Value;
+            State = _debounceTimer.Stop();
+
+            if (DebounceMode == DebounceMode.PressAndRelease ||
+                (IsPressed && DebounceMode == DebounceMode.Press) ||
+                (!IsPressed && DebounceMode == DebounceMode.Release))
+            {
+                _debounceTimer.Start(time);
+            }
 
             InvokeStateChanged(State);
         }
@@ -144,15 +169,14 @@ namespace YARG.Input
             return rawValue * _invertSign;
         }
 
-        public bool UpdateDebounce()
+        public void UpdateDebounce(double time)
         {
-            if (!_debounceTimer.HasElapsed)
-                return false;
+            if (!_debounceTimer.IsRunning || !_debounceTimer.HasElapsed(time))
+                return;
 
-            _debounceTimer.Reset();
-            State = _debounceTimer.Value;
+            State = _debounceTimer.Stop();
             InvokeStateChanged(State);
-            return true;
+            return;
         }
     }
 
@@ -171,7 +195,6 @@ namespace YARG.Input
             set => _debounceTimer.TimeThreshold = value;
         }
 
-        public bool RawState { get; protected set; }
         public bool State { get; protected set; }
 
         public ButtonBinding(string name, int action) : base(name, action)
@@ -209,33 +232,36 @@ namespace YARG.Input
                 return actuated;
         }
 
-        protected override void OnStateChanged(SingleButtonBinding _, double time)
+        protected override void OnStateChanged(SingleButtonBinding binding, double time)
         {
-            bool state = false;
-            foreach (var binding in _bindings)
+            bool state = binding.IsPressed;
+            foreach (var other in _bindings)
             {
-                state |= binding.IsPressed;
+                if (other == binding)
+                    continue;
+
+                other.UpdateDebounce(time);
+                state |= other.IsPressed;
             }
 
-            ProcessNextState(time, state);
-        }
-
-        private void ProcessNextState(double time, bool state)
-        {
-            RawState = state;
-
             // Ignore if state is unchanged
-            if (State == state)
+            if (state == State)
                 return;
 
-            // Ignore repeat presses/releases within the debounce threshold
-            _debounceTimer.Update(state);
-            if (!_debounceTimer.HasElapsed)
+            // Ignore presses/releases within the debounce threshold
+            _debounceTimer.UpdateValue(state);
+            if (!_debounceTimer.HasElapsed(time))
                 return;
 
-            _debounceTimer.Restart();
-            State = _debounceTimer.Value;
-            FireInputEvent(time, state);
+            State = _debounceTimer.Stop();
+            FireInputEvent(time, State);
+
+            // Already fired in ControlBinding
+            // FireStateChanged();
+
+            // Only start collective debounce on button press
+            if (State && !_debounceTimer.IsRunning)
+                _debounceTimer.Start(time);
         }
 
         public override void UpdateForFrame(double updateTime)
@@ -245,25 +271,27 @@ namespace YARG.Input
 
         private void UpdateDebounce(double updateTime)
         {
-            bool? state = false;
+            // Update individual debounces
+            bool collectiveState = false;
             foreach (var binding in _bindings)
             {
-                if (!binding.UpdateDebounce())
-                    continue;
-
-                state |= binding.IsPressed;
+                binding.UpdateDebounce(updateTime);
+                collectiveState |= binding.IsPressed;
             }
 
-            if (state is {} value)
-            {
-                ProcessNextState(updateTime, value);
-                FireStateChanged();
-            }
-            else if (_debounceTimer.HasElapsed)
-            {
-                ProcessNextState(updateTime, _debounceTimer.Value);
-                FireStateChanged();
-            }
+            // Ignore presses/releases within the debounce threshold
+            _debounceTimer.UpdateValue(collectiveState);
+            if (!_debounceTimer.HasElapsed(updateTime))
+                return;
+
+            bool state = _debounceTimer.Stop();
+            // Ignore if state is unchanged
+            if (state == State)
+                return;
+
+            State = state;
+            FireInputEvent(updateTime, state);
+            FireStateChanged();
         }
 
         protected override SingleButtonBinding CreateBinding(ActuationSettings settings, InputControl<float> control)

@@ -202,7 +202,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void FinishInitialization()
         {
-            GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar, 1f);
+            GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar);
 
             TrackMaterial.Initialize(ZeroFadePosition, FadeSize);
             CameraPositioner.Initialize(Player.CameraPreset);
@@ -224,12 +224,10 @@ namespace YARG.Gameplay.Player
                 NoteTrack.Notes[^1].OverrideNextNote();
             }
 
-            IsFc = true;
-
             BeatlineIndex = 0;
             ResetNoteCounters();
 
-            ResetVisuals();
+            base.ResetPracticeSection();
         }
 
         protected void UpdateBaseVisuals(BaseStats stats, BaseEngineParameters engineParams, double songTime)

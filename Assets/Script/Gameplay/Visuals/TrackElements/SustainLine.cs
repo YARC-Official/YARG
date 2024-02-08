@@ -20,6 +20,7 @@ namespace YARG.Gameplay.Visuals
         private Material _material;
         private TrackPlayer _player;
 
+        private SustainState _hitState = SustainState.Waiting;
         private float _whammyFactor;
 
         private float _secondaryAmplitudeTime;
@@ -49,8 +50,9 @@ namespace YARG.Gameplay.Visuals
             ResetAmplitudes();
         }
 
-        public void SetColor(SustainState state, Color c)
+        public void SetState(SustainState state, Color c)
         {
+            _hitState = state;
             switch (state)
             {
                 case SustainState.Waiting:
@@ -91,6 +93,9 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateLengthForHit()
         {
+            if (_hitState != SustainState.Hitting)
+                return;
+
             // Get the new line start position. Said position should be at
             // the strike line and relative to the note itself.
             float newStart = -transform.parent.localPosition.z + TrackPlayer.STRIKE_LINE_POS;
@@ -103,7 +108,8 @@ namespace YARG.Gameplay.Visuals
         {
             // TODO: Reduce the amount of magic numbers lol
 
-            if (!_setShaderProperties) return;
+            if (!_setShaderProperties || _hitState != SustainState.Hitting)
+                return;
 
             // Update whammy factor
             if (_player is FiveFretPlayer player)

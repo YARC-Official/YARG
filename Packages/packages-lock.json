@@ -305,14 +305,14 @@
       }
     },
     "jp.keijiro.minis": {
-      "version": "https://github.com/TheNathannator/Minis.git?path=/Packages/jp.keijiro.minis#bad-noteoff-fix",
+      "version": "https://github.com/TheNathannator/Minis.git?path=/Packages/jp.keijiro.minis#yarg",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "jp.keijiro.rtmidi": "1.0.4",
         "com.unity.inputsystem": "1.0.1"
       },
-      "hash": "43f3267297a17e58819a99e344832e8dcd413058"
+      "hash": "1bf0265c6d652b4db131df443e761ed9ab78e66c"
     },
     "jp.keijiro.rtmidi": {
       "version": "1.0.4",

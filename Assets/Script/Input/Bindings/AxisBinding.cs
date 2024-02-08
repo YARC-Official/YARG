@@ -157,7 +157,7 @@ namespace YARG.Input
             return serialized;
         }
 
-        public override void UpdateState()
+        public override void UpdateState(double time)
         {
             RawState = Control.value;
             State = CalculateState(RawState);

@@ -37,22 +37,17 @@ namespace YARG.Gameplay
         public bool HasSelectedSection    { get; private set; }
         public bool HasUpdatedAbPositions { get; private set; }
 
-        protected override void GameplayAwake()
-        {
-            Navigator.Instance.NavigationEvent += OnNavigationEvent;
-        }
-
         private void Start()
         {
-            if (GameManager.IsPractice)
-            {
-                _practiceHud.gameObject.SetActive(true);
-                _scoreDisplayObject.SetActive(false);
-            }
-            else
+            if (!GameManager.IsPractice)
             {
                 Destroy(this);
+                return;
             }
+
+            Navigator.Instance.NavigationEvent += OnNavigationEvent;
+            _practiceHud.gameObject.SetActive(true);
+            _scoreDisplayObject.SetActive(false);
         }
 
         protected override void GameplayDestroy()
@@ -76,6 +71,11 @@ namespace YARG.Gameplay
 
         private void OnNavigationEvent(NavigationContext ctx)
         {
+            if (GameManager.Paused)
+            {
+                return;
+            }
+
             switch (ctx.Action)
             {
                 // Song speed
@@ -87,14 +87,8 @@ namespace YARG.Gameplay
                     GameManager.AdjustSongSpeed(0.05f);
                     _practiceHud.ResetStats();
                     break;
-
                 // Reset
                 case MenuAction.Select:
-                    if (GameManager.Paused)
-                    {
-                        return;
-                    }
-
                     ResetPractice();
                     break;
             }
@@ -213,6 +207,7 @@ namespace YARG.Gameplay
             GameManager.VocalTrack.ResetPracticeSection();
 
             GameManager.SetSongTime(TimeStart);
+            GameManager.Resume(inputCompensation: false);
         }
 
         private Section[] GetSectionsInPractice(uint start, uint end)

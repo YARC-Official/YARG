@@ -577,6 +577,16 @@ namespace YARG.Audio.BASS
         public void SetPosition(double position, bool bufferCompensation = true)
             => _mixer?.SetPosition(position, bufferCompensation);
 
+        public int GetData(float[] buffer)
+        {
+            if (_mixer == null)
+            {
+                return -1;
+            }
+
+            return _mixer.GetData(buffer);
+        }
+
         public bool HasStem(SongStem stem)
         {
             if (_mixer is null) return false;

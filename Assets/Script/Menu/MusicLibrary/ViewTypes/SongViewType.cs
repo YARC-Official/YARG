@@ -56,7 +56,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.SecondaryTextClick();
 
-           _musicLibraryMenu.SetSearchInput($"artist:{SongMetadata.Artist}");
+           _musicLibraryMenu.SetSearchInput($"artist:{SongMetadata.Artist.SortStr}");
         }
 
         public override void PrimaryButtonClick()
@@ -73,7 +73,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.IconClick();
 
-           _musicLibraryMenu.SetSearchInput($"source:{SongMetadata.Source}");
+           _musicLibraryMenu.SetSearchInput($"source:{SongMetadata.Source.SortStr}");
         }
     }
 }

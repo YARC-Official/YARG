@@ -31,6 +31,8 @@ namespace YARG.Audio
 
         public void SetPosition(double position, bool bufferCompensation = true);
 
+        public int GetData(float[] buffer);
+
         public void SetPlayVolume(bool fadeIn);
 
         public void SetSpeed(float speed);

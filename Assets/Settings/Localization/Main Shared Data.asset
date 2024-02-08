@@ -123,6 +123,38 @@ MonoBehaviour:
     m_Key: Difficulty.Medium
     m_Metadata:
       m_Items: []
+  - m_Id: 113144734009384960
+    m_Key: Discord.Default.Details
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113144734034550784
+    m_Key: Discord.Default.LargeText.Dev
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113144734034550785
+    m_Key: Discord.Default.LargeText.Nightly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113144734034550786
+    m_Key: Discord.Default.LargeText.Stable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113144734034550787
+    m_Key: Discord.Default.State
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113147871805956096
+    m_Key: Discord.Song.Album
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113147871784984576
+    m_Key: Discord.Song.Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113150574225383424
+    m_Key: Discord.Song.Paused
+    m_Metadata:
+      m_Items: []
   - m_Id: 45803154252881920
     m_Key: GameMode.FiveFretGuitar
     m_Metadata:
@@ -349,6 +381,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 82700299853488128
     m_Key: Time.Yesterday
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112914116042452992
+    m_Key: SongAttribute.DateAdded
     m_Metadata:
       m_Items: []
   m_Metadata:

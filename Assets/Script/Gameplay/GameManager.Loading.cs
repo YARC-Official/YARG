@@ -161,8 +161,9 @@ namespace YARG.Gameplay
                 Destroy(PracticeManager);
             }
 
-            BeatEventHandler.Subscribe(StarPowerClap,
-                _songRunner.AudioCalibration - GlobalVariables.AudioManager.PlaybackBufferLength);
+            // TODO: Move the offset here to SFX configuration
+            // The clap SFX has 20 ms of lead-up before the actual impact happens
+            BeatEventHandler.Subscribe(StarPowerClap, -0.02);
 
             // Log constant values
             EditorDebug.Log($"Audio calibration: {_songRunner.AudioCalibration}, video calibration: {_songRunner.VideoCalibration}, song offset: {_songRunner.SongOffset}");
