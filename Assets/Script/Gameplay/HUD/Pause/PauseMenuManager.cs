@@ -158,7 +158,7 @@ namespace YARG.Gameplay.HUD
         {
             if (GameManager.IsPractice && GlobalVariables.Instance.IsPractice)
             {
-                PopMenu();
+                PopMenu(false);
                 GameManager.PracticeManager.ResetPractice();
                 return;
             }

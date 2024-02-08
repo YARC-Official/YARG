@@ -378,6 +378,42 @@ MonoBehaviour:
     m_Localized: Unpitched Only
     m_Metadata:
       m_Items: []
+  - m_Id: 112914116042452992
+    m_Localized: Date Added
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113144734009384960
+    m_Localized: Hello there ladies and gentlemen!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113144734034550784
+    m_Localized: Yet Another Rhythm Game (Dev Build)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113144734034550785
+    m_Localized: Yet Another Rhythm Game (Nightly)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113144734034550786
+    m_Localized: Yet Another Rhythm Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113144734034550787
+    m_Localized: Are you ready to rock?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113147871784984576
+    m_Localized: '{0} by {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113147871805956096
+    m_Localized: on {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113150574225383424
+    m_Localized: Song paused...
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:

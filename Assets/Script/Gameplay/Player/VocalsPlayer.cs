@@ -161,9 +161,7 @@ namespace YARG.Gameplay.Player
                 NoteTrack.Notes[^1].OverrideNextNote();
             }
 
-            IsFc = true;
-
-            ResetVisuals();
+            base.ResetPracticeSection();
         }
 
         protected override void UpdateInputs(double time)

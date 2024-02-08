@@ -70,6 +70,8 @@ namespace YARG.Audio
         public double GetPosition(bool bufferCompensation = true);
         public void SetPosition(double position, bool bufferCompensation = true);
 
+        public int GetData(float[] buffer);
+
         public bool HasStem(SongStem stem);
     }
 }

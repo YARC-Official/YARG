@@ -127,6 +127,13 @@ namespace YARG.Venue
         private static VenueInfo? GetVenuePathFromGlobal()
         {
             const VenueSource globalSource = VenueSource.Global;
+
+            // If global backgrounds are disabled, do not load anything here
+            if (SettingsManager.Settings.DisableGlobalBackgrounds.Value)
+            {
+                return null;
+            }
+
             string[] validExtensions =
             {
                 "*.yarground", "*.mp4", "*.mov", "*.webm", "*.png", "*.jpg", "*.jpeg"

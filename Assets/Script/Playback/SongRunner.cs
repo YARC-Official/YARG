@@ -434,8 +434,6 @@ namespace YARG.Playback
         {
             // Account for song speed
             delayTime *= SelectedSongSpeed;
-            // Additionally delay by audio calibration to keep delays consistent relative to when the audio starts
-            delayTime -= AudioCalibration;
 
             // Seek time
             // Doesn't account for audio calibration for better audio syncing

@@ -142,8 +142,6 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateSustain()
         {
-            if (!NoteRef.WasHit) return;
-
             _sustainLine.UpdateSustainLine(Player.NoteSpeed);
         }
 
@@ -163,7 +161,7 @@ namespace YARG.Gameplay.Visuals
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;
 
-            _sustainLine.SetColor(SustainState, color.ToUnityColor());
+            _sustainLine.SetState(SustainState, color.ToUnityColor());
         }
 
         protected override void HideElement()

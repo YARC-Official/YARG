@@ -31,8 +31,8 @@ namespace YARG.Menu.MusicLibrary
         public static MusicLibraryMode LibraryMode;
 
         public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
-        
 
+        private static List<SongMetadata> _recommendedSongs;
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
         private static bool _doRefresh = true;
@@ -58,8 +58,8 @@ namespace YARG.Menu.MusicLibrary
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
         private readonly SongSearching _searchContext = new();
-        private IReadOnlyDictionary<string, List<SongMetadata>> _sortedSongs;
-        private List<SongMetadata> _recommendedSongs;
+        private IReadOnlyList<SongCategory> _sortedSongs;
+        
 
         private PreviewContext _previewContext;
         private CancellationTokenSource _previewCanceller = new();
@@ -100,8 +100,6 @@ namespace YARG.Menu.MusicLibrary
             // Restore search
             _searchField.text = _currentSearch;
 
-            _recommendedSongs = null;
-
             // Get songs
             if (_doRefresh)
             {
@@ -111,10 +109,9 @@ namespace YARG.Menu.MusicLibrary
             else
             {
                 UpdateSearch(true);
+                // Restore index
+                SelectedIndex = _savedIndex;
             }
-
-            // Restore index
-            SelectedIndex = _savedIndex;
 
             // Set proper text
             _subHeader.text = LibraryMode switch
@@ -166,37 +163,35 @@ namespace YARG.Menu.MusicLibrary
             if (_sortedSongs is null || GlobalVariables.Instance.SongContainer.Songs.Count <= 0) return list;
 
             // Get the number of songs
-            int count = _sortedSongs.Sum(section => section.Value.Count);
+            int count = _sortedSongs.Sum(section => section.Songs.Count);
 
             // Return if there are no songs that match the search criteria
             if (count == 0) return list;
-
-            SetRecommendedSongs();
 
             // Foreach section in the sorted songs...
             foreach (var section in _sortedSongs)
             {
                 // Create header
-                var displayName = section.Key;
+                var displayName = section.Category;
                 if (Sort == SongAttribute.Source)
                 {
-                    if (SongSources.TryGetSource(section.Key, out var parsedSource))
+                    if (SongSources.TryGetSource(section.Category, out var parsedSource))
                     {
                         displayName = parsedSource.GetDisplayName();
                     }
-                    else if (section.Key.Length > 0)
+                    else if (section.Category.Length > 0)
                     {
-                        displayName = section.Key;
+                        displayName = section.Category;
                     }
                     else
                     {
                         displayName = SongSources.Default.GetDisplayName();
                     }
                 }
-                list.Add(new SortHeaderViewType(displayName, section.Value.Count));
+                list.Add(new SortHeaderViewType(displayName, section.Songs.Count));
 
                 // Add all of the songs
-                list.AddRange(section.Value.Select(song => new SongViewType(this, song)));
+                list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
             }
 
             if (!string.IsNullOrEmpty(_searchField.text))
@@ -241,8 +236,6 @@ namespace YARG.Menu.MusicLibrary
 
         private void SetRecommendedSongs()
         {
-            if (_recommendedSongs != null) return;
-
             if (GlobalVariables.Instance.SongContainer.Songs.Count > 0)
             {
                 _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
@@ -263,7 +256,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (_currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongMetadata.Directory == _currentSong.Directory))
             {
-                _savedIndex = 2;
+                SelectedIndex = 2;
             }
         }
 

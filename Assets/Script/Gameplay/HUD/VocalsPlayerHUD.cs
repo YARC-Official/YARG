@@ -33,7 +33,7 @@ namespace YARG.Gameplay.HUD
         {
             _performanceText.text = string.Empty;
 
-            GameManager.BeatEventHandler.Subscribe(PulseBar, 1f);
+            GameManager.BeatEventHandler.Subscribe(PulseBar);
         }
 
         protected override void GameplayDestroy()
