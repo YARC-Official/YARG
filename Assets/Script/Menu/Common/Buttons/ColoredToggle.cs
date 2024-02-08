@@ -16,10 +16,12 @@ namespace YARG.Menu
         [SerializeField]
         private TextMeshProUGUI _text;
 
-        public void OnToggle()
+        public Toggle.ToggleEvent OnToggled => _toggle.onValueChanged;
+
+        public void SetBackgroundAndTextColor(bool isOn)
         {
-            _background.color = !_toggle.isOn ? MenuData.Colors.DeactivatedButton : MenuData.Colors.BrightButton;
-            _text.color = !_toggle.isOn ? MenuData.Colors.DeactivatedText : MenuData.Colors.DarkText;
+            _background.color = !isOn ? MenuData.Colors.DeactivatedButton : MenuData.Colors.BrightButton;
+            _text.color = !isOn ? MenuData.Colors.DeactivatedText : MenuData.Colors.DarkText;
         }
     }
 }
