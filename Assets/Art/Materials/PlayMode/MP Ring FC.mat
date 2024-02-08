@@ -8,14 +8,14 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: MP Ring FC
-  m_Shader: {fileID: -6465566751694194690, guid: f234a0dbfe313d94697e5acc4c227a98,
+  m_Shader: {fileID: -6465566751694194690, guid: 3b605d2f11bf5894a8a70bc74a3004f0,
     type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3021
+  m_CustomRenderQueue: 2021
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -58,7 +58,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NoiseTexture:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: a41ac8340d2ec134d98edeabf7a11631, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -104,22 +104,23 @@ Material:
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _Emission: 1
+    - _Emission: 0.5
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
-    - _NoiseScale: -2.8
-    - _NoiseSpeed: 1
-    - _NoiseStrength: -1.06
+    - _MinDarkness: 0
+    - _NoiseScale: -1.49
+    - _NoiseSpeed: 0.26
+    - _NoiseStrength: 1.5
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
     - _QueueOffset: 21
     - _RandomFloat: 0
     - _ReceiveShadows: 1
-    - _Shine_Amount: 0.5
+    - _Shine_Amount: 0
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -129,9 +130,9 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 0.90009195, b: 0.023584902, a: 1}
-    - _Color: {r: 1, g: 0.71509355, b: 0.02352941, a: 1}
+    - _Color: {r: 1, g: 0.6906122, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Noise_Tiling: {r: 1, g: 1, b: 0, a: 0}
+    - _Noise_Tiling: {r: 0.75, g: 0.75, b: 0, a: 0}
     - _RandomVector: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
