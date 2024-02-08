@@ -46,14 +46,11 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void PlayHitAnimation(bool particles)
+        public void PlayHitAnimation()
         {
-            if (particles)
-            {
-                _updateTimer = 0f;
-                _currentSprite = 0;
-                UpdateTexture();
-            }
+            _updateTimer = 0f;
+            _currentSprite = 0;
+            UpdateTexture();
         }
     }
 }

@@ -129,7 +129,7 @@ namespace YARG.Gameplay.Player
                 }
                 else
                 {
-                    _kickFretFlash.PlayHitAnimation(false);
+                    _fretArray.PlayKickFretAnimation();
                 }
             };
 
@@ -256,7 +256,8 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                _kickFretFlash.PlayHitAnimation(true);
+                _kickFretFlash.PlayHitAnimation();
+                _fretArray.PlayKickFretAnimation();
                 CameraPositioner.Bounce();
             }
         }

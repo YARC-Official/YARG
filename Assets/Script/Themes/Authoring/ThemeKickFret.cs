@@ -22,7 +22,9 @@ namespace YARG.Themes
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawWireCube(transform.position, new Vector3(1f, 0f, 1f));
+
+            var pos = transform.position;
+            Gizmos.DrawLine(pos.AddZ(-0.25f), pos.AddZ(0.25f));
         }
 
         /// <summary>

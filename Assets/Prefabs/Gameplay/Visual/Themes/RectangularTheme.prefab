@@ -741,7 +741,7 @@ MonoBehaviour:
   _coloredMaterials:
   - Mesh: {fileID: 148460116065036735}
     MaterialIndex: 1
-    EmissionMultiplier: 7
+    EmissionMultiplier: 7.5
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &6655418641702356211
@@ -2349,7 +2349,7 @@ Animator:
   m_GameObject: {fileID: 8827235300356171878}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 608114a2a1a39f144bae32e09efa10d2, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

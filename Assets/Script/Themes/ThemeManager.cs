@@ -23,12 +23,17 @@ namespace YARG.Themes
         {
             // Get the theme container
             var container = GetThemeContainer(preset, gameMode);
-            if (container is null) return null;
+            if (container is null)
+            {
+                return null;
+            }
 
-            // Try to get and return a cached version
+            // Try to get and return a cached version, otherwise we'll have to create it
             var cached = container.NoteCache.GetValueOrDefault(gameMode);
-            if (cached != null) return cached;
-            // ...otherwise we'll have to create it
+            if (cached != null)
+            {
+                return cached;
+            }
 
             // Duplicate the prefab
             var gameObject = Instantiate(noModelPrefab, transform);
