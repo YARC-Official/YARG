@@ -7,6 +7,8 @@ namespace Haukcode.sACN
 {
     public static class SACNCommon
     {
+        // multicast address for sACN
+        // 239.255.x.x where .x.x is the universe
         static byte MULTICAST_BYTE_1 = (byte)239;
         static byte MULTICAST_BYTE_2 = (byte)255;
         public static int SACN_PORT = 5568;
