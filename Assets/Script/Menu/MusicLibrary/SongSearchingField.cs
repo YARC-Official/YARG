@@ -10,10 +10,19 @@ using YARG.Song;
 
 namespace YARG.Menu.SongSearching
 {
+    [Serializable]
+    public struct SearchToggle
+    {
+        public SongAttribute attribute;
+        public ColoredToggle toggle;
+    }
+
     public class SongSearchingField : MonoBehaviour
     {
         [SerializeField]
         private TMP_InputField _searchField;
+        [SerializeField]
+        private List<SearchToggle> _searchToggles;
 
         private readonly Song.SongSearching _searchContext = new();
         private string _currentSearchText = string.Empty;
@@ -79,6 +88,16 @@ namespace YARG.Menu.SongSearching
                     _searchNavPushed = false;
                     Navigator.Instance.PopScheme();
                 }
+            }
+        }
+
+        private void OnEnable()
+        {
+            foreach (var searchToggle in _searchToggles)
+            {
+                var toggle = searchToggle.toggle;
+                toggle.OnToggled.RemoveAllListeners();
+                toggle.OnToggled.AddListener(toggle.SetBackgroundAndTextColor);
             }
         }
 
