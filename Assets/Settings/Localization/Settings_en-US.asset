@@ -956,6 +956,61 @@ MonoBehaviour:
     m_Localized: Enables claps to the beat while Star Power is active.
     m_Metadata:
       m_Items: []
+  - m_Id: 113150520376582144
+    m_Localized: Advanced
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113150787738296320
+    m_Localized: Lighting General
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113152493171662848
+    m_Localized: DMX Channels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113154353806860288
+    m_Localized: Enable Stage Kit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113154578835464192
+    m_Localized: Enable DMX Output
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113155100158091264
+    m_Localized: Enable sending Sacn (DMX-over-ethernet) packets over the network
+      to universe 1. Adds 250k bps to network traffic.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113156291030048768
+    m_Localized: Enables sending Stage Kit lighting data to all connected devices
+      capable of reading it.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113159204838203392
+    m_Localized: Master Dimmer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113193663453093888
+    m_Localized: Blue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113193764619706368
+    m_Localized: Red
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113193808479543296
+    m_Localized: Green
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113193859524222976
+    m_Localized: Yellow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113193936720388096
+    m_Localized: Any channel set here will be set to max (255) on game start. Useful
+      for fixtures that have a master dimmer channel.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

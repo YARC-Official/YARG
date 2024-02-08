@@ -208,8 +208,6 @@ namespace YARG.Integration.StageKit
 
         public StageKitStrobeSpeed CurrentStrobeState = StageKitStrobeSpeed.Off;
         public StageKitStrobeSpeed PreviousStrobeState = StageKitStrobeSpeed.Off;
-        //public StrobeSpeed CurrentStrobeState = StrobeSpeed.Off;
-        //public StrobeSpeed PreviousStrobeState = StrobeSpeed.Off;
 
         public List<IStageKitHaptics> StageKits = new();
 
@@ -220,6 +218,9 @@ namespace YARG.Integration.StageKit
 
         //Gets set by StageKitGameplay but this is just a fail-safe.
         public bool LargeVenue = false;
+
+        //This is used to send events to any other light controllers that might be in the scene (aka dmx lights)
+        public Action<StageKitLedColor, StageKitLed> OnLedSet;
 
         // Stuff for the actual command sending to the unit
         private bool _isSendingCommands;
@@ -309,6 +310,7 @@ namespace YARG.Integration.StageKit
                         };
                         //This is where the magic happens
                         StageKits.ForEach(kit => kit.SetLeds(iToStageKitLedColor, (StageKitLed) curCommand.data));
+                        OnLedSet?.Invoke(iToStageKitLedColor, (StageKitLed) curCommand.data);
                         _previousLedState[curCommand.command] = _currentLedState[curCommand.command];
                         break;
 
@@ -369,7 +371,7 @@ namespace YARG.Integration.StageKit
             CurrentStrobeState = strobeSpeed;
         }
 
-        //just a helper function
+        //Just a helper function
         public void AllLedsOff()
         {
             Instance.SetLed((int) LedColor.Red, NONE);

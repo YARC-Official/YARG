@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12731749, g: 0.13414757, b: 0.1210787, a: 1}
+  m_IndirectSpecularColor: {r: 0.12731713, g: 0.13414738, b: 0.121078536, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -984,6 +984,7 @@ GameObject:
   - component: {fileID: 728815265}
   - component: {fileID: 728815266}
   - component: {fileID: 728815267}
+  - component: {fileID: 728815268}
   m_Layer: 0
   m_Name: Integrations
   m_TagString: Untagged
@@ -1063,6 +1064,18 @@ MonoBehaviour:
     DefaultState: Are you ready to develop?
     DefaultLargeImage: icon_dev
     DefaultLargeText: Yet Another Rhythm Game - Developer Build
+--- !u!114 &728815268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 728815263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b959c0d0515779a48a3246dfaccadec0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &782876828
 GameObject:
   m_ObjectHideFlags: 0
@@ -1207,7 +1220,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -7.5, y: 0}
+  m_AnchoredPosition: {x: -7.499878, y: 0}
   m_SizeDelta: {x: -15, y: 50}
   m_Pivot: {x: 0.5, y: 0.99999994}
 --- !u!114 &787126834
