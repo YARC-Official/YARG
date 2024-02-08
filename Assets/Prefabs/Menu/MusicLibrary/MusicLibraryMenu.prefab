@@ -930,7 +930,7 @@ MonoBehaviour:
   _viewObjectParent: {fileID: 4030813026311060847}
   _scrollbar: {fileID: 4671384087136440526}
   _viewAligner: {fileID: 0}
-  _searchField: {fileID: 4030813025972567531}
+  _searchField: {fileID: 7263609878391083263}
   _subHeader: {fileID: 2557806454790739688}
   _sidebar: {fileID: 5958352451011471034}
   _noPlayerWarning: {fileID: 3731235360306283306}
@@ -947,6 +947,7 @@ GameObject:
   - component: {fileID: 4030813025972567509}
   - component: {fileID: 4030813025972567530}
   - component: {fileID: 4030813025972567531}
+  - component: {fileID: 7263609878391083263}
   m_Layer: 5
   m_Name: Search Field
   m_TagString: Untagged
@@ -1126,6 +1127,19 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
+--- !u!114 &7263609878391083263
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4030813025972567529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc71a4ce9629ab94b9ba533a998002ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _searchField: {fileID: 4030813025972567531}
 --- !u!1 &4030813026092309319
 GameObject:
   m_ObjectHideFlags: 0

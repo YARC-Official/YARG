@@ -11,6 +11,7 @@ using YARG.Audio;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Menu.ListMenu;
+using YARG.Menu.SongSearching;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings;
@@ -33,7 +34,6 @@ namespace YARG.Menu.MusicLibrary
         public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
 
         private static List<SongMetadata> _recommendedSongs;
-        private static string _currentSearch = string.Empty;
         private static int _savedIndex;
         private static bool _doRefresh = true;
 
@@ -44,7 +44,7 @@ namespace YARG.Menu.MusicLibrary
 
         [Space]
         [SerializeField]
-        private TMP_InputField _searchField;
+        private SongSearchingField _searchField;
         [SerializeField]
         private TextMeshProUGUI _subHeader;
         [SerializeField]
@@ -57,24 +57,20 @@ namespace YARG.Menu.MusicLibrary
         protected override int ExtraListViewPadding => 15;
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
-        private readonly SongSearching _searchContext = new();
         private IReadOnlyList<SongCategory> _sortedSongs;
-        
+
 
         private PreviewContext _previewContext;
         private CancellationTokenSource _previewCanceller = new();
 
         private SongMetadata _currentSong;
 
-        private bool _searchNavPushed;
-        private bool _wasSearchFieldFocused;
-
         protected override void Awake()
         {
             base.Awake();
 
             // Initialize sidebar
-            _sidebar.Initialize(this);
+            _sidebar.Initialize(this, _searchField);
         }
 
         private void OnEnable()
@@ -98,7 +94,7 @@ namespace YARG.Menu.MusicLibrary
             }, false));
 
             // Restore search
-            _searchField.text = _currentSearch;
+            _searchField.Restore();
 
             // Get songs
             if (_doRefresh)
@@ -191,10 +187,10 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new SortHeaderViewType(displayName, section.Songs.Count));
 
                 // Add all of the songs
-                list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
+                list.AddRange(section.Songs.Select(song => new SongViewType(_searchField, song)));
             }
 
-            if (!string.IsNullOrEmpty(_searchField.text))
+            if (!_searchField.IsSearching)
             {
                 // If the current search is NOT empty...
 
@@ -221,7 +217,7 @@ namespace YARG.Menu.MusicLibrary
                     new CategoryViewType("ALL SONGS", songContainer.Count, songContainer.Songs));
 
                 // Add the recommended songs right above the "ALL SONGS" header
-                list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(this, i)));
+                list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(_searchField, i)));
                 list.Insert(0, new CategoryViewType(
                     _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
                     _recommendedSongs.Count, _recommendedSongs
@@ -248,8 +244,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void Refresh()
         {
-            _currentSearch = _searchField.text = string.Empty;
-            _sortedSongs = _searchContext.Refresh(Sort);
+            _sortedSongs = _searchField.Refresh(Sort);
 
             SetRecommendedSongs();
             RequestViewListUpdate();
@@ -262,53 +257,25 @@ namespace YARG.Menu.MusicLibrary
 
         private void UpdateSearch(bool force)
         {
-            if (!force && _currentSearch == _searchField.text) return;
+            if (!force && _searchField.IsCurrentSearchInField) return;
 
-            _sortedSongs = _searchContext.Search(_searchField.text, Sort);
+            _sortedSongs = _searchField.Search(Sort);
 
             RequestViewListUpdate();
 
-            if (_searchField.text.Length > _currentSearch.Length ||
+            if (_searchField.IsUpdatedSearchLonger ||
                 !SetIndexTo(i => i is SongViewType view && view.SongMetadata == _currentSong))
             {
-                SelectedIndex = _searchContext.IsUnspecified() || _sortedSongs.Count == 1 ? 1 : 2;
+                SelectedIndex = _searchField.IsUnspecified || _sortedSongs.Count == 1 ? 1 : 2;
             }
-            _currentSearch = _searchField.text;
+
+            _searchField.UpdateSearchText();
         }
 
         protected override void Update()
         {
             base.Update();
-
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
-            {
-                _searchField.text = string.Empty;
-            }
-
             StartPreview();
-
-            // Update the search bar pushing the empty navigation scheme.
-            // We can't use the "OnSelect" event because for some reason it isn't called
-            // if the user reselected the input field after pressing enter.
-            if (_wasSearchFieldFocused != _searchField.isFocused)
-            {
-                _wasSearchFieldFocused = _searchField.isFocused;
-
-                if (_wasSearchFieldFocused)
-                {
-                    if (_searchNavPushed) return;
-
-                    _searchNavPushed = true;
-                    Navigator.Instance.PushScheme(NavigationScheme.Empty);
-                }
-                else
-                {
-                    if (!_searchNavPushed) return;
-
-                    _searchNavPushed = false;
-                    Navigator.Instance.PopScheme();
-                }
-            }
         }
 
         private void StartPreview()
@@ -329,13 +296,6 @@ namespace YARG.Menu.MusicLibrary
 
             Navigator.Instance.PopScheme();
 
-            // Make sure to also pop the search nav if that was pushed
-            if (_searchNavPushed)
-            {
-                Navigator.Instance.PopScheme();
-                _searchNavPushed = false;
-            }
-
             // Cancel the preview
             if (!_previewCanceller.IsCancellationRequested)
             {
@@ -345,18 +305,11 @@ namespace YARG.Menu.MusicLibrary
             _previewContext = null;
         }
 
-        public void SetSearchInput(string query)
-        {
-            _searchField.text = query;
-        }
-
         private void Back()
         {
-            bool searchBoxHasContent = !string.IsNullOrEmpty(_searchField.text);
-
-            if (searchBoxHasContent)
+            if (_searchField.IsSearching)
             {
-                _searchField.text = string.Empty;
+                _searchField.SetSearchInput(string.Empty);
                 UpdateSearch(true);
                 return;
             }

@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Song;
 using YARG.Helpers.Extensions;
+using YARG.Menu.SongSearching;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Song;
@@ -13,13 +14,12 @@ namespace YARG.Menu.MusicLibrary
         public override BackgroundType Background => BackgroundType.Normal;
         public override bool UseAsMadeFamousBy => !SongMetadata.IsMaster;
 
-        private readonly MusicLibraryMenu _musicLibraryMenu;
+        private readonly SongSearchingField _songSearchingField;
         public readonly SongMetadata SongMetadata;
 
-        public SongViewType(MusicLibraryMenu musicLibraryMenu, SongMetadata songMetadata)
+        public SongViewType(SongSearchingField songSearchingField, SongMetadata songMetadata)
         {
-            _musicLibraryMenu = musicLibraryMenu;
-
+            _songSearchingField = songSearchingField;
             SongMetadata = songMetadata;
         }
 
@@ -56,7 +56,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.SecondaryTextClick();
 
-           _musicLibraryMenu.SetSearchInput($"artist:{SongMetadata.Artist.SortStr}");
+           _songSearchingField.SetSearchInput($"artist:{SongMetadata.Artist.SortStr}");
         }
 
         public override void PrimaryButtonClick()
@@ -73,7 +73,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.IconClick();
 
-           _musicLibraryMenu.SetSearchInput($"source:{SongMetadata.Source.SortStr}");
+           _songSearchingField.SetSearchInput($"source:{SongMetadata.Source.SortStr}");
         }
     }
 }

@@ -11,6 +11,7 @@ using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Persistent;
+using YARG.Menu.SongSearching;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -47,10 +48,12 @@ namespace YARG.Menu.MusicLibrary
         private ViewType _currentView;
 
         private MusicLibraryMenu _musicLibraryMenu;
+        private SongSearchingField _songSearchingField;
 
-        public void Initialize(MusicLibraryMenu musicLibraryMenu)
+        public void Initialize(MusicLibraryMenu musicLibraryMenu, SongSearchingField songSearchingField)
         {
             _musicLibraryMenu = musicLibraryMenu;
+            _songSearchingField = songSearchingField;
 
             for (int i = 0; i < 5; ++i)
             {
@@ -264,7 +267,7 @@ namespace YARG.Menu.MusicLibrary
                 _         => throw new Exception("Unreachable")
             };
 
-            _musicLibraryMenu.SetSearchInput($"{type}:{value}");
+            _songSearchingField.SetSearchInput($"{type}:{value}");
         }
     }
 }
