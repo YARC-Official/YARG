@@ -415,6 +415,7 @@ namespace YARG.Audio.BASS
 
         public void UnloadSong()
         {
+            Options.UseMinimumStemVolume = false;
             IsPlaying = false;
             IsAudioLoaded = false;
 
