@@ -220,7 +220,7 @@ namespace YARG.Integration.StageKit
         public bool LargeVenue = false;
 
         //This is used to send events to any other light controllers that might be in the scene (aka dmx lights)
-        public Action<StageKitLedColor, StageKitLed> OnLedSet;
+        public event Action<StageKitLedColor, StageKitLed> OnLedSet;
 
         // Stuff for the actual command sending to the unit
         private bool _isSendingCommands;

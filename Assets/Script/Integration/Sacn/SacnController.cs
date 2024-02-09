@@ -7,59 +7,74 @@ using YARG.Settings;
 
 namespace YARG.Integration.Sacn
 {
-    public class SacnController : MonoBehaviour
+
+    public class SacnController : MonoSingleton<SacnController>
     {
-        //A 128-bit (16 byte) UUID that translates to "KEEP PLAYING YARG!"
-        private const float TARGET_FPS = 44f; //DMX spec says 44 updates per second is the max
-        private const string ACN_SOURCE_NAME = "YARG";
-        private const int UNIVERSE_SIZE = 512; //Each universe supports up to 512 channels
+        //DMX spec says 44 updates per second is the max
+        private const float TARGET_FPS = 44f;
         private const float TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
 
+        //Each universe supports up to 512 channels
+        private const int UNIVERSE_SIZE = 512;
+
+        private const string ACN_SOURCE_NAME = "YARG";
+
         private byte[] _dataPacket = new byte[UNIVERSE_SIZE];
+        //A 128-bit (16 byte) UUID that translates to "KEEP PLAYING YARG!"
+        private readonly Guid AcnSourceId = new Guid("{4B454550-504C-4159-494E-475941524721}");
 
-        private static readonly Guid AcnSourceId = new Guid("{4B454550-504C-4159-494E-475941524721}");
-        private static SACNClient _sendClient;
+        private SACNClient _sendClient;
+
         //DMX channels - 8 per color to match the stageKit layout. Default channels, the user must change them in settings.
-        private static int[] _dimmerChannels;
-        private static int[] _redChannels;
-        private static int[] _greenChannels;
-        private static int[] _blueChannels;
-        private static int[] _yellowChannels;
+        private int[] _dimmerChannels;
+        private int[] _redChannels;
+        private int[] _greenChannels;
+        private int[] _blueChannels;
+        private int[] _yellowChannels;
 
-        private void Start()
+        public void HandleEnabledChanged(bool enabled)
         {
-            Debug.Log("Starting SacnController...");
-
-            SettingsManager.SettingContainer.OnDMXChannelsChanged += HandleValueChanged;
-
-            HandleValueChanged(null);
-
-            StageKitLightingController.Instance.OnLedSet += HandleEvent;
-
-            _sendClient = new SACNClient(senderId: AcnSourceId, senderName: ACN_SOURCE_NAME,
-                localAddress: SACNCommon.GetFirstBindAddress().IPAddress);
-
-            InvokeRepeating(nameof(Sender), 0, TIME_BETWEEN_CALLS);
-
-            //Many DMX fixtures have a 'Master dimmer' channel that controls the overall brightness of the fixture.
-            //Got to turn those on.
-            for (int i = 0; i < _dimmerChannels.Length; i++)
+            if (enabled)
             {
-                _dataPacket[_dimmerChannels[i]] = 255;
+                Debug.Log("Starting SacnController...");
+
+                StageKitLightingController.Instance.OnLedSet += HandleEvent;
+
+                UpdateDMXChannels();
+
+                _sendClient = new SACNClient(senderId: AcnSourceId, senderName: ACN_SOURCE_NAME,
+                    localAddress: SACNCommon.GetFirstBindAddress().IPAddress);
+
+                InvokeRepeating(nameof(Sender), 0, TIME_BETWEEN_CALLS);
+
+                //Many DMX fixtures have a 'Master dimmer' channel that controls the overall brightness of the fixture.
+                //Got to turn those on.
+                for (int i = 0; i < _dimmerChannels?.Length; i++)
+                {
+                    _dataPacket[_dimmerChannels[i] - 1] = 255;
+                }
+            }
+            else
+            {
+                OnDestroy();
             }
         }
 
-        private void HandleValueChanged(int[] value)
+        public void UpdateDMXChannels()
         {
-            _dimmerChannels = SettingsManager.Settings.DimmerChannels.Value;
-            _redChannels = SettingsManager.Settings.RedChannels.Value;
-            _greenChannels = SettingsManager.Settings.GreenChannels.Value;
-            _blueChannels = SettingsManager.Settings.BlueChannels.Value;
-            _yellowChannels = SettingsManager.Settings.YellowChannels.Value;
+            _dimmerChannels = SettingsManager.Settings?.DimmerChannels.Value;
+            _redChannels = SettingsManager.Settings?.RedChannels.Value;
+            _greenChannels = SettingsManager.Settings?.GreenChannels.Value;
+            _blueChannels = SettingsManager.Settings?.BlueChannels.Value;
+            _yellowChannels = SettingsManager.Settings?.YellowChannels.Value;
         }
 
         private void OnDestroy()
         {
+            if (_sendClient == null) return;
+
+            Debug.Log("Killing SacnController...");
+
             // A good controller will also turn everything off after not receiving a packet after 2.5 seconds.
             // But this doesn't hurt to do.
             for (int i = 0; i < _dataPacket.Length; i++)
@@ -67,10 +82,14 @@ namespace YARG.Integration.Sacn
                 _dataPacket[i] = 0; //turn everything off
             }
 
-            //send final packet.
+            //force send final packet.
             Sender();
 
-            SettingsManager.SettingContainer.OnDMXChannelsChanged -= HandleValueChanged;
+            _sendClient.Dispose();
+
+            CancelInvoke(nameof(Sender));
+
+            StageKitLightingController.Instance.OnLedSet -= HandleEvent;
         }
 
         private void HandleEvent(StageKitLedColor color, StageKitLed value)
@@ -114,7 +133,7 @@ namespace YARG.Integration.Sacn
                     break;
 
                 default:
-                    Debug.Log("(Sacn) Unknown color: " + color);
+                    Debug.LogWarning("(Sacn) Unknown color: " + color);
                     break;
             }
         }
@@ -123,7 +142,7 @@ namespace YARG.Integration.Sacn
         {
             for (int i = 0; i < 8; i++)
             {
-                _dataPacket[channels[i]] = ledIsSet[i] ? (byte) 255 : (byte) 0;
+                _dataPacket[channels[i] - 1] = ledIsSet[i] ? (byte) 255 : (byte) 0;
             }
         }
 

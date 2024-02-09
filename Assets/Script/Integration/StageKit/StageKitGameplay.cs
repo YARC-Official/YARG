@@ -45,7 +45,7 @@ namespace YARG.Integration.StageKit
 
         private void Update()
         {
-            if ( (StageKitLightingController.Instance.StageKits.Count == 0 || SettingsManager.Settings.StageKitEnabled.Value == false) && SettingsManager.Settings.DMXEnabled.Value == false)
+            if ( (StageKitLightingController.Instance.StageKits.Count == 0 || !SettingsManager.Settings.StageKitEnabled.Value) && !SettingsManager.Settings.DMXEnabled.Value)
             {
                return;
             }

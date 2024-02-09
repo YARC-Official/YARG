@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 
 namespace YARG.Settings.Types
 {
@@ -12,12 +11,13 @@ namespace YARG.Settings.Types
 
         public DMXChannelsSetting(int[] value, Action<int[]> onChange = null) : base(onChange)
         {
-            //DMX channels are 8-bit, so the range is 0-255
-            Min = 0;
-            Max = 255;
+            //DMX channels range from 1 to 512. (0 is the start code channel)
+            Min = 1;
+            Max = 512;
 
             _value = value;
         }
+
         public override bool ValueEquals(int[] value)
         {
             return value == Value;

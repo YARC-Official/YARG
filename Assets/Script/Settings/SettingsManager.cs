@@ -101,10 +101,10 @@ namespace YARG.Settings
             new PresetsTab("Presets", icon: "Customization"),
             new MetadataTab("Advanced", icon: "Customization")
             {
-                new HeaderMetadata("Lighting General"),
+                new HeaderMetadata("LightingGeneral"),
                 nameof(Settings.StageKitEnabled),
                 nameof(Settings.DMXEnabled),
-                new HeaderMetadata("DMX Channels"),
+                new HeaderMetadata("DMXChannels"),
                 nameof(Settings.DimmerChannels),
                 nameof(Settings.BlueChannels),
                 nameof(Settings.RedChannels),
