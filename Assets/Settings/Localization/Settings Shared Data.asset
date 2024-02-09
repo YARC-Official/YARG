@@ -915,6 +915,14 @@ MonoBehaviour:
     m_Key: Tab.Sound
     m_Metadata:
       m_Items: []
+  - m_Id: 116076910088695808
+    m_Key: Setting.Sound.PlaySoundOnOverstrum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116077209830436864
+    m_Key: Setting.Sound.PlaySoundOnOverstrum.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -965,6 +965,15 @@ MonoBehaviour:
       ones in songs instead.
     m_Metadata:
       m_Items: []
+  - m_Id: 116076910088695808
+    m_Localized: Play sound on overstrum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116077209830436864
+    m_Localized: Plays a sound effect when you overstrum while playing a guitar or
+      bass instrument.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

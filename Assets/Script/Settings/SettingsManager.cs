@@ -69,6 +69,7 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.MuteOnMiss),
+                nameof(Settings.PlaySoundOnOverstrum),
                 nameof(Settings.UseStarpowerFx),
                 // nameof(Settings.UseWhammyFx),
                 // nameof(Settings.WhammyPitchShiftAmount),
