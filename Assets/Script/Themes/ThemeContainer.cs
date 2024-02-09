@@ -14,6 +14,8 @@ namespace YARG.Themes
         public readonly Dictionary<GameMode, GameObject> NoteCache = new();
         public readonly Dictionary<GameMode, GameObject> FretCache = new();
 
+        public readonly Dictionary<Type, Dictionary<GameMode, GameObject>> PrefabCache = new();
+
         public ThemeContainer(GameObject themePrefab, bool builtIn)
         {
             _prefab = themePrefab;

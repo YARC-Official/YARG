@@ -6,7 +6,7 @@ using Color = System.Drawing.Color;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class Fret : MonoBehaviour
+    public class Fret : MonoBehaviour, IThemeBindable<ThemeFret>
     {
         private static readonly int _fade = Shader.PropertyToID("Fade");
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
@@ -17,8 +17,9 @@ namespace YARG.Gameplay.Visuals
 
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
-        [SerializeField]
-        private ThemeFret _themeFret;
+        [field: SerializeField]
+        [field: HideInInspector]
+        public ThemeFret ThemeBind { get; set; }
 
         private readonly List<Material> _innerMaterials = new();
 
@@ -28,27 +29,27 @@ namespace YARG.Gameplay.Visuals
         public void Initialize(Color top, Color inner, Color particles)
         {
             // Set the top material color
-            foreach (var material in _themeFret.GetColoredMaterials())
+            foreach (var material in ThemeBind.GetColoredMaterials())
             {
                 material.color = top.ToUnityColor();
                 material.SetColor(_emissionColor, top.ToUnityColor() * 11.5f);
             }
 
             // Set the inner material color
-            foreach (var material in _themeFret.GetInnerColoredMaterials())
+            foreach (var material in ThemeBind.GetInnerColoredMaterials())
             {
                 material.color = inner.ToUnityColor();
                 _innerMaterials.Add(material);
             }
 
             // Set the particle colors
-            _themeFret.HitEffect.SetColor(particles.ToUnityColor());
-            _themeFret.SustainEffect.SetColor(particles.ToUnityColor());
-            _themeFret.PressedEffect.SetColor(particles.ToUnityColor());
+            ThemeBind.HitEffect.SetColor(particles.ToUnityColor());
+            ThemeBind.SustainEffect.SetColor(particles.ToUnityColor());
+            ThemeBind.PressedEffect.SetColor(particles.ToUnityColor());
 
             // See if certain parameters exist
-            _hasPressedParam = _themeFret.Animator.HasParameter(_pressed);
-            _hasSustainParam = _themeFret.Animator.HasParameter(_sustain);
+            _hasPressedParam = ThemeBind.Animator.HasParameter(_pressed);
+            _hasSustainParam = ThemeBind.Animator.HasParameter(_sustain);
         }
 
         public void SetPressed(bool pressed)
@@ -58,50 +59,44 @@ namespace YARG.Gameplay.Visuals
 
             if (_hasPressedParam)
             {
-                _themeFret.Animator.SetBool(_pressed, pressed);
+                ThemeBind.Animator.SetBool(_pressed, pressed);
             }
 
             if (pressed)
             {
-                _themeFret.PressedEffect.Play();
+                ThemeBind.PressedEffect.Play();
             }
             else
             {
-                _themeFret.PressedEffect.Stop();
+                ThemeBind.PressedEffect.Stop();
             }
         }
 
         public void PlayHitAnimation()
         {
-            _themeFret.Animator.SetTrigger(_hit);
+            ThemeBind.Animator.SetTrigger(_hit);
         }
 
         public void PlayHitParticles()
         {
-            _themeFret.HitEffect.Play();
+            ThemeBind.HitEffect.Play();
         }
 
         public void SetSustained(bool sustained)
         {
             if (sustained)
             {
-                _themeFret.SustainEffect.Play();
+                ThemeBind.SustainEffect.Play();
             }
             else
             {
-                _themeFret.SustainEffect.Stop();
+                ThemeBind.SustainEffect.Stop();
             }
 
             if (_hasSustainParam)
             {
-                _themeFret.Animator.SetBool(_sustain, sustained);
+                ThemeBind.Animator.SetBool(_sustain, sustained);
             }
-        }
-
-        public static void CreateFromThemeFret(ThemeFret themeFret)
-        {
-            var fretComp = themeFret.gameObject.AddComponent<Fret>();
-            fretComp._themeFret = themeFret;
         }
     }
 }

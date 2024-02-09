@@ -1,80 +1,37 @@
 ﻿using UnityEngine;
+using YARG.Helpers.Extensions;
+using YARG.Themes;
+using Color = System.Drawing.Color;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class KickFret : MonoBehaviour
+    public class KickFret : MonoBehaviour, IThemeBindable<ThemeKickFret>
     {
-        private const float SECONDS_PER_FRAME = 1f / 50f;
+        private static readonly int _hit = Animator.StringToHash("Hit");
 
-        private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
+        // If we want info to be copied over when we copy the prefab,
+        // we must make them SerializeFields.
+        [field: SerializeField]
+        [field: HideInInspector]
+        public ThemeKickFret ThemeBind { get; set; }
 
-        [SerializeField]
-        private Animation _animation;
-        [SerializeField]
-        private MeshRenderer _kickFlashMesh;
-        [SerializeField]
-        private MeshRenderer _fretMesh;
-
-        [Space]
-        [SerializeField]
-        private Texture2D[] _textures;
-
-        private Material _flashMaterial;
-        private int _currentSprite;
-        private float _updateTimer;
-
-        private void Awake()
+        public void Initialize(Color color)
         {
-            _flashMaterial = _kickFlashMesh.material;
-
-            _currentSprite = _textures.Length - 1;
-            UpdateTexture();
-        }
-
-        public void Initialize(Color flash, Color fret, Color fretEmission)
-        {
-            _flashMaterial.color = flash;
-
-            // The fret mesh's material does not need to be cached
-            // because init is not called often.
-            var fretMat = _fretMesh.material;
-            fretMat.color = fret;
-            fretMat.SetColor(_emissionColor, fretEmission);
-        }
-
-        private void UpdateTexture()
-        {
-            _flashMaterial.mainTexture = _textures[_currentSprite];
-        }
-
-        private void Update()
-        {
-            _updateTimer += Time.deltaTime;
-            while (_updateTimer >= SECONDS_PER_FRAME && _currentSprite < _textures.Length)
+            foreach (var material in ThemeBind.GetColoredMaterials())
             {
-                _updateTimer -= SECONDS_PER_FRAME;
-                UpdateTexture();
-                _currentSprite++;
+                material.color = color.ToUnityColor();
             }
         }
 
-        public void PlayHitAnimation(bool particles)
+        public void PlayHitAnimation()
         {
-            StopAnimation();
-            _animation.Play();
-
-            if (particles)
-            {
-                _updateTimer = 0f;
-                _currentSprite = 0;
-                UpdateTexture();
-            }
+            ThemeBind.Animator.SetTrigger(_hit);
         }
 
-        private void StopAnimation()
+        public static void CreateFromThemeKickFret(ThemeKickFret themeKickFret)
         {
-            _animation.Stop();
-            _animation.Rewind();
+            var fretComp = themeKickFret.gameObject.AddComponent<KickFret>();
+            fretComp.ThemeBind = themeKickFret;
         }
     }
 }

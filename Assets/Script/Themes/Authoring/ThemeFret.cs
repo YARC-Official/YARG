@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Helpers.Authoring;
@@ -13,13 +12,6 @@ namespace YARG.Themes
 
     public class ThemeFret : MonoBehaviour
     {
-        [Serializable]
-        public struct MeshMaterialIndex
-        {
-            public MeshRenderer Mesh;
-            public int MaterialIndex;
-        }
-
         private const float FRET_SIZE = 2f / 5f;
 
         [Space]
