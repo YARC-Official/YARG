@@ -13,6 +13,8 @@ namespace YARG.Gameplay.Player
     {
         private const double SUSTAIN_END_MUTE_THRESHOLD = 0.1;
 
+        public override bool ShouldUpdateInputsOnResume => true;
+
         private static float[] GuitarStarMultiplierThresholds => new[]
         {
             0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f
