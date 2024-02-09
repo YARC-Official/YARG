@@ -651,7 +651,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Search a song or an artist...
+  m_text: Search...
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 6f96ff251c3d6ba4fbf8f9e8c88dae23, type: 2}
   m_sharedMaterial: {fileID: -9114753752673856925, guid: 6f96ff251c3d6ba4fbf8f9e8c88dae23,
@@ -1140,6 +1140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _searchField: {fileID: 4030813025972567531}
+  _searchToggleGroup: {fileID: 6518109644904633094}
   _searchToggles:
   - attribute: 1
     toggle: {fileID: 7497426307822547318}
@@ -1153,6 +1154,7 @@ MonoBehaviour:
     toggle: {fileID: 3756066076264524762}
   - attribute: 7
     toggle: {fileID: 5183301442692405785}
+  _searchPlaceholderText: {fileID: 4030813024926863517}
 --- !u!1 &4030813026092309319
 GameObject:
   m_ObjectHideFlags: 0
@@ -1728,8 +1730,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 187.65, y: -40.340927}
-  m_SizeDelta: {x: 375.3, y: 80.681854}
+  m_AnchoredPosition: {x: 187.6766, y: -40.346622}
+  m_SizeDelta: {x: 375.3532, y: 80.693245}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8760454767777276699
 MonoBehaviour:
@@ -3974,8 +3976,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 418
-  m_PreferredHeight: 836
+  m_PreferredWidth: 418.05914
+  m_PreferredHeight: 836.1183
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -4163,8 +4165,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 417
-  m_PreferredHeight: 417
+  m_PreferredWidth: 417.05914
+  m_PreferredHeight: 417.05914
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -5611,8 +5613,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 187.65, y: -121.02278}
-  m_SizeDelta: {x: 375.3, y: 80.681854}
+  m_AnchoredPosition: {x: 187.6766, y: -121.03987}
+  m_SizeDelta: {x: 375.3532, y: 80.693245}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &5280056635917129584
 MonoBehaviour:

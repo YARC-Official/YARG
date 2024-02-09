@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Core.Song;
 using YARG.Menu.Navigation;
 using YARG.Song;
@@ -22,7 +23,11 @@ namespace YARG.Menu.SongSearching
         [SerializeField]
         private TMP_InputField _searchField;
         [SerializeField]
+        private ToggleGroup _searchToggleGroup;
+        [SerializeField]
         private List<SearchToggle> _searchToggles;
+        [SerializeField]
+        private TextMeshProUGUI _searchPlaceholderText;
 
         private readonly Song.SongSearching _searchContext = new();
         private string _currentSearchText = string.Empty;
@@ -98,6 +103,7 @@ namespace YARG.Menu.SongSearching
                 var toggle = searchToggle.toggle;
                 toggle.OnToggled.RemoveAllListeners();
                 toggle.OnToggled.AddListener(toggle.SetBackgroundAndTextColor);
+                toggle.OnToggled.AddListener(isOn => OnToggle(isOn, searchToggle.attribute));
             }
         }
 
@@ -111,5 +117,26 @@ namespace YARG.Menu.SongSearching
             }
         }
 
+        private void OnToggle(bool isOn, SongAttribute attribute)
+        {
+            if (isOn)
+            {
+                var filter = attribute switch
+                {
+                    SongAttribute.Name => "a song",
+                    SongAttribute.Artist => "an artist",
+                    SongAttribute.Album => "an album",
+                    SongAttribute.Genre => "a genre",
+                    SongAttribute.Source => "a source",
+                    SongAttribute.Charter => "a charter",
+                };
+
+                _searchPlaceholderText.text = $"Search {filter}";
+            }
+            else
+            {
+                _searchPlaceholderText.text = "Search...";
+            }
+        }
     }
 }
