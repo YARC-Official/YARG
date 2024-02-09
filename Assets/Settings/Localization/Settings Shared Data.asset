@@ -920,11 +920,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 113150787738296320
-    m_Key: Header.Lighting General
+    m_Key: Header.LightingGeneral
     m_Metadata:
       m_Items: []
   - m_Id: 113152493171662848
-    m_Key: Header.DMX Channels
+    m_Key: Header.DMXChannels
     m_Metadata:
       m_Items: []
   - m_Id: 113154353806860288

@@ -1048,22 +1048,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb438f304d0d4064fb1de229c53becde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _applicationID: 1091177744416637028
-  _stableDetails:
-    DefaultDetails: Hello there ladies and gentlemen!
-    DefaultState: Are you ready to rock?
-    DefaultLargeImage: icon_stable
-    DefaultLargeText: Yet Another Rhythm Game
-  _nightlyDetails:
-    DefaultDetails: Hello there ladies and gentlemen!
-    DefaultState: Are you ready to test?
-    DefaultLargeImage: icon_nightly
-    DefaultLargeText: Yet Another Rhythm Game - Nightly Build
-  _devDetails:
-    DefaultDetails: Hello there ladies and gentlemen!
-    DefaultState: Are you ready to develop?
-    DefaultLargeImage: icon_dev
-    DefaultLargeText: Yet Another Rhythm Game - Developer Build
 --- !u!114 &728815268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1073,7 +1057,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 728815263}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b959c0d0515779a48a3246dfaccadec0, type: 3}
+  m_Script: {fileID: 11500000, guid: 2e6d233a733a6014891836deea6c0bc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &782876828
@@ -1220,7 +1204,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -7.499878, y: 0}
+  m_AnchoredPosition: {x: -7.500122, y: 0}
   m_SizeDelta: {x: -15, y: 50}
   m_Pivot: {x: 0.5, y: 0.99999994}
 --- !u!114 &787126834
