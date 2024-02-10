@@ -37,8 +37,7 @@ namespace YARG.Audio
 
         public void LoadSfx();
 
-        public void LoadSong(Dictionary<SongStem, Stream> stems, float speed);
-        public void LoadMogg(Stream stream, List<MoggStemMap> stemMaps, float speed);
+        public void LoadSong(List<AudioChannel> channels, float speed);
         public void LoadCustomAudioFile(Stream stream, float speed);
         public void LoadCustomAudioFile(string file, float speed)
         {

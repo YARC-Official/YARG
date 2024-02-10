@@ -42,7 +42,8 @@ namespace YARG.Gameplay
 
             try
             {
-                Song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed);
+                var channels =  Song.LoadAudioStreams();
+                GlobalVariables.AudioManager.LoadSong(channels, GlobalVariables.Instance.SongSpeed);
                 GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
 
                 bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";

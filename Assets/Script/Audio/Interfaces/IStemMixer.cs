@@ -6,7 +6,9 @@ using YARG.Core.Audio;
 
 namespace YARG.Audio
 {
-    public interface IStemMixer : IDisposable
+    public interface IStemMixer<TAudioManager, TChannel> : IDisposable
+        where TAudioManager : IAudioManager
+        where TChannel : IStemChannel<TAudioManager>
     {
         public int StemsLoaded { get; }
 
@@ -14,9 +16,9 @@ namespace YARG.Audio
 
         public event Action SongEnd;
 
-        public IReadOnlyDictionary<SongStem, List<IStemChannel>> Channels { get; }
+        public IReadOnlyList<TChannel> Channels { get; }
 
-        public IStemChannel LeadChannel { get; }
+        public TChannel LeadChannel { get; }
 
         public bool Create();
 
@@ -27,20 +29,22 @@ namespace YARG.Audio
 
         public int Pause();
 
-        public double GetPosition(bool bufferCompensation = true);
+        public double GetPosition(TAudioManager manager, bool bufferCompensation = true);
 
-        public void SetPosition(double position, bool bufferCompensation = true);
+        public void SetPosition(TAudioManager manager, double position, bool bufferCompensation = true);
 
         public int GetData(float[] buffer);
 
-        public void SetPlayVolume(bool fadeIn);
+        public void SetPlayVolume(TAudioManager manager, bool fadeIn);
 
         public void SetSpeed(float speed);
 
-        public int AddChannel(IStemChannel channel);
+        public int AddChannel(TChannel channel);
 
-        public bool RemoveChannel(IStemChannel channel);
+        public int AddChannel(TChannel channel, int[] indices, float[] panning);
 
-        public IStemChannel[] GetChannels(SongStem stem);
+        public bool RemoveChannel(SongStem stemToRemove);
+
+        public TChannel[] GetChannels(SongStem stem);
     }
 }
