@@ -151,6 +151,10 @@ MonoBehaviour:
     m_Key: Header.Display
     m_Metadata:
       m_Items: []
+  - m_Id: 116744829242040320
+    m_Key: Header.DMXChannels
+    m_Metadata:
+      m_Items: []
   - m_Id: 12472066134892544
     m_Key: Header.FileManagement
     m_Metadata:
@@ -161,6 +165,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 25027136172974080
     m_Key: Header.Input
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116744829250428928
+    m_Key: Header.LightingGeneral
     m_Metadata:
       m_Items: []
   - m_Id: 12472103388700672
@@ -199,6 +207,46 @@ MonoBehaviour:
     m_Key: PresetType.EnginePresetContainer
     m_Metadata:
       m_Items: []
+  - m_Id: 116744829250428930
+    m_Key: Setting.Advanced.DMXBlueChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116744829250428931
+    m_Key: Setting.Advanced.DMXDimmerChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116745189243346944
+    m_Key: Setting.Advanced.DMXDimmerChannels.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116744829250428932
+    m_Key: Setting.Advanced.DMXEnabled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116744829250428933
+    m_Key: Setting.Advanced.DMXEnabled.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116744829250428934
+    m_Key: Setting.Advanced.DMXGreenChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116744829250428935
+    m_Key: Setting.Advanced.DMXRedChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116744829250428936
+    m_Key: Setting.Advanced.DMXYellowChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116744829250428937
+    m_Key: Setting.Advanced.StageKitEnabled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116744829250428938
+    m_Key: Setting.Advanced.StageKitEnabled.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 53693768667619344
     m_Key: Setting.Engine.NoKicks
     m_Metadata:
@@ -223,11 +271,11 @@ MonoBehaviour:
     m_Key: Setting.General.AudioCalibration.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 114727832880271360
+  - m_Id: 116744829250428939
     m_Key: Setting.General.DisableGlobalBackgrounds
     m_Metadata:
       m_Items: []
-  - m_Id: 114727863477719040
+  - m_Id: 116744829250428940
     m_Key: Setting.General.DisableGlobalBackgrounds.Description
     m_Metadata:
       m_Items: []
@@ -743,11 +791,11 @@ MonoBehaviour:
     m_Key: Setting.Sound.BassVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 111744086983954432
+  - m_Id: 116744829250428941
     m_Key: Setting.Sound.ClapsInStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 111744428001841152
+  - m_Id: 116744829250428942
     m_Key: Setting.Sound.ClapsInStarpower.Description
     m_Metadata:
       m_Items: []
@@ -891,6 +939,10 @@ MonoBehaviour:
     m_Key: Setting.Sound.WhammyPitchShiftAmount
     m_Metadata:
       m_Items: []
+  - m_Id: 116744829250428943
+    m_Key: Tab.Advanced
+    m_Metadata:
+      m_Items: []
   - m_Id: 10936750303469568
     m_Key: Tab.Engine
     m_Metadata:
@@ -913,58 +965,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10936772512309248
     m_Key: Tab.Sound
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113150520376582144
-    m_Key: Tab.Advanced
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113150787738296320
-    m_Key: Header.LightingGeneral
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113152493171662848
-    m_Key: Header.DMXChannels
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113154353806860288
-    m_Key: Setting.Advanced.StageKitEnabled
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113154578835464192
-    m_Key: Setting.Advanced.DMXEnabled
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113155100158091264
-    m_Key: Setting.Advanced.DMXEnabled.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113156291030048768
-    m_Key: Setting.Advanced.StageKitEnabled.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113159204838203392
-    m_Key: Setting.Advanced.DimmerChannels
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113193663453093888
-    m_Key: Setting.Advanced.BlueChannels
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113193764619706368
-    m_Key: Setting.Advanced.RedChannels
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113193808479543296
-    m_Key: Setting.Advanced.GreenChannels
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113193859524222976
-    m_Key: Setting.Advanced.YellowChannels
-    m_Metadata:
-      m_Items: []
-  - m_Id: 113193936720388096
-    m_Key: Setting.Advanced.DimmerChannels.Description
     m_Metadata:
       m_Items: []
   m_Metadata:

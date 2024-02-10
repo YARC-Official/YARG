@@ -105,11 +105,11 @@ namespace YARG.Settings
                 nameof(Settings.StageKitEnabled),
                 nameof(Settings.DMXEnabled),
                 new HeaderMetadata("DMXChannels"),
-                nameof(Settings.DimmerChannels),
-                nameof(Settings.BlueChannels),
-                nameof(Settings.RedChannels),
-                nameof(Settings.GreenChannels),
-                nameof(Settings.YellowChannels),
+                nameof(Settings.DMXDimmerChannels),
+                nameof(Settings.DMXBlueChannels),
+                nameof(Settings.DMXRedChannels),
+                nameof(Settings.DMXGreenChannels),
+                nameof(Settings.DMXYellowChannels),
             }
         };
 

@@ -11,7 +11,7 @@ namespace YARG.Settings.Types
 
         public DMXChannelsSetting(int[] value, Action<int[]> onChange = null) : base(onChange)
         {
-            //DMX channels range from 1 to 512. (0 is the start code channel)
+            // DMX channels range from 1 to 512. (0 is the start code channel)
             Min = 1;
             Max = 512;
 

@@ -62,11 +62,11 @@ namespace YARG.Integration.Sacn
 
         public void UpdateDMXChannels()
         {
-            _dimmerChannels = SettingsManager.Settings?.DimmerChannels.Value;
-            _redChannels = SettingsManager.Settings?.RedChannels.Value;
-            _greenChannels = SettingsManager.Settings?.GreenChannels.Value;
-            _blueChannels = SettingsManager.Settings?.BlueChannels.Value;
-            _yellowChannels = SettingsManager.Settings?.YellowChannels.Value;
+            _dimmerChannels = SettingsManager.Settings?.DMXDimmerChannels.Value;
+            _redChannels = SettingsManager.Settings?.DMXRedChannels.Value;
+            _greenChannels = SettingsManager.Settings?.DMXGreenChannels.Value;
+            _blueChannels = SettingsManager.Settings?.DMXBlueChannels.Value;
+            _yellowChannels = SettingsManager.Settings?.DMXYellowChannels.Value;
         }
 
         private void OnDestroy()
