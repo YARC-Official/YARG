@@ -82,32 +82,26 @@ namespace YARG.Menu.MusicLibrary
 
         private static void AddSongFromMostPlayed(ref List<SongMetadata> mostPlayed)
         {
-            var song = PullSong(ref mostPlayed);
+            int songIndex = Random.Range(0, mostPlayed.Count);
+            var song = mostPlayed[songIndex];
+            mostPlayed.RemoveAt(songIndex);
             _recommendedSongs.Add(song);
         }
 
         private static void AddSongsFromTopPlayedArtists(ref List<SongMetadata> mostPlayed)
         {
-            // Try 1 or 2 times to pick a random song from artists included in the most played
             var artists = GlobalVariables.Instance.SongContainer.Artists;
-            for (int tries = Random.Range(1, 3); tries > 0 && mostPlayed.Count > 0; --tries)
+            while (mostPlayed.Count > 0)
             {
-                var playedSong = PullSong(ref mostPlayed);
-                var song = artists[playedSong.Artist].Pick();
-                if (song != playedSong && !_recommendedSongs.Contains(song))
+                int songIndex = Random.Range(0, mostPlayed.Count);
+                var song = artists[mostPlayed[songIndex].Artist].Pick();
+                if (!mostPlayed.Contains(song) && !_recommendedSongs.Contains(song))
                 {
                     _recommendedSongs.Add(song);
                     break;
                 }
+                mostPlayed.RemoveAt(songIndex);
             }
-        }
-
-        private static SongMetadata PullSong(ref List<SongMetadata> mostPlayed)
-        {
-            int songIndex = Random.Range(0, mostPlayed.Count);
-            var song = mostPlayed[songIndex];
-            mostPlayed.RemoveAt(songIndex);
-            return song;
         }
     }
 }
