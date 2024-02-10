@@ -131,6 +131,8 @@ namespace YARG.Gameplay
                 return;
             }
 
+            FinalizeChart();
+
             // Initialize song runner
             _songRunner = new SongRunner(
                 GlobalVariables.Instance.SongSpeed,
@@ -174,14 +176,13 @@ namespace YARG.Gameplay
             _songStarted?.Invoke();
         }
 
-        private async UniTask LoadReplay()
+        private void LoadReplay()
         {
             ReplayFile replayFile = null;
             ReplayReadResult result;
             try
             {
-                result = await UniTask.RunOnThreadPool(() => ReplayContainer.LoadReplayFile(
-                    GlobalVariables.Instance.CurrentReplay, out replayFile));
+                result = ReplayContainer.LoadReplayFile(GlobalVariables.Instance.CurrentReplay, out replayFile);
             }
             catch (Exception ex)
             {
@@ -218,57 +219,79 @@ namespace YARG.Gameplay
             YargPlayers = players;
         }
 
-        private async UniTask LoadChart()
+        private void LoadChart()
         {
-            await UniTask.RunOnThreadPool(() =>
+            try
             {
-                // Load chart
-
-                try
+                Chart = Song.LoadChart();
+                if (Chart != null)
                 {
-                    Chart = Song.LoadChart();
+                    GenerateVenueTrack();
                 }
-                catch (Exception ex)
-                {
-                    _loadState = LoadFailureState.Error;
-                    _loadFailureMessage = "Failed to load chart!";
-                    Debug.LogException(ex, this);
-                    return;
-                }
-
-                if (Chart is null)
+                else
                 {
                     _loadState = LoadFailureState.Rescan;
-                    return;
                 }
+            }
+            catch (Exception ex)
+            {
+                _loadState = LoadFailureState.Error;
+                _loadFailureMessage = "Failed to load chart!";
+                Debug.LogException(ex, this);
+            }
+        }
 
-                // Autogenerate venue stuff
-                if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
+        private void GenerateVenueTrack()
+        {
+            if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
+            {
+                var preset = new VenueAutoGenerationPreset(VenueAutoGenerationPreset.DefaultPath);
+                if (!preset.ChartHasFog(Chart)) // This is separate because we may want to add fog even if venue is authored
                 {
-                    var preset = new VenueAutoGenerationPreset(VenueAutoGenerationPreset.DefaultPath);
-
-                    if (!preset.ChartHasFog(Chart)) // This is separate because we may want to add fog even if venue is authored
-                    {
-                        Chart = preset.GenerateFogEvents(Chart);
-                    }
-                    
-                    if (Chart.VenueTrack.Lighting.Count == 0)
-                    {
-                        Chart = preset.GenerateLightingEvents(Chart);
-                    }
-
-                    // TODO: add when characters and camera events are present in game
-                    // if (Chart.VenueTrack.Camera.Count == 0)
-                    // {
-                    //     Chart = autoGenerationPreset.GenerateCameraCutEvents(Chart);
-                    // }
+                    Chart = preset.GenerateFogEvents(Chart);
                 }
-            });
+                
+                if (Chart.VenueTrack.Lighting.Count == 0)
+                {
+                    Chart = preset.GenerateLightingEvents(Chart);
+                }
+                
+                // TODO: add when characters and camera events are present in game
+                // if (Chart.VenueTrack.Camera.Count == 0)
+                // {
+                //     Chart = autoGenerationPreset.GenerateCameraCutEvents(Chart);
+                // }
+            }
+        }
 
-            if (_loadState != LoadFailureState.None) return;
-
+        private void FinalizeChart()
+        {
             BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
             _chartLoaded?.Invoke(Chart);
+
+            double audioLength = GlobalVariables.AudioManager.AudioLengthD;
+            double chartLength = Chart.GetEndTime();
+            double endTime = Chart.GetEndEvent()?.Time ?? -1;
+
+            // - Chart < Audio < [end] -> Audio
+            // - Chart < [end] < Audio -> [end]
+            // - [end] < Chart < Audio -> Audio
+            // - Audio < Chart         -> Chart
+            if (audioLength <= chartLength)
+            {
+                SongLength = chartLength;
+            }
+            else if (endTime <= chartLength || audioLength <= endTime)
+            {
+                SongLength = audioLength;
+            }
+            else
+            {
+                SongLength = endTime;
+            }
+
+            SongLength += SONG_END_DELAY;
+            _songLoaded?.Invoke();
         }
 
         private void CreatePlayers()

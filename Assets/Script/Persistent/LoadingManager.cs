@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ namespace YARG
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
-            Queue(async () => await SongSources.LoadSources(SetSubText), "Loading song sources...");
+            Queue(() => SongSources.LoadSources(SetSubText), "Loading song sources...");
 
             // Fast scan (cache read) on startup
             QueueSongRefresh(true);
@@ -58,13 +59,41 @@ namespace YARG
             {
                 var task = _loadQueue.Dequeue();
                 SetLoadingText(task.Text, task.SubText);
-                await task.Function();
+
+                try
+                {
+                    await task.Function();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
             }
 
             gameObject.SetActive(false);
             IsLoading = false;
         }
 
+        /// <summary>
+        /// Adds a parallelizable action to the loading queue
+        /// </summary>
+        /// <remarks>Only add tasks that don't explicitly require the main thread</remarks>
+        /// <param name="Action"></param>
+        /// <param name="title"></param>
+        /// <param name="sub"></param>
+        public void Queue(Action Action, string title = "Loading...", string sub = null)
+        {
+            var func = UniTask.RunOnThreadPool(Action);
+            Queue(() => func, title, sub);  
+        }
+
+        /// <summary>
+        /// Adds an deferred awaitable function to the loading queue
+        /// </summary>
+        /// <remarks>Preferred for actions that must run on the main thread</remarks>
+        /// <param name="Action"></param>
+        /// <param name="title"></param>
+        /// <param name="sub"></param>
         public void Queue(Func<UniTask> func, string title = "Loading...", string sub = null)
         {
             var task = new QueuedTask
@@ -78,7 +107,7 @@ namespace YARG
 
         public void QueueSongRefresh(bool fast)
         {
-            Queue(async () => await ScanSongFolders(fast), "Loading songs...");
+            Queue(() => ScanSongFolders(fast), "Loading songs...");
         }
 
         private async UniTask ScanSongFolders(bool fast)
