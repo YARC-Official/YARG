@@ -8,6 +8,7 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -144,11 +145,10 @@ namespace YARG.Menu.MusicLibrary
         {
             SetHeader("Sort By...");
 
-            foreach (var sort in EnumExtensions<SongAttribute>.Values)
+            foreach (var sort in EnumExtensions<SortOption>.Values)
             {
-                // Skip theses because they don't make sense
-                if (sort == SongAttribute.Unspecified) continue;
-                if (sort == SongAttribute.Instrument) continue;
+                // Skip these because they don't make sense
+                if (sort == SortOption.Instrument) continue;
 
                 // Create an item for it
                 CreateItem(sort.ToLocalizedName(), () =>

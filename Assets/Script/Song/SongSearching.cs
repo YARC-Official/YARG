@@ -9,32 +9,23 @@ namespace YARG.Song
 {
     public class SongSearching
     {
-        public IReadOnlyList<SongCategory> Refresh(SongAttribute sort)
+        public IReadOnlyList<SongCategory> Refresh(SortOption sort)
         {
             searches.Clear();
-            var filter = new FilterNode(sort, string.Empty);
+            var songAttribute = sort.ToSongAttribute();
+            var filter = new FilterNode(songAttribute, string.Empty);
             var songs = GlobalVariables.Instance.SongContainer.GetSortedSongList(sort);
             searches.Add(new SearchNode(filter, songs));
             return songs;
         }
 
-        public IReadOnlyList<SongCategory> Search(string value, SongAttribute sort)
+        public IReadOnlyList<SongCategory> Search(string value, SortOption sort)
         {
             var currentFilters = new List<FilterNode>()
             {
-                new(sort, string.Empty)
+                new(sort.ToSongAttribute(), string.Empty)
             };
             currentFilters.AddRange(GetFilters(value.Split(';')));
-
-            for (int i = 1; i < currentFilters.Count; i++)
-            {
-                if (currentFilters[i].attribute == SongAttribute.Instrument)
-                {
-                    currentFilters[0] = currentFilters[i];
-                    currentFilters.RemoveAt(i);
-                    break;
-                }
-            }
 
             int currFilterIndex = 0;
             int prevFilterIndex = 0;
@@ -61,7 +52,7 @@ namespace YARG.Song
             {
                 searches.Clear();
                 var filter = currentFilters[0];
-                var songs = GlobalVariables.Instance.SongContainer.GetSortedSongList(filter.attribute);
+                var songs = GlobalVariables.Instance.SongContainer.GetSortedSongList(sort);
                 if (filter.attribute == SongAttribute.Instrument)
                 {
                     songs = FilterInstruments(songs, filter.argument);
@@ -356,12 +347,19 @@ namespace YARG.Song
                 .Where(str => str.Contains(argument, StringComparison.OrdinalIgnoreCase))
                 .ToArray();
 
+            var songsGroupedByInstrument =  GlobalVariables.Instance.SongContainer.GetSortedSongList(SortOption.Instrument);
+            var songsForThisInstrument = songsGroupedByInstrument
+                .Where(x => instruments.Contains(x.Category))
+                .SelectMany(node => node.Songs)
+                .ToHashSet();
+
             List<SongCategory> result = new();
             foreach (var node in searchList)
             {
-                if (instruments.Contains(node.Category))
+                var remainingSongs = node.Songs.Intersect(songsForThisInstrument).ToList();
+                if (remainingSongs.Count > 0)
                 {
-                    result.Add(node);
+                    result.Add(new SongCategory(node.Category, remainingSongs));
                 }
             }
             return result;

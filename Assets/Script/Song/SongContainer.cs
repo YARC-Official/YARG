@@ -2,7 +2,9 @@
 using YARG.Core.Song.Cache;
 using YARG.Core.Song;
 using System;
+using System.Linq;
 using YARG.Helpers.Extensions;
+using YARG.Scores;
 
 namespace YARG.Song
 {
@@ -41,6 +43,7 @@ namespace YARG.Song
         private readonly List<SongCategory> _sortSongLengths = new();
         private readonly List<SongCategory> _sortDatesAdded = new();
         private readonly List<SongCategory> _sortInstruments = new();
+        private readonly List<SongCategory> _sortPlayCount = new();
 
         public IReadOnlyDictionary<string, List<SongMetadata>> Titles => _songCache.Titles;
         public IReadOnlyDictionary<string, List<SongMetadata>> Years => _songCache.Years;
@@ -115,22 +118,34 @@ namespace YARG.Song
             }
         }
 
-        public IReadOnlyList<SongCategory> GetSortedSongList(SongAttribute sort)
+        public void UpdateSongsWithPlayCount()
+        {
+            var songsWithPlayCount = ScoreContainer.GetSongsWithPlayCount();
+            _sortPlayCount.Clear();
+
+            foreach (var songGroup in songsWithPlayCount.OrderByDescending(x => x.Key))
+            {
+                _sortPlayCount.Add(new(songGroup.Key.ToString(), songGroup.Value));
+            }
+        }
+
+        public IReadOnlyList<SongCategory> GetSortedSongList(SortOption sort)
         {
             return sort switch
             {
-                SongAttribute.Name => _sortTitles,
-                SongAttribute.Artist => _sortArtists,
-                SongAttribute.Album => _sortAlbums,
-                SongAttribute.Genre => _sortGenres,
-                SongAttribute.Year => _sortYears,
-                SongAttribute.Charter => _sortCharters,
-                SongAttribute.Playlist => _sortPlaylists,
-                SongAttribute.Source => _sortSources,
-                SongAttribute.Artist_Album => _sortArtistAlbums,
-                SongAttribute.SongLength => _sortSongLengths,
-                SongAttribute.DateAdded => _sortDatesAdded,
-                SongAttribute.Instrument => _sortInstruments,
+                SortOption.Name => _sortTitles,
+                SortOption.Artist => _sortArtists,
+                SortOption.Album => _sortAlbums,
+                SortOption.Genre => _sortGenres,
+                SortOption.Year => _sortYears,
+                SortOption.Charter => _sortCharters,
+                SortOption.Playlist => _sortPlaylists,
+                SortOption.Source => _sortSources,
+                SortOption.Artist_Album => _sortArtistAlbums,
+                SortOption.SongLength => _sortSongLengths,
+                SortOption.DateAdded => _sortDatesAdded,
+                SortOption.Instrument => _sortInstruments,
+                SortOption.PlayCount => _sortPlayCount,
                 _ => throw new Exception("stoopid"),
             };
         }

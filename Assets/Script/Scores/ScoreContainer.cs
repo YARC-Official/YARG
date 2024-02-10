@@ -200,6 +200,47 @@ namespace YARG.Scores
             return new List<SongMetadata>();
         }
 
+        public static Dictionary<int, List<SongMetadata>> GetSongsWithPlayCount()
+        {
+            try
+            {
+                var query =
+                    $"SELECT SongChecksum, COUNT(SongChecksum) AS `Count` FROM GameRecords GROUP BY SongChecksum";
+                var playCounts = _db.Query<PlayCountRecord>(query);
+
+                var allSongs = GlobalVariables.Instance.SongContainer.SongsByHash.ToDictionary(x => x.Key, x => x.Value.Pick());
+                var songs = new Dictionary<int, List<SongMetadata>>();
+                foreach (var record in playCounts)
+                {
+                    var hash = new HashWrapper(record.SongChecksum);
+                    if (allSongs.TryGetValue(hash, out var list))
+                    {
+                        if (songs.TryGetValue(record.Count, out var songList))
+                        {
+                            songList.Add(list);
+                        }
+                        else
+                        {
+                            songs[record.Count] = new List<SongMetadata> { list };
+                        }
+
+                        allSongs.Remove(hash);
+                    }
+                }
+
+                songs[0] = allSongs.Values.ToList();
+
+                return songs;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Failed to load songs with play count from database. See error below for more details.");
+                Debug.LogException(e);
+            }
+
+            return new Dictionary<int, List<SongMetadata>>();
+        }
+
         public static void Destroy()
         {
             _db.Dispose();

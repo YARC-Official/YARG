@@ -414,6 +414,10 @@ MonoBehaviour:
     m_Localized: Song paused...
     m_Metadata:
       m_Items: []
+  - m_Id: 116764250931081216
+    m_Localized: Play Count
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:
