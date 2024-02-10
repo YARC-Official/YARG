@@ -19,45 +19,37 @@ namespace YARG.Helpers.Extensions
         public static async UniTask LoadAlbumCover(this RawImage rawImage,
             SongEntry SongEntry, CancellationToken cancellationToken)
         {
-            if (songMetadata.IniData != null)
-                rawImage.texture = await LoadSongIniCover(songMetadata.IniData, rawImage, cancellationToken);
-            else
-                rawImage.texture = await LoadRBConCover(songMetadata.RBData!, rawImage, cancellationToken);
-
-            rawImage.color = rawImage.texture != null ? Color.white : Color.clear;
-        }
-
-        private static async UniTask<Texture2D> LoadSongIniCover(SongMetadata.IIniMetadata iniData,
-            RawImage rawImage, CancellationToken cancellationToken)
-        {
-            var file = await UniTask.RunOnThreadPool(iniData.GetUnprocessedAlbumArt);
-            if (file == null || cancellationToken.IsCancellationRequested)
-                return null;
-
-            // Width & height get overwritten
-            var texture = new Texture2D(2, 2);
-            if (!texture.LoadImage(file))
-                return null;
-
-            rawImage.uvRect = new Rect(0f, 0f, 1f, 1f);
-            return texture;
-        }
-
-        private static async UniTask<Texture2D> LoadRBConCover(SongMetadata.IRBCONMetadata RBData,
-            RawImage rawImage, CancellationToken token)
-        {
-            var file = await UniTask.RunOnThreadPool(RBData.LoadImgFile);
-            if (file == null)
-                return null;
-
-            for (int i = 32; i < file.Length; i += 2)
+            var file = await UniTask.RunOnThreadPool(SongEntry.LoadAlbumData);
+            if (file != null && !cancellationToken.IsCancellationRequested)
             {
-                if (token.IsCancellationRequested)
-                    return null;
-
-                (file[i + 1], file[i]) = (file[i], file[i + 1]);
+                if (SongEntry.SubType >= EntryType.ExCON)
+                {
+                    rawImage.texture = LoadRBConCoverTexture(file);
+                    rawImage.uvRect = new Rect(0f, 0f, 1f, -1f);
+                }
+                else if (LoadSongIniCoverTexture(file, out var texture))
+                {
+                    rawImage.texture = texture;
+                    rawImage.uvRect = new Rect(0f, 0f, 1f, 1f);
+                }
+                rawImage.color = Color.white;
             }
+            else
+            {
+                rawImage.texture = null;
+                rawImage.color = Color.clear;
+            }
+        }
 
+        private static bool LoadSongIniCoverTexture(byte[] file, out Texture2D texture)
+        {
+            // Width & height get overwritten
+            texture = new Texture2D(2, 2);
+            return texture.LoadImage(file);
+        }
+
+        private static Texture2D LoadRBConCoverTexture(byte[] file)
+        {
             byte bitsPerPixel = file[1];
             int format = BinaryPrimitives.ReadInt32LittleEndian(new(file, 2, 4));
             int width = BinaryPrimitives.ReadInt16LittleEndian(new(file, 7, 2));
@@ -75,8 +67,6 @@ namespace YARG.Helpers.Extensions
                 }
             }
             texture.Apply();
-
-            rawImage.uvRect = new Rect(0f, 0f, 1f, -1f);
             return texture;
         }
 
