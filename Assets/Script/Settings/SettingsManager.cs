@@ -98,7 +98,19 @@ namespace YARG.Settings
                 nameof(Settings.GraphicalProgressOnScoreBox),
                 nameof(Settings.KeepSongInfoVisible)
             },
-            new PresetsTab("Presets", icon: "Customization")
+            new PresetsTab("Presets", icon: "Customization"),
+            new MetadataTab("Advanced", icon: "Customization")
+            {
+                new HeaderMetadata("LightingGeneral"),
+                nameof(Settings.StageKitEnabled),
+                nameof(Settings.DMXEnabled),
+                new HeaderMetadata("DMXChannels"),
+                nameof(Settings.DimmerChannels),
+                nameof(Settings.BlueChannels),
+                nameof(Settings.RedChannels),
+                nameof(Settings.GreenChannels),
+                nameof(Settings.YellowChannels),
+            }
         };
 
         private static string SettingsFile => Path.Combine(PathHelper.PersistentDataPath, "settings.json");

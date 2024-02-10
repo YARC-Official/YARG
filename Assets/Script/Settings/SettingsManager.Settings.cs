@@ -5,6 +5,7 @@ using YARG.Core.Audio;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
+using YARG.Integration.Sacn;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
 using YARG.Player;
@@ -18,6 +19,8 @@ namespace YARG.Settings
     {
         public class SettingContainer
         {
+            //public static event System.Action OnDMXChannelsChanged;
+
             /// <summary>
             /// Whether or not the settings are currently in the process of being loaded.
             /// </summary>
@@ -162,7 +165,45 @@ namespace YARG.Settings
 
             #endregion
 
+            #region Lighting
+
+            public ToggleSetting StageKitEnabled     { get; } = new(true);
+
+            public ToggleSetting DMXEnabled          { get; } = new(false, DMXEnabledCallback);
+
+            public DMXChannelsSetting DimmerChannels { get; } = new(
+                new int[]{ 1, 9, 17, 25, 33, 41, 49, 57 },
+                DMXCallback);
+
+            public DMXChannelsSetting BlueChannels   { get; } = new(
+                new int[]{ 4, 12, 20, 28, 36, 44, 52, 60 },
+                DMXCallback);
+
+            public DMXChannelsSetting RedChannels    { get; } = new(
+                new int[]{ 2, 10, 18, 26, 34, 42, 50, 58 },
+                DMXCallback);
+
+            public DMXChannelsSetting GreenChannels  { get; } = new(
+                new int[]{ 3, 11, 19, 27, 35, 43, 51, 59 },
+                DMXCallback);
+
+            public DMXChannelsSetting YellowChannels { get; } = new(
+                new int[]{ 5, 13, 21, 29, 37, 45, 53, 61 },
+                DMXCallback);
+
+            #endregion
+
             #region Callbacks
+
+            private static void DMXEnabledCallback(bool value)
+            {
+                SacnController.Instance.HandleEnabledChanged(value);
+            }
+
+            private static void DMXCallback(int[] value)
+            {
+                SacnController.Instance.UpdateDMXChannels();
+            }
 
             private static void VSyncCallback(bool value)
             {

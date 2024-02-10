@@ -4,6 +4,7 @@ using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay;
 using PlasticBand.Haptics;
+using YARG.Settings;
 using Random = UnityEngine.Random;
 
 namespace YARG.Integration.StageKit
@@ -44,9 +45,9 @@ namespace YARG.Integration.StageKit
 
         private void Update()
         {
-            if (StageKitLightingController.Instance.StageKits.Count == 0)
+            if ( (StageKitLightingController.Instance.StageKits.Count == 0 || !SettingsManager.Settings.StageKitEnabled.Value) && !SettingsManager.Settings.DMXEnabled.Value)
             {
-                return;
+               return;
             }
 
             //On Pause, turn off the fog and strobe so people don't die, but leave the leds on, looks nice.

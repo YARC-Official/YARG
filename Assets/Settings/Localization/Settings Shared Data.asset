@@ -915,6 +915,58 @@ MonoBehaviour:
     m_Key: Tab.Sound
     m_Metadata:
       m_Items: []
+  - m_Id: 113150520376582144
+    m_Key: Tab.Advanced
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113150787738296320
+    m_Key: Header.LightingGeneral
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113152493171662848
+    m_Key: Header.DMXChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113154353806860288
+    m_Key: Setting.Advanced.StageKitEnabled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113154578835464192
+    m_Key: Setting.Advanced.DMXEnabled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113155100158091264
+    m_Key: Setting.Advanced.DMXEnabled.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113156291030048768
+    m_Key: Setting.Advanced.StageKitEnabled.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113159204838203392
+    m_Key: Setting.Advanced.DimmerChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113193663453093888
+    m_Key: Setting.Advanced.BlueChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113193764619706368
+    m_Key: Setting.Advanced.RedChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113193808479543296
+    m_Key: Setting.Advanced.GreenChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113193859524222976
+    m_Key: Setting.Advanced.YellowChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113193936720388096
+    m_Key: Setting.Advanced.DimmerChannels.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
