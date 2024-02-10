@@ -2257,7 +2257,7 @@ MonoBehaviour:
   _cameraPresetDropdown: {fileID: 4901702434264564515}
   _nameContainer: {fileID: 2901502984568389593}
   _editNameContainer: {fileID: 1767616266085646112}
-  _profileMenu: {fileID: 5881746760155002837}
+  _profileListMenu: {fileID: 0}
   _profileGenericSprite: {fileID: 21300000, guid: 6c06aca89bc095245ba69514188d3fce,
     type: 3}
   _profileBotSprite: {fileID: 21300000, guid: 2a0312c2e46460a4dbce351a4b20985f, type: 3}
@@ -5479,7 +5479,7 @@ PrefabInstance:
     - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
       propertyPath: m_text
-      value: Edit Profile
+      value: Edit Profile and Binds
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
