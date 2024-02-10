@@ -70,14 +70,14 @@ namespace YARG.Integration
 
         private void OnGameStateChange(GameStateFetcher.State state)
         {
-            // Create blank files if we exit playmode or the SongMetadata is not present
-            if (state.CurrentScene != SceneIndex.Gameplay || state.SongMetadata is null)
+            // Create blank files if we exit playmode or the SongEntry is not present
+            if (state.CurrentScene != SceneIndex.Gameplay || state.SongEntry is null)
             {
                 CreateBlankFiles();
                 return;
             }
 
-            var song = state.SongMetadata;
+            var song = state.SongEntry;
 
             // Get the input
             string str =

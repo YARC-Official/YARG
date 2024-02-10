@@ -11,30 +11,30 @@ namespace YARG.Menu.MusicLibrary
     public class SongViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Normal;
-        public override bool UseAsMadeFamousBy => !SongMetadata.IsMaster;
+        public override bool UseAsMadeFamousBy => !SongEntry.IsMaster;
 
         private readonly SongSearchingField _songSearchingField;
-        public readonly SongMetadata SongMetadata;
+        public readonly SongEntry SongEntry;
 
-        public SongViewType(SongSearchingField songSearchingField, SongMetadata songMetadata)
+        public SongViewType(SongSearchingField songSearchingField, SongEntry songEntry)
         {
             _songSearchingField = songSearchingField;
-            SongMetadata = songMetadata;
+            SongEntry = songEntry;
         }
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(SongMetadata.Name, TextType.Primary, selected);
+            return FormatAs(SongEntry.Name, TextType.Primary, selected);
         }
 
         public override string GetSecondaryText(bool selected)
         {
-            return FormatAs(SongMetadata.Artist, TextType.Secondary, selected);
+            return FormatAs(SongEntry.Artist, TextType.Secondary, selected);
         }
 
         public override string GetSideText(bool selected)
         {
-            var score = ScoreContainer.GetHighScore(SongMetadata.Hash);
+            var score = ScoreContainer.GetHighScore(SongEntry.Hash);
 
             // Never played!
             if (score is null) return string.Empty;
@@ -48,13 +48,13 @@ namespace YARG.Menu.MusicLibrary
 
         public override async UniTask<Sprite> GetIcon()
         {
-            return await SongSources.SourceToIcon(SongMetadata.Source);
+            return await SongSources.SourceToIcon(SongEntry.Source);
         }
 
         public override void SecondaryTextClick()
         {
             base.SecondaryTextClick();
-           _songSearchingField.SetSearchInput(SongAttribute.Artist, SongMetadata.Artist.SortStr);
+           _songSearchingField.SetSearchInput(SongAttribute.Artist, SongEntry.Artist.SortStr);
         }
 
         public override void PrimaryButtonClick()
@@ -63,14 +63,14 @@ namespace YARG.Menu.MusicLibrary
 
             if (PlayerContainer.Players.Count <= 0) return;
 
-            GlobalVariables.Instance.CurrentSong = SongMetadata;
+            GlobalVariables.Instance.CurrentSong = SongEntry;
             MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }
 
         public override void IconClick()
         {
             base.IconClick();
-           _songSearchingField.SetSearchInput(SongAttribute.Source, SongMetadata.Source.SortStr);
+           _songSearchingField.SetSearchInput(SongAttribute.Source, SongEntry.Source.SortStr);
         }
     }
 }

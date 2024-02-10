@@ -17,7 +17,7 @@ namespace YARG.Menu.History
         public override bool UseFullContainer => true;
 
         private readonly ReplayEntry _replayEntry;
-        private readonly SongMetadata _songMetadata;
+        private readonly SongEntry _songEntry;
 
         public ReplayViewType(ReplayEntry replayEntry)
         {
@@ -28,7 +28,7 @@ namespace YARG.Menu.History
             var songsForHash = songsByHash.GetValueOrDefault(replayEntry.SongChecksum);
             if (songsForHash is not null)
             {
-                _songMetadata = songsForHash[0];
+                _songEntry = songsForHash[0];
             }
         }
 
@@ -41,18 +41,18 @@ namespace YARG.Menu.History
         {
             return FormatAs(_replayEntry.ArtistName, TextType.Secondary, selected);
         }
-
+         
         public override async UniTask<Sprite> GetIcon()
         {
             // TODO: Show "song missing" icon instead
-            if (_songMetadata is null) return null;
+            if (_songEntry is null) return null;
 
-            return await SongSources.SourceToIcon(_songMetadata.Source);
+            return await SongSources.SourceToIcon(_songEntry.Source);
         }
 
         public override void ViewClick()
         {
-            if (_songMetadata is null) return;
+            if (_songEntry is null) return;
 
             PlayReplay().Forget();
         }
@@ -77,7 +77,7 @@ namespace YARG.Menu.History
             // We're good!
             GlobalVariables.Instance.IsReplay = true;
             GlobalVariables.Instance.CurrentReplay = _replayEntry;
-            GlobalVariables.Instance.CurrentSong = _songMetadata;
+            GlobalVariables.Instance.CurrentSong = _songEntry;
 
             GlobalVariables.AudioManager.UnloadSong();
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);

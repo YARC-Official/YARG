@@ -14,10 +14,10 @@ using YARG.Core.Song;
 
 namespace YARG.Helpers.Extensions
 {
-    public static class SongMetadataExtensions
+    public static class SongEntryExtensions
     {
-        public static async UniTask SetRawImageToAlbumCover(this SongMetadata songMetadata,
-            RawImage rawImage, CancellationToken cancellationToken)
+        public static async UniTask LoadAlbumCover(this RawImage rawImage,
+            SongEntry SongEntry, CancellationToken cancellationToken)
         {
             if (songMetadata.IniData != null)
                 rawImage.texture = await LoadSongIniCover(songMetadata.IniData, rawImage, cancellationToken);
@@ -80,7 +80,7 @@ namespace YARG.Helpers.Extensions
             return texture;
         }
 
-        public static void LoadAudio(this SongMetadata song, IAudioManager manager, float speed, params SongStem[] ignoreStems)
+        public static void LoadAudio(this SongEntry song, IAudioManager manager, float speed, params SongStem[] ignoreStems)
         {
             if (song.IniData != null)
             {
@@ -92,7 +92,7 @@ namespace YARG.Helpers.Extensions
             }
         }
 
-        public static async UniTask<bool> LoadPreviewAudio(this SongMetadata song, IAudioManager manager, float speed)
+        public static async UniTask<bool> LoadPreviewAudio(this SongEntry song, IAudioManager manager, float speed)
         {
             if (song.IniData != null)
             {

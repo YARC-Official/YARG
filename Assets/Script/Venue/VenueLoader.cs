@@ -41,7 +41,7 @@ namespace YARG.Venue
             }
         }
 
-        public static VenueInfo? GetVenue(SongMetadata song)
+        public static VenueInfo? GetVenue(SongEntry song)
         {
             const VenueSource songSource = VenueSource.Song;
 
