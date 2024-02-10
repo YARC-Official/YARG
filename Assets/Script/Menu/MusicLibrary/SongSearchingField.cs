@@ -11,21 +11,10 @@ using YARG.Song;
 
 namespace YARG.Menu.SongSearching
 {
-    [Serializable]
-    public struct SearchToggle
-    {
-        public SongAttribute attribute;
-        public ColoredToggle toggle;
-    }
-
     public class SongSearchingField : MonoBehaviour
     {
         [SerializeField]
         private TMP_InputField _searchField;
-        [SerializeField]
-        private ToggleGroup _searchToggleGroup;
-        [SerializeField]
-        private List<SearchToggle> _searchToggles;
         [SerializeField]
         private TextMeshProUGUI _searchPlaceholderText;
 
@@ -96,17 +85,6 @@ namespace YARG.Menu.SongSearching
             }
         }
 
-        private void OnEnable()
-        {
-            foreach (var searchToggle in _searchToggles)
-            {
-                var toggle = searchToggle.toggle;
-                toggle.OnToggled.RemoveAllListeners();
-                toggle.OnToggled.AddListener(toggle.SetBackgroundAndTextColor);
-                toggle.OnToggled.AddListener(isOn => OnToggle(isOn, searchToggle.attribute));
-            }
-        }
-
         private void OnDisable()
         {
             // Make sure to also pop the search nav if that was pushed
@@ -114,28 +92,6 @@ namespace YARG.Menu.SongSearching
             {
                 Navigator.Instance.PopScheme();
                 _searchNavPushed = false;
-            }
-        }
-
-        private void OnToggle(bool isOn, SongAttribute attribute)
-        {
-            if (isOn)
-            {
-                var filter = attribute switch
-                {
-                    SongAttribute.Name => "a song",
-                    SongAttribute.Artist => "an artist",
-                    SongAttribute.Album => "an album",
-                    SongAttribute.Genre => "a genre",
-                    SongAttribute.Source => "a source",
-                    SongAttribute.Charter => "a charter",
-                };
-
-                _searchPlaceholderText.text = $"Search {filter}";
-            }
-            else
-            {
-                _searchPlaceholderText.text = "Search...";
             }
         }
     }
