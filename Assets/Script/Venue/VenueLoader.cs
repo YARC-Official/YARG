@@ -51,76 +51,15 @@ namespace YARG.Venue
                 return GetVenuePathFromGlobal();
             }
 
-            if (song.IniData != null)
+            var result = song.LoadBackground(
+                BackgroundType.Image |
+                BackgroundType.Video |
+                BackgroundType.Yarground);
+
+            if (result != null)
             {
-                var (type, stream) = song.IniData.GetBackgroundStream(
-                    BackgroundType.Yarground |
-                    BackgroundType.Video |
-                    BackgroundType.Image);
-
-                if (stream != null)
-                    return new VenueInfo(songSource, type, stream);
+                return new VenueInfo(songSource, result.Type, result.Stream);
             }
-            else if (song.RBData is SongMetadata.RBUnpackedCONMetadata)
-            {
-                // Try a local yarground first
-                string directory = song.Directory;
-                string backgroundPath = Path.Combine(directory, "bg.yarground");
-                if (File.Exists(backgroundPath))
-                {
-                    var stream = File.OpenRead(backgroundPath);
-                    return new(songSource, BackgroundType.Yarground, stream);
-                }
-
-                // Then, a local picture or video
-
-                string[] fileNames =
-                {
-                    "bg", "background", "video"
-                };
-
-                string[] videoExtensions =
-                {
-                    ".mp4", ".mov", ".webm",
-                };
-
-                foreach (var name in fileNames)
-                {
-                    var fileBase = Path.Combine(directory, name);
-                    foreach (var ext in videoExtensions)
-                    {
-                        backgroundPath = fileBase + ext;
-                        if (File.Exists(backgroundPath))
-                        {
-                            var stream = File.OpenRead(backgroundPath);
-                            return new(songSource, BackgroundType.Video, stream);
-                        }
-                    }
-                }
-
-                string[] imageExtensions =
-                {
-                    ".png", ".jpg", ".jpeg",
-                };
-
-                foreach (var name in fileNames)
-                {
-                    var fileBase = Path.Combine(directory, name);
-                    foreach (var ext in imageExtensions)
-                    {
-                        backgroundPath = fileBase + ext;
-
-                        if (File.Exists(backgroundPath))
-                        {
-                            var stream = File.OpenRead(backgroundPath);
-                            return new(songSource, BackgroundType.Image, stream);
-                        }
-                    }
-                }
-            }
-            
-
-            // If all of this fails, we can load a global venue
             return GetVenuePathFromGlobal();
         }
 
