@@ -6,7 +6,6 @@ using YARG.Helpers.Extensions;
 using YARG.Menu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings;
-using YARG.Settings.Customization;
 using YARG.Settings.Types;
 
 using SystemColor = System.Drawing.Color;
@@ -55,32 +54,44 @@ namespace YARG.Settings.Metadata
             // Set sub-section
             if (string.IsNullOrEmpty(_subSection))
             {
-                _subSection = nameof(Instrument.FiveFretGuitar);
+                _subSection = nameof(GameMode.FiveFretGuitar);
             }
 
             // Create instrument dropdown
             var dropdown = CreateField(container, COLOR_PROFILE, "Instrument",
                 new DropdownSetting<string>(_subSection, RefreshForSubSection)
                 {
-                    nameof(Instrument.FiveFretGuitar),
-                    nameof(Instrument.FourLaneDrums),
-                    nameof(Instrument.FiveLaneDrums),
+                    nameof(GameMode.FiveFretGuitar),
+                    nameof(GameMode.FourLaneDrums),
+                    nameof(GameMode.FiveLaneDrums),
                 }
             );
             navGroup.AddNavigatable(dropdown.gameObject);
+
+            // Set the preview type
+            if (PreviewBuilder is TrackPreviewBuilder trackPreviewBuilder)
+            {
+                // Yucky.
+                // TODO: Redo this whole system!
+                trackPreviewBuilder.StartingGameMode = (GameMode) Enum.Parse(typeof(GameMode), _subSection);
+            }
+            else
+            {
+                Debug.LogWarning("This sub-tab's preview builder should be a track preview!");
+            }
 
             // Header
             SpawnHeader(container, "PresetSettings");
 
             // Reflection is slow, however, it's more maintainable in this case
-            var instrumentProfile = GetSelectedInstrumentProfile(colorProfile);
-            foreach (var field in instrumentProfile.GetType().GetFields())
+            var gameModeProfile = GetSelectedGameModeProfile(colorProfile);
+            foreach (var field in gameModeProfile.GetType().GetFields())
             {
                 // Skip non-color fields
                 if (field.FieldType != typeof(SystemColor)) continue;
 
                 // Get the starting value
-                var color = ((SystemColor) field.GetValue(instrumentProfile)).ToUnityColor();
+                var color = ((SystemColor) field.GetValue(gameModeProfile)).ToUnityColor();
 
                 // Add field
                 var visual = CreateField(container, COLOR_PROFILE, field.Name, new ColorSetting(color, true));
@@ -91,7 +102,7 @@ namespace YARG.Settings.Metadata
         private void UpdateForColor(ColorProfile colorProfile)
         {
             // Reflection is slow, however, it's more maintainable in this case
-            var instrumentProfile = GetSelectedInstrumentProfile(colorProfile);
+            var instrumentProfile = GetSelectedGameModeProfile(colorProfile);
             foreach (var field in instrumentProfile.GetType().GetFields())
             {
                 // Skip non-color fields
@@ -106,14 +117,14 @@ namespace YARG.Settings.Metadata
             }
         }
 
-        private object GetSelectedInstrumentProfile(ColorProfile c)
+        private object GetSelectedGameModeProfile(ColorProfile c)
         {
             return _subSection switch
             {
-                nameof(Instrument.FiveFretGuitar) => c.FiveFretGuitar,
-                nameof(Instrument.FourLaneDrums)  => c.FourLaneDrums,
-                nameof(Instrument.FiveLaneDrums)  => c.FiveLaneDrums,
-                _                => throw new Exception("Unreachable.")
+                nameof(GameMode.FiveFretGuitar) => c.FiveFretGuitar,
+                nameof(GameMode.FourLaneDrums)  => c.FourLaneDrums,
+                nameof(GameMode.FiveLaneDrums)  => c.FiveLaneDrums,
+                _ => throw new Exception("Unreachable.")
             };
         }
 
@@ -135,6 +146,21 @@ namespace YARG.Settings.Metadata
                 }
             );
             navGroup.AddNavigatable(dropdown.gameObject);
+
+            // Set the preview type
+            if (PreviewBuilder is TrackPreviewBuilder trackPreviewBuilder)
+            {
+                trackPreviewBuilder.StartingGameMode = _subSection switch
+                {
+                    nameof(EnginePreset.FiveFretGuitarPreset) => GameMode.FiveFretGuitar,
+                    nameof(EnginePreset.DrumsPreset)          => GameMode.FourLaneDrums,
+                    _ => throw new Exception("Unreachable.")
+                };
+            }
+            else
+            {
+                Debug.LogWarning("This sub-tab's preview builder should be a track preview!");
+            }
 
             // Header
             SpawnHeader(container, "PresetSettings");

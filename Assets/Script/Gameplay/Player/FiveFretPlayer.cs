@@ -13,6 +13,8 @@ namespace YARG.Gameplay.Player
     {
         private const double SUSTAIN_END_MUTE_THRESHOLD = 0.1;
 
+        public override bool ShouldUpdateInputsOnResume => true;
+
         private static float[] GuitarStarMultiplierThresholds => new[]
         {
             0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f
@@ -94,7 +96,8 @@ namespace YARG.Gameplay.Player
 
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
             _fretArray.Initialize(
-                SetupFretTheme(Player.Profile.GameMode),
+                Player.ThemePreset,
+                Player.Profile.GameMode,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip);
         }
@@ -103,10 +106,7 @@ namespace YARG.Gameplay.Player
         {
             base.ResetPracticeSection();
 
-            for (int i = 0; i < _fretArray.Frets.Count; i++)
-            {
-                _fretArray.SetSustained(i, false);
-            }
+            _fretArray.ResetAll();
         }
 
         protected override void UpdateVisuals(double songTime)

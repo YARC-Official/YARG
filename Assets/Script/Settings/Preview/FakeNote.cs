@@ -92,8 +92,7 @@ namespace YARG.Settings.Preview
             }
 
             // Update color
-            // TODO: Make `GetNoteColor` generic
-            var color = colorProfile.FiveFretGuitar.GetNoteColor(NoteRef.Fret).ToUnityColor();
+            var color = FakeTrackPlayer.CurrentGameModeInfo.NoteColorProvider(colorProfile, NoteRef.Fret);
             _currentNoteGroup.SetColorWithEmission(color, color);
         }
 

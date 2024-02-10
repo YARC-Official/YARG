@@ -116,12 +116,12 @@ namespace YARG.Gameplay.HUD
 
         private void RegisterNavigationScheme()
         {
-            if (_navigationPushed)
-                return;
+            if (_navigationPushed) return;
 
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Confirm", Confirm),
+                new NavigationScheme.Entry(MenuAction.Red, "Back", () => GameManager.ForceQuitSong()),
                 new NavigationScheme.Entry(MenuAction.Up, "Up", Up),
                 new NavigationScheme.Entry(MenuAction.Down, "Down", Down)
             }, false));

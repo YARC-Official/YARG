@@ -15,7 +15,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3001
+  m_CustomRenderQueue: 3010
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -57,11 +57,19 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _NoiseTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ShineMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -106,13 +114,15 @@ Material:
     - _GlossyReflections: 0
     - _Metallic: 1.5
     - _NoiseScale: -4.26
+    - _NoiseSpeed: 1
     - _NoiseStrength: -0.66
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
-    - _QueueOffset: 1
+    - _QueueOffset: 10
     - _RandomFloat: 0.15
     - _ReceiveShadows: 1
+    - _Shine_Amount: 0.5
     - _Smoothness: 0.2
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -128,6 +138,7 @@ Material:
     - _BaseColor: {r: 0.13192892, g: 1, b: 0, a: 1}
     - _Color: {r: 0, g: 0.8434596, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Noise_Tiling: {r: 1, g: 1, b: 0, a: 0}
     - _RandomVector: {r: -1.52, g: 1.06, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []

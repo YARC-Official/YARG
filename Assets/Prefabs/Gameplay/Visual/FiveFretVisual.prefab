@@ -30,7 +30,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4868506171459748694}
-  m_RootOrder: 1
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1060069523843335645
 MonoBehaviour:
@@ -45,7 +45,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FretCount: 5
+  UseKickFrets: 0
   _trackWidth: 2
+  _leftKickFretPosition: {fileID: 1059056642713352937}
+  _rightKickFretPosition: {fileID: 5240670873078094218}
 --- !u!1001 &7434902305530561920
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -141,6 +144,16 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 861361446070616044, guid: 03b0fdd0f2d131d4682ccf3aaf6ee2a7,
         type: 3}
+    - target: {fileID: 3428521509162818570, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7610118164488372073, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
 --- !u!114 &155632028176750329 stripped
@@ -155,6 +168,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &1059056642713352937 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7610118164488372073, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1442216845985701587 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8299532499037330259, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -227,6 +246,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a7beac659084035953f1987970c9d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &5240670873078094218 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3428521509162818570, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
 --- !u!20 &5450824049626431651 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 3209698564276094243, guid: 5800c42510b55c549be95ec3ecd75e1c,

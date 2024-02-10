@@ -3,6 +3,7 @@ using System.Linq;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
@@ -46,6 +47,8 @@ namespace YARG.Gameplay.Player
 
         public abstract float[] StarMultiplierThresholds { get; protected set; }
         public abstract int[] StarScoreThresholds { get; protected set; }
+
+        public abstract bool ShouldUpdateInputsOnResume { get; }
 
         public HitWindowSettings HitWindow { get; protected set; }
 
@@ -277,6 +280,11 @@ namespace YARG.Gameplay.Player
             // Ignore while paused
             if (GameManager.Paused)
             {
+                if (!ShouldUpdateInputsOnResume)
+                {
+                    return;
+                }
+
                 if (LastInputs.TryGetValue(input.Action, out var lastInput))
                 {
                     if (lastInput.Button != input.Button)
