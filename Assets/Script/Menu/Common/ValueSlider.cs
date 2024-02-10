@@ -10,9 +10,10 @@ namespace YARG.Menu
     {
         [SerializeField]
         private Slider _slider;
-
         [SerializeField]
         private TMP_InputField _inputField;
+        [SerializeField]
+        private string _formatString = "N2";
 
         [Space]
         public UnityEvent<float> ValueChanged;
@@ -23,7 +24,7 @@ namespace YARG.Menu
         public float Value
         {
             get => _value;
-            set => SetValue(value);
+            set => SetValue(value, notify: true);
         }
 
         public float MinimumValue
@@ -38,52 +39,95 @@ namespace YARG.Menu
             set => _slider.maxValue = value;
         }
 
-        [SerializeField]
-        private string _formatString = "N2";
+        private string _beforeEditText;
+        private float _beforeEditValue;
 
         // TMP_InputField.SetTextWithoutNotify still notifies when in editor
         private bool _isSettingValue;
 
-        public void OnSliderChange(float value)
-        {
-            SetValue(value);
-        }
-
-        public void OnTextChange(string text)
-        {
-            if (!float.TryParse(text, out float value))
-                return;
-
-            SetValue(value);
-        }
-
-        private void SetValue(float value)
+        public void OnSelect()
         {
             if (_isSettingValue)
                 return;
 
+            _beforeEditText = _inputField.text;
+            _beforeEditValue = _value;
+        }
+
+        public void OnDeselect()
+        {
+            if (_isSettingValue)
+                return;
+
+            _beforeEditText = null;
+        }
+
+        public void OnSliderChange(float value)
+        {
             // Ignore if no change
             if (Mathf.Approximately(_value, value))
+                return;
+
+            SetValue(value, setSlider: false, notify: true);
+        }
+
+        public void OnTextChanged(string text)
+        {
+            if (_isSettingValue || !float.TryParse(text, out float value))
+                return;
+
+            // Text/value are not updated until the edit is finished,
+            // and notification is delayed
+            SetValue(value, setValue: false, setText: false, notify: false);
+        }
+
+        public void OnFinishEdit(string text)
+        {
+            if (_isSettingValue)
+                return;
+
+            // Reset text/value on invalid input
+            if (!float.TryParse(text, out float value))
+            {
+                _isSettingValue = true;
+
+                _inputField.SetTextWithoutNotify(_beforeEditText);
+                _slider.SetValueWithoutNotify(_beforeEditValue);
+
+                _isSettingValue = false;
+                return;
+            }
+
+            SetValue(value, notify: true);
+        }
+
+        private void SetValue(float value, bool notify,
+            bool setSlider = true, bool setValue = true, bool setText = true)
+        {
+            if (_isSettingValue)
                 return;
 
             // Set value and notify
             _isSettingValue = true;
 
-            _slider.SetValueWithoutNotify(value);
-            _value = _slider.value;
-            _inputField.SetTextWithoutNotify(_value.ToString(_formatString));
+            if (setSlider)
+                _slider.SetValueWithoutNotify(value);
 
-            if (NotifyOnChange) ValueChanged.Invoke(_value);
+            if (setValue)
+                _value = _slider.value;
+
+            if (setText)
+                _inputField.SetTextWithoutNotify(_value.ToString(_formatString));
+
+            if (notify && NotifyOnChange)
+                ValueChanged.Invoke(_value);
 
             _isSettingValue = false;
         }
 
         public void SetValueWithoutNotify(float value)
         {
-            bool notify = NotifyOnChange;
-            NotifyOnChange = false;
-            SetValue(value);
-            NotifyOnChange = notify;
+            SetValue(value, notify: false);
         }
     }
 }
