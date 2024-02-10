@@ -12,13 +12,13 @@ namespace YARG.Settings.Metadata
         public string Name { get; }
         public string Icon { get; }
 
-        private readonly IPreviewBuilder _previewBuilder;
+        protected readonly IPreviewBuilder PreviewBuilder;
 
         protected Tab(string name, string icon = "Generic", IPreviewBuilder previewBuilder = null)
         {
             Name = name;
             Icon = icon;
-            _previewBuilder = previewBuilder;
+            PreviewBuilder = previewBuilder;
         }
 
         public abstract void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup);
@@ -33,9 +33,9 @@ namespace YARG.Settings.Metadata
 
         public virtual UniTask BuildPreviewWorld(Transform worldContainer)
         {
-            if (_previewBuilder is not null)
+            if (PreviewBuilder is not null)
             {
-                return _previewBuilder.BuildPreviewWorld(worldContainer);
+                return PreviewBuilder.BuildPreviewWorld(worldContainer);
             }
 
             return UniTask.CompletedTask;
@@ -43,9 +43,9 @@ namespace YARG.Settings.Metadata
 
         public virtual UniTask BuildPreviewUI(Transform uiContainer)
         {
-            if (_previewBuilder is not null)
+            if (PreviewBuilder is not null)
             {
-                return _previewBuilder.BuildPreviewUI(uiContainer);
+                return PreviewBuilder.BuildPreviewUI(uiContainer);
             }
 
             return UniTask.CompletedTask;
