@@ -138,10 +138,10 @@ namespace YARG.Menu.Settings
             }
 
             _settingName.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{CurrentTab.Name}.{settingNav.UnlocalizedName}");
+                "Settings", $"Setting.{settingNav.UnlocalizedName}");
 
             _settingDescription.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{CurrentTab.Name}.{settingNav.UnlocalizedName}.Description");
+                "Settings", $"Setting.{settingNav.UnlocalizedName}.Description");
         }
 
         public void RefreshPreview(bool waitForResolution = false)

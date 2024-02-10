@@ -15,116 +15,116 @@ MonoBehaviour:
   m_TableCollectionName: Settings
   m_TableCollectionNameGuidString: 0c40e690d26fdff4a92f0b3813ac68a4
   m_Entries:
-  - m_Id: 53693768659230720
-    m_Key: Button.General.CopyCurrentSongJsonFilePath
+  - m_Id: 116747023320211456
+    m_Key: Button.CopyCurrentSongJsonFilePath
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619328
-    m_Key: Button.General.CopyCurrentSongTextFilePath
+  - m_Id: 116747023324405760
+    m_Key: Button.CopyCurrentSongTextFilePath
     m_Metadata:
       m_Items: []
-  - m_Id: 64541856412065792
-    m_Key: Button.General.ExportSongsOuvert
+  - m_Id: 116747023324405761
+    m_Key: Button.ExportSongsOuvert
     m_Metadata:
       m_Items: []
-  - m_Id: 64541856412065793
-    m_Key: Button.General.ExportSongsText
+  - m_Id: 116747023324405762
+    m_Key: Button.ExportSongsText
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619330
-    m_Key: Button.General.OpenCalibrator
+  - m_Id: 116747023324405763
+    m_Key: Button.OpenCalibrator
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619332
-    m_Key: Button.General.OpenVenueFolder
+  - m_Id: 116747023324405764
+    m_Key: Button.OpenVenueFolder
     m_Metadata:
       m_Items: []
-  - m_Id: 53694051170770944
-    m_Key: Button.SongManager.AddFolder
+  - m_Id: 116747023324405765
+    m_Key: Button.AddFolder
     m_Metadata:
       m_Items: []
-  - m_Id: 53694051174965248
-    m_Key: Button.SongManager.RefreshCache
+  - m_Id: 116747023324405766
+    m_Key: Button.RefreshCache
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619333
-    m_Key: Dropdown.Graphics.FullscreenMode.ExclusiveFullScreen
+  - m_Id: 116747023324405767
+    m_Key: Dropdown.FullscreenMode.ExclusiveFullScreen
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619334
-    m_Key: Dropdown.Graphics.FullscreenMode.FullScreenWindow
+  - m_Id: 116747023324405768
+    m_Key: Dropdown.FullscreenMode.FullScreenWindow
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619335
-    m_Key: Dropdown.Graphics.FullscreenMode.MaximizedWindow
+  - m_Id: 116747023324405769
+    m_Key: Dropdown.FullscreenMode.MaximizedWindow
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619336
-    m_Key: Dropdown.Graphics.FullscreenMode.Windowed
+  - m_Id: 116747023324405770
+    m_Key: Dropdown.FullscreenMode.Windowed
     m_Metadata:
       m_Items: []
-  - m_Id: 66739072220389376
-    m_Key: Dropdown.Graphics.LyricDisplay.Compatibility
+  - m_Id: 116747023324405771
+    m_Key: Dropdown.LyricDisplay.Compatibility
     m_Metadata:
       m_Items: []
-  - m_Id: 66739072241360897
-    m_Key: Dropdown.Graphics.LyricDisplay.Disabled
+  - m_Id: 116747023324405772
+    m_Key: Dropdown.LyricDisplay.Disabled
     m_Metadata:
       m_Items: []
-  - m_Id: 92132627034005504
-    m_Key: Dropdown.Graphics.LyricDisplay.NoBackground
+  - m_Id: 116747023324405773
+    m_Key: Dropdown.LyricDisplay.NoBackground
     m_Metadata:
       m_Items: []
-  - m_Id: 66739072241360898
-    m_Key: Dropdown.Graphics.LyricDisplay.Normal
+  - m_Id: 116747023324405774
+    m_Key: Dropdown.LyricDisplay.Normal
     m_Metadata:
       m_Items: []
-  - m_Id: 66739072241360899
-    m_Key: Dropdown.Graphics.LyricDisplay.Transparent
+  - m_Id: 116747023324405775
+    m_Key: Dropdown.LyricDisplay.Transparent
     m_Metadata:
       m_Items: []
-  - m_Id: 56963656047779840
-    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountDownAndTotal
+  - m_Id: 116747023324405776
+    m_Key: Dropdown.SongTimeOnScoreBox.CountDownAndTotal
     m_Metadata:
       m_Items: []
-  - m_Id: 56963656236523520
-    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountDownOnly
+  - m_Id: 116747023324405777
+    m_Key: Dropdown.SongTimeOnScoreBox.CountDownOnly
     m_Metadata:
       m_Items: []
-  - m_Id: 56963656236523521
-    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountUpAndTotal
+  - m_Id: 116747023324405778
+    m_Key: Dropdown.SongTimeOnScoreBox.CountUpAndTotal
     m_Metadata:
       m_Items: []
-  - m_Id: 56963656236523522
-    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountUpOnly
+  - m_Id: 116747023324405779
+    m_Key: Dropdown.SongTimeOnScoreBox.CountUpOnly
     m_Metadata:
       m_Items: []
-  - m_Id: 56963656236523523
-    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.None
+  - m_Id: 116747023324405780
+    m_Key: Dropdown.SongTimeOnScoreBox.None
     m_Metadata:
       m_Items: []
-  - m_Id: 56963656240717824
-    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.TotalOnly
+  - m_Id: 116747023324405781
+    m_Key: Dropdown.SongTimeOnScoreBox.TotalOnly
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957755584512
-    m_Key: Dropdown.Presets.ColorProfile.Instrument.FiveFretGuitar
+  - m_Id: 116747023324405782
+    m_Key: PresetDropdown.ColorProfile.Instrument.FiveFretGuitar
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957784944640
-    m_Key: Dropdown.Presets.ColorProfile.Instrument.FiveLaneDrums
+  - m_Id: 116747023324405783
+    m_Key: PresetDropdown.ColorProfile.Instrument.FiveLaneDrums
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957784944641
-    m_Key: Dropdown.Presets.ColorProfile.Instrument.FourLaneDrums
+  - m_Id: 116747023324405784
+    m_Key: PresetDropdown.ColorProfile.Instrument.FourLaneDrums
     m_Metadata:
       m_Items: []
-  - m_Id: 92846839934869504
-    m_Key: Dropdown.Presets.EnginePreset.GameMode.DrumsPreset
+  - m_Id: 116747023324405785
+    m_Key: PresetDropdown.EnginePreset.GameMode.DrumsPreset
     m_Metadata:
       m_Items: []
-  - m_Id: 92846839955841024
-    m_Key: Dropdown.Presets.EnginePreset.GameMode.FiveFretGuitarPreset
+  - m_Id: 116747023324405786
+    m_Key: PresetDropdown.EnginePreset.GameMode.FiveFretGuitarPreset
     m_Metadata:
       m_Items: []
   - m_Id: 92111997366558720
@@ -207,736 +207,736 @@ MonoBehaviour:
     m_Key: PresetType.EnginePresetContainer
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428930
-    m_Key: Setting.Advanced.DMXBlueChannels
+  - m_Id: 116747023324405787
+    m_Key: Setting.DMXBlueChannels
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428931
-    m_Key: Setting.Advanced.DMXDimmerChannels
+  - m_Id: 116747023324405788
+    m_Key: Setting.DMXDimmerChannels
     m_Metadata:
       m_Items: []
-  - m_Id: 116745189243346944
-    m_Key: Setting.Advanced.DMXDimmerChannels.Description
+  - m_Id: 116747023324405789
+    m_Key: Setting.DMXDimmerChannels.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428932
-    m_Key: Setting.Advanced.DMXEnabled
+  - m_Id: 116747023324405790
+    m_Key: Setting.DMXEnabled
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428933
-    m_Key: Setting.Advanced.DMXEnabled.Description
+  - m_Id: 116747023324405791
+    m_Key: Setting.DMXEnabled.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428934
-    m_Key: Setting.Advanced.DMXGreenChannels
+  - m_Id: 116747023324405792
+    m_Key: Setting.DMXGreenChannels
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428935
-    m_Key: Setting.Advanced.DMXRedChannels
+  - m_Id: 116747023324405793
+    m_Key: Setting.DMXRedChannels
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428936
-    m_Key: Setting.Advanced.DMXYellowChannels
+  - m_Id: 116747023324405794
+    m_Key: Setting.DMXYellowChannels
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428937
-    m_Key: Setting.Advanced.StageKitEnabled
+  - m_Id: 116747023324405795
+    m_Key: Setting.StageKitEnabled
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428938
-    m_Key: Setting.Advanced.StageKitEnabled.Description
+  - m_Id: 116747023324405796
+    m_Key: Setting.StageKitEnabled.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619344
-    m_Key: Setting.Engine.NoKicks
+  - m_Id: 116747023324405797
+    m_Key: Setting.NoKicks
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850241
-    m_Key: Setting.Engine.NoKicks.Description
+  - m_Id: 116747023324405798
+    m_Key: Setting.NoKicks.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619345
-    m_Key: Setting.General.AmIAwesome
+  - m_Id: 116747023324405799
+    m_Key: Setting.AmIAwesome
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619346
-    m_Key: Setting.General.AmIAwesome.Description
+  - m_Id: 116747023324405800
+    m_Key: Setting.AmIAwesome.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619347
-    m_Key: Setting.General.AudioCalibration
+  - m_Id: 116747023324405801
+    m_Key: Setting.AudioCalibration
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619348
-    m_Key: Setting.General.AudioCalibration.Description
+  - m_Id: 116747023324405802
+    m_Key: Setting.AudioCalibration.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428939
-    m_Key: Setting.General.DisableGlobalBackgrounds
+  - m_Id: 116747023324405803
+    m_Key: Setting.DisableGlobalBackgrounds
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428940
-    m_Key: Setting.General.DisableGlobalBackgrounds.Description
+  - m_Id: 116747023324405804
+    m_Key: Setting.DisableGlobalBackgrounds.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619349
-    m_Key: Setting.General.DisablePerSongBackgrounds
+  - m_Id: 116747023324405805
+    m_Key: Setting.DisablePerSongBackgrounds
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850242
-    m_Key: Setting.General.DisablePerSongBackgrounds.Description
+  - m_Id: 116747023324405806
+    m_Key: Setting.DisablePerSongBackgrounds.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 79799556705734656
-    m_Key: Setting.General.InputDeviceLogging
+  - m_Id: 116747023324405807
+    m_Key: Setting.InputDeviceLogging
     m_Metadata:
       m_Items: []
-  - m_Id: 79799583608000512
-    m_Key: Setting.General.InputDeviceLogging.Description
+  - m_Id: 116747023324405808
+    m_Key: Setting.InputDeviceLogging.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 92131506068512768
-    m_Key: Setting.General.KickBounceMultiplier
+  - m_Id: 116747023324405809
+    m_Key: Setting.KickBounceMultiplier
     m_Metadata:
       m_Items: []
-  - m_Id: 92131506068512769
-    m_Key: Setting.General.KickBounceMultiplier.Description
+  - m_Id: 116747023324405810
+    m_Key: Setting.KickBounceMultiplier.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 92111997370753024
-    m_Key: Setting.General.ShowAdvancedMusicLibraryOptions
+  - m_Id: 116747023324405811
+    m_Key: Setting.ShowAdvancedMusicLibraryOptions
     m_Metadata:
       m_Items: []
-  - m_Id: 92112677250654208
-    m_Key: Setting.General.ShowAdvancedMusicLibraryOptions.Description
+  - m_Id: 116747023324405812
+    m_Key: Setting.ShowAdvancedMusicLibraryOptions.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619351
-    m_Key: Setting.General.ShowCursorTimer
+  - m_Id: 116747023324405813
+    m_Key: Setting.ShowCursorTimer
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850244
-    m_Key: Setting.General.ShowCursorTimer.Description
+  - m_Id: 116747023324405814
+    m_Key: Setting.ShowCursorTimer.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619352
-    m_Key: Setting.General.UseCymbalModelsInFiveLane
+  - m_Id: 116747023324405815
+    m_Key: Setting.UseCymbalModelsInFiveLane
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850245
-    m_Key: Setting.General.UseCymbalModelsInFiveLane.Description
+  - m_Id: 116747023324405816
+    m_Key: Setting.UseCymbalModelsInFiveLane.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 73744741668081664
-    m_Key: Setting.General.VideoCalibration
+  - m_Id: 116747023324405817
+    m_Key: Setting.VideoCalibration
     m_Metadata:
       m_Items: []
-  - m_Id: 73745068840570880
-    m_Key: Setting.General.VideoCalibration.Description
+  - m_Id: 116747023324405818
+    m_Key: Setting.VideoCalibration.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619353
-    m_Key: Setting.Graphics.DisableBloom
+  - m_Id: 116747023324405819
+    m_Key: Setting.DisableBloom
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850246
-    m_Key: Setting.Graphics.DisableBloom.Description
+  - m_Id: 116747023324405820
+    m_Key: Setting.DisableBloom.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619354
-    m_Key: Setting.Graphics.DisableTextNotifications
+  - m_Id: 116747023324405821
+    m_Key: Setting.DisableTextNotifications
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850247
-    m_Key: Setting.Graphics.DisableTextNotifications.Description
+  - m_Id: 116747023324405822
+    m_Key: Setting.DisableTextNotifications.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619355
-    m_Key: Setting.Graphics.FpsCap
+  - m_Id: 116747023324405823
+    m_Key: Setting.FpsCap
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850248
-    m_Key: Setting.Graphics.FpsCap.Description
+  - m_Id: 116747023324405824
+    m_Key: Setting.FpsCap.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619356
-    m_Key: Setting.Graphics.FpsStats
+  - m_Id: 116747023324405825
+    m_Key: Setting.FpsStats
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850249
-    m_Key: Setting.Graphics.FpsStats.Description
+  - m_Id: 116747023324405826
+    m_Key: Setting.FpsStats.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619357
-    m_Key: Setting.Graphics.FullscreenMode
+  - m_Id: 116747023324405827
+    m_Key: Setting.FullscreenMode
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850250
-    m_Key: Setting.Graphics.FullscreenMode.Description
+  - m_Id: 116747023324405828
+    m_Key: Setting.FullscreenMode.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 56971512511848448
-    m_Key: Setting.Graphics.GraphicalProgressOnScoreBox
+  - m_Id: 116747023324405829
+    m_Key: Setting.GraphicalProgressOnScoreBox
     m_Metadata:
       m_Items: []
-  - m_Id: 56971512511848449
-    m_Key: Setting.Graphics.GraphicalProgressOnScoreBox.Description
+  - m_Id: 116747023324405830
+    m_Key: Setting.GraphicalProgressOnScoreBox.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 98954526460338176
-    m_Key: Setting.Graphics.KeepSongInfoVisible
+  - m_Id: 116747023324405831
+    m_Key: Setting.KeepSongInfoVisible
     m_Metadata:
       m_Items: []
-  - m_Id: 98954526485504000
-    m_Key: Setting.Graphics.KeepSongInfoVisible.Description
+  - m_Id: 116747023324405832
+    m_Key: Setting.KeepSongInfoVisible.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619358
-    m_Key: Setting.Graphics.LowQuality
+  - m_Id: 116747023324405833
+    m_Key: Setting.LowQuality
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850251
-    m_Key: Setting.Graphics.LowQuality.Description
+  - m_Id: 116747023324405834
+    m_Key: Setting.LowQuality.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 66739072245555200
-    m_Key: Setting.Graphics.LyricDisplay
+  - m_Id: 116747023324405835
+    m_Key: Setting.LyricDisplay
     m_Metadata:
       m_Items: []
-  - m_Id: 66739072245555201
-    m_Key: Setting.Graphics.LyricDisplay.Description
+  - m_Id: 116747023324405836
+    m_Key: Setting.LyricDisplay.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619360
-    m_Key: Setting.Graphics.Resolution
+  - m_Id: 116747023324405837
+    m_Key: Setting.Resolution
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850253
-    m_Key: Setting.Graphics.Resolution.Description
+  - m_Id: 116747023324405838
+    m_Key: Setting.Resolution.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619361
-    m_Key: Setting.Graphics.ShowHitWindow
+  - m_Id: 116747023324405839
+    m_Key: Setting.ShowHitWindow
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850254
-    m_Key: Setting.Graphics.ShowHitWindow.Description
+  - m_Id: 116747023324405840
+    m_Key: Setting.ShowHitWindow.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 56963656240717825
-    m_Key: Setting.Graphics.SongTimeOnScoreBox
+  - m_Id: 116747023324405841
+    m_Key: Setting.SongTimeOnScoreBox
     m_Metadata:
       m_Items: []
-  - m_Id: 56963656240717826
-    m_Key: Setting.Graphics.SongTimeOnScoreBox.Description
+  - m_Id: 116747023324405842
+    m_Key: Setting.SongTimeOnScoreBox.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619369
-    m_Key: Setting.Graphics.VSync
+  - m_Id: 116747023324405843
+    m_Key: Setting.VSync
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850262
-    m_Key: Setting.Graphics.VSync.Description
+  - m_Id: 116747023324405844
+    m_Key: Setting.VSync.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437364408320
-    m_Key: Setting.Presets.CameraPreset.CurveFactor
+  - m_Id: 116747023324405845
+    m_Key: PresetSetting.CameraPreset.CurveFactor
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768448
-    m_Key: Setting.Presets.CameraPreset.CurveFactor.Description
+  - m_Id: 116747023324405846
+    m_Key: PresetSetting.CameraPreset.CurveFactor.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768449
-    m_Key: Setting.Presets.CameraPreset.FadeLength
+  - m_Id: 116747023324405847
+    m_Key: PresetSetting.CameraPreset.FadeLength
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768450
-    m_Key: Setting.Presets.CameraPreset.FadeLength.Description
+  - m_Id: 116747023324405848
+    m_Key: PresetSetting.CameraPreset.FadeLength.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768451
-    m_Key: Setting.Presets.CameraPreset.FadeStart
+  - m_Id: 116747023324405849
+    m_Key: PresetSetting.CameraPreset.FadeStart
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768452
-    m_Key: Setting.Presets.CameraPreset.FadeStart.Description
+  - m_Id: 116747023324405850
+    m_Key: PresetSetting.CameraPreset.FadeStart.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768453
-    m_Key: Setting.Presets.CameraPreset.FieldOfView
+  - m_Id: 116747023324405851
+    m_Key: PresetSetting.CameraPreset.FieldOfView
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768454
-    m_Key: Setting.Presets.CameraPreset.FieldOfView.Description
+  - m_Id: 116747023328600064
+    m_Key: PresetSetting.CameraPreset.FieldOfView.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768455
-    m_Key: Setting.Presets.CameraPreset.PositionY
+  - m_Id: 116747023328600065
+    m_Key: PresetSetting.CameraPreset.PositionY
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768456
-    m_Key: Setting.Presets.CameraPreset.PositionY.Description
+  - m_Id: 116747023328600066
+    m_Key: PresetSetting.CameraPreset.PositionY.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768457
-    m_Key: Setting.Presets.CameraPreset.PositionZ
+  - m_Id: 116747023328600067
+    m_Key: PresetSetting.CameraPreset.PositionZ
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768458
-    m_Key: Setting.Presets.CameraPreset.PositionZ.Description
+  - m_Id: 116747023328600068
+    m_Key: PresetSetting.CameraPreset.PositionZ.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768459
-    m_Key: Setting.Presets.CameraPreset.Rotation
+  - m_Id: 116747023328600069
+    m_Key: PresetSetting.CameraPreset.Rotation
     m_Metadata:
       m_Items: []
-  - m_Id: 87818437393768460
-    m_Key: Setting.Presets.CameraPreset.Rotation.Description
+  - m_Id: 116747023328600070
+    m_Key: PresetSetting.CameraPreset.Rotation.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957784944644
-    m_Key: Setting.Presets.ColorProfile.ActivationNote
+  - m_Id: 116747023328600071
+    m_Key: PresetSetting.ColorProfile.ActivationNote
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957784944645
-    m_Key: Setting.Presets.ColorProfile.BlueCymbal
+  - m_Id: 116747023328600072
+    m_Key: PresetSetting.ColorProfile.BlueCymbal
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957784944646
-    m_Key: Setting.Presets.ColorProfile.BlueCymbalStarpower
+  - m_Id: 116747023328600073
+    m_Key: PresetSetting.ColorProfile.BlueCymbalStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957784944647
-    m_Key: Setting.Presets.ColorProfile.BlueDrum
+  - m_Id: 116747023328600074
+    m_Key: PresetSetting.ColorProfile.BlueDrum
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957784944648
-    m_Key: Setting.Presets.ColorProfile.BlueDrumStarpower
+  - m_Id: 116747023328600075
+    m_Key: PresetSetting.ColorProfile.BlueDrumStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957784944649
-    m_Key: Setting.Presets.ColorProfile.BlueFret
+  - m_Id: 116747023328600076
+    m_Key: PresetSetting.ColorProfile.BlueFret
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138944
-    m_Key: Setting.Presets.ColorProfile.BlueFretInner
+  - m_Id: 116747023328600077
+    m_Key: PresetSetting.ColorProfile.BlueFretInner
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138945
-    m_Key: Setting.Presets.ColorProfile.BlueNote
+  - m_Id: 116747023328600078
+    m_Key: PresetSetting.ColorProfile.BlueNote
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138946
-    m_Key: Setting.Presets.ColorProfile.BlueNoteStarPower
+  - m_Id: 116747023328600079
+    m_Key: PresetSetting.ColorProfile.BlueNoteStarPower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138947
-    m_Key: Setting.Presets.ColorProfile.BlueParticles
+  - m_Id: 116747023328600080
+    m_Key: PresetSetting.ColorProfile.BlueParticles
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138948
-    m_Key: Setting.Presets.ColorProfile.BlueStarpower
+  - m_Id: 116747023328600081
+    m_Key: PresetSetting.ColorProfile.BlueStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138949
-    m_Key: Setting.Presets.ColorProfile.GreenCymbal
+  - m_Id: 116747023328600082
+    m_Key: PresetSetting.ColorProfile.GreenCymbal
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138950
-    m_Key: Setting.Presets.ColorProfile.GreenCymbalStarpower
+  - m_Id: 116747023328600083
+    m_Key: PresetSetting.ColorProfile.GreenCymbalStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138951
-    m_Key: Setting.Presets.ColorProfile.GreenDrum
+  - m_Id: 116747023328600084
+    m_Key: PresetSetting.ColorProfile.GreenDrum
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138952
-    m_Key: Setting.Presets.ColorProfile.GreenDrumStarpower
+  - m_Id: 116747023328600085
+    m_Key: PresetSetting.ColorProfile.GreenDrumStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138953
-    m_Key: Setting.Presets.ColorProfile.GreenFret
+  - m_Id: 116747023328600086
+    m_Key: PresetSetting.ColorProfile.GreenFret
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138954
-    m_Key: Setting.Presets.ColorProfile.GreenFretInner
+  - m_Id: 116747023328600087
+    m_Key: PresetSetting.ColorProfile.GreenFretInner
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138955
-    m_Key: Setting.Presets.ColorProfile.GreenNote
+  - m_Id: 116747023328600088
+    m_Key: PresetSetting.ColorProfile.GreenNote
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138956
-    m_Key: Setting.Presets.ColorProfile.GreenNoteStarPower
+  - m_Id: 116747023328600089
+    m_Key: PresetSetting.ColorProfile.GreenNoteStarPower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138957
-    m_Key: Setting.Presets.ColorProfile.GreenParticles
+  - m_Id: 116747023328600090
+    m_Key: PresetSetting.ColorProfile.GreenParticles
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138958
-    m_Key: Setting.Presets.ColorProfile.GreenStarpower
+  - m_Id: 116747023328600091
+    m_Key: PresetSetting.ColorProfile.GreenStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138959
-    m_Key: Setting.Presets.ColorProfile.Instrument
+  - m_Id: 116747023328600092
+    m_Key: PresetSetting.ColorProfile.Instrument
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138960
-    m_Key: Setting.Presets.ColorProfile.KickFret
+  - m_Id: 116747023328600093
+    m_Key: PresetSetting.ColorProfile.KickFret
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138961
-    m_Key: Setting.Presets.ColorProfile.KickFretInner
+  - m_Id: 116747023328600094
+    m_Key: PresetSetting.ColorProfile.KickFretInner
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138962
-    m_Key: Setting.Presets.ColorProfile.KickNote
+  - m_Id: 116747023328600095
+    m_Key: PresetSetting.ColorProfile.KickNote
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138963
-    m_Key: Setting.Presets.ColorProfile.KickParticles
+  - m_Id: 116747023328600096
+    m_Key: PresetSetting.ColorProfile.KickParticles
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138964
-    m_Key: Setting.Presets.ColorProfile.KickStarpower
+  - m_Id: 116747023328600097
+    m_Key: PresetSetting.ColorProfile.KickStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138965
-    m_Key: Setting.Presets.ColorProfile.OpenFret
+  - m_Id: 116747023328600098
+    m_Key: PresetSetting.ColorProfile.OpenFret
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138966
-    m_Key: Setting.Presets.ColorProfile.OpenFretInner
+  - m_Id: 116747023328600099
+    m_Key: PresetSetting.ColorProfile.OpenFretInner
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138967
-    m_Key: Setting.Presets.ColorProfile.OpenNote
+  - m_Id: 116747023328600100
+    m_Key: PresetSetting.ColorProfile.OpenNote
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138968
-    m_Key: Setting.Presets.ColorProfile.OpenNoteStarPower
+  - m_Id: 116747023328600101
+    m_Key: PresetSetting.ColorProfile.OpenNoteStarPower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138969
-    m_Key: Setting.Presets.ColorProfile.OpenParticles
+  - m_Id: 116747023328600102
+    m_Key: PresetSetting.ColorProfile.OpenParticles
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138970
-    m_Key: Setting.Presets.ColorProfile.OrangeFret
+  - m_Id: 116747023328600103
+    m_Key: PresetSetting.ColorProfile.OrangeFret
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138971
-    m_Key: Setting.Presets.ColorProfile.OrangeFretInner
+  - m_Id: 116747023328600104
+    m_Key: PresetSetting.ColorProfile.OrangeFretInner
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138972
-    m_Key: Setting.Presets.ColorProfile.OrangeNote
+  - m_Id: 116747023328600105
+    m_Key: PresetSetting.ColorProfile.OrangeNote
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138973
-    m_Key: Setting.Presets.ColorProfile.OrangeNoteStarPower
+  - m_Id: 116747023328600106
+    m_Key: PresetSetting.ColorProfile.OrangeNoteStarPower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138974
-    m_Key: Setting.Presets.ColorProfile.OrangeParticles
+  - m_Id: 116747023328600107
+    m_Key: PresetSetting.ColorProfile.OrangeParticles
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138975
-    m_Key: Setting.Presets.ColorProfile.OrangeStarpower
+  - m_Id: 116747023328600108
+    m_Key: PresetSetting.ColorProfile.OrangeStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138976
-    m_Key: Setting.Presets.ColorProfile.RedDrum
+  - m_Id: 116747023328600109
+    m_Key: PresetSetting.ColorProfile.RedDrum
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138977
-    m_Key: Setting.Presets.ColorProfile.RedDrumStarpower
+  - m_Id: 116747023328600110
+    m_Key: PresetSetting.ColorProfile.RedDrumStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138978
-    m_Key: Setting.Presets.ColorProfile.RedFret
+  - m_Id: 116747023328600111
+    m_Key: PresetSetting.ColorProfile.RedFret
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138979
-    m_Key: Setting.Presets.ColorProfile.RedFretInner
+  - m_Id: 116747023328600112
+    m_Key: PresetSetting.ColorProfile.RedFretInner
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138980
-    m_Key: Setting.Presets.ColorProfile.RedNote
+  - m_Id: 116747023328600113
+    m_Key: PresetSetting.ColorProfile.RedNote
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138981
-    m_Key: Setting.Presets.ColorProfile.RedNoteStarPower
+  - m_Id: 116747023328600114
+    m_Key: PresetSetting.ColorProfile.RedNoteStarPower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138982
-    m_Key: Setting.Presets.ColorProfile.RedParticles
+  - m_Id: 116747023328600115
+    m_Key: PresetSetting.ColorProfile.RedParticles
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138983
-    m_Key: Setting.Presets.ColorProfile.RedStarpower
+  - m_Id: 116747023328600116
+    m_Key: PresetSetting.ColorProfile.RedStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138984
-    m_Key: Setting.Presets.ColorProfile.YellowCymbal
+  - m_Id: 116747023328600117
+    m_Key: PresetSetting.ColorProfile.YellowCymbal
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138985
-    m_Key: Setting.Presets.ColorProfile.YellowCymbalStarpower
+  - m_Id: 116747023328600118
+    m_Key: PresetSetting.ColorProfile.YellowCymbalStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138986
-    m_Key: Setting.Presets.ColorProfile.YellowDrum
+  - m_Id: 116747023328600119
+    m_Key: PresetSetting.ColorProfile.YellowDrum
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138987
-    m_Key: Setting.Presets.ColorProfile.YellowDrumStarpower
+  - m_Id: 116747023328600120
+    m_Key: PresetSetting.ColorProfile.YellowDrumStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138988
-    m_Key: Setting.Presets.ColorProfile.YellowFret
+  - m_Id: 116747023328600121
+    m_Key: PresetSetting.ColorProfile.YellowFret
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138989
-    m_Key: Setting.Presets.ColorProfile.YellowFretInner
+  - m_Id: 116747023328600122
+    m_Key: PresetSetting.ColorProfile.YellowFretInner
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138990
-    m_Key: Setting.Presets.ColorProfile.YellowNote
+  - m_Id: 116747023328600123
+    m_Key: PresetSetting.ColorProfile.YellowNote
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138991
-    m_Key: Setting.Presets.ColorProfile.YellowNoteStarPower
+  - m_Id: 116747023328600124
+    m_Key: PresetSetting.ColorProfile.YellowNoteStarPower
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138992
-    m_Key: Setting.Presets.ColorProfile.YellowParticles
+  - m_Id: 116747023328600125
+    m_Key: PresetSetting.ColorProfile.YellowParticles
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957789138993
-    m_Key: Setting.Presets.ColorProfile.YellowStarpower
+  - m_Id: 116747023328600126
+    m_Key: PresetSetting.ColorProfile.YellowStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 92874700712435712
-    m_Key: Setting.Presets.EnginePreset.AntiGhosting
+  - m_Id: 116747023328600127
+    m_Key: PresetSetting.EnginePreset.AntiGhosting
     m_Metadata:
       m_Items: []
-  - m_Id: 92874700725018624
-    m_Key: Setting.Presets.EnginePreset.AntiGhosting.Description
+  - m_Id: 116747023328600128
+    m_Key: PresetSetting.EnginePreset.AntiGhosting.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 93261075366404096
-    m_Key: Setting.Presets.EnginePreset.FrontToBackRatio
+  - m_Id: 116747023328600129
+    m_Key: PresetSetting.EnginePreset.FrontToBackRatio
     m_Metadata:
       m_Items: []
-  - m_Id: 93261605039890432
-    m_Key: Setting.Presets.EnginePreset.FrontToBackRatio.Description
+  - m_Id: 116747023328600130
+    m_Key: PresetSetting.EnginePreset.FrontToBackRatio.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 92846839960035328
-    m_Key: Setting.Presets.EnginePreset.GameMode
+  - m_Id: 116747023328600131
+    m_Key: PresetSetting.EnginePreset.GameMode
     m_Metadata:
       m_Items: []
-  - m_Id: 93261075383181312
-    m_Key: Setting.Presets.EnginePreset.HitWindow
+  - m_Id: 116747023328600132
+    m_Key: PresetSetting.EnginePreset.HitWindow
     m_Metadata:
       m_Items: []
-  - m_Id: 92875663112265728
-    m_Key: Setting.Presets.EnginePreset.HopoLeniency
+  - m_Id: 116747023328600133
+    m_Key: PresetSetting.EnginePreset.HopoLeniency
     m_Metadata:
       m_Items: []
-  - m_Id: 93261075383181313
-    m_Key: Setting.Presets.EnginePreset.HopoLeniency.Description
+  - m_Id: 116747023328600134
+    m_Key: PresetSetting.EnginePreset.HopoLeniency.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 92874700725018627
-    m_Key: Setting.Presets.EnginePreset.InfiniteFrontEnd
+  - m_Id: 116747023328600135
+    m_Key: PresetSetting.EnginePreset.InfiniteFrontEnd
     m_Metadata:
       m_Items: []
-  - m_Id: 92874700725018628
-    m_Key: Setting.Presets.EnginePreset.InfiniteFrontEnd.Description
+  - m_Id: 116747023328600136
+    m_Key: PresetSetting.EnginePreset.InfiniteFrontEnd.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 93261075383181314
-    m_Key: Setting.Presets.EnginePreset.IsDynamic
+  - m_Id: 116747023328600137
+    m_Key: PresetSetting.EnginePreset.IsDynamic
     m_Metadata:
       m_Items: []
-  - m_Id: 93261075387375616
-    m_Key: Setting.Presets.EnginePreset.IsDynamic.Description
+  - m_Id: 116747023328600138
+    m_Key: PresetSetting.EnginePreset.IsDynamic.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 92875663112265729
-    m_Key: Setting.Presets.EnginePreset.StrumLeniency
+  - m_Id: 116747023328600139
+    m_Key: PresetSetting.EnginePreset.StrumLeniency
     m_Metadata:
       m_Items: []
-  - m_Id: 93261075387375617
-    m_Key: Setting.Presets.EnginePreset.StrumLeniency.Description
+  - m_Id: 116747023328600140
+    m_Key: PresetSetting.EnginePreset.StrumLeniency.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 92875663112265730
-    m_Key: Setting.Presets.EnginePreset.StrumLeniencySmall
+  - m_Id: 116747023328600141
+    m_Key: PresetSetting.EnginePreset.StrumLeniencySmall
     m_Metadata:
       m_Items: []
-  - m_Id: 93261075387375618
-    m_Key: Setting.Presets.EnginePreset.StrumLeniencySmall.Description
+  - m_Id: 116747023328600142
+    m_Key: PresetSetting.EnginePreset.StrumLeniencySmall.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619372
-    m_Key: Setting.Sound.BassVolume
+  - m_Id: 116747023328600143
+    m_Key: Setting.BassVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619373
-    m_Key: Setting.Sound.BassVolume.Description
+  - m_Id: 116747023328600144
+    m_Key: Setting.BassVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428941
-    m_Key: Setting.Sound.ClapsInStarpower
+  - m_Id: 116747023328600145
+    m_Key: Setting.ClapsInStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 116744829250428942
-    m_Key: Setting.Sound.ClapsInStarpower.Description
+  - m_Id: 116747023328600146
+    m_Key: Setting.ClapsInStarpower.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619374
-    m_Key: Setting.Sound.CrowdVolume
+  - m_Id: 116747023328600147
+    m_Key: Setting.CrowdVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850263
-    m_Key: Setting.Sound.CrowdVolume.Description
+  - m_Id: 116747023328600148
+    m_Key: Setting.CrowdVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619375
-    m_Key: Setting.Sound.DrumsVolume
+  - m_Id: 116747023328600149
+    m_Key: Setting.DrumsVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850264
-    m_Key: Setting.Sound.DrumsVolume.Description
+  - m_Id: 116747023328600150
+    m_Key: Setting.DrumsVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619376
-    m_Key: Setting.Sound.GuitarVolume
+  - m_Id: 116747023328600151
+    m_Key: Setting.GuitarVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850265
-    m_Key: Setting.Sound.GuitarVolume.Description
+  - m_Id: 116747023328600152
+    m_Key: Setting.GuitarVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619377
-    m_Key: Setting.Sound.KeysVolume
+  - m_Id: 116747023328600153
+    m_Key: Setting.KeysVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850266
-    m_Key: Setting.Sound.KeysVolume.Description
+  - m_Id: 116747023328600154
+    m_Key: Setting.KeysVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619378
-    m_Key: Setting.Sound.MasterMusicVolume
+  - m_Id: 116747023328600155
+    m_Key: Setting.MasterMusicVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850267
-    m_Key: Setting.Sound.MasterMusicVolume.Description
+  - m_Id: 116747023328600156
+    m_Key: Setting.MasterMusicVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619379
-    m_Key: Setting.Sound.MicrophoneSensitivity
+  - m_Id: 116747023328600157
+    m_Key: Setting.MicrophoneSensitivity
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850268
-    m_Key: Setting.Sound.MicrophoneSensitivity.Description
+  - m_Id: 116747023328600158
+    m_Key: Setting.MicrophoneSensitivity.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619380
-    m_Key: Setting.Sound.MusicPlayerVolume
+  - m_Id: 116747023328600159
+    m_Key: Setting.MusicPlayerVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850269
-    m_Key: Setting.Sound.MusicPlayerVolume.Description
+  - m_Id: 116747023328600160
+    m_Key: Setting.MusicPlayerVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619381
-    m_Key: Setting.Sound.MuteOnMiss
+  - m_Id: 116747023328600161
+    m_Key: Setting.MuteOnMiss
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850270
-    m_Key: Setting.Sound.MuteOnMiss.Description
+  - m_Id: 116747023328600162
+    m_Key: Setting.MuteOnMiss.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619382
-    m_Key: Setting.Sound.PreviewVolume
+  - m_Id: 116747023328600163
+    m_Key: Setting.PreviewVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850271
-    m_Key: Setting.Sound.PreviewVolume.Description
+  - m_Id: 116747023328600164
+    m_Key: Setting.PreviewVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619383
-    m_Key: Setting.Sound.RhythmVolume
+  - m_Id: 116747023328600165
+    m_Key: Setting.RhythmVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850272
-    m_Key: Setting.Sound.RhythmVolume.Description
+  - m_Id: 116747023328600166
+    m_Key: Setting.RhythmVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619384
-    m_Key: Setting.Sound.SfxVolume
+  - m_Id: 116747023328600167
+    m_Key: Setting.SfxVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850273
-    m_Key: Setting.Sound.SfxVolume.Description
+  - m_Id: 116747023328600168
+    m_Key: Setting.SfxVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619385
-    m_Key: Setting.Sound.SongVolume
+  - m_Id: 116747023328600169
+    m_Key: Setting.SongVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850274
-    m_Key: Setting.Sound.SongVolume.Description
+  - m_Id: 116747023328600170
+    m_Key: Setting.SongVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619386
-    m_Key: Setting.Sound.UseChipmunkSpeed
+  - m_Id: 116747023328600171
+    m_Key: Setting.UseChipmunkSpeed
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850275
-    m_Key: Setting.Sound.UseChipmunkSpeed.Description
+  - m_Id: 116747023328600172
+    m_Key: Setting.UseChipmunkSpeed.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619387
-    m_Key: Setting.Sound.UseStarpowerFx
+  - m_Id: 116747023328600173
+    m_Key: Setting.UseStarpowerFx
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850276
-    m_Key: Setting.Sound.UseStarpowerFx.Description
+  - m_Id: 116747023328600174
+    m_Key: Setting.UseStarpowerFx.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619388
-    m_Key: Setting.Sound.UseWhammyFx
+  - m_Id: 116747023328600175
+    m_Key: Setting.UseWhammyFx
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619389
-    m_Key: Setting.Sound.VocalMonitoring
+  - m_Id: 116747023328600176
+    m_Key: Setting.VocalMonitoring
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850277
-    m_Key: Setting.Sound.VocalMonitoring.Description
+  - m_Id: 116747023328600177
+    m_Key: Setting.VocalMonitoring.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619390
-    m_Key: Setting.Sound.VocalsVolume
+  - m_Id: 116747023328600178
+    m_Key: Setting.VocalsVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850278
-    m_Key: Setting.Sound.VocalsVolume.Description
+  - m_Id: 116747023328600179
+    m_Key: Setting.VocalsVolume.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619391
-    m_Key: Setting.Sound.WhammyOversampleFactor
+  - m_Id: 116747023328600180
+    m_Key: Setting.WhammyOversampleFactor
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619392
-    m_Key: Setting.Sound.WhammyPitchShiftAmount
+  - m_Id: 116747023328600181
+    m_Key: Setting.WhammyPitchShiftAmount
     m_Metadata:
       m_Items: []
   - m_Id: 116744829250428943
