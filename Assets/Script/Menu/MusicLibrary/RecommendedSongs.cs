@@ -10,22 +10,12 @@ namespace YARG.Menu.MusicLibrary
 {
     public static class RecommendedSongs
     {
-        private const int TRIES = 10;
-
-        private static readonly List<SongMetadata> _recommendedSongs = new();
-
         public static List<SongMetadata> GetRecommendedSongs()
         {
             _recommendedSongs.Clear();
 
             AddMostPlayedSongs();
-
-            // Fill the rest of the spaces with random songs
-            int left = 5 - _recommendedSongs.Count;
-            for (int i = 0; i < left; i++)
-            {
-                AddRandomSong();
-            }
+            AddRandomSongs();
 
             // YARG songs first
             _recommendedSongs.Sort((x, y) =>
@@ -42,86 +32,82 @@ namespace YARG.Menu.MusicLibrary
             return _recommendedSongs;
         }
 
+        private static readonly List<SongMetadata> _recommendedSongs = new(5);
         private static void AddMostPlayedSongs()
         {
+            const float RNG_PER_SONG = .05f;
+
             // Get the top ten most played songs
             var mostPlayed = ScoreContainer.GetMostPlayedSongs(10);
             if (mostPlayed.Count > 0)
             {
-                AddMostPlayedSongs(mostPlayed);
-                AddSongsFromTopPlayedArtists(mostPlayed);
-            }
-        }
-
-        private static void AddMostPlayedSongs(List<SongMetadata> mostPlayed)
-        {
-            // Add two random top ten most played songs (ten tries each)
-            for (int i = 0; i < 2; i++)
-            {
-                for (int t = 0; t < TRIES; t++)
+                float rng = mostPlayed.Count * RNG_PER_SONG;
+                if (Random.value < rng)
                 {
-                    var song = mostPlayed.Pick();
-                    if (!_recommendedSongs.Contains(song))
-                    {
-                        _recommendedSongs.Add(song);
-                        break;
-                    }
+                    AddSongFromMostPlayed(ref mostPlayed);
                 }
-            }
-        }
-
-        private static void AddSongsFromTopPlayedArtists(List<SongMetadata> mostPlayed)
-        {
-            var artists = GlobalVariables.Instance.SongContainer.Artists;
-            // Pick 1 or 2 random songs from artists that are in the most played (ten tries each)
-            int choices = Random.Range(1, 3);
-            for (int i = 0; i < choices; i++)
-            {
-                for (int t = 0; t < TRIES; t++)
-                {
-                    // Pick a random song made by an artist in the mostPlayed list
-                    if (!artists.TryGetValue(mostPlayed.Pick().Artist, out var artistSongs))
-                        continue;
-                    var song = artistSongs.Pick();
-
-                    // Add if not in most played songs and wasn't already recommended
-                    if (!mostPlayed.Contains(song) && !_recommendedSongs.Contains(song))
-                    {
-                        _recommendedSongs.Add(song);
-                        break;
-                    }
-                }
+                AddSongsFromTopPlayedArtists(ref mostPlayed);
             }
         }
 
         private static readonly SortString _YARGSOURCE = "yarg";
-        private static void AddRandomSong()
+        private static void AddRandomSongs()
         {
-            // Try to add a YARG setlist song (we love bias!)
-            if (Random.value <= 0.6f)
+            const float STARTING_RNG = .75f;
+            const float RNG_DECREMENT = .25f;
+
+            var sources = GlobalVariables.Instance.SongContainer.Sources;
+            sources.TryGetValue(_YARGSOURCE, out var yargSongs);
+
+            float yargSongRNG = yargSongs != null ? STARTING_RNG : 0;
+            while (_recommendedSongs.Count < 5)
             {
-                var sources = GlobalVariables.Instance.SongContainer.Sources;
-                if (sources.TryGetValue(_YARGSOURCE, out var yargSongs))
+                SongMetadata song;
+                if (Random.value <= yargSongRNG)
                 {
-                    var song = yargSongs.Pick();
-                    if (!_recommendedSongs.Contains(song))
-                    {
-                        _recommendedSongs.Add(song);
-                        return;
-                    }
+                    yargSongRNG -= RNG_DECREMENT;
+                    song = yargSongs.Pick();
+                }
+                else
+                {
+                    song = GlobalVariables.Instance.SongContainer.GetRandomSong();
+                }
+
+                if (!_recommendedSongs.Contains(song))
+                {
+                    _recommendedSongs.Add(song);
                 }
             }
+        }
 
-            // Add a completely random song (ten tries)
-            for (int t = 0; t < TRIES; t++)
+        private static void AddSongFromMostPlayed(ref List<SongMetadata> mostPlayed)
+        {
+            var song = PullSong(ref mostPlayed);
+            _recommendedSongs.Add(song);
+        }
+
+        private static void AddSongsFromTopPlayedArtists(ref List<SongMetadata> mostPlayed)
+        {
+            // Try 1 or 2 times to pick a random song from artists included in the most played
+            var artists = GlobalVariables.Instance.SongContainer.Artists;
+            for (int tries = Random.Range(1, 3); tries > 0 && mostPlayed.Count > 0; --tries)
             {
-                var song = GlobalVariables.Instance.SongContainer.GetRandomSong();
-                if (!_recommendedSongs.Contains(song))
+                var playedSong = PullSong(ref mostPlayed);
+                var song = artists[playedSong.Artist].Pick();
+                if (song != playedSong && !_recommendedSongs.Contains(song))
                 {
                     _recommendedSongs.Add(song);
                     break;
                 }
             }
+        }
+
+        private static SongMetadata PullSong(ref List<SongMetadata> mostPlayed)
+        {
+            int songIndex = Random.Range(0, mostPlayed.Count);
+            var song = mostPlayed[songIndex];
+            mostPlayed.RemoveAt(songIndex);
+            return song;
         }
     }
 }
