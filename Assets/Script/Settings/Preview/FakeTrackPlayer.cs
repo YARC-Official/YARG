@@ -20,10 +20,18 @@ namespace YARG.Settings.Preview
         public struct Info
         {
             public delegate ColorProfile.IFretColorProvider FretColorProviderFunc(ColorProfile c);
+            public delegate Color NoteColorProviderFunc(ColorProfile c, int note);
+            public delegate EnginePreset.HitWindowPreset HitWindowProviderFunc(EnginePreset e);
             public delegate FakeNoteData CreateFakeNoteFunc(double time);
 
             public int FretCount;
-            public FretColorProviderFunc FretColorProviderGetter;
+            public bool UseKickFrets;
+
+            public FretColorProviderFunc FretColorProvider;
+            public NoteColorProviderFunc NoteColorProvider;
+
+            public HitWindowProviderFunc HitWindowProvider;
+
             public CreateFakeNoteFunc CreateFakeNote;
         }
 
@@ -34,7 +42,15 @@ namespace YARG.Settings.Preview
                 new Info
                 {
                     FretCount = 5,
-                    FretColorProviderGetter = (colorProfile) => colorProfile.FiveFretGuitar,
+                    UseKickFrets = false,
+
+                    FretColorProvider = (colorProfile) => colorProfile.FiveFretGuitar,
+                    NoteColorProvider = (colorProfile, note) => colorProfile.FiveFretGuitar
+                        .GetNoteColor(note)
+                        .ToUnityColor(),
+
+                    HitWindowProvider = (enginePreset) => enginePreset.FiveFretGuitar.HitWindow,
+
                     CreateFakeNote = (time) =>
                     {
                         int fret = Random.Range(0, 6);
@@ -71,6 +87,109 @@ namespace YARG.Settings.Preview
                         };
                     }
                 }
+            },
+            {
+                GameMode.FourLaneDrums,
+                new Info
+                {
+                    FretCount = 4,
+                    UseKickFrets = true,
+
+                    FretColorProvider = (colorProfile) => colorProfile.FourLaneDrums,
+                    NoteColorProvider = (colorProfile, note) => colorProfile.FourLaneDrums
+                        .GetNoteColor(note)
+                        .ToUnityColor(),
+
+                    HitWindowProvider = (enginePreset) => enginePreset.Drums.HitWindow,
+
+                    CreateFakeNote = (time) =>
+                    {
+                        int fret = Random.Range(0, 5);
+
+                        // Kick notes have different models
+                        if (fret == 0)
+                        {
+                            return new FakeNoteData
+                            {
+                                Time = time,
+
+                                Fret = fret,
+                                CenterNote = true,
+                                NoteType = ThemeNoteType.Kick
+                            };
+                        }
+
+                        // Otherwise, select a random note type (cymbals can't be in the first lane)
+                        var noteType = ThemeNoteType.Normal;
+                        if (fret != 1)
+                        {
+                            noteType = Random.Range(0, 2) switch
+                            {
+                                0 => ThemeNoteType.Normal,
+                                1 => ThemeNoteType.Cymbal,
+                                _ => throw new Exception("Unreachable.")
+                            };
+                        }
+
+                        return new FakeNoteData
+                        {
+                            Time = time,
+
+                            Fret = fret,
+                            CenterNote = false,
+                            NoteType = noteType
+                        };
+                    }
+                }
+            },
+            {
+                GameMode.FiveLaneDrums,
+                new Info
+                {
+                    FretCount = 5,
+                    UseKickFrets = true,
+
+                    FretColorProvider = (colorProfile) => colorProfile.FiveLaneDrums,
+                    NoteColorProvider = (colorProfile, note) => colorProfile.FiveLaneDrums
+                        .GetNoteColor(note)
+                        .ToUnityColor(),
+
+                    HitWindowProvider = (enginePreset) => enginePreset.Drums.HitWindow,
+
+                    CreateFakeNote = (time) =>
+                    {
+                        int fret = Random.Range(0, 6);
+
+                        // Kick notes have different models
+                        if (fret == 0)
+                        {
+                            return new FakeNoteData
+                            {
+                                Time = time,
+
+                                Fret = fret,
+                                CenterNote = true,
+                                NoteType = ThemeNoteType.Kick
+                            };
+                        }
+
+                        // Otherwise, select the correct note type
+                        var noteType = ThemeNoteType.Normal;
+                        if (SettingsManager.Settings.UseCymbalModelsInFiveLane.Value && fret is 2 or 4)
+                        {
+                            noteType = ThemeNoteType.Cymbal;
+                        }
+
+                        return new FakeNoteData
+                        {
+                            Time = time,
+
+                            Fret = fret,
+                            CenterNote = false,
+                            NoteType = noteType
+                        };
+                    }
+                }
             }
         };
 
@@ -91,29 +210,28 @@ namespace YARG.Settings.Preview
         private FakeHitWindowDisplay _hitWindow;
 
         public bool ForceShowHitWindow { get; set; }
+        public GameMode SelectedGameMode { get; set; } = GameMode.FiveFretGuitar;
 
         public double PreviewTime { get; private set; }
         private double _nextSpawnTime;
 
-        // TODO: Make game mode selectable
         public Info CurrentGameModeInfo { get; private set; }
-        private GameMode _selectedGameMode = GameMode.FiveFretGuitar;
 
         private void Start()
         {
-            CurrentGameModeInfo = _gameModeInfos[_selectedGameMode];
+            CurrentGameModeInfo = _gameModeInfos[SelectedGameMode];
             var theme = ThemePreset.Default;
 
             // Create frets and put then on the right layer
-            var fret = ThemeManager.Instance.CreateFretPrefabFromTheme(theme, _selectedGameMode);
             _fretArray.FretCount = CurrentGameModeInfo.FretCount;
-            _fretArray.Initialize(fret,
-                CurrentGameModeInfo.FretColorProviderGetter(ColorProfile.Default), false);
+            _fretArray.UseKickFrets = CurrentGameModeInfo.UseKickFrets;
+            _fretArray.Initialize(theme, SelectedGameMode,
+                CurrentGameModeInfo.FretColorProvider(ColorProfile.Default), false);
             _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
 
             // Create the note prefab (this has to be specially done, because
             // TrackElements need references to the GameManager)
-            var prefab = FakeNote.CreateFakeNoteFromTheme(theme, _selectedGameMode);
+            var prefab = FakeNote.CreateFakeNoteFromTheme(theme, SelectedGameMode);
             prefab.transform.parent = transform;
             prefab.SetActive(false);
             _notePool.SetPrefabAndReset(prefab);
@@ -139,10 +257,10 @@ namespace YARG.Settings.Preview
             _cameraPositioner.Initialize(cameraPreset);
 
             // Update color profiles
-            _fretArray.InitializeColor(colorProfile.FiveFretGuitar);
+            _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile));
 
             // Update hit window
-            _hitWindow.HitWindow = enginePreset.FiveFretGuitar.HitWindow.Create();
+            _hitWindow.HitWindow = CurrentGameModeInfo.HitWindowProvider(enginePreset).Create();
 
             // Update all of the notes
             foreach (var note in _notePool.AllSpawned)

@@ -36,7 +36,7 @@ namespace YARG.Menu.Persistent
             await UniTask.WaitUntil(() => !LoadingManager.Instance.IsLoading);
 
             // Disable if there are no songs to play
-            if (GlobalVariables.Instance.SongContainer.Songs.Count <= 0)
+            if (GlobalVariables.Instance.SongContainer.Count <= 0)
             {
                 gameObject.SetActive(false);
                 return;

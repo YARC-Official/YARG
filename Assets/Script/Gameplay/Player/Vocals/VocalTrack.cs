@@ -174,11 +174,7 @@ namespace YARG.Gameplay.Player
             }
 
             // Set pitch range
-            // If a song has all talkies, it won't have any range shifts
-            if (_vocalsTrack.RangeShifts.Count >= 1)
-            {
-                ChangeRange(_vocalsTrack.RangeShifts[0]);
-            }
+            ChangeRange(_vocalsTrack.RangeShifts[0]);
             _viewRange = _targetRange;
             _previousRange = _targetRange;
             _changeEndTime = _changeStartTime;
@@ -263,7 +259,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void ChangeRange(VocalsPitchRange range)
+        private void ChangeRange(VocalsRangeShift range)
         {
             // Pad out range based on note width
             float minPitch = range.MinimumPitch - NOTE_WIDTH_MULTIPLIER / 2;
@@ -278,8 +274,8 @@ namespace YARG.Gameplay.Player
             _previousRange = _viewRange;
             _targetRange = new Range(rangeMin, rangeMax);
 
-            _changeStartTime = GameManager.VisualTime;
-            _changeEndTime = GameManager.VisualTime + Math.Max(MINIMUM_SHIFT_TIME, range.ShiftLength);
+            _changeStartTime = range.Time;
+            _changeEndTime = range.Time + Math.Max(MINIMUM_SHIFT_TIME, range.TimeLength);
             _isRangeChanging = true;
         }
 

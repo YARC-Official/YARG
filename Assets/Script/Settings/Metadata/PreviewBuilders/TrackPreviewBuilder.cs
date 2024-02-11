@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
+using YARG.Core;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Settings;
@@ -19,6 +20,8 @@ namespace YARG.Settings.Metadata
             .LoadAssetAsync<GameObject>("SettingPreviews/TrackPreviewUI")
             .WaitForCompletion();
 
+        public GameMode? StartingGameMode { get; set; }
+
         private readonly bool _forceShowHitWindow;
 
         public TrackPreviewBuilder(bool forceShowHitWindow = false)
@@ -32,6 +35,12 @@ namespace YARG.Settings.Metadata
             var trackPreview = trackObj.GetComponentInChildren<FakeTrackPlayer>();
 
             trackPreview.ForceShowHitWindow = _forceShowHitWindow;
+
+            // If null, just use the default value and skip setting it
+            if (StartingGameMode is not null)
+            {
+                trackPreview.SelectedGameMode = StartingGameMode.Value;
+            }
 
             return UniTask.CompletedTask;
         }

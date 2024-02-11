@@ -27,7 +27,11 @@ namespace YARG.Themes
         [SerializeField]
         private GameObject _fiveLaneFret;
 
-        public Dictionary<ThemeNoteType, GameObject> GetNoteModelsForGameMode(GameMode gameMode, bool starpower)
+        [Space]
+        [SerializeField]
+        private GameObject _kickFret;
+
+        public Dictionary<ThemeNoteType, GameObject> GetNoteModelsForGameMode(GameMode gameMode, bool starPower)
         {
             var parent = gameMode switch
             {
@@ -46,7 +50,7 @@ namespace YARG.Themes
             foreach (var themeNote in themeNotes)
             {
                 // Make sure we choose the correct variant
-                if (themeNote.StarPowerVariant != starpower) continue;
+                if (themeNote.StarPowerVariant != starPower) continue;
 
                 dict.Add(themeNote.NoteType, themeNote.gameObject);
             }
@@ -54,7 +58,24 @@ namespace YARG.Themes
             return dict;
         }
 
-        public GameObject GetFretModelForGameMode(GameMode gameMode)
+        public GameObject GetModelForGameMode<T>(GameMode gameMode)
+        {
+            // TODO: Make this cleaner
+
+            if (typeof(T) == typeof(ThemeFret))
+            {
+                return GetFretModelForGameMode(gameMode);
+            }
+
+            if (typeof(T) == typeof(ThemeKickFret))
+            {
+                return _kickFret;
+            }
+
+            throw new Exception("Unreachable.");
+        }
+
+        private GameObject GetFretModelForGameMode(GameMode gameMode)
         {
             return gameMode switch
             {

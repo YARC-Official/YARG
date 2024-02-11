@@ -32,8 +32,10 @@ namespace YARG.Menu.MusicLibrary
         public static MusicLibraryMode LibraryMode;
 
         public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
-
-        private static List<SongMetadata> _recommendedSongs;
+#nullable enable
+        private static List<SongMetadata>? _recommendedSongs;
+#nullable disable
+        private static string _currentSearch = string.Empty;
         private static int _savedIndex;
         private static bool _doRefresh = true;
 
@@ -157,7 +159,7 @@ namespace YARG.Menu.MusicLibrary
             var list = new List<ViewType>();
 
             // Return if there are no songs (or they haven't loaded yet)
-            if (_sortedSongs is null || GlobalVariables.Instance.SongContainer.Songs.Count <= 0) return list;
+            if (_sortedSongs is null || GlobalVariables.Instance.SongContainer.Count <= 0) return list;
 
             // Get the number of songs
             int count = _sortedSongs.Sum(section => section.Songs.Count);
@@ -217,12 +219,15 @@ namespace YARG.Menu.MusicLibrary
                 list.Insert(0,
                     new CategoryViewType("ALL SONGS", songContainer.Count, songContainer.Songs));
 
-                // Add the recommended songs right above the "ALL SONGS" header
-                list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(_searchField, i)));
-                list.Insert(0, new CategoryViewType(
-                    _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
-                    _recommendedSongs.Count, _recommendedSongs
-                ));
+                if (_recommendedSongs != null)
+                {
+                    // Add the recommended songs right above the "ALL SONGS" header
+                    list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(_searchField, i)));
+                    list.Insert(0, new CategoryViewType(
+                        _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
+                        _recommendedSongs.Count, _recommendedSongs
+                    ));
+                }
 
                 // Add the buttons
                 list.Insert(0, new ButtonViewType("RANDOM SONG", "Icon/Random", SelectRandomSong));
@@ -233,13 +238,13 @@ namespace YARG.Menu.MusicLibrary
 
         private void SetRecommendedSongs()
         {
-            if (GlobalVariables.Instance.SongContainer.Songs.Count > 0)
+            if (GlobalVariables.Instance.SongContainer.Count > 5)
             {
                 _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
             }
             else
             {
-                _recommendedSongs = new();
+                _recommendedSongs = null;
             }
         }
 

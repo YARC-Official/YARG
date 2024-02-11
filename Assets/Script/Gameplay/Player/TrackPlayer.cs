@@ -190,13 +190,6 @@ namespace YARG.Gameplay.Player
             NotePool.SetPrefabAndReset(themePrefab);
         }
 
-        protected GameObject SetupFretTheme(GameMode gameMode)
-        {
-            var themePrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
-                Player.ThemePreset, gameMode);
-            return themePrefab;
-        }
-
         protected abstract InstrumentDifficulty<TNote> GetNotes(SongChart chart);
         protected abstract TEngine CreateEngine();
 
