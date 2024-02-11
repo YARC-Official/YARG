@@ -470,16 +470,16 @@ MonoBehaviour:
       m_Calls: []
   m_text: Enter text...
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 65a8a6500dc773741bd815e54cd7c1ec, type: 2}
-  m_sharedMaterial: {fileID: -8996134669666270778, guid: 65a8a6500dc773741bd815e54cd7c1ec,
+  m_fontAsset: {fileID: 11400000, guid: 1bd6600681c6d27448f1afac31500cf5, type: 2}
+  m_sharedMaterial: {fileID: -1714122762355271036, guid: 1bd6600681c6d27448f1afac31500cf5,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 452984831
-  m_fontColor: {r: 1, g: 1, b: 1, a: 0.101960786}
+    rgba: 4284959799
+  m_fontColor: {r: 0.21568628, g: 0.29803923, b: 0.40392157, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
