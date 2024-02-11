@@ -29,6 +29,21 @@ namespace YARG
             }
         }
 
+        public void ActivateButton(string buttonName)
+        {
+            foreach (var button in _buttons)
+            {
+                if (!string.Equals(button.Text.text, buttonName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                ActiveButton = button;
+                ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.BrightButton);
+                break;
+            }
+        }
+
         private void OnClick(ColoredButton button)
         {
             if (_prevActivatedButton == null)
