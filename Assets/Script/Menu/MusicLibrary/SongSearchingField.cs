@@ -221,10 +221,15 @@ namespace YARG.Menu.SongSearching
                         SongAttribute.Album   => "album",
                         SongAttribute.Genre   => "genre",
                         SongAttribute.Source  => "source",
-                        SongAttribute.Charter => "charter"
+                        SongAttribute.Charter => "charter",
+                        _ => string.Empty,
                     };
 
-                    _searchFilters.ActivateButton(toggleName);
+                    if (!string.IsNullOrEmpty(toggleName))
+                    {
+                        _searchFilters.ActivateButton(toggleName);
+                    }
+
                     break;
                 }
 
