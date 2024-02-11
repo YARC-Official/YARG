@@ -21,6 +21,7 @@ namespace YARG.Menu.Settings.AllSettings
         private const float WAIT_TIME = 0.25f;
 
         private const int MAX_FOUND_PER_TAB = 5;
+        private const int MAX_RESULTS = 25;
 
         [SerializeField]
         private SettingSearchResult _resultPrefab;
@@ -77,6 +78,11 @@ namespace YARG.Menu.Settings.AllSettings
                             break;
                         }
                     }
+                }
+
+                if (results.Count >= MAX_RESULTS)
+                {
+                    break;
                 }
             }
 
