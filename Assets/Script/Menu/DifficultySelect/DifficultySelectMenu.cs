@@ -529,6 +529,11 @@ namespace YARG.Menu.DifficultySelect
             // For vocals, all players *must* select the same gamemode (solo/harmony)
             if (instrument is Instrument.Vocals or Instrument.Harmony)
             {
+                if (!parts.HasInstrument(instrument))
+                {
+                    return false;
+                }
+
                 // Loop through all of the players up to the current one
                 // to see what has already been selected.
                 for (int i = 0; i < _playerIndex; i++)
