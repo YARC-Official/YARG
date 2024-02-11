@@ -20,7 +20,6 @@ namespace YARG.Menu.Settings.AllSettings
 
         private const float WAIT_TIME = 0.25f;
 
-        private const int MAX_FOUND_PER_TAB = 5;
         private const int MAX_RESULTS = 25;
 
         [SerializeField]
@@ -47,14 +46,8 @@ namespace YARG.Menu.Settings.AllSettings
                     continue;
                 }
 
-                int found = 0;
                 for (int i = 0; i < metadataTab.Settings.Count; i++)
                 {
-                    if (found >= MAX_FOUND_PER_TAB)
-                    {
-                        break;
-                    }
-
                     var metadata = metadataTab.Settings[i];
                     var unlocalizedSearch = metadata.UnlocalizedSearchNames;
                     if (unlocalizedSearch is null)
@@ -73,8 +66,6 @@ namespace YARG.Menu.Settings.AllSettings
                                 Index = i,
                                 LocalizedName = localized
                             });
-
-                            found++;
                             break;
                         }
                     }
