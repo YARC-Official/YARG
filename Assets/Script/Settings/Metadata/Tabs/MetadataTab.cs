@@ -26,6 +26,8 @@ namespace YARG.Settings.Metadata
         private Dictionary<string, BaseSettingVisual> _settingVisuals = new();
         private readonly List<AbstractMetadata> _settings = new();
 
+        public IReadOnlyList<AbstractMetadata> Settings => _settings;
+
         public MetadataTab(string name, string icon = "Generic", IPreviewBuilder previewBuilder = null)
             : base(name, icon, previewBuilder)
         {

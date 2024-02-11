@@ -33,6 +33,8 @@ namespace YARG.Menu.Settings
         private GameObject _searchBarContainer;
         [SerializeField]
         private TMP_InputField _searchBar;
+        [SerializeField]
+        private TextMeshProUGUI _searchHeaderText;
 
         [Space]
         [SerializeField]
@@ -47,6 +49,7 @@ namespace YARG.Menu.Settings
         private LocalizeStringEvent _settingDescription;
 
         public Tab CurrentTab { get; private set; }
+        public string SearchQuery => _searchBar.text;
 
         public event Action SettingChanged;
 
@@ -128,6 +131,8 @@ namespace YARG.Menu.Settings
             CurrentTab?.OnTabEnter();
 
             _searchBarContainer.SetActive(CurrentTab?.ShowSearchBar ?? false);
+            _searchBar.text = string.Empty;
+            OnSearchBarChanged();
         }
 
         public void SelectTabByName(string name)
@@ -252,6 +257,25 @@ namespace YARG.Menu.Settings
 
             CurrentTab?.OnSettingChanged();
             SettingChanged?.Invoke();
+        }
+
+        public void OnSearchBarChanged()
+        {
+            // Update header
+            if (string.IsNullOrEmpty(_searchBar.text))
+            {
+                _searchHeaderText.text = "All Categories";
+            }
+            else
+            {
+                _searchHeaderText.text = "Results";
+            }
+
+            // Refresh on search
+            if (CurrentTab?.ShowSearchBar ?? false)
+            {
+                Refresh();
+            }
         }
 
         private void OnDisable()
