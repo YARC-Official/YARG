@@ -94,7 +94,7 @@ namespace YARG.Settings
         {
             // The displayed tabs are appended to the top here
 
-            new MetadataTab("FileManagement", icon: "Import")
+            new MetadataTab("FileManagement", icon: "Files")
             {
                 new HeaderMetadata("Export"),
                 new ButtonRowMetadata(
@@ -107,7 +107,7 @@ namespace YARG.Settings
                 new ButtonRowMetadata(nameof(Settings.OpenPersistentDataPath)),
                 new ButtonRowMetadata(nameof(Settings.OpenExecutablePath)),
             },
-            new MetadataTab("LightingPeripherals", icon: "Customization")
+            new MetadataTab("LightingPeripherals", icon: "Lighting")
             {
                 new HeaderMetadata("LightingGeneral"),
                 nameof(Settings.StageKitEnabled),
@@ -119,7 +119,7 @@ namespace YARG.Settings
                 nameof(Settings.DMXGreenChannels),
                 nameof(Settings.DMXYellowChannels),
             },
-            new MetadataTab("Debug", icon: "Credits")
+            new MetadataTab("Debug", icon: "Debug")
             {
                 nameof(Settings.InputDeviceLogging),
                 nameof(Settings.ShowAdvancedMusicLibraryOptions)
