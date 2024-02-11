@@ -109,6 +109,7 @@ namespace YARG.Menu.Settings
             }, true));
 
             CurrentTab = SettingsManager.DisplayedSettingsTabs[0];
+            _searchBarContainer.SetActive(false);
             Refresh();
         }
 
