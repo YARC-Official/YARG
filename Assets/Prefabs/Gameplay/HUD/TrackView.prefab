@@ -126,7 +126,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: cecf11e1b10fd7d4aba2b460a1ed8c1a, type: 3}
+  m_Sprite: {fileID: 1163767304, guid: 209c4c454d169a1488594ca96b9191a8, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -165,9 +165,12 @@ MonoBehaviour:
   _soloBottomText: {fileID: 9129968958286683376}
   _soloFullText: {fileID: 1690064270221596410}
   _soloBoxCanvasGroup: {fileID: 4653678781618251725}
-  _soloSpriteNormal: {fileID: 21300000, guid: cecf11e1b10fd7d4aba2b460a1ed8c1a, type: 3}
-  _soloSpritePerfect: {fileID: 21300000, guid: d366b747c8f99cb458e8ff931d4f2003, type: 3}
-  _soloSpriteMessy: {fileID: 21300000, guid: 229a7b90eb98f3845ac0c87daa9fe207, type: 3}
+  _soloSpriteNormal: {fileID: 1163767304, guid: 209c4c454d169a1488594ca96b9191a8,
+    type: 3}
+  _soloSpritePerfect: {fileID: -1518087258, guid: 209c4c454d169a1488594ca96b9191a8,
+    type: 3}
+  _soloSpriteMessy: {fileID: -1426596008, guid: 209c4c454d169a1488594ca96b9191a8,
+    type: 3}
   _soloGradientNormal: {fileID: 11400000, guid: 132f88818a8eedb488c1ffe3e9b3b56d,
     type: 2}
   _soloGradientPerfect: {fileID: 11400000, guid: abc1f28caa461884799e14ec182504e8,
