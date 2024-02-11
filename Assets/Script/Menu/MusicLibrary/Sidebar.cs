@@ -272,7 +272,7 @@ namespace YARG.Menu.MusicLibrary
                     _songSearchingField.SetSearchInput(SongAttribute.Charter, songEntry.Charter.SortStr);
                     break;
                 case "genre":
-                    _songSearchingField.SetSearchInput(SongAttribute.Source, songEntry.Genre.SortStr);
+                    _songSearchingField.SetSearchInput(SongAttribute.Genre, songEntry.Genre.SortStr);
                     break;
             }
         }
