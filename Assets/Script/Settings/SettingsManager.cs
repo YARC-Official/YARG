@@ -16,7 +16,7 @@ namespace YARG.Settings
 
         public static readonly List<Tab> DisplayedSettingsTabs = new()
         {
-            new MetadataTab("General")
+            new MetadataTab("General", icon: "Engine")
             {
                 new HeaderMetadata("Calibration"),
                 new ButtonRowMetadata(nameof(Settings.OpenCalibrator)),
@@ -94,7 +94,7 @@ namespace YARG.Settings
         {
             // The displayed tabs are appended to the top here
 
-            new MetadataTab("FileManagement")
+            new MetadataTab("FileManagement", icon: "Import")
             {
                 new HeaderMetadata("Export"),
                 new ButtonRowMetadata(
@@ -107,7 +107,7 @@ namespace YARG.Settings
                 new ButtonRowMetadata(nameof(Settings.OpenPersistentDataPath)),
                 new ButtonRowMetadata(nameof(Settings.OpenExecutablePath)),
             },
-            new MetadataTab("LightingPeripherals")
+            new MetadataTab("LightingPeripherals", icon: "Customization")
             {
                 new HeaderMetadata("LightingGeneral"),
                 nameof(Settings.StageKitEnabled),
@@ -119,7 +119,7 @@ namespace YARG.Settings
                 nameof(Settings.DMXGreenChannels),
                 nameof(Settings.DMXYellowChannels),
             },
-            new MetadataTab("Debug")
+            new MetadataTab("Debug", icon: "Credits")
             {
                 nameof(Settings.InputDeviceLogging),
                 nameof(Settings.ShowAdvancedMusicLibraryOptions)

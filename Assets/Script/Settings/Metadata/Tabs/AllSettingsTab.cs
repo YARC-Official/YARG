@@ -30,7 +30,7 @@ namespace YARG.Settings.Metadata
 
                 var gameObject = Object.Instantiate(_settingCategoryViewPrefab, settingContainer);
                 var view = gameObject.GetComponent<SettingCategoryView>();
-                view.Initialize(tab.Name);
+                view.Initialize(tab);
                 navGroup.AddNavigatable(view);
             }
         }

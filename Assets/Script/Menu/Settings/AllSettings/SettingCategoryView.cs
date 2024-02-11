@@ -1,9 +1,11 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using YARG.Helpers;
 using YARG.Menu.Navigation;
-using YARG.Settings;
+using YARG.Settings.Metadata;
 
 namespace YARG.Menu.Settings.AllSettings
 {
@@ -12,14 +14,21 @@ namespace YARG.Menu.Settings.AllSettings
         [Space]
         [SerializeField]
         private TextMeshProUGUI _categoryTitle;
+        [SerializeField]
+        private Image _icon;
 
         private string _tabName;
 
-        public void Initialize(string tabName)
+        public void Initialize(Tab tab)
         {
-            _tabName = tabName;
+            _tabName = tab.Name;
 
-            _categoryTitle.text = LocaleHelper.LocalizeString("Settings", $"Tab.{tabName}");
+            _categoryTitle.text = LocaleHelper.LocalizeString("Settings", $"Tab.{tab.Name}");
+
+            var sprite = Addressables
+                .LoadAssetAsync<Sprite>($"TabIcons[{tab.Icon}]")
+                .WaitForCompletion();
+            _icon.sprite = sprite;
         }
 
         public override void OnPointerDown(PointerEventData eventData)
