@@ -95,6 +95,7 @@ namespace YARG.Menu.MusicLibrary
 
             // Restore search
             _searchField.Restore();
+            _searchField.ClickedSearchFilter += UpdateSearch;
 
             // Get songs
             if (_doRefresh)
@@ -303,6 +304,9 @@ namespace YARG.Menu.MusicLibrary
             }
 
             _previewContext = null;
+
+
+            _searchField.ClickedSearchFilter -= UpdateSearch;
         }
 
         private void Back()

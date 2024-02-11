@@ -1141,6 +1141,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _searchField: {fileID: 4030813025972567531}
   _searchPlaceholderText: {fileID: 4030813024926863517}
+  _searchFilters: {fileID: 4272568898245629614}
 --- !u!1 &4030813026092309319
 GameObject:
   m_ObjectHideFlags: 0

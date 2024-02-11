@@ -17,6 +17,8 @@ namespace YARG.Menu.SongSearching
         private TMP_InputField _searchField;
         [SerializeField]
         private TextMeshProUGUI _searchPlaceholderText;
+        [SerializeField]
+        private ColoredButtonGroup _searchFilters;
 
         private readonly Song.SongSearching _searchContext = new();
         private string _currentSearchText = string.Empty;
@@ -27,6 +29,28 @@ namespace YARG.Menu.SongSearching
         public bool IsCurrentSearchInField => _currentSearchText == _searchField.text;
         public bool IsUpdatedSearchLonger => _searchField.text.Length > _currentSearchText.Length;
         public bool IsUnspecified => _searchContext.IsUnspecified();
+
+        public delegate void OnSearchFilterClicked(bool forceUpdate);
+        public OnSearchFilterClicked ClickedSearchFilter;
+
+        private SongAttribute _currentSearchFilter = SongAttribute.Unspecified;
+        private Dictionary<SongAttribute, string> _searchQueries;
+        private string _fullSearchQuery = string.Empty;
+
+        private void OnEnable()
+        {
+            _searchFilters.ClickedButton += OnClickedSearchFilter;
+            _searchQueries = new Dictionary<SongAttribute, string>
+            {
+                {SongAttribute.Unspecified, string.Empty},
+                {SongAttribute.Name, string.Empty},
+                {SongAttribute.Artist, string.Empty},
+                {SongAttribute.Album, string.Empty},
+                {SongAttribute.Genre, string.Empty},
+                {SongAttribute.Source, string.Empty},
+                {SongAttribute.Charter, string.Empty},
+            };
+        }
 
         public void Restore()
         {
@@ -51,7 +75,45 @@ namespace YARG.Menu.SongSearching
 
         public IReadOnlyList<SongCategory> Search(SongAttribute sort)
         {
-            return _searchContext.Search(_searchField.text, sort);
+            if (_currentSearchFilter == SongAttribute.Unspecified)
+            {
+                _searchQueries[_currentSearchFilter] = _searchField.text;
+                _fullSearchQuery = _searchQueries[_currentSearchFilter];
+            }
+            else
+            {
+                var filter = _currentSearchFilter.ToString().ToLowerInvariant();
+                var currentQuery = $"{filter}:{_searchQueries[_currentSearchFilter]}";
+                var updatedQuery = $"{filter}:{_searchField.text}";
+
+                _searchQueries[_currentSearchFilter] = _searchField.text;
+
+                if (_fullSearchQuery.Contains(filter))
+                {
+                    _fullSearchQuery = _fullSearchQuery.Replace(currentQuery, updatedQuery);
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(_searchField.text))
+                    {
+                        _fullSearchQuery = _fullSearchQuery.Replace(_searchField.text, $"{filter}:{_searchField.text}");
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(_fullSearchQuery))
+                        {
+                            _fullSearchQuery = $"{filter}:";
+                        }
+                        else
+                        {
+                            _fullSearchQuery += $";{filter}:";
+                        }
+                    }
+                }
+            }
+
+            Debug.Log(_fullSearchQuery);
+            return _searchContext.Search(_fullSearchQuery, sort);
         }
 
         private void Update()
@@ -85,6 +147,81 @@ namespace YARG.Menu.SongSearching
             }
         }
 
+        private void OnClickedSearchFilter()
+        {
+            var button = _searchFilters.ActiveButton;
+            if (button == null)
+            {
+                var filter = _currentSearchFilter.ToString().ToLowerInvariant();
+                string currentQuery = $"{filter}:{_searchQueries[_currentSearchFilter]}";
+                if (_fullSearchQuery.Contains($";{filter}"))
+                {
+                    currentQuery = $";{filter}:{_searchQueries[_currentSearchFilter]}";
+                }
+                else if (_fullSearchQuery.Contains($"{_searchQueries[_currentSearchFilter]};"))
+                {
+                    currentQuery = $"{filter}:{_searchQueries[_currentSearchFilter]};";
+                }
+
+                _fullSearchQuery = _fullSearchQuery.Replace(currentQuery, string.Empty);
+                _searchQueries[_currentSearchFilter] = string.Empty;
+                _currentSearchFilter = SongAttribute.Unspecified;
+                foreach (var query in _searchQueries)
+                {
+                    filter = query.Key.ToString().ToLowerInvariant();
+                    if (!_fullSearchQuery.Contains(filter))
+                    {
+                        continue;
+                    }
+
+                    _currentSearchFilter = query.Key;
+                    _searchField.text = query.Value;
+
+                    var toggleName = _currentSearchFilter switch
+                    {
+                        SongAttribute.Name    => "track",
+                        SongAttribute.Artist  => "artist",
+                        SongAttribute.Album   => "album",
+                        SongAttribute.Genre   => "genre",
+                        SongAttribute.Source  => "source",
+                        SongAttribute.Charter => "charter"
+                    };
+
+                    _searchFilters.ActivateButton(toggleName);
+                    break;
+                }
+
+                ClickedSearchFilter?.Invoke(true);
+                return;
+            }
+
+            var previousSearchFilter = _currentSearchFilter;
+
+            _currentSearchFilter = button.Text.text.ToLowerInvariant() switch
+            {
+                "track"   => SongAttribute.Name,
+                "artist"  => SongAttribute.Artist,
+                "album"   => SongAttribute.Album,
+                "genre"   => SongAttribute.Genre,
+                "source"  => SongAttribute.Source,
+                "charter" => SongAttribute.Charter,
+                _         => SongAttribute.Unspecified
+            };
+
+            if (previousSearchFilter == SongAttribute.Unspecified)
+            {
+                _searchQueries[SongAttribute.Unspecified] = string.Empty;
+                _searchQueries[_currentSearchFilter] = _searchField.text;
+            }
+            else
+            {
+                _searchField.text = _searchQueries[_currentSearchFilter];
+            }
+
+
+            ClickedSearchFilter?.Invoke(true);
+        }
+
         private void OnDisable()
         {
             // Make sure to also pop the search nav if that was pushed
@@ -93,6 +230,8 @@ namespace YARG.Menu.SongSearching
                 Navigator.Instance.PopScheme();
                 _searchNavPushed = false;
             }
+
+            _searchFilters.ClickedButton -= OnClickedSearchFilter;
         }
     }
 }
