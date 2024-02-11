@@ -40,7 +40,7 @@ namespace YARG
                 if (ActiveButton != null)
                 {
                     _prevActivatedButton = ActiveButton;
-                    _prevActivatedButton.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton);
+                    _prevActivatedButton.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton, MenuData.Colors.BrightText, MenuData.Colors.DeactivatedText);
                 }
             }
 
@@ -51,7 +51,7 @@ namespace YARG
             }
             else
             {
-                ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton);
+                ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton, MenuData.Colors.BrightText, MenuData.Colors.DeactivatedText);
                 ActiveButton = null;
             }
 
