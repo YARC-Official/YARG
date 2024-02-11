@@ -55,8 +55,7 @@ namespace YARG.Menu.MusicLibrary
         public override void SecondaryTextClick()
         {
             base.SecondaryTextClick();
-
-           _songSearchingField.SetSearchInput($"artist:{SongMetadata.Artist.SortStr}");
+           _songSearchingField.SetSearchInput(SongAttribute.Artist, SongMetadata.Artist.SortStr);
         }
 
         public override void PrimaryButtonClick()
@@ -72,8 +71,7 @@ namespace YARG.Menu.MusicLibrary
         public override void IconClick()
         {
             base.IconClick();
-
-           _songSearchingField.SetSearchInput($"source:{SongMetadata.Source.SortStr}");
+           _songSearchingField.SetSearchInput(SongAttribute.Source, SongMetadata.Source.SortStr);
         }
     }
 }

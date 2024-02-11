@@ -59,7 +59,44 @@ namespace YARG.Menu.SongSearching
 
         public void SetSearchInput(string query)
         {
+            _currentSearchFilter = SongAttribute.Unspecified;
             _searchField.text = query;
+        }
+
+        public void SetSearchInput(SongAttribute attribute, string input)
+        {
+            _currentSearchFilter = attribute;
+            _searchQueries[_currentSearchFilter] = input;
+            _searchField.text = _searchQueries[_currentSearchFilter];
+
+            var filter = _currentSearchFilter.ToString().ToLowerInvariant();
+
+            if (string.IsNullOrEmpty(_fullSearchQuery))
+            {
+                _fullSearchQuery = $"{filter}:{input}";
+            }
+            else
+            {
+                _fullSearchQuery += $";{filter}:{input}";
+            }
+
+            var toggleName = _currentSearchFilter switch
+            {
+                SongAttribute.Name    => "track",
+                SongAttribute.Artist  => "artist",
+                SongAttribute.Album   => "album",
+                SongAttribute.Genre   => "genre",
+                SongAttribute.Source  => "source",
+                SongAttribute.Charter => "charter",
+                _ => string.Empty,
+            };
+
+            if (!string.IsNullOrEmpty(toggleName))
+            {
+                _searchFilters.ActivateButton(toggleName);
+            }
+
+            ClickedSearchFilter?.Invoke(true);
         }
 
         public void UpdateSearchText()

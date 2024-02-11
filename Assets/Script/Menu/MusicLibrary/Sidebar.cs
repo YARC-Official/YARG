@@ -257,17 +257,24 @@ namespace YARG.Menu.MusicLibrary
 
             var songEntry = songViewType.SongMetadata;
 
-            string value = type switch
+            switch (type)
             {
-                "source"  => songEntry.Source.SortStr,
-                "album"   => songEntry.Album.SortStr,
-                "year"    => songEntry.Year,
-                "charter" => songEntry.Charter.SortStr,
-                "genre"   => songEntry.Genre.SortStr,
-                _         => throw new Exception("Unreachable")
-            };
-
-            _songSearchingField.SetSearchInput($"{type}:{value}");
+                case "source":
+                    _songSearchingField.SetSearchInput(SongAttribute.Source, songEntry.Source.SortStr);
+                    break;
+                case "album":
+                    _songSearchingField.SetSearchInput(SongAttribute.Album, songEntry.Album.SortStr);
+                    break;
+                case "year":
+                    _songSearchingField.SetSearchInput($"{type}:{songEntry.Year}");
+                    break;
+                case "charter":
+                    _songSearchingField.SetSearchInput(SongAttribute.Charter, songEntry.Charter.SortStr);
+                    break;
+                case "genre":
+                    _songSearchingField.SetSearchInput(SongAttribute.Source, songEntry.Genre.SortStr);
+                    break;
+            }
         }
     }
 }

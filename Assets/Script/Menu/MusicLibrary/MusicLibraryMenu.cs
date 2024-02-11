@@ -313,8 +313,7 @@ namespace YARG.Menu.MusicLibrary
         {
             if (_searchField.IsSearching)
             {
-                _searchField.SetSearchInput(string.Empty);
-                UpdateSearch(true);
+                _searchField.SetSearchInput(SongAttribute.Unspecified, string.Empty);
                 return;
             }
 
