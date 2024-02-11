@@ -537,7 +537,7 @@ namespace YARG.Menu.DifficultySelect
                     var playerInstrument = player.Profile.CurrentInstrument;
                     if (playerInstrument is Instrument.Vocals or Instrument.Harmony)
                     {
-                        return playerInstrument == instrument;
+                        return playerInstrument == instrument && parts.HasInstrument(instrument);
                     }
                 }
             }
