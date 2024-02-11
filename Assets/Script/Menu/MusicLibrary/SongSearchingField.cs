@@ -1,12 +1,11 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using YARG.Core.Song;
+using YARG.Menu.Dialogs;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Song;
 
 namespace YARG.Menu.SongSearching
@@ -57,14 +56,23 @@ namespace YARG.Menu.SongSearching
         public void SetSearchInput(SongAttribute attribute, string input)
         {
             var filter = attribute.ToString().ToLowerInvariant();
+            var updatedQuery = $"{filter}:{input}";
 
             if (string.IsNullOrEmpty(_fullSearchQuery) || _currentSearchFilter == SongAttribute.Unspecified)
             {
-                _fullSearchQuery = $"{filter}:{input}";
+                _fullSearchQuery = updatedQuery;
             }
             else
             {
-                _fullSearchQuery += $";{filter}:{input}";
+                if (!_fullSearchQuery.Contains(filter))
+                {
+                    _fullSearchQuery += ";" + updatedQuery;
+                }
+                else
+                {
+                    var currentQuery = $"{filter}:{_searchQueries[attribute]}";
+                    _fullSearchQuery = _fullSearchQuery.Replace(currentQuery, updatedQuery);
+                }
             }
 
             _currentSearchFilter = attribute;
@@ -141,11 +149,13 @@ namespace YARG.Menu.SongSearching
                 }
             }
 
+            Debug.Log(_fullSearchQuery);
             return _searchContext.Search(_fullSearchQuery, sort);
         }
 
         public void ClearFilterQueries()
         {
+            _currentSearchFilter = SongAttribute.Unspecified;
             _searchQueries = new Dictionary<SongAttribute, string>
             {
                 {SongAttribute.Unspecified, string.Empty},
@@ -155,11 +165,64 @@ namespace YARG.Menu.SongSearching
                 {SongAttribute.Genre, string.Empty},
                 {SongAttribute.Source, string.Empty},
                 {SongAttribute.Charter, string.Empty},
+                {SongAttribute.Instrument, string.Empty},
+                {SongAttribute.Year, string.Empty},
             };
             _fullSearchQuery = string.Empty;
             _searchField.text = string.Empty;
 
             _searchFilters.DeactivateAllButtons();
+        }
+
+        public void OpenMoreFilters()
+        {
+            var filtersList = DialogManager.Instance.ShowList("More Filters");
+            CreateInstrumentFilterButton(filtersList);
+            CreateYearFilterButton(filtersList);
+        }
+
+        private void CreateInstrumentFilterButton(ListDialog list)
+        {
+            list.AddListButton(SongAttribute.Instrument.ToString(), () =>
+            {
+                DialogManager.Instance.ClearDialog();
+                var instrumentFilerList = DialogManager.Instance.ShowList(SongAttribute.Instrument + "s");
+
+                foreach (var instrument in GlobalVariables.Instance.SongContainer.Instruments.Keys)
+                {
+                    instrumentFilerList.AddListButton(instrument, () =>
+                    {
+                        SetSearchInput(SongAttribute.Instrument, instrument);
+                        DialogManager.Instance.ClearDialog();
+                    });
+                }
+
+                if (_fullSearchQuery.Contains(SongAttribute.Instrument.ToString().ToLowerInvariant()))
+                {
+                    instrumentFilerList.AddDialogButton("Remove Filter", () =>
+                    {
+                        ClearSearchQuery(SongAttribute.Instrument);
+                        DialogManager.Instance.ClearDialog();
+                    });
+                }
+            });
+        }
+
+        private void CreateYearFilterButton(ListDialog list)
+        {
+            list.AddListButton(SongAttribute.Year.ToString(), () =>
+            {
+                DialogManager.Instance.ClearDialog();
+                var yearFilterList = DialogManager.Instance.ShowList(SongAttribute.Year + "s");
+                foreach (var years in GlobalVariables.Instance.SongContainer.Years.Keys)
+                {
+                    yearFilterList.AddListButton(years, () =>
+                    {
+                        SetSearchInput(SongAttribute.Year, years);
+                        DialogManager.Instance.ClearDialog();
+                    });
+                }
+            });
         }
 
         private void Update()
@@ -198,51 +261,7 @@ namespace YARG.Menu.SongSearching
             var button = _searchFilters.ActiveButton;
             if (button == null)
             {
-                var filter = _currentSearchFilter.ToString().ToLowerInvariant();
-                string currentQuery = $"{filter}:{_searchQueries[_currentSearchFilter]}";
-                if (_fullSearchQuery.Contains($";{filter}"))
-                {
-                    currentQuery = $";{filter}:{_searchQueries[_currentSearchFilter]}";
-                }
-                else if (_fullSearchQuery.Contains($"{_searchQueries[_currentSearchFilter]};"))
-                {
-                    currentQuery = $"{filter}:{_searchQueries[_currentSearchFilter]};";
-                }
-
-                _fullSearchQuery = _fullSearchQuery.Replace(currentQuery, string.Empty);
-                _searchQueries[_currentSearchFilter] = string.Empty;
-                _currentSearchFilter = SongAttribute.Unspecified;
-                foreach (var query in _searchQueries)
-                {
-                    filter = query.Key.ToString().ToLowerInvariant();
-                    if (!_fullSearchQuery.Contains(filter))
-                    {
-                        continue;
-                    }
-
-                    _currentSearchFilter = query.Key;
-                    _searchField.text = query.Value;
-
-                    var toggleName = _currentSearchFilter switch
-                    {
-                        SongAttribute.Name    => "track",
-                        SongAttribute.Artist  => "artist",
-                        SongAttribute.Album   => "album",
-                        SongAttribute.Genre   => "genre",
-                        SongAttribute.Source  => "source",
-                        SongAttribute.Charter => "charter",
-                        _ => string.Empty,
-                    };
-
-                    if (!string.IsNullOrEmpty(toggleName))
-                    {
-                        _searchFilters.ActivateButton(toggleName);
-                    }
-
-                    break;
-                }
-
-                ClickedSearchFilter?.Invoke(true);
+                ClearSearchQuery(_currentSearchFilter);
                 return;
             }
 
@@ -271,6 +290,58 @@ namespace YARG.Menu.SongSearching
 
 
             ClickedSearchFilter?.Invoke(true);
+        }
+
+        private void ClearSearchQuery(SongAttribute attribute)
+        {
+            var filter = attribute.ToString().ToLowerInvariant();
+            string currentQuery = $"{filter}:{_searchQueries[attribute]}";
+            if (_fullSearchQuery.Contains($";{filter}"))
+            {
+                currentQuery = $";{filter}:{_searchQueries[attribute]}";
+            }
+            else if (_fullSearchQuery.Contains($"{_searchQueries[attribute]};"))
+            {
+                currentQuery = $"{filter}:{_searchQueries[attribute]};";
+            }
+
+            _fullSearchQuery = _fullSearchQuery.Replace(currentQuery, string.Empty);
+            _searchQueries[attribute] = string.Empty;
+            foreach (var query in _searchQueries)
+            {
+                filter = query.Key.ToString().ToLowerInvariant();
+                if (!_fullSearchQuery.Contains(filter))
+                {
+                    continue;
+                }
+
+                _currentSearchFilter = query.Key;
+                _searchField.text = query.Value;
+
+                var toggleName = _currentSearchFilter switch
+                {
+                    SongAttribute.Name    => "track",
+                    SongAttribute.Artist  => "artist",
+                    SongAttribute.Album   => "album",
+                    SongAttribute.Genre   => "genre",
+                    SongAttribute.Source  => "source",
+                    SongAttribute.Charter => "charter",
+                    _                     => string.Empty,
+                };
+
+                if (!string.IsNullOrEmpty(toggleName))
+                {
+                    _searchFilters.ActivateButton(toggleName);
+                }
+
+                ClickedSearchFilter?.Invoke(true);
+                return;
+            }
+
+            _currentSearchFilter = SongAttribute.Unspecified;
+            _searchField.text = string.Empty;
+
+                ClickedSearchFilter?.Invoke(true);
         }
 
         private void OnDisable()
