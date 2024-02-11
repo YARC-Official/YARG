@@ -83,7 +83,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 55070184168611840
-    m_Localized: Song Manager
+    m_Localized: Songs
     m_Metadata:
       m_Items: []
   - m_Id: 62024422937452544
@@ -95,7 +95,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 62024422971006976
-    m_Localized: Customization
+    m_Localized: Presets
     m_Metadata:
       m_Items: []
   - m_Id: 64543436070838272
@@ -1018,6 +1018,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116747023328600181
     m_Localized: Whammy Pitch Shift Amount (semitones)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116831000492105728
+    m_Localized: All Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116831000513077248
+    m_Localized: Lighting Peripherals
     m_Metadata:
       m_Items: []
   references:

@@ -14,7 +14,7 @@ namespace YARG.Settings
     {
         public static SettingContainer Settings { get; private set; }
 
-        public static readonly List<Tab> SettingsTabs = new()
+        public static readonly List<Tab> DisplayedSettingsTabs = new()
         {
             new MetadataTab("General")
             {
@@ -99,7 +99,14 @@ namespace YARG.Settings
                 nameof(Settings.KeepSongInfoVisible)
             },
             new PresetsTab("Presets", icon: "Customization"),
-            new MetadataTab("Advanced", icon: "Customization")
+            new AllSettingsTab(),
+        };
+
+        public static readonly List<Tab> AllSettingsTabs = new()
+        {
+            // The display setting tabs are appended to the top here
+
+            new MetadataTab("LightingPeripherals", icon: "Customization")
             {
                 new HeaderMetadata("LightingGeneral"),
                 nameof(Settings.StageKitEnabled),
@@ -112,6 +119,11 @@ namespace YARG.Settings
                 nameof(Settings.DMXYellowChannels),
             }
         };
+
+        static SettingsManager()
+        {
+            AllSettingsTabs.InsertRange(0, DisplayedSettingsTabs);
+        }
 
         private static string SettingsFile => Path.Combine(PathHelper.PersistentDataPath, "settings.json");
 
@@ -206,7 +218,7 @@ namespace YARG.Settings
 
         public static Tab GetTabByName(string name)
         {
-            return SettingsTabs.FirstOrDefault(tab => tab.Name == name);
+            return AllSettingsTabs.FirstOrDefault(tab => tab.Name == name);
         }
 
         public static void SetSettingsByName(string name, object value)

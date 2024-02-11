@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.Rendering;
 using UnityEngine;
 using YARG.Core.Input;
 using YARG.Helpers.Extensions;
@@ -98,6 +100,24 @@ namespace YARG.Menu
             if (_navigationGroup == null) return;
 
             _navigationGroup.SelectFirst();
+        }
+
+        public void SelectTabById(string id)
+        {
+            if (_navigationGroup == null) return;
+
+            var index = _tabs.FindIndex(i => i.Id == id);
+
+            if (index == -1)
+            {
+                _navigationGroup.SelectAt(null);
+                SelectedTabId = null;
+            }
+            else
+            {
+                _navigationGroup.SelectAt(index);
+                SelectedTabId = id;
+            }
         }
 
         private void OnDestroy()
