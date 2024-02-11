@@ -38,6 +38,12 @@ namespace YARG
                     continue;
                 }
 
+                if (ActiveButton != null)
+                {
+                    ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton,
+                        MenuData.Colors.BrightText, MenuData.Colors.DeactivatedText);
+                }
+
                 ActiveButton = button;
                 ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.BrightButton);
                 break;
