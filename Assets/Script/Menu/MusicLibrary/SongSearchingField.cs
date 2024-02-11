@@ -143,7 +143,6 @@ namespace YARG.Menu.SongSearching
                 }
             }
 
-            Debug.Log(_fullSearchQuery);
             return _searchContext.Search(_fullSearchQuery, sort);
         }
 
