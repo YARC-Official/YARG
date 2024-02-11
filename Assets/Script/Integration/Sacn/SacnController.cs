@@ -36,6 +36,8 @@ namespace YARG.Integration.Sacn
         {
             if (enabled)
             {
+                if (_sendClient != null) return;
+
                 Debug.Log("Starting SacnController...");
 
                 StageKitLightingController.Instance.OnLedSet += HandleEvent;
@@ -86,6 +88,7 @@ namespace YARG.Integration.Sacn
             Sender();
 
             _sendClient.Dispose();
+            _sendClient = null;
 
             CancelInvoke(nameof(Sender));
 
