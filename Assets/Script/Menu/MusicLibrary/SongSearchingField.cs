@@ -65,13 +65,9 @@ namespace YARG.Menu.SongSearching
 
         public void SetSearchInput(SongAttribute attribute, string input)
         {
-            _currentSearchFilter = attribute;
-            _searchQueries[_currentSearchFilter] = input;
-            _searchField.text = _searchQueries[_currentSearchFilter];
+            var filter = attribute.ToString().ToLowerInvariant();
 
-            var filter = _currentSearchFilter.ToString().ToLowerInvariant();
-
-            if (string.IsNullOrEmpty(_fullSearchQuery))
+            if (string.IsNullOrEmpty(_fullSearchQuery) || _currentSearchFilter == SongAttribute.Unspecified)
             {
                 _fullSearchQuery = $"{filter}:{input}";
             }
@@ -79,6 +75,11 @@ namespace YARG.Menu.SongSearching
             {
                 _fullSearchQuery += $";{filter}:{input}";
             }
+
+            _currentSearchFilter = attribute;
+            _searchQueries[_currentSearchFilter] = input;
+            _searchField.text = _searchQueries[_currentSearchFilter];
+
 
             var toggleName = _currentSearchFilter switch
             {
