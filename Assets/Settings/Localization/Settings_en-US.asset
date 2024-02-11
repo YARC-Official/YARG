@@ -34,10 +34,6 @@ MonoBehaviour:
     m_Localized: Sound
     m_Metadata:
       m_Items: []
-  - m_Id: 12472066134892544
-    m_Localized: File Management
-    m_Metadata:
-      m_Items: []
   - m_Id: 12472103388700672
     m_Localized: Other
     m_Metadata:
@@ -1026,6 +1022,30 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116831000513077248
     m_Localized: Lighting Peripherals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116841933557850112
+    m_Localized: Debug and Developer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116844061357629440
+    m_Localized: Open Executable Path
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116844061361823744
+    m_Localized: Open Persistent Data Path
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116844061361823745
+    m_Localized: Export
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116844061361823746
+    m_Localized: Paths and Folders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 116844061366018048
+    m_Localized: File Management
     m_Metadata:
       m_Items: []
   references:

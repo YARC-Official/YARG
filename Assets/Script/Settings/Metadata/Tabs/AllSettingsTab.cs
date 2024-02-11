@@ -23,8 +23,7 @@ namespace YARG.Settings.Metadata
             foreach (var tab in SettingsManager.AllSettingsTabs)
             {
                 // Skip this tab (because we're already in it at this point)
-                // and also the presets tab (since it's special)
-                if (tab is AllSettingsTab or PresetsTab)
+                if (tab is AllSettingsTab)
                 {
                     continue;
                 }

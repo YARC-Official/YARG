@@ -37,26 +37,6 @@ namespace YARG.Settings
 
             #region General
 
-            public void ExportSongsOuvert()
-            {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "json", SongExport.ExportOuvert);
-            }
-
-            public void ExportSongsText()
-            {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "txt", SongExport.ExportText);
-            }
-
-            public void CopyCurrentSongTextFilePath()
-            {
-                GUIUtility.systemCopyBuffer = CurrentSongController.TextFilePath;
-            }
-
-            public void CopyCurrentSongJsonFilePath()
-            {
-                GUIUtility.systemCopyBuffer = CurrentSongController.JsonFilePath;
-            }
-
             public void OpenVenueFolder()
             {
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
@@ -80,9 +60,6 @@ namespace YARG.Settings
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 
             public ToggleSetting AmIAwesome { get; } = new(false);
-
-            public ToggleSetting InputDeviceLogging              { get; } = new(false, InputDeviceLoggingCallback);
-            public ToggleSetting ShowAdvancedMusicLibraryOptions { get; } = new(false);
 
             #endregion
 
@@ -165,7 +142,41 @@ namespace YARG.Settings
 
             #endregion
 
-            #region Lighting
+            #region File Management
+
+            public void ExportSongsOuvert()
+            {
+                FileExplorerHelper.OpenSaveFile(null, "songs", "json", SongExport.ExportOuvert);
+            }
+
+            public void ExportSongsText()
+            {
+                FileExplorerHelper.OpenSaveFile(null, "songs", "txt", SongExport.ExportText);
+            }
+
+            public void CopyCurrentSongTextFilePath()
+            {
+                GUIUtility.systemCopyBuffer = CurrentSongController.TextFilePath;
+            }
+
+            public void CopyCurrentSongJsonFilePath()
+            {
+                GUIUtility.systemCopyBuffer = CurrentSongController.JsonFilePath;
+            }
+
+            public void OpenPersistentDataPath()
+            {
+                FileExplorerHelper.OpenFolder(PathHelper.PersistentDataPath);
+            }
+
+            public void OpenExecutablePath()
+            {
+                FileExplorerHelper.OpenFolder(PathHelper.ExecutablePath);
+            }
+
+            #endregion
+
+            #region Lighting Peripherals
 
             public ToggleSetting StageKitEnabled { get; } = new(true);
             public ToggleSetting DMXEnabled      { get; } = new(false, DMXEnabledCallback);
@@ -180,6 +191,14 @@ namespace YARG.Settings
                 new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, DMXCallback);
             public DMXChannelsSetting DMXYellowChannels { get; } = new(
                 new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, DMXCallback);
+
+            #endregion
+
+            #region Debug and Developer
+
+            public ToggleSetting InputDeviceLogging { get; } = new(false, InputDeviceLoggingCallback);
+
+            public ToggleSetting ShowAdvancedMusicLibraryOptions { get; } = new(false);
 
             #endregion
 
