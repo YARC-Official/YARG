@@ -20,8 +20,13 @@ namespace YARG.Menu.Settings.Visuals
             {
                 string valueString = Setting.IndexToString(i);
                 if (Setting.Localizable)
-                    valueString = LocaleHelper.LocalizeString("Settings",
-                        $"Dropdown.{Tab}.{UnlocalizedName}.{valueString}");
+                {
+                    valueString = !IsPresetSetting
+                        ? LocaleHelper.LocalizeString("Settings",
+                            $"Dropdown.{UnlocalizedName}.{valueString}")
+                        : LocaleHelper.LocalizeString("Settings",
+                            $"PresetDropdown.{UnlocalizedName}.{valueString}");
+                }
 
                 _dropdown.options.Add(new(valueString));
             }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization.Components;
@@ -26,6 +27,16 @@ namespace YARG.Menu.Settings
         private NavigationGroup _settingsNavGroup;
         [SerializeField]
         private ScrollRect _scrollRect;
+
+        [Space]
+        [SerializeField]
+        private GameObject _searchBarContainer;
+        [SerializeField]
+        private TMP_InputField _searchBar;
+        [SerializeField]
+        private TextMeshProUGUI _searchHeaderText;
+
+        [Space]
         [SerializeField]
         private Transform _previewContainerWorld;
         [SerializeField]
@@ -37,17 +48,8 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private LocalizeStringEvent _settingDescription;
 
-        private Tab _currentTab;
-        public Tab CurrentTab
-        {
-            get => _currentTab;
-            set
-            {
-                _currentTab = value;
-
-                Refresh();
-            }
-        }
+        public Tab CurrentTab { get; private set; }
+        public string SearchQuery => _searchBar.text;
 
         public event Action SettingChanged;
 
@@ -66,7 +68,8 @@ namespace YARG.Menu.Settings
         {
             var tabs = new List<HeaderTabs.TabInfo>();
 
-            foreach (var tab in SettingsManager.SettingsTabs)
+            // Add the main tabs
+            foreach (var tab in SettingsManager.DisplayedSettingsTabs)
             {
                 // Load the tab sprite
                 var sprite = Addressables.LoadAssetAsync<Sprite>($"TabIcons[{tab.Icon}]").WaitForCompletion();
@@ -108,14 +111,45 @@ namespace YARG.Menu.Settings
                 _headerTabs.NavigatePreviousTab
             }, true));
 
-            ReturnToFirstTab();
+            CurrentTab = SettingsManager.DisplayedSettingsTabs[0];
+            _searchBarContainer.SetActive(false);
+            Refresh();
         }
 
         private void OnTabChanged(string tab)
         {
+            SelectTab(SettingsManager.GetTabByName(tab));
+        }
+
+        private void SelectTab(Tab tab)
+        {
             CurrentTab?.OnTabExit();
-            CurrentTab = SettingsManager.GetTabByName(tab);
+
+            CurrentTab = tab;
+            Refresh();
+
             CurrentTab?.OnTabEnter();
+
+            _searchBarContainer.SetActive(CurrentTab?.ShowSearchBar ?? false);
+            _searchBar.text = string.Empty;
+            OnSearchBarChanged();
+        }
+
+        public void SelectTabByName(string name)
+        {
+            _headerTabs.SelectTabById(name);
+
+            // If the header tab does not exist, then force update to that tab
+            if (_headerTabs.SelectedTabId is null)
+            {
+                SelectTab(SettingsManager.GetTabByName(name));
+            }
+        }
+
+        public void SelectSettingByIndex(int index)
+        {
+            // Force it to be the navigation selection type so the scroll view properly updates
+            _settingsNavGroup.SelectAt(index, SelectionOrigin.Navigation);
         }
 
         private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
@@ -138,10 +172,10 @@ namespace YARG.Menu.Settings
             }
 
             _settingName.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{CurrentTab.Name}.{settingNav.UnlocalizedName}");
+                "Settings", $"Setting.{settingNav.UnlocalizedName}");
 
             _settingDescription.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{CurrentTab.Name}.{settingNav.UnlocalizedName}.Description");
+                "Settings", $"Setting.{settingNav.UnlocalizedName}.Description");
         }
 
         public void RefreshPreview(bool waitForResolution = false)
@@ -223,17 +257,31 @@ namespace YARG.Menu.Settings
             _previewContainerUI.DestroyChildren();
         }
 
-        public void ReturnToFirstTab()
-        {
-            CurrentTab = SettingsManager.SettingsTabs[0];
-        }
-
         public void OnSettingChanged()
         {
             if (!_ready || !gameObject.activeSelf) return;
 
             CurrentTab?.OnSettingChanged();
             SettingChanged?.Invoke();
+        }
+
+        public void OnSearchBarChanged()
+        {
+            // Update header
+            if (string.IsNullOrEmpty(_searchBar.text))
+            {
+                _searchHeaderText.text = "All Categories";
+            }
+            else
+            {
+                _searchHeaderText.text = "Results";
+            }
+
+            // Refresh on search
+            if (CurrentTab?.ShowSearchBar ?? false)
+            {
+                Refresh();
+            }
         }
 
         private void OnDisable()
@@ -245,7 +293,7 @@ namespace YARG.Menu.Settings
 
             // Set the current tab back to null to avoid calling OnTabExit twice
             CurrentTab?.OnTabExit();
-            _currentTab = null;
+            CurrentTab = null;
 
             Navigator.Instance.PopScheme();
             DestroyPreview();

@@ -26,6 +26,8 @@ namespace YARG.Settings.Metadata
         private Dictionary<string, BaseSettingVisual> _settingVisuals = new();
         private readonly List<AbstractMetadata> _settings = new();
 
+        public IReadOnlyList<AbstractMetadata> Settings => _settings;
+
         public MetadataTab(string name, string icon = "Generic", IPreviewBuilder previewBuilder = null)
             : base(name, icon, previewBuilder)
         {
@@ -57,7 +59,7 @@ namespace YARG.Settings.Metadata
                         var go = Object.Instantiate(_buttonPrefab, container);
 
                         var buttonGroup = go.GetComponent<SettingsButton>();
-                        buttonGroup.SetInfo(Name, buttonRow.Buttons);
+                        buttonGroup.SetInfo(buttonRow.Buttons);
                         navGroup.AddNavigatable(buttonGroup);
 
                         break;
@@ -78,7 +80,7 @@ namespace YARG.Settings.Metadata
                         var setting = SettingsManager.GetSettingByName(field.FieldName);
 
                         var visual = SpawnSettingVisual(setting, container);
-                        visual.AssignSetting(Name, field.FieldName);
+                        visual.AssignSetting(field.FieldName);
 
                         _settingVisuals.Add(field.FieldName, visual);
                         navGroup.AddNavigatable(visual.gameObject);

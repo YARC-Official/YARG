@@ -18,29 +18,29 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private LocalizeStringEvent _settingLabel;
 
+        public bool IsPresetSetting { get; private set; }
         public string UnlocalizedName { get; private set; }
-        public string Tab { get; private set; }
 
-        public void AssignSetting(string tab, string settingName)
+        public void AssignSetting(string settingName)
         {
-            Tab = tab;
+            IsPresetSetting = false;
             UnlocalizedName = settingName;
 
             _settingLabel.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{tab}.{settingName}");
+                "Settings", $"Setting.{settingName}");
 
             AssignSettingFromVariable(SettingsManager.GetSettingByName(settingName));
 
             OnSettingInit();
         }
 
-        public void AssignSetting(string tab, string unlocalizedName, ISettingType reference)
+        public void AssignPresetSetting(string unlocalizedName, ISettingType reference)
         {
-            Tab = tab;
+            IsPresetSetting = true;
             UnlocalizedName = unlocalizedName;
 
             _settingLabel.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{tab}.{unlocalizedName}");
+                "Settings", $"PresetSetting.{unlocalizedName}");
 
             AssignSettingFromVariable(reference);
 

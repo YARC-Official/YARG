@@ -23,7 +23,7 @@ namespace YARG.Menu.Settings
 
         private bool _focused;
 
-        public void SetInfo(string tab, IEnumerable<string> buttons)
+        public void SetInfo(IEnumerable<string> buttons)
         {
             // Spawn button(s)
             foreach (var buttonName in buttons)
@@ -32,7 +32,7 @@ namespace YARG.Menu.Settings
 
                 // Set button text
                 button.GetComponentInChildren<LocalizeStringEvent>().StringReference =
-                    LocaleHelper.StringReference("Settings", $"Button.{tab}.{buttonName}");
+                    LocaleHelper.StringReference("Settings", $"Button.{buttonName}");
 
                 // Set button action
                 var capture = buttonName;

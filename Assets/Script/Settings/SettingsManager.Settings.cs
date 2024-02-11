@@ -5,6 +5,7 @@ using YARG.Core.Audio;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
+using YARG.Integration.Sacn;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
 using YARG.Player;
@@ -18,6 +19,8 @@ namespace YARG.Settings
     {
         public class SettingContainer
         {
+            //public static event System.Action OnDMXChannelsChanged;
+
             /// <summary>
             /// Whether or not the settings are currently in the process of being loaded.
             /// </summary>
@@ -33,26 +36,6 @@ namespace YARG.Settings
             #endregion
 
             #region General
-
-            public void ExportSongsOuvert()
-            {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "json", SongExport.ExportOuvert);
-            }
-
-            public void ExportSongsText()
-            {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "txt", SongExport.ExportText);
-            }
-
-            public void CopyCurrentSongTextFilePath()
-            {
-                GUIUtility.systemCopyBuffer = CurrentSongController.TextFilePath;
-            }
-
-            public void CopyCurrentSongJsonFilePath()
-            {
-                GUIUtility.systemCopyBuffer = CurrentSongController.JsonFilePath;
-            }
 
             public void OpenVenueFolder()
             {
@@ -77,9 +60,6 @@ namespace YARG.Settings
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 
             public ToggleSetting AmIAwesome { get; } = new(false);
-
-            public ToggleSetting InputDeviceLogging              { get; } = new(false, InputDeviceLoggingCallback);
-            public ToggleSetting ShowAdvancedMusicLibraryOptions { get; } = new(false);
 
             #endregion
 
@@ -162,7 +142,77 @@ namespace YARG.Settings
 
             #endregion
 
+            #region File Management
+
+            public void ExportSongsOuvert()
+            {
+                FileExplorerHelper.OpenSaveFile(null, "songs", "json", SongExport.ExportOuvert);
+            }
+
+            public void ExportSongsText()
+            {
+                FileExplorerHelper.OpenSaveFile(null, "songs", "txt", SongExport.ExportText);
+            }
+
+            public void CopyCurrentSongTextFilePath()
+            {
+                GUIUtility.systemCopyBuffer = CurrentSongController.TextFilePath;
+            }
+
+            public void CopyCurrentSongJsonFilePath()
+            {
+                GUIUtility.systemCopyBuffer = CurrentSongController.JsonFilePath;
+            }
+
+            public void OpenPersistentDataPath()
+            {
+                FileExplorerHelper.OpenFolder(PathHelper.PersistentDataPath);
+            }
+
+            public void OpenExecutablePath()
+            {
+                FileExplorerHelper.OpenFolder(PathHelper.ExecutablePath);
+            }
+
+            #endregion
+
+            #region Lighting Peripherals
+
+            public ToggleSetting StageKitEnabled { get; } = new(true);
+            public ToggleSetting DMXEnabled      { get; } = new(false, DMXEnabledCallback);
+
+            public DMXChannelsSetting DMXDimmerChannels { get; } = new(
+                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, DMXCallback);
+            public DMXChannelsSetting DMXBlueChannels { get; } = new(
+                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, DMXCallback);
+            public DMXChannelsSetting DMXRedChannels { get; } = new(
+                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, DMXCallback);
+            public DMXChannelsSetting DMXGreenChannels { get; } = new(
+                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, DMXCallback);
+            public DMXChannelsSetting DMXYellowChannels { get; } = new(
+                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, DMXCallback);
+
+            #endregion
+
+            #region Debug and Developer
+
+            public ToggleSetting InputDeviceLogging { get; } = new(false, InputDeviceLoggingCallback);
+
+            public ToggleSetting ShowAdvancedMusicLibraryOptions { get; } = new(false);
+
+            #endregion
+
             #region Callbacks
+
+            private static void DMXEnabledCallback(bool value)
+            {
+                SacnController.Instance.HandleEnabledChanged(value);
+            }
+
+            private static void DMXCallback(int[] value)
+            {
+                SacnController.Instance.UpdateDMXChannels();
+            }
 
             private static void VSyncCallback(bool value)
             {

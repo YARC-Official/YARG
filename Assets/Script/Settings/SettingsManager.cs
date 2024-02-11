@@ -14,37 +14,25 @@ namespace YARG.Settings
     {
         public static SettingContainer Settings { get; private set; }
 
-        public static readonly List<Tab> SettingsTabs = new()
+        public static readonly List<Tab> DisplayedSettingsTabs = new()
         {
-            new MetadataTab("General")
+            new MetadataTab("General", icon: "Engine")
             {
-                new HeaderMetadata("FileManagement"),
-                new ButtonRowMetadata(
-                    nameof(Settings.ExportSongsOuvert),
-                    nameof(Settings.ExportSongsText)),
-                new ButtonRowMetadata(
-                    nameof(Settings.CopyCurrentSongTextFilePath),
-                    nameof(Settings.CopyCurrentSongJsonFilePath)),
+                new HeaderMetadata("Calibration"),
+                new ButtonRowMetadata(nameof(Settings.OpenCalibrator)),
+                nameof(Settings.AudioCalibration),
+                nameof(Settings.VideoCalibration),
 
                 new HeaderMetadata("Venues"),
                 new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),
                 nameof(Settings.DisableGlobalBackgrounds),
                 nameof(Settings.DisablePerSongBackgrounds),
 
-                new HeaderMetadata("Calibration"),
-                new ButtonRowMetadata(nameof(Settings.OpenCalibrator)),
-                nameof(Settings.AudioCalibration),
-                nameof(Settings.VideoCalibration),
-
                 new HeaderMetadata("Other"),
                 nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.KickBounceMultiplier),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.AmIAwesome),
-
-                new HeaderMetadata("Advanced"),
-                nameof(Settings.InputDeviceLogging),
-                nameof(Settings.ShowAdvancedMusicLibraryOptions)
             },
             new SongManagerTab("SongManager", icon: "Songs"),
             new MetadataTab("Sound", icon: "Sound")
@@ -98,8 +86,50 @@ namespace YARG.Settings
                 nameof(Settings.GraphicalProgressOnScoreBox),
                 nameof(Settings.KeepSongInfoVisible)
             },
-            new PresetsTab("Presets", icon: "Customization")
+            new PresetsTab("Presets", icon: "Customization"),
+            new AllSettingsTab(),
         };
+
+        public static readonly List<Tab> AllSettingsTabs = new()
+        {
+            // The displayed tabs are appended to the top here
+
+            new MetadataTab("FileManagement", icon: "Files")
+            {
+                new HeaderMetadata("Export"),
+                new ButtonRowMetadata(
+                    nameof(Settings.ExportSongsOuvert),
+                    nameof(Settings.ExportSongsText)),
+                new HeaderMetadata("PathsAndFolders"),
+                new ButtonRowMetadata(
+                    nameof(Settings.CopyCurrentSongTextFilePath),
+                    nameof(Settings.CopyCurrentSongJsonFilePath)),
+                new ButtonRowMetadata(nameof(Settings.OpenPersistentDataPath)),
+                new ButtonRowMetadata(nameof(Settings.OpenExecutablePath)),
+            },
+            new MetadataTab("LightingPeripherals", icon: "Lighting")
+            {
+                new HeaderMetadata("LightingGeneral"),
+                nameof(Settings.StageKitEnabled),
+                nameof(Settings.DMXEnabled),
+                new HeaderMetadata("DMXChannels"),
+                nameof(Settings.DMXDimmerChannels),
+                nameof(Settings.DMXBlueChannels),
+                nameof(Settings.DMXRedChannels),
+                nameof(Settings.DMXGreenChannels),
+                nameof(Settings.DMXYellowChannels),
+            },
+            new MetadataTab("Debug", icon: "Debug")
+            {
+                nameof(Settings.InputDeviceLogging),
+                nameof(Settings.ShowAdvancedMusicLibraryOptions)
+            }
+        };
+
+        static SettingsManager()
+        {
+            AllSettingsTabs.InsertRange(0, DisplayedSettingsTabs);
+        }
 
         private static string SettingsFile => Path.Combine(PathHelper.PersistentDataPath, "settings.json");
 
@@ -194,7 +224,7 @@ namespace YARG.Settings
 
         public static Tab GetTabByName(string name)
         {
-            return SettingsTabs.FirstOrDefault(tab => tab.Name == name);
+            return AllSettingsTabs.FirstOrDefault(tab => tab.Name == name);
         }
 
         public static void SetSettingsByName(string name, object value)

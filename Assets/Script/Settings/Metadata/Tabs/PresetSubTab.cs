@@ -121,7 +121,7 @@ namespace YARG.Settings.Metadata
         {
             var visual = SpawnSettingVisual(settingType, container);
 
-            visual.AssignSetting(Name, $"{presetName}.{name}", settingType);
+            visual.AssignPresetSetting($"{presetName}.{name}", settingType);
             _settingFields.Add(name, settingType);
 
             return visual;
