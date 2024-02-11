@@ -214,11 +214,32 @@ namespace YARG.Menu.SongSearching
             {
                 DialogManager.Instance.ClearDialog();
                 var yearFilterList = DialogManager.Instance.ShowList(SongAttribute.Year + "s");
-                foreach (var years in GlobalVariables.Instance.SongContainer.Years.Keys)
+                var years = new List<int>();
+                foreach (var song in GlobalVariables.Instance.SongContainer.Songs)
                 {
-                    yearFilterList.AddListButton(years, () =>
+                    if (years.Contains(song.YearAsNumber) || song.YearAsNumber == 0 || song.YearAsNumber == int.MaxValue)
                     {
-                        SetSearchInput(SongAttribute.Year, years);
+                        continue;
+                    }
+
+                    years.Add(song.YearAsNumber);
+                }
+
+                years.Sort();
+                foreach (var year in years)
+                {
+                    yearFilterList.AddListButton(year.ToString(), () =>
+                    {
+                        SetSearchInput(SongAttribute.Year, year.ToString());
+                        DialogManager.Instance.ClearDialog();
+                    });
+                }
+
+                if (_fullSearchQuery.Contains(SongAttribute.Year.ToString().ToLowerInvariant()))
+                {
+                    yearFilterList.AddDialogButton("Remove Filter", () =>
+                    {
+                        ClearSearchQuery(SongAttribute.Year);
                         DialogManager.Instance.ClearDialog();
                     });
                 }
