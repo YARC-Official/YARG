@@ -47,12 +47,6 @@ namespace YARG.Menu.SongSearching
             _searchField.text = _currentSearchText;
         }
 
-        public void SetSearchInput(string query)
-        {
-            _currentSearchFilter = SongAttribute.Unspecified;
-            _searchField.text = query;
-        }
-
         public void SetSearchInput(SongAttribute attribute, string input)
         {
             var filter = attribute.ToString().ToLowerInvariant();
