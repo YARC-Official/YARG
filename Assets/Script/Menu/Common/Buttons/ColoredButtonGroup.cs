@@ -13,7 +13,7 @@ namespace YARG
         [SerializeField]
         private List<ColoredButton> _buttons;
 
-        public delegate UnityAction OnButtonClicked();
+        public delegate void OnButtonClicked();
         public OnButtonClicked ClickedButton;
 
         public ColoredButton ActiveButton { get; private set; }
