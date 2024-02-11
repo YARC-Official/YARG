@@ -193,7 +193,7 @@ namespace YARG.Menu.MusicLibrary
                 list.AddRange(section.Songs.Select(song => new SongViewType(_searchField, song)));
             }
 
-            if (!_searchField.IsSearching)
+            if (_searchField.IsSearching)
             {
                 // If the current search is NOT empty...
 
@@ -318,7 +318,7 @@ namespace YARG.Menu.MusicLibrary
         {
             if (_searchField.IsSearching)
             {
-                _searchField.SetSearchInput(SongAttribute.Unspecified, string.Empty);
+                _searchField.ClearFilterQueries();
                 return;
             }
 

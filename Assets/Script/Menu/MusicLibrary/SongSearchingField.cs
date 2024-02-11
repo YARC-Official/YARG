@@ -25,7 +25,7 @@ namespace YARG.Menu.SongSearching
         private bool _searchNavPushed;
         private bool _wasSearchFieldFocused;
 
-        public bool IsSearching => !string.IsNullOrEmpty(_searchField.text);
+        public bool IsSearching => !string.IsNullOrEmpty(_fullSearchQuery);
         public bool IsCurrentSearchInField => _currentSearchText == _searchField.text;
         public bool IsUpdatedSearchLonger => _searchField.text.Length > _currentSearchText.Length;
         public bool IsUnspecified => _searchContext.IsUnspecified();
@@ -40,16 +40,7 @@ namespace YARG.Menu.SongSearching
         private void OnEnable()
         {
             _searchFilters.ClickedButton += OnClickedSearchFilter;
-            _searchQueries = new Dictionary<SongAttribute, string>
-            {
-                {SongAttribute.Unspecified, string.Empty},
-                {SongAttribute.Name, string.Empty},
-                {SongAttribute.Artist, string.Empty},
-                {SongAttribute.Album, string.Empty},
-                {SongAttribute.Genre, string.Empty},
-                {SongAttribute.Source, string.Empty},
-                {SongAttribute.Charter, string.Empty},
-            };
+            ClearFilterQueries();
         }
 
         public void Restore()
@@ -151,6 +142,24 @@ namespace YARG.Menu.SongSearching
             }
 
             return _searchContext.Search(_fullSearchQuery, sort);
+        }
+
+        public void ClearFilterQueries()
+        {
+            _searchQueries = new Dictionary<SongAttribute, string>
+            {
+                {SongAttribute.Unspecified, string.Empty},
+                {SongAttribute.Name, string.Empty},
+                {SongAttribute.Artist, string.Empty},
+                {SongAttribute.Album, string.Empty},
+                {SongAttribute.Genre, string.Empty},
+                {SongAttribute.Source, string.Empty},
+                {SongAttribute.Charter, string.Empty},
+            };
+            _fullSearchQuery = string.Empty;
+            _searchField.text = string.Empty;
+
+            _searchFilters.DeactivateAllButtons();
         }
 
         private void Update()

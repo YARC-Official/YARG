@@ -50,6 +50,16 @@ namespace YARG
             }
         }
 
+        public void DeactivateAllButtons()
+        {
+            ActiveButton = null;
+            foreach (var button in _buttons)
+            {
+                button.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton,
+                    MenuData.Colors.BrightText, MenuData.Colors.DeactivatedText);
+            }
+        }
+
         private void OnClick(ColoredButton button)
         {
             if (_prevActivatedButton == null)
