@@ -25,26 +25,38 @@ namespace YARG.Menu.SongSearching
         private bool _wasSearchFieldFocused;
 
         public bool IsSearching => !string.IsNullOrEmpty(_fullSearchQuery);
-        public bool IsCurrentSearchInField => _currentSearchText == _searchField.text;
+        public bool IsCurrentSearchInField => _searchQueries[_currentSearchFilter] == _searchField.text;
         public bool IsUpdatedSearchLonger => _searchField.text.Length > _currentSearchText.Length;
         public bool IsUnspecified => _searchContext.IsUnspecified();
 
         public delegate void OnSearchFilterClicked(bool forceUpdate);
         public OnSearchFilterClicked ClickedSearchFilter;
 
-        private SongAttribute _currentSearchFilter = SongAttribute.Unspecified;
-        private Dictionary<SongAttribute, string> _searchQueries;
-        private string _fullSearchQuery = string.Empty;
+        private static SongAttribute _currentSearchFilter = SongAttribute.Unspecified;
+        private static Dictionary<SongAttribute, string> _searchQueries = new()
+        {
+            {SongAttribute.Unspecified, string.Empty},
+            {SongAttribute.Name, string.Empty},
+            {SongAttribute.Artist, string.Empty},
+            {SongAttribute.Album, string.Empty},
+            {SongAttribute.Genre, string.Empty},
+            {SongAttribute.Source, string.Empty},
+            {SongAttribute.Charter, string.Empty},
+            {SongAttribute.Instrument, string.Empty},
+            {SongAttribute.Year, string.Empty},
+        };
+
+        private static string _fullSearchQuery = string.Empty;
 
         private void OnEnable()
         {
             _searchFilters.ClickedButton += OnClickedSearchFilter;
-            ClearFilterQueries();
         }
 
         public void Restore()
         {
-            _searchField.text = _currentSearchText;
+            _searchField.text = _searchQueries[_currentSearchFilter];
+            ActivateFilterButton(_currentSearchFilter);
         }
 
         public void SetSearchInput(SongAttribute attribute, string input)
@@ -73,22 +85,7 @@ namespace YARG.Menu.SongSearching
             _searchQueries[_currentSearchFilter] = input;
             _searchField.text = _searchQueries[_currentSearchFilter];
 
-
-            var toggleName = _currentSearchFilter switch
-            {
-                SongAttribute.Name    => "track",
-                SongAttribute.Artist  => "artist",
-                SongAttribute.Album   => "album",
-                SongAttribute.Genre   => "genre",
-                SongAttribute.Source  => "source",
-                SongAttribute.Charter => "charter",
-                _ => string.Empty,
-            };
-
-            if (!string.IsNullOrEmpty(toggleName))
-            {
-                _searchFilters.ActivateButton(toggleName);
-            }
+            ActivateFilterButton(_currentSearchFilter);
 
             ClickedSearchFilter?.Invoke(true);
         }
@@ -306,6 +303,25 @@ namespace YARG.Menu.SongSearching
             ClickedSearchFilter?.Invoke(true);
         }
 
+        private void ActivateFilterButton(SongAttribute attribute)
+        {
+            var toggleName = attribute switch
+            {
+                SongAttribute.Name    => "track",
+                SongAttribute.Artist  => "artist",
+                SongAttribute.Album   => "album",
+                SongAttribute.Genre   => "genre",
+                SongAttribute.Source  => "source",
+                SongAttribute.Charter => "charter",
+                _                     => string.Empty,
+            };
+
+            if (!string.IsNullOrEmpty(toggleName))
+            {
+                _searchFilters.ActivateButton(toggleName);
+            }
+        }
+
         private void ClearSearchQuery(SongAttribute attribute)
         {
             var filter = attribute.ToString().ToLowerInvariant();
@@ -332,21 +348,7 @@ namespace YARG.Menu.SongSearching
                 _currentSearchFilter = query.Key;
                 _searchField.text = query.Value;
 
-                var toggleName = _currentSearchFilter switch
-                {
-                    SongAttribute.Name    => "track",
-                    SongAttribute.Artist  => "artist",
-                    SongAttribute.Album   => "album",
-                    SongAttribute.Genre   => "genre",
-                    SongAttribute.Source  => "source",
-                    SongAttribute.Charter => "charter",
-                    _                     => string.Empty,
-                };
-
-                if (!string.IsNullOrEmpty(toggleName))
-                {
-                    _searchFilters.ActivateButton(toggleName);
-                }
+                ActivateFilterButton(_currentSearchFilter);
 
                 ClickedSearchFilter?.Invoke(true);
                 return;
@@ -360,14 +362,21 @@ namespace YARG.Menu.SongSearching
 
         private void OnDisable()
         {
+            _searchFilters.ClickedButton -= OnClickedSearchFilter;
+
             // Make sure to also pop the search nav if that was pushed
-            if (_searchNavPushed)
+            if (Navigator.Instance == null)
             {
-                Navigator.Instance.PopScheme();
                 _searchNavPushed = false;
             }
 
-            _searchFilters.ClickedButton -= OnClickedSearchFilter;
+            if (!_searchNavPushed)
+            {
+                return;
+            }
+
+            Navigator.Instance.PopScheme();
+            _searchNavPushed = false;
         }
     }
 }
