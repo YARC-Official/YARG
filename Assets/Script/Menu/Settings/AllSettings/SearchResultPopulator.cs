@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Helpers;
@@ -46,9 +45,9 @@ namespace YARG.Menu.Settings.AllSettings
                     continue;
                 }
 
-                for (int i = 0; i < metadataTab.Settings.Count; i++)
+                int navIndex = 0;
+                foreach (var metadata in metadataTab.Settings)
                 {
-                    var metadata = metadataTab.Settings[i];
                     var unlocalizedSearch = metadata.UnlocalizedSearchNames;
                     if (unlocalizedSearch is null)
                     {
@@ -63,11 +62,18 @@ namespace YARG.Menu.Settings.AllSettings
                             results.Add(new SearchResult
                             {
                                 Tab = tab.Name,
-                                Index = i,
+                                Index = navIndex,
                                 LocalizedName = localized
                             });
                             break;
                         }
+                    }
+
+                    // Since the header can't be selected, we gotta skip that
+                    // for the navigation index.
+                    if (metadata is not HeaderMetadata)
+                    {
+                        navIndex++;
                     }
                 }
 
@@ -83,7 +89,7 @@ namespace YARG.Menu.Settings.AllSettings
             foreach (var result in results)
             {
                 var resultObject = Instantiate(_resultPrefab, container);
-                resultObject.Initialize(result.LocalizedName);
+                resultObject.Initialize(result.LocalizedName, result.Tab, result.Index);
                 navGroup.AddNavigatable(resultObject);
             }
         }

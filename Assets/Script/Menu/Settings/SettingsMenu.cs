@@ -146,6 +146,12 @@ namespace YARG.Menu.Settings
             }
         }
 
+        public void SelectSettingByIndex(int index)
+        {
+            // Force it to be the navigation selection type so the scroll view properly updates
+            _settingsNavGroup.SelectAt(index, SelectionOrigin.Navigation);
+        }
+
         private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
         {
             if (selected == null || CurrentTab == null)
