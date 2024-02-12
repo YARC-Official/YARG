@@ -269,7 +269,7 @@ namespace YARG.Menu.SongSearching
         {
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                _searchField.text = string.Empty;
+                ClearFilterQueries();
             }
 
             // Update the search bar pushing the empty navigation scheme.
