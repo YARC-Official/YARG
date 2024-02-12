@@ -31,7 +31,7 @@ namespace YARG
     [DefaultExecutionOrder(-5000)]
     public class GlobalVariables : MonoSingleton<GlobalVariables>
     {
-        public const string CURRENT_VERSION = "v0.12.0";
+        public const string CURRENT_VERSION = "v0.12.1";
 
         private const string OFFLINE_ARG = "-offline";
 
