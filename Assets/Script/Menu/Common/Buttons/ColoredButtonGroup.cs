@@ -42,10 +42,17 @@ namespace YARG
                 {
                     ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton,
                         MenuData.Colors.BrightText, MenuData.Colors.DeactivatedText);
+                    _prevActivatedButton = ActiveButton;
                 }
 
                 ActiveButton = button;
                 ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.BrightButton);
+
+                if (_prevActivatedButton == null)
+                {
+                    _prevActivatedButton = ActiveButton;
+                }
+
                 break;
             }
         }
@@ -53,6 +60,7 @@ namespace YARG
         public void DeactivateAllButtons()
         {
             ActiveButton = null;
+            _prevActivatedButton = null;
             foreach (var button in _buttons)
             {
                 button.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton,
