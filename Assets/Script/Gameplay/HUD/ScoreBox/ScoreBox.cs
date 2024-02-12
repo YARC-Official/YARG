@@ -2,6 +2,7 @@ using System;
 using Cysharp.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
@@ -34,11 +35,27 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _songTimer;
 
+        [Space]
+        [SerializeField]
+        private Image _backgroundImage;
+        [SerializeField]
+        private Image _overlayImage;
+
+        [Space]
+        [SerializeField]
+        private int _characterCountForBreak;
+        [SerializeField]
+        private Sprite _brokenBackgroundSprite;
+        [SerializeField]
+        private Sprite _brokenOverlaySprite;
+
         private int _bandScore;
 
         private bool _songHasHours;
         private string _songLengthTime;
         private string _timeFormat;
+
+        private bool _easterEggTriggered;
 
         private void Start()
         {
@@ -77,6 +94,15 @@ namespace YARG.Gameplay.HUD
                 _scoreText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandScore);
 
                 _starScoreDisplay.SetStars(GameManager.BandStars);
+
+                // Trigger easter egg
+                if (!_easterEggTriggered && _scoreText.text.Length - SCORE_PREFIX.Length > _characterCountForBreak)
+                {
+                    _backgroundImage.sprite = _brokenBackgroundSprite;
+                    _overlayImage.sprite = _brokenOverlaySprite;
+
+                    _easterEggTriggered = true;
+                }
             }
 
             // Update song progress

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7937186231754893085}
   - component: {fileID: 112572338882223145}
   m_Layer: 5
-  m_Name: Graphic
+  m_Name: Overlay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -36,7 +36,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -187.3, y: 0}
+  m_AnchoredPosition: {x: -93.65, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &7160602720344130192
@@ -67,7 +67,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 9894fefbc4eff6e4898e7efe95d1139b, type: 3}
+  m_Sprite: {fileID: -1424447657, guid: 9a19cea8578114f42bec348c310a8891, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -126,10 +126,10 @@ RectTransform:
   m_Father: {fileID: 1682100932476655723}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.08, y: 0}
-  m_AnchorMax: {x: 0.92, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
+  m_AnchoredPosition: {x: -7.4999695, y: 1}
+  m_SizeDelta: {x: -15.000061, y: 31.1614}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1682100931862694992
 CanvasRenderer:
@@ -178,7 +178,8 @@ MonoBehaviour:
     topRight: {r: 1, g: 1, b: 1, a: 1}
     bottomLeft: {r: 0.6132076, g: 0.6132076, b: 0.6132076, a: 1}
     bottomRight: {r: 0.6132076, g: 0.6132076, b: 0.6132076, a: 1}
-  m_fontColorGradientPreset: {fileID: 0}
+  m_fontColorGradientPreset: {fileID: 11400000, guid: 132f88818a8eedb488c1ffe3e9b3b56d,
+    type: 2}
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
@@ -195,7 +196,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 4
-  m_VerticalAlignment: 4096
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -311,7 +312,7 @@ GameObject:
   - component: {fileID: 1682100932476655722}
   - component: {fileID: 3743721218638466829}
   m_Layer: 5
-  m_Name: BGBox
+  m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -367,7 +368,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 9a19cea8578114f42bec348c310a8891, type: 3}
+  m_Sprite: {fileID: -1359998095, guid: 9a19cea8578114f42bec348c310a8891, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -447,6 +448,13 @@ MonoBehaviour:
   _starScoreDisplay: {fileID: 3417901565077600796}
   _songProgressBar: {fileID: 4228396685661071210}
   _songTimer: {fileID: 6897601373631971078}
+  _backgroundImage: {fileID: 1682100932476655722}
+  _overlayImage: {fileID: 7937186231754893085}
+  _characterCountForBreak: 11
+  _brokenBackgroundSprite: {fileID: -648612281, guid: 9a19cea8578114f42bec348c310a8891,
+    type: 3}
+  _brokenOverlaySprite: {fileID: 2128003, guid: 9a19cea8578114f42bec348c310a8891,
+    type: 3}
 --- !u!1 &2302898695580999361
 GameObject:
   m_ObjectHideFlags: 0
@@ -603,7 +611,7 @@ MonoBehaviour:
   progressMask: {fileID: 2517693471320601084}
   useCustomPosition: 1
   customPosition: 187.3
-  value: 1
+  value: 0.5
 --- !u!1 &3593172417950958894
 GameObject:
   m_ObjectHideFlags: 0
@@ -641,7 +649,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 187.3, y: 0}
+  m_AnchoredPosition: {x: 93.65, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &4183673759280485867
