@@ -103,12 +103,9 @@ namespace YARG.Gameplay.Visuals
         /// <summary>
         /// Called when the sustain of this note ends.
         /// </summary>
-        /// <param name="dropped">Whether or not the sustain was dropped.</param>
-        public virtual void SustainEnd(bool dropped)
+        /// <param name="finished">Whether or not the sustain was dropped before it finished.</param>
+        public virtual void SustainEnd(bool finished)
         {
-            // Don't drop sustains during the sustain burst window
-            if (!dropped) return;
-
             SustainState = SustainState.Missed;
             OnNoteStateChanged();
         }

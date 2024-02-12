@@ -234,7 +234,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void OnSustainEnd(GuitarNote parent, double timeEnded, bool dropped)
+        private void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
         {
             foreach (var note in parent.ChordEnumerator())
             {
@@ -243,7 +243,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd(dropped);
+                (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd(finished);
 
                 if (note.Fret != 0)
                 {
@@ -253,7 +253,7 @@ namespace YARG.Gameplay.Player
 
             // Mute the stem if you let go of the sustain too early.
             // Leniency is handled by the engine's sustain burst threshold.
-            if (!parent.IsDisjoint && dropped)
+            if (!parent.IsDisjoint && !finished)
             {
                 SetStemMuteState(true);
             }
