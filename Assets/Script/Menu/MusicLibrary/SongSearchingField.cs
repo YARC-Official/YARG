@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -105,6 +106,30 @@ namespace YARG.Menu.SongSearching
         {
             if (_currentSearchFilter == SongAttribute.Unspecified)
             {
+                if (_searchField.text.Contains(":"))
+                {
+                    var filter = _searchField.text[.._searchField.text.IndexOf(":", StringComparison.Ordinal)];
+
+                    _currentSearchFilter = filter switch
+                    {
+                        "name"       => SongAttribute.Name,
+                        "title"      => SongAttribute.Name,
+                        "artist"     => SongAttribute.Artist,
+                        "album"      => SongAttribute.Album,
+                        "genre"      => SongAttribute.Genre,
+                        "source"     => SongAttribute.Source,
+                        "charter"    => SongAttribute.Charter,
+                        "instrument" => SongAttribute.Instrument,
+                        "year"       => SongAttribute.Year
+                    };
+                    ActivateFilterButton(_currentSearchFilter);
+
+                    _fullSearchQuery += ":";
+                    _searchField.text = string.Empty;
+
+                    return _searchContext.Search(_fullSearchQuery, sort);
+                }
+
                 _searchQueries[_currentSearchFilter] = _searchField.text;
                 _fullSearchQuery = _searchQueries[_currentSearchFilter];
             }
@@ -118,7 +143,10 @@ namespace YARG.Menu.SongSearching
 
                 if (_fullSearchQuery.Contains(filter))
                 {
-                    _fullSearchQuery = _fullSearchQuery.Replace(currentQuery, updatedQuery);
+                    if (currentQuery != updatedQuery)
+                    {
+                        _fullSearchQuery = _fullSearchQuery.Replace(currentQuery, updatedQuery);
+                    }
                 }
                 else
                 {
