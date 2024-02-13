@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -78,7 +79,8 @@ namespace YARG.Menu.SongSearching
                 else
                 {
                     var currentQuery = $"{filter}:{_searchQueries[attribute]}";
-                    _fullSearchQuery = _fullSearchQuery.Replace(currentQuery, updatedQuery);
+                    _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery,
+                        RegexOptions.IgnoreCase);
                 }
             }
 
@@ -106,28 +108,34 @@ namespace YARG.Menu.SongSearching
         {
             if (_currentSearchFilter == SongAttribute.Unspecified)
             {
-                if (_searchField.text.Contains(":"))
+                if (Regex.IsMatch(_searchField.text, @":"))
                 {
-                    var filter = _searchField.text[.._searchField.text.IndexOf(":", StringComparison.Ordinal)];
-
-                    _currentSearchFilter = filter switch
+                    var match = Regex.Match(_searchField.text, @"^(.*?):");
+                    if (match.Success)
                     {
-                        "name"       => SongAttribute.Name,
-                        "title"      => SongAttribute.Name,
-                        "artist"     => SongAttribute.Artist,
-                        "album"      => SongAttribute.Album,
-                        "genre"      => SongAttribute.Genre,
-                        "source"     => SongAttribute.Source,
-                        "charter"    => SongAttribute.Charter,
-                        "instrument" => SongAttribute.Instrument,
-                        "year"       => SongAttribute.Year
-                    };
-                    ActivateFilterButton(_currentSearchFilter);
+                        var filter = match.Groups[1].Value;
 
-                    _fullSearchQuery += ":";
-                    _searchField.text = string.Empty;
+                        _currentSearchFilter = filter.ToLowerInvariant() switch
+                        {
+                            "name"       => SongAttribute.Name,
+                            "title"      => SongAttribute.Name,
+                            "artist"     => SongAttribute.Artist,
+                            "album"      => SongAttribute.Album,
+                            "genre"      => SongAttribute.Genre,
+                            "source"     => SongAttribute.Source,
+                            "charter"    => SongAttribute.Charter,
+                            "instrument" => SongAttribute.Instrument,
+                            "year"       => SongAttribute.Year,
+                            _            => SongAttribute.Unspecified
+                        };
 
-                    return _searchContext.Search(_fullSearchQuery, sort);
+                        ActivateFilterButton(_currentSearchFilter);
+
+                        _fullSearchQuery += ":";
+                        _searchField.text = string.Empty;
+
+                        return _searchContext.Search(_fullSearchQuery, sort);
+                    }
                 }
 
                 _searchQueries[_currentSearchFilter] = _searchField.text;
@@ -141,18 +149,15 @@ namespace YARG.Menu.SongSearching
 
                 _searchQueries[_currentSearchFilter] = _searchField.text;
 
-                if (_fullSearchQuery.Contains(filter))
+                if (Regex.IsMatch(_fullSearchQuery, $@"\b{filter}\b"))
                 {
-                    if (currentQuery != updatedQuery)
-                    {
-                        _fullSearchQuery = _fullSearchQuery.Replace(currentQuery, updatedQuery);
-                    }
+                    _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery, RegexOptions.IgnoreCase);
                 }
                 else
                 {
                     if (!string.IsNullOrEmpty(_searchField.text))
                     {
-                        _fullSearchQuery = _fullSearchQuery.Replace(_searchField.text, $"{filter}:{_searchField.text}");
+                        _fullSearchQuery = Regex.Replace(_fullSearchQuery, @"\b\w+\b", $"{filter}:{_searchField.text}", RegexOptions.IgnoreCase);
                     }
                     else
                     {
@@ -364,7 +369,7 @@ namespace YARG.Menu.SongSearching
                 currentQuery = $"{filter}:{_searchQueries[attribute]};";
             }
 
-            _fullSearchQuery = _fullSearchQuery.Replace(currentQuery, string.Empty);
+            _fullSearchQuery = Regex.Replace(_fullSearchQuery, Regex.Escape(currentQuery), string.Empty);
             _searchQueries[attribute] = string.Empty;
             foreach (var query in _searchQueries)
             {
