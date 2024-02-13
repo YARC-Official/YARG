@@ -26,7 +26,7 @@ namespace YARG.Menu.SongSearching
         private bool _wasSearchFieldFocused;
 
         public bool IsSearching => !string.IsNullOrEmpty(_fullSearchQuery);
-        public bool IsCurrentSearchInField => _searchQueries[_currentSearchFilter] == _searchField.text;
+        public bool IsCurrentSearchInField => _searchQueries[_currentSearchFilter] == _currentSearchText;
         public bool IsUpdatedSearchLonger => _searchField.text.Length > _currentSearchText.Length;
         public bool IsUnspecified => _searchContext.IsUnspecified();
 
