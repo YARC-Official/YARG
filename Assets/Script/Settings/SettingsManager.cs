@@ -118,6 +118,8 @@ namespace YARG.Settings
                 nameof(Settings.DMXRedChannels),
                 nameof(Settings.DMXGreenChannels),
                 nameof(Settings.DMXYellowChannels),
+                nameof(Settings.DMXFogChannel),
+                nameof(Settings.DMXStrobeChannel),
             },
             new MetadataTab("Debug", icon: "Debug")
             {
