@@ -313,6 +313,8 @@ namespace YARG.Settings
 
             // Reorder lighting track (Next keyframes and blend-in events might be unordered)
             chart.VenueTrack.Lighting.Sort((x, y) => x.Tick.CompareTo(y.Tick));
+            // Reorder stage track (BonusFX and previously generated fog events might be unordered)
+            chart.VenueTrack.Stage.Sort((x, y) => x.Tick.CompareTo(y.Tick));
 
             // Generate performer spotlight events (basically copying solo data for guitar/bass/keys/drums info
             // their respective performer spotlight info).
@@ -405,6 +407,51 @@ namespace YARG.Settings
                     Debug.LogWarning("Invalid camera pacing in auto-gen preset: " + cameraPacing);
                     return CameraPacingPreset.Medium;
             }
+        }
+
+        public bool ChartHasFog(SongChart chart)
+        {
+            foreach (var stageEvent in chart.VenueTrack.Stage)
+            {
+                if (stageEvent.Effect == StageEffect.FogOn || stageEvent.Effect == StageEffect.FogOff)
+                    return true;
+            }
+            return false;
+        }
+
+        public SongChart GenerateFogEvents(SongChart chart)
+        {
+            var lastTick = chart.GetLastTick();
+            var resolution = chart.Resolution;
+            var startInterval = 8 * 4;
+            var fogOnInterval = 32 * 4;
+            var fogOffInterval = 8 * 4;
+
+            uint nextTick = (uint)(resolution * startInterval);
+            while (nextTick < lastTick)
+            {
+                chart.VenueTrack.Stage.Add(new StageEffectEvent(
+                    StageEffect.FogOn,
+                    VenueEventFlags.None,
+                    chart.SyncTrack.TickToTime(nextTick),
+                    nextTick));
+                uint fogOffTick = nextTick + (uint)(resolution * fogOffInterval);
+                if (fogOffTick < lastTick)
+                {
+                    chart.VenueTrack.Stage.Add(new StageEffectEvent(
+                        StageEffect.FogOff,
+                        VenueEventFlags.None,
+                        chart.SyncTrack.TickToTime(fogOffTick),
+                        fogOffTick));
+                }
+                else
+                {
+                    break;
+                }
+                nextTick += (uint)(resolution * fogOnInterval);
+            }
+
+            return chart;
         }
     }
 }
