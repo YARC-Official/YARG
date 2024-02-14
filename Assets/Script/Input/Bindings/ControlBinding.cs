@@ -26,6 +26,9 @@ namespace YARG.Input
     /// </summary>
     public abstract class ControlBinding
     {
+        public static event Action<ControlBinding, InputControl> BindingAdded;
+        public static event Action<ControlBinding, InputControl> BindingRemoved;
+
         /// <summary>
         /// Fired when a binding has been added or removed.
         /// </summary>
@@ -96,6 +99,16 @@ namespace YARG.Input
 
         public abstract void OnDeviceAdded(InputDevice device);
         public abstract void OnDeviceRemoved(InputDevice device);
+
+        protected void FireBindingAdded(InputControl control)
+        {
+            BindingAdded?.Invoke(this, control);
+        }
+
+        protected void FireBindingRemoved(InputControl control)
+        {
+            BindingRemoved?.Invoke(this, control);
+        }
 
         protected void FireBindingsChanged()
         {
@@ -368,6 +381,7 @@ namespace YARG.Input
         {
             _bindings.Add(binding);
             InputState.AddChangeMonitor(binding.Control, this, _bindings.Count - 1);
+            FireBindingAdded(binding.Control);
         }
 
         private bool RemoveBindings(Func<TBinding, bool> selector)
@@ -385,6 +399,7 @@ namespace YARG.Input
                 {
                     removed = true;
                     _bindings.RemoveAt(i);
+                    FireBindingRemoved(binding.Control);
                     i--;
                 }
                 else
