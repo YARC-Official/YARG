@@ -192,6 +192,10 @@ namespace YARG.Settings
             public DMXChannelsSetting DMXYellowChannels { get; } = new(
                 new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, DMXCallback);
 
+            public IntSetting DMXFogChannel { get; } = new(06, 1, 512);
+
+            public IntSetting DMXStrobeChannel { get; } = new(07, 1, 512);
+
             #endregion
 
             #region Debug and Developer

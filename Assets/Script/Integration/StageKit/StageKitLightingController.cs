@@ -221,6 +221,8 @@ namespace YARG.Integration.StageKit
 
         //This is used to send events to any other light controllers that might be in the scene (aka dmx lights)
         public event Action<StageKitLedColor, StageKitLed> OnLedSet;
+        public event Action<bool> OnFogSet;
+        public event Action<StageKitStrobeSpeed> OnStrobeSet;
 
         // Stuff for the actual command sending to the unit
         private bool _isSendingCommands;
@@ -316,10 +318,12 @@ namespace YARG.Integration.StageKit
 
                     case (int) CommandType.FogMachine:
                         StageKits.ForEach(kit => kit.SetFogMachine(curCommand.data == 1));
+                        OnFogSet?.Invoke(curCommand.data == 1);
                         break;
 
                     case (int) CommandType.StrobeSpeed:
                         StageKits.ForEach(kit => kit.SetStrobeSpeed((StageKitStrobeSpeed) curCommand.data));
+                        OnStrobeSet?.Invoke((StageKitStrobeSpeed) curCommand.data);
                         break;
 
                     default:

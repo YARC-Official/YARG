@@ -40,7 +40,9 @@ namespace YARG.Integration.Sacn
 
                 Debug.Log("Starting SacnController...");
 
-                StageKitLightingController.Instance.OnLedSet += HandleEvent;
+                StageKitLightingController.Instance.OnLedSet += HandleLedEvent;
+                StageKitLightingController.Instance.OnFogSet += HandleFogEvent;
+                StageKitLightingController.Instance.OnStrobeSet += HandleStrobeEvent;
 
                 UpdateDMXChannels();
 
@@ -91,11 +93,54 @@ namespace YARG.Integration.Sacn
             _sendClient = null;
 
             CancelInvoke(nameof(Sender));
-
-            StageKitLightingController.Instance.OnLedSet -= HandleEvent;
+            StageKitLightingController.Instance.OnLedSet -= HandleLedEvent;
+            StageKitLightingController.Instance.OnFogSet -= HandleFogEvent;
+            StageKitLightingController.Instance.OnStrobeSet -= HandleStrobeEvent;
         }
 
-        private void HandleEvent(StageKitLedColor color, StageKitLed value)
+        private void HandleFogEvent(bool value)
+        {
+            if (value)
+            {
+                _dataPacket[SettingsManager.Settings.DMXFogChannel.Value - 1] = 255;
+            }
+            else
+            {
+                _dataPacket[SettingsManager.Settings.DMXFogChannel.Value - 1] = 0;
+            }
+        }
+
+        private void HandleStrobeEvent(StageKitStrobeSpeed value)
+        {
+            //I'm honestly just guessing at these values. I don't have a DMX strobe light to test with.
+            switch (value)
+            {
+                case StageKitStrobeSpeed.Off:
+                    _dataPacket[SettingsManager.Settings.DMXStrobeChannel.Value - 1] = 0;
+                    break;
+
+                case StageKitStrobeSpeed.Slow:
+                    _dataPacket[SettingsManager.Settings.DMXStrobeChannel.Value - 1] = 64;
+                    break;
+
+                case StageKitStrobeSpeed.Medium:
+                    _dataPacket[SettingsManager.Settings.DMXStrobeChannel.Value - 1] = 127;
+                    break;
+                case StageKitStrobeSpeed.Fast:
+                    _dataPacket[SettingsManager.Settings.DMXStrobeChannel.Value - 1] = 191;
+                    break;
+
+                case StageKitStrobeSpeed.Fastest:
+                    _dataPacket[SettingsManager.Settings.DMXStrobeChannel.Value - 1] = 255;
+                    break;
+
+                default:
+                    Debug.LogWarning("(Sacn) Unknown strobe speed: " + value);
+                    break;
+            }
+        }
+
+        private void HandleLedEvent(StageKitLedColor color, StageKitLed value)
         {
             bool[] ledIsSet = new bool[8];
 
