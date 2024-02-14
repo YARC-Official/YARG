@@ -7,30 +7,31 @@ using YARG.Settings;
 
 namespace YARG.Integration.Sacn
 {
-
     public class SacnController : MonoSingleton<SacnController>
     {
-        //DMX spec says 44 updates per second is the max
+        // DMX spec says 44 updates per second is the max
         private const float TARGET_FPS = 44f;
         private const float TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
 
-        //Each universe supports up to 512 channels
+        // Each universe supports up to 512 channels
         private const int UNIVERSE_SIZE = 512;
 
         private const string ACN_SOURCE_NAME = "YARG";
 
-        private byte[] _dataPacket = new byte[UNIVERSE_SIZE];
-        //A 128-bit (16 byte) UUID that translates to "KEEP PLAYING YARG!"
+        // A 128-bit (16 byte) UUID that translates to "KEEP PLAYING YARG!"
         private readonly Guid AcnSourceId = new Guid("{4B454550-504C-4159-494E-475941524721}");
 
         private SACNClient _sendClient;
 
-        //DMX channels - 8 per color to match the stageKit layout. Default channels, the user must change them in settings.
+        // DMX channels
+        // 8 per color to match the stageKit layout. Default channels, the user must change them in settings.
         private int[] _dimmerChannels;
         private int[] _redChannels;
         private int[] _greenChannels;
         private int[] _blueChannels;
         private int[] _yellowChannels;
+
+        private readonly byte[] _dataPacket = new byte[UNIVERSE_SIZE];
 
         public void HandleEnabledChanged(bool enabled)
         {
@@ -93,6 +94,7 @@ namespace YARG.Integration.Sacn
             _sendClient = null;
 
             CancelInvoke(nameof(Sender));
+
             StageKitLightingController.Instance.OnLedSet -= HandleLedEvent;
             StageKitLightingController.Instance.OnFogSet -= HandleFogEvent;
             StageKitLightingController.Instance.OnStrobeSet -= HandleStrobeEvent;
@@ -100,44 +102,23 @@ namespace YARG.Integration.Sacn
 
         private void HandleFogEvent(bool value)
         {
-            if (value)
-            {
-                _dataPacket[SettingsManager.Settings.DMXFogChannel.Value - 1] = 255;
-            }
-            else
-            {
-                _dataPacket[SettingsManager.Settings.DMXFogChannel.Value - 1] = 0;
-            }
+            _dataPacket[SettingsManager.Settings.DMXFogChannel.Value - 1] = value
+                ? (byte) 255
+                : (byte) 0;
         }
 
         private void HandleStrobeEvent(StageKitStrobeSpeed value)
         {
-            //I'm honestly just guessing at these values. I don't have a DMX strobe light to test with.
-            switch (value)
+            // TODO: I'm honestly just guessing at these values. I don't have a DMX strobe light to test with.
+            _dataPacket[SettingsManager.Settings.DMXStrobeChannel.Value - 1] = value switch
             {
-                case StageKitStrobeSpeed.Off:
-                    _dataPacket[SettingsManager.Settings.DMXStrobeChannel.Value - 1] = 0;
-                    break;
-
-                case StageKitStrobeSpeed.Slow:
-                    _dataPacket[SettingsManager.Settings.DMXStrobeChannel.Value - 1] = 64;
-                    break;
-
-                case StageKitStrobeSpeed.Medium:
-                    _dataPacket[SettingsManager.Settings.DMXStrobeChannel.Value - 1] = 127;
-                    break;
-                case StageKitStrobeSpeed.Fast:
-                    _dataPacket[SettingsManager.Settings.DMXStrobeChannel.Value - 1] = 191;
-                    break;
-
-                case StageKitStrobeSpeed.Fastest:
-                    _dataPacket[SettingsManager.Settings.DMXStrobeChannel.Value - 1] = 255;
-                    break;
-
-                default:
-                    Debug.LogWarning("(Sacn) Unknown strobe speed: " + value);
-                    break;
-            }
+                StageKitStrobeSpeed.Off     => 0,
+                StageKitStrobeSpeed.Slow    => 64,
+                StageKitStrobeSpeed.Medium  => 127,
+                StageKitStrobeSpeed.Fast    => 191,
+                StageKitStrobeSpeed.Fastest => 255,
+                _ => throw new Exception("Unreachable.")
+            };
         }
 
         private void HandleLedEvent(StageKitLedColor color, StageKitLed value)
@@ -181,8 +162,7 @@ namespace YARG.Integration.Sacn
                     break;
 
                 default:
-                    Debug.LogWarning("(Sacn) Unknown color: " + color);
-                    break;
+                    throw new Exception("Unreachable.");
             }
         }
 
@@ -190,16 +170,18 @@ namespace YARG.Integration.Sacn
         {
             for (int i = 0; i < 8; i++)
             {
-                _dataPacket[channels[i] - 1] = ledIsSet[i] ? (byte) 255 : (byte) 0;
+                _dataPacket[channels[i] - 1] = ledIsSet[i]
+                    ? (byte) 255
+                    : (byte) 0;
             }
         }
 
         private void Sender()
         {
-            //Hardcoded to universe 1, as this is for non-professional use, I doubt anyone is running multiple universes.
-            //Didn't want to confuse the user with settings for something they don't need. However, it's a simple change if needed.
-            //Same goes for sending multicast vs singlecast. Sacn spec says multicast is the correct default way to go but
-            //singlecast can be used if needed.
+            // Hardcoded to universe 1, as this is for non-professional use, I doubt anyone is running multiple universes.
+            // Didn't want to confuse the user with settings for something they don't need. However, it's a simple change
+            // if needed. Same goes for sending multicast vs singlecast. Sacn spec says multicast is the correct default
+            // way to go but singlecast can be used if needed.
             _sendClient.SendMulticast(1, _dataPacket);
         }
     }
