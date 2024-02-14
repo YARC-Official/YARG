@@ -423,11 +423,11 @@ namespace YARG.Settings
         {
             var lastTick = chart.GetLastTick();
             var resolution = chart.Resolution;
-            var startInterval = 8 * 4;
-            var fogOnInterval = 32 * 4;
-            var fogOffInterval = 8 * 4;
+            const uint startInterval = 8 * 4;
+            const uint fogOnInterval = 32 * 4;
+            const uint fogOffInterval = 8 * 4;
 
-            uint nextTick = (uint)(resolution * startInterval);
+            uint nextTick = (uint) (resolution * startInterval);
             while (nextTick < lastTick)
             {
                 chart.VenueTrack.Stage.Add(new StageEffectEvent(
@@ -435,7 +435,7 @@ namespace YARG.Settings
                     VenueEventFlags.None,
                     chart.SyncTrack.TickToTime(nextTick),
                     nextTick));
-                uint fogOffTick = nextTick + (uint)(resolution * fogOffInterval);
+                uint fogOffTick = nextTick + (uint) (resolution * fogOffInterval);
                 if (fogOffTick < lastTick)
                 {
                     chart.VenueTrack.Stage.Add(new StageEffectEvent(
@@ -448,7 +448,7 @@ namespace YARG.Settings
                 {
                     break;
                 }
-                nextTick += (uint)(resolution * fogOnInterval);
+                nextTick += (uint) (resolution * fogOnInterval);
             }
 
             return chart;
