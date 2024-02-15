@@ -580,10 +580,12 @@ namespace YARG.Menu.DifficultySelect
 
         public void SongSpeedEndEdit(string text)
         {
-            if (!int.TryParse(text.TrimEnd('%'), NumberStyles.Number, null, out int speed))
+            if (!float.TryParse(text.TrimEnd('%'), NumberStyles.Number, null, out var speed))
                 speed = 100;
-            speed = Math.Clamp(speed, 10, 4995);
-            _speedInput.SetTextWithoutNotify($"{speed}%");
+
+            int intSpeed = (int)Math.Clamp(speed, 10, 4995);
+
+            _speedInput.SetTextWithoutNotify($"{intSpeed}%");
         }
     }
 }
