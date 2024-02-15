@@ -100,7 +100,7 @@ namespace YARG.Menu.DifficultySelect
                 })
             }, false));
 
-            _speedInput.text = "100%";
+            _speedInput.text = $"{(int)(GlobalVariables.Instance.SongSpeed * 100f)}%";
 
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
