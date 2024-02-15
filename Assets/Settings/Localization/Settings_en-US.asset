@@ -1086,6 +1086,27 @@ MonoBehaviour:
       slow (64), medium (127), fast (191), fastest (255).
     m_Metadata:
       m_Items: []
+  - m_Id: 118297715850055680
+    m_Localized: Star Power Highway FX Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118297813237600256
+    m_Localized: Disables visual elements on the highway which appear when Star Power
+      is active
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306533464051712
+    m_Localized: On
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306680382132224
+    m_Localized: Reduced
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306746819907584
+    m_Localized: Off
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

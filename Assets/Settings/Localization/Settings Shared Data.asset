@@ -1027,6 +1027,26 @@ MonoBehaviour:
     m_Key: Tab.Sound
     m_Metadata:
       m_Items: []
+  - m_Id: 118297715850055680
+    m_Key: Setting.StarPowerHighwayFx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118297813237600256
+    m_Key: Setting.StarPowerHighwayFx.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306533464051712
+    m_Key: Dropdown.StarPowerHighwayFx.On
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306680382132224
+    m_Key: Dropdown.StarPowerHighwayFx.Reduced
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306746819907584
+    m_Key: Dropdown.StarPowerHighwayFx.Off
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

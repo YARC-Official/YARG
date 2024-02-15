@@ -77,6 +77,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Graphics"),
                 nameof(Settings.LowQuality),
                 nameof(Settings.DisableBloom),
+                nameof(Settings.StarPowerHighwayFx),
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.ShowHitWindow),
