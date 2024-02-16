@@ -31,8 +31,7 @@ namespace YARG.Menu.MusicLibrary
         public bool IsUpdatedSearchLonger => _searchField.text.Length > _currentSearchText.Length;
         public bool IsUnspecified => _searchContext.IsUnspecified();
 
-        public delegate void OnSearchQueryUpdated(bool forceUpdate);
-        public OnSearchQueryUpdated SearchQueryUpdated;
+        public event Action<bool> OnSearchQueryUpdated;
 
         private static SongAttribute _currentSearchFilter = SongAttribute.Unspecified;
         private static Dictionary<SongAttribute, string> _searchQueries = new()
@@ -108,7 +107,7 @@ namespace YARG.Menu.MusicLibrary
 
             ActivateFilterButton(_currentSearchFilter);
 
-            SearchQueryUpdated?.Invoke(true);
+            OnSearchQueryUpdated?.Invoke(true);
         }
 
         public void UpdateSearchText()
@@ -213,7 +212,7 @@ namespace YARG.Menu.MusicLibrary
             _searchField.text = string.Empty;
 
             _searchFilters.DeactivateAllButtons();
-            SearchQueryUpdated?.Invoke(true);
+            OnSearchQueryUpdated?.Invoke(true);
         }
 
         public void OpenMoreFilters()
@@ -352,7 +351,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
 
-            SearchQueryUpdated?.Invoke(true);
+            OnSearchQueryUpdated?.Invoke(true);
         }
 
         private void ActivateFilterButton(SongAttribute attribute)
@@ -406,14 +405,14 @@ namespace YARG.Menu.MusicLibrary
 
                 ActivateFilterButton(_currentSearchFilter);
 
-                SearchQueryUpdated?.Invoke(true);
+                OnSearchQueryUpdated?.Invoke(true);
                 return;
             }
 
             _currentSearchFilter = SongAttribute.Unspecified;
             _searchField.text = string.Empty;
 
-            SearchQueryUpdated?.Invoke(true);
+            OnSearchQueryUpdated?.Invoke(true);
         }
 
         private void OnDisable()

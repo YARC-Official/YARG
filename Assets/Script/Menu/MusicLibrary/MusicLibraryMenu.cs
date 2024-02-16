@@ -11,7 +11,6 @@ using YARG.Audio;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Menu.ListMenu;
-using YARG.Menu.SongSearching;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings;
@@ -97,7 +96,7 @@ namespace YARG.Menu.MusicLibrary
 
             // Restore search
             _searchField.Restore();
-            _searchField.SearchQueryUpdated += UpdateSearch;
+            _searchField.OnSearchQueryUpdated += UpdateSearch;
 
             // Get songs
             if (_doRefresh)
@@ -311,7 +310,7 @@ namespace YARG.Menu.MusicLibrary
             _previewContext = null;
 
 
-            _searchField.SearchQueryUpdated -= UpdateSearch;
+            _searchField.OnSearchQueryUpdated -= UpdateSearch;
         }
 
         private void Back()
