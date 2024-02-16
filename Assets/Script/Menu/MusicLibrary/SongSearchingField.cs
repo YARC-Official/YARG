@@ -49,6 +49,13 @@ namespace YARG.Menu.MusicLibrary
 
         private static string _fullSearchQuery = string.Empty;
 
+        private static readonly RegexOptions DefaultOptions = RegexOptions.Compiled | RegexOptions.IgnoreCase;
+
+        /// <summary>
+        /// Regex pattern: Only colon
+        /// </summary>
+        private static readonly Regex ColonRegex = new(":", DefaultOptions);
+
         /// <summary>
         /// Regex pattern: Any characters followed by a colon
         /// - ^: Asserts the start of the string.
@@ -56,7 +63,7 @@ namespace YARG.Menu.MusicLibrary
         ///          but as few times as possible (?), until the next part of the pattern is matched.
         /// - :: Matches the colon character literally.
         /// </summary>
-        private const string COLON_AFTER_WORD = @"^(.*?):";
+        private static readonly Regex WordsAfterColonRegex = new("^(.*?):", DefaultOptions);
 
         /// <summary>
         /// Regex pattern to match a whole word
@@ -65,7 +72,7 @@ namespace YARG.Menu.MusicLibrary
         /// - \w+: Matches one or more word characters (i.e., letters, digits, or underscores).
         /// - \b: Asserts another word boundary.
         /// </summary>
-        private const string WHOLE_WORD_PATTERN = @"\b\w+\b";
+        private static readonly Regex WholeWordRegex = new(@"\b\w+\b", DefaultOptions);
 
         private void OnEnable()
         {
@@ -95,9 +102,9 @@ namespace YARG.Menu.MusicLibrary
                 }
                 else
                 {
-                    var currentQuery = $"{filter}:{_searchQueries[attribute]}";
-                    _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery,
-                        RegexOptions.IgnoreCase);
+                    // Regex pattern: The filter specified and the search query tagged with that filter
+                    var currentQueryRegex = new Regex($"{filter}:{_searchQueries[attribute]}", DefaultOptions);
+                    _fullSearchQuery = currentQueryRegex.Replace(_fullSearchQuery, updatedQuery);
                 }
             }
 
@@ -125,9 +132,9 @@ namespace YARG.Menu.MusicLibrary
         {
             if (_currentSearchFilter == SongAttribute.Unspecified)
             {
-                if (Regex.IsMatch(_searchField.text, @":"))
+                if (ColonRegex.IsMatch(_searchField.text))
                 {
-                    var match = Regex.Match(_searchField.text, COLON_AFTER_WORD);
+                    var match = WordsAfterColonRegex.Match(_searchField.text);
                     if (match.Success)
                     {
                         var filter = match.Groups[1].Value;
@@ -161,23 +168,24 @@ namespace YARG.Menu.MusicLibrary
             else
             {
                 var filter = _currentSearchFilter.ToString().ToLowerInvariant();
-                var currentQuery = $"{filter}:{_searchQueries[_currentSearchFilter]}";
-                var updatedQuery = $"{filter}:{_searchField.text}";
 
                 _searchQueries[_currentSearchFilter] = _searchField.text;
 
                 // Regex pattern representing a word boundary around the filter value
-                string filterFoundPattern = $@"\b{filter}\b";
+                var filterFoundRegex = new Regex($@"\b{filter}\b", DefaultOptions);
 
-                if (Regex.IsMatch(_fullSearchQuery, filterFoundPattern))
+                if (filterFoundRegex.IsMatch(_fullSearchQuery))
                 {
-                    _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery, RegexOptions.IgnoreCase);
+                    // Regex pattern: The filter specified and the search query tagged with that filter
+                    var currentQueryRegex = new Regex($"{filter}:{_searchQueries[_currentSearchFilter]}", DefaultOptions);
+                    var updatedQuery = $"{filter}:{_searchField.text}";
+                    _fullSearchQuery = currentQueryRegex.Replace(_fullSearchQuery, updatedQuery);
                 }
                 else
                 {
                     if (!string.IsNullOrEmpty(_searchField.text))
                     {
-                        _fullSearchQuery = Regex.Replace(_fullSearchQuery, WHOLE_WORD_PATTERN, $"{filter}:{_searchField.text}", RegexOptions.IgnoreCase);
+                        _fullSearchQuery = WholeWordRegex.Replace(_fullSearchQuery, $"{filter}:{_searchField.text}");
                     }
                     else if (string.IsNullOrEmpty(_fullSearchQuery))
                     {
@@ -387,9 +395,8 @@ namespace YARG.Menu.MusicLibrary
             }
 
             // Include the special characters in the removal of the current query
-            currentQuery = Regex.Escape(currentQuery);
-
-            _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, string.Empty);
+            var currentQueryRegex = new Regex(Regex.Escape(currentQuery), DefaultOptions);
+            _fullSearchQuery = currentQueryRegex.Replace(_fullSearchQuery, string.Empty);
 
             _searchQueries[attribute] = string.Empty;
             foreach (var query in _searchQueries)
