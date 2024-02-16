@@ -151,16 +151,11 @@ namespace YARG.Audio.BASS
 
             // UNCOMMENT THE BELOW IF PROBLEMS ARE REPORTED WITH SYNC
 
-            //bool playing = IsPlaying;
-            //if (playing)
-            //{
-            //    // Pause when seeking to avoid desyncing individual stems
-            //    Pause();
-            //}
-
-            foreach (var channel in Channels)
+            bool playing = IsPlaying;
+            if (playing)
             {
-                channel.SetPosition(manager, position, bufferCompensation);
+                // Pause when seeking to avoid desyncing individual stems
+                Pause();
             }
 
             if (_sourceStream != 0)
@@ -168,13 +163,18 @@ namespace YARG.Audio.BASS
                 BassMix.SplitStreamReset(_sourceStream);
             }
 
-            //if (playing)
-            //{
-            //    // Account for buffer when resuming
-            //    if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
-            //        Debug.LogError($"Failed to set update channel: {Bass.LastError}");
-            //    Play();
-            //}
+            foreach (var channel in Channels)
+            {
+                channel.SetPosition(manager, position, bufferCompensation);
+            }
+
+            if (playing)
+            {
+                // Account for buffer when resuming
+                if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
+                    Debug.LogError($"Failed to set update channel: {Bass.LastError}");
+                Play();
+            }
         }
 
         public int GetData(float[] buffer)
