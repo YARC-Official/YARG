@@ -5156,6 +5156,7 @@ MonoBehaviour:
   - {fileID: 5569398974939229558}
   - {fileID: 1401130989220535654}
   - {fileID: 1771629319063338808}
+  _trackPreviousButtons: 1
 --- !u!1 &6464954736272134111
 GameObject:
   m_ObjectHideFlags: 0

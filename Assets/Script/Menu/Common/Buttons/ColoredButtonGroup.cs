@@ -13,12 +13,15 @@ namespace YARG
         [SerializeField]
         private List<ColoredButton> _buttons;
 
+        [SerializeField]
+        private bool _trackPreviousButtons;
+
         public delegate void OnButtonClicked();
         public OnButtonClicked ClickedButton;
 
         public ColoredButton ActiveButton { get; private set; }
 
-        private ColoredButton _prevActivatedButton;
+        private readonly List<ColoredButton> _prevActivatedButtons = new();
 
         public void OnEnable()
         {
@@ -40,17 +43,20 @@ namespace YARG
 
                 if (ActiveButton != null)
                 {
-                    ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton,
-                        MenuData.Colors.BrightText, MenuData.Colors.DeactivatedText);
-                    _prevActivatedButton = ActiveButton;
+                    ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.DarkButton);
+
+                    if (_trackPreviousButtons)
+                    {
+                        _prevActivatedButtons.Add(ActiveButton);
+                    }
                 }
 
                 ActiveButton = button;
                 ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.BrightButton);
 
-                if (_prevActivatedButton == null)
+                if (_trackPreviousButtons && _prevActivatedButtons.Count == 0)
                 {
-                    _prevActivatedButton = ActiveButton;
+                    _prevActivatedButtons.Add(ActiveButton);
                 }
 
                 break;
@@ -59,8 +65,12 @@ namespace YARG
 
         public void DeactivateAllButtons()
         {
+            if (_trackPreviousButtons)
+            {
+                _prevActivatedButtons.Clear();
+            }
+
             ActiveButton = null;
-            _prevActivatedButton = null;
             foreach (var button in _buttons)
             {
                 button.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton,
@@ -70,16 +80,23 @@ namespace YARG
 
         private void OnClick(ColoredButton button)
         {
-            if (_prevActivatedButton == null)
+            if (_prevActivatedButtons.Count == 0)
             {
-                _prevActivatedButton = button;
+                _prevActivatedButtons.Add(button);
             }
             else
             {
                 if (ActiveButton != null)
                 {
-                    _prevActivatedButton = ActiveButton;
-                    _prevActivatedButton.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton, MenuData.Colors.BrightText, MenuData.Colors.DeactivatedText);
+                    if (_trackPreviousButtons)
+                    {
+                        ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.DarkButton);
+                        _prevActivatedButtons.Add(ActiveButton);
+                    }
+                    else
+                    {
+                        ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton, MenuData.Colors.BrightText, MenuData.Colors.DeactivatedText);
+                    }
                 }
             }
 
