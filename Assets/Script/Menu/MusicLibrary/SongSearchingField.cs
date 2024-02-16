@@ -5,9 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Song;
-using YARG.Menu.Dialogs;
 using YARG.Menu.Navigation;
-using YARG.Menu.Persistent;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
