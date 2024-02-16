@@ -244,6 +244,11 @@ namespace YARG.Gameplay.Player
             SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
 
             TrackView.UpdateNoteStreak(stats.Combo);
+
+            foreach (var haptics in SantrollerHaptics)
+            {
+                haptics.SetStarPowerFill((float) BaseStats.StarPowerAmount);
+            }
         }
 
         protected override void UpdateNotes(double songTime)

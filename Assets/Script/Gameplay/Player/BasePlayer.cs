@@ -321,11 +321,6 @@ namespace YARG.Gameplay.Player
             {
                 GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
             }
-
-            foreach (var haptics in SantrollerHaptics)
-            {
-                haptics.SetStarPowerFill((float) BaseStats.StarPowerAmount);
-            }
         }
 
         protected virtual void OnStarPowerStatus(bool active)
