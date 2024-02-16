@@ -103,8 +103,9 @@ namespace YARG.Menu.MusicLibrary
                 else
                 {
                     // Regex pattern: The filter specified and the search query tagged with that filter
-                    var currentQueryRegex = new Regex($"{filter}:{_searchQueries[attribute]}", DefaultOptions);
-                    _fullSearchQuery = currentQueryRegex.Replace(_fullSearchQuery, updatedQuery);
+                    var currentQuery = $"{filter}:{_searchQueries[attribute]}";
+                    _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery,
+                        RegexOptions.IgnoreCase);
                 }
             }
 
@@ -172,14 +173,13 @@ namespace YARG.Menu.MusicLibrary
                 _searchQueries[_currentSearchFilter] = _searchField.text;
 
                 // Regex pattern representing a word boundary around the filter value
-                var filterFoundRegex = new Regex($@"\b{filter}\b", DefaultOptions);
+                string filterFoundPattern = $@"\b{filter}\b";
 
-                if (filterFoundRegex.IsMatch(_fullSearchQuery))
+                if (Regex.IsMatch(_fullSearchQuery, filterFoundPattern))
                 {
-                    // Regex pattern: The filter specified and the search query tagged with that filter
-                    var currentQueryRegex = new Regex($"{filter}:{_searchQueries[_currentSearchFilter]}", DefaultOptions);
+                    var currentQuery = $"{filter}:{_searchQueries[_currentSearchFilter]}";
                     var updatedQuery = $"{filter}:{_searchField.text}";
-                    _fullSearchQuery = currentQueryRegex.Replace(_fullSearchQuery, updatedQuery);
+                    _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery, RegexOptions.IgnoreCase);
                 }
                 else
                 {
@@ -327,8 +327,8 @@ namespace YARG.Menu.MusicLibrary
             }
 
             // Include the special characters in the removal of the current query
-            var currentQueryRegex = new Regex(Regex.Escape(currentQuery), DefaultOptions);
-            _fullSearchQuery = currentQueryRegex.Replace(_fullSearchQuery, string.Empty);
+            currentQuery = Regex.Escape(currentQuery);
+            _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, string.Empty);
 
             _searchQueries[attribute] = string.Empty;
             foreach (var query in _searchQueries)
