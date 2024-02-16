@@ -273,7 +273,9 @@ namespace YARG.Menu.MusicLibrary
                 "genre"   => SongAttribute.Genre,
                 "source"  => SongAttribute.Source,
                 "charter" => SongAttribute.Charter,
-                _         => SongAttribute.Unspecified
+                "instrument" => SongAttribute.Instrument,
+                "year"       => SongAttribute.Year,
+                _            => SongAttribute.Unspecified
             };
 
             if (previousSearchFilter == SongAttribute.Unspecified)
@@ -300,6 +302,8 @@ namespace YARG.Menu.MusicLibrary
                 SongAttribute.Genre   => "genre",
                 SongAttribute.Source  => "source",
                 SongAttribute.Charter => "charter",
+                SongAttribute.Instrument => "instrument",
+                SongAttribute.Year => "year",
                 _                     => string.Empty,
             };
 
