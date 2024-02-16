@@ -50,6 +50,24 @@ namespace YARG.Menu.SongSearching
 
         private static string _fullSearchQuery = string.Empty;
 
+        /// <summary>
+        /// Regex pattern: Any characters followed by a colon
+        /// - ^: Asserts the start of the string.
+        /// - (.*?): This is a non-greedy capture group that matches any character (.) zero or more times (*),
+        ///          but as few times as possible (?), until the next part of the pattern is matched.
+        /// - :: Matches the colon character literally.
+        /// </summary>
+        private const string COLON_AFTER_WORD = @"^(.*?):";
+
+        /// <summary>
+        /// Regex pattern to match a whole word
+        /// - \b: Asserts a word boundary, matching the position between a word character (i.e., a letter,
+        ///       digit, or underscore) and a non-word character (or vice versa).
+        /// - \w+: Matches one or more word characters (i.e., letters, digits, or underscores).
+        /// - \b: Asserts another word boundary.
+        /// </summary>
+        private const string WHOLE_WORD_PATTERN = @"\b\w+\b";
+
         private void OnEnable()
         {
             _searchFilters.ClickedButton += OnClickedSearchFilter;
@@ -110,7 +128,7 @@ namespace YARG.Menu.SongSearching
             {
                 if (Regex.IsMatch(_searchField.text, @":"))
                 {
-                    var match = Regex.Match(_searchField.text, @"^(.*?):");
+                    var match = Regex.Match(_searchField.text, COLON_AFTER_WORD);
                     if (match.Success)
                     {
                         var filter = match.Groups[1].Value;
@@ -149,7 +167,10 @@ namespace YARG.Menu.SongSearching
 
                 _searchQueries[_currentSearchFilter] = _searchField.text;
 
-                if (Regex.IsMatch(_fullSearchQuery, $@"\b{filter}\b"))
+                // Regex pattern representing a word boundary around the filter value
+                string filterFoundPattern = $@"\b{filter}\b";
+
+                if (Regex.IsMatch(_fullSearchQuery, filterFoundPattern))
                 {
                     _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery, RegexOptions.IgnoreCase);
                 }
@@ -157,7 +178,7 @@ namespace YARG.Menu.SongSearching
                 {
                     if (!string.IsNullOrEmpty(_searchField.text))
                     {
-                        _fullSearchQuery = Regex.Replace(_fullSearchQuery, @"\b\w+\b", $"{filter}:{_searchField.text}", RegexOptions.IgnoreCase);
+                        _fullSearchQuery = Regex.Replace(_fullSearchQuery, WHOLE_WORD_PATTERN, $"{filter}:{_searchField.text}", RegexOptions.IgnoreCase);
                     }
                     else
                     {
@@ -369,7 +390,11 @@ namespace YARG.Menu.SongSearching
                 currentQuery = $"{filter}:{_searchQueries[attribute]};";
             }
 
-            _fullSearchQuery = Regex.Replace(_fullSearchQuery, Regex.Escape(currentQuery), string.Empty);
+            // Include the special characters in the removal of the current query
+            currentQuery = Regex.Escape(currentQuery);
+
+            _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, string.Empty);
+
             _searchQueries[attribute] = string.Empty;
             foreach (var query in _searchQueries)
             {
