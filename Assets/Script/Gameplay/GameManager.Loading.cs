@@ -246,9 +246,14 @@ namespace YARG.Gameplay
                 if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
                 {
                     var preset = new VenueAutoGenerationPreset(VenueAutoGenerationPreset.DefaultPath);
+
+                    if (!preset.ChartHasFog(Chart)) // This is separate because we may want to add fog even if venue is authored
+                    {
+                        Chart = preset.GenerateFogEvents(Chart);
+                    }
+                    
                     if (Chart.VenueTrack.Lighting.Count == 0)
                     {
-                        Debug.Log("Auto-generating venue lighting...");
                         Chart = preset.GenerateLightingEvents(Chart);
                     }
 
