@@ -68,21 +68,30 @@ namespace YARG.Helpers.Extensions
             return texture;
         }
 
-        public static void LoadAudio(this SongEntry song, IAudioManager manager, float speed, params SongStem[] ignoreStems)
+        public static bool LoadAudio(this SongEntry song, IAudioManager manager, float speed, params SongStem[] ignoreStems)
         {
-            var channels = song.LoadAudioStreams(ignoreStems);
-            manager.LoadSong(channels, speed);
+            var mixer = song.LoadAudioStreams(ignoreStems);
+            if (mixer == null || mixer.Channels.Count == 0)
+            {
+                return false;
+            }
+            manager.LoadSong(mixer, speed);
+            return true;
         }
 
-        public static async UniTask<bool> LoadPreviewAudio(this SongEntry song, IAudioManager manager, float speed)
+        public static async UniTask<bool> LoadPreview(this SongEntry song, IAudioManager manager, float speed)
         {
-            List<AudioChannel> channels = await UniTask.RunOnThreadPool(() =>
+            var mixer = await UniTask.RunOnThreadPool(() =>
             {
-                var channels = song.LoadPreviewAudio();
-                manager.LoadSong(channels, speed);
-                return channels;
+                var mixer = song.LoadPreviewAudio();
+                if (mixer == null || mixer.Channels.Count == 0)
+                {
+                    return null;
+                }
+                manager.LoadSong(mixer, speed);
+                return mixer;
             });
-            return channels.Count > 0 && channels[0].Stem == SongStem.Preview;
+            return mixer != null && mixer.Channels[0].Stem == SongStem.Preview;
         }
     }
 }

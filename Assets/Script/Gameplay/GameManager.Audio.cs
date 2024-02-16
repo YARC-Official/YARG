@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Helpers.Extensions;
 using YARG.Settings;
 
 namespace YARG.Gameplay
@@ -40,20 +40,17 @@ namespace YARG.Gameplay
                 Total = 1
             });
 
-            try
+            if (Song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed))
             {
-                var channels =  Song.LoadAudioStreams();
-                GlobalVariables.AudioManager.LoadSong(channels, GlobalVariables.Instance.SongSpeed);
                 GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
 
                 bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
                 GlobalVariables.AudioManager.Options.UseMinimumStemVolume = isYargSong;
             }
-            catch (Exception ex)
+            else
             {
                 _loadState = LoadFailureState.Error;
                 _loadFailureMessage = "Failed to load audio!";
-                Debug.LogException(ex, this);
             }
         }
 

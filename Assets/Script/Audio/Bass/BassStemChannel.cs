@@ -11,68 +11,111 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassStemChannel : IStemChannel<BassAudioManager>
     {
-        private struct Handles : IDisposable
-        {
-            public int Stream;
-
-            public int CompressorFX;
-            public int PitchFX;
-            public int ReverbFX;
-
-            public int LowEQ;
-            public int MidEQ;
-            public int HighEQ;
-
-            public static bool Create(int sourceStream, double volume, int[] indices, out Handles handles)
-            {
-                const BassFlags splitFlags = BassFlags.Decode | BassFlags.SplitPosition;
-                const BassFlags tempoFlags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
-
-                handles = default;
 #nullable enable
-                int[]? channelMap = null;
+        public static BassStemChannel? CreateChannel(IAudioManager manager, Stream stream, SongStem stem, float speed, int[] indices)
 #nullable disable
-                if (indices != null)
-                {
-                    channelMap = new int[indices.Length + 1];
-                    for (int i = 0; i < indices.Length; ++i)
-                    {
-                        channelMap[i] = indices[i];
-                    }
-                    channelMap[indices.Length] = -1;
-                }
-
-                int streamSplit = BassMix.CreateSplitStream(sourceStream, splitFlags, channelMap);
-                if (streamSplit == 0)
-                {
-                    Debug.LogError($"Failed to create split stream: {Bass.LastError}");
-                    return false;
-                }
-
-                handles.Stream = BassFx.TempoCreate(streamSplit, tempoFlags);
-                if (!Bass.ChannelSetAttribute(handles.Stream, ChannelAttribute.Volume, volume))
-                {
-                    Debug.LogError($"Failed to set channel volume: {Bass.LastError}");
-                }
-
-                handles.CompressorFX = BassHelpers.AddCompressorToChannel(handles.Stream);
-                if (handles.CompressorFX == 0)
-                {
-                    Debug.LogError($"Failed to set up compressor for split stream!");
-                }
-                return true;
-            }
-
-            public void Dispose()
+        {
+            if (!BassAudioManager.CreateSourceStream(stream, out int sourceStream))
             {
-                // FX handles are freed automatically, we only need to free the stream
-                if (Stream != 0)
+                return null;
+            }
+
+            double volume = manager.GetVolumeSetting(stem);
+            if (!CreateSplitStreams(sourceStream, volume, indices, out var streamHandles, out var reverbHandles))
+            {
+                return null;
+            }
+
+            var pitchparams = SetPitchParams(manager.Options, stem, speed, ref streamHandles, ref reverbHandles);
+            return new BassStemChannel(stem, volume, sourceStream, pitchparams, streamHandles, reverbHandles);
+        }
+
+        public static BassStemChannel? CreateChannel(IAudioManager manager, int sourceStream, SongStem stem, float speed, int[] indices)
+#nullable disable
+        {
+            double volume = manager.GetVolumeSetting(stem);
+            if (!CreateSplitStreams(sourceStream, volume, indices, out var streamHandles, out var reverbHandles))
+            {
+                return null;
+            }
+
+            var pitchparams = SetPitchParams(manager.Options, stem, speed, ref streamHandles, ref reverbHandles);
+            return new BassStemChannel(stem, volume, 0, pitchparams, streamHandles, reverbHandles);
+        }
+
+        private static bool CreateSplitStreams(int sourceStream, double volume, int[] channelMap, out BassAudioManager.Handles streamHandles, out BassAudioManager.Handles reverbHandles)
+        {
+            reverbHandles = default;
+            if (!BassAudioManager.Handles.Create(sourceStream, volume, channelMap, out streamHandles))
+            {
+                return false;
+            }
+
+            if (!BassAudioManager.Handles.Create(sourceStream, 0, channelMap, out reverbHandles))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private static PitchShiftParametersStruct SetPitchParams(AudioOptions options, SongStem stem, float speed, ref BassAudioManager.Handles streamHandles, ref BassAudioManager.Handles reverbHandles)
+        {
+            PitchShiftParametersStruct pitchParams = new(1, 0, AudioOptions.WHAMMY_FFT_DEFAULT, AudioOptions.WHAMMY_OVERSAMPLE_DEFAULT);
+            // Set whammy pitch bending if enabled
+            if (options.UseWhammyFx && AudioHelpers.PitchBendAllowedStems.Contains(stem))
+            {
+                // Setting the FFT size causes a crash in BASS_FX :/
+                // _pitchParams.FFTSize = _manager.Options.WhammyFFTSize;
+                pitchParams.OversampleFactor = options.WhammyOversampleFactor;
+                if (SetupPitchBend(pitchParams, ref streamHandles))
                 {
-                    if (!Bass.StreamFree(Stream))
-                        Debug.LogError($"Failed to free channel stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
-                    Stream = 0;
+                    SetupPitchBend(pitchParams, ref reverbHandles);
                 }
             }
+
+            if (!Mathf.Approximately(speed, 1f))
+            {
+                speed = (float) Math.Round(Math.Clamp(speed, 0.05, 50), 2);
+                SetSpeed(speed, streamHandles.Stream, reverbHandles.Stream);
+                if (options.IsChipmunkSpeedup)
+                {
+                    SetChipmunking(speed, streamHandles.Stream, reverbHandles.Stream);
+                }
+            }
+            return pitchParams;
+        }
+
+        private static void SetChipmunking(float speed, int streamHandle, int reverbHandle)
+        {
+            double accurateSemitoneShift = 12 * Math.Log(speed, 2);
+            float finalSemitoneShift = (float) Math.Clamp(accurateSemitoneShift, -60, 60);
+            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Pitch, finalSemitoneShift) ||
+                !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Pitch, finalSemitoneShift))
+                Debug.LogError($"Failed to set channel pitch: {Bass.LastError}");
+        }
+
+        private static void SetSpeed(float speed, int streamHandle, int reverbHandle)
+        {
+            // Gets relative speed from 100% (so 1.05f = 5% increase)
+            float percentageSpeed = speed * 100;
+            float relativeSpeed = percentageSpeed - 100;
+
+            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Tempo, relativeSpeed) ||
+                !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Tempo, relativeSpeed))
+            {
+                Debug.LogError($"Failed to set channel speed: {Bass.LastError}");
+            }
+        }
+
+        private static bool SetupPitchBend(in PitchShiftParametersStruct pitchParams, ref BassAudioManager.Handles handles)
+        {
+            handles.CompressorFX = BassHelpers.FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
+            if (handles.CompressorFX == 0)
+            {
+                Debug.LogError($"Failed to set up pitch bend for main stream!");
+                return false;
+            }
+            return true;
         }
 
         private int _channelEndHandle;
@@ -107,8 +150,8 @@ namespace YARG.Audio.BASS
 
         private int _sourceHandle;
 
-        private Handles _streamHandles;
-        private Handles _reverbHandles;
+        private BassAudioManager.Handles _streamHandles;
+        private BassAudioManager.Handles _reverbHandles;
 
         private bool _isReverbing;
         private bool _disposed;
@@ -125,26 +168,8 @@ namespace YARG.Audio.BASS
 
 		private PitchShiftParametersStruct _pitchParams;
 
-#nullable enable
-        public static BassStemChannel? CreateChannel(IAudioManager manager, Stream stream, SongStem stem, float speed, int[] indices)
-#nullable disable
-        {
-            if (!CreateSourceStream(stream, out int sourceStream))
-            {
-                return null;
-            }
 
-            double volume = manager.GetVolumeSetting(stem);
-            if (!CreateSplitStreams(sourceStream, volume, indices, out var streamHandles, out var reverbHandles))
-            {
-                return null;
-            }
-
-            var pitchparams = SetPitchParams(manager.Options, stem, speed, ref streamHandles, ref reverbHandles);
-            return new BassStemChannel(stem, volume, sourceStream, pitchparams, streamHandles, reverbHandles);
-        }
-
-        private BassStemChannel(SongStem stem, double stemVolume, int sourceStream, in PitchShiftParametersStruct pitchParams, in Handles streamHandles, in Handles reverbHandles)
+        private BassStemChannel(SongStem stem, double stemVolume, int sourceStream, in PitchShiftParametersStruct pitchParams, in BassAudioManager.Handles streamHandles, in BassAudioManager.Handles reverbHandles)
         {
             Stem = stem;
             _sourceHandle = sourceStream;
@@ -350,7 +375,7 @@ namespace YARG.Audio.BASS
             }
 
             bool success = IsMixed
-                ? BassMix.ChannelSetPosition(StreamHandle, bytes)
+                ? BassMix.ChannelSetPosition(StreamHandle, bytes, PositionFlags.Bytes)
                 : Bass.ChannelSetPosition(StreamHandle, bytes);
 
             if (!success)
@@ -407,97 +432,6 @@ namespace YARG.Audio.BASS
 
                 _disposed = true;
             }
-        }
-
-        private static bool CreateSourceStream(Stream stream, out int streamHandle)
-        {
-            // Last flag is new BASS_SAMPLE_NOREORDER flag, which is not in the BassFlags enum,
-            // as it was made as part of an update to fix <= 8 channel oggs.
-            // https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
-            const BassFlags streamFlags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags) 64;
-
-            streamHandle = Bass.CreateStream(StreamSystem.NoBuffer, streamFlags, new BassStreamProcedures(stream));
-            if (streamHandle == 0)
-            {
-                Debug.LogError($"Failed to create source stream: {Bass.LastError}");
-                return false;
-            }
-            return true;
-        }
-
-        private static bool CreateSplitStreams(int sourceStream, double volume, int[] channelMap, out Handles streamHandles, out Handles reverbHandles)
-        {
-            reverbHandles = default;
-            if (!Handles.Create(sourceStream, volume, channelMap, out streamHandles))
-            {
-                return false;
-            }
-
-            if (!Handles.Create(sourceStream, 0, channelMap, out reverbHandles))
-            {
-                return false;
-            }
-            return true;
-        }
-
-        private static PitchShiftParametersStruct SetPitchParams(AudioOptions options, SongStem stem, float speed, ref Handles streamHandles, ref Handles reverbHandles)
-        {
-            PitchShiftParametersStruct pitchParams = new(1, 0, AudioOptions.WHAMMY_FFT_DEFAULT, AudioOptions.WHAMMY_OVERSAMPLE_DEFAULT);
-            // Set whammy pitch bending if enabled
-            if (options.UseWhammyFx && AudioHelpers.PitchBendAllowedStems.Contains(stem))
-            {
-                // Setting the FFT size causes a crash in BASS_FX :/
-                // _pitchParams.FFTSize = _manager.Options.WhammyFFTSize;
-                pitchParams.OversampleFactor = options.WhammyOversampleFactor;
-                if (SetupPitchBend(pitchParams, ref streamHandles))
-                {
-                    SetupPitchBend(pitchParams, ref reverbHandles);
-                }
-            }
-
-            if (!Mathf.Approximately(speed, 1f))
-            {
-                speed = (float) Math.Round(Math.Clamp(speed, 0.05, 50), 2);
-                SetSpeed(speed, streamHandles.Stream, reverbHandles.Stream);
-                if (options.IsChipmunkSpeedup)
-                {
-                    SetChipmunking(speed, streamHandles.Stream, reverbHandles.Stream);
-                }
-            }
-            return pitchParams;
-        }
-
-        private static void SetChipmunking(float speed, int streamHandle, int reverbHandle)
-        {
-            double accurateSemitoneShift = 12 * Math.Log(speed, 2);
-            float finalSemitoneShift = (float) Math.Clamp(accurateSemitoneShift, -60, 60);
-            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Pitch, finalSemitoneShift) ||
-                !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Pitch, finalSemitoneShift))
-                Debug.LogError($"Failed to set channel pitch: {Bass.LastError}");
-        }
-
-        private static void SetSpeed(float speed, int streamHandle, int reverbHandle)
-        {
-            // Gets relative speed from 100% (so 1.05f = 5% increase)
-            float percentageSpeed = speed * 100;
-            float relativeSpeed = percentageSpeed - 100;
-
-            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Tempo, relativeSpeed) ||
-                !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Tempo, relativeSpeed))
-            {
-                Debug.LogError($"Failed to set channel speed: {Bass.LastError}");
-            }
-        }
-
-        private static bool SetupPitchBend(in PitchShiftParametersStruct pitchParams, ref Handles handles)
-        {
-            handles.CompressorFX = BassHelpers.FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
-            if (handles.CompressorFX == 0)
-            {
-                Debug.LogError($"Failed to set up pitch bend for main stream!");
-                return false;
-            }
-            return true;
         }
     }
 }

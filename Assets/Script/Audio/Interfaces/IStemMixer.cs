@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using YARG.Audio.BASS;
 using YARG.Core.Audio;
 
 namespace YARG.Audio
@@ -10,8 +11,6 @@ namespace YARG.Audio
         where TAudioManager : IAudioManager
         where TChannel : IStemChannel<TAudioManager>
     {
-        public int StemsLoaded { get; }
-
         public bool IsPlaying { get; }
 
         public event Action SongEnd;
@@ -19,8 +18,6 @@ namespace YARG.Audio
         public IReadOnlyList<TChannel> Channels { get; }
 
         public TChannel LeadChannel { get; }
-
-        public bool Create();
 
         public int Play(bool restart = false);
 
@@ -39,9 +36,7 @@ namespace YARG.Audio
 
         public void SetSpeed(float speed);
 
-        public int AddChannel(TChannel channel);
-
-        public int AddChannel(TChannel channel, int[] indices, float[] panning);
+        public int AddChannel(BassStemChannel channel, int[]? indices, float[]? panning);
 
         public bool RemoveChannel(SongStem stemToRemove);
 

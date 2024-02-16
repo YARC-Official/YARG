@@ -9,6 +9,8 @@ using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
 using System.Linq;
+using YARG.Core.IO;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -18,6 +20,86 @@ namespace YARG.Audio.BASS
 {
     public class BassAudioManager : MonoBehaviour, IAudioManager
     {
+        public static bool CreateSourceStream(Stream stream, out int streamHandle)
+        {
+            // Last flag is new BASS_SAMPLE_NOREORDER flag, which is not in the BassFlags enum,
+            // as it was made as part of an update to fix <= 8 channel oggs.
+            // https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
+            const BassFlags streamFlags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags) 64;
+
+            streamHandle = Bass.CreateStream(StreamSystem.NoBuffer, streamFlags, new BassStreamProcedures(stream));
+            if (streamHandle == 0)
+            {
+                Debug.LogError($"Failed to create source stream: {Bass.LastError}");
+                return false;
+            }
+            return true;
+        }
+
+        public struct Handles : IDisposable
+        {
+            public int Stream;
+
+            public int CompressorFX;
+            public int PitchFX;
+            public int ReverbFX;
+
+            public int LowEQ;
+            public int MidEQ;
+            public int HighEQ;
+
+            public static bool Create(int sourceStream, double volume, int[] indices, out Handles handles)
+            {
+                const BassFlags splitFlags = BassFlags.Decode | BassFlags.SplitPosition;
+                const BassFlags tempoFlags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
+
+                handles = default;
+#nullable enable
+                int[]? channelMap = null;
+#nullable disable
+                if (indices != null)
+                {
+                    channelMap = new int[indices.Length + 1];
+                    for (int i = 0; i < indices.Length; ++i)
+                    {
+                        channelMap[i] = indices[i];
+                    }
+                    channelMap[indices.Length] = -1;
+                }
+
+                int streamSplit = BassMix.CreateSplitStream(sourceStream, splitFlags, channelMap);
+                if (streamSplit == 0)
+                {
+                    Debug.LogError($"Failed to create split stream: {Bass.LastError}");
+                    return false;
+                }
+
+                handles.Stream = BassFx.TempoCreate(streamSplit, tempoFlags);
+                if (!Bass.ChannelSetAttribute(handles.Stream, ChannelAttribute.Volume, volume))
+                {
+                    Debug.LogError($"Failed to set channel volume: {Bass.LastError}");
+                }
+
+                handles.CompressorFX = BassHelpers.AddCompressorToChannel(handles.Stream);
+                if (handles.CompressorFX == 0)
+                {
+                    Debug.LogError($"Failed to set up compressor for split stream!");
+                }
+                return true;
+            }
+
+            public void Dispose()
+            {
+                // FX handles are freed automatically, we only need to free the stream
+                if (Stream != 0)
+                {
+                    if (!Bass.StreamFree(Stream))
+                        Debug.LogError($"Failed to free channel stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
+                    Stream = 0;
+                }
+            }
+        }
+
         public AudioOptions Options { get; set; } = new();
 
         public IList<string> SupportedFormats { get; private set; } = new[]
@@ -226,26 +308,30 @@ namespace YARG.Audio.BASS
             Debug.Log("Finished loading SFX");
         }
 
-        public void LoadSong(List<AudioChannel> channels, float speed)
+        public bool LoadSong(AudioMixer baseMixer, float speed)
         {
             EditorDebug.Log("Loading song");
             UnloadSong();
 
-            if (channels.Count == 0)
+            if (!BassStemMixer.CreateMixerHandle(out int handle))
             {
-                throw new Exception("No stems were provided!");
+                return false;
             }
 
-            _mixer = new BassStemMixer();
-            if (!_mixer.Create())
+            int sourceStream = 0;
+            if (baseMixer.Stream != null && !CreateSourceStream(baseMixer.Stream, out sourceStream))
             {
-                throw new Exception($"Failed to create mixer: {Bass.LastError}");
+                return false;
             }
 
-            foreach (var channel in channels)
+            var mixer = new BassStemMixer(handle, sourceStream);
+            using var wrapper = DisposableCounter.Wrap(mixer);
+            foreach (var channel in baseMixer.Channels)
             {
-                var stem = channels.Count > 1 ? channel.Stem : SongStem.Song;
-                var stemChannel = BassStemChannel.CreateChannel(this, channel.Stream, stem, speed, channel.Indices);
+                var stem = baseMixer.Channels.Count > 1 ? channel.Stem : SongStem.Song;
+                var stemChannel = channel.Stream != null
+                    ? BassStemChannel.CreateChannel(this, channel.Stream, stem, speed, channel.Indices)
+                    : BassStemChannel.CreateChannel(this, sourceStream, stem, speed, channel.Indices);
 
                 if (stemChannel == null)
                 {
@@ -253,18 +339,26 @@ namespace YARG.Audio.BASS
                     continue;
                 }
 
-                int result = channel.Indices != null
-                    ? _mixer.AddChannel(stemChannel, channel.Indices, channel.Panning!)
-                    : _mixer.AddChannel(stemChannel);
-
+                // wrap so that it disposes on failure
+                using var channelWrapper = DisposableCounter.Wrap(stemChannel);
+                int result = mixer.AddChannel(stemChannel, channel.Indices, channel.Panning);
                 if (result != 0)
                 {
                     Debug.LogError($"Failed to add stem {stem} to mixer: {Bass.LastError}");
                     continue;
                 }
+                channelWrapper.Release();
             }
 
-            EditorDebug.Log($"Loaded {_mixer.StemsLoaded} stems");
+            if (mixer.Channels.Count == 0)
+            {
+                Debug.LogError($"Failed to add any stems");
+                return false;
+            }
+
+            EditorDebug.Log($"Loaded {mixer.Channels.Count} stems");
+
+            _mixer = wrapper.Release();
 
             // Setup audio length
             AudioLengthD = _mixer.LeadChannel.LengthD;
@@ -274,36 +368,46 @@ namespace YARG.Audio.BASS
             _mixer.SongEnd += OnSongEnd;
 
             IsAudioLoaded = true;
+            return true;
         }
 
-        public void LoadCustomAudioFile(Stream audiostream, float speed)
+        public bool LoadCustomAudioFile(Stream audiostream, float speed)
         {
             EditorDebug.Log("Loading custom audio file");
             UnloadSong();
 
-            _mixer = new BassStemMixer();
-            if (!_mixer.Create())
+            if (!BassStemMixer.CreateMixerHandle(out int handle))
             {
-                throw new Exception($"Failed to create mixer: {Bass.LastError}");
+                return false;
             }
 
-            var stemChannel = BassStemChannel.CreateChannel(this, audiostream, SongStem.Song, speed, null);
+            if (!CreateSourceStream(audiostream, out int sourceStream))
+            {
+                return false;
+            }
+
+            var mixer = new BassStemMixer(handle, sourceStream);
+            using var mixerWrapper = DisposableCounter.Wrap(mixer);
+
+            var stemChannel = BassStemChannel.CreateChannel(this, sourceStream, SongStem.Song, speed, null);
             if (stemChannel == null)
             {
-                throw new Exception($"Failed to load custom file: {Bass.LastError}");
+                Debug.LogError($"Failed to load custom file: {Bass.LastError}");
+                return false;
             }
 
-            if (_mixer.GetChannels(SongStem.Song).Length > 0)
+            // wrap so that it disposes on failure
+            using var channelWrapper = DisposableCounter.Wrap(stemChannel);
+            if (mixer.AddChannel(stemChannel, null, null) != 0)
             {
-                throw new Exception("Custom File already loaded!");
+                Debug.LogError($"Failed to add custom channel to mixer: {Bass.LastError}");
+                return false;
             }
+            channelWrapper.Release();
 
-            if (_mixer.AddChannel(stemChannel) != 0)
-            {
-                throw new Exception($"Failed to add stem to mixer: {Bass.LastError}");
-            }
+            EditorDebug.Log($"Loaded custom file");
 
-            EditorDebug.Log($"Loaded {_mixer.StemsLoaded} stems");
+            _mixer = mixerWrapper.Release();
 
             // Setup audio length
             AudioLengthD = _mixer.LeadChannel.LengthD;
@@ -313,6 +417,7 @@ namespace YARG.Audio.BASS
             _mixer.SongEnd += OnSongEnd;
 
             IsAudioLoaded = true;
+            return true;
         }
 
         public void UnloadSong()

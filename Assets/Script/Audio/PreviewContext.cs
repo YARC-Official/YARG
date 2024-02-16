@@ -74,7 +74,7 @@ namespace YARG.Audio
                 }
 
                 // Load the song
-                bool usesPreviewFile = await song.LoadPreviewAudio(_manager, 1f);
+                bool usesPreviewFile = await song.LoadPreview(_manager, 1f);
 
                 // Check if cancelled
                 if (cancelToken.IsCancellationRequested)
