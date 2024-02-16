@@ -180,16 +180,13 @@ namespace YARG.Menu.SongSearching
                     {
                         _fullSearchQuery = Regex.Replace(_fullSearchQuery, WHOLE_WORD_PATTERN, $"{filter}:{_searchField.text}", RegexOptions.IgnoreCase);
                     }
+                    else if (string.IsNullOrEmpty(_fullSearchQuery))
+                    {
+                        _fullSearchQuery = $"{filter}:";
+                    }
                     else
                     {
-                        if (string.IsNullOrEmpty(_fullSearchQuery))
-                        {
-                            _fullSearchQuery = $"{filter}:";
-                        }
-                        else
-                        {
-                            _fullSearchQuery += $";{filter}:";
-                        }
+                        _fullSearchQuery += $";{filter}:";
                     }
                 }
             }
