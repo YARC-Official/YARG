@@ -10,7 +10,7 @@ using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Song;
 
-namespace YARG.Menu.SongSearching
+namespace YARG.Menu.MusicLibrary
 {
     public class SongSearchingField : MonoBehaviour
     {
@@ -21,7 +21,7 @@ namespace YARG.Menu.SongSearching
         [SerializeField]
         private ColoredButtonGroup _searchFilters;
 
-        private readonly Song.SongSearching _searchContext = new();
+        private readonly SongSearching _searchContext = new();
         private string _currentSearchText = string.Empty;
         private bool _searchNavPushed;
         private bool _wasSearchFieldFocused;
