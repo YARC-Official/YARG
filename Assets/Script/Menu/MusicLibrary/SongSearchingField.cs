@@ -166,8 +166,6 @@ namespace YARG.Menu.MusicLibrary
             {
                 var filter = _currentSearchFilter.ToString().ToLowerInvariant();
 
-                _searchQueries[_currentSearchFilter] = _searchField.text;
-
                 // Regex pattern representing a word boundary around the filter value
                 string filterFoundPattern = $@"\b{filter}\b";
 
@@ -192,6 +190,8 @@ namespace YARG.Menu.MusicLibrary
                         _fullSearchQuery += $";{filter}:";
                     }
                 }
+
+                _searchQueries[_currentSearchFilter] = _searchField.text;
             }
 
             return _searchContext.Search(_fullSearchQuery, sort);
