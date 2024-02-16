@@ -47,12 +47,10 @@ namespace YARG.Menu.MusicLibrary
 
         private static string _fullSearchQuery = string.Empty;
 
-        private static readonly RegexOptions DefaultOptions = RegexOptions.Compiled | RegexOptions.IgnoreCase;
-
         /// <summary>
         /// Regex pattern: Only colon
         /// </summary>
-        private static readonly Regex ColonRegex = new(":", DefaultOptions);
+        private static readonly Regex ColonRegex = new(":", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Regex pattern: Any characters followed by a colon
@@ -61,7 +59,7 @@ namespace YARG.Menu.MusicLibrary
         ///          but as few times as possible (?), until the next part of the pattern is matched.
         /// - :: Matches the colon character literally.
         /// </summary>
-        private static readonly Regex WordsAfterColonRegex = new("^(.*?):", DefaultOptions);
+        private static readonly Regex WordsAfterColonRegex = new("^(.*?):", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Regex pattern to match a whole word
@@ -70,7 +68,7 @@ namespace YARG.Menu.MusicLibrary
         /// - \w+: Matches one or more word characters (i.e., letters, digits, or underscores).
         /// - \b: Asserts another word boundary.
         /// </summary>
-        private static readonly Regex WholeWordRegex = new(@"\b\w+\b", DefaultOptions);
+        private static readonly Regex WholeWordRegex = new(@"\b\w+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private void OnEnable()
         {
