@@ -11,7 +11,6 @@ using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Persistent;
-using YARG.Menu.SongSearching;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
