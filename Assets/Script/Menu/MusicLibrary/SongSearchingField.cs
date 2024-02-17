@@ -48,20 +48,6 @@ namespace YARG.Menu.MusicLibrary
         private static string _fullSearchQuery = string.Empty;
 
         /// <summary>
-        /// Regex pattern: Only colon
-        /// </summary>
-        private static readonly Regex ColonRegex = new(":", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-        /// <summary>
-        /// Regex pattern: Any characters followed by a colon
-        /// - ^: Asserts the start of the string.
-        /// - (.*?): This is a non-greedy capture group that matches any character (.) zero or more times (*),
-        ///          but as few times as possible (?), until the next part of the pattern is matched.
-        /// - :: Matches the colon character literally.
-        /// </summary>
-        private static readonly Regex WordsAfterColonRegex = new("^(.*?):", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-        /// <summary>
         /// Regex pattern to match a whole word
         /// - \b: Asserts a word boundary, matching the position between a word character (i.e., a letter,
         ///       digit, or underscore) and a non-word character (or vice versa).
@@ -129,36 +115,6 @@ namespace YARG.Menu.MusicLibrary
         {
             if (_currentSearchFilter == SongAttribute.Unspecified)
             {
-                if (ColonRegex.IsMatch(_searchField.text))
-                {
-                    var match = WordsAfterColonRegex.Match(_searchField.text);
-                    if (match.Success)
-                    {
-                        var filter = match.Groups[1].Value;
-
-                        _currentSearchFilter = filter.ToLowerInvariant() switch
-                        {
-                            "name"       => SongAttribute.Name,
-                            "title"      => SongAttribute.Name,
-                            "artist"     => SongAttribute.Artist,
-                            "album"      => SongAttribute.Album,
-                            "genre"      => SongAttribute.Genre,
-                            "source"     => SongAttribute.Source,
-                            "charter"    => SongAttribute.Charter,
-                            "instrument" => SongAttribute.Instrument,
-                            "year"       => SongAttribute.Year,
-                            _            => SongAttribute.Unspecified
-                        };
-
-                        ActivateFilterButton(_currentSearchFilter);
-
-                        _fullSearchQuery += ":";
-                        _searchField.text = string.Empty;
-
-                        return _searchContext.Search(_fullSearchQuery, sort);
-                    }
-                }
-
                 _searchQueries[_currentSearchFilter] = _searchField.text;
                 _fullSearchQuery = _searchQueries[_currentSearchFilter];
             }
