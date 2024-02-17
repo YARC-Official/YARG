@@ -1,5 +1,6 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
+using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Settings;
@@ -45,12 +46,21 @@ namespace YARG.Menu.Main
                 NavigationScheme.Entry.NavigateSelect,
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
+                new NavigationScheme.Entry(MenuAction.Select, "Go To Currently Playing", CurrentlyPlaying),
             }, true));
         }
 
         private void OnDisable()
         {
             Navigator.Instance.PopScheme();
+        }
+
+        public void CurrentlyPlaying()
+        {
+            MusicLibraryMenu.InitialSelect = GlobalVariables.Instance.CurrentSong;
+            MusicLibraryMenu.SetRefresh();
+
+            QuickPlay();
         }
 
         public void QuickPlay()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -31,6 +31,9 @@ namespace YARG.Menu.MusicLibrary
         public static MusicLibraryMode LibraryMode;
 
         public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
+
+        public static SongMetadata InitialSelect = null;
+
 #nullable enable
         private static List<SongMetadata>? _recommendedSongs;
 #nullable disable
@@ -101,6 +104,11 @@ namespace YARG.Menu.MusicLibrary
             // Get songs
             if (_doRefresh)
             {
+                if (InitialSelect != null)
+                {
+                    _currentSong = InitialSelect;
+                }
+
                 Refresh();
                 _doRefresh = false;
             }
@@ -110,6 +118,8 @@ namespace YARG.Menu.MusicLibrary
                 // Restore index
                 SelectedIndex = _savedIndex;
             }
+            
+            InitialSelect = null;
 
             // Set proper text
             _subHeader.text = LibraryMode switch

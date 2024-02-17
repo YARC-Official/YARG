@@ -82,6 +82,8 @@ namespace YARG.Helpers.Extensions
 
         public static void LoadAudio(this SongMetadata song, IAudioManager manager, float speed, params SongStem[] ignoreStems)
         {
+            GlobalVariables.Instance.CurrentSong = song;
+
             if (song.IniData != null)
             {
                 LoadIniAudio(song.IniData, manager, speed, ignoreStems);
