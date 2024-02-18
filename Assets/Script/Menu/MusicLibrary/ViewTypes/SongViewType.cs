@@ -13,13 +13,12 @@ namespace YARG.Menu.MusicLibrary
         public override BackgroundType Background => BackgroundType.Normal;
         public override bool UseAsMadeFamousBy => !SongMetadata.IsMaster;
 
-        private readonly MusicLibraryMenu _musicLibraryMenu;
+        private readonly SongSearchingField _songSearchingField;
         public readonly SongMetadata SongMetadata;
 
-        public SongViewType(MusicLibraryMenu musicLibraryMenu, SongMetadata songMetadata)
+        public SongViewType(SongSearchingField songSearchingField, SongMetadata songMetadata)
         {
-            _musicLibraryMenu = musicLibraryMenu;
-
+            _songSearchingField = songSearchingField;
             SongMetadata = songMetadata;
         }
 
@@ -55,8 +54,7 @@ namespace YARG.Menu.MusicLibrary
         public override void SecondaryTextClick()
         {
             base.SecondaryTextClick();
-
-           _musicLibraryMenu.SetSearchInput($"artist:{SongMetadata.Artist.SortStr}");
+           _songSearchingField.SetSearchInput(SongAttribute.Artist, SongMetadata.Artist.SortStr);
         }
 
         public override void PrimaryButtonClick()
@@ -72,8 +70,7 @@ namespace YARG.Menu.MusicLibrary
         public override void IconClick()
         {
             base.IconClick();
-
-           _musicLibraryMenu.SetSearchInput($"source:{SongMetadata.Source.SortStr}");
+           _songSearchingField.SetSearchInput(SongAttribute.Source, SongMetadata.Source.SortStr);
         }
     }
 }
