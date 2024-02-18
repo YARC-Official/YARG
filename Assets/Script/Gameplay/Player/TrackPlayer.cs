@@ -67,6 +67,8 @@ namespace YARG.Gameplay.Player
         protected bool PreviousBassGrooveState;
         protected double PreviousStarPowerAmount;
 
+        protected bool IsBass;
+
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             int? currentHighScore)
         {
@@ -96,6 +98,12 @@ namespace YARG.Gameplay.Player
             // Move the HUD location based on the highway length
             var change = ZeroFadePosition - DEFAULT_ZERO_FADE_POS;
             _hudLocation.position = _hudLocation.position.AddZ(change);
+
+            // Determine if a track is bass or not for the BASS GROOVE text notification
+            IsBass = Player.Profile.CurrentInstrument.Equals(Instrument.FiveFretBass)
+                || Player.Profile.CurrentInstrument.Equals(Instrument.SixFretBass)
+                || Player.Profile.CurrentInstrument.Equals(Instrument.ProBass_17Fret)
+                || Player.Profile.CurrentInstrument.Equals(Instrument.ProBass_22Fret);
         }
 
         protected override void ResetVisuals()
@@ -260,7 +268,7 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            bool currentBassGrooveState = stats.ScoreMultiplier == 6;
+            bool currentBassGrooveState = IsBass && stats.ScoreMultiplier == BaseParameters.MaxMultiplier;
 
             if (!PreviousBassGrooveState && currentBassGrooveState)
             {
@@ -373,6 +381,7 @@ namespace YARG.Gameplay.Player
 
             if (index == Notes.Count - 1 && note.ParentOrSelf.WasFullyHit())
             {
+                // 30 to coincide with 4x multiplier (including on bass)
                 if (Combo >= 30)
                 {
                     TrackView.ShowStrongFinish();
