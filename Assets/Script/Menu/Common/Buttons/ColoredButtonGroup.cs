@@ -91,7 +91,11 @@ namespace YARG
                     if (_trackPreviousButtons)
                     {
                         ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.DarkButton);
-                        _prevActivatedButtons.Add(ActiveButton);
+
+                        if (!_prevActivatedButtons.Contains(ActiveButton))
+                        {
+                            _prevActivatedButtons.Add(ActiveButton);
+                        }
                     }
                     else
                     {
