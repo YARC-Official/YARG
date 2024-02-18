@@ -96,10 +96,6 @@ namespace YARG.Gameplay.Player
             // Move the HUD location based on the highway length
             var change = ZeroFadePosition - DEFAULT_ZERO_FADE_POS;
             _hudLocation.position = _hudLocation.position.AddZ(change);
-
-            // Initialize text notification variables
-            IsHotStartChecked = false;
-            PreviousBassGrooveState = false;
         }
 
         protected override void ResetVisuals()
