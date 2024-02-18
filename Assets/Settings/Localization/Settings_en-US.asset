@@ -1120,11 +1120,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 119174220057927680
-    m_Localized: Sparse (50, 100, 250, 500, 750, ...)
+    m_Localized: 50, 100, 250, 500, 750, ...
     m_Metadata:
       m_Items: []
   - m_Id: 119174161593524224
-    m_Localized: Frequent (50, 100, 200, 300, 400, ...)
+    m_Localized: 50, 100, 200, 300, ...
     m_Metadata:
       m_Items: []
   references:
