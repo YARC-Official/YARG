@@ -93,6 +93,7 @@ namespace YARG.Gameplay
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
+            var global = GlobalVariables.Instance;
             // Disable until everything's loaded
             enabled = false;
 
@@ -106,9 +107,15 @@ namespace YARG.Gameplay
             // Load song
             if (IsReplay)
             {
-                var replayTask = UniTask.RunOnThreadPool(LoadReplay);
-                LoadingManager.Instance.Queue(replayTask, "Loading replay...");
-                await replayTask;
+                if (!global.SongContainer.SongsByHash.TryGetValue(global.CurrentReplay.SongChecksum, out var songs))
+                {
+                    ToastManager.ToastWarning("Song not present in library");
+                    global.LoadScene(SceneIndex.Menu);
+                    return;
+                }
+
+                Song = songs[0];
+                LoadingManager.Instance.Queue(UniTask.RunOnThreadPool(LoadReplay), "Loading replay...");
                 _replayController.gameObject.SetActive(true);
             }
 
@@ -120,7 +127,7 @@ namespace YARG.Gameplay
             {
                 ToastManager.ToastWarning("Chart requires a rescan!");
 
-                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                global.LoadScene(SceneIndex.Menu);
                 return;
             }
 
@@ -129,7 +136,7 @@ namespace YARG.Gameplay
                 Debug.LogError(_loadFailureMessage);
                 ToastManager.ToastError(_loadFailureMessage);
 
-                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                global.LoadScene(SceneIndex.Menu);
                 return;
             }
 
@@ -137,7 +144,7 @@ namespace YARG.Gameplay
 
             // Initialize song runner
             _songRunner = new SongRunner(
-                GlobalVariables.Instance.SongSpeed,
+                global.SongSpeed,
                 SettingsManager.Settings.AudioCalibration.Value,
                 SettingsManager.Settings.VideoCalibration.Value,
                 Song.SongOffsetSeconds);
@@ -181,26 +188,21 @@ namespace YARG.Gameplay
         private void LoadReplay()
         {
             ReplayFile replayFile;
-            ReplayReadResult result;
             try
             {
-                result = ReplayContainer.LoadReplayFile(GlobalVariables.Instance.CurrentReplay, out replayFile);
+                var result = ReplayContainer.LoadReplayFile(GlobalVariables.Instance.CurrentReplay, out replayFile);
+                if (result != ReplayReadResult.Valid)
+                {
+                    _loadState = LoadFailureState.Error;
+                    _loadFailureMessage = "Failed to load replay!";
+                    return;
+                }
             }
             catch (Exception ex)
             {
                 _loadState = LoadFailureState.Error;
                 _loadFailureMessage = "Failed to load replay!";
                 Debug.LogException(ex, this);
-                return;
-            }
-
-            Song = GlobalVariables.Instance.SongContainer.SongsByHash[
-                GlobalVariables.Instance.CurrentReplay.SongChecksum][0];
-
-            if (Song is null || result != ReplayReadResult.Valid)
-            {
-                _loadState = LoadFailureState.Error;
-                _loadFailureMessage = "Failed to load replay!";
                 return;
             }
 
