@@ -106,12 +106,14 @@ namespace YARG.Gameplay
             // Load song
             if (IsReplay)
             {
-                LoadingManager.Instance.Queue(LoadReplay, "Loading replay...");
+                var replayTask = UniTask.RunOnThreadPool(LoadReplay);
+                LoadingManager.Instance.Queue(replayTask, "Loading replay...");
+                await replayTask;
                 _replayController.gameObject.SetActive(true);
             }
 
-            LoadingManager.Instance.Queue(LoadChart, "Loading chart...");
-            LoadingManager.Instance.Queue(LoadAudio, "Loading audio...");
+            LoadingManager.Instance.Queue(UniTask.RunOnThreadPool(LoadChart), "Loading chart...");
+            LoadingManager.Instance.Queue(UniTask.RunOnThreadPool(LoadAudio), "Loading audio...");
             await LoadingManager.Instance.StartLoad();
 
             if (_loadState == LoadFailureState.Rescan)
@@ -178,7 +180,7 @@ namespace YARG.Gameplay
 
         private void LoadReplay()
         {
-            ReplayFile replayFile = null;
+            ReplayFile replayFile;
             ReplayReadResult result;
             try
             {

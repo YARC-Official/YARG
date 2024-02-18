@@ -81,10 +81,9 @@ namespace YARG
         /// <param name="Action"></param>
         /// <param name="title"></param>
         /// <param name="sub"></param>
-        public void Queue(Action Action, string title = "Loading...", string sub = null)
+        public void Queue(UniTask task, string title = "Loading...", string sub = null)
         {
-            var func = UniTask.RunOnThreadPool(Action);
-            Queue(() => func, title, sub);  
+            Queue(() => task, title, sub);
         }
 
         /// <summary>
