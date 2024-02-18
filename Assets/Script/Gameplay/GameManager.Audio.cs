@@ -37,10 +37,9 @@ namespace YARG.Gameplay
             // The stem states are initialized in "CreatePlayers"
             _stemStates.Clear();
             _stemStates.Add(SongStem.Song, new StemState
-                { Total = 1});
-
-            bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
-            GlobalVariables.AudioManager.Options.UseMinimumStemVolume = isYargSong;
+            {
+                Total = 1
+            });
 
             await UniTask.RunOnThreadPool(() =>
             {
@@ -56,6 +55,9 @@ namespace YARG.Gameplay
                     Debug.LogException(ex, this);
                 }
             });
+
+            bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
+            GlobalVariables.AudioManager.Options.UseMinimumStemVolume = isYargSong;
 
             if (_loadState != LoadFailureState.None) return;
 
