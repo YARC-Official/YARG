@@ -64,6 +64,8 @@ namespace YARG.Menu.MusicLibrary
         public void Restore()
         {
             _searchField.text = _searchQueries[_currentSearchFilter];
+
+            _searchFilters.DeactivateAllButtons();
             ActivateFilterButton(_currentSearchFilter);
         }
 
