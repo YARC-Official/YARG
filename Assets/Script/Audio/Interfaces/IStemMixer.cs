@@ -40,6 +40,6 @@ namespace YARG.Audio
 
         public bool RemoveChannel(SongStem stemToRemove);
 
-        public TChannel[] GetChannels(SongStem stem);
+        public TChannel? GetChannel(SongStem stem);
     }
 }

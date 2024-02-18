@@ -288,9 +288,9 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public BassStemChannel[] GetChannels(SongStem stem)
+        public BassStemChannel? GetChannel(SongStem stem)
         {
-            return _channels.ToArray();
+            return _channels.Find(channel => channel.Stem == stem);
         }
 
         public void Dispose()

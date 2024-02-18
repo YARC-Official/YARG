@@ -502,12 +502,7 @@ namespace YARG.Audio.BASS
 
         public void SetStemVolume(SongStem stem, double volume)
         {
-            if (_mixer == null)
-                return;
-
-            var stemChannels = _mixer.GetChannels(stem);
-            for (int i = 0; i < stemChannels.Length; ++i)
-                stemChannels[i].SetVolume(this, volume);
+            _mixer?.GetChannel(stem)?.SetVolume(this, volume);
         }
 
         public void SetAllStemsVolume(double volume)
@@ -555,10 +550,7 @@ namespace YARG.Audio.BASS
 
         public void ApplyReverb(SongStem stem, bool reverb)
         {
-            if (_mixer == null) return;
-
-            foreach (var channel in _mixer.GetChannels(stem))
-                channel.SetReverb(this, reverb);
+            _mixer?.GetChannel(stem)?.SetReverb(this, reverb);
         }
 
         public void SetSpeed(float speed)
@@ -568,10 +560,10 @@ namespace YARG.Audio.BASS
 
         public void SetWhammyPitch(SongStem stem, float percent)
         {
-            if (_mixer == null || !AudioHelpers.PitchBendAllowedStems.Contains(stem)) return;
-
-            foreach (var channel in _mixer.GetChannels(stem))
-                channel.SetWhammyPitch(this, percent);
+            if (_mixer != null && AudioHelpers.PitchBendAllowedStems.Contains(stem))
+            {
+                _mixer.GetChannel(stem)?.SetWhammyPitch(this, percent);
+            }
         }
 
         public double GetPosition(bool bufferCompensation = true)
