@@ -27,8 +27,19 @@ namespace YARG
         {
             foreach (var button in _buttons)
             {
-                button.OnClick.RemoveAllListeners();
                 button.OnClick.AddListener(() => OnClick(button));
+                button.PointerEnter += OnPointerEnter;
+                button.PointerExit += OnPointerExit;
+            }
+        }
+
+        private void OnDisable()
+        {
+            foreach (var button in _buttons)
+            {
+                button.OnClick.RemoveAllListeners();
+                button.PointerEnter -= OnPointerEnter;
+                button.PointerExit -= OnPointerExit;
             }
         }
 
@@ -111,11 +122,41 @@ namespace YARG
             }
             else
             {
+                _prevActivatedButtons.Remove(ActiveButton);
+
                 ActiveButton.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton, MenuData.Colors.BrightText, MenuData.Colors.DeactivatedText);
                 ActiveButton = null;
             }
 
             ClickedButton?.Invoke();
+        }
+
+        private void OnPointerEnter(ColoredButton button)
+        {
+            if (ActiveButton == button)
+            {
+                button.SetBackgroundAndTextColor(MenuData.Colors.CancelButton);
+            }
+            else
+            {
+                button.SetBackgroundAndTextColor(MenuData.Colors.ConfirmButton);
+            }
+        }
+
+        private void OnPointerExit(ColoredButton button)
+        {
+            if (ActiveButton == button)
+            {
+                button.SetBackgroundAndTextColor(MenuData.Colors.BrightButton);
+            }
+            else if (_prevActivatedButtons.Contains(button))
+            {
+                button.SetBackgroundAndTextColor(MenuData.Colors.DarkButton);
+            }
+            else
+            {
+                button.SetBackgroundAndTextColor(MenuData.Colors.DeactivatedButton, MenuData.Colors.BrightText, MenuData.Colors.DeactivatedText);
+            }
         }
     }
 }
