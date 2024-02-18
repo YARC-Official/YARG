@@ -107,6 +107,26 @@ namespace YARG.Gameplay.HUD
             _textNotifications.ShowFullCombo();
         }
 
+        public void ShowHotStart()
+        {
+            _textNotifications.ShowHotStart();
+        }
+
+        public void ShowBassGroove()
+        {
+            _textNotifications.ShowBassGroove();
+        }
+
+        public void ShowStarPowerReady()
+        {
+            _textNotifications.ShowStarPowerReady();
+        }
+
+        public void ShowStrongFinish()
+        {
+            _textNotifications.ShowStrongFinish();
+        }
+
         public void ForceReset()
         {
             _textNotifications.gameObject.SetActive(true);

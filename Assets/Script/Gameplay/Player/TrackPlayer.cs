@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
@@ -62,6 +63,10 @@ namespace YARG.Gameplay.Player
         protected List<Beatline> Beatlines;
         protected int BeatlineIndex;
 
+        protected bool IsHotStartChecked;
+        protected bool PreviousBassGrooveState;
+        protected double PreviousStarPowerAmount;
+
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             int? currentHighScore)
         {
@@ -91,6 +96,10 @@ namespace YARG.Gameplay.Player
             // Move the HUD location based on the highway length
             var change = ZeroFadePosition - DEFAULT_ZERO_FADE_POS;
             _hudLocation.position = _hudLocation.position.AddZ(change);
+
+            // Initialize text notification variables
+            IsHotStartChecked = false;
+            PreviousBassGrooveState = false;
         }
 
         protected override void ResetVisuals()
@@ -245,6 +254,34 @@ namespace YARG.Gameplay.Player
 
             TrackView.UpdateNoteStreak(stats.Combo);
 
+            if (!IsHotStartChecked && stats.ScoreMultiplier == 4)
+            {
+                IsHotStartChecked = true;
+
+                if (IsFc)
+                {
+                    TrackView.ShowHotStart();
+                }
+            }
+
+            bool currentBassGrooveState = stats.ScoreMultiplier == 6;
+
+            if (!PreviousBassGrooveState && currentBassGrooveState)
+            {
+                TrackView.ShowBassGroove();
+            }
+
+            PreviousBassGrooveState = currentBassGrooveState;
+
+            double currentStarPowerAmount = stats.StarPowerAmount;
+
+            if (!stats.IsStarPowerActive && PreviousStarPowerAmount < 0.5 && currentStarPowerAmount >= 0.5)
+            {
+                TrackView.ShowStarPowerReady();
+            }
+
+            PreviousStarPowerAmount = currentStarPowerAmount;
+
             foreach (var haptics in SantrollerHaptics)
             {
                 haptics.SetStarPowerFill((float) BaseStats.StarPowerAmount);
@@ -338,9 +375,17 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            if (index == Notes.Count - 1 && IsFc && note.ParentOrSelf.WasFullyHit())
+            if (index == Notes.Count - 1 && note.ParentOrSelf.WasFullyHit())
             {
-                TrackView.ShowFullCombo();
+                if (Combo >= 30)
+                {
+                    TrackView.ShowStrongFinish();
+                }
+
+                if (IsFc)
+                {
+                    TrackView.ShowFullCombo();
+                }
             }
 
             _lastCombo = Combo;

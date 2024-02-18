@@ -125,6 +125,14 @@ namespace YARG.Settings
             public ToggleSetting ShowHitWindow            { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 
+            public DropdownSetting<NoteStreakFrequencyMode> NoteStreakFrequency { get; }
+                = new(NoteStreakFrequencyMode.Frequent)
+            {
+                NoteStreakFrequencyMode.Frequent,
+                NoteStreakFrequencyMode.Sparse,
+                NoteStreakFrequencyMode.Disabled
+            };
+
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; } = new(SongProgressMode.CountUpOnly)
             {
                 SongProgressMode.None,

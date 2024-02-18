@@ -5,6 +5,13 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
+    public enum NoteStreakFrequencyMode
+    {
+        Frequent,
+        Sparse,
+        Disabled
+    }
+
     public class TextNotifications : MonoBehaviour
     {
         [SerializeField]
@@ -46,6 +53,26 @@ namespace YARG.Gameplay.HUD
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.FullCombo, "FULL COMBO"));
         }
 
+        public void ShowHotStart()
+        {
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.HotStart, "HOT START"));
+        }
+
+        public void ShowBassGroove()
+        {
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.BassGroove, "BASS GROOVE"));
+        }
+
+        public void ShowStarPowerReady()
+        {
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StarPowerReady, "OVERDRIVE READY"));
+        }
+
+        public void ShowStrongFinish()
+        {
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StrongFinish, "STRONG FINISH"));
+        }
+
         public void UpdateNoteStreak(int streak)
         {
             // Don't build up notifications during a solo
@@ -67,7 +94,11 @@ namespace YARG.Gameplay.HUD
             // Queue the note streak notification
             if (_streak >= _nextStreakCount)
             {
-                _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NoteStreak, $"{_nextStreakCount}-NOTE STREAK"));
+                if (!SettingsManager.Settings.NoteStreakFrequency.ValueEquals(NoteStreakFrequencyMode.Sparse))
+                {
+                    _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NoteStreak,
+                        $"{_nextStreakCount}-NOTE STREAK"));
+                }
                 NextNoteStreakNotification();
             }
         }
@@ -105,20 +136,42 @@ namespace YARG.Gameplay.HUD
 
         private void NextNoteStreakNotification()
         {
-            switch (_nextStreakCount)
+            if (SettingsManager.Settings.NoteStreakFrequency.ValueEquals(NoteStreakFrequencyMode.Frequent))
             {
-                case 0:
-                    _nextStreakCount = 50;
-                    break;
-                case 50:
-                    _nextStreakCount = 100;
-                    break;
-                case 100:
-                    _nextStreakCount = 250;
-                    break;
-                case >= 250:
-                    _nextStreakCount += 250;
-                    break;
+                switch (_nextStreakCount)
+                {
+                    case 0:
+                        _nextStreakCount = 50;
+                        break;
+                    case 50:
+                        _nextStreakCount = 100;
+                        break;
+                    case >= 100:
+                        _nextStreakCount += 100;
+                        break;
+                }
+            }
+            else if (SettingsManager.Settings.NoteStreakFrequency.ValueEquals(NoteStreakFrequencyMode.Sparse))
+            {
+                switch (_nextStreakCount)
+                {
+                    case 0:
+                        _nextStreakCount = 50;
+                        break;
+                    case 50:
+                        _nextStreakCount = 100;
+                        break;
+                    case 100:
+                        _nextStreakCount = 250;
+                        break;
+                    case >= 250:
+                        _nextStreakCount += 250;
+                        break;
+                }
+            }
+            else
+            {
+                _nextStreakCount = int.MaxValue;
             }
         }
 
