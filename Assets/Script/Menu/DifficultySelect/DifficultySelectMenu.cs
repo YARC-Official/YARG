@@ -524,7 +524,7 @@ namespace YARG.Menu.DifficultySelect
             CreateItem(null, body, selected, a);
         }
 
-        private bool HasPlayableInstrument(AvailableParts parts, Instrument instrument)
+        private bool HasPlayableInstrument(in AvailableParts parts, in Instrument instrument)
         {
             // For vocals, all players *must* select the same gamemode (solo/harmony)
             if (instrument is Instrument.Vocals or Instrument.Harmony)
@@ -558,7 +558,7 @@ namespace YARG.Menu.DifficultySelect
             };
         }
 
-        private bool HasPlayableDifficulty(AvailableParts parts, Instrument instrument, Difficulty difficulty)
+        private bool HasPlayableDifficulty(in AvailableParts parts, in Instrument instrument, in Difficulty difficulty)
         {
             // For vocals, insert special difficulties
             if (instrument is Instrument.Vocals or Instrument.Harmony)

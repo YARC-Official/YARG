@@ -159,7 +159,7 @@ namespace YARG.Menu.MusicLibrary
             LoadAlbumCover();
         }
 
-        private void UpdateDifficulties(AvailableParts parts)
+        private void UpdateDifficulties(in AvailableParts parts)
         {
             // Show all difficulty rings
             foreach (var difficultyRing in _difficultyRings)
@@ -234,7 +234,7 @@ namespace YARG.Menu.MusicLibrary
                 _difficultyRings[6].SetInfo("rhythm", "FiveFretRhythm", parts[Instrument.FiveFretRhythm]);
             }
 
-            _difficultyRings[7].SetInfo("trueDrums", "TrueDrums", new PartValues(-1));
+            _difficultyRings[7].SetInfo("trueDrums", "TrueDrums", PartValues.Default);
             _difficultyRings[8].SetInfo("realKeys", "ProKeys", parts[Instrument.ProKeys]);
             _difficultyRings[9].SetInfo("band", "Band", parts[Instrument.Band]);
         }
