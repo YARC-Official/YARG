@@ -36,10 +36,14 @@ namespace YARG.Audio
 
         public void SetSpeed(float speed);
 
+#nullable enable
         public int AddChannel(BassStemChannel channel, int[]? indices, float[]? panning);
+#nullable disable
 
         public bool RemoveChannel(SongStem stemToRemove);
 
+#nullable enable
         public TChannel? GetChannel(SongStem stem);
+#nullable disable
     }
 }

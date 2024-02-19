@@ -30,6 +30,7 @@ namespace YARG.Audio.BASS
             return new BassStemChannel(stem, volume, sourceStream, pitchparams, streamHandles, reverbHandles);
         }
 
+#nullable enable
         public static BassStemChannel? CreateChannel(IAudioManager manager, int sourceStream, SongStem stem, float speed, int[] indices)
 #nullable disable
         {

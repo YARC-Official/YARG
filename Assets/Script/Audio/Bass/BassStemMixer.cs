@@ -204,7 +204,9 @@ namespace YARG.Audio.BASS
             }
         }
 
+#nullable enable
         public int AddChannel(BassStemChannel channel, int[]? indices, float[]? panning)
+#nullable disable
         {
             if (_channels.Any(ch => ch.Stem == channel.Stem))
             {
@@ -288,7 +290,9 @@ namespace YARG.Audio.BASS
             return true;
         }
 
+#nullable enable
         public BassStemChannel? GetChannel(SongStem stem)
+#nullable disable
         {
             return _channels.Find(channel => channel.Stem == stem);
         }
