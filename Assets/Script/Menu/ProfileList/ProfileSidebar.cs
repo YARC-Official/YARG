@@ -126,6 +126,12 @@ namespace YARG.Menu.ProfileList
             _profile = profile;
             _profileView = profileView;
 
+            if (!PlayerContainer.IsProfileTaken(_profile))
+            {
+                _contents.SetActive(false);
+                return;
+            }
+
             _contents.SetActive(true);
 
             // Display the profile's options

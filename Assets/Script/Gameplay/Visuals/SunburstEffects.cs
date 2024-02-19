@@ -1,4 +1,5 @@
 using UnityEngine;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -17,6 +18,8 @@ namespace YARG.Gameplay.Visuals
 
         public void SetSunburstEffects(bool groove, bool starpower)
         {
+            starpower &= SettingsManager.Settings.StarPowerHighwayFx.Value != StarPowerHighwayFxMode.Off;
+
             _grooveSunburstEffect.SetActive(groove && !starpower);
             _grooveLightEffect.SetActive(groove && !starpower);
 

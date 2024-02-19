@@ -115,6 +115,13 @@ namespace YARG.Settings
             public ToggleSetting LowQuality   { get; } = new(false, LowQualityCallback);
             public ToggleSetting DisableBloom { get; } = new(false, DisableBloomCallback);
 
+            public DropdownSetting<StarPowerHighwayFxMode> StarPowerHighwayFx { get; } = new(StarPowerHighwayFxMode.On)
+            {
+                StarPowerHighwayFxMode.On,
+                StarPowerHighwayFxMode.Reduced,
+                StarPowerHighwayFxMode.Off
+            };
+
             public ToggleSetting ShowHitWindow            { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 

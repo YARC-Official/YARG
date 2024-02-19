@@ -4,6 +4,13 @@ using UnityEngine.Rendering.Universal;
 
 namespace YARG
 {
+    public enum StarPowerHighwayFxMode
+    {
+        On,
+        Reduced,
+        Off
+    }
+
     public class GraphicsManager : MonoSingleton<GraphicsManager>
     {
         [SerializeField]

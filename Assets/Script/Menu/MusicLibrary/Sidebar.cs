@@ -47,10 +47,12 @@ namespace YARG.Menu.MusicLibrary
         private ViewType _currentView;
 
         private MusicLibraryMenu _musicLibraryMenu;
+        private SongSearchingField _songSearchingField;
 
-        public void Initialize(MusicLibraryMenu musicLibraryMenu)
+        public void Initialize(MusicLibraryMenu musicLibraryMenu, SongSearchingField songSearchingField)
         {
             _musicLibraryMenu = musicLibraryMenu;
+            _songSearchingField = songSearchingField;
 
             for (int i = 0; i < 5; ++i)
             {
@@ -271,17 +273,24 @@ namespace YARG.Menu.MusicLibrary
 
             var songEntry = songViewType.SongMetadata;
 
-            string value = type switch
+            switch (type)
             {
-                "source"  => songEntry.Source.SortStr,
-                "album"   => songEntry.Album.SortStr,
-                "year"    => songEntry.Year,
-                "charter" => songEntry.Charter.SortStr,
-                "genre"   => songEntry.Genre.SortStr,
-                _         => throw new Exception("Unreachable")
-            };
-
-            _musicLibraryMenu.SetSearchInput($"{type}:{value}");
+                case "source":
+                    _songSearchingField.SetSearchInput(SongAttribute.Source, songEntry.Source.SortStr);
+                    break;
+                case "album":
+                    _songSearchingField.SetSearchInput(SongAttribute.Album, songEntry.Album.SortStr);
+                    break;
+                case "year":
+                    _songSearchingField.SetSearchInput(SongAttribute.Year, songEntry.Year);
+                    break;
+                case "charter":
+                    _songSearchingField.SetSearchInput(SongAttribute.Charter, songEntry.Charter.SortStr);
+                    break;
+                case "genre":
+                    _songSearchingField.SetSearchInput(SongAttribute.Genre, songEntry.Genre.SortStr);
+                    break;
+            }
         }
     }
 }

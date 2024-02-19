@@ -100,7 +100,7 @@ namespace YARG.Menu.DifficultySelect
                 })
             }, false));
 
-            _speedInput.text = "100%";
+            _speedInput.text = $"{(int)(GlobalVariables.Instance.SongSpeed * 100f)}%";
 
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
@@ -580,10 +580,12 @@ namespace YARG.Menu.DifficultySelect
 
         public void SongSpeedEndEdit(string text)
         {
-            if (!int.TryParse(text.TrimEnd('%'), NumberStyles.Number, null, out int speed))
+            if (!float.TryParse(text.TrimEnd('%'), NumberStyles.Number, null, out var speed))
                 speed = 100;
-            speed = Math.Clamp(speed, 10, 4995);
-            _speedInput.SetTextWithoutNotify($"{speed}%");
+
+            int intSpeed = (int)Math.Clamp(speed, 10, 4995);
+
+            _speedInput.SetTextWithoutNotify($"{intSpeed}%");
         }
     }
 }

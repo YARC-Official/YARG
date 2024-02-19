@@ -22,12 +22,12 @@ namespace YARG.Menu.MusicLibrary
         private Sprite[] _ringSprites;
 
         private Button _searchButton;
-        private MusicLibraryMenu _musicLibraryMenu;
+        private SongSearchingField _songSearchingField;
 
         private void Awake()
         {
             _searchButton = GetComponent<Button>();
-            _musicLibraryMenu = GetComponentInParent<MusicLibraryMenu>();
+            _songSearchingField = FindObjectOfType<SongSearchingField>();
         }
 
         public void SetInfo(string assetName, string filter, PartValues values)
@@ -68,7 +68,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void SearchFilter(string instrument)
         {
-            _musicLibraryMenu.SetSearchInput($"instrument:{instrument}");
+            _songSearchingField.SetSearchInput(SongAttribute.Instrument, instrument);
         }
 
         private void OnDestroy()

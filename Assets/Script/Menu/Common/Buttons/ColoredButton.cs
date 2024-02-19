@@ -1,11 +1,13 @@
+using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YARG.Menu.Data;
 
 namespace YARG.Menu
 {
-    public class ColoredButton : MonoBehaviour
+    public class ColoredButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         [SerializeField]
         private Button _button;
@@ -34,6 +36,7 @@ namespace YARG.Menu
         }
 
         public Button.ButtonClickedEvent OnClick => _button.onClick;
+        public Action<ColoredButton> PointerEnter, PointerExit;
 
         /// <summary>
         /// Sets the background color, and updates the text color based on the
@@ -59,6 +62,16 @@ namespace YARG.Menu
         {
             BackgroundColor = background;
             _text.color = MenuColors.GetBestTextColor(background, brightColor, darkColor);
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            PointerEnter?.Invoke(this);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            PointerExit?.Invoke(this);
         }
     }
 }

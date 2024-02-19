@@ -171,11 +171,24 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            _settingName.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{settingNav.UnlocalizedName}");
+            // Set the setting name and description
+            var unlocalized = settingNav.BaseSettingVisual.UnlocalizedName;
+            if (!settingNav.BaseSettingVisual.IsPresetSetting)
+            {
+                _settingName.StringReference = LocaleHelper.StringReference("Settings",
+                    $"Setting.{unlocalized}");
 
-            _settingDescription.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{settingNav.UnlocalizedName}.Description");
+                _settingDescription.StringReference = LocaleHelper.StringReference("Settings",
+                    $"Setting.{unlocalized}.Description");
+            }
+            else
+            {
+                _settingName.StringReference = LocaleHelper.StringReference("Settings",
+                    $"PresetSetting.{unlocalized}");
+
+                _settingDescription.StringReference = LocaleHelper.StringReference("Settings",
+                    $"PresetSetting.{unlocalized}.Description");
+            }
         }
 
         public void RefreshPreview(bool waitForResolution = false)

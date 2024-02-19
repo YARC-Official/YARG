@@ -94,6 +94,12 @@ namespace YARG.Menu.MusicLibrary
         {
             SetHeader(null);
 
+            CreateItem("Random Song", () =>
+            {
+                _musicLibrary.SelectRandomSong();
+                gameObject.SetActive(false);
+            });
+
             CreateItem("Sort By: " + MusicLibraryMenu.Sort.ToLocalizedName(), () =>
             {
                 _menuState = State.SortSelect;
@@ -104,12 +110,6 @@ namespace YARG.Menu.MusicLibrary
             {
                 _menuState = State.GoToSection;
                 UpdateForState();
-            });
-
-            CreateItem("Random Song", () =>
-            {
-                _musicLibrary.SelectRandomSong();
-                gameObject.SetActive(false);
             });
 
             CreateItem("Back To Top", () =>
