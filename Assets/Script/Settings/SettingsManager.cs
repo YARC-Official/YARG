@@ -111,6 +111,7 @@ namespace YARG.Settings
             {
                 new HeaderMetadata("LightingGeneral"),
                 nameof(Settings.StageKitEnabled),
+                nameof(Settings.LogitechEnabled),
                 nameof(Settings.DMXEnabled),
                 new HeaderMetadata("DMXChannels"),
                 nameof(Settings.DMXDimmerChannels),

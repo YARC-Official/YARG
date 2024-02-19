@@ -1027,6 +1027,14 @@ MonoBehaviour:
     m_Key: Tab.Sound
     m_Metadata:
       m_Items: []
+  - m_Id: 119787851099561984
+    m_Key: Setting.LogitechEnabled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119787958100451328
+    m_Key: Setting.LogitechEnabled.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

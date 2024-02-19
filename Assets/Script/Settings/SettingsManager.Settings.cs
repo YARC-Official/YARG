@@ -179,6 +179,7 @@ namespace YARG.Settings
             #region Lighting Peripherals
 
             public ToggleSetting StageKitEnabled { get; } = new(true);
+            public ToggleSetting LogitechEnabled { get; } = new(true);
             public ToggleSetting DMXEnabled      { get; } = new(false, DMXEnabledCallback);
 
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(

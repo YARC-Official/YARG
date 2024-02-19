@@ -1086,6 +1086,15 @@ MonoBehaviour:
       slow (64), medium (127), fast (191), fastest (255).
     m_Metadata:
       m_Items: []
+  - m_Id: 119787851099561984
+    m_Localized: Enable Logitech RGB
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119787958100451328
+    m_Localized: 'A basic implementation of mapping the Stage Kit effects to Logitech
+      keyboards. '
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
