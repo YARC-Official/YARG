@@ -1092,7 +1092,7 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 119787958100451328
     m_Localized: 'A basic implementation of mapping the Stage Kit effects to Logitech
-      keyboards. '
+      keyboards. G Hub must be running. Dynamic Lighting for Windows should be off.'
   - m_Id: 118297715850055680
     m_Localized: Star Power Highway FX Mode
     m_Metadata:
