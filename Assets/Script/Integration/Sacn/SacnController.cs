@@ -32,7 +32,16 @@ namespace YARG.Integration.Sacn
         private int[] _yellowChannels;
 
         private readonly byte[] _dataPacket = new byte[UNIVERSE_SIZE];
-
+        
+        private void Start()
+        {
+            // Don't do anything if DMX is disabled at start, don't want to run the OnDestroy right now.
+            if (SettingsManager.Settings.DMXEnabled.Value)
+            {
+                HandleEnabledChanged(true);
+            }
+        }
+        
         public void HandleEnabledChanged(bool enabled)
         {
             if (enabled)
