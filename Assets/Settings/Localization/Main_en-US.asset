@@ -220,7 +220,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706177
-    m_Localized: '"Artist - Album"'
+    m_Localized: 'Artist - Album'
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706178
