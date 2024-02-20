@@ -151,7 +151,7 @@ GameObject:
   - component: {fileID: 5387409240223291895}
   - component: {fileID: 7617404234607777830}
   m_Layer: 5
-  m_Name: HelpBar_Button
+  m_Name: HelpBarButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -250,6 +250,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _buttonImage: {fileID: 5439468768656205435}
   _buttonBackground: {fileID: 7617404234607777830}
+  _button: {fileID: 412450321716482520}
   _buttonLabel: {fileID: 1121126666004639308}
   _buttonText: {fileID: 5189735305709361124}
 --- !u!114 &440116509921864197
