@@ -93,6 +93,7 @@ namespace YARG.Gameplay
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
+            var global = GlobalVariables.Instance;
             // Disable until everything's loaded
             enabled = false;
 
@@ -106,19 +107,27 @@ namespace YARG.Gameplay
             // Load song
             if (IsReplay)
             {
-                LoadingManager.Instance.Queue(LoadReplay, "Loading replay...");
+                if (!global.SongContainer.SongsByHash.TryGetValue(global.CurrentReplay.SongChecksum, out var songs))
+                {
+                    ToastManager.ToastWarning("Song not present in library");
+                    global.LoadScene(SceneIndex.Menu);
+                    return;
+                }
+
+                Song = songs[0];
+                LoadingManager.Instance.Queue(UniTask.RunOnThreadPool(LoadReplay), "Loading replay...");
                 _replayController.gameObject.SetActive(true);
             }
 
-            LoadingManager.Instance.Queue(LoadChart, "Loading chart...");
-            LoadingManager.Instance.Queue(LoadAudio, "Loading audio...");
+            LoadingManager.Instance.Queue(UniTask.RunOnThreadPool(LoadChart), "Loading chart...");
+            LoadingManager.Instance.Queue(UniTask.RunOnThreadPool(LoadAudio), "Loading audio...");
             await LoadingManager.Instance.StartLoad();
 
             if (_loadState == LoadFailureState.Rescan)
             {
                 ToastManager.ToastWarning("Chart requires a rescan!");
 
-                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                global.LoadScene(SceneIndex.Menu);
                 return;
             }
 
@@ -127,13 +136,15 @@ namespace YARG.Gameplay
                 Debug.LogError(_loadFailureMessage);
                 ToastManager.ToastError(_loadFailureMessage);
 
-                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                global.LoadScene(SceneIndex.Menu);
                 return;
             }
 
+            FinalizeChart();
+
             // Initialize song runner
             _songRunner = new SongRunner(
-                GlobalVariables.Instance.SongSpeed,
+                global.SongSpeed,
                 SettingsManager.Settings.AudioCalibration.Value,
                 SettingsManager.Settings.VideoCalibration.Value,
                 Song.SongOffsetSeconds);
@@ -174,30 +185,24 @@ namespace YARG.Gameplay
             _songStarted?.Invoke();
         }
 
-        private async UniTask LoadReplay()
+        private void LoadReplay()
         {
-            ReplayFile replayFile = null;
-            ReplayReadResult result;
+            ReplayFile replayFile;
             try
             {
-                result = await UniTask.RunOnThreadPool(() => ReplayContainer.LoadReplayFile(
-                    GlobalVariables.Instance.CurrentReplay, out replayFile));
+                var result = ReplayContainer.LoadReplayFile(GlobalVariables.Instance.CurrentReplay, out replayFile);
+                if (result != ReplayReadResult.Valid)
+                {
+                    _loadState = LoadFailureState.Error;
+                    _loadFailureMessage = "Failed to load replay!";
+                    return;
+                }
             }
             catch (Exception ex)
             {
                 _loadState = LoadFailureState.Error;
                 _loadFailureMessage = "Failed to load replay!";
                 Debug.LogException(ex, this);
-                return;
-            }
-
-            Song = GlobalVariables.Instance.SongContainer.SongsByHash[
-                GlobalVariables.Instance.CurrentReplay.SongChecksum][0];
-
-            if (Song is null || result != ReplayReadResult.Valid)
-            {
-                _loadState = LoadFailureState.Error;
-                _loadFailureMessage = "Failed to load replay!";
                 return;
             }
 
@@ -218,57 +223,79 @@ namespace YARG.Gameplay
             YargPlayers = players;
         }
 
-        private async UniTask LoadChart()
+        private void LoadChart()
         {
-            await UniTask.RunOnThreadPool(() =>
+            try
             {
-                // Load chart
-
-                try
+                Chart = Song.LoadChart();
+                if (Chart != null)
                 {
-                    Chart = Song.LoadChart();
+                    GenerateVenueTrack();
                 }
-                catch (Exception ex)
-                {
-                    _loadState = LoadFailureState.Error;
-                    _loadFailureMessage = "Failed to load chart!";
-                    Debug.LogException(ex, this);
-                    return;
-                }
-
-                if (Chart is null)
+                else
                 {
                     _loadState = LoadFailureState.Rescan;
-                    return;
                 }
+            }
+            catch (Exception ex)
+            {
+                _loadState = LoadFailureState.Error;
+                _loadFailureMessage = "Failed to load chart!";
+                Debug.LogException(ex, this);
+            }
+        }
 
-                // Autogenerate venue stuff
-                if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
+        private void GenerateVenueTrack()
+        {
+            if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
+            {
+                var preset = new VenueAutoGenerationPreset(VenueAutoGenerationPreset.DefaultPath);
+                if (!preset.ChartHasFog(Chart)) // This is separate because we may want to add fog even if venue is authored
                 {
-                    var preset = new VenueAutoGenerationPreset(VenueAutoGenerationPreset.DefaultPath);
-
-                    if (!preset.ChartHasFog(Chart)) // This is separate because we may want to add fog even if venue is authored
-                    {
-                        Chart = preset.GenerateFogEvents(Chart);
-                    }
-                    
-                    if (Chart.VenueTrack.Lighting.Count == 0)
-                    {
-                        Chart = preset.GenerateLightingEvents(Chart);
-                    }
-
-                    // TODO: add when characters and camera events are present in game
-                    // if (Chart.VenueTrack.Camera.Count == 0)
-                    // {
-                    //     Chart = autoGenerationPreset.GenerateCameraCutEvents(Chart);
-                    // }
+                    Chart = preset.GenerateFogEvents(Chart);
                 }
-            });
+                
+                if (Chart.VenueTrack.Lighting.Count == 0)
+                {
+                    Chart = preset.GenerateLightingEvents(Chart);
+                }
+                
+                // TODO: add when characters and camera events are present in game
+                // if (Chart.VenueTrack.Camera.Count == 0)
+                // {
+                //     Chart = autoGenerationPreset.GenerateCameraCutEvents(Chart);
+                // }
+            }
+        }
 
-            if (_loadState != LoadFailureState.None) return;
-
+        private void FinalizeChart()
+        {
             BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
             _chartLoaded?.Invoke(Chart);
+
+            double audioLength = GlobalVariables.AudioManager.AudioLengthD;
+            double chartLength = Chart.GetEndTime();
+            double endTime = Chart.GetEndEvent()?.Time ?? -1;
+
+            // - Chart < Audio < [end] -> Audio
+            // - Chart < [end] < Audio -> [end]
+            // - [end] < Chart < Audio -> Audio
+            // - Audio < Chart         -> Chart
+            if (audioLength <= chartLength)
+            {
+                SongLength = chartLength;
+            }
+            else if (endTime <= chartLength || audioLength <= endTime)
+            {
+                SongLength = audioLength;
+            }
+            else
+            {
+                SongLength = endTime;
+            }
+
+            SongLength += SONG_END_DELAY;
+            _songLoaded?.Invoke();
         }
 
         private void CreatePlayers()

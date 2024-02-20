@@ -133,7 +133,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void ShowSongInfo(SongViewType songViewType)
         {
-            var songEntry = songViewType.SongMetadata;
+            var songEntry = songViewType.SongEntry;
 
             _album.text = songEntry.Album;
             _source.text = SongSources.SourceToGameName(songEntry.Source);
@@ -159,7 +159,7 @@ namespace YARG.Menu.MusicLibrary
             LoadAlbumCover();
         }
 
-        private void UpdateDifficulties(AvailableParts parts)
+        private void UpdateDifficulties(in AvailableParts parts)
         {
             // Show all difficulty rings
             foreach (var difficultyRing in _difficultyRings)
@@ -234,7 +234,7 @@ namespace YARG.Menu.MusicLibrary
                 _difficultyRings[6].SetInfo("rhythm", "FiveFretRhythm", parts[Instrument.FiveFretRhythm]);
             }
 
-            _difficultyRings[7].SetInfo("trueDrums", "TrueDrums", new PartValues(-1));
+            _difficultyRings[7].SetInfo("trueDrums", "TrueDrums", PartValues.Default);
             _difficultyRings[8].SetInfo("realKeys", "ProKeys", parts[Instrument.ProKeys]);
             _difficultyRings[9].SetInfo("band", "Band", parts[Instrument.Band]);
         }
@@ -248,7 +248,7 @@ namespace YARG.Menu.MusicLibrary
             var originalTexture = _albumCover.texture;
 
             // Load the new one
-            await songViewType.SongMetadata.SetRawImageToAlbumCover(_albumCover, _cancellationToken.Token);
+            await _albumCover.LoadAlbumCover(songViewType.SongEntry, _cancellationToken.Token);
 
             // Dispose of the old texture (prevent memory leaks)
             if (originalTexture != null)
@@ -271,7 +271,7 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            var songEntry = songViewType.SongMetadata;
+            var songEntry = songViewType.SongEntry;
 
             switch (type)
             {

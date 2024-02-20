@@ -32,7 +32,7 @@ namespace YARG.Menu.MusicLibrary
 
         public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
 #nullable enable
-        private static List<SongMetadata>? _recommendedSongs;
+        private static List<SongEntry>? _recommendedSongs;
 #nullable disable
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
@@ -64,7 +64,7 @@ namespace YARG.Menu.MusicLibrary
         private PreviewContext _previewContext;
         private CancellationTokenSource _previewCanceller = new();
 
-        private SongMetadata _currentSong;
+        private SongEntry _currentSong;
 
         protected override void Awake()
         {
@@ -134,12 +134,12 @@ namespace YARG.Menu.MusicLibrary
 
             if (CurrentSelection is SongViewType song)
             {
-                if (song.SongMetadata == _currentSong)
+                if (song.SongEntry == _currentSong)
                 {
                     return;
                 }
 
-                _currentSong = song.SongMetadata;
+                _currentSong = song.SongEntry;
             }
             else
             {
@@ -254,7 +254,7 @@ namespace YARG.Menu.MusicLibrary
             SetRecommendedSongs();
             RequestViewListUpdate();
 
-            if (_currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongMetadata.Directory == _currentSong.Directory))
+            if (_currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory))
             {
                 SelectedIndex = 2;
             }
@@ -269,7 +269,7 @@ namespace YARG.Menu.MusicLibrary
             RequestViewListUpdate();
 
             if (_searchField.IsUpdatedSearchLonger ||
-                !SetIndexTo(i => i is SongViewType view && view.SongMetadata == _currentSong))
+                !SetIndexTo(i => i is SongViewType view && view.SongEntry == _currentSong))
             {
                 SelectedIndex = _searchField.IsUnspecified || _sortedSongs.Count == 1 ? 1 : 2;
             }
@@ -289,7 +289,7 @@ namespace YARG.Menu.MusicLibrary
 
             _previewCanceller = new();
             float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
-            _previewContext.PlayPreview(song.SongMetadata, previewVolume, _previewCanceller.Token).Forget();
+            _previewContext.PlayPreview(song.SongEntry, previewVolume, _previewCanceller.Token).Forget();
         }
 
         private void OnDisable()

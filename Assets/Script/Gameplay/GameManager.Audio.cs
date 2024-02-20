@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Helpers.Extensions;
@@ -32,7 +31,7 @@ namespace YARG.Gameplay
 
         private int _starPowerActivations = 0;
 
-        private async UniTask LoadAudio()
+        private void LoadAudio()
         {
             // The stem states are initialized in "CreatePlayers"
             _stemStates.Clear();
@@ -41,48 +40,18 @@ namespace YARG.Gameplay
                 Total = 1
             });
 
-            await UniTask.RunOnThreadPool(() =>
+            if (Song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed))
             {
-                try
-                {
-                    Song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed);
-                    GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
-                }
-                catch (Exception ex)
-                {
-                    _loadState = LoadFailureState.Error;
-                    _loadFailureMessage = "Failed to load audio!";
-                    Debug.LogException(ex, this);
-                }
-            });
+                GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
 
-            bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
-            GlobalVariables.AudioManager.Options.UseMinimumStemVolume = isYargSong;
-
-            if (_loadState != LoadFailureState.None) return;
-
-            double audioLength = GlobalVariables.AudioManager.AudioLengthD;
-            double chartLength = Chart.GetEndTime();
-            double endTime = Chart.GetEndEvent()?.Time ?? -1;
-
-            // - Chart < Audio < [end] -> Audio
-            // - Audio < Chart < [end] -> Chart
-            // - [end] < Chart < Audio -> Audio
-            // - [end] < Audio < Chart -> Chart
-            if ((endTime >= audioLength && endTime >= chartLength) ||
-                endTime <= audioLength && endTime <= chartLength)
-            {
-                SongLength = Math.Max(audioLength, chartLength);
+                bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
+                GlobalVariables.AudioManager.Options.UseMinimumStemVolume = isYargSong;
             }
-            // - Audio < [end] < Chart -> Chart
-            // - Chart < [end] < Audio -> [end]
             else
             {
-                SongLength = Math.Max(chartLength, endTime);
+                _loadState = LoadFailureState.Error;
+                _loadFailureMessage = "Failed to load audio!";
             }
-
-            SongLength += SONG_END_DELAY;
-            _songLoaded?.Invoke();
         }
 
         private void StarPowerClap(Beatline beat)

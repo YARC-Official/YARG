@@ -2,23 +2,22 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using YARG.Audio.BASS;
 using YARG.Core.Audio;
 
 namespace YARG.Audio
 {
-    public interface IStemMixer : IDisposable
+    public interface IStemMixer<TAudioManager, TChannel> : IDisposable
+        where TAudioManager : IAudioManager
+        where TChannel : IStemChannel<TAudioManager>
     {
-        public int StemsLoaded { get; }
-
         public bool IsPlaying { get; }
 
         public event Action SongEnd;
 
-        public IReadOnlyDictionary<SongStem, List<IStemChannel>> Channels { get; }
+        public IReadOnlyList<TChannel> Channels { get; }
 
-        public IStemChannel LeadChannel { get; }
-
-        public bool Create();
+        public TChannel LeadChannel { get; }
 
         public int Play(bool restart = false);
 
@@ -27,20 +26,24 @@ namespace YARG.Audio
 
         public int Pause();
 
-        public double GetPosition(bool bufferCompensation = true);
+        public double GetPosition(TAudioManager manager, bool bufferCompensation = true);
 
-        public void SetPosition(double position, bool bufferCompensation = true);
+        public void SetPosition(TAudioManager manager, double position, bool bufferCompensation = true);
 
         public int GetData(float[] buffer);
 
-        public void SetPlayVolume(bool fadeIn);
+        public void SetPlayVolume(TAudioManager manager, bool fadeIn);
 
         public void SetSpeed(float speed);
 
-        public int AddChannel(IStemChannel channel);
+#nullable enable
+        public int AddChannel(BassStemChannel channel, int[]? indices, float[]? panning);
+#nullable disable
 
-        public bool RemoveChannel(IStemChannel channel);
+        public bool RemoveChannel(SongStem stemToRemove);
 
-        public IStemChannel[] GetChannels(SongStem stem);
+#nullable enable
+        public TChannel? GetChannel(SongStem stem);
+#nullable disable
     }
 }

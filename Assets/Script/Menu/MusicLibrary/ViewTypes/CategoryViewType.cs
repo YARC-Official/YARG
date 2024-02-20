@@ -20,7 +20,7 @@ namespace YARG.Menu.MusicLibrary
         private readonly string _primary;
         private readonly int _songCount;
 
-        public CategoryViewType(string primary, int songCount, IReadOnlyList<SongMetadata> songsUnderCategory)
+        public CategoryViewType(string primary, int songCount, IReadOnlyList<SongEntry> songsUnderCategory)
         {
             _primary = primary;
             _songCount = songCount;
@@ -71,7 +71,7 @@ namespace YARG.Menu.MusicLibrary
             return $"{count} {songs}";
         }
 
-        private static int CountOf(IEnumerable<SongMetadata> songs, Func<SongMetadata, SortString> selector)
+        private static int CountOf(IEnumerable<SongEntry> songs, Func<SongEntry, SortString> selector)
         {
             return songs.Select(selector).Distinct().Count();
         }
