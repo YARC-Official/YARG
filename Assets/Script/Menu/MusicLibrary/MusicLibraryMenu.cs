@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -32,7 +32,7 @@ namespace YARG.Menu.MusicLibrary
 
         public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
 
-        public static SongMetadata InitialSelect = null;
+        public static SongEntry InitialSelect = null;
 
 #nullable enable
         private static List<SongEntry>? _recommendedSongs;
