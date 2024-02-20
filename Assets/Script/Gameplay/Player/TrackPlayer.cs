@@ -100,10 +100,11 @@ namespace YARG.Gameplay.Player
             _hudLocation.position = _hudLocation.position.AddZ(change);
 
             // Determine if a track is bass or not for the BASS GROOVE text notification
-            IsBass = Player.Profile.CurrentInstrument.Equals(Instrument.FiveFretBass)
-                || Player.Profile.CurrentInstrument.Equals(Instrument.SixFretBass)
-                || Player.Profile.CurrentInstrument.Equals(Instrument.ProBass_17Fret)
-                || Player.Profile.CurrentInstrument.Equals(Instrument.ProBass_22Fret);
+            IsBass = Player.Profile.CurrentInstrument
+                is Instrument.FiveFretBass
+                or Instrument.SixFretBass
+                or Instrument.ProBass_17Fret
+                or Instrument.ProBass_22Fret;
         }
 
         protected override void ResetVisuals()
