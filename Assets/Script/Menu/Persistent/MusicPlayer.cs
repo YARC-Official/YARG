@@ -7,11 +7,14 @@ using YARG.Audio;
 using YARG.Settings;
 using YARG.Helpers.Extensions;
 using YARG.Core.Audio;
+using YARG.Core.Song;
 
 namespace YARG.Menu.Persistent
 {
     public class MusicPlayer : MonoBehaviour
     {
+        public static SongMetadata NowPlaying = null;
+
         [SerializeField]
         private Image _playPauseButton;
         [SerializeField]
@@ -55,6 +58,7 @@ namespace YARG.Menu.Persistent
         private async UniTask NextSong()
         {
             var song = GlobalVariables.Instance.SongContainer.GetRandomSong();
+            NowPlaying = song;
             await UniTask.RunOnThreadPool(() => song.LoadAudio(GlobalVariables.AudioManager, 1f, SongStem.Crowd));
 
             // Set song title text
