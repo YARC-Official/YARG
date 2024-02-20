@@ -1,7 +1,14 @@
-// using System;
+﻿// using System;
 
 namespace YARG.Audio
 {
+    public enum StarPowerFxMode
+    {
+        Off,
+        MultitrackOnly,
+        Always
+    }
+
     public class AudioOptions
     {
         public const int WHAMMY_FFT_DEFAULT = 2048;
@@ -9,7 +16,7 @@ namespace YARG.Audio
 
         public const double MINIMUM_STEM_VOLUME = 0.15;
 
-        public bool UseStarpowerFx { get; set; }
+        public StarPowerFxMode UseStarpowerFx { get; set; }
         public bool UseWhammyFx { get; set; }
         public bool IsChipmunkSpeedup { get; set; }
 

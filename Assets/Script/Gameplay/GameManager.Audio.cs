@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Helpers.Extensions;
@@ -102,7 +103,9 @@ namespace YARG.Gameplay
 
         public void ChangeStemReverbState(SongStem stem, bool reverb)
         {
-            if (!SettingsManager.Settings.UseStarpowerFx.Value) return;
+            if (SettingsManager.Settings.UseStarpowerFx.Value == StarPowerFxMode.Off
+            || (SettingsManager.Settings.UseStarpowerFx.Value == StarPowerFxMode.MultitrackOnly
+            && stem == SongStem.Song)) return;
 
             if (!_stemStates.TryGetValue(stem, out var state)) return;
 

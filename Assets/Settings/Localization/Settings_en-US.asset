@@ -1107,6 +1107,18 @@ MonoBehaviour:
     m_Localized: Off
     m_Metadata:
       m_Items: []
+  - m_Id: 120322696970141696
+    m_Localized: Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 120322832085450752
+    m_Localized: Multitrack Only
+    m_Metadata:
+      m_Items: []
+  - m_Id: 120322882958163968
+    m_Localized: Always
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
