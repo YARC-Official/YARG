@@ -13,7 +13,7 @@ namespace YARG.Menu.Persistent
 {
     public class MusicPlayer : MonoBehaviour
     {
-        public static SongMetadata NowPlaying = null;
+        public static SongEntry NowPlaying = null;
 
         [SerializeField]
         private Image _playPauseButton;
