@@ -45,7 +45,7 @@ namespace YARG.Gameplay.HUD
             if (!gameObject.activeSelf) return;
 
             // Queue the  notification
-            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NewHighScore, "NEW HIGHSCORE"));
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NewHighScore, "NEW HIGH SCORE"));
         }
 
         public void ShowFullCombo()
