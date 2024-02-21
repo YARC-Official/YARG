@@ -10,12 +10,14 @@ namespace YARG.Menu.Data
         public Color BrightText;
         public Color DarkText;
         public Color PrimaryText;
+        public Color DeactivatedText;
 
         [Header("Button")]
         public Color BrightButton;
         public Color DarkButton;
         public Color ConfirmButton;
         public Color CancelButton;
+        public Color DeactivatedButton;
 
         [Header("Navigation")]
         public Color NavigationGreen;

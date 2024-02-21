@@ -1,6 +1,7 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
@@ -82,7 +83,12 @@ namespace YARG.Settings
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
             public ToggleSetting MuteOnMiss            { get; } = new(true);
 
-            public ToggleSetting UseStarpowerFx   { get; } = new(true, UseStarpowerFxChange);
+            public DropdownSetting<StarPowerFxMode> UseStarpowerFx { get; } = new(StarPowerFxMode.On)
+            {
+                StarPowerFxMode.Off,
+                StarPowerFxMode.MultitrackOnly,
+                StarPowerFxMode.On
+            };
             public ToggleSetting ClapsInStarpower { get; } = new(true);
 
             // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);
@@ -360,11 +366,6 @@ namespace YARG.Settings
             private static void MusicPlayerVolumeCallback(float volume)
             {
                 HelpBar.Instance.MusicPlayer.UpdateVolume();
-            }
-
-            private static void UseStarpowerFxChange(bool value)
-            {
-                GlobalVariables.AudioManager.Options.UseStarpowerFx = value;
             }
 
             // private static void UseWhammyFxChange(bool value)

@@ -239,7 +239,7 @@ namespace YARG.Song
         {
             if (arg.attribute == SongAttribute.Unspecified)
             {
-                List<SongMetadata> entriesToSearch = new();
+                List<SongEntry> entriesToSearch = new();
                 foreach (var entry in searchList)
                 {
                     entriesToSearch.AddRange(entry.Songs);
@@ -252,7 +252,7 @@ namespace YARG.Song
                 return FilterInstruments(searchList, arg.argument);
             }
 
-            Predicate<SongMetadata> match = arg.attribute switch
+            Predicate<SongEntry> match = arg.attribute switch
             {
                 SongAttribute.Name => entry => RemoveArticle(entry.Name.SortStr).Contains(arg.argument),
                 SongAttribute.Artist => entry => RemoveArticle(entry.Artist.SortStr).Contains(arg.argument),
@@ -279,13 +279,13 @@ namespace YARG.Song
 
         private class UnspecifiedSortNode : IComparable<UnspecifiedSortNode>
         {
-            public readonly SongMetadata Song;
+            public readonly SongEntry Song;
             public readonly int Rank;
 
             private readonly int NameIndex;
             private readonly int ArtistIndex;
 
-            public UnspecifiedSortNode(SongMetadata song, string argument)
+            public UnspecifiedSortNode(SongEntry song, string argument)
             {
                 Song = song;
                 NameIndex = song.Name.SortStr.IndexOf(argument, StringComparison.Ordinal);
@@ -338,7 +338,7 @@ namespace YARG.Song
             }
         }
 
-        private static List<SongCategory> UnspecifiedSearch(IReadOnlyList<SongMetadata> songs, string argument)
+        private static List<SongCategory> UnspecifiedSearch(IReadOnlyList<SongEntry> songs, string argument)
         {
             var nodes = new UnspecifiedSortNode[songs.Count];
             Parallel.For(0, songs.Count, i => nodes[i] = new UnspecifiedSortNode(songs[i], argument));

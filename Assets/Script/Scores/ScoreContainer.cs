@@ -170,7 +170,7 @@ namespace YARG.Scores
             return null;
         }
 
-        public static List<SongMetadata> GetMostPlayedSongs(int maxCount)
+        public static List<SongEntry> GetMostPlayedSongs(int maxCount)
         {
             try
             {
@@ -180,7 +180,7 @@ namespace YARG.Scores
                 var playCounts = _db.Query<PlayCountRecord>(query);
 
                 var allSongs = GlobalVariables.Instance.SongContainer.SongsByHash;
-                var mostPlayed = new List<SongMetadata>();
+                var mostPlayed = new List<SongEntry>();
                 foreach (var record in playCounts)
                 {
                     var hash = new HashWrapper(record.SongChecksum);
@@ -197,7 +197,7 @@ namespace YARG.Scores
                 Debug.LogException(e);
             }
 
-            return new List<SongMetadata>();
+            return new List<SongEntry>();
         }
 
         public static void Destroy()

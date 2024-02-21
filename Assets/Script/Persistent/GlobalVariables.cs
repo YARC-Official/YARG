@@ -46,7 +46,7 @@ namespace YARG
         public SongContainer SongContainer { get; set; }
 
         [HideInInspector]
-        public SongMetadata CurrentSong;
+        public SongEntry CurrentSong;
         public ReplayEntry  CurrentReplay;
 
         public ScoreScreenStats ScoreScreenStats;

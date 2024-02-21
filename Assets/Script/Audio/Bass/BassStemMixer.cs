@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -7,18 +8,36 @@ using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
+using YARG.Core.IO;
 
 namespace YARG.Audio.BASS
 {
-    public class BassStemMixer : IStemMixer
+    public class BassStemMixer : IStemMixer<BassAudioManager, BassStemChannel>
     {
-        public int StemsLoaded { get; protected set; }
+        public static bool CreateMixerHandle(out int mixerHandle)
+        {
+            mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Default);
+            if (mixerHandle == 0)
+            {
+                Debug.LogError($"Failed to create mixer: {Bass.LastError}");
+                return false;
+            }
+
+            // Mixer processing threads (for some reason this attribute is undocumented in ManagedBass?)
+            if (!Bass.ChannelSetAttribute(mixerHandle, (ChannelAttribute) 86017, 2))
+            {
+                Debug.LogError($"Failed to set mixer processing threads: {Bass.LastError}");
+                Bass.StreamFree(mixerHandle);
+                return false;
+            }
+            return true;
+        }
 
         public bool IsPlaying { get; protected set; }
 
-        public IReadOnlyDictionary<SongStem, List<IStemChannel>> Channels => _channels;
+        public IReadOnlyList<BassStemChannel> Channels => _channels;
 
-        public IStemChannel LeadChannel { get; protected set; }
+        public BassStemChannel LeadChannel { get; protected set; }
 
         public event Action SongEnd
         {
@@ -40,59 +59,24 @@ namespace YARG.Audio.BASS
             }
         }
 
-        protected readonly IAudioManager _manager;
-        protected readonly Dictionary<SongStem, List<IStemChannel>> _channels;
+        private readonly List<BassStemChannel> _channels;
 
-        protected int _mixerHandle;
-        protected int _sourceStream;
-        protected bool _sourceIsSplit;
-
+        private int _mixerHandle;
+        private int _sourceStream;
         private bool _disposed;
 
-        public BassStemMixer(IAudioManager manager)
+        public BassStemMixer(int mixerHandle, int sourceStream)
         {
-            _manager = manager;
-            _channels = new Dictionary<SongStem, List<IStemChannel>>();
-
-            StemsLoaded = 0;
-            IsPlaying = false;
-        }
-
-        public BassStemMixer(IAudioManager manager, int sourceStream, bool isSplit) : this(manager)
-        {
+            _mixerHandle = mixerHandle;
             _sourceStream = sourceStream;
-            _sourceIsSplit = isSplit;
+            _channels = new List<BassStemChannel>();
+
+            IsPlaying = false;
         }
 
         ~BassStemMixer()
         {
             Dispose(false);
-        }
-
-        public bool Create()
-        {
-            if (_mixerHandle != 0)
-            {
-                return true;
-            }
-
-            int mixer = BassMix.CreateMixerStream(44100, 2, BassFlags.Default);
-            if (mixer == 0)
-            {
-                return false;
-            }
-
-            // Mixer processing threads (for some reason this attribute is undocumented in ManagedBass?)
-            if (!Bass.ChannelSetAttribute(mixer, (ChannelAttribute) 86017, 2))
-            {
-                Debug.LogError($"Failed to set mixer processing threads: {Bass.LastError}");
-                Bass.StreamFree(mixer);
-                return false;
-            }
-
-            _mixerHandle = mixer;
-
-            return true;
         }
 
         public int Play(bool restart = false)
@@ -114,20 +98,17 @@ namespace YARG.Audio.BASS
 
         public void FadeIn(float maxVolume)
         {
-            foreach (var stem in Channels.Values)
+            foreach (var channel in Channels)
             {
-                foreach (var channel in stem)
-                {
-                    channel.FadeIn(maxVolume);
-                }
+                channel.FadeIn(maxVolume);
             }
         }
 
         public UniTask FadeOut(CancellationToken token = default)
         {
-            List<IStemChannel> stemChannels = new();
-            foreach (var stem in Channels.Values)
-                stemChannels.AddRange(stem);
+            List<BassStemChannel> stemChannels = new();
+            foreach (var stem in Channels)
+                stemChannels.Add(stem);
 
             var fadeOuts = stemChannels.Select((channel) => channel.FadeOut()).ToArray();
             return UniTask.WhenAll(fadeOuts).AttachExternalCancellation(token);
@@ -150,7 +131,7 @@ namespace YARG.Audio.BASS
             return 0;
         }
 
-        public double GetPosition(bool bufferCompensation = true)
+        public double GetPosition(BassAudioManager manager, bool bufferCompensation = true)
         {
             // No channel in this case
             if (LeadChannel is null)
@@ -158,15 +139,17 @@ namespace YARG.Audio.BASS
                 return -1;
             }
 
-            return LeadChannel.GetPosition(bufferCompensation);
+            return LeadChannel.GetPosition(manager, bufferCompensation);
         }
 
-        public void SetPosition(double position, bool bufferCompensation = true)
+        public void SetPosition(BassAudioManager manager, double position, bool bufferCompensation = true)
         {
             if (LeadChannel is null)
             {
                 return;
             }
+
+            // UNCOMMENT THE BELOW IF PROBLEMS ARE REPORTED WITH SYNC
 
             bool playing = IsPlaying;
             if (playing)
@@ -175,12 +158,14 @@ namespace YARG.Audio.BASS
                 Pause();
             }
 
-            foreach (var stem in Channels.Values)
+            if (_sourceStream != 0)
             {
-                foreach (var channel in stem)
-                {
-                    channel.SetPosition(position, bufferCompensation);
-                }
+                BassMix.SplitStreamReset(_sourceStream);
+            }
+
+            foreach (var channel in Channels)
+            {
+                channel.SetPosition(manager, position, bufferCompensation);
             }
 
             if (playing)
@@ -190,9 +175,6 @@ namespace YARG.Audio.BASS
                     Debug.LogError($"Failed to set update channel: {Bass.LastError}");
                 Play();
             }
-
-            if (_sourceStream != 0 && _sourceIsSplit && !BassMix.SplitStreamReset(_sourceStream))
-                Debug.LogError($"Failed to reset stream: {Bass.LastError}");
         }
 
         public int GetData(float[] buffer)
@@ -206,96 +188,101 @@ namespace YARG.Audio.BASS
             return data;
         }
 
-        public void SetPlayVolume(bool fadeIn)
+        public void SetPlayVolume(BassAudioManager manager, bool fadeIn)
         {
-            foreach (var stem in Channels.Values)
+            foreach (var channel in Channels)
             {
-                foreach (var channel in stem)
-                {
-                    channel.SetVolume(fadeIn ? 0 : channel.Volume);
-                }
+                channel.SetVolume(manager, fadeIn ? 0 : channel.Volume);
             }
         }
 
         public void SetSpeed(float speed)
         {
-            foreach (var stem in Channels.Values)
+            foreach (var channel in Channels)
             {
-                foreach (var channel in stem)
-                {
-                    channel.SetSpeed(speed);
-                }
+                channel.SetSpeed(speed);
             }
         }
 
-        public virtual int AddChannel(IStemChannel channel)
+#nullable enable
+        public int AddChannel(BassStemChannel channel, int[]? indices, float[]? panning)
+#nullable disable
         {
-            if (channel is not BassStemChannel bassChannel)
-            {
-                throw new ArgumentException("Channel must be of type BassStemChannel");
-            }
-
-            if (_channels.ContainsKey(channel.Stem))
+            if (_channels.Any(ch => ch.Stem == channel.Stem))
             {
                 return 0;
             }
 
-            if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.StreamHandle, BassFlags.Default))
+            var flags = indices != null ? BassFlags.MixerChanMatrix | BassFlags.MixerChanDownMix : BassFlags.Default;
+            if (!BassMix.MixerAddChannel(_mixerHandle, channel.StreamHandle, flags) ||
+                !BassMix.MixerAddChannel(_mixerHandle, channel.ReverbStreamHandle, flags))
             {
                 return (int) Bass.LastError;
             }
 
-            if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.ReverbStreamHandle, BassFlags.Default))
+            channel.IsMixed = true;
+
+            if (indices != null)
             {
-                return (int) Bass.LastError;
+                // First array = left pan, second = right pan
+                float[,] volumeMatrix = new float[2, indices.Length];
+
+                const int LEFT_PAN = 0;
+                const int RIGHT_PAN = 1;
+                for (int i = 0; i < indices.Length; ++i)
+                {
+                    volumeMatrix[LEFT_PAN, i] = panning![2 * i];
+                }
+
+                for (int i = 0; i < indices.Length; ++i)
+                {
+                    volumeMatrix[RIGHT_PAN, i] = panning[2 * i + 1];
+                }
+
+                if (!BassMix.ChannelSetMatrix(channel.StreamHandle, volumeMatrix) ||
+                    !BassMix.ChannelSetMatrix(channel.ReverbStreamHandle, volumeMatrix))
+                {
+                    return (int) Bass.LastError;
+                }
             }
 
-            bassChannel.IsMixed = true;
+            _channels.Add(channel);
 
-            _channels.Add(channel.Stem, new() { channel });
-            StemsLoaded++;
-
-            if (channel.LengthD > LeadChannel?.LengthD || LeadChannel is null)
+            if (LeadChannel == null || channel.LengthD > LeadChannel.LengthD)
             {
                 LeadChannel = channel;
             }
-
             return 0;
         }
 
-        public bool RemoveChannel(IStemChannel channel)
+        public bool RemoveChannel(SongStem stemToRemove)
         {
-            if (channel is not BassStemChannel bassChannel)
-            {
-                throw new ArgumentException("Channel must be of type BassStemChannel");
-            }
-
-            if (!_channels.ContainsKey(channel.Stem))
+            var index = _channels.FindIndex(ch => ch.Stem == stemToRemove);
+            if (index == -1)
             {
                 return false;
             }
 
-            if (!BassMix.MixerRemoveChannel(bassChannel.StreamHandle))
+            var channelToRemove = _channels[index];
+            if (!BassMix.MixerRemoveChannel(channelToRemove.StreamHandle))
             {
                 return false;
             }
 
-            bassChannel.IsMixed = false;
+            channelToRemove.IsMixed = false;
 
-            _channels.Remove(channel.Stem);
-            StemsLoaded--;
+            _channels.RemoveAt(index);
 
-            if (channel == LeadChannel)
+            if (channelToRemove == LeadChannel)
             {
+                LeadChannel = null;
+
                 // Update lead channel
-                foreach (var stem in Channels.Values)
+                foreach (var channel in _channels)
                 {
-                    for (int i = 0; i < stem.Count; i++)
+                    if (channel.LengthD > LeadChannel.LengthD)
                     {
-                        if (LeadChannel is null || stem[i].LengthD > LeadChannel.LengthD)
-                        {
-                            LeadChannel = stem[i];
-                        }
+                        LeadChannel = channel;
                     }
                 }
             }
@@ -303,9 +290,11 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public IStemChannel[] GetChannels(SongStem stem)
+#nullable enable
+        public BassStemChannel? GetChannel(SongStem stem)
+#nullable disable
         {
-            return !_channels.ContainsKey(stem) ? Array.Empty<IStemChannel>() : _channels[stem].ToArray();
+            return _channels.Find(channel => channel.Stem == stem);
         }
 
         public void Dispose()
@@ -328,21 +317,18 @@ namespace YARG.Audio.BASS
             }
         }
 
-        protected virtual void ReleaseManagedResources()
+        private void ReleaseManagedResources()
         {
             // Free managed resources here
-            foreach (var stem in Channels.Values)
+            foreach (var channel in Channels)
             {
-                foreach (var channel in stem)
-                {
-                    channel.Dispose();
-                }
+                channel.Dispose();
             }
 
             _channels.Clear();
         }
 
-        protected virtual void ReleaseUnmanagedResources()
+        private void ReleaseUnmanagedResources()
         {
             // Free unmanaged resources here
             if (_mixerHandle != 0)

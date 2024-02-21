@@ -9,41 +9,115 @@ using YARG.Core.Audio;
 
 namespace YARG.Audio.BASS
 {
-    public class BassStemChannel : IStemChannel
+    public sealed class BassStemChannel : IStemChannel<BassAudioManager>
     {
-        private struct Handles : IDisposable
+#nullable enable
+        public static BassStemChannel? CreateChannel(IAudioManager manager, Stream stream, SongStem stem, float speed, int[] indices)
+#nullable disable
         {
-            public int Stream;
-
-            public int CompressorFX;
-            public int PitchFX;
-            public int ReverbFX;
-
-            public int LowEQ;
-            public int MidEQ;
-            public int HighEQ;
-
-            public void Dispose()
+            if (!BassAudioManager.CreateSourceStream(stream, out int sourceStream))
             {
-                // FX handles are freed automatically, we only need to free the stream
-                if (Stream != 0)
+                return null;
+            }
+
+            double volume = manager.GetVolumeSetting(stem);
+            if (!CreateSplitStreams(sourceStream, volume, indices, out var streamHandles, out var reverbHandles))
+            {
+                return null;
+            }
+
+            var pitchparams = SetPitchParams(manager.Options, stem, speed, ref streamHandles, ref reverbHandles);
+            return new BassStemChannel(stem, volume, sourceStream, pitchparams, streamHandles, reverbHandles);
+        }
+
+#nullable enable
+        public static BassStemChannel? CreateChannel(IAudioManager manager, int sourceStream, SongStem stem, float speed, int[] indices)
+#nullable disable
+        {
+            double volume = manager.GetVolumeSetting(stem);
+            if (!CreateSplitStreams(sourceStream, volume, indices, out var streamHandles, out var reverbHandles))
+            {
+                return null;
+            }
+
+            var pitchparams = SetPitchParams(manager.Options, stem, speed, ref streamHandles, ref reverbHandles);
+            return new BassStemChannel(stem, volume, 0, pitchparams, streamHandles, reverbHandles);
+        }
+
+        private static bool CreateSplitStreams(int sourceStream, double volume, int[] channelMap, out BassAudioManager.Handles streamHandles, out BassAudioManager.Handles reverbHandles)
+        {
+            reverbHandles = default;
+            if (!BassAudioManager.Handles.Create(sourceStream, volume, channelMap, out streamHandles))
+            {
+                return false;
+            }
+
+            if (!BassAudioManager.Handles.Create(sourceStream, 0, channelMap, out reverbHandles))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private static PitchShiftParametersStruct SetPitchParams(AudioOptions options, SongStem stem, float speed, ref BassAudioManager.Handles streamHandles, ref BassAudioManager.Handles reverbHandles)
+        {
+            PitchShiftParametersStruct pitchParams = new(1, 0, AudioOptions.WHAMMY_FFT_DEFAULT, AudioOptions.WHAMMY_OVERSAMPLE_DEFAULT);
+            // Set whammy pitch bending if enabled
+            if (options.UseWhammyFx && AudioHelpers.PitchBendAllowedStems.Contains(stem))
+            {
+                // Setting the FFT size causes a crash in BASS_FX :/
+                // _pitchParams.FFTSize = _manager.Options.WhammyFFTSize;
+                pitchParams.OversampleFactor = options.WhammyOversampleFactor;
+                if (SetupPitchBend(pitchParams, ref streamHandles))
                 {
-                    if (!Bass.StreamFree(Stream))
-                        Debug.LogError($"Failed to free channel stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
-                    Stream = 0;
+                    SetupPitchBend(pitchParams, ref reverbHandles);
                 }
+            }
+
+            if (!Mathf.Approximately(speed, 1f))
+            {
+                speed = (float) Math.Round(Math.Clamp(speed, 0.05, 50), 2);
+                SetSpeed(speed, streamHandles.Stream, reverbHandles.Stream);
+                if (options.IsChipmunkSpeedup)
+                {
+                    SetChipmunking(speed, streamHandles.Stream, reverbHandles.Stream);
+                }
+            }
+            return pitchParams;
+        }
+
+        private static void SetChipmunking(float speed, int streamHandle, int reverbHandle)
+        {
+            double accurateSemitoneShift = 12 * Math.Log(speed, 2);
+            float finalSemitoneShift = (float) Math.Clamp(accurateSemitoneShift, -60, 60);
+            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Pitch, finalSemitoneShift) ||
+                !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Pitch, finalSemitoneShift))
+                Debug.LogError($"Failed to set channel pitch: {Bass.LastError}");
+        }
+
+        private static void SetSpeed(float speed, int streamHandle, int reverbHandle)
+        {
+            // Gets relative speed from 100% (so 1.05f = 5% increase)
+            float percentageSpeed = speed * 100;
+            float relativeSpeed = percentageSpeed - 100;
+
+            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Tempo, relativeSpeed) ||
+                !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Tempo, relativeSpeed))
+            {
+                Debug.LogError($"Failed to set channel speed: {Bass.LastError}");
             }
         }
 
-        public SongStem Stem { get; }
-        public double LengthD { get; private set; }
-
-        public double Volume { get; private set; }
-
-        public int StreamHandle => _streamHandles.Stream;
-        public int ReverbStreamHandle => _reverbHandles.Stream;
-
-        public bool IsMixed { get; set; } = false;
+        private static bool SetupPitchBend(in PitchShiftParametersStruct pitchParams, ref BassAudioManager.Handles handles)
+        {
+            handles.CompressorFX = BassHelpers.FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
+            if (handles.CompressorFX == 0)
+            {
+                Debug.LogError($"Failed to set up pitch bend for main stream!");
+                return false;
+            }
+            return true;
+        }
 
         private int _channelEndHandle;
         private event Action _channelEnd;
@@ -73,195 +147,45 @@ namespace YARG.Audio.BASS
             remove { _channelEnd -= value; }
         }
 
-        private readonly Stream _stream;
-        private readonly IAudioManager _manager;
-
         private double _lastStemVolume;
 
         private int _sourceHandle;
-        private bool _sourceIsSplit;
 
-        private Handles _streamHandles;
-        private Handles _reverbHandles;
+        private BassAudioManager.Handles _streamHandles;
+        private BassAudioManager.Handles _reverbHandles;
 
         private bool _isReverbing;
         private bool _disposed;
 
-		private PitchShiftParametersStruct _pitchParams = new(1, 0, AudioOptions.WHAMMY_FFT_DEFAULT,
-            AudioOptions.WHAMMY_OVERSAMPLE_DEFAULT);
+        public SongStem Stem { get; }
+        public double LengthD { get; private set; }
 
-        public BassStemChannel(IAudioManager manager, Stream stream, SongStem stem)
+        public double Volume { get; private set; }
+
+        public int StreamHandle => _streamHandles.Stream;
+        public int ReverbStreamHandle => _reverbHandles.Stream;
+
+        public bool IsMixed { get; set; } = false;
+
+		private PitchShiftParametersStruct _pitchParams;
+
+
+        private BassStemChannel(SongStem stem, double stemVolume, int sourceStream, in PitchShiftParametersStruct pitchParams, in BassAudioManager.Handles streamHandles, in BassAudioManager.Handles reverbHandles)
         {
-            _manager = manager;
-            _stream = stream;
             Stem = stem;
-
-            Volume = 1;
-
-            _lastStemVolume = _manager.GetVolumeSetting(Stem);
-        }
-
-        public BassStemChannel(IAudioManager manager, SongStem stem, int sourceStream, bool isSplit)
-        {
-            _manager = manager;
             _sourceHandle = sourceStream;
-            _sourceIsSplit = isSplit;
+            _streamHandles = streamHandles;
+            _reverbHandles = reverbHandles;
+            _lastStemVolume = stemVolume;
+            _pitchParams = pitchParams;
 
-            Stem = stem;
+            LengthD = GetLengthInSeconds();
             Volume = 1;
-
-            _lastStemVolume = _manager.GetVolumeSetting(Stem);
         }
 
         ~BassStemChannel()
         {
             Dispose(false);
-        }
-
-        public int Load(float speed)
-        {
-            if (_disposed)
-                return (int) Errors.Handle;
-
-            if (StreamHandle != 0)
-                return (int) Errors.Already;
-
-            if (!CreateStreams())
-                return (int) Errors.Create;
-
-            // Set starting volume
-            if (!Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem)) ||
-                !Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0))
-                Debug.LogError($"Failed to set channel volume: {Bass.LastError}");
-
-            SetEffects();
-
-            // Apply song speed
-            if (!Mathf.Approximately(speed, 1f))
-            {
-                SetSpeed(speed);
-
-                // Have to handle pitch separately for some reason
-                if (_manager.Options.IsChipmunkSpeedup)
-                {
-                    double accurateSemitoneShift = 12 * Math.Log(speed, 2);
-                    float finalSemitoneShift = (float) Math.Clamp(accurateSemitoneShift, -60, 60);
-                    if (!Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Pitch, finalSemitoneShift) ||
-                        !Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Pitch, finalSemitoneShift))
-                        Debug.LogError($"Failed to set channel pitch: {Bass.LastError}");
-                }
-            }
-
-            LengthD = GetLengthInSeconds();
-
-            // Set position to trigger desync compensation
-            SetPosition(0, bufferCompensation: false);
-
-            return 0;
-        }
-
-        private bool CreateStreams()
-        {
-            // Last flag is new BASS_SAMPLE_NOREORDER flag, which is not in the BassFlags enum,
-            // as it was made as part of an update to fix <= 8 channel oggs.
-            // https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
-            const BassFlags streamFlags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags) 64;
-            const BassFlags splitFlags = BassFlags.Decode | BassFlags.SplitPosition;
-            const BassFlags tempoFlags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode |
-                BassFlags.FxFreeSource;
-
-            if (_sourceHandle == 0)
-            {
-                if (_stream == null)
-                    // Channel was not set up correctly for some reason
-                    return false;
-
-                _sourceHandle = Bass.CreateStream(StreamSystem.NoBuffer, streamFlags, new BassMoggProcedures(_stream, 0));
-                if (_sourceHandle == 0)
-                {
-                    Debug.LogError($"Failed to create file stream: {Bass.LastError}");
-                    return false;
-                }
-            }
-
-            int streamSplit = BassMix.CreateSplitStream(_sourceHandle, splitFlags, null);
-            if (streamSplit == 0)
-            {
-                Debug.LogError($"Failed to create main stream: {Bass.LastError}");
-                return false;
-            }
-
-            int reverbSplit = BassMix.CreateSplitStream(_sourceHandle, splitFlags, null);
-            if (reverbSplit == 0)
-            {
-                Debug.LogError($"Failed to create reverb stream: {Bass.LastError}");
-                return false;
-            }
-
-            _streamHandles.Stream = BassFx.TempoCreate(streamSplit, tempoFlags);
-            _reverbHandles.Stream = BassFx.TempoCreate(reverbSplit, tempoFlags);
-
-            return true;
-        }
-
-        private void SetEffects()
-        {
-            // Apply a compressor to balance stem volume
-            SetCompressor();
-
-            // Set whammy pitch bending if enabled
-            if (_manager.Options.UseWhammyFx && AudioHelpers.PitchBendAllowedStems.Contains(Stem))
-            {
-                SetPitchBend();
-            }
-        }
-
-        private bool SetCompressor()
-        {
-            int streamCompressor = BassHelpers.AddCompressorToChannel(StreamHandle);
-            if (streamCompressor == 0)
-            {
-                Debug.LogError($"Failed to set up compressor for main stream!");
-                return false;
-            }
-
-            int reverbCompressor = BassHelpers.AddCompressorToChannel(ReverbStreamHandle);
-            if (reverbCompressor == 0)
-            {
-                Debug.LogError($"Failed to set up compressor for reverb stream!");
-                return false;
-            }
-
-            _streamHandles.CompressorFX = streamCompressor;
-            _reverbHandles.CompressorFX = reverbCompressor;
-
-            return true;
-        }
-
-        private bool SetPitchBend()
-        {
-            // Setting the FFT size causes a crash in BASS_FX :/
-            // _pitchParams.FFTSize = _manager.Options.WhammyFFTSize;
-            _pitchParams.OversampleFactor = _manager.Options.WhammyOversampleFactor;
-
-            int streamPitch = BassHelpers.FXAddParameters(StreamHandle, EffectType.PitchShift, _pitchParams);
-            if (streamPitch == 0)
-            {
-                Debug.LogError($"Failed to set up pitch bend for main stream!");
-                return false;
-            }
-
-            int reverbPitch = BassHelpers.FXAddParameters(ReverbStreamHandle, EffectType.PitchShift, _pitchParams);
-            if (reverbPitch == 0)
-            {
-                Debug.LogError($"Failed to set up pitch bend for reverb stream!");
-                return false;
-            }
-
-            _streamHandles.CompressorFX = streamPitch;
-            _reverbHandles.CompressorFX = reverbPitch;
-
-            return true;
         }
 
         public void FadeIn(float maxVolume)
@@ -281,20 +205,20 @@ namespace YARG.Audio.BASS
             });
         }
 
-        public void SetVolume(double newVolume)
+        public void SetVolume(BassAudioManager manager, double newVolume)
         {
             if (StreamHandle == 0)
             {
                 return;
             }
 
-            double volumeSetting = _manager.GetVolumeSetting(Stem);
+            double volumeSetting = manager.GetVolumeSetting(Stem);
 
             double oldBassVol = _lastStemVolume * Volume;
             double newBassVol = volumeSetting * newVolume;
 
             // Limit minimum stem volume
-            if (_manager.Options.UseMinimumStemVolume)
+            if (manager.Options.UseMinimumStemVolume)
             {
                 newBassVol = Math.Max(newBassVol, AudioOptions.MINIMUM_STEM_VOLUME);
             }
@@ -317,7 +241,7 @@ namespace YARG.Audio.BASS
                 Debug.LogError($"Failed to set reverb volume: {Bass.LastError}");
         }
 
-        public void SetReverb(bool reverb)
+        public void SetReverb(BassAudioManager manager, bool reverb)
         {
             _isReverbing = reverb;
             if (reverb)
@@ -331,7 +255,7 @@ namespace YARG.Audio.BASS
                 _reverbHandles.HighEQ = BassHelpers.AddEqToChannel(ReverbStreamHandle, BassHelpers.HighEqParams);
                 _reverbHandles.ReverbFX = BassHelpers.AddReverbToChannel(ReverbStreamHandle);
 
-                double volumeSetting = _manager.GetVolumeSetting(Stem);
+                double volumeSetting = manager.GetVolumeSetting(Stem);
                 if (!Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume,
                     (float) (volumeSetting * Volume * BassHelpers.REVERB_VOLUME_MULTIPLIER), BassHelpers.REVERB_SLIDE_IN_MILLISECONDS))
                 {
@@ -368,26 +292,17 @@ namespace YARG.Audio.BASS
         public void SetSpeed(float speed)
         {
             speed = (float) Math.Round(Math.Clamp(speed, 0.05, 50), 2);
-
-            // Gets relative speed from 100% (so 1.05f = 5% increase)
-            float percentageSpeed = speed * 100;
-            float relativeSpeed = percentageSpeed - 100;
-
-            if (!Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Tempo, relativeSpeed) ||
-                !Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Tempo, relativeSpeed))
-            {
-                Debug.LogError($"Failed to set channel speed: {Bass.LastError}");
-            }
+            SetSpeed(speed, StreamHandle, ReverbStreamHandle);
         }
 
-        public void SetWhammyPitch(float percent)
+        public void SetWhammyPitch(BassAudioManager manager, float percent)
         {
             if (_streamHandles.PitchFX == 0 || _reverbHandles.PitchFX == 0)
                 return;
 
             percent = Mathf.Clamp(percent, 0f, 1f);
 
-            float shift = Mathf.Pow(2, -(_manager.Options.WhammyPitchShiftAmount * percent) / 12);
+            float shift = Mathf.Pow(2, -(manager.Options.WhammyPitchShiftAmount * percent) / 12);
             _pitchParams.fPitchShift = shift;
 
             if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
@@ -401,11 +316,11 @@ namespace YARG.Audio.BASS
             }
         }
 
-        private double GetDesyncOffset(bool bufferCompensation = true)
+        private double GetDesyncOffset(BassAudioManager manager, bool bufferCompensation = true)
         {
             // Playback buffer compensation is optional
             // All other desync compensation is always done
-            double desync = bufferCompensation ? _manager.PlaybackBufferLength : 0;
+            double desync = bufferCompensation ? manager.PlaybackBufferLength : 0;
 
             // Hack to get desync of pitch-bent channels
             if (_streamHandles.PitchFX != 0 && _reverbHandles.PitchFX != 0)
@@ -422,7 +337,7 @@ namespace YARG.Audio.BASS
             return desync;
         }
 
-        public double GetPosition(bool bufferCompensation = true)
+        public double GetPosition(BassAudioManager manager, bool bufferCompensation = true)
         {
             // BassMix.ChannelGetPosition is very wonky when seeking
             // compared to Bass.ChannelGetPosition
@@ -444,14 +359,14 @@ namespace YARG.Audio.BASS
                 return -1;
             }
 
-            seconds -= GetDesyncOffset(bufferCompensation);
+            seconds -= GetDesyncOffset(manager, bufferCompensation);
 
             return seconds;
         }
 
-        public void SetPosition(double position, bool bufferCompensation = true)
+        public void SetPosition(BassAudioManager manager, double position, bool bufferCompensation = true)
         {
-            position += GetDesyncOffset(bufferCompensation);
+            position += GetDesyncOffset(manager, bufferCompensation);
 
             long bytes = Bass.ChannelSeconds2Bytes(StreamHandle, position);
             if (bytes < 0)
@@ -461,16 +376,14 @@ namespace YARG.Audio.BASS
             }
 
             bool success = IsMixed
-                ? BassMix.ChannelSetPosition(StreamHandle, bytes)
+                ? BassMix.ChannelSetPosition(StreamHandle, bytes, PositionFlags.Bytes)
                 : Bass.ChannelSetPosition(StreamHandle, bytes);
+
             if (!success)
             {
                 Debug.LogError($"Failed to seek to position {position}!");
                 return;
             }
-
-            if (_sourceIsSplit && !BassMix.SplitStreamReset(_sourceHandle))
-                Debug.LogError($"Failed to reset stream: {Bass.LastError}");
         }
 
         public double GetLengthInSeconds()

@@ -8,7 +8,7 @@ namespace YARG.Integration
         public struct State
         {
             public SceneIndex CurrentScene;
-            public SongMetadata SongMetadata;
+            public SongEntry SongEntry;
             public bool Paused;
         }
 
@@ -21,16 +21,16 @@ namespace YARG.Integration
             _current = new State
             {
                 CurrentScene = scene,
-                SongMetadata = null,
+                SongEntry = null,
                 Paused = false
             };
 
             GameStateChange?.Invoke(_current);
         }
 
-        public static void SetSongMetadata(SongMetadata metadata)
+        public static void SetSongEntry(SongEntry metadata)
         {
-            _current.SongMetadata = metadata;
+            _current.SongEntry = metadata;
 
             GameStateChange?.Invoke(_current);
         }

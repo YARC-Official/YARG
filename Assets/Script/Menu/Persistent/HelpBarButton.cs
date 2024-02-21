@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using YARG.Core.Input;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 
@@ -11,13 +12,14 @@ namespace YARG.Menu.Persistent
     {
         [SerializeField]
         private Image _buttonImage;
-
         [SerializeField]
         private Image _buttonBackground;
 
         [SerializeField]
-        private TextMeshProUGUI _buttonLabel;
+        private Button _button;
 
+        [SerializeField]
+        private TextMeshProUGUI _buttonLabel;
         [SerializeField]
         private TextMeshProUGUI _buttonText;
 
@@ -31,15 +33,22 @@ namespace YARG.Menu.Persistent
             var icons = MenuData.NavigationIcons;
             _buttonBackgroundColor = icons.GetColor(entry.Action);
 
+            // Label
             _buttonLabel.text = entry.DisplayName;
             _buttonLabel.color = Color.white;
 
-            _buttonText.color = Color.white;
+            // Show/hide text and transitions
+            var special = entry.Action is MenuAction.Select or MenuAction.Start;
+            _buttonText.gameObject.SetActive(!special);
+            _button.transition = special
+                ? Selectable.Transition.None
+                : Selectable.Transition.SpriteSwap;
 
-            // Set the icon color
+            // Set colors
             _buttonImage.sprite = icons.GetIcon(entry.Action);
             _buttonImage.color = _buttonBackgroundColor;
             _buttonBackground.color = Color.clear;
+            _buttonText.color = Color.white;
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -70,7 +79,5 @@ namespace YARG.Menu.Persistent
         {
             _entry?.Invoke();
         }
-
-
     }
 }

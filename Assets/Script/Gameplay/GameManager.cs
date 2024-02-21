@@ -72,7 +72,7 @@ namespace YARG.Gameplay
         public PracticeManager  PracticeManager  { get; private set; }
         public BackgroundManager BackgroundManager { get; private set; }
 
-        public SongMetadata Song  { get; private set; }
+        public SongEntry Song  { get; private set; }
         public SongChart    Chart { get; private set; }
 
         // For clarity, try to avoid using these properties inside GameManager itself
@@ -138,7 +138,7 @@ namespace YARG.Gameplay
             IsPractice = GlobalVariables.Instance.IsPractice && !IsReplay;
 
             Navigator.Instance.PopAllSchemes();
-            GameStateFetcher.SetSongMetadata(Song);
+            GameStateFetcher.SetSongEntry(Song);
 
             if (Song is null)
             {

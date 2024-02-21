@@ -125,7 +125,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 if (_musicLibrary.CurrentSelection is not SongViewType songViewType) return;
 
-                FileExplorerHelper.OpenFolder(songViewType.SongMetadata.Directory);
+                FileExplorerHelper.OpenFolder(songViewType.SongEntry.Directory);
 
                 gameObject.SetActive(false);
             });
@@ -134,7 +134,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 if (_musicLibrary.CurrentSelection is not SongViewType songViewType) return;
 
-                GUIUtility.systemCopyBuffer = songViewType.SongMetadata.Hash.ToString();
+                GUIUtility.systemCopyBuffer = songViewType.SongEntry.Hash.ToString();
 
                 gameObject.SetActive(false);
             });
