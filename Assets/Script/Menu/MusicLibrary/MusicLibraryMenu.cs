@@ -30,8 +30,6 @@ namespace YARG.Menu.MusicLibrary
     {
         public static MusicLibraryMode LibraryMode;
 
-        public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
-
         public static SongEntry InitialSelect = null;
 
 #nullable enable
@@ -181,7 +179,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Create header
                 var displayName = section.Category;
-                if (Sort == SongAttribute.Source)
+                if (SettingsManager.Settings.LibrarySort == SongAttribute.Source)
                 {
                     if (SongSources.TryGetSource(section.Category, out var parsedSource))
                     {
@@ -259,7 +257,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void Refresh()
         {
-            _sortedSongs = _searchField.Refresh(Sort);
+            _sortedSongs = _searchField.Refresh(SettingsManager.Settings.LibrarySort);
 
             SetRecommendedSongs();
             RequestViewListUpdate();
@@ -274,7 +272,7 @@ namespace YARG.Menu.MusicLibrary
         {
             if (!force && _searchField.IsCurrentSearchInField) return;
 
-            _sortedSongs = _searchField.Search(Sort);
+            _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
 
             RequestViewListUpdate();
 
@@ -346,7 +344,7 @@ namespace YARG.Menu.MusicLibrary
 
         public void ChangeSort(SongAttribute sort)
         {
-            Sort = sort;
+            SettingsManager.Settings.LibrarySort = sort;
             UpdateSearch(true);
         }
 
