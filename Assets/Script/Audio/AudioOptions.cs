@@ -6,7 +6,7 @@ namespace YARG.Audio
     {
         Off,
         MultitrackOnly,
-        Always
+        On
     }
 
     public class AudioOptions
@@ -16,7 +16,6 @@ namespace YARG.Audio
 
         public const double MINIMUM_STEM_VOLUME = 0.15;
 
-        public StarPowerFxMode UseStarpowerFx { get; set; }
         public bool UseWhammyFx { get; set; }
         public bool IsChipmunkSpeedup { get; set; }
 

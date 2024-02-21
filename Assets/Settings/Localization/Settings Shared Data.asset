@@ -1056,7 +1056,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 120322882958163968
-    m_Key: Dropdown.UseStarpowerFx.Always
+    m_Key: Dropdown.UseStarpowerFx.On
     m_Metadata:
       m_Items: []
   m_Metadata:

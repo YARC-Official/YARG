@@ -1116,7 +1116,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 120322882958163968
-    m_Localized: Always
+    m_Localized: On
     m_Metadata:
       m_Items: []
   references:
