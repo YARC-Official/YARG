@@ -380,17 +380,15 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            if (index == Notes.Count - 1 && note.ParentOrSelf.WasFullyHit())
+            if (index >= Notes.Count - 1 && note.ParentOrSelf.WasFullyHit())
             {
-                // 30 to coincide with 4x multiplier (including on bass)
-                if (Combo >= 30)
-                {
-                    TrackView.ShowStrongFinish();
-                }
-
                 if (IsFc)
                 {
                     TrackView.ShowFullCombo();
+                }
+                else if (Combo >= 30) // 30 to coincide with 4x multiplier (including on bass)
+                {
+                    TrackView.ShowStrongFinish();
                 }
             }
 

@@ -65,7 +65,7 @@ namespace YARG.Gameplay.HUD
 
         public void ShowStarPowerReady()
         {
-            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StarPowerReady, "OVERDRIVE READY"));
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StarPowerReady, "STAR POWER READY"));
         }
 
         public void ShowStrongFinish()
@@ -94,7 +94,7 @@ namespace YARG.Gameplay.HUD
             // Queue the note streak notification
             if (_streak >= _nextStreakCount)
             {
-                if (!SettingsManager.Settings.NoteStreakFrequency.ValueEquals(NoteStreakFrequencyMode.Sparse))
+                if (SettingsManager.Settings.NoteStreakFrequency.Value != NoteStreakFrequencyMode.Disabled)
                 {
                     _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NoteStreak,
                         $"{_nextStreakCount}-NOTE STREAK"));
@@ -136,42 +136,29 @@ namespace YARG.Gameplay.HUD
 
         private void NextNoteStreakNotification()
         {
-            if (SettingsManager.Settings.NoteStreakFrequency.ValueEquals(NoteStreakFrequencyMode.Frequent))
-            {
-                switch (_nextStreakCount)
-                {
-                    case 0:
-                        _nextStreakCount = 50;
-                        break;
-                    case 50:
-                        _nextStreakCount = 100;
-                        break;
-                    case >= 100:
-                        _nextStreakCount += 100;
-                        break;
-                }
-            }
-            else if (SettingsManager.Settings.NoteStreakFrequency.ValueEquals(NoteStreakFrequencyMode.Sparse))
-            {
-                switch (_nextStreakCount)
-                {
-                    case 0:
-                        _nextStreakCount = 50;
-                        break;
-                    case 50:
-                        _nextStreakCount = 100;
-                        break;
-                    case 100:
-                        _nextStreakCount = 250;
-                        break;
-                    case >= 250:
-                        _nextStreakCount += 250;
-                        break;
-                }
-            }
-            else
+            if (SettingsManager.Settings.NoteStreakFrequency.Value == NoteStreakFrequencyMode.Disabled)
             {
                 _nextStreakCount = int.MaxValue;
+                return;
+            }
+
+            switch (_nextStreakCount)
+            {
+                case 0:
+                    _nextStreakCount = 50;
+                    break;
+                case 50:
+                    _nextStreakCount = 100;
+                    break;
+                case >= 100 when SettingsManager.Settings.NoteStreakFrequency.Value == NoteStreakFrequencyMode.Frequent:
+                    _nextStreakCount += 100;
+                    break;
+                case 100 when SettingsManager.Settings.NoteStreakFrequency.Value == NoteStreakFrequencyMode.Sparse:
+                    _nextStreakCount = 250;
+                    break;
+                case >= 250 when SettingsManager.Settings.NoteStreakFrequency.Value == NoteStreakFrequencyMode.Sparse:
+                    _nextStreakCount += 250;
+                    break;
             }
         }
 
