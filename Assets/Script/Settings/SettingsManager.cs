@@ -82,6 +82,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.ShowHitWindow),
                 nameof(Settings.DisableTextNotifications),
+                nameof(Settings.NoteStreakFrequency),
                 nameof(Settings.LyricDisplay),
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox),
