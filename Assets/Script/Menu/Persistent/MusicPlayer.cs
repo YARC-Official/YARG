@@ -1,9 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Audio;
 using YARG.Settings;
 using YARG.Helpers.Extensions;
 using YARG.Core.Audio;
@@ -13,7 +13,9 @@ namespace YARG.Menu.Persistent
 {
     public class MusicPlayer : MonoBehaviour
     {
-        public static SongEntry NowPlaying = null;
+        public static SongEntry NowPlaying => nowPlayingPointer >= 0 ? NowPlayingList[nowPlayingPointer] : null;
+        private static List<SongEntry> NowPlayingList = new();
+        private static int nowPlayingPointer = -1;
 
         [SerializeField]
         private Image _playPauseButton;
@@ -57,8 +59,14 @@ namespace YARG.Menu.Persistent
 
         private async UniTask NextSong()
         {
-            var song = GlobalVariables.Instance.SongContainer.GetRandomSong();
-            NowPlaying = song;
+            nowPlayingPointer++;
+
+            if (nowPlayingPointer == NowPlayingList.Count)
+            {
+                NowPlayingList.Add(GlobalVariables.Instance.SongContainer.GetRandomSong());
+            }
+            
+            var song = NowPlayingList[nowPlayingPointer];
             await UniTask.RunOnThreadPool(() => song.LoadAudio(GlobalVariables.AudioManager, 1f, SongStem.Crowd));
 
             // Set song title text
@@ -66,6 +74,14 @@ namespace YARG.Menu.Persistent
             _artistText.text = song.Artist;
 
             Play();
+        }
+
+        private void PreviousSong()
+        {
+            nowPlayingPointer -= 2;
+            if (nowPlayingPointer < -1) nowPlayingPointer = -1;
+
+            OnSongEnd();
         }
 
         private void OnSongEnd()
@@ -126,6 +142,11 @@ namespace YARG.Menu.Persistent
             {
                 Play();
             }
+        }
+
+        public void PreviousClick()
+        {
+            PreviousSong();
         }
 
         public void SkipClick()
