@@ -16,6 +16,7 @@ namespace YARG.Menu.Persistent
         public static SongEntry NowPlaying => nowPlayingPointer >= 0 ? NowPlayingList[nowPlayingPointer] : null;
         private static List<SongEntry> NowPlayingList = new();
         private static int nowPlayingPointer = -1;
+        private const int PREVIOUS_PLAYING_LIMIT = 3;
 
         [SerializeField]
         private Image _playPauseButton;
@@ -63,6 +64,12 @@ namespace YARG.Menu.Persistent
 
             if (nowPlayingPointer == NowPlayingList.Count)
             {
+                if (NowPlayingList.Count > PREVIOUS_PLAYING_LIMIT)
+                {
+                    nowPlayingPointer--;
+                    NowPlayingList.RemoveAt(0);
+                }
+
                 NowPlayingList.Add(GlobalVariables.Instance.SongContainer.GetRandomSong());
             }
             
