@@ -20,10 +20,11 @@ namespace YARG.Gameplay.HUD
         private int _streak;
         private int _nextStreakCount;
 
-        private TextNotificationQueue _notificationQueue = new();
+        private Coroutine _coroutine;
+
+        private readonly TextNotificationQueue _notificationQueue = new();
 
         private readonly PerformanceTextScaler _scaler = new(2f);
-        private Coroutine _coroutine;
 
         private void OnEnable()
         {
@@ -53,24 +54,33 @@ namespace YARG.Gameplay.HUD
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.FullCombo, "FULL COMBO"));
         }
 
+        public void ShowStrongFinish()
+        {
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StrongFinish, "STRONG FINISH"));
+        }
+
         public void ShowHotStart()
         {
+            // Don't build up notifications during a solo
+            if (!gameObject.activeSelf) return;
+
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.HotStart, "HOT START"));
         }
 
         public void ShowBassGroove()
         {
+            // Don't build up notifications during a solo
+            if (!gameObject.activeSelf) return;
+
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.BassGroove, "BASS GROOVE"));
         }
 
         public void ShowStarPowerReady()
         {
-            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StarPowerReady, "STAR POWER READY"));
-        }
+            // Don't build up notifications during a solo
+            if (!gameObject.activeSelf) return;
 
-        public void ShowStrongFinish()
-        {
-            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StrongFinish, "STRONG FINISH"));
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StarPowerReady, "STAR POWER READY"));
         }
 
         public void UpdateNoteStreak(int streak)
