@@ -14,7 +14,8 @@ namespace YARG.Gameplay.HUD
 
         private PauseMenuManager _pauseMenuManager;
 
-        private bool _navigationPushed = false;
+        private bool _navigationPushed;
+        private bool _hasSelectedSections;
 
         private List<Section> _sections;
         public IReadOnlyList<Section> Sections => _sections;
@@ -121,7 +122,7 @@ namespace YARG.Gameplay.HUD
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Confirm", Confirm),
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () => GameManager.ForceQuitSong()),
+                new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
                 new NavigationScheme.Entry(MenuAction.Up, "Up", Up),
                 new NavigationScheme.Entry(MenuAction.Down, "Down", Down)
             }, false));
@@ -148,6 +149,32 @@ namespace YARG.Gameplay.HUD
 
                 // Hide menu
                 _pauseMenuManager.PopMenu(resume: false);
+
+                _hasSelectedSections = true;
+            }
+        }
+
+        private void Back()
+        {
+            // No sections have been played yet so we must exit
+            if (!_hasSelectedSections && FirstSelectedIndex == null)
+            {
+                GameManager.ForceQuitSong();
+            }
+            else
+            {
+                // Unselect starting section
+                if(FirstSelectedIndex != null)
+                {
+                    FirstSelectedIndex = null;
+                    UpdateSectionViews();
+                }
+                else
+                {
+                    // Go back to practice pause menu
+                    _pauseMenuManager.PopMenu(false);
+                    _pauseMenuManager.PushMenu(PauseMenuManager.Menu.PracticePause);
+                }
             }
         }
 
