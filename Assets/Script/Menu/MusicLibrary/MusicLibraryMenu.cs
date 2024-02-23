@@ -30,7 +30,7 @@ namespace YARG.Menu.MusicLibrary
     {
         public static MusicLibraryMode LibraryMode;
 
-        public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
+        public static SortOption Sort { get; private set; } = SortOption.Name;
 
         public static SongEntry InitialSelect = null;
 
@@ -39,6 +39,7 @@ namespace YARG.Menu.MusicLibrary
 #nullable disable
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
+        private static ViewType _lastSelectedItem;
         private static bool _doRefresh = true;
 
         public static void SetRefresh()
@@ -97,6 +98,8 @@ namespace YARG.Menu.MusicLibrary
                     () => _popupMenu.gameObject.SetActive(true)),
             }, false));
 
+            GlobalVariables.Instance.SongContainer.UpdateSongsWithPlayCount();
+
             // Restore search
             _searchField.Restore();
             _searchField.OnSearchQueryUpdated += UpdateSearch;
@@ -115,8 +118,18 @@ namespace YARG.Menu.MusicLibrary
             else
             {
                 UpdateSearch(true);
-                // Restore index
-                SelectedIndex = _savedIndex;
+
+                if (Sort == SortOption.PlayCount && _lastSelectedItem is SongViewType lastSelectedSong)
+                {
+                    // If the music library is sorted by play count, we have to recalculate the index
+                    // because the play count and position in the list of the song might have changed
+                    SetIndexTo(i => i is SongViewType view && view.SongMetadata == lastSelectedSong.SongMetadata);
+                }
+                else
+                {
+                    // Restore index
+                    SelectedIndex = _savedIndex;
+                }
             }
             
             InitialSelect = null;
@@ -181,7 +194,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Create header
                 var displayName = section.Category;
-                if (Sort == SongAttribute.Source)
+                if (Sort == SortOption.Source)
                 {
                     if (SongSources.TryGetSource(section.Category, out var parsedSource))
                     {
@@ -308,6 +321,7 @@ namespace YARG.Menu.MusicLibrary
 
             // Save index
             _savedIndex = SelectedIndex;
+            _lastSelectedItem = CurrentSelection;
 
             Navigator.Instance.PopScheme();
 
@@ -344,7 +358,7 @@ namespace YARG.Menu.MusicLibrary
             } while (CurrentSelection is not SongViewType);
         }
 
-        public void ChangeSort(SongAttribute sort)
+        public void ChangeSort(SortOption sort)
         {
             Sort = sort;
             UpdateSearch(true);
