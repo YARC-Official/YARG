@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Audio;
 using YARG.Core.Audio;
+using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
@@ -33,6 +34,7 @@ namespace YARG.Settings
 
             public bool ShowAntiPiracyDialog          = true;
             public bool ShowEngineInconsistencyDialog = true;
+            public SongAttribute LibrarySort = SongAttribute.Name;
 
             #endregion
 
