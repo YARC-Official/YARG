@@ -13,6 +13,7 @@ using YARG.Core.Song;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Settings;
 using YARG.Song;
 
@@ -30,11 +31,13 @@ namespace YARG.Menu.MusicLibrary
     {
         public static MusicLibraryMode LibraryMode;
 
-        public static SongEntry InitialSelect = null;
+        public static SongEntry InitialSelect;
+        public static Playlist SelectedPlaylist;
 
 #nullable enable
         private static List<SongEntry>? _recommendedSongs;
 #nullable disable
+
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
         private static bool _doRefresh = true;
@@ -60,7 +63,6 @@ namespace YARG.Menu.MusicLibrary
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
         private IReadOnlyList<SongCategory> _sortedSongs;
-
 
         private PreviewContext _previewContext;
         private CancellationTokenSource _previewCanceller = new();
@@ -116,7 +118,7 @@ namespace YARG.Menu.MusicLibrary
                 // Restore index
                 SelectedIndex = _savedIndex;
             }
-            
+
             InitialSelect = null;
 
             // Set proper text
@@ -162,6 +164,16 @@ namespace YARG.Menu.MusicLibrary
         }
 
         protected override List<ViewType> CreateViewList()
+        {
+            if (SelectedPlaylist is not null)
+            {
+                return CreatePlaylistViewList();
+            }
+
+            return CreateNormalViewList();
+        }
+
+        private List<ViewType> CreateNormalViewList()
         {
             var list = new List<ViewType>();
 
@@ -238,6 +250,39 @@ namespace YARG.Menu.MusicLibrary
 
                 // Add the buttons
                 list.Insert(0, new ButtonViewType("RANDOM SONG", "Icon/Random", SelectRandomSong));
+                list.Insert(1, new ButtonViewType("PLAYLISTS", "Icon/Random", () =>
+                {
+                    // TODO: Proper playlist menu
+                    SelectedPlaylist = PlaylistContainer.LikedSongsPlaylist;
+                    Refresh();
+                }));
+            }
+
+            return list;
+        }
+
+        private List<ViewType> CreatePlaylistViewList()
+        {
+            var list = new List<ViewType>();
+
+            // Return if there are no songs (or they haven't loaded yet)
+            if (_sortedSongs is null || GlobalVariables.Instance.SongContainer.Count <= 0) return list;
+
+            // Get the number of songs
+            int count = _sortedSongs.Sum(section => section.Songs.Count);
+
+            // Return if there are no songs in the playlist
+            if (count == 0) return list;
+
+            // Add all of the songs
+            foreach (var section in _sortedSongs)
+            {
+                // Create header
+                var displayName = section.Category;
+                list.Add(new SortHeaderViewType(displayName, section.Songs.Count));
+
+                // Add all of the songs
+                list.AddRange(section.Songs.Select(song => new SongViewType(_searchField, song)));
             }
 
             return list;
@@ -257,12 +302,33 @@ namespace YARG.Menu.MusicLibrary
 
         private void Refresh()
         {
-            _sortedSongs = _searchField.Refresh(SettingsManager.Settings.LibrarySort);
+            if (SelectedPlaylist is null)
+            {
+                _sortedSongs = _searchField.Refresh(SettingsManager.Settings.LibrarySort);
+            }
+            else
+            {
+                // TODO: Organize better
+
+                var songs = new List<SongEntry>();
+                foreach (var hash in SelectedPlaylist.SongHashes)
+                {
+                    // Get the first song with the specified hash
+                    var song = GlobalVariables.Instance.SongContainer.SongsByHash[hash][0];
+                    songs.Add(song);
+                }
+
+                _sortedSongs = new List<SongCategory>
+                {
+                    new(SelectedPlaylist.Name, songs)
+                };
+            }
 
             SetRecommendedSongs();
             RequestViewListUpdate();
 
-            if (_currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory))
+            if (_currentSong == null ||
+                !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory))
             {
                 SelectedIndex = 2;
             }
