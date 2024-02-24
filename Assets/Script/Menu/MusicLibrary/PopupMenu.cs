@@ -145,7 +145,7 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 // Everything here is an advanced setting
-                if (!SettingsManager.Settings.ShowAdvancedMusicLibraryOptions.Value)
+                if (SettingsManager.Settings.ShowAdvancedMusicLibraryOptions.Value)
                 {
                     CreateItem("View Song Folder", () =>
                     {
