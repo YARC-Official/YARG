@@ -16,8 +16,6 @@ namespace YARG.Settings.Customization
 {
     public abstract class CustomContent
     {
-        private static readonly Regex _fileNameSanitize = new("([^a-zA-Z0-9])", RegexOptions.Compiled);
-
         protected static readonly JsonSerializerSettings JsonSettings = new()
         {
             Formatting = Formatting.Indented,
@@ -92,7 +90,7 @@ namespace YARG.Settings.Customization
             }
 
             // Remove symbols
-            fileName = _fileNameSanitize.Replace(fileName, "_");
+            fileName = PathHelper.SanitizeFileName(fileName);
 
             // Add the end
             fileName += $".{preset.Id.ToString()[..8]}.json";

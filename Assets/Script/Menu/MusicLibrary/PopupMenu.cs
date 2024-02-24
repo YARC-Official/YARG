@@ -7,6 +7,7 @@ using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
+using YARG.Playlists;
 using YARG.Settings;
 
 namespace YARG.Menu.MusicLibrary
@@ -118,26 +119,49 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
-            // Everything below here is an advanced setting
-            if (!SettingsManager.Settings.ShowAdvancedMusicLibraryOptions.Value) return;
-
-            CreateItem("View Song Folder", () =>
+            // Only show these options if we are selecting a song
+            if (_musicLibrary.CurrentSelection is SongViewType songViewType)
             {
-                if (_musicLibrary.CurrentSelection is not SongViewType songViewType) return;
+                var song = songViewType.SongEntry;
 
-                FileExplorerHelper.OpenFolder(songViewType.SongEntry.Directory);
+                // Add/remove to liked songs
+                if (!PlaylistContainer.LikedSongsPlaylist.ContainsSong(song))
+                {
+                    CreateItem("Add To Liked Songs", () =>
+                    {
+                        PlaylistContainer.LikedSongsPlaylist.AddSong(songViewType.SongEntry);
 
-                gameObject.SetActive(false);
-            });
+                        gameObject.SetActive(false);
+                    });
+                }
+                else
+                {
+                    CreateItem("Remove From Liked Songs", () =>
+                    {
+                        PlaylistContainer.LikedSongsPlaylist.RemoveSong(songViewType.SongEntry);
 
-            CreateItem("Copy Song Checksum", () =>
-            {
-                if (_musicLibrary.CurrentSelection is not SongViewType songViewType) return;
+                        gameObject.SetActive(false);
+                    });
+                }
 
-                GUIUtility.systemCopyBuffer = songViewType.SongEntry.Hash.ToString();
+                // Everything here is an advanced setting
+                if (!SettingsManager.Settings.ShowAdvancedMusicLibraryOptions.Value)
+                {
+                    CreateItem("View Song Folder", () =>
+                    {
+                        FileExplorerHelper.OpenFolder(song.Directory);
 
-                gameObject.SetActive(false);
-            });
+                        gameObject.SetActive(false);
+                    });
+
+                    CreateItem("Copy Song Checksum", () =>
+                    {
+                        GUIUtility.systemCopyBuffer = song.Hash.ToString();
+
+                        gameObject.SetActive(false);
+                    });
+                }
+            }
         }
 
         private void CreateSortSelect()
