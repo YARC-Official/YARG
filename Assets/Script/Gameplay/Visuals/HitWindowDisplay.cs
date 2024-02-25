@@ -5,7 +5,7 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class HitWindowDisplay : GameplayBehaviour
+    public class HitWindowDisplay : MonoBehaviour
     {
         private Transform  _transformCache;
         private BasePlayer _player;
@@ -14,7 +14,7 @@ namespace YARG.Gameplay.Visuals
 
         private double _lastNoteSpeed;
 
-        protected override void GameplayAwake()
+        private void Awake()
         {
             _player = GetComponentInParent<BasePlayer>();
 
