@@ -5,6 +5,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Replays;
+using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Menu.Persistent;
@@ -22,14 +23,15 @@ namespace YARG.Menu.History
         public override bool UseFullContainer => true;
 
         public readonly GameRecord GameRecord;
-        private readonly SongEntry _SongEntry;
+
+        private readonly SongEntry _songEntry;
 
         public GameRecordViewType(GameRecord gameRecord)
         {
             GameRecord = gameRecord;
 
             var songsByHash = GlobalVariables.Instance.SongContainer.SongsByHash;
-            _SongEntry = songsByHash.GetValueOrDefault(new HashWrapper(gameRecord.SongChecksum))?.FirstOrDefault();
+            _songEntry = songsByHash.GetValueOrDefault(new HashWrapper(gameRecord.SongChecksum))?.FirstOrDefault();
         }
 
         public override string GetPrimaryText(bool selected)
@@ -42,11 +44,18 @@ namespace YARG.Menu.History
             return FormatAs(GameRecord.SongArtist, TextType.Secondary, selected);
         }
 
-        public override void ViewClick()
+        public override void Confirm()
         {
-            if (_SongEntry is null) return;
+            if (_songEntry is null) return;
 
             PlayReplay().Forget();
+        }
+
+        public override void Shortcut1()
+        {
+            if (_songEntry is null) return;
+
+            AnalyzeReplay();
         }
 
         private async UniTaskVoid PlayReplay()
@@ -100,18 +109,55 @@ namespace YARG.Menu.History
             // We're good!
             GlobalVariables.Instance.IsReplay = true;
             GlobalVariables.Instance.CurrentReplay = replayEntry;
-            GlobalVariables.Instance.CurrentSong = _SongEntry;
+            GlobalVariables.Instance.CurrentSong = _songEntry;
 
             GlobalVariables.AudioManager.UnloadSong();
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }
 
+        private void AnalyzeReplay()
+        {
+            var chart = _songEntry.LoadChart();
+
+            if (chart is null)
+            {
+                Debug.LogError("Chart did not load");
+                return;
+            }
+
+            var replayReadResult = ReplayIO.ReadReplay(Path.Combine(ScoreContainer.ScoreReplayDirectory, GameRecord.ReplayFileName), out var replayFile);
+            if (replayReadResult != ReplayReadResult.Valid)
+            {
+                Debug.LogError("Replay did not load. " + replayReadResult);
+                return;
+            }
+
+            var replay = replayFile!.Replay;
+
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, replay);
+
+            for(int i = 0; i < results.Length; i++)
+            {
+                var analysisResult = results[i];
+
+                var profile = replay.Frames[i].PlayerInfo.Profile;
+                if (analysisResult.Passed)
+                {
+                    Debug.Log($"({profile.Name}, {profile.CurrentInstrument}/{profile.CurrentDifficulty}) PASSED verification!");
+                }
+                else
+                {
+                    Debug.LogWarning($"({profile.Name}, {profile.CurrentInstrument}/{profile.CurrentDifficulty}) FAILED verification");
+                }
+            }
+        }
+
         public override async UniTask<Sprite> GetIcon()
         {
             // TODO: Show "song missing" icon instead
-            if (_SongEntry is null) return null;
+            if (_songEntry is null) return null;
 
-            return await SongSources.SourceToIcon(_SongEntry.Source);
+            return await SongSources.SourceToIcon(_songEntry.Source);
         }
 
         public override GameInfo? GetGameInfo()

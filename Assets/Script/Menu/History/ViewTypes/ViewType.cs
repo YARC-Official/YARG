@@ -13,7 +13,22 @@ namespace YARG.Menu.History
 
         public abstract bool UseFullContainer { get; }
 
-        public virtual void ViewClick()
+        public virtual void Confirm()
+        {
+
+        }
+
+        public virtual void Shortcut1()
+        {
+
+        }
+
+        public virtual void Shortcut2()
+        {
+
+        }
+
+        public virtual void Shortcut3()
         {
 
         }
