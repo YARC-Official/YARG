@@ -140,6 +140,13 @@ namespace YARG.Menu.MusicLibrary
                     {
                         PlaylistContainer.LikedSongsPlaylist.RemoveSong(songViewType.SongEntry);
 
+                        // If we are in the liked songs menu, then update the playlist
+                        // to remove the song that was just removed.
+                        if (MusicLibraryMenu.SelectedPlaylist == PlaylistContainer.LikedSongsPlaylist)
+                        {
+                            _musicLibrary.RefreshAndReselect();
+                        }
+
                         gameObject.SetActive(false);
                     });
                 }
