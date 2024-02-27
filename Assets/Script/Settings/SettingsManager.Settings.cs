@@ -202,7 +202,7 @@ namespace YARG.Settings
             #region Lighting Peripherals
 
             public ToggleSetting StageKitEnabled { get; } = new(true);
-            public ToggleSetting DMXEnabled      { get; } = new(false, DMXEnabledCallback);
+            public ToggleSetting DMXEnabled      { get; } = new(false);
 
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(
                 new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, DMXCallback);
@@ -230,11 +230,6 @@ namespace YARG.Settings
             #endregion
 
             #region Callbacks
-
-            private static void DMXEnabledCallback(bool value)
-            {
-                SacnController.Instance.HandleEnabledChanged(value);
-            }
 
             private static void DMXCallback(int[] value)
             {

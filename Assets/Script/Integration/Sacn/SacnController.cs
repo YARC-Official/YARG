@@ -33,40 +33,61 @@ namespace YARG.Integration.Sacn
 
         private readonly byte[] _dataPacket = new byte[UNIVERSE_SIZE];
 
-        public void HandleEnabledChanged(bool enabled)
+        private bool _enabled;
+
+        private void Start()
         {
-            if (enabled)
+            //Start and Update are here instead of being a setting callback because that caused problems with when
+            //variables are set.
+            if (!SettingsManager.Settings.DMXEnabled.Value) return;
+            Init();
+            _enabled = true;
+        }
+
+        public void Update()
+        {
+            if (_enabled == SettingsManager.Settings.DMXEnabled.Value) return;
+            if (_enabled)
             {
-                if (_sendClient != null) return;
-
-                Debug.Log("Starting SacnController...");
-
-                StageKitLightingController.Instance.OnLedSet += HandleLedEvent;
-                StageKitLightingController.Instance.OnFogSet += HandleFogEvent;
-                StageKitLightingController.Instance.OnStrobeSet += HandleStrobeEvent;
-
-                UpdateDMXChannels();
-
-                _sendClient = new SACNClient(senderId: AcnSourceId, senderName: ACN_SOURCE_NAME,
-                    localAddress: SACNCommon.GetFirstBindAddress().IPAddress);
-
-                InvokeRepeating(nameof(Sender), 0, TIME_BETWEEN_CALLS);
-
-                //Many DMX fixtures have a 'Master dimmer' channel that controls the overall brightness of the fixture.
-                //Got to turn those on.
-                for (int i = 0; i < _dimmerChannels?.Length; i++)
-                {
-                    _dataPacket[_dimmerChannels[i] - 1] = 255;
-                }
+                Init();
+                _enabled = SettingsManager.Settings.DMXEnabled.Value;
             }
             else
             {
                 OnDestroy();
+                _enabled = SettingsManager.Settings.DMXEnabled.Value;
+            }
+        }
+
+        private void Init()
+        {
+            if (_sendClient != null) return;
+
+            Debug.Log("Starting SacnController...");
+
+            StageKitLightingController.Instance.OnLedSet += HandleLedEvent;
+            StageKitLightingController.Instance.OnFogSet += HandleFogEvent;
+            StageKitLightingController.Instance.OnStrobeSet += HandleStrobeEvent;
+
+            UpdateDMXChannels();
+
+            _sendClient = new SACNClient(senderId: AcnSourceId, senderName: ACN_SOURCE_NAME,
+                localAddress: SACNCommon.GetFirstBindAddress().IPAddress);
+
+            InvokeRepeating(nameof(Sender), 0, TIME_BETWEEN_CALLS);
+
+            //Many DMX fixtures have a 'Master dimmer' channel that controls the overall brightness of the fixture.
+            //Got to turn those on.
+            for (int i = 0; i < _dimmerChannels.Length; i++)
+            {
+                _dataPacket[_dimmerChannels[i] - 1] = 255;
             }
         }
 
         public void UpdateDMXChannels()
         {
+            //The null check here is when this is called from the settings callback, before the Start method,
+            //before the variables are set.
             _dimmerChannels = SettingsManager.Settings?.DMXDimmerChannels.Value;
             _redChannels = SettingsManager.Settings?.DMXRedChannels.Value;
             _greenChannels = SettingsManager.Settings?.DMXGreenChannels.Value;
