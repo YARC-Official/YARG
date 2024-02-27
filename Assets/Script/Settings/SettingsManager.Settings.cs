@@ -233,11 +233,19 @@ namespace YARG.Settings
 
             private static void DMXEnabledCallback(bool value)
             {
+                if (IsLoading)
+                {
+                    return;
+                }
                 SacnController.Instance.HandleEnabledChanged(value);
             }
 
             private static void DMXCallback(int[] value)
             {
+                if (IsLoading)
+                {
+                    return;
+                }
                 SacnController.Instance.UpdateDMXChannels();
             }
 
