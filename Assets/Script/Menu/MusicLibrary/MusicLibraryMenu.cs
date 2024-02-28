@@ -29,6 +29,10 @@ namespace YARG.Menu.MusicLibrary
 
     public class MusicLibraryMenu : ListMenu<ViewType, SongView>
     {
+        private const int RANDOM_SONG_ID = 0;
+        private const int PLAYLIST_ID = 1;
+        private const int BACK_ID = 2;
+
         public static MusicLibraryMode LibraryMode;
 
         public static SongEntry InitialSelect;
@@ -249,13 +253,16 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 // Add the buttons
-                list.Insert(0, new ButtonViewType("RANDOM SONG", "Icon/Random", SelectRandomSong));
-                list.Insert(1, new ButtonViewType("PLAYLISTS", "Icon/Random", () =>
+
+                list.Insert(0, new ButtonViewType("RANDOM SONG", "MusicLibraryIcons[Random]",
+                    SelectRandomSong, RANDOM_SONG_ID));
+
+                list.Insert(1, new ButtonViewType("PLAYLISTS", "MusicLibraryIcons[Playlists]", () =>
                 {
                     // TODO: Proper playlist menu
                     SelectedPlaylist = PlaylistContainer.LikedSongsPlaylist;
                     Refresh();
-                }));
+                }, PLAYLIST_ID));
             }
 
             return list;
@@ -266,11 +273,14 @@ namespace YARG.Menu.MusicLibrary
             var list = new List<ViewType>();
 
             // Add back button
-            list.Add(new ButtonViewType("BACK", "Icon/Random", () =>
+            list.Add(new ButtonViewType("BACK", "MusicLibraryIcons[Back]", () =>
             {
                 SelectedPlaylist = null;
                 Refresh();
-            }));
+
+                // Select playlist button
+                SetIndexTo(i => i is ButtonViewType { Id: PLAYLIST_ID });
+            }, BACK_ID));
 
             // Return if there are no songs (or they haven't loaded yet)
             if (_sortedSongs is null || GlobalVariables.Instance.SongContainer.Count <= 0) return list;
@@ -366,9 +376,15 @@ namespace YARG.Menu.MusicLibrary
             RequestViewListUpdate();
 
             if (_searchField.IsUpdatedSearchLonger ||
+                // Try to select the last selected song
                 !SetIndexTo(i => i is SongViewType view && view.SongEntry == _currentSong))
             {
-                SelectedIndex = _searchField.IsUnspecified || _sortedSongs.Count == 1 ? 1 : 2;
+                // Try to select the song after the first category
+                if (!SetIndexTo(i => i is CategoryViewType, 1))
+                {
+                    // If all else fails, jump to the first item
+                    SelectedIndex = 0;
+                }
             }
 
             _searchField.UpdateSearchText();

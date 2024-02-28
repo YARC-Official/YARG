@@ -33,12 +33,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6947e69a25ccfa049a22215a785e9f8a
-    m_Address: Icon/Random
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4a4ba0f5f6fbdff4ca0556b981ef1d61
-    m_Address: Icon/ChevronDown
+    m_Address: MusicLibraryIcons
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

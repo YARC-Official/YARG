@@ -9,15 +9,19 @@ namespace YARG.Menu.MusicLibrary
     {
         public override BackgroundType Background => BackgroundType.Category;
 
+        public int Id { get; }
+
         private readonly string _primary;
         private readonly string _iconPath;
         private readonly Action _buttonAction;
 
-        public ButtonViewType(string primary, string iconPath, Action buttonAction)
+        public ButtonViewType(string primary, string iconPath, Action buttonAction, int id = -1)
         {
             _primary = primary;
             _iconPath = iconPath;
             _buttonAction = buttonAction;
+
+            Id = id;
         }
 
         public override string GetPrimaryText(bool selected)

@@ -42,7 +42,7 @@ namespace YARG.Menu.MusicLibrary
 
         public override async UniTask<Sprite> GetIcon()
         {
-            return await Addressables.LoadAssetAsync<Sprite>("Icon/ChevronDown").ToUniTask();
+            return await Addressables.LoadAssetAsync<Sprite>("MusicLibraryIcons[Down]").ToUniTask();
         }
     }
 }
