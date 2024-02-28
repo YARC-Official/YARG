@@ -101,6 +101,12 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
+            CreateItem("Back To Top", () =>
+            {
+                _musicLibrary.SelectedIndex = 0;
+                gameObject.SetActive(false);
+            });
+
             CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
             {
                 _menuState = State.SortSelect;
@@ -111,12 +117,6 @@ namespace YARG.Menu.MusicLibrary
             {
                 _menuState = State.GoToSection;
                 UpdateForState();
-            });
-
-            CreateItem("Back To Top", () =>
-            {
-                _musicLibrary.SelectedIndex = 0;
-                gameObject.SetActive(false);
             });
 
             // Only show these options if we are selecting a song
