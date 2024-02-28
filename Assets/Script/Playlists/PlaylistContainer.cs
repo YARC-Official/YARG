@@ -21,44 +21,44 @@ namespace YARG.Playlists
 
         public static string PlaylistDirectory { get; private set; }
 
-        private static string _likedSongsPath;
+        private static string _favoritesPath;
 
         private static List<Playlist> _playlists = new();
 
         public static IReadOnlyList<Playlist> Playlists => _playlists;
 
-        public static Playlist LikedSongsPlaylist { get; private set; }
+        public static Playlist FavoritesPlaylist { get; private set; }
 
         public static void Initialize()
         {
             PlaylistDirectory = Path.Combine(PathHelper.PersistentDataPath, "playlists");
-            _likedSongsPath = Path.Combine(PlaylistDirectory, "likedSongs.json");
+            _favoritesPath = Path.Combine(PlaylistDirectory, "favorites.json");
 
             Directory.CreateDirectory(PlaylistDirectory);
 
-            if (!File.Exists(_likedSongsPath))
+            if (!File.Exists(_favoritesPath))
             {
-                // If the liked songs playlist doesn't exist, create one
-                LikedSongsPlaylist = new Playlist
+                // If the favorites playlist doesn't exist, create one
+                FavoritesPlaylist = new Playlist
                 {
-                    Name = "Liked Songs",
+                    Name = "Favorites",
                     Author = "You",
                     Id = Guid.NewGuid(),
                     SongHashes = new List<HashWrapper>()
                 };
 
-                SavePlaylist(LikedSongsPlaylist, _likedSongsPath);
+                SavePlaylist(FavoritesPlaylist, _favoritesPath);
             }
             else
             {
                 // If it does, load it in
-                LikedSongsPlaylist = LoadPlaylist(_likedSongsPath);
+                FavoritesPlaylist = LoadPlaylist(_favoritesPath);
             }
         }
 
         public static void SaveAll()
         {
-            SavePlaylist(LikedSongsPlaylist, _likedSongsPath);
+            SavePlaylist(FavoritesPlaylist, _favoritesPath);
         }
 
         private static void SavePlaylist(Playlist playlist)

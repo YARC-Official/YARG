@@ -124,25 +124,25 @@ namespace YARG.Menu.MusicLibrary
             {
                 var song = songViewType.SongEntry;
 
-                // Add/remove to liked songs
-                if (!PlaylistContainer.LikedSongsPlaylist.ContainsSong(song))
+                // Add/remove to favorites
+                if (!PlaylistContainer.FavoritesPlaylist.ContainsSong(song))
                 {
-                    CreateItem("Add To Liked Songs", () =>
+                    CreateItem("Add To Favorites", () =>
                     {
-                        PlaylistContainer.LikedSongsPlaylist.AddSong(songViewType.SongEntry);
+                        PlaylistContainer.FavoritesPlaylist.AddSong(songViewType.SongEntry);
 
                         gameObject.SetActive(false);
                     });
                 }
                 else
                 {
-                    CreateItem("Remove From Liked Songs", () =>
+                    CreateItem("Remove From Favorites", () =>
                     {
-                        PlaylistContainer.LikedSongsPlaylist.RemoveSong(songViewType.SongEntry);
+                        PlaylistContainer.FavoritesPlaylist.RemoveSong(songViewType.SongEntry);
 
-                        // If we are in the liked songs menu, then update the playlist
+                        // If we are in the favorites menu, then update the playlist
                         // to remove the song that was just removed.
-                        if (MusicLibraryMenu.SelectedPlaylist == PlaylistContainer.LikedSongsPlaylist)
+                        if (MusicLibraryMenu.SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
                         {
                             _musicLibrary.RefreshAndReselect();
                         }

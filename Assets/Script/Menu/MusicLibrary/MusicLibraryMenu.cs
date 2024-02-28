@@ -260,7 +260,7 @@ namespace YARG.Menu.MusicLibrary
                 list.Insert(1, new ButtonViewType("PLAYLISTS", "MusicLibraryIcons[Playlists]", () =>
                 {
                     // TODO: Proper playlist menu
-                    SelectedPlaylist = PlaylistContainer.LikedSongsPlaylist;
+                    SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
                     Refresh();
                 }, PLAYLIST_ID));
             }
