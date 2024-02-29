@@ -100,7 +100,7 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
-            CreateItem("Sort By: " + MusicLibraryMenu.Sort.ToLocalizedName(), () =>
+            CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
             {
                 _menuState = State.SortSelect;
                 UpdateForState();

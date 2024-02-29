@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Audio;
 using YARG.Core.Audio;
+using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
@@ -33,6 +34,7 @@ namespace YARG.Settings
 
             public bool ShowAntiPiracyDialog          = true;
             public bool ShowEngineInconsistencyDialog = true;
+            public SongAttribute LibrarySort = SongAttribute.Name;
 
             #endregion
 
@@ -131,6 +133,14 @@ namespace YARG.Settings
             public ToggleSetting ShowHitWindow            { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 
+            public DropdownSetting<NoteStreakFrequencyMode> NoteStreakFrequency { get; }
+                = new(NoteStreakFrequencyMode.Frequent)
+            {
+                NoteStreakFrequencyMode.Frequent,
+                NoteStreakFrequencyMode.Sparse,
+                NoteStreakFrequencyMode.Disabled
+            };
+
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; } = new(SongProgressMode.CountUpOnly)
             {
                 SongProgressMode.None,
@@ -223,11 +233,19 @@ namespace YARG.Settings
 
             private static void DMXEnabledCallback(bool value)
             {
+                if (IsLoading)
+                {
+                    return;
+                }
                 SacnController.Instance.HandleEnabledChanged(value);
             }
 
             private static void DMXCallback(int[] value)
             {
+                if (IsLoading)
+                {
+                    return;
+                }
                 SacnController.Instance.UpdateDMXChannels();
             }
 

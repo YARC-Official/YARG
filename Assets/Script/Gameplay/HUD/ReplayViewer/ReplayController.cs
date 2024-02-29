@@ -62,6 +62,7 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayDestroy()
         {
+            Navigator.Instance.NavigationEvent -= OnNavigationEvent;
         }
 
         protected override void OnSongLoaded()

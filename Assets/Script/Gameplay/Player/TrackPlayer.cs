@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
@@ -62,6 +63,12 @@ namespace YARG.Gameplay.Player
         protected List<Beatline> Beatlines;
         protected int BeatlineIndex;
 
+        protected bool IsHotStartChecked;
+        protected bool PreviousBassGrooveState;
+        protected double PreviousStarPowerAmount;
+
+        protected bool IsBass;
+
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             int? currentHighScore)
         {
@@ -91,6 +98,13 @@ namespace YARG.Gameplay.Player
             // Move the HUD location based on the highway length
             var change = ZeroFadePosition - DEFAULT_ZERO_FADE_POS;
             _hudLocation.position = _hudLocation.position.AddZ(change);
+
+            // Determine if a track is bass or not for the BASS GROOVE text notification
+            IsBass = Player.Profile.CurrentInstrument
+                is Instrument.FiveFretBass
+                or Instrument.SixFretBass
+                or Instrument.ProBass_17Fret
+                or Instrument.ProBass_22Fret;
         }
 
         protected override void ResetVisuals()
@@ -245,6 +259,34 @@ namespace YARG.Gameplay.Player
 
             TrackView.UpdateNoteStreak(stats.Combo);
 
+            if (!IsHotStartChecked && stats.ScoreMultiplier == 4)
+            {
+                IsHotStartChecked = true;
+
+                if (IsFc)
+                {
+                    TrackView.ShowHotStart();
+                }
+            }
+
+            bool currentBassGrooveState = IsBass && stats.ScoreMultiplier == BaseParameters.MaxMultiplier;
+
+            if (!PreviousBassGrooveState && currentBassGrooveState)
+            {
+                TrackView.ShowBassGroove();
+            }
+
+            PreviousBassGrooveState = currentBassGrooveState;
+
+            double currentStarPowerAmount = stats.StarPowerAmount;
+
+            if (!stats.IsStarPowerActive && PreviousStarPowerAmount < 0.5 && currentStarPowerAmount >= 0.5)
+            {
+                TrackView.ShowStarPowerReady();
+            }
+
+            PreviousStarPowerAmount = currentStarPowerAmount;
+
             foreach (var haptics in SantrollerHaptics)
             {
                 haptics.SetStarPowerFill((float) BaseStats.StarPowerAmount);
@@ -338,9 +380,16 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            if (index == Notes.Count - 1 && IsFc && note.ParentOrSelf.WasFullyHit())
+            if (index >= Notes.Count - 1 && note.ParentOrSelf.WasFullyHit())
             {
-                TrackView.ShowFullCombo();
+                if (IsFc)
+                {
+                    TrackView.ShowFullCombo();
+                }
+                else if (Combo >= 30) // 30 to coincide with 4x multiplier (including on bass)
+                {
+                    TrackView.ShowStrongFinish();
+                }
             }
 
             _lastCombo = Combo;
