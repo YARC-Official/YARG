@@ -79,7 +79,7 @@ namespace YARG.Menu.ListMenu
         protected virtual void OnSelectedIndexChanged()
         {
             UpdateScrollbar();
-            UpdateViewsObjects();
+            RefreshViewsObjects();
 
             if (_viewAligner != null)
             {
@@ -124,12 +124,12 @@ namespace YARG.Menu.ListMenu
         protected void RequestViewListUpdate()
         {
             _viewList = CreateViewList();
-            UpdateViewsObjects();
+            RefreshViewsObjects();
         }
 
         protected abstract List<TViewType> CreateViewList();
 
-        private void UpdateViewsObjects()
+        public void RefreshViewsObjects()
         {
             for (int i = 0; i < _viewObjects.Count; i++)
             {

@@ -3,6 +3,7 @@ using UnityEngine;
 using YARG.Core.Song;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Scores;
 using YARG.Song;
 
@@ -11,14 +12,18 @@ namespace YARG.Menu.MusicLibrary
     public class SongViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Normal;
+
         public override bool UseAsMadeFamousBy => !SongEntry.IsMaster;
 
-        private readonly SongSearchingField _songSearchingField;
+        public override bool ShowFavoriteButton => true;
+        public override bool IsFavorited => PlaylistContainer.FavoritesPlaylist.ContainsSong(SongEntry);
+
+        private readonly MusicLibraryMenu _musicLibrary;
         public readonly SongEntry SongEntry;
 
-        public SongViewType(SongSearchingField songSearchingField, SongEntry songEntry)
+        public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry)
         {
-            _songSearchingField = songSearchingField;
+            _musicLibrary = musicLibrary;
             SongEntry = songEntry;
         }
 
@@ -54,7 +59,7 @@ namespace YARG.Menu.MusicLibrary
         public override void SecondaryTextClick()
         {
             base.SecondaryTextClick();
-           _songSearchingField.SetSearchInput(SongAttribute.Artist, SongEntry.Artist.SortStr);
+           _musicLibrary.SetSearchInput(SongAttribute.Artist, SongEntry.Artist.SortStr);
         }
 
         public override void PrimaryButtonClick()
@@ -70,7 +75,28 @@ namespace YARG.Menu.MusicLibrary
         public override void IconClick()
         {
             base.IconClick();
-           _songSearchingField.SetSearchInput(SongAttribute.Source, SongEntry.Source.SortStr);
+           _musicLibrary.SetSearchInput(SongAttribute.Source, SongEntry.Source.SortStr);
+        }
+
+        public override void FavoriteClick()
+        {
+            base.FavoriteClick();
+
+            if (!IsFavorited)
+            {
+                PlaylistContainer.FavoritesPlaylist.AddSong(SongEntry);
+            }
+            else
+            {
+                PlaylistContainer.FavoritesPlaylist.RemoveSong(SongEntry);
+
+                // If we are in the favorites menu, then update the playlist
+                // to remove the song that was just removed.
+                if (MusicLibraryMenu.SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
+                {
+                    _musicLibrary.RefreshAndReselect();
+                }
+            }
         }
     }
 }

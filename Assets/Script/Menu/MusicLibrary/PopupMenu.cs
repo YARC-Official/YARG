@@ -119,55 +119,49 @@ namespace YARG.Menu.MusicLibrary
                 UpdateForState();
             });
 
+            var viewType = _musicLibrary.CurrentSelection;
+
+            // Add/remove to favorites
+            if (!viewType.IsFavorited)
+            {
+                CreateItem("Add To Favorites", () =>
+                {
+                    viewType.FavoriteClick();
+                    _musicLibrary.RefreshViewsObjects();
+
+                    gameObject.SetActive(false);
+                });
+            }
+            else
+            {
+                CreateItem("Remove From Favorites", () =>
+                {
+                    viewType.FavoriteClick();
+                    _musicLibrary.RefreshViewsObjects();
+
+                    gameObject.SetActive(false);
+                });
+            }
+
             // Only show these options if we are selecting a song
-            if (_musicLibrary.CurrentSelection is SongViewType songViewType)
+            if (viewType is SongViewType songViewType &&
+                SettingsManager.Settings.ShowAdvancedMusicLibraryOptions.Value)
             {
                 var song = songViewType.SongEntry;
 
-                // Add/remove to favorites
-                if (!PlaylistContainer.FavoritesPlaylist.ContainsSong(song))
+                CreateItem("View Song Folder", () =>
                 {
-                    CreateItem("Add To Favorites", () =>
-                    {
-                        PlaylistContainer.FavoritesPlaylist.AddSong(songViewType.SongEntry);
+                    FileExplorerHelper.OpenFolder(song.Directory);
 
-                        gameObject.SetActive(false);
-                    });
-                }
-                else
+                    gameObject.SetActive(false);
+                });
+
+                CreateItem("Copy Song Checksum", () =>
                 {
-                    CreateItem("Remove From Favorites", () =>
-                    {
-                        PlaylistContainer.FavoritesPlaylist.RemoveSong(songViewType.SongEntry);
+                    GUIUtility.systemCopyBuffer = song.Hash.ToString();
 
-                        // If we are in the favorites menu, then update the playlist
-                        // to remove the song that was just removed.
-                        if (MusicLibraryMenu.SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
-                        {
-                            _musicLibrary.RefreshAndReselect();
-                        }
-
-                        gameObject.SetActive(false);
-                    });
-                }
-
-                // Everything here is an advanced setting
-                if (SettingsManager.Settings.ShowAdvancedMusicLibraryOptions.Value)
-                {
-                    CreateItem("View Song Folder", () =>
-                    {
-                        FileExplorerHelper.OpenFolder(song.Directory);
-
-                        gameObject.SetActive(false);
-                    });
-
-                    CreateItem("Copy Song Checksum", () =>
-                    {
-                        GUIUtility.systemCopyBuffer = song.Hash.ToString();
-
-                        gameObject.SetActive(false);
-                    });
-                }
+                    gameObject.SetActive(false);
+                });
             }
         }
 

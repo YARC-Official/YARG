@@ -213,7 +213,7 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new SortHeaderViewType(displayName, section.Songs.Count));
 
                 // Add all of the songs
-                list.AddRange(section.Songs.Select(song => new SongViewType(_searchField, song)));
+                list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
             }
 
             if (_searchField.IsSearching)
@@ -245,7 +245,7 @@ namespace YARG.Menu.MusicLibrary
                 if (_recommendedSongs != null)
                 {
                     // Add the recommended songs right above the "ALL SONGS" header
-                    list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(_searchField, i)));
+                    list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(this, i)));
                     list.Insert(0, new CategoryViewType(
                         _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
                         _recommendedSongs.Count, _recommendedSongs
@@ -299,7 +299,7 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new SortHeaderViewType(displayName.ToUpperInvariant(), section.Songs.Count));
 
                 // Add all of the songs
-                list.AddRange(section.Songs.Select(song => new SongViewType(_searchField, song)));
+                list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
             }
 
             return list;
@@ -463,6 +463,11 @@ namespace YARG.Menu.MusicLibrary
         public IEnumerable<(ViewType, int)> GetSections()
         {
             return ViewList.Select((v, i) => (v, i)).Where(i => i.v is SortHeaderViewType);
+        }
+
+        public void SetSearchInput(SongAttribute songAttribute, string input)
+        {
+            _searchField.SetSearchInput(songAttribute, input);
         }
     }
 }
