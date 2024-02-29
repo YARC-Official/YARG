@@ -107,13 +107,14 @@ namespace YARG.Settings
                 new ButtonRowMetadata(nameof(Settings.OpenPersistentDataPath)),
                 new ButtonRowMetadata(nameof(Settings.OpenExecutablePath)),
             },
-            new MetadataTab("LightingPeripherals", icon: "Lighting")
+            new MetadataTab("LightingPeripherals", icon: "Lighting", new DMXInformationPanelBuilder())
             {
                 new HeaderMetadata("LightingGeneral"),
                 nameof(Settings.StageKitEnabled),
                 nameof(Settings.DMXEnabled),
                 new HeaderMetadata("DMXChannels"),
                 nameof(Settings.DMXDimmerChannels),
+                nameof(Settings.DMXCueChangeChannel),
                 nameof(Settings.DMXRedChannels),
                 nameof(Settings.DMXGreenChannels),
                 nameof(Settings.DMXBlueChannels),

@@ -196,6 +196,8 @@ namespace YARG.Settings
 
             public IntSetting DMXStrobeChannel { get; } = new(07, 1, 512);
 
+            public IntSetting DMXCueChangeChannel { get; } = new(08, 1, 512);
+
             #endregion
 
             #region Debug and Developer
@@ -210,11 +212,19 @@ namespace YARG.Settings
 
             private static void DMXEnabledCallback(bool value)
             {
+                if (IsLoading)
+                {
+                    return;
+                }
                 SacnController.Instance.HandleEnabledChanged(value);
             }
 
             private static void DMXCallback(int[] value)
             {
+                if (IsLoading)
+                {
+                    return;
+                }
                 SacnController.Instance.UpdateDMXChannels();
             }
 

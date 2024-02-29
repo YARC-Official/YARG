@@ -1086,6 +1086,108 @@ MonoBehaviour:
       slow (64), medium (127), fast (191), fastest (255).
     m_Metadata:
       m_Items: []
+  - m_Id: 121121501170786304
+    m_Localized: 'DMX Cue Change '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 121121555608657920
+    m_Localized: 'This channel''s value will change whenever the lighting cue changes,
+      as follows:
+
+'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 123349507897450496
+    m_Localized: 'DMX cue change channel value will change whenever the lighting
+      cue changes, as follows:
+
+
+      0 - No cue
+
+      5 - Keyframe (Next)
+
+      6
+      - Keyframe (Previous)
+
+      7 - Keyframe (Frist)
+
+      10 - Menu
+
+      20
+      - Score
+
+      30 - Intro
+
+      40 - Verse
+
+      50 - Chorus
+
+      60 -
+      Cool (loop)
+
+      70 - Warm (loop)
+
+      80 - Cool (manual)
+
+      90 - Warm
+      (manual)
+
+      100 - Dischord
+
+      110 - Stomp
+
+      120 - Default
+
+      130
+      - Harmony
+
+      140 - Frenzy
+
+      150 - Silhouettes
+
+      160 - Silhouettes
+      Spotlight
+
+      170 - Searchlights
+
+      180 - Sweep
+
+      190 - Strobe
+      (off)
+
+      191 - Strobe (slow)
+
+      192 - Strobe (medium)
+
+      193 -
+      Strobe (fast)
+
+      194 - Strobe (fastest)
+
+      200 - Blackout (fast)
+
+      205
+      - Blackout (slow)
+
+      210 - Blackout (spotlight)
+
+      220 - Flare (slow)
+
+      225
+      - Flare (fast)
+
+      230 - Big Rock Ending
+
+      240 - Bonus Effect
+
+      245
+      - Bonus Effect (optional)
+
+      250 - Fog on
+
+      255 - Fog off'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
