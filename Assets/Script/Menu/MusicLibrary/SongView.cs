@@ -9,6 +9,8 @@ namespace YARG.Menu.MusicLibrary
     {
         [SerializeField]
         private TextMeshProUGUI _sideText;
+        [SerializeField]
+        private StarView _starView;
 
         [Space]
         [SerializeField]
@@ -37,25 +39,32 @@ namespace YARG.Menu.MusicLibrary
             // Set side text
             _sideText.text = viewType.GetSideText(selected);
 
+            // Set star view
+            var starAmount = viewType.GetStarAmount();
+            _starView.gameObject.SetActive(starAmount is not null);
+            if (starAmount is not null)
+            {
+                _starView.SetStars(starAmount.Value);
+            }
+
             // Set secondary text type
             _secondaryTextContainer.SetActive(!viewType.UseAsMadeFamousBy);
             _asMadeFamousByTextContainer.SetActive(viewType.UseAsMadeFamousBy);
 
             // Show/hide favorite button
-            _favoriteButtonContainer.SetActive(!selected && viewType.ShowFavoriteButton);
-            _favoriteButtonContainerSelected.SetActive(selected && viewType.ShowFavoriteButton);
-
-            // Show correct sprite
-            UpdateFavoriteSprite();
+            var favoriteInfo = viewType.GetFavoriteInfo();
+            _favoriteButtonContainer.SetActive(!selected && favoriteInfo.ShowFavoriteButton);
+            _favoriteButtonContainerSelected.SetActive(selected && favoriteInfo.ShowFavoriteButton);
+            UpdateFavoriteSprite(favoriteInfo);
         }
 
-        private void UpdateFavoriteSprite()
+        private void UpdateFavoriteSprite(ViewType.FavoriteInfo favoriteInfo)
         {
-            if (!ViewType.ShowFavoriteButton) return;
+            if (!favoriteInfo.ShowFavoriteButton) return;
 
             foreach (var button in _favoriteButtons)
             {
-                button.sprite = ViewType.IsFavorited
+                button.sprite = favoriteInfo.IsFavorited
                     ? _favouriteFilled
                     : _favoriteUnfilled;
             }
@@ -82,7 +91,7 @@ namespace YARG.Menu.MusicLibrary
             ViewType.FavoriteClick();
 
             // Update the sprite after in case the state changed
-            UpdateFavoriteSprite();
+            UpdateFavoriteSprite(ViewType.GetFavoriteInfo());
         }
     }
 }

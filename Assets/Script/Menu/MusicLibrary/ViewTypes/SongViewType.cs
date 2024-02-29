@@ -1,5 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Core.Game;
 using YARG.Core.Song;
 using YARG.Helpers.Extensions;
 using YARG.Player;
@@ -14,9 +15,6 @@ namespace YARG.Menu.MusicLibrary
         public override BackgroundType Background => BackgroundType.Normal;
 
         public override bool UseAsMadeFamousBy => !SongEntry.IsMaster;
-
-        public override bool ShowFavoriteButton => true;
-        public override bool IsFavorited => PlaylistContainer.FavoritesPlaylist.ContainsSong(SongEntry);
 
         private readonly MusicLibraryMenu _musicLibrary;
         public readonly SongEntry SongEntry;
@@ -37,12 +35,20 @@ namespace YARG.Menu.MusicLibrary
             return FormatAs(SongEntry.Artist, TextType.Secondary, selected);
         }
 
+        public override async UniTask<Sprite> GetIcon()
+        {
+            return await SongSources.SourceToIcon(SongEntry.Source);
+        }
+
         public override string GetSideText(bool selected)
         {
             var score = ScoreContainer.GetHighScore(SongEntry.Hash);
 
             // Never played!
-            if (score is null) return string.Empty;
+            if (score is null)
+            {
+                return string.Empty;
+            }
 
             var instrument = score.Instrument.ToResourceName();
             var difficultyChar = score.Difficulty.ToChar();
@@ -51,9 +57,19 @@ namespace YARG.Menu.MusicLibrary
             return $"<sprite name=\"{instrument}\"> <b>{difficultyChar}</b> {percent:N0}%";
         }
 
-        public override async UniTask<Sprite> GetIcon()
+        public override StarAmount? GetStarAmount()
         {
-            return await SongSources.SourceToIcon(SongEntry.Source);
+             var score = ScoreContainer.GetHighScore(SongEntry.Hash);
+             return score?.Stars;
+        }
+
+        public override FavoriteInfo GetFavoriteInfo()
+        {
+            return new FavoriteInfo
+            {
+                ShowFavoriteButton = true,
+                IsFavorited = PlaylistContainer.FavoritesPlaylist.ContainsSong(SongEntry)
+            };
         }
 
         public override void SecondaryTextClick()
@@ -82,7 +98,9 @@ namespace YARG.Menu.MusicLibrary
         {
             base.FavoriteClick();
 
-            if (!IsFavorited)
+            var info = GetFavoriteInfo();
+
+            if (!info.IsFavorited)
             {
                 PlaylistContainer.FavoritesPlaylist.AddSong(SongEntry);
             }

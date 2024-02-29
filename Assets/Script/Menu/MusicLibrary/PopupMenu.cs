@@ -122,25 +122,29 @@ namespace YARG.Menu.MusicLibrary
             var viewType = _musicLibrary.CurrentSelection;
 
             // Add/remove to favorites
-            if (!viewType.IsFavorited)
+            var favoriteInfo = viewType.GetFavoriteInfo();
+            if (favoriteInfo.ShowFavoriteButton)
             {
-                CreateItem("Add To Favorites", () =>
+                if (!favoriteInfo.IsFavorited)
                 {
-                    viewType.FavoriteClick();
-                    _musicLibrary.RefreshViewsObjects();
+                    CreateItem("Add To Favorites", () =>
+                    {
+                        viewType.FavoriteClick();
+                        _musicLibrary.RefreshViewsObjects();
 
-                    gameObject.SetActive(false);
-                });
-            }
-            else
-            {
-                CreateItem("Remove From Favorites", () =>
+                        gameObject.SetActive(false);
+                    });
+                }
+                else
                 {
-                    viewType.FavoriteClick();
-                    _musicLibrary.RefreshViewsObjects();
+                    CreateItem("Remove From Favorites", () =>
+                    {
+                        viewType.FavoriteClick();
+                        _musicLibrary.RefreshViewsObjects();
 
-                    gameObject.SetActive(false);
-                });
+                        gameObject.SetActive(false);
+                    });
+                }
             }
 
             // Only show these options if we are selecting a song
