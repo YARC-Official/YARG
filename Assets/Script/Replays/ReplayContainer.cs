@@ -90,7 +90,7 @@ namespace YARG.Replays
             return ReplayIO.ReadReplay(entry.ReplayPath, out replayFile);
         }
 
-        public static Replay CreateNewReplay(SongMetadata song, IList<BasePlayer> players, double replayLength)
+        public static Replay CreateNewReplay(SongEntry song, IList<BasePlayer> players, double replayLength)
         {
             var replay = new Replay
             {

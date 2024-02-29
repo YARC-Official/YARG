@@ -45,7 +45,7 @@ namespace YARG.Audio
             }
         }
 
-        public async UniTask PlayPreview(SongMetadata song, float volume, CancellationToken cancelToken)
+        public async UniTask PlayPreview(SongEntry song, float volume, CancellationToken cancelToken)
         {
             // Skip if preview shouldn't be played
             if (song == null || Mathf.Approximately(volume, 0f))
@@ -74,7 +74,7 @@ namespace YARG.Audio
                 }
 
                 // Load the song
-                bool usesPreviewFile = await song.LoadPreviewAudio(_manager, 1f);
+                bool usesPreviewFile = await song.LoadPreview(_manager, 1f);
 
                 // Check if cancelled
                 if (cancelToken.IsCancellationRequested)

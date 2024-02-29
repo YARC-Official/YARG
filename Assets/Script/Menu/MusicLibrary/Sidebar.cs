@@ -47,10 +47,12 @@ namespace YARG.Menu.MusicLibrary
         private ViewType _currentView;
 
         private MusicLibraryMenu _musicLibraryMenu;
+        private SongSearchingField _songSearchingField;
 
-        public void Initialize(MusicLibraryMenu musicLibraryMenu)
+        public void Initialize(MusicLibraryMenu musicLibraryMenu, SongSearchingField songSearchingField)
         {
             _musicLibraryMenu = musicLibraryMenu;
+            _songSearchingField = songSearchingField;
 
             for (int i = 0; i < 5; ++i)
             {
@@ -131,7 +133,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void ShowSongInfo(SongViewType songViewType)
         {
-            var songEntry = songViewType.SongMetadata;
+            var songEntry = songViewType.SongEntry;
 
             _album.text = songEntry.Album;
             _source.text = SongSources.SourceToGameName(songEntry.Source);
@@ -150,14 +152,14 @@ namespace YARG.Menu.MusicLibrary
                 _length.text = time.ToString(@"m\:ss");
             }
 
-            UpdateDifficulties(songEntry.Parts);
+            UpdateDifficulties(songEntry);
 
             _cancellationToken = new();
             // Finally, update album cover
             LoadAlbumCover();
         }
 
-        private void UpdateDifficulties(AvailableParts parts)
+        private void UpdateDifficulties(SongEntry entry)
         {
             // Show all difficulty rings
             foreach (var difficultyRing in _difficultyRings)
@@ -173,68 +175,68 @@ namespace YARG.Menu.MusicLibrary
             */
 
 
-            _difficultyRings[0].SetInfo("guitar", "FiveFretGuitar", parts[Instrument.FiveFretGuitar]);
-            _difficultyRings[1].SetInfo("bass", "FiveFretBass", parts[Instrument.FiveFretBass]);
+            _difficultyRings[0].SetInfo("guitar", "FiveFretGuitar", entry[Instrument.FiveFretGuitar]);
+            _difficultyRings[1].SetInfo("bass", "FiveFretBass", entry[Instrument.FiveFretBass]);
 
             // 5-lane or 4-lane
-            if (parts.GetDrumType() == DrumsType.FiveLane)
+            if (entry.HasInstrument(Instrument.FiveLaneDrums))
             {
-                _difficultyRings[2].SetInfo("ghDrums", "FiveLaneDrums", parts[Instrument.FiveLaneDrums]);
+                _difficultyRings[2].SetInfo("ghDrums", "FiveLaneDrums", entry[Instrument.FiveLaneDrums]);
             }
             else
             {
-                _difficultyRings[2].SetInfo("drums", "FourLaneDrums", parts[Instrument.FourLaneDrums]);
+                _difficultyRings[2].SetInfo("drums", "FourLaneDrums", entry[Instrument.FourLaneDrums]);
             }
 
-            _difficultyRings[3].SetInfo("keys", "Keys", parts[Instrument.Keys]);
+            _difficultyRings[3].SetInfo("keys", "Keys", entry[Instrument.Keys]);
 
-            if (parts.HasInstrument(Instrument.Harmony))
+            if (entry.HasInstrument(Instrument.Harmony))
             {
                 _difficultyRings[4].SetInfo(
-                    parts.VocalsCount switch
+                    entry.VocalsCount switch
                     {
                         2 => "twoVocals",
                         >= 3 => "harmVocals",
                         _ => "vocals"
                     },
                     "Harmony",
-                    parts[Instrument.Harmony]
+                    entry[Instrument.Harmony]
                 );
             }
             else
             {
-                _difficultyRings[4].SetInfo("vocals", "Vocals", parts[Instrument.Vocals]);
+                _difficultyRings[4].SetInfo("vocals", "Vocals", entry[Instrument.Vocals]);
             }
 
             // Protar or Co-op
-            if (parts.HasInstrument(Instrument.ProGuitar_17Fret) || parts.HasInstrument(Instrument.ProGuitar_22Fret))
+            if (entry.HasInstrument(Instrument.ProGuitar_17Fret) || entry.HasInstrument(Instrument.ProGuitar_22Fret))
             {
-                var values = parts[Instrument.ProGuitar_17Fret];
+                var values = entry[Instrument.ProGuitar_17Fret];
                 if (values.Intensity == -1)
-                    values = parts[Instrument.ProGuitar_22Fret];
+                    values = entry[Instrument.ProGuitar_22Fret];
                 _difficultyRings[5].SetInfo("realGuitar", "ProGuitar", values);
             }
             else
             {
-                _difficultyRings[5].SetInfo("guitarCoop", "FiveFretCoopGuitar", parts[Instrument.FiveFretCoopGuitar]);
+                _difficultyRings[5].SetInfo("guitarCoop", "FiveFretCoopGuitar", entry[Instrument.FiveFretCoopGuitar]);
             }
 
             // ProBass or Rhythm
-            if (parts.HasInstrument(Instrument.ProBass_17Fret) || parts.HasInstrument(Instrument.ProBass_22Fret))
+            if (entry.HasInstrument(Instrument.ProBass_17Fret) || entry.HasInstrument(Instrument.ProBass_22Fret))
             {
-                var values = parts[Instrument.ProBass_17Fret];
+                var values = entry[Instrument.ProBass_17Fret];
                 if (values.Intensity == -1)
-                    values = parts[Instrument.ProBass_22Fret];
+                    values = entry[Instrument.ProBass_22Fret];
                 _difficultyRings[6].SetInfo("realBass", "ProBass", values);
             }
             else
             {
-                _difficultyRings[6].SetInfo("rhythm", "FiveFretRhythm", parts[Instrument.FiveFretRhythm]);
+                _difficultyRings[6].SetInfo("rhythm", "FiveFretRhythm", entry[Instrument.FiveFretRhythm]);
             }
 
-            _difficultyRings[7].SetInfo("trueDrums", "TrueDrums", new PartValues(-1));
-            _difficultyRings[8].SetInfo("realKeys", "ProKeys", parts[Instrument.ProKeys]);
-            _difficultyRings[9].SetInfo("band", "Band", parts[Instrument.Band]);
+            _difficultyRings[7].SetInfo("trueDrums", "TrueDrums", PartValues.Default);
+            _difficultyRings[8].SetInfo("realKeys", "ProKeys", entry[Instrument.ProKeys]);
+            _difficultyRings[9].SetInfo("band", "Band", entry[Instrument.Band]);
         }
 
         public async void LoadAlbumCover()
@@ -246,7 +248,7 @@ namespace YARG.Menu.MusicLibrary
             var originalTexture = _albumCover.texture;
 
             // Load the new one
-            await songViewType.SongMetadata.SetRawImageToAlbumCover(_albumCover, _cancellationToken.Token);
+            await _albumCover.LoadAlbumCover(songViewType.SongEntry, _cancellationToken.Token);
 
             // Dispose of the old texture (prevent memory leaks)
             if (originalTexture != null)
@@ -269,19 +271,26 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            var songEntry = songViewType.SongMetadata;
+            var songEntry = songViewType.SongEntry;
 
-            string value = type switch
+            switch (type)
             {
-                "source"  => songEntry.Source.SortStr,
-                "album"   => songEntry.Album.SortStr,
-                "year"    => songEntry.Year,
-                "charter" => songEntry.Charter.SortStr,
-                "genre"   => songEntry.Genre.SortStr,
-                _         => throw new Exception("Unreachable")
-            };
-
-            _musicLibraryMenu.SetSearchInput($"{type}:{value}");
+                case "source":
+                    _songSearchingField.SetSearchInput(SongAttribute.Source, songEntry.Source.SortStr);
+                    break;
+                case "album":
+                    _songSearchingField.SetSearchInput(SongAttribute.Album, songEntry.Album.SortStr);
+                    break;
+                case "year":
+                    _songSearchingField.SetSearchInput(SongAttribute.Year, songEntry.Year);
+                    break;
+                case "charter":
+                    _songSearchingField.SetSearchInput(SongAttribute.Charter, songEntry.Charter.SortStr);
+                    break;
+                case "genre":
+                    _songSearchingField.SetSearchInput(SongAttribute.Genre, songEntry.Genre.SortStr);
+                    break;
+            }
         }
     }
 }

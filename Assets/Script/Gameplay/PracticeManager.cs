@@ -113,7 +113,13 @@ namespace YARG.Gameplay
             _sectionEndTick = end.TickEnd;
             _sectionEndTime = end.TimeEnd;
 
-            SetPracticeSection(start.Tick, end.TickEnd, start.Time, end.TimeEnd);
+            if(end.Tick == _lastTick)
+            {
+                _sectionEndTick += 1;
+                _sectionEndTime += 0.01;
+            }
+
+            SetPracticeSection(_sectionStartTick, _sectionEndTick, _sectionStartTime, _sectionEndTime);
         }
 
         public void SetPracticeSection(uint tickStart, uint tickEnd, double timeStart, double timeEnd)

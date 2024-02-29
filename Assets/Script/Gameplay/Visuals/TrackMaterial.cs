@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Helpers.Extensions;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -166,7 +167,7 @@ namespace YARG.Gameplay.Visuals
                 GrooveState = Mathf.Lerp(GrooveState, 0f, Time.deltaTime * 3f);
             }
 
-            if (StarpowerMode)
+            if (StarpowerMode && SettingsManager.Settings.StarPowerHighwayFx.Value is StarPowerHighwayFxMode.On)
             {
                 StarpowerState = Mathf.Lerp(StarpowerState, 1f, Time.deltaTime * 2f);
             }

@@ -1,7 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Audio;
 using YARG.Core.Audio;
+using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
@@ -32,6 +34,7 @@ namespace YARG.Settings
 
             public bool ShowAntiPiracyDialog          = true;
             public bool ShowEngineInconsistencyDialog = true;
+            public SongAttribute LibrarySort = SongAttribute.Name;
 
             #endregion
 
@@ -82,7 +85,12 @@ namespace YARG.Settings
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
             public ToggleSetting MuteOnMiss            { get; } = new(true);
 
-            public ToggleSetting UseStarpowerFx   { get; } = new(true, UseStarpowerFxChange);
+            public DropdownSetting<StarPowerFxMode> UseStarpowerFx { get; } = new(StarPowerFxMode.On)
+            {
+                StarPowerFxMode.Off,
+                StarPowerFxMode.MultitrackOnly,
+                StarPowerFxMode.On
+            };
             public ToggleSetting ClapsInStarpower { get; } = new(true);
 
             // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);
@@ -115,8 +123,23 @@ namespace YARG.Settings
             public ToggleSetting LowQuality   { get; } = new(false, LowQualityCallback);
             public ToggleSetting DisableBloom { get; } = new(false, DisableBloomCallback);
 
+            public DropdownSetting<StarPowerHighwayFxMode> StarPowerHighwayFx { get; } = new(StarPowerHighwayFxMode.On)
+            {
+                StarPowerHighwayFxMode.On,
+                StarPowerHighwayFxMode.Reduced,
+                StarPowerHighwayFxMode.Off
+            };
+
             public ToggleSetting ShowHitWindow            { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
+
+            public DropdownSetting<NoteStreakFrequencyMode> NoteStreakFrequency { get; }
+                = new(NoteStreakFrequencyMode.Frequent)
+            {
+                NoteStreakFrequencyMode.Frequent,
+                NoteStreakFrequencyMode.Sparse,
+                NoteStreakFrequencyMode.Disabled
+            };
 
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; } = new(SongProgressMode.CountUpOnly)
             {
@@ -355,11 +378,6 @@ namespace YARG.Settings
             private static void MusicPlayerVolumeCallback(float volume)
             {
                 HelpBar.Instance.MusicPlayer.UpdateVolume();
-            }
-
-            private static void UseStarpowerFxChange(bool value)
-            {
-                GlobalVariables.AudioManager.Options.UseStarpowerFx = value;
             }
 
             // private static void UseWhammyFxChange(bool value)

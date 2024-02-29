@@ -9,21 +9,20 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private GameObject _activeBackground;
 
-        private BaseSettingVisual _baseSettingVisual;
-        private bool _focused;
+        public BaseSettingVisual BaseSettingVisual { get; private set; }
 
-        public string UnlocalizedName => _baseSettingVisual.UnlocalizedName;
+        private bool _focused;
 
         protected override void Awake()
         {
             base.Awake();
 
-            _baseSettingVisual = GetComponent<BaseSettingVisual>();
+            BaseSettingVisual = GetComponent<BaseSettingVisual>();
         }
 
         public override void Confirm()
         {
-            var scheme = _baseSettingVisual.GetNavigationScheme();
+            var scheme = BaseSettingVisual.GetNavigationScheme();
             scheme.PopCallback = () =>
             {
                 _focused = false;

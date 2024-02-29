@@ -9,15 +9,15 @@ namespace YARG.Song
     public readonly struct SongCategory
     {
         public readonly string Category;
-        public readonly List<SongMetadata> Songs;
+        public readonly List<SongEntry> Songs;
 
-        public SongCategory(string category, List<SongMetadata> songs)
+        public SongCategory(string category, List<SongEntry> songs)
         {
             Category = category;
             Songs = songs;
         }
 
-        public void Deconstruct(out string category, out List<SongMetadata> songs)
+        public void Deconstruct(out string category, out List<SongEntry> songs)
         {
             category = Category;
             songs = Songs;
@@ -27,7 +27,7 @@ namespace YARG.Song
     public class SongContainer
     {
         private readonly SongCache _songCache = new();
-        private readonly List<SongMetadata> _songs = new();
+        private readonly List<SongEntry> _songs = new();
 
         private readonly List<SongCategory> _sortTitles = new();
         private readonly List<SongCategory> _sortArtists = new();
@@ -42,22 +42,22 @@ namespace YARG.Song
         private readonly List<SongCategory> _sortDatesAdded = new();
         private readonly List<SongCategory> _sortInstruments = new();
 
-        public IReadOnlyDictionary<string, List<SongMetadata>> Titles => _songCache.Titles;
-        public IReadOnlyDictionary<string, List<SongMetadata>> Years => _songCache.Years;
-        public IReadOnlyDictionary<string, List<SongMetadata>> ArtistAlbums => _songCache.ArtistAlbums;
-        public IReadOnlyDictionary<string, List<SongMetadata>> SongLengths => _songCache.SongLengths;
-        public IReadOnlyDictionary<string, List<SongMetadata>> Instruments => _songCache.Instruments;
-        public IReadOnlyDictionary<DateTime, List<SongMetadata>> AddedDates => _songCache.DatesAdded;
-        public IReadOnlyDictionary<SortString, List<SongMetadata>> Artists => _songCache.Artists;
-        public IReadOnlyDictionary<SortString, List<SongMetadata>> Albums => _songCache.Albums;
-        public IReadOnlyDictionary<SortString, List<SongMetadata>> Genres => _songCache.Genres;
-        public IReadOnlyDictionary<SortString, List<SongMetadata>> Charters => _songCache.Charters;
-        public IReadOnlyDictionary<SortString, List<SongMetadata>> Playlists => _songCache.Playlists;
-        public IReadOnlyDictionary<SortString, List<SongMetadata>> Sources => _songCache.Sources;
+        public IReadOnlyDictionary<string, List<SongEntry>> Titles => _songCache.Titles;
+        public IReadOnlyDictionary<string, List<SongEntry>> Years => _songCache.Years;
+        public IReadOnlyDictionary<string, List<SongEntry>> ArtistAlbums => _songCache.ArtistAlbums;
+        public IReadOnlyDictionary<string, List<SongEntry>> SongLengths => _songCache.SongLengths;
+        public IReadOnlyDictionary<string, List<SongEntry>> Instruments => _songCache.Instruments;
+        public IReadOnlyDictionary<DateTime, List<SongEntry>> AddedDates => _songCache.DatesAdded;
+        public IReadOnlyDictionary<SortString, List<SongEntry>> Artists => _songCache.Artists;
+        public IReadOnlyDictionary<SortString, List<SongEntry>> Albums => _songCache.Albums;
+        public IReadOnlyDictionary<SortString, List<SongEntry>> Genres => _songCache.Genres;
+        public IReadOnlyDictionary<SortString, List<SongEntry>> Charters => _songCache.Charters;
+        public IReadOnlyDictionary<SortString, List<SongEntry>> Playlists => _songCache.Playlists;
+        public IReadOnlyDictionary<SortString, List<SongEntry>> Sources => _songCache.Sources;
 
         public int Count => _songs.Count;
-        public IReadOnlyDictionary<HashWrapper, List<SongMetadata>> SongsByHash => _songCache.Entries;
-        public IReadOnlyList<SongMetadata> Songs => _songs;
+        public IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
+        public IReadOnlyList<SongEntry> Songs => _songs;
 
         public SongContainer() { }
 
@@ -87,7 +87,7 @@ namespace YARG.Song
                 _sortDatesAdded.Add(new(node.Key.ToLongDateString(), node.Value));
             }
 
-            static List<SongCategory> Convert(SortedDictionary<SortString, List<SongMetadata>> list, SongAttribute attribute)
+            static List<SongCategory> Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute)
             {
                 List<SongCategory> sections = new(list.Count);
                 foreach (var node in list)
@@ -104,7 +104,7 @@ namespace YARG.Song
                 return sections;
             }
 
-            static List<SongCategory> Cast(SortedDictionary<string, List<SongMetadata>> list)
+            static List<SongCategory> Cast(SortedDictionary<string, List<SongEntry>> list)
             {
                 List<SongCategory> sections = new(list.Count);
                 foreach (var section in list)
@@ -135,7 +135,7 @@ namespace YARG.Song
             };
         }
 
-        public SongMetadata GetRandomSong()
+        public SongEntry GetRandomSong()
         {
             return _songs.Pick();
         }

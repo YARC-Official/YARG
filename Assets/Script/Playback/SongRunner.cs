@@ -239,7 +239,10 @@ namespace YARG.Playback
             if (disposing)
             {
                 // Wait for sync thread to stop
-                _syncThread?.Join();
+                if (_syncThread is { IsAlive: true })
+                {
+                    _syncThread?.Join();
+                }
                 _syncThread = null;
             }
         }

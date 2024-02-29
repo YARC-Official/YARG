@@ -77,10 +77,12 @@ namespace YARG.Settings
                 new HeaderMetadata("Graphics"),
                 nameof(Settings.LowQuality),
                 nameof(Settings.DisableBloom),
+                nameof(Settings.StarPowerHighwayFx),
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.ShowHitWindow),
                 nameof(Settings.DisableTextNotifications),
+                nameof(Settings.NoteStreakFrequency),
                 nameof(Settings.LyricDisplay),
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox),

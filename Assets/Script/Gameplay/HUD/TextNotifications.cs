@@ -5,6 +5,13 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
+    public enum NoteStreakFrequencyMode
+    {
+        Frequent,
+        Sparse,
+        Disabled
+    }
+
     public class TextNotifications : MonoBehaviour
     {
         [SerializeField]
@@ -13,10 +20,11 @@ namespace YARG.Gameplay.HUD
         private int _streak;
         private int _nextStreakCount;
 
-        private TextNotificationQueue _notificationQueue = new();
+        private Coroutine _coroutine;
+
+        private readonly TextNotificationQueue _notificationQueue = new();
 
         private readonly PerformanceTextScaler _scaler = new(2f);
-        private Coroutine _coroutine;
 
         private void OnEnable()
         {
@@ -38,12 +46,41 @@ namespace YARG.Gameplay.HUD
             if (!gameObject.activeSelf) return;
 
             // Queue the  notification
-            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NewHighScore, "NEW HIGHSCORE"));
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NewHighScore, "NEW HIGH SCORE"));
         }
 
         public void ShowFullCombo()
         {
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.FullCombo, "FULL COMBO"));
+        }
+
+        public void ShowStrongFinish()
+        {
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StrongFinish, "STRONG FINISH"));
+        }
+
+        public void ShowHotStart()
+        {
+            // Don't build up notifications during a solo
+            if (!gameObject.activeSelf) return;
+
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.HotStart, "HOT START"));
+        }
+
+        public void ShowBassGroove()
+        {
+            // Don't build up notifications during a solo
+            if (!gameObject.activeSelf) return;
+
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.BassGroove, "BASS GROOVE"));
+        }
+
+        public void ShowStarPowerReady()
+        {
+            // Don't build up notifications during a solo
+            if (!gameObject.activeSelf) return;
+
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StarPowerReady, "STAR POWER READY"));
         }
 
         public void UpdateNoteStreak(int streak)
@@ -67,7 +104,11 @@ namespace YARG.Gameplay.HUD
             // Queue the note streak notification
             if (_streak >= _nextStreakCount)
             {
-                _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NoteStreak, $"{_nextStreakCount}-NOTE STREAK"));
+                if (SettingsManager.Settings.NoteStreakFrequency.Value != NoteStreakFrequencyMode.Disabled)
+                {
+                    _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NoteStreak,
+                        $"{_nextStreakCount}-NOTE STREAK"));
+                }
                 NextNoteStreakNotification();
             }
         }
@@ -105,6 +146,12 @@ namespace YARG.Gameplay.HUD
 
         private void NextNoteStreakNotification()
         {
+            if (SettingsManager.Settings.NoteStreakFrequency.Value == NoteStreakFrequencyMode.Disabled)
+            {
+                _nextStreakCount = int.MaxValue;
+                return;
+            }
+
             switch (_nextStreakCount)
             {
                 case 0:
@@ -113,10 +160,13 @@ namespace YARG.Gameplay.HUD
                 case 50:
                     _nextStreakCount = 100;
                     break;
-                case 100:
+                case >= 100 when SettingsManager.Settings.NoteStreakFrequency.Value == NoteStreakFrequencyMode.Frequent:
+                    _nextStreakCount += 100;
+                    break;
+                case 100 when SettingsManager.Settings.NoteStreakFrequency.Value == NoteStreakFrequencyMode.Sparse:
                     _nextStreakCount = 250;
                     break;
-                case >= 250:
+                case >= 250 when SettingsManager.Settings.NoteStreakFrequency.Value == NoteStreakFrequencyMode.Sparse:
                     _nextStreakCount += 250;
                     break;
             }

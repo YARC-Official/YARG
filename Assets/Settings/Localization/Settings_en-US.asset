@@ -1186,6 +1186,55 @@ MonoBehaviour:
       250 - Fog on
 
       255 - Fog off'
+  - m_Id: 118297715850055680
+    m_Localized: Star Power Highway FX Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118297813237600256
+    m_Localized: Disables visual elements on the highway which appear when Star Power
+      is active
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306533464051712
+    m_Localized: On
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306680382132224
+    m_Localized: Reduced
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306746819907584
+    m_Localized: Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119173371822858240
+    m_Localized: Note Streak Frequency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119173704238227456
+    m_Localized: Sets the frequency of note streak notifications.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119174263120846848
+    m_Localized: Disabled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119174220057927680
+    m_Localized: 50, 100, 250, 500, ...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119174161593524224
+    m_Localized: 50, 100, 200, 300, ...
+  - m_Id: 120322696970141696
+    m_Localized: Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 120322832085450752
+    m_Localized: Multitrack Only
+    m_Metadata:
+      m_Items: []
+  - m_Id: 120322882958163968
+    m_Localized: On
     m_Metadata:
       m_Items: []
   references:

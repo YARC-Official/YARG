@@ -71,5 +71,7 @@ namespace YARG.Gameplay.HUD
         BassGroove,
         FullCombo,
         StarPowerReady,
+        HotStart,
+        StrongFinish,
     }
 }

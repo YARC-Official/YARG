@@ -10,7 +10,7 @@ namespace YARG.Menu.MusicLibrary
 {
     public static class RecommendedSongs
     {
-        public static List<SongMetadata> GetRecommendedSongs()
+        public static List<SongEntry> GetRecommendedSongs()
         {
             _recommendedSongs.Clear();
 
@@ -32,7 +32,7 @@ namespace YARG.Menu.MusicLibrary
             return _recommendedSongs;
         }
 
-        private static readonly List<SongMetadata> _recommendedSongs = new(5);
+        private static readonly List<SongEntry> _recommendedSongs = new(5);
         private static void AddMostPlayedSongs()
         {
             const float RNG_PER_SONG = .05f;
@@ -62,7 +62,7 @@ namespace YARG.Menu.MusicLibrary
             float yargSongRNG = yargSongs != null ? STARTING_RNG : 0;
             while (_recommendedSongs.Count < 5)
             {
-                SongMetadata song;
+                SongEntry song;
                 if (Random.value <= yargSongRNG)
                 {
                     yargSongRNG -= RNG_DECREMENT;
@@ -80,7 +80,7 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private static void AddSongFromMostPlayed(ref List<SongMetadata> mostPlayed)
+        private static void AddSongFromMostPlayed(ref List<SongEntry> mostPlayed)
         {
             int songIndex = Random.Range(0, mostPlayed.Count);
             var song = mostPlayed[songIndex];
@@ -88,7 +88,7 @@ namespace YARG.Menu.MusicLibrary
             _recommendedSongs.Add(song);
         }
 
-        private static void AddSongsFromTopPlayedArtists(ref List<SongMetadata> mostPlayed)
+        private static void AddSongsFromTopPlayedArtists(ref List<SongEntry> mostPlayed)
         {
             var artists = GlobalVariables.Instance.SongContainer.Artists;
             while (mostPlayed.Count > 0)

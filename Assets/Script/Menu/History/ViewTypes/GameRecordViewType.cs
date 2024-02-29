@@ -22,14 +22,14 @@ namespace YARG.Menu.History
         public override bool UseFullContainer => true;
 
         public readonly GameRecord GameRecord;
-        private readonly SongMetadata _songMetadata;
+        private readonly SongEntry _SongEntry;
 
         public GameRecordViewType(GameRecord gameRecord)
         {
             GameRecord = gameRecord;
 
             var songsByHash = GlobalVariables.Instance.SongContainer.SongsByHash;
-            _songMetadata = songsByHash.GetValueOrDefault(new HashWrapper(gameRecord.SongChecksum))?.FirstOrDefault();
+            _SongEntry = songsByHash.GetValueOrDefault(new HashWrapper(gameRecord.SongChecksum))?.FirstOrDefault();
         }
 
         public override string GetPrimaryText(bool selected)
@@ -44,7 +44,7 @@ namespace YARG.Menu.History
 
         public override void ViewClick()
         {
-            if (_songMetadata is null) return;
+            if (_SongEntry is null) return;
 
             PlayReplay().Forget();
         }
@@ -100,7 +100,7 @@ namespace YARG.Menu.History
             // We're good!
             GlobalVariables.Instance.IsReplay = true;
             GlobalVariables.Instance.CurrentReplay = replayEntry;
-            GlobalVariables.Instance.CurrentSong = _songMetadata;
+            GlobalVariables.Instance.CurrentSong = _SongEntry;
 
             GlobalVariables.AudioManager.UnloadSong();
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
@@ -109,9 +109,9 @@ namespace YARG.Menu.History
         public override async UniTask<Sprite> GetIcon()
         {
             // TODO: Show "song missing" icon instead
-            if (_songMetadata is null) return null;
+            if (_SongEntry is null) return null;
 
-            return await SongSources.SourceToIcon(_songMetadata.Source);
+            return await SongSources.SourceToIcon(_SongEntry.Source);
         }
 
         public override GameInfo? GetGameInfo()

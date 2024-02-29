@@ -94,7 +94,13 @@ namespace YARG.Menu.MusicLibrary
         {
             SetHeader(null);
 
-            CreateItem("Sort By: " + MusicLibraryMenu.Sort.ToLocalizedName(), () =>
+            CreateItem("Random Song", () =>
+            {
+                _musicLibrary.SelectRandomSong();
+                gameObject.SetActive(false);
+            });
+
+            CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
             {
                 _menuState = State.SortSelect;
                 UpdateForState();
@@ -104,12 +110,6 @@ namespace YARG.Menu.MusicLibrary
             {
                 _menuState = State.GoToSection;
                 UpdateForState();
-            });
-
-            CreateItem("Random Song", () =>
-            {
-                _musicLibrary.SelectRandomSong();
-                gameObject.SetActive(false);
             });
 
             CreateItem("Back To Top", () =>
@@ -125,7 +125,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 if (_musicLibrary.CurrentSelection is not SongViewType songViewType) return;
 
-                FileExplorerHelper.OpenFolder(songViewType.SongMetadata.Directory);
+                FileExplorerHelper.OpenFolder(songViewType.SongEntry.Directory);
 
                 gameObject.SetActive(false);
             });
@@ -134,7 +134,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 if (_musicLibrary.CurrentSelection is not SongViewType songViewType) return;
 
-                GUIUtility.systemCopyBuffer = songViewType.SongMetadata.Hash.ToString();
+                GUIUtility.systemCopyBuffer = songViewType.SongEntry.Hash.ToString();
 
                 gameObject.SetActive(false);
             });

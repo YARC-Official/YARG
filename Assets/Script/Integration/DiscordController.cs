@@ -87,7 +87,7 @@ namespace YARG.Integration
                 return;
             }
 
-            var song = state.SongMetadata;
+            var song = state.SongEntry;
 
             if (song is null)
             {
@@ -172,7 +172,7 @@ namespace YARG.Integration
             _wasInGameplay = true;
         }
 
-        private async UniTask LoadAlbumArt(SongMetadata song)
+        private async UniTask LoadAlbumArt(SongEntry song)
         {
             // Try to get the album art from the Chorus Encore API
             try

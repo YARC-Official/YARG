@@ -1037,6 +1037,54 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 123349507897450496
     m_Key: Setting.DMXCueInformation
+  - m_Id: 118297715850055680
+    m_Key: Setting.StarPowerHighwayFx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118297813237600256
+    m_Key: Setting.StarPowerHighwayFx.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306533464051712
+    m_Key: Dropdown.StarPowerHighwayFx.On
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306680382132224
+    m_Key: Dropdown.StarPowerHighwayFx.Reduced
+    m_Metadata:
+      m_Items: []
+  - m_Id: 118306746819907584
+    m_Key: Dropdown.StarPowerHighwayFx.Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119173371822858240
+    m_Key: Setting.NoteStreakFrequency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119173704238227456
+    m_Key: Setting.NoteStreakFrequency.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119174161593524224
+    m_Key: Dropdown.NoteStreakFrequency.Frequent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119174220057927680
+    m_Key: Dropdown.NoteStreakFrequency.Sparse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 119174263120846848
+    m_Key: Dropdown.NoteStreakFrequency.Disabled
+  - m_Id: 120322696970141696
+    m_Key: Dropdown.UseStarpowerFx.Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 120322832085450752
+    m_Key: Dropdown.UseStarpowerFx.MultitrackOnly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 120322882958163968
+    m_Key: Dropdown.UseStarpowerFx.On
     m_Metadata:
       m_Items: []
   m_Metadata:

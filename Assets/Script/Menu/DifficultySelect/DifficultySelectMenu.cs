@@ -100,7 +100,7 @@ namespace YARG.Menu.DifficultySelect
                 })
             }, false));
 
-            _speedInput.text = "100%";
+            _speedInput.text = $"{(int)(GlobalVariables.Instance.SongSpeed * 100f)}%";
 
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
@@ -384,14 +384,14 @@ namespace YARG.Menu.DifficultySelect
             }
 
             var profile = CurrentPlayer.Profile;
-            var songParts = GlobalVariables.Instance.CurrentSong.Parts;
+            var song = GlobalVariables.Instance.CurrentSong;
 
             // Get the possible instruments for this song and player
             _possibleInstruments.Clear();
             var allowedInstruments = profile.GameMode.PossibleInstruments();
             foreach (var instrument in allowedInstruments)
             {
-                if (!HasPlayableInstrument(songParts, instrument)) continue;
+                if (!HasPlayableInstrument(song, instrument)) continue;
 
                 _possibleInstruments.Add(instrument);
             }
@@ -403,7 +403,7 @@ namespace YARG.Menu.DifficultySelect
             }
 
             // Get the possible harmonies for this song
-            _maxHarmonyIndex = songParts.VocalsCount;
+            _maxHarmonyIndex = song.VocalsCount;
 
             // Set the harmony index to a valid one
             if (profile.HarmonyIndex >= _maxHarmonyIndex)
@@ -451,12 +451,12 @@ namespace YARG.Menu.DifficultySelect
             _possibleDifficulties.Clear();
 
             var profile = CurrentPlayer.Profile;
-            var songParts = GlobalVariables.Instance.CurrentSong.Parts;
+            var song = GlobalVariables.Instance.CurrentSong;
 
             // Get the possible difficulties for the player's instrument in the song
             foreach (var difficulty in EnumExtensions<Difficulty>.Values)
             {
-                if (!HasPlayableDifficulty(songParts, profile.CurrentInstrument, difficulty))
+                if (!HasPlayableDifficulty(song, profile.CurrentInstrument, difficulty))
                 {
                     continue;
                 }
@@ -524,12 +524,12 @@ namespace YARG.Menu.DifficultySelect
             CreateItem(null, body, selected, a);
         }
 
-        private bool HasPlayableInstrument(AvailableParts parts, Instrument instrument)
+        private bool HasPlayableInstrument(SongEntry entry, in Instrument instrument)
         {
             // For vocals, all players *must* select the same gamemode (solo/harmony)
             if (instrument is Instrument.Vocals or Instrument.Harmony)
             {
-                if (!parts.HasInstrument(instrument))
+                if (!entry.HasInstrument(instrument))
                 {
                     return false;
                 }
@@ -547,18 +547,18 @@ namespace YARG.Menu.DifficultySelect
                 }
             }
 
-            return parts.HasInstrument(instrument) || instrument switch
+            return entry.HasInstrument(instrument) || instrument switch
             {
                 // Allow 5 -> 4-lane conversions to be played on 4-lane
                 Instrument.FourLaneDrums or
-                Instrument.ProDrums      => parts.HasInstrument(Instrument.FiveLaneDrums),
+                Instrument.ProDrums      => entry.HasInstrument(Instrument.FiveLaneDrums),
                 // Allow 4 -> 5-lane conversions to be played on 5-lane
-                Instrument.FiveLaneDrums => parts.HasInstrument(Instrument.ProDrums),
+                Instrument.FiveLaneDrums => entry.HasInstrument(Instrument.ProDrums),
                 _ => false
             };
         }
 
-        private bool HasPlayableDifficulty(AvailableParts parts, Instrument instrument, Difficulty difficulty)
+        private bool HasPlayableDifficulty(SongEntry entry, in Instrument instrument, in Difficulty difficulty)
         {
             // For vocals, insert special difficulties
             if (instrument is Instrument.Vocals or Instrument.Harmony)
@@ -567,23 +567,25 @@ namespace YARG.Menu.DifficultySelect
             }
 
             // Otherwise, we can do this
-            return parts[instrument][difficulty] || instrument switch
+            return entry[instrument][difficulty] || instrument switch
             {
                 // Allow 5 -> 4-lane conversions to be played on 4-lane
                 Instrument.FourLaneDrums or
-                Instrument.ProDrums      => parts[Instrument.FiveLaneDrums][difficulty],
+                Instrument.ProDrums      => entry[Instrument.FiveLaneDrums][difficulty],
                 // Allow 4 -> 5-lane conversions to be played on 5-lane
-                Instrument.FiveLaneDrums => parts[Instrument.ProDrums][difficulty],
+                Instrument.FiveLaneDrums => entry[Instrument.ProDrums][difficulty],
                 _ => false
             };
         }
 
         public void SongSpeedEndEdit(string text)
         {
-            if (!int.TryParse(text.TrimEnd('%'), NumberStyles.Number, null, out int speed))
+            if (!float.TryParse(text.TrimEnd('%'), NumberStyles.Number, null, out var speed))
                 speed = 100;
-            speed = Math.Clamp(speed, 10, 4995);
-            _speedInput.SetTextWithoutNotify($"{speed}%");
+
+            int intSpeed = (int)Math.Clamp(speed, 10, 4995);
+
+            _speedInput.SetTextWithoutNotify($"{intSpeed}%");
         }
     }
 }
