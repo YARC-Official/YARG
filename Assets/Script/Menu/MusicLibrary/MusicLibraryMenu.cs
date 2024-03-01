@@ -12,6 +12,7 @@ using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Song;
@@ -77,6 +78,9 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnEnable()
         {
+            // Reset Now Playing list.
+            MusicPlayer.ResetPlayedList();
+
             // Set up preview context
             _previewContext = new(GlobalVariables.AudioManager);
 

@@ -160,5 +160,11 @@ namespace YARG.Menu.Persistent
         {
             NextSong().Forget();
         }
+
+        public static void ResetPlayedList()
+        {
+            NowPlayingList = new();
+            nowPlayingPointer = -1;
+        }
     }
 }
