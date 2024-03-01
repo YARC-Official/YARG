@@ -93,6 +93,8 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
                 new NavigationScheme.Entry(MenuAction.Orange, "More Options",
                     () => _popupMenu.gameObject.SetActive(true)),
+                new NavigationScheme.Entry(MenuAction.Blue, "Search Bar",
+                    () => _searchField.Focus())
             }, false));
 
             // Restore search
