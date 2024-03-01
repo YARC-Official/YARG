@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 5431851098977037413}
   - component: {fileID: 5023936275147434302}
   - component: {fileID: 6595014407834716664}
-  - component: {fileID: 6222104228243384505}
   - component: {fileID: -5052907786721723492}
   m_Layer: 5
   m_Name: DMXInformationPanelUI
@@ -76,20 +75,6 @@ MonoBehaviour:
     y: 0
     width: 1
     height: 1
---- !u!114 &6222104228243384505
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1844476071711610224}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88cc3b1372f399b479fd722eab55b7e3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _settingLabel: {fileID: 8432514992519965213}
-  _textField: {fileID: 391842647520588150}
 --- !u!114 &-5052907786721723492
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -653,15 +638,3 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 9209271575042662710}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &8432514992519965213 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 777900083752192811, guid: 40476ae4a634e2c4582e3402d7fc48aa,
-    type: 3}
-  m_PrefabInstance: {fileID: 9209271575042662710}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 56eb0353ae6e5124bb35b17aff880f16, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

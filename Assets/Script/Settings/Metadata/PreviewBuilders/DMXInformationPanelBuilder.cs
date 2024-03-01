@@ -9,7 +9,7 @@ namespace YARG.Settings.Metadata
     public class DMXInformationPanelBuilder : IPreviewBuilder
     {
         // Prefabs needed for this tab type
-        private static readonly GameObject Information = Addressables
+        private static readonly GameObject _information = Addressables
             .LoadAssetAsync<GameObject>("SettingPreviews/DMXInformationPanelUI")
             .WaitForCompletion();
 
@@ -25,16 +25,10 @@ namespace YARG.Settings.Metadata
             return UniTask.CompletedTask;
         }
 
-        public async UniTask BuildPreviewUI(Transform uiContainer)
+        public UniTask BuildPreviewUI(Transform uiContainer)
         {
-            var go = Object.Instantiate(Information, uiContainer);
-
-            // Enable and wait for layouts to rebuild
-            await UniTask.WaitForEndOfFrame(SettingsMenu.Instance);
-
-            // Skip the game object was somehow destroyed
-            if (go == null) return;
-
+            var go = Object.Instantiate(_information, uiContainer);
+            return UniTask.CompletedTask;
         }
     }
 }

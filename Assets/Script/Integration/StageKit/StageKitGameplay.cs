@@ -26,6 +26,7 @@ namespace YARG.Integration.StageKit
 
         public static event Action<LightingType> OnLightingTypeChange;
         public static event Action<StageEffect> OnStageEffectChange;
+
         protected override void OnChartLoaded(SongChart chart)
         {
             _controller = StageKitLightingController.Instance;
