@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using TMPro;
@@ -59,6 +59,11 @@ namespace YARG.Menu.MusicLibrary
         private void OnEnable()
         {
             _searchFilters.ClickedButton += OnClickedSearchFilter;
+        }
+
+        public void Focus()
+        {
+            _searchField.Select();
         }
 
         public void Restore()
