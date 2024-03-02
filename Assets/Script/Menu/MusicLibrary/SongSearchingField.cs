@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using YARG.Core.Song;
 using YARG.Menu.Navigation;
@@ -209,6 +210,7 @@ namespace YARG.Menu.MusicLibrary
 
                     _searchNavPushed = false;
                     Navigator.Instance.PopScheme();
+                    EventSystem.current.SetSelectedGameObject(null);
                 }
             }
         }
