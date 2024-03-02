@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Menu.Navigation;
 using YARG.Song;
@@ -202,11 +201,7 @@ namespace YARG.Menu.MusicLibrary
                     if (_searchNavPushed) return;
 
                     _searchNavPushed = true;
-                    Navigator.Instance.PushScheme(new NavigationScheme(new()
-                    {
-                        new NavigationScheme.Entry(MenuAction.Blue, "Cancel Search",
-                            () => _searchField.DeactivateInputField()),
-                    }, false));
+                    Navigator.Instance.PushScheme(NavigationScheme.Empty);
                 }
                 else
                 {
