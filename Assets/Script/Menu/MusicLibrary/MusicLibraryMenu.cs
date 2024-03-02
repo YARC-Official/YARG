@@ -91,10 +91,10 @@ namespace YARG.Menu.MusicLibrary
                     () => CurrentSelection?.PrimaryButtonClick()),
 
                 new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
+                new NavigationScheme.Entry(MenuAction.Blue, "Search",
+                    () => _searchField.Focus()),
                 new NavigationScheme.Entry(MenuAction.Orange, "More Options",
                     () => _popupMenu.gameObject.SetActive(true)),
-                new NavigationScheme.Entry(MenuAction.Blue, "Search Bar",
-                    () => _searchField.Focus())
             }, false));
 
             // Restore search
@@ -118,7 +118,7 @@ namespace YARG.Menu.MusicLibrary
                 // Restore index
                 SelectedIndex = _savedIndex;
             }
-            
+
             InitialSelect = null;
 
             // Set proper text
