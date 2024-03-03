@@ -142,9 +142,9 @@ namespace YARG.Integration.Sacn
 
         private void OnSceneUnloaded(Scene scene)
         {
-            switch (scene.name)
+            switch (scene.buildIndex)
             {
-                case "Gameplay":
+                case (int) SceneIndex.Gameplay:
                     StageKitGameplay.OnStageEffectChange -= HandleStageEffectChange;
                     StageKitGameplay.OnLightingTypeChange -= HandleLightingTypeChange;
                     break;
@@ -156,18 +156,18 @@ namespace YARG.Integration.Sacn
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            switch (scene.name)
+            switch (scene.buildIndex)
             {
-                case "Gameplay":
+                case (int) SceneIndex.Gameplay:
                     StageKitGameplay.OnStageEffectChange += HandleStageEffectChange;
                     StageKitGameplay.OnLightingTypeChange += HandleLightingTypeChange;
                     break;
 
-                case "ScoreScreen":
+                case (int) SceneIndex.Score:
                     _cueValue = (byte)CueEnum.Score;
                     break;
 
-                case "MenuScene":
+                case (int) SceneIndex.Menu:
                     _cueValue = (byte)CueEnum.Menu;
                     break;
 
