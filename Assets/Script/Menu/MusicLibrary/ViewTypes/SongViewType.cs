@@ -6,10 +6,18 @@ using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
+using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
 {
+    public enum HighScoreInfoMode
+    {
+        Stars,
+        Score,
+        Off
+    }
+
     public class SongViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Normal;
@@ -54,13 +62,27 @@ namespace YARG.Menu.MusicLibrary
             var difficultyChar = score.Difficulty.ToChar();
             var percent = Mathf.Floor(score.Percent * 100f);
 
-            return $"<sprite name=\"{instrument}\"> <b>{difficultyChar}</b> {percent:N0}%";
+            var info = $"<sprite name=\"{instrument}\"> <b>{difficultyChar}</b> {percent:N0}%";
+
+            // Append the score if the setting is enabled
+            if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
+            {
+                info += $"<space=2em> {score.Score:N0}";
+            }
+
+            return info;
         }
 
         public override StarAmount? GetStarAmount()
         {
-             var score = ScoreContainer.GetHighScore(SongEntry.Hash);
-             return score?.Stars;
+            // Only show stars if enabled
+            if (SettingsManager.Settings.HighScoreInfo.Value != HighScoreInfoMode.Stars)
+            {
+                return null;
+            }
+
+            var score = ScoreContainer.GetHighScore(SongEntry.Hash);
+            return score?.Stars;
         }
 
         public override FavoriteInfo GetFavoriteInfo()

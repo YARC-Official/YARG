@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Menu.ListMenu;
+using YARG.Settings;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -52,10 +53,20 @@ namespace YARG.Menu.MusicLibrary
             _asMadeFamousByTextContainer.SetActive(viewType.UseAsMadeFamousBy);
 
             // Show/hide favorite button
+
             var favoriteInfo = viewType.GetFavoriteInfo();
-            _favoriteButtonContainer.SetActive(!selected && favoriteInfo.ShowFavoriteButton);
-            _favoriteButtonContainerSelected.SetActive(selected && favoriteInfo.ShowFavoriteButton);
-            UpdateFavoriteSprite(favoriteInfo);
+
+            if (SettingsManager.Settings.ShowFavoriteButton.Value)
+            {
+                _favoriteButtonContainer.SetActive(!selected && favoriteInfo.ShowFavoriteButton);
+                _favoriteButtonContainerSelected.SetActive(selected && favoriteInfo.ShowFavoriteButton);
+                UpdateFavoriteSprite(favoriteInfo);
+            }
+            else
+            {
+                _favoriteButtonContainer.SetActive(false);
+                _favoriteButtonContainerSelected.SetActive(false);
+            }
         }
 
         private void UpdateFavoriteSprite(ViewType.FavoriteInfo favoriteInfo)

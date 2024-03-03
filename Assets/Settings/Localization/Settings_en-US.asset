@@ -1086,55 +1086,90 @@ MonoBehaviour:
       slow (64), medium (127), fast (191), fastest (255).
     m_Metadata:
       m_Items: []
-  - m_Id: 118297715850055680
-    m_Localized: Star Power Highway FX Mode
-    m_Metadata:
-      m_Items: []
-  - m_Id: 118297813237600256
-    m_Localized: Disables visual elements on the highway which appear when Star Power
-      is active
-    m_Metadata:
-      m_Items: []
-  - m_Id: 118306533464051712
-    m_Localized: On
-    m_Metadata:
-      m_Items: []
-  - m_Id: 118306680382132224
-    m_Localized: Reduced
-    m_Metadata:
-      m_Items: []
-  - m_Id: 118306746819907584
+  - m_Id: 124721790388133888
     m_Localized: Off
     m_Metadata:
       m_Items: []
-  - m_Id: 119173371822858240
-    m_Localized: Note Streak Frequency
+  - m_Id: 124721790409105408
+    m_Localized: Score
     m_Metadata:
       m_Items: []
-  - m_Id: 119173704238227456
-    m_Localized: Sets the frequency of note streak notifications.
+  - m_Id: 124721790409105409
+    m_Localized: Stars
     m_Metadata:
       m_Items: []
-  - m_Id: 119174263120846848
+  - m_Id: 124721790409105410
+    m_Localized: Music Library
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124721790409105411
+    m_Localized: High Score Display
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124721790409105412
+    m_Localized: Show Favorite Button
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124721790409105413
+    m_Localized: Shows and hides the favorite button in the Music Library. Songs
+      can still be favorited in the "More Options" menu when this button is hidden.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124722408020369408
+    m_Localized: Changes what high score information is displayed in the Music Library.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711291285504
     m_Localized: Disabled
     m_Metadata:
       m_Items: []
-  - m_Id: 119174220057927680
+  - m_Id: 124723711291285505
+    m_Localized: 50, 100, 200, 300, ...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711291285506
     m_Localized: 50, 100, 250, 500, ...
     m_Metadata:
       m_Items: []
-  - m_Id: 119174161593524224
-    m_Localized: 50, 100, 200, 300, ...
-  - m_Id: 120322696970141696
+  - m_Id: 124723711295479808
     m_Localized: Off
     m_Metadata:
       m_Items: []
-  - m_Id: 120322832085450752
+  - m_Id: 124723711295479809
+    m_Localized: On
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479810
+    m_Localized: Reduced
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479811
     m_Localized: Multitrack Only
     m_Metadata:
       m_Items: []
-  - m_Id: 120322882958163968
+  - m_Id: 124723711295479812
+    m_Localized: Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479813
     m_Localized: On
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479814
+    m_Localized: Note Streak Frequency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479815
+    m_Localized: Sets the frequency of note streak notifications.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479816
+    m_Localized: Star Power Highway FX Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479817
+    m_Localized: Disables visual elements on the highway which appear when Star Power
+      is active
     m_Metadata:
       m_Items: []
   references:
