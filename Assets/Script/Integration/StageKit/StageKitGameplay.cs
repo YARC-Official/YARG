@@ -257,9 +257,10 @@ namespace YARG.Integration.StageKit
                     break;
 
                 case LightingType.Strobe_Fast:
-                    //This might be a bug in the official code that i'm trying to replicate here, as slow
-                    //doesn't seem to do it.
+                    //Lighting cues are NEVER on with Fast Strobe.
+                    //Not sure about Slow Strobe.
                     KillCue();
+                    _controller.AllLedsOff();
                     _controller.SetStrobeSpeed(StageKitStrobeSpeed.Fast);
                     break;
 

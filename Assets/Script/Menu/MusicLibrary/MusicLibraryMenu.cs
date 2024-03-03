@@ -97,6 +97,8 @@ namespace YARG.Menu.MusicLibrary
                     () => CurrentSelection?.PrimaryButtonClick()),
 
                 new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
+                new NavigationScheme.Entry(MenuAction.Blue, "Search",
+                    () => _searchField.Focus()),
                 new NavigationScheme.Entry(MenuAction.Orange, "More Options",
                     () => _popupMenu.gameObject.SetActive(true)),
             }, false));

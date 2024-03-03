@@ -49,12 +49,16 @@ namespace YARG.Gameplay.Visuals
             _lastNoteSpeed = _player.NoteSpeed;
 
             // Offsetting is done based on half of the size
-            float baseOffset = ((float) (-window.FrontEnd - window.BackEnd) / 2f) * _player.NoteSpeed;
+            float baseOffset = ((float) (-window.FrontEnd - window.BackEnd) / 2f);
+
+            // Offset via calibration
+            float videoCalibrationOffset = -SettingsManager.Settings.VideoCalibration.Value / 1000f;
+            float inputCalibrationOffset = (float) -_player.Player.Profile.InputCalibrationSeconds;
 
             _transformCache.localScale = _transformCache.localScale
                 .WithY((float) totalWindow * _player.NoteSpeed);
             _transformCache.localPosition = _transformCache.localPosition
-                .WithZ(baseOffset);
+                .WithZ((baseOffset + videoCalibrationOffset + inputCalibrationOffset) * _player.NoteSpeed);
         }
 
         private void Update()
