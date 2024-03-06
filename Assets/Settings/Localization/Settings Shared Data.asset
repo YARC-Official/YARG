@@ -1027,6 +1027,16 @@ MonoBehaviour:
     m_Key: Tab.Sound
     m_Metadata:
       m_Items: []
+  - m_Id: 121121501170786304
+    m_Key: Setting.DMXCueChangeChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 121121555608657920
+    m_Key: Setting.DMXCueChangeChannel.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 123349507897450496
+    m_Key: Setting.DMXCueInformation
   - m_Id: 118297715850055680
     m_Key: Setting.StarPowerHighwayFx
     m_Metadata:
