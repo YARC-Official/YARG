@@ -12,8 +12,8 @@ namespace YARG.Gameplay.Visuals
         private const float WIDTH_NUMERATOR   = 2f;
         private const float WIDTH_DENOMINATOR = 5f;
 
-        [FormerlySerializedAs("_fretCount")]
         public int FretCount;
+        public bool DontFlipColorsLeftyFlip;
         public bool UseKickFrets;
 
         [SerializeField]
@@ -77,17 +77,23 @@ namespace YARG.Gameplay.Visuals
                 _kickFrets.Add(rightKick.GetComponent<KickFret>());
             }
 
-            InitializeColor(fretColorProvider);
+            InitializeColor(fretColorProvider, leftyFlip);
         }
 
-        public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider)
+        public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
         {
             for (int i = 0; i < _frets.Count; i++)
             {
+                int index = i + 1;
+                if (DontFlipColorsLeftyFlip && leftyFlip)
+                {
+                    index = _frets.Count - index + 1;
+                }
+
                 _frets[i].Initialize(
-                    fretColorProvider.GetFretColor(i + 1),
-                    fretColorProvider.GetFretInnerColor(i + 1),
-                    fretColorProvider.GetParticleColor(i + 1));
+                    fretColorProvider.GetFretColor(index),
+                    fretColorProvider.GetFretInnerColor(index),
+                    fretColorProvider.GetParticleColor(index));
             }
 
             foreach (var kick in _kickFrets)

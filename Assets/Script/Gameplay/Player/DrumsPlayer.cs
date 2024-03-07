@@ -36,7 +36,8 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, int? currentHighScore)
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
+            int? currentHighScore)
         {
             // Before we do anything, see if we're in five lane mode or not
             _fiveLaneMode = player.Profile.CurrentInstrument == Instrument.FiveLaneDrums;

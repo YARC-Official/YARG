@@ -13,10 +13,15 @@ namespace YARG.Gameplay.Visuals
         protected TPlayer Player { get; private set; }
 
         /// <summary>
+        /// Whether or not the player has lefty flip on.
+        /// </summary>
+        protected bool LeftyFlip => Player.Player.Profile.LeftyFlip;
+
+        /// <summary>
         /// The lefty flip position multiplier. <c>1</c> if lefty flip is off, <c>-1</c> if it is on.
         /// This is not automatically accounted for.
         /// </summary>
-        protected float LeftyFlipMultiplier => Player.Player.Profile.LeftyFlip ? -1f : 1f;
+        protected float LeftyFlipMultiplier => LeftyFlip ? -1f : 1f;
 
         protected override void GameplayAwake()
         {

@@ -257,7 +257,7 @@ namespace YARG.Settings.Preview
             _cameraPositioner.Initialize(cameraPreset);
 
             // Update color profiles
-            _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile));
+            _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile), false);
 
             // Update hit window
             _hitWindow.HitWindow = CurrentGameModeInfo.HitWindowProvider(enginePreset).Create();
