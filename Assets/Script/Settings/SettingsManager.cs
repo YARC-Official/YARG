@@ -34,7 +34,12 @@ namespace YARG.Settings
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.AmIAwesome),
             },
-            new SongManagerTab("SongManager", icon: "Songs"),
+            new SongManagerTab("SongManager", icon: "Songs")
+            {
+                new HeaderMetadata("MusicLibrary"),
+                nameof(Settings.ShowFavoriteButton),
+                nameof(Settings.HighScoreInfo)
+            },
             new MetadataTab("Sound", icon: "Sound")
             {
                 new HeaderMetadata("Volume"),

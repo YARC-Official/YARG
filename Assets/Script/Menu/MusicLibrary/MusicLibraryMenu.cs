@@ -13,6 +13,7 @@ using YARG.Core.Song;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Settings;
 using YARG.Song;
 
@@ -28,13 +29,19 @@ namespace YARG.Menu.MusicLibrary
 
     public class MusicLibraryMenu : ListMenu<ViewType, SongView>
     {
+        private const int RANDOM_SONG_ID = 0;
+        private const int PLAYLIST_ID = 1;
+        private const int BACK_ID = 2;
+
         public static MusicLibraryMode LibraryMode;
 
-        public static SongEntry InitialSelect = null;
+        public static SongEntry InitialSelect;
+        public static Playlist SelectedPlaylist;
 
 #nullable enable
         private static List<SongEntry>? _recommendedSongs;
 #nullable disable
+
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
         private static bool _doRefresh = true;
@@ -60,7 +67,6 @@ namespace YARG.Menu.MusicLibrary
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
         private IReadOnlyList<SongCategory> _sortedSongs;
-
 
         private PreviewContext _previewContext;
         private CancellationTokenSource _previewCanceller = new();
@@ -165,6 +171,16 @@ namespace YARG.Menu.MusicLibrary
 
         protected override List<ViewType> CreateViewList()
         {
+            if (SelectedPlaylist is not null)
+            {
+                return CreatePlaylistViewList();
+            }
+
+            return CreateNormalViewList();
+        }
+
+        private List<ViewType> CreateNormalViewList()
+        {
             var list = new List<ViewType>();
 
             // Return if there are no songs (or they haven't loaded yet)
@@ -199,7 +215,7 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new SortHeaderViewType(displayName, section.Songs.Count));
 
                 // Add all of the songs
-                list.AddRange(section.Songs.Select(song => new SongViewType(_searchField, song)));
+                list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
             }
 
             if (_searchField.IsSearching)
@@ -231,7 +247,7 @@ namespace YARG.Menu.MusicLibrary
                 if (_recommendedSongs != null)
                 {
                     // Add the recommended songs right above the "ALL SONGS" header
-                    list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(_searchField, i)));
+                    list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(this, i)));
                     list.Insert(0, new CategoryViewType(
                         _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
                         _recommendedSongs.Count, _recommendedSongs
@@ -239,7 +255,53 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 // Add the buttons
-                list.Insert(0, new ButtonViewType("RANDOM SONG", "Icon/Random", SelectRandomSong));
+
+                list.Insert(0, new ButtonViewType("RANDOM SONG", "MusicLibraryIcons[Random]",
+                    SelectRandomSong, RANDOM_SONG_ID));
+
+                list.Insert(1, new ButtonViewType("PLAYLISTS", "MusicLibraryIcons[Playlists]", () =>
+                {
+                    // TODO: Proper playlist menu
+                    SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
+                    Refresh();
+                }, PLAYLIST_ID));
+            }
+
+            return list;
+        }
+
+        private List<ViewType> CreatePlaylistViewList()
+        {
+            var list = new List<ViewType>();
+
+            // Add back button
+            list.Add(new ButtonViewType("BACK", "MusicLibraryIcons[Back]", () =>
+            {
+                SelectedPlaylist = null;
+                Refresh();
+
+                // Select playlist button
+                SetIndexTo(i => i is ButtonViewType { Id: PLAYLIST_ID });
+            }, BACK_ID));
+
+            // Return if there are no songs (or they haven't loaded yet)
+            if (_sortedSongs is null || GlobalVariables.Instance.SongContainer.Count <= 0) return list;
+
+            // Get the number of songs
+            int count = _sortedSongs.Sum(section => section.Songs.Count);
+
+            // Return if there are no songs in the playlist
+            if (count == 0) return list;
+
+            // Add all of the songs
+            foreach (var section in _sortedSongs)
+            {
+                // Create header
+                var displayName = section.Category;
+                list.Add(new SortHeaderViewType(displayName.ToUpperInvariant(), section.Songs.Count));
+
+                // Add all of the songs
+                list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
             }
 
             return list;
@@ -259,29 +321,72 @@ namespace YARG.Menu.MusicLibrary
 
         private void Refresh()
         {
-            _sortedSongs = _searchField.Refresh(SettingsManager.Settings.LibrarySort);
-
             SetRecommendedSongs();
-            RequestViewListUpdate();
-
-            if (_currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory))
-            {
-                SelectedIndex = 2;
-            }
+            UpdateSearch(true, true);
         }
 
         private void UpdateSearch(bool force)
         {
-            if (!force && _searchField.IsCurrentSearchInField) return;
+            UpdateSearch(force, false);
+        }
 
-            _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
+        private void UpdateSearch(bool force, bool refresh)
+        {
+            if (!force && _searchField.IsCurrentSearchInField)
+            {
+                return;
+            }
+
+            if (SelectedPlaylist is null)
+            {
+                // If there's no playlist selected...
+
+                if (refresh)
+                {
+                    _sortedSongs = _searchField.Refresh(SettingsManager.Settings.LibrarySort);
+                }
+                else
+                {
+                    _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
+                }
+            }
+            else
+            {
+                // Show playlist...
+
+                var songs = new List<SongEntry>();
+                foreach (var hash in SelectedPlaylist.SongHashes)
+                {
+                    // Get the first song with the specified hash
+                    var song = GlobalVariables.Instance
+                        .SongContainer
+                        .SongsByHash
+                        .GetValueOrDefault(hash)?[0];
+
+                    if (song is not null)
+                    {
+                        songs.Add(song);
+                    }
+                }
+
+                _sortedSongs = new List<SongCategory>
+                {
+                    new(SelectedPlaylist.Name, songs)
+                };
+            }
 
             RequestViewListUpdate();
 
             if (_searchField.IsUpdatedSearchLonger ||
+                // Try to select the last selected song
                 !SetIndexTo(i => i is SongViewType view && view.SongEntry == _currentSong))
             {
-                SelectedIndex = _searchField.IsUnspecified || _sortedSongs.Count == 1 ? 1 : 2;
+                // Try to select the song after the first category
+                if (!SetIndexTo(i => i is CategoryViewType, 1))
+                {
+                    // If all else fails, jump to the first item
+                    SelectedIndex = 0;
+                }
             }
 
             _searchField.UpdateSearchText();
@@ -344,6 +449,13 @@ namespace YARG.Menu.MusicLibrary
             } while (CurrentSelection is not SongViewType);
         }
 
+        public void RefreshAndReselect()
+        {
+            int index = SelectedIndex;
+            Refresh();
+            SelectedIndex = index;
+        }
+
         public void ChangeSort(SongAttribute sort)
         {
             SettingsManager.Settings.LibrarySort = sort;
@@ -353,6 +465,11 @@ namespace YARG.Menu.MusicLibrary
         public IEnumerable<(ViewType, int)> GetSections()
         {
             return ViewList.Select((v, i) => (v, i)).Where(i => i.v is SortHeaderViewType);
+        }
+
+        public void SetSearchInput(SongAttribute songAttribute, string input)
+        {
+            _searchField.SetSearchInput(songAttribute, input);
         }
     }
 }

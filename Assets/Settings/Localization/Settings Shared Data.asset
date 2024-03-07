@@ -71,6 +71,18 @@ MonoBehaviour:
     m_Key: Dropdown.FullscreenMode.Windowed
     m_Metadata:
       m_Items: []
+  - m_Id: 124721790388133888
+    m_Key: Dropdown.HighScoreInfo.Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124721790409105408
+    m_Key: Dropdown.HighScoreInfo.Score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124721790409105409
+    m_Key: Dropdown.HighScoreInfo.Stars
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023324405771
     m_Key: Dropdown.LyricDisplay.Compatibility
     m_Metadata:
@@ -89,6 +101,18 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116747023324405775
     m_Key: Dropdown.LyricDisplay.Transparent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711291285504
+    m_Key: Dropdown.NoteStreakFrequency.Disabled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711291285505
+    m_Key: Dropdown.NoteStreakFrequency.Frequent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711291285506
+    m_Key: Dropdown.NoteStreakFrequency.Sparse
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405776
@@ -113,6 +137,30 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116747023324405781
     m_Key: Dropdown.SongTimeOnScoreBox.TotalOnly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479808
+    m_Key: Dropdown.StarPowerHighwayFx.Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479809
+    m_Key: Dropdown.StarPowerHighwayFx.On
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479810
+    m_Key: Dropdown.StarPowerHighwayFx.Reduced
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479811
+    m_Key: Dropdown.UseStarpowerFx.MultitrackOnly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479812
+    m_Key: Dropdown.UseStarpowerFx.Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479813
+    m_Key: Dropdown.UseStarpowerFx.On
     m_Metadata:
       m_Items: []
   - m_Id: 92111997366558720
@@ -157,6 +205,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116744829250428928
     m_Key: Header.LightingGeneral
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124721790409105410
+    m_Key: Header.MusicLibrary
     m_Metadata:
       m_Items: []
   - m_Id: 12472103388700672
@@ -643,6 +695,18 @@ MonoBehaviour:
     m_Key: Setting.DMXBlueChannels.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 126176427087618048
+    m_Key: Setting.DMXCueChangeChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126176427112783872
+    m_Key: Setting.DMXCueChangeChannel.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126176427112783873
+    m_Key: Setting.DMXCueInformation
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023324405788
     m_Key: Setting.DMXDimmerChannels
     m_Metadata:
@@ -747,6 +811,14 @@ MonoBehaviour:
     m_Key: Setting.GuitarVolume.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 124721790409105411
+    m_Key: Setting.HighScoreInfo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124722408020369408
+    m_Key: Setting.HighScoreInfo.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023324405807
     m_Key: Setting.InputDeviceLogging
     m_Metadata:
@@ -835,6 +907,14 @@ MonoBehaviour:
     m_Key: Setting.NoKicks.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 124723711295479814
+    m_Key: Setting.NoteStreakFrequency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479815
+    m_Key: Setting.NoteStreakFrequency.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023328600163
     m_Key: Setting.PreviewVolume
     m_Metadata:
@@ -883,6 +963,14 @@ MonoBehaviour:
     m_Key: Setting.ShowCursorTimer.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 124721790409105412
+    m_Key: Setting.ShowFavoriteButton
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124721790409105413
+    m_Key: Setting.ShowFavoriteButton.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023324405839
     m_Key: Setting.ShowHitWindow
     m_Metadata:
@@ -913,6 +1001,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116747023324405796
     m_Key: Setting.StageKitEnabled.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479816
+    m_Key: Setting.StarPowerHighwayFx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479817
+    m_Key: Setting.StarPowerHighwayFx.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023328600171
@@ -1025,66 +1121,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10936772512309248
     m_Key: Tab.Sound
-    m_Metadata:
-      m_Items: []
-  - m_Id: 121121501170786304
-    m_Key: Setting.DMXCueChangeChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 121121555608657920
-    m_Key: Setting.DMXCueChangeChannel.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 123349507897450496
-    m_Key: Setting.DMXCueInformation
-  - m_Id: 118297715850055680
-    m_Key: Setting.StarPowerHighwayFx
-    m_Metadata:
-      m_Items: []
-  - m_Id: 118297813237600256
-    m_Key: Setting.StarPowerHighwayFx.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 118306533464051712
-    m_Key: Dropdown.StarPowerHighwayFx.On
-    m_Metadata:
-      m_Items: []
-  - m_Id: 118306680382132224
-    m_Key: Dropdown.StarPowerHighwayFx.Reduced
-    m_Metadata:
-      m_Items: []
-  - m_Id: 118306746819907584
-    m_Key: Dropdown.StarPowerHighwayFx.Off
-    m_Metadata:
-      m_Items: []
-  - m_Id: 119173371822858240
-    m_Key: Setting.NoteStreakFrequency
-    m_Metadata:
-      m_Items: []
-  - m_Id: 119173704238227456
-    m_Key: Setting.NoteStreakFrequency.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 119174161593524224
-    m_Key: Dropdown.NoteStreakFrequency.Frequent
-    m_Metadata:
-      m_Items: []
-  - m_Id: 119174220057927680
-    m_Key: Dropdown.NoteStreakFrequency.Sparse
-    m_Metadata:
-      m_Items: []
-  - m_Id: 119174263120846848
-    m_Key: Dropdown.NoteStreakFrequency.Disabled
-  - m_Id: 120322696970141696
-    m_Key: Dropdown.UseStarpowerFx.Off
-    m_Metadata:
-      m_Items: []
-  - m_Id: 120322832085450752
-    m_Key: Dropdown.UseStarpowerFx.MultitrackOnly
-    m_Metadata:
-      m_Items: []
-  - m_Id: 120322882958163968
-    m_Key: Dropdown.UseStarpowerFx.On
     m_Metadata:
       m_Items: []
   m_Metadata:
