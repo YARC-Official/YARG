@@ -695,6 +695,18 @@ MonoBehaviour:
     m_Key: Setting.DMXBlueChannels.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 126176427087618048
+    m_Key: Setting.DMXCueChangeChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126176427112783872
+    m_Key: Setting.DMXCueChangeChannel.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126176427112783873
+    m_Key: Setting.DMXCueInformation
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023324405788
     m_Key: Setting.DMXDimmerChannels
     m_Metadata:
