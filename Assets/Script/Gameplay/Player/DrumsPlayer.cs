@@ -24,8 +24,6 @@ namespace YARG.Gameplay.Player
         private bool _fiveLaneMode;
         [SerializeField]
         private FretArray _fretArray;
-        [FormerlySerializedAs("_kickFrets")]
-        [FormerlySerializedAs("_kickFret")]
         [SerializeField]
         private KickFretFlash _kickFretFlash;
 
