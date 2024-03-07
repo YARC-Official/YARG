@@ -216,6 +216,16 @@ namespace YARG.Menu.ProfileInfo
                 return false;
             }
 
+            // Modifier keys on keyboard have both individual left/right controls and combined controls,
+            // we want to ignore the combined controls to prevent ambiguity
+            if (control.device is Keyboard keyboard &&
+                (control == keyboard.shiftKey ||
+                control == keyboard.ctrlKey ||
+                control == keyboard.altKey))
+            {
+                return false;
+            }
+
             return true;
         }
     }
