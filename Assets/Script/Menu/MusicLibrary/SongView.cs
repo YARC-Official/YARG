@@ -48,8 +48,7 @@ namespace YARG.Menu.MusicLibrary
                 _starView.SetStars(starAmount.Value);
             }
 
-            // Set secondary text type
-            _secondaryTextContainer.SetActive(!viewType.UseAsMadeFamousBy);
+            // Set "As Made Famous By" text
             _asMadeFamousByTextContainer.SetActive(viewType.UseAsMadeFamousBy);
 
             // Show/hide favorite button
