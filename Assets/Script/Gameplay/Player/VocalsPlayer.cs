@@ -90,10 +90,10 @@ namespace YARG.Gameplay.Player
             // Hit window is in semitones (total width).
             double windowSize = Player.Profile.CurrentDifficulty switch
             {
-                Difficulty.Easy   => 3.5,
-                Difficulty.Medium => 3.0,
-                Difficulty.Hard   => 2.5,
-                Difficulty.Expert => 2.0,
+                Difficulty.Easy   => 1.5,
+                Difficulty.Medium => 1.2,
+                Difficulty.Hard   => 0.9,
+                Difficulty.Expert => 0.6,
                 _ => throw new InvalidOperationException("Unreachable")
             };
 
