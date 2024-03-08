@@ -87,7 +87,7 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
-            // Hit window is in semitones (total width).
+            // Hit window is in semitones (max. difference between correct pitch and sung pitch).
             double windowSize = Player.Profile.CurrentDifficulty switch
             {
                 Difficulty.Easy   => 1.5,
