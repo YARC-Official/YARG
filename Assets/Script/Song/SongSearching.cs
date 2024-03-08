@@ -98,6 +98,11 @@ namespace YARG.Song
 
         public bool IsUnspecified()
         {
+            if (searches.Count <= 0)
+            {
+                return true;
+            }
+
             return searches[^1].Filter.attribute == SongAttribute.Unspecified;
         }
 

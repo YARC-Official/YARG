@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
@@ -22,6 +23,9 @@ namespace YARG.Integration.StageKit
         private int _vocalsIndex;
         private int _drumIndex;
         private StageKitLightingController _controller;
+
+        public static event Action<LightingType> OnLightingTypeChange;
+        public static event Action<StageEffect> OnStageEffectChange;
 
         protected override void OnChartLoaded(SongChart chart)
         {
@@ -138,6 +142,8 @@ namespace YARG.Integration.StageKit
                 return;
             }
 
+            OnStageEffectChange?.Invoke(_venue.Stage[_eventIndex].Effect);
+
             switch (_venue.Stage[_eventIndex].Effect)
             {
                 case StageEffect.FogOn:
@@ -162,6 +168,8 @@ namespace YARG.Integration.StageKit
 
         private void HandleVenue(LightingType lightingEvent)
         {
+            OnLightingTypeChange?.Invoke(lightingEvent);
+
             switch (lightingEvent)
             {
                 //keyframed cues
@@ -257,9 +265,10 @@ namespace YARG.Integration.StageKit
                     break;
 
                 case LightingType.Strobe_Fast:
-                    //This might be a bug in the official code that i'm trying to replicate here, as slow
-                    //doesn't seem to do it.
+                    //Lighting cues are NEVER on with Fast Strobe.
+                    //Not sure about Slow Strobe.
                     KillCue();
+                    _controller.AllLedsOff();
                     _controller.SetStrobeSpeed(StageKitStrobeSpeed.Fast);
                     break;
 

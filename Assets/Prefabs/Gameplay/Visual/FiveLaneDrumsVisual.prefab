@@ -29,6 +29,11 @@ PrefabInstance:
       propertyPath: HitWindowDisplay
       value: 
       objectReference: {fileID: 8022842290628306130}
+    - target: {fileID: 7353099902729507025, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
+        type: 3}
+      propertyPath: FretCount
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 7508612376246159914, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
         type: 3}
       propertyPath: m_Name

@@ -24,8 +24,6 @@ namespace YARG.Gameplay.Player
         private bool _fiveLaneMode;
         [SerializeField]
         private FretArray _fretArray;
-        [FormerlySerializedAs("_kickFrets")]
-        [FormerlySerializedAs("_kickFret")]
         [SerializeField]
         private KickFretFlash _kickFretFlash;
 
@@ -38,7 +36,8 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, int? currentHighScore)
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
+            int? currentHighScore)
         {
             // Before we do anything, see if we're in five lane mode or not
             _fiveLaneMode = player.Profile.CurrentInstrument == Instrument.FiveLaneDrums;

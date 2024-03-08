@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -11,6 +12,7 @@ using YARG.Input;
 using YARG.Integration;
 using YARG.Menu.ScoreScreen;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
@@ -66,7 +68,7 @@ namespace YARG
 
             // Get command line args
             // The first element is always the file name, however check just in case
-            var args = System.Environment.GetCommandLineArgs();
+            var args = Environment.GetCommandLineArgs();
             if (args.Length >= 1)
             {
                 CommandLineArguments = args[1..].ToList();
@@ -87,6 +89,7 @@ namespace YARG
             PathHelper.Init();
             ReplayContainer.Init();
             ScoreContainer.Init();
+            PlaylistContainer.Initialize();
             CustomContentManager.Initialize();
 
             int profileCount = PlayerContainer.LoadProfiles();
@@ -117,6 +120,7 @@ namespace YARG
         {
             SettingsManager.SaveSettings();
             PlayerContainer.SaveProfiles();
+            PlaylistContainer.SaveAll();
             CustomContentManager.SaveAll();
 
             ReplayContainer.Destroy();

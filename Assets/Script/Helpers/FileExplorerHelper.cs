@@ -2,9 +2,14 @@
 using SFB;
 
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
-    using System.Diagnostics;
+
+using System.Diagnostics;
+
 #else
-    using UnityEngine;
+
+using UnityEngine;
+using YARG.Menu.Persistent;
+
 #endif
 
 using Debug = UnityEngine.Debug;
@@ -78,9 +83,13 @@ namespace YARG.Helpers
 #if UNITY_STANDALONE_WIN
             Process.Start("explorer.exe", folderPath);
 #elif UNITY_STANDALONE_OSX
-			Process.Start("open", $"\"{folderPath}\"");
+            Process.Start("open", $"\"{folderPath}\"");
 #else
-			GUIUtility.systemCopyBuffer = folderPath;
+            GUIUtility.systemCopyBuffer = folderPath;
+            DialogManager.Instance.ShowMessage(
+                "Path Copied To Clipboard",
+                "Your system does not support the opening of the file explorer dialog, so the path of the folder has " +
+                "been copied to your clipboard.");
 #endif
         }
     }

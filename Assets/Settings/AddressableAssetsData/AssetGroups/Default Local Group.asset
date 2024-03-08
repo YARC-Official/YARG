@@ -33,12 +33,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6947e69a25ccfa049a22215a785e9f8a
-    m_Address: Icon/Random
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4a4ba0f5f6fbdff4ca0556b981ef1d61
-    m_Address: Icon/ChevronDown
+    m_Address: MusicLibraryIcons
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -159,6 +154,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 38b7af833df3b304aae452f8475324f7
     m_Address: SettingTab/SearchResultPopulator
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fbe7667745907d3458091809adbc80a8
+    m_Address: SettingPreviews/DMXInformationPanelUI
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

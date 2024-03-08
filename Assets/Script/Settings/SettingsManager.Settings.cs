@@ -3,10 +3,12 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Audio;
 using YARG.Core.Audio;
+using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Integration.Sacn;
+using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
 using YARG.Player;
@@ -33,18 +35,11 @@ namespace YARG.Settings
 
             public bool ShowAntiPiracyDialog          = true;
             public bool ShowEngineInconsistencyDialog = true;
+            public SongAttribute LibrarySort = SongAttribute.Name;
 
             #endregion
 
             #region General
-
-            public void OpenVenueFolder()
-            {
-                FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
-            }
-
-            public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
-            public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
 
             public void OpenCalibrator()
             {
@@ -55,12 +50,34 @@ namespace YARG.Settings
             public IntSetting AudioCalibration { get; } = new(0);
             public IntSetting VideoCalibration { get; } = new(0);
 
+            public void OpenVenueFolder()
+            {
+                FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
+            }
+
+            public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
+            public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
+
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public SliderSetting KickBounceMultiplier      { get; } = new(1f, 0f, 2f);
 
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 
             public ToggleSetting AmIAwesome { get; } = new(false);
+
+            #endregion
+
+            #region Songs
+
+            public ToggleSetting ShowFavoriteButton { get; } = new(true);
+
+            public DropdownSetting<HighScoreInfoMode> HighScoreInfo { get; }
+                = new(HighScoreInfoMode.Stars)
+            {
+                HighScoreInfoMode.Stars,
+                HighScoreInfoMode.Score,
+                HighScoreInfoMode.Off
+            };
 
             #endregion
 
@@ -121,7 +138,8 @@ namespace YARG.Settings
             public ToggleSetting LowQuality   { get; } = new(false, LowQualityCallback);
             public ToggleSetting DisableBloom { get; } = new(false, DisableBloomCallback);
 
-            public DropdownSetting<StarPowerHighwayFxMode> StarPowerHighwayFx { get; } = new(StarPowerHighwayFxMode.On)
+            public DropdownSetting<StarPowerHighwayFxMode> StarPowerHighwayFx { get; }
+                = new(StarPowerHighwayFxMode.On)
             {
                 StarPowerHighwayFxMode.On,
                 StarPowerHighwayFxMode.Reduced,
@@ -139,7 +157,8 @@ namespace YARG.Settings
                 NoteStreakFrequencyMode.Disabled
             };
 
-            public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; } = new(SongProgressMode.CountUpOnly)
+            public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; }
+                = new(SongProgressMode.CountUpOnly)
             {
                 SongProgressMode.None,
                 SongProgressMode.CountUpAndTotal,
@@ -151,7 +170,8 @@ namespace YARG.Settings
 
             public ToggleSetting GraphicalProgressOnScoreBox { get; } = new(true);
 
-            public DropdownSetting<LyricDisplayMode> LyricDisplay { get; } = new(LyricDisplayMode.Normal)
+            public DropdownSetting<LyricDisplayMode> LyricDisplay { get; }
+                = new(LyricDisplayMode.Normal)
             {
                 LyricDisplayMode.Normal,
                 LyricDisplayMode.Transparent,
@@ -213,9 +233,11 @@ namespace YARG.Settings
             public DMXChannelsSetting DMXYellowChannels { get; } = new(
                 new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, DMXCallback);
 
-            public IntSetting DMXFogChannel { get; } = new(06, 1, 512);
+            public IntSetting DMXFogChannel { get; } = new(6, 1, 512);
 
-            public IntSetting DMXStrobeChannel { get; } = new(07, 1, 512);
+            public IntSetting DMXStrobeChannel { get; } = new(7, 1, 512);
+
+            public IntSetting DMXCueChangeChannel { get; } = new(8, 1, 512);
 
             #endregion
 
@@ -231,11 +253,19 @@ namespace YARG.Settings
 
             private static void DMXEnabledCallback(bool value)
             {
+                if (IsLoading)
+                {
+                    return;
+                }
                 SacnController.Instance.HandleEnabledChanged(value);
             }
 
             private static void DMXCallback(int[] value)
             {
+                if (IsLoading)
+                {
+                    return;
+                }
                 SacnController.Instance.UpdateDMXChannels();
             }
 
@@ -373,15 +403,15 @@ namespace YARG.Settings
             //     GameManager.AudioManager.Options.UseWhammyFx = value;
             // }
 
-            private static void WhammyPitchShiftAmountChange(float value)
-            {
-                GlobalVariables.AudioManager.Options.WhammyPitchShiftAmount = value;
-            }
-
-            private static void WhammyOversampleFactorChange(int value)
-            {
-                GlobalVariables.AudioManager.Options.WhammyOversampleFactor = value;
-            }
+            // private static void WhammyPitchShiftAmountChange(float value)
+            // {
+            //     GlobalVariables.AudioManager.Options.WhammyPitchShiftAmount = value;
+            // }
+            //
+            // private static void WhammyOversampleFactorChange(int value)
+            // {
+            //     GlobalVariables.AudioManager.Options.WhammyOversampleFactor = value;
+            // }
 
             private static void UseChipmunkSpeedChange(bool value)
             {

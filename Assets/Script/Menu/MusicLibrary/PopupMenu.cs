@@ -7,6 +7,7 @@ using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
+using YARG.Playlists;
 using YARG.Settings;
 
 namespace YARG.Menu.MusicLibrary
@@ -100,7 +101,13 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
-            CreateItem("Sort By: " + MusicLibraryMenu.Sort.ToLocalizedName(), () =>
+            CreateItem("Back To Top", () =>
+            {
+                _musicLibrary.SelectedIndex = 0;
+                gameObject.SetActive(false);
+            });
+
+            CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
             {
                 _menuState = State.SortSelect;
                 UpdateForState();
@@ -112,32 +119,54 @@ namespace YARG.Menu.MusicLibrary
                 UpdateForState();
             });
 
-            CreateItem("Back To Top", () =>
+            var viewType = _musicLibrary.CurrentSelection;
+
+            // Add/remove to favorites
+            var favoriteInfo = viewType.GetFavoriteInfo();
+            if (favoriteInfo.ShowFavoriteButton)
             {
-                _musicLibrary.SelectedIndex = 0;
-                gameObject.SetActive(false);
-            });
+                if (!favoriteInfo.IsFavorited)
+                {
+                    CreateItem("Add To Favorites", () =>
+                    {
+                        viewType.FavoriteClick();
+                        _musicLibrary.RefreshViewsObjects();
 
-            // Everything below here is an advanced setting
-            if (!SettingsManager.Settings.ShowAdvancedMusicLibraryOptions.Value) return;
+                        gameObject.SetActive(false);
+                    });
+                }
+                else
+                {
+                    CreateItem("Remove From Favorites", () =>
+                    {
+                        viewType.FavoriteClick();
+                        _musicLibrary.RefreshViewsObjects();
 
-            CreateItem("View Song Folder", () =>
+                        gameObject.SetActive(false);
+                    });
+                }
+            }
+
+            // Only show these options if we are selecting a song
+            if (viewType is SongViewType songViewType &&
+                SettingsManager.Settings.ShowAdvancedMusicLibraryOptions.Value)
             {
-                if (_musicLibrary.CurrentSelection is not SongViewType songViewType) return;
+                var song = songViewType.SongEntry;
 
-                FileExplorerHelper.OpenFolder(songViewType.SongEntry.Directory);
+                CreateItem("View Song Folder", () =>
+                {
+                    FileExplorerHelper.OpenFolder(song.Directory);
 
-                gameObject.SetActive(false);
-            });
+                    gameObject.SetActive(false);
+                });
 
-            CreateItem("Copy Song Checksum", () =>
-            {
-                if (_musicLibrary.CurrentSelection is not SongViewType songViewType) return;
+                CreateItem("Copy Song Checksum", () =>
+                {
+                    GUIUtility.systemCopyBuffer = song.Hash.ToString();
 
-                GUIUtility.systemCopyBuffer = songViewType.SongEntry.Hash.ToString();
-
-                gameObject.SetActive(false);
-            });
+                    gameObject.SetActive(false);
+                });
+            }
         }
 
         private void CreateSortSelect()
