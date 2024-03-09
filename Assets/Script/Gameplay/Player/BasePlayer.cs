@@ -222,14 +222,7 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            if (BaseEngine.IsInputQueued)
-            {
-                BaseEngine.UpdateEngineInputs();
-            }
-            else
-            {
-                BaseEngine.UpdateEngineToTime(time);
-            }
+            BaseEngine.Update(time);
         }
 
         private void SubscribeToInputEvents()
