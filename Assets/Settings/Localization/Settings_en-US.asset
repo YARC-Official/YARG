@@ -1293,6 +1293,14 @@ MonoBehaviour:
       <color=white>Rescan required if changed!</color>
     m_Metadata:
       m_Items: []
+  - m_Id: 126616378681974784
+    m_Localized: Red Cymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126616378694557696
+    m_Localized: Red Cymbal Star Power
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

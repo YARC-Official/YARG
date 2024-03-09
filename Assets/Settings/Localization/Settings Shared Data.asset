@@ -471,6 +471,14 @@ MonoBehaviour:
     m_Key: PresetSetting.ColorProfile.OrangeStarpower
     m_Metadata:
       m_Items: []
+  - m_Id: 126616378681974784
+    m_Key: PresetSetting.ColorProfile.RedCymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126616378694557696
+    m_Key: PresetSetting.ColorProfile.RedCymbalStarpower
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023328600109
     m_Key: PresetSetting.ColorProfile.RedDrum
     m_Metadata:
