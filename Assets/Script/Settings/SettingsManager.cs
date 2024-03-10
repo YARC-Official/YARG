@@ -36,6 +36,9 @@ namespace YARG.Settings
             },
             new SongManagerTab("SongManager", icon: "Songs")
             {
+                new HeaderMetadata("ScanningOptions"),
+                nameof(Settings.AllowDuplicateSongs),
+                nameof(Settings.UseFullDirectoryForPlaylists),
                 new HeaderMetadata("MusicLibrary"),
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.HighScoreInfo)

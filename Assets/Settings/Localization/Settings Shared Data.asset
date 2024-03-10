@@ -223,6 +223,10 @@ MonoBehaviour:
     m_Key: Header.PresetSettings
     m_Metadata:
       m_Items: []
+  - m_Id: 126547259219632128
+    m_Key: Header.ScanningOptions
+    m_Metadata:
+      m_Items: []
   - m_Id: 13084450683740160
     m_Key: Header.SongFolders
     m_Metadata:
@@ -467,6 +471,14 @@ MonoBehaviour:
     m_Key: PresetSetting.ColorProfile.OrangeStarpower
     m_Metadata:
       m_Items: []
+  - m_Id: 126616378681974784
+    m_Key: PresetSetting.ColorProfile.RedCymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126616378694557696
+    m_Key: PresetSetting.ColorProfile.RedCymbalStarpower
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023328600109
     m_Key: PresetSetting.ColorProfile.RedDrum
     m_Metadata:
@@ -613,6 +625,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 92846839955841025
     m_Key: PresetType.EnginePresetContainer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259244797952
+    m_Key: Setting.AllowDuplicateSongs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259244797953
+    m_Key: Setting.AllowDuplicateSongs.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405799
@@ -1025,6 +1045,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116747023324405816
     m_Key: Setting.UseCymbalModelsInFiveLane.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259248992256
+    m_Key: Setting.UseFullDirectoryForPlaylists
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259248992257
+    m_Key: Setting.UseFullDirectoryForPlaylists.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023328600173
