@@ -121,10 +121,16 @@ namespace YARG
                 directories.Add(setlistPath);
             }
 
+            // Time the scan so we can log it
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-            var task = Task.Run(() =>
-                CacheHandler.RunScan(fast, PathHelper.SongCachePath, PathHelper.BadSongsPath, MULTITHREADING, true, false, directories));
+            // Scan and pass in settings
+            var task = Task.Run(() => CacheHandler.RunScan(
+                fast, PathHelper.SongCachePath, PathHelper.BadSongsPath,
+                MULTITHREADING,
+                SettingsManager.Settings.AllowDuplicateSongs.Value,
+                SettingsManager.Settings.UseFullDirectoryForPlaylists.Value,
+                directories));
 
             while (!task.IsCompleted)
             {

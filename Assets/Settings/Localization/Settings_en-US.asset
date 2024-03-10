@@ -1349,6 +1349,34 @@ MonoBehaviour:
   - m_Id: 127207848525914112
     m_Localized: This determines how much of the phrase has to be accurately sung
       in order to fully fill the accuracy meter, in the Expert difficulty.
+  - m_Id: 126547259219632128
+    m_Localized: Scanning Options
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259244797952
+    m_Localized: Allow Duplicate Songs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259244797953
+    m_Localized: Allows duplicate songs to be scanned and displayed in the library.
+      <color=white>Rescan required if changed!</color>
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259248992256
+    m_Localized: Use Full Directory For Playlists
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259248992257
+    m_Localized: Use full directory for the playlist sort option in the music library.
+      <color=white>Rescan required if changed!</color>
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126616378681974784
+    m_Localized: Red Cymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126616378694557696
+    m_Localized: Red Cymbal Star Power
     m_Metadata:
       m_Items: []
   references:
