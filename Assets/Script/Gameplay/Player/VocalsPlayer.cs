@@ -90,21 +90,19 @@ namespace YARG.Gameplay.Player
             // Hit window is in semitones (max. difference between correct pitch and sung pitch).
             double windowSize = Player.Profile.CurrentDifficulty switch
             {
-                Difficulty.Easy   => 1.5,
-                Difficulty.Medium => 1.2,
-                Difficulty.Hard   => 0.9,
-                Difficulty.Expert => 0.6,
+                Difficulty.Easy   => Player.EnginePreset.Vocals.WindowSizeE,
+                Difficulty.Medium => Player.EnginePreset.Vocals.WindowSizeM,
+                Difficulty.Hard   => Player.EnginePreset.Vocals.WindowSizeH,
+                Difficulty.Expert => Player.EnginePreset.Vocals.WindowSizeX,
                 _ => throw new InvalidOperationException("Unreachable")
             };
 
-            // These percentages may seem low, but accounting for delay,
-            // plosives not being detected, etc., it's pretty good.
             double hitPercent = Player.Profile.CurrentDifficulty switch
             {
-                Difficulty.Easy   => 0.325,
-                Difficulty.Medium => 0.400,
-                Difficulty.Hard   => 0.450,
-                Difficulty.Expert => 0.575,
+                Difficulty.Easy   => Player.EnginePreset.Vocals.HitPercentE,
+                Difficulty.Medium => Player.EnginePreset.Vocals.HitPercentM,
+                Difficulty.Hard   => Player.EnginePreset.Vocals.HitPercentH,
+                Difficulty.Expert => Player.EnginePreset.Vocals.HitPercentX,
                 _ => throw new InvalidOperationException("Unreachable")
             };
 
