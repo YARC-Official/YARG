@@ -55,6 +55,7 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart);
 
+            hud.Initialize(player.EnginePreset);
             _hud = hud;
 
             // Get the notes from the specific harmony or solo part
