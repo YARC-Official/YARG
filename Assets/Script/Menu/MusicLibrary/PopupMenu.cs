@@ -2,14 +2,15 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Core.Input;
-using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
-using YARG.Playlists;
+using YARG.Player;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -108,11 +109,22 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
-            CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+            if (SettingsManager.Settings.LibrarySort != SortAttribute.Instrument)
             {
-                _menuState = State.SortSelect;
-                UpdateForState();
-            });
+                CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+                {
+                    _menuState = State.SortSelect;
+                    UpdateForState();
+                });
+            }
+            else
+            {
+                CreateItem("Sort By: " + SettingsManager.Settings.SortInstrument.ToLocalizedName(), () =>
+                {
+                    _menuState = State.SortSelect;
+                    UpdateForState();
+                });
+            }
 
             CreateItem("Go To Section...", () =>
             {
@@ -174,18 +186,31 @@ namespace YARG.Menu.MusicLibrary
         {
             SetHeader("Sort By...");
 
-            foreach (var sort in EnumExtensions<SongAttribute>.Values)
+            foreach (var sort in EnumExtensions<SortAttribute>.Values)
             {
                 // Skip theses because they don't make sense
-                if (sort == SongAttribute.Unspecified) continue;
-                if (sort == SongAttribute.Instrument) continue;
+                if (sort == SortAttribute.Unspecified) continue;
+                if (sort >= SortAttribute.Instrument) continue;
+                if (sort == SortAttribute.Playable && PlayerContainer.Players.Count == 0)
+                    continue;
 
-                // Create an item for it
                 CreateItem(sort.ToLocalizedName(), () =>
                 {
                     _musicLibrary.ChangeSort(sort);
                     gameObject.SetActive(false);
                 });
+            }
+
+            foreach (var instrument in EnumExtensions<Instrument>.Values)
+            {
+                if (SongContainer.GetSongsWithInstrument(instrument).Count > 0)
+                {
+                    CreateItem(instrument.ToLocalizedName(), () =>
+                    {
+                        _musicLibrary.ChangeSort(SortAttribute.Instrument, instrument);
+                        gameObject.SetActive(false);
+                    });
+                }
             }
         }
 
@@ -194,9 +219,9 @@ namespace YARG.Menu.MusicLibrary
             SetHeader("Go To...");
 
             if (SettingsManager.Settings.LibrarySort
-                is SongAttribute.Artist
-                or SongAttribute.Album
-                or SongAttribute.Artist_Album)
+                is SortAttribute.Artist
+                or SortAttribute.Album
+                or SortAttribute.Artist_Album)
             {
                 foreach (var (header, index) in _musicLibrary.GetSections()
                     .GroupBy(x => ((SortHeaderViewType) x.Item1).HeaderText[0].ToAsciiUpper())

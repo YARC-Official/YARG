@@ -271,6 +271,10 @@ MonoBehaviour:
     m_Key: Instrument.Vocals
     m_Metadata:
       m_Items: []
+  - m_Id: 124348840707256320
+    m_Key: Instrument.Band
+    m_Metadata:
+      m_Items: []
   - m_Id: 63848767796142081
     m_Key: Modifier.AllHopos
     m_Metadata:
@@ -308,19 +312,19 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 77970180245151744
-    m_Key: SongAttribute.Album
+    m_Key: SortAttribute.Album
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706176
-    m_Key: SongAttribute.Artist
+    m_Key: SortAttribute.Artist
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706177
-    m_Key: SongAttribute.Artist_Album
+    m_Key: SortAttribute.Artist_Album
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706178
-    m_Key: SongAttribute.Charter
+    m_Key: SortAttribute.Charter
     m_Metadata:
       m_Items: []
   - m_Id: 128368469003853824
@@ -328,35 +332,39 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706179
-    m_Key: SongAttribute.Genre
-    m_Metadata:
-      m_Items: []
-  - m_Id: 77970180278706180
-    m_Key: SongAttribute.Instrument
+    m_Key: SortAttribute.Genre
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706181
-    m_Key: SongAttribute.Name
+    m_Key: SortAttribute.Name
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706182
-    m_Key: SongAttribute.Playlist
+    m_Key: SortAttribute.Playlist
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706183
-    m_Key: SongAttribute.SongLength
+    m_Key: SortAttribute.SongLength
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706184
-    m_Key: SongAttribute.Source
+    m_Key: SortAttribute.Source
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706185
-    m_Key: SongAttribute.Unspecified
+    m_Key: SortAttribute.Unspecified
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706186
-    m_Key: SongAttribute.Year
+    m_Key: SortAttribute.Year
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112914116042452992
+    m_Key: SortAttribute.DateAdded
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124366855620423680
+    m_Key: SortAttribute.Playable
     m_Metadata:
       m_Items: []
   - m_Id: 82700299853488131

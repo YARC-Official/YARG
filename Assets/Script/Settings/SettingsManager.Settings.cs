@@ -2,11 +2,9 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering.Universal.Internal;
-using YARG.Audio;
+using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
-using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
@@ -38,7 +36,8 @@ namespace YARG.Settings
 
             public bool ShowAntiPiracyDialog          = true;
             public bool ShowEngineInconsistencyDialog = true;
-            public SongAttribute LibrarySort = SongAttribute.Name;
+            public SortAttribute LibrarySort = SortAttribute.Name;
+            public Instrument SortInstrument = Instrument.FiveFretGuitar;
 
             #endregion
 
