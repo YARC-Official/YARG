@@ -390,6 +390,13 @@ namespace YARG.Menu.MusicLibrary
 
                 if (refresh)
                 {
+                    if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
+                    {
+                        if (PlayerContainer.Players.Count == 0)
+                        {
+                            SettingsManager.Settings.LibrarySort = SortAttribute.Name;
+                        }
+                    }
                     _sortedSongs = _searchField.Refresh(SettingsManager.Settings.LibrarySort, SettingsManager.Settings.SortInstrument);
                 }
                 else
