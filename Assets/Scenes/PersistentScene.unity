@@ -1153,8 +1153,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57047e1c972a7ac46a6d000a08c356a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  loadingPhrase: {fileID: 1156818523}
-  subPhrase: {fileID: 468169333}
+  _loadingPhrase: {fileID: 1156818523}
+  _subPhrase: {fileID: 468169333}
 --- !u!114 &782876833
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2446,6 +2446,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 0
   m_SortingOrder: 100
