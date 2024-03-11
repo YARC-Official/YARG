@@ -88,29 +88,19 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
-            // Hit window is in semitones (max. difference between correct pitch and sung pitch).
-            double windowSize = Player.Profile.CurrentDifficulty switch
+            if (!GameManager.IsReplay)
             {
-                Difficulty.Easy   => Player.EnginePreset.Vocals.WindowSizeE,
-                Difficulty.Medium => Player.EnginePreset.Vocals.WindowSizeM,
-                Difficulty.Hard   => Player.EnginePreset.Vocals.WindowSizeH,
-                Difficulty.Expert => Player.EnginePreset.Vocals.WindowSizeX,
-                _ => throw new InvalidOperationException("Unreachable")
-            };
-
-            double hitPercent = Player.Profile.CurrentDifficulty switch
+                // Create the engine params from the engine preset
+                EngineParams = Player.EnginePreset.Vocals.Create(StarMultiplierThresholds, Player.Profile.CurrentDifficulty, IMicDevice.UPDATES_PER_SECOND);
+            }
+            else
             {
-                Difficulty.Easy   => Player.EnginePreset.Vocals.HitPercentE,
-                Difficulty.Medium => Player.EnginePreset.Vocals.HitPercentM,
-                Difficulty.Hard   => Player.EnginePreset.Vocals.HitPercentH,
-                Difficulty.Expert => Player.EnginePreset.Vocals.HitPercentX,
-                _ => throw new InvalidOperationException("Unreachable")
-            };
+                // Otherwise, get from the replay
+                EngineParams = (VocalsEngineParameters) Player.EngineParameterOverride;
+            }
 
-            // The hit window size should not be scaled here, since it represents pitch, not timing
-            HitWindow = new HitWindowSettings(windowSize, 0.03, 1, false);
-            EngineParams = new VocalsEngineParameters(HitWindow, EnginePreset.DEFAULT_MAX_MULTIPLIER,
-                StarMultiplierThresholds, hitPercent, true, IMicDevice.UPDATES_PER_SECOND);
+            // The hit window can just be taken from the params
+            HitWindow = EngineParams.HitWindow;
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams);
 
