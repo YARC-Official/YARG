@@ -18,6 +18,7 @@ namespace YARG.Audio
 
         public bool UseWhammyFx { get; set; }
         public bool IsChipmunkSpeedup { get; set; }
+        public bool PlaySoundOnOverstrum { get; set; }
 
         public bool UseMinimumStemVolume { get; set; }
 

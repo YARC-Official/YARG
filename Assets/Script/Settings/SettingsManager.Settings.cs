@@ -115,6 +115,7 @@ namespace YARG.Settings
             // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
             // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
+            public ToggleSetting PlaySoundOnOverstrum { get; } = new(true, PlaySoundOnOverstrumChange);
 
             #endregion
 
@@ -419,6 +420,11 @@ namespace YARG.Settings
             private static void UseChipmunkSpeedChange(bool value)
             {
                 GlobalVariables.AudioManager.Options.IsChipmunkSpeedup = value;
+            }
+
+            private static void PlaySoundOnOverstrumChange(bool value)
+            {
+                GlobalVariables.AudioManager.Options.PlaySoundOnOverstrum = value;
             }
 
             private static void InputDeviceLoggingCallback(bool value)

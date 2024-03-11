@@ -210,12 +210,15 @@ namespace YARG.Gameplay.Player
         {
             base.OnOverstrum();
 
-            const int min = (int) SfxSample.Overstrum1;
-            const int max = (int) SfxSample.Overstrum4;
+            if (GlobalVariables.AudioManager.Options.PlaySoundOnOverstrum)
+            {
+                const int min = (int) SfxSample.Overstrum1;
+                const int max = (int) SfxSample.Overstrum4;
 
-            var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
+                var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
 
-            GlobalVariables.AudioManager.PlaySoundEffect(randomOverstrum);
+                GlobalVariables.AudioManager.PlaySoundEffect(randomOverstrum);
+            }
         }
 
         private void OnSustainStart(GuitarNote parent)
