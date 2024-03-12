@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace YARG.Helpers
 {
+    [DefaultExecutionOrder(-4000)]
     public static class PathHelper
     {
         private static readonly Regex _fileNameSanitize = new("([^a-zA-Z0-9])", RegexOptions.Compiled);
@@ -76,6 +77,7 @@ namespace YARG.Helpers
             IgnoreInaccessible = true,
         };
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         public static void Init()
         {
             // Save this data as Application.* is main thread only (why Unity)

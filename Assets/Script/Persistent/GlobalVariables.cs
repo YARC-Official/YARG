@@ -5,12 +5,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
-using YARG.Core.Logging;
 using YARG.Core.Song;
-using YARG.Helpers;
 using YARG.Input;
 using YARG.Integration;
-using YARG.Logging;
 using YARG.Menu.ScoreScreen;
 using YARG.Player;
 using YARG.Playlists;
@@ -79,8 +76,6 @@ namespace YARG
             }
 
             // Initialize important classes
-            PathHelper.Init();
-            LogHandler.Init();
             ReplayContainer.Init();
             ScoreContainer.Init();
             PlaylistContainer.Initialize();
@@ -128,8 +123,6 @@ namespace YARG
             ScoreContainer.Destroy();
             InputManager.Destroy();
             PlayerContainer.Destroy();
-
-            YargLogger.KillLogger();
 #if UNITY_EDITOR
             // Set alpha fading (on the tracks) to off
             Shader.SetGlobalFloat("_IsFading", 0f);
