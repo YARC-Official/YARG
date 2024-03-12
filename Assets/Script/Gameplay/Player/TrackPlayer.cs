@@ -269,7 +269,7 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            bool currentBassGrooveState = IsBass && stats.ScoreMultiplier == BaseParameters.MaxMultiplier;
+            bool currentBassGrooveState = IsBass && groove;
 
             if (!PreviousBassGrooveState && currentBassGrooveState)
             {
