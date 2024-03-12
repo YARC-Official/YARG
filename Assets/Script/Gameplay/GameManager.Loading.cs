@@ -16,6 +16,7 @@ using YARG.Player;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Gameplay
 {
@@ -107,7 +108,7 @@ namespace YARG.Gameplay
             // Load song
             if (IsReplay)
             {
-                if (!global.SongContainer.SongsByHash.TryGetValue(global.CurrentReplay.SongChecksum, out var songs))
+                if (!SongContainer.SongsByHash.TryGetValue(global.CurrentReplay.SongChecksum, out var songs))
                 {
                     ToastManager.ToastWarning("Song not present in library");
                     global.LoadScene(SceneIndex.Menu);

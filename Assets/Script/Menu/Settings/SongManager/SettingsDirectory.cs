@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Helpers;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Menu.Settings
 {
@@ -36,7 +37,7 @@ namespace YARG.Menu.Settings
                 pathText.text = SongFolders[_index];
 
                 int songCount = 0;
-                foreach (var song in GlobalVariables.Instance.SongContainer.Songs)
+                foreach (var song in SongContainer.Songs)
                     if (song.Directory.StartsWith(SongFolders[_index]))
                         ++songCount;
 

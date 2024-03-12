@@ -8,6 +8,7 @@ using YARG.Settings;
 using YARG.Helpers.Extensions;
 using YARG.Core.Audio;
 using YARG.Core.Song;
+using YARG.Song;
 
 namespace YARG.Menu.Persistent
 {
@@ -39,7 +40,7 @@ namespace YARG.Menu.Persistent
             await UniTask.WaitUntil(() => !LoadingManager.Instance.IsLoading);
 
             // Disable if there are no songs to play
-            if (GlobalVariables.Instance.SongContainer.Count <= 0)
+            if (SongContainer.Count <= 0)
             {
                 gameObject.SetActive(false);
                 return;
@@ -57,7 +58,7 @@ namespace YARG.Menu.Persistent
 
         private async UniTask NextSong()
         {
-            var song = GlobalVariables.Instance.SongContainer.GetRandomSong();
+            var song = SongContainer.GetRandomSong();
             NowPlaying = song;
             await UniTask.RunOnThreadPool(() => song.LoadAudio(GlobalVariables.AudioManager, 1f, SongStem.Crowd));
 

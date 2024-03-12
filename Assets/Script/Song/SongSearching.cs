@@ -13,7 +13,7 @@ namespace YARG.Song
         {
             searches.Clear();
             var filter = new FilterNode(sort, string.Empty);
-            var songs = GlobalVariables.Instance.SongContainer.GetSortedSongList(sort);
+            var songs = SongContainer.GetSortedSongList(sort);
             searches.Add(new SearchNode(filter, songs));
             return songs;
         }
@@ -61,7 +61,7 @@ namespace YARG.Song
             {
                 searches.Clear();
                 var filter = currentFilters[0];
-                var songs = GlobalVariables.Instance.SongContainer.GetSortedSongList(filter.attribute);
+                var songs = SongContainer.GetSortedSongList(filter.attribute);
                 if (filter.attribute == SongAttribute.Instrument)
                 {
                     songs = FilterInstruments(songs, filter.argument);

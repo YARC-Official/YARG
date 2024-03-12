@@ -45,7 +45,6 @@ namespace YARG
         public static IAudioManager AudioManager { get; private set; }
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
-        public SongContainer SongContainer { get; set; }
 
         [HideInInspector]
         public SongEntry CurrentSong;
