@@ -3,7 +3,7 @@ using System.IO;
 using Cysharp.Text;
 using YARG.Core.Logging;
 
-namespace YARG
+namespace YARG.Logging.Unity
 {
     public class UnityEditorLogFormat : IYargLogFormatter
     {
