@@ -37,7 +37,7 @@ namespace YARG.Menu.Persistent
             _artistText.text = string.Empty;
 
             // Wait until the loading is done
-            await UniTask.WaitUntil(() => !LoadingContext.IsLoading());
+            await UniTask.WaitUntil(() => !LoadingScreen.IsLoading);
 
             // Disable if there are no songs to play
             if (SongContainer.Count <= 0)

@@ -17,6 +17,8 @@ namespace YARG
         [SerializeField]
         public TextMeshProUGUI subPhrase;
 
+        public static bool IsLoading => Instance.gameObject.activeSelf;
+
         private async void Start()
         {
             using var context = new LoadingContext();
@@ -37,8 +39,6 @@ namespace YARG
 
     public sealed class LoadingContext : IDisposable
     {
-        private static object _contextLock = new();
-        private static int _refCount = 0;
         private bool disposedValue;
 
         private struct QueuedTask
@@ -50,25 +50,10 @@ namespace YARG
 
         private readonly Queue<QueuedTask> _queue = new();
 
-        public static bool IsLoading()
-        {
-            lock (_contextLock)
-            {
-                return _refCount > 0;
-            }
-        }
-
         public LoadingContext()
         {
-            lock (_contextLock)
-            {
-                if (_refCount == 0)
-                {
-                    LoadingScreen.Instance.gameObject.SetActive(true);
-                    Navigator.Instance.DisableMenuInputs = true;
-                }
-                ++_refCount;
-            }
+            LoadingScreen.Instance.gameObject.SetActive(true);
+            Navigator.Instance.DisableMenuInputs = true;
         }
 
         public void SetLoadingText(string phrase, string sub = null)
@@ -118,15 +103,8 @@ namespace YARG
             if (!disposedValue)
             {
                 await Wait();
-                lock (_contextLock)
-                {
-                    --_refCount;
-                    if (_refCount == 0)
-                    {
-                        LoadingScreen.Instance.gameObject.SetActive(false);
-                        Navigator.Instance.DisableMenuInputs = false;
-                    }
-                }
+                LoadingScreen.Instance.gameObject.SetActive(false);
+                Navigator.Instance.DisableMenuInputs = false;
                 disposedValue = true;
             }
         }
