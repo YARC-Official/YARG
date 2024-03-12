@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Menu.Settings
 {
@@ -13,8 +14,8 @@ namespace YARG.Menu.Settings
 
         public async void RefreshSongs()
         {
-            LoadingManager.Instance.QueueSongRefresh(false);
-            await LoadingManager.Instance.StartLoad();
+            using var context = new LoadingContext();
+            await SongContainer.RunRefresh(false, context);
             SettingsMenu.Instance.RefreshAndKeepPosition();
         }
     }
