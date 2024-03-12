@@ -15,7 +15,8 @@ namespace YARG.Logging
 
         private static string _logsDirectory;
 
-        public static void Init()
+        private static FileYargLogListener _fileYargLogListener;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void SetupLogHandler()
         {
@@ -27,9 +28,11 @@ namespace YARG.Logging
             _logsDirectory = Path.Combine(PathHelper.PersistentDataPath, "logs");
             Directory.CreateDirectory(_logsDirectory);
 
+            _fileYargLogListener = new FileYargLogListener(GetLogPath(), new StandardYargLogFormatter());
+
             // Add log listeners here
             YargLogger.AddLogListener(new UnityEditorLogListener(new UnityEditorLogFormat()));
-            YargLogger.AddLogListener(new FileYargLogListener(GetLogPath(), new StandardYargLogFormatter()));
+            YargLogger.AddLogListener(_fileYargLogListener);
 
             UnityInternalLogWrapper.OverwriteUnityInternals();
 
@@ -75,6 +78,15 @@ namespace YARG.Logging
                 }
 
                 //UnityInternalLogWrapper.UnityInternalLogDelegate(type, LogOption.None, stacktrace, null);
+
+                var builder = ZString.CreateStringBuilder();
+                builder.AppendLine("--------------- EXCEPTION ---------------");
+                builder.AppendLine(condition);
+                builder.Append(stacktrace);
+                builder.AppendLine("-----------------------------------------");
+
+                // This is a bit bad, should probably just make LogItem a struct and create one here
+                _fileYargLogListener.WriteLogItem(ref builder, null!);
             }
         }
 
