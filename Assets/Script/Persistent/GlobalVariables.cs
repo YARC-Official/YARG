@@ -5,11 +5,12 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
-using YARG.Core;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Integration;
+using YARG.Logging;
 using YARG.Menu.ScoreScreen;
 using YARG.Player;
 using YARG.Playlists;
@@ -64,7 +65,6 @@ namespace YARG
         protected override void SingletonAwake()
         {
             Debug.Log($"YARG {CURRENT_VERSION}");
-            YargTrace.AddListener(new YargUnityTraceListener());
 
             // Get command line args
             // The first element is always the file name, however check just in case
@@ -78,19 +78,20 @@ namespace YARG
                 CommandLineArguments = new List<string>();
             }
 
+            // Initialize important classes
+            PathHelper.Init();
+            LogHandler.Init();
+            ReplayContainer.Init();
+            ScoreContainer.Init();
+            PlaylistContainer.Initialize();
+            CustomContentManager.Initialize();
+
             // Check for offline mode
             OfflineMode = CommandLineArguments.Contains(OFFLINE_ARG);
             if (OfflineMode)
             {
                 Debug.Log("Playing in offline mode");
             }
-
-            // Initialize important classes
-            PathHelper.Init();
-            ReplayContainer.Init();
-            ScoreContainer.Init();
-            PlaylistContainer.Initialize();
-            CustomContentManager.Initialize();
 
             int profileCount = PlayerContainer.LoadProfiles();
             Debug.Log($"Loaded {profileCount} profiles");
@@ -128,6 +129,7 @@ namespace YARG
             InputManager.Destroy();
             PlayerContainer.Destroy();
 
+            YargLogger.KillLogger();
 #if UNITY_EDITOR
             // Set alpha fading (on the tracks) to off
             Shader.SetGlobalFloat("_IsFading", 0f);
