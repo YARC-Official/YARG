@@ -22,13 +22,9 @@ namespace YARG.Menu.History
         public ReplayViewType(ReplayEntry replayEntry)
         {
             _replayEntry = replayEntry;
-
-            var songsByHash = GlobalVariables.Instance.SongContainer.SongsByHash;
-
-            var songsForHash = songsByHash.GetValueOrDefault(replayEntry.SongChecksum);
-            if (songsForHash is not null)
+            if (SongContainer.SongsByHash.TryGetValue(replayEntry.SongChecksum, out var songs))
             {
-                _songEntry = songsForHash[0];
+                _songEntry = songs[0];
             }
         }
 

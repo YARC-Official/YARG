@@ -10,6 +10,7 @@ using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Song;
 
 namespace YARG.Scores
 {
@@ -179,12 +180,11 @@ namespace YARG.Scores
                     $"BY `Count` DESC LIMIT {maxCount}";
                 var playCounts = _db.Query<PlayCountRecord>(query);
 
-                var allSongs = GlobalVariables.Instance.SongContainer.SongsByHash;
                 var mostPlayed = new List<SongEntry>();
                 foreach (var record in playCounts)
                 {
                     var hash = new HashWrapper(record.SongChecksum);
-                    if (allSongs.TryGetValue(hash, out var list))
+                    if (SongContainer.SongsByHash.TryGetValue(hash, out var list))
                     {
                         mostPlayed.Add(list.Pick());
                     }

@@ -38,7 +38,7 @@ namespace YARG.Song
             // TODO: Allow customizing sorting, as well as which metadata is written and in what order
 
             using var output = new StreamWriter(path);
-            foreach (var (category, songs) in GlobalVariables.Instance.SongContainer.GetSortedSongList(SongAttribute.Artist))
+            foreach (var (category, songs) in SongContainer.GetSortedSongList(SongAttribute.Artist))
             {
                 output.WriteLine(category);
                 output.WriteLine("--------------------");
@@ -57,7 +57,7 @@ namespace YARG.Song
             var songs = new List<OuvertSongData>();
 
             // Convert SongInfo to OuvertSongData
-            foreach (var song in GlobalVariables.Instance.SongContainer.Songs)
+            foreach (var song in SongContainer.Songs)
             {
                 songs.Add(new OuvertSongData
                 {
