@@ -136,7 +136,7 @@ namespace YARG.Menu.MusicLibrary
             };
 
             // Set IsPractice as well
-            GlobalVariables.Instance.IsPractice = LibraryMode == MusicLibraryMode.Practice;
+            GlobalVariables.State.IsPractice = LibraryMode == MusicLibraryMode.Practice;
 
             // Show no player warning
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);

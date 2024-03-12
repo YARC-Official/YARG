@@ -90,7 +90,7 @@ namespace YARG.Gameplay.HUD
 
         public void ResetPractice()
         {
-            if(_percentHit > _bestPercentHit)
+            if (_percentHit > _bestPercentHit)
             {
                 _bestPercentHit = _percentHit;
 
@@ -99,7 +99,7 @@ namespace YARG.Gameplay.HUD
 
             _currentSectionIndex = 0;
 
-            if(_sections.Length > 0)
+            if (_sections.Length > 0)
             {
                 sectionText.text = _sections[_currentSectionIndex].Name;
             }

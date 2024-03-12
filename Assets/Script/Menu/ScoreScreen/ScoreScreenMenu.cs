@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -53,17 +52,23 @@ namespace YARG.Menu.ScoreScreen
                 })
             }, true));
 
-            var scoreScreenStats = GlobalVariables.Instance.ScoreScreenStats;
+            if (GlobalVariables.State.ScoreScreenStats is null)
+            {
+                Debug.LogError("Score screen stats was null!");
+                return;
+            }
+
+            var song = GlobalVariables.State.CurrentSong;
+            var scoreScreenStats = GlobalVariables.State.ScoreScreenStats.Value;
 
             // Set text
-            var song = GlobalVariables.Instance.CurrentSong;
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
 
             // Set speed text (if not at 100% speed)
-            if (!Mathf.Approximately(GlobalVariables.Instance.SongSpeed, 1f))
+            if (!Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f))
             {
-                var speed = GlobalVariables.Instance.SongSpeed.ToString("P0", LocaleHelper.PercentFormat);
+                var speed = GlobalVariables.State.SongSpeed.ToString("P0", LocaleHelper.PercentFormat);
 
                 _songTitle.text += $" ({speed})";
             }
@@ -81,6 +86,8 @@ namespace YARG.Menu.ScoreScreen
 
         private void OnDisable()
         {
+            GlobalVariables.State = PersistentState.Default;
+
             Navigator.Instance.PopScheme();
         }
 

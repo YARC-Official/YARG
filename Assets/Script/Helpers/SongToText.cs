@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -75,12 +74,12 @@ namespace YARG.Helpers
             {
                 "speed_percent", _ =>
                 {
-                    if (Mathf.Approximately(GlobalVariables.Instance.SongSpeed, 1f))
+                    if (Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f))
                     {
                         return string.Empty;
                     }
 
-                    return GlobalVariables.Instance.SongSpeed.ToString("P0", LocaleHelper.PercentFormat);
+                    return GlobalVariables.State.SongSpeed.ToString("P0", LocaleHelper.PercentFormat);
                 }
             }
         };
@@ -103,7 +102,7 @@ namespace YARG.Helpers
                 "charter", x => !string.IsNullOrEmpty(x.Charter)
             },
             {
-                "changed_speed", _ => Mathf.Approximately(GlobalVariables.Instance.SongSpeed, 1f)
+                "changed_speed", _ => Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f)
             }
         };
 

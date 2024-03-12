@@ -133,9 +133,9 @@ namespace YARG.Gameplay
 
             YargPlayers = PlayerContainer.Players;
 
-            Song = GlobalVariables.Instance.CurrentSong;
-            IsReplay = GlobalVariables.Instance.IsReplay;
-            IsPractice = GlobalVariables.Instance.IsPractice && !IsReplay;
+            Song = GlobalVariables.State.CurrentSong;
+            IsReplay = GlobalVariables.State.IsReplay;
+            IsPractice = GlobalVariables.State.IsPractice && !IsReplay;
 
             Navigator.Instance.PopAllSchemes();
             GameStateFetcher.SetSongEntry(Song);
@@ -292,11 +292,11 @@ namespace YARG.Gameplay
 
             if (showMenu)
             {
-                if (GlobalVariables.Instance.IsReplay)
+                if (IsReplay)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
                 }
-                else if (GlobalVariables.Instance.IsPractice)
+                else if (IsPractice)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
                 }
@@ -363,7 +363,9 @@ namespace YARG.Gameplay
         private async UniTask EndSong()
         {
             if (_endingSong)
+            {
                 return;
+            }
 
             if (IsPractice)
             {
@@ -385,7 +387,7 @@ namespace YARG.Gameplay
             GlobalVariables.AudioManager.UnloadSong();
 
             // Pass the score info to the stats screen
-            GlobalVariables.Instance.ScoreScreenStats = new ScoreScreenStats
+            GlobalVariables.State.ScoreScreenStats = new ScoreScreenStats
             {
                 PlayerScores = _players.Select(player => new PlayerScoreCard
                 {
@@ -459,7 +461,6 @@ namespace YARG.Gameplay
             }
 
             // Go to the score screen
-            GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
         }
 
@@ -467,7 +468,7 @@ namespace YARG.Gameplay
         {
             GlobalVariables.AudioManager.UnloadSong();
 
-            GlobalVariables.Instance.IsReplay = false;
+            GlobalVariables.State = PersistentState.Default;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
 

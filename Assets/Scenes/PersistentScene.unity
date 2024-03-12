@@ -1267,9 +1267,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 123883511e969404ba4ec1aeedf9cec0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SongSpeed: 1
-  IsReplay: 0
-  IsPractice: 0
 --- !u!114 &788257162
 MonoBehaviour:
   m_ObjectHideFlags: 0

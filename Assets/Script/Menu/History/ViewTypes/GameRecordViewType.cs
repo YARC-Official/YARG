@@ -100,9 +100,9 @@ namespace YARG.Menu.History
             }
 
             // We're good!
-            GlobalVariables.Instance.IsReplay = true;
-            GlobalVariables.Instance.CurrentReplay = replayEntry;
-            GlobalVariables.Instance.CurrentSong = _songEntry;
+            GlobalVariables.State = PersistentState.Default;
+            GlobalVariables.State.CurrentSong = _songEntry;
+            GlobalVariables.State.CurrentReplay = replayEntry;
 
             GlobalVariables.AudioManager.UnloadSong();
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);

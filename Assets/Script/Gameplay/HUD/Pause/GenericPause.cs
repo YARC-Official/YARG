@@ -43,7 +43,7 @@ namespace YARG.Gameplay.HUD
 
         public void TogglePractice()
         {
-            GlobalVariables.Instance.IsPractice = !GlobalVariables.Instance.IsPractice;
+            GlobalVariables.State.IsPractice = !GlobalVariables.State.IsPractice;
             PauseMenuManager.Restart();
         }
 
