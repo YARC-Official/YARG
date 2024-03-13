@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings;
 using YARG.Settings.Customization;
@@ -100,7 +101,7 @@ namespace YARG.Settings.Metadata
             // This is async, so we must queue an action for the main thread
             _watcher.Changed += (_, args) =>
             {
-                Debug.Log("Preset change detected!");
+                YargLogger.LogDebug("Preset change detected!");
 
                 // Queue the reload on the main thread
                 UnityMainThreadCallback.QueueEvent(() =>
@@ -114,7 +115,7 @@ namespace YARG.Settings.Metadata
         {
             if (_ignoredPathUpdates.Contains(path))
             {
-                Debug.Log("Ignored preset change.");
+                YargLogger.LogDebug("Ignored preset change.");
                 _ignoredPathUpdates.Remove(path);
                 return;
             }

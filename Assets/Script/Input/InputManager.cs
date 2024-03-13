@@ -171,7 +171,7 @@ namespace YARG.Input
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
             if (device is null)
             {
-                Debug.LogWarning($"No device found for event '{eventPtr}'!");
+                YargLogger.LogFormatWarning("No device found for event '{0}'!", eventPtr);
                 return;
             }
 

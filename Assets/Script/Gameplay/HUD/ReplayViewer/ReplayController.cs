@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Menu.Navigation;
 
@@ -197,7 +198,7 @@ namespace YARG.Gameplay.HUD
 
         private void SetReplayTime(double time)
         {
-            EditorDebug.Log("Set replay time to " + time);
+            YargLogger.LogFormatDebug("Set replay time to {0}", time);
 
             // Do this before we do it for the players so the notes don't get destroyed early
             GameManager.SetSongTime(time, 0);

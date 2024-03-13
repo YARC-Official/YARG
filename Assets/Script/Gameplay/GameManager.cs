@@ -401,8 +401,7 @@ namespace YARG.Gameplay
             catch (Exception e)
             {
                 replayInfo = null;
-                Debug.LogError("Failed to save replay!");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to save replay!");
             }
 
             // Get all of the individual player score entries

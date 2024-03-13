@@ -78,7 +78,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                YargLogger.LogException(e, "Failed to add score into database. See error below for more details.");
+                YargLogger.LogException(e, "Failed to add score into database.");
             }
         }
 
@@ -110,8 +110,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load all GameRecords from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load all GameRecords from database.");
             }
 
             return null;
@@ -125,8 +124,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load all PlayerScoreRecords from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load all PlayerScoreRecords from database");
             }
 
             return null;
@@ -143,8 +141,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load high score from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load high score from database.");
             }
 
             return null;
@@ -162,8 +159,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load high score from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load high score from database.");
             }
 
             return null;
@@ -192,8 +188,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load most played songs from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load most played songs from database.");
             }
 
             return new List<SongEntry>();

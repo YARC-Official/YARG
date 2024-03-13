@@ -3,6 +3,7 @@ using ManagedBass;
 using ManagedBass.DirectX8;
 using ManagedBass.Fx;
 using UnityEngine;
+using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS
 {
@@ -57,13 +58,13 @@ namespace YARG.Audio.BASS
             int fxHandle = Bass.ChannelSetFX(streamHandle, type, priority);
             if (fxHandle == 0)
             {
-                Debug.LogError($"Failed to create effects handle for {type}: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to create effects handle for {0}: {1}", type, Bass.LastError);
                 return 0;
             }
 
             if (!Bass.FXSetParameters(fxHandle, parameters))
             {
-                Debug.LogError($"Failed to apply effects parameters for {type}: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to apply effects parameters for {0}: {1}", type, Bass.LastError);
                 Bass.ChannelRemoveFX(streamHandle, fxHandle);
                 return 0;
             }
@@ -77,13 +78,13 @@ namespace YARG.Audio.BASS
             int fxHandle = Bass.ChannelSetFX(streamHandle, type, priority);
             if (fxHandle == 0)
             {
-                Debug.LogError($"Failed to create effects handle: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to create effects handle: {0}", Bass.LastError);
                 return 0;
             }
 
             if (!FXSetParameters(fxHandle, parameters))
             {
-                Debug.LogError($"Failed to apply effects parameters: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to apply effects parameters: {0}", Bass.LastError);
                 Bass.ChannelRemoveFX(streamHandle, fxHandle);
                 return 0;
             }

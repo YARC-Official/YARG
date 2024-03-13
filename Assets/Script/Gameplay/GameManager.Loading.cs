@@ -7,6 +7,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
 using YARG.Menu.Navigation;
@@ -97,12 +98,7 @@ namespace YARG.Gameplay
             // Disable until everything's loaded
             enabled = false;
 
-#if UNITY_EDITOR
-            Debug.Log($"Loading song {Song.Name} - {Song.Artist}");
-#else
-            // Leading newline to help split up log files
-            Debug.Log($"\nLoading song {Song.Name} - {Song.Artist}");
-#endif
+            YargLogger.LogFormatDebug("Loading song {0} - {1}", Song.Name, Song.Artist);
 
             // Load song
             if (IsReplay)
@@ -133,7 +129,7 @@ namespace YARG.Gameplay
 
             if (_loadState == LoadFailureState.Error)
             {
-                Debug.LogError(_loadFailureMessage);
+                YargLogger.LogError(_loadFailureMessage);
                 ToastManager.ToastError(_loadFailureMessage);
 
                 global.LoadScene(SceneIndex.Menu);
@@ -177,7 +173,8 @@ namespace YARG.Gameplay
             BeatEventHandler.Subscribe(StarPowerClap, -0.02);
 
             // Log constant values
-            EditorDebug.Log($"Audio calibration: {_songRunner.AudioCalibration}, video calibration: {_songRunner.VideoCalibration}, song offset: {_songRunner.SongOffset}");
+            YargLogger.LogFormatDebug("Audio calibration: {0}, video calibration: {1}, song offset: {2}",
+                _songRunner.AudioCalibration, _songRunner.VideoCalibration, _songRunner.SongOffset);
 
             // Loaded, enable updates
             enabled = true;
@@ -202,7 +199,7 @@ namespace YARG.Gameplay
             {
                 _loadState = LoadFailureState.Error;
                 _loadFailureMessage = "Failed to load replay!";
-                Debug.LogException(ex, this);
+                YargLogger.LogException(ex);
                 return;
             }
 
@@ -241,7 +238,7 @@ namespace YARG.Gameplay
             {
                 _loadState = LoadFailureState.Error;
                 _loadFailureMessage = "Failed to load chart!";
-                Debug.LogException(ex, this);
+                YargLogger.LogException(ex);
             }
         }
 
@@ -254,12 +251,12 @@ namespace YARG.Gameplay
                 {
                     Chart = preset.GenerateFogEvents(Chart);
                 }
-                
+
                 if (Chart.VenueTrack.Lighting.Count == 0)
                 {
                     Chart = preset.GenerateLightingEvents(Chart);
                 }
-                
+
                 // TODO: add when characters and camera events are present in game
                 // if (Chart.VenueTrack.Camera.Count == 0)
                 // {

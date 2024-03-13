@@ -8,6 +8,7 @@ using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Input;
 using YARG.Player;
@@ -116,7 +117,7 @@ namespace YARG.Gameplay.Player
             if (GameManager.IsReplay)
             {
                 _replayInputs = new List<GameInput>(GameManager.Replay.Frames[index].Inputs);
-                Debug.Log("Initialized replay inputs with " + _replayInputs.Count + " inputs");
+                YargLogger.LogFormatDebug("Initialized replay inputs with {0} inputs", _replayInputs.Count);
             }
 
             if (InputViewer != null)

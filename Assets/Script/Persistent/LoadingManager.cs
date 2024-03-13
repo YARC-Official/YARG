@@ -77,7 +77,7 @@ namespace YARG
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogException(ex);
+                    YargLogger.LogException(ex);
                 }
             }
 

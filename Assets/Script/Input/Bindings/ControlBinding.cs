@@ -246,7 +246,7 @@ namespace YARG.Input
                 if (binding is null || string.IsNullOrEmpty(binding.ControlPath) || binding.Device is null ||
                     string.IsNullOrEmpty(binding.Device.Layout) || string.IsNullOrEmpty(binding.Device.Hash))
                 {
-                    Debug.LogWarning($"Encountered invalid control for binding {Key}!");
+                    YargLogger.LogFormatWarning("Encountered invalid control for binding {0}!", Key);
                     return;
                 }
 
