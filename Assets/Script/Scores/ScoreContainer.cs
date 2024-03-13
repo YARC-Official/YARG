@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using SQLite;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
@@ -40,8 +41,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to create LiteDB connection. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to create LiteDB connection.");
             }
         }
 
@@ -74,12 +74,11 @@ namespace YARG.Scores
 
                 rowsAdded += _db.InsertAll(playerEntries);
 
-                Debug.Log($"Successfully added {rowsAdded} rows into score database.");
+                YargLogger.LogFormatInfo("Successfully added {0} rows into score database.", rowsAdded);
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to add score into database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to add score into database. See error below for more details.");
             }
         }
 

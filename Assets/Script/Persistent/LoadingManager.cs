@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using YARG.Core.Logging;
 using YARG.Core.Song.Cache;
 using YARG.Helpers;
 using YARG.Menu.MusicLibrary;
@@ -154,7 +155,7 @@ namespace YARG
 
             stopwatch.Stop();
 
-            Debug.Log($"Scan time: {stopwatch.Elapsed.TotalSeconds}s");
+            YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
 
             // Remove official setlist path so it doesn't show up in the list of folders
             if (!string.IsNullOrEmpty(setlistPath))

@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings;
@@ -57,8 +58,8 @@ namespace YARG.Input
         // We do this song and dance of tracking focus changes manually rather than setting
         // InputSettings.backgroundBehavior to IgnoreFocus, so that input is still (largely) disabled when unfocused
         // but devices are not removed only to be re-added when coming back into focus
-        private static bool _gameFocused;
-        private static bool _focusChanged;
+        private static bool              _gameFocused;
+        private static bool              _focusChanged;
         private static List<InputDevice> _backgroundDisabledDevices = new();
 
         private static IDisposable _onEventListener;
@@ -132,7 +133,9 @@ namespace YARG.Input
             InputUpdateTime = Math.Max(_beforeUpdateTime, _latestInputTime);
 
             if (_afterUpdateTime < _latestInputTime)
-                Debug.LogError($"The last input event for this update is in the future! After-update time: {_afterUpdateTime}, last input time: {_latestInputTime}");
+                YargLogger.LogFormatError(
+                    "The last input event for this update is in the future! After-update time: {0}, last input time: {1}",
+                    _afterUpdateTime, _latestInputTime);
 
             // Update bindings using the input update time
             foreach (var player in PlayerContainer.Players)
@@ -160,12 +163,10 @@ namespace YARG.Input
             double currentTime = CurrentInputTime;
 
             // Only check state events
-            if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
-                return;
+            if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>()) return;
 
             // Keep track of the latest input event
-            if (eventPtr.time > _latestInputTime)
-                _latestInputTime = eventPtr.time;
+            if (eventPtr.time > _latestInputTime) _latestInputTime = eventPtr.time;
 
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
             if (device is null)
@@ -177,7 +178,9 @@ namespace YARG.Input
             // TODO: Store these events for manual handling later
             // This would be quite a rare edge-case, but the input system very much allows this
             if (eventPtr.time > currentTime)
-                Debug.LogError($"An input event is in the future!\nCurrent time: {currentTime}, event time: {eventPtr.time}, device: {device}");
+                YargLogger.LogFormatError(
+                    "An input event is in the future!\nCurrent time: {0}, event time: {1}, device: {2}", currentTime,
+                    eventPtr.time, device);
 
 // Leaving these for posterity
 #if false
@@ -215,8 +218,7 @@ namespace YARG.Input
         {
             // Ignore the VariantDevice containers from PlasticBand
             // TODO: Not very elegant, need a better solution from the PlasticBand side
-            if (device.layout.Contains("Variant"))
-                return;
+            if (device.layout.Contains("Variant")) return;
 
             switch (change)
             {
@@ -248,8 +250,7 @@ namespace YARG.Input
                         return;
                     }
 
-                    if (!_disabledDevices.Contains(device))
-                        return;
+                    if (!_disabledDevices.Contains(device)) return;
 
                     ToastManager.ToastMessage($"Device added: {device.displayName}");
                     _disabledDevices.Remove(device);
@@ -281,8 +282,7 @@ namespace YARG.Input
                         return;
                     }
 
-                    if (_disabledDevices.Contains(device))
-                        return;
+                    if (_disabledDevices.Contains(device)) return;
 
                     ToastManager.ToastMessage($"Device removed: {device.displayName}");
                     _disabledDevices.Add(device);

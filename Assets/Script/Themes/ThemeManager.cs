@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 
 namespace YARG.Themes
@@ -109,7 +110,7 @@ namespace YARG.Themes
             // Check if the theme supports the game mode
             if (!preset.SupportedGameModes.Contains(mode))
             {
-                Debug.Log($"Theme `{preset.Name}` does not support `{mode}`. Falling back to the default theme.");
+                YargLogger.LogFormatInfo("Theme `{0}` does not support `{1}`. Falling back to the default theme.", preset.Name, mode);
                 preset = ThemePreset.Default;
             }
 
@@ -117,7 +118,7 @@ namespace YARG.Themes
             var container = _themeContainers.GetValueOrDefault(preset);
             if (container is null)
             {
-                Debug.LogWarning($"Could not find theme with ID `{preset.Id}`!");
+                YargLogger.LogFormatWarning("Could not find theme with ID `{0}`!", preset.Id);
                 return null;
             }
 

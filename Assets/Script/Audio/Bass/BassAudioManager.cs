@@ -10,7 +10,7 @@ using UnityEngine;
 using YARG.Core.Audio;
 using System.Linq;
 using YARG.Core.IO;
-
+using YARG.Core.Logging;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -30,9 +30,10 @@ namespace YARG.Audio.BASS
             streamHandle = Bass.CreateStream(StreamSystem.NoBuffer, streamFlags, new BassStreamProcedures(stream));
             if (streamHandle == 0)
             {
-                Debug.LogError($"Failed to create source stream: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to create source stream: {0}", Bass.LastError);
                 return false;
             }
+
             return true;
         }
 
@@ -51,7 +52,8 @@ namespace YARG.Audio.BASS
             public static bool Create(int sourceStream, double volume, int[] indices, out Handles handles)
             {
                 const BassFlags splitFlags = BassFlags.Decode | BassFlags.SplitPosition;
-                const BassFlags tempoFlags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
+                const BassFlags tempoFlags =
+                    BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
 
                 handles = default;
 #nullable enable
@@ -64,27 +66,29 @@ namespace YARG.Audio.BASS
                     {
                         channelMap[i] = indices[i];
                     }
+
                     channelMap[indices.Length] = -1;
                 }
 
                 int streamSplit = BassMix.CreateSplitStream(sourceStream, splitFlags, channelMap);
                 if (streamSplit == 0)
                 {
-                    Debug.LogError($"Failed to create split stream: {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to create split stream: {0}", Bass.LastError);
                     return false;
                 }
 
                 handles.Stream = BassFx.TempoCreate(streamSplit, tempoFlags);
                 if (!Bass.ChannelSetAttribute(handles.Stream, ChannelAttribute.Volume, volume))
                 {
-                    Debug.LogError($"Failed to set channel volume: {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to set channel volume: {0}", Bass.LastError);
                 }
 
                 handles.CompressorFX = BassHelpers.AddCompressorToChannel(handles.Stream);
                 if (handles.CompressorFX == 0)
                 {
-                    Debug.LogError($"Failed to set up compressor for split stream!");
+                    YargLogger.LogError("Failed to set up compressor for split stream!");
                 }
+
                 return true;
             }
 
@@ -94,7 +98,7 @@ namespace YARG.Audio.BASS
                 if (Stream != 0)
                 {
                     if (!Bass.StreamFree(Stream))
-                        Debug.LogError($"Failed to free channel stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
+                        YargLogger.LogFormatError("Failed to free channel stream (THIS WILL LEAK MEMORY!): {0}", Bass.LastError);
                     Stream = 0;
                 }
             }
@@ -137,17 +141,17 @@ namespace YARG.Audio.BASS
         {
             if (_isInitialized)
             {
-                Debug.LogError("BASS is already initialized! An error has occurred somewhere and Unity must be restarted.");
+                YargLogger.LogError(
+                    "BASS is already initialized! An error has occurred somewhere and Unity must be restarted.");
                 return;
             }
 
-            Debug.Log("Initializing BASS...");
+            YargLogger.LogInfo("Initializing BASS...");
             string bassPath = GetBassDirectory();
             string opusLibDirectory = Path.Combine(bassPath, "bassopus");
 
             _opusHandle = Bass.PluginLoad(opusLibDirectory);
-            if (_opusHandle == 0)
-                Debug.LogError($"Failed to load .opus plugin: {Bass.LastError}");
+            if (_opusHandle == 0) YargLogger.LogFormatError("Failed to load .opus plugin: {0}", Bass.LastError);
 
             Bass.Configure(Configuration.IncludeDefaultDevice, true);
 
@@ -171,37 +175,33 @@ namespace YARG.Audio.BASS
             Bass.Configure((Configuration) 70, false);
 
             int deviceCount = Bass.DeviceCount;
-            Debug.Log($"Devices found: {deviceCount}");
+            YargLogger.LogFormatInfo("Devices found: {0}", deviceCount);
 
             if (!Bass.Init(-1, 44100, DeviceInitFlags.Default | DeviceInitFlags.Latency, IntPtr.Zero))
             {
                 var error = Bass.LastError;
                 if (error == Errors.Already)
-                    Debug.LogError("BASS is already initialized! An error has occurred somewhere and Unity must be restarted.");
+                    YargLogger.LogError(
+                        "BASS is already initialized! An error has occurred somewhere and Unity must be restarted.");
                 else
-                    Debug.LogError($"Failed to initialize BASS: {error}");
+                    YargLogger.LogFormatError("Failed to initialize BASS: {0}", error);
                 return;
             }
 
             LoadSfx();
 
-            Debug.Log($"BASS Successfully Initialized");
-            Debug.Log($"BASS: {Bass.Version}");
-            Debug.Log($"BASS.FX: {BassFx.Version}");
-            Debug.Log($"BASS.Mix: {BassMix.Version}");
-
-            Debug.Log($"Update Period: {Bass.UpdatePeriod}");
-            Debug.Log($"Device Buffer Length: {Bass.DeviceBufferLength}");
-            Debug.Log($"Playback Buffer Length: {Bass.PlaybackBufferLength}");
-
-            Debug.Log($"Current Device: {Bass.GetDeviceInfo(Bass.CurrentDevice).Name}");
+            YargLogger.LogInfo("BASS Successfully Initialized");
+            YargLogger.LogFormatInfo("BASS: {0} - BASS.FX: {1} - BASS.Mix: {2}", Bass.Version, BassFx.Version, BassMix.Version);
+            YargLogger.LogFormatInfo("Update Period: {0}ms. Device Buffer Length: {1}ms. Playback Buffer Length: {2}ms",
+                Bass.UpdatePeriod, Bass.DeviceBufferLength);
+            YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
 
             _isInitialized = true;
         }
 
         public void Unload()
         {
-            Debug.Log("Unloading BASS plugins");
+            YargLogger.LogInfo("Unloading BASS plugins");
 
             UnloadSong();
 
@@ -222,8 +222,7 @@ namespace YARG.Audio.BASS
         private void Update()
         {
             bool muted = EditorUtility.audioMasterMute;
-            if (muted == previousMute)
-                return;
+            if (muted == previousMute) return;
 
             UpdateVolumeSetting(SongStem.Master, muted ? 0 : Settings.SettingsManager.Settings.MasterMusicVolume.Value);
             previousMute = muted;
@@ -267,7 +266,7 @@ namespace YARG.Audio.BASS
 
         public void LoadSfx()
         {
-            Debug.Log("Loading SFX");
+            YargLogger.LogInfo("Loading SFX");
 
             _sfxSamples = new ISampleChannel[AudioHelpers.SfxPaths.Count];
 
@@ -288,7 +287,7 @@ namespace YARG.Audio.BASS
 
                 if (!File.Exists(sfxPath))
                 {
-                    Debug.LogWarning($"SFX Sample {sfxFile} does not exist!");
+                    YargLogger.LogFormatWarning("SFX Sample {0} does not exist!", sfxFile);
                     continue;
                 }
 
@@ -297,20 +296,20 @@ namespace YARG.Audio.BASS
                 var sfx = new BassSampleChannel(this, sfxPath, 8, sfxSample);
                 if (sfx.Load() != 0)
                 {
-                    Debug.LogError($"Failed to load SFX {sfxPath}: {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to load SFX {0}: {1}", sfxPath, Bass.LastError);
                     continue;
                 }
 
                 _sfxSamples[(int) sfxSample] = sfx;
-                Debug.Log($"Loaded {sfxFile}");
+                YargLogger.LogFormatInfo("Loaded {0}", sfxFile);
             }
 
-            Debug.Log("Finished loading SFX");
+            YargLogger.LogInfo("Finished loading SFX");
         }
 
         public bool LoadSong(AudioMixer baseMixer, float speed)
         {
-            EditorDebug.Log("Loading song");
+            YargLogger.LogDebug("Loading song");
             UnloadSong();
 
             if (!BassStemMixer.CreateMixerHandle(out int handle))
@@ -335,7 +334,7 @@ namespace YARG.Audio.BASS
 
                 if (stemChannel == null)
                 {
-                    Debug.LogError($"Failed to load stem {stem}: {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to load stem {0}: {1}", stem, Bass.LastError);
                     continue;
                 }
 
@@ -344,19 +343,20 @@ namespace YARG.Audio.BASS
                 int result = mixer.AddChannel(stemChannel, channel.Indices, channel.Panning);
                 if (result != 0)
                 {
-                    Debug.LogError($"Failed to add stem {stem} to mixer: {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to add stem {0} to mixer: {1}", stem, Bass.LastError);
                     continue;
                 }
+
                 channelWrapper.Release();
             }
 
             if (mixer.Channels.Count == 0)
             {
-                Debug.LogError($"Failed to add any stems");
+                YargLogger.LogError("Failed to add any stems");
                 return false;
             }
 
-            EditorDebug.Log($"Loaded {mixer.Channels.Count} stems");
+            YargLogger.LogFormatDebug("Loaded {0} stems", mixer.Channels.Count);
 
             _mixer = wrapper.Release();
 
@@ -373,7 +373,7 @@ namespace YARG.Audio.BASS
 
         public bool LoadCustomAudioFile(Stream audiostream, float speed)
         {
-            EditorDebug.Log("Loading custom audio file");
+            YargLogger.LogDebug("Loading custom audio file");
             UnloadSong();
 
             if (!BassStemMixer.CreateMixerHandle(out int handle))
@@ -392,7 +392,7 @@ namespace YARG.Audio.BASS
             var stemChannel = BassStemChannel.CreateChannel(this, sourceStream, SongStem.Song, speed, null);
             if (stemChannel == null)
             {
-                Debug.LogError($"Failed to load custom file: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to load custom file: {0}", Bass.LastError);
                 return false;
             }
 
@@ -400,12 +400,13 @@ namespace YARG.Audio.BASS
             using var channelWrapper = DisposableCounter.Wrap(stemChannel);
             if (mixer.AddChannel(stemChannel, null, null) != 0)
             {
-                Debug.LogError($"Failed to add custom channel to mixer: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to add custom channel to mixer: {0}", Bass.LastError);
                 return false;
             }
+
             channelWrapper.Release();
 
-            EditorDebug.Log($"Loaded custom file");
+            YargLogger.LogDebug("Loaded custom file");
 
             _mixer = mixerWrapper.Release();
 
@@ -449,7 +450,7 @@ namespace YARG.Audio.BASS
 
             if (_mixer.Play() != 0)
             {
-                Debug.LogError($"Play error: {Bass.LastError}");
+                YargLogger.LogFormatError("Play error: {0}", Bass.LastError);
             }
 
             IsPlaying = _mixer.IsPlaying;
@@ -464,7 +465,7 @@ namespace YARG.Audio.BASS
 
             if (_mixer.Pause() != 0)
             {
-                Debug.LogError($"Pause error: {Bass.LastError}");
+                YargLogger.LogFormatError("Pause error: {0}", Bass.LastError);
             }
 
             IsPlaying = _mixer.IsPlaying;
@@ -473,15 +474,14 @@ namespace YARG.Audio.BASS
         public void FadeIn(float maxVolume)
         {
             Play(true);
-            if (IsPlaying && _mixer != null)
-                _mixer.FadeIn(maxVolume);
+            if (IsPlaying && _mixer != null) _mixer.FadeIn(maxVolume);
         }
 
         public async UniTask FadeOut(CancellationToken token = default)
         {
             if (IsFadingOut)
             {
-                Debug.LogWarning("Already fading out song!");
+                YargLogger.LogWarning("Already fading out song!");
                 return;
             }
 
@@ -512,8 +512,7 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            foreach (var channel in _mixer.Channels)
-                channel.SetVolume(this, volume);
+            foreach (var channel in _mixer.Channels) channel.SetVolume(this, volume);
         }
 
         public void UpdateVolumeSetting(SongStem stem, double volume)
@@ -522,8 +521,7 @@ namespace YARG.Audio.BASS
             {
                 case SongStem.Master:
 #if UNITY_EDITOR
-                    if (EditorUtility.audioMasterMute)
-                        volume = 0;
+                    if (EditorUtility.audioMasterMute) volume = 0;
 #endif
                     MasterVolume = volume;
                     Bass.GlobalStreamVolume = (int) (10_000 * MasterVolume);
@@ -573,8 +571,8 @@ namespace YARG.Audio.BASS
             return _mixer.GetPosition(this, bufferCompensation);
         }
 
-        public void SetPosition(double position, bool bufferCompensation = true)
-            => _mixer?.SetPosition(this, position, bufferCompensation);
+        public void SetPosition(double position, bool bufferCompensation = true) =>
+            _mixer?.SetPosition(this, position, bufferCompensation);
 
         public int GetData(float[] buffer)
         {

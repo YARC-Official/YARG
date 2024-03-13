@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Input;
 using YARG.Integration;
@@ -61,7 +62,7 @@ namespace YARG
 
         protected override void SingletonAwake()
         {
-            Debug.Log($"YARG {CURRENT_VERSION}");
+            YargLogger.LogFormatInfo("YARG {0}", CURRENT_VERSION);
 
             // Get command line args
             // The first element is always the file name, however check just in case
@@ -85,14 +86,14 @@ namespace YARG
             OfflineMode = CommandLineArguments.Contains(OFFLINE_ARG);
             if (OfflineMode)
             {
-                Debug.Log("Playing in offline mode");
+                YargLogger.LogInfo("Playing in offline mode");
             }
 
             int profileCount = PlayerContainer.LoadProfiles();
-            Debug.Log($"Loaded {profileCount} profiles");
+            YargLogger.LogFormatInfo("Loaded {0} profiles", profileCount);
 
             int savedCount = PlayerContainer.SaveProfiles();
-            Debug.Log($"Saved {savedCount} profiles");
+            YargLogger.LogFormatInfo("Saved {0} profiles", savedCount);
 
             AudioManager = gameObject.AddComponent<BassAudioManager>();
             AudioManager.Initialize();

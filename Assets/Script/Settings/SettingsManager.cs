@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
+using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
@@ -157,8 +158,7 @@ namespace YARG.Settings
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load settings!");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load settings!");
             }
 
             // If null, recreate

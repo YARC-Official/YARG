@@ -5,6 +5,7 @@ using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 
 namespace YARG.Gameplay.Player
@@ -70,7 +71,7 @@ namespace YARG.Gameplay.Player
 
             var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams);
 
-            Debug.Log("Note count: " + NoteTrack.Notes.Count);
+            YargLogger.LogFormatDebug("Note count: {0}", NoteTrack.Notes.Count);
 
             engine.OnNoteHit += OnNoteHit;
             engine.OnNoteMissed += OnNoteMissed;

@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Localization;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Input.Serialization;
 
 namespace YARG.Input
@@ -145,8 +146,7 @@ namespace YARG.Input
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Exception when firing input event for {Key}!");
-                Debug.LogException(ex);
+                YargLogger.LogException(ex, $"Exception when firing input event for {Key}");
             }
         }
     }
