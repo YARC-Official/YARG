@@ -27,18 +27,6 @@ namespace YARG.Logging.Unity
             {
                 output.Append(item.Message);
             }
-            else if (!string.IsNullOrEmpty(item.Format))
-            {
-                var argCount = Array.IndexOf(item.Args, null);
-
-                for(int i = argCount; i < item.Args.Length; i++)
-                {
-                    item.Args[i] = null;
-                }
-
-                output.AppendFormat(item.Format, item.Args[0], item.Args[1], item.Args[2], item.Args[3], item.Args[4],
-                    item.Args[5], item.Args[6], item.Args[7], item.Args[8], item.Args[9]);
-            }
         }
     }
 }
