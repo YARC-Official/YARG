@@ -193,7 +193,7 @@ namespace YARG.Audio.BASS
             YargLogger.LogInfo("BASS Successfully Initialized");
             YargLogger.LogFormatInfo("BASS: {0} - BASS.FX: {1} - BASS.Mix: {2}", Bass.Version, BassFx.Version, BassMix.Version);
             YargLogger.LogFormatInfo("Update Period: {0}ms. Device Buffer Length: {1}ms. Playback Buffer Length: {2}ms",
-                Bass.UpdatePeriod, Bass.DeviceBufferLength);
+                Bass.UpdatePeriod, Bass.DeviceBufferLength, Bass.PlaybackBufferLength);
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
 
             _isInitialized = true;
