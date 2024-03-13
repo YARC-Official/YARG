@@ -23,10 +23,7 @@ namespace YARG.Logging.Unity
             // Append :Method:Line
             output.AppendFormat(":{0}:{1}] ", item.Method, item.Line);
 
-            if (!string.IsNullOrEmpty(item.Message))
-            {
-                output.Append(item.Message);
-            }
+            item.FormatMessage(ref output);
         }
     }
 }
