@@ -81,9 +81,9 @@ namespace YARG.Menu.Credits
                 .Where(i => i.SpecialRole == "LeadArtist")
             );
 
-            CreateHeader("LeadCharter");
+            CreateHeader("SetlistManager");
             CreateCredits(contributors
-                .Where(i => i.SpecialRole == "LeadCharter")
+                .Where(i => i.SpecialRole == "SetlistManager")
             );
 
             CreateHeader("Maintainers");
