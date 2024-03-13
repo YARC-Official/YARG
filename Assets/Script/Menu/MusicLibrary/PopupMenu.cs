@@ -170,7 +170,7 @@ namespace YARG.Menu.MusicLibrary
                 or SongAttribute.Artist_Album)
             {
                 foreach (var (header, index) in _musicLibrary.GetSections()
-                    .GroupBy(x => ((SortHeaderViewType) x.Item1).HeaderText[0])
+                    .GroupBy(x => ((SortHeaderViewType) x.Item1).HeaderText[0].ToAsciiUpper())
                     .Select(g => g.First()))
                 {
                     CreateItem(((SortHeaderViewType) header).HeaderText[0].ToString(), () =>
@@ -180,14 +180,16 @@ namespace YARG.Menu.MusicLibrary
                     });
                 }
             }
-
-            foreach (var (header, index) in _musicLibrary.GetSections())
+            else
             {
-                CreateItem(((SortHeaderViewType) header).HeaderText, () =>
+                foreach (var (header, index) in _musicLibrary.GetSections())
                 {
-                    _musicLibrary.SelectedIndex = index;
-                    gameObject.SetActive(false);
-                });
+                    CreateItem(((SortHeaderViewType) header).HeaderText, () =>
+                    {
+                        _musicLibrary.SelectedIndex = index;
+                        gameObject.SetActive(false);
+                    });
+                }
             }
         }
 
