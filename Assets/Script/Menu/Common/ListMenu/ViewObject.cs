@@ -46,8 +46,14 @@ namespace YARG.Menu.ListMenu
             SetBackground(selected, viewType.Background);
 
             // Set text
-            _primaryText.ForEach(i => i.text = viewType.GetPrimaryText(selected));
-            _secondaryText.ForEach(i => i.text = viewType.GetSecondaryText(selected));
+            foreach(var i in _primaryText)
+            {
+                i.text = viewType.GetPrimaryText(selected);
+            }
+            foreach(var i in _secondaryText)
+            {
+                i.text = viewType.GetSecondaryText(selected);
+            }
 
             // Set icon
             if (_iconCancellationToken is { IsCancellationRequested: false })
