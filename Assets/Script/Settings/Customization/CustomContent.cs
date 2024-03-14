@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Menu.Persistent;
@@ -216,7 +217,7 @@ namespace YARG.Settings.Customization
                 // See if preset already exists
                 if (HasPresetId(preset.Id))
                 {
-                    Debug.LogWarning($"Duplicate preset `{path}` found!");
+                    YargLogger.LogFormatWarning("Duplicate preset `{0}` found!", path);
                     return true;
                 }
 
@@ -235,19 +236,18 @@ namespace YARG.Settings.Customization
                     {
                         // If the file doesn't exist, just rename it
                         File.Move(from, to);
-                        Debug.Log($"Renamed preset file from `{from}` to its correct form.");
+                        YargLogger.LogFormatInfo("Renamed preset file from `{0}` to its correct form.", from);
                     }
                     else
                     {
                         // If it does, delete the original file (since it's probably a duplicate)
                         File.Delete(from);
-                        Debug.Log($"Deleted duplicate preset file `{from}`.");
+                        YargLogger.LogFormatInfo("Deleted duplicate preset file `{0}`.", from);
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Failed to move file `{from}`.");
-                    Debug.LogException(e);
+                    YargLogger.LogException(e, $"Failed to move file `{from}`.");
                 }
             }
         }
@@ -344,8 +344,7 @@ namespace YARG.Settings.Customization
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Failed to export preset. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to export preset.");
             }
         }
 
@@ -393,9 +392,7 @@ namespace YARG.Settings.Customization
                 DialogManager.Instance.ShowMessage("Cannot Import Preset",
                     "The selected preset is most likely corrupted, or is not a valid preset file.");
 
-                Debug.LogWarning("Failed to import preset. See error below for more details.");
-                Debug.LogException(e);
-
+                YargLogger.LogException(e, "Failed to import preset.");
                 return null;
             }
         }

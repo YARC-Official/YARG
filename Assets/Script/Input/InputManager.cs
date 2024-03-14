@@ -231,8 +231,10 @@ namespace YARG.Input
                     }
 
                     ToastManager.ToastMessage($"Device added: {device.displayName}");
+
+                    // Maybe change this to a LogDebug and remove this settings check?
                     if (SettingsManager.Settings.InputDeviceLogging.Value)
-                        Debug.Log($"Device added: {device.displayName}\nDescription:\n{device.description.ToJson()}\n");
+                        YargLogger.LogFormatInfo("Device added: {0}\nDescription:\n{1}\n", device.displayName, item2: device.description.ToJson());
 
                     DeviceAdded?.Invoke(device);
                     break;

@@ -5,6 +5,7 @@ using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay;
 using PlasticBand.Haptics;
+using YARG.Core.Logging;
 using YARG.Settings;
 using Random = UnityEngine.Random;
 
@@ -159,7 +160,7 @@ namespace YARG.Integration.StageKit
                     break;
 
                 default:
-                    Debug.LogWarning("Unknown stage effect: " + _venue.Stage[_eventIndex].Effect);
+                    YargLogger.LogFormatWarning("Unknown stage effect: {0}", _venue.Stage[_eventIndex].Effect);
                     break;
             }
 
@@ -299,7 +300,7 @@ namespace YARG.Integration.StageKit
                     break;
 
                 default:
-                    Debug.LogWarning("Unhandled lighting event: " + lightingEvent);
+                    YargLogger.LogFormatWarning("Unhandled lighting event: {0}", lightingEvent);
                     break;
             }
         }

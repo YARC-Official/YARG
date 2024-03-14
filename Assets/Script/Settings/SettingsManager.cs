@@ -199,8 +199,7 @@ namespace YARG.Settings
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to delete settings!");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to delete settings!");
             }
         }
 
@@ -217,7 +216,7 @@ namespace YARG.Settings
 
             if (value == null)
             {
-                Debug.LogWarning($"`{name}` has a value of null. This might create errors.");
+                YargLogger.LogFormatWarning("`{0}` has a value of null. This might create errors.", name);
             }
 
             return (ISettingType) value;

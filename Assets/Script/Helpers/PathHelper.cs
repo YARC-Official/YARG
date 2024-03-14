@@ -3,10 +3,11 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using YARG.Core.Logging;
 
 namespace YARG.Helpers
 {
-    [DefaultExecutionOrder(-4000)]
+    [DefaultExecutionOrder(-3000)]
     public static class PathHelper
     {
         private static readonly Regex _fileNameSanitize = new("([^a-zA-Z0-9])", RegexOptions.Compiled);
@@ -78,7 +79,7 @@ namespace YARG.Helpers
         };
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
-        public static void Init()
+        private static void Init()
         {
             // Save this data as Application.* is main thread only (why Unity)
             RealPersistentDataPath = SanitizePath(Application.persistentDataPath);
@@ -117,7 +118,7 @@ namespace YARG.Helpers
             string settingsPath = Path.Join(LauncherPath, "settings.json");
             if (!File.Exists(settingsPath))
             {
-                Debug.LogWarning("Failed to find launcher settings file. Game is most likely running without the launcher.");
+                YargLogger.LogWarning("Failed to find launcher settings file. Game is most likely running without the launcher.");
                 return null;
             }
 
@@ -134,8 +135,7 @@ namespace YARG.Helpers
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Failed to load setlist path.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load setlist path.");
                 return null;
             }
         }
@@ -178,8 +178,7 @@ namespace YARG.Helpers
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error while enumerating {path}! Current file: {file}");
-                    Debug.LogException(ex);
+                    YargLogger.LogException(ex, $"Error while enumerating {path}! Current file: {file}");
                 }
             }
         }
@@ -224,13 +223,12 @@ namespace YARG.Helpers
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error while enumerating {path}! Current directory: {directory}");
-                    Debug.LogException(ex);
+                    YargLogger.LogException(ex, $"Error while enumerating {path}! Current directory: {directory}");
                 }
             }
         }
 
-        private static string SanitizePath(string path)
+        public static string SanitizePath(string path)
         {
             // this is to handle a strange edge case in path naming in windows.
             // modern windows can handle / or \ in path names with seemingly one exception,

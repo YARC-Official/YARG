@@ -4,6 +4,7 @@ using UnityEngine;
 using PlasticBand.Haptics;
 using UnityEngine.InputSystem;
 using Cysharp.Threading.Tasks;
+using YARG.Core.Logging;
 
 /*
  Software Layout:
@@ -327,7 +328,7 @@ namespace YARG.Integration.StageKit
                         break;
 
                     default:
-                        Debug.LogWarning("Unknown Stagekit command: " + curCommand.command);
+                        YargLogger.LogFormatWarning("Unknown Stagekit command: {0}", curCommand.command);
                         break;
                 }
 

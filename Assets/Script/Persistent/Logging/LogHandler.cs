@@ -8,7 +8,7 @@ using YARG.Logging.Unity;
 
 namespace YARG.Logging
 {
-    [DefaultExecutionOrder(-3000)]
+    [DefaultExecutionOrder(-4000)]
     public static class LogHandler
     {
         private static bool _isInitialized;
@@ -17,15 +17,24 @@ namespace YARG.Logging
 
         private static FileYargLogListener _fileYargLogListener;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static void SetupLogHandler()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
+        private static void SetupLogHandler()
         {
             if (_isInitialized)
             {
                 return;
             }
 
-            _logsDirectory = Path.Combine(PathHelper.PersistentDataPath, "logs");
+            // We must do this as the LogHandler is initialized before the PathHelper
+            var persistentPath = Application.persistentDataPath;
+
+#if UNITY_EDITOR || YARG_TEST_BUILD
+            persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "dev"));
+#else
+            persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "release"));
+#endif
+
+            _logsDirectory = Path.Combine(persistentPath, "logs");
             Directory.CreateDirectory(_logsDirectory);
 
             _fileYargLogListener = new FileYargLogListener(GetLogPath(), new StandardYargLogFormatter());
