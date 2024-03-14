@@ -17,7 +17,7 @@ namespace YARG
         [SerializeField]
         public TextMeshProUGUI subPhrase;
 
-        public static bool IsLoading => Instance.gameObject.activeSelf;
+        public static bool IsActive => Instance.gameObject.activeSelf;
 
         private async void Start()
         {

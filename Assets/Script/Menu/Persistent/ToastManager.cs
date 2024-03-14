@@ -97,7 +97,7 @@ namespace YARG.Menu.Persistent
         private void Update()
         {
             // Wait until loading is finished, to prevent toasts from not being seen due to startup/loading lag
-            if (LoadingScreen.IsLoading)
+            if (LoadingScreen.IsActive)
                 return;
 
             // Wait for animator to finish before doing anything else
