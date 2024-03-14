@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -9,6 +8,7 @@ using UnityEngine;
 using YARG.Core.Song.Cache;
 using YARG.Helpers;
 using YARG.Menu.MusicLibrary;
+using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Song;
 
@@ -24,14 +24,14 @@ namespace YARG
         }
 
         [SerializeField]
-        private TextMeshProUGUI loadingPhrase;
-
+        private TextMeshProUGUI _loadingPhrase;
         [SerializeField]
-        private TextMeshProUGUI subPhrase;
+        private TextMeshProUGUI _subPhrase;
 
         public bool IsLoading { get; private set; }
 
         private readonly Queue<QueuedTask> _loadQueue = new();
+        private bool _didPushEmptyScheme;
 
         // "The Unity message 'Start' has an incorrect signature."
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
@@ -43,6 +43,16 @@ namespace YARG
             QueueSongRefresh(true);
 
             await StartLoad();
+        }
+
+        private void OnEnable()
+        {
+            Navigator.Instance.DisableMenuInputs = true;
+        }
+
+        private void OnDisable()
+        {
+            Navigator.Instance.DisableMenuInputs = false;
         }
 
         public async UniTask StartLoad()
@@ -75,24 +85,22 @@ namespace YARG
         }
 
         /// <summary>
-        /// Adds a parallelizable action to the loading queue
+        /// Adds a parallelizable action to the loading queue.
         /// </summary>
-        /// <remarks>Only add tasks that don't explicitly require the main thread</remarks>
-        /// <param name="Action"></param>
-        /// <param name="title"></param>
-        /// <param name="sub"></param>
+        /// <remarks>
+        /// Only add tasks that don't explicitly require the main thread.
+        /// </remarks>
         public void Queue(UniTask task, string title = "Loading...", string sub = null)
         {
             Queue(() => task, title, sub);
         }
 
         /// <summary>
-        /// Adds an deferred awaitable function to the loading queue
+        /// Adds an deferred awaitable function to the loading queue.
         /// </summary>
-        /// <remarks>Preferred for actions that must run on the main thread</remarks>
-        /// <param name="Action"></param>
-        /// <param name="title"></param>
-        /// <param name="sub"></param>
+        /// <remarks>
+        /// Preferred for actions that must run on the main thread.
+        /// </remarks>
         public void Queue(Func<UniTask> func, string title = "Loading...", string sub = null)
         {
             var task = new QueuedTask
@@ -104,6 +112,12 @@ namespace YARG
             _loadQueue.Enqueue(task);
         }
 
+        /// <summary>
+        /// Adds a song scan to the loading queue.
+        /// </summary>
+        /// <param name="fast">
+        /// Whether or not the scan should be a fast or full one.
+        /// </param>
         public void QueueSongRefresh(bool fast)
         {
             Queue(() => ScanSongFolders(fast), "Loading songs...");
@@ -121,14 +135,20 @@ namespace YARG
                 directories.Add(setlistPath);
             }
 
+            // Time the scan so we can log it
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-            var task = Task.Run(() =>
-                CacheHandler.RunScan(fast, PathHelper.SongCachePath, PathHelper.BadSongsPath, MULTITHREADING, true, false, directories));
+            // Scan and pass in settings
+            var task = Task.Run(() => CacheHandler.RunScan(
+                fast, PathHelper.SongCachePath, PathHelper.BadSongsPath,
+                MULTITHREADING,
+                SettingsManager.Settings.AllowDuplicateSongs.Value,
+                SettingsManager.Settings.UseFullDirectoryForPlaylists.Value,
+                directories));
 
             while (!task.IsCompleted)
             {
-                UpdateSongUi();
+                UpdateSongUI();
                 await UniTask.NextFrame();
             }
 
@@ -142,22 +162,22 @@ namespace YARG
                 directories.Remove(setlistPath);
             }
 
-            GlobalVariables.Instance.SongContainer = new SongContainer(task.Result);
+            SongContainer.Refresh(task.Result);
             MusicLibraryMenu.SetRefresh();
         }
 
         private void SetLoadingText(string phrase, string sub = null)
         {
-            loadingPhrase.text = phrase;
-            subPhrase.text = sub;
+            _loadingPhrase.text = phrase;
+            _subPhrase.text = sub;
         }
 
         private void SetSubText(string sub)
         {
-            subPhrase.text = sub;
+            _subPhrase.text = sub;
         }
 
-        private void UpdateSongUi()
+        private void UpdateSongUI()
         {
             var tracker = CacheHandler.Progress;
 
@@ -192,68 +212,5 @@ namespace YARG
             }
             SetLoadingText(phrase, subText);
         }
-
-#if UNITY_EDITOR
-        // private void StartTestPlayMode()
-        // {
-        //     var info = GlobalVariables.Instance.TestPlayInfo;
-        //
-        //     // Skip if not test play mode
-        //     if (!info.TestPlayMode)
-        //     {
-        //         return;
-        //     }
-        //
-        //     info.TestPlayMode = false;
-        //
-        //     // Add the bots
-        //     // if (!info.NoBotsMode)
-        //     // {
-        //     //     AddTestPlayPlayer(new PlayerManager.Player
-        //     //     {
-        //     //         chosenInstrument = "guitar",
-        //     //         chosenDifficulty = Difficulty.EXPERT,
-        //     //         inputStrategy = new FiveFretInputStrategy
-        //     //         {
-        //     //             // BotMode = true
-        //     //         }
-        //     //     });
-        //     //
-        //     //     AddTestPlayPlayer(new PlayerManager.Player
-        //     //     {
-        //     //         chosenInstrument = "realDrums",
-        //     //         chosenDifficulty = Difficulty.EXPERT_PLUS,
-        //     //         inputStrategy = new DrumsInputStrategy
-        //     //         {
-        //     //             // BotMode = true
-        //     //         }
-        //     //     });
-        //     //
-        //     //     // AddTestPlayPlayer(new PlayerManager.Player
-        //     //     // {
-        //     //     //     chosenInstrument = "vocals",
-        //     //     //     chosenDifficulty = Difficulty.EXPERT,
-        //     //     //     inputStrategy = new MicInputStrategy
-        //     //     //     {
-        //     //     //         BotMode = true
-        //     //     //     }
-        //     //     // });
-        //     // }
-        //
-        //     // Get the Test Play song by hash, and play it
-        //     if (SongContainer.SongsByHash.TryGetValue(info.TestPlaySongHash,
-        //         out var song))
-        //     {
-        //         GlobalVariables.Instance.CurrentSong = song;
-        //         GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
-        //     }
-        // }
-        //
-        // private static void AddTestPlayPlayer(PlayerManager.Player p)
-        // {
-        //     PlayerManager.players.Add(p);
-        //     // p.inputStrategy.Enable();
-        // }
-#endif
     }
 }

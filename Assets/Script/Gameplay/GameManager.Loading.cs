@@ -16,6 +16,7 @@ using YARG.Player;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Gameplay
 {
@@ -94,6 +95,7 @@ namespace YARG.Gameplay
         private async UniTaskVoid Start()
         {
             var global = GlobalVariables.Instance;
+
             // Disable until everything's loaded
             enabled = false;
 
@@ -107,7 +109,8 @@ namespace YARG.Gameplay
             // Load song
             if (IsReplay)
             {
-                if (!global.SongContainer.SongsByHash.TryGetValue(global.CurrentReplay.SongChecksum, out var songs))
+                if (!SongContainer.SongsByHash.TryGetValue(
+                    GlobalVariables.State.CurrentReplay.SongChecksum, out var songs))
                 {
                     ToastManager.ToastWarning("Song not present in library");
                     global.LoadScene(SceneIndex.Menu);
@@ -144,7 +147,7 @@ namespace YARG.Gameplay
 
             // Initialize song runner
             _songRunner = new SongRunner(
-                global.SongSpeed,
+                GlobalVariables.State.SongSpeed,
                 SettingsManager.Settings.AudioCalibration.Value,
                 SettingsManager.Settings.VideoCalibration.Value,
                 Song.SongOffsetSeconds);
@@ -190,7 +193,7 @@ namespace YARG.Gameplay
             ReplayFile replayFile;
             try
             {
-                var result = ReplayContainer.LoadReplayFile(GlobalVariables.Instance.CurrentReplay, out replayFile);
+                var result = ReplayContainer.LoadReplayFile(GlobalVariables.State.CurrentReplay, out replayFile);
                 if (result != ReplayReadResult.Valid)
                 {
                     _loadState = LoadFailureState.Error;
@@ -254,12 +257,12 @@ namespace YARG.Gameplay
                 {
                     Chart = preset.GenerateFogEvents(Chart);
                 }
-                
+
                 if (Chart.VenueTrack.Lighting.Count == 0)
                 {
                     Chart = preset.GenerateLightingEvents(Chart);
                 }
-                
+
                 // TODO: add when characters and camera events are present in game
                 // if (Chart.VenueTrack.Camera.Count == 0)
                 // {

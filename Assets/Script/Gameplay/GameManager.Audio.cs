@@ -41,7 +41,7 @@ namespace YARG.Gameplay
                 Total = 1
             });
 
-            if (Song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed))
+            if (Song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.State.SongSpeed))
             {
                 GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
 

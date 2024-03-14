@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
@@ -54,8 +55,24 @@ namespace YARG.Gameplay.Visuals
         {
             var colors = Player.Player.ColorProfile.FiveLaneDrums;
 
+            // Get pad index
+            int pad = NoteRef.Pad;
+            if (LeftyFlip)
+            {
+                pad = (FiveLaneDrumPad) pad switch
+                {
+                    FiveLaneDrumPad.Kick   => (int) FiveLaneDrumPad.Kick,
+                    FiveLaneDrumPad.Red    => (int) FiveLaneDrumPad.Green,
+                    FiveLaneDrumPad.Yellow => (int) FiveLaneDrumPad.Orange,
+                    FiveLaneDrumPad.Blue   => (int) FiveLaneDrumPad.Blue,
+                    FiveLaneDrumPad.Orange => (int) FiveLaneDrumPad.Yellow,
+                    FiveLaneDrumPad.Green  => (int) FiveLaneDrumPad.Red,
+                    _                      => throw new Exception("Unreachable.")
+                };
+            }
+
             // Get colors
-            var colorNoStarPower = colors.GetNoteColor(NoteRef.Pad);
+            var colorNoStarPower = colors.GetNoteColor(pad);
             var color = colorNoStarPower;
             if (NoteRef.IsStarPowerActivator && Player.Engine.EngineStats.CanStarPowerActivate)
             {
@@ -63,7 +80,7 @@ namespace YARG.Gameplay.Visuals
             }
             else if (NoteRef.IsStarPower)
             {
-                color = colors.GetNoteStarPowerColor(NoteRef.Pad);
+                color = colors.GetNoteStarPowerColor(pad);
             }
 
             // Set the note color

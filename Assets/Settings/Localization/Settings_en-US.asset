@@ -1086,21 +1086,104 @@ MonoBehaviour:
       slow (64), medium (127), fast (191), fastest (255).
     m_Metadata:
       m_Items: []
-  - m_Id: 121121501170786304
-    m_Localized: 'DMX Cue Change '
+  - m_Id: 124721790388133888
+    m_Localized: Off
     m_Metadata:
       m_Items: []
-  - m_Id: 121121555608657920
-    m_Localized: 'This channel''s value will change whenever the lighting cue changes,
-      as follows:
-
-'
+  - m_Id: 124721790409105408
+    m_Localized: Score
     m_Metadata:
       m_Items: []
-  - m_Id: 123349507897450496
+  - m_Id: 124721790409105409
+    m_Localized: Stars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124721790409105410
+    m_Localized: Music Library
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124721790409105411
+    m_Localized: High Score Display
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124721790409105412
+    m_Localized: Show Favorite Button
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124721790409105413
+    m_Localized: Shows and hides the favorite button in the Music Library. Songs
+      can still be favorited in the "More Options" menu when this button is hidden.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124722408020369408
+    m_Localized: Changes what high score information is displayed in the Music Library.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711291285504
+    m_Localized: Disabled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711291285505
+    m_Localized: 50, 100, 200, 300, ...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711291285506
+    m_Localized: 50, 100, 250, 500, ...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479808
+    m_Localized: Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479809
+    m_Localized: On
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479810
+    m_Localized: Reduced
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479811
+    m_Localized: Multitrack Only
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479812
+    m_Localized: Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479813
+    m_Localized: On
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479814
+    m_Localized: Note Streak Frequency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479815
+    m_Localized: Sets the frequency of note streak notifications.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479816
+    m_Localized: Star Power Highway FX Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124723711295479817
+    m_Localized: Disables visual elements on the highway which appear when Star Power
+      is active
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126176427087618048
+    m_Localized: DMX Cue Change
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126176427112783872
+    m_Localized: 'This channel''s value will change whenever the lighting cue changes.
+      See the values below:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126176427112783873
     m_Localized: 'DMX cue change channel value will change whenever the lighting
       cue changes, as follows:
-
 
       0 - No cue
 
@@ -1186,55 +1269,114 @@ MonoBehaviour:
       250 - Fog on
 
       255 - Fog off'
-  - m_Id: 118297715850055680
-    m_Localized: Star Power Highway FX Mode
     m_Metadata:
       m_Items: []
-  - m_Id: 118297813237600256
-    m_Localized: Disables visual elements on the highway which appear when Star Power
-      is active
+  - m_Id: 127205786207608832
+    m_Localized: Vocals
     m_Metadata:
       m_Items: []
-  - m_Id: 118306533464051712
-    m_Localized: On
+  - m_Id: 127206632844648448
+    m_Localized: Window Size (Medium)
     m_Metadata:
       m_Items: []
-  - m_Id: 118306680382132224
-    m_Localized: Reduced
+  - m_Id: 127206614020612096
+    m_Localized: Window Size (Easy)
     m_Metadata:
       m_Items: []
-  - m_Id: 118306746819907584
-    m_Localized: Off
+  - m_Id: 127206638649565184
+    m_Localized: Window Size (Hard)
     m_Metadata:
       m_Items: []
-  - m_Id: 119173371822858240
-    m_Localized: Note Streak Frequency
+  - m_Id: 127206658077581312
+    m_Localized: Window Size (Expert)
     m_Metadata:
       m_Items: []
-  - m_Id: 119173704238227456
-    m_Localized: Sets the frequency of note streak notifications.
+  - m_Id: 127206835815407616
+    m_Localized: Hit Percent (Easy)
     m_Metadata:
       m_Items: []
-  - m_Id: 119174263120846848
-    m_Localized: Disabled
+  - m_Id: 127206843524538368
+    m_Localized: Hit Percent (Medium)
     m_Metadata:
       m_Items: []
-  - m_Id: 119174220057927680
-    m_Localized: 50, 100, 250, 500, ...
+  - m_Id: 127206864517029888
+    m_Localized: Hit Percent (Hard)
     m_Metadata:
       m_Items: []
-  - m_Id: 119174161593524224
-    m_Localized: 50, 100, 200, 300, ...
-  - m_Id: 120322696970141696
-    m_Localized: Off
+  - m_Id: 127206874012934144
+    m_Localized: Hit Percent (Expert)
     m_Metadata:
       m_Items: []
-  - m_Id: 120322832085450752
-    m_Localized: Multitrack Only
+  - m_Id: 127206973438910464
+    m_Localized: Size of the pitch leniency window (in semitones); in other words,
+      how offpitch the player can sing, and the game will still detect as a correct
+      note, in the Easy difficulty.
     m_Metadata:
       m_Items: []
-  - m_Id: 120322882958163968
-    m_Localized: On
+  - m_Id: 127206992598491136
+    m_Localized: Size of the pitch leniency window (in semitones); in other words,
+      how offpitch the player can sing, and the game will still detect as a correct
+      note, in the Medium difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206994032943104
+    m_Localized: Size of the pitch leniency window (in semitones); in other words,
+      how offpitch the player can sing, and the game will still detect as a correct
+      note, in the Hard difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206994674671616
+    m_Localized: Size of the pitch leniency window (in semitones); in other words,
+      how offpitch the player can sing, and the game will still detect as a correct
+      note, in the Expert difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127207845564735488
+    m_Localized: This determines how much of the phrase has to be accurately sung
+      in order to fully fill the accuracy meter, in the Easy difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127207847498309632
+    m_Localized: This determines how much of the phrase has to be accurately sung
+      in order to fully fill the accuracy meter, in the Medium difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127207848010014720
+    m_Localized: This determines how much of the phrase has to be accurately sung
+      in order to fully fill the accuracy meter, in the Hard difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127207848525914112
+    m_Localized: This determines how much of the phrase has to be accurately sung
+      in order to fully fill the accuracy meter, in the Expert difficulty.
+  - m_Id: 126547259219632128
+    m_Localized: Scanning Options
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259244797952
+    m_Localized: Allow Duplicate Songs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259244797953
+    m_Localized: Allows duplicate songs to be scanned and displayed in the library.
+      <color=white>Rescan required if changed!</color>
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259248992256
+    m_Localized: Use Full Directory For Playlists
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126547259248992257
+    m_Localized: Use full directory for the playlist sort option in the music library.
+      <color=white>Rescan required if changed!</color>
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126616378681974784
+    m_Localized: Red Cymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126616378694557696
+    m_Localized: Red Cymbal Star Power
     m_Metadata:
       m_Items: []
   references:

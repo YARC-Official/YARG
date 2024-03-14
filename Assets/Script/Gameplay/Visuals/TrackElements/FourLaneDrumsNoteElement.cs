@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Helpers.Extensions;
 
@@ -49,8 +50,26 @@ namespace YARG.Gameplay.Visuals
         {
             var colors = Player.Player.ColorProfile.FourLaneDrums;
 
+            // Get pad index
+            int pad = NoteRef.Pad;
+            if (LeftyFlip)
+            {
+                pad = (FourLaneDrumPad) pad switch
+                {
+                    FourLaneDrumPad.Kick         => (int) FourLaneDrumPad.Kick,
+                    FourLaneDrumPad.RedDrum      => (int) FourLaneDrumPad.GreenDrum,
+                    FourLaneDrumPad.YellowDrum   => (int) FourLaneDrumPad.BlueDrum,
+                    FourLaneDrumPad.BlueDrum     => (int) FourLaneDrumPad.YellowDrum,
+                    FourLaneDrumPad.GreenDrum    => (int) FourLaneDrumPad.RedDrum,
+                    FourLaneDrumPad.YellowCymbal => (int) FourLaneDrumPad.BlueCymbal,
+                    FourLaneDrumPad.BlueCymbal   => (int) FourLaneDrumPad.YellowCymbal,
+                    FourLaneDrumPad.GreenCymbal  => 8, // The forbidden red cymbal
+                    _                            => throw new Exception("Unreachable.")
+                };
+            }
+
             // Get colors
-            var colorNoStarPower = colors.GetNoteColor(NoteRef.Pad);
+            var colorNoStarPower = colors.GetNoteColor(pad);
             var color = colorNoStarPower;
             if (NoteRef.IsStarPowerActivator && Player.Engine.EngineStats.CanStarPowerActivate)
             {
@@ -58,7 +77,7 @@ namespace YARG.Gameplay.Visuals
             }
             else if (NoteRef.IsStarPower)
             {
-                color = colors.GetNoteStarPowerColor(NoteRef.Pad);
+                color = colors.GetNoteStarPowerColor(pad);
             }
 
             // Set the note color

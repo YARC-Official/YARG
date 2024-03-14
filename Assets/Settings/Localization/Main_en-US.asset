@@ -220,7 +220,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706177
-    m_Localized: 'Artist - Album'
+    m_Localized: Artist - Album
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706178
@@ -327,10 +327,6 @@ MonoBehaviour:
     m_Localized: Lead Artist
     m_Metadata:
       m_Items: []
-  - m_Id: 104459735219429385
-    m_Localized: Lead Charter
-    m_Metadata:
-      m_Items: []
   - m_Id: 104459735219429386
     m_Localized: Maintainers
     m_Metadata:
@@ -378,10 +374,6 @@ MonoBehaviour:
     m_Localized: Unpitched Only
     m_Metadata:
       m_Items: []
-  - m_Id: 112914116042452992
-    m_Localized: Date Added
-    m_Metadata:
-      m_Items: []
   - m_Id: 113144734009384960
     m_Localized: Hello there ladies and gentlemen!
     m_Metadata:
@@ -412,6 +404,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 113150574225383424
     m_Localized: Song paused...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 128368057991421952
+    m_Localized: Setlist Manager
+    m_Metadata:
+      m_Items: []
+  - m_Id: 128368469003853824
+    m_Localized: Date Added
     m_Metadata:
       m_Items: []
   references:

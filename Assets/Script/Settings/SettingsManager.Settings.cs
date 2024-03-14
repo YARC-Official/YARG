@@ -8,6 +8,7 @@ using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Integration.Sacn;
+using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
 using YARG.Player;
@@ -40,14 +41,6 @@ namespace YARG.Settings
 
             #region General
 
-            public void OpenVenueFolder()
-            {
-                FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
-            }
-
-            public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
-            public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
-
             public void OpenCalibrator()
             {
                 GlobalVariables.Instance.LoadScene(SceneIndex.Calibration);
@@ -57,12 +50,37 @@ namespace YARG.Settings
             public IntSetting AudioCalibration { get; } = new(0);
             public IntSetting VideoCalibration { get; } = new(0);
 
+            public void OpenVenueFolder()
+            {
+                FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
+            }
+
+            public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
+            public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
+
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public SliderSetting KickBounceMultiplier      { get; } = new(1f, 0f, 2f);
 
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 
             public ToggleSetting AmIAwesome { get; } = new(false);
+
+            #endregion
+
+            #region Songs
+
+            public ToggleSetting AllowDuplicateSongs          { get; } = new(true);
+            public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
+
+            public ToggleSetting ShowFavoriteButton { get; } = new(true);
+
+            public DropdownSetting<HighScoreInfoMode> HighScoreInfo { get; }
+                = new(HighScoreInfoMode.Stars)
+            {
+                HighScoreInfoMode.Stars,
+                HighScoreInfoMode.Score,
+                HighScoreInfoMode.Off
+            };
 
             #endregion
 
@@ -123,7 +141,8 @@ namespace YARG.Settings
             public ToggleSetting LowQuality   { get; } = new(false, LowQualityCallback);
             public ToggleSetting DisableBloom { get; } = new(false, DisableBloomCallback);
 
-            public DropdownSetting<StarPowerHighwayFxMode> StarPowerHighwayFx { get; } = new(StarPowerHighwayFxMode.On)
+            public DropdownSetting<StarPowerHighwayFxMode> StarPowerHighwayFx { get; }
+                = new(StarPowerHighwayFxMode.On)
             {
                 StarPowerHighwayFxMode.On,
                 StarPowerHighwayFxMode.Reduced,
@@ -141,7 +160,8 @@ namespace YARG.Settings
                 NoteStreakFrequencyMode.Disabled
             };
 
-            public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; } = new(SongProgressMode.CountUpOnly)
+            public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; }
+                = new(SongProgressMode.CountUpOnly)
             {
                 SongProgressMode.None,
                 SongProgressMode.CountUpAndTotal,
@@ -153,7 +173,8 @@ namespace YARG.Settings
 
             public ToggleSetting GraphicalProgressOnScoreBox { get; } = new(true);
 
-            public DropdownSetting<LyricDisplayMode> LyricDisplay { get; } = new(LyricDisplayMode.Normal)
+            public DropdownSetting<LyricDisplayMode> LyricDisplay { get; }
+                = new(LyricDisplayMode.Normal)
             {
                 LyricDisplayMode.Normal,
                 LyricDisplayMode.Transparent,
@@ -385,15 +406,15 @@ namespace YARG.Settings
             //     GameManager.AudioManager.Options.UseWhammyFx = value;
             // }
 
-            private static void WhammyPitchShiftAmountChange(float value)
-            {
-                GlobalVariables.AudioManager.Options.WhammyPitchShiftAmount = value;
-            }
-
-            private static void WhammyOversampleFactorChange(int value)
-            {
-                GlobalVariables.AudioManager.Options.WhammyOversampleFactor = value;
-            }
+            // private static void WhammyPitchShiftAmountChange(float value)
+            // {
+            //     GlobalVariables.AudioManager.Options.WhammyPitchShiftAmount = value;
+            // }
+            //
+            // private static void WhammyOversampleFactorChange(int value)
+            // {
+            //     GlobalVariables.AudioManager.Options.WhammyOversampleFactor = value;
+            // }
 
             private static void UseChipmunkSpeedChange(bool value)
             {

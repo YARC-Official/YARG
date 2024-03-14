@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Song;
 using YARG.Helpers;
@@ -22,13 +21,9 @@ namespace YARG.Menu.History
         public ReplayViewType(ReplayEntry replayEntry)
         {
             _replayEntry = replayEntry;
-
-            var songsByHash = GlobalVariables.Instance.SongContainer.SongsByHash;
-
-            var songsForHash = songsByHash.GetValueOrDefault(replayEntry.SongChecksum);
-            if (songsForHash is not null)
+            if (SongContainer.SongsByHash.TryGetValue(replayEntry.SongChecksum, out var songs))
             {
-                _songEntry = songsForHash[0];
+                _songEntry = songs[0];
             }
         }
 
@@ -41,7 +36,7 @@ namespace YARG.Menu.History
         {
             return FormatAs(_replayEntry.ArtistName, TextType.Secondary, selected);
         }
-         
+
         public override async UniTask<Sprite> GetIcon()
         {
             // TODO: Show "song missing" icon instead
@@ -75,9 +70,9 @@ namespace YARG.Menu.History
             }
 
             // We're good!
-            GlobalVariables.Instance.IsReplay = true;
-            GlobalVariables.Instance.CurrentReplay = _replayEntry;
-            GlobalVariables.Instance.CurrentSong = _songEntry;
+            GlobalVariables.State = PersistentState.Default;
+            GlobalVariables.State.CurrentSong = _songEntry;
+            GlobalVariables.State.CurrentReplay = _replayEntry;
 
             GlobalVariables.AudioManager.UnloadSong();
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);

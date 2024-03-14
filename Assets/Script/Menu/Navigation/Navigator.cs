@@ -41,7 +41,7 @@ namespace YARG.Menu.Navigation
 
         public NavigationContext AsRepeat()
         {
-            return new(Action, Player, true);
+            return new NavigationContext(Action, Player, true);
         }
     }
 
@@ -69,6 +69,8 @@ namespace YARG.Menu.Navigation
                 Context = context;
             }
         }
+
+        public bool DisableMenuInputs { get; set; }
 
         public event Action<NavigationContext> NavigationEvent;
 
@@ -101,12 +103,17 @@ namespace YARG.Menu.Navigation
 
         private void ProcessInput(YargPlayer player, ref GameInput input)
         {
-            var action = (MenuAction)input.Action;
+            var action = (MenuAction) input.Action;
             var context = new NavigationContext(action, player);
+
             if (input.Button)
+            {
                 StartNavigationHold(context);
+            }
             else
+            {
                 EndNavigationHold(context);
+            }
         }
 
         private void StartNavigationHold(NavigationContext context)
@@ -120,7 +127,9 @@ namespace YARG.Menu.Navigation
             InvokeNavigationEvent(context);
 
             if (RepeatActions.Contains(context.Action))
+            {
                 _heldInputs.Add(new HoldContext(context));
+            }
         }
 
         private void EndNavigationHold(NavigationContext context)
@@ -135,6 +144,11 @@ namespace YARG.Menu.Navigation
 
         private void InvokeNavigationEvent(NavigationContext ctx)
         {
+            if (DisableMenuInputs)
+            {
+                return;
+            }
+
             NavigationEvent?.Invoke(ctx);
 
             if (_schemeStack.Count > 0)

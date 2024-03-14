@@ -79,7 +79,7 @@ namespace YARG.Menu.ListMenu
         protected virtual void OnSelectedIndexChanged()
         {
             UpdateScrollbar();
-            UpdateViewsObjects();
+            RefreshViewsObjects();
 
             if (_viewAligner != null)
             {
@@ -91,18 +91,19 @@ namespace YARG.Menu.ListMenu
 
         /// <summary>
         /// Sets the <see cref="SelectedIndex"/> to the first match (via the <paramref name="predicate"/>).
+        /// If the <paramref name="offset"/> is specified, it will offset the select index by that amount.
         /// If nothing is found, the index remains unchanged.
         /// </summary>
         /// <returns>
         /// Whether or not the index was set.
         /// </returns>
-        protected bool SetIndexTo(Func<TViewType, bool> predicate)
+        protected bool SetIndexTo(Predicate<TViewType> predicate, int offset = 0)
         {
             for (int i = 0; i < _viewList.Count; i++)
             {
                 if (predicate(_viewList[i]))
                 {
-                    SelectedIndex = i;
+                    SelectedIndex = i + offset;
                     return true;
                 }
             }
@@ -123,12 +124,12 @@ namespace YARG.Menu.ListMenu
         protected void RequestViewListUpdate()
         {
             _viewList = CreateViewList();
-            UpdateViewsObjects();
+            RefreshViewsObjects();
         }
 
         protected abstract List<TViewType> CreateViewList();
 
-        private void UpdateViewsObjects()
+        public void RefreshViewsObjects()
         {
             for (int i = 0; i < _viewObjects.Count; i++)
             {

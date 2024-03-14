@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
@@ -11,6 +13,7 @@ using YARG.Input;
 using YARG.Integration;
 using YARG.Menu.ScoreScreen;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
@@ -42,22 +45,9 @@ namespace YARG
 
         public static IAudioManager AudioManager { get; private set; }
 
+        public static PersistentState State = PersistentState.Default;
+
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
-        public SongContainer SongContainer { get; set; }
-
-        [HideInInspector]
-        public SongEntry CurrentSong;
-        public ReplayEntry  CurrentReplay;
-
-        public ScoreScreenStats ScoreScreenStats;
-
-        [Space]
-        public float SongSpeed = 1f;
-
-        [HideInInspector]
-        public bool IsReplay;
-        [HideInInspector]
-        public bool IsPractice;
 
         protected override void SingletonAwake()
         {
@@ -66,7 +56,7 @@ namespace YARG
 
             // Get command line args
             // The first element is always the file name, however check just in case
-            var args = System.Environment.GetCommandLineArgs();
+            var args = Environment.GetCommandLineArgs();
             if (args.Length >= 1)
             {
                 CommandLineArguments = args[1..].ToList();
@@ -87,6 +77,7 @@ namespace YARG
             PathHelper.Init();
             ReplayContainer.Init();
             ScoreContainer.Init();
+            PlaylistContainer.Initialize();
             CustomContentManager.Initialize();
 
             int profileCount = PlayerContainer.LoadProfiles();
@@ -117,6 +108,7 @@ namespace YARG
         {
             SettingsManager.SaveSettings();
             PlayerContainer.SaveProfiles();
+            PlaylistContainer.SaveAll();
             CustomContentManager.SaveAll();
 
             ReplayContainer.Destroy();

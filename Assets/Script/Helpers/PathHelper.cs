@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ namespace YARG.Helpers
 {
     public static class PathHelper
     {
+        private static readonly Regex _fileNameSanitize = new("([^a-zA-Z0-9])", RegexOptions.Compiled);
+
         /// <summary>
         /// Where settings, scores, etc. should be stored.
         /// </summary>
@@ -237,6 +240,14 @@ namespace YARG.Helpers
             path = path.Replace('/', Path.DirectorySeparatorChar);
 
             return path;
+        }
+
+        /// <summary>
+        /// Converts all symbols and spaces into "_".
+        /// </summary>
+        public static string SanitizeFileName(string fileName)
+        {
+            return _fileNameSanitize.Replace(fileName, "_");
         }
     }
 }

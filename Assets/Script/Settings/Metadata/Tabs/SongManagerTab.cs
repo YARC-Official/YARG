@@ -5,7 +5,7 @@ using YARG.Menu.Settings;
 
 namespace YARG.Settings.Metadata
 {
-    public class SongManagerTab : Tab
+    public class SongManagerTab : MetadataTab
     {
         // Prefabs needed for this tab type
         private static readonly GameObject _songManagerHeader = Addressables
@@ -30,6 +30,9 @@ namespace YARG.Settings.Metadata
                 var go = Object.Instantiate(_songManagerDirectory, settingContainer);
                 go.GetComponent<SettingsDirectory>().SetIndex(i);
             }
+
+            // Build the rest of the metadata
+            base.BuildSettingTab(settingContainer, navGroup);
         }
     }
 }
