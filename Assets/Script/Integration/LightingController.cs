@@ -89,8 +89,6 @@ namespace YARG.Integration
         public static event Action<LightingEvent> OnLightingEvent;
         public static event Action<StageEffectEvent> OnStageEffectEvent;
 
-        private GameplayBehaviour _gameplayMonitor;
-
         private static LightingEvent _currentLightingCue;
         private static DrumNote _currentDrumNote;
         private static VocalNote _currentVocalNote;
@@ -98,6 +96,8 @@ namespace YARG.Integration
         private static StageEffectEvent _currentStageEffect;
         private static bool _paused;
         private static bool _largeVenue;
+
+        private GameplayBehaviour _gameplayMonitor;
 
         private void Start()
         {
@@ -184,40 +184,35 @@ namespace YARG.Integration
             }
 
             //drum events
-            if (_drums.Notes.Count > 0 && _drumIndex < _drums.Notes.Count &&
-                _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
+            while (_drumIndex < _drums.Notes.Count && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
             {
                 LightingController.CurrentDrumNote = _drums.Notes[_drumIndex];
                 _drumIndex++;
             }
 
             //End of vocal phrase. SilhouetteSpot is the only cue that uses vocals, listening to the end of the phrase.
-            if (_vocals.Count > 0 && _vocalsIndex < _vocals.Count &&
-                _vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1].TotalTimeEnd <= GameManager.SongTime)
+            while (_vocalsIndex < _vocals.Count &&  Math.Min(_vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1].TotalTimeEnd, _vocals[_vocalsIndex].TimeEnd)   <= GameManager.SongTime)
             {
-                LightingController.CurrentVocalNote = _vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1];
+                LightingController.CurrentVocalNote =_vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1];
                 _vocalsIndex++;
             }
 
             //beatline events
-            if (_sync.Beatlines.Count > 0 && _syncIndex < _sync.Beatlines.Count &&
-                _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
+            while (_syncIndex < _sync.Beatlines.Count && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
             {
                 LightingController.CurrentBeatline = _sync.Beatlines[_syncIndex];
                 _syncIndex++;
             }
 
             //The lighting cues from the venue track are handled here.
-            if (_venue.Lighting.Count > 0 && _lightingIndex < _venue.Lighting.Count &&
-                _venue.Lighting[_lightingIndex].Time <= GameManager.SongTime)
+            while (_lightingIndex < _venue.Lighting.Count && _venue.Lighting[_lightingIndex].Time <= GameManager.SongTime)
             {
                 LightingController.CurrentLightingCue = _venue.Lighting[_lightingIndex];
                 _lightingIndex++;
             }
 
             //For "fogOn", "fogOff", and "BonusFx" events
-            if (_venue.Stage.Count > 0 && _eventIndex >= _venue.Stage.Count &&
-                _venue.Stage[_eventIndex].Time <= GameManager.SongTime)
+            while (_eventIndex < _venue.Stage.Count && _venue.Stage[_eventIndex].Time <= GameManager.SongTime)
             {
                 LightingController.CurrentStageEffect = _venue.Stage[_eventIndex];
                 _eventIndex++;

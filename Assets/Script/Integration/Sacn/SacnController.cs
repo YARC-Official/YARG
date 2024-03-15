@@ -145,8 +145,8 @@ namespace YARG.Integration.Sacn
             switch (scene.buildIndex)
             {
                 case (int) SceneIndex.Gameplay:
-                    StageKitGameplay.OnStageEffectChange -= HandleStageEffectChange;
-                    StageKitGameplay.OnLightingTypeChange -= HandleLightingTypeChange;
+                    //StageKitGameplay.OnStageEffectChange -= HandleStageEffectChange;
+                    //StageKitGameplay.OnLightingTypeChange -= HandleLightingTypeChange;
                     break;
 
                 default:
@@ -159,8 +159,8 @@ namespace YARG.Integration.Sacn
             switch (scene.buildIndex)
             {
                 case (int) SceneIndex.Gameplay:
-                    StageKitGameplay.OnStageEffectChange += HandleStageEffectChange;
-                    StageKitGameplay.OnLightingTypeChange += HandleLightingTypeChange;
+                    //StageKitGameplay.OnStageEffectChange += HandleStageEffectChange;
+                    //StageKitGameplay.OnLightingTypeChange += HandleLightingTypeChange;
                     break;
 
                 case (int) SceneIndex.Score:
@@ -184,9 +184,9 @@ namespace YARG.Integration.Sacn
 
                 Debug.Log("Starting Sacn Controller...");
 
-                StageKitLightingController.Instance.OnLedSet += HandleLedEvent;
-                StageKitLightingController.Instance.OnFogSet += HandleFogEvent;
-                StageKitLightingController.Instance.OnStrobeSet += HandleStrobeEvent;
+                //StageKitLightingController.Instance.OnLedSet += HandleLedEvent;
+                //StageKitLightingController.Instance.OnFogSet += HandleFogEvent;
+                //StageKitLightingController.Instance.OnStrobeSet += HandleStrobeEvent;
 
                 UpdateDMXChannels();
 
@@ -244,9 +244,9 @@ namespace YARG.Integration.Sacn
 
             CancelInvoke(nameof(Sender));
 
-            StageKitLightingController.Instance.OnLedSet -= HandleLedEvent;
-            StageKitLightingController.Instance.OnFogSet -= HandleFogEvent;
-            StageKitLightingController.Instance.OnStrobeSet -= HandleStrobeEvent;
+            //StageKitLightingController.Instance.OnLedSet -= HandleLedEvent;
+            //StageKitLightingController.Instance.OnFogSet -= HandleFogEvent;
+            //StageKitLightingController.Instance.OnStrobeSet -= HandleStrobeEvent;
         }
 
         private void HandleFogEvent(bool value)

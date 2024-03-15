@@ -260,7 +260,7 @@ namespace YARG.Settings
                 {
                     return;
                 }
-                SacnController.Instance.HandleEnabledChanged(value);
+//                SacnController.Instance.HandleEnabledChanged(value);
             }
 
             private static void DMXCallback(int[] value)
@@ -269,7 +269,7 @@ namespace YARG.Settings
                 {
                     return;
                 }
-                SacnController.Instance.UpdateDMXChannels();
+    //            SacnController.Instance.UpdateDMXChannels();
             }
 
             private static void VSyncCallback(bool value)

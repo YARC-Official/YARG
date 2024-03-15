@@ -4,6 +4,10 @@ using UnityEngine;
 using PlasticBand.Haptics;
 using UnityEngine.InputSystem;
 using Cysharp.Threading.Tasks;
+using UnityEngine.SceneManagement;
+using YARG.Core.Chart;
+using YARG.Gameplay;
+using YARG.Settings;
 
 /*
  Software Layout:
@@ -184,7 +188,7 @@ namespace YARG.Integration.StageKit
             StrobeSpeed,
         }
 
-        public enum LedColor
+        private enum LedColor
         {
             Blue,
             Green,
@@ -192,80 +196,396 @@ namespace YARG.Integration.StageKit
             Red,
         }
 
-        public const byte NONE = 0b00000000;
-        public const byte ZERO = 0b00000001;
-        public const byte ONE = 0b00000010;
-        public const byte TWO = 0b00000100;
-        public const byte THREE = 0b00001000;
-        public const byte FOUR = 0b00010000;
-        public const byte FIVE = 0b00100000;
-        public const byte SIX = 0b01000000;
-        public const byte SEVEN = 0b10000000;
-        public const byte ALL = 0b11111111;
-
         public FogState CurrentFogState = FogState.Off;
         public FogState PreviousFogState = FogState.Off;
 
         public StageKitStrobeSpeed CurrentStrobeState = StageKitStrobeSpeed.Off;
         public StageKitStrobeSpeed PreviousStrobeState = StageKitStrobeSpeed.Off;
 
-        public List<IStageKitHaptics> StageKits = new();
-
         public StageKitLightingCue CurrentLightingCue = null;
         public StageKitLightingCue PreviousLightingCue = null;
 
-        public List<StageKitLighting> CuePrimitives = new();
+        private GameManager GameManager { get; set; }
 
-        //Gets set by StageKitGameplay but this is just a fail-safe.
-        public bool LargeVenue = false;
-
-        //This is used to send events to any other light controllers that might be in the scene (aka dmx lights)
-        public event Action<StageKitLedColor, StageKitLed> OnLedSet;
-        public event Action<bool> OnFogSet;
-        public event Action<StageKitStrobeSpeed> OnStrobeSet;
+        private List<IStageKitHaptics> _stageKits = new();
+        private List<StageKitLighting> _cuePrimitives = new();
 
         // Stuff for the actual command sending to the unit
         private bool _isSendingCommands;
         private readonly Queue<(int command, byte data)> _commandQueue = new();
         private byte[] _currentLedState = { 0x00, 0x00, 0x00, 0x00 }; //blue, green, yellow, red
+
         //this is only for the SendCommands() command to limit swamping the kit.
         private byte[] _previousLedState = { 0x00, 0x00, 0x00, 0x00 };
+
         //necessary to prevent the stage kit from getting overwhelmed and dropping commands. In seconds. 0.001 is the
         //minimum. Preliminary testing indicated that 7ms was needed to prevent dropped commands, but it seems that
         //most songs are slow enough to allow 1ms.
         private const float SEND_DELAY = 0.001f;
 
-        // Listen for new stage kits being added or removed at any time.
-        private void OnDeviceChange(InputDevice device, InputDeviceChange change)
-        {
-            if (change == InputDeviceChange.Added)
-            {
-                if (device is IStageKitHaptics haptics) StageKits.Add(haptics);
-            }
-            else if (change == InputDeviceChange.Removed)
-            {
-                if (device is IStageKitHaptics haptics) StageKits.Remove(haptics);
-            }
-        }
+        private const byte NONE = 0b00000000;
+
+        #region Build and Destroy
 
         private void Start()
         {
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+
+            LightingController.OnPause += OnPause;
+            LightingController.OnDrumEvent += OnDrumEvent;
+            LightingController.OnVocalsEvent += OnVocalsEvent;
+            LightingController.OnBeatLineEvent += OnBeatLineEvent;
+            LightingController.OnStageEffectEvent += OnStageEffectEvent;
+            LightingController.OnLightingEvent += OnLightingEvent;
+
             //build a list of all the stage kits connected
             foreach (var device in InputSystem.devices)
             {
-                if (device is IStageKitHaptics haptics) StageKits.Add(haptics);
+                if (device is IStageKitHaptics haptics) _stageKits.Add(haptics);
             }
 
             //then listen to see if any more are added or removed
             InputSystem.onDeviceChange += OnDeviceChange;
+
             //StageKits remember its last state which is neat but not needed on startup
-            StageKits.ForEach(kit => kit.ResetHaptics());
+            _stageKits.ForEach(kit => kit.ResetHaptics());
         }
 
         private void OnApplicationQuit()
         {
-            InputSystem.onDeviceChange -= OnDeviceChange;
+            SingletonDestroy();
         }
+
+        protected override void SingletonDestroy()
+        {
+            SceneManager.sceneUnloaded -= OnSceneUnloaded;
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+
+            LightingController.OnPause -= OnPause;
+            LightingController.OnDrumEvent -= OnDrumEvent;
+            LightingController.OnVocalsEvent -= OnVocalsEvent;
+            LightingController.OnBeatLineEvent -= OnBeatLineEvent;
+            LightingController.OnStageEffectEvent -= OnStageEffectEvent;
+            LightingController.OnLightingEvent -= OnLightingEvent;
+
+            InputSystem.onDeviceChange -= OnDeviceChange;
+
+            AllLedsOff();
+            KillCue();
+            _stageKits.ForEach(kit => kit.ResetHaptics());
+        }
+
+        private void KillCue()
+        {
+            if (CurrentLightingCue == null) return;
+
+            foreach (var primitive in CurrentLightingCue.CuePrimitives)
+            {
+                if ((int) SceneIndex.Gameplay == SceneManager.GetActiveScene().buildIndex)
+                {
+                    //When a BeatPattern primitive is created, it subscribes its OnBeat to the BeatEventManager.
+                    GameManager.BeatEventHandler.Unsubscribe(primitive.OnBeat);
+                }
+
+                primitive.CancellationTokenSource?.Cancel();
+            }
+
+            _cuePrimitives.Clear();
+            PreviousLightingCue = CurrentLightingCue;
+            CurrentLightingCue = null;
+        }
+
+        #endregion
+
+        #region Event Handlers
+
+        private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+        {
+            // Listen for new stage kits being added or removed at any time.
+            if (change == InputDeviceChange.Added)
+            {
+                if (device is IStageKitHaptics haptics) _stageKits.Add(haptics);
+            }
+            else if (change == InputDeviceChange.Removed)
+            {
+                if (device is IStageKitHaptics haptics) _stageKits.Remove(haptics);
+            }
+        }
+
+        private void OnLightingEvent(LightingEvent value)
+        {
+            if (_stageKits.Count == 0 || !SettingsManager.Settings.StageKitEnabled.Value)
+            {
+                return;
+            }
+
+            if (value.Type == LightingType.Keyframe_Next && CurrentLightingCue != null)
+            {
+                CurrentLightingCue.HandleLightingEvent(value.Type);
+
+                foreach (var primitive in CurrentLightingCue.CuePrimitives)
+                {
+                    primitive.HandleLightingEvent(value.Type);
+                }
+            }
+            else
+            {
+                switch (value.Type)
+                {
+                    case LightingType.Menu:
+                        CurrentLightingCue = new MenuLighting();
+                        break;
+
+                    case LightingType.Score:
+                        CurrentLightingCue = new ScoreLighting();
+                        break;
+
+                    //Key Framed cues
+                    case LightingType.Warm_Manual:
+                        ChangeCues(new ManualWarm());
+                        break;
+
+                    case LightingType.Cool_Manual:
+                        ChangeCues(new ManualCool());
+                        break;
+
+                    case LightingType.Dischord:
+                        SetStrobeSpeed(StageKitStrobeSpeed.Off);
+                        ChangeCues(new Dischord());
+                        break;
+
+                    case LightingType.Stomp:
+                        SetStrobeSpeed(StageKitStrobeSpeed.Off);
+                        ChangeCues(new Stomp());
+                        break;
+
+                    case LightingType.Default:
+                        ChangeCues(new Default());
+                        break;
+
+                    //Continuous cues
+                    case LightingType.Warm_Automatic:
+                        SetStrobeSpeed(StageKitStrobeSpeed.Off);
+                        ChangeCues(new LoopWarm());
+                        break;
+
+                    case LightingType.Cool_Automatic:
+                        SetStrobeSpeed(StageKitStrobeSpeed.Off);
+                        ChangeCues(new LoopCool());
+                        break;
+
+                    case LightingType.BigRockEnding:
+                        ChangeCues(new BigRockEnding());
+                        break;
+
+                    case LightingType.Searchlights:
+                        SetStrobeSpeed(StageKitStrobeSpeed.Off);
+                        ChangeCues(new SearchLight());
+                        break;
+
+                    case LightingType.Frenzy:
+                        ChangeCues(new Frenzy());
+                        break;
+
+                    case LightingType.Sweep:
+                        ChangeCues(new Sweep());
+                        break;
+
+                    case LightingType.Harmony:
+                        ChangeCues(new Harmony());
+                        break;
+
+                    //Instant cues
+                    case LightingType.Flare_Slow:
+                        ChangeCues(new FlareSlow());
+                        break;
+
+                    case LightingType.Flare_Fast:
+                        ChangeCues(new FlareFast());
+                        break;
+
+                    case LightingType.Silhouettes_Spotlight:
+                        ChangeCues(new SilhouetteSpot());
+                        break;
+
+                    case LightingType.Silhouettes:
+                        ChangeCues(new Silhouettes());
+                        break;
+
+                    case LightingType.Blackout_Spotlight:
+                    case LightingType.Blackout_Slow:
+                    case LightingType.Blackout_Fast:
+                        ChangeCues(new Blackout());
+                        SetStrobeSpeed(StageKitStrobeSpeed.Off);
+                        break;
+
+                    case LightingType.Intro:
+                        ChangeCues(new Intro());
+                        break;
+
+                    //Strobe calls
+                    case LightingType.Strobe_Slow:
+                        SetStrobeSpeed(StageKitStrobeSpeed.Slow);
+                        break;
+
+                    case LightingType.Strobe_Medium:
+                        SetStrobeSpeed(StageKitStrobeSpeed.Medium);
+                        break;
+
+                    case LightingType.Strobe_Fast:
+                        //Lighting cues are NEVER on with Fast Strobe.
+                        //Not sure about Slow Strobe.
+                        KillCue();
+                        AllLedsOff();
+                        SetStrobeSpeed(StageKitStrobeSpeed.Fast);
+                        break;
+
+                    case LightingType.Strobe_Fastest:
+                        SetStrobeSpeed(StageKitStrobeSpeed.Fastest);
+                        break;
+
+                    case LightingType.Strobe_Off:
+                        SetStrobeSpeed(StageKitStrobeSpeed.Off);
+                        break;
+
+                    //Ignored cues
+                    //these are handled in the cue classes via their primitive calls.
+                    case LightingType.Keyframe_Next:
+                    //no cue listens to Previous.
+                    case LightingType.Keyframe_Previous:
+                    //no cue listens to First.
+                    case LightingType.Keyframe_First:
+
+                    //In-game lighting calls we currently ignore but might do something with in an
+                    //extended "funky fresh" mode.
+                    case LightingType.Verse:
+                    case LightingType.Chorus:
+                        break;
+
+                    default:
+                        Debug.LogWarning("Unhandled lighting event: " + value.Type);
+                        break;
+                }
+            }
+        }
+
+        private void OnSceneUnloaded(Scene scene)
+        {
+            AllLedsOff();
+            KillCue();
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.buildIndex == (int) SceneIndex.Gameplay)
+            {
+                GameManager = FindObjectOfType<GameManager>();
+            }
+        }
+
+        private void OnDrumEvent(DrumNote value)
+        {
+            //Dischord listens to the red pad
+
+            if (_stageKits.Count == 0 || !SettingsManager.Settings.StageKitEnabled.Value || CurrentLightingCue == null)
+            {
+                return;
+            }
+
+            CurrentLightingCue.HandleDrumEvent(value.Pad);
+
+            foreach (var primitive in CurrentLightingCue.CuePrimitives)
+            {
+                primitive.HandleDrumEvent(value.Pad);
+            }
+        }
+
+        private void OnVocalsEvent(VocalNote value)
+        {
+            //End of vocal phrase. SilhouetteSpot is the only cue that uses vocals, listening to the end of the phrase.
+
+            if (_stageKits.Count == 0 || !SettingsManager.Settings.StageKitEnabled.Value || CurrentLightingCue == null)
+            {
+                return;
+            }
+
+            CurrentLightingCue.HandleVocalEvent(0);
+
+            foreach (var primitive in CurrentLightingCue.CuePrimitives)
+            {
+                primitive.HandleVocalEvent(0);
+            }
+        }
+
+        private void OnPause(bool isPaused)
+        {
+            //On Pause, turn off the fog and strobe so people don't die, but leave the leds on, looks nice.
+
+            if (isPaused)
+            {
+
+                PreviousFogState = CurrentFogState;
+                PreviousStrobeState = CurrentStrobeState;
+                SetFogMachine(FogState.Off);
+                SetStrobeSpeed(StageKitStrobeSpeed.Off);
+            }
+            else
+            {
+                SetFogMachine(PreviousFogState);
+                SetStrobeSpeed(PreviousStrobeState);
+            }
+        }
+
+        private void OnStageEffectEvent(StageEffectEvent value)
+        {
+            if (_stageKits.Count == 0 || !SettingsManager.Settings.StageKitEnabled.Value)
+            {
+                return;
+            }
+
+            switch (value.Effect)
+            {
+                case StageEffect.FogOn:
+                    SetFogMachine(FogState.On);
+                    break;
+
+                case StageEffect.FogOff:
+                    SetFogMachine(FogState.Off);
+                    break;
+
+                case StageEffect.BonusFx:
+                    //Currently ignored but might do something with in an extended "funky fresh" mode.
+                    break;
+
+                default:
+                    Debug.LogWarning("(Stage Kit Controller) Unknown stage effect: " + value);
+                    break;
+            }
+        }
+
+        private void OnBeatLineEvent(Beatline value)
+        {
+            //"Major" and "Minor" are now "Measure" and "Strong", respectively. I've never encountered "Weak" in any
+            //official chart and don't know what that used to be called, if anything.
+            //Any beat timed cue primitive listens to these.
+
+            if (_stageKits.Count == 0 || !SettingsManager.Settings.StageKitEnabled.Value || CurrentLightingCue == null)
+            {
+                return;
+            }
+
+            CurrentLightingCue.HandleBeatlineEvent(value.Type);
+
+            foreach (var primitive in CurrentLightingCue.CuePrimitives)
+            {
+                primitive.HandleBeatlineEvent(value.Type);
+            }
+        }
+
+        #endregion
+
+        #region Command Queueing and Sending
 
         //The actual queueing and sending of commands
         private void EnqueueCommand(int command, byte data)
@@ -311,19 +631,16 @@ namespace YARG.Integration.StageKit
                             _                           => StageKitLedColor.All
                         };
                         //This is where the magic happens
-                        StageKits.ForEach(kit => kit.SetLeds(iToStageKitLedColor, (StageKitLed) curCommand.data));
-                        OnLedSet?.Invoke(iToStageKitLedColor, (StageKitLed) curCommand.data);
+                        _stageKits.ForEach(kit => kit.SetLeds(iToStageKitLedColor, (StageKitLed) curCommand.data));
                         _previousLedState[curCommand.command] = _currentLedState[curCommand.command];
                         break;
 
                     case (int) CommandType.FogMachine:
-                        StageKits.ForEach(kit => kit.SetFogMachine(curCommand.data == 1));
-                        OnFogSet?.Invoke(curCommand.data == 1);
+                        _stageKits.ForEach(kit => kit.SetFogMachine(curCommand.data == 1));
                         break;
 
                     case (int) CommandType.StrobeSpeed:
-                        StageKits.ForEach(kit => kit.SetStrobeSpeed((StageKitStrobeSpeed) curCommand.data));
-                        OnStrobeSet?.Invoke((StageKitStrobeSpeed) curCommand.data);
+                        _stageKits.ForEach(kit => kit.SetStrobeSpeed((StageKitStrobeSpeed) curCommand.data));
                         break;
 
                     default:
@@ -345,6 +662,10 @@ namespace YARG.Integration.StageKit
 
             _isSendingCommands = false;
         }
+
+        #endregion
+
+        #region Setters
 
         public void SetLed(int color, byte led)
         {
@@ -375,7 +696,16 @@ namespace YARG.Integration.StageKit
             CurrentStrobeState = strobeSpeed;
         }
 
-        //Just a helper function
+        #endregion
+
+        #region Helpers
+
+        private void ChangeCues(StageKitLightingCue cue)
+        {
+            KillCue();
+            CurrentLightingCue = cue;
+        }
+
         public void AllLedsOff()
         {
             Instance.SetLed((int) LedColor.Red, NONE);
@@ -383,5 +713,7 @@ namespace YARG.Integration.StageKit
             Instance.SetLed((int) LedColor.Blue, NONE);
             Instance.SetLed((int) LedColor.Yellow, NONE);
         }
+
+        #endregion
     }
 }
