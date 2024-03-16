@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace YARG.Logging.Unity
@@ -13,6 +15,8 @@ namespace YARG.Logging.Unity
 
         public static UnityInternalLogException UnityInternalLogExceptionDelegate { get; private set; }
 
+        public static UnityInternalExtractFormattedStackTrace UnityInternalExtractFormattedStackTraceDelegate { get; private set; }
+
         private static FieldInfo s_LoggerField;
 
         private static ILogger _originalUnityLogger;
@@ -22,14 +26,19 @@ namespace YARG.Logging.Unity
             const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static;
 
             var debugLogHandler = typeof(Debug).Assembly.GetType("UnityEngine.DebugLogHandler");
+
             var logMethod = debugLogHandler.GetMethod("Internal_Log", flags);
             var logExceptionMethod = debugLogHandler.GetMethod("Internal_LogException", flags);
 
-            var deleg = logMethod.CreateDelegate(typeof(UnityInternalLog));
-            var delegException = logExceptionMethod.CreateDelegate(typeof(UnityInternalLogException));
+            var logDelegate = logMethod.CreateDelegate(typeof(UnityInternalLog));
+            var logExceptionDelegate = logExceptionMethod.CreateDelegate(typeof(UnityInternalLogException));
 
-            UnityInternalLogDelegate = (UnityInternalLog) deleg;
-            UnityInternalLogExceptionDelegate = (UnityInternalLogException) delegException;
+            var extractStackTrace = typeof(StackTraceUtility).GetMethod("ExtractFormattedStackTrace", flags);
+            var extractStackTraceDelegate = extractStackTrace.CreateDelegate(typeof(UnityInternalExtractFormattedStackTrace));
+
+            UnityInternalLogDelegate = (UnityInternalLog) logDelegate;
+            UnityInternalLogExceptionDelegate = (UnityInternalLogException) logExceptionDelegate;
+            UnityInternalExtractFormattedStackTraceDelegate = (UnityInternalExtractFormattedStackTrace) extractStackTraceDelegate;
 
             // Override internal Debug.s_Logger to our own
             var debugType = typeof(Debug);
@@ -68,5 +77,7 @@ namespace YARG.Logging.Unity
         public delegate void UnityInternalLog(LogType level, LogOption options, string msg, Object obj);
 
         public delegate void UnityInternalLogException(Exception ex, Object obj);
+
+        public delegate string UnityInternalExtractFormattedStackTrace(StackTrace stackTrace);
     }
 }

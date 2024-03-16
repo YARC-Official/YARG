@@ -40,7 +40,7 @@ namespace YARG.Logging
             _fileYargLogListener = new FileYargLogListener(GetLogPath(), new StandardYargLogFormatter());
 
             // Add log listeners here
-            YargLogger.AddLogListener(new UnityEditorLogListener(new UnityEditorLogFormat()));
+            YargLogger.AddLogListener(new UnityEditorLogListener(new UnityEditorConsoleLogFormat()));
             YargLogger.AddLogListener(_fileYargLogListener);
 
             UnityInternalLogWrapper.OverwriteUnityInternals();
