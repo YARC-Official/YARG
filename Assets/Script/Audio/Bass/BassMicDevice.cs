@@ -5,254 +5,290 @@ using ManagedBass.Fx;
 using UnityEngine;
 using YARG.Audio.PitchDetection;
 using YARG.Core.Logging;
+using YARG.Core.Audio;
+using YARG.Core.IO;
 using YARG.Input;
 using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
-    public class BassMicDevice : IMicDevice
+    internal class MonitorPlaybackHandle : IDisposable
     {
-        // This is as low as we can go with BASS
-        private const int CLEAN_RECORD_PERIOD_MS = 5;
-
-        public string DisplayName => _deviceInfo.Name;
-        public bool IsDefault => _deviceInfo.IsDefault;
-
-        public bool IsMonitoring { get; set; }
-        public bool IsRecordingOutput { get; set; }
-
-        private float? _lastPitchOutput;
-        private readonly ConcurrentQueue<MicOutputFrame> _frameQueue = new();
-
-        private int _deviceId;
-        private DeviceInfo _deviceInfo;
-
-        private int _cleanRecordHandle;
-        private int _processedRecordHandle;
-        private int _applyGainHandle;
-        private int _monitorPlaybackHandle;
-
-        private bool _initialized;
-        private bool _disposed;
-
-        private PitchTracker _pitchDetector;
-
-        private readonly ReverbParameters _monitoringReverbParameters = new()
+        private static readonly ReverbParameters REVERB_PARAMETERS = new()
         {
             fDryMix = 0.3f, fWetMix = 1f, fRoomSize = 0.4f, fDamp = 0.7f
         };
 
-        private readonly PeakEQParameters _lowEqParameters = new()
+        public static MonitorPlaybackHandle? Create(int channels)
+        {
+            // Set up monitoring stream
+            int monitorPlaybackHandle = Bass.CreateStream(44100, channels, BassFlags.Default, StreamProcedureType.Push);
+            if (monitorPlaybackHandle == 0)
+            {
+                YargLogger.LogFormatError("Failed to create monitor stream: {0}!", Bass.LastError);
+                return null;
+            }
+
+            var handle = new MonitorPlaybackHandle(monitorPlaybackHandle);
+            using var wrapper = DisposableCounter.Wrap(handle);
+
+            // Add reverb to the monitor playback
+            int reverbHandle = BassHelpers.FXAddParameters(monitorPlaybackHandle, EffectType.Freeverb, REVERB_PARAMETERS, 1);
+            if (reverbHandle == 0)
+            {
+                YargLogger.LogError("Failed to add reverb to monitor stream!");
+                return null;
+            }
+
+            // Apply gain to the playback
+            handle._applyGain = Bass.ChannelSetDSP(monitorPlaybackHandle, ApplyGain);
+            if (handle._applyGain == 0)
+            {
+                YargLogger.LogFormatError("Failed to add gain to monitor stream: {0}!", Bass.LastError);
+                return null;
+            }
+
+            // Start monitoring
+            if (!Bass.ChannelPlay(monitorPlaybackHandle))
+            {
+                YargLogger.LogFormatError("Failed to start monitor stream: {0}!", Bass.LastError);
+                return null;
+            }
+            return wrapper.Release();
+        }
+
+        public readonly int Handle;
+        private bool _disposed;
+        private int _applyGain;
+
+        private MonitorPlaybackHandle(int handle)
+        {
+            Handle = handle;
+        }
+
+        private static void ApplyGain(int handle, int channel, IntPtr buffer, int length, IntPtr user)
+        {
+            BassHelpers.ApplyGain(1.3f, buffer, length);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                Bass.StreamFree(Handle);
+                if (_applyGain != 0)
+                {
+                    Bass.StreamFree(_applyGain);
+                }
+                _disposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~MonitorPlaybackHandle()
+        {
+            Dispose(false);
+        }
+    }
+
+    internal class RecordingHandle : IDisposable
+    {
+        // This is as low as we can go with BASS
+        internal const int CLEAN_RECORD_PERIOD_MS = 5;
+
+        public static RecordingHandle? CreateCleanHandle(int channels, int monitorHandle)
+        {
+            bool ProcessCleanRecordData(int handle, IntPtr buffer, int length, IntPtr user)
+            {
+                // Copies the data from the recording buffer to the monitor playback buffer.
+                Bass.StreamPutData(monitorHandle, buffer, length);
+                return true;
+            }
+
+            int handle = Bass.RecordStart(44100, channels, BassFlags.Default, CLEAN_RECORD_PERIOD_MS, ProcessCleanRecordData, IntPtr.Zero);
+            if (handle == 0)
+            {
+                YargLogger.LogFormatError("Failed to start clean recording: {0}!", Bass.LastError);
+                return null;
+            }
+            return new RecordingHandle(handle);
+        }
+
+        public static RecordingHandle? CreateHandle(int channels, RecordProcedure procedure)
+        {
+            int handle = Bass.RecordStart(44100, channels, BassFlags.Default, MicDevice.RECORD_PERIOD_MS, procedure, IntPtr.Zero);
+            if (handle == 0)
+            {
+                YargLogger.LogFormatError("Failed to start clean recording: {0}!", Bass.LastError);
+                return null;
+            }
+            return new RecordingHandle(handle);
+        }
+
+        public readonly int Handle;
+        private bool _disposed;
+
+        private RecordingHandle(int handle)
+        {
+            Handle = handle;
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                Bass.ChannelStop(Handle);
+                Bass.StreamFree(Handle);
+                _disposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~RecordingHandle()
+        {
+            Dispose(false);
+        }
+    }
+
+    public sealed class BassMicDevice : MicDevice
+    {
+        internal static BassMicDevice? Create(int deviceId, string name)
+        {
+            // Must initialise device before recording
+            if (!Bass.RecordInit(deviceId) || !Bass.RecordGetInfo(out var info))
+            {
+                YargLogger.LogFormatError("Failed to initialize recording device: {0}!", Bass.LastError);
+                return null;
+            }
+
+            var monitorPlayback = MonitorPlaybackHandle.Create(info.Channels);
+            if (monitorPlayback == null)
+            {
+                return null;
+            }
+
+            var cleanRecord = RecordingHandle.CreateCleanHandle(info.Channels, monitorPlayback.Handle);
+            if (cleanRecord == null)
+            {
+                monitorPlayback.Dispose();
+                return null;
+            }
+
+            var device = new BassMicDevice(deviceId, name, monitorPlayback, cleanRecord);
+            using var wrapper = DisposableCounter.Wrap(device);
+            device._processedRecord = RecordingHandle.CreateHandle(info.Channels, device.ProcessRecordData);
+            if (cleanRecord == null)
+            {
+                return null;
+            }
+
+            int lowEqHandle = BassHelpers.AddEqToChannel(device._processedRecord.Handle, _lowEqParameters);
+            int highEqHandle = BassHelpers.AddEqToChannel(device._processedRecord.Handle, _highEqParameters);
+            if (lowEqHandle == 0 || highEqHandle == 0)
+            {
+                YargLogger.LogFormatError("Failed to add EQ to recording stream: {0}!", Bass.LastError);
+                return null;
+            }
+            return wrapper.Release();
+        }
+
+        private static readonly PeakEQParameters _lowEqParameters = new()
         {
             fBandwidth = 2.5f, fCenter = 20f, fGain = -10f
         };
 
-        private readonly PeakEQParameters _highEqParameters = new()
+        private static readonly PeakEQParameters _highEqParameters = new()
         {
             fBandwidth = 2.5f, fCenter = 10_000f, fGain = -10f
         };
 
-        public BassMicDevice(int deviceId, DeviceInfo info)
-        {
-            _deviceId = deviceId;
-            _deviceInfo = info;
-        }
+        private float? _lastPitchOutput;
+        private readonly ConcurrentQueue<MicOutputFrame> _frameQueue = new();
+        private readonly PitchTracker _pitchDetector = new();
 
-        public int Initialize()
-        {
-            if (_initialized || _disposed) return 0;
+        private readonly int _deviceId;
+        private readonly MonitorPlaybackHandle _monitor;
+        private readonly RecordingHandle _cleanRecord;
+        private RecordingHandle _processedRecord;
 
+        public override int Reset()
+        {
             _frameQueue.Clear();
 
-            // Must initialise device before recording
-            if (!Bass.RecordInit(_deviceId) || !Bass.RecordGetInfo(out var info))
+            // Query number of bytes in the recording buffer
+            int available = Bass.ChannelGetData(_cleanRecord.Handle, IntPtr.Zero, (int) DataFlags.Available);
+
+            // Getting channel data removes it from the buffer (clearing it)
+            if (Bass.ChannelGetData(_cleanRecord.Handle, IntPtr.Zero, available) == -1)
             {
-                YargLogger.LogFormatError("Failed to initialize recording device: {0}", Bass.LastError);
                 return (int) Bass.LastError;
             }
 
-            const BassFlags FLAGS = BassFlags.Default;
+            available = Bass.ChannelGetData(_processedRecord.Handle, IntPtr.Zero, (int) DataFlags.Available);
 
-            // We want to start recording immediately because of device context switching and device numbers.
-            // If we initialize the device but don't record immediately, the device number might change
-            // and we'll be recording from the wrong device.
-            _cleanRecordHandle = Bass.RecordStart(44100, info.Channels, FLAGS, CLEAN_RECORD_PERIOD_MS,
-                ProcessCleanRecordData, IntPtr.Zero);
-            _processedRecordHandle = Bass.RecordStart(44100, info.Channels, FLAGS, IMicDevice.RECORD_PERIOD_MS,
-                ProcessRecordData, IntPtr.Zero);
-            if (_cleanRecordHandle == 0 || _processedRecordHandle == 0)
+            if (Bass.ChannelGetData(_processedRecord.Handle, IntPtr.Zero, available) == -1)
             {
-                YargLogger.LogFormatError("Failed to start recording: {0}", Bass.LastError);
-                Dispose();
                 return (int) Bass.LastError;
             }
 
-            // Add EQ
-            int lowEqHandle = BassHelpers.AddEqToChannel(_processedRecordHandle, _lowEqParameters);
-            int highEqHandle = BassHelpers.AddEqToChannel(_processedRecordHandle, _highEqParameters);
-            if (lowEqHandle == 0 || highEqHandle == 0)
+            // Undefined position flag in ManagedBass. Will flush the buffer of a decoding channel when setting the position
+            // By default channels are flushed when setting the position, but this is not the case for decoding channels.
+            const int bassPosFlush = 0x1000000;
+
+            // This channel isn't a decoding channel so the flag technically isn't needed. But in the event it is changed to one,
+            // then this will ensure it continues to work.
+            if (!Bass.ChannelSetPosition(_monitor.Handle, 0, (PositionFlags) bassPosFlush))
             {
-                YargLogger.LogError("Failed to add EQ to recording stream!");
-                Dispose();
                 return (int) Bass.LastError;
             }
-
-            // Set up monitoring stream
-            _monitorPlaybackHandle = Bass.CreateStream(44100, info.Channels, FLAGS, StreamProcedureType.Push);
-            if (_monitorPlaybackHandle == 0)
-            {
-                YargLogger.LogFormatError("Failed to create monitor stream: {0}", Bass.LastError);
-                Dispose();
-                return (int) Bass.LastError;
-            }
-
-            // Add reverb to the monitor playback
-            int reverbHandle = BassHelpers.FXAddParameters(_monitorPlaybackHandle, EffectType.Freeverb,
-                _monitoringReverbParameters, 1);
-            if (reverbHandle == 0)
-            {
-                YargLogger.LogError("Failed to add reverb to monitor stream!");
-                Dispose();
-                return (int) Bass.LastError;
-            }
-
-            // Apply gain to the playback
-            _applyGainHandle = Bass.ChannelSetDSP(_monitorPlaybackHandle, ApplyGain);
-            if (_applyGainHandle == 0)
-            {
-                YargLogger.LogFormatError("Failed to add gain to monitor stream: {0}", Bass.LastError);
-                Dispose();
-                return (int) Bass.LastError;
-            }
-
-            // Start monitoring
-            if (!Bass.ChannelPlay(_monitorPlaybackHandle))
-            {
-                YargLogger.LogFormatError("Failed to start monitor stream: {0}", Bass.LastError);
-                Dispose();
-                return (int) Bass.LastError;
-            }
-
-            IsMonitoring = true;
-            SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Value);
-
-            _pitchDetector = new PitchTracker();
-
-            _initialized = true;
             return 0;
         }
 
-        public int Reset()
+        public override bool DequeueOutputFrame(out MicOutputFrame frame)
         {
-            if (!_initialized || _disposed) return 0;
-
-            _frameQueue.Clear();
-
-            if(_cleanRecordHandle != 0)
-            {
-                // Query number of bytes in the recording buffer
-                int available = Bass.ChannelGetData(_cleanRecordHandle, IntPtr.Zero, (int)DataFlags.Available);
-
-                // Getting channel data removes it from the buffer (clearing it)
-                if (Bass.ChannelGetData(_cleanRecordHandle, IntPtr.Zero, available) == -1)
-                {
-                    return (int) Bass.LastError;
-                }
-            }
-
-            if(_processedRecordHandle != 0)
-            {
-                int available = Bass.ChannelGetData(_processedRecordHandle, IntPtr.Zero, (int)DataFlags.Available);
-
-                if (Bass.ChannelGetData(_processedRecordHandle, IntPtr.Zero, available) == -1)
-                {
-                    return (int) Bass.LastError;
-                }
-            }
-
-            if(_monitorPlaybackHandle != 0)
-            {
-                // Undefined position flag in ManagedBass. Will flush the buffer of a decoding channel when setting the position
-                // By default channels are flushed when setting the position, but this is not the case for decoding channels.
-                const int bassPosFlush = 0x1000000;
-
-                // This channel isn't a decoding channel so the flag technically isn't needed. But in the event it is changed to one,
-                // then this will ensure it continues to work.
-                if (!Bass.ChannelSetPosition(_monitorPlaybackHandle, 0, (PositionFlags) bassPosFlush))
-                {
-                    return (int) Bass.LastError;
-                }
-            }
-
-            return 0;
+            return _frameQueue.TryDequeue(out frame);
         }
 
-        public bool DequeueOutputFrame(out MicOutputFrame frame)
-        {
-            frame = new MicOutputFrame();
-
-            if (_frameQueue.IsEmpty)
-            {
-                return false;
-            }
-
-            if (_frameQueue.TryDequeue(out frame))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        public void ClearOutputQueue()
+        public override void ClearOutputQueue()
         {
             _frameQueue.Clear();
         }
 
-        public void SetMonitoringLevel(float volume)
+        public override void SetMonitoringLevel(float volume)
         {
-            if (_monitorPlaybackHandle == 0) return;
-
-            if (!Bass.ChannelSetAttribute(_monitorPlaybackHandle, ChannelAttribute.Volume, volume))
+            if (!Bass.ChannelSetAttribute(_monitor.Handle, ChannelAttribute.Volume, volume))
             {
                 YargLogger.LogFormatError("Failed to set volume attribute: {0}", Bass.LastError);
             }
         }
 
-        public SerializedMic Serialize()
+        public override SerializedMic Serialize()
         {
-            return new SerializedMic
-            {
-                DisplayName = DisplayName
-            };
+            return new SerializedMic(DisplayName);
         }
 
-        public bool IsSerializedMatch(SerializedMic mic)
+        private BassMicDevice(int deviceId, string name, MonitorPlaybackHandle monitorHandle, RecordingHandle cleanHandle)
+            : base(name)
         {
-            return mic.DisplayName == DisplayName;
-        }
-
-        private bool ProcessCleanRecordData(int handle, IntPtr buffer, int length, IntPtr user)
-        {
-            // Wait for initialization to complete before processing data
-            if (!_initialized)
-            {
-                return true;
-            }
-
-            // Copies the data from the recording buffer to the monitor playback buffer.
-            if (IsMonitoring)
-            {
-                Bass.StreamPutData(_monitorPlaybackHandle, buffer, length);
-            }
-
-            return true;
+            _deviceId = deviceId;
+            _monitor = monitorHandle;
+            _cleanRecord = cleanHandle;
         }
 
         private bool ProcessRecordData(int handle, IntPtr buffer, int length, IntPtr user)
         {
             // Wait for initialization to complete before processing data
-            if (!_initialized || !IsRecordingOutput)
+            if (!IsRecordingOutput)
             {
                 return true;
             }
@@ -261,22 +297,20 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        private void ApplyGain(int handle, int channel, IntPtr buffer, int length, IntPtr user)
-        {
-            BassHelpers.ApplyGain(1.3f, buffer, length);
-        }
-
-        private unsafe void CalculatePitchAndAmplitude(IntPtr buffer, int byteLength)
+        private void CalculatePitchAndAmplitude(IntPtr buffer, int byteLength)
         {
             int sampleCount = byteLength / sizeof(short);
             Span<float> floatBuffer = stackalloc float[sampleCount];
 
             // Convert 16 bit buffer to floats
             // If this isn't 16 bit god knows what device they're using.
-            var shortBufferSpan = new ReadOnlySpan<short>((short*) buffer, sampleCount);
-            for (int i = 0; i < sampleCount; i++)
+            unsafe
             {
-                floatBuffer[i] = shortBufferSpan[i] / 32768f;
+                var shortBufferSpan = new ReadOnlySpan<short>((short*) buffer, sampleCount);
+                for (int i = 0; i < sampleCount; i++)
+                {
+                    floatBuffer[i] = shortBufferSpan[i] / 32768f;
+                }
             }
 
             // Calculate the root mean square
@@ -311,7 +345,10 @@ namespace YARG.Audio.BASS
             }
 
             // We cannot push a frame if there was no pitch
-            if (_lastPitchOutput == null) return;
+            if (_lastPitchOutput == null)
+            {
+                return;
+            }
 
             // Queue a MicOutput frame
             var frame = new MicOutputFrame(
@@ -319,51 +356,13 @@ namespace YARG.Audio.BASS
             _frameQueue.Enqueue(frame);
         }
 
-        public void Dispose()
+        protected override void DisposeUnmanagedResources()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                // Free managed resources here
-                if (disposing)
-                {
-                }
-
-                // Free unmanaged resources here
-                if (_cleanRecordHandle != 0)
-                {
-                    Bass.ChannelStop(_cleanRecordHandle);
-                    Bass.StreamFree(_cleanRecordHandle);
-                    _cleanRecordHandle = 0;
-                }
-
-                if (_processedRecordHandle != 0)
-                {
-                    Bass.ChannelStop(_processedRecordHandle);
-                    Bass.StreamFree(_processedRecordHandle);
-                    _processedRecordHandle = 0;
-                }
-
-                if (_monitorPlaybackHandle != 0)
-                {
-                    Bass.StreamFree(_monitorPlaybackHandle);
-                    _monitorPlaybackHandle = 0;
-                }
-
-                // Free the recording device
-                if (_initialized)
-                {
-                    Bass.CurrentRecordingDevice = _deviceId;
-                    Bass.RecordFree();
-                }
-
-                _disposed = true;
-            }
+            _cleanRecord.Dispose();
+            _processedRecord.Dispose();
+            _monitor.Dispose();
+            Bass.CurrentRecordingDevice = _deviceId;
+            Bass.RecordFree();
         }
     }
 }

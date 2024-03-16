@@ -1,8 +1,10 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Audio;
+using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Menu.Navigation;
@@ -127,12 +129,13 @@ namespace YARG.Menu.ProfileList
             }
 
             // Add available microphones
-            foreach (var microphone in GlobalVariables.AudioManager.GetAllInputDevices())
+            foreach (var microphone in AudioManager.Instance.GetAllInputDevices())
             {
                 devicesAvailable = true;
-                dialog.AddListButton(microphone.DisplayName, () =>
+                dialog.AddListButton(microphone.name, () =>
                 {
-                    player.Bindings.AddMicrophone(microphone);
+                    var device = AudioManager.Instance.CreateDevice(microphone.id, microphone.name);
+                    player.Bindings.AddMicrophone(device);
                     selectedDevice = true;
                     DialogManager.Instance.ClearDialog();
                 });

@@ -91,7 +91,7 @@ namespace YARG.Gameplay.Player
             if (!GameManager.IsReplay)
             {
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.Vocals.Create(StarMultiplierThresholds, Player.Profile.CurrentDifficulty, IMicDevice.UPDATES_PER_SECOND);
+                EngineParams = Player.EnginePreset.Vocals.Create(StarMultiplierThresholds, Player.Profile.CurrentDifficulty, MicDevice.UPDATES_PER_SECOND);
             }
             else
             {
@@ -128,7 +128,7 @@ namespace YARG.Gameplay.Player
             {
                 if (_lastCombo >= 2)
                 {
-                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+                    AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
                 }
 
                 _lastCombo = Combo;
@@ -176,7 +176,7 @@ namespace YARG.Gameplay.Player
         private static double GetTimeThreshold(double lastTime)
         {
             // Add an arbitrary value to prevent it from hiding too fast
-            return lastTime + 1f / IMicDevice.UPDATES_PER_SECOND + 0.05;
+            return lastTime + 1f / MicDevice.UPDATES_PER_SECOND + 0.05;
         }
 
         protected override void UpdateVisuals(double time)

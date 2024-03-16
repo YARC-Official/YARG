@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Audio;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Core.Logging;
@@ -17,7 +18,7 @@ namespace YARG.Input
         public YargProfile Profile { get; }
 
         private SerializedMic _unresolvedMic;
-        public IMicDevice Microphone { get; private set; }
+        public MicDevice Microphone { get; private set; }
 
         private readonly List<SerializedInputDevice> _unresolvedDevices = new();
         private readonly List<InputDevice> _devices = new();
@@ -159,12 +160,10 @@ namespace YARG.Input
 
             if (_unresolvedMic is not null)
             {
-                foreach (var mic in GlobalVariables.AudioManager.GetAllInputDevices())
+                var device = AudioManager.Instance.GetInputDevice(_unresolvedMic.Name);
+                if (device != null)
                 {
-                    if (!mic.IsSerializedMatch(_unresolvedMic)) continue;
-
-                    AddMicrophone(mic);
-                    return;
+                    AddMicrophone(device);
                 }
             }
         }
@@ -354,15 +353,11 @@ namespace YARG.Input
             MenuBindings.UpdateBindingsForFrame(updateTime);
         }
 
-        public bool AddMicrophone(IMicDevice microphone)
+        public bool AddMicrophone(MicDevice microphone)
         {
             if (Microphone is not null)
             {
-                return false;
-            }
-
-            if (microphone.Initialize() != 0)
-            {
+                microphone.Dispose();
                 return false;
             }
 
