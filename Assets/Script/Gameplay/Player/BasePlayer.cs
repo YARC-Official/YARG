@@ -328,7 +328,7 @@ namespace YARG.Gameplay.Player
         {
             if (!GameManager.Paused)
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
+                AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
             }
         }
 
@@ -336,7 +336,7 @@ namespace YARG.Gameplay.Player
         {
             if (!GameManager.Paused)
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(active
+                AudioManager.PlaySoundEffect(active
                     ? SfxSample.StarPowerDeploy
                     : SfxSample.StarPowerRelease);
 

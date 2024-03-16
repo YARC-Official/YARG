@@ -13,7 +13,10 @@ namespace YARG.Menu.Persistent
 {
     public class MusicPlayer : MonoBehaviour
     {
-        public static SongEntry NowPlaying = null;
+        private static SongEntry _nowPlaying = null;
+        public static SongEntry NowPlaying => _nowPlaying;
+
+        private StemMixer _mixer = null;
 
         [SerializeField]
         private Image _playPauseButton;
@@ -44,26 +47,26 @@ namespace YARG.Menu.Persistent
                 gameObject.SetActive(false);
                 return;
             }
-
-            GlobalVariables.AudioManager.SongEnd += OnSongEnd;
             await NextSong();
         }
 
         private void OnDisable()
         {
-            GlobalVariables.AudioManager.SongEnd -= OnSongEnd;
+            _mixer?.Dispose();
             Stop();
         }
 
         private async UniTask NextSong()
         {
-            var song = SongContainer.GetRandomSong();
-            NowPlaying = song;
-            await UniTask.RunOnThreadPool(() => song.LoadAudio(GlobalVariables.AudioManager, 1f, SongStem.Crowd));
+            _mixer?.Dispose();
+
+            _nowPlaying = SongContainer.GetRandomSong();
+            _mixer = await UniTask.RunOnThreadPool(() => _nowPlaying.LoadAudio(AudioManager.Instance, 1f, SongStem.Crowd));
+            _mixer.SongEnd += OnSongEnd;
 
             // Set song title text
-            _songText.text = song.Name;
-            _artistText.text = song.Artist;
+            _songText.text = _nowPlaying.Name;
+            _artistText.text = _nowPlaying.Artist;
 
             Play();
         }
@@ -75,33 +78,34 @@ namespace YARG.Menu.Persistent
 
         private void Play()
         {
-            GlobalVariables.AudioManager.Play();
+            _mixer.Play();
             UpdateVolume();
             UpdatePlayOrPauseSprite();
         }
 
         private void Pause()
         {
-            GlobalVariables.AudioManager.Pause();
+            _mixer.Pause();
             UpdatePlayOrPauseSprite();
         }
 
         private void Stop()
         {
-            GlobalVariables.AudioManager.UnloadSong();
+            _mixer.Dispose();
+            _mixer = null;
         }
 
         public void UpdateVolume()
         {
-            if (GlobalVariables.AudioManager.IsPlaying && gameObject.activeSelf)
+            if (_mixer != null && _mixer.IsPlaying && gameObject.activeSelf)
             {
-                GlobalVariables.AudioManager.SetAllStemsVolume(SettingsManager.Settings.MusicPlayerVolume.Value);
+                _mixer.SetVolume(SettingsManager.Settings.MusicPlayerVolume.Value);
             }
         }
 
         private void UpdatePlayOrPauseSprite()
         {
-            if (GlobalVariables.AudioManager.IsPlaying)
+            if (_mixer != null && _mixer.IsPlaying)
             {
                 _playPauseButton.sprite = _pauseSprite;
             }
@@ -113,12 +117,12 @@ namespace YARG.Menu.Persistent
 
         public void PlayOrPauseClick()
         {
-            if (!GlobalVariables.AudioManager.IsAudioLoaded)
+            if (_mixer == null)
             {
                 return;
             }
 
-            if (GlobalVariables.AudioManager.IsPlaying)
+            if (_mixer.IsPlaying)
             {
                 Pause();
             }

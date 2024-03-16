@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using YARG.Audio;
+using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Gameplay;
 
@@ -7,11 +8,11 @@ namespace YARG.Input
 {
     public class MicInputContext
     {
-        public readonly IMicDevice Device;
+        public readonly MicDevice Device;
 
         private readonly GameManager _gameManager;
 
-        public MicInputContext(IMicDevice device, GameManager gameManager)
+        public MicInputContext(MicDevice device, GameManager gameManager)
         {
             Device = device;
 

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.Rendering;
 using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -11,21 +13,11 @@ namespace YARG.Gameplay
 {
     public partial class GameManager
     {
-        public struct StemState
+        public class StemState
         {
             public int Total;
-            public int Muted;
+            public int Audible;
             public int ReverbCount;
-
-            public float GetVolumeLevel()
-            {
-                if (Total == 0)
-                {
-                    return 1f;
-                }
-
-                return (float) (Total - Muted) / Total;
-            }
         }
 
         private readonly Dictionary<SongStem, StemState> _stemStates = new();
@@ -34,19 +26,26 @@ namespace YARG.Gameplay
 
         private void LoadAudio()
         {
-            // The stem states are initialized in "CreatePlayers"
             _stemStates.Clear();
-            _stemStates.Add(SongStem.Song, new StemState
+            _mixer = Song.LoadAudio(AudioManager.Instance, GlobalVariables.State.SongSpeed);
+            if (_mixer != null)
             {
-                Total = 1
-            });
-
-            if (Song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.State.SongSpeed))
-            {
-                GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
+                _mixer.SongEnd += OnAudioEnd;
 
                 bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
-                GlobalVariables.AudioManager.Options.UseMinimumStemVolume = isYargSong;
+                AudioManager.UseMinimumStemVolume = isYargSong;
+
+                foreach (var channel in _mixer.Channels)
+                {
+                    _stemStates.Add(channel.Stem, new StemState());
+                }
+
+                if (_stemStates.TryGetValue(SongStem.Song, out var state))
+                {
+                    // Ensures it will still play *somewhat*, even if all players mute
+                    state.Total = 1;
+                    state.Audible = 1;
+                }
             }
             else
             {
@@ -60,7 +59,7 @@ namespace YARG.Gameplay
             if (_starPowerActivations < 1 || beat.Type == BeatlineType.Weak)
                 return;
 
-            GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.Clap);
+            AudioManager.PlaySoundEffect(SfxSample.Clap);
         }
 
         public void ChangeStarPowerStatus(bool active)
@@ -75,62 +74,58 @@ namespace YARG.Gameplay
 
         public void ChangeStemMuteState(SongStem stem, bool muted)
         {
-            if (!SettingsManager.Settings.MuteOnMiss.Value) return;
-
-            if (!_stemStates.TryGetValue(stem, out var state)) return;
+            if (!SettingsManager.Settings.MuteOnMiss.Value || !_stemStates.TryGetValue(stem, out var state))
+            {
+                return;
+            }
 
             if (muted)
             {
-                state.Muted++;
+                --state.Audible;
             }
-            else
+            else if (state.Audible < state.Total)
             {
-                state.Muted = Math.Max(0, state.Muted - 1);
+                ++state.Audible;
             }
-            var volume = state.GetVolumeLevel();
-            GlobalVariables.AudioManager.SetStemVolume(stem, volume);
 
-            // Mute all of the stems for songs with multiple drum stems
-            // TODO: Implement proper drum stem muting
-            if (stem == SongStem.Drums)
-            {
-                GlobalVariables.AudioManager.SetStemVolume(SongStem.Drums1, volume);
-                GlobalVariables.AudioManager.SetStemVolume(SongStem.Drums2, volume);
-                GlobalVariables.AudioManager.SetStemVolume(SongStem.Drums3, volume);
-                GlobalVariables.AudioManager.SetStemVolume(SongStem.Drums4, volume);
-            }
+            double volume = (double)state.Audible / state.Total;
+            AudioManager.SetVolumeSetting(stem, volume);
         }
 
         public void ChangeStemReverbState(SongStem stem, bool reverb)
         {
-            if (SettingsManager.Settings.UseStarpowerFx.Value == StarPowerFxMode.Off
-            || (SettingsManager.Settings.UseStarpowerFx.Value == StarPowerFxMode.MultitrackOnly
-            && stem == SongStem.Song)) return;
+            var setting = SettingsManager.Settings.UseStarpowerFx.Value;
+            if (setting == StarPowerFxMode.Off)
+            {
+                return;
+            }
 
-            if (!_stemStates.TryGetValue(stem, out var state)) return;
+            StemState state;
+            while (!_stemStates.TryGetValue(stem, out state))
+            {
+                if (stem == SongStem.Song)
+                {
+                    return;
+                }
+                stem = SongStem.Song;
+            }
+
+            if (setting == StarPowerFxMode.MultitrackOnly && stem == SongStem.Song)
+            {
+                return;
+            }
 
             if (reverb)
             {
-                state.ReverbCount++;
+                ++state.ReverbCount;
             }
-            else
+            else if (state.ReverbCount > 0)
             {
-                state.ReverbCount = Math.Max(0, state.ReverbCount - 1);
+                --state.ReverbCount;
             }
 
             bool reverbActive = state.ReverbCount > 0;
-
-            GlobalVariables.AudioManager.ApplyReverb(stem, reverbActive);
-
-            // Reverb all of the stems for songs with multiple drum stems
-            // TODO: Implement proper drum stem reverbing
-            if (stem == SongStem.Drums)
-            {
-                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums1, reverbActive);
-                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums2, reverbActive);
-                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums3, reverbActive);
-                GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums4, reverbActive);
-            }
+            AudioManager.SetReverbSetting(stem, reverbActive);
         }
 
         private void OnAudioEnd()

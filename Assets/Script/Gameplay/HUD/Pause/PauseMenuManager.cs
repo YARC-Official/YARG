@@ -163,7 +163,6 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            GlobalVariables.AudioManager.UnloadSong();
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }
     }

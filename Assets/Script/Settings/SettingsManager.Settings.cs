@@ -93,16 +93,16 @@ namespace YARG.Settings
 
             #region Sound
 
-            public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => VolumeCallback(SongStem.Master, v));
-            public VolumeSetting GuitarVolume      { get; } = new(1f, v => VolumeCallback(SongStem.Guitar, v));
-            public VolumeSetting RhythmVolume      { get; } = new(1f, v => VolumeCallback(SongStem.Rhythm, v));
-            public VolumeSetting BassVolume        { get; } = new(1f, v => VolumeCallback(SongStem.Bass, v));
-            public VolumeSetting KeysVolume        { get; } = new(1f, v => VolumeCallback(SongStem.Keys, v));
-            public VolumeSetting DrumsVolume       { get; } = new(1f, DrumVolumeCallback);
-            public VolumeSetting VocalsVolume      { get; } = new(1f, VocalVolumeCallback);
-            public VolumeSetting SongVolume        { get; } = new(1f, v => VolumeCallback(SongStem.Song, v));
-            public VolumeSetting CrowdVolume       { get; } = new(0.5f, v => VolumeCallback(SongStem.Crowd, v));
-            public VolumeSetting SfxVolume         { get; } = new(0.8f, v => VolumeCallback(SongStem.Sfx, v));
+            public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => AudioManager.SetVolumeSetting(SongStem.Master, v));
+            public VolumeSetting GuitarVolume      { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Guitar, v));
+            public VolumeSetting RhythmVolume      { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Rhythm, v));
+            public VolumeSetting BassVolume        { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Bass, v));
+            public VolumeSetting KeysVolume        { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Keys, v));
+            public VolumeSetting DrumsVolume       { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Drums, v));
+            public VolumeSetting VocalsVolume      { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Vocals, v));
+            public VolumeSetting SongVolume        { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Song, v));
+            public VolumeSetting CrowdVolume       { get; } = new(0.5f, v => AudioManager.SetVolumeSetting(SongStem.Crowd, v));
+            public VolumeSetting SfxVolume         { get; } = new(0.8f, v => AudioManager.SetVolumeSetting(SongStem.Sfx, v));
             public VolumeSetting PreviewVolume     { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring   { get; } = new(0.7f, VocalMonitoringCallback);
@@ -385,27 +385,6 @@ namespace YARG.Settings
                 SettingsMenu.Instance.RefreshPreview();
             }
 
-            private static void VolumeCallback(SongStem stem, float volume)
-            {
-                GlobalVariables.AudioManager.UpdateVolumeSetting(stem, volume);
-            }
-
-            private static void DrumVolumeCallback(float volume)
-            {
-                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums, volume);
-                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums1, volume);
-                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums2, volume);
-                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums3, volume);
-                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums4, volume);
-            }
-
-            private static void VocalVolumeCallback(float volume)
-            {
-                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals, volume);
-                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, volume);
-                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, volume);
-            }
-
             private static void VocalMonitoringCallback(float volume)
             {
                 foreach (var player in PlayerContainer.Players)
@@ -421,22 +400,22 @@ namespace YARG.Settings
 
             // private static void UseWhammyFxChange(bool value)
             // {
-            //     GameManager.AudioManager.Options.UseWhammyFx = value;
+            //     AudioManager.UseWhammyFx = value;
             // }
 
             // private static void WhammyPitchShiftAmountChange(float value)
             // {
-            //     GlobalVariables.AudioManager.Options.WhammyPitchShiftAmount = value;
+            //     AudioManager.WhammyPitchShiftAmount = value;
             // }
             //
             // private static void WhammyOversampleFactorChange(int value)
             // {
-            //     GlobalVariables.AudioManager.Options.WhammyOversampleFactor = value;
+            //     AudioManager.WhammyOversampleFactor = value;
             // }
 
             private static void UseChipmunkSpeedChange(bool value)
             {
-                GlobalVariables.AudioManager.Options.IsChipmunkSpeedup = value;
+                AudioManager.IsChipmunkSpeedup = value;
             }
 
             private static void InputDeviceLoggingCallback(bool value)

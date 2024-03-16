@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using YARG.Audio;
+using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Menu.ListMenu;
@@ -66,8 +67,9 @@ namespace YARG.Menu.MusicLibrary
 
         private IReadOnlyList<SongCategory> _sortedSongs;
 
+        private readonly object _previewLock = new();
+        private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
-        private CancellationTokenSource _previewCanceller = new();
 
         private SongEntry _currentSong;
 
@@ -81,9 +83,6 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnEnable()
         {
-            // Set up preview context
-            _previewContext = new(GlobalVariables.AudioManager);
-
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
@@ -148,7 +147,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (CurrentSelection is SongViewType song)
             {
-                if (song.SongEntry == _currentSong)
+                if (song.SongEntry == _currentSong && (_previewContext == null || _previewContext.IsPlaying))
                 {
                     return;
                 }
@@ -160,11 +159,15 @@ namespace YARG.Menu.MusicLibrary
                 _currentSong = null;
             }
 
-            // Cancel the active song preview
-            if (!_previewCanceller.IsCancellationRequested)
+            CancellationTokenSource canceller;
+            lock (_previewLock)
             {
-                _previewCanceller.Cancel();
+                _previewCanceller?.Cancel();
+                _previewContext?.Stop();
+                _previewContext = null;
+                canceller = _previewCanceller = new CancellationTokenSource();
             }
+            StartPreview(canceller);
         }
 
         protected override List<ViewType> CreateViewList()
@@ -396,16 +399,21 @@ namespace YARG.Menu.MusicLibrary
         protected override void Update()
         {
             base.Update();
-            StartPreview();
         }
 
-        private void StartPreview()
+        private async void StartPreview(CancellationTokenSource canceller)
         {
-            if (_previewContext.IsPlaying || CurrentSelection is not SongViewType song) return;
+            if (CurrentSelection is not SongViewType song)
+            {
+                return;
+            }
 
-            _previewCanceller = new();
             float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
-            _previewContext.PlayPreview(song.SongEntry, previewVolume, _previewCanceller.Token).Forget();
+            var context = await song.SongEntry.LoadPreview(previewVolume, canceller);
+            if (context != null)
+            {
+                _previewContext = context;
+            }
         }
 
         private void OnDisable()
@@ -417,16 +425,13 @@ namespace YARG.Menu.MusicLibrary
 
             Navigator.Instance.PopScheme();
 
-            // Cancel the preview
-            if (!_previewCanceller.IsCancellationRequested)
-            {
-                _previewCanceller.Cancel();
-            }
-
-            _previewContext = null;
-
-
+            _previewContext?.Stop();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
+        }
+
+        private void OnDestroy()
+        {
+            _previewContext?.Stop();
         }
 
         private void Back()
@@ -437,6 +442,8 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
+            _previewCanceller?.Cancel();
+            _previewContext?.Dispose();
             MenuManager.Instance.PopMenu();
         }
 

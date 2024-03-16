@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Serialization;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -36,13 +37,12 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
             int? currentHighScore)
         {
             // Before we do anything, see if we're in five lane mode or not
             _fiveLaneMode = player.Profile.CurrentInstrument == Instrument.FiveLaneDrums;
-
-            base.Initialize(index, player, chart, trackView, currentHighScore);
+            base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
         }
 
         protected override InstrumentDifficulty<DrumNote> GetNotes(SongChart chart)
@@ -166,42 +166,15 @@ namespace YARG.Gameplay.Player
 
         public override void SetStemMuteState(bool muted)
         {
-            if (_isStemMuted == muted)
+            if (_isStemMuted != muted)
             {
-                return;
+                GameManager.ChangeStemMuteState(SongStem.Drums, muted);
+                _isStemMuted = muted;
             }
-
-            bool anyDrumsStems = GlobalVariables.AudioManager.HasStem(SongStem.Drums) ||
-                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums1) ||
-                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums2) ||
-                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums3) ||
-                                 GlobalVariables.AudioManager.HasStem(SongStem.Drums4);
-
-            // Don't mute if no drum stems are available
-            if (!anyDrumsStems)
-            {
-                return;
-            }
-
-            GameManager.ChangeStemMuteState(SongStem.Drums, muted);
-            _isStemMuted = muted;
         }
 
         public override void SetStarPowerFX(bool active)
         {
-            bool anyDrumsStems = GlobalVariables.AudioManager.HasStem(SongStem.Drums) ||
-                GlobalVariables.AudioManager.HasStem(SongStem.Drums1) ||
-                GlobalVariables.AudioManager.HasStem(SongStem.Drums2) ||
-                GlobalVariables.AudioManager.HasStem(SongStem.Drums3) ||
-                GlobalVariables.AudioManager.HasStem(SongStem.Drums4);
-
-            // Fall back to Song stem if drums stem is not available
-            if(!anyDrumsStems)
-            {
-                base.SetStarPowerFX(active);
-                return;
-            }
-
             GameManager.ChangeStemReverbState(SongStem.Drums, active);
         }
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
@@ -82,7 +83,7 @@ namespace YARG.Gameplay.HUD
 
                     _currentStar = topStar;
 
-                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarGain);
+                    AudioManager.PlaySoundEffect(SfxSample.StarGain);
                     YargLogger.LogFormatDebug("Gained star at {0} ({1})", GameManager.BandScore, stars);
                 }
 
@@ -110,7 +111,7 @@ namespace YARG.Gameplay.HUD
 
                 _goldMeterParent.SetActive(false);
 
-                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarGold);
+                AudioManager.PlaySoundEffect(SfxSample.StarGold);
                 _isGoldAchieved = true;
             }
         }
