@@ -3,322 +3,397 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 using YARG.Core.Audio;
-using YARG.Core.IO;
 using YARG.Core.Logging;
+using YARG.Integration.StageKit;
 
 namespace YARG.Audio.BASS
 {
-    public class BassStemMixer : IStemMixer<BassAudioManager, BassStemChannel>
+    public sealed class BassStemMixer : StemMixer
     {
-        public static bool CreateMixerHandle(out int mixerHandle)
-        {
-            mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Default);
-            if (mixerHandle == 0)
-            {
-                YargLogger.LogFormatError("Failed to create mixer: {0}", Bass.LastError);
-                return false;
-            }
+        private int _mixerHandle;
+        private int _sourceStream;
 
-            // Mixer processing threads (for some reason this attribute is undocumented in ManagedBass?)
-            if (!Bass.ChannelSetAttribute(mixerHandle, (ChannelAttribute) 86017, 2))
-            {
-                YargLogger.LogFormatError("Failed to set mixer processing threads: {0}", Bass.LastError);
-                Bass.StreamFree(mixerHandle);
-                return false;
-            }
-            return true;
-        }
+        private StreamHandle _mainHandle;
+        private int _songEndHandle;
 
-        public bool IsPlaying { get; protected set; }
-
-        public IReadOnlyList<BassStemChannel> Channels => _channels;
-
-        public BassStemChannel LeadChannel { get; protected set; }
-
-        public event Action SongEnd
+        public override event Action SongEnd
         {
             add
             {
-                if (LeadChannel is null)
+                if (_songEndHandle == 0)
                 {
-                    throw new InvalidOperationException("No song is currently loaded!");
+                    void sync(int _, int __, int ___, IntPtr _____)
+                    {
+                        // Prevent potential race conditions by caching the value as a local
+                        var end = _songEnd;
+                        if (end != null)
+                        {
+                            UnityMainThreadCallback.QueueEvent(end.Invoke);
+                        }
+                    }
+                    _songEndHandle = BassMix.ChannelSetSync(_mainHandle.Stream, SyncFlags.End, 0, sync);
                 }
 
-                LeadChannel.ChannelEnd += value;
+                _songEnd += value;
             }
             remove
             {
-                if (LeadChannel is not null)
-                {
-                    LeadChannel.ChannelEnd -= value;
-                }
+                _songEnd -= value;
             }
         }
 
-        private readonly List<BassStemChannel> _channels;
-
-        private int _mixerHandle;
-        private int _sourceStream;
-        private bool _disposed;
-
-        public BassStemMixer(int mixerHandle, int sourceStream)
+        internal BassStemMixer(BassAudioManager manager, float speed, int handle, int sourceStream)
+            : base(manager, speed)
         {
-            _mixerHandle = mixerHandle;
+            _mixerHandle = handle;
             _sourceStream = sourceStream;
-            _channels = new List<BassStemChannel>();
-
-            IsPlaying = false;
         }
 
-        ~BassStemMixer()
+        public override int Play(bool restart = false)
         {
-            Dispose(false);
-        }
-
-        public int Play(bool restart = false)
-        {
-            if (IsPlaying)
+            lock (this)
             {
-                return 0;
-            }
-
-            if (!Bass.ChannelPlay(_mixerHandle, restart))
-            {
-                return (int) Bass.LastError;
-            }
-
-            IsPlaying = true;
-
-            return 0;
-        }
-
-        public void FadeIn(float maxVolume)
-        {
-            foreach (var channel in Channels)
-            {
-                channel.FadeIn(maxVolume);
-            }
-        }
-
-        public UniTask FadeOut(CancellationToken token = default)
-        {
-            List<BassStemChannel> stemChannels = new();
-            foreach (var stem in Channels)
-                stemChannels.Add(stem);
-
-            var fadeOuts = stemChannels.Select((channel) => channel.FadeOut()).ToArray();
-            return UniTask.WhenAll(fadeOuts).AttachExternalCancellation(token);
-        }
-
-        public int Pause()
-        {
-            if (!IsPlaying)
-            {
-                return 0;
-            }
-
-            if (!Bass.ChannelPause(_mixerHandle))
-            {
-                return (int) Bass.LastError;
-            }
-
-            IsPlaying = false;
-
-            return 0;
-        }
-
-        public double GetPosition(BassAudioManager manager, bool bufferCompensation = true)
-        {
-            // No channel in this case
-            if (LeadChannel is null)
-            {
-                return -1;
-            }
-
-            return LeadChannel.GetPosition(manager, bufferCompensation);
-        }
-
-        public void SetPosition(BassAudioManager manager, double position, bool bufferCompensation = true)
-        {
-            if (LeadChannel is null)
-            {
-                return;
-            }
-
-            // UNCOMMENT THE BELOW IF PROBLEMS ARE REPORTED WITH SYNC
-
-            bool playing = IsPlaying;
-            if (playing)
-            {
-                // Pause when seeking to avoid desyncing individual stems
-                Pause();
-            }
-
-            if (_sourceStream != 0)
-            {
-                BassMix.SplitStreamReset(_sourceStream);
-            }
-
-            foreach (var channel in Channels)
-            {
-                channel.SetPosition(manager, position, bufferCompensation);
-            }
-
-            if (playing)
-            {
-                // Account for buffer when resuming
-                if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
-                    YargLogger.LogFormatError("Failed to set update channel: {0}", Bass.LastError);
-                Play();
-            }
-        }
-
-        public int GetData(float[] buffer)
-        {
-            int data = Bass.ChannelGetData(_mixerHandle, buffer, (int) (DataFlags.FFT256));
-            if (data < 0)
-            {
-                return (int) Bass.LastError;
-            }
-
-            return data;
-        }
-
-        public void SetPlayVolume(BassAudioManager manager, bool fadeIn)
-        {
-            foreach (var channel in Channels)
-            {
-                channel.SetVolume(manager, fadeIn ? 0 : channel.Volume);
-            }
-        }
-
-        public void SetSpeed(float speed)
-        {
-            foreach (var channel in Channels)
-            {
-                channel.SetSpeed(speed);
-            }
-        }
-
-#nullable enable
-        public int AddChannel(BassStemChannel channel, int[]? indices, float[]? panning)
-#nullable disable
-        {
-            if (_channels.Any(ch => ch.Stem == channel.Stem))
-            {
-                return 0;
-            }
-
-            var flags = indices != null ? BassFlags.MixerChanMatrix | BassFlags.MixerChanDownMix : BassFlags.Default;
-            if (!BassMix.MixerAddChannel(_mixerHandle, channel.StreamHandle, flags) ||
-                !BassMix.MixerAddChannel(_mixerHandle, channel.ReverbStreamHandle, flags))
-            {
-                return (int) Bass.LastError;
-            }
-
-            channel.IsMixed = true;
-
-            if (indices != null)
-            {
-                // First array = left pan, second = right pan
-                float[,] volumeMatrix = new float[2, indices.Length];
-
-                const int LEFT_PAN = 0;
-                const int RIGHT_PAN = 1;
-                for (int i = 0; i < indices.Length; ++i)
+                if (_mixerHandle == 0)
                 {
-                    volumeMatrix[LEFT_PAN, i] = panning![2 * i];
+                    return -1;
                 }
 
-                for (int i = 0; i < indices.Length; ++i)
+                if (IsPlaying)
                 {
-                    volumeMatrix[RIGHT_PAN, i] = panning[2 * i + 1];
+                    return 0;
                 }
 
-                if (!BassMix.ChannelSetMatrix(channel.StreamHandle, volumeMatrix) ||
-                    !BassMix.ChannelSetMatrix(channel.ReverbStreamHandle, volumeMatrix))
+                if (!Bass.ChannelPlay(_mixerHandle, restart))
                 {
                     return (int) Bass.LastError;
                 }
-            }
 
-            _channels.Add(channel);
+                _isPlaying = true;
 
-            if (LeadChannel == null || channel.LengthD > LeadChannel.LengthD)
-            {
-                LeadChannel = channel;
+                return 0;
             }
-            return 0;
         }
 
-        public bool RemoveChannel(SongStem stemToRemove)
+        public override void FadeIn(float maxVolume)
         {
-            var index = _channels.FindIndex(ch => ch.Stem == stemToRemove);
-            if (index == -1)
+            lock (this)
             {
-                return false;
+                if (_mixerHandle == 0)
+                {
+                    return;
+                }
+                Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, maxVolume, BassHelpers.FADE_TIME_MILLISECONDS);
             }
+        }
 
-            var channelToRemove = _channels[index];
-            if (!BassMix.MixerRemoveChannel(channelToRemove.StreamHandle))
+        public override void FadeOut()
+        {
+            lock (this)
             {
-                return false;
+                if (_mixerHandle == 0)
+                {
+                    return;
+                }
+                Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, 0, BassHelpers.FADE_TIME_MILLISECONDS);
             }
+        }
 
-            channelToRemove.IsMixed = false;
-
-            _channels.RemoveAt(index);
-
-            if (channelToRemove == LeadChannel)
+        public override int Pause()
+        {
+            lock (this)
             {
-                LeadChannel = null;
+                if (_mixerHandle == 0)
+                {
+                    return -1;
+                }
+                if (!IsPlaying)
+                {
+                    return 0;
+                }
 
-                // Update lead channel
+                if (!Bass.ChannelPause(_mixerHandle))
+                {
+                    return (int) Bass.LastError;
+                }
+
+                _isPlaying = false;
+
+                return 0;
+            }
+        }
+
+        public override double GetPosition(bool bufferCompensation = true)
+        {
+            lock (this)
+            {
+                if (_mixerHandle == 0)
+                {
+                    return -1;
+                }
+
+                // BassMix.ChannelGetPosition is very wonky when seeking
+                // compared to Bass.ChannelGetPosition
+                // We'll just have to make do with the less granular time reporting
+                // long position = IsMixed
+                //     ? BassMix.ChannelGetPosition(_streamHandles.Stream)
+                //     : Bass.ChannelGetPosition(_streamHandles.Stream);
+                long position = Bass.ChannelGetPosition(_mainHandle.Stream);
+                if (position < 0)
+                {
+                    YargLogger.LogFormatError("Failed to get channel position in bytes: {0}!", Bass.LastError);
+                    return -1;
+                }
+
+                double seconds = Bass.ChannelBytes2Seconds(_mainHandle.Stream, position);
+                if (seconds < 0)
+                {
+                    YargLogger.LogFormatError("Failed to get channel position in seconds: {0}!", Bass.LastError);
+                    return -1;
+                }
+
+                seconds -= bufferCompensation ? _manager.PlaybackBufferLength : 0;
+
+                return seconds;
+            }
+        }
+
+        public override float GetVolume()
+        {
+            lock (this)
+            {
+                if (_mixerHandle == 0)
+                {
+                    return 0;
+                }
+
+                if (!Bass.ChannelGetAttribute(_mixerHandle, ChannelAttribute.Volume, out float volume))
+                {
+                    YargLogger.LogFormatError("Failed to get volume: {0}!", Bass.LastError);
+                }
+                return volume;
+            }
+        }
+
+        public override void SetPosition(double position, bool bufferCompensation = true)
+        {
+            lock (this)
+            {
+                if (_mixerHandle == 0)
+                {
+                    return;
+                }
+
+                bool playing = IsPlaying;
+                if (playing)
+                {
+                    // Pause when seeking to avoid desyncing individual stems
+                    Pause();
+                }
+
+                if (_channels.Count == 0)
+                {
+                    long bytes = Bass.ChannelSeconds2Bytes(_mainHandle.Stream, position);
+                    if (bytes < 0)
+                    {
+                        YargLogger.LogFormatError("Failed to get channel position in bytes: {0}!", Bass.LastError);
+                    }
+                    else if (!Bass.ChannelSetPosition(_mainHandle.Stream, bytes))
+                    {
+                        YargLogger.LogFormatError("Failed to set channel position: {0}!", Bass.LastError);
+                    }
+                    return;
+                }
+
+                if (_sourceStream != 0)
+                {
+                    BassMix.SplitStreamReset(_sourceStream);
+                }
+
                 foreach (var channel in _channels)
                 {
-                    if (channel.LengthD > LeadChannel.LengthD)
-                    {
-                        LeadChannel = channel;
-                    }
+                    channel.SetPosition(position, bufferCompensation);
+                }
+
+                if (playing)
+                {
+                    // Account for buffer when resuming
+                    if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
+                        YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
+                    Play();
                 }
             }
+        }
 
+        public override void SetVolume(double volume)
+        {
+            lock (this)
+            {
+                if (_mixerHandle == 0)
+                {
+                    return;
+                }
+
+                if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Volume, volume))
+                {
+                    YargLogger.LogFormatError("Failed to set mixer volume: {0}!", Bass.LastError);
+                }
+            }
+        }
+
+        public override int GetData(float[] buffer)
+        {
+            lock (this)
+            {
+                if (_mixerHandle == 0)
+                {
+                    return -1;
+                }
+
+                int data = Bass.ChannelGetData(_mixerHandle, buffer, (int) (DataFlags.FFT256));
+                if (data < 0)
+                {
+                    return (int) Bass.LastError;
+                }
+
+                return data;
+            }
+        }
+
+        public override void SetSpeed(float speed)
+        {
+            lock (this)
+            {
+                if (_mixerHandle == 0)
+                {
+                    return;
+                }
+
+                foreach (var channel in _channels)
+                {
+                    channel.SetSpeed(speed);
+                }
+            }
+        }
+
+        public override bool AddChannel(SongStem stem)
+        {
+            _mainHandle = StreamHandle.Create(_sourceStream, 1f, null);
+            if (_mainHandle == null)
+            {
+                YargLogger.LogFormatError("Failed to load stem split stream {stem}: {0}!", Bass.LastError);
+            }
+
+            if (!BassMix.MixerAddChannel(_mixerHandle, _mainHandle.Stream, BassFlags.Default))
+            {
+                YargLogger.LogFormatError("Failed to add channel {stem} to mixer: {0}!", Bass.LastError);
+                return false;
+            }
+            _length = BassAudioManager.GetLengthInSeconds(_sourceStream);
             return true;
         }
 
-#nullable enable
-        public BassStemChannel? GetChannel(SongStem stem)
-#nullable disable
+        public override bool AddChannel(SongStem stem, Stream stream)
         {
-            return _channels.Find(channel => channel.Stem == stem);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (!_disposed)
+            if (!BassAudioManager.CreateSourceStream(stream, out int sourceStream))
             {
-                if (disposing)
-                {
-                    ReleaseManagedResources();
-                }
-
-                ReleaseUnmanagedResources();
-                _disposed = true;
+                YargLogger.LogFormatError("Failed to load stem source stream {stem}: {0}!", Bass.LastError);
+                return false;
             }
+
+            double volume = AudioManager.GetVolumeSetting(stem);
+            if (!BassAudioManager.CreateSplitStreams(sourceStream, volume, null, out var streamHandles, out var reverbHandles))
+            {
+                YargLogger.LogFormatError("Failed to load stem split streams {stem}: {0}!", Bass.LastError);
+                return false;
+            }
+
+            if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.Default) ||
+                !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.Default))
+            {
+                YargLogger.LogFormatError("Failed to add channel {stem} to mixer: {0}!", Bass.LastError);
+                return false;
+            }
+
+            double length = BassAudioManager.GetLengthInSeconds(streamHandles.Stream);
+            var pitchparams = BassAudioManager.SetPitchParams(stem, _speed, streamHandles, reverbHandles);
+            var stemchannel = new BassStemChannel(_manager, stem, sourceStream, volume, pitchparams, streamHandles, reverbHandles);
+
+            if (_mainHandle == null || length > _length)
+            {
+                _mainHandle = streamHandles;
+                _length = length;
+            }
+
+            _channels.Add(stemchannel);
+            return true;
         }
 
-        private void ReleaseManagedResources()
+        public override bool AddChannel(SongStem stem, int[] indices, float[] panning)
+        {
+            double volume = AudioManager.GetVolumeSetting(stem);
+            if (!BassAudioManager.CreateSplitStreams(_sourceStream, volume, indices, out var streamHandles, out var reverbHandles))
+            {
+                YargLogger.LogFormatError("Failed to load stem {stem}: {0}!", Bass.LastError);
+                return false;
+            }
+
+            if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.MixerChanMatrix | BassFlags.MixerChanDownMix) ||
+                !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.MixerChanMatrix | BassFlags.MixerChanDownMix))
+            {
+                YargLogger.LogFormatError("Failed to add channel {stem} to mixer: {0}!", Bass.LastError);
+                return false;
+            }
+
+            // First array = left pan, second = right pan
+            float[,] volumeMatrix = new float[2, indices.Length];
+
+            const int LEFT_PAN = 0;
+            const int RIGHT_PAN = 1;
+            for (int i = 0; i < indices.Length; ++i)
+            {
+                volumeMatrix[LEFT_PAN, i] = panning[2 * i];
+            }
+
+            for (int i = 0; i < indices.Length; ++i)
+            {
+                volumeMatrix[RIGHT_PAN, i] = panning[2 * i + 1];
+            }
+
+            if (!BassMix.ChannelSetMatrix(streamHandles.Stream, volumeMatrix) ||
+                !BassMix.ChannelSetMatrix(reverbHandles.Stream, volumeMatrix))
+            {
+                YargLogger.LogFormatError("Failed to set {stem} matrices: {0}!", Bass.LastError);
+                return false;
+            }
+
+            double length = BassAudioManager.GetLengthInSeconds(streamHandles.Stream);
+            var pitchparams = BassAudioManager.SetPitchParams(stem, _speed, streamHandles, reverbHandles);
+            var stemchannel = new BassStemChannel(_manager, stem, 0, volume, pitchparams, streamHandles, reverbHandles);
+
+            if (_mainHandle == null || length > _length)
+            {
+                _mainHandle = streamHandles;
+                _length = length;
+            }
+
+            _channels.Add(stemchannel);
+            return true;
+        }
+
+        public override bool RemoveChannel(SongStem stemToRemove)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void DisposeManagedResources()
         {
             // Free managed resources here
             foreach (var channel in Channels)
@@ -329,27 +404,28 @@ namespace YARG.Audio.BASS
             _channels.Clear();
         }
 
-        private void ReleaseUnmanagedResources()
+        protected override void DisposeUnmanagedResources()
         {
-            // Free unmanaged resources here
-            if (_mixerHandle != 0)
+            lock (this)
             {
-                if (!Bass.StreamFree(_mixerHandle))
+                // Free unmanaged resources here
+                if (_mixerHandle != 0)
                 {
-                    YargLogger.LogFormatError("Failed to free mixer stream (THIS WILL LEAK MEMORY!): {0}", Bass.LastError);
+                    if (!Bass.StreamFree(_mixerHandle))
+                    {
+                        YargLogger.LogFormatError("Failed to free mixer stream (THIS WILL LEAK MEMORY!): {0}!", Bass.LastError);
+                    }
+                    _mixerHandle = 0;
                 }
 
-                _mixerHandle = 0;
-            }
-
-            if (_sourceStream != 0)
-            {
-                if (!Bass.StreamFree(_sourceStream))
+                if (_sourceStream != 0)
                 {
-                    YargLogger.LogFormatError("Failed to free mixer source stream (THIS WILL LEAK MEMORY!): {0}", Bass.LastError);
+                    if (!Bass.StreamFree(_sourceStream))
+                    {
+                        YargLogger.LogFormatError("Failed to free mixer source stream (THIS WILL LEAK MEMORY!): {0}!", Bass.LastError);
+                    }
+                    _sourceStream = 0;
                 }
-
-                _sourceStream = 0;
             }
         }
     }

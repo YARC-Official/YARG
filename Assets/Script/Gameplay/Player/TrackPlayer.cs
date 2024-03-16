@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -70,8 +71,7 @@ namespace YARG.Gameplay.Player
 
         protected bool IsBass;
 
-        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
-            int? currentHighScore)
+        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
             if (IsInitialized) return;
 
@@ -177,11 +177,11 @@ namespace YARG.Gameplay.Player
         private int _currentMultiplier;
         private int _previousMultiplier;
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, int? currentHighScore)
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
             if (IsInitialized) return;
 
-            base.Initialize(index, player, chart, trackView, currentHighScore);
+            base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
             SetupTheme(player.Profile.GameMode);
 
@@ -408,7 +408,7 @@ namespace YARG.Gameplay.Player
 
             if (_lastCombo >= 10)
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+                AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
             }
 
             _lastCombo = Combo;

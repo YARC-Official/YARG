@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
+using YARG.Audio;
+using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Input;
 using YARG.Player;
@@ -39,6 +41,7 @@ namespace YARG.Menu.Calibrator
         private readonly List<float> _calibrationTimes = new();
 
         private YargPlayer _player;
+        private StemMixer? _mixer;
 
         private void Start()
         {
@@ -50,6 +53,7 @@ namespace YARG.Menu.Calibrator
         private void OnDestroy()
         {
             InputManager.MenuInput -= OnMenuInput;
+            _mixer?.Dispose();
         }
 
         private void OnMenuInput(YargPlayer player, ref GameInput input)
@@ -77,7 +81,7 @@ namespace YARG.Menu.Calibrator
                     _audioCalibrateText.color = Color.green;
                     _audioCalibrateText.text = "Detected";
 
-                    _calibrationTimes.Add(GlobalVariables.AudioManager.CurrentPositionF);
+                    _calibrationTimes.Add((float)_mixer.GetPosition());
                     break;
                 case State.Starting:
                 case State.AudioDone:
@@ -104,7 +108,9 @@ namespace YARG.Menu.Calibrator
 
         private void UpdateForState()
         {
-            GlobalVariables.AudioManager.UnloadSong();
+            _mixer?.Dispose();
+            _mixer = null;
+
             StopAllCoroutines();
 
             _startingStateContainer.SetActive(false);
@@ -129,8 +135,8 @@ namespace YARG.Menu.Calibrator
                     _calibrationTimes.Clear();
 
                     var file = Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg");
-                    GlobalVariables.AudioManager.LoadCustomAudioFile(file, 1f);
-                    GlobalVariables.AudioManager.Play();
+                    _mixer = AudioManager.Instance.LoadCustomFile(file, 1f);
+                    _mixer.Play();
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;
                 case State.AudioDone:
@@ -220,23 +226,19 @@ namespace YARG.Menu.Calibrator
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "1";
 
-            yield return new WaitUntil(() =>
-                GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 1f);
+            yield return new WaitUntil(() => _mixer.GetPosition() >= SECONDS_PER_BEAT * 1f);
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "2";
 
-            yield return new WaitUntil(() =>
-                GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 2f);
+            yield return new WaitUntil(() => _mixer.GetPosition() >= SECONDS_PER_BEAT * 2f);
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "3";
 
-            yield return new WaitUntil(() =>
-                GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 3f);
+            yield return new WaitUntil(() => _mixer.GetPosition() >= SECONDS_PER_BEAT * 3f);
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "4";
 
-            yield return new WaitUntil(() =>
-                !GlobalVariables.AudioManager.IsPlaying);
+            yield return new WaitUntil(() => !_mixer.IsPlaying);
             _state = State.AudioDone;
             UpdateForState();
         }

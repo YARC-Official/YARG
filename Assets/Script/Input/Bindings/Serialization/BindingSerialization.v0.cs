@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YARG.Audio;
 using YARG.Core;
+using YARG.Core.Audio;
 
 #nullable enable
 
@@ -125,13 +126,10 @@ namespace YARG.Input.Serialization
 
         public SerializedMicV0(SerializedMic serialized)
         {
-            DisplayName = serialized.DisplayName;
+            DisplayName = serialized.Name;
         }
 
-        public SerializedMic Deserialize() => new()
-        {
-            DisplayName = DisplayName,
-        };
+        public SerializedMic Deserialize() => new(DisplayName);
     }
 
     public static partial class BindingSerialization

@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Threading;
 using UnityEngine;
 using YARG.Core.Logging;
+using YARG.Core.Audio;
 using YARG.Input;
 
 namespace YARG.Playback
@@ -180,6 +181,8 @@ namespace YARG.Playback
         private volatile int _syncSpeedMultiplier;
         private volatile float _syncStartDelta;
 
+        private readonly StemMixer _mixer;
+
         public float SyncSpeedAdjustment => _syncSpeedAdjustment;
         public int SyncSpeedMultiplier => _syncSpeedMultiplier;
         public float SyncStartDelta => _syncStartDelta;
@@ -188,7 +191,7 @@ namespace YARG.Playback
         /// The instantaneous current audio time, used for audio synchronization.<br/>
         /// Accounts for song speed, audio calibration, and song offset.
         /// </summary>
-        public double SyncSongTime => GlobalVariables.AudioManager.CurrentPositionD + AudioCalibration + SongOffset;
+        public double SyncSongTime => _mixer.GetPosition() + AudioCalibration + SongOffset;
 
         /// <summary>
         /// The instantaneous current visual time, used for audio synchronization.<br/>
@@ -238,9 +241,10 @@ namespace YARG.Playback
         /// The song offset, in seconds.<br/>
         /// This value is negated for more intuitive usage in other code.
         /// </param>
-        public SongRunner(float songSpeed = 1f, int audioCalibration = 0, int videoCalibration = 0,
+        public SongRunner(StemMixer mixer, float songSpeed = 1f, int audioCalibration = 0, int videoCalibration = 0,
             double songOffset = 0)
         {
+            _mixer = mixer;
             SelectedSongSpeed = songSpeed;
             VideoCalibration = -videoCalibration / 1000.0;
             AudioCalibration = (-audioCalibration / 1000.0) - VideoCalibration;
@@ -308,12 +312,6 @@ namespace YARG.Playback
             // Update times
             UpdateInputTimes();
 
-            // The audio time becomes -1 when the song gets unloaded,
-            // need to do this to prevent the assert below from triggering
-            double newAudioTime = GlobalVariables.AudioManager.CurrentPositionD;
-            if (newAudioTime >= 0)
-                RealAudioTime = newAudioTime + SongOffset;
-
             // Check for unexpected backwards time jumps
 
             // Only check for greater-than here
@@ -360,18 +358,18 @@ namespace YARG.Playback
 
                 // Song time is driven using visual time when the audio isn't running
                 // Playback buffer needs to be accounted for to prevent backwards seeking
-                double currentTime = SyncVisualTime - AudioCalibration + GlobalVariables.AudioManager.PlaybackBufferLength;
+                double currentTime = SyncVisualTime - AudioCalibration + AudioManager.Instance.PlaybackBufferLength;
                 if (currentTime >= SongOffset)
                 {
                     // Start audio
-                    GlobalVariables.AudioManager.Play();
+                    _mixer.Play();
                     break;
                 }
             }
 
             for (; _runSync; _finishedSyncing.Set(), Thread.Sleep(5))
             {
-                if (!GlobalVariables.AudioManager.IsPlaying || _pauseSync)
+                if (!_mixer.IsPlaying || _pauseSync)
                     continue;
 
                 _finishedSyncing.Reset();
@@ -404,7 +402,7 @@ namespace YARG.Playback
                     if (!Mathf.Approximately(adjustment, _syncSpeedAdjustment))
                     {
                         _syncSpeedAdjustment = adjustment;
-                        GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+                        _mixer.SetSpeed(ActualSongSpeed);
                     }
                 }
 
@@ -424,7 +422,7 @@ namespace YARG.Playback
             _syncStartDelta = 0;
             _syncSpeedMultiplier = 0;
             _syncSpeedAdjustment = 0f;
-            GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+            _mixer.SetSpeed(ActualSongSpeed);
         }
 
         public double GetRelativeInputTime(double timeFromInputSystem)
@@ -442,6 +440,7 @@ namespace YARG.Playback
             // Update times
             RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
             RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
+            RealAudioTime = _mixer.GetPosition() + SongOffset;
             // We use visual time for song time due to an apparent bug in BASS
             // where it will sometimes not fire the song end event when the audio ends
             // Using visual time guarantees a reliable timing source, and therefore song end timing
@@ -526,7 +525,7 @@ namespace YARG.Playback
             // Audio seeking; cannot go negative
             double seekTime = RealSongTime;
             if (seekTime < 0) seekTime = 0;
-            GlobalVariables.AudioManager.SetPosition(seekTime);
+            _mixer.SetPosition(seekTime);
 
             _pauseSync = false;
             _seeked = true;
@@ -544,7 +543,7 @@ namespace YARG.Playback
             SelectedSongSpeed = speed;
 
             // Set based on the actual song speed, so as to not break resyncing
-            GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+            _mixer.SetSpeed(ActualSongSpeed);
 
             // Adjust input offset, otherwise input time will desync
             // TODO: Pressing and holding left or right in practice will
@@ -575,9 +574,9 @@ namespace YARG.Playback
             // Visual time is used for pause time since it's closer to when
             // the song runner is actually being updated; the asserts in Update get hit otherwise
             PauseStartTime = RealVisualTime;
-            _playAudioOnResume = GlobalVariables.AudioManager.IsPlaying;
+            _playAudioOnResume = _mixer.IsPlaying;
             _pauseSync = true;
-            GlobalVariables.AudioManager.Pause();
+            _mixer.Pause();
 
             YargLogger.LogFormatDebug("Paused at song time {0:0.000000} (real: {1:0.000000}), visual time {2:0.000000} " +
                 "(real: {3:0.000000}), input time {4:0.000000} (real: {5:0.000000}).",
@@ -603,7 +602,7 @@ namespace YARG.Playback
 
             if (_playAudioOnResume)
             {
-                GlobalVariables.AudioManager.Play();
+                _mixer.Play();
             }
 
             _pauseSync = false;
