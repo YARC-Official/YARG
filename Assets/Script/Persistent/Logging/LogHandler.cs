@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Cysharp.Text;
 using UnityEngine;
@@ -37,7 +37,7 @@ namespace YARG.Logging
             _logsDirectory = Path.Combine(persistentPath, "logs");
             Directory.CreateDirectory(_logsDirectory);
 
-            _fileYargLogListener = new FileYargLogListener(GetLogPath(), new StandardYargLogFormatter());
+            _fileYargLogListener = new FileYargLogListener(GetLogPath());
 
             // Add log listeners here
             YargLogger.AddLogListener(new UnityEditorLogListener(new UnityEditorConsoleLogFormat()));

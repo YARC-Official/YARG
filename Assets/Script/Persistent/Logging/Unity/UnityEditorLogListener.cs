@@ -1,4 +1,4 @@
-﻿using Cysharp.Text;
+using Cysharp.Text;
 using UnityEngine;
 using YARG.Core.Logging;
 
@@ -18,11 +18,13 @@ namespace YARG.Logging.Unity
             // Object obj
             var type = item.Level switch
             {
+                LogLevel.Trace     => LogType.Log,
                 LogLevel.Debug     => LogType.Log,
                 LogLevel.Info      => LogType.Log,
                 LogLevel.Warning   => LogType.Warning,
                 LogLevel.Error     => LogType.Error,
                 LogLevel.Exception => LogType.Exception,
+                LogLevel.Failure   => LogType.Assert,
                 _                  => LogType.Log
             };
             UnityInternalLogWrapper.UnityInternalLogDelegate(type, LogOption.NoStacktrace, builder.ToString(),
