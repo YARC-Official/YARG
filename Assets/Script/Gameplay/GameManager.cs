@@ -134,7 +134,7 @@ namespace YARG.Gameplay
         private bool _isShowDebugText;
         private bool _isReplaySaved;
 
-        private StemMixer? _mixer;
+        private StemMixer _mixer;
 
         private void Awake()
         {

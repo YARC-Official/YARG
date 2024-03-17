@@ -28,29 +28,28 @@ namespace YARG.Gameplay
         {
             _stemStates.Clear();
             _mixer = Song.LoadAudio(AudioManager.Instance, GlobalVariables.State.SongSpeed);
-            if (_mixer != null)
-            {
-                _mixer.SongEnd += OnAudioEnd;
-
-                bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
-                AudioManager.UseMinimumStemVolume = isYargSong;
-
-                foreach (var channel in _mixer.Channels)
-                {
-                    _stemStates.Add(channel.Stem, new StemState());
-                }
-
-                if (_stemStates.TryGetValue(SongStem.Song, out var state))
-                {
-                    // Ensures it will still play *somewhat*, even if all players mute
-                    state.Total = 1;
-                    state.Audible = 1;
-                }
-            }
-            else
+            if (_mixer == null)
             {
                 _loadState = LoadFailureState.Error;
                 _loadFailureMessage = "Failed to load audio!";
+                return;
+            }
+
+            _mixer.SongEnd += OnAudioEnd;
+
+            bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
+            AudioManager.UseMinimumStemVolume = isYargSong;
+
+            foreach (var channel in _mixer.Channels)
+            {
+                _stemStates.Add(channel.Stem, new StemState());
+            }
+
+            if (_stemStates.TryGetValue(SongStem.Song, out var state))
+            {
+                // Ensures it will still play *somewhat*, even if all players mute
+                state.Total = 1;
+                state.Audible = 1;
             }
         }
 
