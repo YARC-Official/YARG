@@ -87,16 +87,15 @@ namespace YARG.Logging
                     return;
                 }
 
-                //UnityInternalLogWrapper.UnityInternalLogDelegate(type, LogOption.None, stacktrace, null);
-
                 var builder = ZString.CreateStringBuilder();
-                builder.AppendLine("--------------- EXCEPTION ---------------");
-                builder.AppendLine(condition);
-                builder.Append(stacktrace);
-                builder.AppendLine("-----------------------------------------");
+                var output = builder; // Necessary to escape 'using variable' status and pass by ref
 
-                // This is a bit bad, should probably just make LogItem a struct and create one here
-                _fileYargLogListener.WriteLogItem(ref builder, null!);
+                using var item = FormatLogItem.MakeItem(
+                    "--------------- EXCEPTION ---------------\n{0}\n{1}-----------------------------------------",
+                    condition, stacktrace);
+
+                item.FormatMessage(ref output);
+                _fileYargLogListener.WriteLogItem(ref output, item);
             }
         }
 
