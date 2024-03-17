@@ -13,6 +13,9 @@ namespace YARG.Integration.Sacn
     public enum CueEnum
     {
         NoCue = 0,
+        KeyframeNext = 5,
+        KeyframePrevious = 6,
+        KeyframeFirst = 7,
         Menu = 10,
         Score = 20,
         Intro = 30,
@@ -89,39 +92,39 @@ namespace YARG.Integration.Sacn
         {
             _cueValue = newType switch
             {
-                LightingType.Chorus => (byte)CueEnum.Chorus,
-                LightingType.Default => (byte)CueEnum.Default,
-                LightingType.Dischord => (byte)CueEnum.Dischord,
-                LightingType.Frenzy => (byte)CueEnum.Frenzy,
-                LightingType.Harmony => (byte)CueEnum.Harmony,
-                LightingType.Intro => (byte)CueEnum.Intro,
-                LightingType.Menu => (byte)CueEnum.Menu,
-                LightingType.Score => (byte)CueEnum.Score,
-                LightingType.Silhouettes => (byte)CueEnum.Silhouettes,
-                LightingType.Silhouettes_Spotlight => (byte)CueEnum.SilhouettesSpotlight,
-                LightingType.Sweep => (byte)CueEnum.Sweep,
-                LightingType.Searchlights => (byte)CueEnum.Searchlights,
-                LightingType.Stomp => (byte)CueEnum.Stomp,
-                LightingType.Verse => (byte)CueEnum.Verse,
-                LightingType.Blackout_Fast => (byte)CueEnum.BlackoutFast,
-                LightingType.Blackout_Slow => (byte)CueEnum.BlackoutSlow,
-                LightingType.Blackout_Spotlight => (byte)CueEnum.BlackoutSpotlight,
-                LightingType.Cool_Automatic => (byte)CueEnum.CoolLoop,
-                LightingType.Cool_Manual => (byte)CueEnum.CoolManual,
-                LightingType.Flare_Fast => (byte)CueEnum.FlareFast,
-                LightingType.Flare_Slow => (byte)CueEnum.FlareSlow,
-                LightingType.Keyframe_First => (byte)CueEnum.Default,
-                LightingType.Keyframe_Next => (byte)CueEnum.Default,
-                LightingType.Keyframe_Previous => (byte)CueEnum.Default,
-                LightingType.Strobe_Fast => (byte)CueEnum.StrobeFast,
-                LightingType.Strobe_Fastest => (byte)CueEnum.StrobeFastest,
-                LightingType.Strobe_Medium => (byte)CueEnum.StrobeMedium,
-                LightingType.Strobe_Off => (byte)CueEnum.StrobeOff,
-                LightingType.Strobe_Slow    => (byte)CueEnum.StrobeSlow,
-                LightingType.Warm_Automatic => (byte)CueEnum.WarmLoop,
-                LightingType.Warm_Manual => (byte)CueEnum.WarmManual,
-                LightingType.BigRockEnding => (byte)CueEnum.BigRockEnding,
-                _ => (byte)CueEnum.NoCue,
+                LightingType.Chorus                => (byte) CueEnum.Chorus,
+                LightingType.Default               => (byte) CueEnum.Default,
+                LightingType.Dischord              => (byte) CueEnum.Dischord,
+                LightingType.Frenzy                => (byte) CueEnum.Frenzy,
+                LightingType.Harmony               => (byte) CueEnum.Harmony,
+                LightingType.Intro                 => (byte) CueEnum.Intro,
+                LightingType.Menu                  => (byte) CueEnum.Menu,
+                LightingType.Score                 => (byte) CueEnum.Score,
+                LightingType.Silhouettes           => (byte) CueEnum.Silhouettes,
+                LightingType.Silhouettes_Spotlight => (byte) CueEnum.SilhouettesSpotlight,
+                LightingType.Sweep                 => (byte) CueEnum.Sweep,
+                LightingType.Searchlights          => (byte) CueEnum.Searchlights,
+                LightingType.Stomp                 => (byte) CueEnum.Stomp,
+                LightingType.Verse                 => (byte) CueEnum.Verse,
+                LightingType.Blackout_Fast         => (byte) CueEnum.BlackoutFast,
+                LightingType.Blackout_Slow         => (byte) CueEnum.BlackoutSlow,
+                LightingType.Blackout_Spotlight    => (byte) CueEnum.BlackoutSpotlight,
+                LightingType.Cool_Automatic        => (byte) CueEnum.CoolLoop,
+                LightingType.Cool_Manual           => (byte) CueEnum.CoolManual,
+                LightingType.Flare_Fast            => (byte) CueEnum.FlareFast,
+                LightingType.Flare_Slow            => (byte) CueEnum.FlareSlow,
+                LightingType.Keyframe_First        => (byte) CueEnum.KeyframeFirst,
+                LightingType.Keyframe_Next         => (byte) CueEnum.KeyframeNext,
+                LightingType.Keyframe_Previous     => (byte) CueEnum.KeyframePrevious,
+                LightingType.Strobe_Fast           => (byte) CueEnum.StrobeFast,
+                LightingType.Strobe_Fastest        => (byte) CueEnum.StrobeFastest,
+                LightingType.Strobe_Medium         => (byte) CueEnum.StrobeMedium,
+                LightingType.Strobe_Off            => (byte) CueEnum.StrobeOff,
+                LightingType.Strobe_Slow           => (byte) CueEnum.StrobeSlow,
+                LightingType.Warm_Automatic        => (byte) CueEnum.WarmLoop,
+                LightingType.Warm_Manual           => (byte) CueEnum.WarmManual,
+                LightingType.BigRockEnding         => (byte) CueEnum.BigRockEnding,
+                _                                  => (byte) CueEnum.NoCue,
             };
 
             _dataPacket[_cueChangeChannel - 1] = _cueValue;
@@ -134,7 +137,7 @@ namespace YARG.Integration.Sacn
                 StageEffect.FogOn   => (byte) CueEnum.FogOn,
                 StageEffect.FogOff  => (byte) CueEnum.FogOff,
                 StageEffect.BonusFx => (byte) CueEnum.BonusEffect,
-                _                   => (byte)CueEnum.NoCue,
+                _                   => (byte) CueEnum.NoCue,
             };
 
             _dataPacket[_cueChangeChannel - 1] = _cueValue;
@@ -164,11 +167,11 @@ namespace YARG.Integration.Sacn
                     break;
 
                 case (int) SceneIndex.Score:
-                    _cueValue = (byte)CueEnum.Score;
+                    HandleLightingTypeChange(LightingType.Score);
                     break;
 
                 case (int) SceneIndex.Menu:
-                    _cueValue = (byte)CueEnum.Menu;
+                    HandleLightingTypeChange(LightingType.Menu);
                     break;
 
                 default:
@@ -266,7 +269,7 @@ namespace YARG.Integration.Sacn
                 StageKitStrobeSpeed.Medium  => 127,
                 StageKitStrobeSpeed.Fast    => 191,
                 StageKitStrobeSpeed.Fastest => 255,
-                _ => throw new Exception("Unreachable.")
+                _                           => throw new Exception("Unreachable.")
             };
         }
 
