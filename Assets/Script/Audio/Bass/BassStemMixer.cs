@@ -18,8 +18,8 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassStemMixer : StemMixer
     {
-        private int _mixerHandle;
-        private int _sourceStream;
+        private readonly int _mixerHandle;
+        private readonly int _sourceStream;
 
         private StreamHandle _mainHandle;
         private int _songEndHandle;
@@ -50,240 +50,155 @@ namespace YARG.Audio.BASS
             }
         }
 
-        internal BassStemMixer(BassAudioManager manager, float speed, int handle, int sourceStream)
-            : base(manager, speed)
+        internal BassStemMixer(string name, BassAudioManager manager, float speed, int handle, int sourceStream)
+            : base(name, manager, speed)
         {
             _mixerHandle = handle;
             _sourceStream = sourceStream;
         }
 
-        public override int Play(bool restart = false)
+        protected override int Play_Internal(bool restart)
         {
-            lock (this)
+            if (!IsPlaying)
             {
-                if (_mixerHandle == 0)
-                {
-                    return -1;
-                }
-
-                if (IsPlaying)
-                {
-                    return 0;
-                }
-
                 if (!Bass.ChannelPlay(_mixerHandle, restart))
                 {
                     return (int) Bass.LastError;
                 }
 
                 _isPlaying = true;
-
-                return 0;
             }
+            return 0;
         }
 
-        public override void FadeIn(float maxVolume)
+        protected override void FadeIn_Internal(float maxVolume)
         {
-            lock (this)
-            {
-                if (_mixerHandle == 0)
-                {
-                    return;
-                }
-                Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, maxVolume, BassHelpers.FADE_TIME_MILLISECONDS);
-            }
+            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, maxVolume, BassHelpers.FADE_TIME_MILLISECONDS);
         }
 
-        public override void FadeOut()
+        protected override void FadeOut_Internal()
         {
-            lock (this)
-            {
-                if (_mixerHandle == 0)
-                {
-                    return;
-                }
-                Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, 0, BassHelpers.FADE_TIME_MILLISECONDS);
-            }
+            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, 0, BassHelpers.FADE_TIME_MILLISECONDS);
         }
 
-        public override int Pause()
+        protected override int Pause_Internal()
         {
-            lock (this)
+            if (IsPlaying)
             {
-                if (_mixerHandle == 0)
-                {
-                    return -1;
-                }
-                if (!IsPlaying)
-                {
-                    return 0;
-                }
-
                 if (!Bass.ChannelPause(_mixerHandle))
                 {
                     return (int) Bass.LastError;
                 }
 
                 _isPlaying = false;
-
-                return 0;
             }
+            return 0;
         }
 
-        public override double GetPosition(bool bufferCompensation = true)
+        protected override double GetPosition_Internal(bool bufferCompensation)
         {
-            lock (this)
+            // BassMix.ChannelGetPosition is very wonky when seeking
+            // compared to Bass.ChannelGetPosition
+            // We'll just have to make do with the less granular time reporting
+            // long position = IsMixed
+            //     ? BassMix.ChannelGetPosition(_streamHandles.Stream)
+            //     : Bass.ChannelGetPosition(_streamHandles.Stream);
+            long position = Bass.ChannelGetPosition(_mainHandle.Stream);
+            if (position < 0)
             {
-                if (_mixerHandle == 0)
-                {
-                    return -1;
-                }
+                YargLogger.LogFormatError("Failed to get channel position in bytes: {Bass.LastError}");
+                return -1;
+            }
 
-                // BassMix.ChannelGetPosition is very wonky when seeking
-                // compared to Bass.ChannelGetPosition
-                // We'll just have to make do with the less granular time reporting
-                // long position = IsMixed
-                //     ? BassMix.ChannelGetPosition(_streamHandles.Stream)
-                //     : Bass.ChannelGetPosition(_streamHandles.Stream);
-                long position = Bass.ChannelGetPosition(_mainHandle.Stream);
-                if (position < 0)
+            double seconds = Bass.ChannelBytes2Seconds(_mainHandle.Stream, position);
+            if (seconds < 0)
+            {
+                YargLogger.LogFormatError("Failed to get channel position in seconds: {Bass.LastError}");
+                return -1;
+            }
+
+            seconds -= bufferCompensation ? _manager.PlaybackBufferLength : 0;
+            return seconds;
+        }
+
+        protected override float GetVolume_Internal()
+        {
+            if (!Bass.ChannelGetAttribute(_mixerHandle, ChannelAttribute.Volume, out float volume))
+            {
+                YargLogger.LogFormatError("Failed to get volume: {Bass.LastError}");
+            }
+            return volume;
+        }
+
+        protected override void SetPosition_Internal(double position, bool bufferCompensation)
+        {
+            bool playing = IsPlaying;
+            if (playing)
+            {
+                // Pause when seeking to avoid desyncing individual stems
+                Pause();
+            }
+
+            if (_channels.Count == 0)
+            {
+                long bytes = Bass.ChannelSeconds2Bytes(_mainHandle.Stream, position);
+                if (bytes < 0)
                 {
                     YargLogger.LogFormatError("Failed to get channel position in bytes: {0}!", Bass.LastError);
-                    return -1;
                 }
-
-                double seconds = Bass.ChannelBytes2Seconds(_mainHandle.Stream, position);
-                if (seconds < 0)
+                else if (!Bass.ChannelSetPosition(_mainHandle.Stream, bytes))
                 {
-                    YargLogger.LogFormatError("Failed to get channel position in seconds: {0}!", Bass.LastError);
-                    return -1;
+                    YargLogger.LogFormatError("Failed to set channel position: {0}!", Bass.LastError);
                 }
-
-                seconds -= bufferCompensation ? _manager.PlaybackBufferLength : 0;
-
-                return seconds;
+                return;
             }
-        }
 
-        public override float GetVolume()
-        {
-            lock (this)
+            if (_sourceStream != 0)
             {
-                if (_mixerHandle == 0)
-                {
-                    return 0;
-                }
-
-                if (!Bass.ChannelGetAttribute(_mixerHandle, ChannelAttribute.Volume, out float volume))
-                {
-                    YargLogger.LogFormatError("Failed to get volume: {0}!", Bass.LastError);
-                }
-                return volume;
+                BassMix.SplitStreamReset(_sourceStream);
             }
-        }
 
-        public override void SetPosition(double position, bool bufferCompensation = true)
-        {
-            lock (this)
+            foreach (var channel in _channels)
             {
-                if (_mixerHandle == 0)
-                {
-                    return;
-                }
-
-                bool playing = IsPlaying;
-                if (playing)
-                {
-                    // Pause when seeking to avoid desyncing individual stems
-                    Pause();
-                }
-
-                if (_channels.Count == 0)
-                {
-                    long bytes = Bass.ChannelSeconds2Bytes(_mainHandle.Stream, position);
-                    if (bytes < 0)
-                    {
-                        YargLogger.LogFormatError("Failed to get channel position in bytes: {0}!", Bass.LastError);
-                    }
-                    else if (!Bass.ChannelSetPosition(_mainHandle.Stream, bytes))
-                    {
-                        YargLogger.LogFormatError("Failed to set channel position: {0}!", Bass.LastError);
-                    }
-                    return;
-                }
-
-                if (_sourceStream != 0)
-                {
-                    BassMix.SplitStreamReset(_sourceStream);
-                }
-
-                foreach (var channel in _channels)
-                {
-                    channel.SetPosition(position, bufferCompensation);
-                }
-
-                if (playing)
-                {
-                    // Account for buffer when resuming
-                    if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
-                        YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
-                    Play();
-                }
+                channel.SetPosition(position, bufferCompensation);
             }
-        }
 
-        public override void SetVolume(double volume)
-        {
-            lock (this)
+            if (playing)
             {
-                if (_mixerHandle == 0)
-                {
-                    return;
-                }
-
-                if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Volume, volume))
-                {
-                    YargLogger.LogFormatError("Failed to set mixer volume: {0}!", Bass.LastError);
-                }
+                // Account for buffer when resuming
+                if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
+                    YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
+                Play();
             }
         }
 
-        public override int GetData(float[] buffer)
+        protected override void SetVolume_Internal(double volume)
         {
-            lock (this)
+            if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Volume, volume))
             {
-                if (_mixerHandle == 0)
-                {
-                    return -1;
-                }
-
-                int data = Bass.ChannelGetData(_mixerHandle, buffer, (int) (DataFlags.FFT256));
-                if (data < 0)
-                {
-                    return (int) Bass.LastError;
-                }
-
-                return data;
+                YargLogger.LogFormatError("Failed to set mixer volume: {Bass.LastError}");
             }
         }
 
-        public override void SetSpeed(float speed)
+        protected override int GetData_Internal(float[] buffer)
         {
-            lock (this)
+            int data = Bass.ChannelGetData(_mixerHandle, buffer, (int) (DataFlags.FFT256));
+            if (data < 0)
             {
-                if (_mixerHandle == 0)
-                {
-                    return;
-                }
+                return (int) Bass.LastError;
+            }
+            return data;
+        }
 
-                foreach (var channel in _channels)
-                {
-                    channel.SetSpeed(speed);
-                }
+        protected override void SetSpeed_Internal(float speed)
+        {
+            foreach (var channel in _channels)
+            {
+                channel.SetSpeed(speed);
             }
         }
 
-        public override bool AddChannel(SongStem stem)
+        protected override bool AddChannel_Internal(SongStem stem)
         {
             _mainHandle = StreamHandle.Create(_sourceStream, 1f, null);
             if (_mainHandle == null)
@@ -300,7 +215,7 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public override bool AddChannel(SongStem stem, Stream stream)
+        protected override bool AddChannel_Internal(SongStem stem, Stream stream)
         {
             if (!BassAudioManager.CreateSourceStream(stream, out int sourceStream))
             {
@@ -336,7 +251,7 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public override bool AddChannel(SongStem stem, int[] indices, float[] panning)
+        protected override bool AddChannel_Internal(SongStem stem, int[] indices, float[] panning)
         {
             double volume = AudioManager.GetVolumeSetting(stem);
             if (!BassAudioManager.CreateSplitStreams(_sourceStream, volume, indices, out var streamHandles, out var reverbHandles))
@@ -388,43 +303,47 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public override bool RemoveChannel(SongStem stemToRemove)
+        protected override bool RemoveChannel_Internal(SongStem stemToRemove)
         {
-            throw new NotImplementedException();
+            int index = _channels.FindIndex(channel => channel.Stem == stemToRemove);
+            if (index == -1)
+            {
+                return false;
+            }
+            _channels[index].Dispose();
+            _channels.RemoveAt(index);
+            return true;
         }
 
         protected override void DisposeManagedResources()
         {
-            // Free managed resources here
+            if (_channels.Count == 0)
+            {
+                _mainHandle.Dispose();
+                return;
+            }
+
             foreach (var channel in Channels)
             {
                 channel.Dispose();
             }
-
-            _channels.Clear();
         }
 
         protected override void DisposeUnmanagedResources()
         {
-            lock (this)
+            if (_mixerHandle != 0)
             {
-                // Free unmanaged resources here
-                if (_mixerHandle != 0)
+                if (!Bass.StreamFree(_mixerHandle))
                 {
-                    if (!Bass.StreamFree(_mixerHandle))
-                    {
-                        YargLogger.LogFormatError("Failed to free mixer stream (THIS WILL LEAK MEMORY!): {0}!", Bass.LastError);
-                    }
-                    _mixerHandle = 0;
+                    YargLogger.LogFormatError("Failed to free mixer stream (THIS WILL LEAK MEMORY!): {0}!", Bass.LastError);
                 }
+            }
 
-                if (_sourceStream != 0)
+            if (_sourceStream != 0)
+            {
+                if (!Bass.StreamFree(_sourceStream))
                 {
-                    if (!Bass.StreamFree(_sourceStream))
-                    {
-                        YargLogger.LogFormatError("Failed to free mixer source stream (THIS WILL LEAK MEMORY!): {0}!", Bass.LastError);
-                    }
-                    _sourceStream = 0;
+                    YargLogger.LogFormatError("Failed to free mixer source stream (THIS WILL LEAK MEMORY!): {0}!", Bass.LastError);
                 }
             }
         }
