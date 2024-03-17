@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using Cysharp.Text;
 using YARG.Core.Logging;
 
@@ -10,7 +9,6 @@ namespace YARG.Logging.Unity
         public void FormatLogItem(ref Utf16ValueStringBuilder output, LogItem item)
         {
             var source = item.Source.AsSpan();
-            var separator = Path.DirectorySeparatorChar;
 
             var assetsIndex = source.IndexOf("Assets");
             if (assetsIndex != -1)
@@ -18,7 +16,7 @@ namespace YARG.Logging.Unity
                 source = source[assetsIndex..];
             }
 
-            int lastSeparatorIndex = source.LastIndexOf(separator);
+            int lastSeparatorIndex = source.LastIndexOfAny('\\', '/');
             var fileName = source[(lastSeparatorIndex + 1)..];
 
             output.Append("[");

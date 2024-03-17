@@ -1,4 +1,4 @@
-using Cysharp.Text;
+﻿using Cysharp.Text;
 using UnityEngine;
 using YARG.Core.Logging;
 
@@ -6,6 +6,10 @@ namespace YARG.Logging.Unity
 {
     public class UnityEditorLogListener : BaseYargLogListener
     {
+        public UnityEditorLogListener() : this(new UnityEditorConsoleLogFormat())
+        {
+        }
+
         public UnityEditorLogListener(IYargLogFormatter formatter) : base(formatter)
         {
         }
