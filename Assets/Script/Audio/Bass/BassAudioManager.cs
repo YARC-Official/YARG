@@ -161,17 +161,17 @@ namespace YARG.Audio.BASS
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
         }
 
-        public override StemMixer? CreateMixer(float speed)
+        protected override StemMixer? CreateMixer_Internal(string name, float speed)
         {
             YargLogger.LogDebug("Loading song");
             if (!CreateMixerHandle(out int handle))
             {
                 return null;
             }
-            return new BassStemMixer(this, speed, handle, 0);
+            return new BassStemMixer(name, this, speed, handle, 0);
         }
 
-        public override StemMixer CreateMixer(Stream stream, float speed)
+        protected override StemMixer CreateMixer_Internal(string name, Stream stream, float speed)
         {
             YargLogger.LogDebug("Loading song");
             if (!CreateMixerHandle(out int handle))
@@ -183,10 +183,10 @@ namespace YARG.Audio.BASS
             {
                 return null;
             }
-            return new BassStemMixer(this, speed, handle, sourceStream);
+            return new BassStemMixer(name, this, speed, handle, sourceStream);
         }
 
-        public override MicDevice? GetInputDevice(string name)
+        protected override MicDevice? GetInputDevice_Internal(string name)
         {
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
@@ -206,7 +206,7 @@ namespace YARG.Audio.BASS
             return null;
         }
 
-        public override List<(int id, string name)> GetAllInputDevices()
+        protected override List<(int id, string name)> GetAllInputDevices_Internal()
         {
             var mics = new List<(int id, string name)>();
 
@@ -241,7 +241,7 @@ namespace YARG.Audio.BASS
             return mics;
         }
 
-        public override MicDevice? CreateDevice(int deviceId, string name)
+        protected override MicDevice? CreateDevice_Internal(int deviceId, string name)
         {
             var device = BassMicDevice.Create(deviceId, name);
             device?.SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Value);
@@ -277,7 +277,7 @@ namespace YARG.Audio.BASS
             YargLogger.LogInfo("Finished loading SFX");
         }
 
-        protected override void SetMasterVolume(double volume)
+        protected override void SetMasterVolume_Internal(double volume)
         {
 #if UNITY_EDITOR
             if (EditorUtility.audioMasterMute)

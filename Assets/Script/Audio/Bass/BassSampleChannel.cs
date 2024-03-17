@@ -50,7 +50,7 @@ namespace YARG.Audio.BASS
             _lastPlaybackTime = -1;
         }
 
-        public override void Play()
+        protected override void Play_Internal()
         {
             // Suppress playback if the last instance of this sample was too recent
             if (InputManager.CurrentInputTime - _lastPlaybackTime < PLAYBACK_SUPPRESS_THRESHOLD)
@@ -66,7 +66,7 @@ namespace YARG.Audio.BASS
             _lastPlaybackTime = InputManager.CurrentInputTime;
         }
 
-        protected override void SetVolume(double volume)
+        protected override void SetVolume_Internal(double volume)
         {
             volume *= AudioHelpers.SfxVolume[(int) Sample];
             if (!Bass.ChannelSetAttribute(_channel, ChannelAttribute.Volume, volume))

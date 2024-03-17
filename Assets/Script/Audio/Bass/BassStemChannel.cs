@@ -30,7 +30,7 @@ namespace YARG.Audio.BASS
             _pitchParams = pitchParams;
         }
 
-        public override void SetWhammyPitch(float percent)
+        protected override void SetWhammyPitch_Internal(float percent)
         {
             if (_streamHandles.PitchFX == 0 || _reverbHandles.PitchFX == 0)
                 return;
@@ -51,7 +51,7 @@ namespace YARG.Audio.BASS
             }
         }
 
-        public override void SetPosition(double position, bool bufferCompensation = true)
+        protected override void SetPosition_Internal(double position, bool bufferCompensation = true)
         {
             // Playback buffer compensation is optional
             // All other desync compensation is always done
@@ -83,12 +83,12 @@ namespace YARG.Audio.BASS
             }
         }
 
-        public override void SetSpeed(float speed)
+        protected override void SetSpeed_Internal(float speed)
         {
             BassAudioManager.SetSpeed(speed, _streamHandles.Stream, _reverbHandles.Stream);
         }
 
-        protected override void SetVolume(double newVolume)
+        protected override void SetVolume_Internal(double newVolume)
         {
             double volumeSetting = AudioManager.GetVolumeSetting(Stem);
 
@@ -119,7 +119,7 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
         }
 
-        protected override void SetReverb(bool reverb)
+        protected override void SetReverb_Internal(bool reverb)
         {
             _isReverbing = reverb;
             if (reverb)
