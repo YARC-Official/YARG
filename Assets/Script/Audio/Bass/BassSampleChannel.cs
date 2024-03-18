@@ -11,7 +11,7 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassSampleChannel : SampleChannel
     {
-        public static BassSampleChannel? Create(BassAudioManager manager, SfxSample sample, string path, int playbackCount)
+        public static BassSampleChannel? Create(SfxSample sample, string path, int playbackCount)
         {
             int handle = Bass.SampleLoad(path, 0, 0, playbackCount, BassFlags.Decode);
             if (handle == 0)
@@ -33,18 +33,16 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to set {sample} volume: {0}!", Bass.LastError);
             }
 
-            return new BassSampleChannel(manager, handle, channel, sample, path, playbackCount);
+            return new BassSampleChannel(handle, channel, sample, path, playbackCount);
         }
 
-        private readonly BassAudioManager _manager;
         private readonly int _sfxHandle;
         private readonly int _channel;
         private double _lastPlaybackTime;
 
-        private BassSampleChannel(BassAudioManager manager, int handle, int channel, SfxSample sample, string path, int playbackCount)
+        private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount)
             : base(sample, path, playbackCount)
         {
-            _manager = manager;
             _sfxHandle = handle;
             _channel = channel;
             _lastPlaybackTime = -1;
