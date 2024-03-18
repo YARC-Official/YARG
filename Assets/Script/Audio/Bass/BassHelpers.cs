@@ -12,7 +12,7 @@ namespace YARG.Audio.BASS
         public const int PLAYBACK_BUFFER_LENGTH = 75;
         public const double PLAYBACK_BUFFER_DESYNC = PLAYBACK_BUFFER_LENGTH / 1000.0;
 
-        public const float REVERB_VOLUME_MULTIPLIER = 0.85f;
+        public const float REVERB_VOLUME_MULTIPLIER = 0.80f;
 
         public const int FADE_TIME_MILLISECONDS = 1000;
 
