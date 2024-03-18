@@ -263,7 +263,7 @@ namespace YARG.Audio.BASS
                     if (File.Exists(sfxPath))
                     {
                         var sfxSample = AudioHelpers.GetSfxFromName(sfxFile);
-                        var sfx = BassSampleChannel.Create(this, sfxSample, sfxPath, 8);
+                        var sfx = BassSampleChannel.Create(sfxSample, sfxPath, 8);
                         if (sfx != null)
                         {
                             _sfxSamples[(int) sfxSample] = sfx;
