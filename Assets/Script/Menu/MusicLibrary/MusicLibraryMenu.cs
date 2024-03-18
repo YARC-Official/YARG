@@ -381,18 +381,22 @@ namespace YARG.Menu.MusicLibrary
 
             RequestViewListUpdate();
 
-            if (_searchField.IsUpdatedSearchLonger ||
-                // Try to select the last selected song
-                !SetIndexTo(i => i is SongViewType view && view.SongEntry == _currentSong))
+            bool notFound;
+            if (!refresh)
             {
-                // Try to select the song after the first category
-                if (!SetIndexTo(i => i is CategoryViewType, 1))
-                {
-                    // If all else fails, jump to the first item
-                    SelectedIndex = 0;
-                }
+                notFound = _searchField.IsUpdatedSearchLonger || !SetIndexTo(i => i is SongViewType view && view.SongEntry == _currentSong);
+            }
+            else
+            {
+                notFound = _currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory);
             }
 
+            // Try to select the song after the first category
+            if (notFound && !SetIndexTo(i => i is CategoryViewType, 1))
+            {
+                // If all else fails, jump to the first item
+                SelectedIndex = 0;
+            }
             _searchField.UpdateSearchText();
         }
 
