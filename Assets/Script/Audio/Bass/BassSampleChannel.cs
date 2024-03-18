@@ -1,8 +1,5 @@
-﻿using System;
-using Cysharp.Threading.Tasks;
-using ManagedBass;
+﻿using ManagedBass;
 using UnityEngine;
-using UnityEngine.Rendering;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Input;

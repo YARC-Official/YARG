@@ -171,8 +171,11 @@ namespace YARG.Gameplay
             {
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
+
             _mixer.SongEnd -= OnAudioEnd;
             _mixer.Dispose();
+            AudioManager.UseMinimumStemVolume = false;
+
             _songRunner?.Dispose();
             BeatEventHandler?.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();

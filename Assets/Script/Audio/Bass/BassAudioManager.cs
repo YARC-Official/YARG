@@ -6,7 +6,6 @@ using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
-using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Settings;
 
@@ -18,7 +17,7 @@ namespace YARG.Audio.BASS
 {
     internal class StreamHandle : IDisposable
     {
-        public static StreamHandle? Create(int sourceStream, double volume, int[] indices)
+        public static StreamHandle? Create(int sourceStream, int[] indices)
         {
             const BassFlags splitFlags = BassFlags.Decode | BassFlags.SplitPosition;
             const BassFlags tempoFlags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
@@ -44,11 +43,6 @@ namespace YARG.Audio.BASS
             }
 
             var handle = new StreamHandle(BassFx.TempoCreate(streamSplit, tempoFlags));
-            if (!Bass.ChannelSetAttribute(handle.Stream, ChannelAttribute.Volume, volume))
-            {
-                YargLogger.LogFormatError("Failed to set channel volume: {0}!", Bass.LastError);
-            }
-
             handle.CompressorFX = BassHelpers.AddCompressorToChannel(handle.Stream);
             if (handle.CompressorFX == 0)
             {
@@ -373,16 +367,16 @@ namespace YARG.Audio.BASS
             }
         }
 
-        internal static bool CreateSplitStreams(int sourceStream, double volume, int[] channelMap, out StreamHandle? streamHandles, out StreamHandle? reverbHandles)
+        internal static bool CreateSplitStreams(int sourceStream, int[] channelMap, out StreamHandle? streamHandles, out StreamHandle? reverbHandles)
         {
-            streamHandles = StreamHandle.Create(sourceStream, volume, channelMap);
+            streamHandles = StreamHandle.Create(sourceStream, channelMap);
             if (streamHandles == null)
             {
                 reverbHandles = null;
                 return false;
             }
 
-            reverbHandles = StreamHandle.Create(sourceStream, 0, channelMap);
+            reverbHandles = StreamHandle.Create(sourceStream, channelMap);
             if (reverbHandles == null)
             {
                 streamHandles.Dispose();
