@@ -27,6 +27,7 @@ namespace YARG.Gameplay
         private void LoadAudio()
         {
             _stemStates.Clear();
+            AudioManager.UseMinimumStemVolume = Song.Source.Str.ToLowerInvariant() == "yarg";
             _mixer = Song.LoadAudio(AudioManager.Instance, GlobalVariables.State.SongSpeed);
             if (_mixer == null)
             {
@@ -36,10 +37,6 @@ namespace YARG.Gameplay
             }
 
             _mixer.SongEnd += OnAudioEnd;
-
-            bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
-            AudioManager.UseMinimumStemVolume = isYargSong;
-
             foreach (var channel in _mixer.Channels)
             {
                 _stemStates.Add(channel.Stem, new StemState());
@@ -87,7 +84,7 @@ namespace YARG.Gameplay
                 ++state.Audible;
             }
 
-            double volume = (double)state.Audible / state.Total;
+            double volume = (double) state.Audible / state.Total;
             AudioManager.SetVolumeSetting(stem, volume);
         }
 

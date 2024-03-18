@@ -1,18 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.UIElements;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
-using YARG.Integration.StageKit;
 
 namespace YARG.Audio.BASS
 {
@@ -200,7 +192,7 @@ namespace YARG.Audio.BASS
 
         protected override bool AddChannel_Internal(SongStem stem)
         {
-            _mainHandle = StreamHandle.Create(_sourceStream, 1f, null);
+            _mainHandle = StreamHandle.Create(_sourceStream, null);
             if (_mainHandle == null)
             {
                 YargLogger.LogFormatError("Failed to load stem split stream {stem}: {0}!", Bass.LastError);
@@ -223,8 +215,7 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            double volume = AudioManager.GetVolumeSetting(stem);
-            if (!BassAudioManager.CreateSplitStreams(sourceStream, volume, null, out var streamHandles, out var reverbHandles))
+            if (!BassAudioManager.CreateSplitStreams(sourceStream, null, out var streamHandles, out var reverbHandles))
             {
                 YargLogger.LogFormatError("Failed to load stem split streams {stem}: {0}!", Bass.LastError);
                 return false;
@@ -237,24 +228,13 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            double length = BassAudioManager.GetLengthInSeconds(streamHandles.Stream);
-            var pitchparams = BassAudioManager.SetPitchParams(stem, _speed, streamHandles, reverbHandles);
-            var stemchannel = new BassStemChannel(_manager, stem, sourceStream, volume, pitchparams, streamHandles, reverbHandles);
-
-            if (_mainHandle == null || length > _length)
-            {
-                _mainHandle = streamHandles;
-                _length = length;
-            }
-
-            _channels.Add(stemchannel);
+            CreateChannel(stem, sourceStream, streamHandles, reverbHandles);
             return true;
         }
 
         protected override bool AddChannel_Internal(SongStem stem, int[] indices, float[] panning)
         {
-            double volume = AudioManager.GetVolumeSetting(stem);
-            if (!BassAudioManager.CreateSplitStreams(_sourceStream, volume, indices, out var streamHandles, out var reverbHandles))
+            if (!BassAudioManager.CreateSplitStreams(_sourceStream, indices, out var streamHandles, out var reverbHandles))
             {
                 YargLogger.LogFormatError("Failed to load stem {stem}: {0}!", Bass.LastError);
                 return false;
@@ -289,17 +269,7 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            double length = BassAudioManager.GetLengthInSeconds(streamHandles.Stream);
-            var pitchparams = BassAudioManager.SetPitchParams(stem, _speed, streamHandles, reverbHandles);
-            var stemchannel = new BassStemChannel(_manager, stem, 0, volume, pitchparams, streamHandles, reverbHandles);
-
-            if (_mainHandle == null || length > _length)
-            {
-                _mainHandle = streamHandles;
-                _length = length;
-            }
-
-            _channels.Add(stemchannel);
+            CreateChannel(stem, 0, streamHandles, reverbHandles);
             return true;
         }
 
@@ -346,6 +316,21 @@ namespace YARG.Audio.BASS
                     YargLogger.LogFormatError("Failed to free mixer source stream (THIS WILL LEAK MEMORY!): {0}!", Bass.LastError);
                 }
             }
+        }
+
+        private void CreateChannel(SongStem stem, int sourceStream, StreamHandle streamHandles, StreamHandle reverbHandles)
+        {
+            var pitchparams = BassAudioManager.SetPitchParams(stem, _speed, streamHandles, reverbHandles);
+            var stemchannel = new BassStemChannel(_manager, stem, sourceStream, pitchparams, streamHandles, reverbHandles);
+
+            double length = BassAudioManager.GetLengthInSeconds(streamHandles.Stream);
+            if (_mainHandle == null || length > _length)
+            {
+                _mainHandle = streamHandles;
+                _length = length;
+            }
+
+            _channels.Add(stemchannel);
         }
     }
 }
