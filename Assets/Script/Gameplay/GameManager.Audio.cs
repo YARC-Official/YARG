@@ -39,7 +39,19 @@ namespace YARG.Gameplay
             _mixer.SongEnd += OnAudioEnd;
             foreach (var channel in _mixer.Channels)
             {
-                _stemStates.Add(channel.Stem, new StemState());
+                switch (channel.Stem)
+                {
+                    case SongStem.Drums:
+                    case SongStem.Drums1:
+                    case SongStem.Drums2:
+                    case SongStem.Drums3:
+                    case SongStem.Drums4:
+                        _stemStates.TryAdd(SongStem.Drums, new StemState());
+                        break;
+                    default:
+                        _stemStates.Add(channel.Stem, new StemState());
+                        break;
+                }
             }
 
             if (_stemStates.TryGetValue(SongStem.Song, out var state))

@@ -390,8 +390,7 @@ namespace YARG.Gameplay
 
                 // Add (or increase total of) the stem state
                 var stem = player.Profile.CurrentInstrument.ToSongStem();
-                if (_stemStates.TryGetValue(stem, out var state)
-                || _stemStates.TryGetValue(SongStem.Song, out state))
+                if (_stemStates.TryGetValue(stem, out var state) || _stemStates.TryGetValue(SongStem.Song, out state))
                 {
                     ++state.Total;
                     ++state.Audible;
