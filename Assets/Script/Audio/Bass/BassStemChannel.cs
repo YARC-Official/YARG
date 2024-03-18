@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Cysharp.Threading.Tasks;
-using ManagedBass;
+﻿using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
@@ -17,17 +14,20 @@ namespace YARG.Audio.BASS
         private StreamHandle _reverbHandles;
         private PitchShiftParametersStruct _pitchParams;
 
+        private double _volume;
         private bool _isReverbing;
-        private double _lastStemVolume;
 
-        internal BassStemChannel(AudioManager manager, SongStem stem, int sourceStream, double volume, in PitchShiftParametersStruct pitchParams, in StreamHandle streamHandles, in StreamHandle reverbHandles)
-            : base(manager, stem, volume)
+        internal BassStemChannel(AudioManager manager, SongStem stem, int sourceStream, in PitchShiftParametersStruct pitchParams, in StreamHandle streamHandles, in StreamHandle reverbHandles)
+            : base(manager, stem)
         {
             _sourceHandle = sourceStream;
             _streamHandles = streamHandles;
             _reverbHandles = reverbHandles;
-            _lastStemVolume = volume;
             _pitchParams = pitchParams;
+
+            double volume = AudioManager.GetVolumeSetting(stem);
+            volume = AudioManager.ClampStemVolume(volume);
+            SetVolume_Internal(volume);
         }
 
         protected override void SetWhammyPitch_Internal(float percent)
@@ -88,32 +88,13 @@ namespace YARG.Audio.BASS
             BassAudioManager.SetSpeed(speed, _streamHandles.Stream, _reverbHandles.Stream);
         }
 
-        protected override void SetVolume_Internal(double newVolume)
+        protected override void SetVolume_Internal(double volume)
         {
-            double volumeSetting = AudioManager.GetVolumeSetting(Stem);
-
-            double oldBassVol = _lastStemVolume * Volume;
-            double newBassVol = volumeSetting * newVolume;
-
-            // Limit minimum stem volume
-            if (AudioManager.UseMinimumStemVolume)
-            {
-                newBassVol = Math.Max(newBassVol, AudioManager.MINIMUM_STEM_VOLUME);
-            }
-
-            // Values are the same, no need to change
-            if (Math.Abs(oldBassVol - newBassVol) < double.Epsilon)
-            {
-                return;
-            }
-
-            _volume = newVolume;
-            _lastStemVolume = volumeSetting;
-
-            if (!Bass.ChannelSetAttribute(_streamHandles.Stream, ChannelAttribute.Volume, newBassVol))
+            _volume = volume;
+            if (!Bass.ChannelSetAttribute(_streamHandles.Stream, ChannelAttribute.Volume, volume))
                 YargLogger.LogFormatError("Failed to set stream volume: {0}!", Bass.LastError);
 
-            double reverbVolume = _isReverbing ? newBassVol * BassHelpers.REVERB_VOLUME_MULTIPLIER : 0;
+            double reverbVolume = _isReverbing ? volume * BassHelpers.REVERB_VOLUME_MULTIPLIER : 0;
 
             if (!Bass.ChannelSetAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, reverbVolume))
                 YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
@@ -133,9 +114,8 @@ namespace YARG.Audio.BASS
                 _reverbHandles.HighEQ = BassHelpers.AddEqToChannel(_reverbHandles.Stream, BassHelpers.HighEqParams);
                 _reverbHandles.ReverbFX = BassHelpers.AddReverbToChannel(_reverbHandles.Stream);
 
-                double volumeSetting = AudioManager.GetVolumeSetting(Stem);
-                if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume,
-                    (float) (volumeSetting * Volume * BassHelpers.REVERB_VOLUME_MULTIPLIER), BassHelpers.REVERB_SLIDE_IN_MILLISECONDS))
+                float volume = (float) (_volume * BassHelpers.REVERB_VOLUME_MULTIPLIER);
+                if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, volume, BassHelpers.REVERB_SLIDE_IN_MILLISECONDS))
                 {
                     YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
                 }
@@ -159,8 +139,7 @@ namespace YARG.Audio.BASS
                 _reverbHandles.HighEQ = 0;
                 _reverbHandles.ReverbFX = 0;
 
-                if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, 0,
-                    BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS))
+                if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, 0, BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS))
                 {
                     YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
                 }
