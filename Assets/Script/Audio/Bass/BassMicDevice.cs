@@ -19,7 +19,9 @@ namespace YARG.Audio.BASS
             fDryMix = 0.3f, fWetMix = 1f, fRoomSize = 0.4f, fDamp = 0.7f
         };
 
+#nullable enable
         public static MonitorPlaybackHandle? Create(int channels)
+#nullable disable
         {
             // Set up monitoring stream
             int monitorPlaybackHandle = Bass.CreateStream(44100, channels, BassFlags.Default, StreamProcedureType.Push);
@@ -101,7 +103,9 @@ namespace YARG.Audio.BASS
         // This is as low as we can go with BASS
         internal const int CLEAN_RECORD_PERIOD_MS = 5;
 
+#nullable enable
         public static RecordingHandle? CreateCleanHandle(int channels, int monitorHandle)
+#nullable disable
         {
             bool ProcessCleanRecordData(int handle, IntPtr buffer, int length, IntPtr user)
             {
@@ -119,7 +123,9 @@ namespace YARG.Audio.BASS
             return new RecordingHandle(handle);
         }
 
+#nullable enable
         public static RecordingHandle? CreateHandle(int channels, RecordProcedure procedure)
+#nullable disable
         {
             int handle = Bass.RecordStart(44100, channels, BassFlags.Default, MicDevice.RECORD_PERIOD_MS, procedure, IntPtr.Zero);
             if (handle == 0)
@@ -162,7 +168,9 @@ namespace YARG.Audio.BASS
 
     public sealed class BassMicDevice : MicDevice
     {
+#nullable enable
         internal static BassMicDevice? Create(int deviceId, string name)
+#nullable disable
         {
             // Must initialise device before recording
             if (!Bass.RecordInit(deviceId) || !Bass.RecordGetInfo(out var info))

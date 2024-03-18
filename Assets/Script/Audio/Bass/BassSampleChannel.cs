@@ -8,7 +8,9 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassSampleChannel : SampleChannel
     {
+#nullable enable
         public static BassSampleChannel? Create(SfxSample sample, string path, int playbackCount)
+#nullable disable
         {
             int handle = Bass.SampleLoad(path, 0, 0, playbackCount, BassFlags.Decode);
             if (handle == 0)
