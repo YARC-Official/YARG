@@ -352,7 +352,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c6c94244ff9428b84055ba904970eba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  badSongsButton: {fileID: 2175544638138294359}
+  _badSongsButton: {fileID: 2175544638138294359}
 --- !u!224 &1958580528560083963 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5753369685943773596, guid: eda8fcec479d4324eb4bd1d7624e1edc,
@@ -375,17 +375,17 @@ PrefabInstance:
     - target: {fileID: 1071800837622904608, guid: f6ac2a9c2f684f84792c7d7cd00ba18c,
         type: 3}
       propertyPath: m_Color.b
-      value: 0
+      value: 0.21568628
       objectReference: {fileID: 0}
     - target: {fileID: 1071800837622904608, guid: f6ac2a9c2f684f84792c7d7cd00ba18c,
         type: 3}
       propertyPath: m_Color.g
-      value: 0.017125942
+      value: 0.16862746
       objectReference: {fileID: 0}
     - target: {fileID: 1071800837622904608, guid: f6ac2a9c2f684f84792c7d7cd00ba18c,
         type: 3}
       propertyPath: m_Color.r
-      value: 1
+      value: 0.9529412
       objectReference: {fileID: 0}
     - target: {fileID: 1245898288579793007, guid: f6ac2a9c2f684f84792c7d7cd00ba18c,
         type: 3}
@@ -535,27 +535,27 @@ PrefabInstance:
     - target: {fileID: 5240628994194081110, guid: f6ac2a9c2f684f84792c7d7cd00ba18c,
         type: 3}
       propertyPath: m_text
-      value: Open Bad Songs File
+      value: Errors Found
       objectReference: {fileID: 0}
     - target: {fileID: 5240628994194081110, guid: f6ac2a9c2f684f84792c7d7cd00ba18c,
         type: 3}
       propertyPath: m_fontColor.b
-      value: 0.2784314
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5240628994194081110, guid: f6ac2a9c2f684f84792c7d7cd00ba18c,
         type: 3}
       propertyPath: m_fontColor.g
-      value: 0.22745098
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5240628994194081110, guid: f6ac2a9c2f684f84792c7d7cd00ba18c,
         type: 3}
       propertyPath: m_fontColor.r
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5240628994194081110, guid: f6ac2a9c2f684f84792c7d7cd00ba18c,
         type: 3}
       propertyPath: m_fontColor32.rgba
-      value: 4282857984
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}

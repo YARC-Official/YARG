@@ -9,7 +9,7 @@ namespace YARG.Menu.Settings
     public class SongManagerHeader : MonoBehaviour
     {
         [SerializeField]
-        private ColoredButton badSongsButton;
+        private ColoredButton _badSongsButton;
 
         private void Awake()
         {
@@ -31,14 +31,14 @@ namespace YARG.Menu.Settings
 
         private void CheckBadSongsFile()
         {
-            badSongsButton.gameObject.SetActive(File.Exists(PathHelper.BadSongsPath));
+            _badSongsButton.gameObject.SetActive(File.Exists(PathHelper.BadSongsPath));
             
             var numErrors = CacheHandler.Progress.BadSongCount;
 
             if (numErrors > 0)
             {
                 var errors = numErrors == 1 ? "ERROR" : "ERRORS";
-                badSongsButton.Text.text = $"{numErrors} {errors} FOUND";
+                _badSongsButton.Text.text = $"{numErrors} {errors} FOUND";
             }
         }
 
