@@ -17,12 +17,12 @@ namespace YARG.Audio.BASS
 {
     internal class StreamHandle : IDisposable
     {
+#nullable enable
         public static StreamHandle? Create(int sourceStream, int[] indices)
         {
             const BassFlags splitFlags = BassFlags.Decode | BassFlags.SplitPosition;
             const BassFlags tempoFlags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
 
-#nullable enable
             int[]? channelMap = null;
 #nullable disable
             if (indices != null)
@@ -155,6 +155,7 @@ namespace YARG.Audio.BASS
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
         }
 
+#nullable enable
         protected override StemMixer? CreateMixer_Internal(string name, float speed)
         {
             YargLogger.LogDebug("Loading song");
@@ -165,7 +166,7 @@ namespace YARG.Audio.BASS
             return new BassStemMixer(name, this, speed, handle, 0);
         }
 
-        protected override StemMixer CreateMixer_Internal(string name, Stream stream, float speed)
+        protected override StemMixer? CreateMixer_Internal(string name, Stream stream, float speed)
         {
             YargLogger.LogDebug("Loading song");
             if (!CreateMixerHandle(out int handle))
@@ -199,6 +200,7 @@ namespace YARG.Audio.BASS
             }
             return null;
         }
+#nullable disable
 
         protected override List<(int id, string name)> GetAllInputDevices_Internal()
         {
@@ -235,7 +237,9 @@ namespace YARG.Audio.BASS
             return mics;
         }
 
+#nullable enable
         protected override MicDevice? CreateDevice_Internal(int deviceId, string name)
+#nullable disable
         {
             var device = BassMicDevice.Create(deviceId, name);
             device?.SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Value);
@@ -367,7 +371,9 @@ namespace YARG.Audio.BASS
             }
         }
 
+#nullable enable
         internal static bool CreateSplitStreams(int sourceStream, int[] channelMap, out StreamHandle? streamHandles, out StreamHandle? reverbHandles)
+#nullable disable
         {
             streamHandles = StreamHandle.Create(sourceStream, channelMap);
             if (streamHandles == null)

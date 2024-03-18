@@ -41,7 +41,9 @@ namespace YARG.Menu.Calibrator
         private readonly List<float> _calibrationTimes = new();
 
         private YargPlayer _player;
+#nullable enable
         private StemMixer? _mixer;
+#nullable disable
 
         private void Start()
         {
