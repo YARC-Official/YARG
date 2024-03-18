@@ -106,7 +106,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (PlayerContainer.Players.Count <= 0) return;
 
-            GlobalVariables.Instance.CurrentSong = SongEntry;
+            GlobalVariables.State.CurrentSong = SongEntry;
             MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }
 

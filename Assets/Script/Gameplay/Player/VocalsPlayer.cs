@@ -55,6 +55,7 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart);
 
+            hud.Initialize(player.EnginePreset);
             _hud = hud;
 
             // Get the notes from the specific harmony or solo part
@@ -87,31 +88,19 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
-            // Hit window is in semitones (total width).
-            double windowSize = Player.Profile.CurrentDifficulty switch
+            if (!GameManager.IsReplay)
             {
-                Difficulty.Easy   => 3.5,
-                Difficulty.Medium => 3.0,
-                Difficulty.Hard   => 2.5,
-                Difficulty.Expert => 2.0,
-                _ => throw new InvalidOperationException("Unreachable")
-            };
-
-            // These percentages may seem low, but accounting for delay,
-            // plosives not being detected, etc., it's pretty good.
-            double hitPercent = Player.Profile.CurrentDifficulty switch
+                // Create the engine params from the engine preset
+                EngineParams = Player.EnginePreset.Vocals.Create(StarMultiplierThresholds, Player.Profile.CurrentDifficulty, IMicDevice.UPDATES_PER_SECOND);
+            }
+            else
             {
-                Difficulty.Easy   => 0.325,
-                Difficulty.Medium => 0.400,
-                Difficulty.Hard   => 0.450,
-                Difficulty.Expert => 0.575,
-                _ => throw new InvalidOperationException("Unreachable")
-            };
+                // Otherwise, get from the replay
+                EngineParams = (VocalsEngineParameters) Player.EngineParameterOverride;
+            }
 
-            // The hit window size should not be scaled here, since it represents pitch, not timing
-            HitWindow = new HitWindowSettings(windowSize, 0.03, 1, false);
-            EngineParams = new VocalsEngineParameters(HitWindow, EnginePreset.DEFAULT_MAX_MULTIPLIER,
-                StarMultiplierThresholds, hitPercent, true, IMicDevice.UPDATES_PER_SECOND);
+            // The hit window can just be taken from the params
+            HitWindow = EngineParams.HitWindow;
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams);
 

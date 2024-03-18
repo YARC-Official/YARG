@@ -163,7 +163,7 @@ namespace YARG
                 directories.Remove(setlistPath);
             }
 
-            GlobalVariables.Instance.SongContainer = new SongContainer(task.Result);
+            SongContainer.Refresh(task.Result);
             MusicLibraryMenu.SetRefresh();
         }
 

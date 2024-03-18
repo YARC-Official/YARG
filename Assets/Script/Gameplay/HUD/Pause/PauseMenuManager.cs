@@ -156,7 +156,7 @@ namespace YARG.Gameplay.HUD
 
         public void Restart()
         {
-            if (GameManager.IsPractice && GlobalVariables.Instance.IsPractice)
+            if (GameManager.IsPractice && GlobalVariables.State.IsPractice)
             {
                 PopMenu(false);
                 GameManager.PracticeManager.ResetPractice();

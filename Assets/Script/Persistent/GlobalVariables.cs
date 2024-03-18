@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
@@ -43,22 +44,9 @@ namespace YARG
 
         public static IAudioManager AudioManager { get; private set; }
 
+        public static PersistentState State = PersistentState.Default;
+
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
-        public SongContainer SongContainer { get; set; }
-
-        [HideInInspector]
-        public SongEntry CurrentSong;
-        public ReplayEntry  CurrentReplay;
-
-        public ScoreScreenStats ScoreScreenStats;
-
-        [Space]
-        public float SongSpeed = 1f;
-
-        [HideInInspector]
-        public bool IsReplay;
-        [HideInInspector]
-        public bool IsPractice;
 
         protected override void SingletonAwake()
         {

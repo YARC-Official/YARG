@@ -56,8 +56,7 @@ namespace YARG.Menu.MusicLibrary
             const float STARTING_RNG = .75f;
             const float RNG_DECREMENT = .25f;
 
-            var sources = GlobalVariables.Instance.SongContainer.Sources;
-            sources.TryGetValue(_YARGSOURCE, out var yargSongs);
+            SongContainer.Sources.TryGetValue(_YARGSOURCE, out var yargSongs);
 
             float yargSongRNG = yargSongs != null ? STARTING_RNG : 0;
             while (_recommendedSongs.Count < 5)
@@ -70,7 +69,7 @@ namespace YARG.Menu.MusicLibrary
                 }
                 else
                 {
-                    song = GlobalVariables.Instance.SongContainer.GetRandomSong();
+                    song = SongContainer.GetRandomSong();
                 }
 
                 if (!_recommendedSongs.Contains(song))
@@ -90,7 +89,7 @@ namespace YARG.Menu.MusicLibrary
 
         private static void AddSongsFromTopPlayedArtists(ref List<SongEntry> mostPlayed)
         {
-            var artists = GlobalVariables.Instance.SongContainer.Artists;
+            var artists = SongContainer.Artists;
             while (mostPlayed.Count > 0)
             {
                 int songIndex = Random.Range(0, mostPlayed.Count);

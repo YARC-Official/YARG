@@ -19,7 +19,20 @@ namespace YARG.Menu
             History,
         }
 
-        private static bool _firstLaunch = true;
+        /// <summary>
+        /// The values that <see cref="_lastOpenMenu"/> is allowed to be set to
+        /// (not including <see cref="Menu.None"/>.
+        /// </summary>
+        private static readonly HashSet<Menu> _allowedLastOpenMenus = new()
+        {
+            Menu.MusicLibrary,
+            Menu.History
+        };
+
+        /// <summary>
+        /// The menu that was last open when the menu scene gets disabled.
+        /// </summary>
+        private static Menu _lastOpenMenu = Menu.None;
 
         private Dictionary<Menu, MenuObject> _menus;
 
@@ -34,15 +47,28 @@ namespace YARG.Menu
 
         private void Start()
         {
-            if (_firstLaunch)
+            // Always push the main menu
+            PushMenu(Menu.MainMenu);
+
+            if (_lastOpenMenu != Menu.None)
             {
-                PushMenu(Menu.MainMenu);
-                _firstLaunch = false;
+                PushMenu(_lastOpenMenu);
             }
-            else
+        }
+
+        private void OnDisable()
+        {
+            _lastOpenMenu = Menu.None;
+
+            // Set the last open menu to the first instance of the allowed menu
+            // Loops from top to bottom
+            foreach (var menu in _openMenus)
             {
-                PushMenu(Menu.MainMenu);
-                PushMenu(Menu.MusicLibrary);
+                if (_allowedLastOpenMenus.Contains(menu))
+                {
+                    _lastOpenMenu = menu;
+                    break;
+                }
             }
         }
 
