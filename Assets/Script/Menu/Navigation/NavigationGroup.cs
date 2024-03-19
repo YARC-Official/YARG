@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Core.Logging;
 
 namespace YARG.Menu.Navigation
 {
@@ -91,8 +92,8 @@ namespace YARG.Menu.Navigation
         {
             if (_addAllChildrenOnAwake)
             {
-                Debug.LogWarning($"Navigation group {this} has 'Add All Children On Awake' enabled but is being added " +
-                    "to manually! This is most likely an error and will result in duplicate entries, so it has been disabled.");
+                YargLogger.LogFormatWarning("Navigation group {0} has 'Add All Children On Awake' enabled but is being added " +
+                    "to manually! This is most likely an error and will result in duplicate entries, so it has been disabled.", this);
                 _addAllChildrenOnAwake = false;
             }
 

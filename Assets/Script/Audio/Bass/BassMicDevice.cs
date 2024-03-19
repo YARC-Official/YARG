@@ -4,6 +4,7 @@ using ManagedBass;
 using ManagedBass.Fx;
 using UnityEngine;
 using YARG.Audio.PitchDetection;
+using YARG.Core.Logging;
 using YARG.Input;
 using YARG.Settings;
 
@@ -66,7 +67,7 @@ namespace YARG.Audio.BASS
             // Must initialise device before recording
             if (!Bass.RecordInit(_deviceId) || !Bass.RecordGetInfo(out var info))
             {
-                Debug.LogError($"Failed to initialize recording device: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to initialize recording device: {0}", Bass.LastError);
                 return (int) Bass.LastError;
             }
 
@@ -81,7 +82,7 @@ namespace YARG.Audio.BASS
                 ProcessRecordData, IntPtr.Zero);
             if (_cleanRecordHandle == 0 || _processedRecordHandle == 0)
             {
-                Debug.LogError($"Failed to start recording: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to start recording: {0}", Bass.LastError);
                 Dispose();
                 return (int) Bass.LastError;
             }
@@ -91,7 +92,7 @@ namespace YARG.Audio.BASS
             int highEqHandle = BassHelpers.AddEqToChannel(_processedRecordHandle, _highEqParameters);
             if (lowEqHandle == 0 || highEqHandle == 0)
             {
-                Debug.LogError($"Failed to add EQ to recording stream!");
+                YargLogger.LogError("Failed to add EQ to recording stream!");
                 Dispose();
                 return (int) Bass.LastError;
             }
@@ -100,7 +101,7 @@ namespace YARG.Audio.BASS
             _monitorPlaybackHandle = Bass.CreateStream(44100, info.Channels, FLAGS, StreamProcedureType.Push);
             if (_monitorPlaybackHandle == 0)
             {
-                Debug.LogError($"Failed to create monitor stream: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to create monitor stream: {0}", Bass.LastError);
                 Dispose();
                 return (int) Bass.LastError;
             }
@@ -110,7 +111,7 @@ namespace YARG.Audio.BASS
                 _monitoringReverbParameters, 1);
             if (reverbHandle == 0)
             {
-                Debug.LogError($"Failed to add reverb to monitor stream!");
+                YargLogger.LogError("Failed to add reverb to monitor stream!");
                 Dispose();
                 return (int) Bass.LastError;
             }
@@ -119,7 +120,7 @@ namespace YARG.Audio.BASS
             _applyGainHandle = Bass.ChannelSetDSP(_monitorPlaybackHandle, ApplyGain);
             if (_applyGainHandle == 0)
             {
-                Debug.LogError($"Failed to add gain to monitor stream: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to add gain to monitor stream: {0}", Bass.LastError);
                 Dispose();
                 return (int) Bass.LastError;
             }
@@ -127,7 +128,7 @@ namespace YARG.Audio.BASS
             // Start monitoring
             if (!Bass.ChannelPlay(_monitorPlaybackHandle))
             {
-                Debug.LogError($"Failed to start monitor stream: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to start monitor stream: {0}", Bass.LastError);
                 Dispose();
                 return (int) Bass.LastError;
             }
@@ -214,7 +215,7 @@ namespace YARG.Audio.BASS
 
             if (!Bass.ChannelSetAttribute(_monitorPlaybackHandle, ChannelAttribute.Volume, volume))
             {
-                Debug.LogError($"Failed to set volume attribute: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to set volume attribute: {0}", Bass.LastError);
             }
         }
 

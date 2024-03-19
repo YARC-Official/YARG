@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 
@@ -62,8 +63,7 @@ namespace YARG.Gameplay.HUD
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to save replay mid-song. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to save replay mid-song");
 
                 failed = true;
             }

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 
 namespace YARG.Gameplay.HUD
 {
@@ -82,7 +83,7 @@ namespace YARG.Gameplay.HUD
                     _currentStar = topStar;
 
                     GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarGain);
-                    Debug.Log($"Gained star at {GameManager.BandScore} ({stars})");
+                    YargLogger.LogFormatDebug("Gained star at {0} ({1})", GameManager.BandScore, stars);
                 }
 
                 if (_currentStar < 5)

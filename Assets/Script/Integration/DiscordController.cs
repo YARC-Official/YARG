@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using Discord;
 using UnityEngine;
 using UnityEngine.Localization;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
 
@@ -54,8 +55,7 @@ namespace YARG.Integration
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Failed to start Discord presence client.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to start Discord presence client.");
 
                 _discord = null;
                 return;
@@ -206,8 +206,7 @@ namespace YARG.Integration
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Failed to fetch album art for song. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to fetch album art for song.");
             }
 
             UpdateActivityWithAlbumArt();
@@ -227,8 +226,7 @@ namespace YARG.Integration
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to run Discord client callbacks!");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to run Discord client callbacks!");
 
                 TryDispose();
             }
@@ -258,8 +256,7 @@ namespace YARG.Integration
             }
             catch (Exception e)
             {
-                Debug.Log("Failed to dispose of Discord client.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to dispose of Discord client.");
             }
         }
 
@@ -283,7 +280,7 @@ namespace YARG.Integration
             {
                 if (result != Result.Ok)
                 {
-                    Debug.LogWarning("Discord Activity Error: " + result);
+                    YargLogger.LogFormatWarning("Discord Activity Error: ", result);
                 }
             });
         }

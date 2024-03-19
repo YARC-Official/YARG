@@ -1,5 +1,6 @@
 ﻿using System;
 using SFB;
+using YARG.Core.Logging;
 
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
 
@@ -32,8 +33,7 @@ namespace YARG.Helpers
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error when handling folder {path}!");
-                    Debug.LogException(ex);
+                    YargLogger.LogException(ex, $"Error when handling folder {path}!");
                 }
             });
         }
@@ -52,8 +52,7 @@ namespace YARG.Helpers
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error when handling file {path}!");
-                    Debug.LogException(ex);
+                    YargLogger.LogException(ex, $"Error when handling file {path}!");
                 }
             });
         }
@@ -72,8 +71,7 @@ namespace YARG.Helpers
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error when saving file {path}!");
-                    Debug.LogException(ex);
+                    YargLogger.LogException(ex, $"Error when saving file {path}!");
                 }
             });
         }

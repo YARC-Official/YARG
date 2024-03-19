@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 
 namespace YARG.Helpers
@@ -165,7 +166,7 @@ namespace YARG.Helpers
                         }
                         else
                         {
-                            Debug.LogWarning($"Keyword `{token.Value}` was not found.");
+                            YargLogger.LogFormatWarning("Keyword `{0}` was not found.", token.Value);
                             tokenList.Remove(token);
                         }
                     }
@@ -194,7 +195,7 @@ namespace YARG.Helpers
                         }
                         else
                         {
-                            Debug.LogWarning($"Condition `{token.Value}` was not found.");
+                            YargLogger.LogFormatWarning("Condition `{0}` was not found.", token.Value);
                         }
 
                         // These never stay

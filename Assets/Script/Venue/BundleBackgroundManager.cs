@@ -3,6 +3,7 @@ using System.IO;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
+using YARG.Core.Logging;
 #endif
 
 namespace YARG.Venue
@@ -109,8 +110,7 @@ namespace YARG.Venue
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to bundle background/venue.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to bundle background/venue.");
             }
             finally
             {

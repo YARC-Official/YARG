@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Audio;
 using YARG.Core;
+using YARG.Core.Logging;
 
 #nullable enable
 
@@ -133,8 +134,7 @@ namespace YARG.Input.Serialization
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Error while saving bindings!");
-                Debug.LogException(ex);
+                YargLogger.LogException(ex, "Error while saving bindings!");
             }
         }
 
@@ -167,8 +167,7 @@ namespace YARG.Input.Serialization
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Error while loading bindings!");
-                Debug.LogException(ex);
+                YargLogger.LogException(ex, "Error while loading bindings!");
                 return null;
             }
         }

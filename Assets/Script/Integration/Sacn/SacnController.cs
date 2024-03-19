@@ -4,6 +4,7 @@ using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Integration.StageKit;
 using YARG.Settings;
 using Debug = UnityEngine.Debug;
@@ -182,7 +183,7 @@ namespace YARG.Integration.Sacn
             {
                 if (_sendClient != null) return;
 
-                Debug.Log("Starting Sacn Controller...");
+                YargLogger.LogInfo("Starting Sacn Controller...");
 
                 StageKitLightingController.Instance.OnLedSet += HandleLedEvent;
                 StageKitLightingController.Instance.OnFogSet += HandleFogEvent;
@@ -227,7 +228,7 @@ namespace YARG.Integration.Sacn
 
             if (_sendClient == null) return;
 
-            Debug.Log("Killing Sacn Controller...");
+            YargLogger.LogInfo("Killing Sacn Controller...");
 
             // A good controller will also turn everything off after not receiving a packet after 2.5 seconds.
             // But this doesn't hurt to do.

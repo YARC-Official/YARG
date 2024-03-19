@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Input.Serialization;
 using YARG.Player;
 
@@ -40,7 +41,7 @@ namespace YARG.Input.Bindings
             var bindings = BindingSerialization.DeserializeBindings(bindingsPath);
             if (bindings is null)
             {
-                Debug.LogWarning($"Failed to load bindings!");
+                YargLogger.LogWarning("Failed to load bindings!");
                 return 0;
             }
 
@@ -49,7 +50,7 @@ namespace YARG.Input.Bindings
                 var profile = PlayerContainer.GetProfileById(id);
                 if (profile is null)
                 {
-                    Debug.LogWarning($"Bindings exist for profile ID {id}, but the corresponding profile was not found! Bindings will be discarded.");
+                    YargLogger.LogFormatWarning("Bindings exist for profile ID {0}, but the corresponding profile was not found! Bindings will be discarded.", id);
                     continue;
                 }
 

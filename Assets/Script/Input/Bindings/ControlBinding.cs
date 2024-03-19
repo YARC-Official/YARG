@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Localization;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Input.Serialization;
 
 namespace YARG.Input
@@ -16,9 +17,9 @@ namespace YARG.Input
     {
         public static readonly ActuationSettings Default = new();
 
-        public float ButtonPressThreshold = 0.5f;
-        public float AxisDeltaThreshold = 0.05f;
-        public int IntegerDeltaThreshold = 1;
+        public float ButtonPressThreshold  = 0.5f;
+        public float AxisDeltaThreshold    = 0.05f;
+        public int   IntegerDeltaThreshold = 1;
     }
 
     /// <summary>
@@ -95,7 +96,9 @@ namespace YARG.Input
             Enabled = false;
         }
 
-        public virtual void UpdateForFrame(double updateTime) { }
+        public virtual void UpdateForFrame(double updateTime)
+        {
+        }
 
         public abstract void OnDeviceAdded(InputDevice device);
         public abstract void OnDeviceRemoved(InputDevice device);
@@ -135,8 +138,7 @@ namespace YARG.Input
 
         protected void FireInputEvent(ref GameInput input)
         {
-            if (!Enabled)
-                return;
+            if (!Enabled) return;
 
             try
             {
@@ -145,8 +147,7 @@ namespace YARG.Input
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Exception when firing input event for {Key}!");
-                Debug.LogException(ex);
+                YargLogger.LogException(ex, $"Exception when firing input event for {Key}");
             }
         }
     }
@@ -155,7 +156,7 @@ namespace YARG.Input
         where TState : struct
     {
         public InputControl<TState> Control { get; }
-        public TState State { get; protected set; }
+        public TState               State   { get; protected set; }
 
         public event Action<TState> StateChanged;
 
@@ -202,8 +203,8 @@ namespace YARG.Input
 
         private List<SerializedInputControl> _unresolvedBindings = new();
 
-        protected List<TBinding> _bindings = new();
-        public IReadOnlyList<TBinding> Bindings => _bindings;
+        protected List<TBinding>          _bindings = new();
+        public    IReadOnlyList<TBinding> Bindings => _bindings;
 
         public ControlBinding(string name, int action) : base(name, action)
         {
@@ -220,24 +221,21 @@ namespace YARG.Input
             foreach (var binding in _bindings)
             {
                 var serializedBind = SerializeControl(binding);
-                if (serializedBind is null)
-                    continue;
+                if (serializedBind is null) continue;
 
                 serialized.Controls.Add(serializedBind);
             }
 
             serialized.Controls.AddRange(_unresolvedBindings);
 
-            if (serialized.Controls.Count < 1)
-                return null;
+            if (serialized.Controls.Count < 1) return null;
 
             return serialized;
         }
 
         public override void Deserialize(SerializedControlBinding? serialized)
         {
-            if (serialized is null || serialized.Controls is null)
-                return;
+            if (serialized is null || serialized.Controls is null) return;
 
             DeserializeParameters(serialized.Parameters);
 
@@ -246,7 +244,7 @@ namespace YARG.Input
                 if (binding is null || string.IsNullOrEmpty(binding.ControlPath) || binding.Device is null ||
                     string.IsNullOrEmpty(binding.Device.Layout) || string.IsNullOrEmpty(binding.Device.Hash))
                 {
-                    Debug.LogWarning($"Encountered invalid control for binding {Key}!");
+                    YargLogger.LogFormatWarning("Encountered invalid control for binding {0}!", Key);
                     return;
                 }
 
@@ -259,7 +257,9 @@ namespace YARG.Input
         }
 
         protected virtual Dictionary<string, string> SerializeParameters() => new();
-        protected virtual void DeserializeParameters(Dictionary<string, string> parameters) {}
+        protected virtual void DeserializeParameters(Dictionary<string, string> parameters)
+        {
+        }
 #nullable disable
 
         public override bool IsControlCompatible(InputControl control)
@@ -303,8 +303,7 @@ namespace YARG.Input
 
         public bool AddControl(ActuationSettings settings, InputControl<TState> control)
         {
-            if (ContainsControl(control))
-                return false;
+            if (ContainsControl(control)) return false;
 
             var binding = CreateBinding(settings, control);
             AddBinding(binding);
@@ -314,8 +313,7 @@ namespace YARG.Input
 
         public bool RemoveControl(InputControl<TState> control)
         {
-            if (!TryGetBinding(control, out var binding))
-                return false;
+            if (!TryGetBinding(control, out var binding)) return false;
 
             return RemoveBinding(binding);
         }
@@ -409,8 +407,7 @@ namespace YARG.Input
                 }
             }
 
-            if (removed)
-                FireBindingsChanged();
+            if (removed) FireBindingsChanged();
 
             return removed;
         }
@@ -423,35 +420,30 @@ namespace YARG.Input
             for (int i = 0; i < _unresolvedBindings.Count; i++)
             {
                 var binding = _unresolvedBindings[i];
-                if (!binding.Device.MatchesDevice(device))
-                    continue;
+                if (!binding.Device.MatchesDevice(device)) continue;
 
                 // Remove regardless of if deserialization fails, no point keeping broken bindings around
                 _unresolvedBindings.RemoveAt(i);
                 i--;
 
                 var deserialized = DeserializeControl(device, binding);
-                if (deserialized is null)
-                    continue;
+                if (deserialized is null) continue;
 
                 AddBinding(deserialized);
                 controlsModified = true;
             }
 
-            if (controlsModified)
-                FireBindingsChanged();
+            if (controlsModified) FireBindingsChanged();
         }
 
         public override void OnDeviceRemoved(InputDevice device)
         {
             RemoveBindings((binding) =>
             {
-                if (binding.Control.device != device)
-                    return false;
+                if (binding.Control.device != device) return false;
 
                 var serialized = SerializeControl(binding);
-                if (serialized is null)
-                    return false;
+                if (serialized is null) return false;
 
                 _unresolvedBindings.Add(serialized);
                 return true;
@@ -461,25 +453,27 @@ namespace YARG.Input
 
         protected abstract TBinding CreateBinding(ActuationSettings settings, InputControl<TState> binding);
 
-        void IInputStateChangeMonitor.NotifyControlStateChanged(InputControl control, double time, InputEventPtr eventPtr,
+        void IInputStateChangeMonitor.NotifyControlStateChanged(InputControl control, double time,
+            InputEventPtr eventPtr,
             long monitorIndex)
         {
             if (!eventPtr.valid)
             {
-                Debug.LogError($"Invalid eventPtr received for control {control}!");
+                YargLogger.LogFormatError("Invalid eventPtr received for control {0}!", control);
                 return;
             }
 
             if (monitorIndex >= _bindings.Count)
             {
-                Debug.LogError($"Invalid state monitor index {monitorIndex}!");
+                YargLogger.LogFormatError("Invalid state monitor index {0}!", monitorIndex);
                 return;
             }
 
             var binding = _bindings[(int) monitorIndex];
             if (binding.Control != control)
             {
-                Debug.LogError($"State monitor index {monitorIndex} does not match binding! Expected {binding.Control}, got {control}");
+                YargLogger.LogFormatError("State monitor index {0} does not match binding! Expected {1}, got {2}",
+                    monitorIndex, binding.Control, control);
                 return;
             }
 
@@ -488,7 +482,10 @@ namespace YARG.Input
             FireStateChanged();
         }
 
-        void IInputStateChangeMonitor.NotifyTimerExpired(InputControl control, double time, long monitorIndex, int timerIndex) { }
+        void IInputStateChangeMonitor.NotifyTimerExpired(InputControl control, double time, long monitorIndex,
+            int timerIndex)
+        {
+        }
 
         protected abstract void OnStateChanged(TBinding binding, double time);
 
@@ -522,14 +519,17 @@ namespace YARG.Input
 
                 if (control == null)
                 {
-                    Debug.LogWarning($"Could not find control {serialized.ControlPath} on device {device}!");
+                    YargLogger.LogFormatWarning("Could not find control {0} on device {1}!", serialized.ControlPath,
+                        device);
                     return null;
                 }
             }
 
             if (control is not InputControl<TState> tControl)
             {
-                Debug.LogWarning($"Found control {serialized.ControlPath}, but it was not of the right type! Expected a derivative of {typeof(InputControl<TState>)}, found {control.GetType()}");
+                YargLogger.LogFormatWarning(
+                    "Found control {0}, but it was not of the right type! Expected a derivative of {1}, found {2}",
+                    serialized.ControlPath, typeof(InputControl<TState>), control.GetType());
                 return null;
             }
 

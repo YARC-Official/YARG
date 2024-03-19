@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using SQLite;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
@@ -44,8 +45,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to create LiteDB connection. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to create LiteDB connection.");
             }
         }
 
@@ -78,7 +78,7 @@ namespace YARG.Scores
 
                 rowsAdded += _db.InsertAll(playerEntries);
 
-                Debug.Log($"Successfully added {rowsAdded} rows into score database.");
+                YargLogger.LogFormatInfo("Successfully added {0} rows into score database.", rowsAdded);
 
                 var songChecksum = new HashWrapper(gameRecord.SongChecksum);
 
@@ -96,12 +96,11 @@ namespace YARG.Scores
                     SongHighScores.Add(songChecksum, bestScore);
                 }
 
-                Debug.Log("Recorded high score for song.");
+                YargLogger.LogInfo("Recorded high score for song.");
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to add score into database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to add score into database.");
             }
         }
 
@@ -133,8 +132,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load all GameRecords from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load all GameRecords from database.");
             }
 
             return null;
@@ -148,9 +146,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError(
-                    "Failed to load all PlayerScoreRecords from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load all PlayerScoreRecords from database");
             }
 
             return null;
@@ -205,8 +201,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load high scores from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load high score from database.");
             }
         }
 
@@ -222,8 +217,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load high score from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load high score from database.");
             }
 
             return null;
@@ -252,8 +246,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load most played songs from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load most played songs from database.");
             }
 
             return new List<SongEntry>();

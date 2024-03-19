@@ -24,7 +24,6 @@
   "dependencies": {
     "com.coffee.softmask-for-ugui": "1.0.2",
     "com.cysharp.unitask": "2.5.3",
-    "com.cysharp.zstring": "2.5.1",
     "com.github-glitchenzo.nugetforunity": "3.1.3",
     "com.marijnzwemmer.unity-toolbar-extender": "1.4.2",
     "com.starasgames.tmpro-dynamic-data-cleaner": "1.0.0",

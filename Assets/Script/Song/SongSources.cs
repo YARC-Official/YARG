@@ -9,6 +9,7 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using YARG.Core.Logging;
 using YARG.Helpers;
 
 namespace YARG.Song
@@ -102,7 +103,7 @@ namespace YARG.Song
 
                     if (imagePath == null)
                     {
-                        Debug.LogWarning($"Failed to find source icon `{_icon}`! Does it exist?");
+                        YargLogger.LogFormatWarning("Failed to find source icon `{0}`! Does it exist?", _icon);
                         return null;
                     }
 
@@ -111,7 +112,7 @@ namespace YARG.Song
 
                     if (texture == null)
                     {
-                        Debug.LogWarning($"Failed to load texture at `{imagePath}`!");
+                        YargLogger.LogFormatWarning("Failed to load texture at `{0}`!", imagePath);
                         return null;
                     }
 
@@ -179,8 +180,7 @@ namespace YARG.Song
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Failed to get current song source version.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to get current song source version.");
             }
 
             // Look for new version
@@ -203,8 +203,7 @@ namespace YARG.Song
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Failed to get newest song source version. Skipping.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to get newest song source version. Skipping.");
             }
 
             // If we failed to find the newest version, finish
@@ -268,8 +267,7 @@ namespace YARG.Song
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to download newest song source version.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to download newest song source version.");
             }
         }
 
@@ -305,13 +303,12 @@ namespace YARG.Song
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Failed to read song source index.json for `{index}`!");
-                    Debug.LogException(e);
+                    YargLogger.LogException(e, $"Failed to read song source index.json for `{index}`!");
 
                     // If we failed when fetching "base", something went wrong.
                     if (index == "base")
                     {
-                        Debug.LogError("Skipping and creating a backup source.");
+                        YargLogger.LogError("Skipping and creating a backup source.");
                         CreateBackupSource();
                         return;
                     }

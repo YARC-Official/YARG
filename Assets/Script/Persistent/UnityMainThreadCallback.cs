@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Core.Logging;
 
 namespace YARG
 {
@@ -20,9 +21,7 @@ namespace YARG
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError("Exception thrown while running main thread callbacks. " +
-                            "See error below for more details.");
-                        Debug.LogException(e);
+                        YargLogger.LogException(e, "Failed to run main thread callbacks");
                     }
                 }
             }
