@@ -54,6 +54,16 @@ namespace YARG.Logging
 #else
             AppDomain.CurrentDomain.ProcessExit += ShutdownLogHandler;
 #endif
+
+            YargLogger.LogFormatInfo("System Information:\n" +
+                "CPU: {0} ({1}MHz {2} Cores)\n" +
+                "RAM: {3}MB\n" +
+                "GPU: {4} (VRAM: {5}MB, Version: {6}, Renderer: {7})\n" +
+                "OS: {8} ({9})\n",
+                SystemInfo.processorType, SystemInfo.processorFrequency, SystemInfo.processorCount,
+                SystemInfo.systemMemorySize,
+                item5: SystemInfo.graphicsDeviceName, SystemInfo.graphicsMemorySize, item7: SystemInfo.graphicsDeviceVersion, SystemInfo.graphicsDeviceType,
+                SystemInfo.operatingSystem, SystemInfo.operatingSystemFamily);
             _isInitialized = true;
         }
 
@@ -63,6 +73,8 @@ namespace YARG.Logging
             {
                 return;
             }
+
+            YargLogger.LogInfo("Disabling Logging");
 
             YargLogger.KillLogger();
             UnityInternalLogWrapper.RestoreUnityInternals();
