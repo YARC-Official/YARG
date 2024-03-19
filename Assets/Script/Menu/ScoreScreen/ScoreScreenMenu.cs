@@ -8,7 +8,7 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
-using YARG.Core.Logging
+using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Menu.Navigation;
 using YARG.Song;
