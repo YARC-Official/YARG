@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -30,7 +29,7 @@ namespace YARG.Menu.History
         {
             GameRecord = gameRecord;
 
-            var songsByHash = GlobalVariables.Instance.SongContainer.SongsByHash;
+            var songsByHash = SongContainer.SongsByHash;
             _songEntry = songsByHash.GetValueOrDefault(new HashWrapper(gameRecord.SongChecksum))?.FirstOrDefault();
         }
 
@@ -107,9 +106,9 @@ namespace YARG.Menu.History
             }
 
             // We're good!
-            GlobalVariables.Instance.IsReplay = true;
-            GlobalVariables.Instance.CurrentReplay = replayEntry;
-            GlobalVariables.Instance.CurrentSong = _songEntry;
+            GlobalVariables.State = PersistentState.Default;
+            GlobalVariables.State.CurrentSong = _songEntry;
+            GlobalVariables.State.CurrentReplay = replayEntry;
 
             GlobalVariables.AudioManager.UnloadSong();
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);

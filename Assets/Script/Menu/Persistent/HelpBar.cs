@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Core.Extensions;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
@@ -75,7 +76,7 @@ namespace YARG.Menu.Persistent
             {
                 if (buttonIndex >= _buttons.Count)
                 {
-                    Debug.LogWarning("Too many actions in navigation scheme! Some actions will be ignored and unavailable.");
+                    YargLogger.LogWarning("Too many actions in navigation scheme! Some actions will be ignored and unavailable.");
                     break;
                 }
 

@@ -7,6 +7,7 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Core.Utility;
@@ -170,7 +171,7 @@ namespace YARG.Replays
                 int version = reader.ReadInt32();
                 if (version != CACHE_VERSION)
                 {
-                    Debug.LogWarning($"Replay cache version mismatch: {version} != {CACHE_VERSION}");
+                    YargLogger.LogFormatWarning("Replay cache version mismatch: {0} != {1}", version, CACHE_VERSION);
                     return;
                 }
 
@@ -191,7 +192,7 @@ namespace YARG.Replays
                     // Check player count for a limit before allocating a potentially huge array of strings
                     if (replay.PlayerCount > PLAYER_LIMIT)
                     {
-                        Debug.LogWarning("Replay cache contains a replay with an extremely high player count." +
+                        YargLogger.LogWarning("Replay cache contains a replay with an extremely high player count." +
                             " The replay cache is corrupted as this is not supported.");
 
                         throw new Exception($"Replay cache corrupted. Player count too high ({replay.PlayerCount})");
@@ -217,7 +218,7 @@ namespace YARG.Replays
             {
                 _replays.Clear();
                 _replayFileMap.Clear();
-                Debug.LogError("Failed to load replay cache: " + e);
+                YargLogger.LogException(e, "Failed to load replay cache");
             }
         }
 
@@ -276,7 +277,7 @@ namespace YARG.Replays
 
         private static void OnReplayCreated(object sender, FileSystemEventArgs e)
         {
-            Debug.Log("Replay Created: " + e.Name);
+            YargLogger.LogFormatDebug("Replay Created: {0}", e.Name);
             if (_replayFileMap.ContainsKey(e.Name))
             {
                 return;
@@ -288,16 +289,16 @@ namespace YARG.Replays
             switch (result)
             {
                 case ReplayReadResult.Valid:
-                    Debug.Log($"Read new replay: {e.Name}");
+                    YargLogger.LogFormatDebug("Read new replay: {0}", e.Name);
                     break;
                 case ReplayReadResult.NotAReplay:
-                    Debug.LogWarning($"{e.Name} is not a YARG Replay.");
+                    YargLogger.LogFormatDebug("{0} is not a YARG Replay.", e.Name);
                     return;
                 case ReplayReadResult.InvalidVersion:
-                    Debug.LogWarning($"{e.Name} has an invalid replay version.");
+                    YargLogger.LogFormatWarning("{0} has an invalid replay version.", e.Name);
                     return;
                 case ReplayReadResult.Corrupted:
-                    Debug.LogError($"{e.Name} is corrupted.");
+                    YargLogger.LogFormatWarning("Replay `{0}` is corrupted.", e.Name);
                     return;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -323,7 +324,7 @@ namespace YARG.Replays
 
         private static void OnReplayDeleted(object sender, FileSystemEventArgs e)
         {
-            Debug.Log("Replay Deleted: " + e.Name);
+            YargLogger.LogFormatDebug("Replay Deleted: ", e.Name);
             if (_replayFileMap.TryGetValue(e.Name, out var value))
             {
                 RemoveReplay(value);

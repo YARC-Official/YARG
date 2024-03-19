@@ -6,6 +6,7 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
@@ -146,7 +147,7 @@ namespace YARG.Gameplay.Player
                 var poolable = BeatlinePool.TakeWithoutEnabling();
                 if (poolable == null)
                 {
-                    Debug.LogWarning("Attempted to spawn beatline, but it's at its cap!");
+                    YargLogger.LogWarning("Attempted to spawn beatline, but it's at its cap!");
                     break;
                 }
 
@@ -269,7 +270,7 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            bool currentBassGrooveState = IsBass && stats.ScoreMultiplier == BaseParameters.MaxMultiplier;
+            bool currentBassGrooveState = IsBass && groove;
 
             if (!PreviousBassGrooveState && currentBassGrooveState)
             {
@@ -325,7 +326,7 @@ namespace YARG.Gameplay.Player
         {
             var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Tick >= start && n.Tick < end).ToList();
 
-            Debug.Log($"Practice notes: {practiceNotes.Count}");
+            YargLogger.LogFormatDebug("Practice notes: {0}", practiceNotes.Count);
 
             var instrument = OriginalNoteTrack.Instrument;
             var difficulty = OriginalNoteTrack.Difficulty;
@@ -357,7 +358,7 @@ namespace YARG.Gameplay.Player
             var poolable = NotePool.KeyedTakeWithoutEnabling(note);
             if (poolable == null)
             {
-                Debug.LogWarning("Attempted to spawn note, but it's at its cap!");
+                YargLogger.LogWarning("Attempted to spawn note, but it's at its cap!");
                 return;
             }
 

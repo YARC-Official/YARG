@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using YARG.Core.Logging;
 
 namespace YARG
 {
@@ -34,7 +35,7 @@ namespace YARG
         {
             if (!postProcessingProfile.TryGet(out bloom))
             {
-                Debug.LogError("Could not find bloom component in the post process volume.");
+                YargLogger.LogError("Could not find bloom component in the post process volume.");
             }
         }
 

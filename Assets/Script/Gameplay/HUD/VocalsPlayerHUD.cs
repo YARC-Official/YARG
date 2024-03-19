@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Chart;
+using YARG.Core.Game;
 
 namespace YARG.Gameplay.HUD
 {
@@ -39,6 +40,27 @@ namespace YARG.Gameplay.HUD
         protected override void GameplayDestroy()
         {
             GameManager.BeatEventHandler.Unsubscribe(PulseBar);
+        }
+
+        public void Initialize(EnginePreset enginePreset)
+        {
+            if (enginePreset == EnginePreset.Default)
+            {
+                // Don't change combo meter fill color if it's the default
+            }
+            else if (enginePreset == EnginePreset.Casual)
+            {
+                _comboMeterFill.color = new Color(0.9f, 0.3f, 0.9f);
+            }
+            else if (enginePreset == EnginePreset.Precision)
+            {
+                _comboMeterFill.color = new Color(1.0f, 0.9f, 0.0f);
+            }
+            else
+            {
+                // Otherwise, it must be a custom preset
+                _comboMeterFill.color = new Color(1.0f, 0.25f, 0.25f);
+            }
         }
 
         private void Update()

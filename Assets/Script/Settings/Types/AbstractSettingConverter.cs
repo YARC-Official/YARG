@@ -1,6 +1,7 @@
 using System;
 using Newtonsoft.Json;
 using UnityEngine;
+using YARG.Core.Logging;
 
 namespace YARG.Settings.Types
 {
@@ -11,7 +12,7 @@ namespace YARG.Settings.Types
         {
             if (existingValue == null)
             {
-                Debug.LogWarning("No existing setting value was provided!");
+                YargLogger.LogWarning("No existing setting value was provided!");
                 return null;
             }
 
@@ -23,8 +24,7 @@ namespace YARG.Settings.Types
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to read setting value. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to read setting value. See error below for more details.");
                 return existingValue;
             }
 

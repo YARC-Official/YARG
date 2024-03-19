@@ -12,6 +12,7 @@ using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
@@ -133,16 +134,16 @@ namespace YARG.Gameplay
 
             YargPlayers = PlayerContainer.Players;
 
-            Song = GlobalVariables.Instance.CurrentSong;
-            IsReplay = GlobalVariables.Instance.IsReplay;
-            IsPractice = GlobalVariables.Instance.IsPractice && !IsReplay;
+            Song = GlobalVariables.State.CurrentSong;
+            IsReplay = GlobalVariables.State.IsReplay;
+            IsPractice = GlobalVariables.State.IsPractice && !IsReplay;
 
             Navigator.Instance.PopAllSchemes();
             GameStateFetcher.SetSongEntry(Song);
 
             if (Song is null)
             {
-                Debug.LogError("Null song set when loading gameplay!");
+                YargLogger.LogError("Null song set when loading gameplay!");
 
                 GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
                 return;
@@ -154,12 +155,7 @@ namespace YARG.Gameplay
 
         private void OnDestroy()
         {
-#if UNITY_EDITOR
-            Debug.Log("Exiting song");
-#else
-            // Trailing newline to help split up log files
-            Debug.Log("Exiting song\n");
-#endif
+            YargLogger.LogDebug("Exiting song");
 
             if (Navigator.Instance != null)
             {
@@ -292,11 +288,11 @@ namespace YARG.Gameplay
 
             if (showMenu)
             {
-                if (GlobalVariables.Instance.IsReplay)
+                if (IsReplay)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
                 }
-                else if (GlobalVariables.Instance.IsPractice)
+                else if (IsPractice)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
                 }
@@ -363,7 +359,9 @@ namespace YARG.Gameplay
         private async UniTask EndSong()
         {
             if (_endingSong)
+            {
                 return;
+            }
 
             if (IsPractice)
             {
@@ -385,7 +383,7 @@ namespace YARG.Gameplay
             GlobalVariables.AudioManager.UnloadSong();
 
             // Pass the score info to the stats screen
-            GlobalVariables.Instance.ScoreScreenStats = new ScoreScreenStats
+            GlobalVariables.State.ScoreScreenStats = new ScoreScreenStats
             {
                 PlayerScores = _players.Select(player => new PlayerScoreCard
                 {
@@ -405,8 +403,7 @@ namespace YARG.Gameplay
             catch (Exception e)
             {
                 replayInfo = null;
-                Debug.LogError("Failed to save replay!");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to save replay!");
             }
 
             // Get all of the individual player score entries
@@ -459,7 +456,6 @@ namespace YARG.Gameplay
             }
 
             // Go to the score screen
-            GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
         }
 
@@ -467,7 +463,7 @@ namespace YARG.Gameplay
         {
             GlobalVariables.AudioManager.UnloadSong();
 
-            GlobalVariables.Instance.IsReplay = false;
+            GlobalVariables.State = PersistentState.Default;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
 

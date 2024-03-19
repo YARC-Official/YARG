@@ -67,12 +67,12 @@ MonoBehaviour:
     m_Key: Credits.Header.LeadArtist
     m_Metadata:
       m_Items: []
-  - m_Id: 104459735219429385
-    m_Key: Credits.Header.LeadCharter
-    m_Metadata:
-      m_Items: []
   - m_Id: 104459735219429386
     m_Key: Credits.Header.Maintainers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 128368057991421952
+    m_Key: Credits.Header.SetlistManager
     m_Metadata:
       m_Items: []
   - m_Id: 104459735219429387
@@ -323,6 +323,10 @@ MonoBehaviour:
     m_Key: SongAttribute.Charter
     m_Metadata:
       m_Items: []
+  - m_Id: 128368469003853824
+    m_Key: SongAttribute.DateAdded
+    m_Metadata:
+      m_Items: []
   - m_Id: 77970180278706179
     m_Key: SongAttribute.Genre
     m_Metadata:
@@ -381,10 +385,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 82700299853488128
     m_Key: Time.Yesterday
-    m_Metadata:
-      m_Items: []
-  - m_Id: 112914116042452992
-    m_Key: SongAttribute.DateAdded
     m_Metadata:
       m_Items: []
   m_Metadata:

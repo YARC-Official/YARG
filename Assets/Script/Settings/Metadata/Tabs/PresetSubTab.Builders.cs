@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
 using YARG.Menu;
 using YARG.Menu.Navigation;
@@ -77,7 +78,7 @@ namespace YARG.Settings.Metadata
             }
             else
             {
-                Debug.LogWarning("This sub-tab's preview builder should be a track preview!");
+                YargLogger.LogWarning("This sub-tab's preview builder should be a track preview!");
             }
 
             // Header
@@ -142,7 +143,8 @@ namespace YARG.Settings.Metadata
                 new DropdownSetting<string>(_subSection, RefreshForSubSection)
                 {
                     nameof(EnginePreset.FiveFretGuitarPreset),
-                    nameof(EnginePreset.DrumsPreset)
+                    nameof(EnginePreset.DrumsPreset),
+                    nameof(EnginePreset.VocalsPreset)
                 }
             );
             navGroup.AddNavigatable(dropdown.gameObject);
@@ -154,12 +156,14 @@ namespace YARG.Settings.Metadata
                 {
                     nameof(EnginePreset.FiveFretGuitarPreset) => GameMode.FiveFretGuitar,
                     nameof(EnginePreset.DrumsPreset)          => GameMode.FourLaneDrums,
+                    // nameof(EnginePreset.VocalsPreset)         => GameMode.Vocals, // Uncomment once we have vocals visual preview
+                    nameof(EnginePreset.VocalsPreset)         => trackPreviewBuilder.StartingGameMode, // Do not change
                     _ => throw new Exception("Unreachable.")
                 };
             }
             else
             {
-                Debug.LogWarning("This sub-tab's preview builder should be a track preview!");
+                YargLogger.LogWarning("This sub-tab's preview builder should be a track preview!");
             }
 
             // Header
@@ -248,6 +252,48 @@ namespace YARG.Settings.Metadata
 
                     break;
                 }
+                case nameof(EnginePreset.VocalsPreset):
+                {
+                    var preset = enginePreset.Vocals;
+
+                    CreateFields(container, navGroup, ENGINE_PRESET, new()
+                    {
+                        (
+                            nameof(preset.WindowSizeE),
+                            new SliderSetting((float) preset.WindowSizeE, 0f, 3f)
+                        ),
+                        (
+                            nameof(preset.WindowSizeM),
+                            new SliderSetting((float) preset.WindowSizeM, 0f, 3f)
+                        ),
+                        (
+                            nameof(preset.WindowSizeH),
+                            new SliderSetting((float) preset.WindowSizeH, 0f, 3f)
+                        ),
+                        (
+                            nameof(preset.WindowSizeX),
+                            new SliderSetting((float) preset.WindowSizeX, 0f, 3f)
+                        ),
+                        (
+                            nameof(preset.HitPercentE),
+                            new SliderSetting((float) preset.HitPercentE, 0f, 1f)
+                        ),
+                        (
+                            nameof(preset.HitPercentM),
+                            new SliderSetting((float) preset.HitPercentM, 0f, 1f)
+                        ),
+                        (
+                            nameof(preset.HitPercentH),
+                            new SliderSetting((float) preset.HitPercentH, 0f, 1f)
+                        ),
+                        (
+                            nameof(preset.HitPercentX),
+                            new SliderSetting((float) preset.HitPercentX, 0f, 1f)
+                        )
+                    });
+
+                    break;
+                }
                 default:
                     throw new Exception("Unreachable.");
             }
@@ -293,6 +339,21 @@ namespace YARG.Settings.Metadata
                         GetBool(nameof(preset.HitWindow.IsDynamic));
                     preset.HitWindow.FrontToBackRatio =
                         ((SliderSetting) _settingFields[nameof(preset.HitWindow.FrontToBackRatio)]).Value;
+
+                    break;
+                }
+                case nameof(EnginePreset.VocalsPreset):
+                {
+                    var preset = enginePreset.Vocals;
+
+                    preset.WindowSizeE = ((SliderSetting) _settingFields[nameof(preset.WindowSizeE)]).Value;
+                    preset.WindowSizeM = ((SliderSetting) _settingFields[nameof(preset.WindowSizeM)]).Value;
+                    preset.WindowSizeH = ((SliderSetting) _settingFields[nameof(preset.WindowSizeH)]).Value;
+                    preset.WindowSizeX = ((SliderSetting) _settingFields[nameof(preset.WindowSizeX)]).Value;
+                    preset.HitPercentE = ((SliderSetting) _settingFields[nameof(preset.HitPercentE)]).Value;
+                    preset.HitPercentM = ((SliderSetting) _settingFields[nameof(preset.HitPercentM)]).Value;
+                    preset.HitPercentH = ((SliderSetting) _settingFields[nameof(preset.HitPercentH)]).Value;
+                    preset.HitPercentX = ((SliderSetting) _settingFields[nameof(preset.HitPercentX)]).Value;
 
                     break;
                 }

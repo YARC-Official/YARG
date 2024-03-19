@@ -6,21 +6,25 @@ using Cysharp.Threading.Tasks;
 using SQLite;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Song;
 
 namespace YARG.Scores
 {
     public static class ScoreContainer
     {
-        public static string ScoreDirectory { get; private set; }
+        public static string ScoreDirectory       { get; private set; }
         public static string ScoreReplayDirectory { get; private set; }
 
         private static string _scoreDatabaseFile;
 
         private static SQLiteConnection _db;
+
+        private static readonly Dictionary<HashWrapper, PlayerScoreRecord> SongHighScores = new();
 
         public static void Init()
         {
@@ -37,11 +41,11 @@ namespace YARG.Scores
             {
                 _db = new SQLiteConnection(_scoreDatabaseFile);
                 InitDatabase();
+                FetchHighScores();
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to create LiteDB connection. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to create LiteDB connection.");
             }
         }
 
@@ -74,12 +78,29 @@ namespace YARG.Scores
 
                 rowsAdded += _db.InsertAll(playerEntries);
 
-                Debug.Log($"Successfully added {rowsAdded} rows into score database.");
+                YargLogger.LogFormatInfo("Successfully added {0} rows into score database.", rowsAdded);
+
+                var songChecksum = new HashWrapper(gameRecord.SongChecksum);
+
+                var bestScore = playerEntries.Find(p => p.Score == playerEntries.Max(x => x.Score));
+
+                if (SongHighScores.TryGetValue(songChecksum, out var highScore))
+                {
+                    if (bestScore.Score > highScore.Score)
+                    {
+                        SongHighScores[songChecksum] = bestScore;
+                    }
+                }
+                else
+                {
+                    SongHighScores.Add(songChecksum, bestScore);
+                }
+
+                YargLogger.LogInfo("Recorded high score for song.");
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to add score into database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to add score into database.");
             }
         }
 
@@ -111,8 +132,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load all GameRecords from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load all GameRecords from database.");
             }
 
             return null;
@@ -126,8 +146,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load all PlayerScoreRecords from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load all PlayerScoreRecords from database");
             }
 
             return null;
@@ -135,20 +154,55 @@ namespace YARG.Scores
 
         public static PlayerScoreRecord GetHighScore(HashWrapper songChecksum)
         {
+            return SongHighScores?.GetValueOrDefault(songChecksum);
+
+            // If it's not in the high score cache then it's not in the database
+
+            // try
+            // {
+            //     var query =
+            //         $"SELECT * FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id WHERE " +
+            //         $"GameRecords.SongChecksum = x'{songChecksum.ToString()}' ORDER BY Score DESC LIMIT 1";
+            //     score = _db.FindWithQuery<PlayerScoreRecord>(query);
+            //
+            //     if(score is not null)
+            //     {
+            //         SongHighScores.Add(songChecksum, score);
+            //     }
+            // }
+            // catch (Exception e)
+            // {
+            //     Debug.LogError("Failed to load high score from database. See error below for more details.");
+            //     Debug.LogException(e);
+            // }
+        }
+
+        public static void FetchHighScores()
+        {
             try
             {
-                var query =
-                    $"SELECT * FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id WHERE " +
-                    $"GameRecords.SongChecksum = x'{songChecksum.ToString()}' ORDER BY Score DESC LIMIT 1";
-                return _db.FindWithQuery<PlayerScoreRecord>(query);
+                const string highScores = "SELECT *, MAX(Score) FROM PlayerScores " +
+                    "INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id GROUP BY GameRecords.SongChecksum";
+                const string songs = "SELECT Id, SongChecksum FROM GameRecords";
+
+                var scoreResults = _db.Query<PlayerScoreRecord>(highScores);
+                var songResults = _db.Query<GameRecord>(songs);
+
+                foreach (var score in scoreResults)
+                {
+                    var song = songResults.FirstOrDefault(x => x.Id == score.GameRecordId);
+                    if (song is null)
+                    {
+                        continue;
+                    }
+
+                    SongHighScores.Add(new HashWrapper(song.SongChecksum), score);
+                }
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load high score from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load high score from database.");
             }
-
-            return null;
         }
 
         public static PlayerScoreRecord GetHighScoreByInstrument(HashWrapper songChecksum, Instrument instrument)
@@ -163,8 +217,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load high score from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load high score from database.");
             }
 
             return null;
@@ -179,22 +232,21 @@ namespace YARG.Scores
                     $"BY `Count` DESC LIMIT {maxCount}";
                 var playCounts = _db.Query<PlayCountRecord>(query);
 
-                var allSongs = GlobalVariables.Instance.SongContainer.SongsByHash;
                 var mostPlayed = new List<SongEntry>();
                 foreach (var record in playCounts)
                 {
                     var hash = new HashWrapper(record.SongChecksum);
-                    if (allSongs.TryGetValue(hash, out var list))
+                    if (SongContainer.SongsByHash.TryGetValue(hash, out var list))
                     {
                         mostPlayed.Add(list.Pick());
                     }
                 }
+
                 return mostPlayed;
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to load most played songs from database. See error below for more details.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to load most played songs from database.");
             }
 
             return new List<SongEntry>();

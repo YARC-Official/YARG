@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using UnityEngine;
+using YARG.Core.Logging;
 using YARG.Input;
 
 namespace YARG.Playback
@@ -414,8 +415,10 @@ namespace YARG.Playback
             RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
             RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
 
-            EditorDebug.Log($"Set input time base.\nNew base: {InputTimeBase:0.000000}, new offset: {InputTimeOffset:0.000000}, new visual time: {VisualTime:0.000000}, new input time: {InputTime:0.000000}\n"
-                + $"Old base: {previousBase:0.000000}, old offset: {previousOffset:0.000000}, old visual time: {previousVisualTime:0.000000}, old input time: {previousInputTime:0.000000}");
+            YargLogger.LogFormatDebug("Set input time base.\nNew base: {0:0.000000}, new offset: {1:0.000000}, new visual time: {2:0.000000}, new input time: {3:0.000000}\n"
+                + "Old base: {4:0.000000}, old offset: {5:0.000000}, old visual time: {6:0.000000}, old input time: {7:0.000000}",
+                InputTimeBase, InputTimeOffset, VisualTime, InputTime, previousBase,
+                previousOffset, previousVisualTime, previousInputTime);
         }
 
         private void SetInputBaseChecked(double inputBase)
@@ -458,8 +461,8 @@ namespace YARG.Playback
             // SetInputBase(seekTime + AudioCalibration);
             // RealSongTime = seekTime;
 
-            EditorDebug.Log($"Set song time to {time:0.000000} (delay: {delayTime:0.000000}).\n" +
-                $"Seek time: {seekTime:0.000000}, resulting song time: {SongTime:0.000000}");
+            YargLogger.LogFormatDebug("Set song time to {0:0.000000} (delay: {1:0.000000}).\n" +
+                "Seek time: {2:0.000000}, resulting song time: {3:0.000000}", time, delayTime, seekTime, SongTime);
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
@@ -503,8 +506,9 @@ namespace YARG.Playback
 
             _pauseSync = false;
 
-            EditorDebug.Log($"Set song speed to {speed:0.00}.\n"
-                + $"Song time: {SongTime:0.000000}, visual time: {VisualTime:0.000000}, input time: {InputTime:0.000000}");
+            YargLogger.LogFormatDebug("Set song speed to {0:0.00}.\n"
+                + "Song time: {1:0.000000}, visual time: {2:0.000000}, input time: {3:0.000000}", speed,
+                SongTime, VisualTime, InputTime);
         }
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
@@ -528,7 +532,9 @@ namespace YARG.Playback
             _pauseSync = true;
             GlobalVariables.AudioManager.Pause();
 
-            EditorDebug.Log($"Paused at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
+            YargLogger.LogFormatDebug("Paused at song time {0:0.000000} (real: {1:0.000000}), visual time {2:0.000000} " +
+                "(real: {3:0.000000}), input time {4:0.000000} (real: {5:0.000000}).",
+                SongTime, RealSongTime, VisualTime, RealVisualTime, InputTime, RealInputTime);
         }
 
         /// <summary>
@@ -555,7 +561,9 @@ namespace YARG.Playback
 
             _pauseSync = false;
 
-            EditorDebug.Log($"Resumed at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
+            YargLogger.LogFormatDebug("Resumed at song time {0:0.000000} (real: {1:0.000000}), visual time {2:0.000000} " +
+                "(real: {3:0.000000}), input time {4:0.000000} (real: {5:0.000000}).",
+                SongTime, RealSongTime, VisualTime, RealVisualTime, InputTime, RealInputTime);
         }
 
         public void SetPaused(bool paused)

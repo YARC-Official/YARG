@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 
 namespace YARG.Helpers
@@ -75,12 +75,12 @@ namespace YARG.Helpers
             {
                 "speed_percent", _ =>
                 {
-                    if (Mathf.Approximately(GlobalVariables.Instance.SongSpeed, 1f))
+                    if (Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f))
                     {
                         return string.Empty;
                     }
 
-                    return GlobalVariables.Instance.SongSpeed.ToString("P0", LocaleHelper.PercentFormat);
+                    return GlobalVariables.State.SongSpeed.ToString("P0", LocaleHelper.PercentFormat);
                 }
             }
         };
@@ -103,7 +103,7 @@ namespace YARG.Helpers
                 "charter", x => !string.IsNullOrEmpty(x.Charter)
             },
             {
-                "changed_speed", _ => Mathf.Approximately(GlobalVariables.Instance.SongSpeed, 1f)
+                "changed_speed", _ => Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f)
             }
         };
 
@@ -166,7 +166,7 @@ namespace YARG.Helpers
                         }
                         else
                         {
-                            Debug.LogWarning($"Keyword `{token.Value}` was not found.");
+                            YargLogger.LogFormatWarning("Keyword `{0}` was not found.", token.Value);
                             tokenList.Remove(token);
                         }
                     }
@@ -195,7 +195,7 @@ namespace YARG.Helpers
                         }
                         else
                         {
-                            Debug.LogWarning($"Condition `{token.Value}` was not found.");
+                            YargLogger.LogFormatWarning("Condition `{0}` was not found.", token.Value);
                         }
 
                         // These never stay

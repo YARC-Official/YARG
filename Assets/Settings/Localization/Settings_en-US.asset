@@ -1271,6 +1271,84 @@ MonoBehaviour:
       255 - Fog off'
     m_Metadata:
       m_Items: []
+  - m_Id: 127205786207608832
+    m_Localized: Vocals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206632844648448
+    m_Localized: Window Size (Medium)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206614020612096
+    m_Localized: Window Size (Easy)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206638649565184
+    m_Localized: Window Size (Hard)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206658077581312
+    m_Localized: Window Size (Expert)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206835815407616
+    m_Localized: Hit Percent (Easy)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206843524538368
+    m_Localized: Hit Percent (Medium)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206864517029888
+    m_Localized: Hit Percent (Hard)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206874012934144
+    m_Localized: Hit Percent (Expert)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206973438910464
+    m_Localized: Size of the pitch leniency window (in semitones); in other words,
+      how offpitch the player can sing, and the game will still detect as a correct
+      note, in the Easy difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206992598491136
+    m_Localized: Size of the pitch leniency window (in semitones); in other words,
+      how offpitch the player can sing, and the game will still detect as a correct
+      note, in the Medium difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206994032943104
+    m_Localized: Size of the pitch leniency window (in semitones); in other words,
+      how offpitch the player can sing, and the game will still detect as a correct
+      note, in the Hard difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127206994674671616
+    m_Localized: Size of the pitch leniency window (in semitones); in other words,
+      how offpitch the player can sing, and the game will still detect as a correct
+      note, in the Expert difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127207845564735488
+    m_Localized: This determines how much of the phrase has to be accurately sung
+      in order to fully fill the accuracy meter, in the Easy difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127207847498309632
+    m_Localized: This determines how much of the phrase has to be accurately sung
+      in order to fully fill the accuracy meter, in the Medium difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127207848010014720
+    m_Localized: This determines how much of the phrase has to be accurately sung
+      in order to fully fill the accuracy meter, in the Hard difficulty.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 127207848525914112
+    m_Localized: This determines how much of the phrase has to be accurately sung
+      in order to fully fill the accuracy meter, in the Expert difficulty.
   - m_Id: 126547259219632128
     m_Localized: Scanning Options
     m_Metadata:

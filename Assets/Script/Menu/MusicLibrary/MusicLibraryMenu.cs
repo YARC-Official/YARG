@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using YARG.Audio;
 using YARG.Core.Input;
 using YARG.Core.Song;
@@ -136,7 +134,7 @@ namespace YARG.Menu.MusicLibrary
             };
 
             // Set IsPractice as well
-            GlobalVariables.Instance.IsPractice = LibraryMode == MusicLibraryMode.Practice;
+            GlobalVariables.State.IsPractice = LibraryMode == MusicLibraryMode.Practice;
 
             // Show no player warning
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
@@ -184,7 +182,7 @@ namespace YARG.Menu.MusicLibrary
             var list = new List<ViewType>();
 
             // Return if there are no songs (or they haven't loaded yet)
-            if (_sortedSongs is null || GlobalVariables.Instance.SongContainer.Count <= 0) return list;
+            if (_sortedSongs is null || SongContainer.Count <= 0) return list;
 
             // Get the number of songs
             int count = _sortedSongs.Sum(section => section.Songs.Count);
@@ -238,11 +236,8 @@ namespace YARG.Menu.MusicLibrary
             }
             else
             {
-                var songContainer = GlobalVariables.Instance.SongContainer;
-
                 // Add "ALL SONGS" header right above the songs
-                list.Insert(0,
-                    new CategoryViewType("ALL SONGS", songContainer.Count, songContainer.Songs));
+                list.Insert(0, new CategoryViewType("ALL SONGS", SongContainer.Count, SongContainer.Songs));
 
                 if (_recommendedSongs != null)
                 {
@@ -285,7 +280,7 @@ namespace YARG.Menu.MusicLibrary
             }, BACK_ID));
 
             // Return if there are no songs (or they haven't loaded yet)
-            if (_sortedSongs is null || GlobalVariables.Instance.SongContainer.Count <= 0) return list;
+            if (_sortedSongs is null || SongContainer.Count <= 0) return list;
 
             // Get the number of songs
             int count = _sortedSongs.Sum(section => section.Songs.Count);
@@ -309,7 +304,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void SetRecommendedSongs()
         {
-            if (GlobalVariables.Instance.SongContainer.Count > 5)
+            if (SongContainer.Count > 5)
             {
                 _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
             }
@@ -358,14 +353,9 @@ namespace YARG.Menu.MusicLibrary
                 foreach (var hash in SelectedPlaylist.SongHashes)
                 {
                     // Get the first song with the specified hash
-                    var song = GlobalVariables.Instance
-                        .SongContainer
-                        .SongsByHash
-                        .GetValueOrDefault(hash)?[0];
-
-                    if (song is not null)
+                    if (SongContainer.SongsByHash.TryGetValue(hash, out var song))
                     {
-                        songs.Add(song);
+                        songs.Add(song[0]);
                     }
                 }
 

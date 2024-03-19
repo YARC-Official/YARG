@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Helpers;
 
 namespace YARG.Settings
@@ -90,7 +91,7 @@ namespace YARG.Settings
             }
             else
             {
-                Debug.LogWarning("Auto-generation preset file not found: " + path);
+                YargLogger.LogFormatWarning("Auto-generation preset file not found: {0}", path);
             }
         }
 
@@ -107,7 +108,7 @@ namespace YARG.Settings
                 }
                 else
                 {
-                    Debug.LogWarning("Default auto-generation preset not found in file: " + path);
+                    YargLogger.LogFormatWarning("Default auto-generation preset not found in file: {0}", path);
                 }
 
                 foreach (var preset in json.SectionPresets)
@@ -117,8 +118,7 @@ namespace YARG.Settings
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Error while loading auto-gen preset {path}");
-                Debug.LogException(ex);
+                YargLogger.LogException(ex, $"Error while loading auto-gen preset {path}");
             }
         }
 
@@ -151,7 +151,7 @@ namespace YARG.Settings
                 }
                 else
                 {
-                    Debug.LogWarning("Invalid light preset: " + str);
+                    YargLogger.LogFormatWarning("Invalid light preset: {0}", str);
                 }
             }
             preset.AllowedLightPresets = allowedLightPresets;
@@ -167,7 +167,7 @@ namespace YARG.Settings
                 }
                 else
                 {
-                    Debug.LogWarning("Invalid post-proc: " + str);
+                    YargLogger.LogFormatWarning("Invalid post-proc: {0}", str);
                 }
             }
             preset.AllowedPostProcs = allowedPostProcs;
@@ -404,7 +404,7 @@ namespace YARG.Settings
                 case "crazy":
                     return CameraPacingPreset.Crazy;
                 default:
-                    Debug.LogWarning("Invalid camera pacing in auto-gen preset: " + cameraPacing);
+                    YargLogger.LogFormatWarning("Invalid camera pacing in auto-gen preset: {0}", cameraPacing);
                     return CameraPacingPreset.Medium;
             }
         }

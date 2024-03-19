@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Logging;
 
 #nullable enable
 
@@ -145,7 +146,7 @@ namespace YARG.Input.Serialization
 
                 control.Controls.Add(deserialized);
             }
-    
+
             return control;
         }
     }
@@ -183,7 +184,7 @@ namespace YARG.Input.Serialization
             {
                 if (DeviceIndex >= binds.Devices.Count)
                 {
-                    Debug.LogWarning($"Device at list index {DeviceIndex} is not present!");
+                    YargLogger.LogFormatWarning("Device at list index {0} is not present!", DeviceIndex);
                     return null;
                 }
 
@@ -191,7 +192,7 @@ namespace YARG.Input.Serialization
             }
             else if (Device is null)
             {
-                Debug.LogWarning($"No device specified for binding '{ControlPath}'!");
+                YargLogger.LogFormatWarning("No device specified for binding '{0}'!", ControlPath);
                 return null;
             }
 

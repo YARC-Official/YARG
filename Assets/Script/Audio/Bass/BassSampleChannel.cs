@@ -2,6 +2,7 @@
 using ManagedBass;
 using UnityEngine;
 using YARG.Core.Audio;
+using YARG.Core.Logging;
 using YARG.Input;
 
 namespace YARG.Audio.BASS
@@ -69,7 +70,7 @@ namespace YARG.Audio.BASS
 
             double volume = _manager.GetVolumeSetting(SongStem.Sfx) * AudioHelpers.SfxVolume[(int) Sample];
             if (!Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, volume) || !Bass.ChannelPlay(channel))
-                Debug.LogError($"Failed to play sample channel: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to play sample channel: {0}", Bass.LastError);
 
             _lastPlaybackTime = InputManager.CurrentInputTime;
         }
