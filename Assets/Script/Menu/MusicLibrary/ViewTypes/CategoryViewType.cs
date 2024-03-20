@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using YARG.Core.Song;
-using YARG.Helpers;
-using YARG.Helpers.Extensions;
-using YARG.Menu.Data;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -18,12 +15,16 @@ namespace YARG.Menu.MusicLibrary
         public readonly string GenreCountText;
 
         private readonly string _primary;
-        private readonly int _songCount;
 
-        public CategoryViewType(string primary, int songCount, IReadOnlyList<SongEntry> songsUnderCategory)
+        private readonly int _songCount;
+        private readonly Action _clickAction;
+
+        public CategoryViewType(string primary, int songCount, IReadOnlyList<SongEntry> songsUnderCategory,
+            Action clickAction = null)
         {
             _primary = primary;
             _songCount = songCount;
+            _clickAction = clickAction;
 
             SourceCountText = $"{CountOf(songsUnderCategory, i => i.Source)} sources";
             CharterCountText = $"{CountOf(songsUnderCategory, i => i.Charter)} charters";
@@ -59,6 +60,11 @@ namespace YARG.Menu.MusicLibrary
         public override string GetSideText(bool selected)
         {
             return CreateSongCountString(_songCount);
+        }
+
+        public override void PrimaryButtonClick()
+        {
+            _clickAction?.Invoke();
         }
 
         private static int CountOf(IEnumerable<SongEntry> songs, Func<SongEntry, SortString> selector)

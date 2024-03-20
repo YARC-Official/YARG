@@ -115,7 +115,6 @@ namespace YARG.Menu.MusicLibrary
 
         public override void IconClick()
         {
-            base.IconClick();
            _musicLibrary.SetSearchInput(SongAttribute.Source, SongEntry.Source.SortStr);
         }
 

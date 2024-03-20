@@ -39,6 +39,11 @@ namespace YARG.Menu.MusicLibrary
         {
         }
 
+        public override void IconClick()
+        {
+            PrimaryButtonClick();
+        }
+
         public virtual void FavoriteClick()
         {
         }
