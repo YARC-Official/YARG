@@ -109,7 +109,7 @@ namespace YARG.Audio.BASS
                 return -1;
             }
 
-            seconds -= bufferCompensation ? _manager.PlaybackBufferLength : 0;
+            seconds -= bufferCompensation ? GlobalAudioHandler.PlaybackBufferLength : 0;
             return seconds;
         }
 

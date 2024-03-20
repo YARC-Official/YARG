@@ -25,8 +25,8 @@ namespace YARG.Audio.BASS
             _reverbHandles = reverbHandles;
             _pitchParams = pitchParams;
 
-            double volume = AudioManager.GetVolumeSetting(stem);
-            volume = AudioManager.ClampStemVolume(volume);
+            double volume = GlobalAudioHandler.GetVolumeSetting(stem);
+            volume = GlobalAudioHandler.ClampStemVolume(volume);
             SetVolume_Internal(volume);
         }
 
@@ -37,7 +37,7 @@ namespace YARG.Audio.BASS
 
             percent = Mathf.Clamp(percent, 0f, 1f);
 
-            float shift = Mathf.Pow(2, -(AudioManager.WhammyPitchShiftAmount * percent) / 12);
+            float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
             _pitchParams.fPitchShift = shift;
 
             if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
@@ -55,7 +55,7 @@ namespace YARG.Audio.BASS
         {
             // Playback buffer compensation is optional
             // All other desync compensation is always done
-            position += bufferCompensation ? _manager.PlaybackBufferLength : 0;
+            position += bufferCompensation ? GlobalAudioHandler.PlaybackBufferLength : 0;
 
             // Hack to get desync of pitch-bent channels
             if (_streamHandles.PitchFX != 0 && _reverbHandles.PitchFX != 0)

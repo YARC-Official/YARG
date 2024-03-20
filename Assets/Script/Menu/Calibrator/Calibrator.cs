@@ -137,7 +137,7 @@ namespace YARG.Menu.Calibrator
                     _calibrationTimes.Clear();
 
                     var file = Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg");
-                    _mixer = AudioManager.Instance.LoadCustomFile(file, 1f);
+                    _mixer = GlobalAudioHandler.LoadCustomFile(file, 1f);
                     _mixer.Play();
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;
