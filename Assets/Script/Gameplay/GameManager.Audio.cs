@@ -27,8 +27,8 @@ namespace YARG.Gameplay
         private void LoadAudio()
         {
             _stemStates.Clear();
-            AudioManager.UseMinimumStemVolume = Song.Source.Str.ToLowerInvariant() == "yarg";
-            _mixer = Song.LoadAudio(AudioManager.Instance, GlobalVariables.State.SongSpeed);
+            GlobalAudioHandler.UseMinimumStemVolume = Song.Source.Str.ToLowerInvariant() == "yarg";
+            _mixer = Song.LoadAudio(GlobalVariables.State.SongSpeed);
             if (_mixer == null)
             {
                 _loadState = LoadFailureState.Error;
@@ -67,7 +67,7 @@ namespace YARG.Gameplay
             if (_starPowerActivations < 1 || beat.Type == BeatlineType.Weak)
                 return;
 
-            AudioManager.PlaySoundEffect(SfxSample.Clap);
+            GlobalAudioHandler.PlaySoundEffect(SfxSample.Clap);
         }
 
         public void ChangeStarPowerStatus(bool active)
@@ -97,7 +97,7 @@ namespace YARG.Gameplay
             }
 
             double volume = (double) state.Audible / state.Total;
-            AudioManager.SetVolumeSetting(stem, volume);
+            GlobalAudioHandler.SetVolumeSetting(stem, volume);
         }
 
         public void ChangeStemReverbState(SongStem stem, bool reverb)
@@ -133,7 +133,7 @@ namespace YARG.Gameplay
             }
 
             bool reverbActive = state.ReverbCount > 0;
-            AudioManager.SetReverbSetting(stem, reverbActive);
+            GlobalAudioHandler.SetReverbSetting(stem, reverbActive);
         }
 
         private void OnAudioEnd()

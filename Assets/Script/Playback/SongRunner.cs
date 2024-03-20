@@ -358,7 +358,7 @@ namespace YARG.Playback
 
                 // Song time is driven using visual time when the audio isn't running
                 // Playback buffer needs to be accounted for to prevent backwards seeking
-                double currentTime = SyncVisualTime - AudioCalibration + AudioManager.Instance.PlaybackBufferLength;
+                double currentTime = SyncVisualTime - AudioCalibration + GlobalAudioHandler.PlaybackBufferLength;
                 if (currentTime >= SongOffset)
                 {
                     // Start audio

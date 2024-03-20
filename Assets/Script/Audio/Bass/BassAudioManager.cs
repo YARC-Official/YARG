@@ -99,7 +99,7 @@ namespace YARG.Audio.BASS
             ".ogg", ".mogg", ".wav", ".mp3", ".aiff", ".opus",
         };
 
-        public override ReadOnlySpan<string> SupportedFormats => FORMATS;
+        protected override ReadOnlySpan<string> SupportedFormats => FORMATS;
 
         private int _opusHandle = 0;
 
@@ -156,7 +156,7 @@ namespace YARG.Audio.BASS
         }
 
 #nullable enable
-        protected override StemMixer? CreateMixer_Internal(string name, float speed)
+        protected override StemMixer? CreateMixer(string name, float speed)
         {
             YargLogger.LogDebug("Loading song");
             if (!CreateMixerHandle(out int handle))
@@ -166,7 +166,7 @@ namespace YARG.Audio.BASS
             return new BassStemMixer(name, this, speed, handle, 0);
         }
 
-        protected override StemMixer? CreateMixer_Internal(string name, Stream stream, float speed)
+        protected override StemMixer? CreateMixer(string name, Stream stream, float speed)
         {
             YargLogger.LogDebug("Loading song");
             if (!CreateMixerHandle(out int handle))
@@ -181,7 +181,7 @@ namespace YARG.Audio.BASS
             return new BassStemMixer(name, this, speed, handle, sourceStream);
         }
 
-        protected override MicDevice? GetInputDevice_Internal(string name)
+        protected override MicDevice? GetInputDevice(string name)
         {
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
@@ -202,7 +202,7 @@ namespace YARG.Audio.BASS
         }
 #nullable disable
 
-        protected override List<(int id, string name)> GetAllInputDevices_Internal()
+        protected override List<(int id, string name)> GetAllInputDevices()
         {
             var mics = new List<(int id, string name)>();
 
@@ -238,7 +238,7 @@ namespace YARG.Audio.BASS
         }
 
 #nullable enable
-        protected override MicDevice? CreateDevice_Internal(int deviceId, string name)
+        protected override MicDevice? CreateDevice(int deviceId, string name)
 #nullable disable
         {
             var device = BassMicDevice.Create(deviceId, name);
@@ -264,7 +264,7 @@ namespace YARG.Audio.BASS
                         var sfx = BassSampleChannel.Create(sfxSample, sfxPath, 8);
                         if (sfx != null)
                         {
-                            _sfxSamples[(int) sfxSample] = sfx;
+                            SfxSamples[(int) sfxSample] = sfx;
                             YargLogger.LogFormatInfo("Loaded {0}", sfxFile);
                         }
                         break;
@@ -275,7 +275,7 @@ namespace YARG.Audio.BASS
             YargLogger.LogInfo("Finished loading SFX");
         }
 
-        protected override void SetMasterVolume_Internal(double volume)
+        protected override void SetMasterVolume(double volume)
         {
 #if UNITY_EDITOR
             if (EditorUtility.audioMasterMute)
@@ -393,13 +393,13 @@ namespace YARG.Audio.BASS
 
         internal static PitchShiftParametersStruct SetPitchParams(SongStem stem, float speed, StreamHandle streamHandles, StreamHandle reverbHandles)
         {
-            PitchShiftParametersStruct pitchParams = new(1, 0, WHAMMY_FFT_DEFAULT, WHAMMY_OVERSAMPLE_DEFAULT);
+            PitchShiftParametersStruct pitchParams = new(1, 0, GlobalAudioHandler.WHAMMY_FFT_DEFAULT, GlobalAudioHandler.WHAMMY_OVERSAMPLE_DEFAULT);
             // Set whammy pitch bending if enabled
-            if (UseWhammyFx && AudioHelpers.PitchBendAllowedStems.Contains(stem))
+            if (GlobalAudioHandler.UseWhammyFx && AudioHelpers.PitchBendAllowedStems.Contains(stem))
             {
                 // Setting the FFT size causes a crash in BASS_FX :/
                 // _pitchParams.FFTSize = _manager.Options.WhammyFFTSize;
-                pitchParams.OversampleFactor = WhammyOversampleFactor;
+                pitchParams.OversampleFactor = GlobalAudioHandler.WhammyOversampleFactor;
                 if (SetupPitchBend(pitchParams, streamHandles))
                 {
                     SetupPitchBend(pitchParams, reverbHandles);
@@ -410,7 +410,7 @@ namespace YARG.Audio.BASS
             {
                 speed = (float) Math.Round(Math.Clamp(speed, 0.05, 50), 2);
                 SetSpeed(speed, streamHandles.Stream, reverbHandles.Stream);
-                if (IsChipmunkSpeedup)
+                if (GlobalAudioHandler.IsChipmunkSpeedup)
                 {
                     SetChipmunking(speed, streamHandles.Stream, reverbHandles.Stream);
                 }

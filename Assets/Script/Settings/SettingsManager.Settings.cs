@@ -93,16 +93,16 @@ namespace YARG.Settings
 
             #region Sound
 
-            public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => AudioManager.SetVolumeSetting(SongStem.Master, v));
-            public VolumeSetting GuitarVolume      { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Guitar, v));
-            public VolumeSetting RhythmVolume      { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Rhythm, v));
-            public VolumeSetting BassVolume        { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Bass, v));
-            public VolumeSetting KeysVolume        { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Keys, v));
-            public VolumeSetting DrumsVolume       { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Drums, v));
-            public VolumeSetting VocalsVolume      { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Vocals, v));
-            public VolumeSetting SongVolume        { get; } = new(1f, v => AudioManager.SetVolumeSetting(SongStem.Song, v));
-            public VolumeSetting CrowdVolume       { get; } = new(0.5f, v => AudioManager.SetVolumeSetting(SongStem.Crowd, v));
-            public VolumeSetting SfxVolume         { get; } = new(0.8f, v => AudioManager.SetVolumeSetting(SongStem.Sfx, v));
+            public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Master, v));
+            public VolumeSetting GuitarVolume      { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Guitar, v));
+            public VolumeSetting RhythmVolume      { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Rhythm, v));
+            public VolumeSetting BassVolume        { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Bass, v));
+            public VolumeSetting KeysVolume        { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Keys, v));
+            public VolumeSetting DrumsVolume       { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Drums, v));
+            public VolumeSetting VocalsVolume      { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Vocals, v));
+            public VolumeSetting SongVolume        { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Song, v));
+            public VolumeSetting CrowdVolume       { get; } = new(0.5f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
+            public VolumeSetting SfxVolume         { get; } = new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
             public VolumeSetting PreviewVolume     { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring   { get; } = new(0.7f, VocalMonitoringCallback);
@@ -415,7 +415,7 @@ namespace YARG.Settings
 
             private static void UseChipmunkSpeedChange(bool value)
             {
-                AudioManager.IsChipmunkSpeedup = value;
+                GlobalAudioHandler.IsChipmunkSpeedup = value;
             }
 
             private static void InputDeviceLoggingCallback(bool value)

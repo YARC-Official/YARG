@@ -81,7 +81,7 @@ namespace YARG
             int savedCount = PlayerContainer.SaveProfiles();
             YargLogger.LogFormatInfo("Saved {0} profiles", savedCount);
 
-            AudioManager.Initialize<BassAudioManager>();
+            GlobalAudioHandler.Initialize<BassAudioManager>();
 
             Players = new List<YargPlayer>();
 
@@ -109,7 +109,7 @@ namespace YARG
             ScoreContainer.Destroy();
             InputManager.Destroy();
             PlayerContainer.Destroy();
-            AudioManager.Close();
+            GlobalAudioHandler.Close();
 #if UNITY_EDITOR
             // Set alpha fading (on the tracks) to off
             Shader.SetGlobalFloat("_IsFading", 0f);

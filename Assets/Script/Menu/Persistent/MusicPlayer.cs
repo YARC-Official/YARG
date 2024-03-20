@@ -52,7 +52,7 @@ namespace YARG.Menu.Persistent
 
         private void OnDisable()
         {
-            AudioManager.UseMinimumStemVolume = false;
+            GlobalAudioHandler.UseMinimumStemVolume = false;
             Stop();
         }
 
@@ -62,9 +62,9 @@ namespace YARG.Menu.Persistent
 
             _nowPlaying = SongContainer.GetRandomSong();
 
-            AudioManager.UseMinimumStemVolume = _nowPlaying.Source.Str.ToLowerInvariant() == "yarg";
+            GlobalAudioHandler.UseMinimumStemVolume = _nowPlaying.Source.Str.ToLowerInvariant() == "yarg";
 
-            _mixer = await UniTask.RunOnThreadPool(() => _nowPlaying.LoadAudio(AudioManager.Instance, 1f, SongStem.Crowd));
+            _mixer = await UniTask.RunOnThreadPool(() => _nowPlaying.LoadAudio(1f, SongStem.Crowd));
             _mixer.SongEnd += OnSongEnd;
 
             // Set song title text

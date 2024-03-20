@@ -197,7 +197,7 @@ namespace YARG.Gameplay.Player
 
             var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
 
-            AudioManager.PlaySoundEffect(randomOverstrum);
+            GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
         }
 
         private void OnSustainStart(GuitarNote parent)

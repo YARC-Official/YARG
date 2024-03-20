@@ -160,7 +160,7 @@ namespace YARG.Input
 
             if (_unresolvedMic is not null)
             {
-                var device = AudioManager.Instance.GetInputDevice(_unresolvedMic.Name);
+                var device = GlobalAudioHandler.GetInputDevice(_unresolvedMic.Name);
                 if (device != null)
                 {
                     AddMicrophone(device);

@@ -83,7 +83,7 @@ namespace YARG.Gameplay.HUD
 
                     _currentStar = topStar;
 
-                    AudioManager.PlaySoundEffect(SfxSample.StarGain);
+                    GlobalAudioHandler.PlaySoundEffect(SfxSample.StarGain);
                     YargLogger.LogFormatDebug("Gained star at {0} ({1})", GameManager.BandScore, stars);
                 }
 
@@ -111,7 +111,7 @@ namespace YARG.Gameplay.HUD
 
                 _goldMeterParent.SetActive(false);
 
-                AudioManager.PlaySoundEffect(SfxSample.StarGold);
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.StarGold);
                 _isGoldAchieved = true;
             }
         }

@@ -408,7 +408,7 @@ namespace YARG.Gameplay.Player
 
             if (_lastCombo >= 10)
             {
-                AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
             }
 
             _lastCombo = Combo;
