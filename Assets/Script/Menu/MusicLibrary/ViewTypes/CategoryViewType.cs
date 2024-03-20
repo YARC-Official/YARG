@@ -58,17 +58,7 @@ namespace YARG.Menu.MusicLibrary
 
         public override string GetSideText(bool selected)
         {
-            var count = TextColorer.FormatString(
-                _songCount.ToString("N0"),
-                MenuData.Colors.PrimaryText,
-                500);
-
-            var songs = TextColorer.FormatString(
-                _songCount == 1 ? "SONG" : "SONGS",
-                MenuData.Colors.PrimaryText.WithAlpha(0.5f),
-                500);
-
-            return $"{count} {songs}";
+            return CreateSongCountString(_songCount);
         }
 
         private static int CountOf(IEnumerable<SongEntry> songs, Func<SongEntry, SortString> selector)

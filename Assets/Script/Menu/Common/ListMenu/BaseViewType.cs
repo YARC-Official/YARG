@@ -42,9 +42,9 @@ namespace YARG.Menu.ListMenu
             {
                 return type switch
                 {
-                    TextType.Bright    => TextColorer.FormatString(str, MenuData.Colors.BrightText, 500),
-                    TextType.Primary   => TextColorer.FormatString(str, MenuData.Colors.PrimaryText),
-                    TextType.Secondary => TextColorer.FormatString(str, MenuData.Colors.PrimaryText.WithAlpha(0.5f)),
+                    TextType.Bright    => TextColorer.StyleString(str, MenuData.Colors.BrightText, 500),
+                    TextType.Primary   => TextColorer.StyleString(str, MenuData.Colors.PrimaryText),
+                    TextType.Secondary => TextColorer.StyleString(str, MenuData.Colors.PrimaryText.WithAlpha(0.5f)),
                     _                  => throw new Exception("Unreachable.")
                 };
             }
@@ -52,9 +52,9 @@ namespace YARG.Menu.ListMenu
             {
                 return type switch
                 {
-                    TextType.Bright    => TextColorer.FormatString(str, MenuData.Colors.BrightText,  500),
-                    TextType.Primary   => TextColorer.FormatString(str, MenuData.Colors.BrightText,  700),
-                    TextType.Secondary => TextColorer.FormatString(str, MenuData.Colors.PrimaryText, 500),
+                    TextType.Bright    => TextColorer.StyleString(str, MenuData.Colors.BrightText,  500),
+                    TextType.Primary   => TextColorer.StyleString(str, MenuData.Colors.BrightText,  700),
+                    TextType.Secondary => TextColorer.StyleString(str, MenuData.Colors.PrimaryText, 500),
                     _                  => throw new Exception("Unreachable.")
                 };
             }
