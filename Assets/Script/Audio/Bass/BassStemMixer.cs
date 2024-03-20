@@ -98,14 +98,14 @@ namespace YARG.Audio.BASS
             long position = Bass.ChannelGetPosition(_mainHandle.Stream);
             if (position < 0)
             {
-                YargLogger.LogFormatError("Failed to get channel position in bytes: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to get channel position in bytes: {0}", Bass.LastError);
                 return -1;
             }
 
             double seconds = Bass.ChannelBytes2Seconds(_mainHandle.Stream, position);
             if (seconds < 0)
             {
-                YargLogger.LogFormatError("Failed to get channel position in seconds: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to get channel position in seconds: {0}", Bass.LastError);
                 return -1;
             }
 
@@ -117,7 +117,7 @@ namespace YARG.Audio.BASS
         {
             if (!Bass.ChannelGetAttribute(_mixerHandle, ChannelAttribute.Volume, out float volume))
             {
-                YargLogger.LogFormatError("Failed to get volume: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to get volume: {0}", Bass.LastError);
             }
             return volume;
         }
@@ -168,7 +168,7 @@ namespace YARG.Audio.BASS
         {
             if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Volume, volume))
             {
-                YargLogger.LogFormatError("Failed to set mixer volume: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to set mixer volume: {0}", Bass.LastError);
             }
         }
 
