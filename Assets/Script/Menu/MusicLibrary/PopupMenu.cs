@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using YARG.Core.Extensions;
@@ -192,13 +193,32 @@ namespace YARG.Menu.MusicLibrary
         {
             SetHeader("Go To...");
 
-            foreach (var (header, index) in _musicLibrary.GetSections())
+            if (SettingsManager.Settings.LibrarySort
+                is SongAttribute.Artist
+                or SongAttribute.Album
+                or SongAttribute.Artist_Album)
             {
-                CreateItem(((SortHeaderViewType) header).HeaderText, () =>
+                foreach (var (header, index) in _musicLibrary.GetSections()
+                    .GroupBy(x => ((SortHeaderViewType) x.Item1).HeaderText[0].ToAsciiUpper())
+                    .Select(g => g.First()))
                 {
-                    _musicLibrary.SelectedIndex = index;
-                    gameObject.SetActive(false);
-                });
+                    CreateItem(((SortHeaderViewType) header).HeaderText[0].ToString(), () =>
+                    {
+                        _musicLibrary.SelectedIndex = index;
+                        gameObject.SetActive(false);
+                    });
+                }
+            }
+            else
+            {
+                foreach (var (header, index) in _musicLibrary.GetSections())
+                {
+                    CreateItem(((SortHeaderViewType) header).HeaderText, () =>
+                    {
+                        _musicLibrary.SelectedIndex = index;
+                        gameObject.SetActive(false);
+                    });
+                }
             }
         }
 
