@@ -129,12 +129,12 @@ namespace YARG.Menu.ProfileList
             }
 
             // Add available microphones
-            foreach (var microphone in AudioManager.Instance.GetAllInputDevices())
+            foreach (var microphone in GlobalAudioHandler.GetAllInputDevices())
             {
                 devicesAvailable = true;
                 dialog.AddListButton(microphone.name, () =>
                 {
-                    var device = AudioManager.Instance.CreateDevice(microphone.id, microphone.name);
+                    var device = GlobalAudioHandler.CreateDevice(microphone.id, microphone.name);
                     player.Bindings.AddMicrophone(device);
                     selectedDevice = true;
                     DialogManager.Instance.ClearDialog();
