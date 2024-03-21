@@ -12,10 +12,10 @@ namespace YARG
     public class LoadingScreen : MonoSingleton<LoadingScreen>
     {
         [SerializeField]
-        public TextMeshProUGUI loadingPhrase;
+        public TextMeshProUGUI LoadingPhrase;
 
         [SerializeField]
-        public TextMeshProUGUI subPhrase;
+        public TextMeshProUGUI SubPhrase;
 
         public static bool IsActive => Instance.gameObject.activeSelf;
 
@@ -39,7 +39,7 @@ namespace YARG
 
     public sealed class LoadingContext : IDisposable
     {
-        private bool disposedValue;
+        private bool _disposed;
 
         private struct QueuedTask
         {
@@ -58,13 +58,13 @@ namespace YARG
 
         public void SetLoadingText(string phrase, string sub = null)
         {
-            LoadingScreen.Instance.loadingPhrase.text = phrase;
-            LoadingScreen.Instance.subPhrase.text = sub;
+            LoadingScreen.Instance.LoadingPhrase.text = phrase;
+            LoadingScreen.Instance.SubPhrase.text = sub;
         }
 
         public void SetSubText(string sub)
         {
-            LoadingScreen.Instance.subPhrase.text = sub;
+            LoadingScreen.Instance.SubPhrase.text = sub;
         }
 
         /// <summary>
@@ -100,12 +100,12 @@ namespace YARG
 
         private async void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposed)
             {
                 await Wait();
                 LoadingScreen.Instance.gameObject.SetActive(false);
                 Navigator.Instance.DisableMenuInputs = false;
-                disposedValue = true;
+                _disposed = true;
             }
         }
 
