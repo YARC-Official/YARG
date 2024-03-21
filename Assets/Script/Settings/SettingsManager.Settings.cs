@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering.Universal.Internal;
 using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Song;
@@ -8,6 +10,7 @@ using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Integration.Sacn;
+using YARG.Integration.StageKit;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -222,7 +225,7 @@ namespace YARG.Settings
 
             #region Lighting Peripherals
 
-            public ToggleSetting StageKitEnabled { get; } = new(true);
+            public ToggleSetting StageKitEnabled { get; } = new(true, StageKitEnabledCallback);
             public ToggleSetting DMXEnabled      { get; } = new(false, DMXEnabledCallback);
 
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(
@@ -254,13 +257,24 @@ namespace YARG.Settings
 
             #region Callbacks
 
+            private static void StageKitEnabledCallback(bool value)
+            {
+                if (IsLoading)
+                {
+                    return;
+                }
+
+                StageKitHardware.Instance.HandleEnabledChanged(value);
+            }
+
             private static void DMXEnabledCallback(bool value)
             {
                 if (IsLoading)
                 {
                     return;
                 }
-//                SacnController.Instance.HandleEnabledChanged(value);
+
+                SacnHardware.Instance.HandleEnabledChanged(value);
             }
 
             private static void DMXCallback(int[] value)
@@ -269,7 +283,7 @@ namespace YARG.Settings
                 {
                     return;
                 }
-    //            SacnController.Instance.UpdateDMXChannels();
+                SacnHardware.Instance.UpdateDMXChannelNumbers();
             }
 
             private static void VSyncCallback(bool value)
