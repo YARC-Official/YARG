@@ -1,5 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
@@ -115,11 +116,12 @@ namespace YARG.Menu.History
                 var profile = replay.Frames[i].PlayerInfo.Profile;
                 if (analysisResult.Passed)
                 {
-                    Debug.Log($"({profile.Name}, {profile.CurrentInstrument}/{profile.CurrentDifficulty}) PASSED verification!");
+                    YargLogger.LogFormatInfo("{0}, {1}/{2}) PASSED verification!", profile.Name, profile.CurrentInstrument, profile.CurrentDifficulty);
                 }
                 else
                 {
-                    Debug.LogWarning($"({profile.Name}, {profile.CurrentInstrument}/{profile.CurrentDifficulty}) FAILED verification");
+                    YargLogger.LogFormatWarning("{0}, {1}/{2}) FAILED verification",
+                        profile.Name, profile.CurrentDifficulty, profile.CurrentDifficulty);
                 }
             }
         }
