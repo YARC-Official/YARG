@@ -1153,8 +1153,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04edb83c636bbdb44931a8db69cb4611, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  loadingPhrase: {fileID: 1156818523}
-  subPhrase: {fileID: 468169333}
+  LoadingPhrase: {fileID: 1156818523}
+  SubPhrase: {fileID: 468169333}
 --- !u!114 &782876833
 MonoBehaviour:
   m_ObjectHideFlags: 0
