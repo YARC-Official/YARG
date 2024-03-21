@@ -172,8 +172,7 @@ namespace YARG.Gameplay
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
 
-            _mixer.SongEnd -= OnAudioEnd;
-            _mixer.Dispose();
+            _mixer?.Dispose();
             GlobalAudioHandler.UseMinimumStemVolume = false;
 
             _songRunner?.Dispose();
