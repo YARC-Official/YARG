@@ -307,6 +307,9 @@ namespace YARG.Integration.StageKit
 
         protected override void GameplayDestroy()
         {
+            if (_controller == null)
+                return;
+
             _controller.AllLedsOff();
             KillCue();
             _controller.StageKits.ForEach(kit => kit.ResetHaptics());
