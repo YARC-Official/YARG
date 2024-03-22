@@ -298,11 +298,16 @@ namespace YARG.Playback
             // Update times
             RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
             RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
-            RealAudioTime = GlobalVariables.AudioManager.CurrentPositionD + SongOffset;
             // We use visual time for song time due to an apparent bug in BASS
             // where it will sometimes not fire the song end event when the audio ends
             // Using visual time guarantees a reliable timing source, and therefore song end timing
             RealSongTime = RealVisualTime - AudioCalibration;
+
+            // The audio time becomes -1 when the song gets unloaded,
+            // need to do this to prevent the assert below from triggering
+            double newAudioTime = GlobalVariables.AudioManager.CurrentPositionD;
+            if (newAudioTime >= 0)
+                RealAudioTime = newAudioTime + SongOffset;
 
             // Check for unexpected backwards time jumps
 
