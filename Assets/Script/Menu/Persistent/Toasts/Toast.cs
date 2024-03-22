@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -40,28 +39,31 @@ namespace YARG.Menu.Persistent
             _canvasGroup.alpha = 0f;
             yield return _canvasGroup
                 .DOFade(1f, 0.25f)
+                .SetUpdate(true)
                 .WaitForCompletion();
 
             // Wait
-            yield return new WaitForSeconds(5f);
+            yield return new WaitForSecondsRealtime(5f);
 
             // Fade out
             yield return _canvasGroup
                 .DOFade(0f, 0.25f)
+                .SetUpdate(true)
                 .WaitForCompletion();
 
             var parentRect = transform.parent.GetComponent<RectTransform>();
 
             // Smoothly move all of the next notifications up
             // The spacing is embedded into the toast so we don't have to worry about that
-            var doScale = transform.DOScaleY(0f, 0.4f);
-            doScale.OnUpdate(() =>
-            {
-                // Slow, but not much we can do
-                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
-            });
-
-            yield return doScale.WaitForCompletion();
+            yield return transform
+                .DOScaleY(0f, 0.4f)
+                .SetUpdate(true)
+                .OnUpdate(() =>
+                {
+                    // Slow, but not much we can do
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
+                })
+                .WaitForCompletion();
 
             Destroy(gameObject);
         }
