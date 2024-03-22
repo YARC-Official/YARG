@@ -248,7 +248,7 @@ namespace YARG.Gameplay
                 text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
                 text.AppendFormat("Input time: {0:0.000000}\n", _songRunner.InputTime);
                 text.AppendFormat("Pause time: {0:0.000000}\n", _songRunner.PauseStartTime);
-                text.AppendFormat("Sync difference: {0:0.000000}\n", _songRunner.SyncVisualTime - _songRunner.SyncSongTime);
+                text.AppendFormat("Sync difference: {0:0.000000}\n", _songRunner.SyncDelta);
                 text.AppendFormat("Sync start delta: {0:0.000000}\n", _songRunner.SyncStartDelta);
                 text.AppendFormat("Speed adjustment: {0:0.00}\n", _songRunner.SyncSpeedAdjustment);
                 text.AppendFormat("Speed multiplier: {0}\n", _songRunner.SyncSpeedMultiplier);

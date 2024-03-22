@@ -27,12 +27,6 @@ namespace YARG.Playback
         public double RealSongTime { get; private set; }
 
         /// <summary>
-        /// The instantaneous current audio time, used for audio synchronization.<br/>
-        /// Accounts for song speed, audio calibration, and song offset.
-        /// </summary>
-        public double SyncSongTime => GlobalVariables.AudioManager.CurrentPositionD + AudioCalibration + SongOffset;
-
-        /// <summary>
         /// The current visual time, accounting for song speed and video calibration.<br/>
         /// This is updated every frame while not paused.
         /// </summary>
@@ -47,12 +41,6 @@ namespace YARG.Playback
         /// It should also be used for setting position, otherwise the actual set position will be offset incorrectly.
         /// </remarks>
         public double RealVisualTime { get; private set; }
-
-        /// <summary>
-        /// The instantaneous current visual time, used for audio synchronization.<br/>
-        /// Accounts for song speed, but <b>not</b> video calibration.
-        /// </summary>
-        public double SyncVisualTime => GetRelativeInputTime(InputManager.CurrentInputTime);
 
         /// <summary>
         /// The current input time, accounting for song speed and video calibration.<br/>
@@ -172,6 +160,24 @@ namespace YARG.Playback
         public float SyncSpeedAdjustment => _syncSpeedAdjustment;
         public int SyncSpeedMultiplier => _syncSpeedMultiplier;
         public float SyncStartDelta => _syncStartDelta;
+
+        /// <summary>
+        /// The instantaneous current audio time, used for audio synchronization.<br/>
+        /// Accounts for song speed, audio calibration, and song offset.
+        /// </summary>
+        public double SyncSongTime => GlobalVariables.AudioManager.CurrentPositionD + AudioCalibration + SongOffset;
+
+        /// <summary>
+        /// The instantaneous current visual time, used for audio synchronization.<br/>
+        /// Accounts for song speed, but <b>not</b> video calibration.
+        /// </summary>
+        public double SyncVisualTime => GetRelativeInputTime(InputManager.CurrentInputTime);
+
+        /// <summary>
+        /// The instantaneous current visual time, used for audio synchronization.<br/>
+        /// Accounts for song speed, but <b>not</b> video calibration.
+        /// </summary>
+        public double SyncDelta => SyncVisualTime - SyncSongTime;
         #endregion
 
         #region Seek debugging
@@ -345,8 +351,8 @@ namespace YARG.Playback
                 double adjustThreshold = ADJUST_SYNC_THRESH * SelectedSongSpeed;
 
                 // Check the difference between visual and audio times
-                float delta = (float) (SyncVisualTime - SyncSongTime);
-                float deltaAbs = Math.Abs(delta);
+                double delta = SyncDelta;
+                double deltaAbs = Math.Abs(delta);
                 // Don't sync if below the initial sync threshold, and we haven't adjusted the speed
                 if (_syncSpeedMultiplier == 0 && deltaAbs < initialThreshold)
                     continue;
@@ -360,7 +366,7 @@ namespace YARG.Playback
                 if (_syncSpeedMultiplier != speedMultiplier)
                 {
                     if (_syncSpeedMultiplier == 0)
-                        _syncStartDelta = delta;
+                        _syncStartDelta = (float) delta;
 
                     _syncSpeedMultiplier = speedMultiplier;
 
