@@ -294,26 +294,31 @@ namespace YARG.Playback
 
             // Only check for greater-than here
             // BASS's update rate is too coarse for equals to never happen
-            if (_previousRealSongTime > RealSongTime)
-            {
-                Debug.Assert(_seeked, $"Unexpected audio seek backwards! Went from {_previousRealSongTime} to {RealSongTime}");
-            }
-            _previousRealSongTime = RealSongTime;
+            AssertTimeProgressionLenient(nameof(RealSongTime), RealSongTime, ref _previousRealSongTime);
 
             // *Do* check for equals here, as input time not updating is a more serious issue
-            if (_previousRealVisualTime >= RealVisualTime)
-            {
-                Debug.Assert(_seeked, $"Unexpected visual seek backwards! Went from {_previousRealVisualTime} to {RealVisualTime}");
-            }
-            _previousRealVisualTime = RealVisualTime;
-
-            if (_previousRealInputTime >= RealInputTime)
-            {
-                Debug.Assert(_seeked, $"Unexpected input seek backwards! Went from {_previousRealInputTime} to {RealInputTime}");
-            }
-            _previousRealInputTime = RealInputTime;
+            AssertTimeProgression(nameof(RealVisualTime), RealVisualTime, ref _previousRealVisualTime);
+            AssertTimeProgression(nameof(RealInputTime), RealInputTime, ref _previousRealInputTime);
 
             _seeked = false;
+        }
+
+        private void AssertTimeProgression(string name, double current, ref double previous)
+        {
+            if (previous >= current)
+            {
+                YargLogger.AssertFormat(_seeked, "Unexpected {0} seek backwards! Went from {1} to {2}", name, previous, current);
+            }
+            previous = current;
+        }
+
+        private void AssertTimeProgressionLenient(string name, double current, ref double previous)
+        {
+            if (previous > current)
+            {
+                YargLogger.AssertFormat(_seeked, "Unexpected {0} seek backwards! Went from {1} to {2}", name, previous, current);
+            }
+            previous = current;
         }
 
         private void SyncThread()
