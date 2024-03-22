@@ -48,15 +48,6 @@ namespace YARG.Menu.MusicLibrary
 
         private static string _fullSearchQuery = string.Empty;
 
-        /// <summary>
-        /// Regex pattern to match a whole word
-        /// - \b: Asserts a word boundary, matching the position between a word character (i.e., a letter,
-        ///       digit, or underscore) and a non-word character (or vice versa).
-        /// - \w+: Matches one or more word characters (i.e., letters, digits, or underscores).
-        /// - \b: Asserts another word boundary.
-        /// </summary>
-        private static readonly Regex WholeWordRegex = new(@"\b\w+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
         private void OnEnable()
         {
             _searchFilters.ClickedButton += OnClickedSearchFilter;
@@ -143,7 +134,7 @@ namespace YARG.Menu.MusicLibrary
                 {
                     if (!string.IsNullOrEmpty(_searchField.text))
                     {
-                        _fullSearchQuery = WholeWordRegex.Replace(_fullSearchQuery, $"{filter}:{_searchField.text}");
+                        _fullSearchQuery = $"{filter}:{_searchField.text}";
                     }
                     else if (string.IsNullOrEmpty(_fullSearchQuery))
                     {
