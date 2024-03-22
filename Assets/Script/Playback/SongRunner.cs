@@ -17,6 +17,8 @@ namespace YARG.Playback
         /// </summary>
         /// <remarks>
         /// This value should be used for all interactions that are relative to the audio.
+        /// Note that this is driven by visual time, rather than audio time.
+        /// Use <see cref="AudioTime"/> if audio time is required.
         /// </remarks>
         public double SongTime => RealSongTime + AudioCalibration;
 
@@ -25,6 +27,22 @@ namespace YARG.Playback
         /// This is updated every frame while not paused.
         /// </summary>
         public double RealSongTime { get; private set; }
+
+        /// <summary>
+        /// The time into the audio, accounting for song speed and audio calibration.<br/>
+        /// This is updated every frame while not paused.
+        /// </summary>
+        /// <remarks>
+        /// This value is for scenarios that *must* be driven by audio time instead of visual time.
+        /// In general, <see cref="SongTime"/> should be used instead where possible.
+        /// </remarks>
+        public double AudioTime => RealAudioTime + AudioCalibration;
+
+        /// <summary>
+        /// The time into the audio, accounting for song speed but <b>not</b> audio calibration.<br/>
+        /// This is updated every frame while not paused.
+        /// </summary>
+        public double RealAudioTime { get; private set; }
 
         /// <summary>
         /// The current visual time, accounting for song speed and video calibration.<br/>
@@ -183,6 +201,7 @@ namespace YARG.Playback
         #region Seek debugging
         private bool _seeked;
         private double _previousRealSongTime = double.NaN;
+        private double _previousRealAudioTime = double.NaN;
         private double _previousRealVisualTime = double.NaN;
         private double _previousRealInputTime = double.NaN;
         #endregion
@@ -276,27 +295,23 @@ namespace YARG.Playback
             if (Paused)
                 return;
 
-            // Update input/visual time
+            // Update times
             RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
             RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
-
-            // Calculate song time
-            if (GlobalVariables.AudioManager.IsPlaying)
-            {
-                RealSongTime = GlobalVariables.AudioManager.CurrentPositionD + SongOffset;
-            }
-            else
-            {
-                RealSongTime = RealVisualTime - AudioCalibration;
-            }
+            RealAudioTime = GlobalVariables.AudioManager.CurrentPositionD + SongOffset;
+            // We use visual time for song time due to an apparent bug in BASS
+            // where it will sometimes not fire the song end event when the audio ends
+            // Using visual time guarantees a reliable timing source, and therefore song end timing
+            RealSongTime = RealVisualTime - AudioCalibration;
 
             // Check for unexpected backwards time jumps
 
             // Only check for greater-than here
             // BASS's update rate is too coarse for equals to never happen
-            AssertTimeProgressionLenient(nameof(RealSongTime), RealSongTime, ref _previousRealSongTime);
+            AssertTimeProgressionLenient(nameof(RealAudioTime), RealAudioTime, ref _previousRealAudioTime);
 
             // *Do* check for equals here, as input time not updating is a more serious issue
+            AssertTimeProgression(nameof(RealSongTime), RealSongTime, ref _previousRealSongTime);
             AssertTimeProgression(nameof(RealVisualTime), RealVisualTime, ref _previousRealVisualTime);
             AssertTimeProgression(nameof(RealInputTime), RealInputTime, ref _previousRealInputTime);
 

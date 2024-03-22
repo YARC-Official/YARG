@@ -84,6 +84,12 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.RealSongTime"/>
         public double RealSongTime => _songRunner.RealSongTime;
 
+        /// <inheritdoc cref="SongRunner.AudioTime"/>
+        public double AudioTime => _songRunner.AudioTime;
+
+        /// <inheritdoc cref="SongRunner.RealAudioTime"/>
+        public double RealAudioTime => _songRunner.RealAudioTime;
+
         /// <inheritdoc cref="SongRunner.VisualTime"/>
         public double VisualTime => _songRunner.VisualTime;
 
@@ -245,6 +251,7 @@ namespace YARG.Gameplay
                 }
 
                 text.AppendFormat("Song time: {0:0.000000}\n", _songRunner.SongTime);
+                text.AppendFormat("Audio time: {0:0.000000}\n", _songRunner.AudioTime);
                 text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
                 text.AppendFormat("Input time: {0:0.000000}\n", _songRunner.InputTime);
                 text.AppendFormat("Pause time: {0:0.000000}\n", _songRunner.PauseStartTime);
