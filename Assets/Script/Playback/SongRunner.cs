@@ -296,12 +296,7 @@ namespace YARG.Playback
                 return;
 
             // Update times
-            RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
-            RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
-            // We use visual time for song time due to an apparent bug in BASS
-            // where it will sometimes not fire the song end event when the audio ends
-            // Using visual time guarantees a reliable timing source, and therefore song end timing
-            RealSongTime = RealVisualTime - AudioCalibration;
+            UpdateInputTimes();
 
             // The audio time becomes -1 when the song gets unloaded,
             // need to do this to prevent the assert below from triggering
@@ -432,6 +427,17 @@ namespace YARG.Playback
             return GetRelativeInputTime(timeFromInputSystem) + VideoCalibration;
         }
 
+        private void UpdateInputTimes()
+        {
+            // Update times
+            RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
+            RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
+            // We use visual time for song time due to an apparent bug in BASS
+            // where it will sometimes not fire the song end event when the audio ends
+            // Using visual time guarantees a reliable timing source, and therefore song end timing
+            RealSongTime = RealVisualTime - AudioCalibration;
+        }
+
         private void SetInputBase(double inputBase)
         {
             double previousBase = InputTimeBase;
@@ -442,9 +448,8 @@ namespace YARG.Playback
             InputTimeBase = inputBase;
             InputTimeOffset = InputManager.InputUpdateTime;
 
-            // Update input/visual time
-            RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
-            RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
+            // Update input times
+            UpdateInputTimes();
 
             YargLogger.LogFormatDebug("Set input time base.\nNew base: {0:0.000000}, new offset: {1:0.000000}, new visual time: {2:0.000000}, new input time: {3:0.000000}\n"
                 + "Old base: {4:0.000000}, old offset: {5:0.000000}, old visual time: {6:0.000000}, old input time: {7:0.000000}",
