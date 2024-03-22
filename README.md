@@ -117,7 +117,7 @@ There are some dependencies that will be needed in order for HID devices (such a
 4. Install Unity Hub and Unity `2021.3.21f1` (LTS).
    1. Download and install [Unity Hub](https://unity.com/download).
    2. Sign-in/create an account with a personal license (free).
-   3. In Unity Hub, click on "Install Editor" and select `2021.3.21f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
+   3. In Unity Hub, click on "Install Editor" and select `2021.3.36f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
    4. Click "Install"
 5. Install the [.NET SDK](https://dotnet.microsoft.com/en-us/download/visual-studio-sdks). This is required to develop and build the submodules.
    - You will need the SDK specifically, not the runtime!
