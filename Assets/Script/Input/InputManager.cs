@@ -171,7 +171,9 @@ namespace YARG.Input
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
             if (device is null)
             {
-                YargLogger.LogFormatWarning("No device found for event '{0}'!", eventPtr);
+                // We need to do the formatting up-front here, InputEventPtr points
+                // to memory which will no longer be valid after the input system update finishes
+                YargLogger.LogWarning($"No device found for event '{eventPtr}'!");
                 return;
             }
 
@@ -188,11 +190,13 @@ namespace YARG.Input
             // It can still happen on rare occasions despite the fixes we've made to prevent it,
             // but in the cases I've seen it happen, it never reaches the engine
             if (eventPtr.time < InputUpdateTime)
-                Debug.LogError($"An input event caused time to go backwards!\nInput update time: {InputUpdateTime}, event time: {eventPtr.time}, current time: {currentTime}, device: {device}");
+                YargLogger.LogFormatError("An input event caused time to go backwards!\nInput update time: {0}, event time: {1}, current time: {2}, device: {3}",
+                    InputUpdateTime, eventPtr.time, currentTime, device);
 
             // This check happens much too often for it to be of any use
             if (eventPtr.time < _afterUpdateTime)
-                Debug.LogWarning($"An input event was missed in the previous update!\nPrevious update time: {_afterUpdateTime}, event time: {eventPtr.time}, current time: {currentTime}, device: {device}");
+                YargLogger.LogFormatWarning("An input event was missed in the previous update!\nPrevious update time: {0}, event time: {1}, current time: {2}, device: {3}",
+                    _afterUpdateTime, eventPtr.time, currentTime, device);
 
             // The engine also has this check
             // I've only seen this happen when:
@@ -202,7 +206,8 @@ namespace YARG.Input
             if (_previousEventTimes.TryGetValue(device, out double previousTime))
             {
                 if (eventPtr.time < previousTime)
-                    Debug.LogWarning($"An input event is out of order!\nPrevious event time: {previousTime}, incoming event time: {eventPtr.time}, current time: {currentTime}, device: {device}");
+                    YargLogger.LogFormatWarning("An input event is out of order!\nPrevious event time: {0}, incoming event time: {1}, current time: {2}, device: {3}",
+                        previousTime, eventPtr.time, currentTime, device);
             }
             _previousEventTimes[device] = eventPtr.time;
 #endif

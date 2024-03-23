@@ -3,11 +3,11 @@ using YARG.Core.Song.Cache;
 using YARG.Core.Song;
 using System;
 using YARG.Helpers.Extensions;
-using UnityEngine;
 using YARG.Settings;
 using YARG.Helpers;
 using Cysharp.Threading.Tasks;
 using YARG.Menu.MusicLibrary;
+using YARG.Core.Logging;
 
 namespace YARG.Song
 {
@@ -87,7 +87,7 @@ namespace YARG.Song
             }
             stopwatch.Stop();
 
-            Debug.Log($"Scan time: {stopwatch.Elapsed.TotalSeconds}s");
+            YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
             MusicLibraryMenu.SetRefresh();
         }
 

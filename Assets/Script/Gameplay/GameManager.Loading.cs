@@ -116,7 +116,6 @@ namespace YARG.Gameplay
                 context.SetLoadingText("Loading replay...");
                 if (!LoadReplay())
                 {
-                    Debug.LogError("Failed to load replay!");
                     ToastManager.ToastError("Failed to load replay!");
                     global.LoadScene(SceneIndex.Menu);
                     return;
@@ -202,7 +201,7 @@ namespace YARG.Gameplay
             catch (Exception ex)
             {
                 result = ReplayReadResult.Corrupted;
-                Debug.LogException(ex);
+                YargLogger.LogException(ex, "Failed to load replay!");
             }
 
             if (result != ReplayReadResult.Valid)
