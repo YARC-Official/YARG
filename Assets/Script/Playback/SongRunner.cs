@@ -497,9 +497,6 @@ namespace YARG.Playback
             // Set input offsets
             SetInputBase(seekTime);
 
-            // Set audio/song time, factoring in audio calibration
-            RealSongTime = seekTime - AudioCalibration;
-
             // Previously audio calibration was handled on input time, as it consistently started out synced
             // within 50 ms (within 5 ms a majority of the time)
             // But it makes more sense to apply it to audio instead, and the small initial desync it
