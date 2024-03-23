@@ -71,7 +71,7 @@ namespace YARG.Menu.Dialogs
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Confirm", Submit),
                 new NavigationScheme.Entry(MenuAction.Red, "Cancel", DialogManager.Instance.ClearDialog)
-            }, Navigator.Instance.IsMusicPlayShowing());
+            }, null);
         }
 
         public void Initialize(Color initialColor)

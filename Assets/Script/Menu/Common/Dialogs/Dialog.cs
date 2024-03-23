@@ -33,7 +33,7 @@ namespace YARG.Menu.Dialogs
                 NavigationScheme.Entry.NavigateSelect,
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown
-            }, Navigator.Instance.IsMusicPlayShowing());
+            }, null);
         }
 
         private void OnDisable()
