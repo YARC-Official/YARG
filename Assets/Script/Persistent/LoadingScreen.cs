@@ -1,25 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using YARG.Core.Logging;
 using YARG.Menu.Navigation;
 using YARG.Song;
-using YARG.Core.Logging;
 
 namespace YARG
 {
     public class LoadingScreen : MonoSingleton<LoadingScreen>
     {
-        [SerializeField]
         public TextMeshProUGUI LoadingPhrase;
-
-        [SerializeField]
         public TextMeshProUGUI SubPhrase;
 
         public static bool IsActive => Instance.gameObject.activeSelf;
 
-        private async void Start()
+        // "The Unity message 'Start' has an incorrect signature."
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
+        private async UniTaskVoid Start()
         {
             using var context = new LoadingContext();
             context.SetLoadingText("Loading song sources...");
@@ -98,7 +98,7 @@ namespace YARG
             }
         }
 
-        private async void Dispose(bool disposing)
+        private async UniTaskVoid _Dispose()
         {
             if (!_disposed)
             {
@@ -111,12 +111,14 @@ namespace YARG
 
         ~LoadingContext()
         {
-            Dispose(disposing: false);
+            YargLogger.LogError("Loading context was not disposed!");
+            // Disposing is not safe here, as GC is done on a separate thread
+            // _Dispose().Forget();
         }
 
         public void Dispose()
         {
-            Dispose(disposing: true);
+            _Dispose().Forget();
             GC.SuppressFinalize(this);
         }
     }
