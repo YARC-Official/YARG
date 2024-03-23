@@ -149,8 +149,6 @@ namespace YARG.Settings
 
         public static void LoadSettings()
         {
-            SettingContainer.IsLoading = true;
-
             // Create settings container
             try
             {
@@ -163,8 +161,7 @@ namespace YARG.Settings
 
             // If null, recreate
             Settings ??= new SettingContainer();
-
-            SettingContainer.IsLoading = false;
+            SettingContainer.IsInitialized = true;
 
             // Now that we're done loading, call all of the callbacks
             var fields = typeof(SettingContainer).GetProperties();
@@ -185,7 +182,7 @@ namespace YARG.Settings
         {
             // If the game tries to save the settings before they are loaded, it can wipe the settings file
             // (such as closing the game before they load)
-            if (SettingContainer.IsLoading || Settings is not null)
+            if (SettingContainer.IsInitialized && Settings is not null)
             {
                 File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(Settings, Formatting.Indented));
             }

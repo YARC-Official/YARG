@@ -33,19 +33,19 @@ namespace YARG.Scores
 
             _scoreDatabaseFile = Path.Combine(ScoreDirectory, "scores.db");
 
-            // Ensure the directories exist
-            Directory.CreateDirectory(ScoreDirectory);
-            Directory.CreateDirectory(ScoreReplayDirectory);
-
             try
             {
+                // Ensure the directories exist
+                Directory.CreateDirectory(ScoreDirectory);
+                Directory.CreateDirectory(ScoreReplayDirectory);
+
                 _db = new SQLiteConnection(_scoreDatabaseFile);
                 InitDatabase();
                 FetchHighScores();
             }
             catch (Exception e)
             {
-                YargLogger.LogException(e, "Failed to create LiteDB connection.");
+                YargLogger.LogException(e, "Failed to setup ScoreContainer");
             }
         }
 

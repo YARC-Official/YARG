@@ -161,13 +161,13 @@ namespace YARG.Replays
                 return;
             }
 
-            using var stream = File.OpenRead(_replayCacheFile);
-            using var reader = new BinaryReader(stream);
-
             // If reading the cache fails, clear it and start over
 
             try
             {
+                using var stream = File.OpenRead(_replayCacheFile);
+                using var reader = new BinaryReader(stream);
+
                 int version = reader.ReadInt32();
                 if (version != CACHE_VERSION)
                 {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers;
@@ -53,6 +54,19 @@ namespace YARG.Playlists
             {
                 // If it does, load it in
                 FavoritesPlaylist = LoadPlaylist(_favoritesPath);
+
+                if (FavoritesPlaylist is null)
+                {
+                    FavoritesPlaylist = new Playlist
+                    {
+                        Name = "Favorites",
+                        Author = "You",
+                        Id = Guid.NewGuid(),
+                        SongHashes = new List<HashWrapper>()
+                    };
+
+                    SavePlaylist(FavoritesPlaylist, _favoritesPath);
+                }
             }
         }
 
@@ -69,15 +83,32 @@ namespace YARG.Playlists
 
         private static void SavePlaylist(Playlist playlist, string path)
         {
-            var text = JsonConvert.SerializeObject(playlist, _jsonSettings);
-            File.WriteAllText(path, text);
+            try
+            {
+                var text = JsonConvert.SerializeObject(playlist, _jsonSettings);
+                File.WriteAllText(path, text);
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Failed to save playlist");
+            }
         }
 
         private static Playlist LoadPlaylist(string path)
         {
-            var text = File.ReadAllText(path);
-            var playlist = JsonConvert.DeserializeObject<Playlist>(text, _jsonSettings);
-            return playlist;
+            try
+            {
+                var text = File.ReadAllText(path);
+                var playlist = JsonConvert.DeserializeObject<Playlist>(text, _jsonSettings);
+
+                return playlist;
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Failed to load playlist");
+            }
+
+            return null;
         }
 
         private static string GetFileNameForPlaylist(Playlist playlist)

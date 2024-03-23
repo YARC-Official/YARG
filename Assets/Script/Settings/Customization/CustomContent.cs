@@ -287,7 +287,14 @@ namespace YARG.Settings.Customization
         {
             foreach (var preset in CustomPresets)
             {
-                SavePresetFile(preset);
+                try
+                {
+                    SavePresetFile(preset);
+                }
+                catch (Exception ex)
+                {
+                    YargLogger.LogException(ex, $"Failed to save preset file '{preset.Name}'");
+                }
             }
         }
 
