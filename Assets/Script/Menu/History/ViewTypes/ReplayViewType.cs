@@ -94,14 +94,14 @@ namespace YARG.Menu.History
 
             if (chart is null)
             {
-                Debug.LogError("Chart did not load");
+                YargLogger.LogError("Chart did not load");
                 return;
             }
 
             var replayReadResult = ReplayIO.ReadReplay(_replayEntry.ReplayPath, out var replayFile);
             if (replayReadResult != ReplayReadResult.Valid)
             {
-                Debug.LogError("Replay did not load. " + replayReadResult);
+                YargLogger.LogFormatError("Replay did not load. {0}", replayReadResult);
                 return;
             }
 
@@ -116,11 +116,11 @@ namespace YARG.Menu.History
                 var profile = replay.Frames[i].PlayerInfo.Profile;
                 if (analysisResult.Passed)
                 {
-                    YargLogger.LogFormatInfo("{0}, {1}/{2}) PASSED verification!", profile.Name, profile.CurrentInstrument, profile.CurrentDifficulty);
+                    YargLogger.LogFormatInfo("({0}, {1}/{2}) PASSED verification!", profile.Name, profile.CurrentInstrument, profile.CurrentDifficulty);
                 }
                 else
                 {
-                    YargLogger.LogFormatWarning("{0}, {1}/{2}) FAILED verification",
+                    YargLogger.LogFormatWarning("({0}, {1}/{2}) FAILED verification",
                         profile.Name, profile.CurrentDifficulty, profile.CurrentDifficulty);
                 }
             }
