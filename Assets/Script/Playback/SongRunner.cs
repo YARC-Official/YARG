@@ -162,6 +162,11 @@ namespace YARG.Playback
         /// Whether or not to resume audio playback when <see cref="Resume"/> is called.
         /// </summary>
         private bool _playAudioOnResume = false;
+
+        /// <summary>
+        /// Whether or not <see cref="InitializeSongTime"/> has been called yet..
+        /// </summary>
+        private bool _songTimeInitialized = false;
         #endregion
 
         #region Audio syncing
@@ -244,6 +249,8 @@ namespace YARG.Playback
             _syncThread = new Thread(SyncThread) { IsBackground = true };
 
             InitializeSongTime(SongOffset);
+            // We need to re-initialize on the first call to Update()
+            _songTimeInitialized = false;
         }
 
         ~SongRunner()
@@ -275,8 +282,11 @@ namespace YARG.Playback
 
         private void Start()
         {
+            YargLogger.LogDebug("Starting song runner");
+
             // Re-initialize song times to avoid lag issues
-            InitializeSongTime(SongOffset);
+            if (!_songTimeInitialized)
+                InitializeSongTime(SongOffset);
 
             // Start sync thread
             _runSync = true;
@@ -499,6 +509,8 @@ namespace YARG.Playback
 
             YargLogger.LogFormatDebug("Set song time to {0:0.000000} (delay: {1:0.000000}).\n" +
                 "Seek time: {2:0.000000}, resulting song time: {3:0.000000}", time, delayTime, seekTime, SongTime);
+
+            _songTimeInitialized = true;
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
