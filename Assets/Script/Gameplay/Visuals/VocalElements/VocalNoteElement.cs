@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -31,7 +32,7 @@ namespace YARG.Gameplay.Visuals
                 line.material.color = color;
             }
 
-            Debug.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length);
+            YargLogger.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length);
             UpdateLinePoints();
         }
 

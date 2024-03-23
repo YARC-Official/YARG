@@ -84,6 +84,12 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.RealSongTime"/>
         public double RealSongTime => _songRunner.RealSongTime;
 
+        /// <inheritdoc cref="SongRunner.AudioTime"/>
+        public double AudioTime => _songRunner.AudioTime;
+
+        /// <inheritdoc cref="SongRunner.RealAudioTime"/>
+        public double RealAudioTime => _songRunner.RealAudioTime;
+
         /// <inheritdoc cref="SongRunner.VisualTime"/>
         public double VisualTime => _songRunner.VisualTime;
 
@@ -155,15 +161,15 @@ namespace YARG.Gameplay
 
         private void OnDestroy()
         {
-            YargLogger.LogDebug("Exiting song");
+            YargLogger.LogInfo("Exiting song");
 
             if (Navigator.Instance != null)
             {
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
             GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
-            _songRunner.Dispose();
-            BeatEventHandler.Unsubscribe(StarPowerClap);
+            _songRunner?.Dispose();
+            BeatEventHandler?.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
@@ -245,10 +251,11 @@ namespace YARG.Gameplay
                 }
 
                 text.AppendFormat("Song time: {0:0.000000}\n", _songRunner.SongTime);
+                text.AppendFormat("Audio time: {0:0.000000}\n", _songRunner.AudioTime);
                 text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
                 text.AppendFormat("Input time: {0:0.000000}\n", _songRunner.InputTime);
                 text.AppendFormat("Pause time: {0:0.000000}\n", _songRunner.PauseStartTime);
-                text.AppendFormat("Sync difference: {0:0.000000}\n", _songRunner.SyncVisualTime - _songRunner.SyncSongTime);
+                text.AppendFormat("Sync difference: {0:0.000000}\n", _songRunner.SyncDelta);
                 text.AppendFormat("Sync start delta: {0:0.000000}\n", _songRunner.SyncStartDelta);
                 text.AppendFormat("Speed adjustment: {0:0.00}\n", _songRunner.SyncSpeedAdjustment);
                 text.AppendFormat("Speed multiplier: {0}\n", _songRunner.SyncSpeedMultiplier);

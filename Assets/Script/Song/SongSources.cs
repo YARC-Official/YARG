@@ -153,24 +153,24 @@ namespace YARG.Song
         private static ParsedSource _default;
         public static ParsedSource Default => _default;
 
-        public static async UniTask LoadSources(Action<string> updateText)
+        public static async UniTask LoadSources(LoadingContext context)
         {
             if (!GlobalVariables.OfflineMode)
             {
-                await DownloadSources(updateText);
+                await DownloadSources(context);
             }
 
-            updateText("Reading sources...");
+            context.SetSubText("Reading sources...");
             await UniTask.RunOnThreadPool(ReadSources);
         }
 
-        public static async UniTask DownloadSources(Action<string> updateText)
+        public static async UniTask DownloadSources(LoadingContext context)
         {
             // Create the sources folder if it doesn't exist
             Directory.CreateDirectory(SourcesFolder);
 
             // Look for the current version
-            updateText("Checking version...");
+            context.SetSubText("Checking version...");
             string sourceVersionPath = Path.Combine(SourcesFolder, "version.txt");
             string currentVersion = null;
             try
@@ -184,7 +184,7 @@ namespace YARG.Song
             }
 
             // Look for new version
-            updateText("Looking for new version...");
+            context.SetSubText("Looking for new version...");
             string newestVersion = null;
             try
             {
@@ -223,7 +223,7 @@ namespace YARG.Song
             try
             {
                 // Download
-                updateText("Downloading new version...");
+                context.SetSubText("Downloading new version...");
                 string zipPath = Path.Combine(SourcesFolder, "update.zip");
                 using (var client = new WebClient())
                 {
@@ -237,7 +237,7 @@ namespace YARG.Song
                 }
 
                 // Extract the base and extras folder
-                updateText("Extracting new version...");
+                context.SetSubText("Extracting new version...");
                 ZipFile.ExtractToDirectory(zipPath, SourcesFolder);
 
                 // Delete the random folders

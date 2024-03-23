@@ -45,9 +45,12 @@ namespace YARG.Gameplay
         // Protected to warn when hidden by an inheriting class
         protected void OnDestroy()
         {
-            GameplayDestroy();
+            // We specifically check if GameManager is *reference* null here,
+            // as it gets destroyed before GameplayBehaviours do
+            if (ReferenceEquals(GameManager, null))
+                return;
 
-            if (GameManager == null) return;
+            GameplayDestroy();
 
             GameManager.ChartLoaded -= _OnChartLoaded;
             GameManager.SongLoaded -= _OnSongLoaded;

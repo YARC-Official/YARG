@@ -63,7 +63,9 @@ namespace YARG.Menu.Persistent
             // Show/hide music player
             if (GlobalVariables.Instance.CurrentScene == SceneIndex.Menu)
             {
-                MusicPlayer.gameObject.SetActive(scheme.AllowsMusicPlayer);
+                // Preserve music player state if value is not set
+                if (scheme.AllowsMusicPlayer is {} allowed)
+                    MusicPlayer.gameObject.SetActive(allowed);
             }
             else
             {

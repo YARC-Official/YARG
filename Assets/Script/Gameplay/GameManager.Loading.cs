@@ -91,18 +91,17 @@ namespace YARG.Gameplay
             remove => _songStarted -= value;
         }
 
-        // "The Unity message 'Start' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
-        private async UniTaskVoid Start()
+        private async void Start()
         {
+            // Displays the loading screen
+            using var context = new LoadingContext();
             var global = GlobalVariables.Instance;
 
             // Disable until everything's loaded
             enabled = false;
 
-            YargLogger.LogFormatDebug("Loading song {0} - {1}", Song.Name, Song.Artist);
+            YargLogger.LogFormatInfo("Loading song {0} - {1}", Song.Name, Song.Artist);
 
-            // Load song
             if (IsReplay)
             {
                 if (!SongContainer.SongsByHash.TryGetValue(
@@ -112,15 +111,21 @@ namespace YARG.Gameplay
                     global.LoadScene(SceneIndex.Menu);
                     return;
                 }
-
                 Song = songs[0];
-                LoadingManager.Instance.Queue(UniTask.RunOnThreadPool(LoadReplay), "Loading replay...");
+
+                context.SetLoadingText("Loading replay...");
+                if (!LoadReplay())
+                {
+                    ToastManager.ToastError("Failed to load replay!");
+                    global.LoadScene(SceneIndex.Menu);
+                    return;
+                }
                 _replayController.gameObject.SetActive(true);
             }
 
-            LoadingManager.Instance.Queue(UniTask.RunOnThreadPool(LoadChart), "Loading chart...");
-            LoadingManager.Instance.Queue(UniTask.RunOnThreadPool(LoadAudio), "Loading audio...");
-            await LoadingManager.Instance.StartLoad();
+            context.Queue(UniTask.RunOnThreadPool(LoadChart), "Loading chart...");
+            context.Queue(UniTask.RunOnThreadPool(LoadAudio), "Loading audio...");
+            await context.Wait();
 
             if (_loadState == LoadFailureState.Rescan)
             {
@@ -185,25 +190,23 @@ namespace YARG.Gameplay
             _songStarted?.Invoke();
         }
 
-        private void LoadReplay()
+        private bool LoadReplay()
         {
-            ReplayFile replayFile;
+            ReplayFile replayFile = null!;
+            ReplayReadResult result;
             try
             {
-                var result = ReplayContainer.LoadReplayFile(GlobalVariables.State.CurrentReplay, out replayFile);
-                if (result != ReplayReadResult.Valid)
-                {
-                    _loadState = LoadFailureState.Error;
-                    _loadFailureMessage = "Failed to load replay!";
-                    return;
-                }
+                result = ReplayContainer.LoadReplayFile(GlobalVariables.State.CurrentReplay, out replayFile);
             }
             catch (Exception ex)
             {
-                _loadState = LoadFailureState.Error;
-                _loadFailureMessage = "Failed to load replay!";
-                YargLogger.LogException(ex);
-                return;
+                result = ReplayReadResult.Corrupted;
+                YargLogger.LogException(ex, "Failed to load replay!");
+            }
+
+            if (result != ReplayReadResult.Valid)
+            {
+                return false;
             }
 
             Replay = replayFile.Replay;
@@ -221,6 +224,7 @@ namespace YARG.Gameplay
             }
 
             YargPlayers = players;
+            return true;
         }
 
         private void LoadChart()

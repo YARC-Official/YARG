@@ -3,6 +3,11 @@ using YARG.Core.Song.Cache;
 using YARG.Core.Song;
 using System;
 using YARG.Helpers.Extensions;
+using YARG.Settings;
+using YARG.Helpers;
+using Cysharp.Threading.Tasks;
+using YARG.Menu.MusicLibrary;
+using YARG.Core.Logging;
 
 namespace YARG.Song
 {
@@ -59,29 +64,127 @@ namespace YARG.Song
         public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
         public static IReadOnlyList<SongEntry> Songs => _songs;
 
-        public static void Refresh(SongCache cache)
+#nullable enable
+        public static async UniTask RunRefresh(bool quick, LoadingContext? context = null)
+#nullable disable
         {
-            _songCache = cache;
+            var directories = new List<string>(SettingsManager.Settings.SongFolders);
+            string setlistPath = PathHelper.SetlistPath;
+            if (!string.IsNullOrEmpty(setlistPath) && !directories.Contains(setlistPath))
+            {
+                directories.Add(setlistPath);
+            }
+
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var task = UniTask.RunOnThreadPool(() => Refresh(quick, directories));
+            while (task.Status == UniTaskStatus.Pending)
+            {
+                if (context != null)
+                {
+                    UpdateSongUi(context);
+                }
+                await UniTask.NextFrame();
+            }
+            stopwatch.Stop();
+
+            YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
+            MusicLibraryMenu.SetRefresh();
+        }
+
+        public static IReadOnlyList<SongCategory> GetSortedSongList(SongAttribute sort)
+        {
+            return sort switch
+            {
+                SongAttribute.Name => _sortTitles,
+                SongAttribute.Artist => _sortArtists,
+                SongAttribute.Album => _sortAlbums,
+                SongAttribute.Genre => _sortGenres,
+                SongAttribute.Year => _sortYears,
+                SongAttribute.Charter => _sortCharters,
+                SongAttribute.Playlist => _sortPlaylists,
+                SongAttribute.Source => _sortSources,
+                SongAttribute.Artist_Album => _sortArtistAlbums,
+                SongAttribute.SongLength => _sortSongLengths,
+                SongAttribute.DateAdded => _sortDatesAdded,
+                SongAttribute.Instrument => _sortInstruments,
+                _ => throw new Exception("stoopid"),
+            };
+        }
+
+        public static SongEntry GetRandomSong()
+        {
+            return _songs.Pick();
+        }
+
+        private static void UpdateSongUi(LoadingContext context)
+        {
+            var tracker = CacheHandler.Progress;
+
+            string phrase = string.Empty;
+            string subText = null;
+            switch (tracker.Stage)
+            {
+                case ScanStage.LoadingCache:
+                    phrase = "Loading song cache...";
+                    break;
+                case ScanStage.LoadingSongs:
+                    phrase = "Loading songs...";
+                    break;
+                case ScanStage.Sorting:
+                    phrase = "Sorting songs...";
+                    break;
+                case ScanStage.WritingCache:
+                    phrase = "Writing song cache...";
+                    break;
+                case ScanStage.WritingBadSongs:
+                    phrase = "Writing bad songs...";
+                    break;
+            }
+
+            switch (tracker.Stage)
+            {
+                case ScanStage.LoadingCache:
+                case ScanStage.LoadingSongs:
+                    subText = $"Folders Scanned: {tracker.NumScannedDirectories}\n" +
+                              $"Songs Scanned: {tracker.Count}\n" +
+                              $"Errors: {tracker.BadSongCount}"; break;
+            }
+            context.SetLoadingText(phrase, subText);
+        }
+
+        private static void Refresh(bool quick, List<string> directories)
+        {
+            const bool MULTITHREADING = true;
+            _songCache = CacheHandler.RunScan(quick,
+                PathHelper.SongCachePath,
+                PathHelper.BadSongsPath,
+                MULTITHREADING,
+                SettingsManager.Settings.AllowDuplicateSongs.Value,
+                SettingsManager.Settings.UseFullDirectoryForPlaylists.Value,
+                directories);
+
             _songs.Clear();
-            foreach (var node in cache.Entries)
+            foreach (var node in _songCache.Entries)
+            {
                 _songs.AddRange(node.Value);
+            }
             _songs.TrimExcess();
 
-            Convert(_sortArtists, cache.Artists, SongAttribute.Artist);
-            Convert(_sortAlbums, cache.Albums, SongAttribute.Album);
-            Convert(_sortGenres, cache.Genres, SongAttribute.Genre);
-            Convert(_sortCharters, cache.Charters, SongAttribute.Charter);
-            Convert(_sortPlaylists, cache.Playlists, SongAttribute.Playlist);
-            Convert(_sortSources, cache.Sources, SongAttribute.Source);
+            Convert(_sortArtists, _songCache.Artists, SongAttribute.Artist);
+            Convert(_sortAlbums, _songCache.Albums, SongAttribute.Album);
+            Convert(_sortGenres, _songCache.Genres, SongAttribute.Genre);
+            Convert(_sortCharters, _songCache.Charters, SongAttribute.Charter);
+            Convert(_sortPlaylists, _songCache.Playlists, SongAttribute.Playlist);
+            Convert(_sortSources, _songCache.Sources, SongAttribute.Source);
 
-            Cast(_sortTitles, cache.Titles);
-            Cast(_sortYears, cache.Years);
-            Cast(_sortArtistAlbums, cache.ArtistAlbums);
-            Cast(_sortSongLengths, cache.SongLengths);
-            Cast(_sortInstruments, cache.Instruments);
+            Cast(_sortTitles, _songCache.Titles);
+            Cast(_sortYears, _songCache.Years);
+            Cast(_sortArtistAlbums, _songCache.ArtistAlbums);
+            Cast(_sortSongLengths, _songCache.SongLengths);
+            Cast(_sortInstruments, _songCache.Instruments);
 
             _sortDatesAdded.Clear();
-            foreach (var node in cache.DatesAdded)
+            foreach (var node in _songCache.DatesAdded)
             {
                 _sortDatesAdded.Add(new(node.Key.ToLongDateString(), node.Value));
             }
@@ -110,31 +213,6 @@ namespace YARG.Song
                     sections.Add(new SongCategory(section.Key, section.Value));
                 }
             }
-        }
-
-        public static IReadOnlyList<SongCategory> GetSortedSongList(SongAttribute sort)
-        {
-            return sort switch
-            {
-                SongAttribute.Name => _sortTitles,
-                SongAttribute.Artist => _sortArtists,
-                SongAttribute.Album => _sortAlbums,
-                SongAttribute.Genre => _sortGenres,
-                SongAttribute.Year => _sortYears,
-                SongAttribute.Charter => _sortCharters,
-                SongAttribute.Playlist => _sortPlaylists,
-                SongAttribute.Source => _sortSources,
-                SongAttribute.Artist_Album => _sortArtistAlbums,
-                SongAttribute.SongLength => _sortSongLengths,
-                SongAttribute.DateAdded => _sortDatesAdded,
-                SongAttribute.Instrument => _sortInstruments,
-                _ => throw new Exception("stoopid"),
-            };
-        }
-
-        public static SongEntry GetRandomSong()
-        {
-            return _songs.Pick();
         }
     }
 }

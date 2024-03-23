@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using Cysharp.Text;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Song;
@@ -62,15 +63,17 @@ namespace YARG.Menu.MusicLibrary
             var difficultyChar = score.Difficulty.ToChar();
             var percent = Mathf.Floor(score.Percent * 100f);
 
-            var info = $"<sprite name=\"{instrument}\"> <b>{difficultyChar}</b> {percent:N0}%";
+            using var builder = ZString.CreateStringBuilder();
+            builder.AppendFormat("<sprite name=\"{0}\"> <b>{1}</b> {2:N0}%",
+                instrument, difficultyChar, percent);
 
             // Append the score if the setting is enabled
             if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
             {
-                info += $"<space=2em> {score.Score:N0}";
+                builder.AppendFormat("<space=2em> {0:N0}", score.Score);
             }
 
-            return info;
+            return builder.ToString();
         }
 
         public override StarAmount? GetStarAmount()
@@ -112,7 +115,6 @@ namespace YARG.Menu.MusicLibrary
 
         public override void IconClick()
         {
-            base.IconClick();
            _musicLibrary.SetSearchInput(SongAttribute.Source, SongEntry.Source.SortStr);
         }
 

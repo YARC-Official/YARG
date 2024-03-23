@@ -70,6 +70,8 @@ namespace YARG.Menu.Navigation
             }
         }
 
+        public bool MusicPlayerActive => HelpBar.Instance.MusicPlayer.isActiveAndEnabled;
+
         public bool DisableMenuInputs { get; set; }
 
         public event Action<NavigationContext> NavigationEvent;
@@ -180,11 +182,6 @@ namespace YARG.Menu.Navigation
             }
 
             UpdateHelpBar().Forget();
-        }
-
-        public bool IsMusicPlayShowing()
-        {
-            return _schemeStack.Peek().AllowsMusicPlayer;
         }
 
         private async UniTask UpdateHelpBar()

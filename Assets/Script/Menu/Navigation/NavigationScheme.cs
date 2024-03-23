@@ -50,17 +50,22 @@ namespace YARG.Menu.Navigation
             }
         }
 
-        public static readonly NavigationScheme Empty = new(new(), false);
+        public static readonly NavigationScheme Empty = new(new(), null);
+        public static readonly NavigationScheme EmptyWithoutMusicPlayer = new(new(), false);
         public static readonly NavigationScheme EmptyWithMusicPlayer = new(new(), true);
 
         private readonly List<Entry> _entries;
         public IReadOnlyList<Entry> Entries => _entries;
 
-        public bool AllowsMusicPlayer { get; private set; }
+        /// <summary>
+        /// Whether or not the music player is allowed.
+        /// Null means to preserve the existing state of the music player.
+        /// </summary>
+        public bool? AllowsMusicPlayer { get; }
 
         public Action PopCallback;
 
-        public NavigationScheme(List<Entry> entries, bool allowsMusicPlayer, Action popCallback = null)
+        public NavigationScheme(List<Entry> entries, bool? allowsMusicPlayer, Action popCallback = null)
         {
             _entries = entries;
 
