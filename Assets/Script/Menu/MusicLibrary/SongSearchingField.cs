@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using YARG.Core.Song;
-using YARG.Menu.Navigation;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -22,8 +20,6 @@ namespace YARG.Menu.MusicLibrary
 
         private readonly SongSearching _searchContext = new();
         private string _currentSearchText = string.Empty;
-        private bool _searchNavPushed;
-        private bool _wasSearchFieldFocused;
 
         public bool IsSearching => !string.IsNullOrEmpty(_fullSearchQuery);
         public bool IsCurrentSearchInField => _searchQueries[_currentSearchFilter] == _searchField.text;
@@ -180,30 +176,6 @@ namespace YARG.Menu.MusicLibrary
             {
                 ClearFilterQueries();
             }
-
-            // Update the search bar pushing the empty navigation scheme.
-            // We can't use the "OnSelect" event because for some reason it isn't called
-            // if the user reselected the input field after pressing enter.
-            if (_wasSearchFieldFocused != _searchField.isFocused)
-            {
-                _wasSearchFieldFocused = _searchField.isFocused;
-
-                if (_wasSearchFieldFocused)
-                {
-                    if (_searchNavPushed) return;
-
-                    _searchNavPushed = true;
-                    Navigator.Instance.PushScheme(NavigationScheme.Empty);
-                }
-                else
-                {
-                    if (!_searchNavPushed) return;
-
-                    _searchNavPushed = false;
-                    Navigator.Instance.PopScheme();
-                    EventSystem.current.SetSelectedGameObject(null);
-                }
-            }
         }
 
         private void OnClickedSearchFilter()
@@ -309,20 +281,6 @@ namespace YARG.Menu.MusicLibrary
         private void OnDisable()
         {
             _searchFilters.ClickedButton -= OnClickedSearchFilter;
-
-            // Make sure to also pop the search nav if that was pushed
-            if (Navigator.Instance == null)
-            {
-                _searchNavPushed = false;
-            }
-
-            if (!_searchNavPushed)
-            {
-                return;
-            }
-
-            Navigator.Instance.PopScheme();
-            _searchNavPushed = false;
         }
     }
 }
