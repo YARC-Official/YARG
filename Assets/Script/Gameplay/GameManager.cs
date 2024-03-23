@@ -161,7 +161,7 @@ namespace YARG.Gameplay
 
         private void OnDestroy()
         {
-            YargLogger.LogDebug("Exiting song");
+            YargLogger.LogInfo("Exiting song");
 
             if (Navigator.Instance != null)
             {

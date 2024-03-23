@@ -100,7 +100,7 @@ namespace YARG.Gameplay
             // Disable until everything's loaded
             enabled = false;
 
-            YargLogger.LogFormatDebug("Loading song {0} - {1}", Song.Name, Song.Artist);
+            YargLogger.LogFormatInfo("Loading song {0} - {1}", Song.Name, Song.Artist);
 
             if (IsReplay)
             {
