@@ -51,13 +51,8 @@ namespace YARG.Audio.BASS
             }
         }
 
-        protected override void SetPosition_Internal(double position, bool bufferCompensation = true)
+        protected override void SetPosition_Internal(double position)
         {
-            // Playback buffer compensation is optional
-            // All other desync compensation is always done
-            position += bufferCompensation ? GlobalAudioHandler.PlaybackBufferLength : 0;
-
-            // Hack to get desync of pitch-bent channels
             if (_streamHandles.PitchFX != 0 && _reverbHandles.PitchFX != 0)
             {
                 // The desync is caused by the FFT window
