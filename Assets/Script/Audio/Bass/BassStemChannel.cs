@@ -25,7 +25,7 @@ namespace YARG.Audio.BASS
             _reverbHandles = reverbHandles;
             _pitchParams = pitchParams;
 
-            double volume = GlobalAudioHandler.GetVolumeSetting(stem);
+            double volume = GlobalAudioHandler.GetTrueVolume(stem);
             volume = GlobalAudioHandler.ClampStemVolume(volume);
             SetVolume_Internal(volume);
         }

@@ -15,9 +15,20 @@ namespace YARG.Gameplay
     {
         public class StemState
         {
+            public readonly double Volume;
             public int Total;
             public int Audible;
             public int ReverbCount;
+
+            public StemState(double volume)
+            {
+                Volume = volume;
+            }
+
+            public double CalculateVolumeSetting()
+            {
+                return Volume * Audible / Total;
+            }
         }
 
         private readonly Dictionary<SongStem, StemState> _stemStates = new();
@@ -39,6 +50,8 @@ namespace YARG.Gameplay
             _mixer.SongEnd += OnAudioEnd;
             foreach (var channel in _mixer.Channels)
             {
+                double volume = GlobalAudioHandler.GetVolumeSetting(channel.Stem);
+                var stemState = new StemState(volume);
                 switch (channel.Stem)
                 {
                     case SongStem.Drums:
@@ -46,10 +59,10 @@ namespace YARG.Gameplay
                     case SongStem.Drums2:
                     case SongStem.Drums3:
                     case SongStem.Drums4:
-                        _stemStates.TryAdd(SongStem.Drums, new StemState());
+                        _stemStates.TryAdd(SongStem.Drums, stemState);
                         break;
                     default:
-                        _stemStates.Add(channel.Stem, new StemState());
+                        _stemStates.Add(channel.Stem, stemState);
                         break;
                 }
             }
@@ -96,7 +109,7 @@ namespace YARG.Gameplay
                 ++state.Audible;
             }
 
-            double volume = (double) state.Audible / state.Total;
+            double volume = state.CalculateVolumeSetting();
             GlobalAudioHandler.SetVolumeSetting(stem, volume);
         }
 
