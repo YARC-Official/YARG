@@ -87,15 +87,10 @@ namespace YARG.Audio.BASS
             return 0;
         }
 
-        protected override double GetPosition_Internal(bool bufferCompensation)
+        protected override double GetPosition_Internal()
         {
-            // BassMix.ChannelGetPosition is very wonky when seeking
-            // compared to Bass.ChannelGetPosition
-            // We'll just have to make do with the less granular time reporting
-            // long position = IsMixed
-            //     ? BassMix.ChannelGetPosition(_streamHandles.Stream)
-            //     : Bass.ChannelGetPosition(_streamHandles.Stream);
-            long position = Bass.ChannelGetPosition(_mainHandle.Stream);
+            // Accounts for the playback buffer
+            long position = BassMix.ChannelGetPosition(_mainHandle.Stream);
             if (position < 0)
             {
                 YargLogger.LogFormatError("Failed to get channel position in bytes: {0}", Bass.LastError);
@@ -108,8 +103,6 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to get channel position in seconds: {0}", Bass.LastError);
                 return -1;
             }
-
-            seconds -= bufferCompensation ? GlobalAudioHandler.PlaybackBufferLength : 0;
             return seconds;
         }
 
@@ -122,7 +115,7 @@ namespace YARG.Audio.BASS
             return volume;
         }
 
-        protected override void SetPosition_Internal(double position, bool bufferCompensation)
+        protected override void SetPosition_Internal(double position)
         {
             bool playing = IsPlaying;
             if (playing)
@@ -138,7 +131,7 @@ namespace YARG.Audio.BASS
                 {
                     YargLogger.LogFormatError("Failed to get channel position in bytes: {0}!", Bass.LastError);
                 }
-                else if (!Bass.ChannelSetPosition(_mainHandle.Stream, bytes))
+                else if (!BassMix.ChannelSetPosition(_mainHandle.Stream, bytes))
                 {
                     YargLogger.LogFormatError("Failed to set channel position: {0}!", Bass.LastError);
                 }
@@ -152,7 +145,7 @@ namespace YARG.Audio.BASS
 
             foreach (var channel in _channels)
             {
-                channel.SetPosition(position, bufferCompensation);
+                channel.SetPosition(position);
             }
 
             if (playing)
