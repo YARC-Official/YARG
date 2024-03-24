@@ -172,6 +172,11 @@ namespace YARG.Gameplay
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
 
+            foreach (var state in _stemStates)
+            {
+                GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
+            }
+
             _mixer?.Dispose();
             GlobalAudioHandler.UseMinimumStemVolume = false;
 
