@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using PlasticBand.Haptics;
-using UnityEngine.Animations;
 using YARG.Core.Chart;
 using YARG.Gameplay;
 using Object = UnityEngine.Object;
@@ -52,6 +51,10 @@ namespace YARG.Integration.StageKit
         }
 
         public virtual void OnBeat()
+        {
+        }
+
+        public virtual void KillSelf()
         {
         }
     }
@@ -472,8 +475,7 @@ namespace YARG.Integration.StageKit
             StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
             StageKitInterpreter.Instance.SetLed(RED, NONE);
 
-            if (MasterLightingController.PreviousLightingCue.Type is LightingType.Cool_Manual
-                or LightingType.Cool_Automatic)
+            if (StageKitInterpreter.PreviousLightingCue is ManualCool or LoopCool)
             {
                 StageKitInterpreter.Instance.SetLed(GREEN, ALL);
             }
@@ -501,7 +503,7 @@ namespace YARG.Integration.StageKit
 
         public SilhouetteSpot()
         {
-            if (MasterLightingController.PreviousLightingCue.Type is LightingType.Dischord)
+            if (StageKitInterpreter.PreviousLightingCue is Dischord)
             {
                 StageKitInterpreter.Instance.SetLed(RED, NONE);
                 StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
@@ -510,11 +512,11 @@ namespace YARG.Integration.StageKit
 
                 _enableBlueLedVocals = true;
             }
-            else if (MasterLightingController.PreviousLightingCue.Type is LightingType.Stomp)
+            else if (StageKitInterpreter.PreviousLightingCue is Stomp)
             {
                 //do nothing (for the chop suey ending at least)
             }
-            else if (MasterLightingController.PreviousLightingCue.Type is LightingType.Intro)
+            else if (StageKitInterpreter.PreviousLightingCue is Intro)
             {
                 CuePrimitives.Add(new ListenPattern(new (StageKitLedColor, byte)[] { (BLUE, ALL) },
                     ListenTypes.RedFretDrums, true));
@@ -548,10 +550,8 @@ namespace YARG.Integration.StageKit
 
         public override void HandleBeatlineEvent(BeatlineType eventName)
         {
-            if (eventName != BeatlineType.Measure ||
-                MasterLightingController.PreviousLightingCue.Type is not LightingType.Dischord)
-                return;
-            if (MasterLightingController.PreviousLightingCue.Type is not LightingType.Dischord) return;
+            if (eventName != BeatlineType.Measure || StageKitInterpreter.PreviousLightingCue is not Dischord) return;
+            if (StageKitInterpreter.PreviousLightingCue is not Dischord) return;
             _enableBlueLedVocals = true;
         }
     }

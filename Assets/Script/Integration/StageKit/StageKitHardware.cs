@@ -4,10 +4,7 @@ using UnityEngine;
 using PlasticBand.Haptics;
 using UnityEngine.InputSystem;
 using Cysharp.Threading.Tasks;
-using UnityEngine.SceneManagement;
-using YARG.Core.Chart;
-using YARG.Gameplay;
-using YARG.Settings;
+using YARG.Core.Logging;
 
 /*
  Software Layout:
@@ -167,7 +164,7 @@ using YARG.Settings;
  */
 namespace YARG.Integration.StageKit
 {
-    public class StageKitHardwareController : MonoSingleton<StageKitHardwareController>
+    public class StageKitHardware : MonoSingleton<StageKitHardware>
     {
         private enum CommandType
         {
@@ -184,10 +181,16 @@ namespace YARG.Integration.StageKit
         // Stuff for the actual command sending to the unit
         private bool _isSendingCommands;
         private readonly Queue<(int command, byte data)> _commandQueue = new();
-        private byte[] _currentLedState = { 0x00, 0x00, 0x00, 0x00 }; //blue, green, yellow, red
+        private byte _currentBlueLedState;
+        private byte _currentGreenLedState;
+        private byte _currentYellowLedState;
+        private byte _currentRedLedState;
 
         //this is only for the SendCommands() command to limit swamping the kit.
-        private byte[] _previousLedState = { 0x00, 0x00, 0x00, 0x00 };
+        private byte _previousBlueLedState;
+        private byte _previousGreenLedState;
+        private byte _previousYellowLedState;
+        private byte _previousRedLedState;
 
         //necessary to prevent the stage kit from getting overwhelmed and dropping commands. In seconds. 0.001 is the
         //minimum. Preliminary testing indicated that 7ms was needed to prevent dropped commands, but it seems that
@@ -202,7 +205,7 @@ namespace YARG.Integration.StageKit
         protected override void SingletonDestroy()
         {
             InputSystem.onDeviceChange -= OnDeviceChange;
-            _stageKits.ForEach(kit => kit.ResetHaptics());
+            foreach (var kit in _stageKits) kit.ResetHaptics();
         }
 
         public void HandleEnabledChanged(bool isEnabled)
@@ -216,31 +219,18 @@ namespace YARG.Integration.StageKit
                 }
 
                 //StageKits remember its last state which is neat but not needed on startup
-                _stageKits.ForEach(kit => kit.ResetHaptics());
+                foreach (var kit in _stageKits) kit.ResetHaptics();
 
                 MasterLightingController.OnFogState += OnFogStateEvent;
                 MasterLightingController.OnStrobeEvent += OnStrobeEvent;
-                MasterLightingController.OnBonusFXEvent += OnBonusFXEvent;
-                MasterLightingController.OnLightingEvent += OnLightingEvent;
                 StageKitInterpreter.OnLedEvent += HandleLedEvent;
             }
             else
             {
                 MasterLightingController.OnFogState -= OnFogStateEvent;
                 MasterLightingController.OnStrobeEvent -= OnStrobeEvent;
-                MasterLightingController.OnBonusFXEvent -= OnBonusFXEvent;
-                MasterLightingController.OnLightingEvent -= OnLightingEvent;
                 StageKitInterpreter.OnLedEvent -= HandleLedEvent;
             }
-        }
-
-        private void OnLightingEvent(LightingEvent cue)
-        {
-        }
-
-        private void OnBonusFXEvent()
-        {
-            //stage kit doesn't do anything with this.
         }
 
         private void OnDeviceChange(InputDevice device, InputDeviceChange change)
@@ -291,41 +281,59 @@ namespace YARG.Integration.StageKit
                 switch (curCommand.command)
                 {
                     case (int) CommandType.LedBlue:
-                    case (int) CommandType.LedGreen:
-                    case (int) CommandType.LedYellow:
-                    case (int) CommandType.LedRed:
-
-                        //if the led color is already in the state we want, don't send the command.
-                        if (_currentLedState[curCommand.command] == _previousLedState[curCommand.command])
+                        if (_currentBlueLedState == _previousBlueLedState)
                         {
                             await UniTask.Yield();
                         }
 
-                        var iToStageKitLedColor = curCommand.command switch
+                        foreach (var kit in _stageKits)
+                            kit.SetLeds(StageKitLedColor.Blue, (StageKitLed) curCommand.data);
+                        _previousBlueLedState = _currentBlueLedState;
+                        break;
+
+                    case (int) CommandType.LedGreen:
+                        if (_currentGreenLedState == _previousGreenLedState)
                         {
-                            (int) CommandType.LedBlue   => StageKitLedColor.Blue,
-                            (int) CommandType.LedGreen  => StageKitLedColor.Green,
-                            (int) CommandType.LedYellow => StageKitLedColor.Yellow,
-                            (int) CommandType.LedRed    => StageKitLedColor.Red,
-                            _                           => StageKitLedColor.All
-                        };
-                        //This is where the magic happens
-                        _stageKits.ForEach(kit => kit.SetLeds(iToStageKitLedColor, (StageKitLed) curCommand.data));
-                        _previousLedState[curCommand.command] = _currentLedState[curCommand.command];
+                            await UniTask.Yield();
+                        }
+
+                        foreach (var kit in _stageKits)
+                            kit.SetLeds(StageKitLedColor.Green, (StageKitLed) curCommand.data);
+                        _previousGreenLedState = _currentGreenLedState;
+                        break;
+
+                    case (int) CommandType.LedYellow:
+                        if (_currentYellowLedState == _previousYellowLedState)
+                        {
+                            await UniTask.Yield();
+                        }
+
+                        foreach (var kit in _stageKits)
+                            kit.SetLeds(StageKitLedColor.Yellow, (StageKitLed) curCommand.data);
+                        _previousYellowLedState = _currentYellowLedState;
+                        break;
+
+                    case (int) CommandType.LedRed:
+                        if (_currentRedLedState == _previousRedLedState)
+                        {
+                            await UniTask.Yield();
+                        }
+
+                        foreach (var kit in _stageKits)
+                            kit.SetLeds(StageKitLedColor.Red, (StageKitLed) curCommand.data);
+                        _previousRedLedState = _currentRedLedState;
                         break;
 
                     case (int) CommandType.FogMachine:
-                        //add duplicate command drop protection
-                        _stageKits.ForEach(kit => kit.SetFogMachine(curCommand.data == 1));
+                        foreach (var kit in _stageKits) kit.SetFogMachine(curCommand.data == 1);
                         break;
 
                     case (int) CommandType.StrobeSpeed:
-                        //add duplicate command drop protection
-                        _stageKits.ForEach(kit => kit.SetStrobeSpeed((StageKitStrobeSpeed) curCommand.data));
+                        foreach (var kit in _stageKits) kit.SetStrobeSpeed((StageKitStrobeSpeed) curCommand.data);
                         break;
 
                     default:
-                        Debug.LogWarning("(Stage Kit Controller) Unknown command: " + curCommand.command);
+                        YargLogger.LogWarning(" Unknown command: " + curCommand.command);
                         break;
                 }
 
@@ -344,35 +352,34 @@ namespace YARG.Integration.StageKit
             _isSendingCommands = false;
         }
 
-        public void HandleLedEvent(StageKitLedColor color, byte led)
+        private void HandleLedEvent(StageKitLedColor color, byte led)
         {
-            int colorint;
-
             switch (color)
             {
                 case StageKitLedColor.Blue:
-                    colorint = 0;
+                    _currentBlueLedState = led;
+                    EnqueueCommand((int) CommandType.LedBlue, _currentBlueLedState);
                     break;
 
                 case StageKitLedColor.Green:
-                    colorint = 1;
+                    _currentGreenLedState = led;
+                    EnqueueCommand((int) CommandType.LedGreen, _currentGreenLedState);
                     break;
 
                 case StageKitLedColor.Yellow:
-                    colorint = 2;
+                    _currentYellowLedState = led;
+                    EnqueueCommand((int) CommandType.LedYellow, _currentYellowLedState);
                     break;
 
                 case StageKitLedColor.Red:
-                    colorint = 3;
+                    _currentRedLedState = led;
+                    EnqueueCommand((int) CommandType.LedRed, _currentRedLedState);
                     break;
 
                 default:
-                    Debug.LogWarning("(Stage Kit Hardware Controller) Unknown color: " + color);
+                    YargLogger.LogWarning(" Unknown color: " + color);
                     return;
             }
-
-            _currentLedState[colorint] = led;
-            EnqueueCommand(colorint, _currentLedState[colorint]);
         }
     }
 }

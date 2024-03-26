@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
 using Haukcode.sACN;
 using PlasticBand.Haptics;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Settings;
-using Debug = UnityEngine.Debug;
+using YARG.Core.Logging;
 
 namespace YARG.Integration.Sacn
 {
@@ -128,10 +127,10 @@ namespace YARG.Integration.Sacn
 
         private void OnLightingEvent(LightingEvent newType)
         {
-            SetCueChannel(newType.Type);
+            SetCueChannel(newType?.Type);
         }
 
-        private void SetCueChannel(LightingType newType)
+        private void SetCueChannel(LightingType? newType)
         {
             _cueValue = newType switch
             {
@@ -167,6 +166,7 @@ namespace YARG.Integration.Sacn
                 LightingType.Warm_Automatic        => (byte) CueEnum.WarmLoop,
                 LightingType.Warm_Manual           => (byte) CueEnum.WarmManual,
                 LightingType.BigRockEnding         => (byte) CueEnum.BigRockEnding,
+                null                               => (byte) CueEnum.NoCue,
                 _                                  => (byte) CueEnum.NoCue,
             };
 
@@ -179,7 +179,7 @@ namespace YARG.Integration.Sacn
             {
                 if (_sendClient != null) return;
 
-                Debug.Log("(sACN Hardware Controller) Starting sACN Controller...");
+                YargLogger.LogInfo("Starting sACN Controller...");
 
                 MasterLightingController.OnFogState += OnFogStateEvent;
                 MasterLightingController.OnStrobeEvent += OnStrobeEvent;
@@ -203,7 +203,7 @@ namespace YARG.Integration.Sacn
             }
             else
             {
-                SingletonDestroy();
+                KillSacn();
             }
         }
 
@@ -219,11 +219,11 @@ namespace YARG.Integration.Sacn
             _strobeChannel = SettingsManager.Settings.DMXStrobeChannel.Value;
         }
 
-        protected override void SingletonDestroy()
+        private void KillSacn()
         {
             if (_sendClient == null) return;
 
-            Debug.Log("(sACN Hardware Controller) Killing Sacn Controller...");
+            YargLogger.LogInfo("Killing sACN Controller...");
 
             MasterLightingController.OnFogState -= OnFogStateEvent;
             MasterLightingController.OnStrobeEvent -= OnStrobeEvent;
@@ -249,7 +249,7 @@ namespace YARG.Integration.Sacn
 
         private void OnApplicationQuit()
         {
-            SingletonDestroy();
+            KillSacn();
         }
 
         private void Sender()
@@ -259,41 +259,38 @@ namespace YARG.Integration.Sacn
             // if needed. Same goes for sending multicast vs singlecast. Sacn spec says multicast is the correct default
             // way to go but singlecast can be used if needed.
             _sendClient.SendMulticast(1, _dataPacket);
-            // Debug.Log(_dataPacket[0]+ " " + _dataPacket[1]+ " " + _dataPacket[2]+ " " + _dataPacket[3]+ " " + _dataPacket[4]+ " " + _dataPacket[5]+ " " + _dataPacket[6]+ " " + _dataPacket[7]);
         }
 
         private void HandleLedEvent(StageKitLedColor color, byte led)
         {
-            var colors = new List<int[]>();
-
             if ((color & StageKitLedColor.Blue) != 0)
             {
-                colors.Add(_blueChannels);
+                SetLedBits(_blueChannels, led);
             }
 
             if ((color & StageKitLedColor.Green) != 0)
             {
-                colors.Add(_greenChannels);
+                SetLedBits(_greenChannels, led);
             }
 
             if ((color & StageKitLedColor.Red) != 0)
             {
-                colors.Add(_redChannels);
+                SetLedBits(_redChannels, led);
             }
 
             if ((color & StageKitLedColor.Yellow) != 0)
             {
-                colors.Add(_yellowChannels);
+                SetLedBits(_yellowChannels, led);
             }
+        }
 
-            foreach (int[] colorByte in colors)
+        private void SetLedBits(int[] colorChannel, byte led)
+        {
+            for (int i = 0; i < 8; i++)
             {
-                for (int i = 0; i < 8; i++)
-                {
-                    byte bitmask = (byte) (1 << i);
-                    bool isBitSet = (led & bitmask) != 0;
-                    _dataPacket[colorByte[i] - 1] = isBitSet ? (byte) 255 : (byte) 0;
-                }
+                byte bitmask = (byte) (1 << i);
+                bool isBitSet = (led & bitmask) != 0;
+                _dataPacket[colorChannel[i] - 1] = isBitSet ? (byte) 255 : (byte) 0;
             }
         }
     }

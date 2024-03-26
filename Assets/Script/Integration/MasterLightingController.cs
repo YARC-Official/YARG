@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Gameplay;
 using Random = UnityEngine.Random;
 
@@ -12,7 +13,7 @@ namespace YARG.Integration
 {
     public class MasterLightingController : MonoBehaviour
     {
-        /**
+        /*
         Real-life lighting integration works in 3 parts:
         1) This class, the Master lighting controller, which maintains the state of the lighting and stage effects.
         It listens for events from the venue track, sync (beat) track, etc, maintains a list of current lighting cues,
@@ -20,8 +21,8 @@ namespace YARG.Integration
 
         2) Lighting Interpreters. These classes listen to the events from the Master Lighting Controller and translate them
         into the actual timing and light patterns, for example, interpreting flare_fast as 8 blue leds turning on.
-        Currently there is only one lighting controller, the Stage Kit Interpreter (which attempts to make cues be
-        as close to the Rock Band Stage Kit as possible), but in the future there could others.
+        Currently there is only one lighting controller, the Stage Kit Interpreter (which uses its Cues and Primitives classes),
+        that attempts to make cues be as close to the Rock Band Stage Kit as possible but in the future there could others.
 
         3) Hardware controllers. These classes listen to the Lighting Interpreters and translate the lighting cues into
         the actual hardware commands. Currently there are two hardware controllers, one for DMX and one for the Stage Kits.
@@ -38,9 +39,9 @@ namespace YARG.Integration
             get => _currentLightingCue;
             set
             {
-                OnLightingEvent?.Invoke(value);
                 PreviousLightingCue = _currentLightingCue;
                 _currentLightingCue = value;
+                OnLightingEvent?.Invoke(value);
             }
         }
 
@@ -51,9 +52,9 @@ namespace YARG.Integration
             get => _currentFogState;
             set
             {
-                OnFogState?.Invoke(value);
                 PreviousFogState = _currentFogState;
                 _currentFogState = value;
+                OnFogState?.Invoke(value);
             }
         }
 
@@ -64,9 +65,9 @@ namespace YARG.Integration
             get => _currentStrobeState;
             set
             {
-                OnStrobeEvent?.Invoke(value);
                 PreviousStrobeState = _currentStrobeState;
                 _currentStrobeState = value;
+                OnStrobeEvent?.Invoke(value);
             }
         }
 
@@ -77,8 +78,8 @@ namespace YARG.Integration
             get => _currentDrumNote;
             set
             {
-                OnDrumEvent?.Invoke(value);
                 _currentDrumNote = value;
+                OnDrumEvent?.Invoke(value);
             }
         }
 
@@ -87,8 +88,8 @@ namespace YARG.Integration
             get => _currentVocalNote;
             set
             {
-                OnVocalsEvent?.Invoke(value);
                 _currentVocalNote = value;
+                OnVocalsEvent?.Invoke(value);
             }
         }
 
@@ -97,15 +98,9 @@ namespace YARG.Integration
             get => _currentBeatline;
             set
             {
-                OnBeatLineEvent?.Invoke(value);
                 _currentBeatline = value;
+                OnBeatLineEvent?.Invoke(value);
             }
-        }
-
-        public static bool CurrentBonusFXEvent
-        {
-            //BonusFX is a one-time event (fireworks, pyro, etc), so we don't need to keep track of it.
-            set => OnBonusFXEvent?.Invoke();
         }
 
         public static bool Paused
@@ -125,8 +120,8 @@ namespace YARG.Integration
                     CurrentStrobeState = PreviousStrobeState;
                 }
 
-                OnPause?.Invoke(value);
                 _paused = value;
+                OnPause?.Invoke(value);
             }
         }
 
@@ -135,8 +130,8 @@ namespace YARG.Integration
             get => _largeVenue;
             set
             {
-                OnLargeVenue?.Invoke(value);
                 _largeVenue = value;
+                OnLargeVenue?.Invoke(value);
             }
         }
 
@@ -176,20 +171,20 @@ namespace YARG.Integration
 
         private void OnSceneUnloaded(Scene scene)
         {
-            switch (scene.buildIndex)
+            switch ((SceneIndex) scene.buildIndex)
             {
-                case (int) SceneIndex.Gameplay:
+                case SceneIndex.Gameplay:
                     Destroy(_gameplayMonitor);
                     break;
 
-                case (int) SceneIndex.Score:
+                case SceneIndex.Score:
                     break;
 
-                case (int) SceneIndex.Menu:
+                case SceneIndex.Menu:
                     break;
 
                 default:
-                    Debug.LogWarning("(Master Lighting Controller) Unknown Scene unloaded!");
+                    YargLogger.LogWarning("Unknown Scene unloaded!");
                     break;
             }
 
@@ -200,24 +195,30 @@ namespace YARG.Integration
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            switch (scene.buildIndex)
+            switch ((SceneIndex) scene.buildIndex)
             {
-                case (int) SceneIndex.Gameplay:
-                    _gameplayMonitor = gameObject.AddComponent<GameplayLightingMonitor>();
+                case SceneIndex.Gameplay:
+                    _gameplayMonitor = GameObject.Find("GameManager").AddComponent<GameplayLightingMonitor>();
                     break;
 
-                case (int) SceneIndex.Score:
+                case SceneIndex.Score:
                     CurrentLightingCue = new LightingEvent(LightingType.Score, 0, 0);
-
                     break;
-                case (int) SceneIndex.Menu:
+
+                case SceneIndex.Menu:
                     CurrentLightingCue = new LightingEvent(LightingType.Menu, 0, 0);
                     break;
 
                 default:
-                    Debug.LogWarning("(Master Lighting Controller) Unknown Scene loaded!");
+                    YargLogger.LogWarning(" Unknown Scene loaded!");
                     break;
             }
+        }
+
+        public static void FireBonusFXEvent()
+        {
+            //This is a one-time event, so we don't need to keep track of it.
+            OnBonusFXEvent?.Invoke();
         }
     }
 
@@ -329,7 +330,7 @@ namespace YARG.Integration
 
                 if (_venue.Stage[_eventIndex].Effect == StageEffect.BonusFx)
                 {
-                    MasterLightingController.CurrentBonusFXEvent = true;
+                    MasterLightingController.FireBonusFXEvent();
                 }
 
                 _eventIndex++;

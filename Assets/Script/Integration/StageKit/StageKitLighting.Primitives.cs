@@ -44,6 +44,12 @@ namespace YARG.Integration.StageKit
                 _patternIndex = 0;
             }
         }
+
+        public override void KillSelf()
+        {
+            _gameManager.BeatEventHandler.Unsubscribe(OnBeat);
+            CancellationTokenSource?.Cancel();
+        }
     }
 
     public class ListenPattern : StageKitLighting
@@ -150,6 +156,11 @@ namespace YARG.Integration.StageKit
                 StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color, NONE);
             }
         }
+
+        public override void KillSelf()
+        {
+            CancellationTokenSource?.Cancel();
+        }
     }
 
     public class TimedPattern : StageKitLighting
@@ -184,6 +195,11 @@ namespace YARG.Integration.StageKit
                     _patternIndex = 0;
                 }
             }
+        }
+
+        public override void KillSelf()
+        {
+            CancellationTokenSource?.Cancel();
         }
     }
 }

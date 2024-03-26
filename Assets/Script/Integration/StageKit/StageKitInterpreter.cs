@@ -1,11 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
-using YARG.Gameplay;
+using YARG.Core.Logging;
 using YARG.Integration;
 using YARG.Integration.StageKit;
 
@@ -13,19 +12,16 @@ namespace YARG
 {
     public class StageKitInterpreter : MonoSingleton<StageKitInterpreter>
     {
-
         private readonly List<StageKitLighting> _cuePrimitives = new();
         public StageKitLightingCue CurrentLightingCue;
-        public StageKitLightingCue PreviousLightingCue;
+        public static StageKitLightingCue PreviousLightingCue;
         private const byte NONE = 0b00000000;
-        private GameManager GameManager { get; set; }
 
         public static event Action<StageKitLedColor, byte> OnLedEvent;
 
         // this class maintains the Stage Kit lighting cues and primitives
         public void Start()
         {
-            SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.sceneUnloaded += OnSceneUnloaded;
 
             MasterLightingController.OnDrumEvent += OnDrumEvent;
@@ -40,14 +36,6 @@ namespace YARG
             KillCue();
         }
 
-        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            if (scene.buildIndex == (int) SceneIndex.Gameplay)
-            {
-                GameManager = FindObjectOfType<GameManager>();
-            }
-        }
-
         private void ChangeCues(StageKitLightingCue cue)
         {
             KillCue();
@@ -57,7 +45,6 @@ namespace YARG
         public void SetLed(StageKitLedColor color, byte led)
         {
             OnLedEvent?.Invoke(color, led);
-            //_currentLedState[color] = led;
         }
 
         private void AllLedsOff()
@@ -70,17 +57,11 @@ namespace YARG
 
         private void KillCue()
         {
-            if (MasterLightingController.CurrentLightingCue == null) return;
+            if (CurrentLightingCue == null) return;
 
             foreach (var primitive in CurrentLightingCue.CuePrimitives)
             {
-                if ((int) SceneIndex.Gameplay == SceneManager.GetActiveScene().buildIndex)
-                {
-                    //When a BeatPattern primitive is created, it subscribes its OnBeat to the BeatEventManager.
-                    GameManager.BeatEventHandler.Unsubscribe(primitive.OnBeat);
-                }
-
-                primitive.CancellationTokenSource?.Cancel();
+                primitive.KillSelf();
             }
 
             _cuePrimitives.Clear();
@@ -90,7 +71,7 @@ namespace YARG
 
         protected virtual void OnBeatLineEvent(Beatline value)
         {
-            if (MasterLightingController.CurrentLightingCue == null)
+            if (CurrentLightingCue == null)
             {
                 return;
             }
@@ -105,7 +86,7 @@ namespace YARG
 
         protected virtual void OnLightingEvent(LightingEvent value)
         {
-            if (value.Type == LightingType.Keyframe_Next && MasterLightingController.CurrentLightingCue != null)
+            if (value != null && value.Type == LightingType.Keyframe_Next)
             {
                 CurrentLightingCue.HandleLightingEvent(value.Type);
 
@@ -116,8 +97,12 @@ namespace YARG
             }
             else
             {
-                switch (value.Type)
+                switch (value?.Type)
                 {
+                    case null:
+                        ChangeCues(null);
+                        break;
+
                     case LightingType.Menu:
                         ChangeCues(new MenuLighting());
                         break;
@@ -218,7 +203,7 @@ namespace YARG
                         break;
 
                     default:
-                        Debug.LogWarning("(Lighting Integration Parent) Unhandled lighting event: " + value.Type);
+                        YargLogger.LogWarning("Unhandled lighting event: " + value.Type);
                         break;
                 }
             }
@@ -226,7 +211,7 @@ namespace YARG
 
         protected virtual void OnDrumEvent(DrumNote value)
         {
-            if (MasterLightingController.CurrentLightingCue == null)
+            if (CurrentLightingCue == null)
             {
                 return;
             }
@@ -241,7 +226,7 @@ namespace YARG
 
         protected virtual void OnVocalsEvent(VocalNote value)
         {
-            if (MasterLightingController.CurrentLightingCue == null)
+            if (CurrentLightingCue == null)
             {
                 return;
             }
