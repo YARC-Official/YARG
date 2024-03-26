@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;
@@ -173,14 +174,13 @@ namespace YARG.Player
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Error while loading profiles! Bindings loading will be skipped.");
-                Debug.LogException(ex);
+                YargLogger.LogException(ex, "Error while loading profiles! Bindings loading will be skipped.");
                 return 0;
             }
 
             if (profiles is null)
             {
-                Debug.LogWarning($"Failed to load profiles! Bindings loading will be skipped.");
+                YargLogger.LogWarning("Failed to load profiles! Bindings loading will be skipped.");
                 return 0;
             }
 

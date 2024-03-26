@@ -9,6 +9,7 @@ using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.IO;
+using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS
 {
@@ -19,14 +20,14 @@ namespace YARG.Audio.BASS
             mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Default);
             if (mixerHandle == 0)
             {
-                Debug.LogError($"Failed to create mixer: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to create mixer: {0}", Bass.LastError);
                 return false;
             }
 
             // Mixer processing threads (for some reason this attribute is undocumented in ManagedBass?)
             if (!Bass.ChannelSetAttribute(mixerHandle, (ChannelAttribute) 86017, 2))
             {
-                Debug.LogError($"Failed to set mixer processing threads: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to set mixer processing threads: {0}", Bass.LastError);
                 Bass.StreamFree(mixerHandle);
                 return false;
             }
@@ -172,7 +173,7 @@ namespace YARG.Audio.BASS
             {
                 // Account for buffer when resuming
                 if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
-                    Debug.LogError($"Failed to set update channel: {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to set update channel: {0}", Bass.LastError);
                 Play();
             }
         }
@@ -335,7 +336,7 @@ namespace YARG.Audio.BASS
             {
                 if (!Bass.StreamFree(_mixerHandle))
                 {
-                    Debug.LogError($"Failed to free mixer stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to free mixer stream (THIS WILL LEAK MEMORY!): {0}", Bass.LastError);
                 }
 
                 _mixerHandle = 0;
@@ -345,7 +346,7 @@ namespace YARG.Audio.BASS
             {
                 if (!Bass.StreamFree(_sourceStream))
                 {
-                    Debug.LogError($"Failed to free mixer source stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to free mixer source stream (THIS WILL LEAK MEMORY!): {0}", Bass.LastError);
                 }
 
                 _sourceStream = 0;

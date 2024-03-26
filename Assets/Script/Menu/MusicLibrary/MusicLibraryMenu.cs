@@ -129,8 +129,8 @@ namespace YARG.Menu.MusicLibrary
             _subHeader.text = LibraryMode switch
             {
                 MusicLibraryMode.QuickPlay => "Quickplay",
-                MusicLibraryMode.Practice => "Practice",
-                _ => throw new Exception("Unreachable.")
+                MusicLibraryMode.Practice  => "Practice",
+                _                          => throw new Exception("Unreachable.")
             };
 
             // Set IsPractice as well
@@ -242,10 +242,17 @@ namespace YARG.Menu.MusicLibrary
                 if (_recommendedSongs != null)
                 {
                     // Add the recommended songs right above the "ALL SONGS" header
+
                     list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(this, i)));
+
                     list.Insert(0, new CategoryViewType(
                         _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
-                        _recommendedSongs.Count, _recommendedSongs
+                        _recommendedSongs.Count, _recommendedSongs,
+                        () =>
+                        {
+                            SetRecommendedSongs();
+                            RefreshAndReselect();
+                        }
                     ));
                 }
 

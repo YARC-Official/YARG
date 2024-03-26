@@ -1,5 +1,6 @@
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 
 namespace YARG.Gameplay
 {
@@ -24,7 +25,7 @@ namespace YARG.Gameplay
             GameManager = FindObjectOfType<GameManager>();
             if (GameManager == null)
             {
-                Debug.LogWarning($"Gameplay object {gameObject.name} was instantiated outside of the gameplay scene!");
+                YargLogger.LogFormatWarning("Gameplay object {0} was instantiated outside of the gameplay scene!", gameObject.name);
                 Destroy(gameObject);
                 return;
             }
@@ -44,9 +45,10 @@ namespace YARG.Gameplay
         // Protected to warn when hidden by an inheriting class
         protected void OnDestroy()
         {
-            GameplayDestroy();
+            if (GameManager == null)
+                return;
 
-            if (GameManager == null) return;
+            GameplayDestroy();
 
             GameManager.ChartLoaded -= _OnChartLoaded;
             GameManager.SongLoaded -= _OnSongLoaded;

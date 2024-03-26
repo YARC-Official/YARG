@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -208,7 +209,7 @@ namespace YARG.Menu.ProfileList
 
             if (PlayerContainer.IsProfileTaken(_profile))
             {
-                Debug.LogError($"Attempted to connect already-taken profile {_profile.Name}!");
+                YargLogger.LogFormatError("Attempted to connect already-taken profile {0}!", _profile.Name);
                 return;
             }
 
@@ -216,7 +217,7 @@ namespace YARG.Menu.ProfileList
             var player = PlayerContainer.CreatePlayerFromProfile(_profile, resolveDevices);
             if (player is null)
             {
-                Debug.LogError($"Failed to connect profile {_profile.Name}!");
+                YargLogger.LogFormatError("Failed to connect profile {0}!", _profile.Name);
                 return;
             }
 
@@ -242,7 +243,7 @@ namespace YARG.Menu.ProfileList
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
             if (player is null)
             {
-                Debug.LogError($"Could not get player for profile {_profile.Name}!");
+                YargLogger.LogFormatError("Could not get player for profile {0}!", _profile.Name);
                 return;
             }
 

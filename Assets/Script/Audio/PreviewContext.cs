@@ -2,6 +2,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers.Extensions;
 
@@ -40,8 +41,7 @@ namespace YARG.Audio
             }
             catch (Exception e)
             {
-                Debug.LogError("Error while looping song preview!");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Error while looping song preview!");
             }
         }
 
@@ -56,7 +56,7 @@ namespace YARG.Audio
             // Previews must be cancelled before attempting to start a new one
             if (IsPlaying)
             {
-                Debug.LogError($"Attempted to play a new preview without cancelling the previous! Song: {song.Artist} - {song.Name}");
+                YargLogger.LogFormatError("Attempted to play a new preview without cancelling the previous! Song: {0} - {1}", song.Artist, song.Name);
                 return;
             }
 
@@ -115,8 +115,7 @@ namespace YARG.Audio
             }
             catch (Exception ex)
             {
-                Debug.LogError("Error while playing song preview!");
-                Debug.LogException(ex);
+                YargLogger.LogException(ex, "Error while playing song preview!");
             }
             finally
             {

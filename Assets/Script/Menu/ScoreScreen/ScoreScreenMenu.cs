@@ -8,6 +8,7 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Menu.Navigation;
 using YARG.Song;
@@ -54,7 +55,7 @@ namespace YARG.Menu.ScoreScreen
 
             if (GlobalVariables.State.ScoreScreenStats is null)
             {
-                Debug.LogError("Score screen stats was null!");
+                YargLogger.LogError("Score screen stats was null!");
                 return;
             }
 

@@ -9,6 +9,7 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using YARG.Core.Logging;
 using YARG.Helpers;
 
 namespace YARG.Song
@@ -102,7 +103,7 @@ namespace YARG.Song
 
                     if (imagePath == null)
                     {
-                        Debug.LogWarning($"Failed to find source icon `{_icon}`! Does it exist?");
+                        YargLogger.LogFormatWarning("Failed to find source icon `{0}`! Does it exist?", _icon);
                         return null;
                     }
 
@@ -111,7 +112,7 @@ namespace YARG.Song
 
                     if (texture == null)
                     {
-                        Debug.LogWarning($"Failed to load texture at `{imagePath}`!");
+                        YargLogger.LogFormatWarning("Failed to load texture at `{0}`!", imagePath);
                         return null;
                     }
 
@@ -152,24 +153,24 @@ namespace YARG.Song
         private static ParsedSource _default;
         public static ParsedSource Default => _default;
 
-        public static async UniTask LoadSources(Action<string> updateText)
+        public static async UniTask LoadSources(LoadingContext context)
         {
             if (!GlobalVariables.OfflineMode)
             {
-                await DownloadSources(updateText);
+                await DownloadSources(context);
             }
 
-            updateText("Reading sources...");
+            context.SetSubText("Reading sources...");
             await UniTask.RunOnThreadPool(ReadSources);
         }
 
-        public static async UniTask DownloadSources(Action<string> updateText)
+        public static async UniTask DownloadSources(LoadingContext context)
         {
             // Create the sources folder if it doesn't exist
             Directory.CreateDirectory(SourcesFolder);
 
             // Look for the current version
-            updateText("Checking version...");
+            context.SetSubText("Checking version...");
             string sourceVersionPath = Path.Combine(SourcesFolder, "version.txt");
             string currentVersion = null;
             try
@@ -179,12 +180,11 @@ namespace YARG.Song
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Failed to get current song source version.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to get current song source version.");
             }
 
             // Look for new version
-            updateText("Looking for new version...");
+            context.SetSubText("Looking for new version...");
             string newestVersion = null;
             try
             {
@@ -203,8 +203,7 @@ namespace YARG.Song
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Failed to get newest song source version. Skipping.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to get newest song source version. Skipping.");
             }
 
             // If we failed to find the newest version, finish
@@ -224,7 +223,7 @@ namespace YARG.Song
             try
             {
                 // Download
-                updateText("Downloading new version...");
+                context.SetSubText("Downloading new version...");
                 string zipPath = Path.Combine(SourcesFolder, "update.zip");
                 using (var client = new WebClient())
                 {
@@ -238,7 +237,7 @@ namespace YARG.Song
                 }
 
                 // Extract the base and extras folder
-                updateText("Extracting new version...");
+                context.SetSubText("Extracting new version...");
                 ZipFile.ExtractToDirectory(zipPath, SourcesFolder);
 
                 // Delete the random folders
@@ -268,8 +267,7 @@ namespace YARG.Song
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to download newest song source version.");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to download newest song source version.");
             }
         }
 
@@ -305,13 +303,12 @@ namespace YARG.Song
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Failed to read song source index.json for `{index}`!");
-                    Debug.LogException(e);
+                    YargLogger.LogException(e, $"Failed to read song source index.json for `{index}`!");
 
                     // If we failed when fetching "base", something went wrong.
                     if (index == "base")
                     {
-                        Debug.LogError("Skipping and creating a backup source.");
+                        YargLogger.LogError("Skipping and creating a backup source.");
                         CreateBackupSource();
                         return;
                     }

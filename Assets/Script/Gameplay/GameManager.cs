@@ -12,6 +12,7 @@ using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
@@ -142,7 +143,7 @@ namespace YARG.Gameplay
 
             if (Song is null)
             {
-                Debug.LogError("Null song set when loading gameplay!");
+                YargLogger.LogError("Null song set when loading gameplay!");
 
                 GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
                 return;
@@ -154,20 +155,15 @@ namespace YARG.Gameplay
 
         private void OnDestroy()
         {
-#if UNITY_EDITOR
-            Debug.Log("Exiting song");
-#else
-            // Trailing newline to help split up log files
-            Debug.Log("Exiting song\n");
-#endif
+            YargLogger.LogDebug("Exiting song");
 
             if (Navigator.Instance != null)
             {
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
             GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
-            _songRunner.Dispose();
-            BeatEventHandler.Unsubscribe(StarPowerClap);
+            _songRunner?.Dispose();
+            BeatEventHandler?.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
@@ -407,8 +403,7 @@ namespace YARG.Gameplay
             catch (Exception e)
             {
                 replayInfo = null;
-                Debug.LogError("Failed to save replay!");
-                Debug.LogException(e);
+                YargLogger.LogException(e, "Failed to save replay!");
             }
 
             // Get all of the individual player score entries

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization.Components;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings.Visuals;
@@ -59,7 +60,7 @@ namespace YARG.Settings.Metadata
         {
             if (preset is not T t)
             {
-                Debug.LogError($"Preset reference type `{preset.GetType().Name}` does not match `{typeof(T).Name}`");
+                YargLogger.LogFormatError("Preset reference type `{0}` does not match `{1}`", preset.GetType().Name, item2: typeof(T).Name);
                 return;
             }
 
@@ -82,7 +83,7 @@ namespace YARG.Settings.Metadata
                     BuildForEngine(settingContainer, navGroup, enginePreset);
                     break;
                 default:
-                    Debug.LogWarning($"Setting tab not configured for preset type `{typeof(T).Name}`!");
+                    YargLogger.LogFormatWarning("Setting tab not configured for preset type `{0}`!", typeof(T).Name);
                     break;
             }
         }
@@ -101,7 +102,7 @@ namespace YARG.Settings.Metadata
                     UpdateForEngine(enginePreset);
                     break;
                 default:
-                    Debug.LogWarning($"Setting change not configured for preset type `{typeof(T).Name}`!");
+                    YargLogger.LogFormatWarning("Setting change not configured for preset type `{0}`!", typeof(T).Name);
                     break;
             }
         }

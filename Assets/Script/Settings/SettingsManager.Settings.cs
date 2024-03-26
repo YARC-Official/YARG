@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal.Internal;
 using YARG.Audio;
 using YARG.Core.Audio;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
@@ -441,7 +442,7 @@ namespace YARG.Settings
 
                 foreach (var device in InputSystem.devices)
                 {
-                    Debug.Log($"Description for device {device.displayName}:\n{device.description.ToJson()}\n");
+                    YargLogger.LogFormatInfo("Description for device {0}:\n{1}\n", device.displayName, item2: device.description.ToJson());
                 }
             }
 

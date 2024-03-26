@@ -1,4 +1,8 @@
-﻿using YARG.Core.Game;
+﻿using Cysharp.Text;
+using YARG.Core.Game;
+using YARG.Helpers;
+using YARG.Helpers.Extensions;
+using YARG.Menu.Data;
 using YARG.Menu.ListMenu;
 
 namespace YARG.Menu.MusicLibrary
@@ -35,8 +39,28 @@ namespace YARG.Menu.MusicLibrary
         {
         }
 
+        public override void IconClick()
+        {
+            PrimaryButtonClick();
+        }
+
         public virtual void FavoriteClick()
         {
+        }
+
+        protected static string CreateSongCountString(int songCount)
+        {
+            var count = TextColorer.StyleString(
+                ZString.Format("{0:N0}", songCount),
+                MenuData.Colors.PrimaryText,
+                500);
+
+            var songs = TextColorer.StyleString(
+                songCount == 1 ? "SONG" : "SONGS",
+                MenuData.Colors.PrimaryText.WithAlpha(0.5f),
+                500);
+
+            return ZString.Concat(count, " ", songs);
         }
     }
 }

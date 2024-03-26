@@ -6,6 +6,7 @@ using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
+using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS
 {
@@ -92,7 +93,7 @@ namespace YARG.Audio.BASS
             float finalSemitoneShift = (float) Math.Clamp(accurateSemitoneShift, -60, 60);
             if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Pitch, finalSemitoneShift) ||
                 !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Pitch, finalSemitoneShift))
-                Debug.LogError($"Failed to set channel pitch: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to set channel pitch: {0}", Bass.LastError);
         }
 
         private static void SetSpeed(float speed, int streamHandle, int reverbHandle)
@@ -104,7 +105,7 @@ namespace YARG.Audio.BASS
             if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Tempo, relativeSpeed) ||
                 !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Tempo, relativeSpeed))
             {
-                Debug.LogError($"Failed to set channel speed: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to set channel speed: {0}", Bass.LastError);
             }
         }
 
@@ -113,7 +114,7 @@ namespace YARG.Audio.BASS
             handles.CompressorFX = BassHelpers.FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
             if (handles.CompressorFX == 0)
             {
-                Debug.LogError($"Failed to set up pitch bend for main stream!");
+                YargLogger.LogError("Failed to set up pitch bend for main stream!");
                 return false;
             }
             return true;
@@ -233,12 +234,12 @@ namespace YARG.Audio.BASS
             _lastStemVolume = volumeSetting;
 
             if (!Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, newBassVol))
-                Debug.LogError($"Failed to set stream volume: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to set stream volume: {0}", Bass.LastError);
 
             double reverbVolume = _isReverbing ? newBassVol * BassHelpers.REVERB_VOLUME_MULTIPLIER : 0;
 
             if (!Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, reverbVolume))
-                Debug.LogError($"Failed to set reverb volume: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to set reverb volume: {0}", Bass.LastError);
         }
 
         public void SetReverb(BassAudioManager manager, bool reverb)
@@ -259,7 +260,7 @@ namespace YARG.Audio.BASS
                 if (!Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume,
                     (float) (volumeSetting * Volume * BassHelpers.REVERB_VOLUME_MULTIPLIER), BassHelpers.REVERB_SLIDE_IN_MILLISECONDS))
                 {
-                    Debug.LogError($"Failed to set reverb volume: {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to set reverb volume: {0}", Bass.LastError);
                 }
             }
             else
@@ -273,7 +274,7 @@ namespace YARG.Audio.BASS
                     !Bass.ChannelRemoveFX(ReverbStreamHandle, _reverbHandles.HighEQ) ||
                     !Bass.ChannelRemoveFX(ReverbStreamHandle, _reverbHandles.ReverbFX))
                 {
-                    Debug.LogError($"Failed to remove effects: {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to remove effects: {0}", Bass.LastError);
                 }
 
                 _reverbHandles.LowEQ = 0;
@@ -284,7 +285,7 @@ namespace YARG.Audio.BASS
                 if (!Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0,
                     BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS))
                 {
-                    Debug.LogError($"Failed to set reverb volume: {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to set reverb volume: {0}", Bass.LastError);
                 }
             }
         }
@@ -307,12 +308,12 @@ namespace YARG.Audio.BASS
 
             if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
             {
-                Debug.LogError("Failed to set params (normal fx): " + Bass.LastError);
+                YargLogger.LogFormatError("Failed to set params (normal fx): {0}", Bass.LastError);
             }
 
             if (!BassHelpers.FXSetParameters(_reverbHandles.PitchFX, _pitchParams))
             {
-                Debug.LogError("Failed to set params (reverb fx): " + Bass.LastError);
+                YargLogger.LogFormatError("Failed to set params (reverb fx): {0}", Bass.LastError);
             }
         }
 
@@ -331,7 +332,7 @@ namespace YARG.Audio.BASS
                 if (Bass.ChannelGetAttribute(StreamHandle, ChannelAttribute.Frequency, out float sampleRate))
                     desync += _pitchParams.FFTSize / sampleRate;
                 else
-                    Debug.LogError($"Failed to get sample rate: {Bass.LastError}");
+                    YargLogger.LogFormatError("Failed to get sample rate: {0}", Bass.LastError);
             }
 
             return desync;
@@ -348,14 +349,14 @@ namespace YARG.Audio.BASS
             long position = Bass.ChannelGetPosition(StreamHandle);
             if (position < 0)
             {
-                Debug.LogError($"Failed to get channel position in bytes: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to get channel position in bytes: {0}", Bass.LastError);
                 return -1;
             }
 
             double seconds = Bass.ChannelBytes2Seconds(StreamHandle, position);
             if (seconds < 0)
             {
-                Debug.LogError($"Failed to get channel position in seconds: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to get channel position in seconds: {0}", Bass.LastError);
                 return -1;
             }
 
@@ -371,18 +372,17 @@ namespace YARG.Audio.BASS
             long bytes = Bass.ChannelSeconds2Bytes(StreamHandle, position);
             if (bytes < 0)
             {
-                Debug.LogError($"Failed to get byte position at {position}!");
+                YargLogger.LogFormatError("Failed to get byte position at {0}!", position);
                 return;
             }
 
             bool success = IsMixed
-                ? BassMix.ChannelSetPosition(StreamHandle, bytes, PositionFlags.Bytes)
+                ? BassMix.ChannelSetPosition(StreamHandle, bytes)
                 : Bass.ChannelSetPosition(StreamHandle, bytes);
 
             if (!success)
             {
-                Debug.LogError($"Failed to seek to position {position}!");
-                return;
+                YargLogger.LogFormatError("Failed to seek to position {0}!", position);
             }
         }
 
@@ -391,14 +391,14 @@ namespace YARG.Audio.BASS
             long length = Bass.ChannelGetLength(StreamHandle);
             if (length < 0)
             {
-                Debug.LogError($"Failed to get channel length in bytes: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to get channel length in bytes: {0}", Bass.LastError);
                 return -1;
             }
 
             double seconds = Bass.ChannelBytes2Seconds(StreamHandle, length);
             if (seconds < 0)
             {
-                Debug.LogError($"Failed to get channel length in seconds: {Bass.LastError}");
+                YargLogger.LogFormatError("Failed to get channel length in seconds: {0}", Bass.LastError);
                 return -1;
             }
 
@@ -427,7 +427,7 @@ namespace YARG.Audio.BASS
                 if (_sourceHandle != 0)
                 {
                     if (!Bass.StreamFree(_sourceHandle))
-                        Debug.LogError($"Failed to free file stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
+                        YargLogger.LogFormatError("Failed to free file stream (THIS WILL LEAK MEMORY!): {0}", Bass.LastError);
                     _sourceHandle = 0;
                 }
 

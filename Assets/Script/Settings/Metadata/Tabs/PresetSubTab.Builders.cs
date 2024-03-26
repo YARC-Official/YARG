@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
 using YARG.Menu;
 using YARG.Menu.Navigation;
@@ -77,7 +78,7 @@ namespace YARG.Settings.Metadata
             }
             else
             {
-                Debug.LogWarning("This sub-tab's preview builder should be a track preview!");
+                YargLogger.LogWarning("This sub-tab's preview builder should be a track preview!");
             }
 
             // Header
@@ -162,7 +163,7 @@ namespace YARG.Settings.Metadata
             }
             else
             {
-                Debug.LogWarning("This sub-tab's preview builder should be a track preview!");
+                YargLogger.LogWarning("This sub-tab's preview builder should be a track preview!");
             }
 
             // Header

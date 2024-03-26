@@ -6,6 +6,7 @@ using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Input.Serialization;
 using YARG.Player;
 
@@ -84,7 +85,7 @@ namespace YARG.Input
                 {
                     if (device is null || string.IsNullOrEmpty(device.Layout) || string.IsNullOrEmpty(device.Hash))
                     {
-                        Debug.LogWarning($"Encountered invalid device entry in bindings for profile {profile.Name}!");
+                        YargLogger.LogFormatWarning("Encountered invalid device entry in bindings for profile {0}!", profile.Name);
                         continue;
                     }
 
@@ -101,7 +102,7 @@ namespace YARG.Input
                 {
                     if (!_bindsByGameMode.TryGetValue(mode, out var modeBindings))
                     {
-                        Debug.LogWarning($"Encountered invalid game mode {mode} in bindings for profile {profile.Name}!");
+                        YargLogger.LogFormatWarning("Encountered invalid game mode {0} in bindings for profile {1}!", mode, item2: profile.Name);
                         continue;
                     }
 

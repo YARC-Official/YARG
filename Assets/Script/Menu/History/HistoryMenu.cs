@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Helpers;
 using YARG.Menu.ListMenu;
@@ -181,9 +182,7 @@ namespace YARG.Menu.History
                     DialogManager.Instance.ShowMessage("Cannot Import Replay",
                         "The selected replay is most likely corrupted, or is not a valid replay file.");
 
-                    Debug.LogWarning("Failed to import replay. See error below for more details.");
-                    Debug.LogException(e);
-
+                    YargLogger.LogException(e, "Failed to import replay");
                     return;
                 }
 

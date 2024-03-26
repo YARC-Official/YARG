@@ -6,9 +6,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
-using YARG.Core;
+using YARG.Core.Logging;
 using YARG.Core.Song;
-using YARG.Helpers;
 using YARG.Input;
 using YARG.Integration;
 using YARG.Menu.ScoreScreen;
@@ -51,8 +50,7 @@ namespace YARG
 
         protected override void SingletonAwake()
         {
-            Debug.Log($"YARG {CURRENT_VERSION}");
-            YargTrace.AddListener(new YargUnityTraceListener());
+            YargLogger.LogFormatInfo("YARG {0}", CURRENT_VERSION);
 
             // Get command line args
             // The first element is always the file name, however check just in case
@@ -66,25 +64,24 @@ namespace YARG
                 CommandLineArguments = new List<string>();
             }
 
-            // Check for offline mode
-            OfflineMode = CommandLineArguments.Contains(OFFLINE_ARG);
-            if (OfflineMode)
-            {
-                Debug.Log("Playing in offline mode");
-            }
-
             // Initialize important classes
-            PathHelper.Init();
             ReplayContainer.Init();
             ScoreContainer.Init();
             PlaylistContainer.Initialize();
             CustomContentManager.Initialize();
 
+            // Check for offline mode
+            OfflineMode = CommandLineArguments.Contains(OFFLINE_ARG);
+            if (OfflineMode)
+            {
+                YargLogger.LogInfo("Playing in offline mode");
+            }
+
             int profileCount = PlayerContainer.LoadProfiles();
-            Debug.Log($"Loaded {profileCount} profiles");
+            YargLogger.LogFormatInfo("Loaded {0} profiles", profileCount);
 
             int savedCount = PlayerContainer.SaveProfiles();
-            Debug.Log($"Saved {savedCount} profiles");
+            YargLogger.LogFormatInfo("Saved {0} profiles", savedCount);
 
             AudioManager = gameObject.AddComponent<BassAudioManager>();
             AudioManager.Initialize();
@@ -115,7 +112,6 @@ namespace YARG
             ScoreContainer.Destroy();
             InputManager.Destroy();
             PlayerContainer.Destroy();
-
 #if UNITY_EDITOR
             // Set alpha fading (on the tracks) to off
             Shader.SetGlobalFloat("_IsFading", 0f);
