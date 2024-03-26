@@ -94,7 +94,9 @@ namespace YARG.Gameplay.Visuals
         private void UpdateLengthForHit()
         {
             if (_hitState != SustainState.Hitting)
+            {
                 return;
+            }
 
             // Get the new line start position. Said position should be at
             // the strike line and relative to the note itself.
@@ -109,7 +111,9 @@ namespace YARG.Gameplay.Visuals
             // TODO: Reduce the amount of magic numbers lol
 
             if (!_setShaderProperties || _hitState != SustainState.Hitting)
+            {
                 return;
+            }
 
             // Update whammy factor
             if (_player is FiveFretPlayer player)
