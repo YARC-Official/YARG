@@ -51,7 +51,10 @@ namespace YARG.Menu.MusicLibrary
 
         public void Focus()
         {
-            _searchField.Select();
+            if (_searchField.gameObject.activeSelf)
+            {
+                _searchField.Select();
+            }
         }
 
         public void Restore()
