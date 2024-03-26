@@ -351,6 +351,8 @@ namespace YARG.Menu.MusicLibrary
                 {
                     _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
                 }
+
+                _searchField.gameObject.SetActive(true);
             }
             else
             {
@@ -370,6 +372,8 @@ namespace YARG.Menu.MusicLibrary
                 {
                     new(SelectedPlaylist.Name, songs)
                 };
+
+                _searchField.gameObject.SetActive(false);
             }
 
             RequestViewListUpdate();

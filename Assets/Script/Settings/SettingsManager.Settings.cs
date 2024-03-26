@@ -26,9 +26,9 @@ namespace YARG.Settings
             //public static event System.Action OnDMXChannelsChanged;
 
             /// <summary>
-            /// Whether or not the settings are currently in the process of being loaded.
+            /// Have the settings been initialized?
             /// </summary>
-            public static bool IsLoading = true;
+            public static bool IsInitialized = false;
 
             #region Hidden Settings
 
@@ -257,7 +257,7 @@ namespace YARG.Settings
 
             private static void DMXEnabledCallback(bool value)
             {
-                if (IsLoading)
+                if (!IsInitialized)
                 {
                     return;
                 }
@@ -266,7 +266,7 @@ namespace YARG.Settings
 
             private static void DMXCallback(int[] value)
             {
-                if (IsLoading)
+                if (!IsInitialized)
                 {
                     return;
                 }
@@ -296,7 +296,7 @@ namespace YARG.Settings
             private static void FullscreenModeCallback(FullScreenMode value)
             {
                 // Unity saves this information automatically
-                if (IsLoading)
+                if (!IsInitialized)
                 {
                     return;
                 }
@@ -307,7 +307,7 @@ namespace YARG.Settings
             private static void ResolutionCallback(Resolution? value)
             {
                 // Unity saves this information automatically
-                if (IsLoading)
+                if (!IsInitialized)
                 {
                     return;
                 }

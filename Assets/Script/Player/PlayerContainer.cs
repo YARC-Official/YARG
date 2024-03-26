@@ -39,6 +39,8 @@ namespace YARG.Player
         /// </summary>
         public static IReadOnlyList<YargPlayer> Players => _players;
 
+        private static bool _isInitialized;
+
         static PlayerContainer()
         {
             // Make sure the folder exists to prevent errors
@@ -194,11 +196,19 @@ namespace YARG.Player
 
             BindingsContainer.LoadBindings();
 
+            _isInitialized = true;
+
             return _profiles.Count;
         }
 
         public static int SaveProfiles()
         {
+            if (!_isInitialized)
+            {
+                YargLogger.LogWarning("Profiles could not be saved as they were not loaded");
+                return 0;
+            }
+
             string profilesJson = JsonConvert.SerializeObject(_profiles, Formatting.Indented);
             File.WriteAllText(ProfilesPath, profilesJson);
 

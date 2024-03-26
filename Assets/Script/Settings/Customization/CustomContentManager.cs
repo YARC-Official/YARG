@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using YARG.Core.Logging;
 using YARG.Helpers;
 
 namespace YARG.Settings.Customization
@@ -38,7 +40,14 @@ namespace YARG.Settings.Customization
         {
             foreach (var content in CustomContentContainers)
             {
-                content.Initialize();
+                try
+                {
+                    content.Initialize();
+                }
+                catch (Exception ex)
+                {
+                    YargLogger.LogException(ex, "Failed to load custom content in" + content.FullContentDirectory);
+                }
             }
         }
 
