@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace YARG.Menu.Navigation
 {
@@ -49,6 +50,9 @@ namespace YARG.Menu.Navigation
         {
             if (_navPushed)
             {
+                // Unity moment. Without this the text field cannot be selected again without clicking
+                EventSystem.current.SetSelectedGameObject(null);
+
                 Navigator.Instance.PopScheme();
                 _navPushed = false;
             }
