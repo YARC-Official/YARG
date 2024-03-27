@@ -3,6 +3,7 @@ using System.Linq;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -320,7 +321,7 @@ namespace YARG.Gameplay.Player
         {
             if (!GameManager.Paused)
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerAward);
             }
         }
 
@@ -328,7 +329,7 @@ namespace YARG.Gameplay.Player
         {
             if (!GameManager.Paused)
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(active
+                GlobalAudioHandler.PlaySoundEffect(active
                     ? SfxSample.StarPowerDeploy
                     : SfxSample.StarPowerRelease);
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -11,6 +11,7 @@ using UnityEngine.InputSystem;
 using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Logging;
+using YARG.Core.Audio;
 
 #nullable enable
 

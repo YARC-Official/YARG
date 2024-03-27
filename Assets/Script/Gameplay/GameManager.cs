@@ -8,7 +8,9 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Audio;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Input;
@@ -132,6 +134,8 @@ namespace YARG.Gameplay
         private bool _isShowDebugText;
         private bool _isReplaySaved;
 
+        private StemMixer _mixer;
+
         private void Awake()
         {
             // Set references
@@ -167,7 +171,15 @@ namespace YARG.Gameplay
             {
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
-            GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
+
+            foreach (var state in _stemStates)
+            {
+                GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
+            }
+
+            _mixer?.Dispose();
+            GlobalAudioHandler.UseMinimumStemVolume = false;
+
             _songRunner?.Dispose();
             BeatEventHandler?.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();
@@ -223,7 +235,9 @@ namespace YARG.Gameplay
 
             // End song if needed (required for the [end] event)
             if (_songRunner.SongTime >= SongLength && !_endingSong)
+            {
                 EndSong().Forget();
+            }
 
             // Debug text
             // Note: this must come last in the update sequence!
@@ -374,20 +388,18 @@ namespace YARG.Gameplay
             {
                 PracticeManager.ResetPractice();
                 // Audio is paused automatically at this point, so we need to start it again
-                GlobalVariables.AudioManager.Play();
+                _mixer.Play();
                 return;
             }
 
             _endingSong = true;
-            await UniTask.WaitUntil(() => _songRunner.SongTime >= SongLength);
+            await UniTask.WaitUntil(() => InputTime >= SongLength + SONG_END_DELAY);
 
             if (IsReplay)
             {
                 Pause(false);
                 return;
             }
-
-            GlobalVariables.AudioManager.UnloadSong();
 
             // Pass the score info to the stats screen
             GlobalVariables.State.ScoreScreenStats = new ScoreScreenStats
@@ -468,8 +480,6 @@ namespace YARG.Gameplay
 
         public void ForceQuitSong()
         {
-            GlobalVariables.AudioManager.UnloadSong();
-
             GlobalVariables.State = PersistentState.Default;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
