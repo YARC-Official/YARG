@@ -33,6 +33,8 @@ namespace YARG.Settings
                 nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.KickBounceMultiplier),
                 nameof(Settings.ShowCursorTimer),
+                nameof(Settings.PauseOnDeviceDisconnect),
+                nameof(Settings.PauseOnFocusLoss),
                 nameof(Settings.AmIAwesome),
             },
             new SongManagerTab("SongManager", icon: "Songs")

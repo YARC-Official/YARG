@@ -263,6 +263,10 @@ MonoBehaviour:
     m_Key: PresetDropdown.EnginePreset.GameMode.FiveFretGuitarPreset
     m_Metadata:
       m_Items: []
+  - m_Id: 133417141387255808
+    m_Key: PresetDropdown.EnginePreset.GameMode.VocalsPreset
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023324405845
     m_Key: PresetSetting.CameraPreset.CurveFactor
     m_Metadata:
@@ -571,6 +575,38 @@ MonoBehaviour:
     m_Key: PresetSetting.EnginePreset.GameMode
     m_Metadata:
       m_Items: []
+  - m_Id: 133417141387255809
+    m_Key: PresetSetting.EnginePreset.HitPercentE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255810
+    m_Key: PresetSetting.EnginePreset.HitPercentE.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255811
+    m_Key: PresetSetting.EnginePreset.HitPercentH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255812
+    m_Key: PresetSetting.EnginePreset.HitPercentH.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255813
+    m_Key: PresetSetting.EnginePreset.HitPercentM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255814
+    m_Key: PresetSetting.EnginePreset.HitPercentM.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255815
+    m_Key: PresetSetting.EnginePreset.HitPercentX
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255816
+    m_Key: PresetSetting.EnginePreset.HitPercentX.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023328600132
     m_Key: PresetSetting.EnginePreset.HitWindow
     m_Metadata:
@@ -613,6 +649,38 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116747023328600142
     m_Key: PresetSetting.EnginePreset.StrumLeniencySmall.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255817
+    m_Key: PresetSetting.EnginePreset.WindowSizeE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255818
+    m_Key: PresetSetting.EnginePreset.WindowSizeE.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255819
+    m_Key: PresetSetting.EnginePreset.WindowSizeH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255820
+    m_Key: PresetSetting.EnginePreset.WindowSizeH.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255821
+    m_Key: PresetSetting.EnginePreset.WindowSizeM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255822
+    m_Key: PresetSetting.EnginePreset.WindowSizeM.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255823
+    m_Key: PresetSetting.EnginePreset.WindowSizeX
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417141387255824
+    m_Key: PresetSetting.EnginePreset.WindowSizeX.Description
     m_Metadata:
       m_Items: []
   - m_Id: 62024422966812672
@@ -1107,6 +1175,22 @@ MonoBehaviour:
     m_Key: Setting.WhammyPitchShiftAmount
     m_Metadata:
       m_Items: []
+  - m_Id: 133417435445714944
+    m_Key: Setting.PauseOnDeviceDisconnect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417435445714945
+    m_Key: Setting.PauseOnDeviceDisconnect.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417435445714946
+    m_Key: Setting.PauseOnFocusLoss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417435445714947
+    m_Key: Setting.PauseOnFocusLoss.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116744829250428943
     m_Key: Tab.Advanced
     m_Metadata:
@@ -1149,74 +1233,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10936772512309248
     m_Key: Tab.Sound
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127205786207608832
-    m_Key: PresetDropdown.EnginePreset.GameMode.VocalsPreset
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206614020612096
-    m_Key: PresetSetting.EnginePreset.WindowSizeE
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206632844648448
-    m_Key: PresetSetting.EnginePreset.WindowSizeM
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206638649565184
-    m_Key: PresetSetting.EnginePreset.WindowSizeH
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206658077581312
-    m_Key: PresetSetting.EnginePreset.WindowSizeX
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206835815407616
-    m_Key: PresetSetting.EnginePreset.HitPercentE
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206843524538368
-    m_Key: PresetSetting.EnginePreset.HitPercentM
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206864517029888
-    m_Key: PresetSetting.EnginePreset.HitPercentH
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206874012934144
-    m_Key: PresetSetting.EnginePreset.HitPercentX
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206973438910464
-    m_Key: PresetSetting.EnginePreset.WindowSizeE.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206992598491136
-    m_Key: PresetSetting.EnginePreset.WindowSizeM.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206994032943104
-    m_Key: PresetSetting.EnginePreset.WindowSizeH.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127206994674671616
-    m_Key: PresetSetting.EnginePreset.WindowSizeX.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127207845564735488
-    m_Key: PresetSetting.EnginePreset.HitPercentE.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127207847498309632
-    m_Key: PresetSetting.EnginePreset.HitPercentM.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127207848010014720
-    m_Key: PresetSetting.EnginePreset.HitPercentH.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 127207848525914112
-    m_Key: PresetSetting.EnginePreset.HitPercentX.Description
     m_Metadata:
       m_Items: []
   m_Metadata:

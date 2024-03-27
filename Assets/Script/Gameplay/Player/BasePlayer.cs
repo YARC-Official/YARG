@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
@@ -12,6 +10,7 @@ using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Input;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
@@ -236,13 +235,17 @@ namespace YARG.Gameplay.Player
         private void SubscribeToInputEvents()
         {
             Player.Bindings.SubscribeToGameplayInputs(Player.Profile.GameMode, OnGameInput);
+
             Player.Bindings.DeviceAdded += OnDeviceAdded;
+            Player.Bindings.DeviceRemoved += OnDeviceRemoved;
         }
 
         private void UnsubscribeFromInputEvents()
         {
             Player.Bindings.UnsubscribeFromGameplayInputs(Player.Profile.GameMode, OnGameInput);
-            Player.Bindings.DeviceAdded -= OnDeviceRemoved;
+
+            Player.Bindings.DeviceAdded -= OnDeviceAdded;
+            Player.Bindings.DeviceRemoved -= OnDeviceRemoved;
         }
 
         private void OnDeviceAdded(InputDevice device)
@@ -258,6 +261,11 @@ namespace YARG.Gameplay.Player
             if (device is ISantrollerHaptics haptics)
             {
                 SantrollerHaptics.Remove(haptics);
+            }
+
+            if (!GameManager.Paused && SettingsManager.Settings.PauseOnDeviceDisconnect.Value)
+            {
+                GameManager.SetPaused(true);
             }
         }
 

@@ -64,6 +64,9 @@ namespace YARG.Settings
 
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 
+            public ToggleSetting PauseOnDeviceDisconnect { get; } = new(true);
+            public ToggleSetting PauseOnFocusLoss     { get; } = new(true);
+
             public ToggleSetting AmIAwesome { get; } = new(false);
 
             #endregion

@@ -522,5 +522,13 @@ namespace YARG.Gameplay
                     break;
             }
         }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus && !Paused && SettingsManager.Settings.PauseOnFocusLoss.Value)
+            {
+                SetPaused(true);
+            }
+        }
     }
 }
