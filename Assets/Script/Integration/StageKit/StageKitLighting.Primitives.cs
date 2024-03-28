@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Melanchall.DryWetMidi.Core;
 using PlasticBand.Haptics;
 using YARG.Core.Chart;
 using YARG.Gameplay;
@@ -14,15 +15,21 @@ namespace YARG.Integration.StageKit
         private int _patternIndex = 0;
         private readonly (StageKitLedColor color, byte data)[] _patternList;
         private GameManager _gameManager;
+        private float _beatsPerCycle;
 
         public BeatPattern((StageKitLedColor, byte)[] patternList, float beatsPerCycle, bool continuous = true)
         {
-            //Brought to you by Hacky Hack and the Hacktones
-            _gameManager = Object.FindObjectOfType<GameManager>();
+
             _continuous = continuous;
             _patternList = patternList;
+            _beatsPerCycle = beatsPerCycle;
+        }
 
-            _gameManager.BeatEventHandler.Subscribe(OnBeat, beatsPerCycle / _patternList.Length);
+        public override void Enable()
+        {
+            //Brought to you by Hacky Hack and the Hacktones
+            _gameManager = Object.FindObjectOfType<GameManager>();
+            _gameManager.BeatEventHandler.Subscribe(OnBeat, _beatsPerCycle / _patternList.Length);
         }
 
         public override void OnBeat()
@@ -59,19 +66,22 @@ namespace YARG.Integration.StageKit
         private readonly (StageKitLedColor color, byte data)[] _patternList;
         private readonly bool _flash;
         private readonly bool _inverse;
+        private bool _enabled;
 
         public ListenPattern((StageKitLedColor color, byte data)[] patternList, ListenTypes listenType,
-            bool flash = false,
-            bool inverse = false)
+            bool flash = false, bool inverse = false)
         {
             _flash = flash;
             _patternList = patternList;
             _listenType = listenType;
             _inverse = inverse;
+        }
 
+        public override void Enable()
+        {
+            _enabled = true;
             if (!_inverse) return;
-            StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color,
-                _patternList[_patternIndex].data);
+            StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
             _patternIndex++;
 
             if (_patternIndex >= _patternList.Length)
@@ -82,6 +92,11 @@ namespace YARG.Integration.StageKit
 
         public override void HandleBeatlineEvent(BeatlineType eventName)
         {
+            if (!_enabled)
+            {
+                return;
+            }
+
             if (((_listenType & ListenTypes.MajorBeat) == 0 || eventName != BeatlineType.Measure) &&
                 ((_listenType & ListenTypes.MinorBeat) == 0 || eventName != BeatlineType.Strong))
             {
@@ -93,6 +108,11 @@ namespace YARG.Integration.StageKit
 
         public override void HandleDrumEvent(int eventName)
         {
+            if (!_enabled)
+            {
+                return;
+            }
+
             if ((_listenType & ListenTypes.RedFretDrums) == 0 || eventName != (int) FourLaneDrumPad.RedDrum)
             {
                 return;
@@ -103,6 +123,11 @@ namespace YARG.Integration.StageKit
 
         public override void HandleLightingEvent(LightingType eventName)
         {
+            if (!_enabled)
+            {
+                return;
+            }
+
             if ((_listenType & ListenTypes.Next) == 0 || eventName != LightingType.Keyframe_Next)
             {
                 return;
@@ -160,6 +185,7 @@ namespace YARG.Integration.StageKit
         public override void KillSelf()
         {
             CancellationTokenSource?.Cancel();
+            _enabled = false;
         }
     }
 
@@ -175,6 +201,10 @@ namespace YARG.Integration.StageKit
             CancellationTokenSource = new CancellationTokenSource();
             _seconds = seconds;
             _patternList = patternList;
+        }
+
+        public override void Enable()
+        {
             TimedCircleCoroutine(CancellationTokenSource.Token).Forget();
         }
 

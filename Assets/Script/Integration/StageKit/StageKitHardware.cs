@@ -333,7 +333,7 @@ namespace YARG.Integration.StageKit
                         break;
 
                     default:
-                        YargLogger.LogWarning(" Unknown command: " + curCommand.command);
+                        YargLogger.LogWarning("Unknown command: " + curCommand.command);
                         break;
                 }
 

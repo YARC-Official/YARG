@@ -12,7 +12,7 @@ namespace YARG.Integration.StageKit
     //grandparent of cues
     public abstract class StageKitLighting
     {
-        public CancellationTokenSource CancellationTokenSource;
+        protected CancellationTokenSource CancellationTokenSource;
 
         protected const byte NONE = 0b00000000;
         protected const byte ZERO = 0b00000001;
@@ -32,6 +32,10 @@ namespace YARG.Integration.StageKit
             MajorBeat = 2,
             MinorBeat = 4,
             RedFretDrums = 8,
+        }
+
+        public virtual void Enable()
+        {
         }
 
         public virtual void HandleLightingEvent(LightingType eventName)
@@ -69,12 +73,10 @@ namespace YARG.Integration.StageKit
         protected const StageKitLedColor RED = StageKitLedColor.Red;
         protected const StageKitLedColor COLOR_ALL = StageKitLedColor.All;
 
-        //protected const int BLUE = 0;
-        //protected const int GREEN = 1;
-        //protected const int YELLOW = 2;
-        //protected const int RED = 3;
-
         public List<StageKitLighting> CuePrimitives = new();
+        //While most cues only listen to events through their primitives, some cues listen directly to events so
+        //we only want this switched on when enabled.
+        public bool DirectListenEnabled;
     }
 
     public class BigRockEnding : StageKitLightingCue
@@ -110,12 +112,20 @@ namespace YARG.Integration.StageKit
 
         public BigRockEnding()
         {
-            StageKitInterpreter.Instance.SetLed(COLOR_ALL, ALL);
-
             CuePrimitives.Add(new BeatPattern(PatternList1, 0.5f));
             CuePrimitives.Add(new BeatPattern(PatternList2, 0.5f));
             CuePrimitives.Add(new BeatPattern(PatternList3, 0.5f));
             CuePrimitives.Add(new BeatPattern(PatternList4, 0.5f));
+        }
+
+        public override void Enable()
+        {
+            StageKitInterpreter.Instance.SetLed(COLOR_ALL, ALL);
+
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
+            }
         }
     }
 
@@ -143,11 +153,19 @@ namespace YARG.Integration.StageKit
 
         public LoopWarm()
         {
+            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
+            CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
+        }
+
+        public override void Enable()
+        {
             StageKitInterpreter.Instance.SetLed(GREEN, NONE);
             StageKitInterpreter.Instance.SetLed(BLUE, NONE);
 
-            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
-            CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
+            }
         }
     }
 
@@ -175,11 +193,19 @@ namespace YARG.Integration.StageKit
 
         public LoopCool()
         {
+            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
+            CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
+        }
+
+        public override void Enable()
+        {
             StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
             StageKitInterpreter.Instance.SetLed(RED, NONE);
 
-            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
-            CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
+            }
         }
     }
 
@@ -237,17 +263,32 @@ namespace YARG.Integration.StageKit
         {
             if (MasterLightingController.LargeVenue)
             {
-                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
-                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
                 CuePrimitives.Add(new BeatPattern(LargePatternList1, 4f));
                 CuePrimitives.Add(new BeatPattern(LargePatternList2, 4f));
             }
             else
             {
-                StageKitInterpreter.Instance.SetLed(RED, NONE);
-                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
                 CuePrimitives.Add(new BeatPattern(SmallPatternList1, 4f));
                 CuePrimitives.Add(new BeatPattern(SmallPatternList2, 4f));
+            }
+        }
+
+        public override void Enable()
+        {
+            if (MasterLightingController.LargeVenue)
+            {
+                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+            }
+            else
+            {
+                StageKitInterpreter.Instance.SetLed(RED, NONE);
+                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+            }
+
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
             }
         }
     }
@@ -298,17 +339,32 @@ namespace YARG.Integration.StageKit
         {
             if (MasterLightingController.LargeVenue)
             {
-                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
-                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
-                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
                 CuePrimitives.Add(new BeatPattern(LargePatternList1, 4f));
             }
             else
             {
-                StageKitInterpreter.Instance.SetLed(RED, NONE);
                 CuePrimitives.Add(new BeatPattern(SmallPatternList1, 4f));
                 CuePrimitives.Add(new BeatPattern(SmallPatternList2, 4f));
                 CuePrimitives.Add(new BeatPattern(SmallPatternList3, 2f));
+            }
+        }
+
+        public override void Enable()
+        {
+            if (MasterLightingController.LargeVenue)
+            {
+                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+            }
+            else
+            {
+                StageKitInterpreter.Instance.SetLed(RED, NONE);
+            }
+
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
             }
         }
     }
@@ -370,7 +426,6 @@ namespace YARG.Integration.StageKit
         {
             if (MasterLightingController.LargeVenue)
             {
-                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
                 //4 times a beats to control on and off because of the 2 different patterns on one color
                 CuePrimitives.Add(new BeatPattern(LargePatternList1, 1f));
                 CuePrimitives.Add(new BeatPattern(LargePatternList2, 1f));
@@ -378,11 +433,27 @@ namespace YARG.Integration.StageKit
             }
             else
             {
-                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
                 //4 times a beats to control on and off because of the 2 different patterns on one color
                 CuePrimitives.Add(new BeatPattern(SmallPatternList1, 1f));
                 CuePrimitives.Add(new BeatPattern(SmallPatternList2, 1f));
                 CuePrimitives.Add(new BeatPattern(SmallPatternList3, 1f));
+            }
+        }
+
+        public override void Enable()
+        {
+            if (MasterLightingController.LargeVenue)
+            {
+                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+            }
+            else
+            {
+                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+            }
+
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
             }
         }
     }
@@ -442,24 +513,39 @@ namespace YARG.Integration.StageKit
             //1 yellow@2 clockwise and 1 blue@0 counter clock.
             if (MasterLightingController.LargeVenue)
             {
-                StageKitInterpreter.Instance.SetLed(RED, NONE);
                 CuePrimitives.Add(new BeatPattern(LargePatternList1, 2f));
                 CuePrimitives.Add(new BeatPattern(LargePatternList2, 2f));
             }
             else
             {
-                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
                 CuePrimitives.Add(new BeatPattern(SmallPatternList1, 2f));
                 CuePrimitives.Add(new BeatPattern(SmallPatternList2, 2f));
             }
+        }
+
+        public override void Enable()
+        {
+            if (MasterLightingController.LargeVenue)
+            {
+                StageKitInterpreter.Instance.SetLed(RED, NONE);
+            }
+            else
+            {
+                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+            }
 
             StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
+            }
         }
     }
 
     public class Intro : StageKitLightingCue
     {
-        public Intro()
+        public override void Enable()
         {
             StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
             StageKitInterpreter.Instance.SetLed(RED, NONE);
@@ -470,7 +556,7 @@ namespace YARG.Integration.StageKit
 
     public class FlareFast : StageKitLightingCue
     {
-        public FlareFast()
+        public override void Enable()
         {
             StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
             StageKitInterpreter.Instance.SetLed(RED, NONE);
@@ -490,7 +576,7 @@ namespace YARG.Integration.StageKit
 
     public class FlareSlow : StageKitLightingCue
     {
-        public FlareSlow()
+        public override void Enable()
         {
             StageKitInterpreter.Instance.SetLed(COLOR_ALL, ALL);
         }
@@ -499,9 +585,18 @@ namespace YARG.Integration.StageKit
     public class SilhouetteSpot : StageKitLightingCue
     {
         private bool _blueOn = true;
-        private bool _enableBlueLedVocals = false;
+        private bool _enableBlueLedVocals;
 
         public SilhouetteSpot()
+        {
+            if (StageKitInterpreter.PreviousLightingCue is Intro)
+            {
+                CuePrimitives.Add(new ListenPattern(new (StageKitLedColor, byte)[] { (BLUE, ALL) },
+                    ListenTypes.RedFretDrums, true));
+            }
+        }
+
+        public override void Enable()
         {
             if (StageKitInterpreter.PreviousLightingCue is Dischord)
             {
@@ -516,11 +611,6 @@ namespace YARG.Integration.StageKit
             {
                 //do nothing (for the chop suey ending at least)
             }
-            else if (StageKitInterpreter.PreviousLightingCue is Intro)
-            {
-                CuePrimitives.Add(new ListenPattern(new (StageKitLedColor, byte)[] { (BLUE, ALL) },
-                    ListenTypes.RedFretDrums, true));
-            }
             else
             {
                 StageKitInterpreter.Instance.SetLed(RED, NONE);
@@ -528,6 +618,13 @@ namespace YARG.Integration.StageKit
                 StageKitInterpreter.Instance.SetLed(BLUE, NONE);
                 StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
             }
+
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
+            }
+
+            DirectListenEnabled = true;
         }
 
         public override void HandleVocalEvent(double eventName)
@@ -558,7 +655,7 @@ namespace YARG.Integration.StageKit
 
     public class Silhouettes : StageKitLightingCue
     {
-        public Silhouettes()
+        public override void Enable()
         {
             StageKitInterpreter.Instance.SetLed(GREEN, ALL);
             StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
@@ -569,7 +666,7 @@ namespace YARG.Integration.StageKit
 
     public class Blackout : StageKitLightingCue
     {
-        public Blackout()
+        public override void Enable()
         {
             StageKitInterpreter.Instance.SetLed(GREEN, NONE);
             StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
@@ -602,12 +699,21 @@ namespace YARG.Integration.StageKit
 
         public ManualWarm()
         {
-            StageKitInterpreter.Instance.SetLed(GREEN, NONE);
-            StageKitInterpreter.Instance.SetLed(BLUE, NONE);
             CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
             CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
-            // I thought it listens to the next but it doesn't seem to. I'll save this for funky fresh mode
+            // I thought the Manuals listens to the next but it doesn't seem to. I'll save this for funky fresh mode
             //new ListenPattern(new List<(int, byte)>(), StageKitLightingPrimitives.ListenTypes.Next);
+        }
+
+        public override void Enable()
+        {
+            StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+            StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
+            }
         }
     }
 
@@ -635,11 +741,19 @@ namespace YARG.Integration.StageKit
 
         public ManualCool()
         {
-            StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
-            StageKitInterpreter.Instance.SetLed(RED, NONE);
             CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
             CuePrimitives.Add(new BeatPattern(PatternList2, 4f));
-            //new ListenPattern(new List<(int, byte)>(), StageKitLightingPrimitives.ListenTypes.Next);
+        }
+
+        public override void Enable()
+        {
+            StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+            StageKitInterpreter.Instance.SetLed(RED, NONE);
+
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
+            }
         }
     }
 
@@ -647,7 +761,7 @@ namespace YARG.Integration.StageKit
     {
         private bool _anythingOn;
 
-        public Stomp()
+        public override void Enable()
         {
             if (MasterLightingController.LargeVenue)
             {
@@ -663,6 +777,8 @@ namespace YARG.Integration.StageKit
             StageKitInterpreter.Instance.SetLed(YELLOW, ALL);
 
             _anythingOn = true;
+
+            DirectListenEnabled = true;
         }
 
         public override void HandleLightingEvent(LightingType eventName)
@@ -697,9 +813,9 @@ namespace YARG.Integration.StageKit
 
     public class Dischord : StageKitLightingCue
     {
-        private readonly GameManager _gameManager = Object.FindObjectOfType<GameManager>();
+        private GameManager _gameManager;
         private float _currentPitch;
-        private bool _greenIsSpinning = false;
+        private bool _greenIsSpinning;
         private bool _blueOnTwo = true;
         private StageKitLighting _greenPattern;
         private byte _patternByte;
@@ -728,14 +844,24 @@ namespace YARG.Integration.StageKit
 
         public Dischord()
         {
-            StageKitInterpreter.Instance.SetLed(RED, NONE);
             CuePrimitives.Add(new ListenPattern(PatternList1, ListenTypes.MajorBeat | ListenTypes.MinorBeat));
             _greenPattern = new BeatPattern(PatternList2, 2f);
             CuePrimitives.Add(_greenPattern);
             _greenIsSpinning = true;
             CuePrimitives.Add(new ListenPattern(new (StageKitLedColor, byte)[] { (RED, ALL) }, ListenTypes.RedFretDrums,
                 true));
+        }
+
+        public override void Enable()
+        {
+            _gameManager = Object.FindObjectOfType<GameManager>();
+            StageKitInterpreter.Instance.SetLed(RED, NONE);
             StageKitInterpreter.Instance.SetLed(BLUE, TWO | SIX);
+
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
+            }
         }
 
         public override void HandleLightingEvent(LightingType eventName)
@@ -793,22 +919,30 @@ namespace YARG.Integration.StageKit
 
         public Default()
         {
-            StageKitInterpreter.Instance.SetLed(GREEN, NONE);
-            StageKitInterpreter.Instance.SetLed(RED, NONE);
-            StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
-            StageKitInterpreter.Instance.SetLed(BLUE, NONE);
-
             if (MasterLightingController.LargeVenue)
             {
-                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
                 CuePrimitives.Add(new ListenPattern(LargePatternList1, ListenTypes.Next));
             }
             else
             {
                 CuePrimitives.Add(new ListenPattern(new (StageKitLedColor, byte)[] { (YELLOW, ALL) },
-                    ListenTypes.RedFretDrums, true,
-                    true));
+                    ListenTypes.RedFretDrums, true, true));
                 CuePrimitives.Add(new ListenPattern(SmallPatternList1, ListenTypes.Next));
+            }
+        }
+
+        public override void Enable()
+        {
+            StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+
+            if (!MasterLightingController.LargeVenue)
+            {
+                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+            }
+
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
             }
         }
     }
@@ -829,10 +963,18 @@ namespace YARG.Integration.StageKit
 
         public MenuLighting()
         {
+            CuePrimitives.Add(new TimedPattern(PatternList1, 2f));
+        }
+
+        public override void Enable()
+        {
             StageKitInterpreter.Instance.SetLed(GREEN, NONE);
             StageKitInterpreter.Instance.SetLed(RED, NONE);
             StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
-            CuePrimitives.Add(new TimedPattern(PatternList1, 2f));
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
+            }
         }
     }
 
@@ -868,20 +1010,35 @@ namespace YARG.Integration.StageKit
 
         public ScoreLighting()
         {
+            if (MasterLightingController.LargeVenue)
+            {
+                CuePrimitives.Add(new TimedPattern(LargePatternList1, 1f));
+            }
+            else
+            {
+                CuePrimitives.Add(new TimedPattern(SmallPatternList1, 1f));
+            }
+
+            CuePrimitives.Add(new TimedPattern(PatternList2, 2f));
+        }
+
+        public override void Enable()
+        {
             StageKitInterpreter.Instance.SetLed(GREEN, NONE);
 
             if (MasterLightingController.LargeVenue)
             {
                 StageKitInterpreter.Instance.SetLed(BLUE, NONE);
-                CuePrimitives.Add(new TimedPattern(LargePatternList1, 1f));
             }
             else
             {
                 StageKitInterpreter.Instance.SetLed(RED, NONE);
-                CuePrimitives.Add(new TimedPattern(SmallPatternList1, 1f));
             }
 
-            CuePrimitives.Add(new TimedPattern(PatternList2, 2f));
+            foreach (var primitive in CuePrimitives)
+            {
+                primitive.Enable();
+            }
         }
     }
 }
