@@ -18,32 +18,31 @@ namespace YARG
         public static StageKitLightingCue PreviousLightingCue;
         private const byte NONE = 0b00000000;
 
-        private Dictionary<LightingType, StageKitLightingCue> _cueDictionary =
-            new Dictionary<LightingType, StageKitLightingCue>
-            {
-                { LightingType.Menu, new MenuLighting() },
-                { LightingType.Score, new ScoreLighting() },
-                { LightingType.Warm_Manual, new ManualWarm() },
-                { LightingType.Cool_Manual, new ManualCool() },
-                { LightingType.Dischord, new Dischord() },
-                { LightingType.Stomp, new Stomp() },
-                { LightingType.Default, new Default() },
-                { LightingType.Warm_Automatic, new LoopWarm() },
-                { LightingType.Cool_Automatic, new LoopCool() },
-                { LightingType.BigRockEnding, new BigRockEnding() },
-                { LightingType.Searchlights, new SearchLight() },
-                { LightingType.Frenzy, new Frenzy() },
-                { LightingType.Sweep, new Sweep() },
-                { LightingType.Harmony, new Harmony() },
-                { LightingType.Flare_Slow, new FlareSlow() },
-                { LightingType.Flare_Fast, new FlareFast() },
-                { LightingType.Silhouettes_Spotlight, new SilhouetteSpot() },
-                { LightingType.Silhouettes, new Silhouettes() },
-                { LightingType.Blackout_Spotlight, new Blackout() },
-                { LightingType.Blackout_Slow, new Blackout() },
-                { LightingType.Blackout_Fast, new Blackout() },
-                { LightingType.Intro, new Intro() }
-            };
+        private Dictionary<LightingType, StageKitLightingCue> _cueDictionary = new()
+        {
+            { LightingType.Menu, new MenuLighting() },
+            { LightingType.Score, new ScoreLighting() },
+            { LightingType.Warm_Manual, new ManualWarm() },
+            { LightingType.Cool_Manual, new ManualCool() },
+            { LightingType.Dischord, new Dischord() },
+            { LightingType.Stomp, new Stomp() },
+            { LightingType.Default, new Default() },
+            { LightingType.Warm_Automatic, new LoopWarm() },
+            { LightingType.Cool_Automatic, new LoopCool() },
+            { LightingType.BigRockEnding, new BigRockEnding() },
+            { LightingType.Searchlights, new SearchLight() },
+            { LightingType.Frenzy, new Frenzy() },
+            { LightingType.Sweep, new Sweep() },
+            { LightingType.Harmony, new Harmony() },
+            { LightingType.Flare_Slow, new FlareSlow() },
+            { LightingType.Flare_Fast, new FlareFast() },
+            { LightingType.Silhouettes_Spotlight, new SilhouetteSpot() },
+            { LightingType.Silhouettes, new Silhouettes() },
+            { LightingType.Blackout_Spotlight, new Blackout() },
+            { LightingType.Blackout_Slow, new Blackout() },
+            { LightingType.Blackout_Fast, new Blackout() },
+            { LightingType.Intro, new Intro() }
+        };
 
         public static event Action<StageKitLedColor, byte> OnLedEvent;
 
@@ -137,9 +136,8 @@ namespace YARG
                 {
                     ChangeCues(null);
                 }
-                else if (value.Type == LightingType.Keyframe_Next || value.Type == LightingType.Keyframe_Previous ||
-                    value.Type == LightingType.Keyframe_First || value.Type == LightingType.Verse ||
-                    value.Type == LightingType.Chorus)
+                else if (value.Type is LightingType.Keyframe_Next or LightingType.Keyframe_Previous
+                    or LightingType.Keyframe_First or LightingType.Verse or LightingType.Chorus)
                 {
                     // Next is handled in the cue classes via their primitive calls.
                     // No cue listens to Previous or First.
