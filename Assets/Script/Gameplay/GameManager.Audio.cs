@@ -28,7 +28,7 @@ namespace YARG.Gameplay
         }
 
         private readonly Dictionary<SongStem, StemState> _stemStates = new();
-        private SongStem _sharedStem;
+        private SongStem _backgroundStem;
         private int _starPowerActivations = 0;
 
         private void LoadAudio()
@@ -44,7 +44,7 @@ namespace YARG.Gameplay
             }
 
             _mixer.SongEnd += OnAudioEnd;
-            _sharedStem = SongStem.Song;
+            _backgroundStem = SongStem.Song;
             foreach (var channel in _mixer.Channels)
             {
                 double volume = GlobalAudioHandler.GetVolumeSetting(channel.Stem);
@@ -64,7 +64,7 @@ namespace YARG.Gameplay
                 }
             }
 
-            _sharedStem = _stemStates.Count > 1 ? SongStem.Song : _stemStates.First().Key;
+            _backgroundStem = _stemStates.Count > 1 ? SongStem.Song : _stemStates.First().Key;
         }
 
         private void StarPowerClap(Beatline beat)
@@ -116,14 +116,14 @@ namespace YARG.Gameplay
             StemState state;
             while (!_stemStates.TryGetValue(stem, out state))
             {
-                if (stem == _sharedStem)
+                if (stem == _backgroundStem)
                 {
                     return;
                 }
-                stem = _sharedStem;
+                stem = _backgroundStem;
             }
 
-            if (setting == StarPowerFxMode.MultitrackOnly && stem == _sharedStem)
+            if (setting == StarPowerFxMode.MultitrackOnly && stem == _backgroundStem)
             {
                 return;
             }
