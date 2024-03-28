@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.Rendering;
-using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
-using YARG.Helpers.Extensions;
 using YARG.Settings;
 
 namespace YARG.Gameplay
@@ -32,7 +28,7 @@ namespace YARG.Gameplay
         }
 
         private readonly Dictionary<SongStem, StemState> _stemStates = new();
-
+        private SongStem _sharedStem;
         private int _starPowerActivations = 0;
 
         private void LoadAudio()
@@ -48,12 +44,12 @@ namespace YARG.Gameplay
             }
 
             _mixer.SongEnd += OnAudioEnd;
+            _sharedStem = SongStem.Song;
             foreach (var channel in _mixer.Channels)
             {
-                var stem = _mixer.Channels.Count > 1 ? channel.Stem : SongStem.Song;
-                double volume = GlobalAudioHandler.GetVolumeSetting(stem);
+                double volume = GlobalAudioHandler.GetVolumeSetting(channel.Stem);
                 var stemState = new StemState(volume);
-                switch (stem)
+                switch (channel.Stem)
                 {
                     case SongStem.Drums:
                     case SongStem.Drums1:
@@ -63,17 +59,12 @@ namespace YARG.Gameplay
                         _stemStates.TryAdd(SongStem.Drums, stemState);
                         break;
                     default:
-                        _stemStates.Add(stem, stemState);
+                        _stemStates.Add(channel.Stem, stemState);
                         break;
                 }
             }
 
-            if (_stemStates.TryGetValue(SongStem.Song, out var state))
-            {
-                // Ensures it will still play *somewhat*, even if all players mute
-                state.Total = 1;
-                state.Audible = 1;
-            }
+            _sharedStem = _stemStates.Count > 1 ? SongStem.Song : _stemStates.First().Key;
         }
 
         private void StarPowerClap(Beatline beat)
