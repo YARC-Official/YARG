@@ -116,14 +116,14 @@ namespace YARG.Gameplay
             StemState state;
             while (!_stemStates.TryGetValue(stem, out state))
             {
-                if (stem == SongStem.Song)
+                if (stem == _sharedStem)
                 {
                     return;
                 }
-                stem = SongStem.Song;
+                stem = _sharedStem;
             }
 
-            if (setting == StarPowerFxMode.MultitrackOnly && stem == SongStem.Song)
+            if (setting == StarPowerFxMode.MultitrackOnly && stem == _sharedStem)
             {
                 return;
             }
