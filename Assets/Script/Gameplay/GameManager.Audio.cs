@@ -50,9 +50,10 @@ namespace YARG.Gameplay
             _mixer.SongEnd += OnAudioEnd;
             foreach (var channel in _mixer.Channels)
             {
-                double volume = GlobalAudioHandler.GetVolumeSetting(channel.Stem);
+                var stem = _mixer.Channels.Count > 1 ? channel.Stem : SongStem.Song;
+                double volume = GlobalAudioHandler.GetVolumeSetting(stem);
                 var stemState = new StemState(volume);
-                switch (channel.Stem)
+                switch (stem)
                 {
                     case SongStem.Drums:
                     case SongStem.Drums1:
@@ -62,7 +63,7 @@ namespace YARG.Gameplay
                         _stemStates.TryAdd(SongStem.Drums, stemState);
                         break;
                     default:
-                        _stemStates.Add(channel.Stem, stemState);
+                        _stemStates.Add(stem, stemState);
                         break;
                 }
             }
