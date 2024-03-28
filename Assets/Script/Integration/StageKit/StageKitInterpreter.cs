@@ -18,29 +18,32 @@ namespace YARG
         public static StageKitLightingCue PreviousLightingCue;
         private const byte NONE = 0b00000000;
 
-        private readonly List<StageKitLightingCue> _cuesList = new List<StageKitLightingCue>
-        {
-            new MenuLighting(),
-            new ScoreLighting(),
-            new ManualWarm(),
-            new ManualCool(),
-            new Dischord(),
-            new Stomp(),
-            new Default(),
-            new LoopWarm(),
-            new LoopCool(),
-            new BigRockEnding(),
-            new SearchLight(),
-            new Frenzy(),
-            new Sweep(),
-            new Harmony(),
-            new FlareSlow(),
-            new FlareFast(),
-            new SilhouetteSpot(),
-            new Silhouettes(),
-            new Blackout(),
-            new Intro()
-        };
+        private Dictionary<LightingType, StageKitLightingCue> _cueDictionary =
+            new Dictionary<LightingType, StageKitLightingCue>
+            {
+                { LightingType.Menu, new MenuLighting() },
+                { LightingType.Score, new ScoreLighting() },
+                { LightingType.Warm_Manual, new ManualWarm() },
+                { LightingType.Cool_Manual, new ManualCool() },
+                { LightingType.Dischord, new Dischord() },
+                { LightingType.Stomp, new Stomp() },
+                { LightingType.Default, new Default() },
+                { LightingType.Warm_Automatic, new LoopWarm() },
+                { LightingType.Cool_Automatic, new LoopCool() },
+                { LightingType.BigRockEnding, new BigRockEnding() },
+                { LightingType.Searchlights, new SearchLight() },
+                { LightingType.Frenzy, new Frenzy() },
+                { LightingType.Sweep, new Sweep() },
+                { LightingType.Harmony, new Harmony() },
+                { LightingType.Flare_Slow, new FlareSlow() },
+                { LightingType.Flare_Fast, new FlareFast() },
+                { LightingType.Silhouettes_Spotlight, new SilhouetteSpot() },
+                { LightingType.Silhouettes, new Silhouettes() },
+                { LightingType.Blackout_Spotlight, new Blackout() },
+                { LightingType.Blackout_Slow, new Blackout() },
+                { LightingType.Blackout_Fast, new Blackout() },
+                { LightingType.Intro, new Intro() }
+            };
 
         public static event Action<StageKitLedColor, byte> OnLedEvent;
 
@@ -130,114 +133,26 @@ namespace YARG
             }
             else
             {
-                switch (value?.Type)
+                if (value == null)
                 {
-                    case null:
-                        ChangeCues(null);
-                        break;
-
-                    case LightingType.Menu:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is MenuLighting));
-                        break;
-
-                    case LightingType.Score:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is ScoreLighting));
-                        break;
-
-                    //Key Framed cues
-                    case LightingType.Warm_Manual:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is ManualWarm));
-                        break;
-
-                    case LightingType.Cool_Manual:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is ManualCool));
-                        break;
-
-                    case LightingType.Dischord:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is Dischord));
-                        break;
-
-                    case LightingType.Stomp:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is Stomp));
-                        break;
-
-                    case LightingType.Default:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is Default));
-                        break;
-
-                    //Continuous cues
-                    case LightingType.Warm_Automatic:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is LoopWarm));
-                        break;
-
-                    case LightingType.Cool_Automatic:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is LoopCool));
-                        break;
-
-                    case LightingType.BigRockEnding:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is BigRockEnding));
-                        break;
-
-                    case LightingType.Searchlights:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is SearchLight));
-                        break;
-
-                    case LightingType.Frenzy:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is Frenzy));
-                        break;
-
-                    case LightingType.Sweep:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is Sweep));
-                        break;
-
-                    case LightingType.Harmony:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is Harmony));
-                        break;
-
-                    //Instant cues
-                    case LightingType.Flare_Slow:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is FlareSlow));
-                        break;
-
-                    case LightingType.Flare_Fast:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is FlareFast));
-                        break;
-
-                    case LightingType.Silhouettes_Spotlight:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is SilhouetteSpot));
-                        break;
-
-                    case LightingType.Silhouettes:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is Silhouettes));
-                        break;
-
-                    case LightingType.Blackout_Spotlight:
-                    case LightingType.Blackout_Slow:
-                    case LightingType.Blackout_Fast:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is Blackout));
-                        break;
-
-                    case LightingType.Intro:
-                        ChangeCues(_cuesList.FirstOrDefault(c => c is Intro));
-                        break;
-
-                    //Ignored cues
-                    //these are handled in the cue classes via their primitive calls.
-                    case LightingType.Keyframe_Next:
-                    //no cue listens to Previous.
-                    case LightingType.Keyframe_Previous:
-                    //no cue listens to First.
-                    case LightingType.Keyframe_First:
-
-                    //In-game lighting calls we currently ignore but might do something with in an
-                    //extended "funky fresh" mode.
-                    case LightingType.Verse:
-                    case LightingType.Chorus:
-                        break;
-
-                    default:
-                        YargLogger.LogWarning("Unhandled lighting event: " + value.Type);
-                        break;
+                    ChangeCues(null);
+                }
+                else if (value.Type == LightingType.Keyframe_Next || value.Type == LightingType.Keyframe_Previous ||
+                    value.Type == LightingType.Keyframe_First || value.Type == LightingType.Verse ||
+                    value.Type == LightingType.Chorus)
+                {
+                    // Next is handled in the cue classes via their primitive calls.
+                    // No cue listens to Previous or First.
+                    // Verse and Chorus are ignored by the stage kits but might do something with in an extended "funky fresh" mode.
+                }
+                else if (_cueDictionary.TryGetValue(value.Type, out var cue))
+                {
+                    ChangeCues(cue);
+                }
+                else
+                {
+                    // Handle cases where the LightingType is not found in the dictionary
+                    YargLogger.LogWarning("Unhandled lighting event: " + value?.Type);
                 }
             }
         }
