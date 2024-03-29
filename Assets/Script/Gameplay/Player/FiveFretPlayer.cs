@@ -47,6 +47,10 @@ namespace YARG.Gameplay.Player
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
             _stem = player.Profile.CurrentInstrument.ToSongStem();
+            if (_stem == SongStem.Bass && mixer[SongStem.Bass] == null)
+            {
+                _stem = SongStem.Rhythm;
+            }
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
         }
 

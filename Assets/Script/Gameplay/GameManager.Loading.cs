@@ -390,6 +390,11 @@ namespace YARG.Gameplay
 
                 // Add (or increase total of) the stem state
                 var stem = player.Profile.CurrentInstrument.ToSongStem();
+                if (stem == SongStem.Bass && !_stemStates.ContainsKey(SongStem.Bass))
+                {
+                    stem = SongStem.Rhythm;
+                }
+
                 if (stem != _backgroundStem && _stemStates.TryGetValue(stem, out var state))
                 {
                     ++state.Total;
