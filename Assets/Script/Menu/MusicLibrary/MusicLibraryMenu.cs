@@ -34,7 +34,7 @@ namespace YARG.Menu.MusicLibrary
 
         public static MusicLibraryMode LibraryMode;
 
-        public static SongEntry InitialSelect;
+        public static SongEntry CurrentlyPlaying;
         public static Playlist SelectedPlaylist;
 
 #nullable enable
@@ -107,11 +107,7 @@ namespace YARG.Menu.MusicLibrary
             // Get songs
             if (_doRefresh)
             {
-                if (InitialSelect != null)
-                {
-                    _currentSong = InitialSelect;
-                }
-
+                _currentSong = CurrentlyPlaying;
                 Refresh();
                 _doRefresh = false;
             }
@@ -122,7 +118,7 @@ namespace YARG.Menu.MusicLibrary
                 SelectedIndex = _savedIndex;
             }
 
-            InitialSelect = null;
+            CurrentlyPlaying = null;
 
             // Set proper text
             _subHeader.text = LibraryMode switch
@@ -144,14 +140,12 @@ namespace YARG.Menu.MusicLibrary
             base.OnSelectedIndexChanged();
 
             _sidebar.UpdateSidebar();
-
             if (CurrentSelection is SongViewType song)
             {
-                if (song.SongEntry == _currentSong && (_previewContext == null || _previewContext.IsPlaying))
+                if (CurrentlyPlaying == null && song.SongEntry == _currentSong && (_previewContext == null || _previewContext.IsPlaying))
                 {
                     return;
                 }
-
                 _currentSong = song.SongEntry;
             }
             else
@@ -165,7 +159,7 @@ namespace YARG.Menu.MusicLibrary
                 _previewCanceller?.Cancel();
                 _previewContext?.Stop();
                 _previewContext = null;
-                canceller = _previewCanceller = new CancellationTokenSource();
+                _previewCanceller = canceller = new CancellationTokenSource();
             }
             StartPreview(canceller);
         }
@@ -407,13 +401,13 @@ namespace YARG.Menu.MusicLibrary
 
         private async void StartPreview(CancellationTokenSource canceller)
         {
-            if (CurrentSelection is not SongViewType song)
+            if (_currentSong == null)
             {
                 return;
             }
 
             float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
-            var context = await song.SongEntry.LoadPreview(previewVolume, 1f, canceller);
+            var context = await _currentSong.LoadPreview(previewVolume, 1f, canceller);
             if (context != null)
             {
                 _previewContext = context;
