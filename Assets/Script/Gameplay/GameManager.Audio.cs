@@ -58,6 +58,11 @@ namespace YARG.Gameplay
                     case SongStem.Drums4:
                         _stemStates.TryAdd(SongStem.Drums, stemState);
                         break;
+                    case SongStem.Vocals:
+                    case SongStem.Vocals1:
+                    case SongStem.Vocals2:
+                        _stemStates.TryAdd(SongStem.Vocals, stemState);
+                        break;
                     default:
                         _stemStates.Add(channel.Stem, stemState);
                         break;
