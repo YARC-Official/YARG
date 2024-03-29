@@ -131,7 +131,7 @@ namespace YARG.Audio.BASS
                 {
                     YargLogger.LogFormatError("Failed to get channel position in bytes: {0}!", Bass.LastError);
                 }
-                else if (!BassMix.ChannelSetPosition(_mainHandle.Stream, bytes))
+                else if (!BassMix.ChannelSetPosition(_mainHandle.Stream, bytes, PositionFlags.Bytes | PositionFlags.MixerReset))
                 {
                     YargLogger.LogFormatError("Failed to set channel position: {0}!", Bass.LastError);
                 }
