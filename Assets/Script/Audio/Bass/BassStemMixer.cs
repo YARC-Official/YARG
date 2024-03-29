@@ -121,7 +121,7 @@ namespace YARG.Audio.BASS
             if (playing)
             {
                 // Pause when seeking to avoid desyncing individual stems
-                Pause();
+                Pause_Internal();
             }
 
             if (_channels.Count == 0)
@@ -153,7 +153,7 @@ namespace YARG.Audio.BASS
                 // Account for buffer when resuming
                 if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
                     YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
-                Play();
+                Play_Internal(false);
             }
         }
 
