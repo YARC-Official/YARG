@@ -33,6 +33,16 @@ namespace YARG.Themes
                 },
                 PreferredColorProfile = ColorProfile.CircularDefault.Id,
                 PreferredCameraPreset = CameraPreset.CircularDefault.Id,
+            },
+            new ThemePreset("NEW DEFAULT BETA", true)
+            {
+                AssetBundleThemePath = "Themes/AprilFools",
+                SupportedGameModes =
+                {
+                    GameMode.FiveFretGuitar
+                },
+                PreferredColorProfile = ColorProfile.CircularDefault.Id,
+                PreferredCameraPreset = CameraPreset.CircularDefault.Id,
             }
         };
     }
