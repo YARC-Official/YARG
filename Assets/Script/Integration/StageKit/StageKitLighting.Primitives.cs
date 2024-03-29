@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Melanchall.DryWetMidi.Core;
 using PlasticBand.Haptics;
 using YARG.Core.Chart;
 using YARG.Gameplay;
@@ -27,6 +26,7 @@ namespace YARG.Integration.StageKit
 
         public override void Enable()
         {
+            _patternIndex = 0;
             //Brought to you by Hacky Hack and the Hacktones
             _gameManager = Object.FindObjectOfType<GameManager>();
             _gameManager.BeatEventHandler.Subscribe(OnBeat, _beatsPerCycle / _patternList.Length);
@@ -79,6 +79,7 @@ namespace YARG.Integration.StageKit
 
         public override void Enable()
         {
+            _patternIndex = 0;
             _enabled = true;
             if (!_inverse) return;
             StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
@@ -205,6 +206,7 @@ namespace YARG.Integration.StageKit
 
         public override void Enable()
         {
+            _patternIndex = 0;
             TimedCircleCoroutine(CancellationTokenSource.Token).Forget();
         }
 

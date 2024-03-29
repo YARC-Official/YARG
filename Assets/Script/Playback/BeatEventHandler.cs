@@ -229,10 +229,11 @@ namespace YARG.Playback
         public void Update(double songTime)
         {
             // Add/remove new subscriptions
-            foreach (var (action, state) in _addStates)
-                _states.Add(action, state);
             foreach (var action in _removeStates)
                 _states.Remove(action);
+
+            foreach (var (action, state) in _addStates)
+                _states.Add(action, state);
 
             _addStates.Clear();
             _removeStates.Clear();

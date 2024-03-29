@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
