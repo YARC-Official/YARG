@@ -360,6 +360,7 @@ namespace YARG.Audio.BASS
 
         internal static void SetSpeed(float speed, int streamHandle, int reverbHandle)
         {
+            speed = (float) Math.Clamp(speed, 0.05, 50);
             // Gets relative speed from 100% (so 1.05f = 5% increase)
             float percentageSpeed = speed * 100;
             float relativeSpeed = percentageSpeed - 100;
@@ -408,7 +409,6 @@ namespace YARG.Audio.BASS
 
             if (!Mathf.Approximately(speed, 1f))
             {
-                speed = (float) Math.Round(Math.Clamp(speed, 0.05, 50), 2);
                 SetSpeed(speed, streamHandles.Stream, reverbHandles.Stream);
                 if (GlobalAudioHandler.IsChipmunkSpeedup)
                 {
