@@ -15,7 +15,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3021
+  m_CustomRenderQueue: 3025
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -101,8 +101,8 @@ Material:
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
-    - _QueueControl: 0
-    - _QueueOffset: 21
+    - _QueueControl: 1
+    - _QueueOffset: 1
     - _ReceiveShadows: 1
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
