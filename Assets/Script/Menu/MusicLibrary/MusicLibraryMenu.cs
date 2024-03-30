@@ -107,7 +107,10 @@ namespace YARG.Menu.MusicLibrary
             // Get songs
             if (_doRefresh)
             {
-                _currentSong = CurrentlyPlaying;
+                if (CurrentlyPlaying != null)
+                {
+                    _currentSong = CurrentlyPlaying;
+                }
                 Refresh();
                 _doRefresh = false;
             }
