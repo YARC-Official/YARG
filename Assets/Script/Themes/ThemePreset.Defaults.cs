@@ -39,7 +39,9 @@ namespace YARG.Themes
                 AssetBundleThemePath = "Themes/AprilFools",
                 SupportedGameModes =
                 {
-                    GameMode.FiveFretGuitar
+                    GameMode.FiveFretGuitar,
+                    GameMode.FourLaneDrums,
+                    GameMode.FiveLaneDrums
                 },
                 PreferredColorProfile = ColorProfile.CircularDefault.Id,
                 PreferredCameraPreset = CameraPreset.CircularDefault.Id,
