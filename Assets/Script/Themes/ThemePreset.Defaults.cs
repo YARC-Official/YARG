@@ -34,7 +34,7 @@ namespace YARG.Themes
                 PreferredColorProfile = ColorProfile.CircularDefault.Id,
                 PreferredCameraPreset = CameraPreset.CircularDefault.Id,
             },
-            new ThemePreset("NEW DEFAULT BETA", true)
+            new ThemePreset("YARG on Fire", true)
             {
                 AssetBundleThemePath = "Themes/AprilFools",
                 SupportedGameModes =

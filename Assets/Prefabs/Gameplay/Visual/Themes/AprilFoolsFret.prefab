@@ -48,10 +48,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f46efdc257804dceb9be77f1f9b48614, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _coloredMaterials:
+  _coloredMaterials: []
+  _innerMaterials:
   - Mesh: {fileID: 1342590056179857867}
     MaterialIndex: 0
-  _innerMaterials: []
   <HitEffect>k__BackingField: {fileID: 5909288780606884818}
   <SustainEffect>k__BackingField: {fileID: 6729893201976026580}
   <PressedEffect>k__BackingField: {fileID: 2964297744543665078}
@@ -9961,7 +9961,7 @@ Animator:
   m_GameObject: {fileID: 5806965913009220371}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 697346ef53273944c9cc63da094f7dee, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
