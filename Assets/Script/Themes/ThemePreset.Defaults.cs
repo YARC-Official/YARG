@@ -33,6 +33,18 @@ namespace YARG.Themes
                 },
                 PreferredColorProfile = ColorProfile.CircularDefault.Id,
                 PreferredCameraPreset = CameraPreset.CircularDefault.Id,
+            },
+            new ThemePreset("YARG on Fire", true)
+            {
+                AssetBundleThemePath = "Themes/AprilFools",
+                SupportedGameModes =
+                {
+                    GameMode.FiveFretGuitar,
+                    GameMode.FourLaneDrums,
+                    GameMode.FiveLaneDrums
+                },
+                PreferredColorProfile = ColorProfile.AprilFoolsDefault.Id,
+                PreferredCameraPreset = CameraPreset.CircularDefault.Id,
             }
         };
     }
