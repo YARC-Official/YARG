@@ -1,14 +1,15 @@
 using System;
 using UnityEngine;
 using YARG.Gameplay.Player;
+using YARG.Helpers.Extensions;
 using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
     public class HitWindowDisplay : MonoBehaviour
     {
-        private Transform  _transformCache;
-        private BasePlayer _player;
+        private Transform   _transformCache;
+        private TrackPlayer _player;
 
         private double _lastTotalWindow;
 
@@ -16,7 +17,7 @@ namespace YARG.Gameplay.Visuals
 
         private void Awake()
         {
-            _player = GetComponentInParent<BasePlayer>();
+            _player = GetComponentInParent<TrackPlayer>();
 
             _transformCache = transform;
             if (!SettingsManager.Settings.ShowHitWindow.Value)
@@ -27,9 +28,16 @@ namespace YARG.Gameplay.Visuals
 
         private void Start()
         {
-            if (_player is null) return;
+            if (_player is null)
+            {
+                return;
+            }
 
             SetHitWindowSize();
+
+            // Set fade (required in case the hit window goes past the fade threshold)
+            GetComponent<MeshRenderer>().material
+                .SetFade(_player.ZeroFadePosition, _player.FadeSize);
         }
 
         public void SetHitWindowSize()
