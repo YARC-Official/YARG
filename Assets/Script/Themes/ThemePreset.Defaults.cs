@@ -43,7 +43,7 @@ namespace YARG.Themes
                     GameMode.FourLaneDrums,
                     GameMode.FiveLaneDrums
                 },
-                PreferredColorProfile = ColorProfile.CircularDefault.Id,
+                PreferredColorProfile = ColorProfile.AprilFoolsDefault.Id,
                 PreferredCameraPreset = CameraPreset.CircularDefault.Id,
             }
         };
