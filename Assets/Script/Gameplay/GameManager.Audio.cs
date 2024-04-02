@@ -43,7 +43,6 @@ namespace YARG.Gameplay
                 return;
             }
 
-            _mixer.SongEnd += OnAudioEnd;
             _backgroundStem = SongStem.Song;
             foreach (var channel in _mixer.Channels)
             {
