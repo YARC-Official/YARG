@@ -198,12 +198,6 @@ namespace YARG.Gameplay.Player
             // Video offset is already accounted for
             time += InputCalibration;
 
-            if (Player.Profile.IsBot)
-            {
-                BaseEngine.UpdateBot(time);
-                return;
-            }
-
             if (GameManager.IsReplay)
             {
                 while (_replayInputIndex < ReplayInputs.Count)
