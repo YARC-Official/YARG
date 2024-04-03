@@ -8,14 +8,11 @@ using YARG.Core.Logging;
 
 /*
  Software Layout:
-    This controller is in the persistent scene. It is responsible for keeping track of the current state of the stage
-    kits, sending commands to them, and tracking the cues. Each scene has its own loader (StagekitMenu, StagekitScore,
-    StagekitGameplay), which is responsible for loading the lighting cues into the controller. Cues are made up of set
-    of primitives that either follow the beat, triggered by an event, or timed. Some cues have multiple patterns.
-    These patterns are not random, the same song in the same venue will have the same patterns for the cues each time.
-    I do not know how that decided. Each venue is flagged as either Large or Small. This is used to determine which
-    pattern sets will be uses for some cues. This is randomized currently, since there is no way to get venue size from
-    the game, at the moment.
+    Cues are made up of set of primitives that either follow the beat, triggered by an event, or timed. Some cues have
+    multiple patterns. These patterns are not random, the same song in the same venue will have the same patterns for
+    the cues each time. I do not know how that decided. Each venue is flagged as either Large or Small. This is used to
+    determine which pattern sets will be uses for some cues. This is randomized currently, since there is no way to get
+    venue size from the game, at the moment.
 
  Hardware layout:
     LED numbers on the pod:
@@ -167,14 +164,8 @@ using YARG.Core.Logging;
  */
 namespace YARG.Integration.StageKit
 {
-    public class StageKitLightingController : MonoSingleton<StageKitLightingController>
+    public class StageKitHardware : MonoSingleton<StageKitHardware>
     {
-        public enum FogState
-        {
-            Off,
-            On,
-        }
-
         private enum CommandType
         {
             LedBlue,
@@ -185,87 +176,84 @@ namespace YARG.Integration.StageKit
             StrobeSpeed,
         }
 
-        public enum LedColor
-        {
-            Blue,
-            Green,
-            Yellow,
-            Red,
-        }
-
-        public const byte NONE = 0b00000000;
-        public const byte ZERO = 0b00000001;
-        public const byte ONE = 0b00000010;
-        public const byte TWO = 0b00000100;
-        public const byte THREE = 0b00001000;
-        public const byte FOUR = 0b00010000;
-        public const byte FIVE = 0b00100000;
-        public const byte SIX = 0b01000000;
-        public const byte SEVEN = 0b10000000;
-        public const byte ALL = 0b11111111;
-
-        public FogState CurrentFogState = FogState.Off;
-        public FogState PreviousFogState = FogState.Off;
-
-        public StageKitStrobeSpeed CurrentStrobeState = StageKitStrobeSpeed.Off;
-        public StageKitStrobeSpeed PreviousStrobeState = StageKitStrobeSpeed.Off;
-
-        public List<IStageKitHaptics> StageKits = new();
-
-        public StageKitLightingCue CurrentLightingCue = null;
-        public StageKitLightingCue PreviousLightingCue = null;
-
-        public List<StageKitLighting> CuePrimitives = new();
-
-        //Gets set by StageKitGameplay but this is just a fail-safe.
-        public bool LargeVenue = false;
-
-        //This is used to send events to any other light controllers that might be in the scene (aka dmx lights)
-        public event Action<StageKitLedColor, StageKitLed> OnLedSet;
-        public event Action<bool> OnFogSet;
-        public event Action<StageKitStrobeSpeed> OnStrobeSet;
+        private List<IStageKitHaptics> _stageKits = new();
 
         // Stuff for the actual command sending to the unit
         private bool _isSendingCommands;
         private readonly Queue<(int command, byte data)> _commandQueue = new();
-        private byte[] _currentLedState = { 0x00, 0x00, 0x00, 0x00 }; //blue, green, yellow, red
+        private byte _currentBlueLedState;
+        private byte _currentGreenLedState;
+        private byte _currentYellowLedState;
+        private byte _currentRedLedState;
+
         //this is only for the SendCommands() command to limit swamping the kit.
-        private byte[] _previousLedState = { 0x00, 0x00, 0x00, 0x00 };
+        private byte _previousBlueLedState;
+        private byte _previousGreenLedState;
+        private byte _previousYellowLedState;
+        private byte _previousRedLedState;
+
         //necessary to prevent the stage kit from getting overwhelmed and dropping commands. In seconds. 0.001 is the
         //minimum. Preliminary testing indicated that 7ms was needed to prevent dropped commands, but it seems that
         //most songs are slow enough to allow 1ms.
         private const float SEND_DELAY = 0.001f;
 
-        // Listen for new stage kits being added or removed at any time.
+        private void Start()
+        {
+            InputSystem.onDeviceChange += OnDeviceChange;
+        }
+
+        protected override void SingletonDestroy()
+        {
+            InputSystem.onDeviceChange -= OnDeviceChange;
+            foreach (var kit in _stageKits) kit.ResetHaptics();
+        }
+
+        public void HandleEnabledChanged(bool isEnabled)
+        {
+            if (isEnabled)
+            {
+                //build a list of all the stage kits connected
+                foreach (var device in InputSystem.devices)
+                {
+                    if (device is IStageKitHaptics haptics) _stageKits.Add(haptics);
+                }
+
+                //StageKits remember its last state which is neat but not needed on startup
+                foreach (var kit in _stageKits) kit.ResetHaptics();
+
+                MasterLightingController.OnFogState += OnFogStateEvent;
+                MasterLightingController.OnStrobeEvent += OnStrobeEvent;
+                StageKitInterpreter.OnLedEvent += HandleLedEvent;
+            }
+            else
+            {
+                MasterLightingController.OnFogState -= OnFogStateEvent;
+                MasterLightingController.OnStrobeEvent -= OnStrobeEvent;
+                StageKitInterpreter.OnLedEvent -= HandleLedEvent;
+            }
+        }
+
         private void OnDeviceChange(InputDevice device, InputDeviceChange change)
         {
+            // Listen for new stage kits being added or removed at any time.
             if (change == InputDeviceChange.Added)
             {
-                if (device is IStageKitHaptics haptics) StageKits.Add(haptics);
+                if (device is IStageKitHaptics haptics) _stageKits.Add(haptics);
             }
             else if (change == InputDeviceChange.Removed)
             {
-                if (device is IStageKitHaptics haptics) StageKits.Remove(haptics);
+                if (device is IStageKitHaptics haptics) _stageKits.Remove(haptics);
             }
         }
 
-        private void Start()
+        private void OnFogStateEvent(MasterLightingController.FogState value)
         {
-            //build a list of all the stage kits connected
-            foreach (var device in InputSystem.devices)
-            {
-                if (device is IStageKitHaptics haptics) StageKits.Add(haptics);
-            }
-
-            //then listen to see if any more are added or removed
-            InputSystem.onDeviceChange += OnDeviceChange;
-            //StageKits remember its last state which is neat but not needed on startup
-            StageKits.ForEach(kit => kit.ResetHaptics());
+            EnqueueCommand((int) CommandType.FogMachine, (byte) value);
         }
 
-        private void OnApplicationQuit()
+        private void OnStrobeEvent(StageKitStrobeSpeed value)
         {
-            InputSystem.onDeviceChange -= OnDeviceChange;
+            EnqueueCommand((int) CommandType.StrobeSpeed, (byte) value);
         }
 
         //The actual queueing and sending of commands
@@ -284,7 +272,7 @@ namespace YARG.Integration.StageKit
         private async UniTask SendCommands()
         {
             _isSendingCommands = true;
-            var things = CurrentLightingCue;
+            var things = MasterLightingController.CurrentLightingCue;
 
             while (_commandQueue.Count > 0)
             {
@@ -293,52 +281,69 @@ namespace YARG.Integration.StageKit
                 switch (curCommand.command)
                 {
                     case (int) CommandType.LedBlue:
-                    case (int) CommandType.LedGreen:
-                    case (int) CommandType.LedYellow:
-                    case (int) CommandType.LedRed:
-
-                        //if the led color is already in the state we want, don't send the command.
-                        if (_currentLedState[curCommand.command] == _previousLedState[curCommand.command])
+                        if (_currentBlueLedState == _previousBlueLedState)
                         {
                             await UniTask.Yield();
                         }
 
-                        var iToStageKitLedColor = curCommand.command switch
+                        foreach (var kit in _stageKits)
+                            kit.SetLeds(StageKitLedColor.Blue, (StageKitLed) curCommand.data);
+                        _previousBlueLedState = _currentBlueLedState;
+                        break;
+
+                    case (int) CommandType.LedGreen:
+                        if (_currentGreenLedState == _previousGreenLedState)
                         {
-                            (int) CommandType.LedBlue   => StageKitLedColor.Blue,
-                            (int) CommandType.LedGreen  => StageKitLedColor.Green,
-                            (int) CommandType.LedYellow => StageKitLedColor.Yellow,
-                            (int) CommandType.LedRed    => StageKitLedColor.Red,
-                            _                           => StageKitLedColor.All
-                        };
-                        //This is where the magic happens
-                        StageKits.ForEach(kit => kit.SetLeds(iToStageKitLedColor, (StageKitLed) curCommand.data));
-                        OnLedSet?.Invoke(iToStageKitLedColor, (StageKitLed) curCommand.data);
-                        _previousLedState[curCommand.command] = _currentLedState[curCommand.command];
+                            await UniTask.Yield();
+                        }
+
+                        foreach (var kit in _stageKits)
+                            kit.SetLeds(StageKitLedColor.Green, (StageKitLed) curCommand.data);
+                        _previousGreenLedState = _currentGreenLedState;
+                        break;
+
+                    case (int) CommandType.LedYellow:
+                        if (_currentYellowLedState == _previousYellowLedState)
+                        {
+                            await UniTask.Yield();
+                        }
+
+                        foreach (var kit in _stageKits)
+                            kit.SetLeds(StageKitLedColor.Yellow, (StageKitLed) curCommand.data);
+                        _previousYellowLedState = _currentYellowLedState;
+                        break;
+
+                    case (int) CommandType.LedRed:
+                        if (_currentRedLedState == _previousRedLedState)
+                        {
+                            await UniTask.Yield();
+                        }
+
+                        foreach (var kit in _stageKits)
+                            kit.SetLeds(StageKitLedColor.Red, (StageKitLed) curCommand.data);
+                        _previousRedLedState = _currentRedLedState;
                         break;
 
                     case (int) CommandType.FogMachine:
-                        StageKits.ForEach(kit => kit.SetFogMachine(curCommand.data == 1));
-                        OnFogSet?.Invoke(curCommand.data == 1);
+                        foreach (var kit in _stageKits) kit.SetFogMachine(curCommand.data == 1);
                         break;
 
                     case (int) CommandType.StrobeSpeed:
-                        StageKits.ForEach(kit => kit.SetStrobeSpeed((StageKitStrobeSpeed) curCommand.data));
-                        OnStrobeSet?.Invoke((StageKitStrobeSpeed) curCommand.data);
+                        foreach (var kit in _stageKits) kit.SetStrobeSpeed((StageKitStrobeSpeed) curCommand.data);
                         break;
 
                     default:
-                        YargLogger.LogFormatWarning("Unknown Stagekit command: {0}", curCommand.command);
+                        YargLogger.LogWarning("Unknown command: " + curCommand.command);
                         break;
                 }
 
                 //If there is more 1/20th of a second in commands left in the queue when the cue changes, clear it.
                 //Really fast songs can build up a queue in the thousands while in BRE or Frenzy. 1/20th of a
                 //second is said to be the blink of an eye.
-                if (things != CurrentLightingCue && _commandQueue.Count > 0.05f / SEND_DELAY)
+                if (things != MasterLightingController.CurrentLightingCue && _commandQueue.Count > 0.05f / SEND_DELAY)
                 {
                     _commandQueue.Clear();
-                    things = CurrentLightingCue;
+                    things = MasterLightingController.CurrentLightingCue;
                 }
 
                 await UniTask.Delay(TimeSpan.FromSeconds(SEND_DELAY));
@@ -347,42 +352,40 @@ namespace YARG.Integration.StageKit
             _isSendingCommands = false;
         }
 
-        public void SetLed(int color, byte led)
+        private void HandleLedEvent(StageKitLedColor color, byte led)
         {
-            _currentLedState[color] = led;
-            EnqueueCommand(color, _currentLedState[color]);
-        }
-
-        public void SetFogMachine(FogState fogState)
-        {
-            if (CurrentFogState == fogState)
+            switch (color)
             {
-                return;
+                case StageKitLedColor.Blue:
+                    _currentBlueLedState = led;
+                    EnqueueCommand((int) CommandType.LedBlue, _currentBlueLedState);
+                    break;
+
+                case StageKitLedColor.Green:
+                    _currentGreenLedState = led;
+                    EnqueueCommand((int) CommandType.LedGreen, _currentGreenLedState);
+                    break;
+
+                case StageKitLedColor.Yellow:
+                    _currentYellowLedState = led;
+                    EnqueueCommand((int) CommandType.LedYellow, _currentYellowLedState);
+                    break;
+
+                case StageKitLedColor.Red:
+                    _currentRedLedState = led;
+                    EnqueueCommand((int) CommandType.LedRed, _currentRedLedState);
+                    break;
+
+                default:
+                    YargLogger.LogWarning(" Unknown color: " + color);
+                    return;
             }
-
-            EnqueueCommand((int) CommandType.FogMachine, (byte) fogState);
-
-            CurrentFogState = fogState;
-        }
-
-        public void SetStrobeSpeed(StageKitStrobeSpeed strobeSpeed)
-        {
-            if (CurrentStrobeState == strobeSpeed)
-            {
-                return;
-            }
-
-            EnqueueCommand((int) CommandType.StrobeSpeed, (byte) strobeSpeed);
-            CurrentStrobeState = strobeSpeed;
-        }
-
-        //Just a helper function
-        public void AllLedsOff()
-        {
-            Instance.SetLed((int) LedColor.Red, NONE);
-            Instance.SetLed((int) LedColor.Green, NONE);
-            Instance.SetLed((int) LedColor.Blue, NONE);
-            Instance.SetLed((int) LedColor.Yellow, NONE);
         }
     }
 }
+/*
+    "To me, clowns aren't funny. In fact, they're kind of scary. I've wondered where this started and I think it goes
+    back to the time I went to the circus, and a clown killed my dad."
+
+    - Jack Handey.
+*/
