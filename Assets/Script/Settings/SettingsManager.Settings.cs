@@ -263,7 +263,7 @@ namespace YARG.Settings
 
             private static void StageKitEnabledCallback(bool value)
             {
-                if (IsLoading)
+                if (!IsInitialized)
                 {
                     return;
                 }
