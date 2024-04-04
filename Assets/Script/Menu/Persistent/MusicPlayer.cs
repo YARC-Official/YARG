@@ -16,6 +16,7 @@ namespace YARG.Menu.Persistent
         private static SongEntry _nowPlaying = null;
         public static SongEntry NowPlaying => _nowPlaying;
 
+        private object _lock = new();
         private StemMixer _mixer = null;
 
         [SerializeField]
@@ -31,12 +32,9 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private Sprite _pauseSprite;
 
-        // "The Unity message 'OnEnable' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
-        private async UniTaskVoid OnEnable()
+        private async void OnEnable()
         {
-            _songText.text = string.Empty;
-            _artistText.text = string.Empty;
+            _songText.text = _artistText.text = string.Empty;
 
             // Wait until the loading is done
             await UniTask.WaitUntil(() => !LoadingScreen.IsActive);
@@ -47,93 +45,76 @@ namespace YARG.Menu.Persistent
                 gameObject.SetActive(false);
                 return;
             }
-            await NextSong();
+            NextSong();
         }
 
         private void OnDisable()
         {
-            Stop();
-        }
-
-        private async UniTask NextSong()
-        {
-            const float SPEED = 1f;
-            _nowPlaying = SongContainer.GetRandomSong();
-
-            _mixer?.Dispose();
-            _mixer = await UniTask.RunOnThreadPool(() => _nowPlaying.LoadAudio(SPEED, SettingsManager.Settings.MusicPlayerVolume.Value, SongStem.Crowd));
-            _mixer.SongEnd += OnSongEnd;
-
-            // Set song title text
-            _songText.text = _nowPlaying.Name;
-            _artistText.text = _nowPlaying.Artist;
-
-            Play();
-        }
-
-        private void OnSongEnd()
-        {
-            NextSong().Forget();
-        }
-
-        private void Play()
-        {
-            _mixer.Play();
-            UpdatePlayOrPauseSprite();
-        }
-
-        private void Pause()
-        {
-            _mixer.Pause();
-            UpdatePlayOrPauseSprite();
-        }
-
-        private void Stop()
-        {
-            _mixer?.Dispose();
-            _mixer = null;
-        }
-
-        public void UpdateVolume()
-        {
-            if (_mixer != null && _mixer.IsPlaying && gameObject.activeSelf)
+            lock (_lock)
             {
-                _mixer.SetVolume(SettingsManager.Settings.MusicPlayerVolume.Value);
+                _mixer?.Dispose();
+                _mixer = null;
             }
         }
 
-        private void UpdatePlayOrPauseSprite()
+        public async void NextSong()
         {
-            if (_mixer != null && _mixer.IsPlaying)
+            StemMixer mixer = null;
+            await UniTask.RunOnThreadPool(() =>
             {
+                const float SPEED = 1f;
+                lock (_lock)
+                {
+                    _mixer?.Dispose();
+                    _nowPlaying = SongContainer.GetRandomSong();
+                    mixer = _mixer = _nowPlaying.LoadAudio(SPEED, SettingsManager.Settings.MusicPlayerVolume.Value, SongStem.Crowd);
+                    _mixer.SongEnd += NextSong;
+                }
+            });
+
+            lock (_lock)
+            {
+                if (mixer != _mixer)
+                {
+                    return;
+                }
+                
+                _mixer.Play();
+
+                _songText.text = _nowPlaying.Name;
+                _artistText.text = _nowPlaying.Artist;
                 _playPauseButton.sprite = _pauseSprite;
             }
-            else
+        }
+
+        public void UpdateVolume(double volume)
+        {
+            lock (_lock)
             {
-                _playPauseButton.sprite = _playSprite;
+                _mixer?.SetVolume(volume);
             }
         }
 
-        public void PlayOrPauseClick()
+        public void TogglePlay()
         {
-            if (_mixer == null)
+            lock (_lock)
             {
-                return;
+                if (_mixer == null)
+                {
+                    return;
+                }
+                
+                if (_mixer.IsPlaying)
+                {
+                    _mixer.Pause();
+                    _playPauseButton.sprite = _playSprite;
+                }
+                else
+                {
+                    _mixer.Play();
+                    _playPauseButton.sprite = _pauseSprite;
+                }
             }
-
-            if (_mixer.IsPlaying)
-            {
-                Pause();
-            }
-            else
-            {
-                Play();
-            }
-        }
-
-        public void SkipClick()
-        {
-            NextSong().Forget();
         }
     }
 }

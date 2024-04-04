@@ -395,7 +395,7 @@ namespace YARG.Settings
 
             private static void MusicPlayerVolumeCallback(float volume)
             {
-                HelpBar.Instance.MusicPlayer.UpdateVolume();
+                HelpBar.Instance.MusicPlayer.UpdateVolume(volume);
             }
 
             // private static void UseWhammyFxChange(bool value)
