@@ -105,7 +105,6 @@ namespace YARG.Menu.MusicLibrary
             _searchField.Restore();
             _searchField.OnSearchQueryUpdated += UpdateSearch;
 
-            _previewDelay = 0;
             // Get songs
             if (_doRefresh)
             {
@@ -433,6 +432,7 @@ namespace YARG.Menu.MusicLibrary
 
             Navigator.Instance.PopScheme();
 
+            _previewDelay = 0;
             _previewContext?.Stop();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
         }
