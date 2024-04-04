@@ -42,11 +42,12 @@ namespace YARG.Audio.BASS
             }
         }
 
-        internal BassStemMixer(string name, BassAudioManager manager, float speed, int handle, int sourceStream, bool clampStemVolume)
+        internal BassStemMixer(string name, BassAudioManager manager, float speed, double volume, int handle, int sourceStream, bool clampStemVolume)
             : base(name, manager, speed, clampStemVolume)
         {
             _mixerHandle = handle;
             _sourceStream = sourceStream;
+            SetVolume_Internal(volume);
         }
 
         protected override int Play_Internal(bool restart)
@@ -106,7 +107,7 @@ namespace YARG.Audio.BASS
             return seconds;
         }
 
-        protected override float GetVolume_Internal()
+        protected override double GetVolume_Internal()
         {
             if (!Bass.ChannelGetAttribute(_mixerHandle, ChannelAttribute.Volume, out float volume))
             {

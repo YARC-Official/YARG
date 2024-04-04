@@ -57,10 +57,11 @@ namespace YARG.Menu.Persistent
 
         private async UniTask NextSong()
         {
+            const float SPEED = 1f;
             _nowPlaying = SongContainer.GetRandomSong();
 
             _mixer?.Dispose();
-            _mixer = await UniTask.RunOnThreadPool(() => _nowPlaying.LoadAudio(1f, SongStem.Crowd));
+            _mixer = await UniTask.RunOnThreadPool(() => _nowPlaying.LoadAudio(SPEED, SettingsManager.Settings.MusicPlayerVolume.Value, SongStem.Crowd));
             _mixer.SongEnd += OnSongEnd;
 
             // Set song title text
@@ -78,7 +79,6 @@ namespace YARG.Menu.Persistent
         private void Play()
         {
             _mixer.Play();
-            UpdateVolume();
             UpdatePlayOrPauseSprite();
         }
 

@@ -9,6 +9,7 @@ namespace YARG.Gameplay
 {
     public partial class GameManager
     {
+        private const double DEFAULT_VOLUME = 1.0;
         public class StemState
         {
             public readonly double Volume;
@@ -34,7 +35,7 @@ namespace YARG.Gameplay
         private void LoadAudio()
         {
             _stemStates.Clear();
-            _mixer = Song.LoadAudio(GlobalVariables.State.SongSpeed);
+            _mixer = Song.LoadAudio(GlobalVariables.State.SongSpeed, DEFAULT_VOLUME);
             if (_mixer == null)
             {
                 _loadState = LoadFailureState.Error;
