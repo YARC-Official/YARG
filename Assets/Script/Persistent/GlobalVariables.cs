@@ -98,6 +98,20 @@ namespace YARG
             LoadScene(SceneIndex.Menu);
         }
 
+#if UNITY_EDITOR
+        // For respecting the editor's mute button
+        private bool previousMute = false;
+        private void Update()
+        {
+            bool muted = UnityEditor.EditorUtility.audioMasterMute;
+            if (muted != previousMute)
+            {
+                GlobalAudioHandler.SetVolumeSetting(SongStem.Master, muted ? 0 : SettingsManager.Settings.MasterMusicVolume.Value);
+                previousMute = muted;
+            }
+        }
+#endif
+
         protected override void SingletonDestroy()
         {
             SettingsManager.SaveSettings();
