@@ -34,7 +34,6 @@ namespace YARG.Gameplay
         private void LoadAudio()
         {
             _stemStates.Clear();
-            GlobalAudioHandler.UseMinimumStemVolume = Song.Source.Str.ToLowerInvariant() == "yarg";
             _mixer = Song.LoadAudio(GlobalVariables.State.SongSpeed);
             if (_mixer == null)
             {

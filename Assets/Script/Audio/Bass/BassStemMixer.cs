@@ -42,8 +42,8 @@ namespace YARG.Audio.BASS
             }
         }
 
-        internal BassStemMixer(string name, BassAudioManager manager, float speed, int handle, int sourceStream)
-            : base(name, manager, speed)
+        internal BassStemMixer(string name, BassAudioManager manager, float speed, int handle, int sourceStream, bool clampStemVolume)
+            : base(name, manager, speed, clampStemVolume)
         {
             _mixerHandle = handle;
             _sourceStream = sourceStream;
@@ -314,7 +314,7 @@ namespace YARG.Audio.BASS
         private void CreateChannel(SongStem stem, int sourceStream, StreamHandle streamHandles, StreamHandle reverbHandles)
         {
             var pitchparams = BassAudioManager.SetPitchParams(stem, _speed, streamHandles, reverbHandles);
-            var stemchannel = new BassStemChannel(_manager, stem, sourceStream, pitchparams, streamHandles, reverbHandles);
+            var stemchannel = new BassStemChannel(_manager, stem, _clampStemVolume, sourceStream, pitchparams, streamHandles, reverbHandles);
 
             double length = BassAudioManager.GetLengthInSeconds(streamHandles.Stream);
             if (_mainHandle == null || length > _length)

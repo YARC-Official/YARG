@@ -176,8 +176,6 @@ namespace YARG.Gameplay
             }
 
             _mixer?.Dispose();
-            GlobalAudioHandler.UseMinimumStemVolume = false;
-
             _songRunner?.Dispose();
             BeatEventHandler?.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();

@@ -17,8 +17,8 @@ namespace YARG.Audio.BASS
         private double _volume;
         private bool _isReverbing;
 
-        internal BassStemChannel(AudioManager manager, SongStem stem, int sourceStream, in PitchShiftParametersStruct pitchParams, in StreamHandle streamHandles, in StreamHandle reverbHandles)
-            : base(manager, stem)
+        internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume, int sourceStream, in PitchShiftParametersStruct pitchParams, in StreamHandle streamHandles, in StreamHandle reverbHandles)
+            : base(manager, stem, clampStemVolume)
         {
             _sourceHandle = sourceStream;
             _streamHandles = streamHandles;
@@ -26,7 +26,10 @@ namespace YARG.Audio.BASS
             _pitchParams = pitchParams;
 
             double volume = GlobalAudioHandler.GetTrueVolume(stem);
-            volume = GlobalAudioHandler.ClampStemVolume(volume);
+            if (clampStemVolume && volume < MINIMUM_STEM_VOLUME)
+            {
+                volume = MINIMUM_STEM_VOLUME;
+            }
             SetVolume_Internal(volume);
         }
 

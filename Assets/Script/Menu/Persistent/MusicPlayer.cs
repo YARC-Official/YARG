@@ -52,18 +52,14 @@ namespace YARG.Menu.Persistent
 
         private void OnDisable()
         {
-            GlobalAudioHandler.UseMinimumStemVolume = false;
             Stop();
         }
 
         private async UniTask NextSong()
         {
-            _mixer?.Dispose();
-
             _nowPlaying = SongContainer.GetRandomSong();
 
-            GlobalAudioHandler.UseMinimumStemVolume = _nowPlaying.Source.Str.ToLowerInvariant() == "yarg";
-
+            _mixer?.Dispose();
             _mixer = await UniTask.RunOnThreadPool(() => _nowPlaying.LoadAudio(1f, SongStem.Crowd));
             _mixer.SongEnd += OnSongEnd;
 
