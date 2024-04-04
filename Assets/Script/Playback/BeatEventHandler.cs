@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 
 namespace YARG.Playback
 {
@@ -230,13 +231,20 @@ namespace YARG.Playback
         {
             // Add/remove new subscriptions
             foreach (var action in _removeStates)
+            {
                 _states.Remove(action);
+            }
 
             foreach (var (action, state) in _addStates)
-                _states.Add(action, state);
+            {
+                if (!_states.TryAdd(action, state))
+                {
+                    YargLogger.LogWarning("A beat event handler with the same action has already been added!");
+                }
+            }
 
-            _addStates.Clear();
             _removeStates.Clear();
+            _addStates.Clear();
 
             // Skip until in the chart
             if (songTime < 0) return;
