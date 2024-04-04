@@ -410,7 +410,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
-            var context = await _currentSong.LoadPreview(previewVolume, GlobalVariables.State.SongSpeed, canceller);
+            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed, canceller);
             if (context != null)
             {
                 _previewContext = context;
