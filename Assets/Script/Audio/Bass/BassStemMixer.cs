@@ -5,6 +5,7 @@ using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Core.Song;
 
 namespace YARG.Audio.BASS
 {
@@ -64,14 +65,14 @@ namespace YARG.Audio.BASS
             return 0;
         }
 
-        protected override void FadeIn_Internal(float maxVolume)
+        protected override void FadeIn_Internal(float maxVolume, double duration)
         {
-            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, maxVolume, BassHelpers.FADE_TIME_MILLISECONDS);
+            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, maxVolume, (int) (duration * SongEntry.MILLISECOND_FACTOR));
         }
 
-        protected override void FadeOut_Internal()
+        protected override void FadeOut_Internal(double duration)
         {
-            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, 0, BassHelpers.FADE_TIME_MILLISECONDS);
+            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, 0, (int) (duration * SongEntry.MILLISECOND_FACTOR));
         }
 
         protected override int Pause_Internal()

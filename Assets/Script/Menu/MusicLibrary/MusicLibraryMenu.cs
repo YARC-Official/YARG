@@ -70,6 +70,7 @@ namespace YARG.Menu.MusicLibrary
         private readonly object _previewLock = new();
         private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
+        private double _previewDelay;
 
         private SongEntry _currentSong;
 
@@ -104,6 +105,7 @@ namespace YARG.Menu.MusicLibrary
             _searchField.Restore();
             _searchField.OnSearchQueryUpdated += UpdateSearch;
 
+            _previewDelay = 0;
             // Get songs
             if (_doRefresh)
             {
@@ -140,6 +142,7 @@ namespace YARG.Menu.MusicLibrary
 
         protected override void OnSelectedIndexChanged()
         {
+            const double PREVIEW_SCROLL_DELAY = .6f;
             base.OnSelectedIndexChanged();
 
             _sidebar.UpdateSidebar();
@@ -157,14 +160,17 @@ namespace YARG.Menu.MusicLibrary
             }
 
             CancellationTokenSource canceller;
+            double delay;
             lock (_previewLock)
             {
                 _previewCanceller?.Cancel();
                 _previewContext?.Stop();
                 _previewContext = null;
                 _previewCanceller = canceller = new CancellationTokenSource();
+                delay = _previewDelay;
+                _previewDelay = PREVIEW_SCROLL_DELAY;
             }
-            StartPreview(canceller);
+            StartPreview(delay, canceller);
         }
 
         protected override List<ViewType> CreateViewList()
@@ -402,15 +408,16 @@ namespace YARG.Menu.MusicLibrary
             base.Update();
         }
 
-        private async void StartPreview(CancellationTokenSource canceller)
+        private async void StartPreview(double delay, CancellationTokenSource canceller)
         {
             if (_currentSong == null)
             {
                 return;
             }
 
+            const double FADE_DURATION = 1.25;
             float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
-            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed, canceller);
+            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed, delay, FADE_DURATION, canceller);
             if (context != null)
             {
                 _previewContext = context;
