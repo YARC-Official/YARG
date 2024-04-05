@@ -144,10 +144,5 @@ namespace YARG.Gameplay
             bool reverbActive = state.ReverbCount > 0;
             GlobalAudioHandler.SetReverbSetting(stem, reverbActive);
         }
-
-        private void OnAudioEnd()
-        {
-            EndSong().Forget();
-        }
     }
 }

@@ -206,7 +206,10 @@ namespace YARG.Gameplay
             }
 
             // Skip the rest if paused
-            if (_songRunner.Paused) return;
+            if (_songRunner.Paused)
+            {
+                return;
+            }
 
             // Update handlers
             _songRunner.Update();
@@ -232,7 +235,10 @@ namespace YARG.Gameplay
             // End song if needed (required for the [end] event)
             if (_songRunner.SongTime >= SongLength)
             {
-                EndSong().Forget();
+                if (EndSong())
+                {
+                    return;
+                }
             }
 
             // Debug text
@@ -373,22 +379,25 @@ namespace YARG.Gameplay
         public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
             => _songRunner.GetCalibratedRelativeInputTime(timeFromInputSystem);
 
-        private async UniTask EndSong()
+        private bool EndSong()
         {
             if (IsPractice)
             {
                 PracticeManager.ResetPractice();
                 // Audio is paused automatically at this point, so we need to start it again
                 _mixer.Play();
-                return;
+                return false;
             }
 
-            await UniTask.WaitUntil(() => _songRunner.SongTime >= SongLength + SONG_END_DELAY);
+            if (_songRunner.SongTime < SongLength + SONG_END_DELAY)
+            {
+                return false;
+            }
 
             if (IsReplay)
             {
                 Pause(false);
-                return;
+                return false;
             }
 
             // Pass the score info to the stats screen
@@ -466,6 +475,7 @@ namespace YARG.Gameplay
 
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
+            return true;
         }
 
         public void ForceQuitSong()
