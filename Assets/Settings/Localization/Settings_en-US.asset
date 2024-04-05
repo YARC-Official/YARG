@@ -1399,6 +1399,18 @@ MonoBehaviour:
       song.
     m_Metadata:
       m_Items: []
+  - m_Id: 136439865969897472
+    m_Localized: Multitrack Only
+    m_Metadata:
+      m_Items: []
+  - m_Id: 136439869740576768
+    m_Localized: On - Background limited to 50%
+    m_Metadata:
+      m_Items: []
+  - m_Id: 136439859598749696
+    m_Localized: Off
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

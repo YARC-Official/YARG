@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -72,7 +73,10 @@ namespace YARG.Gameplay
                 _songLoaded += value;
 
                 // Invoke now if already loaded, this event is only fired once
-                if (GlobalVariables.AudioManager.IsAudioLoaded) value?.Invoke();
+                if (_mixer != null)
+                {
+                    value?.Invoke();
+                }
             }
             remove => _songLoaded -= value;
         }
@@ -148,6 +152,7 @@ namespace YARG.Gameplay
 
             // Initialize song runner
             _songRunner = new SongRunner(
+                _mixer,
                 GlobalVariables.State.SongSpeed,
                 SettingsManager.Settings.AudioCalibration.Value,
                 SettingsManager.Settings.VideoCalibration.Value,
@@ -277,7 +282,7 @@ namespace YARG.Gameplay
             BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
             _chartLoaded?.Invoke(Chart);
 
-            double audioLength = GlobalVariables.AudioManager.AudioLengthD;
+            double audioLength = _mixer.Length;
             double chartLength = Chart.GetEndTime();
             double endTime = Chart.GetEndEvent()?.Time ?? -1;
 
@@ -297,8 +302,6 @@ namespace YARG.Gameplay
             {
                 SongLength = endTime;
             }
-
-            SongLength += SONG_END_DELAY;
             _songLoaded?.Invoke();
         }
 
@@ -356,7 +359,7 @@ namespace YARG.Gameplay
                     var trackPlayer = playerObject.GetComponent<TrackPlayer>();
                     var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
                     var currentHighScore = ScoreContainer.GetHighScoreByInstrument(Song.Hash, player.Profile.CurrentInstrument)?.Score;
-                    trackPlayer.Initialize(index, player, Chart, trackView, currentHighScore);
+                    trackPlayer.Initialize(index, player, Chart, trackView, _mixer, currentHighScore);
                     _players.Add(trackPlayer);
                 }
                 else
@@ -387,16 +390,21 @@ namespace YARG.Gameplay
 
                 // Add (or increase total of) the stem state
                 var stem = player.Profile.CurrentInstrument.ToSongStem();
-                if (_stemStates.TryGetValue(stem, out var state))
+                if (stem == SongStem.Bass && !_stemStates.ContainsKey(SongStem.Bass))
                 {
-                    state.Total++;
+                    stem = SongStem.Rhythm;
                 }
-                else
+
+                if (stem != _backgroundStem && _stemStates.TryGetValue(stem, out var state))
                 {
-                    _stemStates.Add(stem, new StemState
-                    {
-                        Total = 1
-                    });
+                    ++state.Total;
+                    ++state.Audible;
+                }
+                else if (_stemStates.TryGetValue(_backgroundStem, out state))
+                {
+                    // Ensures the stem will still play at a minimum of 50%, even if all players mute
+                    state.Total += 2;
+                    state.Audible += 2;
                 }
             }
 

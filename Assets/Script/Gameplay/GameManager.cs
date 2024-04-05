@@ -8,7 +8,9 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Audio;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Input;
@@ -111,9 +113,6 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.Paused"/>
         public bool Paused => _songRunner.Paused;
 
-        /// <inheritdoc cref="SongRunner.PendingPauses"/>
-        public int PendingPauses => _songRunner.PendingPauses;
-
         public double SongLength { get; private set; }
 
         public bool IsReplay   { get; private set; }
@@ -127,10 +126,10 @@ namespace YARG.Gameplay
 
         public IReadOnlyList<BasePlayer> Players => _players;
 
-        private bool _endingSong;
-
         private bool _isShowDebugText;
         private bool _isReplaySaved;
+
+        private StemMixer _mixer;
 
         private void Awake()
         {
@@ -167,7 +166,14 @@ namespace YARG.Gameplay
             {
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
-            GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
+
+            foreach (var state in _stemStates)
+            {
+                GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
+            }
+
+            _pauseMenu.Clear();
+            _mixer?.Dispose();
             _songRunner?.Dispose();
             BeatEventHandler?.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();
@@ -186,7 +192,7 @@ namespace YARG.Gameplay
                     return;
                 }
 
-                SetPaused(!_songRunner.Paused);
+                SetPaused(!_pauseMenu.IsOpen());
             }
 
             // Toggle debug text
@@ -198,7 +204,10 @@ namespace YARG.Gameplay
             }
 
             // Skip the rest if paused
-            if (_songRunner.Paused) return;
+            if (_songRunner.Paused)
+            {
+                return;
+            }
 
             // Update handlers
             _songRunner.Update();
@@ -222,8 +231,13 @@ namespace YARG.Gameplay
             BandStars = totalStars / _players.Count;
 
             // End song if needed (required for the [end] event)
-            if (_songRunner.SongTime >= SongLength && !_endingSong)
-                EndSong().Forget();
+            if (_songRunner.SongTime >= SongLength)
+            {
+                if (EndSong())
+                {
+                    return;
+                }
+            }
 
             // Debug text
             // Note: this must come last in the update sequence!
@@ -291,7 +305,6 @@ namespace YARG.Gameplay
         public void Pause(bool showMenu = true)
         {
             _songRunner.Pause();
-            if (_songRunner.PendingPauses > 1) return;
 
             if (showMenu)
             {
@@ -322,10 +335,13 @@ namespace YARG.Gameplay
 
         public void Resume(bool inputCompensation = true)
         {
-            _songRunner.Resume(inputCompensation);
-            if (_songRunner.PendingPauses > 1) return;
+            _pauseMenu.Clear();
+            if (_songRunner.SongTime >= SongLength + SONG_END_DELAY)
+            {
+                return;
+            }
 
-            _pauseMenu.gameObject.SetActive(false);
+            _songRunner.Resume(inputCompensation);
 
             // Unpause the background/venue
             Time.timeScale = 1f;
@@ -363,31 +379,26 @@ namespace YARG.Gameplay
         public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
             => _songRunner.GetCalibratedRelativeInputTime(timeFromInputSystem);
 
-        private async UniTask EndSong()
+        private bool EndSong()
         {
-            if (_endingSong)
-            {
-                return;
-            }
-
             if (IsPractice)
             {
                 PracticeManager.ResetPractice();
                 // Audio is paused automatically at this point, so we need to start it again
-                GlobalVariables.AudioManager.Play();
-                return;
+                _mixer.Play();
+                return false;
             }
 
-            _endingSong = true;
-            await UniTask.WaitUntil(() => _songRunner.SongTime >= SongLength);
+            if (_songRunner.SongTime < SongLength + SONG_END_DELAY)
+            {
+                return false;
+            }
 
             if (IsReplay)
             {
                 Pause(false);
-                return;
+                return true;
             }
-
-            GlobalVariables.AudioManager.UnloadSong();
 
             // Pass the score info to the stats screen
             GlobalVariables.State.ScoreScreenStats = new ScoreScreenStats
@@ -464,12 +475,11 @@ namespace YARG.Gameplay
 
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
+            return true;
         }
 
         public void ForceQuitSong()
         {
-            GlobalVariables.AudioManager.UnloadSong();
-
             GlobalVariables.State = PersistentState.Default;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }

@@ -1235,6 +1235,18 @@ MonoBehaviour:
     m_Key: Tab.Sound
     m_Metadata:
       m_Items: []
+  - m_Id: 136439859598749696
+    m_Key: Dropdown.MuteOnMiss.Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 136439865969897472
+    m_Key: Dropdown.MuteOnMiss.MultitrackOnly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 136439869740576768
+    m_Key: Dropdown.MuteOnMiss.On
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

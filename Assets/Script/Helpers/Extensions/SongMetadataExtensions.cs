@@ -67,31 +67,5 @@ namespace YARG.Helpers.Extensions
             texture.Apply();
             return texture;
         }
-
-        public static bool LoadAudio(this SongEntry song, IAudioManager manager, float speed, params SongStem[] ignoreStems)
-        {
-            var mixer = song.LoadAudioStreams(ignoreStems);
-            if (mixer == null || mixer.Channels.Count == 0)
-            {
-                return false;
-            }
-            manager.LoadSong(mixer, speed);
-            return true;
-        }
-
-        public static async UniTask<bool> LoadPreview(this SongEntry song, IAudioManager manager, float speed)
-        {
-            var mixer = await UniTask.RunOnThreadPool(() =>
-            {
-                var mixer = song.LoadPreviewAudio();
-                if (mixer == null || mixer.Channels.Count == 0)
-                {
-                    return null;
-                }
-                manager.LoadSong(mixer, speed);
-                return mixer;
-            });
-            return mixer != null && mixer.Channels[0].Stem == SongStem.Preview;
-        }
     }
 }
