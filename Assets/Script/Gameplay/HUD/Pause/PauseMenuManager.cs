@@ -44,6 +44,10 @@ namespace YARG.Gameplay.HUD
 
         public void Clear()
         {
+            foreach (var menu in _openMenus)
+            {
+                _menus[menu].gameObject.SetActive(false);
+            }
             _openMenus.Clear();
             gameObject.SetActive(false);
         }

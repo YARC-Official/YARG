@@ -147,9 +147,6 @@ namespace YARG.Gameplay.HUD
                 GameManager.PracticeManager.SetPracticeSection(_sections[first], _sections[last]);
                 GameManager.Resume(inputCompensation: false);
 
-                // Hide menu
-                _pauseMenuManager.PopMenu(resume: false);
-
                 _hasSelectedSections = true;
             }
         }
