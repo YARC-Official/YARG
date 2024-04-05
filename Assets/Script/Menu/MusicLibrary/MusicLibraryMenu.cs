@@ -444,7 +444,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnDestroy()
         {
-            _previewContext?.Stop();
+            _previewContext?.Dispose();
         }
 
         private void Back()
