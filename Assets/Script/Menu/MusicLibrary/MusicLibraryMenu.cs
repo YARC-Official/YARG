@@ -26,6 +26,13 @@ namespace YARG.Menu.MusicLibrary
         Practice
     }
 
+    public enum MusicLibraryReloadState
+    {
+        None,
+        Partial,
+        Full
+    }
+
     public class MusicLibraryMenu : ListMenu<ViewType, SongView>
     {
         private const int RANDOM_SONG_ID = 0;
@@ -43,11 +50,11 @@ namespace YARG.Menu.MusicLibrary
 
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
-        private static bool _doRefresh = true;
+        private static MusicLibraryReloadState _reloadState = MusicLibraryReloadState.Full;
 
-        public static void SetRefresh()
+        public static void SetReload(MusicLibraryReloadState state)
         {
-            _doRefresh = true;
+            _reloadState = state;
         }
 
         [Space]
@@ -105,24 +112,28 @@ namespace YARG.Menu.MusicLibrary
             _searchField.Restore();
             _searchField.OnSearchQueryUpdated += UpdateSearch;
 
-            // Get songs
-            if (_doRefresh)
+            if (CurrentlyPlaying != null)
             {
-                if (CurrentlyPlaying != null)
-                {
-                    _currentSong = CurrentlyPlaying;
-                }
-                Refresh();
-                _doRefresh = false;
+                _currentSong = CurrentlyPlaying;
             }
-            else
+
+            _previewDelay = 0;
+            if (_reloadState == MusicLibraryReloadState.Full)
+            {
+                Refresh();
+            }
+            else if (_reloadState == MusicLibraryReloadState.Partial)
             {
                 UpdateSearch(true);
-                // Restore index
                 SelectedIndex = _savedIndex;
+            }
+            else if (_currentSong != null)
+            {
+                UpdateSearch(true, true);
             }
 
             CurrentlyPlaying = null;
+            _reloadState = MusicLibraryReloadState.None;
 
             // Set proper text
             _subHeader.text = LibraryMode switch
@@ -383,21 +394,24 @@ namespace YARG.Menu.MusicLibrary
 
             RequestViewListUpdate();
 
-            bool notFound;
-            if (!refresh)
+            if (_reloadState != MusicLibraryReloadState.Partial)
             {
-                notFound = _searchField.IsUpdatedSearchLonger || !SetIndexTo(i => i is SongViewType view && view.SongEntry == _currentSong);
-            }
-            else
-            {
-                notFound = _currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory);
-            }
+                bool notFound;
+                if (!refresh)
+                {
+                    notFound = _searchField.IsUpdatedSearchLonger || !SetIndexTo(i => i is SongViewType view && view.SongEntry == _currentSong);
+                }
+                else
+                {
+                    notFound = _currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory);
+                }
 
-            // Try to select the song after the first category
-            if (notFound && !SetIndexTo(i => i is CategoryViewType, 1))
-            {
-                // If all else fails, jump to the first item
-                SelectedIndex = 0;
+                // Try to select the song after the first category
+                if (notFound && !SetIndexTo(i => i is CategoryViewType, 1))
+                {
+                    // If all else fails, jump to the first item
+                    SelectedIndex = 0;
+                }
             }
             _searchField.UpdateSearchText();
         }
@@ -437,15 +451,16 @@ namespace YARG.Menu.MusicLibrary
 
             Navigator.Instance.PopScheme();
 
-            _previewDelay = 0;
             _previewContext?.Stop();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
         }
 
         private void OnDestroy()
         {
+            _previewCanceller = null;
             _previewContext?.Dispose();
             _previewContext = null;
+            _reloadState = MusicLibraryReloadState.Partial;
         }
 
         private void Back()
@@ -456,7 +471,7 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            _previewCanceller?.Cancel();
+            _previewCanceller = null;
             _previewContext?.Dispose();
             MenuManager.Instance.PopMenu();
         }

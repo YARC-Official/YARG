@@ -88,7 +88,7 @@ namespace YARG.Song
             stopwatch.Stop();
 
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
-            MusicLibraryMenu.SetRefresh();
+            MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
         }
 
         public static IReadOnlyList<SongCategory> GetSortedSongList(SongAttribute sort)
