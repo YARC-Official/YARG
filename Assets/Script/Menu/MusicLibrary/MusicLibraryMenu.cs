@@ -416,6 +416,11 @@ namespace YARG.Menu.MusicLibrary
 
             const double FADE_DURATION = 1.25;
             float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
+            if (previewVolume == 0)
+            {
+                return;
+            }
+
             var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed, delay, FADE_DURATION, canceller);
             if (context != null)
             {
