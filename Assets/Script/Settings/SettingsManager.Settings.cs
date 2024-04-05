@@ -108,14 +108,21 @@ namespace YARG.Settings
             public VolumeSetting VocalMonitoring   { get; } = new(0.7f, VocalMonitoringCallback);
 
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
-            public ToggleSetting MuteOnMiss            { get; } = new(true);
 
-            public DropdownSetting<StarPowerFxMode> UseStarpowerFx { get; } = new(StarPowerFxMode.On)
+            public DropdownSetting<AudioFxMode> MuteOnMiss { get; } = new(AudioFxMode.MultitrackOnly)
             {
-                StarPowerFxMode.Off,
-                StarPowerFxMode.MultitrackOnly,
-                StarPowerFxMode.On
+                AudioFxMode.Off,
+                AudioFxMode.MultitrackOnly,
+                AudioFxMode.On
             };
+
+            public DropdownSetting<AudioFxMode> UseStarpowerFx { get; } = new(AudioFxMode.On)
+            {
+                AudioFxMode.Off,
+                AudioFxMode.MultitrackOnly,
+                AudioFxMode.On
+            };
+
             public ToggleSetting ClapsInStarpower { get; } = new(true);
 
             // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);

@@ -22,6 +22,33 @@ namespace YARG.Gameplay
                 Volume = volume;
             }
 
+            public double SetMute(bool muted)
+            {
+                if (muted)
+                {
+                    --Audible;
+                }
+                else if (Audible < Total)
+                {
+                    ++Audible;
+                }
+
+                return Volume * Audible / Total;
+            }
+
+            public bool SetReverb(bool reverb)
+            {
+                if (reverb)
+                {
+                    ++ReverbCount;
+                }
+                else if (ReverbCount > 0)
+                {
+                    --ReverbCount;
+                }
+                return ReverbCount > 0;
+            }
+
             public double CalculateVolumeSetting()
             {
                 return Volume * Audible / Total;
@@ -91,28 +118,22 @@ namespace YARG.Gameplay
 
         public void ChangeStemMuteState(SongStem stem, bool muted)
         {
-            if (!SettingsManager.Settings.MuteOnMiss.Value || !_stemStates.TryGetValue(stem, out var state))
+            var setting = SettingsManager.Settings.MuteOnMiss.Value;
+            if (setting == AudioFxMode.Off
+            || !_stemStates.TryGetValue(stem, out var state)
+            || (setting == AudioFxMode.MultitrackOnly && stem == _backgroundStem))
             {
                 return;
             }
 
-            if (muted)
-            {
-                --state.Audible;
-            }
-            else if (state.Audible < state.Total)
-            {
-                ++state.Audible;
-            }
-
-            double volume = state.CalculateVolumeSetting();
+            double volume = state.SetMute(muted);
             GlobalAudioHandler.SetVolumeSetting(stem, volume);
         }
 
         public void ChangeStemReverbState(SongStem stem, bool reverb)
         {
             var setting = SettingsManager.Settings.UseStarpowerFx.Value;
-            if (setting == StarPowerFxMode.Off)
+            if (setting == AudioFxMode.Off)
             {
                 return;
             }
@@ -127,21 +148,12 @@ namespace YARG.Gameplay
                 stem = _backgroundStem;
             }
 
-            if (setting == StarPowerFxMode.MultitrackOnly && stem == _backgroundStem)
+            if (setting == AudioFxMode.MultitrackOnly && stem == _backgroundStem)
             {
                 return;
             }
 
-            if (reverb)
-            {
-                ++state.ReverbCount;
-            }
-            else if (state.ReverbCount > 0)
-            {
-                --state.ReverbCount;
-            }
-
-            bool reverbActive = state.ReverbCount > 0;
+            bool reverbActive = state.SetReverb(reverb);
             GlobalAudioHandler.SetReverbSetting(stem, reverbActive);
         }
     }
