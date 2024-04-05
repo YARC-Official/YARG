@@ -20,7 +20,7 @@ namespace YARG.Settings.Preview
         public struct Info
         {
             public delegate ColorProfile.IFretColorProvider FretColorProviderFunc(ColorProfile c);
-            public delegate Color NoteColorProviderFunc(ColorProfile c, int note);
+            public delegate Color NoteColorProviderFunc(ColorProfile c, FakeNoteData note);
             public delegate EnginePreset.HitWindowPreset HitWindowProviderFunc(EnginePreset e);
             public delegate FakeNoteData CreateFakeNoteFunc(double time);
 
@@ -46,7 +46,7 @@ namespace YARG.Settings.Preview
 
                     FretColorProvider = (colorProfile) => colorProfile.FiveFretGuitar,
                     NoteColorProvider = (colorProfile, note) => colorProfile.FiveFretGuitar
-                        .GetNoteColor(note)
+                        .GetNoteColor(note.Fret)
                         .ToUnityColor(),
 
                     HitWindowProvider = (enginePreset) => enginePreset.FiveFretGuitar.HitWindow,
@@ -96,9 +96,26 @@ namespace YARG.Settings.Preview
                     UseKickFrets = true,
 
                     FretColorProvider = (colorProfile) => colorProfile.FourLaneDrums,
-                    NoteColorProvider = (colorProfile, note) => colorProfile.FourLaneDrums
-                        .GetNoteColor(note)
-                        .ToUnityColor(),
+                    NoteColorProvider = (colorProfile, note) =>
+                    {
+                        int colorNote = (note.Fret, note.NoteType) switch
+                        {
+                            (0, _) => 0, // Kick
+                            (1, ThemeNoteType.Cymbal) => 8, // The forbidden red cymbal
+                            (1, _) => 1, // Red drum
+                            (2, ThemeNoteType.Cymbal) => 5, // Yellow cymbal
+                            (2, _) => 2, // Yellow drum
+                            (3, ThemeNoteType.Cymbal) => 6, // Blue cymbal
+                            (3, _) => 3, // Blue drum
+                            (4, ThemeNoteType.Cymbal) => 7, // Green cymbal
+                            (4, _) => 4, // Green drum
+                            _ => throw new Exception("Unreachable.")
+                        };
+
+                        return colorProfile.FourLaneDrums
+                            .GetNoteColor(colorNote)
+                            .ToUnityColor();
+                    },
 
                     HitWindowProvider = (enginePreset) => enginePreset.Drums.HitWindow,
 
@@ -119,17 +136,13 @@ namespace YARG.Settings.Preview
                             };
                         }
 
-                        // Otherwise, select a random note type (cymbals can't be in the first lane)
-                        var noteType = ThemeNoteType.Normal;
-                        if (fret != 1)
+                        // Otherwise, select a random note type
+                        var noteType = Random.Range(0, 2) switch
                         {
-                            noteType = Random.Range(0, 2) switch
-                            {
-                                0 => ThemeNoteType.Normal,
-                                1 => ThemeNoteType.Cymbal,
-                                _ => throw new Exception("Unreachable.")
-                            };
-                        }
+                            0 => ThemeNoteType.Normal,
+                            1 => ThemeNoteType.Cymbal,
+                            _ => throw new Exception("Unreachable.")
+                        };
 
                         return new FakeNoteData
                         {
@@ -151,7 +164,7 @@ namespace YARG.Settings.Preview
 
                     FretColorProvider = (colorProfile) => colorProfile.FiveLaneDrums,
                     NoteColorProvider = (colorProfile, note) => colorProfile.FiveLaneDrums
-                        .GetNoteColor(note)
+                        .GetNoteColor(note.Fret)
                         .ToUnityColor(),
 
                     HitWindowProvider = (enginePreset) => enginePreset.Drums.HitWindow,
