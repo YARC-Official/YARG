@@ -117,6 +117,11 @@ namespace YARG
 
         protected virtual void OnLightingEvent(LightingEvent value)
         {
+            if (CurrentLightingCue == null)
+            {
+                return;
+            }
+            
             if (value != null && value.Type == LightingType.Keyframe_Next)
             {
                 if (CurrentLightingCue.DirectListenEnabled)
