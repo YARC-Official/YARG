@@ -137,24 +137,27 @@ namespace YARG.Audio.BASS
                 {
                     YargLogger.LogFormatError("Failed to set channel position: {0}!", Bass.LastError);
                 }
-                return;
+            }
+            else
+            {
+                if (_sourceStream != 0)
+                {
+                    BassMix.SplitStreamReset(_sourceStream);
+                }
+
+                foreach (var channel in _channels)
+                {
+                    channel.SetPosition(position);
+                }
             }
 
-            if (_sourceStream != 0)
+            if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
             {
-                BassMix.SplitStreamReset(_sourceStream);
-            }
-
-            foreach (var channel in _channels)
-            {
-                channel.SetPosition(position);
+                YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
             }
 
             if (playing)
             {
-                // Account for buffer when resuming
-                if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
-                    YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
                 Play_Internal(false);
             }
         }
