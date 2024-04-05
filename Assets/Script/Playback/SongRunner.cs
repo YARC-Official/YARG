@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using UnityEngine;
 using YARG.Core.Logging;
@@ -170,12 +170,14 @@ namespace YARG.Playback
         private volatile float _syncSpeedAdjustment;
         private volatile int _syncSpeedMultiplier;
         private volatile float _syncStartDelta;
+        private volatile float _syncWorstDelta;
 
         private readonly StemMixer _mixer;
 
         public float SyncSpeedAdjustment => _syncSpeedAdjustment;
         public int SyncSpeedMultiplier => _syncSpeedMultiplier;
         public float SyncStartDelta => _syncStartDelta;
+        public float SyncWorstDelta => _syncWorstDelta;
 
         /// <summary>
         /// The instantaneous current audio time, used for audio synchronization.<br/>
@@ -384,7 +386,14 @@ namespace YARG.Playback
                 if (_syncSpeedMultiplier != speedMultiplier)
                 {
                     if (_syncSpeedMultiplier == 0)
+                    {
                         _syncStartDelta = (float) delta;
+                        _syncWorstDelta = _syncStartDelta;
+                    }
+                    else if (Math.Abs(delta) > Math.Abs(_syncWorstDelta))
+                    {
+                        _syncWorstDelta = (float) delta;
+                    }
 
                     _syncSpeedMultiplier = speedMultiplier;
 
@@ -409,7 +418,10 @@ namespace YARG.Playback
 
         private void ResetSync()
         {
-            _syncStartDelta = 0;
+            // Don't reset so that they're easier to see in real time
+            // _syncStartDelta = 0;
+            // _syncWorstDelta = 0;
+
             _syncSpeedMultiplier = 0;
             _syncSpeedAdjustment = 0f;
             _mixer.SetSpeed(ActualSongSpeed);
