@@ -172,6 +172,7 @@ namespace YARG.Gameplay
                 GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
             }
 
+            _pauseMenu.Clear();
             _mixer?.Dispose();
             _songRunner?.Dispose();
             BeatEventHandler?.Unsubscribe(StarPowerClap);
