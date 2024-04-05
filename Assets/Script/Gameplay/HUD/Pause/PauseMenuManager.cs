@@ -40,6 +40,14 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private RawImage _albumCover;
 
+        public bool IsOpen() => _openMenus.Count > 0;
+
+        public void Clear()
+        {
+            _openMenus.Clear();
+            gameObject.SetActive(false);
+        }
+
         protected override void GameplayAwake()
         {
             // Convert to dictionary with "Menu" as key

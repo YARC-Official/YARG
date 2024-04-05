@@ -113,9 +113,6 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.Paused"/>
         public bool Paused => _songRunner.Paused;
 
-        /// <inheritdoc cref="SongRunner.PendingPauses"/>
-        public int PendingPauses => _songRunner.PendingPauses;
-
         public double SongLength { get; private set; }
 
         public bool IsReplay   { get; private set; }
@@ -194,7 +191,7 @@ namespace YARG.Gameplay
                     return;
                 }
 
-                SetPaused(!_songRunner.Paused);
+                SetPaused(!_pauseMenu.IsOpen());
             }
 
             // Toggle debug text
@@ -307,7 +304,6 @@ namespace YARG.Gameplay
         public void Pause(bool showMenu = true)
         {
             _songRunner.Pause();
-            if (_songRunner.PendingPauses > 1) return;
 
             if (showMenu)
             {
@@ -338,10 +334,13 @@ namespace YARG.Gameplay
 
         public void Resume(bool inputCompensation = true)
         {
-            _songRunner.Resume(inputCompensation);
-            if (_songRunner.PendingPauses > 1) return;
+            _pauseMenu.Clear();
+            if (_songRunner.SongTime >= SongLength + SONG_END_DELAY)
+            {
+                return;
+            }
 
-            _pauseMenu.gameObject.SetActive(false);
+            _songRunner.Resume(inputCompensation);
 
             // Unpause the background/venue
             Time.timeScale = 1f;
@@ -397,7 +396,7 @@ namespace YARG.Gameplay
             if (IsReplay)
             {
                 Pause(false);
-                return false;
+                return true;
             }
 
             // Pass the score info to the stats screen

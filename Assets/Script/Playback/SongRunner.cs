@@ -142,17 +142,7 @@ namespace YARG.Playback
         /// <summary>
         /// Whether or not the song is currently paused.
         /// </summary>
-        public bool Paused => PendingPauses > 0;
-
-        /// <summary>
-        /// The number of pauses which are currently active.
-        /// </summary>
-        /// <remarks>
-        /// The song runner keeps track of the number of pending pauses to prevent pausing in one place
-        /// being overridden by resuming in another. For correct behavior, every call to <see cref="Pause"/>
-        /// must be matched with a future call to <see cref="Resume"/>.
-        /// </remarks>
-        public int PendingPauses { get; private set; }
+        public bool Paused { get; private set; }
 
         /// <summary>
         /// The input time at which the song was paused.
@@ -569,7 +559,11 @@ namespace YARG.Playback
         /// </remarks>
         public void Pause()
         {
-            if (PendingPauses++ > 0) return;
+            if (Paused)
+            {
+                return;
+            }
+            Paused = true;
 
             // Visual time is used for pause time since it's closer to when
             // the song runner is actually being updated; the asserts in Update get hit otherwise
@@ -593,7 +587,11 @@ namespace YARG.Playback
         /// </remarks>
         public void Resume(bool inputCompensation = true)
         {
-            if (PendingPauses < 1 || --PendingPauses > 0) return;
+            if (!Paused)
+            {
+                return;
+            }
+            Paused = false;
 
             if (inputCompensation)
             {

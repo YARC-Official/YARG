@@ -232,7 +232,7 @@ namespace YARG.Gameplay
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
-                        _compensateInputOnSeek = GameManager.PendingPauses < 1;
+                        _compensateInputOnSeek = !GameManager.Paused;
                         GameManager.Pause(showMenu: false);
 
                         _videoPlayer.time = videoTime;
