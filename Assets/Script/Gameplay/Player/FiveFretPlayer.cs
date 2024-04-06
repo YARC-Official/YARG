@@ -137,10 +137,10 @@ namespace YARG.Gameplay.Player
 
         public override void SetStemMuteState(bool muted)
         {
-            if (_isStemMuted != muted)
+            if (IsStemMuted != muted)
             {
                 GameManager.ChangeStemMuteState(_stem, muted);
-                _isStemMuted = muted;
+                IsStemMuted = muted;
             }
         }
 

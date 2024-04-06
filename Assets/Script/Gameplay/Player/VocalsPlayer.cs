@@ -121,17 +121,17 @@ namespace YARG.Gameplay.Player
                     IsFc = false;
                 }
 
-                _lastCombo = Combo;
+                LastCombo = Combo;
             };
 
             engine.OnNoteMissed += (_, _) =>
             {
-                if (_lastCombo >= 2)
+                if (LastCombo >= 2)
                 {
                     GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
                 }
 
-                _lastCombo = Combo;
+                LastCombo = Combo;
             };
 
             return engine;

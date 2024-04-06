@@ -108,6 +108,13 @@ namespace YARG.Gameplay.Player
                 or Instrument.ProBass_22Fret;
         }
 
+        protected override void UpdateVisualsWithTimes(double time)
+        {
+            base.UpdateVisualsWithTimes(time);
+            UpdateNotes(time);
+            UpdateBeatlines(time);
+        }
+
         protected override void ResetVisuals()
         {
             // "Muting a stem" isn't technically a visual,
@@ -123,11 +130,9 @@ namespace YARG.Gameplay.Player
             HitWindowDisplay.SetHitWindowSize();
         }
 
-        protected override void UpdateVisualsWithTimes(double time)
+        public override void UpdateVisualsForSpeedChange()
         {
-            base.UpdateVisualsWithTimes(time);
-            UpdateNotes(time);
-            UpdateBeatlines(time);
+            HitWindowDisplay.SetHitWindowSize();
         }
 
         protected abstract void UpdateNotes(double time);
@@ -393,7 +398,7 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            _lastCombo = Combo;
+            LastCombo = Combo;
         }
 
         protected virtual void OnNoteMissed(int index, TNote note)
@@ -406,12 +411,12 @@ namespace YARG.Gameplay.Player
 
             SetStemMuteState(true);
 
-            if (_lastCombo >= 10)
+            if (LastCombo >= 10)
             {
                 GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
             }
 
-            _lastCombo = Combo;
+            LastCombo = Combo;
 
             foreach (var haptics in SantrollerHaptics)
             {
@@ -427,7 +432,7 @@ namespace YARG.Gameplay.Player
                 IsFc = false;
             }
 
-            _lastCombo = Combo;
+            LastCombo = Combo;
         }
 
         protected virtual void OnSoloStart(SoloSection solo)

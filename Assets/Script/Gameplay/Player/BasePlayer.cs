@@ -76,8 +76,8 @@ namespace YARG.Gameplay.Player
 
         protected BaseInputViewer InputViewer { get; private set; }
 
-        protected int  _lastCombo;
-        protected bool _isStemMuted;
+        protected int  LastCombo;
+        protected bool IsStemMuted;
 
         private List<GameInput> _replayInputs;
 
@@ -107,7 +107,10 @@ namespace YARG.Gameplay.Player
 
         protected void Initialize(int index, YargPlayer player, SongChart chart)
         {
-            if (IsInitialized) return;
+            if (IsInitialized)
+            {
+                return;
+            }
 
             Player = player;
 
@@ -128,17 +131,6 @@ namespace YARG.Gameplay.Player
             IsInitialized = true;
         }
 
-        protected abstract void ResetVisuals();
-
-        public virtual void ResetPracticeSection()
-        {
-            _lastCombo = 0;
-
-            IsFc = true;
-
-            ResetVisuals();
-        }
-
         public virtual void UpdateWithTimes(double inputTime)
         {
             if (!GameManager.Started || GameManager.Paused)
@@ -155,7 +147,22 @@ namespace YARG.Gameplay.Player
             UpdateVisuals(inputTime);
         }
 
+        protected abstract void ResetVisuals();
+
+        public virtual void ResetPracticeSection()
+        {
+            LastCombo = 0;
+
+            IsFc = true;
+
+            ResetVisuals();
+        }
+
         protected abstract void UpdateVisuals(double time);
+
+        public virtual void UpdateVisualsForSpeedChange()
+        {
+        }
 
         public abstract void SetPracticeSection(uint start, uint end);
 
@@ -177,10 +184,6 @@ namespace YARG.Gameplay.Player
             UpdateVisualsWithTimes(time);
         }
 
-        protected virtual void FinishDestruction()
-        {
-        }
-
         protected override void GameplayDestroy()
         {
             if (!GameManager.IsReplay)
@@ -189,6 +192,10 @@ namespace YARG.Gameplay.Player
             }
 
             FinishDestruction();
+        }
+
+        protected virtual void FinishDestruction()
+        {
         }
 
         protected virtual void UpdateInputs(double time)

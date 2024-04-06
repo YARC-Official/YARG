@@ -300,6 +300,11 @@ namespace YARG.Gameplay
         {
             _songRunner.AdjustSongSpeed(deltaSpeed);
 
+            foreach (var player in _players)
+            {
+                player.UpdateVisualsForSpeedChange();
+            }
+
             BackgroundManager.SetSpeed(_songRunner.SelectedSongSpeed);
         }
 
