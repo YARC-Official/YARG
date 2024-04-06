@@ -104,8 +104,8 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.RealInputTime"/>
         public double RealInputTime => _songRunner.RealInputTime;
 
-        /// <inheritdoc cref="SongRunner.SelectedSongSpeed"/>
-        public float SelectedSongSpeed => _songRunner.SelectedSongSpeed;
+        /// <inheritdoc cref="SongRunner.SongSpeed"/>
+        public float SongSpeed => _songRunner.SongSpeed;
 
         /// <inheritdoc cref="SongRunner.Started"/>
         public bool Started => _songRunner.Started;
@@ -293,7 +293,7 @@ namespace YARG.Gameplay
         {
             _songRunner.SetSongSpeed(speed);
 
-            BackgroundManager.SetSpeed(_songRunner.SelectedSongSpeed);
+            BackgroundManager.SetSpeed(_songRunner.SongSpeed);
         }
 
         public void AdjustSongSpeed(float deltaSpeed)
@@ -305,7 +305,7 @@ namespace YARG.Gameplay
                 player.UpdateVisualsForSpeedChange();
             }
 
-            BackgroundManager.SetSpeed(_songRunner.SelectedSongSpeed);
+            BackgroundManager.SetSpeed(_songRunner.SongSpeed);
         }
 
         public void Pause(bool showMenu = true)
@@ -475,7 +475,7 @@ namespace YARG.Gameplay
                     BandScore = BandScore,
                     BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
 
-                    SongSpeed = SelectedSongSpeed
+                    SongSpeed = SongSpeed
                 }, playerEntries);
             }
 

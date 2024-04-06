@@ -184,7 +184,7 @@ namespace YARG.Gameplay.HUD
 
         public void AdjustSpeed(float increment)
         {
-            SetSpeed(GameManager.SelectedSongSpeed + increment);
+            SetSpeed(GameManager.SongSpeed + increment);
         }
 
         private void SetSpeed(float speed)
@@ -193,7 +193,7 @@ namespace YARG.Gameplay.HUD
             GameManager.SetSongSpeed(speed);
             SetReplayTime(GameManager.VisualTime);
 
-            _speedInput.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
+            _speedInput.text = $"{GameManager.SongSpeed * 100f:0}%";
         }
 
         private void SetReplayTime(double time)

@@ -62,7 +62,7 @@ namespace YARG.Gameplay
                 return;
             }
 
-            double endPoint = TimeEnd + (SECTION_RESTART_DELAY * GameManager.SelectedSongSpeed);
+            double endPoint = TimeEnd + (SECTION_RESTART_DELAY * GameManager.SongSpeed);
             if (GameManager.SongTime >= endPoint)
             {
                 ResetPractice();

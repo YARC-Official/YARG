@@ -123,7 +123,7 @@ namespace YARG.Playback
         /// <summary>
         /// The song speed as selected by the user.
         /// </summary>
-        public float SelectedSongSpeed { get; private set; }
+        public float SongSpeed { get; private set; }
 
         /// <summary>
         /// The actual current playback speed of the song.
@@ -132,7 +132,7 @@ namespace YARG.Playback
         /// The audio may be sped up or slowed down in order to re-synchronize.
         /// This value takes that speed adjustment into account.
         /// </remarks>
-        public float ActualSongSpeed => SelectedSongSpeed + _syncSpeedAdjustment;
+        public float RealSongSpeed => SongSpeed + _syncSpeedAdjustment;
 
         /// <summary>
         /// Whether or not the runner has been started.
@@ -237,7 +237,7 @@ namespace YARG.Playback
             double songOffset = 0)
         {
             _mixer = mixer;
-            SelectedSongSpeed = songSpeed;
+            SongSpeed = songSpeed;
             VideoCalibration = -videoCalibration / 1000.0;
             AudioCalibration = (-audioCalibration / 1000.0) - VideoCalibration;
             SongOffset = -songOffset;
@@ -367,8 +367,8 @@ namespace YARG.Playback
                 _finishedSyncing.Reset();
 
                 // Account for song speed
-                double initialThreshold = INITIAL_SYNC_THRESH * SelectedSongSpeed;
-                double adjustThreshold = ADJUST_SYNC_THRESH * SelectedSongSpeed;
+                double initialThreshold = INITIAL_SYNC_THRESH * SongSpeed;
+                double adjustThreshold = ADJUST_SYNC_THRESH * SongSpeed;
 
                 // Check the difference between visual and audio times
                 double delta = SyncDelta;
@@ -401,7 +401,7 @@ namespace YARG.Playback
                     if (!Mathf.Approximately(adjustment, _syncSpeedAdjustment))
                     {
                         _syncSpeedAdjustment = adjustment;
-                        _mixer.SetSpeed(ActualSongSpeed);
+                        _mixer.SetSpeed(RealSongSpeed);
                     }
                 }
 
@@ -424,12 +424,12 @@ namespace YARG.Playback
 
             _syncSpeedMultiplier = 0;
             _syncSpeedAdjustment = 0f;
-            _mixer.SetSpeed(ActualSongSpeed);
+            _mixer.SetSpeed(RealSongSpeed);
         }
 
         public double GetRelativeInputTime(double timeFromInputSystem)
         {
-            return InputTimeBase + ((timeFromInputSystem - InputTimeOffset) * SelectedSongSpeed);
+            return InputTimeBase + ((timeFromInputSystem - InputTimeOffset) * SongSpeed);
         }
 
         public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
@@ -476,7 +476,7 @@ namespace YARG.Playback
             SetInputBase(inputBase);
 
             // Speeds above 200% or so can cause inaccuracies greater than 1 ms
-            double threshold = Math.Max(0.001 * SelectedSongSpeed, 0.0005);
+            double threshold = Math.Max(0.001 * SongSpeed, 0.0005);
             YargLogger.AssertFormat(Math.Abs(VisualTime - previousVisualTime) <= threshold,
                 "Unexpected visual time change! Went from {0} to {1}, threshold {2}",
                 previousVisualTime, VisualTime, threshold);
@@ -488,7 +488,7 @@ namespace YARG.Playback
         private void InitializeSongTime(double time, double delayTime = SONG_START_DELAY)
         {
             // Account for song speed
-            delayTime *= SelectedSongSpeed;
+            delayTime *= SongSpeed;
 
             // Seek time
             // Doesn't account for audio calibration for better audio syncing
@@ -542,10 +542,10 @@ namespace YARG.Playback
             speed = Math.Clamp(speed, 10 / 100f, 4995 / 100f);
 
             // Set speed; save old for input offset compensation
-            SelectedSongSpeed = speed;
+            SongSpeed = speed;
 
             // Set based on the actual song speed, so as to not break resyncing
-            _mixer.SetSpeed(ActualSongSpeed);
+            _mixer.SetSpeed(RealSongSpeed);
 
             // Adjust input offset, otherwise input time will desync
             // TODO: Pressing and holding left or right in practice will
@@ -559,7 +559,7 @@ namespace YARG.Playback
                 SongTime, VisualTime, InputTime);
         }
 
-        public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
+        public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SongSpeed + deltaSpeed);
 
         /// <summary>
         /// Pauses the song.

@@ -22,12 +22,12 @@ namespace YARG.Gameplay.Player
         {
             get
             {
-                if (GameManager.SelectedSongSpeed < 1)
+                if (GameManager.SongSpeed < 1)
                 {
                     return Player.Profile.NoteSpeed;
                 }
 
-                return Player.Profile.NoteSpeed / GameManager.SelectedSongSpeed;
+                return Player.Profile.NoteSpeed / GameManager.SongSpeed;
             }
         }
 

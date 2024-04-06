@@ -81,7 +81,7 @@ namespace YARG.Gameplay.Player
             }
 
             // The hit window can just be taken from the params
-            EngineParams.SetHitWindowScale(GameManager.SelectedSongSpeed);
+            EngineParams.SetHitWindowScale(GameManager.SongSpeed);
             HitWindow = EngineParams.HitWindow;
 
             var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams);

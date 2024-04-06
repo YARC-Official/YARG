@@ -55,7 +55,7 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            speedPercentText.SetTextFormat("{0:0}%", GameManager.SelectedSongSpeed * 100f);
+            speedPercentText.SetTextFormat("{0:0}%", GameManager.SongSpeed * 100f);
 
             int notesHit = 0;
             int totalNotes = 0;

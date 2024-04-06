@@ -179,7 +179,7 @@ namespace YARG.Gameplay
                     _videoEndTime = double.NaN;
 
                 player.time = _videoStartTime;
-                player.playbackSpeed = GameManager.SelectedSongSpeed;
+                player.playbackSpeed = GameManager.SongSpeed;
 
                 // Determine whether or not to loop the video
                 if (Math.Abs(_videoStartTime) <= startTimeThreshold && _videoEndTime <= endTimeThreshold)
