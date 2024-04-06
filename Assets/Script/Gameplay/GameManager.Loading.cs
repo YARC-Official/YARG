@@ -164,6 +164,12 @@ namespace YARG.Gameplay
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
 
+            // Show debug info
+#if UNITY_EDITOR
+            _isShowDebugText = true;
+#endif
+            _debugText.gameObject.SetActive(_isShowDebugText);
+
             // Initialize/destroy practice mode
             if (IsPractice)
             {
@@ -171,13 +177,6 @@ namespace YARG.Gameplay
             }
             else
             {
-#if UNITY_EDITOR
-                _isShowDebugText = true;
-#endif
-
-                // Show debug info
-                _debugText.gameObject.SetActive(_isShowDebugText);
-
                 Destroy(PracticeManager);
             }
 
