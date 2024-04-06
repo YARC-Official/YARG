@@ -447,7 +447,6 @@ namespace YARG.Menu.MusicLibrary
 
             _previewCanceller?.Cancel();
             _previewContext?.Stop();
-            _previewContext = null;
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
         }
 
