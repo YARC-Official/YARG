@@ -74,7 +74,6 @@ namespace YARG.Menu.MusicLibrary
 
         private IReadOnlyList<SongCategory> _sortedSongs;
 
-        private readonly object _previewLock = new();
         private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
         private double _previewDelay;
@@ -169,18 +168,13 @@ namespace YARG.Menu.MusicLibrary
                 _currentSong = null;
             }
 
-            CancellationTokenSource canceller;
-            double delay;
-            lock (_previewLock)
-            {
-                _previewCanceller?.Cancel();
-                _previewContext?.Stop();
-                _previewContext = null;
-                _previewCanceller = canceller = new CancellationTokenSource();
-                delay = _previewDelay;
-                _previewDelay = PREVIEW_SCROLL_DELAY;
-            }
-            StartPreview(delay, canceller);
+            _previewCanceller?.Cancel();
+            _previewCanceller = new CancellationTokenSource();
+            _previewContext?.Stop();
+            _previewContext = null;
+            StartPreview(_previewDelay, _previewCanceller);
+
+            _previewDelay = PREVIEW_SCROLL_DELAY;
         }
 
         protected override List<ViewType> CreateViewList()
