@@ -158,7 +158,7 @@ namespace YARG.Menu.MusicLibrary
             _sidebar.UpdateSidebar();
             if (CurrentSelection is SongViewType song)
             {
-                if (CurrentlyPlaying == null && song.SongEntry == _currentSong && (_previewContext == null || _previewContext.IsPlaying))
+                if (CurrentlyPlaying == null && song.SongEntry == _currentSong && (_previewCanceller == null || !_previewCanceller.IsCancellationRequested))
                 {
                     return;
                 }
@@ -451,15 +451,16 @@ namespace YARG.Menu.MusicLibrary
 
             Navigator.Instance.PopScheme();
 
+            _previewCanceller?.Cancel();
             _previewContext?.Stop();
+            _previewContext = null;
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
         }
 
         private void OnDestroy()
         {
-            _previewCanceller = null;
+            _previewCanceller?.Cancel();
             _previewContext?.Dispose();
-            _previewContext = null;
             _reloadState = MusicLibraryReloadState.Partial;
         }
 
@@ -471,8 +472,9 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            _previewCanceller = null;
+            _previewCanceller?.Cancel();
             _previewContext?.Dispose();
+            _previewContext = null;
             MenuManager.Instance.PopMenu();
         }
 
