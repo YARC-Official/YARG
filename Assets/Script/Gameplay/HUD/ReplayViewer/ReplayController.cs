@@ -179,21 +179,21 @@ namespace YARG.Gameplay.HUD
                 speed = 100;
             }
 
-            SetSpeed(speed / 100f);
+            GameManager.SetPlaybackSpeed(speed / 100f);
+            UpdateForSpeedChange();
         }
 
-        public void AdjustSpeed(float increment)
+        public void AdjustSpeed(float deltaSpeed)
         {
-            SetSpeed(GameManager.SongSpeed + increment);
+            GameManager.AdjustPlaybackSpeed(deltaSpeed);
+            UpdateForSpeedChange();
         }
 
-        private void SetSpeed(float speed)
+        private void UpdateForSpeedChange()
         {
             // Make sure to reset the replay time to prevent inconsistencies
-            GameManager.SetSongSpeed(speed);
             SetReplayTime(GameManager.VisualTime);
-
-            _speedInput.text = $"{GameManager.SongSpeed * 100f:0}%";
+            _speedInput.text = $"{GameManager.PlaybackSongSpeed * 100f:0}%";
         }
 
         private void SetReplayTime(double time)

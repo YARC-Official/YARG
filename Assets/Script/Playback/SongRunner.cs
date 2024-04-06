@@ -121,7 +121,7 @@ namespace YARG.Playback
 
         #region Other state
         /// <summary>
-        /// The song speed as selected by the user.
+        /// The set playback speed of the song.
         /// </summary>
         public float SongSpeed { get; private set; }
 
@@ -558,8 +558,6 @@ namespace YARG.Playback
                 + "Song time: {1:0.000000}, visual time: {2:0.000000}, input time: {3:0.000000}", speed,
                 SongTime, VisualTime, InputTime);
         }
-
-        public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SongSpeed + deltaSpeed);
 
         /// <summary>
         /// Pauses the song.

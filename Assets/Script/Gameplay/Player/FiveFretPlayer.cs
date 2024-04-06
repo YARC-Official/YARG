@@ -80,8 +80,11 @@ namespace YARG.Gameplay.Player
                 EngineParams = (GuitarEngineParameters) Player.EngineParameterOverride;
             }
 
+            // Only the selected speed before you enter the song scales the engine.
+            // Things like practice and replay speed-ups/slow-downs don't change this.
+            EngineParams.SetHitWindowScale(GameManager.SelectedSongSpeed);
+
             // The hit window can just be taken from the params
-            EngineParams.SetHitWindowScale(GameManager.SongSpeed);
             HitWindow = EngineParams.HitWindow;
 
             var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams);
