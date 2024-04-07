@@ -53,14 +53,9 @@ namespace YARG.Audio.BASS
 
         protected override int Play_Internal(bool restart)
         {
-            if (!IsPlaying)
+            if (IsPaused && !Bass.ChannelPlay(_mixerHandle, restart))
             {
-                if (!Bass.ChannelPlay(_mixerHandle, restart))
-                {
-                    return (int) Bass.LastError;
-                }
-
-                _isPlaying = true;
+                return (int) Bass.LastError;
             }
             return 0;
         }
@@ -77,14 +72,9 @@ namespace YARG.Audio.BASS
 
         protected override int Pause_Internal()
         {
-            if (IsPlaying)
+            if (!IsPaused && !Bass.ChannelPause(_mixerHandle))
             {
-                if (!Bass.ChannelPause(_mixerHandle))
-                {
-                    return (int) Bass.LastError;
-                }
-
-                _isPlaying = false;
+                return (int) Bass.LastError;
             }
             return 0;
         }
@@ -119,7 +109,7 @@ namespace YARG.Audio.BASS
 
         protected override void SetPosition_Internal(double position)
         {
-            bool playing = IsPlaying;
+            bool playing = !IsPaused;
             if (playing)
             {
                 // Pause when seeking to avoid desyncing individual stems

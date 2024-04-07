@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using UnityEngine;
 using YARG.Core.Logging;
@@ -361,7 +361,7 @@ namespace YARG.Playback
 
             for (; _runSync; _finishedSyncing.Set(), Thread.Sleep(5))
             {
-                if (!_mixer.IsPlaying || _pauseSync)
+                if (_pauseSync || _mixer.GetPosition() >= _mixer.Length)
                     continue;
 
                 _finishedSyncing.Reset();
@@ -524,10 +524,19 @@ namespace YARG.Playback
             // Reset syncing before seeking to prevent speed adjustments from causing issues
             ResetSync();
 
+            _mixer.Pause();
             // Audio seeking; cannot go negative
             double seekTime = RealSongTime;
-            if (seekTime < 0) seekTime = 0;
-            _mixer.SetPosition(seekTime);
+            if (seekTime < 0)
+            {
+                seekTime = 0;
+                _mixer.SetPosition(seekTime);
+            }
+            else
+            {
+                _mixer.SetPosition(seekTime);
+                _mixer.Play(true);
+            }
 
             _pauseSync = false;
             _seeked = true;
@@ -577,7 +586,7 @@ namespace YARG.Playback
             // Visual time is used for pause time since it's closer to when
             // the song runner is actually being updated; the asserts in Update get hit otherwise
             PauseStartTime = RealVisualTime;
-            _playAudioOnResume = _mixer.IsPlaying;
+            _playAudioOnResume = !_mixer.IsPaused;
             _pauseSync = true;
             _mixer.Pause();
 
