@@ -118,6 +118,15 @@ namespace YARG.Audio.BASS
             Bass.PlaybackBufferLength = BassHelpers.PLAYBACK_BUFFER_LENGTH;
             Bass.DeviceNonStop = true;
 
+            // This not the same as Bass.UpdatePeriod
+            // If not explicitly set by the audio driver or OS, the default will be 10
+            // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_PERIOD.html
+            int devPeriod = Bass.GetConfig(Configuration.DevicePeriod);
+
+            // Documentation recommends setting the device buffer to at least 2x the device period
+            // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
+            Bass.DeviceBufferLength = 2 * devPeriod;
+
             // Affects Windows only. Forces device names to be in UTF-8 on Windows rather than ANSI.
             Bass.Configure(Configuration.UnicodeDeviceInformation, true);
             Bass.Configure(Configuration.TruePlayPosition, false);
@@ -145,16 +154,7 @@ namespace YARG.Audio.BASS
 
             LoadSfx();
 
-            var info = Bass.Info;
-            // This not the same as Bass.UpdatePeriod
-            // If not explicitly set by the audio driver, the default will be 10
-            // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_PERIOD.html
-            int devPeriod = Bass.GetConfig(Configuration.DevicePeriod);
-
-            // Documentation recommends setting the device buffer to at least 2x the device period
-            // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
-            Bass.DeviceBufferLength = 2 * devPeriod;
-            PlaybackLatency = info.Latency + Bass.DeviceBufferLength +  devPeriod;
+            PlaybackLatency = Bass.Info.Latency + Bass.DeviceBufferLength +  devPeriod;
 
             YargLogger.LogInfo("BASS Successfully Initialized");
             YargLogger.LogFormatInfo("BASS: {0} - BASS.FX: {1} - BASS.Mix: {2}", Bass.Version, BassFx.Version, BassMix.Version);
