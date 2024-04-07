@@ -282,6 +282,7 @@ namespace YARG.Gameplay
                     text.AppendFormat("Note index: {0}\n", state.NoteIndex);
                 }
 
+                text.AppendFormat("Device audio latency: {0}ms\n", GlobalAudioHandler.PlaybackLatency);
                 text.AppendFormat("Song time: {0:0.000000}\n", _songRunner.SongTime);
                 text.AppendFormat("Audio time: {0:0.000000}\n", _songRunner.AudioTime);
                 text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
