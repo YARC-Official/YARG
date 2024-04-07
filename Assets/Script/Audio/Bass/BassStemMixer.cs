@@ -141,13 +141,12 @@ namespace YARG.Audio.BASS
                 }
             }
 
-            if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
-            {
-                YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
-            }
-
             if (playing)
             {
+                if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
+                {
+                    YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
+                }
                 Play_Internal(false);
             }
         }
