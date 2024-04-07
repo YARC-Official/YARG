@@ -311,14 +311,6 @@ namespace YARG.Gameplay
         {
             PlaybackSongSpeed = speed;
 
-            _songRunner.SetSongSpeed(SelectedSongSpeed * PlaybackSongSpeed);
-            BackgroundManager.SetSpeed(_songRunner.SongSpeed);
-        }
-
-        public void AdjustPlaybackSpeed(float deltaSpeed)
-        {
-            PlaybackSongSpeed += deltaSpeed;
-
             var newSpeed = SelectedSongSpeed * PlaybackSongSpeed;
 
             // Clamp the playback speed such that the selected speed times the
@@ -333,6 +325,11 @@ namespace YARG.Gameplay
             {
                 player.UpdateVisualsForSpeedChange();
             }
+        }
+
+        public void AdjustPlaybackSpeed(float deltaSpeed)
+        {
+            SetPlaybackSpeed(PlaybackSongSpeed + deltaSpeed);
         }
 
         public void Pause(bool showMenu = true)
