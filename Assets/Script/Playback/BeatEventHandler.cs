@@ -94,7 +94,10 @@ namespace YARG.Playback
             {
                 // Apply offset up-front
                 songTime -= _offset;
-                if (songTime < 0) return;
+                if (songTime < 0)
+                {
+                    return;
+                }
 
                 var tempos = sync.Tempos;
                 var timeSigs = sync.TimeSignatures;
@@ -151,7 +154,10 @@ namespace YARG.Playback
             {
                 // Apply offset up-front
                 songTime -= _offset;
-                if (songTime < 0) return;
+                if (songTime < 0)
+                {
+                    return;
+                }
 
                 var beatlines = sync.Beatlines;
                 while (_beatlineIndex + 1 < beatlines.Count && beatlines[_beatlineIndex + 1].Time < songTime)
