@@ -173,8 +173,6 @@ namespace YARG.Playback
 
         // Necessary to allow adding or removing subscriptions within event handlers
         private readonly List<(bool, Delegate, IBeatAction)> _changeStates = new();
-        //private readonly List<(Delegate, IBeatAction)> _addStates = new();
-        //private readonly List<Delegate> _removeStates = new();
 
         public BeatEventHandler(SyncTrack sync)
         {
@@ -192,7 +190,6 @@ namespace YARG.Playback
             TempoMapEventMode mode = TempoMapEventMode.Beat)
         {
             _changeStates.Add((true, action, new TempoMapAction(action, beatRate, offset, mode)));
-            //_addStates.Add((action, new TempoMapAction(action, beatRate, offset, mode)));
         }
 
         /// <summary>
@@ -203,19 +200,16 @@ namespace YARG.Playback
         public void Subscribe(Action<Beatline> action, double offset = 0)
         {
             _changeStates.Add((true, action, new BeatlineAction(action, offset)));
-            //_addStates.Add((action, new BeatlineAction(action, offset)));
         }
 
         public void Unsubscribe(Action action)
         {
             _changeStates.Add((false, action, null));
-            //_removeStates.Add(action);
         }
 
         public void Unsubscribe(Action<Beatline> action)
         {
             _changeStates.Add((false, action, null));
-            //_removeStates.Add(action);
         }
 
         public void ResetTimers()
@@ -249,7 +243,10 @@ namespace YARG.Playback
             _changeStates.Clear();
 
             // Skip until in the chart
-            if (songTime < 0) return;
+            if (songTime < 0)
+            {
+                return;
+            }
 
 #if false // Not necessary currently, but might be in the future
             // Update the current sync track info
