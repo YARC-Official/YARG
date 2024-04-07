@@ -376,6 +376,17 @@ namespace YARG.Integration.StageKit
                     EnqueueCommand((int) CommandType.LedRed, _currentRedLedState);
                     break;
 
+                case StageKitLedColor.All:
+                    _currentBlueLedState = led;
+                    _currentGreenLedState = led;
+                    _currentYellowLedState = led;
+                    _currentRedLedState = led;
+                    EnqueueCommand((int) CommandType.LedBlue, _currentBlueLedState);
+                    EnqueueCommand((int) CommandType.LedGreen, _currentGreenLedState);
+                    EnqueueCommand((int) CommandType.LedYellow, _currentYellowLedState);
+                    EnqueueCommand((int) CommandType.LedRed, _currentRedLedState);
+                    break;
+
                 default:
                     YargLogger.LogWarning(" Unknown color: " + color);
                     return;

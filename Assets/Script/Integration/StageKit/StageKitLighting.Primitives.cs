@@ -11,14 +11,13 @@ namespace YARG.Integration.StageKit
     public class BeatPattern : StageKitLighting
     {
         private readonly bool _continuous;
-        private int _patternIndex = 0;
+        private int _patternIndex;
         private readonly (StageKitLedColor color, byte data)[] _patternList;
         private GameManager _gameManager;
         private float _beatsPerCycle;
 
         public BeatPattern((StageKitLedColor, byte)[] patternList, float beatsPerCycle, bool continuous = true)
         {
-
             _continuous = continuous;
             _patternList = patternList;
             _beatsPerCycle = beatsPerCycle;
@@ -34,8 +33,7 @@ namespace YARG.Integration.StageKit
 
         public override void OnBeat()
         {
-            StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color,
-                _patternList[_patternIndex].data);
+            StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
             _patternIndex++;
 
             //some beat patterns are not continuous (single fire), so we need to kill them after
@@ -43,7 +41,8 @@ namespace YARG.Integration.StageKit
             if (!_continuous && _patternIndex == _patternList.Length)
             {
                 _gameManager.BeatEventHandler.Unsubscribe(OnBeat);
-                StageKitInterpreter.Instance.CurrentLightingCue.CuePrimitives.Remove(this);
+                KillSelf();
+                //StageKitInterpreter.Instance.CurrentLightingCue.CuePrimitives.Remove(this);
             }
 
             if (_patternIndex >= _patternList.Length)
@@ -54,7 +53,11 @@ namespace YARG.Integration.StageKit
 
         public override void KillSelf()
         {
-            _gameManager.BeatEventHandler.Unsubscribe(OnBeat);
+            if (_gameManager != null)
+            {
+                _gameManager.BeatEventHandler.Unsubscribe(OnBeat);
+            }
+
             CancellationTokenSource?.Cancel();
         }
     }

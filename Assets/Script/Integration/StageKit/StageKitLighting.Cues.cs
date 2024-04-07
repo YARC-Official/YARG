@@ -819,6 +819,9 @@ namespace YARG.Integration.StageKit
         private bool _blueOnTwo = true;
         private StageKitLighting _greenPattern;
         private byte _patternByte;
+        private BeatPattern _blueFour;
+        private BeatPattern _blueTwo;
+
         private static readonly (StageKitLedColor, byte)[] PatternList1 =
         {
             (YELLOW, ZERO),
@@ -850,6 +853,11 @@ namespace YARG.Integration.StageKit
             _greenIsSpinning = true;
             CuePrimitives.Add(new ListenPattern(new (StageKitLedColor, byte)[] { (RED, ALL) }, ListenTypes.RedFretDrums,
                 true));
+            _blueFour = new BeatPattern(
+                new (StageKitLedColor, byte)[] { (BLUE, NONE), (BLUE, ZERO | TWO | FOUR | SIX) }, 4f, false);
+            _blueTwo = new BeatPattern(new (StageKitLedColor, byte)[] { (BLUE, NONE), (BLUE, TWO | SIX) }, 4f, false);
+            CuePrimitives.Add(_blueTwo);
+            CuePrimitives.Add(_blueFour);
         }
 
         public override void Enable()
@@ -862,23 +870,23 @@ namespace YARG.Integration.StageKit
             {
                 primitive.Enable();
             }
+
+            DirectListenEnabled = true;
         }
 
         public override void HandleLightingEvent(LightingType eventName)
         {
             if (eventName != LightingType.Keyframe_Next) return;
-
             if (_blueOnTwo)
             {
-                CuePrimitives.Add(new BeatPattern(
-                    new (StageKitLedColor, byte)[] { (BLUE, NONE), (BLUE, ZERO | TWO | FOUR | SIX) },
-                    4f, false));
+                _blueTwo.KillSelf();
+                _blueFour.Enable();
                 _blueOnTwo = false;
             }
             else
             {
-                CuePrimitives.Add(new BeatPattern(new (StageKitLedColor, byte)[] { (BLUE, NONE), (BLUE, TWO | SIX) },
-                    4f, false));
+                _blueFour.KillSelf();
+                _blueTwo.Enable();
                 _blueOnTwo = true;
             }
         }
@@ -888,15 +896,13 @@ namespace YARG.Integration.StageKit
             if (MasterLightingController.LargeVenue || eventName != BeatlineType.Measure) return;
             if (_greenIsSpinning)
             {
-                _gameManager.BeatEventHandler.Unsubscribe(_greenPattern.OnBeat);
-                StageKitInterpreter.Instance.CurrentLightingCue.CuePrimitives.Remove(_greenPattern);
+                _greenPattern.KillSelf();
 
                 StageKitInterpreter.Instance.SetLed(GREEN, ALL);
             }
             else
             {
-                _greenPattern = new BeatPattern(PatternList2, 2f);
-                CuePrimitives.Add(_greenPattern);
+                _greenPattern.Enable();
             }
 
             _greenIsSpinning = !_greenIsSpinning;
