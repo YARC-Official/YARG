@@ -75,9 +75,9 @@ namespace YARG.Audio.BASS
             }
         }
 
-        protected override void SetSpeed_Internal(float speed)
+        protected override void SetSpeed_Internal(float speed, bool shiftPitch)
         {
-            BassAudioManager.SetSpeed(speed, _streamHandles.Stream, _reverbHandles.Stream);
+            BassAudioManager.SetSpeed(speed, _streamHandles.Stream, _reverbHandles.Stream, shiftPitch);
         }
 
         protected override void SetVolume_Internal(double volume)

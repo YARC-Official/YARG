@@ -169,11 +169,18 @@ namespace YARG.Audio.BASS
             return data;
         }
 
-        protected override void SetSpeed_Internal(float speed)
+        protected override void SetSpeed_Internal(float speed, bool shiftPitch)
         {
+            speed = (float) Math.Clamp(speed, 0.05, 50);
+            if (_speed == speed)
+            {
+                return;
+            }
+
+            _speed = speed;
             foreach (var channel in _channels)
             {
-                channel.SetSpeed(speed);
+                channel.SetSpeed(speed, shiftPitch);
             }
         }
 

@@ -397,7 +397,7 @@ namespace YARG.Playback
                         if (!Mathf.Approximately(adjustment, _syncSpeedAdjustment))
                         {
                             _syncSpeedAdjustment = adjustment;
-                            _mixer.SetSpeed(RealSongSpeed);
+                            _mixer.SetSpeed(RealSongSpeed, false);
                         }
                     }
 
@@ -421,7 +421,7 @@ namespace YARG.Playback
 
             _syncSpeedMultiplier = 0;
             _syncSpeedAdjustment = 0f;
-            _mixer.SetSpeed(RealSongSpeed);
+            _mixer.SetSpeed(RealSongSpeed, true);
         }
 
         public double GetRelativeInputTime(double timeFromInputSystem)
@@ -550,7 +550,7 @@ namespace YARG.Playback
                 SongSpeed = speed;
 
                 // Set based on the actual song speed, so as to not break resyncing
-                _mixer.SetSpeed(RealSongSpeed);
+                _mixer.SetSpeed(RealSongSpeed, true);
 
                 // Adjust input offset, otherwise input time will desync
                 // TODO: Pressing and holding left or right in practice will

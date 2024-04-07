@@ -378,7 +378,7 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        internal static void SetSpeed(float speed, int streamHandle, int reverbHandle)
+        internal static void SetSpeed(float speed, int streamHandle, int reverbHandle, bool shiftPitch)
         {
             // Gets relative speed from 100% (so 1.05f = 5% increase)
             float percentageSpeed = speed * 100;
@@ -388,6 +388,11 @@ namespace YARG.Audio.BASS
                 !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Tempo, relativeSpeed))
             {
                 YargLogger.LogFormatError("Failed to set channel speed: {0}!", Bass.LastError);
+            }
+
+            if (GlobalAudioHandler.IsChipmunkSpeedup && shiftPitch)
+            {
+                SetChipmunking(speed, streamHandle, reverbHandle);
             }
         }
 
@@ -426,13 +431,10 @@ namespace YARG.Audio.BASS
                 }
             }
 
-            if (!Mathf.Approximately(speed, 1f))
+            speed = (float) Math.Clamp(speed, 0.05, 50);
+            if (!Mathf.Approximately(speed, 1))
             {
-                SetSpeed(speed, streamHandles.Stream, reverbHandles.Stream);
-                if (GlobalAudioHandler.IsChipmunkSpeedup)
-                {
-                    SetChipmunking(speed, streamHandles.Stream, reverbHandles.Stream);
-                }
+                SetSpeed(speed, streamHandles.Stream, reverbHandles.Stream, true);
             }
             return pitchParams;
         }
