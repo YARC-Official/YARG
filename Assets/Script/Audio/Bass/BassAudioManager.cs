@@ -115,11 +115,8 @@ namespace YARG.Audio.BASS
             Bass.Configure(Configuration.IncludeDefaultDevice, true);
 
             Bass.UpdatePeriod = 5;
-            Bass.DeviceBufferLength = 10;
             Bass.PlaybackBufferLength = BassHelpers.PLAYBACK_BUFFER_LENGTH;
             Bass.DeviceNonStop = true;
-
-            PlaybackBufferLength = BassHelpers.PLAYBACK_BUFFER_LENGTH / 1000.0;
 
             // Affects Windows only. Forces device names to be in UTF-8 on Windows rather than ANSI.
             Bass.Configure(Configuration.UnicodeDeviceInformation, true);
@@ -148,10 +145,21 @@ namespace YARG.Audio.BASS
 
             LoadSfx();
 
+            var info = Bass.Info;
+            // This not the same as Bass.UpdatePeriod
+            // If not explicitly set by the audio driver, the default will be 10
+            // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_PERIOD.html
+            int devPeriod = Bass.GetConfig(Configuration.DevicePeriod);
+
+            // Documentation recommends setting the device buffer to at least 2x the device period
+            // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
+            Bass.DeviceBufferLength = 2 * devPeriod;
+            PlaybackLatency = info.Latency + Bass.DeviceBufferLength +  devPeriod;
+
             YargLogger.LogInfo("BASS Successfully Initialized");
             YargLogger.LogFormatInfo("BASS: {0} - BASS.FX: {1} - BASS.Mix: {2}", Bass.Version, BassFx.Version, BassMix.Version);
-            YargLogger.LogFormatInfo("Update Period: {0}ms. Device Buffer Length: {1}ms. Playback Buffer Length: {2}ms",
-                Bass.UpdatePeriod, Bass.DeviceBufferLength, Bass.PlaybackBufferLength);
+            YargLogger.LogFormatInfo("Update Period: {0}ms. Device Buffer Length: {1}ms. Playback Buffer Length: {2}ms. Device Playback Latency: {3}ms",
+                Bass.UpdatePeriod, Bass.DeviceBufferLength, Bass.PlaybackBufferLength, PlaybackLatency);
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
         }
 

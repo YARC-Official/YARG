@@ -215,7 +215,7 @@ namespace YARG.Menu.Calibrator
             float median = diffs.Count % 2 != 0 ? diffs[mid] : (diffs[mid] + diffs[mid - 1]) / 2f;
 
             // Set calibration
-            int calibration = Mathf.RoundToInt(median * 1000f);
+            int calibration = Mathf.RoundToInt(median * 1000f) - GlobalAudioHandler.PlaybackLatency;
             SettingsManager.Settings.AudioCalibration.Value = calibration;
 
             // Set text

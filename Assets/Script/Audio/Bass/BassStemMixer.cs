@@ -81,7 +81,6 @@ namespace YARG.Audio.BASS
 
         protected override double GetPosition_Internal()
         {
-            // Accounts for the playback buffer
             long position = Bass.ChannelGetPosition(_mainHandle.Stream);
             if (position < 0)
             {

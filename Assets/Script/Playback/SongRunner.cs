@@ -117,6 +117,8 @@ namespace YARG.Playback
         /// Positive offsets in the .ini or .chart will result in a negative number here.
         /// </remarks>
         public double SongOffset { get; }
+
+        public double PlaybackLatency { get; }
         #endregion
 
         #region Other state
@@ -239,7 +241,8 @@ namespace YARG.Playback
             _mixer = mixer;
             SongSpeed = songSpeed;
             VideoCalibration = -videoCalibration / 1000.0;
-            AudioCalibration = (-audioCalibration / 1000.0) - VideoCalibration;
+            AudioCalibration = (-(audioCalibration + GlobalAudioHandler.PlaybackLatency) / 1000.0) - VideoCalibration;
+            
             SongOffset = -songOffset;
 
             _syncThread = new Thread(SyncThread) { IsBackground = true };
