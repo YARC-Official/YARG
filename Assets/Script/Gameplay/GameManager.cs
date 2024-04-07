@@ -319,7 +319,14 @@ namespace YARG.Gameplay
         {
             PlaybackSongSpeed += deltaSpeed;
 
-            _songRunner.SetSongSpeed(SelectedSongSpeed * PlaybackSongSpeed);
+            var newSpeed = SelectedSongSpeed * PlaybackSongSpeed;
+
+            // Clamp the playback speed such that the selected speed times the
+            // playback speed is in the proper song speed range.
+            // This prevents the playback speed from going out of bounds.
+            PlaybackSongSpeed = SongRunner.ClampSongSpeed(newSpeed) / SelectedSongSpeed;
+
+            _songRunner.SetSongSpeed(newSpeed);
             BackgroundManager.SetSpeed(_songRunner.SongSpeed);
 
             foreach (var player in _players)

@@ -538,8 +538,7 @@ namespace YARG.Playback
             _pauseSync = true;
             _finishedSyncing.WaitOne();
 
-            // 10% - 4995%, we reserve 5% so that audio syncing can still function
-            speed = Math.Clamp(speed, 10 / 100f, 4995 / 100f);
+            speed = ClampSongSpeed(speed);
 
             // Set speed; save old for input offset compensation
             SongSpeed = speed;
@@ -645,6 +644,12 @@ namespace YARG.Playback
                 pauseTime = RealVisualTime;
 
             PauseStartTime = pauseTime;
+        }
+
+        public static float ClampSongSpeed(float speed)
+        {
+            // 10% - 4995%, we reserve 5% so that audio syncing can still function
+            return Math.Clamp(speed, 10 / 100f, 4995 / 100f);
         }
     }
 }

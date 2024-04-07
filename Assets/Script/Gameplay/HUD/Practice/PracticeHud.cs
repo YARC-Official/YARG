@@ -73,7 +73,7 @@ namespace YARG.Gameplay.HUD
                 totalNotes += player.TotalNotes;
             }
 
-            if(totalNotes == 0)
+            if (totalNotes == 0)
             {
                 _percentHit = 0f;
             }

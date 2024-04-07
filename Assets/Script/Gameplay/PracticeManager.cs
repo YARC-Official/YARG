@@ -108,7 +108,7 @@ namespace YARG.Gameplay
 
         public void SetPracticeSection(Section start, Section end)
         {
-            if(start.Time > end.Time)
+            if (start.Time > end.Time)
             {
                 (start, end) = (end, start);
             }
@@ -119,7 +119,7 @@ namespace YARG.Gameplay
             _sectionEndTick = end.TickEnd;
             _sectionEndTime = end.TimeEnd;
 
-            if(end.Tick == _lastTick)
+            if (end.Tick == _lastTick)
             {
                 _sectionEndTick += 1;
                 _sectionEndTime += 0.01;
