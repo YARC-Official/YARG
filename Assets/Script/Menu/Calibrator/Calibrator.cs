@@ -83,7 +83,7 @@ namespace YARG.Menu.Calibrator
                     _audioCalibrateText.color = Color.green;
                     _audioCalibrateText.text = "Detected";
 
-                    _calibrationTimes.Add((float)_mixer.GetPosition());
+                    _calibrationTimes.Add(Time.realtimeSinceStartup);
                     break;
                 case State.Starting:
                 case State.AudioDone:
