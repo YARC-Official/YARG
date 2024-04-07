@@ -130,11 +130,6 @@ namespace YARG.Gameplay.Player
             HitWindowDisplay.SetHitWindowSize();
         }
 
-        public override void UpdateVisualsForSpeedChange()
-        {
-            HitWindowDisplay.SetHitWindowSize();
-        }
-
         protected abstract void UpdateNotes(double time);
 
         private void UpdateBeatlines(double time)
@@ -197,6 +192,15 @@ namespace YARG.Gameplay.Player
             Notes = NoteTrack.Notes;
 
             Engine = CreateEngine();
+
+            if (GameManager.IsPractice)
+            {
+                Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
+            }
+            else
+            {
+                Engine.SetSpeed(GameManager.SongSpeed);
+            }
 
             ResetNoteCounters();
 
@@ -347,6 +351,16 @@ namespace YARG.Gameplay.Player
             BeatlineIndex = 0;
 
             Engine = CreateEngine();
+
+            if (GameManager.IsPractice)
+            {
+                Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
+            }
+            else
+            {
+                Engine.SetSpeed(GameManager.SongSpeed);
+            }
+
             ResetPracticeSection();
         }
 

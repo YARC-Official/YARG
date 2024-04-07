@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
@@ -12,8 +13,8 @@ namespace YARG.Gameplay.Visuals
         private TrackPlayer _player;
 
         private double _lastTotalWindow;
-
         private double _lastNoteSpeed;
+        private double _lastSongSpeed;
 
         private void Awake()
         {
@@ -47,14 +48,18 @@ namespace YARG.Gameplay.Visuals
             var totalWindow = -window.FrontEnd + window.BackEnd;
 
             // Only update the hit window if it changed
-            if (Math.Abs(totalWindow - _lastTotalWindow) < double.Epsilon
-                && Math.Abs(_player.NoteSpeed - _lastNoteSpeed) < double.Epsilon)
+            if (Math.Abs(totalWindow - _lastTotalWindow) < double.Epsilon &&
+                Math.Abs(_player.NoteSpeed - _lastNoteSpeed) < double.Epsilon &&
+                Math.Abs(_player.BaseEngine.BaseParameters.SongSpeed - _lastSongSpeed) < double.Epsilon)
             {
                 return;
             }
 
+            YargLogger.LogFormatDebug("Updating window {0}", _player.BaseEngine.BaseParameters.SongSpeed);
+
             _lastTotalWindow = totalWindow;
             _lastNoteSpeed = _player.NoteSpeed;
+            _lastSongSpeed = _player.BaseEngine.BaseParameters.SongSpeed;
 
             // Offsetting is done based on half of the size
             float baseOffset = ((float) (-window.FrontEnd - window.BackEnd) / 2f);
@@ -72,7 +77,7 @@ namespace YARG.Gameplay.Visuals
         private void Update()
         {
             // Player could be null if the hit window display is being used in customisation menu
-            if (_player is null || !_player.HitWindow.IsDynamic)
+            if (_player is null)
             {
                 return;
             }

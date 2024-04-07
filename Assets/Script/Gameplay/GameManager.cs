@@ -105,10 +105,6 @@ namespace YARG.Gameplay
         public double RealInputTime => _songRunner.RealInputTime;
 
         /// <inheritdoc cref="SongRunner.SongSpeed"/>
-        /// <remarks>
-        /// Use <see cref="SelectedSongSpeed"/> or <see cref="PlaybackSongSpeed"/> to
-        /// get the separate values.
-        /// </remarks>
         public float SongSpeed => _songRunner.SongSpeed;
 
         /// <inheritdoc cref="SongRunner.Started"/>
@@ -116,20 +112,6 @@ namespace YARG.Gameplay
 
         /// <inheritdoc cref="SongRunner.Paused"/>
         public bool Paused => _songRunner.Paused;
-
-        /// <summary>
-        /// The speed that was typed in when first entering the song.
-        /// This value speeds-up/slows-down the song, but not the engine,
-        /// and is used for song speed-ups/slow-downs.
-        /// </summary>
-        public float SelectedSongSpeed { get; private set; } = 1f;
-
-        /// <summary>
-        /// The playback speed of the song.
-        /// This value completely speeds-up/slows-down the game (both the engine, and the song).
-        /// It is used for practice mode and replay speed.
-        /// </summary>
-        public float PlaybackSongSpeed { get; private set; } = 1f;
 
         public double SongLength { get; private set; }
 
@@ -309,29 +291,29 @@ namespace YARG.Gameplay
             BackgroundManager.SetTime(_songRunner.SongTime);
         }
 
-        public void SetPlaybackSpeed(float speed)
+        public void SetSongSpeed(float speed)
         {
-            PlaybackSongSpeed = speed;
+            _songRunner.SetSongSpeed(speed);
 
-            var newSpeed = SelectedSongSpeed * PlaybackSongSpeed;
-
-            // Clamp the playback speed such that the selected speed times the
-            // playback speed is in the proper song speed range.
-            // This prevents the playback speed from going out of bounds.
-            PlaybackSongSpeed = SongRunner.ClampSongSpeed(newSpeed) / SelectedSongSpeed;
-
-            _songRunner.SetSongSpeed(newSpeed);
             BackgroundManager.SetSpeed(_songRunner.SongSpeed);
-
-            foreach (var player in _players)
-            {
-                player.UpdateVisualsForSpeedChange();
-            }
         }
 
-        public void AdjustPlaybackSpeed(float deltaSpeed)
+        public void AdjustSongSpeed(float deltaSpeed)
         {
-            SetPlaybackSpeed(PlaybackSongSpeed + deltaSpeed);
+            _songRunner.AdjustSongSpeed(deltaSpeed);
+
+            // Only scale the player speed in practice
+            if (IsPractice && _songRunner.SongSpeed >= 1)
+            {
+                // Scale only if the speed is greater than 1
+                var speed = _songRunner.SongSpeed >= 1 ? _songRunner.SongSpeed : 1;
+                foreach (var player in _players)
+                {
+                    player.BaseEngine.SetSpeed(speed);
+                }
+            }
+
+            BackgroundManager.SetSpeed(_songRunner.SongSpeed);
         }
 
         public void Pause(bool showMenu = true)
@@ -501,7 +483,7 @@ namespace YARG.Gameplay
                     BandScore = BandScore,
                     BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
 
-                    SongSpeed = SelectedSongSpeed
+                    SongSpeed = SongSpeed
                 }, playerEntries);
             }
 
@@ -512,7 +494,9 @@ namespace YARG.Gameplay
 
         public void ForceQuitSong()
         {
+            var speed = GlobalVariables.State.SongSpeed;
             GlobalVariables.State = PersistentState.Default;
+            GlobalVariables.State.SongSpeed = speed;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
 

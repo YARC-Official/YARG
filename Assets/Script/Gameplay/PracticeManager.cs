@@ -86,11 +86,11 @@ namespace YARG.Gameplay
             {
                 // Song speed
                 case MenuAction.Left:
-                    GameManager.AdjustPlaybackSpeed(-0.05f);
+                    GameManager.AdjustSongSpeed(-0.05f);
                     _practiceHud.ResetStats();
                     break;
                 case MenuAction.Right:
-                    GameManager.AdjustPlaybackSpeed(0.05f);
+                    GameManager.AdjustSongSpeed(0.05f);
                     _practiceHud.ResetStats();
                     break;
                 // Reset
@@ -162,7 +162,7 @@ namespace YARG.Gameplay
             _tickStart = tick;
             TimeStart = startTime;
 
-            if (TimeStart > TimeEnd)
+            if(TimeStart > TimeEnd)
             {
                 TimeStart = TimeEnd;
                 _tickStart = _tickEnd;
@@ -180,7 +180,7 @@ namespace YARG.Gameplay
             _tickEnd = tick;
             TimeEnd = endTime;
 
-            if (TimeEnd < TimeStart)
+            if(TimeEnd < TimeStart)
             {
                 TimeEnd = TimeStart;
                 _tickEnd = _tickStart;

@@ -2,7 +2,6 @@
 using Cysharp.Text;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using YARG.Core.Chart;
 
 namespace YARG.Gameplay.HUD
@@ -47,12 +46,6 @@ namespace YARG.Gameplay.HUD
             if (!GameManager.IsPractice)
             {
                 Destroy(gameObject);
-                return;
-            }
-
-            if (!Mathf.Approximately(GameManager.SelectedSongSpeed, 1f))
-            {
-                _sectionHeaderText.SetTextFormat("Section (at {0:0}%)", GameManager.SelectedSongSpeed * 100f);
             }
         }
 
@@ -63,7 +56,7 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            _speedPercentText.SetTextFormat("{0:0}%", GameManager.PlaybackSongSpeed * 100f);
+            _speedPercentText.SetTextFormat("{0:0}%", GameManager.SongSpeed * 100f);
 
             int notesHit = 0;
             int totalNotes = 0;

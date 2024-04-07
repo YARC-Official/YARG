@@ -22,7 +22,7 @@ namespace YARG.Gameplay.Player
         {
             get
             {
-                if (GameManager.SongSpeed < 1)
+                if (GameManager.IsPractice && GameManager.SongSpeed < 1)
                 {
                     return Player.Profile.NoteSpeed;
                 }
@@ -159,10 +159,6 @@ namespace YARG.Gameplay.Player
         }
 
         protected abstract void UpdateVisuals(double time);
-
-        public virtual void UpdateVisualsForSpeedChange()
-        {
-        }
 
         public abstract void SetPracticeSection(uint start, uint end);
 
