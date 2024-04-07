@@ -95,15 +95,14 @@ namespace YARG.Playback
                 // Apply offset up-front
                 songTime -= _offset;
                 if (songTime < 0)
-                {
                     return;
-                }
 
                 var tempos = sync.Tempos;
                 var timeSigs = sync.TimeSignatures;
 
                 // Progress tempo map
-                while (_tempoIndex + 1 < tempos.Count && tempos[_tempoIndex + 1].Time < songTime) _tempoIndex++;
+                while (_tempoIndex + 1 < tempos.Count && tempos[_tempoIndex + 1].Time < songTime)
+                    _tempoIndex++;
 
                 while (_timeSigIndex + 1 < timeSigs.Count && timeSigs[_timeSigIndex + 1].Time < songTime)
                 {
@@ -155,9 +154,7 @@ namespace YARG.Playback
                 // Apply offset up-front
                 songTime -= _offset;
                 if (songTime < 0)
-                {
                     return;
-                }
 
                 var beatlines = sync.Beatlines;
                 while (_beatlineIndex + 1 < beatlines.Count && beatlines[_beatlineIndex + 1].Time < songTime)
@@ -178,7 +175,8 @@ namespace YARG.Playback
         private readonly Dictionary<Delegate, IBeatAction> _states = new();
 
         // Necessary to allow adding or removing subscriptions within event handlers
-        private readonly List<(bool, Delegate, IBeatAction)> _changeStates = new();
+        private readonly List<(Delegate, IBeatAction)> _addStates = new();
+        private readonly List<Delegate> _removeStates = new();
 
         public BeatEventHandler(SyncTrack sync)
         {
@@ -195,7 +193,7 @@ namespace YARG.Playback
         public void Subscribe(Action action, float beatRate, double offset = 0,
             TempoMapEventMode mode = TempoMapEventMode.Beat)
         {
-            _changeStates.Add((true, action, new TempoMapAction(action, beatRate, offset, mode)));
+            _addStates.Add((action, new TempoMapAction(action, beatRate, offset, mode)));
         }
 
         /// <summary>
@@ -205,17 +203,17 @@ namespace YARG.Playback
         /// <param name="offset">The constant offset to use for the event.</param>
         public void Subscribe(Action<Beatline> action, double offset = 0)
         {
-            _changeStates.Add((true, action, new BeatlineAction(action, offset)));
+            _addStates.Add((action, new BeatlineAction(action, offset)));
         }
 
         public void Unsubscribe(Action action)
         {
-            _changeStates.Add((false, action, null));
+            _removeStates.Add(action);
         }
 
         public void Unsubscribe(Action<Beatline> action)
         {
-            _changeStates.Add((false, action, null));
+            _removeStates.Add(action);
         }
 
         public void ResetTimers()
@@ -231,28 +229,25 @@ namespace YARG.Playback
 
         public void Update(double songTime)
         {
-            foreach (var (add, action, state) in _changeStates)
+            // Add/remove new subscriptions
+            foreach (var action in _removeStates)
             {
-                if (add)
+                _states.Remove(action);
+            }
+
+            foreach (var (action, state) in _addStates)
+            {
+                if (!_states.TryAdd(action, state))
                 {
-                    if (!_states.TryAdd(action, state))
-                    {
-                        YargLogger.LogWarning("A beat event handler with the same action has already been added!");
-                    }
-                }
-                else
-                {
-                    _states.Remove(action);
+                    YargLogger.LogWarning("A beat event handler with the same action has already been added!");
                 }
             }
 
-            _changeStates.Clear();
+            _removeStates.Clear();
+            _addStates.Clear();
 
             // Skip until in the chart
-            if (songTime < 0)
-            {
-                return;
-            }
+            if (songTime < 0) return;
 
 #if false // Not necessary currently, but might be in the future
             // Update the current sync track info

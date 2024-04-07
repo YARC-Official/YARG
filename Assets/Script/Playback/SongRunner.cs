@@ -242,7 +242,7 @@ namespace YARG.Playback
             SongSpeed = songSpeed;
             VideoCalibration = -videoCalibration / 1000.0;
             AudioCalibration = (-(audioCalibration + GlobalAudioHandler.PlaybackLatency) / 1000.0) - VideoCalibration;
-            
+
             SongOffset = -songOffset;
 
             _syncThread = new Thread(SyncThread) { IsBackground = true };
@@ -361,7 +361,7 @@ namespace YARG.Playback
                     {
                         continue;
                     }
-                    
+
                     SyncSongTime = RealAudioTime + offset;
 
                     // Account for song speed
@@ -536,7 +536,7 @@ namespace YARG.Playback
                     _mixer.SetPosition(seekTime);
                     _mixer.Play(true);
                 }
-                
+
                 RealAudioTime = _previousRealAudioTime = seekTime;
                 _seeked = true;
             }
@@ -565,6 +565,8 @@ namespace YARG.Playback
                 + "Song time: {1:0.000000}, visual time: {2:0.000000}, input time: {3:0.000000}", speed,
                 SongTime, VisualTime, InputTime);
         }
+
+        public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SongSpeed + deltaSpeed);
 
         /// <summary>
         /// Pauses the song.
