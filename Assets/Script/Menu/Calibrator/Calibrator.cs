@@ -242,7 +242,7 @@ namespace YARG.Menu.Calibrator
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "4";
 
-            yield return new WaitUntil(() => !_mixer.IsPlaying);
+            yield return new WaitUntil(() => _mixer.GetPosition() >= _mixer.Length);
             _state = State.AudioDone;
             UpdateForState();
         }
