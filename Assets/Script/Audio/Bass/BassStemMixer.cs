@@ -82,7 +82,7 @@ namespace YARG.Audio.BASS
         protected override double GetPosition_Internal()
         {
             // Accounts for the playback buffer
-            long position = BassMix.ChannelGetPosition(_mainHandle.Stream);
+            long position = Bass.ChannelGetPosition(_mainHandle.Stream);
             if (position < 0)
             {
                 YargLogger.LogFormatError("Failed to get channel position in bytes: {0}", Bass.LastError);

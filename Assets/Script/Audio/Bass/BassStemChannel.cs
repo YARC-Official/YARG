@@ -56,15 +56,9 @@ namespace YARG.Audio.BASS
 
         protected override void SetPosition_Internal(double position)
         {
-            if (_streamHandles.PitchFX != 0 && _reverbHandles.PitchFX != 0)
+            if (_sourceHandle != 0)
             {
-                // The desync is caused by the FFT window
-                // BASS_FX does not account for it automatically so we must do it ourselves
-                // (thanks Matt/Oscar for the info!)
-                if (Bass.ChannelGetAttribute(_streamHandles.Stream, ChannelAttribute.Frequency, out float sampleRate))
-                    position += _pitchParams.FFTSize / sampleRate;
-                else
-                    YargLogger.LogFormatError("Failed to get sample rate: {0}!", Bass.LastError);
+                BassMix.SplitStreamReset(_sourceHandle);
             }
 
             long bytes = Bass.ChannelSeconds2Bytes(_streamHandles.Stream, position);

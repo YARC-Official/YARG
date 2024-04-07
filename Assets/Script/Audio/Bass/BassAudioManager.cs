@@ -119,12 +119,12 @@ namespace YARG.Audio.BASS
             Bass.PlaybackBufferLength = BassHelpers.PLAYBACK_BUFFER_LENGTH;
             Bass.DeviceNonStop = true;
 
-            PlaybackBufferLength = Bass.PlaybackBufferLength / 1000.0;
+            PlaybackBufferLength = BassHelpers.PLAYBACK_BUFFER_LENGTH / 1000.0;
 
             // Affects Windows only. Forces device names to be in UTF-8 on Windows rather than ANSI.
             Bass.Configure(Configuration.UnicodeDeviceInformation, true);
-            Bass.Configure(Configuration.TruePlayPosition, 0);
-            Bass.Configure(Configuration.UpdateThreads, 2);
+            Bass.Configure(Configuration.TruePlayPosition, false);
+            Bass.Configure(Configuration.UpdateThreads, Environment.ProcessorCount);
             Bass.Configure(Configuration.FloatDSP, true);
 
             // Undocumented BASS_CONFIG_MP3_OLDGAPS config.
@@ -158,22 +158,26 @@ namespace YARG.Audio.BASS
 #nullable enable
         protected override StemMixer? CreateMixer(string name, float speed, double mixerVolume, bool clampStemVolume)
         {
+            const int ASYNCFILEBUFFER_SINGLE = 0xFFFF;
             YargLogger.LogDebug("Loading song");
             if (!CreateMixerHandle(out int handle))
             {
                 return null;
             }
+            Bass.AsyncFileBufferLength = ASYNCFILEBUFFER_SINGLE;
             return new BassStemMixer(name, this, speed, mixerVolume, handle, 0, clampStemVolume);
         }
 
         protected override StemMixer? CreateMixer(string name, Stream stream, float speed, double mixerVolume, bool clampStemVolume)
         {
+            const int ASYNCFILEBUFFER_MULTI = 8 * 0xFFFF;
             YargLogger.LogDebug("Loading song");
             if (!CreateMixerHandle(out int handle))
             {
                 return null;
             }
 
+            Bass.AsyncFileBufferLength = ASYNCFILEBUFFER_MULTI;
             if (!CreateSourceStream(stream, out int sourceStream))
             {
                 return null;
@@ -332,11 +336,27 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
+            int threads = Environment.ProcessorCount switch
+            {
+                >= 16 => 16,
+                >= 4 => Environment.ProcessorCount / 2,
+                _ => 2
+            };
+
             // Mixer processing threads (for some reason this attribute is undocumented in ManagedBass?)
-            if (!Bass.ChannelSetAttribute(mixerHandle, (ChannelAttribute) 86017, 2))
+            // https://www.un4seen.com/forum/?topic=19491.msg136328#msg136328
+            if (!Bass.ChannelSetAttribute(mixerHandle, (ChannelAttribute) 86017, threads))
             {
                 YargLogger.LogFormatError("Failed to set mixer processing threads: {0}!", Bass.LastError);
                 Bass.StreamFree(mixerHandle);
+                return false;
+            }
+
+            // We specify sourcestreams to use AsyncFile behavior
+            // That should ensure we still data buffer for use, but in a way that shouldn't effect latency
+            if (!Bass.ChannelSetAttribute(mixerHandle, ChannelAttribute.Buffer, 0))
+            {
+                YargLogger.LogFormatError("Failed to remove playback buffer: {0}!", Bass.LastError);
                 return false;
             }
             return true;
@@ -347,8 +367,8 @@ namespace YARG.Audio.BASS
             // Last flag is new BASS_SAMPLE_NOREORDER flag, which is not in the BassFlags enum,
             // as it was made as part of an update to fix <= 8 channel oggs.
             // https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
-            const BassFlags streamFlags = BassFlags.Prescan | BassFlags.Decode | (BassFlags) 64;
-
+            const BassFlags streamFlags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags) 64;
+            
             streamHandle = Bass.CreateStream(StreamSystem.NoBuffer, streamFlags, new BassStreamProcedures(stream));
             if (streamHandle == 0)
             {
@@ -360,7 +380,6 @@ namespace YARG.Audio.BASS
 
         internal static void SetSpeed(float speed, int streamHandle, int reverbHandle)
         {
-            speed = (float) Math.Clamp(speed, 0.05, 50);
             // Gets relative speed from 100% (so 1.05f = 5% increase)
             float percentageSpeed = speed * 100;
             float relativeSpeed = percentageSpeed - 100;
