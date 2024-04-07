@@ -845,19 +845,30 @@ namespace YARG.Integration.StageKit
             (GREEN, ONE),
         };
 
+        private static readonly (StageKitLedColor, byte)[] BlueFourPattern =
+        {
+            (BLUE, NONE),
+            (BLUE, ZERO | TWO | FOUR | SIX),
+        };
+
+        private static readonly (StageKitLedColor, byte)[] BlueTwoPattern =
+        {
+            (BLUE, NONE),
+            (BLUE, TWO | SIX),
+        };
+
         public Dischord()
         {
-            CuePrimitives.Add(new ListenPattern(PatternList1, ListenTypes.MajorBeat | ListenTypes.MinorBeat));
-            _greenPattern = new BeatPattern(PatternList2, 2f);
-            CuePrimitives.Add(_greenPattern);
             _greenIsSpinning = true;
+            _greenPattern = new BeatPattern(PatternList2, 2f);
+            _blueFour = new BeatPattern(BlueFourPattern, 4f, false);
+            _blueTwo = new BeatPattern(BlueTwoPattern, 4f, false);
+            CuePrimitives.Add(new ListenPattern(PatternList1, ListenTypes.MajorBeat | ListenTypes.MinorBeat));
             CuePrimitives.Add(new ListenPattern(new (StageKitLedColor, byte)[] { (RED, ALL) }, ListenTypes.RedFretDrums,
                 true));
-            _blueFour = new BeatPattern(
-                new (StageKitLedColor, byte)[] { (BLUE, NONE), (BLUE, ZERO | TWO | FOUR | SIX) }, 4f, false);
-            _blueTwo = new BeatPattern(new (StageKitLedColor, byte)[] { (BLUE, NONE), (BLUE, TWO | SIX) }, 4f, false);
             CuePrimitives.Add(_blueTwo);
             CuePrimitives.Add(_blueFour);
+            CuePrimitives.Add(_greenPattern);
         }
 
         public override void Enable()
