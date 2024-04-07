@@ -530,7 +530,7 @@ namespace YARG.Playback
                 }
                 else
                 {
-                    _mixer.SetPosition(seekTime - SongOffset);
+                    _mixer.SetPosition(seekTime);
                     _mixer.Play(true);
                 }
                 
