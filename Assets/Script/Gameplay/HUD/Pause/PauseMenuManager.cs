@@ -46,10 +46,10 @@ namespace YARG.Gameplay.HUD
         {
             foreach (var menu in _openMenus)
             {
-                _menus[menu].gameObject.SetActive(false);
+                _menus[menu].gameObject?.SetActive(false);
             }
             _openMenus.Clear();
-            gameObject.SetActive(false);
+            gameObject?.SetActive(false);
         }
 
         protected override void GameplayAwake()

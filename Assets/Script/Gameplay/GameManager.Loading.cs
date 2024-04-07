@@ -151,9 +151,10 @@ namespace YARG.Gameplay
             FinalizeChart();
 
             // Initialize song runner
+            SelectedSongSpeed = GlobalVariables.State.SongSpeed;
             _songRunner = new SongRunner(
                 _mixer,
-                GlobalVariables.State.SongSpeed,
+                SelectedSongSpeed,
                 SettingsManager.Settings.AudioCalibration.Value,
                 SettingsManager.Settings.VideoCalibration.Value,
                 Song.SongOffsetSeconds);

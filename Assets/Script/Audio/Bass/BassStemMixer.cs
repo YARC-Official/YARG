@@ -53,14 +53,9 @@ namespace YARG.Audio.BASS
 
         protected override int Play_Internal(bool restart)
         {
-            if (!IsPlaying)
+            if (IsPaused && !Bass.ChannelPlay(_mixerHandle, restart))
             {
-                if (!Bass.ChannelPlay(_mixerHandle, restart))
-                {
-                    return (int) Bass.LastError;
-                }
-
-                _isPlaying = true;
+                return (int) Bass.LastError;
             }
             return 0;
         }
@@ -77,22 +72,16 @@ namespace YARG.Audio.BASS
 
         protected override int Pause_Internal()
         {
-            if (IsPlaying)
+            if (!IsPaused && !Bass.ChannelPause(_mixerHandle))
             {
-                if (!Bass.ChannelPause(_mixerHandle))
-                {
-                    return (int) Bass.LastError;
-                }
-
-                _isPlaying = false;
+                return (int) Bass.LastError;
             }
             return 0;
         }
 
         protected override double GetPosition_Internal()
         {
-            // Accounts for the playback buffer
-            long position = BassMix.ChannelGetPosition(_mainHandle.Stream);
+            long position = Bass.ChannelGetPosition(_mainHandle.Stream);
             if (position < 0)
             {
                 YargLogger.LogFormatError("Failed to get channel position in bytes: {0}", Bass.LastError);
@@ -119,7 +108,7 @@ namespace YARG.Audio.BASS
 
         protected override void SetPosition_Internal(double position)
         {
-            bool playing = IsPlaying;
+            bool playing = !IsPaused;
             if (playing)
             {
                 // Pause when seeking to avoid desyncing individual stems
@@ -151,13 +140,12 @@ namespace YARG.Audio.BASS
                 }
             }
 
-            if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
-            {
-                YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
-            }
-
             if (playing)
             {
+                if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
+                {
+                    YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
+                }
                 Play_Internal(false);
             }
         }
@@ -180,11 +168,18 @@ namespace YARG.Audio.BASS
             return data;
         }
 
-        protected override void SetSpeed_Internal(float speed)
+        protected override void SetSpeed_Internal(float speed, bool shiftPitch)
         {
+            speed = (float) Math.Clamp(speed, 0.05, 50);
+            if (_speed == speed)
+            {
+                return;
+            }
+
+            _speed = speed;
             foreach (var channel in _channels)
             {
-                channel.SetSpeed(speed);
+                channel.SetSpeed(speed, shiftPitch);
             }
         }
 

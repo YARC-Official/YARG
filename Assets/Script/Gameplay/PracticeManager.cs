@@ -62,7 +62,7 @@ namespace YARG.Gameplay
                 return;
             }
 
-            double endPoint = TimeEnd + (SECTION_RESTART_DELAY * GameManager.SelectedSongSpeed);
+            double endPoint = TimeEnd + (SECTION_RESTART_DELAY * GameManager.SongSpeed);
             if (GameManager.SongTime >= endPoint)
             {
                 ResetPractice();
@@ -86,11 +86,11 @@ namespace YARG.Gameplay
             {
                 // Song speed
                 case MenuAction.Left:
-                    GameManager.AdjustSongSpeed(-0.05f);
+                    GameManager.AdjustPlaybackSpeed(-0.05f);
                     _practiceHud.ResetStats();
                     break;
                 case MenuAction.Right:
-                    GameManager.AdjustSongSpeed(0.05f);
+                    GameManager.AdjustPlaybackSpeed(0.05f);
                     _practiceHud.ResetStats();
                     break;
                 // Reset
@@ -108,7 +108,7 @@ namespace YARG.Gameplay
 
         public void SetPracticeSection(Section start, Section end)
         {
-            if(start.Time > end.Time)
+            if (start.Time > end.Time)
             {
                 (start, end) = (end, start);
             }
@@ -119,7 +119,7 @@ namespace YARG.Gameplay
             _sectionEndTick = end.TickEnd;
             _sectionEndTime = end.TimeEnd;
 
-            if(end.Tick == _lastTick)
+            if (end.Tick == _lastTick)
             {
                 _sectionEndTick += 1;
                 _sectionEndTime += 0.01;
@@ -162,7 +162,7 @@ namespace YARG.Gameplay
             _tickStart = tick;
             TimeStart = startTime;
 
-            if(TimeStart > TimeEnd)
+            if (TimeStart > TimeEnd)
             {
                 TimeStart = TimeEnd;
                 _tickStart = _tickEnd;
@@ -180,7 +180,7 @@ namespace YARG.Gameplay
             _tickEnd = tick;
             TimeEnd = endTime;
 
-            if(TimeEnd < TimeStart)
+            if (TimeEnd < TimeStart)
             {
                 TimeEnd = TimeStart;
                 _tickEnd = _tickStart;

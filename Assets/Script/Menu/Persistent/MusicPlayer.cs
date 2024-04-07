@@ -104,7 +104,7 @@ namespace YARG.Menu.Persistent
                     return;
                 }
                 
-                if (_mixer.IsPlaying)
+                if (!_mixer.IsPaused)
                 {
                     _mixer.Pause();
                     _playPauseButton.sprite = _playSprite;

@@ -17,9 +17,7 @@ namespace YARG
 
         public static bool IsActive => Instance.gameObject.activeSelf;
 
-        // "The Unity message 'Start' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
-        private async UniTaskVoid Start()
+        private async void Start()
         {
             using var context = new LoadingContext();
             context.SetLoadingText("Loading song sources...");
@@ -98,7 +96,7 @@ namespace YARG
             }
         }
 
-        private async UniTaskVoid _Dispose()
+        public async void Dispose()
         {
             if (!_disposed)
             {
@@ -107,19 +105,13 @@ namespace YARG
                 Navigator.Instance.DisableMenuInputs = false;
                 _disposed = true;
             }
+            GC.SuppressFinalize(this);
         }
 
         ~LoadingContext()
         {
             YargLogger.LogError("Loading context was not disposed!");
             // Disposing is not safe here, as GC is done on a separate thread
-            // _Dispose().Forget();
-        }
-
-        public void Dispose()
-        {
-            _Dispose().Forget();
-            GC.SuppressFinalize(this);
         }
     }
 }

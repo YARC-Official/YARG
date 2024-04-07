@@ -1,5 +1,7 @@
 ﻿using YARG.Core.Game;
+using YARG.Core.Song;
 using YARG.Menu.ListMenu;
+using YARG.Replays;
 
 namespace YARG.Menu.History
 {
@@ -21,6 +23,19 @@ namespace YARG.Menu.History
         public virtual GameInfo? GetGameInfo()
         {
             return null;
+        }
+
+        protected static void LoadIntoReplay(ReplayEntry replay, SongEntry song)
+        {
+            GlobalVariables.State = PersistentState.Default;
+
+            GlobalVariables.State.CurrentSong = song;
+            GlobalVariables.State.CurrentReplay = replay;
+
+            // TODO: Store selected song speed in replays
+            // GlobalVariables.State.SongSpeed = replay.
+
+            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }
     }
 }

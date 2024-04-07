@@ -72,8 +72,11 @@ namespace YARG.Gameplay.Player
                 EngineParams = (DrumsEngineParameters) Player.EngineParameterOverride;
             }
 
-            // The hit window can just be taken from the params
+            // Only the selected speed before you enter the song scales the engine.
+            // Things like practice and replay speed-ups/slow-downs don't change this.
             EngineParams.SetHitWindowScale(GameManager.SelectedSongSpeed);
+
+            // The hit window can just be taken from the params
             HitWindow = EngineParams.HitWindow;
 
             var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams);

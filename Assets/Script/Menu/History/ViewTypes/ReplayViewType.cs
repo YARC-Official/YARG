@@ -69,11 +69,7 @@ namespace YARG.Menu.History
                 await dialog.WaitUntilClosed();
             }
 
-            // We're good!
-            GlobalVariables.State = PersistentState.Default;
-            GlobalVariables.State.CurrentSong = _songEntry;
-            GlobalVariables.State.CurrentReplay = _replayEntry;
-            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+            LoadIntoReplay(_replayEntry, _songEntry);
         }
 
         public override GameInfo? GetGameInfo()

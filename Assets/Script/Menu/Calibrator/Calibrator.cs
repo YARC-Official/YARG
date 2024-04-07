@@ -83,7 +83,7 @@ namespace YARG.Menu.Calibrator
                     _audioCalibrateText.color = Color.green;
                     _audioCalibrateText.text = "Detected";
 
-                    _calibrationTimes.Add((float)_mixer.GetPosition());
+                    _calibrationTimes.Add(Time.realtimeSinceStartup);
                     break;
                 case State.Starting:
                 case State.AudioDone:
@@ -215,7 +215,7 @@ namespace YARG.Menu.Calibrator
             float median = diffs.Count % 2 != 0 ? diffs[mid] : (diffs[mid] + diffs[mid - 1]) / 2f;
 
             // Set calibration
-            int calibration = Mathf.RoundToInt(median * 1000f);
+            int calibration = Mathf.RoundToInt(median * 1000f) - GlobalAudioHandler.PlaybackLatency;
             SettingsManager.Settings.AudioCalibration.Value = calibration;
 
             // Set text
@@ -242,7 +242,7 @@ namespace YARG.Menu.Calibrator
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "4";
 
-            yield return new WaitUntil(() => !_mixer.IsPlaying);
+            yield return new WaitUntil(() => _mixer.GetPosition() >= _mixer.Length);
             _state = State.AudioDone;
             UpdateForState();
         }

@@ -104,14 +104,32 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.RealInputTime"/>
         public double RealInputTime => _songRunner.RealInputTime;
 
-        /// <inheritdoc cref="SongRunner.SelectedSongSpeed"/>
-        public float SelectedSongSpeed => _songRunner.SelectedSongSpeed;
+        /// <inheritdoc cref="SongRunner.SongSpeed"/>
+        /// <remarks>
+        /// Use <see cref="SelectedSongSpeed"/> or <see cref="PlaybackSongSpeed"/> to
+        /// get the separate values.
+        /// </remarks>
+        public float SongSpeed => _songRunner.SongSpeed;
 
         /// <inheritdoc cref="SongRunner.Started"/>
         public bool Started => _songRunner.Started;
 
         /// <inheritdoc cref="SongRunner.Paused"/>
         public bool Paused => _songRunner.Paused;
+
+        /// <summary>
+        /// The speed that was typed in when first entering the song.
+        /// This value speeds-up/slows-down the song, but not the engine,
+        /// and is used for song speed-ups/slow-downs.
+        /// </summary>
+        public float SelectedSongSpeed { get; private set; } = 1f;
+
+        /// <summary>
+        /// The playback speed of the song.
+        /// This value completely speeds-up/slows-down the game (both the engine, and the song).
+        /// It is used for practice mode and replay speed.
+        /// </summary>
+        public float PlaybackSongSpeed { get; private set; } = 1f;
 
         public double SongLength { get; private set; }
 
@@ -264,6 +282,7 @@ namespace YARG.Gameplay
                     text.AppendFormat("Note index: {0}\n", state.NoteIndex);
                 }
 
+                text.AppendFormat("Device audio latency: {0}ms\n", GlobalAudioHandler.PlaybackLatency);
                 text.AppendFormat("Song time: {0:0.000000}\n", _songRunner.SongTime);
                 text.AppendFormat("Audio time: {0:0.000000}\n", _songRunner.AudioTime);
                 text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
@@ -290,23 +309,29 @@ namespace YARG.Gameplay
             BackgroundManager.SetTime(_songRunner.SongTime);
         }
 
-        public void SetSongSpeed(float speed)
+        public void SetPlaybackSpeed(float speed)
         {
-            _songRunner.SetSongSpeed(speed);
+            PlaybackSongSpeed = speed;
 
-            BackgroundManager.SetSpeed(_songRunner.SelectedSongSpeed);
-        }
+            var newSpeed = SelectedSongSpeed * PlaybackSongSpeed;
 
-        public void AdjustSongSpeed(float deltaSpeed)
-        {
-            _songRunner.AdjustSongSpeed(deltaSpeed);
+            // Clamp the playback speed such that the selected speed times the
+            // playback speed is in the proper song speed range.
+            // This prevents the playback speed from going out of bounds.
+            PlaybackSongSpeed = SongRunner.ClampSongSpeed(newSpeed) / SelectedSongSpeed;
+
+            _songRunner.SetSongSpeed(newSpeed);
+            BackgroundManager.SetSpeed(_songRunner.SongSpeed);
 
             foreach (var player in _players)
             {
                 player.UpdateVisualsForSpeedChange();
             }
+        }
 
-            BackgroundManager.SetSpeed(_songRunner.SelectedSongSpeed);
+        public void AdjustPlaybackSpeed(float deltaSpeed)
+        {
+            SetPlaybackSpeed(PlaybackSongSpeed + deltaSpeed);
         }
 
         public void Pause(bool showMenu = true)
