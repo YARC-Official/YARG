@@ -87,9 +87,7 @@ namespace YARG.Menu.ScoreScreen
 
         private void OnDisable()
         {
-            var speed = GlobalVariables.State.SongSpeed;
             GlobalVariables.State = PersistentState.Default;
-            GlobalVariables.State.SongSpeed = speed;
 
             Navigator.Instance.PopScheme();
         }
