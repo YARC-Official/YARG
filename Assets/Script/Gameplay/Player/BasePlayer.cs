@@ -22,6 +22,14 @@ namespace YARG.Gameplay.Player
         {
             get
             {
+                // If we're in a replay, don't change the note speed (it should be like a video
+                // slowing down/speeding up). The actual song speed should be taken into account though,
+                // which is saved in the engine parameter override.
+                if (GameManager.IsReplay)
+                {
+                    return Player.Profile.NoteSpeed / (float) Player.EngineParameterOverride.SongSpeed;
+                }
+
                 if (GameManager.IsPractice && GameManager.SongSpeed < 1)
                 {
                     return Player.Profile.NoteSpeed;

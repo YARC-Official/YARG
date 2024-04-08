@@ -197,6 +197,12 @@ namespace YARG.Gameplay.Player
             {
                 Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
             }
+            else if (GameManager.IsReplay)
+            {
+                // If it's a replay, the "SongSpeed" parameter should be set properly
+                // when it gets deserialized. Transfer this over to the engine.
+                Engine.SetSpeed(Player.EngineParameterOverride.SongSpeed);
+            }
             else
             {
                 Engine.SetSpeed(GameManager.SongSpeed);
