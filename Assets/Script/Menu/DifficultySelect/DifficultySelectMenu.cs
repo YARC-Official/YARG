@@ -21,6 +21,11 @@ namespace YARG.Menu.DifficultySelect
 {
     public class DifficultySelectMenu : MonoBehaviour
     {
+        /// <summary>
+        /// The saved song speed value
+        /// </summary>
+        private static float _songSpeed = 1f;
+
         private enum State
         {
             Main,
@@ -100,7 +105,7 @@ namespace YARG.Menu.DifficultySelect
                 })
             }, false));
 
-            _speedInput.text = $"{(int)(GlobalVariables.State.SongSpeed * 100f)}%";
+            _speedInput.text = $"{(int)(_songSpeed * 100f)}%";
 
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
@@ -377,6 +382,7 @@ namespace YARG.Menu.DifficultySelect
                 // The max speed that the game can keep up with is 4995%
                 float speed = float.Parse(_speedInput.text.TrimEnd('%')) / 100f;
                 speed = Mathf.Clamp(speed, 0.1f, 49.95f);
+                _songSpeed = speed;
                 GlobalVariables.State.SongSpeed = speed;
 
                 GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
