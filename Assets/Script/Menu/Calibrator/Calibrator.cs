@@ -43,6 +43,7 @@ namespace YARG.Menu.Calibrator
         private YargPlayer _player;
 #nullable enable
         private StemMixer? _mixer;
+        private float _time;
 #nullable disable
 
         private void Start()
@@ -83,7 +84,7 @@ namespace YARG.Menu.Calibrator
                     _audioCalibrateText.color = Color.green;
                     _audioCalibrateText.text = "Detected";
 
-                    _calibrationTimes.Add(Time.realtimeSinceStartup);
+                    _calibrationTimes.Add(Time.realtimeSinceStartup - _time);
                     break;
                 case State.Starting:
                 case State.AudioDone:
@@ -141,6 +142,7 @@ namespace YARG.Menu.Calibrator
                     var file = Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg");
                     _mixer = GlobalAudioHandler.LoadCustomFile(file, SPEED, VOLUME);
                     _mixer.Play();
+                    _time = Time.realtimeSinceStartup;
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;
                 case State.AudioDone:
