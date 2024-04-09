@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using PlasticBand.Haptics;
 using YARG.Core.Chart;
 using YARG.Gameplay;
@@ -12,8 +11,6 @@ namespace YARG.Integration.StageKit
     //grandparent of cues
     public abstract class StageKitLighting
     {
-        protected CancellationTokenSource CancellationTokenSource;
-
         protected const byte NONE = 0b00000000;
         protected const byte ZERO = 0b00000001;
         protected const byte ONE = 0b00000010;
@@ -817,10 +814,10 @@ namespace YARG.Integration.StageKit
         private float _currentPitch;
         private bool _greenIsSpinning;
         private bool _blueOnTwo = true;
-        private StageKitLighting _greenPattern;
+        private readonly StageKitLighting _greenPattern;
         private byte _patternByte;
-        private BeatPattern _blueFour;
-        private BeatPattern _blueTwo;
+        private readonly BeatPattern _blueFour;
+        private readonly BeatPattern _blueTwo;
 
         private static readonly (StageKitLedColor, byte)[] PatternList1 =
         {

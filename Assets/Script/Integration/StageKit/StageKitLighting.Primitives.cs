@@ -14,7 +14,7 @@ namespace YARG.Integration.StageKit
         private int _patternIndex;
         private readonly (StageKitLedColor color, byte data)[] _patternList;
         private GameManager _gameManager;
-        private float _beatsPerCycle;
+        private readonly float _beatsPerCycle;
 
         public BeatPattern((StageKitLedColor, byte)[] patternList, float beatsPerCycle, bool continuous = true)
         {
@@ -42,7 +42,6 @@ namespace YARG.Integration.StageKit
             {
                 _gameManager.BeatEventHandler.Unsubscribe(OnBeat);
                 KillSelf();
-                //StageKitInterpreter.Instance.CurrentLightingCue.CuePrimitives.Remove(this);
             }
 
             if (_patternIndex >= _patternList.Length)
@@ -57,8 +56,6 @@ namespace YARG.Integration.StageKit
             {
                 _gameManager.BeatEventHandler.Unsubscribe(OnBeat);
             }
-
-            CancellationTokenSource?.Cancel();
         }
     }
 
@@ -188,7 +185,6 @@ namespace YARG.Integration.StageKit
 
         public override void KillSelf()
         {
-            CancellationTokenSource?.Cancel();
             _enabled = false;
         }
     }
@@ -198,11 +194,12 @@ namespace YARG.Integration.StageKit
         private readonly float _seconds;
         private int _patternIndex;
         private readonly (StageKitLedColor color, byte data)[] _patternList;
+        private readonly CancellationTokenSource _cancellationTokenSource;
 
         public TimedPattern((StageKitLedColor, byte)[] patternList, float seconds)
         {
             //Token only for timed events
-            CancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource = new CancellationTokenSource();
             _seconds = seconds;
             _patternList = patternList;
         }
@@ -210,7 +207,7 @@ namespace YARG.Integration.StageKit
         public override void Enable()
         {
             _patternIndex = 0;
-            TimedCircleCoroutine(CancellationTokenSource.Token).Forget();
+            TimedCircleCoroutine(_cancellationTokenSource.Token).Forget();
         }
 
         private async UniTask TimedCircleCoroutine(CancellationToken cancellationToken)
@@ -234,7 +231,7 @@ namespace YARG.Integration.StageKit
 
         public override void KillSelf()
         {
-            CancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Cancel();
         }
     }
 }
