@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
+using YARG.Integration;
 
 namespace YARG.Playback
 {
@@ -267,7 +269,6 @@ namespace YARG.Playback
             var finalTempo = tempos[_tempoIndex];
             var finalTimeSig = timeSigs[_timeSigIndex];
 #endif
-
             // Update actions
             foreach (var state in _states.Values)
             {
