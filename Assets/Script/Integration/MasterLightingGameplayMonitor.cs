@@ -12,11 +12,12 @@ namespace YARG
     public class MasterLightingGameplayMonitor : GameplayBehaviour
     {
         public static VenueTrack _venue;
+        public static int _lightingIndex;
+
         private SyncTrack _sync;
         private List<VocalsPhrase> _vocals;
         private InstrumentDifficulty<DrumNote> _drums;
         private int _eventIndex;
-        public static int _lightingIndex;
         private int _syncIndex;
         private int _vocalsIndex;
         private int _drumIndex;
