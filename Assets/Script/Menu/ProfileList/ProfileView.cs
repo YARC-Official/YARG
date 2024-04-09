@@ -107,7 +107,9 @@ namespace YARG.Menu.ProfileList
 
         public async UniTask<bool> PromptAddDevice()
         {
-            var dialog = DialogManager.Instance.ShowList("Add Device");
+            var dialog = DialogManager.Instance.ShowList("Add Device\n" +
+                "<alpha=#44><size=65%><line-height=50%>\nIf your device does not show up, try hitting a button/pad on " +
+                "it first, and then retry.</size>");
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
 
             bool devicesAvailable = false;
