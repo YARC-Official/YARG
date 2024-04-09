@@ -197,7 +197,6 @@ namespace YARG.Playback
         public void Subscribe(Action action, float beatRate, double offset = 0,
             TempoMapEventMode mode = TempoMapEventMode.Beat)
         {
-            //    _states.Add(action, new TempoMapAction(action, beatRate, offset, mode));
             _changeStates.Add((true, action, new TempoMapAction(action, beatRate, offset, mode)));
         }
 
@@ -208,19 +207,16 @@ namespace YARG.Playback
         /// <param name="offset">The constant offset to use for the event.</param>
         public void Subscribe(Action<Beatline> action, double offset = 0)
         {
-            //        _states.Add(action, new BeatlineAction(action, offset));
             _changeStates.Add((true, action, new BeatlineAction(action, offset)));
         }
 
         public void Unsubscribe(Action action)
         {
-            //          _states.Remove(action);
             _changeStates.Add((false, action, null));
         }
 
         public void Unsubscribe(Action<Beatline> action)
         {
-//            _states.Remove(action);
             _changeStates.Add((false, action, null));
         }
 
