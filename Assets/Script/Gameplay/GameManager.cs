@@ -277,7 +277,7 @@ namespace YARG.Gameplay
                 text.AppendFormat("Speed multiplier: {0}\n", _songRunner.SyncSpeedMultiplier);
                 text.AppendFormat("Input base: {0:0.000000}\n", _songRunner.InputTimeBase);
                 text.AppendFormat("Input offset: {0:0.000000}\n", _songRunner.InputTimeOffset);
-                text.AppendFormat("Current venue call: {0}\n", MasterLightingController.CurrentLightingCue?.Type);
+                text.AppendFormat("Current venue call: {1:000}/{2:000}: {0}\n", MasterLightingController.CurrentLightingCue?.Type, MasterLightingGameplayMonitor._lightingIndex, MasterLightingGameplayMonitor._venue.Lighting.Count);
 
                 _debugText.SetText(text);
             }
