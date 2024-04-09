@@ -11,8 +11,8 @@ namespace YARG
 {
     public class MasterLightingGameplayMonitor : GameplayBehaviour
     {
-        public static VenueTrack _venue;
-        public static int _lightingIndex;
+        public static VenueTrack Venue { get; private set; }
+        public static int LightingIndex { get; private set; }
 
         private SyncTrack _sync;
         private List<VocalsPhrase> _vocals;
@@ -26,14 +26,14 @@ namespace YARG
         {
             // This should be read from the venue itself eventually, but for now, we'll just randomize it.
             MasterLightingController.LargeVenue = Random.Range(0, 1) == 1;
-            _venue = chart.VenueTrack;
+            Venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
             chart.FourLaneDrums.Difficulties.TryGetValue(Difficulty.Expert, out _drums);
 
             // Reset the indexes on song restart
             _eventIndex = 0;
-            _lightingIndex = 0;
+            LightingIndex = 0;
             _syncIndex = 0;
             _vocalsIndex = 0;
             _drumIndex = 0;
@@ -70,10 +70,10 @@ namespace YARG
             }
 
             // The lighting cues from the venue track are handled here.
-            while (_lightingIndex < _venue.Lighting.Count &&
-                _venue.Lighting[_lightingIndex].Time <= GameManager.SongTime)
+            while (LightingIndex < Venue.Lighting.Count &&
+                Venue.Lighting[LightingIndex].Time <= GameManager.SongTime)
             {
-                switch (_venue.Lighting[_lightingIndex].Type)
+                switch (Venue.Lighting[LightingIndex].Type)
                 {
                     case LightingType.Strobe_Off:
                         MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Off;
@@ -103,25 +103,25 @@ namespace YARG
                         // controller (dmx, stage kit, rgb, etc) could handle this differently but then we have to guess
                         // at how long the strobe should be on. So we'll just turn it off here.
                         MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Off;
-                        MasterLightingController.CurrentLightingCue = _venue.Lighting[_lightingIndex];
+                        MasterLightingController.CurrentLightingCue = Venue.Lighting[LightingIndex];
                         break;
                 }
 
-                _lightingIndex++;
+                LightingIndex++;
             }
 
             // For "fogOn", "fogOff", and "BonusFx" events
-            while (_eventIndex < _venue.Stage.Count && _venue.Stage[_eventIndex].Time <= GameManager.SongTime)
+            while (_eventIndex < Venue.Stage.Count && Venue.Stage[_eventIndex].Time <= GameManager.SongTime)
             {
-                if (_venue.Stage[_eventIndex].Effect == StageEffect.FogOn)
+                if (Venue.Stage[_eventIndex].Effect == StageEffect.FogOn)
                 {
                     MasterLightingController.CurrentFogState = MasterLightingController.FogState.On;
                 }
-                else if (_venue.Stage[_eventIndex].Effect == StageEffect.FogOff)
+                else if (Venue.Stage[_eventIndex].Effect == StageEffect.FogOff)
                 {
                     MasterLightingController.CurrentFogState = MasterLightingController.FogState.Off;
                 }
-                else if (_venue.Stage[_eventIndex].Effect == StageEffect.BonusFx)
+                else if (Venue.Stage[_eventIndex].Effect == StageEffect.BonusFx)
                 {
                     MasterLightingController.FireBonusFXEvent();
                 }
