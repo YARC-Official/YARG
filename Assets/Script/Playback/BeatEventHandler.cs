@@ -197,7 +197,7 @@ namespace YARG.Playback
         public void Subscribe(Action action, float beatRate, double offset = 0,
             TempoMapEventMode mode = TempoMapEventMode.Beat)
         {
-        //    _states.Add(action, new TempoMapAction(action, beatRate, offset, mode));
+            //    _states.Add(action, new TempoMapAction(action, beatRate, offset, mode));
             _changeStates.Add((true, action, new TempoMapAction(action, beatRate, offset, mode)));
         }
 
@@ -208,19 +208,18 @@ namespace YARG.Playback
         /// <param name="offset">The constant offset to use for the event.</param>
         public void Subscribe(Action<Beatline> action, double offset = 0)
         {
-    //        _states.Add(action, new BeatlineAction(action, offset));
-                  _changeStates.Add((true, action, new BeatlineAction(action, offset)));
+            //        _states.Add(action, new BeatlineAction(action, offset));
+            _changeStates.Add((true, action, new BeatlineAction(action, offset)));
         }
 
         public void Unsubscribe(Action action)
         {
-  //          _states.Remove(action);
+            //          _states.Remove(action);
             _changeStates.Add((false, action, null));
         }
 
         public void Unsubscribe(Action<Beatline> action)
         {
-
 //            _states.Remove(action);
             _changeStates.Add((false, action, null));
         }
@@ -238,10 +237,8 @@ namespace YARG.Playback
 
         public void Update(double songTime)
         {
-
             foreach (var (add, action, state) in _changeStates)
             {
-
                 if (add)
                 {
                     if (!_states.TryAdd(action, state))
@@ -253,7 +250,6 @@ namespace YARG.Playback
                 {
                     _states.Remove(action);
                 }
-
             }
 
             _changeStates.Clear();
@@ -277,13 +273,11 @@ namespace YARG.Playback
             var finalTempo = tempos[_tempoIndex];
             var finalTimeSig = timeSigs[_timeSigIndex];
 #endif
-                // Update actions
-                foreach (var state in _states.Values)
-                {
-                    state.Update(songTime, _sync);
-                }
-
-
+            // Update actions
+            foreach (var state in _states.Values)
+            {
+                state.Update(songTime, _sync);
+            }
         }
     }
 }
