@@ -117,6 +117,11 @@ namespace YARG.Menu.Main
             Application.OpenURL("https://discord.gg/sqpu4R552r");
         }
 
+        public void OpenTwitter()
+        {
+            Application.OpenURL("https://twitter.com/YARGGame");
+        }
+
         public void OpenGithub()
         {
             Application.OpenURL("https://github.com/YARC-Official/YARG");
