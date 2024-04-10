@@ -359,14 +359,6 @@ namespace YARG.Audio.BASS
                 Bass.StreamFree(mixerHandle);
                 return false;
             }
-
-            // We specify sourcestreams to use AsyncFile behavior
-            // That should ensure we still data buffer for use, but in a way that shouldn't effect latency
-            if (!Bass.ChannelSetAttribute(mixerHandle, ChannelAttribute.Buffer, 0))
-            {
-                YargLogger.LogFormatError("Failed to remove playback buffer: {0}!", Bass.LastError);
-                return false;
-            }
             return true;
         }
 
