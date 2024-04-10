@@ -115,7 +115,7 @@ namespace YARG.Audio.BASS
             Bass.Configure(Configuration.IncludeDefaultDevice, true);
 
             Bass.UpdatePeriod = 5;
-            Bass.PlaybackBufferLength = BassHelpers.PLAYBACK_BUFFER_LENGTH;
+            //Bass.PlaybackBufferLength = BassHelpers.PLAYBACK_BUFFER_LENGTH;
             Bass.DeviceNonStop = true;
 
             // This not the same as Bass.UpdatePeriod
@@ -154,7 +154,9 @@ namespace YARG.Audio.BASS
 
             LoadSfx();
 
-            PlaybackLatency = Bass.Info.Latency + Bass.DeviceBufferLength +  devPeriod;
+            var info = Bass.Info;
+            PlaybackLatency = info.Latency + Bass.DeviceBufferLength +  devPeriod;
+            Bass.PlaybackBufferLength = info.MinBufferLength + 2 * Bass.UpdatePeriod;
 
             YargLogger.LogInfo("BASS Successfully Initialized");
             YargLogger.LogFormatInfo("BASS: {0} - BASS.FX: {1} - BASS.Mix: {2}", Bass.Version, BassFx.Version, BassMix.Version);
