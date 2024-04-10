@@ -349,7 +349,7 @@ namespace YARG.Audio.BASS
             int threads = Environment.ProcessorCount switch
             {
                 >= 16 => 16,
-                >= 4 => Environment.ProcessorCount / 2,
+                >= 6 => Environment.ProcessorCount / 2,
                 _ => 2
             };
 
@@ -480,6 +480,18 @@ namespace YARG.Audio.BASS
             }
 
             return seconds;
+        }
+
+        private const double BASE = 2;
+        private const double FACTOR = BASE - 1;
+        internal static double ExponentialVolume(double volume)
+        {
+            return (Math.Pow(BASE, volume) - 1) / FACTOR;
+        }
+
+        internal static double LogarithmicVolume(double volume)
+        {
+            return Math.Log(FACTOR * volume + 1, BASE);
         }
     }
 }

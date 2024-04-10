@@ -62,6 +62,7 @@ namespace YARG.Audio.BASS
 
         protected override void FadeIn_Internal(float maxVolume, double duration)
         {
+            maxVolume = (float) BassAudioManager.ExponentialVolume(maxVolume);
             Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, maxVolume, (int) (duration * SongEntry.MILLISECOND_FACTOR));
         }
 
@@ -103,7 +104,7 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to get volume: {0}", Bass.LastError);
             }
-            return volume;
+            return BassAudioManager.LogarithmicVolume(volume);
         }
 
         protected override void SetPosition_Internal(double position)
@@ -152,6 +153,7 @@ namespace YARG.Audio.BASS
 
         protected override void SetVolume_Internal(double volume)
         {
+            volume = BassAudioManager.ExponentialVolume(volume);
             if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Volume, volume))
             {
                 YargLogger.LogFormatError("Failed to set mixer volume: {0}", Bass.LastError);

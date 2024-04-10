@@ -93,7 +93,7 @@ namespace YARG.Settings
 
             #region Sound
 
-            public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Master, v));
+            public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => GlobalAudioHandler.SetMasterVolume(v));
             public VolumeSetting GuitarVolume      { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Guitar, v));
             public VolumeSetting RhythmVolume      { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Rhythm, v));
             public VolumeSetting BassVolume        { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Bass, v));
