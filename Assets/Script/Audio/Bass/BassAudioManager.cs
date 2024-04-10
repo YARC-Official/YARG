@@ -370,7 +370,7 @@ namespace YARG.Audio.BASS
             // as it was made as part of an update to fix <= 8 channel oggs.
             // https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
             const BassFlags streamFlags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags) 64;
-            
+
             streamHandle = Bass.CreateStream(StreamSystem.NoBuffer, streamFlags, new BassStreamProcedures(stream));
             if (streamHandle == 0)
             {

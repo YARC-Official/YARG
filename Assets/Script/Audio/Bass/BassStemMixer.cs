@@ -233,8 +233,8 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.MixerChanMatrix | BassFlags.MixerChanDownMix) ||
-                !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.MixerChanMatrix | BassFlags.MixerChanDownMix))
+            if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.MixerChanMatrix) ||
+                !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.MixerChanMatrix))
             {
                 YargLogger.LogFormatError("Failed to add channel {stem} to mixer: {0}!", Bass.LastError);
                 return false;
