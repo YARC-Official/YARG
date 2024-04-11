@@ -270,7 +270,10 @@ namespace YARG.Playback
                 _disposed = true;
                 if (disposing)
                 {
-                    _syncThread?.Join();
+                    if (_syncThread.IsAlive)
+                    {
+                        _syncThread.Join();
+                    }
                     _syncThread = null;
                 }
             }
