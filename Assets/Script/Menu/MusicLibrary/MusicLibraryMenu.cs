@@ -116,6 +116,7 @@ namespace YARG.Menu.MusicLibrary
                 _currentSong = CurrentlyPlaying;
             }
 
+            StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value;
             _previewDelay = 0;
             if (_reloadState == MusicLibraryReloadState.Full)
             {
@@ -455,6 +456,7 @@ namespace YARG.Menu.MusicLibrary
             _previewCanceller?.Cancel();
             _previewContext?.Dispose();
             _reloadState = MusicLibraryReloadState.Partial;
+            StemSettings.ApplySettings = true;
         }
 
         private void Back()
@@ -468,6 +470,7 @@ namespace YARG.Menu.MusicLibrary
             _previewCanceller?.Cancel();
             _previewContext?.Dispose();
             _previewContext = null;
+            StemSettings.ApplySettings = true;
             MenuManager.Instance.PopMenu();
         }
 

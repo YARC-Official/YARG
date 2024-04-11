@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -75,6 +75,7 @@ namespace YARG.Settings
                 nameof(Settings.ClapsInStarpower),
                 // nameof(Settings.ReverbInStarpower),
                 nameof(Settings.UseChipmunkSpeed),
+                nameof(Settings.ApplyVolumesInMusicLibrary),
             },
             new MetadataTab("Graphics", icon: "Display", new TrackPreviewBuilder())
             {

@@ -1411,6 +1411,10 @@ MonoBehaviour:
     m_Localized: Off
     m_Metadata:
       m_Items: []
+  - m_Id: 138593433699119104
+    m_Localized: Apply Volume Settings to Music Library Previews
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

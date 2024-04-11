@@ -130,6 +130,8 @@ namespace YARG.Settings
             // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
+            public ToggleSetting ApplyVolumesInMusicLibrary { get; } = new(true);
+
             #endregion
 
             #region Graphics
