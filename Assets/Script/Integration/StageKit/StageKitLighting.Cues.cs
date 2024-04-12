@@ -7,8 +7,8 @@ using Object = UnityEngine.Object;
 
 namespace YARG.Integration.StageKit
 {
-    //parent of primitives
-    //grandparent of cues
+    // Parent of primitives
+    // Grandparent of cues
     public abstract class StageKitLighting
     {
         protected const byte NONE = 0b00000000;
@@ -51,16 +51,12 @@ namespace YARG.Integration.StageKit
         {
         }
 
-        public virtual void OnBeat()
-        {
-        }
-
         public virtual void KillSelf()
         {
         }
     }
 
-    //This is the parent class of all lighting cues. (not primitives)
+    // This is the parent class of all lighting cues. (not primitives)
     public abstract class StageKitLightingCue : StageKitLighting
     {
         protected const StageKitLedColor COLOR_NONE = StageKitLedColor.None;
@@ -71,8 +67,8 @@ namespace YARG.Integration.StageKit
         protected const StageKitLedColor COLOR_ALL = StageKitLedColor.All;
 
         public List<StageKitLighting> CuePrimitives = new();
-        //While most cues only listen to events through their primitives, some cues listen directly to events so
-        //we only want this switched on when enabled.
+        // While most cues only listen to events through their primitives, some cues listen directly to events so
+        // We only want this switched on when enabled.
         public bool DirectListenEnabled;
     }
 
@@ -368,7 +364,7 @@ namespace YARG.Integration.StageKit
 
     public class Frenzy : StageKitLightingCue
     {
-        //red off blue yellow
+        // Red off blue yellow
         private static readonly (StageKitLedColor, byte)[] LargePatternList1 =
         {
             (RED, ALL),
@@ -393,7 +389,7 @@ namespace YARG.Integration.StageKit
             (YELLOW, ALL),
         };
 
-        //Small venue: half red, other half red, 4 green , 2 side blue, other 6 blue
+        // Small venue: half red, other half red, 4 green , 2 side blue, other 6 blue
 
         private static readonly (StageKitLedColor, byte)[] SmallPatternList1 =
         {
@@ -423,14 +419,14 @@ namespace YARG.Integration.StageKit
         {
             if (MasterLightingController.LargeVenue)
             {
-                //4 times a beats to control on and off because of the 2 different patterns on one color
+                // 4 times a beats to control on and off because of the 2 different patterns on one color
                 CuePrimitives.Add(new BeatPattern(LargePatternList1, 1f));
                 CuePrimitives.Add(new BeatPattern(LargePatternList2, 1f));
                 CuePrimitives.Add(new BeatPattern(LargePatternList3, 1f));
             }
             else
             {
-                //4 times a beats to control on and off because of the 2 different patterns on one color
+                // 4 times a beats to control on and off because of the 2 different patterns on one color
                 CuePrimitives.Add(new BeatPattern(SmallPatternList1, 1f));
                 CuePrimitives.Add(new BeatPattern(SmallPatternList2, 1f));
                 CuePrimitives.Add(new BeatPattern(SmallPatternList3, 1f));
@@ -507,7 +503,7 @@ namespace YARG.Integration.StageKit
 
         public SearchLight()
         {
-            //1 yellow@2 clockwise and 1 blue@0 counter clock.
+            // 1 yellow@2 clockwise and 1 blue@0 counter clock.
             if (MasterLightingController.LargeVenue)
             {
                 CuePrimitives.Add(new BeatPattern(LargePatternList1, 2f));
@@ -606,7 +602,7 @@ namespace YARG.Integration.StageKit
             }
             else if (StageKitInterpreter.PreviousLightingCue is Stomp)
             {
-                //do nothing (for the chop suey ending at least)
+                // Do nothing (for the chop suey ending at least)
             }
             else
             {
@@ -699,7 +695,7 @@ namespace YARG.Integration.StageKit
             CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
             CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
             // I thought the Manuals listens to the next but it doesn't seem to. I'll save this for funky fresh mode
-            //new ListenPattern(new List<(int, byte)>(), StageKitLightingPrimitives.ListenTypes.Next);
+            // new ListenPattern(new List<(int, byte)>(), StageKitLightingPrimitives.ListenTypes.Next);
         }
 
         public override void Enable()
@@ -874,17 +870,22 @@ namespace YARG.Integration.StageKit
             StageKitInterpreter.Instance.SetLed(RED, NONE);
             StageKitInterpreter.Instance.SetLed(BLUE, TWO | SIX);
 
-            foreach (var primitive in CuePrimitives)
-            {
-                primitive.Enable();
-            }
+            // Don't want to enable all, that turns on both blue patterns.
+            CuePrimitives[0].Enable();
+            CuePrimitives[1].Enable();
+            _blueTwo.Enable();
+            _greenPattern.Enable();
 
             DirectListenEnabled = true;
         }
 
         public override void HandleLightingEvent(LightingType eventName)
         {
-            if (eventName != LightingType.Keyframe_Next) return;
+            if (eventName != LightingType.Keyframe_Next)
+            {
+                return;
+            }
+
             if (_blueOnTwo)
             {
                 _blueTwo.KillSelf();

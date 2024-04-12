@@ -5,19 +5,17 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
-using YARG.Integration;
-using YARG.Integration.StageKit;
 
-namespace YARG
+namespace YARG.Integration.StageKit
 {
     public class StageKitInterpreter : MonoSingleton<StageKitInterpreter>
     {
         private readonly List<StageKitLighting> _cuePrimitives = new();
-        public StageKitLightingCue CurrentLightingCue;
+        private StageKitLightingCue _currentLightingCue;
         public static StageKitLightingCue PreviousLightingCue;
         private const byte NONE = 0b00000000;
 
-        private Dictionary<LightingType, StageKitLightingCue> _cueDictionary = new()
+        private readonly Dictionary<LightingType, StageKitLightingCue> _cueDictionary = new()
         {
             { LightingType.Menu, new MenuLighting() },
             { LightingType.Score, new ScoreLighting() },
@@ -45,7 +43,7 @@ namespace YARG
 
         public static event Action<StageKitLedColor, byte> OnLedEvent;
 
-        // this class maintains the Stage Kit lighting cues and primitives
+        // This class maintains the Stage Kit lighting cues and primitives
         public void Start()
         {
             SceneManager.sceneUnloaded += OnSceneUnloaded;
@@ -65,8 +63,8 @@ namespace YARG
         private void ChangeCues(StageKitLightingCue cue)
         {
             KillCue();
-            CurrentLightingCue = cue;
-            CurrentLightingCue?.Enable();
+            _currentLightingCue = cue;
+            _currentLightingCue?.Enable();
         }
 
         public void SetLed(StageKitLedColor color, byte led)
@@ -84,32 +82,32 @@ namespace YARG
 
         private void KillCue()
         {
-            if (CurrentLightingCue == null) return;
+            if (_currentLightingCue == null) return;
 
-            foreach (var primitive in CurrentLightingCue.CuePrimitives)
+            foreach (var primitive in _currentLightingCue.CuePrimitives)
             {
                 primitive.KillSelf();
             }
 
             _cuePrimitives.Clear();
-            PreviousLightingCue = CurrentLightingCue;
-            CurrentLightingCue.DirectListenEnabled = false;
-            CurrentLightingCue = null;
+            PreviousLightingCue = _currentLightingCue;
+            _currentLightingCue.DirectListenEnabled = false;
+            _currentLightingCue = null;
         }
 
         protected virtual void OnBeatLineEvent(Beatline value)
         {
-            if (CurrentLightingCue == null)
+            if (_currentLightingCue == null)
             {
                 return;
             }
 
-            if (CurrentLightingCue.DirectListenEnabled)
+            if (_currentLightingCue.DirectListenEnabled)
             {
-                CurrentLightingCue.HandleBeatlineEvent(value.Type);
+                _currentLightingCue.HandleBeatlineEvent(value.Type);
             }
 
-            foreach (var primitive in CurrentLightingCue.CuePrimitives)
+            foreach (var primitive in _currentLightingCue.CuePrimitives)
             {
                 primitive.HandleBeatlineEvent(value.Type);
             }
@@ -117,15 +115,15 @@ namespace YARG
 
         protected virtual void OnLightingEvent(LightingEvent value)
         {
-            
-            if (value != null && value.Type == LightingType.Keyframe_Next && CurrentLightingCue != null)
+
+            if (value != null && value.Type == LightingType.Keyframe_Next && _currentLightingCue != null)
             {
-                if (CurrentLightingCue.DirectListenEnabled)
+                if (_currentLightingCue.DirectListenEnabled)
                 {
-                    CurrentLightingCue.HandleLightingEvent(value.Type);
+                    _currentLightingCue.HandleLightingEvent(value.Type);
                 }
 
-                foreach (var primitive in CurrentLightingCue.CuePrimitives)
+                foreach (var primitive in _currentLightingCue.CuePrimitives)
                 {
                     primitive.HandleLightingEvent(value.Type);
                 }
@@ -157,17 +155,17 @@ namespace YARG
 
         protected virtual void OnDrumEvent(DrumNote value)
         {
-            if (CurrentLightingCue == null)
+            if (_currentLightingCue == null)
             {
                 return;
             }
 
-            if (CurrentLightingCue.DirectListenEnabled)
+            if (_currentLightingCue.DirectListenEnabled)
             {
-                CurrentLightingCue.HandleDrumEvent(value.Pad);
+                _currentLightingCue.HandleDrumEvent(value.Pad);
             }
 
-            foreach (var primitive in CurrentLightingCue.CuePrimitives)
+            foreach (var primitive in _currentLightingCue.CuePrimitives)
             {
                 primitive.HandleDrumEvent(value.Pad);
             }
@@ -175,17 +173,17 @@ namespace YARG
 
         protected virtual void OnVocalsEvent(VocalNote value)
         {
-            if (CurrentLightingCue == null)
+            if (_currentLightingCue == null)
             {
                 return;
             }
 
-            if (CurrentLightingCue.DirectListenEnabled)
+            if (_currentLightingCue.DirectListenEnabled)
             {
-                CurrentLightingCue.HandleVocalEvent(0);
+                _currentLightingCue.HandleVocalEvent(0);
             }
 
-            foreach (var primitive in CurrentLightingCue.CuePrimitives)
+            foreach (var primitive in _currentLightingCue.CuePrimitives)
             {
                 primitive.HandleVocalEvent(0);
             }

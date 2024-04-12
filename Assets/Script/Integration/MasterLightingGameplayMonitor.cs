@@ -4,10 +4,9 @@ using PlasticBand.Haptics;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay;
-using YARG.Integration;
 using Random = UnityEngine.Random;
 
-namespace YARG
+namespace YARG.Integration
 {
     public class MasterLightingGameplayMonitor : GameplayBehaviour
     {

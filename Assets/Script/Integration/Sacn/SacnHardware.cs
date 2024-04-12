@@ -5,6 +5,7 @@ using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Settings;
 using YARG.Core.Logging;
+using YARG.Integration.StageKit;
 
 namespace YARG.Integration.Sacn
 {
