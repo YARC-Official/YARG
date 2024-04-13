@@ -105,7 +105,7 @@ namespace YARG.Integration
             get => _paused;
             set
             {
-                //On Pause, turn off the fog and strobe so people don't die, but leave the leds on, looks nice.
+                // On Pause, turn off the fog and strobe so people don't die, but leave the leds on, looks nice.
                 if (value)
                 {
                     CurrentFogState = FogState.Off;
@@ -196,7 +196,7 @@ namespace YARG.Integration
 
         public static void FireBonusFXEvent()
         {
-            //This is a instantaneous event, so we don't need to keep track of it.
+            // This is a instantaneous event, so we don't need to keep track of it.
             OnBonusFXEvent?.Invoke();
         }
     }

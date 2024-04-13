@@ -176,7 +176,7 @@ namespace YARG.Integration.StageKit
             StrobeSpeed,
         }
 
-        private List<IStageKitHaptics> _stageKits = new();
+        private readonly List<IStageKitHaptics> _stageKits = new();
 
         // Stuff for the actual command sending to the unit
         private bool _isSendingCommands;
@@ -186,15 +186,15 @@ namespace YARG.Integration.StageKit
         private byte _currentYellowLedState;
         private byte _currentRedLedState;
 
-        //this is only for the SendCommands() command to limit swamping the kit.
+        // This is only for the SendCommands() command to limit swamping the kit.
         private byte _previousBlueLedState;
         private byte _previousGreenLedState;
         private byte _previousYellowLedState;
         private byte _previousRedLedState;
 
-        //necessary to prevent the stage kit from getting overwhelmed and dropping commands. In seconds. 0.001 is the
-        //minimum. Preliminary testing indicated that 7ms was needed to prevent dropped commands, but it seems that
-        //most songs are slow enough to allow 1ms.
+        // Necessary to prevent the stage kit from getting overwhelmed and dropping commands. In seconds. 0.001 is the
+        // minimum. Preliminary testing indicated that 7ms was needed to prevent dropped commands, but it seems that
+        // most songs are slow enough to allow 1ms.
         private const float SEND_DELAY = 0.001f;
 
         private void Start()
@@ -205,21 +205,30 @@ namespace YARG.Integration.StageKit
         protected override void SingletonDestroy()
         {
             InputSystem.onDeviceChange -= OnDeviceChange;
-            foreach (var kit in _stageKits) kit.ResetHaptics();
+            foreach (var kit in _stageKits)
+            {
+                kit.ResetHaptics();
+            }
         }
 
         public void HandleEnabledChanged(bool isEnabled)
         {
             if (isEnabled)
             {
-                //build a list of all the stage kits connected
+                // Build a list of all the stage kits connected
                 foreach (var device in InputSystem.devices)
                 {
-                    if (device is IStageKitHaptics haptics) _stageKits.Add(haptics);
+                    if (device is IStageKitHaptics haptics)
+                    {
+                        _stageKits.Add(haptics);
+                    }
                 }
 
-                //StageKits remember its last state which is neat but not needed on startup
-                foreach (var kit in _stageKits) kit.ResetHaptics();
+                // Stage Kits remember its last state which is neat but not needed on startup
+                foreach (var kit in _stageKits)
+                {
+                    kit.ResetHaptics();
+                }
 
                 MasterLightingController.OnFogState += OnFogStateEvent;
                 MasterLightingController.OnStrobeEvent += OnStrobeEvent;
@@ -287,7 +296,10 @@ namespace YARG.Integration.StageKit
                         }
 
                         foreach (var kit in _stageKits)
+                        {
                             kit.SetLeds(StageKitLedColor.Blue, (StageKitLed) curCommand.data);
+                        }
+
                         _previousBlueLedState = _currentBlueLedState;
                         break;
 
@@ -298,7 +310,10 @@ namespace YARG.Integration.StageKit
                         }
 
                         foreach (var kit in _stageKits)
+                        {
                             kit.SetLeds(StageKitLedColor.Green, (StageKitLed) curCommand.data);
+                        }
+
                         _previousGreenLedState = _currentGreenLedState;
                         break;
 
@@ -309,7 +324,10 @@ namespace YARG.Integration.StageKit
                         }
 
                         foreach (var kit in _stageKits)
+                        {
                             kit.SetLeds(StageKitLedColor.Yellow, (StageKitLed) curCommand.data);
+                        }
+
                         _previousYellowLedState = _currentYellowLedState;
                         break;
 
@@ -320,16 +338,27 @@ namespace YARG.Integration.StageKit
                         }
 
                         foreach (var kit in _stageKits)
+                        {
                             kit.SetLeds(StageKitLedColor.Red, (StageKitLed) curCommand.data);
+                        }
+
                         _previousRedLedState = _currentRedLedState;
                         break;
 
                     case (int) CommandType.FogMachine:
-                        foreach (var kit in _stageKits) kit.SetFogMachine(curCommand.data == 1);
+                        foreach (var kit in _stageKits)
+                        {
+                            kit.SetFogMachine(curCommand.data == 1);
+                        }
+
                         break;
 
                     case (int) CommandType.StrobeSpeed:
-                        foreach (var kit in _stageKits) kit.SetStrobeSpeed((StageKitStrobeSpeed) curCommand.data);
+                        foreach (var kit in _stageKits)
+                        {
+                            kit.SetStrobeSpeed((StageKitStrobeSpeed) curCommand.data);
+                        }
+
                         break;
 
                     default:
@@ -337,9 +366,9 @@ namespace YARG.Integration.StageKit
                         break;
                 }
 
-                //If there is more 1/20th of a second in commands left in the queue when the cue changes, clear it.
-                //Really fast songs can build up a queue in the thousands while in BRE or Frenzy. 1/20th of a
-                //second is said to be the blink of an eye.
+                // If there is more 1/20th of a second in commands left in the queue when the cue changes, clear it.
+                // Really fast songs can build up a queue in the thousands while in BRE or Frenzy. 1/20th of a
+                // second is said to be the blink of an eye.
                 if (things != MasterLightingController.CurrentLightingCue && _commandQueue.Count > 0.05f / SEND_DELAY)
                 {
                     _commandQueue.Clear();
