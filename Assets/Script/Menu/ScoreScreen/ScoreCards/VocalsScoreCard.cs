@@ -9,8 +9,8 @@ namespace YARG.Menu.ScoreScreen
         {
             base.SetCardContents();
 
-            var totalTicks = Stats.VocalTicksHit + Stats.VocalTicksMissed;
-            AccuracyPercent.text = $"{Mathf.FloorToInt((float) Stats.VocalTicksHit / totalTicks * 100f)}%";
+            var totalTicks = Stats.TicksHit + Stats.TicksMissed;
+            AccuracyPercent.text = $"{Mathf.FloorToInt((float) Stats.TicksHit / totalTicks * 100f)}%";
         }
     }
 }

@@ -259,36 +259,36 @@ namespace YARG.Settings.Metadata
                     CreateFields(container, navGroup, ENGINE_PRESET, new()
                     {
                         (
-                            nameof(preset.WindowSizeE),
-                            new SliderSetting((float) preset.WindowSizeE, 0f, 3f)
+                            nameof(preset.PitchWindowE),
+                            new SliderSetting(preset.PitchWindowE, 0f, 3f)
                         ),
                         (
-                            nameof(preset.WindowSizeM),
-                            new SliderSetting((float) preset.WindowSizeM, 0f, 3f)
+                            nameof(preset.PitchWindowM),
+                            new SliderSetting(preset.PitchWindowM, 0f, 3f)
                         ),
                         (
-                            nameof(preset.WindowSizeH),
-                            new SliderSetting((float) preset.WindowSizeH, 0f, 3f)
+                            nameof(preset.PitchWindowH),
+                            new SliderSetting(preset.PitchWindowH, 0f, 3f)
                         ),
                         (
-                            nameof(preset.WindowSizeX),
-                            new SliderSetting((float) preset.WindowSizeX, 0f, 3f)
+                            nameof(preset.PitchWindowX),
+                            new SliderSetting(preset.PitchWindowX, 0f, 3f)
                         ),
                         (
                             nameof(preset.HitPercentE),
-                            new SliderSetting((float) preset.HitPercentE, 0f, 1f)
+                            new SliderSetting(preset.HitPercentE, 0f, 1f)
                         ),
                         (
                             nameof(preset.HitPercentM),
-                            new SliderSetting((float) preset.HitPercentM, 0f, 1f)
+                            new SliderSetting(preset.HitPercentM, 0f, 1f)
                         ),
                         (
                             nameof(preset.HitPercentH),
-                            new SliderSetting((float) preset.HitPercentH, 0f, 1f)
+                            new SliderSetting(preset.HitPercentH, 0f, 1f)
                         ),
                         (
                             nameof(preset.HitPercentX),
-                            new SliderSetting((float) preset.HitPercentX, 0f, 1f)
+                            new SliderSetting(preset.HitPercentX, 0f, 1f)
                         )
                     });
 
@@ -346,10 +346,10 @@ namespace YARG.Settings.Metadata
                 {
                     var preset = enginePreset.Vocals;
 
-                    preset.WindowSizeE = ((SliderSetting) _settingFields[nameof(preset.WindowSizeE)]).Value;
-                    preset.WindowSizeM = ((SliderSetting) _settingFields[nameof(preset.WindowSizeM)]).Value;
-                    preset.WindowSizeH = ((SliderSetting) _settingFields[nameof(preset.WindowSizeH)]).Value;
-                    preset.WindowSizeX = ((SliderSetting) _settingFields[nameof(preset.WindowSizeX)]).Value;
+                    preset.PitchWindowE = ((SliderSetting) _settingFields[nameof(preset.PitchWindowE)]).Value;
+                    preset.PitchWindowM = ((SliderSetting) _settingFields[nameof(preset.PitchWindowM)]).Value;
+                    preset.PitchWindowH = ((SliderSetting) _settingFields[nameof(preset.PitchWindowH)]).Value;
+                    preset.PitchWindowX = ((SliderSetting) _settingFields[nameof(preset.PitchWindowX)]).Value;
                     preset.HitPercentE = ((SliderSetting) _settingFields[nameof(preset.HitPercentE)]).Value;
                     preset.HitPercentM = ((SliderSetting) _settingFields[nameof(preset.HitPercentM)]).Value;
                     preset.HitPercentH = ((SliderSetting) _settingFields[nameof(preset.HitPercentH)]).Value;
