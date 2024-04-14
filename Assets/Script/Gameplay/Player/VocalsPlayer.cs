@@ -44,8 +44,8 @@ namespace YARG.Gameplay.Player
         private MicInputContext _inputContext;
 
         private VocalNote _lastTargetNote;
-        private double    _lastHitTime;
-        private double    _lastSingTime;
+        private double?   _lastHitTime;
+        private double?   _lastSingTime;
 
         private VocalsPlayerHUD _hud;
 
@@ -135,14 +135,18 @@ namespace YARG.Gameplay.Player
                 _lastCombo = Combo;
             };
 
-            engine.OnSing += () =>
+            engine.OnSing += (singing) =>
             {
-                _lastSingTime = GameManager.InputTime;
+                _lastSingTime = singing
+                    ? GameManager.InputTime
+                    : null;
             };
 
-            engine.OnHit += () =>
+            engine.OnHit += (hitting) =>
             {
-                _lastHitTime = GameManager.InputTime;
+                _lastHitTime = hitting
+                    ? GameManager.InputTime
+                    : null;
             };
 
             return engine;
@@ -181,13 +185,14 @@ namespace YARG.Gameplay.Player
             base.UpdateInputs(time);
         }
 
-        /// <summary>
-        /// Calculate if the engine considers this point in time as singing.
-        /// </summary>
-        private static double GetTimeThreshold(double lastTime)
+        private bool IsInThreshold(double currentTime, double? lastTime)
         {
-            // Add an arbitrary value to prevent it from hiding too fast
-            return lastTime + 1f / IMicDevice.UPDATES_PER_SECOND + 0.05;
+            if (lastTime is null)
+            {
+                return false;
+            }
+
+            return currentTime - lastTime.Value <= 1f / EngineParams.ApproximateVocalFps + 0.05;
         }
 
         protected override void UpdateVisuals(double time)
@@ -216,7 +221,7 @@ namespace YARG.Gameplay.Player
             // Get whether or not the player has sang within the time threshold.
             // We gotta use a threshold here because microphone inputs are passed every X seconds,
             // not in a constant stream.
-            if (singTime >= GetTimeThreshold(_lastSingTime))
+            if (!IsInThreshold(singTime, _lastSingTime))
             {
                 // Hide the needle if there's no singing
                 if (_needleVisualContainer.activeSelf)
@@ -241,7 +246,7 @@ namespace YARG.Gameplay.Player
                 var transformCache = transform;
                 float lastNotePitch = _lastTargetNote?.PitchAtSongTime(GameManager.SongTime) ?? -1f;
 
-                if (_lastTargetNote is not null && singTime < GetTimeThreshold(_lastHitTime))
+                if (_lastTargetNote is not null && IsInThreshold(singTime, _lastHitTime))
                 {
                     // Show particles if hitting
                     _hittingParticleGroup.Play();
