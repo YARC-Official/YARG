@@ -78,6 +78,15 @@ namespace YARG.Gameplay.Player
 
             Engine = CreateEngine();
 
+            if (GameManager.IsPractice)
+            {
+                Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
+            }
+            else
+            {
+                Engine.SetSpeed(GameManager.SongSpeed);
+            }
+
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
         }
 
@@ -122,17 +131,17 @@ namespace YARG.Gameplay.Player
                     IsFc = false;
                 }
 
-                _lastCombo = Combo;
+                LastCombo = Combo;
             };
 
             engine.OnNoteMissed += (_, _) =>
             {
-                if (_lastCombo >= 2)
+                if (LastCombo >= 2)
                 {
-                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+                    GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
                 }
 
-                _lastCombo = Combo;
+                LastCombo = Combo;
             };
 
             engine.OnSing += (singing) =>

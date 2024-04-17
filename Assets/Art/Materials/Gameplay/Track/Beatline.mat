@@ -8,15 +8,14 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Beatline
-  m_Shader: {fileID: -6465566751694194690, guid: 0c474304b74472f4a8b212da29713486,
+  m_Shader: {fileID: -6465566751694194690, guid: dd746f90db99cb145abded5cced0c12e,
     type: 3}
-  m_ValidKeywords:
-  - _EMISSION_DISABLED
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2961
+  m_CustomRenderQueue: 2975
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -106,7 +105,7 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
-    - _QueueOffset: -39
+    - _QueueOffset: -25
     - _ReceiveShadows: 1
     - _SHINE: 0
     - _ShineAmount: 0

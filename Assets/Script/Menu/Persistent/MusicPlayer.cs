@@ -3,7 +3,6 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Audio;
 using YARG.Settings;
 using YARG.Helpers.Extensions;
 using YARG.Core.Audio;
@@ -14,7 +13,11 @@ namespace YARG.Menu.Persistent
 {
     public class MusicPlayer : MonoBehaviour
     {
-        public static SongEntry NowPlaying = null;
+        private static SongEntry _nowPlaying = null;
+        public static SongEntry NowPlaying => _nowPlaying;
+
+        private object _lock = new();
+        private StemMixer _mixer = null;
 
         [SerializeField]
         private Image _playPauseButton;
@@ -29,12 +32,9 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private Sprite _pauseSprite;
 
-        // "The Unity message 'OnEnable' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
-        private async UniTaskVoid OnEnable()
+        private async void OnEnable()
         {
-            _songText.text = string.Empty;
-            _artistText.text = string.Empty;
+            _songText.text = _artistText.text = string.Empty;
 
             // Wait until the loading is done
             await UniTask.WaitUntil(() => !LoadingScreen.IsActive);
@@ -45,93 +45,76 @@ namespace YARG.Menu.Persistent
                 gameObject.SetActive(false);
                 return;
             }
-
-            GlobalVariables.AudioManager.SongEnd += OnSongEnd;
-            await NextSong();
+            NextSong();
         }
 
         private void OnDisable()
         {
-            GlobalVariables.AudioManager.SongEnd -= OnSongEnd;
-            Stop();
-        }
-
-        private async UniTask NextSong()
-        {
-            var song = SongContainer.GetRandomSong();
-            NowPlaying = song;
-            await UniTask.RunOnThreadPool(() => song.LoadAudio(GlobalVariables.AudioManager, 1f, SongStem.Crowd));
-
-            // Set song title text
-            _songText.text = song.Name;
-            _artistText.text = song.Artist;
-
-            Play();
-        }
-
-        private void OnSongEnd()
-        {
-            NextSong().Forget();
-        }
-
-        private void Play()
-        {
-            GlobalVariables.AudioManager.Play();
-            UpdateVolume();
-            UpdatePlayOrPauseSprite();
-        }
-
-        private void Pause()
-        {
-            GlobalVariables.AudioManager.Pause();
-            UpdatePlayOrPauseSprite();
-        }
-
-        private void Stop()
-        {
-            GlobalVariables.AudioManager.UnloadSong();
-        }
-
-        public void UpdateVolume()
-        {
-            if (GlobalVariables.AudioManager.IsPlaying && gameObject.activeSelf)
+            lock (_lock)
             {
-                GlobalVariables.AudioManager.SetAllStemsVolume(SettingsManager.Settings.MusicPlayerVolume.Value);
+                _mixer?.Dispose();
+                _mixer = null;
             }
         }
 
-        private void UpdatePlayOrPauseSprite()
+        public async void NextSong()
         {
-            if (GlobalVariables.AudioManager.IsPlaying)
+            StemMixer mixer = null;
+            await UniTask.RunOnThreadPool(() =>
             {
+                const float SPEED = 1f;
+                lock (_lock)
+                {
+                    _mixer?.Dispose();
+                    _nowPlaying = SongContainer.GetRandomSong();
+                    mixer = _mixer = _nowPlaying.LoadAudio(SPEED, SettingsManager.Settings.MusicPlayerVolume.Value, SongStem.Crowd);
+                    _mixer.SongEnd += NextSong;
+                }
+            });
+
+            lock (_lock)
+            {
+                if (mixer != _mixer)
+                {
+                    return;
+                }
+                
+                _mixer.Play();
+
+                _songText.text = _nowPlaying.Name;
+                _artistText.text = _nowPlaying.Artist;
                 _playPauseButton.sprite = _pauseSprite;
             }
-            else
+        }
+
+        public void UpdateVolume(double volume)
+        {
+            lock (_lock)
             {
-                _playPauseButton.sprite = _playSprite;
+                _mixer?.SetVolume(volume);
             }
         }
 
-        public void PlayOrPauseClick()
+        public void TogglePlay()
         {
-            if (!GlobalVariables.AudioManager.IsAudioLoaded)
+            lock (_lock)
             {
-                return;
+                if (_mixer == null)
+                {
+                    return;
+                }
+                
+                if (!_mixer.IsPaused)
+                {
+                    _mixer.Pause();
+                    _playPauseButton.sprite = _playSprite;
+                }
+                else
+                {
+                    _mixer.Play();
+                    _playPauseButton.sprite = _pauseSprite;
+                }
             }
-
-            if (GlobalVariables.AudioManager.IsPlaying)
-            {
-                Pause();
-            }
-            else
-            {
-                Play();
-            }
-        }
-
-        public void SkipClick()
-        {
-            NextSong().Forget();
         }
     }
 }

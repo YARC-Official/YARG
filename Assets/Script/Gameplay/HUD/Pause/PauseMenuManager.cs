@@ -40,6 +40,18 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private RawImage _albumCover;
 
+        public bool IsOpen() => _openMenus.Count > 0;
+
+        public void Clear()
+        {
+            foreach (var menu in _openMenus)
+            {
+                _menus[menu].gameObject?.SetActive(false);
+            }
+            _openMenus.Clear();
+            gameObject?.SetActive(false);
+        }
+
         protected override void GameplayAwake()
         {
             // Convert to dictionary with "Menu" as key
@@ -163,7 +175,6 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            GlobalVariables.AudioManager.UnloadSong();
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }
     }

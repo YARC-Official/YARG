@@ -57,8 +57,7 @@ namespace YARG.Menu.Main
 
         public void CurrentlyPlaying()
         {
-            MusicLibraryMenu.InitialSelect = MusicPlayer.NowPlaying;
-            MusicLibraryMenu.SetRefresh();
+            MusicLibraryMenu.CurrentlyPlaying = MusicPlayer.NowPlaying;
 
             QuickPlay();
         }
@@ -116,6 +115,11 @@ namespace YARG.Menu.Main
         public void OpenDiscord()
         {
             Application.OpenURL("https://discord.gg/sqpu4R552r");
+        }
+
+        public void OpenTwitter()
+        {
+            Application.OpenURL("https://twitter.com/YARGGame");
         }
 
         public void OpenGithub()

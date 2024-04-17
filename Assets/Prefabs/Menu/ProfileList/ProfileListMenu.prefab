@@ -899,7 +899,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f644969860af1cf4aaeaf4d71293368f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _textField: {fileID: 0}
+  _textField: {fileID: 6699835779865796626}
 --- !u!1 &1819648635184180186
 GameObject:
   m_ObjectHideFlags: 0
@@ -5879,7 +5879,7 @@ PrefabInstance:
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e,
         type: 3}
       propertyPath: m_Size
-      value: 0.7067743
+      value: 0.7061177
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e,
         type: 3}

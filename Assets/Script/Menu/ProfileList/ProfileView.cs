@@ -1,8 +1,10 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Audio;
+using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Menu.Navigation;
@@ -105,7 +107,9 @@ namespace YARG.Menu.ProfileList
 
         public async UniTask<bool> PromptAddDevice()
         {
-            var dialog = DialogManager.Instance.ShowList("Add Device");
+            var dialog = DialogManager.Instance.ShowList("Add Device\n" +
+                "<alpha=#44><size=65%><line-height=50%>\nIf your device does not show up, try hitting a button/pad on " +
+                "it first, and then retry.</size>");
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
 
             bool devicesAvailable = false;
@@ -127,12 +131,13 @@ namespace YARG.Menu.ProfileList
             }
 
             // Add available microphones
-            foreach (var microphone in GlobalVariables.AudioManager.GetAllInputDevices())
+            foreach (var microphone in GlobalAudioHandler.GetAllInputDevices())
             {
                 devicesAvailable = true;
-                dialog.AddListButton(microphone.DisplayName, () =>
+                dialog.AddListButton(microphone.name, () =>
                 {
-                    player.Bindings.AddMicrophone(microphone);
+                    var device = GlobalAudioHandler.CreateDevice(microphone.id, microphone.name);
+                    player.Bindings.AddMicrophone(device);
                     selectedDevice = true;
                     DialogManager.Instance.ClearDialog();
                 });

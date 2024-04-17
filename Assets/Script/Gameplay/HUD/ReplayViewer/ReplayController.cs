@@ -75,6 +75,15 @@ namespace YARG.Gameplay.HUD
             _replay = GameManager.Replay;
         }
 
+        protected override void OnSongStarted()
+        {
+            // Set the playback speed to the replay speed
+            if (_replay.Frames.Length > 0)
+            {
+                SetSpeed((float) _replay.Frames[0].EngineParameters.SongSpeed);
+            }
+        }
+
         private void Update()
         {
             if (!_hudVisible) return;
@@ -123,7 +132,10 @@ namespace YARG.Gameplay.HUD
         public void SetPaused(bool paused)
         {
             // Skip if that's already the pause state
-            if (paused == GameManager.Paused) return;
+            if (paused == GameManager.Paused)
+            {
+                return;
+            }
 
             if (paused)
             {
@@ -184,7 +196,7 @@ namespace YARG.Gameplay.HUD
 
         public void AdjustSpeed(float increment)
         {
-            SetSpeed(GameManager.SelectedSongSpeed + increment);
+            SetSpeed(GameManager.SongSpeed + increment);
         }
 
         private void SetSpeed(float speed)
@@ -193,7 +205,7 @@ namespace YARG.Gameplay.HUD
             GameManager.SetSongSpeed(speed);
             SetReplayTime(GameManager.VisualTime);
 
-            _speedInput.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
+            _speedInput.text = $"{GameManager.SongSpeed * 100f:0}%";
         }
 
         private void SetReplayTime(double time)

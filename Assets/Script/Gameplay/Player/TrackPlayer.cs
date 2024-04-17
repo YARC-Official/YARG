@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -70,8 +71,7 @@ namespace YARG.Gameplay.Player
 
         protected bool IsBass;
 
-        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
-            int? currentHighScore)
+        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
             if (IsInitialized) return;
 
@@ -108,6 +108,13 @@ namespace YARG.Gameplay.Player
                 or Instrument.ProBass_22Fret;
         }
 
+        protected override void UpdateVisualsWithTimes(double time)
+        {
+            base.UpdateVisualsWithTimes(time);
+            UpdateNotes(time);
+            UpdateBeatlines(time);
+        }
+
         protected override void ResetVisuals()
         {
             // "Muting a stem" isn't technically a visual,
@@ -121,13 +128,6 @@ namespace YARG.Gameplay.Player
             BeatlinePool.ReturnAllObjects();
 
             HitWindowDisplay.SetHitWindowSize();
-        }
-
-        protected override void UpdateVisualsWithTimes(double time)
-        {
-            base.UpdateVisualsWithTimes(time);
-            UpdateNotes(time);
-            UpdateBeatlines(time);
         }
 
         protected abstract void UpdateNotes(double time);
@@ -177,11 +177,11 @@ namespace YARG.Gameplay.Player
         private int _currentMultiplier;
         private int _previousMultiplier;
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, int? currentHighScore)
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
             if (IsInitialized) return;
 
-            base.Initialize(index, player, chart, trackView, currentHighScore);
+            base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
             SetupTheme(player.Profile.GameMode);
 
@@ -192,6 +192,21 @@ namespace YARG.Gameplay.Player
             Notes = NoteTrack.Notes;
 
             Engine = CreateEngine();
+
+            if (GameManager.IsPractice)
+            {
+                Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
+            }
+            else if (GameManager.IsReplay)
+            {
+                // If it's a replay, the "SongSpeed" parameter should be set properly
+                // when it gets deserialized. Transfer this over to the engine.
+                Engine.SetSpeed(Player.EngineParameterOverride.SongSpeed);
+            }
+            else
+            {
+                Engine.SetSpeed(GameManager.SongSpeed);
+            }
 
             ResetNoteCounters();
 
@@ -342,6 +357,16 @@ namespace YARG.Gameplay.Player
             BeatlineIndex = 0;
 
             Engine = CreateEngine();
+
+            if (GameManager.IsPractice)
+            {
+                Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
+            }
+            else
+            {
+                Engine.SetSpeed(GameManager.SongSpeed);
+            }
+
             ResetPracticeSection();
         }
 
@@ -393,7 +418,7 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            _lastCombo = Combo;
+            LastCombo = Combo;
         }
 
         protected virtual void OnNoteMissed(int index, TNote note)
@@ -406,12 +431,12 @@ namespace YARG.Gameplay.Player
 
             SetStemMuteState(true);
 
-            if (_lastCombo >= 10)
+            if (LastCombo >= 10)
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
             }
 
-            _lastCombo = Combo;
+            LastCombo = Combo;
 
             foreach (var haptics in SantrollerHaptics)
             {
@@ -427,7 +452,7 @@ namespace YARG.Gameplay.Player
                 IsFc = false;
             }
 
-            _lastCombo = Combo;
+            LastCombo = Combo;
         }
 
         protected virtual void OnSoloStart(SoloSection solo)

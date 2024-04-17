@@ -142,7 +142,7 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateSustain()
         {
-            _sustainLine.UpdateSustainLine(Player.NoteSpeed * GameManager.SelectedSongSpeed);
+            _sustainLine.UpdateSustainLine(Player.NoteSpeed * GameManager.SongSpeed);
         }
 
         private void UpdateColor()

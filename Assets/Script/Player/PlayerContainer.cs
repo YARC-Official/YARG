@@ -166,7 +166,12 @@ namespace YARG.Player
             _players.Clear();
 
             string profilesPath = ProfilesPath;
-            if (!File.Exists(profilesPath)) return 0;
+            if (!File.Exists(profilesPath))
+            {
+                // If the file doesn't exist, then there are no profiles
+                _isInitialized = true;
+                return 0;
+            }
 
             string profilesJson = File.ReadAllText(profilesPath);
             List<YargProfile> profiles;

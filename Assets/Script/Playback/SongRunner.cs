@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Threading;
 using UnityEngine;
 using YARG.Core.Logging;
+using YARG.Core.Audio;
 using YARG.Input;
 
 namespace YARG.Playback
@@ -36,7 +37,7 @@ namespace YARG.Playback
         /// This value is for scenarios that *must* be driven by audio time instead of visual time.
         /// In general, <see cref="SongTime"/> should be used instead where possible.
         /// </remarks>
-        public double AudioTime => RealAudioTime + AudioCalibration;
+        public double AudioTime => RealAudioTime + AudioCalibration * SongSpeed;
 
         /// <summary>
         /// The time into the audio, accounting for song speed but <b>not</b> audio calibration.<br/>
@@ -116,13 +117,15 @@ namespace YARG.Playback
         /// Positive offsets in the .ini or .chart will result in a negative number here.
         /// </remarks>
         public double SongOffset { get; }
+
+        public double PlaybackLatency { get; }
         #endregion
 
         #region Other state
         /// <summary>
-        /// The song speed as selected by the user.
+        /// The set playback speed of the song.
         /// </summary>
-        public float SelectedSongSpeed { get; private set; }
+        public float SongSpeed { get; private set; }
 
         /// <summary>
         /// The actual current playback speed of the song.
@@ -131,7 +134,7 @@ namespace YARG.Playback
         /// The audio may be sped up or slowed down in order to re-synchronize.
         /// This value takes that speed adjustment into account.
         /// </remarks>
-        public float ActualSongSpeed => SelectedSongSpeed + _syncSpeedAdjustment;
+        public float RealSongSpeed => SongSpeed + _syncSpeedAdjustment;
 
         /// <summary>
         /// Whether or not the runner has been started.
@@ -141,17 +144,7 @@ namespace YARG.Playback
         /// <summary>
         /// Whether or not the song is currently paused.
         /// </summary>
-        public bool Paused => PendingPauses > 0;
-
-        /// <summary>
-        /// The number of pauses which are currently active.
-        /// </summary>
-        /// <remarks>
-        /// The song runner keeps track of the number of pending pauses to prevent pausing in one place
-        /// being overridden by resuming in another. For correct behavior, every call to <see cref="Pause"/>
-        /// must be matched with a future call to <see cref="Resume"/>.
-        /// </remarks>
-        public int PendingPauses { get; private set; }
+        public bool Paused { get; private set; }
 
         /// <summary>
         /// The input time at which the song was paused.
@@ -172,29 +165,33 @@ namespace YARG.Playback
         #region Audio syncing
         private Thread _syncThread;
 
-        private EventWaitHandle _finishedSyncing = new(true, EventResetMode.ManualReset);
-        private volatile bool _runSync;
+        private bool _disposed;
+
         private volatile bool _pauseSync;
 
         private volatile float _syncSpeedAdjustment;
         private volatile int _syncSpeedMultiplier;
         private volatile float _syncStartDelta;
+        private volatile float _syncWorstDelta;
+
+        private readonly StemMixer _mixer;
 
         public float SyncSpeedAdjustment => _syncSpeedAdjustment;
         public int SyncSpeedMultiplier => _syncSpeedMultiplier;
         public float SyncStartDelta => _syncStartDelta;
+        public float SyncWorstDelta => _syncWorstDelta;
 
         /// <summary>
         /// The instantaneous current audio time, used for audio synchronization.<br/>
         /// Accounts for song speed, audio calibration, and song offset.
         /// </summary>
-        public double SyncSongTime => GlobalVariables.AudioManager.CurrentPositionD + AudioCalibration + SongOffset;
+        public double SyncSongTime { get; private set; }
 
         /// <summary>
         /// The instantaneous current visual time, used for audio synchronization.<br/>
         /// Accounts for song speed, but <b>not</b> video calibration.
         /// </summary>
-        public double SyncVisualTime => GetRelativeInputTime(InputManager.CurrentInputTime);
+        public double SyncVisualTime { get; private set; }
 
         /// <summary>
         /// The instantaneous current visual time, used for audio synchronization.<br/>
@@ -238,12 +235,14 @@ namespace YARG.Playback
         /// The song offset, in seconds.<br/>
         /// This value is negated for more intuitive usage in other code.
         /// </param>
-        public SongRunner(float songSpeed = 1f, int audioCalibration = 0, int videoCalibration = 0,
+        public SongRunner(StemMixer mixer, float songSpeed = 1f, int audioCalibration = 0, int videoCalibration = 0,
             double songOffset = 0)
         {
-            SelectedSongSpeed = songSpeed;
+            _mixer = mixer;
+            SongSpeed = songSpeed;
             VideoCalibration = -videoCalibration / 1000.0;
-            AudioCalibration = (-audioCalibration / 1000.0) - VideoCalibration;
+            AudioCalibration = (-(audioCalibration + GlobalAudioHandler.PlaybackLatency) / 1000.0) - VideoCalibration;
+
             SongOffset = -songOffset;
 
             _syncThread = new Thread(SyncThread) { IsBackground = true };
@@ -266,17 +265,17 @@ namespace YARG.Playback
 
         private void Dispose(bool disposing)
         {
-            // Stop sync thread
-            _runSync = false;
-
-            if (disposing)
+            if (!_disposed)
             {
-                // Wait for sync thread to stop
-                if (_syncThread is { IsAlive: true })
+                _disposed = true;
+                if (disposing)
                 {
-                    _syncThread?.Join();
+                    if (_syncThread.IsAlive)
+                    {
+                        _syncThread.Join();
+                    }
+                    _syncThread = null;
                 }
-                _syncThread = null;
             }
         }
 
@@ -288,8 +287,6 @@ namespace YARG.Playback
             if (!_songTimeInitialized)
                 InitializeSongTime(SongOffset);
 
-            // Start sync thread
-            _runSync = true;
             _syncThread.Start();
         }
 
@@ -307,12 +304,6 @@ namespace YARG.Playback
 
             // Update times
             UpdateInputTimes();
-
-            // The audio time becomes -1 when the song gets unloaded,
-            // need to do this to prevent the assert below from triggering
-            double newAudioTime = GlobalVariables.AudioManager.CurrentPositionD;
-            if (newAudioTime >= 0)
-                RealAudioTime = newAudioTime + SongOffset;
 
             // Check for unexpected backwards time jumps
 
@@ -352,84 +343,96 @@ namespace YARG.Playback
             const double ADJUST_SYNC_THRESH = 0.005;
             const float SPEED_ADJUSTMENT = 0.05f;
 
-            // Wait until it's time to start the audio
-            for (; _runSync; Thread.Yield())
+            for (; !_disposed; Thread.Sleep(1))
             {
-                if (_pauseSync)
-                    continue;
-
-                // Song time is driven using visual time when the audio isn't running
-                // Playback buffer needs to be accounted for to prevent backwards seeking
-                double currentTime = SyncVisualTime - AudioCalibration + GlobalVariables.AudioManager.PlaybackBufferLength;
-                if (currentTime >= SongOffset)
+                lock (_syncThread)
                 {
-                    // Start audio
-                    GlobalVariables.AudioManager.Play();
-                    break;
-                }
-            }
-
-            for (; _runSync; _finishedSyncing.Set(), Thread.Sleep(5))
-            {
-                if (!GlobalVariables.AudioManager.IsPlaying || _pauseSync)
-                    continue;
-
-                _finishedSyncing.Reset();
-
-                // Account for song speed
-                double initialThreshold = INITIAL_SYNC_THRESH * SelectedSongSpeed;
-                double adjustThreshold = ADJUST_SYNC_THRESH * SelectedSongSpeed;
-
-                // Check the difference between visual and audio times
-                double delta = SyncDelta;
-                double deltaAbs = Math.Abs(delta);
-                // Don't sync if below the initial sync threshold, and we haven't adjusted the speed
-                if (_syncSpeedMultiplier == 0 && deltaAbs < initialThreshold)
-                    continue;
-
-                // We're now syncing, determine how much to adjust the song speed by
-                int speedMultiplier = (int) Math.Round(delta / initialThreshold);
-                if (speedMultiplier == 0)
-                    speedMultiplier = delta > 0 ? 1 : -1;
-
-                // Only change speed when the multiplier changes
-                if (_syncSpeedMultiplier != speedMultiplier)
-                {
-                    if (_syncSpeedMultiplier == 0)
-                        _syncStartDelta = (float) delta;
-
-                    _syncSpeedMultiplier = speedMultiplier;
-
-                    float adjustment = SPEED_ADJUSTMENT * speedMultiplier;
-                    if (!Mathf.Approximately(adjustment, _syncSpeedAdjustment))
+                    double offset = SongOffset + AudioCalibration * SongSpeed;
+                    SyncVisualTime = GetRelativeInputTime(InputManager.CurrentInputTime);
+                    if (_pauseSync || SyncVisualTime < offset)
                     {
-                        _syncSpeedAdjustment = adjustment;
-                        GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+                        continue;
                     }
-                }
 
-                // No change in speed, check if we're below the threshold
-                if (deltaAbs < adjustThreshold ||
-                    // Also check if we overshot and passed 0
-                    (delta > 0.0 && _syncStartDelta < 0.0) ||
-                    (delta < 0.0 && _syncStartDelta > 0.0))
-                {
-                    ResetSync();
+                    if (_mixer.IsPaused)
+                    {
+                        _mixer.Play(true);
+                    }
+
+                    RealAudioTime = _mixer.GetPosition();
+                    if (RealAudioTime >= _mixer.Length)
+                    {
+                        continue;
+                    }
+
+                    SyncSongTime = RealAudioTime + offset;
+
+                    // Account for song speed
+                    double initialThreshold = INITIAL_SYNC_THRESH * SongSpeed;
+                    double adjustThreshold = ADJUST_SYNC_THRESH * SongSpeed;
+
+                    // Check the difference between visual and audio times
+                    double delta = SyncVisualTime - SyncSongTime;
+                    double deltaAbs = Math.Abs(delta);
+
+                    // Don't sync if below the initial sync threshold, and we haven't adjusted the speed
+                    if (_syncSpeedMultiplier == 0 && deltaAbs < initialThreshold)
+                        continue;
+
+                    // We're now syncing, determine how much to adjust the song speed by
+                    int speedMultiplier = (int) Math.Round(delta / INITIAL_SYNC_THRESH);
+                    if (speedMultiplier == 0)
+                        speedMultiplier = delta > 0 ? 1 : -1;
+
+                    // Only change speed when the multiplier changes
+                    if (_syncSpeedMultiplier != speedMultiplier)
+                    {
+                        if (_syncSpeedMultiplier == 0)
+                        {
+                            _syncStartDelta = (float) delta;
+                            _syncWorstDelta = _syncStartDelta;
+                        }
+                        else if (Math.Abs(delta) > Math.Abs(_syncWorstDelta))
+                        {
+                            _syncWorstDelta = (float) delta;
+                        }
+
+                        _syncSpeedMultiplier = speedMultiplier;
+
+                        float adjustment = SPEED_ADJUSTMENT * speedMultiplier;
+                        if (!Mathf.Approximately(adjustment, _syncSpeedAdjustment))
+                        {
+                            _syncSpeedAdjustment = adjustment;
+                            _mixer.SetSpeed(RealSongSpeed, false);
+                        }
+                    }
+
+                    // No change in speed, check if we're below the threshold
+                    if (deltaAbs < adjustThreshold ||
+                        // Also check if we overshot and passed 0
+                        (delta > 0.0 && _syncStartDelta < 0.0) ||
+                        (delta < 0.0 && _syncStartDelta > 0.0))
+                    {
+                        ResetSync();
+                    }
                 }
             }
         }
 
         private void ResetSync()
         {
-            _syncStartDelta = 0;
+            // Don't reset so that they're easier to see in real time
+            // _syncStartDelta = 0;
+            // _syncWorstDelta = 0;
+
             _syncSpeedMultiplier = 0;
             _syncSpeedAdjustment = 0f;
-            GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+            _mixer.SetSpeed(RealSongSpeed, true);
         }
 
         public double GetRelativeInputTime(double timeFromInputSystem)
         {
-            return InputTimeBase + ((timeFromInputSystem - InputTimeOffset) * SelectedSongSpeed);
+            return InputTimeBase + ((timeFromInputSystem - InputTimeOffset) * SongSpeed);
         }
 
         public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
@@ -475,7 +478,7 @@ namespace YARG.Playback
             SetInputBase(inputBase);
 
             // Speeds above 200% or so can cause inaccuracies greater than 1 ms
-            double threshold = Math.Max(0.001 * SelectedSongSpeed, 0.0005);
+            double threshold = Math.Max(0.001 * SongSpeed, 0.0005);
             YargLogger.AssertFormat(Math.Abs(VisualTime - previousVisualTime) <= threshold,
                 "Unexpected visual time change! Went from {0} to {1}, threshold {2}",
                 previousVisualTime, VisualTime, threshold);
@@ -487,7 +490,7 @@ namespace YARG.Playback
         private void InitializeSongTime(double time, double delayTime = SONG_START_DELAY)
         {
             // Account for song speed
-            delayTime *= SelectedSongSpeed;
+            delayTime *= SongSpeed;
 
             // Seek time
             // Doesn't account for audio calibration for better audio syncing
@@ -514,51 +517,59 @@ namespace YARG.Playback
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
-            _pauseSync = true;
-            _finishedSyncing.WaitOne();
+            lock (_syncThread)
+            {
+                // Set input/song time
+                InitializeSongTime(time, delayTime);
 
-            // Set input/song time
-            InitializeSongTime(time, delayTime);
+                // Reset syncing before seeking to prevent speed adjustments from causing issues
+                ResetSync();
 
-            // Reset syncing before seeking to prevent speed adjustments from causing issues
-            ResetSync();
+                _mixer.Pause();
+                // Audio seeking; cannot go negative
+                double seekTime = time - (delayTime + AudioCalibration) * SongSpeed - SongOffset;
+                if (seekTime < 0)
+                {
+                    seekTime = 0;
+                    _mixer.SetPosition(seekTime);
+                    _playAudioOnResume = false;
+                }
+                else
+                {
+                    _mixer.SetPosition(seekTime);
+                    _mixer.Play(true);
+                }
 
-            // Audio seeking; cannot go negative
-            double seekTime = RealSongTime;
-            if (seekTime < 0) seekTime = 0;
-            GlobalVariables.AudioManager.SetPosition(seekTime);
-
-            _pauseSync = false;
-            _seeked = true;
+                RealAudioTime = _previousRealAudioTime = seekTime;
+                _seeked = true;
+            }
         }
 
         public void SetSongSpeed(float speed)
         {
-            _pauseSync = true;
-            _finishedSyncing.WaitOne();
+            lock (_syncThread)
+            {
+                // 10% - 4995%, we reserve 5% so that audio syncing can still function
+                speed = ClampSongSpeed(speed);
 
-            // 10% - 4995%, we reserve 5% so that audio syncing can still function
-            speed = Math.Clamp(speed, 10 / 100f, 4995 / 100f);
+                // Set speed; save old for input offset compensation
+                SongSpeed = speed;
 
-            // Set speed; save old for input offset compensation
-            SelectedSongSpeed = speed;
+                // Set based on the actual song speed, so as to not break resyncing
+                _mixer.SetSpeed(RealSongSpeed, true);
 
-            // Set based on the actual song speed, so as to not break resyncing
-            GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
-
-            // Adjust input offset, otherwise input time will desync
-            // TODO: Pressing and holding left or right in practice will
-            // cause time to progress much slower than it should
-            SetInputBaseChecked(RealInputTime);
-
-            _pauseSync = false;
+                // Adjust input offset, otherwise input time will desync
+                // TODO: Pressing and holding left or right in practice will
+                // cause time to progress much slower than it should
+                SetInputBaseChecked(RealInputTime);
+            }
 
             YargLogger.LogFormatDebug("Set song speed to {0:0.00}.\n"
                 + "Song time: {1:0.000000}, visual time: {2:0.000000}, input time: {3:0.000000}", speed,
                 SongTime, VisualTime, InputTime);
         }
 
-        public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
+        public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SongSpeed + deltaSpeed);
 
         /// <summary>
         /// Pauses the song.
@@ -570,14 +581,18 @@ namespace YARG.Playback
         /// </remarks>
         public void Pause()
         {
-            if (PendingPauses++ > 0) return;
+            if (Paused)
+            {
+                return;
+            }
+            Paused = true;
 
             // Visual time is used for pause time since it's closer to when
             // the song runner is actually being updated; the asserts in Update get hit otherwise
             PauseStartTime = RealVisualTime;
-            _playAudioOnResume = GlobalVariables.AudioManager.IsPlaying;
+            _playAudioOnResume = !_mixer.IsPaused;
             _pauseSync = true;
-            GlobalVariables.AudioManager.Pause();
+            _mixer.Pause();
 
             YargLogger.LogFormatDebug("Paused at song time {0:0.000000} (real: {1:0.000000}), visual time {2:0.000000} " +
                 "(real: {3:0.000000}), input time {4:0.000000} (real: {5:0.000000}).",
@@ -594,7 +609,11 @@ namespace YARG.Playback
         /// </remarks>
         public void Resume(bool inputCompensation = true)
         {
-            if (PendingPauses < 1 || --PendingPauses > 0) return;
+            if (!Paused)
+            {
+                return;
+            }
+            Paused = false;
 
             if (inputCompensation)
             {
@@ -603,7 +622,7 @@ namespace YARG.Playback
 
             if (_playAudioOnResume)
             {
-                GlobalVariables.AudioManager.Play();
+                _mixer.Play(false);
             }
 
             _pauseSync = false;
@@ -638,6 +657,12 @@ namespace YARG.Playback
                 pauseTime = RealVisualTime;
 
             PauseStartTime = pauseTime;
+        }
+
+        public static float ClampSongSpeed(float speed)
+        {
+            // 10% - 4995%, we reserve 5% so that audio syncing can still function
+            return Math.Clamp(speed, 10 / 100f, 4995 / 100f);
         }
     }
 }

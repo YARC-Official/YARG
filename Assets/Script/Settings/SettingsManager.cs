@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,6 +33,8 @@ namespace YARG.Settings
                 nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.KickBounceMultiplier),
                 nameof(Settings.ShowCursorTimer),
+                nameof(Settings.PauseOnDeviceDisconnect),
+                nameof(Settings.PauseOnFocusLoss),
                 nameof(Settings.AmIAwesome),
             },
             new SongManagerTab("SongManager", icon: "Songs")
@@ -73,6 +75,7 @@ namespace YARG.Settings
                 nameof(Settings.ClapsInStarpower),
                 // nameof(Settings.ReverbInStarpower),
                 nameof(Settings.UseChipmunkSpeed),
+                nameof(Settings.ApplyVolumesInMusicLibrary),
             },
             new MetadataTab("Graphics", icon: "Display", new TrackPreviewBuilder())
             {

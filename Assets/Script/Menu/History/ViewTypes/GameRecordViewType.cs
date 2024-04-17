@@ -106,13 +106,7 @@ namespace YARG.Menu.History
                 await dialog.WaitUntilClosed();
             }
 
-            // We're good!
-            GlobalVariables.State = PersistentState.Default;
-            GlobalVariables.State.CurrentSong = _songEntry;
-            GlobalVariables.State.CurrentReplay = replayEntry;
-
-            GlobalVariables.AudioManager.UnloadSong();
-            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+            LoadIntoReplay(replayEntry, _songEntry);
         }
 
         private void AnalyzeReplay()

@@ -179,7 +179,7 @@ namespace YARG.Gameplay
                     _videoEndTime = double.NaN;
 
                 player.time = _videoStartTime;
-                player.playbackSpeed = GameManager.SelectedSongSpeed;
+                player.playbackSpeed = GameManager.SongSpeed;
 
                 // Determine whether or not to loop the video
                 if (Math.Abs(_videoStartTime) <= startTimeThreshold && _videoEndTime <= endTimeThreshold)
@@ -232,7 +232,7 @@ namespace YARG.Gameplay
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
-                        _compensateInputOnSeek = GameManager.PendingPauses < 1;
+                        _compensateInputOnSeek = !GameManager.Paused;
                         GameManager.Pause(showMenu: false);
 
                         _videoPlayer.time = videoTime;

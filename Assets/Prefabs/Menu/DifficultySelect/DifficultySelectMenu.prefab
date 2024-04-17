@@ -198,6 +198,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -985,6 +986,7 @@ GameObject:
   - component: {fileID: 538264109609990776}
   - component: {fileID: 7429959018448280683}
   - component: {fileID: 6020820594688902813}
+  - component: {fileID: 7173227400312381759}
   m_Layer: 5
   m_Name: Field
   m_TagString: Untagged
@@ -1162,6 +1164,19 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
+--- !u!114 &7173227400312381759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7025611587929076856}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f644969860af1cf4aaeaf4d71293368f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _textField: {fileID: 6020820594688902813}
 --- !u!1 &8497863215389129522
 GameObject:
   m_ObjectHideFlags: 0

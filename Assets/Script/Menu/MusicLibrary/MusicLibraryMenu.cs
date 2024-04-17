@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using YARG.Audio;
+using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Menu.ListMenu;
@@ -25,6 +26,13 @@ namespace YARG.Menu.MusicLibrary
         Practice
     }
 
+    public enum MusicLibraryReloadState
+    {
+        None,
+        Partial,
+        Full
+    }
+
     public class MusicLibraryMenu : ListMenu<ViewType, SongView>
     {
         private const int RANDOM_SONG_ID = 0;
@@ -33,7 +41,7 @@ namespace YARG.Menu.MusicLibrary
 
         public static MusicLibraryMode LibraryMode;
 
-        public static SongEntry InitialSelect;
+        public static SongEntry CurrentlyPlaying;
         public static Playlist SelectedPlaylist;
 
 #nullable enable
@@ -42,11 +50,11 @@ namespace YARG.Menu.MusicLibrary
 
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
-        private static bool _doRefresh = true;
+        private static MusicLibraryReloadState _reloadState = MusicLibraryReloadState.Full;
 
-        public static void SetRefresh()
+        public static void SetReload(MusicLibraryReloadState state)
         {
-            _doRefresh = true;
+            _reloadState = state;
         }
 
         [Space]
@@ -66,8 +74,9 @@ namespace YARG.Menu.MusicLibrary
 
         private IReadOnlyList<SongCategory> _sortedSongs;
 
+        private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
-        private CancellationTokenSource _previewCanceller = new();
+        private double _previewDelay;
 
         private SongEntry _currentSong;
 
@@ -81,9 +90,6 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnEnable()
         {
-            // Set up preview context
-            _previewContext = new(GlobalVariables.AudioManager);
-
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
@@ -105,25 +111,29 @@ namespace YARG.Menu.MusicLibrary
             _searchField.Restore();
             _searchField.OnSearchQueryUpdated += UpdateSearch;
 
-            // Get songs
-            if (_doRefresh)
+            if (CurrentlyPlaying != null)
             {
-                if (InitialSelect != null)
-                {
-                    _currentSong = InitialSelect;
-                }
-
-                Refresh();
-                _doRefresh = false;
+                _currentSong = CurrentlyPlaying;
             }
-            else
+
+            StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value;
+            _previewDelay = 0;
+            if (_reloadState == MusicLibraryReloadState.Full)
+            {
+                Refresh();
+            }
+            else if (_reloadState == MusicLibraryReloadState.Partial)
             {
                 UpdateSearch(true);
-                // Restore index
                 SelectedIndex = _savedIndex;
             }
+            else if (_currentSong != null)
+            {
+                UpdateSearch(true, true);
+            }
 
-            InitialSelect = null;
+            CurrentlyPlaying = null;
+            _reloadState = MusicLibraryReloadState.None;
 
             // Set proper text
             _subHeader.text = LibraryMode switch
@@ -142,17 +152,16 @@ namespace YARG.Menu.MusicLibrary
 
         protected override void OnSelectedIndexChanged()
         {
+            const double PREVIEW_SCROLL_DELAY = .6f;
             base.OnSelectedIndexChanged();
 
             _sidebar.UpdateSidebar();
-
             if (CurrentSelection is SongViewType song)
             {
-                if (song.SongEntry == _currentSong)
+                if (CurrentlyPlaying == null && song.SongEntry == _currentSong && (_previewCanceller == null || !_previewCanceller.IsCancellationRequested))
                 {
                     return;
                 }
-
                 _currentSong = song.SongEntry;
             }
             else
@@ -160,11 +169,13 @@ namespace YARG.Menu.MusicLibrary
                 _currentSong = null;
             }
 
-            // Cancel the active song preview
-            if (!_previewCanceller.IsCancellationRequested)
-            {
-                _previewCanceller.Cancel();
-            }
+            _previewCanceller?.Cancel();
+            _previewCanceller = new CancellationTokenSource();
+            _previewContext?.Stop();
+            _previewContext = null;
+            StartPreview(_previewDelay, _previewCanceller);
+
+            _previewDelay = PREVIEW_SCROLL_DELAY;
         }
 
         protected override List<ViewType> CreateViewList()
@@ -378,34 +389,52 @@ namespace YARG.Menu.MusicLibrary
 
             RequestViewListUpdate();
 
-            if (_searchField.IsUpdatedSearchLonger ||
-                // Try to select the last selected song
-                !SetIndexTo(i => i is SongViewType view && view.SongEntry == _currentSong))
+            if (_reloadState != MusicLibraryReloadState.Partial)
             {
+                bool notFound;
+                if (!refresh)
+                {
+                    notFound = _searchField.IsUpdatedSearchLonger || !SetIndexTo(i => i is SongViewType view && view.SongEntry == _currentSong);
+                }
+                else
+                {
+                    notFound = _currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory);
+                }
+
                 // Try to select the song after the first category
-                if (!SetIndexTo(i => i is CategoryViewType, 1))
+                if (notFound && !SetIndexTo(i => i is CategoryViewType, 1))
                 {
                     // If all else fails, jump to the first item
                     SelectedIndex = 0;
                 }
             }
-
             _searchField.UpdateSearchText();
         }
 
         protected override void Update()
         {
             base.Update();
-            StartPreview();
         }
 
-        private void StartPreview()
+        private async void StartPreview(double delay, CancellationTokenSource canceller)
         {
-            if (_previewContext.IsPlaying || CurrentSelection is not SongViewType song) return;
+            if (_currentSong == null)
+            {
+                return;
+            }
 
-            _previewCanceller = new();
+            const double FADE_DURATION = 1.25;
             float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
-            _previewContext.PlayPreview(song.SongEntry, previewVolume, _previewCanceller.Token).Forget();
+            if (previewVolume == 0)
+            {
+                return;
+            }
+
+            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed, delay, FADE_DURATION, canceller);
+            if (context != null)
+            {
+                _previewContext = context;
+            }
         }
 
         private void OnDisable()
@@ -417,16 +446,17 @@ namespace YARG.Menu.MusicLibrary
 
             Navigator.Instance.PopScheme();
 
-            // Cancel the preview
-            if (!_previewCanceller.IsCancellationRequested)
-            {
-                _previewCanceller.Cancel();
-            }
-
-            _previewContext = null;
-
-
+            _previewCanceller?.Cancel();
+            _previewContext?.Stop();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
+        }
+
+        private void OnDestroy()
+        {
+            _previewCanceller?.Cancel();
+            _previewContext?.Dispose();
+            _reloadState = MusicLibraryReloadState.Partial;
+            StemSettings.ApplySettings = true;
         }
 
         private void Back()
@@ -437,6 +467,10 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
+            _previewCanceller?.Cancel();
+            _previewContext?.Dispose();
+            _previewContext = null;
+            StemSettings.ApplySettings = true;
             MenuManager.Instance.PopMenu();
         }
 

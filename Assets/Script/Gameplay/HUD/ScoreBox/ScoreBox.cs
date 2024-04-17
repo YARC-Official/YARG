@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Cysharp.Text;
 using TMPro;
 using UnityEngine;
@@ -106,8 +106,7 @@ namespace YARG.Gameplay.HUD
             }
 
             // Update song progress
-
-            double time = Math.Max(0f, GameManager.SongTime);
+            double time = Math.Clamp(GameManager.SongTime, 0f, GameManager.SongLength);
 
             if (SettingsManager.Settings.GraphicalProgressOnScoreBox.Value)
             {

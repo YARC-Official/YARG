@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
@@ -12,6 +10,7 @@ using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Input;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
@@ -23,12 +22,20 @@ namespace YARG.Gameplay.Player
         {
             get
             {
-                if (GameManager.SelectedSongSpeed < 1)
+                // If we're in a replay, don't change the note speed (it should be like a video
+                // slowing down/speeding up). The actual song speed should be taken into account though,
+                // which is saved in the engine parameter override.
+                if (GameManager.IsReplay)
+                {
+                    return Player.Profile.NoteSpeed / (float) Player.EngineParameterOverride.SongSpeed;
+                }
+
+                if (GameManager.IsPractice && GameManager.SongSpeed < 1)
                 {
                     return Player.Profile.NoteSpeed;
                 }
 
-                return Player.Profile.NoteSpeed / GameManager.SelectedSongSpeed;
+                return Player.Profile.NoteSpeed / GameManager.SongSpeed;
             }
         }
 
@@ -77,8 +84,8 @@ namespace YARG.Gameplay.Player
 
         protected BaseInputViewer InputViewer { get; private set; }
 
-        protected int  _lastCombo;
-        protected bool _isStemMuted;
+        protected int  LastCombo;
+        protected bool IsStemMuted;
 
         private List<GameInput> _replayInputs;
 
@@ -108,7 +115,10 @@ namespace YARG.Gameplay.Player
 
         protected void Initialize(int index, YargPlayer player, SongChart chart)
         {
-            if (IsInitialized) return;
+            if (IsInitialized)
+            {
+                return;
+            }
 
             Player = player;
 
@@ -129,17 +139,6 @@ namespace YARG.Gameplay.Player
             IsInitialized = true;
         }
 
-        protected abstract void ResetVisuals();
-
-        public virtual void ResetPracticeSection()
-        {
-            _lastCombo = 0;
-
-            IsFc = true;
-
-            ResetVisuals();
-        }
-
         public virtual void UpdateWithTimes(double inputTime)
         {
             if (!GameManager.Started || GameManager.Paused)
@@ -154,6 +153,17 @@ namespace YARG.Gameplay.Player
         protected virtual void UpdateVisualsWithTimes(double inputTime)
         {
             UpdateVisuals(inputTime);
+        }
+
+        protected abstract void ResetVisuals();
+
+        public virtual void ResetPracticeSection()
+        {
+            LastCombo = 0;
+
+            IsFc = true;
+
+            ResetVisuals();
         }
 
         protected abstract void UpdateVisuals(double time);
@@ -178,10 +188,6 @@ namespace YARG.Gameplay.Player
             UpdateVisualsWithTimes(time);
         }
 
-        protected virtual void FinishDestruction()
-        {
-        }
-
         protected override void GameplayDestroy()
         {
             if (!GameManager.IsReplay)
@@ -190,6 +196,10 @@ namespace YARG.Gameplay.Player
             }
 
             FinishDestruction();
+        }
+
+        protected virtual void FinishDestruction()
+        {
         }
 
         protected virtual void UpdateInputs(double time)
@@ -223,13 +233,17 @@ namespace YARG.Gameplay.Player
         private void SubscribeToInputEvents()
         {
             Player.Bindings.SubscribeToGameplayInputs(Player.Profile.GameMode, OnGameInput);
+
             Player.Bindings.DeviceAdded += OnDeviceAdded;
+            Player.Bindings.DeviceRemoved += OnDeviceRemoved;
         }
 
         private void UnsubscribeFromInputEvents()
         {
             Player.Bindings.UnsubscribeFromGameplayInputs(Player.Profile.GameMode, OnGameInput);
-            Player.Bindings.DeviceAdded -= OnDeviceRemoved;
+
+            Player.Bindings.DeviceAdded -= OnDeviceAdded;
+            Player.Bindings.DeviceRemoved -= OnDeviceRemoved;
         }
 
         private void OnDeviceAdded(InputDevice device)
@@ -245,6 +259,11 @@ namespace YARG.Gameplay.Player
             if (device is ISantrollerHaptics haptics)
             {
                 SantrollerHaptics.Remove(haptics);
+            }
+
+            if (!GameManager.Paused && SettingsManager.Settings.PauseOnDeviceDisconnect.Value)
+            {
+                GameManager.SetPaused(true);
             }
         }
 
@@ -307,7 +326,7 @@ namespace YARG.Gameplay.Player
         {
             if (!GameManager.Paused)
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerAward);
             }
         }
 
@@ -315,7 +334,7 @@ namespace YARG.Gameplay.Player
         {
             if (!GameManager.Paused)
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(active
+                GlobalAudioHandler.PlaySoundEffect(active
                     ? SfxSample.StarPowerDeploy
                     : SfxSample.StarPowerRelease);
 

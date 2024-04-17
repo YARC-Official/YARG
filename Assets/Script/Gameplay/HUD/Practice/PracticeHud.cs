@@ -10,19 +10,20 @@ namespace YARG.Gameplay.HUD
     {
         [Header("References")]
         [SerializeField]
-        private TextMeshProUGUI speedPercentText;
+        private TextMeshProUGUI _speedPercentText;
 
         [SerializeField]
-        private TextMeshProUGUI sectionText;
+        private TextMeshProUGUI _sectionHeaderText;
+        [SerializeField]
+        private TextMeshProUGUI _sectionText;
+        [SerializeField]
+
+        private TextMeshProUGUI _percentHitText;
+        [SerializeField]
+        private TextMeshProUGUI _bestPercentText;
 
         [SerializeField]
-        private TextMeshProUGUI percentHitText;
-
-        [SerializeField]
-        private TextMeshProUGUI bestPercentText;
-
-        [SerializeField]
-        private TextMeshProUGUI notesHitTotalText;
+        private TextMeshProUGUI _notesHitTotalText;
 
         private float _speed;
         private float _percentHit;
@@ -55,7 +56,7 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            speedPercentText.SetTextFormat("{0:0}%", GameManager.SelectedSongSpeed * 100f);
+            _speedPercentText.SetTextFormat("{0:0}%", GameManager.SongSpeed * 100f);
 
             int notesHit = 0;
             int totalNotes = 0;
@@ -65,7 +66,7 @@ namespace YARG.Gameplay.HUD
                 totalNotes += player.TotalNotes;
             }
 
-            if(totalNotes == 0)
+            if (totalNotes == 0)
             {
                 _percentHit = 0f;
             }
@@ -74,8 +75,8 @@ namespace YARG.Gameplay.HUD
                 _percentHit = (float)notesHit / totalNotes;
             }
 
-            notesHitTotalText.SetTextFormat("{0}/{1}", notesHit, totalNotes);
-            percentHitText.SetTextFormat("{0}%", Mathf.FloorToInt(_percentHit * 100));
+            _notesHitTotalText.SetTextFormat("{0}/{1}", notesHit, totalNotes);
+            _percentHitText.SetTextFormat("{0}%", Mathf.FloorToInt(_percentHit * 100));
 
             while(_currentSectionIndex < _sections.Length && GameManager.SongTime >= _sections[_currentSectionIndex].TimeEnd)
             {
@@ -83,7 +84,7 @@ namespace YARG.Gameplay.HUD
 
                 if(_currentSectionIndex < _sections.Length)
                 {
-                    sectionText.text = _sections[_currentSectionIndex].Name;
+                    _sectionText.text = _sections[_currentSectionIndex].Name;
                 }
             }
         }
@@ -94,21 +95,21 @@ namespace YARG.Gameplay.HUD
             {
                 _bestPercentHit = _percentHit;
 
-                bestPercentText.SetTextFormat("{0}%", Mathf.FloorToInt(_percentHit * 100));
+                _bestPercentText.SetTextFormat("{0}%", Mathf.FloorToInt(_percentHit * 100));
             }
 
             _currentSectionIndex = 0;
 
             if (_sections.Length > 0)
             {
-                sectionText.text = _sections[_currentSectionIndex].Name;
+                _sectionText.text = _sections[_currentSectionIndex].Name;
             }
         }
 
         public void ResetStats()
         {
             _bestPercentHit = 0f;
-            bestPercentText.text = "0%";
+            _bestPercentText.text = "0%";
         }
 
         public void SetSections(Section[] sections)
@@ -119,8 +120,8 @@ namespace YARG.Gameplay.HUD
             _percentHit = 0f;
             _bestPercentHit = 0f;
 
-            bestPercentText.text = "0%";
-            sectionText.text = _sections[_currentSectionIndex].Name;
+            _bestPercentText.text = "0%";
+            _sectionText.text = _sections[_currentSectionIndex].Name;
         }
     }
 }

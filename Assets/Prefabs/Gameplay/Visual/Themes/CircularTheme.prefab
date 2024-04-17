@@ -52,6 +52,7 @@ MonoBehaviour:
   _fiveFretFret: {fileID: 206202885069211527}
   _fourLaneFret: {fileID: 206202885069211527}
   _fiveLaneFret: {fileID: 206202885069211527}
+  _kickFret: {fileID: 0}
 --- !u!1 &419940684236448424
 GameObject:
   m_ObjectHideFlags: 0
@@ -167,8 +168,9 @@ MonoBehaviour:
   _coloredMaterials:
   - Mesh: {fileID: 8921059844659044834}
     MaterialIndex: 3
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
-  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &2519982101321810702
 GameObject:
   m_ObjectHideFlags: 0
@@ -219,8 +221,9 @@ MonoBehaviour:
   _coloredMaterials:
   - Mesh: {fileID: 8828809160717108217}
     MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
-  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &2753394201490280521
 GameObject:
   m_ObjectHideFlags: 0
@@ -272,10 +275,13 @@ MonoBehaviour:
   _coloredMaterials:
   - Mesh: {fileID: 6116173041337568739}
     MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower:
   - Mesh: {fileID: 6116173041337568739}
     MaterialIndex: 2
-  <AddExtraGlow>k__BackingField: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &2987043081255175766
 GameObject:
   m_ObjectHideFlags: 0
@@ -327,8 +333,9 @@ MonoBehaviour:
   _coloredMaterials:
   - Mesh: {fileID: 3551458241680003252}
     MaterialIndex: 3
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
-  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &3691048083214242385
 GameObject:
   m_ObjectHideFlags: 0
@@ -379,10 +386,13 @@ MonoBehaviour:
   _coloredMaterials:
   - Mesh: {fileID: 5728318787407867927}
     MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower:
   - Mesh: {fileID: 5728318787407867927}
     MaterialIndex: 2
-  <AddExtraGlow>k__BackingField: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &3940831482264449139
 GameObject:
   m_ObjectHideFlags: 0
@@ -465,8 +475,9 @@ MonoBehaviour:
   _coloredMaterials:
   - Mesh: {fileID: 6360782882246089364}
     MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
-  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &5220489739260093962
 GameObject:
   m_ObjectHideFlags: 0
@@ -517,8 +528,9 @@ MonoBehaviour:
   _coloredMaterials:
   - Mesh: {fileID: 1232487097722920347}
     MaterialIndex: 3
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
-  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &5566072180332822635
 GameObject:
   m_ObjectHideFlags: 0
@@ -601,10 +613,13 @@ MonoBehaviour:
   _coloredMaterials:
   - Mesh: {fileID: 8595582023915302323}
     MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower:
   - Mesh: {fileID: 8595582023915302323}
     MaterialIndex: 2
-  <AddExtraGlow>k__BackingField: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &6174293910319127578
 GameObject:
   m_ObjectHideFlags: 0
@@ -1462,7 +1477,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 4ca548ae609cc00428441d98953e2cf3,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 5
+      value: 4.3325
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4ca548ae609cc00428441d98953e2cf3,
         type: 3}
@@ -1472,7 +1487,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 4ca548ae609cc00428441d98953e2cf3,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.0244
+      value: 0.0208
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4ca548ae609cc00428441d98953e2cf3,
         type: 3}

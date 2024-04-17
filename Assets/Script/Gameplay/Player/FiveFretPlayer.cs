@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -6,7 +7,9 @@ using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Player;
 
 namespace YARG.Gameplay.Player
 {
@@ -39,6 +42,18 @@ namespace YARG.Gameplay.Player
 
         public float WhammyFactor { get; private set; }
 
+        private SongStem _stem;
+
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
+        {
+            _stem = player.Profile.CurrentInstrument.ToSongStem();
+            if (_stem == SongStem.Bass && mixer[SongStem.Bass] == null)
+            {
+                _stem = SongStem.Rhythm;
+            }
+            base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
+        }
+
         protected override InstrumentDifficulty<GuitarNote> GetNotes(SongChart chart)
         {
             var track = chart.GetFiveFretTrack(Player.Profile.CurrentInstrument).Clone();
@@ -65,11 +80,9 @@ namespace YARG.Gameplay.Player
                 EngineParams = (GuitarEngineParameters) Player.EngineParameterOverride;
             }
 
-            // The hit window can just be taken from the params
-            EngineParams.SetHitWindowScale(GameManager.SelectedSongSpeed);
-            HitWindow = EngineParams.HitWindow;
-
             var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams);
+
+            HitWindow = EngineParams.HitWindow;
 
             YargLogger.LogFormatDebug("Note count: {0}", NoteTrack.Notes.Count);
 
@@ -122,46 +135,16 @@ namespace YARG.Gameplay.Player
 
         public override void SetStemMuteState(bool muted)
         {
-            if (_isStemMuted == muted)
+            if (IsStemMuted != muted)
             {
-                return;
+                GameManager.ChangeStemMuteState(_stem, muted);
+                IsStemMuted = muted;
             }
-
-            var stem = Player.Profile.CurrentInstrument.ToSongStem();
-
-            // Try to fallback to guitar stem if specific stem is not available
-            if (!GlobalVariables.AudioManager.HasStem(stem))
-            {
-                stem = SongStem.Guitar;
-                if(!GlobalVariables.AudioManager.HasStem(stem))
-                {
-                    return;
-                }
-            }
-
-            GameManager.ChangeStemMuteState(stem, muted);
-            _isStemMuted = muted;
         }
 
         public override void SetStarPowerFX(bool active)
         {
-            var instrument = Player.Profile.CurrentInstrument;
-            var playerStem = instrument.ToSongStem();
-
-            // Try to fallback to guitar stem if specific stem is not available
-            if (!GlobalVariables.AudioManager.HasStem(playerStem))
-            {
-                playerStem = SongStem.Guitar;
-
-                // Fall back to Song stem if guitar stem is not available
-                if(!GlobalVariables.AudioManager.HasStem(playerStem))
-                {
-                    base.SetStarPowerFX(active);
-                    return;
-                }
-            }
-
-            GameManager.ChangeStemReverbState(playerStem, active);
+            GameManager.ChangeStemReverbState(_stem, active);
         }
 
         protected override void ResetVisuals()
@@ -216,7 +199,7 @@ namespace YARG.Gameplay.Player
 
             var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
 
-            GlobalVariables.AudioManager.PlaySoundEffect(randomOverstrum);
+            GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
         }
 
         private void OnSustainStart(GuitarNote parent)

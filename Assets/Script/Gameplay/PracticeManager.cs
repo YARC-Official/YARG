@@ -57,10 +57,16 @@ namespace YARG.Gameplay
 
         private void Update()
         {
-            if (GameManager.Paused) return;
+            if (GameManager.Paused)
+            {
+                return;
+            }
 
-            double endPoint = TimeEnd + (SECTION_RESTART_DELAY * GameManager.SelectedSongSpeed);
-            if (GameManager.SongTime >= endPoint) ResetPractice();
+            double endPoint = TimeEnd + (SECTION_RESTART_DELAY * GameManager.SongSpeed);
+            if (GameManager.SongTime >= endPoint)
+            {
+                ResetPractice();
+            }
         }
 
         protected override void OnChartLoaded(SongChart chart)
@@ -102,7 +108,7 @@ namespace YARG.Gameplay
 
         public void SetPracticeSection(Section start, Section end)
         {
-            if(start.Time > end.Time)
+            if (start.Time > end.Time)
             {
                 (start, end) = (end, start);
             }
@@ -113,7 +119,7 @@ namespace YARG.Gameplay
             _sectionEndTick = end.TickEnd;
             _sectionEndTime = end.TimeEnd;
 
-            if(end.Tick == _lastTick)
+            if (end.Tick == _lastTick)
             {
                 _sectionEndTick += 1;
                 _sectionEndTime += 0.01;

@@ -4,9 +4,10 @@ using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using YARG.Audio;
 using YARG.Audio.BASS;
+using YARG.Core;
 using YARG.Core.Logging;
+using YARG.Core.Audio;
 using YARG.Core.Song;
 using YARG.Input;
 using YARG.Integration;
@@ -33,7 +34,7 @@ namespace YARG
     [DefaultExecutionOrder(-5000)]
     public class GlobalVariables : MonoSingleton<GlobalVariables>
     {
-        public const string CURRENT_VERSION = "v0.12.1";
+        public const string CURRENT_VERSION = "v0.12.3";
 
         private const string OFFLINE_ARG = "-offline";
 
@@ -41,9 +42,6 @@ namespace YARG
 
         public static IReadOnlyList<string> CommandLineArguments { get; private set; }
         public static bool OfflineMode { get; private set; }
-
-        public static IAudioManager AudioManager { get; private set; }
-
         public static PersistentState State = PersistentState.Default;
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
@@ -83,8 +81,7 @@ namespace YARG
             int savedCount = PlayerContainer.SaveProfiles();
             YargLogger.LogFormatInfo("Saved {0} profiles", savedCount);
 
-            AudioManager = gameObject.AddComponent<BassAudioManager>();
-            AudioManager.Initialize();
+            GlobalAudioHandler.Initialize<BassAudioManager>();
 
             Players = new List<YargPlayer>();
 
@@ -101,6 +98,20 @@ namespace YARG
             LoadScene(SceneIndex.Menu);
         }
 
+#if UNITY_EDITOR
+        // For respecting the editor's mute button
+        private bool previousMute = false;
+        private void Update()
+        {
+            bool muted = UnityEditor.EditorUtility.audioMasterMute;
+            if (muted != previousMute)
+            {
+                GlobalAudioHandler.SetVolumeSetting(SongStem.Master, muted ? 0 : SettingsManager.Settings.MasterMusicVolume.Value);
+                previousMute = muted;
+            }
+        }
+#endif
+
         protected override void SingletonDestroy()
         {
             SettingsManager.SaveSettings();
@@ -112,6 +123,7 @@ namespace YARG
             ScoreContainer.Destroy();
             InputManager.Destroy();
             PlayerContainer.Destroy();
+            GlobalAudioHandler.Close();
 #if UNITY_EDITOR
             // Set alpha fading (on the tracks) to off
             Shader.SetGlobalFloat("_IsFading", 0f);
