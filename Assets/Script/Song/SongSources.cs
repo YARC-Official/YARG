@@ -9,9 +9,11 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Song
 {
@@ -91,34 +93,28 @@ namespace YARG.Song
                     _isLoadingIcon = true;
 
                     // Look for the icon file in the different folders
-                    string imagePath = null;
+                    YARGImage? image = null;
                     foreach (var type in SourceTypes)
                     {
                         string path = Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER, type, "icons", $"{_icon}.png");
                         if (File.Exists(path))
                         {
-                            imagePath = path;
+                            image = YARGImage.Load(path);
                             break;
                         }
                     }
 
-                    if (imagePath == null)
+                    if (image == null)
                     {
                         YargLogger.LogFormatWarning("Failed to find source icon `{0}`! Does it exist?", _icon);
                         return null;
                     }
 
-                    var texture = await TextureHelper.LoadWithMips(imagePath);
+                    var texture = image.LoadTexture(true);
                     texture.mipMapBias = -0.5f;
 
-                    if (texture == null)
-                    {
-                        YargLogger.LogFormatWarning("Failed to load texture at `{0}`!", imagePath);
-                        return null;
-                    }
-
                     _iconCache = Sprite.Create(texture,
-                        new Rect(0, 0, texture.width, texture.height),
+                        new Rect(0, 0, texture.width, -texture.height),
                         new Vector2(0.5f, 0.5f));
                     _isLoadingIcon = false;
                 }

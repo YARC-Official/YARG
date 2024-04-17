@@ -155,8 +155,7 @@ namespace YARG.Menu.MusicLibrary
             UpdateDifficulties(songEntry);
 
             _cancellationToken = new();
-            // Finally, update album cover
-            LoadAlbumCover();
+            _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token);
         }
 
         private void UpdateDifficulties(SongEntry entry)
@@ -245,24 +244,6 @@ namespace YARG.Menu.MusicLibrary
             _difficultyRings[7].SetInfo("trueDrums", default, PartValues.Default);
             _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
             _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
-        }
-
-        public async void LoadAlbumCover()
-        {
-            var viewType = _musicLibraryMenu.CurrentSelection;
-
-            if (viewType is not SongViewType songViewType) return;
-
-            var originalTexture = _albumCover.texture;
-
-            // Load the new one
-            await _albumCover.LoadAlbumCover(songViewType.SongEntry, _cancellationToken.Token);
-
-            // Dispose of the old texture (prevent memory leaks)
-            if (originalTexture != null)
-            {
-                Destroy(originalTexture);
-            }
         }
 
         public void PrimaryButtonClick()

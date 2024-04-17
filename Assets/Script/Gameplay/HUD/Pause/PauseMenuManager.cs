@@ -71,7 +71,7 @@ namespace YARG.Gameplay.HUD
             _sourceIcon.sprite = await SongSources.SourceToIcon(GameManager.Song.Source);
 
             // Set album cover
-            _albumCover.LoadAlbumCover(GameManager.Song, CancellationToken.None).Forget();
+            _albumCover.LoadAlbumCover(GameManager.Song, CancellationToken.None);
         }
 
         protected override void GameplayDestroy()
