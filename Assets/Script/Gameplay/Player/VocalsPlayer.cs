@@ -101,7 +101,7 @@ namespace YARG.Gameplay.Player
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.Vocals.Create(StarMultiplierThresholds,
-                    Player.Profile.CurrentDifficulty, IMicDevice.UPDATES_PER_SECOND);
+                    Player.Profile.CurrentDifficulty, MicDevice.UPDATES_PER_SECOND);
             }
             else
             {
