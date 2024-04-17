@@ -194,7 +194,7 @@ namespace YARG.Integration.StageKit
         private readonly float _seconds;
         private int _patternIndex;
         private readonly (StageKitLedColor color, byte data)[] _patternList;
-        private readonly CancellationTokenSource _cancellationTokenSource;
+        private CancellationTokenSource _cancellationTokenSource;
 
         public TimedPattern((StageKitLedColor, byte)[] patternList, float seconds)
         {
@@ -207,6 +207,7 @@ namespace YARG.Integration.StageKit
         public override void Enable()
         {
             _patternIndex = 0;
+            _cancellationTokenSource = new CancellationTokenSource();
             TimedCircleCoroutine(_cancellationTokenSource.Token).Forget();
         }
 
