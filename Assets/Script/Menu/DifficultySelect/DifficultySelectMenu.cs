@@ -403,7 +403,8 @@ namespace YARG.Menu.DifficultySelect
                 _songSpeed = speed;
                 GlobalVariables.State.SongSpeed = speed;
 
-                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+                // TODO: Revert to SceneIndex.Gameplay when done testing
+                GlobalVariables.Instance.LoadScene(SceneIndex.GraphicsTest);
                 return;
             }
 

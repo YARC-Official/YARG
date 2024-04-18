@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ScoreScene.unity
     guid: 1f8e472b7f899644ab72f4a2ade8a941
+  - enabled: 1
+    path: Assets/Scenes/GraphicsTest.unity
+    guid: 39caf14e59a4b83429a52f0e29e961de
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 1d91d74c53e2e92468f3b6d5fcfa8bdf,
       type: 2}

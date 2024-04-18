@@ -30,7 +30,8 @@ namespace YARG
         Menu,
         Gameplay,
         Calibration,
-        Score
+        Score,
+        GraphicsTest, // TODO: Temporary
     }
 
     [DefaultExecutionOrder(-5000)]
