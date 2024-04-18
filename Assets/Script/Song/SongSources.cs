@@ -93,26 +93,30 @@ namespace YARG.Song
                     _isLoadingIcon = true;
 
                     // Look for the icon file in the different folders
-                    YARGImage? image = null;
+                    Texture2D? texture = null;
                     foreach (var type in SourceTypes)
                     {
                         string path = Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER, type, "icons", $"{_icon}.png");
                         if (File.Exists(path))
                         {
-                            image = YARGImage.Load(path);
+                            using var image = YARGImage.Load(path);
+                            if (image == null)
+                            {
+                                YargLogger.LogFormatWarning("Failed to load source icon `{0}`!", path);
+                                return null;
+                            }
+                            texture = image.LoadTexture(true);
+                            texture.mipMapBias = -0.5f;
                             break;
                         }
                     }
 
-                    if (image == null)
+                    if (texture == null)
                     {
                         YargLogger.LogFormatWarning("Failed to find source icon `{0}`! Does it exist?", _icon);
                         return null;
                     }
-
-                    var texture = image.LoadTexture(true);
-                    texture.mipMapBias = -0.5f;
-
+                    
                     _iconCache = Sprite.Create(texture,
                         new Rect(0, 0, texture.width, -texture.height),
                         new Vector2(0.5f, 0.5f));
