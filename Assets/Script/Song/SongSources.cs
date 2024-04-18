@@ -94,9 +94,9 @@ namespace YARG.Song
 
                     // Look for the icon file in the different folders
                     Texture2D? texture = null;
-                    foreach (var type in SourceTypes)
+                    foreach (var root in SourceRoots)
                     {
-                        string path = Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER, type, "icons", $"{_icon}.png");
+                        string path = Path.Combine(root, $"{_icon}.png");
                         if (File.Exists(path))
                         {
                             using var image = YARGImage.Load(path);
@@ -116,37 +116,41 @@ namespace YARG.Song
                         YargLogger.LogFormatWarning("Failed to find source icon `{0}`! Does it exist?", _icon);
                         return null;
                     }
-                    
+
                     _iconCache = Sprite.Create(texture,
                         new Rect(0, 0, texture.width, -texture.height),
                         new Vector2(0.5f, 0.5f));
                     _isLoadingIcon = false;
                 }
-
                 return _iconCache;
             }
         }
 
+        public const string SOURCE_REPO_FOLDER = "OpenSource-master";
 #if UNITY_EDITOR
         // The editor does not track the contents of folders that end in ~,
         // so use this to prevent Unity from stalling due to importing freshly-downloaded sources
-        public static string SourcesFolder => Path.Combine(PathHelper.StreamingAssetsPath, "sources~");
+        public static readonly string SourcesFolder = Path.Combine(PathHelper.StreamingAssetsPath, "sources~");
 #else
-        public static string SourcesFolder => Path.Combine(PathHelper.StreamingAssetsPath, "sources");
+        public static readonly string SourcesFolder = Path.Combine(PathHelper.StreamingAssetsPath, "sources");
 #endif
 
-        public const string SOURCE_REPO_FOLDER = "OpenSource-master";
+        private static readonly string[] SourceTypes =
+        {
+            "base", "extra"
+        };
+
+        private static readonly string[] SourceRoots =
+        {
+            Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER, "base", "icons"),
+            Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER, "extra", "icons"),
+        };
 
         private const string SOURCE_COMMIT_URL =
             "https://api.github.com/repos/YARC-Official/OpenSource/commits?per_page=1";
 
         public const string SOURCE_ZIP_URL =
             "https://github.com/YARC-Official/OpenSource/archive/refs/heads/master.zip";
-
-        private static readonly string[] SourceTypes =
-        {
-            "base", "extra"
-        };
 
         private const string DEFAULT_KEY = "$DEFAULT$";
 
