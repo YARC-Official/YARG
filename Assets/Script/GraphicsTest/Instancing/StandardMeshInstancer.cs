@@ -14,6 +14,10 @@ namespace YARG.GraphicsTest.Instancing
         private static readonly int _colorProperty = Shader.PropertyToID("_InstancedColor");
 
         private readonly Matrix4x4[] _transforms = new Matrix4x4[INSTANCE_LIMIT];
+        
+        // TODO: Figure out how to use buffers for this
+        // All current attempts have failed
+        // private readonly GraphicsArray<Vector4> _colors;
         private readonly Vector4[] _colors = new Vector4[INSTANCE_LIMIT];
 
         public StandardMeshInstancer(Mesh mesh, Material material,
@@ -21,10 +25,17 @@ namespace YARG.GraphicsTest.Instancing
             LightProbeUsage lightProbing = LightProbeUsage.BlendProbes, LightProbeProxyVolume lightProxy = null)
             : base(mesh, material, INSTANCE_LIMIT, layer, shadowMode, receiveShadows, lightProbing, lightProxy)
         {
+            // _colors = new(INSTANCE_LIMIT, GraphicsArray.INDIRECT_STRUCTURED);
+        }
+
+        protected override void DisposeManaged()
+        {
+            // _colors.Dispose();
         }
 
         protected override void OnEndDraw()
         {
+            // _properties.SetBuffer(_colorProperty, _colors);
             _properties.SetVectorArray(_colorProperty, _colors);
 
             for (int subMesh = 0; subMesh < _mesh.subMeshCount; subMesh++)

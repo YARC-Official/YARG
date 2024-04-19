@@ -13,7 +13,7 @@ namespace YARG.GraphicsTest.Instancing
 
         // TODO: Figure out how to use buffers for this
         // All current attempts have failed
-        // private readonly GraphicsArray<InstancedTransform> _transforms;
+        // private readonly GraphicsArray<Matrix4x4> _transforms;
         // private readonly GraphicsArray<Vector4> _colors;
 
         private readonly Matrix4x4[] _transforms = new Matrix4x4[ARRAY_LIMIT];
