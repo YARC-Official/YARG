@@ -73,13 +73,17 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private Transform _playerContainer;
         [SerializeField]
+        private VocalLyricContainer _lyricContainer;
+
+        [Space]
+        [SerializeField]
         private Pool[] _notePools;
         [SerializeField]
         private Pool _talkiePool;
         [SerializeField]
-        private VocalLyricContainer _lyricContainer;
-        [SerializeField]
         private Pool _phraseLinePool;
+        [SerializeField]
+        private Pool _percussionPool;
 
         private readonly List<VocalsPlayer> _vocalPlayers = new();
         private bool _currentStarpowerState;

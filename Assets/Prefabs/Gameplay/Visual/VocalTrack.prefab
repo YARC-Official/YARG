@@ -98,6 +98,54 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2118359509321106746
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5984543312531195261}
+  - component: {fileID: 6660093336849151800}
+  m_Layer: 0
+  m_Name: Percussion
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5984543312531195261
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2118359509321106746}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5801866609623212867}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6660093336849151800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2118359509321106746}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <Prefab>k__BackingField: {fileID: 6881370188666117159, guid: c5958dc760fe8824186af0c295235659,
+    type: 3}
+  _prewarmAmount: 10
+  _objectCap: 100
 --- !u!1 &2713326851215708342
 GameObject:
   m_ObjectHideFlags: 0
@@ -518,6 +566,7 @@ Transform:
   - {fileID: 5801866609468311103}
   - {fileID: 5801866610686075106}
   - {fileID: 5801866611165735086}
+  - {fileID: 5984543312531195261}
   m_Father: {fileID: 5801866611232935397}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -920,13 +969,14 @@ MonoBehaviour:
   _harmonyStarpowerOverlay: {fileID: 668675497782990623}
   _trackCamera: {fileID: 5801866609797806294}
   _playerContainer: {fileID: 5801866610949471565}
+  _lyricContainer: {fileID: 5801866610394737325}
   _notePools:
   - {fileID: 5801866609233689578}
   - {fileID: 5801866609468311100}
   - {fileID: 5801866610686075107}
   _talkiePool: {fileID: 5801866611165735087}
-  _lyricContainer: {fileID: 5801866610394737325}
   _phraseLinePool: {fileID: 5801866609474630583}
+  _percussionPool: {fileID: 6660093336849151800}
 --- !u!1 &5801866611287065174
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using UnityEngine;
-using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
