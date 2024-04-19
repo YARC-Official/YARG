@@ -1,4 +1,4 @@
-using Cysharp.Text;
+﻿using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -23,6 +23,9 @@ namespace YARG.Gameplay.HUD
 
         [SerializeField]
         private TextMeshProUGUI _lyricText;
+
+        [SerializeField]
+        private TextMeshProUGUI _nextLyricText;
 
         private LyricsTrack _lyrics;
         private int _currentPhraseIndex = 0;
@@ -57,6 +60,7 @@ namespace YARG.Gameplay.HUD
 
             // Reset the lyrics
             _lyricText.text = string.Empty;
+            _nextLyricText.text = string.Empty;
         }
 
         protected override void OnChartLoaded(SongChart chart)
@@ -128,6 +132,29 @@ namespace YARG.Gameplay.HUD
 
             _currentLyricIndex = currIndex;
             _lyricText.SetText(output);
+
+            //Show the next lyric, if there is one
+            if (_currentPhraseIndex + 1 == phrases.Count)
+            {
+                _nextLyricText.text = null;
+                return;
+            }
+
+            _nextLyricText.SetText(BuildPhraseString(phrases[_currentPhraseIndex + 1]));
+        }
+
+        private Utf16ValueStringBuilder BuildPhraseString(LyricsPhrase phrase)
+        {
+            using var output = ZString.CreateStringBuilder();
+            int i = 0;
+            while (i < phrase.Lyrics.Count)
+            {
+                var lyric = phrase.Lyrics[i++];
+                output.Append(lyric.Text);
+                if (!lyric.JoinWithNext && i < phrase.Lyrics.Count)
+                    output.Append(' ');
+            }
+            return output;
         }
     }
 }
