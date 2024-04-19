@@ -715,7 +715,7 @@ MonoBehaviour:
   _camera: {fileID: 66887173}
   _noteMesh: {fileID: -5053925668127403250, guid: f907a43e655c21b46b01b01f6a2ee801,
     type: 3}
-  _noteMaterial: {fileID: 2100000, guid: 3e76b73fb83912a4a93f82aa8a2410d1, type: 2}
+  _noteMaterial: {fileID: 2100000, guid: cce97f4759d355844840c4d8949f05a4, type: 2}
 --- !u!1 &1083700613
 GameObject:
   m_ObjectHideFlags: 0

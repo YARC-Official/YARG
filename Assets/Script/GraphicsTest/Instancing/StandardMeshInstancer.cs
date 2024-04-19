@@ -11,7 +11,7 @@ namespace YARG.GraphicsTest.Instancing
         /// </summary>
         private const int INSTANCE_LIMIT = 1023;
 
-        private static readonly int _colorProperty = Shader.PropertyToID("_Color");
+        private static readonly int _colorProperty = Shader.PropertyToID("_InstancedColor");
 
         private readonly Matrix4x4[] _transforms = new Matrix4x4[INSTANCE_LIMIT];
         private readonly Vector4[] _colors = new Vector4[INSTANCE_LIMIT];
