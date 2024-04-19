@@ -2,6 +2,10 @@
 #define YARG_INSTANCE_COLOR_INCLUDED
 
 #if UNITY_ANY_INSTANCING_ENABLED
+    // TODO: Figure out how to use buffers for this
+    // All current attempts have failed
+    // StructuredBuffer<float4> _InstancedColor;
+
     // 1023 is the max length allowed for array properties
     float4 _InstancedColor[1023];
 #endif

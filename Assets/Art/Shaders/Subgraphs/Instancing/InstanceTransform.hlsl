@@ -3,7 +3,13 @@
 
 // https://gist.github.com/ArieLeo/d7e6bc5485caa9ba99cd3a59d0f53404
 
+// Only use instanced transforms with indirect instancing,
+// standard instancing provides transforms directly
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+    // TODO: Figure out how to use buffers for this
+    // All current attempts have failed
+    // StructuredBuffer<float4x4> _InstancedTransform;
+
     // 1023 is the max length allowed for array properties
     float4x4 _InstancedTransform[1023];
 #endif

@@ -11,23 +11,35 @@ namespace YARG.GraphicsTest.Instancing
 
         private readonly Bounds _bounds;
 
+        // TODO: Figure out how to use buffers for this
+        // All current attempts have failed
+        // private readonly GraphicsArray<InstancedTransform> _transforms;
+        // private readonly GraphicsArray<Vector4> _colors;
+
         private readonly Matrix4x4[] _transforms = new Matrix4x4[ARRAY_LIMIT];
         private readonly Vector4[] _colors = new Vector4[ARRAY_LIMIT];
 
-        public IndirectMeshInstancer(Mesh mesh, Material material, Bounds bounds,
+        public IndirectMeshInstancer(Mesh mesh, Material material, /* int instanceLimit, */ Bounds bounds,
             int layer = 0, ShadowCastingMode shadowMode = ShadowCastingMode.On, bool receiveShadows = true,
             LightProbeUsage lightProbing = LightProbeUsage.BlendProbes, LightProbeProxyVolume lightProxy = null)
-            : base(mesh, material, ARRAY_LIMIT, layer, shadowMode, receiveShadows, lightProbing, lightProxy)
+            : base(mesh, material, /* instanceLimit */ ARRAY_LIMIT, layer, shadowMode, receiveShadows, lightProbing, lightProxy)
         {
             _bounds = bounds;
+
+            // _transforms = new(instanceLimit, GraphicsArray.INDIRECT_STRUCTURED);
+            // _colors = new(instanceLimit, GraphicsArray.INDIRECT_STRUCTURED);
         }
 
         protected override void DisposeManaged()
         {
+            // _transforms.Dispose();
+            // _colors.Dispose();
         }
 
         protected override void OnEndDraw()
         {
+            // _properties.SetBuffer(_transformsProperty, _transforms);
+            // _properties.SetBuffer(_colorsProperty, _colors);
             _properties.SetMatrixArray(_transformsProperty, _transforms);
             _properties.SetVectorArray(_colorsProperty, _colors);
 
