@@ -23,13 +23,10 @@ namespace YARG.GraphicsTest.Instancing
 
             _transforms = new Matrix4x4[instanceLimit];
             _colors = new Vector4[instanceLimit];
-
-            material.EnableKeyword("YARG_INDIRECT_DRAW");
         }
 
         protected override void DisposeManaged()
         {
-            _material.DisableKeyword("YARG_INDIRECT_DRAW");
         }
 
         protected override void OnEndDraw()
