@@ -7,6 +7,11 @@ namespace YARG.GraphicsTest.Instancing
 {
     public abstract class MeshInstancer : IDisposable
     {
+        /// <summary>
+        /// The maximum length that array material properties can have.
+        /// </summary>
+        protected const int ARRAY_LIMIT = 1023;
+
         protected readonly Mesh _mesh;
         protected readonly Material _material;
 

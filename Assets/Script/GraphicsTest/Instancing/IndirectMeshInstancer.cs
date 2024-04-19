@@ -11,18 +11,15 @@ namespace YARG.GraphicsTest.Instancing
 
         private readonly Bounds _bounds;
 
-        private readonly Matrix4x4[] _transforms;
-        private readonly Vector4[] _colors;
+        private readonly Matrix4x4[] _transforms = new Matrix4x4[ARRAY_LIMIT];
+        private readonly Vector4[] _colors = new Vector4[ARRAY_LIMIT];
 
-        public IndirectMeshInstancer(Mesh mesh, Material material, int instanceLimit, Bounds bounds,
+        public IndirectMeshInstancer(Mesh mesh, Material material, Bounds bounds,
             int layer = 0, ShadowCastingMode shadowMode = ShadowCastingMode.On, bool receiveShadows = true,
             LightProbeUsage lightProbing = LightProbeUsage.BlendProbes, LightProbeProxyVolume lightProxy = null)
-            : base (mesh, material, instanceLimit, layer, shadowMode, receiveShadows, lightProbing, lightProxy)
+            : base(mesh, material, ARRAY_LIMIT, layer, shadowMode, receiveShadows, lightProbing, lightProxy)
         {
             _bounds = bounds;
-
-            _transforms = new Matrix4x4[instanceLimit];
-            _colors = new Vector4[instanceLimit];
         }
 
         protected override void DisposeManaged()

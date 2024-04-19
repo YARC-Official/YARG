@@ -2,9 +2,8 @@
 #define YARG_INSTANCE_COLOR_INCLUDED
 
 #if UNITY_ANY_INSTANCING_ENABLED
-    // 100 is used as a placeholder size, the actual size
-    // comes from script when setting the array
-    float4 _InstancedColor[100];
+    // 1023 is the max length allowed for array properties
+    float4 _InstancedColor[1023];
 #endif
 
 void GetInstanceColor_float(in float4 In, out float4 Out)

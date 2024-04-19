@@ -4,9 +4,8 @@
 // https://gist.github.com/ArieLeo/d7e6bc5485caa9ba99cd3a59d0f53404
 
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-    // 100 is used as a placeholder size, the actual size
-    // comes from script when setting the array
-    float4x4 _InstancedTransform[100];
+    // 1023 is the max length allowed for array properties
+    float4x4 _InstancedTransform[1023];
 #endif
 
 // Dummy function that passes through the given input.

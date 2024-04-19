@@ -19,7 +19,7 @@ namespace YARG.GraphicsTest.Instancing
         public StandardMeshInstancer(Mesh mesh, Material material,
             int layer = 0, ShadowCastingMode shadowMode = ShadowCastingMode.On, bool receiveShadows = true,
             LightProbeUsage lightProbing = LightProbeUsage.BlendProbes, LightProbeProxyVolume lightProxy = null)
-            : base (mesh, material, INSTANCE_LIMIT, layer, shadowMode, receiveShadows, lightProbing, lightProxy)
+            : base(mesh, material, INSTANCE_LIMIT, layer, shadowMode, receiveShadows, lightProbing, lightProxy)
         {
         }
 

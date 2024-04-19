@@ -111,12 +111,17 @@ namespace YARG.GraphicsTest
         {
             MeshInstancer instancer = mode switch
             {
-                InstancingMode.Standard => new StandardMeshInstancer(_noteMesh, _noteMaterial,
-                    shadowMode: ShadowCastingMode.Off, receiveShadows: false, lightProbing: LightProbeUsage.Off),
+                InstancingMode.Standard => new StandardMeshInstancer(
+                    _noteMesh, _noteMaterial,
+                    shadowMode: ShadowCastingMode.Off, receiveShadows: false,
+                    lightProbing: LightProbeUsage.Off
+                ),
 
-                InstancingMode.Indirect => new IndirectMeshInstancer(_noteMesh, _noteMaterial, 1000,
-                    new Bounds(Vector3.zero, Vector3.one * 1000),
-                    shadowMode: ShadowCastingMode.Off, receiveShadows: false, lightProbing: LightProbeUsage.Off),
+                InstancingMode.Indirect => new IndirectMeshInstancer(
+                    _noteMesh, _noteMaterial, new Bounds(Vector3.zero, Vector3.one * 1000),
+                    shadowMode: ShadowCastingMode.Off, receiveShadows: false,
+                    lightProbing: LightProbeUsage.Off
+                ),
 
                 _ => throw new Exception("Unreachable.")
             };
