@@ -1,71 +1,94 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using YARG.Core.Logging;
 
 namespace YARG.GraphicsTest.Instancing
 {
-    public class MeshInstancer
+    public abstract class MeshInstancer : IDisposable
     {
-        /// <summary>
-        /// The maximum number of instances that can be drawn by
-        /// <see cref="Graphics.DrawMeshInstanced(Mesh, int, Material, Matrix4x4[])"/>.
-        /// </summary>
-        private const int INSTANCE_LIMIT = 1023;
+        protected readonly Mesh _mesh;
+        protected readonly Material _material;
 
-        private static readonly int _colorProperty = Shader.PropertyToID("_Color");
+        protected readonly MaterialPropertyBlock _properties = new();
 
-        private readonly Mesh _mesh;
-        private readonly Material _material;
+        protected int _layer = 0;
 
-        private readonly MaterialPropertyBlock _properties = new();
+        protected ShadowCastingMode _shadowMode = ShadowCastingMode.On;
+        protected bool _receiveShadows = true;
 
-        private readonly Matrix4x4[] _transforms = new Matrix4x4[INSTANCE_LIMIT];
-        private readonly Vector4[] _colors = new Vector4[INSTANCE_LIMIT];
+        protected LightProbeUsage _lightProbing = LightProbeUsage.BlendProbes;
+        protected LightProbeProxyVolume _lightProxy = null;
+
+        private readonly int _instanceLimit;
 
         public int InstanceCount { get; private set; }
-        public bool AtCapacity => InstanceCount >= INSTANCE_LIMIT;
+        public bool AtCapacity => InstanceCount >= _instanceLimit;
 
-        public MeshInstancer(Mesh mesh, Material material)
+        public MeshInstancer(Mesh mesh, Material material, int instanceLimit,
+            int layer = 0, ShadowCastingMode shadowMode = ShadowCastingMode.On, bool receiveShadows = true,
+            LightProbeUsage lightProbing = LightProbeUsage.BlendProbes, LightProbeProxyVolume lightProxy = null)
         {
             _mesh = mesh;
             _material = material;
+            _instanceLimit = instanceLimit;
+
+            _layer = layer;
+
+            _shadowMode = shadowMode;
+            _receiveShadows = receiveShadows;
+
+            _lightProbing = lightProbing;
+            _lightProxy = lightProxy;
         }
+
+        ~MeshInstancer() => Dispose(false);
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+                DisposeManaged();
+            DisposeUnmanaged();
+        }
+
+        protected virtual void DisposeManaged() {}
+        protected virtual void DisposeUnmanaged() {}
 
         public void BeginDraw()
         {
             InstanceCount = 0;
+            OnBeginDraw();
         }
 
-        public void EndDraw(Camera camera, int layer = 0,
-            ShadowCastingMode shadowMode = ShadowCastingMode.On, bool receiveShadows = true,
-            LightProbeUsage lightProbing = LightProbeUsage.BlendProbes, LightProbeProxyVolume lightProxy = null)
+        public void EndDraw()
         {
             if (InstanceCount < 1)
                 return;
 
-            _properties.SetVectorArray(_colorProperty, _colors);
-
-            for (int subMesh = 0; subMesh < _mesh.subMeshCount; subMesh++)
-            {
-                Graphics.DrawMeshInstanced(
-                    _mesh, subMesh, _material, _transforms, InstanceCount, _properties,
-                    shadowMode, receiveShadows, layer, camera, lightProbing, lightProxy
-                );
-            }
+            OnEndDraw();
         }
 
         public void RenderInstance(Vector3 position, Quaternion rotation, Vector3 scale, Color color)
         {
-            if (InstanceCount >= INSTANCE_LIMIT)
+            if (InstanceCount >= _instanceLimit)
             {
-                YargLogger.LogDebug("Mesh instance limit reached!");
+                YargLogger.LogDebug("Attempted to add an instance above the limit!");
                 return;
             }
 
-            _transforms[InstanceCount] = Matrix4x4.TRS(position, rotation, scale);
-            _colors[InstanceCount] = color;
-
+            OnRenderInstance(position, rotation, scale, color);
             InstanceCount++;
         }
+
+        protected virtual void OnBeginDraw() {}
+        protected abstract void OnEndDraw();
+
+        protected abstract void OnRenderInstance(Vector3 position, Quaternion rotation, Vector3 scale, Color color);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -5,10 +6,9 @@ using YARG.GraphicsTest.Instancing;
 
 namespace YARG.GraphicsTest
 {
-    public class NoteManager
+    public class NoteManager : IDisposable
     {
         private readonly MeshInstancer _instancer;
-        private readonly Camera _camera;
 
         private readonly List<GuitarNote> _notes;
 
@@ -49,12 +49,11 @@ namespace YARG.GraphicsTest
         private readonly double _spawnTimeOffset;
         private readonly double _despawnTimeOffset;
 
-        public NoteManager(Mesh mesh, Material material, Camera camera,
-            List<GuitarNote> notes, float noteSpeed, float strikelinePosition,
+        public NoteManager(MeshInstancer instancer, List<GuitarNote> notes,
+            float noteSpeed, float strikelinePosition,
             double spawnTimeOffset, double despawnTimeOffset)
         {
-            _instancer = new(mesh, material);
-            _camera = camera;
+            _instancer = instancer;
 
             _notes = notes;
 
@@ -66,6 +65,11 @@ namespace YARG.GraphicsTest
 
             _spawnTimeOffset = spawnTimeOffset;
             _despawnTimeOffset = despawnTimeOffset;
+        }
+
+        public void Dispose()
+        {
+            _instancer.Dispose();
         }
 
         public void Update(double songTime)
@@ -86,7 +90,7 @@ namespace YARG.GraphicsTest
                 RenderNote(songTime, _spawnTracker.Current);
             }
 
-            _instancer.EndDraw(_camera);
+            _instancer.EndDraw();
         }
 
         private void RenderNote(double songTime, GuitarNote note)
