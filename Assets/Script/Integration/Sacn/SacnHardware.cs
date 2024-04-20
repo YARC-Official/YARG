@@ -35,21 +35,13 @@ namespace YARG.Integration.Sacn
             SilhouettesSpotlight = 160,
             Searchlights = 170,
             Sweep = 180,
-            StrobeOff = 190,
-            StrobeSlow = 191,
-            StrobeMedium = 192,
-            StrobeFast = 193,
-            StrobeFastest = 194,
-            BlackoutFast = 200,
-            BlackoutSlow = 205,
+            BlackoutFast = 190,
+            BlackoutSlow = 200,
             BlackoutSpotlight = 210,
             FlareSlow = 220,
-            FlareFast = 225,
-            BigRockEnding = 230,
-            BonusEffect = 240,
-            BonusEffectOptional = 245,
-            FogOn = 250,
-            FogOff = 255
+            FlareFast = 230,
+            BigRockEnding = 240,
+            BonusEffect = 250,
         }
 
         // DMX spec says 44 updates per second is the max
@@ -95,16 +87,6 @@ namespace YARG.Integration.Sacn
                 StageKitStrobeSpeed.Fastest => 255,
                 _                           => throw new ArgumentOutOfRangeException(nameof(value), value, null)
             };
-
-            _dataPacket[_cueChangeChannel - 1] = value switch
-            {
-                StageKitStrobeSpeed.Off     => (byte) CueEnum.StrobeOff,
-                StageKitStrobeSpeed.Slow    => (byte) CueEnum.StrobeSlow,
-                StageKitStrobeSpeed.Medium  => (byte) CueEnum.StrobeMedium,
-                StageKitStrobeSpeed.Fast    => (byte) CueEnum.StrobeFast,
-                StageKitStrobeSpeed.Fastest => (byte) CueEnum.StrobeFastest,
-                _                           => throw new ArgumentOutOfRangeException(nameof(value), value, null)
-            };
         }
 
         private void OnBonusFXEvent()
@@ -117,12 +99,10 @@ namespace YARG.Integration.Sacn
             if (fogState == MasterLightingController.FogState.On)
             {
                 _dataPacket[_fogChannel - 1] = 255;
-                _dataPacket[_cueChangeChannel - 1] = (byte) CueEnum.FogOn;
             }
             else
             {
                 _dataPacket[_fogChannel - 1] = 0;
-                _dataPacket[_cueChangeChannel - 1] = (byte) CueEnum.FogOff;
             }
         }
 
@@ -159,11 +139,6 @@ namespace YARG.Integration.Sacn
                 LightingType.Keyframe_First        => (byte) CueEnum.KeyframeFirst,
                 LightingType.Keyframe_Next         => (byte) CueEnum.KeyframeNext,
                 LightingType.Keyframe_Previous     => (byte) CueEnum.KeyframePrevious,
-                LightingType.Strobe_Fast           => (byte) CueEnum.StrobeFast,
-                LightingType.Strobe_Fastest        => (byte) CueEnum.StrobeFastest,
-                LightingType.Strobe_Medium         => (byte) CueEnum.StrobeMedium,
-                LightingType.Strobe_Off            => (byte) CueEnum.StrobeOff,
-                LightingType.Strobe_Slow           => (byte) CueEnum.StrobeSlow,
                 LightingType.Warm_Automatic        => (byte) CueEnum.WarmLoop,
                 LightingType.Warm_Manual           => (byte) CueEnum.WarmManual,
                 LightingType.BigRockEnding         => (byte) CueEnum.BigRockEnding,
@@ -296,6 +271,7 @@ namespace YARG.Integration.Sacn
         }
     }
 }
+
 /*
     "If you ever drop your keys into a river of molten lava, let'em go...because man, they're gone.'
 
