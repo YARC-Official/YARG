@@ -1,31 +1,20 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Core.Song;
-using YARG.GraphicsTest.Instancing;
 using YARG.Integration;
 using YARG.Menu.Navigation;
 using YARG.Playback;
 using YARG.Player;
+using YARG.Rendering;
 
 namespace YARG.GraphicsTest
 {
     public partial class TestManager : MonoBehaviour
     {
-        private enum InstancingMode
-        {
-            Standard,
-            Indirect,
-        }
-
         private const double DEFAULT_VOLUME = 1.0;
-
-        [SerializeField]
-        private InstancingMode _mode;
 
         [Space]
         [SerializeField]
@@ -48,8 +37,6 @@ namespace YARG.GraphicsTest
         private double _songLength;
 
         private YargPlayer _player;
-
-        private InstancingMode _currentMode;
 
         private void Awake()
         {
@@ -85,17 +72,12 @@ namespace YARG.GraphicsTest
             var track = _chart.GetFiveFretTrack(_player.Profile.CurrentInstrument);
             _notes = track.Difficulties[_player.Profile.CurrentDifficulty].Notes.DuplicateNotes();
 
-            SetMode(_mode);
+            var instancer = new MeshInstancer(_noteMesh, _noteMaterial, 4096);
+            _noteManager = new(instancer, _notes, _player.Profile.NoteSpeed, 0f, 3.0, -0.070);
         }
 
         private void Update()
         {
-#if UNITY_EDITOR
-            // Update if mode changed in the inspector
-            if (_mode != _currentMode)
-                SetMode(_mode);
-#endif
-
             _songRunner.Update();
             _noteManager.Update(_songRunner.SongTime);
 
@@ -105,31 +87,6 @@ namespace YARG.GraphicsTest
                 GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
                 return;
             }
-        }
-
-        private void SetMode(InstancingMode mode)
-        {
-            MeshInstancer instancer = mode switch
-            {
-                InstancingMode.Standard => new StandardMeshInstancer(
-                    _noteMesh, _noteMaterial,
-                    shadowMode: ShadowCastingMode.Off, receiveShadows: false,
-                    lightProbing: LightProbeUsage.Off
-                ),
-
-                InstancingMode.Indirect => new IndirectMeshInstancer(
-                    _noteMesh, _noteMaterial, 4096, new Bounds(Vector3.zero, Vector3.one * 1000),
-                    shadowMode: ShadowCastingMode.Off, receiveShadows: false,
-                    lightProbing: LightProbeUsage.Off
-                ),
-
-                _ => throw new Exception("Unreachable.")
-            };
-
-            _noteManager?.Dispose();
-            _noteManager = new(instancer, _notes, _player.Profile.NoteSpeed, 0f, 3.0, -0.070);
-
-            _currentMode = mode;
         }
     }
 }

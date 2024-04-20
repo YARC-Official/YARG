@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using YARG.Core.Chart;
-using YARG.GraphicsTest.Instancing;
+using YARG.Rendering;
 
 namespace YARG.GraphicsTest
 {
@@ -90,7 +91,9 @@ namespace YARG.GraphicsTest
                 RenderNote(songTime, _spawnTracker.Current);
             }
 
-            _instancer.EndDraw();
+            _instancer.EndDraw(new Bounds(Vector3.zero, Vector3.one * 1000),
+                shadowMode: ShadowCastingMode.Off, receiveShadows: false,
+                lightProbing: LightProbeUsage.Off);
         }
 
         private void RenderNote(double songTime, GuitarNote note)

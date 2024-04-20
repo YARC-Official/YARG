@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace YARG.GraphicsTest.Instancing
+namespace YARG.Rendering
 {
     public class GraphicsArray<T> : IDisposable
         where T : unmanaged
