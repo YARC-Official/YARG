@@ -3,12 +3,6 @@ using UnityEngine;
 
 namespace YARG.GraphicsTest.Instancing
 {
-    public static class GraphicsArray
-    {
-        public const GraphicsBuffer.Target INDIRECT_STRUCTURED =
-            GraphicsBuffer.Target.IndirectArguments | GraphicsBuffer.Target.Structured;
-    }
-
     public class GraphicsArray<T> : IDisposable
         where T : unmanaged
     {

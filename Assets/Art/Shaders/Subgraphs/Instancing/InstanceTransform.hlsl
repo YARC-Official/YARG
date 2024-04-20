@@ -6,12 +6,14 @@
 // Only use instanced transforms with indirect instancing,
 // standard instancing provides transforms directly
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-    // TODO: Figure out how to use buffers for this
-    // All current attempts have failed
-    // StructuredBuffer<float4x4> _InstancedTransform;
+    struct InstancedTransform
+    {
+        float4 position;
+        float4 rotation;
+        float4 scale;
+    };
 
-    // 1023 is the max length allowed for array properties
-    float4x4 _InstancedTransform[1023];
+    StructuredBuffer<InstancedTransform> _InstancedTransform;
 #endif
 
 // Dummy function that passes through the given input.
@@ -54,12 +56,8 @@ inline float4x4 TRSMatrix(float3 position, float4 rotation, float3 scale)
 // Sets up global properties to work properly with instancing.
 inline void SetUnityMatrices(uint instanceID, inout float4x4 objectToWorld, inout float4x4 worldToObject)
 {
-#ifdef YARG_USE_TRANSFORM_STRUCT
     InstancedTransform transform = _InstancedTransform[instanceID];
     objectToWorld = mul(objectToWorld, TRSMatrix(transform.position.xyz, transform.rotation, transform.scale.xyz));
-#else
-    objectToWorld = mul(objectToWorld, _InstancedTransform[instanceID]);
-#endif
 
     float3x3 w2oRotation;
     w2oRotation[0] = objectToWorld[1].yzx * objectToWorld[2].zxy - objectToWorld[1].zxy * objectToWorld[2].yzx;
