@@ -59,14 +59,14 @@ namespace YARG.Input
         public static BindingCollection CreateFourLaneDrumsBindings() => new(GameMode.FourLaneDrums)
         {
             // TODO: Velocity support
-            new IndividualButtonBinding("Drums.RedPad",    (int) DrumsAction.RedDrum),
-            new IndividualButtonBinding("Drums.YellowPad", (int) DrumsAction.YellowDrum),
-            new IndividualButtonBinding("Drums.BluePad",   (int) DrumsAction.BlueDrum),
-            new IndividualButtonBinding("Drums.GreenPad",  (int) DrumsAction.GreenDrum),
+            new IndividualButtonBinding("FourDrums.RedPad",    (int) DrumsAction.RedDrum),
+            new IndividualButtonBinding("FourDrums.YellowPad", (int) DrumsAction.YellowDrum),
+            new IndividualButtonBinding("FourDrums.BluePad",   (int) DrumsAction.BlueDrum),
+            new IndividualButtonBinding("FourDrums.GreenPad",  (int) DrumsAction.GreenDrum),
 
-            new IndividualButtonBinding("Drums.YellowCymbal", (int) DrumsAction.YellowCymbal),
-            new IndividualButtonBinding("Drums.BlueCymbal",   (int) DrumsAction.BlueCymbal),
-            new IndividualButtonBinding("Drums.GreenCymbal",  (int) DrumsAction.GreenCymbal),
+            new IndividualButtonBinding("FourDrums.YellowCymbal", (int) DrumsAction.YellowCymbal),
+            new IndividualButtonBinding("FourDrums.BlueCymbal",   (int) DrumsAction.BlueCymbal),
+            new IndividualButtonBinding("FourDrums.GreenCymbal",  (int) DrumsAction.GreenCymbal),
 
             new IndividualButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };
@@ -80,7 +80,7 @@ namespace YARG.Input
             new IndividualButtonBinding("FiveDrums.OrangeCymbal", (int) DrumsAction.OrangeCymbal),
             new IndividualButtonBinding("FiveDrums.GreenPad",     (int) DrumsAction.GreenDrum),
 
-            new IndividualButtonBinding("FiveDrums.Kick", (int) DrumsAction.Kick),
+            new IndividualButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };
 
         public static BindingCollection CreateProGuitarBindings() => new(GameMode.ProGuitar)

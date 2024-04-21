@@ -16,19 +16,19 @@ MonoBehaviour:
   m_TableCollectionNameGuidString: f465ba9635928c74faf29645191515b8
   m_Entries:
   - m_Id: 11183621110358016
-    m_Key: Drums.BlueCymbal
+    m_Key: FourDrums.BlueCymbal
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523840
-    m_Key: Drums.BluePad
+    m_Key: FourDrums.BluePad
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523841
-    m_Key: Drums.GreenCymbal
+    m_Key: FourDrums.GreenCymbal
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523842
-    m_Key: Drums.GreenPad
+    m_Key: FourDrums.GreenPad
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523843
@@ -36,15 +36,15 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523844
-    m_Key: Drums.RedPad
+    m_Key: FourDrums.RedPad
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523845
-    m_Key: Drums.YellowCymbal
+    m_Key: FourDrums.YellowCymbal
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523846
-    m_Key: Drums.YellowPad
+    m_Key: FourDrums.YellowPad
     m_Metadata:
       m_Items: []
   - m_Id: 2124315417239552
@@ -149,10 +149,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 98568633258508288
     m_Key: FiveDrums.GreenPad
-    m_Metadata:
-      m_Items: []
-  - m_Id: 98568749721747456
-    m_Key: FiveDrums.Kick
     m_Metadata:
       m_Items: []
   m_Metadata:
