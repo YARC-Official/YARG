@@ -72,7 +72,7 @@ namespace YARG.GraphicsTest
             var track = _chart.GetFiveFretTrack(_player.Profile.CurrentInstrument);
             _notes = track.Difficulties[_player.Profile.CurrentDifficulty].Notes.DuplicateNotes();
 
-            var instancer = new MeshInstancer(_noteMesh, _noteMaterial, 4096);
+            var instancer = new MeshInstancer(_noteMesh, _noteMaterial, 65536);
             _noteManager = new(instancer, _notes, _player.Profile.NoteSpeed, 0f, 3.0, -0.070);
         }
 

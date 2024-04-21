@@ -2,7 +2,6 @@ using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering;
-using YARG.Core.Logging;
 
 namespace YARG.Rendering
 {
@@ -22,25 +21,21 @@ namespace YARG.Rendering
         private readonly Mesh _mesh;
         private readonly Material _material;
 
-        private readonly int _instanceLimit;
-
         private readonly MaterialPropertyBlock _properties = new();
 
         private readonly GraphicsArray<InstancedTransform> _transforms;
         private readonly GraphicsArray<Vector4> _colors;
 
-        public int InstanceCount { get; private set; }
-        public bool AtCapacity => InstanceCount >= _instanceLimit;
+        public int InstanceCount => _transforms.Count;
+        public bool AtCapacity => _transforms.Count >= _transforms.MaxCapacity;
 
         public MeshInstancer(Mesh mesh, Material material, int instanceLimit)
         {
             _mesh = mesh;
             _material = material;
 
-            _instanceLimit = instanceLimit;
-
-            _transforms = new(instanceLimit, GraphicsBuffer.Target.Structured);
-            _colors = new(instanceLimit, GraphicsBuffer.Target.Structured);
+            _transforms = new(64, instanceLimit, GraphicsBuffer.Target.Structured);
+            _colors = new(64, instanceLimit, GraphicsBuffer.Target.Structured);
         }
 
         public void Dispose()
@@ -51,14 +46,15 @@ namespace YARG.Rendering
 
         public void BeginDraw()
         {
-            InstanceCount = 0;
+            _transforms.Clear();
+            _colors.Clear();
         }
 
         public void EndDraw(Bounds bounds, Camera camera = null, int layer = 0,
             ShadowCastingMode shadowMode = ShadowCastingMode.On, bool receiveShadows = true,
             LightProbeUsage lightProbing = LightProbeUsage.BlendProbes, LightProbeProxyVolume lightProxy = null)
         {
-            if (InstanceCount < 1)
+            if (_transforms.Count < 1)
                 return;
 
             _properties.SetBuffer(_transformsProperty, _transforms);
@@ -75,21 +71,13 @@ namespace YARG.Rendering
 
         public void RenderInstance(Vector3 position, Quaternion rotation, Vector3 scale, Color color)
         {
-            if (InstanceCount >= _instanceLimit)
-            {
-                YargLogger.LogDebug("Attempted to add an instance above the limit!");
-                return;
-            }
-
-            _transforms[InstanceCount] = new()
+            _transforms.Add(new()
             {
                 position = position,
                 rotation = rotation,
                 scale = scale,
-            };
-            _colors[InstanceCount] = color;
-
-            InstanceCount++;
+            });
+            _colors.Add(color);
         }
     }
 }
