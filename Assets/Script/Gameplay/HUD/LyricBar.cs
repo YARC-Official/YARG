@@ -73,6 +73,7 @@ namespace YARG.Gameplay.HUD
         private void Update()
         {
             const double PHRASE_DISTANCE_THRESHOLD = 1.0;
+            const double UPCOMING_LYRICS_THRESHOLD = 2.0;
 
             var phrases = _lyrics.Phrases;
 
@@ -87,10 +88,35 @@ namespace YARG.Gameplay.HUD
             {
                 _currentPhraseIndex++;
                 _currentLyricIndex = 0;
-                _lyricText.text = null;
+                _lyricText.text = string.Empty;
             }
 
-            if (_currentPhraseIndex == phrases.Count || GameManager.SongTime < phrases[_currentPhraseIndex].Time)
+            // Exit if we've complete all phrases
+            if (_currentPhraseIndex == phrases.Count)
+                return;
+
+            if (_currentPhraseIndex + 1 != phrases.Count)
+            {
+                if (GameManager.SongTime >= phrases[_currentPhraseIndex].Time - UPCOMING_LYRICS_THRESHOLD && _lyricText.text == string.Empty)
+                {
+                    _nextLyricText.SetText(BuildPhraseString(phrases[_currentPhraseIndex]));
+                }
+                else if (GameManager.SongTime >= phrases[_currentPhraseIndex + 1].Time - UPCOMING_LYRICS_THRESHOLD)
+                {
+                    _nextLyricText.SetText(BuildPhraseString(phrases[_currentPhraseIndex + 1]));
+                }
+                else
+                {
+                    _nextLyricText.text = null;
+                }
+            }
+            else
+            {
+                _nextLyricText.text = null;
+            }
+
+            // Exit if it's not time to show lyrics
+            if (GameManager.SongTime < phrases[_currentPhraseIndex].Time)
                 return;
 
             var lyrics = phrases[_currentPhraseIndex].Lyrics;
@@ -132,15 +158,6 @@ namespace YARG.Gameplay.HUD
 
             _currentLyricIndex = currIndex;
             _lyricText.SetText(output);
-
-            //Show the next lyric, if there is one
-            if (_currentPhraseIndex + 1 == phrases.Count)
-            {
-                _nextLyricText.text = null;
-                return;
-            }
-
-            _nextLyricText.SetText(BuildPhraseString(phrases[_currentPhraseIndex + 1]));
         }
 
         private Utf16ValueStringBuilder BuildPhraseString(LyricsPhrase phrase)
