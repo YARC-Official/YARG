@@ -134,6 +134,30 @@ MonoBehaviour:
     m_Localized: Star Power Activate
     m_Metadata:
       m_Items: []
+  - m_Id: 98568208891412480
+    m_Localized: Red Pad (First)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98568424168259584
+    m_Localized: Yellow Cymbal (Second)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98568490232741888
+    m_Localized: Blue Pad (Third)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98568569039519744
+    m_Localized: Orange Cymbal (Fourth)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98568633258508288
+    m_Localized: Green Pad (Fifth)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98568749721747456
+    m_Localized: Kick Pedal
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

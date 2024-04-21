@@ -131,6 +131,30 @@ MonoBehaviour:
     m_Key: Vocals.StarPower
     m_Metadata:
       m_Items: []
+  - m_Id: 98568208891412480
+    m_Key: FiveDrums.RedPad
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98568424168259584
+    m_Key: FiveDrums.YellowCymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98568490232741888
+    m_Key: FiveDrums.BluePad
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98568569039519744
+    m_Key: FiveDrums.OrangeCymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98568633258508288
+    m_Key: FiveDrums.GreenPad
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98568749721747456
+    m_Key: FiveDrums.Kick
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

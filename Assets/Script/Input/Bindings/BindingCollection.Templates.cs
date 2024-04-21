@@ -74,13 +74,13 @@ namespace YARG.Input
         public static BindingCollection CreateFiveLaneDrumsBindings() => new(GameMode.FiveLaneDrums)
         {
             // TODO: Velocity support
-            new IndividualButtonBinding("Drums.RedPad",       (int) DrumsAction.RedDrum),
-            new IndividualButtonBinding("Drums.YellowCymbal", (int) DrumsAction.YellowCymbal),
-            new IndividualButtonBinding("Drums.BluePad",      (int) DrumsAction.BlueDrum),
-            new IndividualButtonBinding("Drums.OrangeCymbal", (int) DrumsAction.OrangeCymbal),
-            new IndividualButtonBinding("Drums.GreenPad",     (int) DrumsAction.GreenDrum),
+            new IndividualButtonBinding("FiveDrums.RedPad",       (int) DrumsAction.RedDrum),
+            new IndividualButtonBinding("FiveDrums.YellowCymbal", (int) DrumsAction.YellowCymbal),
+            new IndividualButtonBinding("FiveDrums.BluePad",      (int) DrumsAction.BlueDrum),
+            new IndividualButtonBinding("FiveDrums.OrangeCymbal", (int) DrumsAction.OrangeCymbal),
+            new IndividualButtonBinding("FiveDrums.GreenPad",     (int) DrumsAction.GreenDrum),
 
-            new IndividualButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
+            new IndividualButtonBinding("FiveDrums.Kick", (int) DrumsAction.Kick),
         };
 
         public static BindingCollection CreateProGuitarBindings() => new(GameMode.ProGuitar)
