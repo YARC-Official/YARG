@@ -145,7 +145,7 @@ namespace YARG.Input
             // through the Unity input system (which actually wouldn't be that hard lol)
             // new AxisBinding("Vocals.Pitch", (int) VocalsAction.Pitch),
 
-            new IndividualButtonBinding("Vocals.StarPower", (int) VocalsAction.StarPower),
+            new IndividualButtonBinding("Vocals.Hit", (int) VocalsAction.Hit),
         };
 
         public static BindingCollection CreateGameplayBindings(GameMode mode)

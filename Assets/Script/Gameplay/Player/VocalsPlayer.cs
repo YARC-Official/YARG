@@ -386,9 +386,6 @@ namespace YARG.Gameplay.Player
 
         protected override bool InterceptInput(ref GameInput input)
         {
-            // Ignore SP in practice mode
-            if (input.GetAction<VocalsAction>() == VocalsAction.StarPower && GameManager.IsPractice) return true;
-
             return false;
         }
     }

@@ -619,7 +619,7 @@ namespace YARG.Input
             if (Mode != GameMode.Vocals)
                 return false;
 
-            AddBinding(VocalsAction.StarPower, keyboard.backspaceKey);
+            AddBinding(VocalsAction.Hit, keyboard.spaceKey);
 
             return true;
         }
@@ -738,7 +738,7 @@ namespace YARG.Input
             if (Mode != GameMode.Vocals)
                 return false;
 
-            AddBinding(VocalsAction.StarPower, gamepad.selectButton);
+            AddBinding(VocalsAction.Hit, gamepad.buttonSouth);
 
             return true;
         }
