@@ -49,6 +49,7 @@ namespace YARG.Audio.BASS
             _mixerHandle = handle;
             _sourceStream = sourceStream;
             SetVolume_Internal(volume);
+            SetBufferLength_Internal(Bass.PlaybackBufferLength);
         }
 
         protected override int Play_Internal(bool restart)
@@ -278,6 +279,14 @@ namespace YARG.Audio.BASS
             _channels[index].Dispose();
             _channels.RemoveAt(index);
             return true;
+        }
+
+        protected override void SetBufferLength_Internal(int length)
+        {
+            if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Buffer, length))
+            {
+                YargLogger.LogFormatError("Failed to remove playback buffer: {0}!", Bass.LastError);
+            }
         }
 
         protected override void DisposeManagedResources()

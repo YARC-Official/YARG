@@ -1251,6 +1251,30 @@ MonoBehaviour:
     m_Key: Setting.ApplyVolumesInMusicLibrary
     m_Metadata:
       m_Items: []
+  - m_Id: 141514322187022336
+    m_Key: Setting.PlaybackBufferLength
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141517638145044480
+    m_Key: Header.Customization
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141517716490448896
+    m_Key: Setting.PlaybackBufferLength.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141518416825970688
+    m_Key: Setting.ApplyVolumesInMusicLibrary.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141824850801356800
+    m_Key: Setting.EnablePlaybackBuffer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141825994697109504
+    m_Key: Setting.EnablePlaybackBuffer.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
