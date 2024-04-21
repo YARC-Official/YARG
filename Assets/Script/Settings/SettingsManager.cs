@@ -126,6 +126,7 @@ namespace YARG.Settings
                 new HeaderMetadata("LightingGeneral"),
                 nameof(Settings.StageKitEnabled),
                 nameof(Settings.DMXEnabled),
+                nameof(Settings.RB3EEnabled),
                 new HeaderMetadata("DMXChannels"),
                 nameof(Settings.DMXDimmerChannels),
                 nameof(Settings.DMXCueChangeChannel),
@@ -135,6 +136,9 @@ namespace YARG.Settings
                 nameof(Settings.DMXYellowChannels),
                 nameof(Settings.DMXFogChannel),
                 nameof(Settings.DMXStrobeChannel),
+                new HeaderMetadata("RB3E"),
+                nameof(Settings.RB3EBroadcastIP),
+
             },
             new MetadataTab("Debug", icon: "Debug")
             {

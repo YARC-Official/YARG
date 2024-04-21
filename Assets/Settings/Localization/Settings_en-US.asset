@@ -1235,40 +1235,26 @@ MonoBehaviour:
 
       180 - Sweep
 
-      190 - Strobe
-      (off)
+      190 - Blackout
+      (fast)
 
-      191 - Strobe (slow)
-
-      192 - Strobe (medium)
-
-      193 -
-      Strobe (fast)
-
-      194 - Strobe (fastest)
-
-      200 - Blackout (fast)
-
-      205
-      - Blackout (slow)
+      200 - Blackout (slow)
 
       210 - Blackout (spotlight)
 
-      220 - Flare (slow)
+      220
+      - Flare (slow)
 
-      225
-      - Flare (fast)
+      230 - Flare (fast)
 
-      230 - Big Rock Ending
+      240 - Big Rock Ending
 
-      240 - Bonus Effect
+      250
+      - Bonus Effect
 
-      245
-      - Bonus Effect (optional)
 
-      250 - Fog on
-
-      255 - Fog off'
+      For Strobe and Fog status listen to their respective
+      channels.'
     m_Metadata:
       m_Items: []
   - m_Id: 133417141387255824
@@ -1413,6 +1399,28 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 138593433699119104
     m_Localized: Apply Volume Settings to Music Library Previews
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141440634433200128
+    m_Localized: Enable RB3E Stage Kit data stream
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141441231903416320
+    m_Localized: Enables sending of RB3E style stage kit information packets over
+      the network, for hardware such as StageKitPied
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141441883907973120
+    m_Localized: RB3E Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141442149977841664
+    m_Localized: RB3E target IP
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141442680402108416
+    m_Localized: Sets the target IP for the RB3E data stream packets. 255.255.255.255
+      is the broadcast address for the current network
     m_Metadata:
       m_Items: []
   references:
