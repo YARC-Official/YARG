@@ -1235,40 +1235,26 @@ MonoBehaviour:
 
       180 - Sweep
 
-      190 - Strobe
-      (off)
+      190 - Blackout
+      (fast)
 
-      191 - Strobe (slow)
-
-      192 - Strobe (medium)
-
-      193 -
-      Strobe (fast)
-
-      194 - Strobe (fastest)
-
-      200 - Blackout (fast)
-
-      205
-      - Blackout (slow)
+      200 - Blackout (slow)
 
       210 - Blackout (spotlight)
 
-      220 - Flare (slow)
+      220
+      - Flare (slow)
 
-      225
-      - Flare (fast)
+      230 - Flare (fast)
 
-      230 - Big Rock Ending
+      240 - Big Rock Ending
 
-      240 - Bonus Effect
+      250
+      - Bonus Effect
 
-      245
-      - Bonus Effect (optional)
 
-      250 - Fog on
-
-      255 - Fog off'
+      For Strobe and Fog status listen to their respective
+      channels.'
     m_Metadata:
       m_Items: []
   - m_Id: 133417141387255824
