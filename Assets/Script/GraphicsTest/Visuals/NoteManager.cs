@@ -16,15 +16,13 @@ namespace YARG.GraphicsTest
         private readonly float _noteSpeed;
         private readonly float _strikelinePosition;
 
-        private readonly Vector3 _baseScale = new(7.5f, 7.5f, 7.5f);
-
         private readonly float[] _lanePositions = new float[6] {
             0,
-            -1.25f,
-            -0.625f,
+            -1.27f,
+            -0.635f,
             0,
-            0.625f,
-            1.25f,
+            0.635f,
+            1.27f,
         };
 
         private readonly Vector3[] _laneScales = new Vector3[6] {
@@ -75,7 +73,7 @@ namespace YARG.GraphicsTest
 
         public void Update(double songTime)
         {
-            _instancer.BeginDraw();
+            _instancer.Clear();
 
             _despawnTracker.Update(songTime + _despawnTimeOffset);
 
@@ -91,7 +89,7 @@ namespace YARG.GraphicsTest
                 RenderNote(songTime, _spawnTracker.Current);
             }
 
-            _instancer.EndDraw(new Bounds(Vector3.zero, Vector3.one * 1000),
+            _instancer.Draw(new Bounds(Vector3.zero, Vector3.one * 1000),
                 shadowMode: ShadowCastingMode.Off, receiveShadows: false,
                 lightProbing: LightProbeUsage.Off);
         }
@@ -115,14 +113,9 @@ namespace YARG.GraphicsTest
         private void RenderSingleNote(double songTime, GuitarNote note)
         {
             float distance = _strikelinePosition + (float) (note.Time - songTime) * _noteSpeed;
-            var position = new Vector3(_lanePositions[note.Fret], 0.1f, distance);
+            var position = new Vector3(_lanePositions[note.Fret], 0, distance);
 
-            var rotation = Quaternion.Euler(-90, 0, 0);
-
-            var scale = _laneScales[note.Fret];
-            scale.Scale(_baseScale);
-
-            _instancer.RenderInstance(position, rotation, scale, _laneColors[note.Fret]);
+            _instancer.AddInstance(position, Quaternion.identity, _laneScales[note.Fret], _laneColors[note.Fret]);
         }
 
         public void ResetToTime(double songTime)

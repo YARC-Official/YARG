@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace YARG.Rendering
@@ -17,11 +16,23 @@ namespace YARG.Rendering
         private GraphicsBuffer _buffer;
         private readonly GraphicsBuffer.Target _target;
 
-        private List<T> _values;
+        private T[] _values;
+        private int _count = 0;
         private readonly int _maxCapacity;
 
-        public int Count => _values.Count;
+        private bool _refAccessorTaken = false;
+
+        public int Count => _count;
         public int MaxCapacity => _maxCapacity;
+
+        /// <summary>
+        /// Retrieves the item at the given index.
+        /// </summary>
+        /// <remarks>
+        /// You must be sure that no operations that modify the collection occur while a reference is active!
+        /// Any operation that causes the backing array to be resized
+        /// </remarks>
+        public ref T this[int index] => ref _values[index];
 
         public GraphicsArray(int initialCapacity, int maxCapacity, GraphicsBuffer.Target target)
         {
@@ -32,14 +43,12 @@ namespace YARG.Rendering
             if (maxCapacity < initialCapacity)
                 throw new ArgumentOutOfRangeException(nameof(maxCapacity), maxCapacity, "Max capacity must be greater than initial capacity.");
 
-            if (initialCapacity < DEFAULT_CAPACITY)
+            if (initialCapacity < DEFAULT_CAPACITY && maxCapacity >= DEFAULT_CAPACITY)
                 initialCapacity = DEFAULT_CAPACITY;
 
-            unsafe { _buffer = new(target, initialCapacity, sizeof(T)); }
             _target = target;
-
-            _values = new(initialCapacity);
             _maxCapacity = maxCapacity;
+            Resize(initialCapacity);
         }
 
         // No accompanying finalizer, GraphicsBuffer will finalize itself
@@ -50,30 +59,59 @@ namespace YARG.Rendering
 
         public void Add(T value)
         {
-            CheckCount();
-            _values.Add(value);
+            CheckCapacity();
+            CheckRefState();
 
-            // Prevent the list from going over capacity
-            if (_values.Capacity > _maxCapacity)
-                _values.Capacity = _maxCapacity;
+            if (_count >= _values.Length)
+                Resize(_values.Length * 2);
 
-            // Resize the buffer if needed
-            if (_values.Capacity > _buffer.count)
-            {
-                _buffer.Dispose();
-                unsafe { _buffer = new(_target, _values.Capacity, sizeof(T)); }
-            }
+            _values[_count++] = value;
+        }
+
+        private void Resize(int size)
+        {
+            if (size > _maxCapacity)
+                size = _maxCapacity;
+
+            Array.Resize(ref _values, size);
+
+            _buffer?.Dispose();
+            unsafe { _buffer = new(_target, size, sizeof(T)); }
+        }
+
+        public void RemoveRange(int index, int count)
+        {
+            CheckIndex(index, nameof(index));
+            CheckIndex(index + count, nameof(count));
+            CheckRefState();
+
+            var span = _values.AsSpan();
+            span[(index + count)..].CopyTo(span[index..]);
+
+            _count -= count;
         }
 
         public void Clear()
         {
-            _values.Clear();
+            _count = 0;
         }
 
-        private void CheckCount()
+        private void CheckRefState()
         {
-            if (_values.Count >= _maxCapacity)
-                throw new InvalidOperationException("Cannot exceed maximum capacity of the buffer.");
+            if (_refAccessorTaken)
+                throw new InvalidOperationException("Cannot modify collection while ref accessor is taken.");
+        }
+
+        private void CheckIndex(int index, string name)
+        {
+            if (index < 0 || index >= _values.Length)
+                throw new ArgumentOutOfRangeException(name);
+        }
+
+        private void CheckCapacity()
+        {
+            if (_values.Length >= _maxCapacity)
+                throw new InvalidOperationException("Cannot exceed maximum capacity of the collection.");
         }
 
         public void WriteTo(MaterialPropertyBlock properties, string property)
