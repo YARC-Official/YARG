@@ -1401,6 +1401,16 @@ MonoBehaviour:
     m_Localized: Apply Volume Settings to Music Library Previews
     m_Metadata:
       m_Items: []
+  - m_Id: 142611703768539136
+    m_Localized: Upcoming Lyrics Lead Time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 142611793451147264
+    m_Localized: The time in seconds prior to an upcoming lyric that it will appear
+      on screen. Upcoming lyrics will always appear if the time between the current
+      and upcoming lyrics is smaller than this value.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
