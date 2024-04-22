@@ -198,6 +198,8 @@ namespace YARG.Settings
                 LyricDisplayMode.Disabled
             };
 
+            public SliderSetting UpcomingLyricsTime { get; } = new(3f, 0f, 10f);
+
             public ToggleSetting KeepSongInfoVisible { get; } = new(false);
 
             #endregion

@@ -31,6 +31,8 @@ namespace YARG.Gameplay.HUD
         private int _currentPhraseIndex = 0;
         private int _currentLyricIndex = 0;
 
+        private double _upcomingLyricsThreshold;
+
         protected override void GameplayAwake()
         {
             var lyricSetting = SettingsManager.Settings.LyricDisplay.Value;
@@ -61,6 +63,8 @@ namespace YARG.Gameplay.HUD
             // Reset the lyrics
             _lyricText.text = string.Empty;
             _nextLyricText.text = string.Empty;
+
+            _upcomingLyricsThreshold = SettingsManager.Settings.UpcomingLyricsTime.Value;
         }
 
         protected override void OnChartLoaded(SongChart chart)
@@ -73,7 +77,6 @@ namespace YARG.Gameplay.HUD
         private void Update()
         {
             const double PHRASE_DISTANCE_THRESHOLD = 1.0;
-            const double UPCOMING_LYRICS_THRESHOLD = 2.0;
 
             var phrases = _lyrics.Phrases;
 
@@ -97,11 +100,13 @@ namespace YARG.Gameplay.HUD
 
             if (_currentPhraseIndex + 1 != phrases.Count)
             {
-                if (GameManager.SongTime >= phrases[_currentPhraseIndex].Time - UPCOMING_LYRICS_THRESHOLD && _lyricText.text == string.Empty)
+                if (GameManager.SongTime >= phrases[_currentPhraseIndex].Time - _upcomingLyricsThreshold && _lyricText.text == string.Empty)
                 {
-                    _nextLyricText.SetText(BuildPhraseString(phrases[_currentPhraseIndex]));
+                    _lyricText.SetText(BuildPhraseString(phrases[_currentPhraseIndex]));
                 }
-                else if (GameManager.SongTime >= phrases[_currentPhraseIndex + 1].Time - UPCOMING_LYRICS_THRESHOLD)
+                else if (GameManager.SongTime >= phrases[_currentPhraseIndex + 1].Time - _upcomingLyricsThreshold ||
+                    (phrases[_currentPhraseIndex + 1].Time - phrases[_currentPhraseIndex].TimeEnd <
+                        _upcomingLyricsThreshold && _lyricText.text != string.Empty))
                 {
                     _nextLyricText.SetText(BuildPhraseString(phrases[_currentPhraseIndex + 1]));
                 }
