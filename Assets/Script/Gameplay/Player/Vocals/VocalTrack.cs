@@ -37,7 +37,7 @@ namespace YARG.Gameplay.Player
             new(1f, 0.859f, 0f, 1f)
         };
 
-        private const float SPAWN_TIME_OFFSET = 5f;
+        public const float SPAWN_TIME_OFFSET = 5f;
 
         private const float TRACK_TOP = 0.90f;
         private const float TRACK_TOP_HARMONY = 0.53f;
@@ -51,7 +51,9 @@ namespace YARG.Gameplay.Player
         private const double MINIMUM_SHIFT_TIME = 0.25;
 
         [SerializeField]
-        private GameObject _vocalPlayerPrefab;
+        private VocalsPlayer _vocalPlayerPrefab;
+        [SerializeField]
+        private VocalPercussionTrack _percussionTrackPrefab;
 
         [Space]
         [SerializeField]
@@ -73,6 +75,8 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private Transform _playerContainer;
         [SerializeField]
+        private Transform _percussionTrackContainer;
+        [SerializeField]
         private VocalLyricContainer _lyricContainer;
 
         [Space]
@@ -82,8 +86,6 @@ namespace YARG.Gameplay.Player
         private Pool _talkiePool;
         [SerializeField]
         private Pool _phraseLinePool;
-        [SerializeField]
-        private Pool _percussionPool;
 
         private readonly List<VocalsPlayer> _vocalPlayers = new();
         private bool _currentStarpowerState;
@@ -189,12 +191,16 @@ namespace YARG.Gameplay.Player
 
         public VocalsPlayer CreatePlayer()
         {
-            var playerObj = Instantiate(_vocalPlayerPrefab, _playerContainer);
-            var player = playerObj.GetComponent<VocalsPlayer>();
-
+            var player = Instantiate(_vocalPlayerPrefab, _playerContainer);
             _vocalPlayers.Add(player);
 
             return player;
+        }
+
+        public VocalPercussionTrack CreatePercussionTrack()
+        {
+            var percussionTrack = Instantiate(_percussionTrackPrefab, _percussionTrackContainer);
+            return percussionTrack;
         }
 
         private void Update()

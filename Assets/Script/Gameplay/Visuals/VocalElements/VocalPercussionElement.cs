@@ -1,4 +1,5 @@
-﻿using YARG.Core.Chart;
+﻿using UnityEngine;
+using YARG.Core.Chart;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -8,8 +9,12 @@ namespace YARG.Gameplay.Visuals
 
         public override double ElementTime => NoteRef.Time;
 
+        [SerializeField]
+        private GameObject _mesh;
+
         protected override void InitializeElement()
         {
+            _mesh.SetActive(true);
         }
 
         protected override void UpdateElement()
@@ -18,6 +23,7 @@ namespace YARG.Gameplay.Visuals
 
         protected override void HideElement()
         {
+            _mesh.SetActive(false);
         }
     }
 }

@@ -113,20 +113,7 @@ namespace YARG.Gameplay.Player
             {
                 var note = tracker.CurrentNote;
 
-                if (note.IsPercussion)
-                {
-                    // Skip this frame if the pool is full
-                    if (!_percussionPool.CanSpawnAmount(1))
-                    {
-                        return;
-                    }
-
-                    // Spawn the vocal percussion note
-                    var noteObj = _percussionPool.TakeWithoutEnabling();
-                    ((VocalPercussionElement) noteObj).NoteRef = note;
-                    noteObj.EnableFromPool();
-                }
-                else if (note.IsNonPitched)
+                if (note.IsNonPitched)
                 {
                     // Skip this frame if the pool is full
                     if (!_talkiePool.CanSpawnAmount(1))
@@ -139,7 +126,7 @@ namespace YARG.Gameplay.Player
                     ((VocalTalkieElement) noteObj).NoteRef = note;
                     noteObj.EnableFromPool();
                 }
-                else
+                else if (!note.IsPercussion)
                 {
                     // Skip this frame if the pool is full
                     if (!pool.CanSpawnAmount(1))

@@ -47,26 +47,35 @@ namespace YARG.Gameplay.Player
         private double?   _lastSingTime;
 
         private VocalsPlayerHUD _hud;
+        private VocalPercussionTrack _percussionTrack;
 
-        public void Initialize(int index, YargPlayer player, SongChart chart, VocalsPlayerHUD hud)
+        public void Initialize(int index, YargPlayer player, SongChart chart,
+            VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack)
         {
             if (IsInitialized) return;
 
             base.Initialize(index, player, chart);
 
-            hud.Initialize(player.EnginePreset);
-            _hud = hud;
-
             // Get the notes from the specific harmony or solo part
+
             var multiTrack = chart.GetVocalsTrack(Player.Profile.CurrentInstrument);
             var partIndex = Player.Profile.CurrentInstrument == Instrument.Harmony
                 ? Player.Profile.HarmonyIndex
                 : 0;
+
             var track = multiTrack.Parts[partIndex];
             player.Profile.ApplyVocalModifiers(track);
 
             OriginalNoteTrack = track.CloneAsInstrumentDifficulty();
             NoteTrack = OriginalNoteTrack;
+
+            // Initialize player specific vocal visuals
+
+            hud.Initialize(player.EnginePreset);
+            _hud = hud;
+
+            percussionTrack.Initialize(NoteTrack.Notes);
+            _percussionTrack = percussionTrack;
 
             // Create and start an input context for the mic
             if (!GameManager.IsReplay && player.Bindings.Microphone is not null)
@@ -131,6 +140,14 @@ namespace YARG.Gameplay.Player
                 }
 
                 LastCombo = Combo;
+            };
+
+            engine.OnNoteHit += (_, note) =>
+            {
+                if (note.IsPercussion)
+                {
+                    _percussionTrack.HitPercussionNote(note);
+                }
             };
 
             engine.OnNoteMissed += (_, _) =>
