@@ -242,14 +242,14 @@ namespace YARG.Audio.BASS
         {
             if (!BassAudioManager.CreateSplitStreams(_sourceStream, indices, out var streamHandles, out var reverbHandles))
             {
-                YargLogger.LogFormatError("Failed to load stem {stem}: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to load stem {0}: {1}!", stem, Bass.LastError);
                 return false;
             }
 
             if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.MixerChanMatrix) ||
                 !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.MixerChanMatrix))
             {
-                YargLogger.LogFormatError("Failed to add channel {stem} to mixer: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stem, Bass.LastError);
                 return false;
             }
 
