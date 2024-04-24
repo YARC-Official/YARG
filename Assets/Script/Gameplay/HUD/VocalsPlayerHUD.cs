@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using Cysharp.Text;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,9 +27,12 @@ namespace YARG.Gameplay.HUD
         private float _comboMeterFillTarget;
 
         private readonly PerformanceTextScaler _scaler = new(2f);
-        private Coroutine _currentCoroutine;
+
+        private Coroutine _notificationCoroutine;
+        private Coroutine _hudCoroutine;
 
         private bool _shouldPulse;
+        private bool _hudShowing = true;
 
         protected override void OnChartLoaded(SongChart chart)
         {
@@ -89,7 +93,9 @@ namespace YARG.Gameplay.HUD
         private void PulseBar(Beatline beat)
         {
             if (!_shouldPulse || beat.Type == BeatlineType.Weak)
+            {
                 return;
+            }
 
             _starPowerPulse.color = Color.white;
         }
@@ -116,12 +122,12 @@ namespace YARG.Gameplay.HUD
 
         public void ShowPhraseHit(double hitPercent)
         {
-            if (_currentCoroutine != null)
+            if (_notificationCoroutine != null)
             {
-                StopCoroutine(_currentCoroutine);
+                StopCoroutine(_notificationCoroutine);
             }
 
-            _currentCoroutine = StartCoroutine(ShowNextNotification(hitPercent));
+            _notificationCoroutine = StartCoroutine(ShowNextNotification(hitPercent));
         }
 
         private IEnumerator ShowNextNotification(double hitPercent)
@@ -148,7 +154,45 @@ namespace YARG.Gameplay.HUD
             }
 
             _performanceText.text = string.Empty;
-            _currentCoroutine = null;
+            _notificationCoroutine = null;
+        }
+
+        public void SetHUDShowing(bool show)
+        {
+            if (_hudShowing == show)
+            {
+                return;
+            }
+
+            _hudShowing = show;
+
+            if (_hudCoroutine != null)
+            {
+                StopCoroutine(_hudCoroutine);
+            }
+
+            if (_hudShowing)
+            {
+                _hudCoroutine = StartCoroutine(ShowHUD());
+            }
+            else
+            {
+                _hudCoroutine = StartCoroutine(HideHUD());
+            }
+        }
+
+        private IEnumerator ShowHUD()
+        {
+            yield return transform
+                .DORotate(new Vector3(0f, 0f, 0f), 0.25f)
+                .WaitForCompletion();
+        }
+
+        private IEnumerator HideHUD()
+        {
+            yield return transform
+                .DORotate(new Vector3(90f, 0f, 0f), 0.25f)
+                .WaitForCompletion();
         }
     }
 }

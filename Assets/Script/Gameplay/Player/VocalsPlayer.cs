@@ -49,6 +49,8 @@ namespace YARG.Gameplay.Player
         private VocalsPlayerHUD _hud;
         private VocalPercussionTrack _percussionTrack;
 
+        private int _phraseIndex = -1;
+
         public void Initialize(int index, YargPlayer player, SongChart chart,
             VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack)
         {
@@ -68,6 +70,8 @@ namespace YARG.Gameplay.Player
 
             OriginalNoteTrack = track.CloneAsInstrumentDifficulty();
             NoteTrack = OriginalNoteTrack;
+
+            _phraseIndex = -1;
 
             // Initialize player specific vocal visuals
 
@@ -192,6 +196,8 @@ namespace YARG.Gameplay.Player
                 NoteTrack.Notes[^1].OverrideNextNote();
             }
 
+            _phraseIndex = -1;
+
             base.ResetPracticeSection();
         }
 
@@ -220,6 +226,12 @@ namespace YARG.Gameplay.Player
             return currentTime - lastTime.Value <= 1f / EngineParams.ApproximateVocalFps + 0.05;
         }
 
+        protected override void UpdateVisualsWithTimes(double inputTime)
+        {
+            base.UpdateVisualsWithTimes(inputTime);
+            UpdatePercussionPhrase(inputTime);
+        }
+
         protected override void UpdateVisuals(double time)
         {
             const float NEEDLE_POS_LERP = 30f;
@@ -230,7 +242,7 @@ namespace YARG.Gameplay.Player
 
             // Get combo meter fill
             float fill = 0f;
-            if (Engine.State.PhraseTicksTotal != null)
+            if (Engine.State.PhraseTicksTotal != null && Engine.State.PhraseTicksTotal.Value != 0)
             {
                 fill = (float) (Engine.State.PhraseTicksHit / Engine.State.PhraseTicksTotal.Value);
                 fill /= (float) EngineParams.PhraseHitPercent;
@@ -344,6 +356,73 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        private void UpdatePercussionPhrase(double time)
+        {
+            // Prevent the HUD from hiding too quickly
+            if (time < 0)
+            {
+                return;
+            }
+
+            // Since phrases start at the note, and not sometime before it, use
+            // the end times of phrases instead (where the phrase lines are). Problem
+            // with this is that we still gotta account for the first phrase, so use
+            // an index of -1 for that.
+            while (_phraseIndex == -1 ||
+                (_phraseIndex < NoteTrack.Notes.Count && NoteTrack.Notes[_phraseIndex].TimeEnd <= time))
+            {
+                _phraseIndex++;
+
+                // End if that's the last note
+                if (_phraseIndex >= NoteTrack.Notes.Count)
+                {
+                    break;
+                }
+
+                var phrase = NoteTrack.Notes[_phraseIndex];
+
+                uint totalTime = 0;
+                foreach (var note in phrase.ChildNotes)
+                {
+                    if (note.IsPercussion)
+                    {
+                        continue;
+                    }
+
+                    totalTime += note.TotalTickLength;
+                }
+
+                _hud.SetHUDShowing(totalTime != 0);
+            }
+        }
+
+        public override void SetPracticeSection(uint start, uint end)
+        {
+            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Tick >= start && n.Tick < end).ToList();
+
+            NoteTrack = new InstrumentDifficulty<VocalNote>(
+                OriginalNoteTrack.Instrument,
+                OriginalNoteTrack.Difficulty,
+                practiceNotes,
+                OriginalNoteTrack.Phrases,
+                OriginalNoteTrack.TextEvents);
+
+            _phraseIndex = -1;
+
+            Engine = CreateEngine();
+            ResetPracticeSection();
+        }
+
+        public override void SetStemMuteState(bool muted)
+        {
+            // Vocals has no stem muting
+        }
+
+        protected override bool InterceptInput(ref GameInput input)
+        {
+            return false;
+        }
+
         /// <returns>
         /// The first value in the pair (<c>Distance</c>) is the distance between <paramref name="target"/> and '
         /// <paramref name="other"/> ignoring the octave.<br/>
@@ -379,31 +458,6 @@ namespace YARG.Gameplay.Player
             }
 
             return (closest, octaveShift);
-        }
-
-        public override void SetPracticeSection(uint start, uint end)
-        {
-            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Tick >= start && n.Tick < end).ToList();
-
-            NoteTrack = new InstrumentDifficulty<VocalNote>(
-                OriginalNoteTrack.Instrument,
-                OriginalNoteTrack.Difficulty,
-                practiceNotes,
-                OriginalNoteTrack.Phrases,
-                OriginalNoteTrack.TextEvents);
-
-            Engine = CreateEngine();
-            ResetPracticeSection();
-        }
-
-        public override void SetStemMuteState(bool muted)
-        {
-            // Vocals has no stem muting
-        }
-
-        protected override bool InterceptInput(ref GameInput input)
-        {
-            return false;
         }
     }
 }
