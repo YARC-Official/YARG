@@ -52,11 +52,19 @@ namespace YARG.Audio.BASS
             SetBufferLength_Internal(Bass.PlaybackBufferLength);
         }
 
-        protected override int Play_Internal(bool restart)
+        protected override int Play_Internal(bool restartBuffer)
         {
-            if (IsPaused && !Bass.ChannelPlay(_mixerHandle, restart))
+            if (!Bass.ChannelPlay(_mixerHandle, restartBuffer))
             {
                 return (int) Bass.LastError;
+            }
+
+            if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
+            {
+                if (!Bass.ChannelUpdate(_mixerHandle, Bass.PlaybackBufferLength))
+                {
+                    YargLogger.LogFormatError("Failed to fill playback buffer: {0}!", Bass.LastError);
+                }
             }
             return 0;
         }
@@ -74,7 +82,7 @@ namespace YARG.Audio.BASS
 
         protected override int Pause_Internal()
         {
-            if (!IsPaused && !Bass.ChannelPause(_mixerHandle))
+            if (!Bass.ChannelPause(_mixerHandle))
             {
                 return (int) Bass.LastError;
             }
@@ -144,11 +152,7 @@ namespace YARG.Audio.BASS
 
             if (playing)
             {
-                if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
-                {
-                    YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
-                }
-                Play_Internal(false);
+                Play_Internal(true);
             }
         }
 

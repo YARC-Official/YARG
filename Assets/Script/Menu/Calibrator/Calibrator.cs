@@ -141,8 +141,8 @@ namespace YARG.Menu.Calibrator
                     const double VOLUME = 1.0;
                     var file = Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg");
                     _mixer = GlobalAudioHandler.LoadCustomFile(file, SPEED, VOLUME);
-                    _mixer.Play();
                     _time = Time.realtimeSinceStartup;
+                    _mixer.Play(true);
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;
                 case State.AudioDone:
