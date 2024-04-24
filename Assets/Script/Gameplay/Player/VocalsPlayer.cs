@@ -381,11 +381,13 @@ namespace YARG.Gameplay.Player
 
                 var phrase = NoteTrack.Notes[_phraseIndex];
 
+                bool hasPercussion = false;
                 uint totalTime = 0;
                 foreach (var note in phrase.ChildNotes)
                 {
                     if (note.IsPercussion)
                     {
+                        hasPercussion = true;
                         continue;
                     }
 
@@ -393,6 +395,7 @@ namespace YARG.Gameplay.Player
                 }
 
                 _hud.SetHUDShowing(totalTime != 0);
+                _percussionTrack.ShowPercussionFret(hasPercussion);
             }
         }
 

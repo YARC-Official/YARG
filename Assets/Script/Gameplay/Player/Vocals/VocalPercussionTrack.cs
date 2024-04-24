@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Authoring;
 
 namespace YARG.Gameplay.Player
 {
@@ -9,6 +10,12 @@ namespace YARG.Gameplay.Player
     {
         [SerializeField]
         private KeyedPool _pool;
+
+        [Space]
+        [SerializeField]
+        private GameObject _percussionFret;
+        [SerializeField]
+        private EffectGroup _hitEffects;
 
         // Because we want the keyed pool to work properly, we need to keep the note
         // references the same as in the player. We cannot use a VocalsPart in this case.
@@ -69,6 +76,13 @@ namespace YARG.Gameplay.Player
         {
             var obj = _pool.GetByKey(note);
             _pool.Return(obj);
+
+            _hitEffects.Play();
+        }
+
+        public void ShowPercussionFret(bool show)
+        {
+            _percussionFret.SetActive(show);
         }
     }
 }
