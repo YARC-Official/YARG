@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Visuals;
@@ -13,7 +15,7 @@ namespace YARG.Gameplay.Player
 
         [Space]
         [SerializeField]
-        private GameObject _percussionFret;
+        private Transform _percussionFret;
         [SerializeField]
         private EffectGroup _hitEffects;
 
@@ -32,6 +34,8 @@ namespace YARG.Gameplay.Player
         private bool CurrentNoteInBounds =>
             CurrentPhraseInBounds &&
             _noteIndex < _notes[_phraseIndex].ChildNotes.Count;
+
+        private Coroutine _fretShowCoroutine;
 
         public void Initialize(List<VocalNote> notes)
         {
@@ -82,7 +86,41 @@ namespace YARG.Gameplay.Player
 
         public void ShowPercussionFret(bool show)
         {
-            _percussionFret.SetActive(show);
+            if (_fretShowCoroutine != null)
+            {
+                StopCoroutine(_fretShowCoroutine);
+            }
+
+            if (show == _percussionFret.gameObject.activeSelf)
+            {
+                return;
+            }
+
+            StartCoroutine(ShowPercussionFretAnimation(show));
+        }
+
+        private IEnumerator ShowPercussionFretAnimation(bool show)
+        {
+            if (show)
+            {
+                _percussionFret.gameObject.SetActive(true);
+
+                _percussionFret.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+                yield return _percussionFret
+                    .DORotate(new Vector3(90f, 0f, 0f), 0.25f)
+                    .WaitForCompletion();
+            }
+            else
+            {
+                _percussionFret.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                yield return _percussionFret
+                    .DORotate(new Vector3(0f, 0f, 0f), 0.25f)
+                    .WaitForCompletion();
+
+                _percussionFret.gameObject.SetActive(false);
+            }
+
+            _fretShowCoroutine = null;
         }
     }
 }

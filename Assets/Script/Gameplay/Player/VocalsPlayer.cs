@@ -48,6 +48,7 @@ namespace YARG.Gameplay.Player
 
         private VocalsPlayerHUD _hud;
         private VocalPercussionTrack _percussionTrack;
+        private bool _shouldHideNeedle;
 
         private int _phraseIndex = -1;
 
@@ -258,7 +259,7 @@ namespace YARG.Gameplay.Player
             // Get whether or not the player has sang within the time threshold.
             // We gotta use a threshold here because microphone inputs are passed every X seconds,
             // not in a constant stream.
-            if (!IsInThreshold(singTime, _lastSingTime))
+            if (!IsInThreshold(singTime, _lastSingTime) || _shouldHideNeedle)
             {
                 // Hide the needle if there's no singing
                 if (_needleVisualContainer.activeSelf)
@@ -396,6 +397,7 @@ namespace YARG.Gameplay.Player
 
                 _hud.SetHUDShowing(totalTime != 0);
                 _percussionTrack.ShowPercussionFret(hasPercussion);
+                _shouldHideNeedle = hasPercussion;
             }
         }
 

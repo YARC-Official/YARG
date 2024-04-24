@@ -9928,7 +9928,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _pool: {fileID: 5892627165722100679}
-  _percussionFret: {fileID: 8000873014695860749}
+  _percussionFret: {fileID: 5738444230611921392}
   _hitEffects: {fileID: 7036751120627365314}
 --- !u!1 &6280172007899755714
 GameObject:
@@ -10063,7 +10063,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.5
+      scalar: 0.4
       minScalar: 0.2
       maxCurve:
         serializedVersion: 2
@@ -10232,7 +10232,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 4
+      scalar: 3
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -19725,7 +19725,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5738444230611921392
 Transform:
   m_ObjectHideFlags: 0

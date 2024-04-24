@@ -171,28 +171,25 @@ namespace YARG.Gameplay.HUD
                 StopCoroutine(_hudCoroutine);
             }
 
-            if (_hudShowing)
+            _hudCoroutine = StartCoroutine(ShowHUD(_hudShowing));
+        }
+
+        private IEnumerator ShowHUD(bool show)
+        {
+            if (show)
             {
-                _hudCoroutine = StartCoroutine(ShowHUD());
+                yield return transform
+                    .DORotate(new Vector3(0f, 0f, 0f), 0.25f)
+                    .WaitForCompletion();
             }
             else
             {
-                _hudCoroutine = StartCoroutine(HideHUD());
+                yield return transform
+                    .DORotate(new Vector3(90f, 0f, 0f), 0.25f)
+                    .WaitForCompletion();
             }
-        }
 
-        private IEnumerator ShowHUD()
-        {
-            yield return transform
-                .DORotate(new Vector3(0f, 0f, 0f), 0.25f)
-                .WaitForCompletion();
-        }
-
-        private IEnumerator HideHUD()
-        {
-            yield return transform
-                .DORotate(new Vector3(90f, 0f, 0f), 0.25f)
-                .WaitForCompletion();
+            _hudCoroutine = null;
         }
     }
 }
