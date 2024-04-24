@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using TMPro;
@@ -38,12 +39,12 @@ namespace YARG.Menu.Calibrator
         private TextMeshProUGUI _audioCalibrateText;
 
         private State _state = State.Starting;
-        private readonly List<float> _calibrationTimes = new();
+        private readonly List<double> _calibrationTimes = new();
 
         private YargPlayer _player;
 #nullable enable
         private StemMixer? _mixer;
-        private float _time;
+        private double _time;
 #nullable disable
 
         private void Start()
@@ -84,7 +85,7 @@ namespace YARG.Menu.Calibrator
                     _audioCalibrateText.color = Color.green;
                     _audioCalibrateText.text = "Detected";
 
-                    _calibrationTimes.Add(Time.realtimeSinceStartup - _time);
+                    _calibrationTimes.Add(Time.realtimeSinceStartupAsDouble - _time);
                     break;
                 case State.Starting:
                 case State.AudioDone:
@@ -141,8 +142,9 @@ namespace YARG.Menu.Calibrator
                     const double VOLUME = 1.0;
                     var file = Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg");
                     _mixer = GlobalAudioHandler.LoadCustomFile(file, SPEED, VOLUME);
-                    _time = Time.realtimeSinceStartup;
+                    _mixer.SongEnd += OnAudioEnd;
                     _mixer.Play(true);
+                    _time = Time.realtimeSinceStartupAsDouble;
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;
                 case State.AudioDone:
@@ -157,7 +159,7 @@ namespace YARG.Menu.Calibrator
             // Drop all discrepancies
             for (int i = _calibrationTimes.Count - 1; i > 1; i--)
             {
-                if (Mathf.Abs(_calibrationTimes[i] - (_calibrationTimes[i - 1] + SECONDS_PER_BEAT)) > DROP_THRESH)
+                if (Math.Abs(_calibrationTimes[i] - (_calibrationTimes[i - 1] + SECONDS_PER_BEAT)) > DROP_THRESH)
                 {
                     _calibrationTimes.RemoveAt(i);
                 }
@@ -174,16 +176,16 @@ namespace YARG.Menu.Calibrator
             }
 
             // Get the deviations
-            var diffs = new List<float>();
+            var diffs = new List<double>();
             for (int i = 0; i < _calibrationTimes.Count; i++)
             {
                 // Our goal is to get as close to 0 as possible
-                float diff = Mathf.Abs(_calibrationTimes[i] - SECONDS_PER_BEAT * i);
+                double diff = Math.Abs(_calibrationTimes[i] - SECONDS_PER_BEAT * i);
 
                 // Look forwards
                 for (int j = 1;; j++)
                 {
-                    float newDiff = Mathf.Abs(_calibrationTimes[i] - SECONDS_PER_BEAT * (i + j));
+                    double newDiff = Math.Abs(_calibrationTimes[i] - SECONDS_PER_BEAT * (i + j));
                     if (newDiff < diff)
                     {
                         diff = newDiff;
@@ -197,7 +199,7 @@ namespace YARG.Menu.Calibrator
                 // Look backwards
                 for (int j = 1;; j++)
                 {
-                    float newDiff = Mathf.Abs(_calibrationTimes[i] - SECONDS_PER_BEAT * (i - j));
+                    double newDiff = Math.Abs(_calibrationTimes[i] - SECONDS_PER_BEAT * (i - j));
                     if (newDiff < diff)
                     {
                         diff = newDiff;
@@ -214,10 +216,10 @@ namespace YARG.Menu.Calibrator
             // Get the median
             diffs.Sort();
             int mid = diffs.Count / 2;
-            float median = diffs.Count % 2 != 0 ? diffs[mid] : (diffs[mid] + diffs[mid - 1]) / 2f;
+            double median = diffs.Count % 2 != 0 ? diffs[mid] : (diffs[mid] + diffs[mid - 1]) / 2f;
 
             // Set calibration
-            int calibration = Mathf.RoundToInt(median * 1000f) - GlobalAudioHandler.PlaybackLatency;
+            int calibration = (int)Math.Round(median * 1000) - GlobalAudioHandler.PlaybackLatency;
             SettingsManager.Settings.AudioCalibration.Value = calibration;
 
             // Set text
@@ -243,10 +245,6 @@ namespace YARG.Menu.Calibrator
             yield return new WaitUntil(() => _mixer.GetPosition() >= SECONDS_PER_BEAT * 3f);
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "4";
-
-            yield return new WaitUntil(() => _mixer.GetPosition() >= _mixer.Length);
-            _state = State.AudioDone;
-            UpdateForState();
         }
 
         public void StartAudioMode()
@@ -266,6 +264,12 @@ namespace YARG.Menu.Calibrator
                 _state = State.Starting;
                 UpdateForState();
             }
+        }
+
+        private void OnAudioEnd()
+        {
+            _state = State.AudioDone;
+            UpdateForState();
         }
     }
 }
