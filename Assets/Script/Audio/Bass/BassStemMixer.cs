@@ -69,10 +69,10 @@ namespace YARG.Audio.BASS
             return 0;
         }
 
-        protected override void FadeIn_Internal(float maxVolume, double duration)
+        protected override void FadeIn_Internal(double maxVolume, double duration)
         {
-            maxVolume = (float) BassAudioManager.ExponentialVolume(maxVolume);
-            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, maxVolume, (int) (duration * SongEntry.MILLISECOND_FACTOR));
+            float scaled = (float) BassAudioManager.ExponentialVolume(maxVolume);
+            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, scaled, (int) (duration * SongEntry.MILLISECOND_FACTOR));
         }
 
         protected override void FadeOut_Internal(double duration)
