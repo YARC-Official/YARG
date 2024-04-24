@@ -107,7 +107,7 @@ namespace YARG.Settings
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring   { get; } = new(0.7f, VocalMonitoringCallback);
 
-            public ToggleSetting EnablePlaybackBuffer { get; } = new(true, TogglePlaybackBufferCallback);
+            public ToggleSetting EnablePlaybackBuffer { get; } = new(true, GlobalAudioHandler.TogglePlaybackBuffer);
 
             public IntSetting PlaybackBufferLength { get; }
                 = new(75, GlobalAudioHandler.MinimumBufferLength, GlobalAudioHandler.MaximumBufferLength, GlobalAudioHandler.SetBufferLength);
@@ -410,11 +410,6 @@ namespace YARG.Settings
             private static void MusicPlayerVolumeCallback(float volume)
             {
                 HelpBar.Instance.MusicPlayer.UpdateVolume(volume);
-            }
-
-            private static void TogglePlaybackBufferCallback(bool value)
-            {
-                GlobalAudioHandler.SetBufferLength(value ? Settings.PlaybackBufferLength.Value : 0);
             }
 
             // private static void UseWhammyFxChange(bool value)

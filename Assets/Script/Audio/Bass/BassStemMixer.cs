@@ -49,7 +49,7 @@ namespace YARG.Audio.BASS
             _mixerHandle = handle;
             _sourceStream = sourceStream;
             SetVolume_Internal(volume);
-            SetBufferLength_Internal(Bass.PlaybackBufferLength);
+            _BufferSetter(Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value, Bass.PlaybackBufferLength);
         }
 
         protected override int Play_Internal(bool restartBuffer)
@@ -103,6 +103,11 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to get channel position in seconds: {0}", Bass.LastError);
                 return -1;
+            }
+
+            if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
+            {
+                seconds -= Bass.PlaybackBufferLength / 1000.0f;
             }
             return seconds;
         }
@@ -285,11 +290,26 @@ namespace YARG.Audio.BASS
             return true;
         }
 
+        protected override void ToggleBuffer_Internal(bool enable)
+        {
+            _BufferSetter(enable, Bass.PlaybackBufferLength);
+        }
+
         protected override void SetBufferLength_Internal(int length)
         {
+            _BufferSetter(Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value, length);
+        }
+
+        private void _BufferSetter(bool enable, int length)
+        {
+            if (!enable)
+            {
+                length = 0;
+            }
+
             if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Buffer, length))
             {
-                YargLogger.LogFormatError("Failed to remove playback buffer: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to set playback buffer: {0}!", Bass.LastError);
             }
         }
 

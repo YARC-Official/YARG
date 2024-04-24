@@ -300,6 +300,11 @@ namespace YARG.Audio.BASS
             Bass.GlobalSampleVolume = (int) (10_000 * volume);
         }
 
+        protected override void ToggleBuffer_Internal(bool enable)
+        {
+            // Nothing
+        }
+
         protected override void SetBufferLength_Internal(int length)
         {
             Bass.PlaybackBufferLength = length;
