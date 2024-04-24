@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -58,6 +58,8 @@ namespace YARG.Settings
             {
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
+
+            public ToggleSetting ConnectFirstProfile { get; } = new(false);
 
             public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);

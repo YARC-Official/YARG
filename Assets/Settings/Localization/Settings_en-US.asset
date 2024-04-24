@@ -1401,6 +1401,14 @@ MonoBehaviour:
     m_Localized: Apply Volume Settings to Music Library Previews
     m_Metadata:
       m_Items: []
+  - m_Id: 143159070345560064
+    m_Localized: Auto Connect First Profile
+    m_Metadata:
+      m_Items: []
+  - m_Id: 143159214566703104
+    m_Localized: On YARG lauch, automatically connect first profile in list.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

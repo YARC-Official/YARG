@@ -1251,6 +1251,14 @@ MonoBehaviour:
     m_Key: Setting.ApplyVolumesInMusicLibrary
     m_Metadata:
       m_Items: []
+  - m_Id: 143159070345560064
+    m_Key: Setting.ConnectFirstProfile
+    m_Metadata:
+      m_Items: []
+  - m_Id: 143159214566703104
+    m_Key: Setting.ConnectFirstProfile.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

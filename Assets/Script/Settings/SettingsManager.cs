@@ -30,6 +30,7 @@ namespace YARG.Settings
                 nameof(Settings.DisablePerSongBackgrounds),
 
                 new HeaderMetadata("Other"),
+                nameof(Settings.ConnectFirstProfile),
                 nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.KickBounceMultiplier),
                 nameof(Settings.ShowCursorTimer),
