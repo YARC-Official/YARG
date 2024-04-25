@@ -1251,6 +1251,14 @@ MonoBehaviour:
     m_Key: Setting.ApplyVolumesInMusicLibrary
     m_Metadata:
       m_Items: []
+  - m_Id: 142611703768539136
+    m_Key: Setting.UpcomingLyricsTime
+    m_Metadata:
+      m_Items: []
+  - m_Id: 142611793451147264
+    m_Key: Setting.UpcomingLyricsTime.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

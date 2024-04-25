@@ -96,6 +96,7 @@ namespace YARG.Settings
                 nameof(Settings.DisableTextNotifications),
                 nameof(Settings.NoteStreakFrequency),
                 nameof(Settings.LyricDisplay),
+                nameof(Settings.UpcomingLyricsTime),
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox),
                 nameof(Settings.KeepSongInfoVisible)
