@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Mix;
-using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
@@ -303,8 +303,12 @@ namespace YARG.Audio.BASS
             }
 
             long fadeOutBytes = Bass.ChannelSeconds2Bytes(_mainHandle.Stream, end - fadeDuration);
-            _loopHandles[1] = Bass.ChannelSetSync(_mainHandle.Stream, SyncFlags.Position, fadeOutBytes, (int _, int __, int ___, IntPtr ____) =>
+            _loopHandles[1] = Bass.ChannelSetSync(_mainHandle.Stream, SyncFlags.Position, fadeOutBytes, async (int _, int __, int ___, IntPtr ____) =>
             {
+                if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(Bass.PlaybackBufferLength));
+                }
                 FadeOut_Internal(fadeDuration);
             });
             if (_loopHandles[1] == 0)
@@ -314,8 +318,12 @@ namespace YARG.Audio.BASS
             }
 
             long seekBytes = Bass.ChannelSeconds2Bytes(_mainHandle.Stream, end);
-            _loopHandles[2] = Bass.ChannelSetSync(_mainHandle.Stream, SyncFlags.Position, seekBytes, (int _, int __, int ___, IntPtr ____) =>
+            _loopHandles[2] = Bass.ChannelSetSync(_mainHandle.Stream, SyncFlags.Position, seekBytes, async (int _, int __, int ___, IntPtr ____) =>
             {
+                if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(Bass.PlaybackBufferLength));
+                }
                 LoopFunc();
             });
             if (_loopHandles[2] == 0)
