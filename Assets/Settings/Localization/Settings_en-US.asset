@@ -1406,12 +1406,12 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 141517638145044480
-    m_Localized: Customization
+    m_Localized: Buffer Customization
     m_Metadata:
       m_Items: []
   - m_Id: 141517716490448896
-    m_Localized: Larger values lower the chance for hearing cracks during stutters
-      on lower-end computers, but produce higher latency
+    m_Localized: Larger values lower the chance for hearing cracks during stutters,
+      but produce higher latency for special effects
     m_Metadata:
       m_Items: []
   - m_Id: 141518416825970688
@@ -1423,7 +1423,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 141825994697109504
-    m_Localized: Decodes audio data ahead of time
+    m_Localized: Decodes audio data ahead of time in chunks
     m_Metadata:
       m_Items: []
   references:
