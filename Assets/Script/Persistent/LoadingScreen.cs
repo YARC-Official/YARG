@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
+using YARG.Player;
 using YARG.Song;
 
 namespace YARG
@@ -32,6 +35,25 @@ namespace YARG
 
             // Fast scan (cache read) on startup
             await SongContainer.RunRefresh(true, context);
+
+            // Try to auto connect any non-bot profile that has the option selected.
+            foreach (var profile in PlayerContainer.Profiles
+                .Where(p => !p.IsBot && p.AutoConnect))
+            {
+                ConnectToProfile(profile);
+            }
+        }
+
+        private static void ConnectToProfile(YargProfile profile)
+        {
+            // Create player from profile
+            var player = PlayerContainer.CreatePlayerFromProfile(profile, true);
+            // If we not were successful in creating a player
+            if (player is null || player.Bindings.Empty)
+            {
+                // Then something went wrong, we were unable to connect to the profile.
+                ToastManager.ToastWarning($"Unable to connect to profile {profile.Name}.");
+            }
         }
     }
 
