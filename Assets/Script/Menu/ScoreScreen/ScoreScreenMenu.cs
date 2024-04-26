@@ -41,9 +41,7 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private VocalsScoreCard _vocalsCardPrefab;
 
-        // "The Unity message 'OnEnable' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
-        private async UniTaskVoid OnEnable()
+        private void OnEnable()
         {
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -83,7 +81,7 @@ namespace YARG.Menu.ScoreScreen
             CreateScoreCards(scoreScreenStats);
 
             // Set the icon. This is async, so we have to do it last so everything loads in.
-            _sourceIcon.sprite = await SongSources.SourceToIcon(song.Source);
+            _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
         }
 
         private void OnDisable()

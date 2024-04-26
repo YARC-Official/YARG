@@ -59,7 +59,7 @@ namespace YARG.Gameplay.HUD
             _menus = children.ToDictionary(i => i.Menu, i => i);
         }
 
-        private async void Start()
+        private void Start()
         {
             // Set text info
             _albumText.text = GameManager.Song.Album;
@@ -68,7 +68,7 @@ namespace YARG.Gameplay.HUD
             _sourceText.text = SongSources.SourceToGameName(GameManager.Song.Source);
 
             // Set source icon
-            _sourceIcon.sprite = await SongSources.SourceToIcon(GameManager.Song.Source);
+            _sourceIcon.sprite = SongSources.SourceToIcon(GameManager.Song.Source);
 
             // Set album cover
             _albumCover.LoadAlbumCover(GameManager.Song, CancellationToken.None);

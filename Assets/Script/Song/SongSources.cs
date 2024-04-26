@@ -50,26 +50,19 @@ namespace YARG.Song
 
         public class ParsedSource
         {
-            private const string RAW_ICON_URL =
-                "https://raw.githubusercontent.com/YARC-Official/OpenSource/master/";
-
             private readonly string _icon;
             private readonly Dictionary<string, string> _names;
+            private Sprite? _sprite;
 
-            public SourceType Type { get; private set; }
-            public string IconURL { get; private set; }
+            public readonly SourceType Type;
 
-            private bool _isLoadingIcon;
-            private Sprite _iconCache;
+            public Sprite? Sprite => _sprite;
 
-            public ParsedSource(string icon, Dictionary<string, string> names, SourceType type, bool isFromBase)
+            public ParsedSource(string icon, Dictionary<string, string> names, SourceType type)
             {
                 _icon = icon;
                 _names = names;
                 Type = type;
-                IconURL = isFromBase
-                    ? RAW_ICON_URL + $"base/icons/{_icon}.png"
-                    : RAW_ICON_URL + $"extra/icons/{_icon}.png";
             }
 
             public string GetDisplayName()
@@ -77,52 +70,41 @@ namespace YARG.Song
                 return _names["en-US"];
             }
 
-            public async UniTask<Sprite> GetIcon()
+            public async void LoadSprite()
             {
-                if (_iconCache != null)
+                if (_sprite != null)
                 {
-                    return _iconCache;
+                    return;
                 }
 
-                if (_isLoadingIcon)
+                // Look for the icon file in the different folders
+                Texture2D? texture = null;
+                foreach (var root in SourceRoots)
                 {
-                    await UniTask.WaitUntil(() => !_isLoadingIcon);
-                }
-                else
-                {
-                    _isLoadingIcon = true;
-
-                    // Look for the icon file in the different folders
-                    Texture2D? texture = null;
-                    foreach (var root in SourceRoots)
+                    string path = Path.Combine(root, $"{_icon}.png");
+                    if (File.Exists(path))
                     {
-                        string path = Path.Combine(root, $"{_icon}.png");
-                        if (File.Exists(path))
+                        using var image = await UniTask.RunOnThreadPool(() => YARGImage.Load(path));
+                        if (image == null)
                         {
-                            using var image = YARGImage.Load(path);
-                            if (image == null)
-                            {
-                                YargLogger.LogFormatWarning("Failed to load source icon `{0}`!", path);
-                                return null;
-                            }
-                            texture = image.LoadTexture(true);
-                            texture.mipMapBias = -0.5f;
-                            break;
+                            YargLogger.LogFormatWarning("Failed to load source icon `{0}`!", path);
+                            return;
                         }
+                        texture = image.LoadTexture(true);
+                        texture.mipMapBias = -0.5f;
+                        break;
                     }
-
-                    if (texture == null)
-                    {
-                        YargLogger.LogFormatWarning("Failed to find source icon `{0}`! Does it exist?", _icon);
-                        return null;
-                    }
-
-                    _iconCache = Sprite.Create(texture,
-                        new Rect(0, 0, texture.width, -texture.height),
-                        new Vector2(0.5f, 0.5f));
-                    _isLoadingIcon = false;
                 }
-                return _iconCache;
+
+                if (texture == null)
+                {
+                    YargLogger.LogFormatWarning("Failed to find source icon `{0}`! Does it exist?", _icon);
+                    return;
+                }
+
+                _sprite = Sprite.Create(texture,
+                    new Rect(0, 0, texture.width, -texture.height),
+                    new Vector2(0.5f, 0.5f));
             }
         }
 
@@ -160,16 +142,31 @@ namespace YARG.Song
 
         public static async UniTask LoadSources(LoadingContext context)
         {
+            context.SetLoadingText("Loading song sources...");
             if (!GlobalVariables.OfflineMode)
             {
                 await DownloadSources(context);
             }
 
             context.SetSubText("Reading sources...");
-            await UniTask.RunOnThreadPool(ReadSources);
+            ReadSources();
         }
 
-        public static async UniTask DownloadSources(LoadingContext context)
+        public static void LoadSprites(LoadingContext context)
+        {
+            context.SetLoadingText("Loading source icons...");
+
+            _default.LoadSprite();
+            foreach (var node in SongContainer.Sources)
+            {
+                if (_sources.TryGetValue(node.Key, out var source))
+                {
+                    source.LoadSprite();
+                }
+            }
+        }
+
+        private static async UniTask DownloadSources(LoadingContext context)
         {
             // Create the sources folder if it doesn't exist
             Directory.CreateDirectory(SourcesFolder);
@@ -294,12 +291,11 @@ namespace YARG.Song
                             "rb" => SourceType.RB,
                             "gh" => SourceType.GH,
                             _ => SourceType.Custom
-                        }, sources.type == "base");
+                        });
 
                         foreach (var id in source.ids)
                         {
-                            _sources.Add(id, parsed);
-                            if (id == DEFAULT_KEY)
+                            if (_sources.TryAdd(id, parsed) && id == DEFAULT_KEY)
                             {
                                 _default = parsed;
                             }
@@ -328,7 +324,7 @@ namespace YARG.Song
             _default = new ParsedSource("custom", new()
             {
                 { "en-US", "Unknown" }
-            }, SourceType.Custom, true);
+            }, SourceType.Custom);
             _sources.Add(DEFAULT_KEY, _default);
         }
 
@@ -348,6 +344,6 @@ namespace YARG.Song
 
         public static string SourceToGameName(in SortString id) => GetSourceOrDefault(in id).GetDisplayName();
 
-        public static async UniTask<Sprite> SourceToIcon(SortString id) => await GetSourceOrDefault(in id).GetIcon();
+        public static Sprite SourceToIcon(string id) => GetSourceOrDefault(id).Sprite;
     }
 }

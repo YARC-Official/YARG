@@ -37,12 +37,10 @@ namespace YARG.Menu.History
             return FormatAs(_replayEntry.ArtistName, TextType.Secondary, selected);
         }
 
-        public override async UniTask<Sprite> GetIcon()
+        public override Sprite GetIcon()
         {
-            // TODO: Show "song missing" icon instead
-            if (_songEntry is null) return null;
-
-            return await SongSources.SourceToIcon(_songEntry.Source);
+            // TODO: Show "song missing" icon instead when _songEntry is null
+            return _songEntry != null ? SongSources.SourceToIcon(_songEntry.Source) : null;
         }
 
         public override void ViewClick()

@@ -27,6 +27,7 @@ namespace YARG.Menu.Settings
         {
             using var context = new LoadingContext();
             await SongContainer.RunRefresh(false, context);
+            SongSources.LoadSprites(context);
             SettingsMenu.Instance.RefreshAndKeepPosition();
         }
 

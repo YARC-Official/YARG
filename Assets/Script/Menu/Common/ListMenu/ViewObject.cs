@@ -61,7 +61,7 @@ namespace YARG.Menu.ListMenu
                 _iconCancellationToken.Cancel();
             }
             _iconCancellationToken = new CancellationTokenSource();
-            SetIcon(viewType, _iconCancellationToken.Token).Forget();
+            SetIcon(viewType, _iconCancellationToken.Token);
         }
 
         public virtual void Hide()
@@ -103,13 +103,13 @@ namespace YARG.Menu.ListMenu
             }
         }
 
-        private async UniTask SetIcon(TViewType type, CancellationToken token)
+        private void SetIcon(TViewType type, CancellationToken token)
         {
             _icon.gameObject.SetActive(false);
 
             try
             {
-                var icon = await type.GetIcon();
+                var icon = type.GetIcon();
 
                 token.ThrowIfCancellationRequested();
 

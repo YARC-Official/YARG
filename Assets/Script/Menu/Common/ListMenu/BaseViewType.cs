@@ -27,9 +27,9 @@ namespace YARG.Menu.ListMenu
         public abstract string GetPrimaryText(bool selected);
         public abstract string GetSecondaryText(bool selected);
 
-        public virtual UniTask<Sprite> GetIcon()
+        public virtual Sprite? GetIcon()
         {
-            return UniTask.FromResult<Sprite>(null);
+            return null;
         }
 
         public virtual void IconClick()

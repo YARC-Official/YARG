@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -7,21 +8,25 @@ namespace YARG.Menu.MusicLibrary
 {
     public class ButtonViewType : ViewType
     {
+        private static readonly Dictionary<int, Sprite> SPRITES = new();
         public override BackgroundType Background => BackgroundType.Category;
 
-        public int Id { get; }
+        public readonly int ID;
 
         private readonly string _text;
-        private readonly string _iconPath;
         private readonly Action _buttonAction;
+        private readonly Sprite _sprite;
 
         public ButtonViewType(string text, string iconPath, Action buttonAction, int id = -1)
         {
             _text = text;
-            _iconPath = iconPath;
             _buttonAction = buttonAction;
+            ID = id;
 
-            Id = id;
+            if (!SPRITES.TryGetValue(id, out _sprite))
+            {
+                SPRITES.Add(id, _sprite = Addressables.LoadAssetAsync<Sprite>(iconPath).WaitForCompletion());
+            }
         }
 
         public override string GetPrimaryText(bool selected)
@@ -29,14 +34,14 @@ namespace YARG.Menu.MusicLibrary
             return FormatAs(_text, TextType.Bright, selected);
         }
 
-        public override async UniTask<Sprite> GetIcon()
+        public override Sprite GetIcon()
         {
-            return await Addressables.LoadAssetAsync<Sprite>(_iconPath).ToUniTask();
+            return _sprite;
         }
 
         public override void PrimaryButtonClick()
         {
-            _buttonAction?.Invoke();
+            _buttonAction.Invoke();
         }
     }
 }
