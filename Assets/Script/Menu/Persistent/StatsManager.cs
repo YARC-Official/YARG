@@ -12,9 +12,9 @@ namespace YARG.Menu.Persistent
 {
     public class StatsManager : MonoSingleton<StatsManager>
     {
-        private const float BatteryCriticalLowThreshold = 10;
-        private const float BatteryLowMediumThreshold = 40;
-        private const float BatteryMediumFullThreshold = 90;
+        private const float BATTERY_CRITICAL_LOW_THRESHOLD = 10;
+        private const float BATTERY_LOW_MEDIUM_THRESHOLD = 40;
+        private const float BATTERY_MEDIUM_FULL_THRESHOLD = 90;
 
         public enum Stat
         {
@@ -225,9 +225,9 @@ namespace YARG.Menu.Persistent
             // Set battery icon.
             _batteryIcon.sprite = battery switch
             {
-                >= BatteryMediumFullThreshold => _batterySpriteFull,
-                >= BatteryLowMediumThreshold => _batterySpriteMedium,
-                >= BatteryCriticalLowThreshold => _batterySpriteLow,
+                >= BATTERY_MEDIUM_FULL_THRESHOLD => _batterySpriteFull,
+                >= BATTERY_LOW_MEDIUM_THRESHOLD => _batterySpriteMedium,
+                >= BATTERY_CRITICAL_LOW_THRESHOLD => _batterySpriteLow,
                 _ => _batterySpriteCritical
             };
         }
