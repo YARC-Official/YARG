@@ -1,21 +1,26 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Profiling;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace YARG.Menu.Persistent
 {
     public class StatsManager : MonoSingleton<StatsManager>
     {
+        private const float BatteryCriticalLowThreshold = 10;
+        private const float BatteryLowMediumThreshold = 40;
+        private const float BatteryMediumFullThreshold = 90;
+
         public enum Stat
         {
             FPS,
-            Memory
+            Memory,
+            Time,
+            Battery
         }
 
         [SerializeField]
@@ -30,6 +35,30 @@ namespace YARG.Menu.Persistent
         private GameObject _memoryStats;
         [SerializeField]
         private TextMeshProUGUI _memoryText;
+
+        [Space]
+        [SerializeField]
+        private GameObject _time;
+        [SerializeField]
+        private TextMeshProUGUI _timeText;
+
+        [Space]
+        [SerializeField]
+        private GameObject _battery;
+        [SerializeField]
+        private Image _batteryIcon;
+        [SerializeField]
+        private TextMeshProUGUI _batteryText;
+
+        [Space]
+        [SerializeField]
+        private Sprite _batterySpriteFull;
+        [SerializeField]
+        private Sprite _batterySpriteMedium;
+        [SerializeField]
+        private Sprite _batterySpriteLow;
+        [SerializeField]
+        private Sprite _batterySpriteCritical;
 
         [Space]
         [SerializeField]
@@ -58,15 +87,17 @@ namespace YARG.Menu.Persistent
 #else
             SetShowing(Stat.Memory, false);
 #endif
-}
+        }
 
         private GameObject GetStat(Stat stat)
         {
             return stat switch
             {
-                Stat.FPS    => _fpsCounter,
-                Stat.Memory => _memoryStats,
-                _           => throw new Exception("Unreachable.")
+                Stat.FPS     => _fpsCounter,
+                Stat.Memory  => _memoryStats,
+                Stat.Time    => _time,
+                Stat.Battery => _battery,
+                _            => throw new Exception("Unreachable.")
             };
         }
 
@@ -87,8 +118,15 @@ namespace YARG.Menu.Persistent
             // Wait for next update period
             if (Time.unscaledTime < _nextUpdateTime) return;
 
+            // Check if battery is discharging and we get a valid level.
+            var showBattery = SystemInfo.batteryStatus == BatteryStatus.Discharging
+                && SystemInfo.batteryLevel is >= 0 and <= 1;
+            SetShowing(Stat.Battery, showBattery);
+
             UpdateFpsCounter();
             UpdateMemoryStats();
+            UpdateTime();
+            UpdateBattery();
 
             // Reset the update time
             _nextUpdateTime = Time.unscaledTime + _updateRate;
@@ -172,6 +210,30 @@ namespace YARG.Menu.Persistent
             // Gigabytes
             float gigaBytes = megaBytes / UNIT_FACTOR;
             return (gigaBytes, "GB");
+        }
+
+        private void UpdateTime()
+        {
+            var time = DateTime.Now.ToShortTimeString();
+            _timeText.SetText(time);
+        }
+
+        private void UpdateBattery()
+        {
+            if (!IsShowing(Stat.Battery)) return;
+
+            // Show battery percentage.
+            var battery = SystemInfo.batteryLevel * 100;
+            _batteryText.SetText($"{battery:F0}%");
+
+            // Set battery icon.
+            _batteryIcon.sprite = battery switch
+            {
+                >= BatteryMediumFullThreshold => _batterySpriteFull,
+                >= BatteryLowMediumThreshold => _batterySpriteMedium,
+                >= BatteryCriticalLowThreshold => _batterySpriteLow,
+                _ => _batterySpriteCritical
+            };
         }
     }
 }
