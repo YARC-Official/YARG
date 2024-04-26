@@ -82,12 +82,6 @@ namespace YARG.Menu.Persistent
         protected override void SingletonAwake()
         {
             _screenRefreshRate = Screen.currentResolution.refreshRate;
-
-#if UNITY_EDITOR
-            SetShowing(Stat.Memory, true);
-#else
-            SetShowing(Stat.Memory, false);
-#endif
         }
 
         private GameObject GetStat(Stat stat)
