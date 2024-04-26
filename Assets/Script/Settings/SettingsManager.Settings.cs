@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -61,6 +61,9 @@ namespace YARG.Settings
 
             public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
+
+            public ToggleSetting ShowBattery { get; } = new(false);
+            public ToggleSetting ShowTime { get; } = new(false, ShowTimeCallback);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public SliderSetting KickBounceMultiplier      { get; } = new(1f, 0f, 2f);
@@ -274,6 +277,11 @@ namespace YARG.Settings
             #endregion
 
             #region Callbacks
+
+            private static void ShowTimeCallback(bool value)
+            {
+                StatsManager.Instance.SetShowing(StatsManager.Stat.Time, value);
+            }
 
             private static void StageKitEnabledCallback(bool value)
             {

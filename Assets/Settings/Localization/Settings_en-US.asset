@@ -1426,6 +1426,22 @@ MonoBehaviour:
     m_Localized: Decodes audio data ahead of time in chunks
     m_Metadata:
       m_Items: []
+  - m_Id: 144061360606707712
+    m_Localized: Show Time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061415640170496
+    m_Localized: Show current time on Status Bar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061522095800320
+    m_Localized: Show Battery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061567792742400
+    m_Localized: Show battery level on Status Bar (if battery is currently discharging)
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

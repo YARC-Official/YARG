@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
+using YARG.Settings;
 
 namespace YARG.Menu.Persistent
 {
@@ -119,7 +120,8 @@ namespace YARG.Menu.Persistent
             if (Time.unscaledTime < _nextUpdateTime) return;
 
             // Check if battery is discharging and we get a valid level.
-            var showBattery = SystemInfo.batteryStatus == BatteryStatus.Discharging
+            var showBattery = SettingsManager.Settings.ShowBattery.Value
+                && SystemInfo.batteryStatus == BatteryStatus.Discharging
                 && SystemInfo.batteryLevel is >= 0 and <= 1;
             SetShowing(Stat.Battery, showBattery);
 
