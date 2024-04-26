@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -77,6 +78,7 @@ namespace YARG.Menu.MusicLibrary
         private double _previewDelay;
 
         private SongEntry _currentSong;
+        private Coroutine _searchCoroutine;
 
         private List<int> _sectionHeaderIndices = new();
         private List<HoldContext> _heldInputs = new();
@@ -142,7 +144,8 @@ namespace YARG.Menu.MusicLibrary
             }
             else if (_currentSong != null)
             {
-                UpdateSearch(true);
+                if (_searchCoroutine != null) StopCoroutine(_searchCoroutine);
+                _searchCoroutine = StartCoroutine(UpdateSearch(true, true));
             }
 
             CurrentlyPlaying = null;
@@ -369,16 +372,24 @@ namespace YARG.Menu.MusicLibrary
         private void Refresh()
         {
             SetRecommendedSongs();
-            _searchField.ClearList();
-            UpdateSearch(true);
+            if (_searchCoroutine != null) StopCoroutine(_searchCoroutine);
+            _searchCoroutine = StartCoroutine(UpdateSearch(true, true));
         }
 
         private void UpdateSearch(bool force)
         {
+            if (_searchCoroutine != null) StopCoroutine(_searchCoroutine);
+            _searchCoroutine = StartCoroutine(UpdateSearch(force, false));
+        }
+
+        private IEnumerator UpdateSearch(bool force, bool refresh)
+        {
             if (!force && _searchField.IsCurrentSearchInField)
             {
-                return;
+                yield break;
             }
+
+            yield return new WaitForSeconds(0.05f);
 
             if (SelectedPlaylist is null)
             {

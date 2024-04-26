@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using RapidFuzz.Net;
 using YARG.Core;
 using YARG.Core.Song;
 using YARG.Player;
@@ -279,70 +280,41 @@ namespace YARG.Song
             public readonly SongEntry Song;
             public readonly int Rank;
 
-            private readonly int NameIndex;
-            private readonly int ArtistIndex;
-
             public UnspecifiedSortNode(SongEntry song, string argument)
             {
                 Song = song;
-                NameIndex = song.Name.SortStr.IndexOf(argument, StringComparison.Ordinal);
-                ArtistIndex = song.Artist.SortStr.IndexOf(argument, StringComparison.Ordinal);
 
-                Rank = NameIndex;
-                if (Rank < 0 || (ArtistIndex >= 0 && ArtistIndex < Rank))
-                {
-                    Rank = ArtistIndex;
-                }
+                var songName = song.Name.SortStr;
+                var artistName = song.Artist.SortStr;
+
+                var nameLengthDiff = songName.Length - argument.Length;
+                var nameLengthDiffMult = argument.Length > songName.Length ? 1.0 - Math.Abs(nameLengthDiff)/100.0 : 1.0;
+                var nameRank = FuzzyMatcher.PartialRatio(argument, songName) * nameLengthDiffMult;
+
+                var artistLengthDiff = artistName.Length - argument.Length;
+                var artistLengthDiffMult = argument.Length > artistName.Length ? 1.0 - Math.Abs(artistLengthDiff)/100.0 : 1.0;
+                var artistRank = FuzzyMatcher.PartialRatio(argument, artistName) * artistLengthDiffMult;
+
+                Rank = (int)Math.Floor(Math.Max(nameRank, artistRank));
             }
 
             public int CompareTo(UnspecifiedSortNode other)
             {
-                if (Rank != other.Rank)
-                {
-                    return Rank - other.Rank;
-                }
-
-                if (NameIndex >= 0)
-                {
-                    if (other.NameIndex < 0)
-                    {
-                        // Prefer Name to Artist for equality
-                        // other.ArtistIndex guaranteed valid
-                        return NameIndex <= other.ArtistIndex ? -1 : 1;
-                    }
-
-                    if (NameIndex != other.NameIndex)
-                    {
-                        return NameIndex - other.NameIndex;
-                    }
-                    return Song.Name.CompareTo(other.Song.Name);
-                }
-
-                // this.ArtistIndex guaranteed valid from this point
-
-                if (other.NameIndex >= 0)
-                {
-                    return ArtistIndex < other.NameIndex ? -1 : 1;
-                }
-
-                // other.ArtistIndex guaranteed valid from this point
-
-                if (ArtistIndex != other.ArtistIndex)
-                {
-                    return ArtistIndex - other.ArtistIndex;
-                }
-                return Song.Artist.CompareTo(other.Song.Artist);
+                return other.Rank - Rank;
             }
         }
 
         private static List<SongCategory> UnspecifiedSearch(IReadOnlyList<SongEntry> songs, string argument)
         {
             var nodes = new UnspecifiedSortNode[songs.Count];
+
             Parallel.For(0, songs.Count, i => nodes[i] = new UnspecifiedSortNode(songs[i], argument));
+
             var results = nodes
-                .Where(node => node.Rank >= 0)
+                .Where(node => node.Rank >= 65)
                 .OrderBy(i => i)
                 .Select(i => i.Song).ToList();
+
             return new() { new SongCategory("Search Results", results) };
         }
 
