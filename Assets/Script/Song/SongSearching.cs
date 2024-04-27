@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -280,27 +280,39 @@ namespace YARG.Song
             public readonly SongEntry Song;
             public readonly int Rank;
 
+            private readonly Dictionary<SongAttribute, double> _ranks = new();
+
             public UnspecifiedSortNode(SongEntry song, string argument)
             {
                 Song = song;
 
                 var songName = song.Name.SortStr;
                 var artistName = song.Artist.SortStr;
+                var charterName = song.Charter.SortStr;
 
-                var nameLengthDiff = songName.Length - argument.Length;
-                var nameLengthDiffMult = argument.Length > songName.Length ? 1.0 - Math.Abs(nameLengthDiff)/100.0 : 1.0;
-                var nameRank = FuzzyMatcher.PartialRatio(argument, songName) * nameLengthDiffMult;
+                var songNameLength = songName.Length - argument.Length;
+                var nameMult = argument.Length > songName.Length ? 1.0 - Math.Abs(songNameLength)/100.0 : 1.0;
+                _ranks.Add(SongAttribute.Name, FuzzyMatcher.PartialRatio(argument, songName) * nameMult);
 
-                var artistLengthDiff = artistName.Length - argument.Length;
-                var artistLengthDiffMult = argument.Length > artistName.Length ? 1.0 - Math.Abs(artistLengthDiff)/100.0 : 1.0;
-                var artistRank = FuzzyMatcher.PartialRatio(argument, artistName) * artistLengthDiffMult;
+                var artistNameLength = artistName.Length - argument.Length;
+                var artistMult = argument.Length > artistName.Length ? 1.0 - Math.Abs(artistNameLength)/100.0 : 1.0;
+                _ranks.Add(SongAttribute.Artist, FuzzyMatcher.PartialRatio(argument, artistName) * artistMult);
 
-                Rank = (int)Math.Floor(Math.Max(nameRank, artistRank));
+                var charterNameLength = charterName.Length - argument.Length;
+                var charterMult = argument.Length > charterName.Length ? 1.0 - Math.Abs(charterNameLength)/100.0 : 1.0;
+                _ranks.Add(SongAttribute.Charter, FuzzyMatcher.PartialRatio(argument, charterName) * charterMult);
+
+                Rank = (int)Math.Floor(_ranks.Values.Max());
             }
 
             public int CompareTo(UnspecifiedSortNode other)
             {
-                return other.Rank - Rank;
+                if (Rank != other.Rank)
+                {
+                    return Rank - other.Rank;
+                }
+
+                return -string.Compare(Song.Name.Str, other.Song.Name.Str, StringComparison.Ordinal);
             }
         }
 
@@ -312,7 +324,7 @@ namespace YARG.Song
 
             var results = nodes
                 .Where(node => node.Rank >= 65)
-                .OrderBy(i => i)
+                .OrderByDescending(i => i)
                 .Select(i => i.Song).ToList();
 
             return new() { new SongCategory("Search Results", results) };

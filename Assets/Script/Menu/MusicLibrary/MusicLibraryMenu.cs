@@ -144,7 +144,11 @@ namespace YARG.Menu.MusicLibrary
             }
             else if (_currentSong != null)
             {
-                if (_searchCoroutine != null) StopCoroutine(_searchCoroutine);
+                if (_searchCoroutine != null)
+                {
+                    StopCoroutine(_searchCoroutine);
+                }
+
                 _searchCoroutine = StartCoroutine(UpdateSearch(true, true));
             }
 
@@ -372,13 +376,21 @@ namespace YARG.Menu.MusicLibrary
         private void Refresh()
         {
             SetRecommendedSongs();
-            if (_searchCoroutine != null) StopCoroutine(_searchCoroutine);
+            if (_searchCoroutine != null)
+            {
+                StopCoroutine(_searchCoroutine);
+            }
+
             _searchCoroutine = StartCoroutine(UpdateSearch(true, true));
         }
 
         private void UpdateSearch(bool force)
         {
-            if (_searchCoroutine != null) StopCoroutine(_searchCoroutine);
+            if (_searchCoroutine != null)
+            {
+                StopCoroutine(_searchCoroutine);
+            }
+
             _searchCoroutine = StartCoroutine(UpdateSearch(force, false));
         }
 
