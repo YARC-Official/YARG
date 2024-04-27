@@ -155,8 +155,9 @@ namespace YARG.Audio.BASS
             LoadSfx();
 
             var info = Bass.Info;
-            PlaybackLatency = info.Latency + Bass.DeviceBufferLength +  devPeriod;
-            Bass.PlaybackBufferLength = info.MinBufferLength + 2 * Bass.UpdatePeriod;
+            PlaybackLatency = info.Latency + Bass.DeviceBufferLength + devPeriod;
+            MinimumBufferLength = info.MinBufferLength + Bass.UpdatePeriod;
+            MaximumBufferLength = 5000;
 
             YargLogger.LogInfo("BASS Successfully Initialized");
             YargLogger.LogFormatInfo("BASS: {0} - BASS.FX: {1} - BASS.Mix: {2}", Bass.Version, BassFx.Version, BassMix.Version);
@@ -297,6 +298,16 @@ namespace YARG.Audio.BASS
 #endif
             Bass.GlobalStreamVolume = (int) (10_000 * volume);
             Bass.GlobalSampleVolume = (int) (10_000 * volume);
+        }
+
+        protected override void ToggleBuffer_Internal(bool enable)
+        {
+            // Nothing
+        }
+
+        protected override void SetBufferLength_Internal(int length)
+        {
+            Bass.PlaybackBufferLength = length;
         }
 
         protected override void DisposeUnmanagedResources()

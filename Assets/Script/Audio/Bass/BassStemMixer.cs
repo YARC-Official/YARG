@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Mix;
-using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
@@ -13,6 +13,7 @@ namespace YARG.Audio.BASS
     {
         private readonly int _mixerHandle;
         private readonly int _sourceStream;
+        private readonly int[] _loopHandles = new int[3];
 
         private StreamHandle _mainHandle;
         private int _songEndHandle;
@@ -49,21 +50,30 @@ namespace YARG.Audio.BASS
             _mixerHandle = handle;
             _sourceStream = sourceStream;
             SetVolume_Internal(volume);
+            _BufferSetter(Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value, Bass.PlaybackBufferLength);
         }
 
-        protected override int Play_Internal(bool restart)
+        protected override int Play_Internal(bool restartBuffer)
         {
-            if (IsPaused && !Bass.ChannelPlay(_mixerHandle, restart))
+            if (!Bass.ChannelPlay(_mixerHandle, restartBuffer))
             {
                 return (int) Bass.LastError;
+            }
+
+            if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
+            {
+                if (!Bass.ChannelUpdate(_mixerHandle, Bass.PlaybackBufferLength))
+                {
+                    YargLogger.LogFormatError("Failed to fill playback buffer: {0}!", Bass.LastError);
+                }
             }
             return 0;
         }
 
-        protected override void FadeIn_Internal(float maxVolume, double duration)
+        protected override void FadeIn_Internal(double maxVolume, double duration)
         {
-            maxVolume = (float) BassAudioManager.ExponentialVolume(maxVolume);
-            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, maxVolume, (int) (duration * SongEntry.MILLISECOND_FACTOR));
+            float scaled = (float) BassAudioManager.ExponentialVolume(maxVolume);
+            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, scaled, (int) (duration * SongEntry.MILLISECOND_FACTOR));
         }
 
         protected override void FadeOut_Internal(double duration)
@@ -73,7 +83,7 @@ namespace YARG.Audio.BASS
 
         protected override int Pause_Internal()
         {
-            if (!IsPaused && !Bass.ChannelPause(_mixerHandle))
+            if (!Bass.ChannelPause(_mixerHandle))
             {
                 return (int) Bass.LastError;
             }
@@ -94,6 +104,16 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to get channel position in seconds: {0}", Bass.LastError);
                 return -1;
+            }
+
+            if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
+            {
+                seconds -= Bass.PlaybackBufferLength / 1000.0f;
+                // Gotta do this because ChannelBytes2Seconds() may not be less than the buffer at position 0
+                if (seconds < 0)
+                {
+                    seconds = 0;
+                }
             }
             return seconds;
         }
@@ -143,11 +163,7 @@ namespace YARG.Audio.BASS
 
             if (playing)
             {
-                if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
-                {
-                    YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
-                }
-                Play_Internal(false);
+                Play_Internal(true);
             }
         }
 
@@ -231,14 +247,14 @@ namespace YARG.Audio.BASS
         {
             if (!BassAudioManager.CreateSplitStreams(_sourceStream, indices, out var streamHandles, out var reverbHandles))
             {
-                YargLogger.LogFormatError("Failed to load stem {stem}: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to load stem {0}: {1}!", stem, Bass.LastError);
                 return false;
             }
 
             if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.MixerChanMatrix) ||
                 !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.MixerChanMatrix))
             {
-                YargLogger.LogFormatError("Failed to add channel {stem} to mixer: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stem, Bass.LastError);
                 return false;
             }
 
@@ -280,8 +296,89 @@ namespace YARG.Audio.BASS
             return true;
         }
 
+        protected override bool SetLoop_Internal(double end, double fadeDuration, double volume, Action LoopFunc)
+        {
+            _loopHandles[0] = Bass.ChannelSetSync(_mainHandle.Stream, SyncFlags.Seeking, 0, (int _, int __, int ___, IntPtr ____) =>
+            {
+                FadeIn_Internal(volume, fadeDuration);
+            });
+            if (_loopHandles[0] == 0)
+            {
+                return false;
+            }
+
+            long fadeOutBytes = Bass.ChannelSeconds2Bytes(_mainHandle.Stream, end - fadeDuration);
+            _loopHandles[1] = Bass.ChannelSetSync(_mainHandle.Stream, SyncFlags.Position, fadeOutBytes, async (int _, int __, int ___, IntPtr ____) =>
+            {
+                if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(Bass.PlaybackBufferLength));
+                }
+                FadeOut_Internal(fadeDuration);
+            });
+            if (_loopHandles[1] == 0)
+            {
+                Bass.ChannelRemoveSync(_mainHandle.Stream, _loopHandles[0]);
+                return false;
+            }
+
+            long seekBytes = Bass.ChannelSeconds2Bytes(_mainHandle.Stream, end);
+            _loopHandles[2] = Bass.ChannelSetSync(_mainHandle.Stream, SyncFlags.Position, seekBytes, async (int _, int __, int ___, IntPtr ____) =>
+            {
+                if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(Bass.PlaybackBufferLength));
+                }
+                LoopFunc();
+            });
+            if (_loopHandles[2] == 0)
+            {
+                Bass.ChannelRemoveSync(_mainHandle.Stream, _loopHandles[0]);
+                Bass.ChannelRemoveSync(_mainHandle.Stream, _loopHandles[1]);
+                return false;
+            }
+            return true;
+        }
+
+        protected override void EndLoop_Internal()
+        {
+            for (int i = 0; i < _loopHandles.Length; i++)
+            {
+                ref int handle = ref _loopHandles[i];
+                if (handle != 0)
+                {
+                    Bass.ChannelRemoveSync(_mainHandle.Stream, handle);
+                    handle = 0;
+                }
+            }
+        }
+
+        protected override void ToggleBuffer_Internal(bool enable)
+        {
+            _BufferSetter(enable, Bass.PlaybackBufferLength);
+        }
+
+        protected override void SetBufferLength_Internal(int length)
+        {
+            _BufferSetter(Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value, length);
+        }
+
+        private void _BufferSetter(bool enable, int length)
+        {
+            if (!enable)
+            {
+                length = 0;
+            }
+
+            if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Buffer, length))
+            {
+                YargLogger.LogFormatError("Failed to set playback buffer: {0}!", Bass.LastError);
+            }
+        }
+
         protected override void DisposeManagedResources()
         {
+            EndLoop_Internal();
             if (_channels.Count == 0)
             {
                 _mainHandle.Dispose();
