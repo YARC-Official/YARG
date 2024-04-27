@@ -8,6 +8,7 @@ using UnityEngine.Video;
 using YARG.Core.Extensions;
 using YARG.Core.IO;
 using YARG.Core.Venue;
+using YARG.Helpers.Extensions;
 using YARG.Venue;
 
 namespace YARG.Gameplay
@@ -20,7 +21,8 @@ namespace YARG.Gameplay
         [SerializeField]
         private RawImage _backgroundImage;
 
-        private VenueInfo _venueInfo;
+        private BackgroundType _type;
+        private VenueSource _source;
 
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
@@ -40,21 +42,17 @@ namespace YARG.Gameplay
             // We don't need to update unless we're using a video
             enabled = false;
 
-            var venueInfo = VenueLoader.GetVenue(GameManager.Song);
-            if (!venueInfo.HasValue)
+            using var result = VenueLoader.GetVenue(GameManager.Song, out _source);
+            if (result == null)
             {
                 return;
             }
 
-            _venueInfo = venueInfo.Value;
-
-            var type = _venueInfo.Type;
-            using var stream = _venueInfo.Stream;
-
-            switch (type)
+            _type = result.Type;
+            switch (_type)
             {
                 case BackgroundType.Yarground:
-                    var bundle = AssetBundle.LoadFromStream(stream);
+                    var bundle = AssetBundle.LoadFromStream(result.Stream);
 
                     // KEEP THIS PATH LOWERCASE
                     // Breaks things for other platforms, because Unity
@@ -81,7 +79,7 @@ namespace YARG.Gameplay
                     bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
                     break;
                 case BackgroundType.Video:
-                    switch (stream)
+                    switch (result.Stream)
                     {
                         case FileStream fs:
                         {
@@ -96,7 +94,7 @@ namespace YARG.Gameplay
                             VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
                             using var tmp = File.OpenWrite(VIDEO_PATH);
                             File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
-                            stream.CopyTo(tmp);
+                            result.Stream.CopyTo(tmp);
                             _videoPlayer.url = VIDEO_PATH;
                             break;
                         }
@@ -109,12 +107,8 @@ namespace YARG.Gameplay
                     enabled = true;
                     break;
                 case BackgroundType.Image:
-                    var texture = new Texture2D(2, 2);
-                    if (texture.LoadImage(stream.ReadBytes((int)stream.Length)))
-                    {
-                        _backgroundImage.gameObject.SetActive(true);
-                        _backgroundImage.texture = texture;
-                    }
+                    _backgroundImage.texture = result.Image.LoadTexture(false);
+                    _backgroundImage.gameObject.SetActive(true);
                     break;
             }
         }
@@ -132,7 +126,7 @@ namespace YARG.Gameplay
                     return;
 
                 // Delay until the start time is reached
-                if (_venueInfo.Source == VenueSource.Song &&
+                if (_source == VenueSource.Song &&
                     _videoStartTime < 0 && GameManager.SongTime < -_videoStartTime)
                     return;
 
@@ -144,7 +138,7 @@ namespace YARG.Gameplay
 
                 // Disable after starting the video if it's not from the song folder
                 // or if video end time is not specified
-                if (_venueInfo.Source != VenueSource.Song || double.IsNaN(_videoEndTime))
+                if (_source != VenueSource.Song || double.IsNaN(_videoEndTime))
                 {
                     enabled = false;
                     return;
@@ -171,7 +165,7 @@ namespace YARG.Gameplay
             const double endTimeThreshold = 0;
             const double dontLoopThreshold = 0.85;
 
-            if (_venueInfo.Source == VenueSource.Song)
+            if (_source == VenueSource.Song)
             {
                 _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
                 _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
@@ -204,11 +198,11 @@ namespace YARG.Gameplay
 
         public void SetTime(double songTime)
         {
-            switch (_venueInfo.Type)
+            switch (_type)
             {
                 case BackgroundType.Video:
                     // Don't seek videos that aren't from the song
-                    if (_venueInfo.Source != VenueSource.Song)
+                    if (_source != VenueSource.Song)
                         return;
 
                     double videoTime = songTime + _videoStartTime;
@@ -255,7 +249,7 @@ namespace YARG.Gameplay
 
         public void SetSpeed(float speed)
         {
-            switch (_venueInfo.Type)
+            switch (_type)
             {
                 case BackgroundType.Video:
                     _videoPlayer.playbackSpeed = speed;
