@@ -79,7 +79,7 @@ namespace YARG.Menu.Persistent
                     return;
                 }
                 
-                _mixer.Play();
+                _mixer.Play(true);
 
                 _songText.text = _nowPlaying.Name;
                 _artistText.text = _nowPlaying.Artist;
@@ -111,7 +111,7 @@ namespace YARG.Menu.Persistent
                 }
                 else
                 {
-                    _mixer.Play();
+                    _mixer.Play(false);
                     _playPauseButton.sprite = _pauseSprite;
                 }
             }

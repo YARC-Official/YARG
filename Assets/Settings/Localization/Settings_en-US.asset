@@ -1401,6 +1401,31 @@ MonoBehaviour:
     m_Localized: Apply Volume Settings to Music Library Previews
     m_Metadata:
       m_Items: []
+  - m_Id: 141514322187022336
+    m_Localized: Playback Buffer Length
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141517638145044480
+    m_Localized: Buffer Customization
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141517716490448896
+    m_Localized: Larger values lower the chance for hearing cracks during stutters,
+      but produce higher latency for special effects
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141518416825970688
+    m_Localized: I think this one speaks for itself
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141824850801356800
+    m_Localized: Enables/Disables usage of the playbuck buffer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141825994697109504
+    m_Localized: Decodes audio data ahead of time in chunks
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -63,6 +63,10 @@ namespace YARG.Settings
                 nameof(Settings.MusicPlayerVolume),
                 nameof(Settings.VocalMonitoring),
 
+                new HeaderMetadata("Customization"),
+                nameof(Settings.EnablePlaybackBuffer),
+                nameof(Settings.PlaybackBufferLength),
+
                 new HeaderMetadata("Input"),
                 nameof(Settings.MicrophoneSensitivity),
 

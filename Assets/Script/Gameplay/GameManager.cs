@@ -399,7 +399,7 @@ namespace YARG.Gameplay
             {
                 PracticeManager.ResetPractice();
                 // Audio is paused automatically at this point, so we need to start it again
-                _mixer.Play();
+                _mixer.Play(true);
                 return false;
             }
 
