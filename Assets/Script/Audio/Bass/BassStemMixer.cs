@@ -109,6 +109,11 @@ namespace YARG.Audio.BASS
             if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
             {
                 seconds -= Bass.PlaybackBufferLength / 1000.0f;
+                // Gotta do this because ChannelBytes2Seconds() may not be less than the buffer at position 0
+                if (seconds < 0)
+                {
+                    seconds = 0;
+                }
             }
             return seconds;
         }
