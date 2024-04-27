@@ -9,7 +9,7 @@ ProjectSettings/* eol=lf
 ProjectSettings/**/* eol=lf
 # Items that should be stored in LFS
 RawAssets/** filter=lfs diff=lfs merge=lfs -text
-Assets/Art/**/*.exr filter=lfs diff=lfs merge=lfs -text
 Assets/Art/**/*.jpg filter=lfs diff=lfs merge=lfs -text
 Assets/Art/**/*.fbx filter=lfs diff=lfs merge=lfs -text
 *.png filter=lfs diff=lfs merge=lfs -text
+*.exr filter=lfs diff=lfs merge=lfs -text
