@@ -141,18 +141,26 @@ namespace YARG.Gameplay.Player
 
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
 
-            // Get the proper info for four/five lane
-            ColorProfile.IFretColorProvider colors = !_fiveLaneMode
-                ? Player.ColorProfile.FourLaneDrums
-                : Player.ColorProfile.FiveLaneDrums;
-            _fretArray.FretCount = !_fiveLaneMode ? 4 : 5;
+            if (_fiveLaneMode)
+            {
+                Init(in Player.ColorProfile.FiveLaneDrums);
+            }
+            else
+            {
+                Init(in Player.ColorProfile.FourLaneDrums);
+            }
+        }
 
+        private void Init<TProvider>(in TProvider colors)
+            where TProvider : struct, ColorProfile.IFretColorProvider
+        {
+            _fretArray.FretCount = 5;
             _fretArray.Initialize(
                 Player.ThemePreset,
                 Player.Profile.GameMode,
-                colors,
-                Player.Profile.LeftyFlip);
-
+                in colors,
+                Player.Profile.LeftyFlip
+            );
             // Particle 0 is always kick fret
             _kickFretFlash.Initialize(colors.GetParticleColor(0).ToUnityColor());
         }

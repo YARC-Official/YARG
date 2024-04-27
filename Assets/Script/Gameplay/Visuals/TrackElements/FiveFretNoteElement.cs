@@ -147,21 +147,21 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateColor()
         {
-            var colors = Player.Player.ColorProfile.FiveFretGuitar;
+            ref readonly var colors = ref Player.Player.ColorProfile.FiveFretGuitar;
 
             // Get which note color to use
-            var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
+            var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret).ToUnityColor();
             var color = NoteRef.IsStarPower
-                ? colors.GetNoteStarPowerColor(NoteRef.Fret)
-                : colorNoStarPower;
+                    ? colors.GetNoteStarPowerColor(NoteRef.Fret).ToUnityColor()
+                    : colorNoStarPower;
 
             // Set the note color
-            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
+            NoteGroup.SetColorWithEmission(color, colorNoStarPower);
 
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;
 
-            _sustainLine.SetState(SustainState, color.ToUnityColor());
+            _sustainLine.SetState(SustainState, color);
         }
 
         protected override void HideElement()

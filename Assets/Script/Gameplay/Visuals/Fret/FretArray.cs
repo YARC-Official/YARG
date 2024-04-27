@@ -28,8 +28,8 @@ namespace YARG.Gameplay.Visuals
         private readonly List<Fret> _frets = new();
         private readonly List<KickFret> _kickFrets = new();
 
-        public void Initialize(ThemePreset themePreset, GameMode gameMode,
-            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
+        public void Initialize<TProvider>(ThemePreset themePreset, GameMode gameMode, in TProvider fretColorProvider, bool leftyFlip)
+            where TProvider : struct, ColorProfile.IFretColorProvider
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
                 themePreset, gameMode);
@@ -77,10 +77,11 @@ namespace YARG.Gameplay.Visuals
                 _kickFrets.Add(rightKick.GetComponent<KickFret>());
             }
 
-            InitializeColor(fretColorProvider, leftyFlip);
+            InitializeColor(in fretColorProvider, leftyFlip);
         }
 
-        public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
+        public void InitializeColor<TProvider>(in TProvider fretColorProvider, bool leftyFlip)
+            where TProvider : struct, ColorProfile.IFretColorProvider
         {
             for (int i = 0; i < _frets.Count; i++)
             {

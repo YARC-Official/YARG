@@ -17,41 +17,68 @@ namespace YARG.Settings.Preview
 {
     public class FakeTrackPlayer : MonoBehaviour
     {
-        public struct Info
+        public abstract class Info
         {
-            public delegate ColorProfile.IFretColorProvider FretColorProviderFunc(ColorProfile c);
             public delegate Color NoteColorProviderFunc(ColorProfile c, FakeNoteData note);
             public delegate EnginePreset.HitWindowPreset HitWindowProviderFunc(EnginePreset e);
             public delegate FakeNoteData CreateFakeNoteFunc(double time);
 
-            public int FretCount;
-            public bool UseKickFrets;
+            public readonly int FretCount;
+            public readonly bool UseKickFrets;
 
-            public FretColorProviderFunc FretColorProvider;
-            public NoteColorProviderFunc NoteColorProvider;
+            public readonly NoteColorProviderFunc NoteColorProvider;
+            public readonly HitWindowProviderFunc HitWindowProvider;
+            public readonly CreateFakeNoteFunc CreateFakeNote;
 
-            public HitWindowProviderFunc HitWindowProvider;
+            protected Info(int fretCount, bool useKickFrets, NoteColorProviderFunc noteColorProvider, HitWindowProviderFunc hitWindowProvider, CreateFakeNoteFunc createFakeNote)
+            {
+                FretCount = fretCount;
+                UseKickFrets = useKickFrets;
+                NoteColorProvider = noteColorProvider;
+                HitWindowProvider = hitWindowProvider;
+                CreateFakeNote = createFakeNote;
+            }
 
-            public CreateFakeNoteFunc CreateFakeNote;
+            public abstract void Init(FretArray array, ThemePreset themePreset, GameMode gameMode);
+            public abstract void InitColor(FretArray array, ColorProfile profile);
+        }
+
+        public class FretColorInfo<TProvider> : Info
+            where TProvider : struct, ColorProfile.IFretColorProvider
+        {
+            public delegate ref readonly TProvider FretColorProviderFunc(ColorProfile c);
+            public readonly FretColorProviderFunc FretColorProvider;
+
+            public FretColorInfo(int fretCount, bool useKickFrets, FretColorProviderFunc fretColorProvider, NoteColorProviderFunc noteColorProvider, HitWindowProviderFunc hitWindowProvider, CreateFakeNoteFunc createFakeNote)
+                : base(fretCount, useKickFrets, noteColorProvider, hitWindowProvider, createFakeNote)
+            {
+                FretColorProvider = fretColorProvider;
+            }
+
+            public override void Init(FretArray array, ThemePreset themePreset, GameMode gameMode)
+            {
+                array.Initialize(themePreset, gameMode, in FretColorProvider(ColorProfile.Default), false);
+            }
+
+            public override void InitColor(FretArray array, ColorProfile profile)
+            {
+                array.InitializeColor(in FretColorProvider(profile), false);
+            }
         }
 
         private static readonly Dictionary<GameMode, Info> _gameModeInfos = new()
         {
             {
                 GameMode.FiveFretGuitar,
-                new Info
-                {
-                    FretCount = 5,
-                    UseKickFrets = false,
-
-                    FretColorProvider = (colorProfile) => colorProfile.FiveFretGuitar,
-                    NoteColorProvider = (colorProfile, note) => colorProfile.FiveFretGuitar
+                new FretColorInfo<ColorProfile.FiveFretGuitarColors>(
+                    fretCount: 5,
+                    useKickFrets: false,
+                    fretColorProvider: (colorProfile) => ref colorProfile.FiveFretGuitar,
+                    noteColorProvider: (colorProfile, note) => colorProfile.FiveFretGuitar
                         .GetNoteColor(note.Fret)
                         .ToUnityColor(),
-
-                    HitWindowProvider = (enginePreset) => enginePreset.FiveFretGuitar.HitWindow,
-
-                    CreateFakeNote = (time) =>
+                    hitWindowProvider: (enginePreset) => enginePreset.FiveFretGuitar.HitWindow,
+                    createFakeNote: (time) =>
                     {
                         int fret = Random.Range(0, 6);
 
@@ -86,17 +113,15 @@ namespace YARG.Settings.Preview
                             NoteType = noteType
                         };
                     }
-                }
+                )
             },
             {
                 GameMode.FourLaneDrums,
-                new Info
-                {
-                    FretCount = 4,
-                    UseKickFrets = true,
-
-                    FretColorProvider = (colorProfile) => colorProfile.FourLaneDrums,
-                    NoteColorProvider = (colorProfile, note) =>
+                new FretColorInfo<ColorProfile.FourLaneDrumsColors>(
+                    fretCount: 4,
+                    useKickFrets: true,
+                    fretColorProvider: (colorProfile) => ref colorProfile.FourLaneDrums,
+                    noteColorProvider: (colorProfile, note) =>
                     {
                         int colorNote = (note.Fret, note.NoteType) switch
                         {
@@ -116,10 +141,8 @@ namespace YARG.Settings.Preview
                             .GetNoteColor(colorNote)
                             .ToUnityColor();
                     },
-
-                    HitWindowProvider = (enginePreset) => enginePreset.Drums.HitWindow,
-
-                    CreateFakeNote = (time) =>
+                    hitWindowProvider: (enginePreset) => enginePreset.Drums.HitWindow,
+                    createFakeNote: (time) =>
                     {
                         int fret = Random.Range(0, 5);
 
@@ -153,23 +176,19 @@ namespace YARG.Settings.Preview
                             NoteType = noteType
                         };
                     }
-                }
+                )
             },
             {
                 GameMode.FiveLaneDrums,
-                new Info
-                {
-                    FretCount = 5,
-                    UseKickFrets = true,
-
-                    FretColorProvider = (colorProfile) => colorProfile.FiveLaneDrums,
-                    NoteColorProvider = (colorProfile, note) => colorProfile.FiveLaneDrums
+                new FretColorInfo<ColorProfile.FiveLaneDrumsColors>(
+                    fretCount: 5,
+                    useKickFrets: true,
+                    fretColorProvider: (colorProfile) => ref colorProfile.FiveLaneDrums,
+                    noteColorProvider: (colorProfile, note) => colorProfile.FiveLaneDrums
                         .GetNoteColor(note.Fret)
                         .ToUnityColor(),
-
-                    HitWindowProvider = (enginePreset) => enginePreset.Drums.HitWindow,
-
-                    CreateFakeNote = (time) =>
+                    hitWindowProvider: (enginePreset) => enginePreset.Drums.HitWindow,
+                    createFakeNote: (time) =>
                     {
                         int fret = Random.Range(0, 6);
 
@@ -202,7 +221,7 @@ namespace YARG.Settings.Preview
                             NoteType = noteType
                         };
                     }
-                }
+                )
             }
         };
 
@@ -238,8 +257,8 @@ namespace YARG.Settings.Preview
             // Create frets and put then on the right layer
             _fretArray.FretCount = CurrentGameModeInfo.FretCount;
             _fretArray.UseKickFrets = CurrentGameModeInfo.UseKickFrets;
-            _fretArray.Initialize(theme, SelectedGameMode,
-                CurrentGameModeInfo.FretColorProvider(ColorProfile.Default), false);
+            CurrentGameModeInfo.Init(_fretArray, theme, SelectedGameMode);
+
             _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
 
             // Create the note prefab (this has to be specially done, because
@@ -270,7 +289,7 @@ namespace YARG.Settings.Preview
             _cameraPositioner.Initialize(cameraPreset);
 
             // Update color profiles
-            _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile), false);
+            CurrentGameModeInfo.InitColor(_fretArray, colorProfile);
 
             // Update hit window
             _hitWindow.HitWindow = CurrentGameModeInfo.HitWindowProvider(enginePreset).Create();
