@@ -1107,7 +1107,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _modifierIconPrefab: {fileID: 6951785427522793347, guid: 5dceab9d08cb4eb45942a7d6202fcede,
     type: 3}
-  AccuracyPercent: {fileID: 7674939556346006151}
+  _accuracyPercent: {fileID: 7674939556346006151}
   _playerName: {fileID: 7674939555648136362}
   _instrument: {fileID: 7674939555338052806}
   _difficulty: {fileID: 7674939556132660770}

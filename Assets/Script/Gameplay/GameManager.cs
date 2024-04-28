@@ -461,7 +461,9 @@ namespace YARG.Gameplay
 
                     NotesHit = player.BaseStats.NotesHit,
                     NotesMissed = player.BaseStats.NotesMissed,
-                    IsFc = player.IsFc
+                    IsFc = player.IsFc,
+
+                    Percent = player.BaseStats.Percent
                 });
             }
 

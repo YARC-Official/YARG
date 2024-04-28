@@ -61,7 +61,7 @@ namespace YARG.Menu.MusicLibrary
 
             var instrument = score.Instrument.ToResourceName();
             var difficultyChar = score.Difficulty.ToChar();
-            var percent = Mathf.Floor(score.Percent * 100f);
+            var percent = Mathf.Floor(score.GetPercent() * 100f);
 
             using var builder = ZString.CreateStringBuilder();
             builder.AppendFormat("<sprite name=\"{0}\"> <b>{1}</b> {2:N0}%",
