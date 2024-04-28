@@ -8,6 +8,7 @@ using YARG.Helpers.Extensions;
 using YARG.Core.Audio;
 using YARG.Core.Song;
 using YARG.Song;
+using System.Threading.Tasks;
 
 namespace YARG.Menu.Persistent
 {
@@ -57,34 +58,57 @@ namespace YARG.Menu.Persistent
             }
         }
 
+        private static Task<StemMixer> _current;
         public async void NextSong()
         {
-            StemMixer mixer = null;
-            await UniTask.RunOnThreadPool(() =>
+            const int MAX_TRIES = 10;
+            for (int tries = 0; tries < MAX_TRIES; tries++)
             {
-                const float SPEED = 1f;
+                var entry = SongContainer.GetRandomSong();
+                if (entry == _nowPlaying)
+                {
+                    continue;
+                }
+                _nowPlaying = entry;
+
+                Task<StemMixer> task;
                 lock (_lock)
                 {
-                    _mixer?.Dispose();
-                    _nowPlaying = SongContainer.GetRandomSong();
-                    mixer = _mixer = _nowPlaying.LoadAudio(SPEED, SettingsManager.Settings.MusicPlayerVolume.Value, SongStem.Crowd);
-                    _mixer.SongEnd += NextSong;
+                    const float SPEED = 1f;
+                    _current = task = Task.Run(() => entry.LoadAudio(SPEED, SettingsManager.Settings.MusicPlayerVolume.Value, SongStem.Crowd));
                 }
-            });
 
-            lock (_lock)
-            {
-                if (mixer != _mixer)
+                var mixer = await task;
+                if (mixer == null)
                 {
-                    return;
+                    continue;
                 }
-                
-                _mixer.Play(true);
 
-                _songText.text = _nowPlaying.Name;
-                _artistText.text = _nowPlaying.Artist;
-                _playPauseButton.sprite = _pauseSprite;
+                lock (_lock)
+                {
+                    if (_current != task)
+                    {
+                        mixer.Dispose();
+                        continue;
+                    }
+
+                    _mixer?.Dispose();
+                    _mixer = mixer;
+                    _mixer.SongEnd += () =>
+                    {
+                        _mixer.Dispose();
+                        _mixer = null;
+                        NextSong();
+                    };
+                    _mixer.Play(true);
+
+                    _songText.text = _nowPlaying.Name;
+                    _artistText.text = _nowPlaying.Artist;
+                    _playPauseButton.sprite = _pauseSprite;
+                }
+                return;
             }
+            _nowPlaying = null;
         }
 
         public void UpdateVolume(double volume)
