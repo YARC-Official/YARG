@@ -1419,7 +1419,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 141824850801356800
-    m_Localized: Enables/Disables usage of the playbuck buffer
+    m_Localized: Enables/Disables usage of the playback buffer
     m_Metadata:
       m_Items: []
   - m_Id: 141825994697109504
