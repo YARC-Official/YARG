@@ -9,6 +9,8 @@ namespace YARG.Menu.MusicLibrary
     public class SongView : ViewObject<ViewType>
     {
         [SerializeField]
+        private GameObject _songNameContainer;
+        [SerializeField]
         private TextMeshProUGUI _sideText;
         [SerializeField]
         private StarView _starView;
@@ -33,9 +35,28 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private Sprite _favouriteFilled;
 
+        [Space]
+        [SerializeField]
+        private GameObject _categoryNameContainer;
+        [SerializeField]
+        private TextMeshProUGUI _categoryText;
+
         public override void Show(bool selected, ViewType viewType)
         {
             base.Show(selected, viewType);
+
+            // if used as section header, use different primary text for wider text field
+            if (viewType.Background == BaseViewType.BackgroundType.Category)
+            {
+                _songNameContainer.SetActive(false);
+                _categoryNameContainer.SetActive(true);
+                _categoryText.text = viewType.GetPrimaryText(selected);
+            }
+            else
+            {
+                _songNameContainer.SetActive(true);
+                _categoryNameContainer.SetActive(false);
+            }
 
             // Set side text
             _sideText.text = viewType.GetSideText(selected);
