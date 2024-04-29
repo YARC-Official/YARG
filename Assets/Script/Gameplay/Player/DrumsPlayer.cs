@@ -72,7 +72,7 @@ namespace YARG.Gameplay.Player
                 EngineParams = (DrumsEngineParameters) Player.EngineParameterOverride;
             }
 
-            var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams);
+            var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
 
             HitWindow = EngineParams.HitWindow;
 
