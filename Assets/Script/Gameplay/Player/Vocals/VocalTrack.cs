@@ -200,6 +200,16 @@ namespace YARG.Gameplay.Player
         public VocalPercussionTrack CreatePercussionTrack()
         {
             var percussionTrack = Instantiate(_percussionTrackPrefab, _percussionTrackContainer);
+
+            // Space out the percussion tracks evenly
+            const float FULL_HEIGHT = TRACK_TOP - TRACK_BOTTOM;
+            var offset = FULL_HEIGHT / (_percussionTrackContainer.childCount + 1);
+            for (int i = 0; i < _percussionTrackContainer.childCount; i++)
+            {
+                var child = _percussionTrackContainer.GetChild(i);
+                child.localPosition = child.localPosition.WithZ(TRACK_TOP - offset * (i + 1));
+            }
+
             return percussionTrack;
         }
 
