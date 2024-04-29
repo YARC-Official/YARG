@@ -293,6 +293,7 @@ namespace YARG.Audio.BASS
             }
             _channels[index].Dispose();
             _channels.RemoveAt(index);
+            UpdateThreading();
             return true;
         }
 
@@ -423,6 +424,20 @@ namespace YARG.Audio.BASS
             }
 
             _channels.Add(stemchannel);
+            UpdateThreading();
+        }
+
+        private void UpdateThreading()
+        {
+            if (0 < _channels.Count && _channels.Count <= GlobalAudioHandler.MAX_THREADS)
+            {
+                // Mixer processing threads (for some reason this attribute is undocumented in ManagedBass?)
+                // https://www.un4seen.com/forum/?topic=19491.msg136328#msg136328
+                if (!Bass.ChannelSetAttribute(_mixerHandle, (ChannelAttribute) 86017, _channels.Count))
+                {
+                    YargLogger.LogFormatError("Failed to set mixer processing threads: {0}!", Bass.LastError);
+                }
+            }
         }
     }
 }

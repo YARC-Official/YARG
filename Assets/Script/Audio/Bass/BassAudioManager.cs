@@ -101,7 +101,8 @@ namespace YARG.Audio.BASS
 
         protected override ReadOnlySpan<string> SupportedFormats => FORMATS;
 
-        private int _opusHandle = 0;
+        private readonly int _opusHandle = 0;
+        
 
         public BassAudioManager()
         {
@@ -128,10 +129,10 @@ namespace YARG.Audio.BASS
             Bass.DeviceBufferLength = 2 * devPeriod;
 
             // Affects Windows only. Forces device names to be in UTF-8 on Windows rather than ANSI.
-            Bass.Configure(Configuration.UnicodeDeviceInformation, true);
-            Bass.Configure(Configuration.TruePlayPosition, false);
-            Bass.Configure(Configuration.UpdateThreads, Environment.ProcessorCount);
-            Bass.Configure(Configuration.FloatDSP, true);
+            Bass.UnicodeDeviceInformation = true;
+            Bass.FloatingPointDSP = true;
+            Bass.VistaTruePlayPosition = false;
+            Bass.UpdateThreads = GlobalAudioHandler.MAX_THREADS;
 
             // Undocumented BASS_CONFIG_MP3_OLDGAPS config.
             Bass.Configure((Configuration) 68, 1);
@@ -354,22 +355,6 @@ namespace YARG.Audio.BASS
             if (mixerHandle == 0)
             {
                 YargLogger.LogFormatError("Failed to create mixer: {0}!", Bass.LastError);
-                return false;
-            }
-
-            int threads = Environment.ProcessorCount switch
-            {
-                >= 16 => 16,
-                >= 6 => Environment.ProcessorCount / 2,
-                _ => 2
-            };
-
-            // Mixer processing threads (for some reason this attribute is undocumented in ManagedBass?)
-            // https://www.un4seen.com/forum/?topic=19491.msg136328#msg136328
-            if (!Bass.ChannelSetAttribute(mixerHandle, (ChannelAttribute) 86017, threads))
-            {
-                YargLogger.LogFormatError("Failed to set mixer processing threads: {0}!", Bass.LastError);
-                Bass.StreamFree(mixerHandle);
                 return false;
             }
             return true;
