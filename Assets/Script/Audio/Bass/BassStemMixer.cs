@@ -13,7 +13,6 @@ namespace YARG.Audio.BASS
     {
         private readonly int _mixerHandle;
         private readonly int _sourceStream;
-        private readonly int[] _loopHandles = new int[3];
 
         private StreamHandle _mainHandle;
         private int _songEndHandle;
@@ -297,63 +296,6 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        protected override bool SetLoop_Internal(double end, double fadeDuration, double volume, Action LoopFunc)
-        {
-            _loopHandles[0] = Bass.ChannelSetSync(_mainHandle.Stream, SyncFlags.Seeking, 0, (int _, int __, int ___, IntPtr ____) =>
-            {
-                FadeIn_Internal(volume, fadeDuration);
-            });
-            if (_loopHandles[0] == 0)
-            {
-                return false;
-            }
-
-            long fadeOutBytes = Bass.ChannelSeconds2Bytes(_mainHandle.Stream, end - fadeDuration);
-            _loopHandles[1] = Bass.ChannelSetSync(_mainHandle.Stream, SyncFlags.Position, fadeOutBytes, async (int _, int __, int ___, IntPtr ____) =>
-            {
-                if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(Bass.PlaybackBufferLength));
-                }
-                FadeOut_Internal(fadeDuration);
-            });
-            if (_loopHandles[1] == 0)
-            {
-                Bass.ChannelRemoveSync(_mainHandle.Stream, _loopHandles[0]);
-                return false;
-            }
-
-            long seekBytes = Bass.ChannelSeconds2Bytes(_mainHandle.Stream, end);
-            _loopHandles[2] = Bass.ChannelSetSync(_mainHandle.Stream, SyncFlags.Position, seekBytes, async (int _, int __, int ___, IntPtr ____) =>
-            {
-                if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(Bass.PlaybackBufferLength));
-                }
-                LoopFunc();
-            });
-            if (_loopHandles[2] == 0)
-            {
-                Bass.ChannelRemoveSync(_mainHandle.Stream, _loopHandles[0]);
-                Bass.ChannelRemoveSync(_mainHandle.Stream, _loopHandles[1]);
-                return false;
-            }
-            return true;
-        }
-
-        protected override void EndLoop_Internal()
-        {
-            for (int i = 0; i < _loopHandles.Length; i++)
-            {
-                ref int handle = ref _loopHandles[i];
-                if (handle != 0)
-                {
-                    Bass.ChannelRemoveSync(_mainHandle.Stream, handle);
-                    handle = 0;
-                }
-            }
-        }
-
         protected override void ToggleBuffer_Internal(bool enable)
         {
             _BufferSetter(enable, Bass.PlaybackBufferLength);
@@ -379,7 +321,6 @@ namespace YARG.Audio.BASS
 
         protected override void DisposeManagedResources()
         {
-            EndLoop_Internal();
             if (_channels.Count == 0)
             {
                 _mainHandle.Dispose();
