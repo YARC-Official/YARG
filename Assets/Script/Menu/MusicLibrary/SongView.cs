@@ -46,7 +46,7 @@ namespace YARG.Menu.MusicLibrary
             base.Show(selected, viewType);
 
             // if used as section header, use different primary text for wider text field
-            if (viewType.Background == BaseViewType.BackgroundType.Category)
+            if(viewType.GetType() == typeof(SortHeaderViewType))
             {
                 _songNameContainer.SetActive(false);
                 _categoryNameContainer.SetActive(true);
