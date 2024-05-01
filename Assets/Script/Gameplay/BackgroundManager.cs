@@ -108,6 +108,7 @@ namespace YARG.Gameplay
                     break;
                 case BackgroundType.Image:
                     _backgroundImage.texture = result.Image.LoadTexture(false);
+                    _backgroundImage.uvRect = new Rect(0f, 0f, 1f, -1f);
                     _backgroundImage.gameObject.SetActive(true);
                     break;
             }
