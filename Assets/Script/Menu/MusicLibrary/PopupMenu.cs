@@ -205,7 +205,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 if (SongContainer.GetSongsWithInstrument(instrument).Count > 0)
                 {
-                    CreateItem(instrument.ToLocalizedName(), () =>
+                    CreateItem(instrument.ToString(), () =>
                     {
                         _musicLibrary.ChangeSort(SortAttribute.Instrument, instrument);
                         gameObject.SetActive(false);
