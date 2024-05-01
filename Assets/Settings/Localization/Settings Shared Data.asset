@@ -1275,6 +1275,34 @@ MonoBehaviour:
     m_Key: Setting.EnablePlaybackBuffer.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 144061360606707712
+    m_Key: Setting.ShowTime
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061415640170496
+    m_Key: Setting.ShowTime.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061522095800320
+    m_Key: Setting.ShowBattery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061567792742400
+    m_Key: Setting.ShowBattery.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144263364134207488
+    m_Key: Setting.MemoryStats
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144263416911134720
+    m_Key: Setting.MemoryStats.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144264391830962176
+    m_Key: Header.StatusBar
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

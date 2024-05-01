@@ -29,6 +29,12 @@ namespace YARG.Settings
                 nameof(Settings.DisableGlobalBackgrounds),
                 nameof(Settings.DisablePerSongBackgrounds),
 
+                new HeaderMetadata("StatusBar"),
+                nameof(Settings.ShowBattery),
+                nameof(Settings.ShowTime),
+                nameof(Settings.MemoryStats),
+                nameof(Settings.FpsStats),
+
                 new HeaderMetadata("Other"),
                 nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.KickBounceMultiplier),
