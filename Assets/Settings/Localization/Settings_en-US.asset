@@ -1454,6 +1454,14 @@ MonoBehaviour:
     m_Localized: Status Bar
     m_Metadata:
       m_Items: []
+  - m_Id: 146129952089210880
+    m_Localized: Reconnect Profiles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 146130013221191680
+    m_Localized: At startup, reconnect previously connected profiles.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
