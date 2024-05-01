@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -44,8 +44,6 @@ namespace YARG.Menu.ProfileList
         private Button[] _profileActionButtons;
 
         [Space]
-        [SerializeField]
-        private Toggle _autoConnectToggle;
         [SerializeField]
         private TMP_Dropdown _gameModeDropdown;
         [SerializeField]
@@ -138,7 +136,6 @@ namespace YARG.Menu.ProfileList
 
             // Display the profile's options
             _profileName.text = _profile.Name;
-            _autoConnectToggle.isOn = profile.AutoConnect;
             _gameModeDropdown.value = _gameModesByIndex.IndexOf(profile.GameMode);
             _noteSpeedField.text = profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
@@ -216,11 +213,6 @@ namespace YARG.Menu.ProfileList
         public void RemoveDevice()
         {
             _profileView.PromptRemoveDevice().Forget();
-        }
-
-        public void ChangeAutoConnect()
-        {
-            _profile.AutoConnect = _autoConnectToggle.isOn;
         }
 
         public void ChangeGameMode()
