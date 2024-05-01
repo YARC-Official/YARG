@@ -418,7 +418,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 2c095bdb86902634ab52b5667d86bc87, type: 3}
+  m_Sprite: {fileID: -1169852415, guid: ec35410c225103d479e6c0962efba825, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2168,7 +2168,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: d84f45ca3b6dc3e4786355fe2f4ee5e3, type: 3}
+  m_Sprite: {fileID: -366562362, guid: ec35410c225103d479e6c0962efba825, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2309,7 +2309,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: ec01451c52ae1a243b96986301fb1bbd, type: 3}
+  m_Sprite: {fileID: 588360979, guid: ec35410c225103d479e6c0962efba825, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3373,11 +3373,13 @@ MonoBehaviour:
   _battery: {fileID: 227771748}
   _batteryIcon: {fileID: 425861130}
   _batteryText: {fileID: 619563954}
-  _batterySpriteFull: {fileID: 21300000, guid: a4e4804c9fa6caa47914bd03b46f8ffc, type: 3}
-  _batterySpriteMedium: {fileID: 21300000, guid: 8cd8b412d808a62408bb04baff3e7949,
+  _batterySpriteFull: {fileID: 555193114, guid: ec35410c225103d479e6c0962efba825,
     type: 3}
-  _batterySpriteLow: {fileID: 21300000, guid: 2f07755c8ea7cc446b918b11e052bc83, type: 3}
-  _batterySpriteCritical: {fileID: 21300000, guid: 2c095bdb86902634ab52b5667d86bc87,
+  _batterySpriteMedium: {fileID: -1466057556, guid: ec35410c225103d479e6c0962efba825,
+    type: 3}
+  _batterySpriteLow: {fileID: -577025563, guid: ec35410c225103d479e6c0962efba825,
+    type: 3}
+  _batterySpriteCritical: {fileID: -1169852415, guid: ec35410c225103d479e6c0962efba825,
     type: 3}
   _green: {r: 0.2745098, g: 0.9058823, b: 0.3098039, a: 1}
   _yellow: {r: 1, g: 0.8313725, b: 0.2274509, a: 1}
