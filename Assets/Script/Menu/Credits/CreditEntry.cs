@@ -107,10 +107,12 @@ namespace YARG.Menu
             switch (social)
             {
                 case "Discord":
-                case "Email":
                     // These don't have urls, so just copy to the clipboard
                     GUIUtility.systemCopyBuffer = arg;
                     return;
+                case "Email":
+                    url = $"mailto:{arg}";
+                    break;
                 case "VideoService":
                     // The "VideoService" entry allows three options: URL, YouTube @, and YouTube ID
                     if (arg.StartsWith("http"))

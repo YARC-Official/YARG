@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Mix;
-using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
@@ -49,21 +49,30 @@ namespace YARG.Audio.BASS
             _mixerHandle = handle;
             _sourceStream = sourceStream;
             SetVolume_Internal(volume);
+            _BufferSetter(Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value, Bass.PlaybackBufferLength);
         }
 
-        protected override int Play_Internal(bool restart)
+        protected override int Play_Internal(bool restartBuffer)
         {
-            if (IsPaused && !Bass.ChannelPlay(_mixerHandle, restart))
+            if (!Bass.ChannelPlay(_mixerHandle, restartBuffer))
             {
                 return (int) Bass.LastError;
+            }
+
+            if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
+            {
+                if (!Bass.ChannelUpdate(_mixerHandle, Bass.PlaybackBufferLength))
+                {
+                    YargLogger.LogFormatError("Failed to fill playback buffer: {0}!", Bass.LastError);
+                }
             }
             return 0;
         }
 
-        protected override void FadeIn_Internal(float maxVolume, double duration)
+        protected override void FadeIn_Internal(double maxVolume, double duration)
         {
-            maxVolume = (float) BassAudioManager.ExponentialVolume(maxVolume);
-            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, maxVolume, (int) (duration * SongEntry.MILLISECOND_FACTOR));
+            float scaled = (float) BassAudioManager.ExponentialVolume(maxVolume);
+            Bass.ChannelSlideAttribute(_mixerHandle, ChannelAttribute.Volume, scaled, (int) (duration * SongEntry.MILLISECOND_FACTOR));
         }
 
         protected override void FadeOut_Internal(double duration)
@@ -73,7 +82,7 @@ namespace YARG.Audio.BASS
 
         protected override int Pause_Internal()
         {
-            if (!IsPaused && !Bass.ChannelPause(_mixerHandle))
+            if (!Bass.ChannelPause(_mixerHandle))
             {
                 return (int) Bass.LastError;
             }
@@ -94,6 +103,16 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to get channel position in seconds: {0}", Bass.LastError);
                 return -1;
+            }
+
+            if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
+            {
+                seconds -= Bass.PlaybackBufferLength / 1000.0f;
+                // Gotta do this because ChannelBytes2Seconds() may not be less than the buffer at position 0
+                if (seconds < 0)
+                {
+                    seconds = 0;
+                }
             }
             return seconds;
         }
@@ -143,11 +162,7 @@ namespace YARG.Audio.BASS
 
             if (playing)
             {
-                if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
-                {
-                    YargLogger.LogFormatError("Failed to set update channel: {0}!", Bass.LastError);
-                }
-                Play_Internal(false);
+                Play_Internal(true);
             }
         }
 
@@ -231,14 +246,14 @@ namespace YARG.Audio.BASS
         {
             if (!BassAudioManager.CreateSplitStreams(_sourceStream, indices, out var streamHandles, out var reverbHandles))
             {
-                YargLogger.LogFormatError("Failed to load stem {stem}: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to load stem {0}: {1}!", stem, Bass.LastError);
                 return false;
             }
 
             if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.MixerChanMatrix) ||
                 !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.MixerChanMatrix))
             {
-                YargLogger.LogFormatError("Failed to add channel {stem} to mixer: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stem, Bass.LastError);
                 return false;
             }
 
@@ -277,7 +292,31 @@ namespace YARG.Audio.BASS
             }
             _channels[index].Dispose();
             _channels.RemoveAt(index);
+            UpdateThreading();
             return true;
+        }
+
+        protected override void ToggleBuffer_Internal(bool enable)
+        {
+            _BufferSetter(enable, Bass.PlaybackBufferLength);
+        }
+
+        protected override void SetBufferLength_Internal(int length)
+        {
+            _BufferSetter(Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value, length);
+        }
+
+        private void _BufferSetter(bool enable, int length)
+        {
+            if (!enable)
+            {
+                length = 0;
+            }
+
+            if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Buffer, length))
+            {
+                YargLogger.LogFormatError("Failed to set playback buffer: {0}!", Bass.LastError);
+            }
         }
 
         protected override void DisposeManagedResources()
@@ -326,6 +365,20 @@ namespace YARG.Audio.BASS
             }
 
             _channels.Add(stemchannel);
+            UpdateThreading();
+        }
+
+        private void UpdateThreading()
+        {
+            if (0 < _channels.Count && _channels.Count <= GlobalAudioHandler.MAX_THREADS)
+            {
+                // Mixer processing threads (for some reason this attribute is undocumented in ManagedBass?)
+                // https://www.un4seen.com/forum/?topic=19491.msg136328#msg136328
+                if (!Bass.ChannelSetAttribute(_mixerHandle, (ChannelAttribute) 86017, _channels.Count))
+                {
+                    YargLogger.LogFormatError("Failed to set mixer processing threads: {0}!", Bass.LastError);
+                }
+            }
         }
     }
 }

@@ -29,6 +29,12 @@ namespace YARG.Settings
                 nameof(Settings.DisableGlobalBackgrounds),
                 nameof(Settings.DisablePerSongBackgrounds),
 
+                new HeaderMetadata("StatusBar"),
+                nameof(Settings.ShowBattery),
+                nameof(Settings.ShowTime),
+                nameof(Settings.MemoryStats),
+                nameof(Settings.FpsStats),
+
                 new HeaderMetadata("Other"),
                 nameof(Settings.ReconnectProfiles),
                 nameof(Settings.UseCymbalModelsInFiveLane),
@@ -63,6 +69,10 @@ namespace YARG.Settings
                 nameof(Settings.PreviewVolume),
                 nameof(Settings.MusicPlayerVolume),
                 nameof(Settings.VocalMonitoring),
+
+                new HeaderMetadata("Customization"),
+                nameof(Settings.EnablePlaybackBuffer),
+                nameof(Settings.PlaybackBufferLength),
 
                 new HeaderMetadata("Input"),
                 nameof(Settings.MicrophoneSensitivity),

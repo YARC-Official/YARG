@@ -405,11 +405,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405825
-    m_Localized: Enable FPS Counter
+    m_Localized: Show FPS Counter
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405826
-    m_Localized: Enables the framerate counter on the top-left of your screen.
+    m_Localized: Shows the framerate counter on the Status Bar
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405827
@@ -1399,6 +1399,59 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 138593433699119104
     m_Localized: Apply Volume Settings to Music Library Previews
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141514322187022336
+    m_Localized: Playback Buffer Length
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141517638145044480
+    m_Localized: Buffer Customization
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141517716490448896
+    m_Localized: Larger values lower the chance for hearing cracks during stutters,
+      but produce higher latency for special effects
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141518416825970688
+    m_Localized: I think this one speaks for itself
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141824850801356800
+    m_Localized: Enables/Disables usage of the playback buffer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141825994697109504
+    m_Localized: Decodes audio data ahead of time in chunks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061360606707712
+    m_Localized: Show Time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061415640170496
+    m_Localized: Show current time on Status Bar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061522095800320
+    m_Localized: Show Battery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061567792742400
+    m_Localized: Show battery level on Status Bar (if battery is currently discharging)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144263364134207488
+    m_Localized: Show Memory Stats
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144263416911134720
+    m_Localized: Show memory usage stats on the Status Bar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144264391830962176
+    m_Localized: Status Bar
     m_Metadata:
       m_Items: []
   references:
