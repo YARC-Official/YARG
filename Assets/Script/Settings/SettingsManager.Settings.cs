@@ -62,6 +62,8 @@ namespace YARG.Settings
             public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
 
+            public ToggleSetting ReconnectProfiles { get; } = new(false);
+
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public SliderSetting KickBounceMultiplier      { get; } = new(1f, 0f, 2f);
 
