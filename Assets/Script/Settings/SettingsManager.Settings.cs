@@ -63,7 +63,7 @@ namespace YARG.Settings
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
 
             public ToggleSetting ShowBattery { get; } = new(false);
-            public ToggleSetting ShowTime { get; } = new(false, ShowTimeCallback);
+            public ToggleSetting ShowTime    { get; } = new(false, ShowTimeCallback);
             public ToggleSetting MemoryStats { get; } = new(false, MemoryStatsCallback);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
