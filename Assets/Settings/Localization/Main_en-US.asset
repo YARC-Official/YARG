@@ -72,19 +72,19 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 62731776045735936
-    m_Localized: Five Fret Guitar
+    m_Localized: Guitar
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707456
-    m_Localized: Five Fret Bass
+    m_Localized: Bass
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707457
-    m_Localized: Five Fret Rhythm Guitar
+    m_Localized: Rhythm Guitar
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707458
-    m_Localized: Five Fret Co-op Guitar
+    m_Localized: Co-op Guitar
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707459
@@ -92,15 +92,15 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707460
-    m_Localized: Six Fret Guitar
+    m_Localized: Guitar
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707461
-    m_Localized: Six Fret Bass
+    m_Localized: Bass
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707462
-    m_Localized: Six Fret Rhythm Guitar
+    m_Localized: Rhythm Guitar
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707463
