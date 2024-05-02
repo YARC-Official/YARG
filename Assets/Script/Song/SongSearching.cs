@@ -233,21 +233,44 @@ namespace YARG.Song
             return nodes;
         }
 
+        private static readonly Dictionary<FilterNode, IReadOnlyList<SongCategory>> SearchCache = new();
+
         private static List<SongCategory> SearchSongs(FilterNode arg, IReadOnlyList<SongCategory> searchList)
         {
+            var filterNode = SearchCache.Keys.LastOrDefault(filter =>
+                arg.Argument.StartsWith(filter.Argument) && arg.Attribute == filter.Attribute);
+
+            if (filterNode is not null && filterNode == arg)
+            {
+                return SearchCache[arg!] as List<SongCategory>;
+            }
+
+            var cachedSearchList = filterNode is not null ? SearchCache[filterNode] : searchList;
+
+            if (SearchCache.Count > 3)
+            {
+                SearchCache.Remove(SearchCache.Keys.First());
+            }
+
+            List<SongCategory> result = new();
+
             if (arg.Attribute == SortAttribute.Unspecified)
             {
                 List<SongEntry> entriesToSearch = new();
-                foreach (var entry in searchList)
+                foreach (var entry in cachedSearchList)
                 {
                     entriesToSearch.AddRange(entry.Songs);
                 }
-                return UnspecifiedSearch(entriesToSearch, arg.Argument);
+                result = UnspecifiedSearch(entriesToSearch, arg.Argument);
+                SearchCache.Add(arg, result);
+                return result;
             }
 
             if (arg.Attribute == SortAttribute.Instrument)
             {
-                return SearchInstrument(searchList, arg.Instrument, arg.Argument);
+                result = SearchInstruments(cachedSearchList, arg.argument);
+                SearchCache.Add(arg, result);
+                return result;
             }
 
             Predicate<SongEntry> match = arg.Attribute switch
@@ -263,8 +286,7 @@ namespace YARG.Song
                 _ => throw new Exception("Unhandled seacrh filter")
             };
 
-            List<SongCategory> result = new();
-            foreach (var node in searchList)
+            foreach (var node in cachedSearchList)
             {
                 var entries = node.Songs.FindAll(match);
                 if (entries.Count > 0)
@@ -272,6 +294,7 @@ namespace YARG.Song
                     result.Add(new SongCategory(node.Category, entries));
                 }
             }
+            SearchCache.Add(arg, result);
             return result;
         }
 

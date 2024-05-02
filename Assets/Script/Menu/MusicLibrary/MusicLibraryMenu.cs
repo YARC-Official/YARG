@@ -401,7 +401,7 @@ namespace YARG.Menu.MusicLibrary
                 yield break;
             }
 
-            yield return new WaitForSeconds(0.05f);
+            yield return new WaitForSeconds(0.065f);
 
             if (SelectedPlaylist is null)
             {
