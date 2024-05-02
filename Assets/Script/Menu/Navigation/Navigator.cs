@@ -57,6 +57,8 @@ namespace YARG.Menu.Navigation
             MenuAction.Down,
             MenuAction.Left,
             MenuAction.Right,
+
+            MenuAction.Orange,
         };
 
         private class HoldContext
@@ -137,6 +139,7 @@ namespace YARG.Menu.Navigation
         private void EndNavigationHold(NavigationContext context)
         {
             _heldInputs.RemoveAll(i => i.Context.IsSameAs(context));
+            InvokeHoldOffEvent(context);
         }
 
         public bool IsHeld(MenuAction action)
@@ -156,6 +159,19 @@ namespace YARG.Menu.Navigation
             if (_schemeStack.Count > 0)
             {
                 _schemeStack.Peek().InvokeFuncs(ctx);
+            }
+        }
+
+        private void InvokeHoldOffEvent(NavigationContext ctx)
+        {
+            if (DisableMenuInputs)
+            {
+                return;
+            }
+
+            if (_schemeStack.Count > 0)
+            {
+                _schemeStack.Peek().InvokeHoldOffFuncs(ctx);
             }
         }
 

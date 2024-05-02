@@ -8,6 +8,7 @@ using UnityEngine;
 using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
@@ -80,6 +81,8 @@ namespace YARG.Menu.MusicLibrary
 
         private SongEntry _currentSong;
 
+        private List<int> _sectionHeaderIndices = new();
+
         protected override void Awake()
         {
             base.Awake();
@@ -88,23 +91,43 @@ namespace YARG.Menu.MusicLibrary
             _sidebar.Initialize(this, _searchField);
         }
 
+        private enum OrangeButtonState
+        {
+            Unpressed,
+            StartingHold,
+            Held
+        }
+
+        private OrangeButtonState _orangeButtonState = OrangeButtonState.Unpressed;
+
         private void OnEnable()
         {
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Up",
-                    () => SelectedIndex--),
+                    () => {
+                        if (_orangeButtonState != OrangeButtonState.Unpressed)
+                            GoToPreviousSection();
+                        else
+                            SelectedIndex--;
+                    }),
                 new NavigationScheme.Entry(MenuAction.Down, "Down",
-                    () => SelectedIndex++),
+                    () => {
+                        if (_orangeButtonState != OrangeButtonState.Unpressed)
+                            GoToNextSection();
+                        else
+                            SelectedIndex++;
+                    }),
                 new NavigationScheme.Entry(MenuAction.Green, "Confirm",
                     () => CurrentSelection?.PrimaryButtonClick()),
 
                 new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
                 new NavigationScheme.Entry(MenuAction.Blue, "Search",
                     () => _searchField.Focus()),
-                new NavigationScheme.Entry(MenuAction.Orange, "More Options",
-                    () => _popupMenu.gameObject.SetActive(true)),
+                new NavigationScheme.Entry(MenuAction.Orange, "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>",
+                    OnOrangeFretHit,
+                    OnOrangeFretRelease),
             }, false));
 
             // Restore search
@@ -139,8 +162,8 @@ namespace YARG.Menu.MusicLibrary
             _subHeader.text = LibraryMode switch
             {
                 MusicLibraryMode.QuickPlay => "Quickplay",
-                MusicLibraryMode.Practice  => "Practice",
-                _                          => throw new Exception("Unreachable.")
+                MusicLibraryMode.Practice => "Practice",
+                _ => throw new Exception("Unreachable.")
             };
 
             // Set IsPractice as well
@@ -280,6 +303,7 @@ namespace YARG.Menu.MusicLibrary
                 }, PLAYLIST_ID));
             }
 
+            CalculateCategoryHeaderIndices(list);
             return list;
         }
 
@@ -317,7 +341,15 @@ namespace YARG.Menu.MusicLibrary
                 list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
             }
 
+            CalculateCategoryHeaderIndices(list);
             return list;
+        }
+
+        private void CalculateCategoryHeaderIndices(List<ViewType> list)
+        {
+            _sectionHeaderIndices = list.Select((v, i) => (v, i)).
+                Where(viewTypeEntry => viewTypeEntry.v is SortHeaderViewType || viewTypeEntry.v is CategoryViewType).
+                Select(viewTypeEntry => viewTypeEntry.i).ToList();
         }
 
         private void SetRecommendedSongs()
@@ -474,6 +506,43 @@ namespace YARG.Menu.MusicLibrary
             MenuManager.Instance.PopMenu();
         }
 
+        private void OnOrangeFretHit(NavigationContext ctx)
+        {
+            if (ctx.IsRepeat)
+                _orangeButtonState = OrangeButtonState.Held;
+            else
+                _orangeButtonState = OrangeButtonState.StartingHold;
+        }
+
+        private void OnOrangeFretRelease(NavigationContext ctx)
+        {
+            // release tap, open More Options
+            if (_orangeButtonState == OrangeButtonState.StartingHold)
+                _popupMenu.gameObject.SetActive(true);
+
+            _orangeButtonState = OrangeButtonState.Unpressed;
+        }
+
+        private void GoToNextSection()
+        {
+            var i = _sectionHeaderIndices.BinarySearch(SelectedIndex);
+            i = i < 0 ? ~i : i + 1;
+            if (i >= _sectionHeaderIndices.Count)
+                return;
+
+            SelectedIndex = _sectionHeaderIndices[i];
+        }
+
+        private void GoToPreviousSection()
+        {
+            var i = _sectionHeaderIndices.BinarySearch(SelectedIndex);
+            i = i < 0 ? ~i - 1 : i - 1;
+            if (i < 0)
+                return;
+
+            SelectedIndex = _sectionHeaderIndices[i];
+        }
+        
         public void SelectRandomSong()
         {
             if (!ViewList.Any(i => i is SongViewType)) return;
