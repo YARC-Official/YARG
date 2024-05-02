@@ -45,12 +45,11 @@ namespace YARG.Menu.MusicLibrary
         {
             base.Show(selected, viewType);
 
-            // use different primary text for wider text field, e.g. when used as section header
+            // use category header primary text (which supports wider text), when used as section header
             if(viewType.UseWiderPrimaryText)
             {
                 _songNameContainer.SetActive(false);
                 _categoryNameContainer.SetActive(true);
-                _categoryText.text = viewType.GetPrimaryText(selected);
             }
             else
             {

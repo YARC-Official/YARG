@@ -2062,6 +2062,7 @@ MonoBehaviour:
   _icon: {fileID: 91003172277932724}
   _primaryText:
   - {fileID: 6846856528720448031}
+  - {fileID: 9056057400455014970}
   _secondaryText:
   - {fileID: 7006697502306556741}
   _songNameContainer: {fileID: 4368672747380734833}
