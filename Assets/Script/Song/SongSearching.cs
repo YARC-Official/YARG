@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using RapidFuzz.Net;
 using YARG.Core;
@@ -304,6 +305,7 @@ namespace YARG.Song
             public readonly int Rank;
 
             private readonly Dictionary<SongAttribute, double> _ranks = new();
+            public readonly int _nameIndex;
 
             public UnspecifiedSortNode(SongEntry song, string argument)
             {
@@ -316,6 +318,10 @@ namespace YARG.Song
                 var songNameLength = songName.Length - argument.Length;
                 var nameMult = argument.Length > songName.Length ? 1.0 - Math.Abs(songNameLength)/100.0 : 1.0;
                 _ranks.Add(SongAttribute.Name, FuzzyMatcher.PartialRatio(argument, songName) * nameMult);
+
+                var commonChars = string.Join(string.Empty, argument.Intersect(songName));
+                var commonString = !string.IsNullOrEmpty(commonChars) ? Regex.Match(argument, $"[{commonChars}]+").Value : null;
+                _nameIndex = !string.IsNullOrEmpty(commonString) ? songName.IndexOf(commonString, StringComparison.OrdinalIgnoreCase) : -1;
 
                 var artistNameLength = artistName.Length - argument.Length;
                 var artistMult = argument.Length > artistName.Length ? 1.0 - Math.Abs(artistNameLength)/100.0 : 1.0;
@@ -332,7 +338,12 @@ namespace YARG.Song
             {
                 if (Rank != other.Rank)
                 {
-                    return Rank - other.Rank;
+                    return Rank > other.Rank ? 1 : -1;
+                }
+
+                if (_nameIndex != other._nameIndex && _ranks[SongAttribute.Name] > _ranks[SongAttribute.Artist] && _ranks[SongAttribute.Name] > _ranks[SongAttribute.Charter])
+                {
+                    return _nameIndex >= 0 && _nameIndex < other._nameIndex ? 1 : -1;
                 }
 
                 return -string.Compare(Song.Name.Str, other.Song.Name.Str, StringComparison.Ordinal);
