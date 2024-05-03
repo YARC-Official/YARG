@@ -66,7 +66,7 @@ namespace YARG.Settings
             public ToggleSetting ShowTime    { get; } = new(false, ShowTimeCallback);
             public ToggleSetting MemoryStats { get; } = new(false, MemoryStatsCallback);
 
-            public ToggleSetting ReconnectProfiles { get; } = new(false);
+            public ToggleSetting ReconnectProfiles { get; } = new(true);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public SliderSetting KickBounceMultiplier      { get; } = new(1f, 0f, 2f);
