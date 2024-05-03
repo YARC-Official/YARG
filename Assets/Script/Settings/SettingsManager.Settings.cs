@@ -26,7 +26,6 @@ namespace YARG.Settings
     {
         public class SettingContainer
         {
-            //public static event System.Action OnDMXChannelsChanged;
 
             /// <summary>
             /// Have the settings been initialized?
