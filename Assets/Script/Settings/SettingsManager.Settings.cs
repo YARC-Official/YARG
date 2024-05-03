@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -65,6 +65,8 @@ namespace YARG.Settings
             public ToggleSetting ShowBattery { get; } = new(false);
             public ToggleSetting ShowTime    { get; } = new(false, ShowTimeCallback);
             public ToggleSetting MemoryStats { get; } = new(false, MemoryStatsCallback);
+
+            public ToggleSetting ReconnectProfiles { get; } = new(false);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public SliderSetting KickBounceMultiplier      { get; } = new(1f, 0f, 2f);
