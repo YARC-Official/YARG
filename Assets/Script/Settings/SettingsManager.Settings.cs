@@ -61,6 +61,10 @@ namespace YARG.Settings
             public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
 
+            public ToggleSetting ShowBattery { get; } = new(false);
+            public ToggleSetting ShowTime    { get; } = new(false, ShowTimeCallback);
+            public ToggleSetting MemoryStats { get; } = new(false, MemoryStatsCallback);
+
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public SliderSetting KickBounceMultiplier      { get; } = new(1f, 0f, 2f);
 
@@ -105,6 +109,11 @@ namespace YARG.Settings
             public VolumeSetting PreviewVolume     { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring   { get; } = new(0.7f, VocalMonitoringCallback);
+
+            public ToggleSetting EnablePlaybackBuffer { get; } = new(true, GlobalAudioHandler.TogglePlaybackBuffer);
+
+            public IntSetting PlaybackBufferLength { get; }
+                = new(75, GlobalAudioHandler.MinimumBufferLength, GlobalAudioHandler.MaximumBufferLength, GlobalAudioHandler.SetBufferLength);
 
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
 
@@ -287,6 +296,21 @@ namespace YARG.Settings
             #endregion
 
             #region Callbacks
+
+            private static void ShowTimeCallback(bool value)
+            {
+                StatsManager.Instance.SetShowing(StatsManager.Stat.Time, value);
+            }
+
+            private static void MemoryStatsCallback(bool value)
+            {
+#if UNITY_EDITOR
+                // Force in editor
+                value = true;
+#endif
+
+                StatsManager.Instance.SetShowing(StatsManager.Stat.Memory, value);
+            }
 
             private static void StageKitEnabledCallback(bool value)
             {
