@@ -2,7 +2,6 @@ using System;
 using PlasticBand.Haptics;
 using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Core.Logging;
 using YARG.Integration.StageKit;
 using YARG.Settings;
 
@@ -132,31 +131,6 @@ namespace YARG.Integration.Sacn
             TrailsSpacey = 255,
         }
 
-        private enum DrumEnum
-        {
-            Off = 0,
-            RedDrum = 1,
-            YellowDrum = 2,
-            BlueDrum = 4,
-            GreenDrum = 8,
-            Kick = 16,
-            YellowCymbal = 32,
-            BlueCymbal = 64,
-            GreenCymbal = 128,
-        }
-
-        private enum FiveFretsEnum
-        {
-            Off = 0,
-            Red = 1,
-            Yellow = 2,
-            Blue = 4,
-            Green = 8,
-            Orange = 16,
-            //Open isn't used by Keys
-            Open = 32,
-        }
-
         private enum PerformerEnum
         {
             Off = 0,
@@ -243,10 +217,10 @@ namespace YARG.Integration.Sacn
             SetChannel(_performerChannel, (byte) PerformerEnum.Off);
 
             //Instruments
-            SetChannel(_keysChannel, (byte) FiveFretsEnum.Off);
-            SetChannel(_drumChannel, (byte) DrumEnum.Off);
-            SetChannel(_guitarChannel, (byte) FiveFretsEnum.Off);
-            SetChannel(_bassChannel, (byte) FiveFretsEnum.Off);
+            SetChannel(_keysChannel, (byte) FogEnum.Off);
+            SetChannel(_drumChannel, (byte) FogEnum.Off);
+            SetChannel(_guitarChannel, (byte) FogEnum.Off);
+            SetChannel(_bassChannel, (byte) FogEnum.Off);
 
             //Many DMX fixtures have a 'Master dimmer' channel that controls the overall brightness of the fixture.
             //Got to turn those on.
@@ -273,7 +247,8 @@ namespace YARG.Integration.Sacn
             _beatlineChannel = SettingsManager.Settings.DMXBeatlineChannel.Value;
             _bonusEffectChannel = SettingsManager.Settings.DMXBonusEffectChannel.Value;
             _postProcessingChannel = SettingsManager.Settings.DMXPostProcessingChannel.Value;
-            _performerChannel = SettingsManager.Settings.DMXPerformerChannel.Value;
+            //NYI
+            //_performerChannel = SettingsManager.Settings.DMXPerformerChannel.Value;
 
             //instruments
             _drumChannel = SettingsManager.Settings.DMXDrumChannel.Value;

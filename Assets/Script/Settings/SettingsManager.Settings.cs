@@ -272,7 +272,8 @@ namespace YARG.Settings
 
             public IntSetting DMXBassChannel { get; } = new(30, 1, 512);
 
-            public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
+            //NYI
+            //public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
 
             public IntSetting DMXKeysChannel { get; } = new(32, 1, 512);
 

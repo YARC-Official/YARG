@@ -139,12 +139,13 @@ namespace YARG.Settings
                 nameof(Settings.DMXPostProcessingChannel),
                 nameof(Settings.DMXKeyframeChannel),
                 nameof(Settings.DMXBeatlineChannel),
-                nameof(Settings.DMXDrumChannel),
                 nameof(Settings.DMXBonusEffectChannel),
+                nameof(Settings.DMXDrumChannel),
                 nameof(Settings.DMXGuitarChannel),
                 nameof(Settings.DMXBassChannel),
                 nameof(Settings.DMXKeysChannel),
-                nameof(Settings.DMXPerformerChannel)
+                //NYI
+                //nameof(Settings.DMXPerformerChannel)
             },
             new MetadataTab("Debug", icon: "Debug")
             {
