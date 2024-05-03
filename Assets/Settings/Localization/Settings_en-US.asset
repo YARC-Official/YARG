@@ -1401,6 +1401,63 @@ MonoBehaviour:
     m_Localized: Apply Volume Settings to Music Library Previews
     m_Metadata:
       m_Items: []
+  - m_Id: 142536672422289408
+    m_Localized: DMX Secondary Cue Change
+    m_Metadata:
+      m_Items: []
+  - m_Id: 142536954552147968
+    m_Localized: This channel receives cues such as Next, Red Drum Pad, Vocal end,
+      and Beat when the appropriate cue is set in the Cue Change channel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144263829565628416
+    m_Localized: Basic DMX Channels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144264289307484160
+    m_Localized: Advanced DMX Channels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144264537266348032
+    m_Localized: This channel receives the Next, Previous, and First venue calls.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144264510162755584
+    m_Localized: DMX Keyframe Channel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144265347681378304
+    m_Localized: DMX Bonus Effect Channel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144265427771613184
+    m_Localized: DMX Drum Channel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144265595573133312
+    m_Localized: DMX Beatline Channel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144647306337214464
+    m_Localized: DMX Post-Processsing Channel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144658252413689856
+    m_Localized: DMX Guitar Channel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144658450821046272
+    m_Localized: DMX Bass Channel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144670542311612416
+    m_Localized: DMX Performer Channel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 145857192911855616
+    m_Localized: DMX Keys Channel
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -114,7 +114,7 @@ namespace YARG.Integration.StageKit
                 return;
             }
 
-            if ((_listenType & ListenTypes.RedFretDrums) == 0 || eventName != (int) FourLaneDrumPad.RedDrum)
+            if ((_listenType & ListenTypes.RedFretDrums) == 0 || (eventName & 1) == 0)
             {
                 return;
             }

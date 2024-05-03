@@ -1251,6 +1251,62 @@ MonoBehaviour:
     m_Key: Setting.ApplyVolumesInMusicLibrary
     m_Metadata:
       m_Items: []
+  - m_Id: 142536672422289408
+    m_Key: Setting.DMXSecondaryCueChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 142536954552147968
+    m_Key: Setting.DMXSecondaryCueChannel.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144263829565628416
+    m_Key: Header.StageKitDMXChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144264289307484160
+    m_Key: Header.AdvancedDMXChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144264510162755584
+    m_Key: Setting.DMXKeyframeChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144264537266348032
+    m_Key: Setting.DMXKeyframeChannel.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144265347681378304
+    m_Key: Setting.DMXBonusEffectChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144265427771613184
+    m_Key: Setting.DMXDrumChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144265595573133312
+    m_Key: Setting.DMXBeatlineChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144647306337214464
+    m_Key: Setting.DMXPostProcessingChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144658252413689856
+    m_Key: Setting.DMXGuitarChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144658450821046272
+    m_Key: Setting.DMXBassChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144670542311612416
+    m_Key: Setting.DMXPerformerChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 145857192911855616
+    m_Key: Setting.DMXKeysChannel
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

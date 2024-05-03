@@ -153,7 +153,7 @@ namespace YARG.Integration.StageKit
             }
         }
 
-        protected virtual void OnDrumEvent(DrumNote value)
+        protected virtual void OnDrumEvent(int value)
         {
             if (_currentLightingCue == null)
             {
@@ -162,12 +162,12 @@ namespace YARG.Integration.StageKit
 
             if (_currentLightingCue.DirectListenEnabled)
             {
-                _currentLightingCue.HandleDrumEvent(value.Pad);
+                _currentLightingCue.HandleDrumEvent(value);
             }
 
             foreach (var primitive in _currentLightingCue.CuePrimitives)
             {
-                primitive.HandleDrumEvent(value.Pad);
+                primitive.HandleDrumEvent(value);
             }
         }
 
