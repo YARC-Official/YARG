@@ -19,11 +19,13 @@ namespace YARG.Integration.Sacn
             Off = 0,
             On = 255,
         }
+
         private enum DimmerEnum
         {
             Off = 0,
             On = 255,
         }
+
         private enum FogEnum
         {
             Off = 0,
@@ -38,6 +40,7 @@ namespace YARG.Integration.Sacn
             Fast = 191,
             Fastest = 255,
         }
+
         private enum CueEnum
         {
             NoCue = 0,
@@ -178,7 +181,6 @@ namespace YARG.Integration.Sacn
 
         public void Start()
         {
-
             ManageEventSubscription(true);
 
             UpdateDMXChannelNumbers();
@@ -274,10 +276,7 @@ namespace YARG.Integration.Sacn
                 MasterLightingController.OnPerformerEvent += OnPerformersEvent;
 
                 //Instruments
-                MasterLightingController.OnDrumEvent += OnDrumEvent;
-                MasterLightingController.OnGuitarEvent += OnGuitarEvent;
-                MasterLightingController.OnBassEvent += OnBassEvent;
-                MasterLightingController.OnKeysEvent += OnKeysEvent;
+                MasterLightingController.OnInstrumentEvent += OnInstrumentEvent;
             }
             else
             {
@@ -294,12 +293,10 @@ namespace YARG.Integration.Sacn
                 MasterLightingController.OnPerformerEvent -= OnPerformersEvent;
 
                 //Instruments
-                MasterLightingController.OnDrumEvent -= OnDrumEvent;
-                MasterLightingController.OnGuitarEvent -= OnGuitarEvent;
-                MasterLightingController.OnBassEvent -= OnBassEvent;
-                MasterLightingController.OnKeysEvent -= OnKeysEvent;
+                MasterLightingController.OnInstrumentEvent -= OnInstrumentEvent;
             }
         }
+
         private void OnFogStateEvent(MasterLightingController.FogState fogState)
         {
             if (fogState == MasterLightingController.FogState.On)
@@ -320,19 +317,19 @@ namespace YARG.Integration.Sacn
             switch (value)
             {
                 case StageKitStrobeSpeed.Off:
-                    SetChannel(_strobeChannel, (byte)StrobeEnum.Off);
+                    SetChannel(_strobeChannel, (byte) StrobeEnum.Off);
                     break;
                 case StageKitStrobeSpeed.Slow:
-                    SetChannel(_strobeChannel, (byte)StrobeEnum.Slow);
+                    SetChannel(_strobeChannel, (byte) StrobeEnum.Slow);
                     break;
                 case StageKitStrobeSpeed.Medium:
-                    SetChannel(_strobeChannel, (byte)StrobeEnum.Medium);
+                    SetChannel(_strobeChannel, (byte) StrobeEnum.Medium);
                     break;
                 case StageKitStrobeSpeed.Fast:
-                    SetChannel(_strobeChannel, (byte)StrobeEnum.Fast);
+                    SetChannel(_strobeChannel, (byte) StrobeEnum.Fast);
                     break;
                 case StageKitStrobeSpeed.Fastest:
-                    SetChannel(_strobeChannel, (byte)StrobeEnum.Fastest);
+                    SetChannel(_strobeChannel, (byte) StrobeEnum.Fastest);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(value), value, null);
@@ -357,7 +354,6 @@ namespace YARG.Integration.Sacn
 
             switch (newEvent.Type)
             {
-
                 case PerformerEventType.Singalong:
                     perf += (int) PerformerEnum.Singalong;
                     break;
@@ -365,12 +361,10 @@ namespace YARG.Integration.Sacn
                 case PerformerEventType.Spotlight:
                     perf += (int) PerformerEnum.Spotlight;
                     break;
-
             }
 
             switch (newEvent.Performers)
             {
-
                 case Performer.Guitar:
                     perf += (int) PerformerEnum.Guitar;
                     break;
@@ -390,30 +384,34 @@ namespace YARG.Integration.Sacn
                 case Performer.Keyboard:
                     perf += (int) PerformerEnum.Keyboard;
                     break;
-
             }
 
             SetChannel(_performerChannel, perf);
         }
 
-        private void OnKeysEvent(int hitPads)
+        private void OnInstrumentEvent(MasterLightingController.InstrumentType instrument, int notesHit)
         {
-            SetChannel(_keysChannel, (byte) hitPads);
-        }
+            switch (instrument)
+            {
+                case MasterLightingController.InstrumentType.Keys:
+                    SetChannel(_keysChannel, (byte) notesHit);
+                    break;
 
-        private void OnDrumEvent(int hitPads)
-        {
-            SetChannel(_drumChannel, (byte) hitPads);
-        }
+                case MasterLightingController.InstrumentType.Drums:
+                    SetChannel(_drumChannel, (byte) notesHit);
+                    break;
 
-        private void OnGuitarEvent(int hitPads)
-        {
-            SetChannel(_guitarChannel, (byte) hitPads);
-        }
+                case MasterLightingController.InstrumentType.Guitar:
+                    SetChannel(_guitarChannel, (byte) notesHit);
+                    break;
 
-        private void OnBassEvent(int hitPads)
-        {
-            SetChannel(_bassChannel, (byte) hitPads);
+                case MasterLightingController.InstrumentType.Bass:
+                    SetChannel(_bassChannel, (byte) notesHit);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(instrument), instrument, null);
+            }
         }
 
         private void OnBeatLineEvent(Beatline newBeatline)
@@ -575,7 +573,6 @@ namespace YARG.Integration.Sacn
         {
             OnChannelSet?.Invoke(channel, value);
         }
-
     }
 }
 

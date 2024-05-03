@@ -33,6 +33,13 @@ namespace YARG.Integration
             On,
         }
 
+        public enum InstrumentType
+        {
+            Drums,
+            Guitar,
+            Bass,
+            Keys,
+        }
         public static LightingEvent CurrentLightingCue
         {
             get => _currentLightingCue;
@@ -91,7 +98,7 @@ namespace YARG.Integration
             {
                 PreviousDrumNote = _currentDrumNote;
                 _currentDrumNote = value;
-                OnDrumEvent?.Invoke(value);
+                OnInstrumentEvent?.Invoke(InstrumentType.Drums,value);
             }
         }
 
@@ -103,7 +110,7 @@ namespace YARG.Integration
             {
                 PreviousGuitarNote = _currentGuitarNote;
                 _currentGuitarNote = value;
-                OnGuitarEvent?.Invoke(value);
+                OnInstrumentEvent?.Invoke(InstrumentType.Guitar,value);
             }
         }
         public static int PreviousGuitarNote;
@@ -115,11 +122,25 @@ namespace YARG.Integration
             {
                 PreviousKeysNote = _currentKeysNote;
                 _currentKeysNote = value;
-                OnKeysEvent?.Invoke(value);
+                OnInstrumentEvent?.Invoke(InstrumentType.Keys,value);
             }
         }
 
         public static int PreviousKeysNote;
+
+        public static int CurrentBassNotes
+        {
+            get => _currentBassNote;
+            set
+            {
+                PreviousBassNote = _currentBassNote;
+                _currentBassNote = value;
+                OnInstrumentEvent?.Invoke(InstrumentType.Bass,value);
+            }
+        }
+
+        public static int PreviousBassNote;
+
         public static PerformerEvent CurrentPerformerEvent
         {
             get => _currentPerformerEvent;
@@ -132,20 +153,6 @@ namespace YARG.Integration
         }
 
         public static PerformerEvent PreviousPerformerEvent;
-
-        public static int CurrentBassNotes
-        {
-            get => _currentBassNote;
-            set
-            {
-                PreviousBassNote = _currentBassNote;
-                _currentBassNote = value;
-                OnBassEvent?.Invoke(value);
-            }
-        }
-
-        public static int PreviousBassNote;
-
 
         public static VocalNote CurrentVocalNote
         {
@@ -203,9 +210,7 @@ namespace YARG.Integration
         public static event Action OnBonusFXEvent;
         public static event Action<bool> OnLargeVenue;
         public static event Action<FogState> OnFogState;
-        public static event Action<int> OnDrumEvent;
-        public static event Action<int> OnGuitarEvent;
-        public static event Action<int> OnBassEvent;
+        public static event Action<InstrumentType,int> OnInstrumentEvent;
         public static event Action<VocalNote> OnVocalsEvent;
         public static event Action<Beatline> OnBeatLineEvent;
         public static event Action<LightingEvent> OnLightingEvent;
@@ -213,7 +218,6 @@ namespace YARG.Integration
         public static event Action<PostProcessingEvent> OnPostProcessing;
         public static event Action<PerformerEvent> OnPerformerEvent;
 
-        public static event Action<int> OnKeysEvent;
 
         private static bool _paused;
         private static bool _largeVenue;

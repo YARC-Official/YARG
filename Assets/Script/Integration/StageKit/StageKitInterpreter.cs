@@ -48,7 +48,7 @@ namespace YARG.Integration.StageKit
         {
             SceneManager.sceneUnloaded += OnSceneUnloaded;
 
-            MasterLightingController.OnDrumEvent += OnDrumEvent;
+            MasterLightingController.OnInstrumentEvent += OnDrumEvent;
             MasterLightingController.OnVocalsEvent += OnVocalsEvent;
             MasterLightingController.OnLightingEvent += OnLightingEvent;
             MasterLightingController.OnBeatLineEvent += OnBeatLineEvent;
@@ -153,9 +153,10 @@ namespace YARG.Integration.StageKit
             }
         }
 
-        protected virtual void OnDrumEvent(int value)
+        protected virtual void OnDrumEvent(MasterLightingController.InstrumentType instrument, int value)
         {
-            if (_currentLightingCue == null)
+            
+            if (_currentLightingCue == null || instrument != MasterLightingController.InstrumentType.Drums)
             {
                 return;
             }
