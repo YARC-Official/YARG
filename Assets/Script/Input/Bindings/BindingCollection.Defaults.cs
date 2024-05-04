@@ -245,42 +245,42 @@ namespace YARG.Input
                     return true;
 
                 case GameMode.ProKeys:
-                    // AddBinding(ProKeysAction.Key1, keyboard.key1);
-                    // AddBinding(ProKeysAction.Key2, keyboard.key2);
-                    // AddBinding(ProKeysAction.Key3, keyboard.key3);
-                    // AddBinding(ProKeysAction.Key4, keyboard.key4);
-                    // AddBinding(ProKeysAction.Key5, keyboard.key5);
+                    AddBinding(ProKeysAction.Key1, keyboard.key1);
+                    AddBinding(ProKeysAction.Key2, keyboard.key2);
+                    AddBinding(ProKeysAction.Key3, keyboard.key3);
+                    AddBinding(ProKeysAction.Key4, keyboard.key4);
+                    AddBinding(ProKeysAction.Key5, keyboard.key5);
 
-                    // AddBinding(ProKeysAction.Key6, keyboard.key6);
-                    // AddBinding(ProKeysAction.Key7, keyboard.key7);
-                    // AddBinding(ProKeysAction.Key8, keyboard.key8);
-                    // AddBinding(ProKeysAction.Key9, keyboard.key9);
-                    // AddBinding(ProKeysAction.Key10, keyboard.key10);
-                    // AddBinding(ProKeysAction.Key11, keyboard.key11);
-                    // AddBinding(ProKeysAction.Key12, keyboard.key12);
+                    AddBinding(ProKeysAction.Key6, keyboard.key6);
+                    AddBinding(ProKeysAction.Key7, keyboard.key7);
+                    AddBinding(ProKeysAction.Key8, keyboard.key8);
+                    AddBinding(ProKeysAction.Key9, keyboard.key9);
+                    AddBinding(ProKeysAction.Key10, keyboard.key10);
+                    AddBinding(ProKeysAction.Key11, keyboard.key11);
+                    AddBinding(ProKeysAction.Key12, keyboard.key12);
 
-                    // AddBinding(ProKeysAction.Key13, keyboard.key13);
-                    // AddBinding(ProKeysAction.Key14, keyboard.key14);
-                    // AddBinding(ProKeysAction.Key15, keyboard.key15);
-                    // AddBinding(ProKeysAction.Key16, keyboard.key16);
-                    // AddBinding(ProKeysAction.Key17, keyboard.key17);
+                    AddBinding(ProKeysAction.Key13, keyboard.key13);
+                    AddBinding(ProKeysAction.Key14, keyboard.key14);
+                    AddBinding(ProKeysAction.Key15, keyboard.key15);
+                    AddBinding(ProKeysAction.Key16, keyboard.key16);
+                    AddBinding(ProKeysAction.Key17, keyboard.key17);
 
-                    // AddBinding(ProKeysAction.Key18, keyboard.key18);
-                    // AddBinding(ProKeysAction.Key19, keyboard.key19);
-                    // AddBinding(ProKeysAction.Key20, keyboard.key20);
-                    // AddBinding(ProKeysAction.Key21, keyboard.key21);
-                    // AddBinding(ProKeysAction.Key22, keyboard.key22);
-                    // AddBinding(ProKeysAction.Key23, keyboard.key23);
-                    // AddBinding(ProKeysAction.Key24, keyboard.key24);
+                    AddBinding(ProKeysAction.Key18, keyboard.key18);
+                    AddBinding(ProKeysAction.Key19, keyboard.key19);
+                    AddBinding(ProKeysAction.Key20, keyboard.key20);
+                    AddBinding(ProKeysAction.Key21, keyboard.key21);
+                    AddBinding(ProKeysAction.Key22, keyboard.key22);
+                    AddBinding(ProKeysAction.Key23, keyboard.key23);
+                    AddBinding(ProKeysAction.Key24, keyboard.key24);
 
-                    // AddBinding(ProKeysAction.Key25, keyboard.key25);
+                    AddBinding(ProKeysAction.Key25, keyboard.key25);
 
-                    // AddBinding(ProKeysAction.StarPower, keyboard.overdrive);
-                    // AddBinding(ProKeysAction.StarPower, keyboard.selectButton);
-                    // AddBinding(ProKeysAction.StarPower, keyboard.digitalPedal);
+                    AddBinding(ProKeysAction.StarPower, keyboard.overdrive);
+                    AddBinding(ProKeysAction.StarPower, keyboard.selectButton);
+                    AddBinding(ProKeysAction.StarPower, keyboard.digitalPedal);
 
-                    // AddBinding(ProKeysAction.TouchEffects, keyboard.touchStrip);
-                    // AddBinding(ProKeysAction.TouchEffects, keyboard.analogPedal);
+                    AddBinding(ProKeysAction.TouchEffects, keyboard.touchStrip);
+                    AddBinding(ProKeysAction.TouchEffects, keyboard.analogPedal);
                     return true;
 
                 default:
@@ -561,55 +561,55 @@ namespace YARG.Input
 
             // screw it, we ballin'
 
-            // // Lower keyboard
-            // AddBinding(ProKeysAction.Key1, keyboard.zKey);
-            // AddBinding(ProKeysAction.Key2, keyboard.sKey);
-            // AddBinding(ProKeysAction.Key3, keyboard.xKey);
-            // AddBinding(ProKeysAction.Key4, keyboard.dKey);
-            // AddBinding(ProKeysAction.Key5, keyboard.cKey);
+            // Lower keyboard
+            AddBinding(ProKeysAction.Key1, keyboard.zKey);
+            AddBinding(ProKeysAction.Key2, keyboard.sKey);
+            AddBinding(ProKeysAction.Key3, keyboard.xKey);
+            AddBinding(ProKeysAction.Key4, keyboard.dKey);
+            AddBinding(ProKeysAction.Key5, keyboard.cKey);
 
-            // AddBinding(ProKeysAction.Key6, keyboard.vKey);
-            // AddBinding(ProKeysAction.Key7, keyboard.gKey);
-            // AddBinding(ProKeysAction.Key8, keyboard.bKey);
-            // AddBinding(ProKeysAction.Key9, keyboard.hKey);
-            // AddBinding(ProKeysAction.Key10, keyboard.nKey);
-            // AddBinding(ProKeysAction.Key11, keyboard.jKey);
-            // AddBinding(ProKeysAction.Key12, keyboard.mKey);
+            AddBinding(ProKeysAction.Key6, keyboard.vKey);
+            AddBinding(ProKeysAction.Key7, keyboard.gKey);
+            AddBinding(ProKeysAction.Key8, keyboard.bKey);
+            AddBinding(ProKeysAction.Key9, keyboard.hKey);
+            AddBinding(ProKeysAction.Key10, keyboard.nKey);
+            AddBinding(ProKeysAction.Key11, keyboard.jKey);
+            AddBinding(ProKeysAction.Key12, keyboard.mKey);
 
-            // AddBinding(ProKeysAction.Key13, keyboard.commaKey);
-            // AddBinding(ProKeysAction.Key14, keyboard.lKey);
-            // AddBinding(ProKeysAction.Key15, keyboard.periodKey);
-            // AddBinding(ProKeysAction.Key16, keyboard.semicolonKey);
-            // AddBinding(ProKeysAction.Key17, keyboard.slashKey);
+            AddBinding(ProKeysAction.Key13, keyboard.commaKey);
+            AddBinding(ProKeysAction.Key14, keyboard.lKey);
+            AddBinding(ProKeysAction.Key15, keyboard.periodKey);
+            AddBinding(ProKeysAction.Key16, keyboard.semicolonKey);
+            AddBinding(ProKeysAction.Key17, keyboard.slashKey);
 
-            // // Higher keyboard
-            // AddBinding(ProKeysAction.Key6, keyboard.qKey);
-            // AddBinding(ProKeysAction.Key7, keyboard.digit2Key);
-            // AddBinding(ProKeysAction.Key8, keyboard.wKey);
-            // AddBinding(ProKeysAction.Key9, keyboard.digit3Key);
-            // AddBinding(ProKeysAction.Key10, keyboard.eKey);
-            // AddBinding(ProKeysAction.Key11, keyboard.digit4key);
-            // AddBinding(ProKeysAction.Key12, keyboard.rKey);
+            // Higher keyboard
+            AddBinding(ProKeysAction.Key6, keyboard.qKey);
+            AddBinding(ProKeysAction.Key7, keyboard.digit2Key);
+            AddBinding(ProKeysAction.Key8, keyboard.wKey);
+            AddBinding(ProKeysAction.Key9, keyboard.digit3Key);
+            AddBinding(ProKeysAction.Key10, keyboard.eKey);
+            AddBinding(ProKeysAction.Key11, keyboard.digit4Key);
+            AddBinding(ProKeysAction.Key12, keyboard.rKey);
 
-            // AddBinding(ProKeysAction.Key13, keyboard.tKey);
-            // AddBinding(ProKeysAction.Key14, keyboard.digit6Key);
-            // AddBinding(ProKeysAction.Key15, keyboard.yKey);
-            // AddBinding(ProKeysAction.Key16, keyboard.digit7Key);
-            // AddBinding(ProKeysAction.Key17, keyboard.uKey);
+            AddBinding(ProKeysAction.Key13, keyboard.tKey);
+            AddBinding(ProKeysAction.Key14, keyboard.digit6Key);
+            AddBinding(ProKeysAction.Key15, keyboard.yKey);
+            AddBinding(ProKeysAction.Key16, keyboard.digit7Key);
+            AddBinding(ProKeysAction.Key17, keyboard.uKey);
 
-            // AddBinding(ProKeysAction.Key18, keyboard.iKey);
-            // AddBinding(ProKeysAction.Key19, keyboard.digit9Key);
-            // AddBinding(ProKeysAction.Key20, keyboard.oKey);
-            // AddBinding(ProKeysAction.Key21, keyboard.digit0Key);
-            // AddBinding(ProKeysAction.Key22, keyboard.pKey);
-            // AddBinding(ProKeysAction.Key23, keyboard.minusKey);
-            // AddBinding(ProKeysAction.Key24, keyboard.leftBracketKey);
+            AddBinding(ProKeysAction.Key18, keyboard.iKey);
+            AddBinding(ProKeysAction.Key19, keyboard.digit9Key);
+            AddBinding(ProKeysAction.Key20, keyboard.oKey);
+            AddBinding(ProKeysAction.Key21, keyboard.digit0Key);
+            AddBinding(ProKeysAction.Key22, keyboard.pKey);
+            AddBinding(ProKeysAction.Key23, keyboard.minusKey);
+            AddBinding(ProKeysAction.Key24, keyboard.leftBracketKey);
 
-            // AddBinding(ProKeysAction.Key25, keyboard.rightBracketKey);
+            AddBinding(ProKeysAction.Key25, keyboard.rightBracketKey);
 
-            // AddBinding(ProKeysAction.StarPower, keyboard.backspaceKey);
+            AddBinding(ProKeysAction.StarPower, keyboard.backspaceKey);
 
-            // AddBinding(ProKeysAction.TouchEffects, keyboard.quoteKey);
+            AddBinding(ProKeysAction.TouchEffects, keyboard.quoteKey);
 
             return true;
         }
