@@ -52,7 +52,7 @@ namespace YARG.Menu.Navigation
                 _handler?.Invoke(context);
             }
 
-            public void InvokeHolddOffHandler(NavigationContext context)
+            public void InvokeHoldOffHandler(NavigationContext context)
             {
                 _onHoldOffHandler?.Invoke(context);
             }
@@ -93,7 +93,7 @@ namespace YARG.Menu.Navigation
         {
             foreach (var entry in _entries.Where(i => i.Action == context.Action))
             {
-                entry.InvokeHolddOffHandler(context);
+                entry.InvokeHoldOffHandler(context);
             }
         }
     }

@@ -348,7 +348,7 @@ namespace YARG.Menu.MusicLibrary
         private void CalculateCategoryHeaderIndices(List<ViewType> list)
         {
             _sectionHeaderIndices = list.Select((v, i) => (v, i)).
-                Where(viewTypeEntry => viewTypeEntry.v is SortHeaderViewType || viewTypeEntry.v is CategoryViewType).
+                Where(viewTypeEntry => viewTypeEntry.v is SortHeaderViewType or CategoryViewType).
                 Select(viewTypeEntry => viewTypeEntry.i).ToList();
         }
 
