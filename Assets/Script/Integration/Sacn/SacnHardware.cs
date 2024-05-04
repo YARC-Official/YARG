@@ -1,14 +1,12 @@
 using System;
 using Haukcode.sACN;
 using UnityEngine;
-using YARG.Settings;
 using YARG.Core.Logging;
 
 namespace YARG.Integration.Sacn
 {
     public class SacnHardware : MonoSingleton<SacnHardware>
     {
-
         // DMX spec says 44 updates per second is the max
         private const float TARGET_FPS = 44f;
         private const float TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
@@ -24,6 +22,8 @@ namespace YARG.Integration.Sacn
         private SACNClient _sendClient;
 
         private readonly byte[] _dataPacket = new byte[UNIVERSE_SIZE];
+
+        public static event Action OnPacketSent;
 
         public void HandleEnabledChanged(bool isEnabled)
         {
@@ -85,10 +85,9 @@ namespace YARG.Integration.Sacn
             // way to go but singlecast can be used if needed.
             _sendClient.SendMulticast(1, _dataPacket);
 
-            //this should be in the interpreter, but it's here for now.
-            _dataPacket[SettingsManager.Settings.DMXBeatlineChannel.Value - 1] = 0;
-            _dataPacket[SettingsManager.Settings.DMXBonusEffectChannel.Value - 1] = 0;
-            _dataPacket[SettingsManager.Settings.DMXKeyframeChannel.Value - 1] = 0;
+            //this is mainly for the sacn interpreter to know when a packet is sent so it can turn off notes that are no
+            //longer being played.
+            OnPacketSent?.Invoke();
         }
     }
 }

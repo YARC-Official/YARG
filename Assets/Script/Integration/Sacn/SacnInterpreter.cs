@@ -1,6 +1,7 @@
 using System;
 using PlasticBand.Haptics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
 using YARG.Integration.StageKit;
 using YARG.Settings;
@@ -179,50 +180,18 @@ namespace YARG.Integration.Sacn
         private int _keysChannel;
         //Currently no advanced vocals channel as it doesn't seem needed.
 
+        private bool _clearKeysNoteNextPacket;
+        private bool _clearDrumNoteNextPacket;
+        private bool _clearGuitarNoteNextPacket;
+        private bool _clearBassNoteNextPacket;
+
         public void Start()
         {
             ManageEventSubscription(true);
 
             UpdateDMXChannelNumbers();
 
-            //Set all channels to off
-            //Basic
-            SetChannel(_fogChannel, (byte) FogEnum.Off);
-            SetChannel(_strobeChannel, (byte) StrobeEnum.Off);
-
-            foreach (var t in _blueChannels)
-            {
-                SetChannel(t, (byte) LedEnum.Off);
-            }
-
-            foreach (var t in _greenChannels)
-            {
-                SetChannel(t, (byte) LedEnum.Off);
-            }
-
-            foreach (var t in _redChannels)
-            {
-                SetChannel(t, (byte) LedEnum.Off);
-            }
-
-            foreach (var t in _yellowChannels)
-            {
-                SetChannel(t, (byte) LedEnum.Off);
-            }
-
-            //Advanced
-            SetChannel(_cueChangeChannel, (byte) CueEnum.NoCue);
-            SetChannel(_keyframeChannel, (byte) KeyFrameCueEnum.Off);
-            SetChannel(_beatlineChannel, (byte) BeatlineEnum.Off);
-            SetChannel(_bonusEffectChannel, (byte) BonusEffectEnum.Off);
-            SetChannel(_postProcessingChannel, (byte) PostProcessingTypeEnum.Default);
-            SetChannel(_performerChannel, (byte) PerformerEnum.Off);
-
-            //Instruments
-            SetChannel(_keysChannel, (byte) FogEnum.Off);
-            SetChannel(_drumChannel, (byte) FogEnum.Off);
-            SetChannel(_guitarChannel, (byte) FogEnum.Off);
-            SetChannel(_bassChannel, (byte) FogEnum.Off);
+            AllChannelsOff();
 
             //Many DMX fixtures have a 'Master dimmer' channel that controls the overall brightness of the fixture.
             //Got to turn those on.
@@ -263,6 +232,9 @@ namespace YARG.Integration.Sacn
         {
             if (subscribe)
             {
+                SceneManager.sceneUnloaded += OnSceneUnloaded;
+                SacnHardware.OnPacketSent += OnPacketSent;
+
                 // Basic
                 StageKitInterpreter.OnLedEvent += HandleLedEvent;
 
@@ -280,6 +252,9 @@ namespace YARG.Integration.Sacn
             }
             else
             {
+                SceneManager.sceneUnloaded -= OnSceneUnloaded;
+                SacnHardware.OnPacketSent -= OnPacketSent;
+
                 // Basic
                 StageKitInterpreter.OnLedEvent -= HandleLedEvent;
 
@@ -295,6 +270,92 @@ namespace YARG.Integration.Sacn
                 //Instruments
                 MasterLightingController.OnInstrumentEvent -= OnInstrumentEvent;
             }
+        }
+
+        private void AllChannelsOff()
+        {
+            //Set all channels to off
+            //Basic
+            SetChannel(_fogChannel, (byte) FogEnum.Off);
+            SetChannel(_strobeChannel, (byte) StrobeEnum.Off);
+
+            foreach (var t in _blueChannels)
+            {
+                SetChannel(t, (byte) LedEnum.Off);
+            }
+
+            foreach (var t in _greenChannels)
+            {
+                SetChannel(t, (byte) LedEnum.Off);
+            }
+
+            foreach (var t in _redChannels)
+            {
+                SetChannel(t, (byte) LedEnum.Off);
+            }
+
+            foreach (var t in _yellowChannels)
+            {
+                SetChannel(t, (byte) LedEnum.Off);
+            }
+
+            //Advanced
+            SetChannel(_cueChangeChannel, (byte) CueEnum.NoCue);
+            SetChannel(_keyframeChannel, (byte) KeyFrameCueEnum.Off);
+            SetChannel(_beatlineChannel, (byte) BeatlineEnum.Off);
+            SetChannel(_bonusEffectChannel, (byte) BonusEffectEnum.Off);
+            SetChannel(_postProcessingChannel, (byte) PostProcessingTypeEnum.Default);
+            //NYI
+            //SetChannel(_performerChannel, (byte) PerformerEnum.Off);
+
+            //Instruments
+            SetChannel(_keysChannel, (byte) FogEnum.Off);
+            SetChannel(_drumChannel, (byte) FogEnum.Off);
+            SetChannel(_guitarChannel, (byte) FogEnum.Off);
+            SetChannel(_bassChannel, (byte) FogEnum.Off);
+        }
+
+        private void OnPacketSent()
+        {
+            // All this rigamarole with the clear flags is to make sure that when an instant note is hit, it gets sent
+            // in the next packet, but then the channel is cleared in the packet after that. This is due to timing differences
+            // between the 'slow' 44fps DMX packets and the 'fast' internal YARG logic, which could turn an instant note
+            // off within a single game frame.
+
+            //Change instant values off.
+            SetChannel(_bonusEffectChannel, (byte) BonusEffectEnum.Off);
+            SetChannel(_beatlineChannel, (byte) BeatlineEnum.Off);
+            SetChannel(_keyframeChannel, (byte) KeyFrameCueEnum.Off);
+
+            //Instruments
+            if (_clearKeysNoteNextPacket)
+            {
+                SetChannel(_keysChannel, (byte) FogEnum.Off);
+                _clearKeysNoteNextPacket = false;
+            }
+
+            if (_clearDrumNoteNextPacket)
+            {
+                SetChannel(_drumChannel, (byte) FogEnum.Off);
+                _clearDrumNoteNextPacket = false;
+            }
+
+            if (_clearGuitarNoteNextPacket)
+            {
+                SetChannel(_guitarChannel, (byte) FogEnum.Off);
+                _clearGuitarNoteNextPacket = false;
+            }
+
+            if (_clearBassNoteNextPacket)
+            {
+                SetChannel(_bassChannel, (byte) FogEnum.Off);
+                _clearBassNoteNextPacket = false;
+            }
+        }
+
+        private void OnSceneUnloaded(Scene scene)
+        {
+            AllChannelsOff();
         }
 
         private void OnFogStateEvent(MasterLightingController.FogState fogState)
@@ -395,18 +456,38 @@ namespace YARG.Integration.Sacn
             {
                 case MasterLightingController.InstrumentType.Keys:
                     SetChannel(_keysChannel, (byte) notesHit);
+                    if (notesHit == 0)
+                    {
+                        _clearKeysNoteNextPacket = true;
+                    }
+
                     break;
 
                 case MasterLightingController.InstrumentType.Drums:
                     SetChannel(_drumChannel, (byte) notesHit);
+                    if (notesHit == 0)
+                    {
+                        _clearDrumNoteNextPacket = true;
+                    }
+
                     break;
 
                 case MasterLightingController.InstrumentType.Guitar:
                     SetChannel(_guitarChannel, (byte) notesHit);
+                    if (notesHit == 0)
+                    {
+                        _clearGuitarNoteNextPacket = true;
+                    }
+
                     break;
 
                 case MasterLightingController.InstrumentType.Bass:
                     SetChannel(_bassChannel, (byte) notesHit);
+                    if (notesHit == 0)
+                    {
+                        _clearBassNoteNextPacket = true;
+                    }
+
                     break;
 
                 default:

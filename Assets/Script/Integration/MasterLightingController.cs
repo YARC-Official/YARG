@@ -40,6 +40,7 @@ namespace YARG.Integration
             Bass,
             Keys,
         }
+
         public static LightingEvent CurrentLightingCue
         {
             get => _currentLightingCue;
@@ -65,6 +66,7 @@ namespace YARG.Integration
         }
 
         public static PostProcessingEvent PreviousPostProcessing;
+
         public static FogState CurrentFogState
         {
             get => _currentFogState;
@@ -98,11 +100,12 @@ namespace YARG.Integration
             {
                 PreviousDrumNote = _currentDrumNote;
                 _currentDrumNote = value;
-                OnInstrumentEvent?.Invoke(InstrumentType.Drums,value);
+                OnInstrumentEvent?.Invoke(InstrumentType.Drums, value);
             }
         }
 
         public static int PreviousDrumNote;
+
         public static int CurrentGuitarNotes
         {
             get => _currentGuitarNote;
@@ -110,9 +113,10 @@ namespace YARG.Integration
             {
                 PreviousGuitarNote = _currentGuitarNote;
                 _currentGuitarNote = value;
-                OnInstrumentEvent?.Invoke(InstrumentType.Guitar,value);
+                OnInstrumentEvent?.Invoke(InstrumentType.Guitar, value);
             }
         }
+
         public static int PreviousGuitarNote;
 
         public static int CurrentKeysNotes
@@ -122,7 +126,7 @@ namespace YARG.Integration
             {
                 PreviousKeysNote = _currentKeysNote;
                 _currentKeysNote = value;
-                OnInstrumentEvent?.Invoke(InstrumentType.Keys,value);
+                OnInstrumentEvent?.Invoke(InstrumentType.Keys, value);
             }
         }
 
@@ -135,7 +139,7 @@ namespace YARG.Integration
             {
                 PreviousBassNote = _currentBassNote;
                 _currentBassNote = value;
-                OnInstrumentEvent?.Invoke(InstrumentType.Bass,value);
+                OnInstrumentEvent?.Invoke(InstrumentType.Bass, value);
             }
         }
 
@@ -210,14 +214,13 @@ namespace YARG.Integration
         public static event Action OnBonusFXEvent;
         public static event Action<bool> OnLargeVenue;
         public static event Action<FogState> OnFogState;
-        public static event Action<InstrumentType,int> OnInstrumentEvent;
+        public static event Action<InstrumentType, int> OnInstrumentEvent;
         public static event Action<VocalNote> OnVocalsEvent;
         public static event Action<Beatline> OnBeatLineEvent;
         public static event Action<LightingEvent> OnLightingEvent;
         public static event Action<StageKitStrobeSpeed> OnStrobeEvent;
         public static event Action<PostProcessingEvent> OnPostProcessing;
         public static event Action<PerformerEvent> OnPerformerEvent;
-
 
         private static bool _paused;
         private static bool _largeVenue;
