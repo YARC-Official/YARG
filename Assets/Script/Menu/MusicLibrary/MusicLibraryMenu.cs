@@ -16,7 +16,7 @@ using YARG.Player;
 using YARG.Playlists;
 using YARG.Settings;
 using YARG.Song;
-
+using static YARG.Menu.Navigation.Navigator;
 using Random = UnityEngine.Random;
 
 namespace YARG.Menu.MusicLibrary
@@ -91,14 +91,12 @@ namespace YARG.Menu.MusicLibrary
             _sidebar.Initialize(this, _searchField);
         }
 
-        private enum OrangeButtonState
-        {
-            Unpressed,
-            StartingHold,
-            Held
-        }
+        private List<HoldContext> _heldInputs = new();
 
-        private OrangeButtonState _orangeButtonState = OrangeButtonState.Unpressed;
+        private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button)
+        {
+            return _heldInputs.Any(i => i.Context.Player == player && i.Context.Action == button);
+        }
 
         private void OnEnable()
         {
@@ -106,15 +104,15 @@ namespace YARG.Menu.MusicLibrary
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Up",
-                    () => {
-                        if (_orangeButtonState != OrangeButtonState.Unpressed)
+                    (NavigationContext ctx) => {
+                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
                             GoToPreviousSection();
                         else
                             SelectedIndex--;
                     }),
                 new NavigationScheme.Entry(MenuAction.Down, "Down",
-                    () => {
-                        if (_orangeButtonState != OrangeButtonState.Unpressed)
+                    (NavigationContext ctx) => {
+                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
                             GoToNextSection();
                         else
                             SelectedIndex++;
@@ -126,8 +124,7 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Blue, "Search",
                     () => _searchField.Focus()),
                 new NavigationScheme.Entry(MenuAction.Orange, "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>",
-                    OnOrangeFretHit,
-                    OnOrangeFretRelease),
+                    OnButtonHit, OnButtonRelease),
             }, false));
 
             // Restore search
@@ -445,6 +442,9 @@ namespace YARG.Menu.MusicLibrary
 
         protected override void Update()
         {
+            foreach (var _heldInput in _heldInputs)
+                _heldInput.Timer -= Time.unscaledDeltaTime;
+
             base.Update();
         }
 
@@ -506,21 +506,20 @@ namespace YARG.Menu.MusicLibrary
             MenuManager.Instance.PopMenu();
         }
 
-        private void OnOrangeFretHit(NavigationContext ctx)
+        private void OnButtonHit(NavigationContext ctx)
         {
-            if (ctx.IsRepeat)
-                _orangeButtonState = OrangeButtonState.Held;
-            else
-                _orangeButtonState = OrangeButtonState.StartingHold;
+            _heldInputs.Add(new HoldContext(ctx));
         }
 
-        private void OnOrangeFretRelease(NavigationContext ctx)
+        private void OnButtonRelease(NavigationContext ctx)
         {
-            // release tap, open More Options
-            if (_orangeButtonState == OrangeButtonState.StartingHold)
+            var holdContext = _heldInputs.Where(i => i.Context.IsSameAs(ctx));
+            YargLogger.AssertFormat(holdContext.Count() == 1, "Unexpected HoldContext.Count in MusicLibrary: {0}", holdContext.Count());
+
+            if (ctx.Action == MenuAction.Orange && holdContext.FirstOrDefault()?.Timer > 0)
                 _popupMenu.gameObject.SetActive(true);
 
-            _orangeButtonState = OrangeButtonState.Unpressed;
+            _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
         }
 
         private void GoToNextSection()

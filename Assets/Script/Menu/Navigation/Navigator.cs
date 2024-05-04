@@ -57,11 +57,9 @@ namespace YARG.Menu.Navigation
             MenuAction.Down,
             MenuAction.Left,
             MenuAction.Right,
-
-            MenuAction.Orange,
         };
 
-        private class HoldContext
+        public class HoldContext
         {
             public readonly NavigationContext Context;
             public float Timer = INPUT_REPEAT_COOLDOWN;
