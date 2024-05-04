@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using RapidFuzz.Net;
 using YARG.Core;
 using YARG.Core.Song;
@@ -238,6 +239,11 @@ namespace YARG.Song
 
         private static List<SongCategory> SearchSongs(FilterNode arg, IReadOnlyList<SongCategory> searchList)
         {
+            if (arg.argument.Length == 0)
+            {
+                return searchList as List<SongCategory>;
+            }
+
             var filterNode = SearchCache.Keys.LastOrDefault(filter =>
                 arg.Argument.StartsWith(filter.Argument) && arg.Attribute == filter.Attribute);
 
@@ -245,51 +251,39 @@ namespace YARG.Song
             {
                 return SearchCache[arg!] as List<SongCategory>;
             }
-
             var cachedSearchList = filterNode is not null ? SearchCache[filterNode] : searchList;
-
             if (SearchCache.Count > 3)
             {
                 SearchCache.Remove(SearchCache.Keys.First());
             }
 
-            List<SongCategory> result = new();
-
+            // Cached search list modifiers
             if (arg.Attribute == SortAttribute.Unspecified)
             {
-                List<SongEntry> entriesToSearch = new();
-                foreach (var entry in cachedSearchList)
+                cachedSearchList = new List<SongCategory> { new("Search Results",
+                    cachedSearchList.SelectMany(category => category.Songs).ToList()) };
+            }
+            if (arg.attribute == SongAttribute.Instrument &&
+                !cachedSearchList.Any(category => Enum.GetNames(typeof(Instrument)).Contains(category.Category)))
+            {
+                List<SongCategory> instSongList = new();
+                var instruments = Enum.GetValues(typeof(Instrument)) as Instrument[];
+                foreach (var instrument in instruments!)
                 {
-                    entriesToSearch.AddRange(entry.Songs);
+                    var songs = cachedSearchList.SelectMany(category => category.Songs).Where(song => song.HasInstrument(instrument)).ToList();
+                    if (songs.Count > 0)
+                    {
+                        instSongList.Add(new SongCategory(instrument.ToString(), songs));
+                    }
                 }
-                result = UnspecifiedSearch(entriesToSearch, arg.Argument);
-                SearchCache.Add(arg, result);
-                return result;
+                cachedSearchList = instSongList;
             }
 
-            if (arg.Attribute == SortAttribute.Instrument)
-            {
-                result = SearchInstruments(cachedSearchList, arg.argument);
-                SearchCache.Add(arg, result);
-                return result;
-            }
-
-            Predicate<SongEntry> match = arg.Attribute switch
-            {
-                SortAttribute.Name => entry => RemoveArticle(entry.Name.SortStr).Contains(arg.Argument),
-                SortAttribute.Artist => entry => RemoveArticle(entry.Artist.SortStr).Contains(arg.Argument),
-                SortAttribute.Album => entry => entry.Album.SortStr.Contains(arg.Argument),
-                SortAttribute.Genre => entry => entry.Genre.SortStr.Contains(arg.Argument),
-                SortAttribute.Year => entry => entry.Year.Contains(arg.Argument) || entry.UnmodifiedYear.Contains(arg.Argument),
-                SortAttribute.Charter => entry => entry.Charter.SortStr.Contains(arg.Argument),
-                SortAttribute.Playlist => entry => entry.Playlist.SortStr.Contains(arg.Argument),
-                SortAttribute.Source => entry => entry.Source.SortStr.Contains(arg.Argument),
-                _ => throw new Exception("Unhandled seacrh filter")
-            };
-
+            List<SongCategory> result = new();
             foreach (var node in cachedSearchList)
             {
-                var entries = node.Songs.FindAll(match);
+                var entries = arg.attribute == SongAttribute.Unspecified ?
+                    SearchSongList(node.Songs, arg.argument) : SearchSongList(node.Songs, arg.argument, arg.attribute);
                 if (entries.Count > 0)
                 {
                     result.Add(new SongCategory(node.Category, entries));
@@ -299,69 +293,113 @@ namespace YARG.Song
             return result;
         }
 
-        private class UnspecifiedSortNode : IComparable<UnspecifiedSortNode>
+        private class SortNode : IComparable<SortNode>
         {
             public readonly SongEntry Song;
             public readonly int Rank;
 
-            private readonly Dictionary<SongAttribute, double> _ranks = new();
-            public readonly int _nameIndex;
+            private static IEnumerable<SongAttribute> UnspecifiedAttributes { get; } = new[]
+                { SongAttribute.Name, SongAttribute.Artist, SongAttribute.Charter };
 
-            public UnspecifiedSortNode(SongEntry song, string argument)
+            private readonly Dictionary<SongAttribute, double> _ranks = new();
+            private readonly int _matchIndex;
+
+            public SortNode(SongEntry song, string argument, [CanBeNull] SongAttribute[] attributes)
             {
                 Song = song;
 
-                var songName = song.Name.SortStr;
-                var artistName = song.Artist.SortStr;
-                var charterName = song.Charter.SortStr;
+                Dictionary<double, int> matchIndices = new();
 
-                var songNameLength = songName.Length - argument.Length;
-                var nameMult = argument.Length > songName.Length ? 1.0 - Math.Abs(songNameLength)/100.0 : 1.0;
-                _ranks.Add(SongAttribute.Name, FuzzyMatcher.PartialRatio(argument, songName) * nameMult);
+                foreach (var attribute in attributes != null && attributes.Any() ? attributes : UnspecifiedAttributes)
+                {
+                    string songInfo = attribute switch
+                    {
+                        SongAttribute.Name         => song.Name.SortStr,
+                        SongAttribute.Artist       => song.Artist.SortStr,
+                        SongAttribute.Album        => song.Album.SortStr,
+                        SongAttribute.Genre        => song.Genre.SortStr,
+                        SongAttribute.Year         => string.Empty,
+                        SongAttribute.Charter      => song.Charter.SortStr,
+                        SongAttribute.Playlist     => song.Playlist.SortStr,
+                        SongAttribute.Source       => song.Source.SortStr,
+                        _                          => throw new Exception("Unhandled attribute")
+                    };
 
-                var commonChars = string.Join(string.Empty, argument.Intersect(songName));
-                var commonString = !string.IsNullOrEmpty(commonChars) ? Regex.Match(argument, $"[{commonChars}]+").Value : null;
-                _nameIndex = !string.IsNullOrEmpty(commonString) ? songName.IndexOf(commonString, StringComparison.OrdinalIgnoreCase) : -1;
+                    double rank = 0.0;
+                    int index = -1;
+                    if (attribute == SongAttribute.Year)
+                    {
+                        if (song.Year.Contains(argument))
+                        {
+                            rank = 100.0;
+                            index = song.Year.IndexOf(argument, StringComparison.OrdinalIgnoreCase);
+                        }
+                        else if (song.UnmodifiedYear.Contains(argument))
+                        {
+                            rank = 100.0;
+                            index = song.UnmodifiedYear.IndexOf(argument, StringComparison.OrdinalIgnoreCase);
+                        }
+                    }
+                    else
+                    {
+                        (rank, index) = GetRankAndMatchIndex(songInfo, argument);
+                    }
 
-                var artistNameLength = artistName.Length - argument.Length;
-                var artistMult = argument.Length > artistName.Length ? 1.0 - Math.Abs(artistNameLength)/100.0 : 1.0;
-                _ranks.Add(SongAttribute.Artist, FuzzyMatcher.PartialRatio(argument, artistName) * artistMult);
+                    _ranks.Add(attribute, rank);
+                    matchIndices.TryAdd(rank, index);
+                }
 
-                var charterNameLength = charterName.Length - argument.Length;
-                var charterMult = argument.Length > charterName.Length ? 1.0 - Math.Abs(charterNameLength)/100.0 : 1.0;
-                _ranks.Add(SongAttribute.Charter, FuzzyMatcher.PartialRatio(argument, charterName) * charterMult);
+                var max = _ranks.Values.Max();
 
-                Rank = (int)Math.Floor(_ranks.Values.Max());
+                Rank = (int)Math.Floor(max);
+                _matchIndex = matchIndices[max];
             }
 
-            public int CompareTo(UnspecifiedSortNode other)
+            private static (double, int) GetRankAndMatchIndex(string songStr, string argument)
+            {
+                var songInfoLength = songStr.Length - argument.Length;
+                var songInfoMult = argument.Length > songStr.Length ? 1.0 - Math.Abs(songInfoLength) / 100.0 : 1.0;
+
+                var rank = FuzzyMatcher.PartialRatio(argument, songStr) * songInfoMult;
+
+                var commonChars = string.Join(string.Empty, argument.Intersect(songStr));
+                var commonString = !string.IsNullOrEmpty(commonChars)
+                    ? Regex.Match(argument, $"[{commonChars}]+").Value : null;
+
+                var index = !string.IsNullOrEmpty(commonString)
+                    ? songStr.IndexOf(commonString, StringComparison.OrdinalIgnoreCase) : -1;
+
+                return (rank, index);
+            }
+
+            public int CompareTo(SortNode other)
             {
                 if (Rank != other.Rank)
                 {
                     return Rank > other.Rank ? 1 : -1;
                 }
 
-                if (_nameIndex != other._nameIndex && _ranks[SongAttribute.Name] > _ranks[SongAttribute.Artist] && _ranks[SongAttribute.Name] > _ranks[SongAttribute.Charter])
+                if (_matchIndex != other._matchIndex)
                 {
-                    return _nameIndex >= 0 && _nameIndex < other._nameIndex ? 1 : -1;
+                    return _matchIndex >= 0 && _matchIndex < other._matchIndex ? 1 : -1;
                 }
 
                 return -string.Compare(Song.Name.Str, other.Song.Name.Str, StringComparison.Ordinal);
             }
         }
 
-        private static List<SongCategory> UnspecifiedSearch(IReadOnlyList<SongEntry> songs, string argument)
+        private static List<SongEntry> SearchSongList(IReadOnlyList<SongEntry> songs, string argument, [CanBeNull] params SongAttribute[] attributes)
         {
-            var nodes = new UnspecifiedSortNode[songs.Count];
+            var nodes = new SortNode[songs.Count];
 
-            Parallel.For(0, songs.Count, i => nodes[i] = new UnspecifiedSortNode(songs[i], argument));
+            Parallel.For(0, songs.Count, i => nodes[i] = new SortNode(songs[i], argument, attributes));
 
             var results = nodes
                 .Where(node => node.Rank >= 65)
                 .OrderByDescending(i => i)
                 .Select(i => i.Song).ToList();
 
-            return new() { new SongCategory("Search Results", results) };
+            return results;
         }
 
         private static List<SongCategory> SearchInstrument(IReadOnlyList<SongCategory> searchList, Instrument instrument, string argument)
