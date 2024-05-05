@@ -36,6 +36,7 @@ namespace YARG.Settings
                 nameof(Settings.FpsStats),
 
                 new HeaderMetadata("Other"),
+                nameof(Settings.ReconnectProfiles),
                 nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.KickBounceMultiplier),
                 nameof(Settings.ShowCursorTimer),
