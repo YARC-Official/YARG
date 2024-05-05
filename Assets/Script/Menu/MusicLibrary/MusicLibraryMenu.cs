@@ -5,10 +5,8 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Input;
-using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
@@ -82,6 +80,7 @@ namespace YARG.Menu.MusicLibrary
         private SongEntry _currentSong;
 
         private List<int> _sectionHeaderIndices = new();
+        private List<HoldContext> _heldInputs = new();
 
         protected override void Awake()
         {
@@ -91,27 +90,22 @@ namespace YARG.Menu.MusicLibrary
             _sidebar.Initialize(this, _searchField);
         }
 
-        private List<HoldContext> _heldInputs = new();
-
-        private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button)
-        {
-            return _heldInputs.Any(i => i.Context.Player == player && i.Context.Action == button);
-        }
-
         private void OnEnable()
         {
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Up",
-                    (NavigationContext ctx) => {
+                    ctx =>
+                    {
                         if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
                             GoToPreviousSection();
                         else
                             SelectedIndex--;
                     }),
                 new NavigationScheme.Entry(MenuAction.Down, "Down",
-                    (NavigationContext ctx) => {
+                    ctx =>
+                    {
                         if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
                             GoToNextSection();
                         else
@@ -442,8 +436,8 @@ namespace YARG.Menu.MusicLibrary
 
         protected override void Update()
         {
-            foreach (var _heldInput in _heldInputs)
-                _heldInput.Timer -= Time.unscaledDeltaTime;
+            foreach (var heldInput in _heldInputs)
+                heldInput.Timer -= Time.unscaledDeltaTime;
 
             base.Update();
         }
@@ -513,13 +507,17 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnButtonRelease(NavigationContext ctx)
         {
-            var holdContext = _heldInputs.Where(i => i.Context.IsSameAs(ctx));
-            YargLogger.AssertFormat(holdContext.Count() == 1, "Unexpected HoldContext.Count in MusicLibrary: {0}", holdContext.Count());
+            var holdContext = _heldInputs.FirstOrDefault(i => i.Context.IsSameAs(ctx));
 
-            if (ctx.Action == MenuAction.Orange && holdContext.FirstOrDefault()?.Timer > 0)
+            if (ctx.Action == MenuAction.Orange && holdContext?.Timer > 0)
                 _popupMenu.gameObject.SetActive(true);
 
             _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
+        }
+
+        private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button)
+        {
+            return _heldInputs.Any(i => i.Context.Player == player && i.Context.Action == button);
         }
 
         private void GoToNextSection()
