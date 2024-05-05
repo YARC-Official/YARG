@@ -365,7 +365,7 @@ namespace YARG.Integration.StageKit
                     things = MasterLightingController.CurrentLightingCue;
                 }
 
-                await UniTask.Delay(TimeSpan.FromSeconds(SEND_DELAY));
+                await UniTask.Delay(TimeSpan.FromSeconds(SEND_DELAY), ignoreTimeScale: true);
             }
 
             _isSendingCommands = false;
