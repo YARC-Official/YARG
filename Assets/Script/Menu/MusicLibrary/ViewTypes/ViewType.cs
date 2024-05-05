@@ -17,6 +17,8 @@ namespace YARG.Menu.MusicLibrary
 
         public virtual bool UseAsMadeFamousBy => false;
 
+        public virtual bool UseWiderPrimaryText => false;
+
         public override string GetSecondaryText(bool selected) => string.Empty;
         public virtual string GetSideText(bool selected) => string.Empty;
 
