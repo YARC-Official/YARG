@@ -230,15 +230,15 @@ namespace YARG.Integration.StageKit
                     kit.ResetHaptics();
                 }
 
-                MasterLightingController.OnFogState += OnFogStateEvent;
-                MasterLightingController.OnStrobeEvent += OnStrobeEvent;
                 StageKitInterpreter.OnLedEvent += HandleLedEvent;
+                StageKitInterpreter.OnFogMachineEvent += HandleFogEvent;
+                StageKitInterpreter.OnStrobeSetEvent += HandleStrobeEvent;
             }
             else
             {
-                MasterLightingController.OnFogState -= OnFogStateEvent;
-                MasterLightingController.OnStrobeEvent -= OnStrobeEvent;
                 StageKitInterpreter.OnLedEvent -= HandleLedEvent;
+                StageKitInterpreter.OnFogMachineEvent -= HandleFogEvent;
+                StageKitInterpreter.OnStrobeSetEvent -= HandleStrobeEvent;
             }
         }
 
@@ -253,16 +253,6 @@ namespace YARG.Integration.StageKit
             {
                 if (device is IStageKitHaptics haptics) _stageKits.Remove(haptics);
             }
-        }
-
-        private void OnFogStateEvent(MasterLightingController.FogState value)
-        {
-            EnqueueCommand((int) CommandType.FogMachine, (byte) value);
-        }
-
-        private void OnStrobeEvent(StageKitStrobeSpeed value)
-        {
-            EnqueueCommand((int) CommandType.StrobeSpeed, (byte) value);
         }
 
         //The actual queueing and sending of commands
@@ -379,6 +369,16 @@ namespace YARG.Integration.StageKit
             }
 
             _isSendingCommands = false;
+        }
+
+        private void HandleFogEvent(MasterLightingController.FogState value)
+        {
+            EnqueueCommand((int) CommandType.FogMachine, (byte) value);
+        }
+
+        private void HandleStrobeEvent(StageKitStrobeSpeed value)
+        {
+            EnqueueCommand((int) CommandType.StrobeSpeed, (byte) value);
         }
 
         private void HandleLedEvent(StageKitLedColor color, byte led)

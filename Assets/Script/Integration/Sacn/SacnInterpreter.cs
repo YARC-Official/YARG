@@ -329,7 +329,6 @@ namespace YARG.Integration.Sacn
         {
             // TODO: I'm honestly just guessing at these values. I don't have a DMX strobe light to test with
             // and don't know if every DMX strobe light uses the same values the same way.
-
             switch (value)
             {
                 case StageKitStrobeSpeed.Off:
