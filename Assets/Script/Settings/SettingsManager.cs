@@ -154,6 +154,8 @@ namespace YARG.Settings
                 nameof(Settings.DMXGuitarChannel),
                 nameof(Settings.DMXBassChannel),
                 nameof(Settings.DMXKeysChannel),
+                new HeaderMetadata("AdvancedDMXSettings"),
+                nameof(Settings.DMXUniverseChannel),
                 //NYI
                 //nameof(Settings.DMXPerformerChannel)
             },

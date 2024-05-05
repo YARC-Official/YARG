@@ -1333,6 +1333,8 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 146521706556710912
     m_Key: Setting.DMXPerformerChannel.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 141514322187022336
     m_Key: Setting.PlaybackBufferLength
     m_Metadata:
@@ -1383,6 +1385,18 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 144264391830962176
     m_Key: Header.StatusBar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 147316926256930816
+    m_Key: Header.AdvancedDMXSettings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 147317658649518080
+    m_Key: Setting.DMXUniverseChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 147317817173237760
+    m_Key: Setting.DMXUniverseChannel.Description
     m_Metadata:
       m_Items: []
   m_Metadata:

@@ -285,6 +285,8 @@ namespace YARG.Settings
 
             public IntSetting DMXKeysChannel { get; } = new(32, 1, 512);
 
+            public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
+
             #endregion
 
             #region Debug and Developer

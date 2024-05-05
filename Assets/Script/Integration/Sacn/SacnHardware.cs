@@ -1,12 +1,16 @@
 using System;
+using System.Collections.Generic;
 using Haukcode.sACN;
 using UnityEngine;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Integration.Sacn
 {
     public class SacnHardware : MonoSingleton<SacnHardware>
     {
+        Queue<byte>[] _commandQueue = new Queue<byte>[512];
+
         // DMX spec says 44 updates per second is the max
         private const float TARGET_FPS = 44f;
         private const float TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
@@ -23,8 +27,6 @@ namespace YARG.Integration.Sacn
 
         private readonly byte[] _dataPacket = new byte[UNIVERSE_SIZE];
 
-        public static event Action OnPacketSent;
-
         public void HandleEnabledChanged(bool isEnabled)
         {
             if (isEnabled)
@@ -32,6 +34,12 @@ namespace YARG.Integration.Sacn
                 if (_sendClient != null) return;
 
                 YargLogger.LogInfo("Starting sACN Hardware Controller...");
+
+                for (int i = 0; i < _commandQueue.Length; i++)
+                {
+                    _commandQueue[i] = new Queue<byte>();
+                }
+
                 SacnInterpreter.OnChannelSet += HandleChannelEvent;
 
                 _sendClient = new SACNClient(senderId: _acnSourceId, senderName: ACN_SOURCE_NAME,
@@ -47,7 +55,7 @@ namespace YARG.Integration.Sacn
 
         private void HandleChannelEvent(int channel, byte value)
         {
-            _dataPacket[channel - 1] = value;
+            _commandQueue[channel - 1].Enqueue(value);
         }
 
         private void KillSacn()
@@ -56,17 +64,24 @@ namespace YARG.Integration.Sacn
 
             YargLogger.LogInfo("Killing sACN Controller...");
 
+            CancelInvoke(nameof(Sender));
+
+            // Clear the command queue
+            for (int i = 0; i < _commandQueue.Length; i++)
+            {
+                _commandQueue[i].Clear();
+            }
+
             // A good controller will also turn everything off after not receiving a packet after 2.5 seconds.
             // But this doesn't hurt to do.
             for (int i = 0; i < _dataPacket.Length; i++)
             {
-                _dataPacket[i] = 0; //turn everything off
+                //turn everything off directly
+                _dataPacket[i] = 0;
             }
 
-            CancelInvoke(nameof(Sender));
-
             //force send final packet.
-            Sender();
+            _sendClient.SendMulticast((ushort) SettingsManager.Settings.DMXUniverseChannel.Value, _dataPacket);
 
             _sendClient.Dispose();
             _sendClient = null;
@@ -83,11 +98,15 @@ namespace YARG.Integration.Sacn
             // Didn't want to confuse the user with settings for something they don't need. However, it's a simple change
             // if needed. Same goes for sending multicast vs singlecast. Sacn spec says multicast is the correct default
             // way to go but singlecast can be used if needed.
-            _sendClient.SendMulticast(1, _dataPacket);
+            for (int i = 0; i < _commandQueue.Length; i++)
+            {
+                if (_commandQueue[i].Count > 0)
+                {
+                    _dataPacket[i] = _commandQueue[i].Dequeue();
+                }
+            }
 
-            //this is mainly for the sacn interpreter to know when a packet is sent so it can turn off notes that are no
-            //longer being played.
-            OnPacketSent?.Invoke();
+            _sendClient.SendMulticast((ushort) SettingsManager.Settings.DMXUniverseChannel.Value, _dataPacket);
         }
     }
 }

@@ -1436,6 +1436,8 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 146521706556710912
     m_Localized: 'This channel gets set to the current spotlight and sing-a-long '
+    m_Metadata:
+      m_Items: []
   - m_Id: 141514322187022336
     m_Localized: Playback Buffer Length
     m_Metadata:
@@ -1487,6 +1489,19 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 144264391830962176
     m_Localized: Status Bar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 147316926256930816
+    m_Localized: Advanced sACN and DMX settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 147317658649518080
+    m_Localized: DMX Broadcast Universe
+    m_Metadata:
+      m_Items: []
+  - m_Id: 147317817173237760
+    m_Localized: This is the universe that YARG will send the sACN packet to. Default
+      is 1. Maximum is 65535
     m_Metadata:
       m_Items: []
   references:
