@@ -500,6 +500,11 @@ namespace YARG.Menu.MusicLibrary
             MenuManager.Instance.PopMenu();
         }
 
+        private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button)
+        {
+            return _heldInputs.Any(i => i.Context.Player == player && i.Context.Action == button);
+        }
+
         private void OnButtonHit(NavigationContext ctx)
         {
             _heldInputs.Add(new HoldContext(ctx));
@@ -513,11 +518,6 @@ namespace YARG.Menu.MusicLibrary
                 _popupMenu.gameObject.SetActive(true);
 
             _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
-        }
-
-        private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button)
-        {
-            return _heldInputs.Any(i => i.Context.Player == player && i.Context.Action == button);
         }
 
         private void GoToNextSection()
