@@ -13,6 +13,7 @@ namespace YARG.Song
 {
     public class SongSearching
     {
+        private const double RANK_THRESHOLD = 70;
         private List<SearchNode> searches = new();
 
         public void ClearList()
@@ -395,7 +396,7 @@ namespace YARG.Song
             Parallel.For(0, songs.Count, i => nodes[i] = new SortNode(songs[i], argument, attributes));
 
             var results = nodes
-                .Where(node => node.Rank >= 65)
+                .Where(node => node.Rank >= RANK_THRESHOLD)
                 .OrderByDescending(i => i)
                 .Select(i => i.Song).ToList();
 
