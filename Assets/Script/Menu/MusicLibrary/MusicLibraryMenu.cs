@@ -514,7 +514,7 @@ namespace YARG.Menu.MusicLibrary
         {
             var holdContext = _heldInputs.FirstOrDefault(i => i.Context.IsSameAs(ctx));
 
-            if (ctx.Action == MenuAction.Orange && holdContext?.Timer > 0)
+            if (ctx.Action == MenuAction.Orange && (holdContext?.Timer > 0 || ctx.Player is null))
                 _popupMenu.gameObject.SetActive(true);
 
             _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));

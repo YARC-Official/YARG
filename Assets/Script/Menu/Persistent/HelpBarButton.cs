@@ -5,10 +5,11 @@ using UnityEngine.EventSystems;
 using YARG.Core.Input;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
+using YARG.Core.Logging;
 
 namespace YARG.Menu.Persistent
 {
-    public class HelpBarButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+    public class HelpBarButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         [SerializeField]
         private Image _buttonImage;
@@ -73,6 +74,11 @@ namespace YARG.Menu.Persistent
             _buttonImage.color = Color.grey;
             _buttonLabel.color = Color.grey;
             _buttonText.color = Color.grey;
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            _entry?.InvokeHoldOffHandler();
         }
 
         public void OnClick()

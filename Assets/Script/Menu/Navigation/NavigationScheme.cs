@@ -52,6 +52,8 @@ namespace YARG.Menu.Navigation
                 _handler?.Invoke(context);
             }
 
+            public void InvokeHoldOffHandler() => InvokeHoldOffHandler(new(Action, null));
+
             public void InvokeHoldOffHandler(NavigationContext context)
             {
                 _onHoldOffHandler?.Invoke(context);
