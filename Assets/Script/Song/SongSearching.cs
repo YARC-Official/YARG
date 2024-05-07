@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -287,7 +287,7 @@ namespace YARG.Song
 
                 Dictionary<double, int> matchIndices = new();
 
-                foreach (var attribute in attributes != null && attributes.Any() ? attributes : UnspecifiedAttributes)
+                foreach (var attribute in attributes is { Length: > 0 } ? attributes : UnspecifiedAttributes)
                 {
                     string songInfo = attribute switch
                     {
@@ -334,8 +334,19 @@ namespace YARG.Song
 
             private static (double, int) GetRankAndMatchIndex(string songStr, string argument)
             {
-                var songInfoLength = songStr.Length - argument.Length;
-                var songInfoMult = argument.Length > songStr.Length ? 1.0 - Math.Abs(songInfoLength) / 100.0 : 1.0;
+                double rank;
+                int index;
+
+                if (argument.Length <= 3)
+                {
+                    rank = songStr.Contains(argument, StringComparison.OrdinalIgnoreCase) ? 100.0 : 0.0;
+                    index = songStr.IndexOf(argument, StringComparison.OrdinalIgnoreCase);
+
+                    return (rank, index);
+                }
+
+                var songInfoLengthDiff = songStr.Length - argument.Length;
+                var songInfoMult = argument.Length > songStr.Length ? 1.0 - Math.Abs(songInfoLengthDiff) / 100.0 : 1.0;
 
                 rank = Fuzz.PartialRatio(argument, songStr) * songInfoMult;
 
@@ -343,7 +354,7 @@ namespace YARG.Song
                 var commonString = !string.IsNullOrEmpty(commonChars)
                     ? Regex.Match(argument, $"[{commonChars}]+").Value : null;
 
-                var index = !string.IsNullOrEmpty(commonString)
+                index = !string.IsNullOrEmpty(commonString)
                     ? songStr.IndexOf(commonString, StringComparison.OrdinalIgnoreCase) : -1;
 
                 return (rank, index);
