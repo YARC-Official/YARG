@@ -236,61 +236,37 @@ namespace YARG.Song
             return nodes;
         }
 
-        private static readonly Dictionary<FilterNode, IReadOnlyList<SongCategory>> SearchCache = new();
-
-        private static List<SongCategory> SearchSongs(FilterNode arg, IReadOnlyList<SongCategory> searchList)
+        private static IReadOnlyList<SongCategory> SearchSongs(FilterNode arg, IReadOnlyList<SongCategory> searchList)
         {
-            if (arg.argument.Length == 0)
+            if (arg.Argument.Length == 0)
             {
-                return searchList as List<SongCategory>;
+                return searchList;
             }
 
-            var filterNode = SearchCache.Keys.LastOrDefault(filter =>
-                arg.Argument.StartsWith(filter.Argument) && arg.Attribute == filter.Attribute);
-
-            if (filterNode is not null && filterNode == arg)
-            {
-                return SearchCache[arg!] as List<SongCategory>;
-            }
-            var cachedSearchList = filterNode is not null ? SearchCache[filterNode] : searchList;
-            if (SearchCache.Count > 3)
-            {
-                SearchCache.Remove(SearchCache.Keys.First());
-            }
-
-            // Cached search list modifiers
             if (arg.Attribute == SortAttribute.Unspecified)
             {
-                cachedSearchList = new List<SongCategory> { new("Search Results",
-                    cachedSearchList.SelectMany(category => category.Songs).ToList()) };
-            }
-            if (arg.attribute == SongAttribute.Instrument &&
-                !cachedSearchList.Any(category => Enum.GetNames(typeof(Instrument)).Contains(category.Category)))
-            {
-                List<SongCategory> instSongList = new();
-                var instruments = Enum.GetValues(typeof(Instrument)) as Instrument[];
-                foreach (var instrument in instruments!)
+                List<SongEntry> entriesToSearch = new();
+                foreach (var entry in searchList)
                 {
-                    var songs = cachedSearchList.SelectMany(category => category.Songs).Where(song => song.HasInstrument(instrument)).ToList();
-                    if (songs.Count > 0)
-                    {
-                        instSongList.Add(new SongCategory(instrument.ToString(), songs));
-                    }
+                    entriesToSearch.AddRange(entry.Songs);
                 }
-                cachedSearchList = instSongList;
+                return new List<SongCategory> { new("Search Results", SearchSongList(entriesToSearch, arg.Argument)) };
+            }
+            if (arg.Attribute == SortAttribute.Instrument)
+            {
+                return FilterInstruments(searchList, arg.argument);
             }
 
             List<SongCategory> result = new();
-            foreach (var node in cachedSearchList)
+            foreach (var node in searchList)
             {
-                var entries = arg.attribute == SongAttribute.Unspecified ?
-                    SearchSongList(node.Songs, arg.argument) : SearchSongList(node.Songs, arg.argument, arg.attribute);
+                var entries = SearchSongList(node.Songs, arg.Argument, arg.Attribute);
                 if (entries.Count > 0)
                 {
                     result.Add(new SongCategory(node.Category, entries));
                 }
             }
-            SearchCache.Add(arg, result);
+
             return result;
         }
 
@@ -300,7 +276,7 @@ namespace YARG.Song
             public readonly int Rank;
 
             private static IEnumerable<SongAttribute> UnspecifiedAttributes { get; } = new[]
-                { SongAttribute.Name, SongAttribute.Artist, SongAttribute.Charter };
+                { SongAttribute.Name, SongAttribute.Artist };
 
             private readonly Dictionary<SongAttribute, double> _ranks = new();
             private readonly int _matchIndex;
