@@ -5,7 +5,6 @@ using UnityEngine.EventSystems;
 using YARG.Core.Input;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
-using YARG.Core.Logging;
 
 namespace YARG.Menu.Persistent
 {
