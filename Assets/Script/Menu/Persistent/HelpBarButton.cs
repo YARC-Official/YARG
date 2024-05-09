@@ -73,16 +73,13 @@ namespace YARG.Menu.Persistent
             _buttonImage.color = Color.grey;
             _buttonLabel.color = Color.grey;
             _buttonText.color = Color.grey;
+
+            _entry?.Invoke();
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
             _entry?.InvokeHoldOffHandler();
-        }
-
-        public void OnClick()
-        {
-            _entry?.Invoke();
         }
     }
 }
