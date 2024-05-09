@@ -201,6 +201,10 @@ namespace YARG.Input
         {
         }
 
+        public ButtonBinding(string name, string namelefty, int action) : base(name, namelefty, action)
+        {
+        }
+
         protected override Dictionary<string, string> SerializeParameters()
         {
             var parameters = new Dictionary<string, string>();

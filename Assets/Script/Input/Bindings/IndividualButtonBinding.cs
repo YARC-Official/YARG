@@ -11,6 +11,10 @@ namespace YARG.Input
         {
         }
 
+        public IndividualButtonBinding(string name, string namelefty, int action) : base(name, namelefty, action)
+        {
+        }
+
         protected override void OnStateChanged(SingleButtonBinding binding, double time)
         {
             // Update debounce on all bindings
