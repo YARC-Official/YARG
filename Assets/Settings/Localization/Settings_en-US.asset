@@ -1502,6 +1502,8 @@ MonoBehaviour:
   - m_Id: 147317817173237760
     m_Localized: This is the universe that YARG will send the sACN packet to. Default
       is 1. Maximum is 65535
+    m_Metadata:
+      m_Items: []
   - m_Id: 146129952089210880
     m_Localized: Reconnect Profiles
     m_Metadata:

@@ -1276,7 +1276,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 144265427771613184
-    m_Key: Setting.DMXDrumChannel
+    m_Key: Setting.DMXDrumsChannel
     m_Metadata:
       m_Items: []
   - m_Id: 144265595573133312
@@ -1312,7 +1312,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 146520641782308864
-    m_Key: Setting.DMXDrumChannel.Description
+    m_Key: Setting.DMXDrumsChannel.Description
     m_Metadata:
       m_Items: []
   - m_Id: 146520773076606976

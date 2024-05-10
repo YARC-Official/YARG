@@ -224,7 +224,7 @@ namespace YARG.Integration
             // The lighting cues from the venue track are handled here.
             while (LightingIndex < Venue.Lighting.Count && Venue.Lighting[LightingIndex].Time <= GameManager.SongTime)
             {
-                YargLogger.LogInfo("Lighting Cue: " + Venue.Lighting[LightingIndex].Type);
+
                 switch (Venue.Lighting[LightingIndex].Type)
                 {
                     case LightingType.Strobe_Off:
