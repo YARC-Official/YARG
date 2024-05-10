@@ -151,7 +151,7 @@ namespace YARG.Settings
                 nameof(Settings.DMXKeyframeChannel),
                 nameof(Settings.DMXBeatlineChannel),
                 nameof(Settings.DMXBonusEffectChannel),
-                nameof(Settings.DMXDrumChannel),
+                nameof(Settings.DMXDrumsChannel),
                 nameof(Settings.DMXGuitarChannel),
                 nameof(Settings.DMXBassChannel),
                 nameof(Settings.DMXKeysChannel),
