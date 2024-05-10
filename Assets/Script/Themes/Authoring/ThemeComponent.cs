@@ -31,6 +31,12 @@ namespace YARG.Themes
 
         [Space]
         [SerializeField]
+        private GameObject _whiteKey;
+        [SerializeField]
+        private GameObject _blackKey;
+
+        [Space]
+        [SerializeField]
         private GameObject _kickFret;
 
         public Dictionary<ThemeNoteType, GameObject> GetNoteModelsForGameMode(GameMode gameMode, bool starPower)
