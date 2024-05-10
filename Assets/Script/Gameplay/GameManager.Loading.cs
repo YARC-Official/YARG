@@ -41,6 +41,8 @@ namespace YARG.Gameplay
         [SerializeField]
         private GameObject _fiveLaneDrumsPrefab;
         [SerializeField]
+        private GameObject _proKeysPrefab;
+        [SerializeField]
         private GameObject _proGuitarPrefab;
 
         private LoadFailureState _loadState;
@@ -343,8 +345,8 @@ namespace YARG.Gameplay
                         GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
                         GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
                         GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
+                        GameMode.ProKeys        => _proKeysPrefab,
                         GameMode.ProGuitar      => _proGuitarPrefab,
-
                         _ => null
                     };
 
@@ -357,7 +359,9 @@ namespace YARG.Gameplay
                     // Setup player
                     var trackPlayer = playerObject.GetComponent<TrackPlayer>();
                     var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
-                    var currentHighScore = ScoreContainer.GetHighScoreByInstrument(Song.Hash, player.Profile.CurrentInstrument)?.Score;
+                    var currentHighScore = ScoreContainer
+                        .GetHighScoreByInstrument(Song.Hash, player.Profile.CurrentInstrument)?
+                        .Score;
                     trackPlayer.Initialize(index, player, Chart, trackView, _mixer, currentHighScore);
                     _players.Add(trackPlayer);
                 }

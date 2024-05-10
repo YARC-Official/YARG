@@ -1465,6 +1465,8 @@ MonoBehaviour:
     type: 3}
   _fiveLaneDrumsPrefab: {fileID: 7912406415472637727, guid: b98748e11cf38534c814f11da4eaa863,
     type: 3}
+  _proKeysPrefab: {fileID: 7381119128095886790, guid: 52322b4e39d4f9349a65c60a07fc1b3a,
+    type: 3}
   _proGuitarPrefab: {fileID: 0}
 --- !u!4 &318454372
 Transform:
@@ -3866,22 +3868,22 @@ PrefabInstance:
     - target: {fileID: 2933889975780695480, guid: f8c143f8514898b4fb85fbadc18550c0,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2933889975780695480, guid: f8c143f8514898b4fb85fbadc18550c0,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2933889975780695480, guid: f8c143f8514898b4fb85fbadc18550c0,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 30.000036
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2933889975780695480, guid: f8c143f8514898b4fb85fbadc18550c0,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -32
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5322898957872382039, guid: f8c143f8514898b4fb85fbadc18550c0,
         type: 3}
