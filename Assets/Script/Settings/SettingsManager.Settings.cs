@@ -274,7 +274,7 @@ namespace YARG.Settings
 
             public IntSetting DMXKeyframeChannel { get; } = new(16, 1, 512);
 
-            public IntSetting DMXDrumChannel { get; } = new(22, 1, 512);
+            public IntSetting DMXDrumsChannel { get; } = new(22, 1, 512);
 
             public IntSetting DMXPostProcessingChannel { get; } = new(23, 1, 512);
 

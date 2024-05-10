@@ -9,8 +9,6 @@ namespace YARG.Integration.Sacn
 {
     public class SacnHardware : MonoSingleton<SacnHardware>
     {
-        Queue<byte>[] _commandQueue = new Queue<byte>[512];
-
         // DMX spec says 44 updates per second is the max
         private const float TARGET_FPS = 44f;
         private const float TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
@@ -27,6 +25,11 @@ namespace YARG.Integration.Sacn
 
         private readonly byte[] _dataPacket = new byte[UNIVERSE_SIZE];
 
+        Queue<byte> _keysQueue = new Queue<byte>();
+        Queue<byte> _guitarQueue = new Queue<byte>();
+        Queue<byte> _bassQueue = new Queue<byte>();
+        Queue<byte> _drumsQueue = new Queue<byte>();
+
         public void HandleEnabledChanged(bool isEnabled)
         {
             if (isEnabled)
@@ -34,11 +37,6 @@ namespace YARG.Integration.Sacn
                 if (_sendClient != null) return;
 
                 YargLogger.LogInfo("Starting sACN Hardware Controller...");
-
-                for (int i = 0; i < _commandQueue.Length; i++)
-                {
-                    _commandQueue[i] = new Queue<byte>();
-                }
 
                 SacnInterpreter.OnChannelSet += HandleChannelEvent;
 
@@ -55,7 +53,27 @@ namespace YARG.Integration.Sacn
 
         private void HandleChannelEvent(int channel, byte value)
         {
-            _commandQueue[channel - 1].Enqueue(value);
+            //only the instrument channels need to be queued as they are the only ones who end at note off.
+            if (channel == SettingsManager.Settings.DMXBassChannel.Value)
+            {
+                _bassQueue.Enqueue(value);
+            }
+            else if (channel == SettingsManager.Settings.DMXDrumsChannel.Value)
+            {
+                _drumsQueue.Enqueue(value);
+            }
+            else if (channel == SettingsManager.Settings.DMXGuitarChannel.Value)
+            {
+                _guitarQueue.Enqueue(value);
+            }
+            else if (channel == SettingsManager.Settings.DMXKeysChannel.Value)
+            {
+                _keysQueue.Enqueue(value);
+            }
+            else
+            {
+                _dataPacket[channel - 1] = value;
+            }
         }
 
         private void KillSacn()
@@ -67,10 +85,10 @@ namespace YARG.Integration.Sacn
             CancelInvoke(nameof(Sender));
 
             // Clear the command queue
-            for (int i = 0; i < _commandQueue.Length; i++)
-            {
-                _commandQueue[i].Clear();
-            }
+            _bassQueue.Clear();
+            _drumsQueue.Clear();
+            _guitarQueue.Clear();
+            _keysQueue.Clear();
 
             // A good controller will also turn everything off after not receiving a packet after 2.5 seconds.
             // But this doesn't hurt to do.
@@ -94,18 +112,27 @@ namespace YARG.Integration.Sacn
 
         private void Sender()
         {
-            // Hardcoded to universe 1, as this is for non-professional use, I doubt anyone is running multiple universes.
-            // Didn't want to confuse the user with settings for something they don't need. However, it's a simple change
-            // if needed. Same goes for sending multicast vs singlecast. Sacn spec says multicast is the correct default
-            // way to go but singlecast can be used if needed.
-            for (int i = 0; i < _commandQueue.Length; i++)
+            if (_bassQueue.Count > 0)
             {
-                if (_commandQueue[i].Count > 0)
-                {
-                    _dataPacket[i] = _commandQueue[i].Dequeue();
-                }
+                _dataPacket[SettingsManager.Settings.DMXBassChannel.Value - 1] = _bassQueue.Dequeue();
             }
 
+            if (_drumsQueue.Count > 0)
+            {
+                _dataPacket[SettingsManager.Settings.DMXDrumsChannel.Value - 1] = _drumsQueue.Dequeue();
+            }
+
+            if (_guitarQueue.Count > 0)
+            {
+                _dataPacket[SettingsManager.Settings.DMXGuitarChannel.Value - 1] = _guitarQueue.Dequeue();
+            }
+
+            if (_keysQueue.Count > 0)
+            {
+                _dataPacket[SettingsManager.Settings.DMXKeysChannel.Value - 1] = _keysQueue.Dequeue();
+            }
+
+            //Sacn spec says multicast is the correct default way to go but singlecast can be used if needed.
             _sendClient.SendMulticast((ushort) SettingsManager.Settings.DMXUniverseChannel.Value, _dataPacket);
         }
     }

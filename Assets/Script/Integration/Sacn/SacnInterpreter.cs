@@ -217,7 +217,7 @@ namespace YARG.Integration.Sacn
             //_performerChannel = SettingsManager.Settings.DMXPerformerChannel.Value;
 
             //instruments
-            _drumChannel = SettingsManager.Settings.DMXDrumChannel.Value;
+            _drumChannel = SettingsManager.Settings.DMXDrumsChannel.Value;
             _guitarChannel = SettingsManager.Settings.DMXGuitarChannel.Value;
             _bassChannel = SettingsManager.Settings.DMXBassChannel.Value;
             _keysChannel = SettingsManager.Settings.DMXKeysChannel.Value;

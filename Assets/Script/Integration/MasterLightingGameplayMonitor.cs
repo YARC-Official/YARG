@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using PlasticBand.Haptics;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Gameplay;
 using Random = UnityEngine.Random;
 
@@ -10,31 +11,6 @@ namespace YARG.Integration
 {
     public class MasterLightingGameplayMonitor : GameplayBehaviour
     {
-        private enum FiveFretsEnum
-        {
-            Off = 0,
-            Red = 1,
-            Yellow = 2,
-            Blue = 4,
-            Green = 8,
-            Orange = 16,
-            //Open isn't used by Keys
-            Open = 32,
-        }
-
-        private enum DrumEnum
-        {
-            Off = 0,
-            RedDrum = 1,
-            YellowDrum = 2,
-            BlueDrum = 4,
-            GreenDrum = 8,
-            Kick = 16,
-            YellowCymbal = 32,
-            BlueCymbal = 64,
-            GreenCymbal = 128,
-        }
-
         public static VenueTrack Venue { get; private set; }
         public static int LightingIndex { get; private set; }
 
@@ -99,57 +75,14 @@ namespace YARG.Integration
             {
                 while (_keysIndex < _keys.Notes.Count && _keys.Notes[_keysIndex].Time <= GameManager.SongTime)
                 {
-                    int fretsPressed = (int) FiveFretsEnum.Off;
+                    int fretsPressed = 0;
 
                     foreach (var c in _keys.Notes[_keysIndex].ChildNotes)
                     {
-                        switch (c.Fret)
-                        {
-                            case (int) FiveFretGuitarFret.Red:
-                                fretsPressed += (int) FiveFretsEnum.Red;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Yellow:
-                                fretsPressed += (int) FiveFretsEnum.Yellow;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Blue:
-                                fretsPressed += (int) FiveFretsEnum.Blue;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Green:
-                                fretsPressed += (int) FiveFretsEnum.Green;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Orange:
-                                fretsPressed += (int) FiveFretsEnum.Orange;
-                                break;
-                        }
+                        fretsPressed += 1 << c.Fret;
                     }
 
-                    switch (_keys.Notes[_keysIndex].Fret)
-                    {
-                        case (int) FiveFretGuitarFret.Red:
-                            fretsPressed += (int) FiveFretsEnum.Red;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Yellow:
-                            fretsPressed += (int) FiveFretsEnum.Yellow;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Blue:
-                            fretsPressed += (int) FiveFretsEnum.Blue;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Green:
-                            fretsPressed += (int) FiveFretsEnum.Green;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Orange:
-                            fretsPressed += (int) FiveFretsEnum.Orange;
-                            break;
-                    }
-
+                    fretsPressed += _keys.Notes[_keysIndex].Fret;
                     MasterLightingController.CurrentKeysNotes = fretsPressed;
                     _keysEndCheckIndex = _keysIndex;
                     _keysIndex++;
@@ -159,7 +92,7 @@ namespace YARG.Integration
             {
                 if (_keys.Notes[_keysEndCheckIndex].TimeEnd <= GameManager.SongTime)
                 {
-                    MasterLightingController.CurrentKeysNotes = (int) FiveFretsEnum.Off;
+                    MasterLightingController.CurrentKeysNotes = 0;
                     _keysEndCheckIndex = -1;
                 }
             }
@@ -170,65 +103,13 @@ namespace YARG.Integration
             {
                 while (_bassIndex < _bass.Notes.Count && _bass.Notes[_bassIndex].Time <= GameManager.SongTime)
                 {
-                    int fretsPressed = (int) FiveFretsEnum.Off;
-
+                    int fretsPressed = 0;
                     foreach (var c in _bass.Notes[_bassIndex].ChildNotes)
                     {
-                        switch (c.Fret)
-                        {
-                            case (int) FiveFretGuitarFret.Red:
-                                fretsPressed += (int) FiveFretsEnum.Red;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Yellow:
-                                fretsPressed += (int) FiveFretsEnum.Yellow;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Blue:
-                                fretsPressed += (int) FiveFretsEnum.Blue;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Green:
-                                fretsPressed += (int) FiveFretsEnum.Green;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Orange:
-                                fretsPressed += (int) FiveFretsEnum.Orange;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Open:
-                                fretsPressed += (int) FiveFretsEnum.Open;
-                                break;
-                        }
+                        fretsPressed += 1 << c.Fret;
                     }
 
-                    switch (_bass.Notes[_bassIndex].Fret)
-                    {
-                        case (int) FiveFretGuitarFret.Red:
-                            fretsPressed += (int) FiveFretsEnum.Red;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Yellow:
-                            fretsPressed += (int) FiveFretsEnum.Yellow;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Blue:
-                            fretsPressed += (int) FiveFretsEnum.Blue;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Green:
-                            fretsPressed += (int) FiveFretsEnum.Green;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Orange:
-                            fretsPressed += (int) FiveFretsEnum.Orange;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Open:
-                            fretsPressed += (int) FiveFretsEnum.Open;
-                            break;
-                    }
-
+                    fretsPressed += 1 << _bass.Notes[_bassIndex].Fret;
                     MasterLightingController.CurrentBassNotes = fretsPressed;
                     _bassEndCheckIndex = _bassIndex;
                     _bassIndex++;
@@ -238,7 +119,7 @@ namespace YARG.Integration
             {
                 if (_bass.Notes[_bassEndCheckIndex].TimeEnd <= GameManager.SongTime)
                 {
-                    MasterLightingController.CurrentBassNotes = (int) FiveFretsEnum.Off;
+                    MasterLightingController.CurrentBassNotes = 0;
                     _bassEndCheckIndex = -1;
                 }
             }
@@ -249,64 +130,14 @@ namespace YARG.Integration
             {
                 while (_guitarIndex < _guitar.Notes.Count && _guitar.Notes[_guitarIndex].Time <= GameManager.SongTime)
                 {
-                    int fretsPressed = (int) FiveFretsEnum.Off;
+                    int fretsPressed = 0;
 
                     foreach (var c in _guitar.Notes[_guitarIndex].ChildNotes)
                     {
-                        switch (c.Fret)
-                        {
-                            case (int) FiveFretGuitarFret.Red:
-                                fretsPressed += (int) FiveFretsEnum.Red;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Yellow:
-                                fretsPressed += (int) FiveFretsEnum.Yellow;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Blue:
-                                fretsPressed += (int) FiveFretsEnum.Blue;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Green:
-                                fretsPressed += (int) FiveFretsEnum.Green;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Orange:
-                                fretsPressed += (int) FiveFretsEnum.Orange;
-                                break;
-
-                            case (int) FiveFretGuitarFret.Open:
-                                fretsPressed += (int) FiveFretsEnum.Open;
-                                break;
-                        }
+                        fretsPressed += 1 << c.Fret;
                     }
 
-                    switch (_guitar.Notes[_guitarIndex].Fret)
-                    {
-                        case (int) FiveFretGuitarFret.Red:
-                            fretsPressed += (int) FiveFretsEnum.Red;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Yellow:
-                            fretsPressed += (int) FiveFretsEnum.Yellow;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Blue:
-                            fretsPressed += (int) FiveFretsEnum.Blue;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Green:
-                            fretsPressed += (int) FiveFretsEnum.Green;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Orange:
-                            fretsPressed += (int) FiveFretsEnum.Orange;
-                            break;
-
-                        case (int) FiveFretGuitarFret.Open:
-                            fretsPressed += (int) FiveFretsEnum.Open;
-                            break;
-                    }
+                    fretsPressed += 1 << _guitar.Notes[_guitarIndex].Fret;
 
                     MasterLightingController.CurrentGuitarNotes = fretsPressed;
                     _guitarEndCheckIndex = _guitarIndex;
@@ -318,7 +149,7 @@ namespace YARG.Integration
                 //so instant notes should at least be on for 1 frame because of the else statement
                 if (_guitar.Notes[_guitarEndCheckIndex].TimeEnd <= GameManager.SongTime)
                 {
-                    MasterLightingController.CurrentGuitarNotes = (int) FiveFretsEnum.Off;
+                    MasterLightingController.CurrentGuitarNotes = 0;
                     //guitarEndCheckIndex is set to -1 when the note ends
                     _guitarEndCheckIndex = -1;
                 }
@@ -331,81 +162,14 @@ namespace YARG.Integration
             {
                 while (_drumIndex < _drums.Notes.Count && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
                 {
-                    int padsHit = (int) DrumEnum.Off;
+                    int padsHit = 0;
 
                     foreach (var c in _drums.Notes[_drumIndex].ChildNotes)
                     {
-                        switch (c.Pad)
-                        {
-                            case (int) FourLaneDrumPad.RedDrum:
-                                padsHit += (int) DrumEnum.RedDrum;
-                                break;
-
-                            case (int) FourLaneDrumPad.YellowDrum:
-                                padsHit += (int) DrumEnum.YellowDrum;
-                                break;
-
-                            case (int) FourLaneDrumPad.BlueDrum:
-                                padsHit += (int) DrumEnum.BlueDrum;
-                                break;
-
-                            case (int) FourLaneDrumPad.GreenDrum:
-                                padsHit += (int) DrumEnum.GreenDrum;
-                                break;
-
-                            case (int) FourLaneDrumPad.Kick:
-                                padsHit += (int) DrumEnum.Kick;
-                                break;
-
-                            case (int) FourLaneDrumPad.YellowCymbal:
-                                padsHit += (int) DrumEnum.YellowCymbal;
-                                break;
-
-                            case (int) FourLaneDrumPad.BlueCymbal:
-                                padsHit += (int) DrumEnum.BlueCymbal;
-                                break;
-
-                            case (int) FourLaneDrumPad.GreenCymbal:
-                                padsHit += (int) DrumEnum.GreenCymbal;
-                                break;
-                        }
+                        padsHit += 1 << c.Pad;
                     }
 
-                    switch (_drums.Notes[_drumIndex].Pad)
-                    {
-                        case (int) FourLaneDrumPad.RedDrum:
-                            padsHit += (int) DrumEnum.RedDrum;
-                            break;
-
-                        case (int) FourLaneDrumPad.YellowDrum:
-                            padsHit += (int) DrumEnum.YellowDrum;
-                            break;
-
-                        case (int) FourLaneDrumPad.BlueDrum:
-                            padsHit += (int) DrumEnum.BlueDrum;
-                            break;
-
-                        case (int) FourLaneDrumPad.GreenDrum:
-                            padsHit += (int) DrumEnum.GreenDrum;
-                            break;
-
-                        case (int) FourLaneDrumPad.Kick:
-                            padsHit += (int) DrumEnum.Kick;
-                            break;
-
-                        case (int) FourLaneDrumPad.YellowCymbal:
-                            padsHit += (int) DrumEnum.YellowCymbal;
-                            break;
-
-                        case (int) FourLaneDrumPad.BlueCymbal:
-                            padsHit += (int) DrumEnum.BlueCymbal;
-                            break;
-
-                        case (int) FourLaneDrumPad.GreenCymbal:
-                            padsHit += (int) DrumEnum.GreenCymbal;
-                            break;
-                    }
-
+                    padsHit += 1 << _drums.Notes[_drumIndex].Pad;
                     MasterLightingController.CurrentDrumNotes = padsHit;
                     _drumEndCheckIndex = _drumIndex;
                     _drumIndex++;
@@ -415,7 +179,7 @@ namespace YARG.Integration
             {
                 if (_drums.Notes[_drumEndCheckIndex].TimeEnd <= GameManager.SongTime)
                 {
-                    MasterLightingController.CurrentDrumNotes = (int) DrumEnum.Off;
+                    MasterLightingController.CurrentDrumNotes = 0;
                     _drumEndCheckIndex = -1;
                 }
             }
@@ -460,6 +224,7 @@ namespace YARG.Integration
             // The lighting cues from the venue track are handled here.
             while (LightingIndex < Venue.Lighting.Count && Venue.Lighting[LightingIndex].Time <= GameManager.SongTime)
             {
+                YargLogger.LogInfo("Lighting Cue: " + Venue.Lighting[LightingIndex].Type);
                 switch (Venue.Lighting[LightingIndex].Type)
                 {
                     case LightingType.Strobe_Off:
