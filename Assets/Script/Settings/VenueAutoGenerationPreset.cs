@@ -332,31 +332,25 @@ namespace YARG.Settings
 
         private void AddSoloAsSpotlight(ref SongChart chart, InstrumentTrack<GuitarNote> track, Performer performer)
         {
-            if (track.Difficulties[Difficulty.Expert].IsOccupied())
+            if (track.TryGetDifficulty(Difficulty.Expert, out var diffTrack))
             {
-                AddSoloAsSpotlight(ref chart, track.Difficulties[Difficulty.Expert].Phrases, performer);
+                AddSoloAsSpotlight(ref chart, diffTrack.Phrases, performer);
             }
         }
 
         private void AddSoloAsSpotlightDrums(ref SongChart chart)
         {
-            if (chart.ProDrums.Difficulties[Difficulty.Expert].IsOccupied())
+            if (chart.ProDrums.TryGetDifficulty(Difficulty.Expert, out var diffTrack))
             {
-                AddSoloAsSpotlight(ref chart,
-                    chart.ProDrums.Difficulties[Difficulty.Expert].Phrases,
-                    Performer.Drums);
+                AddSoloAsSpotlight(ref chart, diffTrack.Phrases, Performer.Drums);
             }
-            else if (chart.FourLaneDrums.Difficulties[Difficulty.Expert].IsOccupied())
+            else if (chart.FourLaneDrums.TryGetDifficulty(Difficulty.Expert, out diffTrack))
             {
-                AddSoloAsSpotlight(ref chart,
-                    chart.FourLaneDrums.Difficulties[Difficulty.Expert].Phrases,
-                    Performer.Drums);
+                AddSoloAsSpotlight(ref chart, diffTrack.Phrases, Performer.Drums);
             }
-            else if (chart.FiveLaneDrums.Difficulties[Difficulty.Expert].IsOccupied())
+            else if (chart.FiveLaneDrums.TryGetDifficulty(Difficulty.Expert, out diffTrack))
             {
-                AddSoloAsSpotlight(ref chart,
-                    chart.FiveLaneDrums.Difficulties[Difficulty.Expert].Phrases,
-                    Performer.Drums);
+                AddSoloAsSpotlight(ref chart, diffTrack.Phrases, Performer.Drums);
             }
         }
 

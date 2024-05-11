@@ -28,7 +28,7 @@ namespace YARG.Integration
             Venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
-            chart.FourLaneDrums.Difficulties.TryGetValue(Difficulty.Expert, out _drums);
+            chart.FourLaneDrums.TryGetDifficulty(Difficulty.Expert, out _drums);
 
             // Reset the indexes on song restart
             _eventIndex = 0;
