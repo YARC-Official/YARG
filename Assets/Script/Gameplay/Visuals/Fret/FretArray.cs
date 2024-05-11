@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Themes;

@@ -6,7 +6,7 @@ using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
-    public abstract class DrumsNoteElement : NoteElement<DrumNote, DrumsPlayer>, IThemePrefabCreator
+    public abstract class DrumsNoteElement : NoteElement<DrumNote, DrumsPlayer>, IThemeNoteCreator
     {
         protected enum NoteType
         {

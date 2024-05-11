@@ -4,7 +4,7 @@ using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
-    public interface IThemePrefabCreator
+    public interface IThemeNoteCreator
     {
         /// <summary>
         /// Called once during the creation of the <b>first</b> themed note prefab.

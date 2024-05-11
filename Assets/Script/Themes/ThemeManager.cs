@@ -29,8 +29,10 @@ namespace YARG.Themes
                 return null;
             }
 
+            var prefabKey = (gameMode, typeof(IThemeNoteCreator), 0);
+
             // Try to get and return a cached version, otherwise we'll have to create it
-            var cached = container.NoteCache.GetValueOrDefault(gameMode);
+            var cached = container.PrefabCache.GetValueOrDefault(prefabKey);
             if (cached != null)
             {
                 return cached;
@@ -38,7 +40,7 @@ namespace YARG.Themes
 
             // Duplicate the prefab
             var gameObject = Instantiate(noModelPrefab, transform);
-            var prefabCreator = gameObject.GetComponent<IThemePrefabCreator>();
+            var prefabCreator = gameObject.GetComponent<IThemeNoteCreator>();
 
             // Set the models
             var themeComp = container.GetThemeComponent();
@@ -48,21 +50,21 @@ namespace YARG.Themes
 
             // Disable and return
             gameObject.SetActive(false);
-            container.NoteCache[gameMode] = gameObject;
+            container.PrefabCache[prefabKey] = gameObject;
             return gameObject;
         }
 
-        public GameObject CreateFretPrefabFromTheme(ThemePreset preset, GameMode gameMode)
+        public GameObject CreateFretPrefabFromTheme(ThemePreset preset, GameMode gameMode, int variant = 0)
         {
-            return CreatePrefabFromTheme<ThemeFret, Fret>(preset, gameMode);
+            return CreatePrefabFromTheme<ThemeFret, Fret>(preset, gameMode, variant);
         }
 
         public GameObject CreateKickFretPrefabFromTheme(ThemePreset preset, GameMode gameMode)
         {
-            return CreatePrefabFromTheme<ThemeKickFret, KickFret>(preset, gameMode);
+            return CreatePrefabFromTheme<ThemeKickFret, KickFret>(preset, gameMode, 0);
         }
 
-        private GameObject CreatePrefabFromTheme<TTheme, TBind>(ThemePreset preset, GameMode gameMode)
+        private GameObject CreatePrefabFromTheme<TTheme, TBind>(ThemePreset preset, GameMode gameMode, int variant)
             where TBind : MonoBehaviour, IThemeBindable<TTheme>
         {
             // Get the theme container
@@ -72,20 +74,10 @@ namespace YARG.Themes
                 return null;
             }
 
-            // Try to get the prefab cache
-            Dictionary<GameMode, GameObject> prefabCache;
-            if (container.PrefabCache.TryGetValue(typeof(TTheme), out var cache))
-            {
-                prefabCache = cache;
-            }
-            else
-            {
-                prefabCache = new Dictionary<GameMode, GameObject>();
-                container.PrefabCache[typeof(TTheme)] = prefabCache;
-            }
+            var prefabKey = (gameMode, typeof(TTheme), variant);
 
             // Try to get and return a cached version, otherwise we'll have to create it
-            var cached = prefabCache.GetValueOrDefault(gameMode);
+            var cached = container.PrefabCache.GetValueOrDefault(prefabKey);
             if (cached != null)
             {
                 return cached;
@@ -101,7 +93,7 @@ namespace YARG.Themes
 
             // Disable and return
             gameObject.SetActive(false);
-            prefabCache[gameMode] = gameObject;
+            container.PrefabCache[prefabKey] = gameObject;
             return gameObject;
         }
 
@@ -110,7 +102,8 @@ namespace YARG.Themes
             // Check if the theme supports the game mode
             if (!preset.SupportedGameModes.Contains(mode))
             {
-                YargLogger.LogFormatInfo("Theme `{0}` does not support `{1}`. Falling back to the default theme.", preset.Name, mode);
+                YargLogger.LogFormatInfo("Theme `{0}` does not support `{1}`. Falling back to the default theme.",
+                    preset.Name, mode);
                 preset = ThemePreset.Default;
             }
 
