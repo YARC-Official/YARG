@@ -9,14 +9,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6823650258844985663}
-  - component: {fileID: 1060069523843335645}
+  - component: {fileID: 679598873221959975}
   m_Layer: 0
   m_Name: Fret Array
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6823650258844985663
 Transform:
   m_ObjectHideFlags: 0
@@ -32,7 +32,7 @@ Transform:
   m_Father: {fileID: 4868506171459748694}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1060069523843335645
+--- !u!114 &679598873221959975
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,15 +41,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 6615351421081173628}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d28e186375864caea5493965bbe56975, type: 3}
+  m_Script: {fileID: 11500000, guid: 81cedea16e8041c3a1ac6da253d4542a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FretCount: 5
-  DontFlipColorsLeftyFlip: 0
-  UseKickFrets: 0
   _trackWidth: 2
-  _leftKickFretPosition: {fileID: 1059056642713352937}
-  _rightKickFretPosition: {fileID: 5240670873078094218}
+  _whiteKeyOffset: -0.9134
+  _blackKeyOffset: -0.812
 --- !u!1001 &7434902305530561920
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -169,12 +166,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!4 &1059056642713352937 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7610118164488372073, guid: 5800c42510b55c549be95ec3ecd75e1c,
-    type: 3}
-  m_PrefabInstance: {fileID: 7434902305530561920}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1442216845985701587 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8299532499037330259, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -247,12 +238,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a7beac659084035953f1987970c9d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!4 &5240670873078094218 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3428521509162818570, guid: 5800c42510b55c549be95ec3ecd75e1c,
-    type: 3}
-  m_PrefabInstance: {fileID: 7434902305530561920}
-  m_PrefabAsset: {fileID: 0}
 --- !u!20 &5450824049626431651 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 3209698564276094243, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -312,6 +297,7 @@ MonoBehaviour:
   _hudLocation: {fileID: 3807369616701639989}
   NotePool: {fileID: 5534384060604769120}
   BeatlinePool: {fileID: 155632028176750329}
+  _keysArray: {fileID: 679598873221959975}
 --- !u!114 &7617442645122152992 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1051735628184240032, guid: 5800c42510b55c549be95ec3ecd75e1c,

@@ -1,4 +1,5 @@
-﻿using YARG.Core.Audio;
+﻿using UnityEngine;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.ProKeys;
 using YARG.Core.Engine.ProKeys.Engines;
@@ -10,6 +11,9 @@ namespace YARG.Gameplay.Player
 {
     public class ProKeysPlayer : TrackPlayer<ProKeysEngine, ProKeysNote>
     {
+        public const int WHITE_KEY_VISIBLE_COUNT = 10;
+        public const int TOTAL_KEY_COUNT = 25;
+
         public override float[] StarMultiplierThresholds { get; protected set; } =
         {
             0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f
@@ -20,6 +24,10 @@ namespace YARG.Gameplay.Player
         public ProKeysEngineParameters EngineParams { get; private set; }
 
         public override bool ShouldUpdateInputsOnResume => true;
+
+        [Header("Pro Keys Specific")]
+        [SerializeField]
+        private KeysArray _keysArray;
 
         protected override InstrumentDifficulty<ProKeysNote> GetNotes(SongChart chart)
         {
@@ -57,6 +65,13 @@ namespace YARG.Gameplay.Player
             engine.OnStarPowerStatus += OnStarPowerStatus;
 
             return engine;
+        }
+
+        protected override void FinishInitialization()
+        {
+            base.FinishInitialization();
+
+            _keysArray.Initialize(Player.ThemePreset);
         }
 
         protected override void UpdateVisuals(double songTime)

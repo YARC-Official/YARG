@@ -67,21 +67,16 @@ namespace YARG.Themes
             return dict;
         }
 
-        public GameObject GetModelForGameMode<T>(GameMode gameMode)
+        public GameObject GetModelForGameMode(GameMode gameMode, string name)
         {
-            // TODO: Make this cleaner
-
-            if (typeof(T) == typeof(ThemeFret))
+            return name switch
             {
-                return GetFretModelForGameMode(gameMode);
-            }
-
-            if (typeof(T) == typeof(ThemeKickFret))
-            {
-                return _kickFret;
-            }
-
-            throw new Exception("Unreachable.");
+                ThemeManager.FRET_PREFAB_NAME      => GetFretModelForGameMode(gameMode),
+                ThemeManager.KICK_FRET_PREFAB_NAME => _kickFret,
+                ThemeManager.WHITE_KEY_PREFAB_NAME => _whiteKey,
+                ThemeManager.BLACK_KEY_PREFAB_NAME => _blackKey,
+                _                                  => throw new Exception("Unreachable.")
+            };
         }
 
         private GameObject GetFretModelForGameMode(GameMode gameMode)
