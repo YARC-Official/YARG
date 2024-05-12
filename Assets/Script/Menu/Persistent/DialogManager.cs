@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
@@ -179,6 +180,17 @@ namespace YARG.Menu.Persistent
         {
             _currentDialog.Submit();
             ClearDialog();
+        }
+
+        /// <summary>
+        /// Destroys the currently-displayed dialog.
+        /// </summary>
+        public UniTask WaitUntilCurrentClosed()
+        {
+            if (_currentDialog == null)
+                return UniTask.CompletedTask;
+
+            return _currentDialog.WaitUntilClosed();
         }
     }
 }
