@@ -82,7 +82,7 @@ namespace YARG.Integration
                         fretsPressed += 1 << c.Fret;
                     }
 
-                    fretsPressed += _keys.Notes[_keysIndex].Fret;
+                    fretsPressed += 1 << _keys.Notes[_keysIndex].Fret;
                     MasterLightingController.CurrentKeysNotes = fretsPressed;
                     _keysEndCheckIndex = _keysIndex;
                     _keysIndex++;
@@ -224,7 +224,6 @@ namespace YARG.Integration
             // The lighting cues from the venue track are handled here.
             while (LightingIndex < Venue.Lighting.Count && Venue.Lighting[LightingIndex].Time <= GameManager.SongTime)
             {
-
                 switch (Venue.Lighting[LightingIndex].Type)
                 {
                     case LightingType.Strobe_Off:
