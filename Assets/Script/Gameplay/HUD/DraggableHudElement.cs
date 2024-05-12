@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -22,6 +23,19 @@ namespace YARG.Gameplay.HUD
             _originalPosition = _rectTransform.anchoredPosition;
 
             // Need to fetch the saved position from the settings and apply it
+            if (SettingsManager.Settings.UiElementPositions.TryGetValue(_draggableElementName,
+                out var serializedPosition))
+            {
+                _storedPosition = serializedPosition;
+            }
+            else
+            {
+                SettingsManager.Settings.UiElementPositions.Add(_draggableElementName, _originalPosition);
+
+                _storedPosition = _originalPosition;
+            }
+
+            _rectTransform.anchoredPosition = _storedPosition;
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -61,6 +75,7 @@ namespace YARG.Gameplay.HUD
             _isDragging = false;
 
             // Save the position to the settings
+            SettingsManager.Settings.UiElementPositions[_draggableElementName] = _rectTransform.anchoredPosition;
         }
 
         public void OnPointerClick(PointerEventData eventData)
@@ -74,8 +89,8 @@ namespace YARG.Gameplay.HUD
                 }
 
                 _rectTransform.anchoredPosition = _originalPosition;
+                SettingsManager.Settings.UiElementPositions[_draggableElementName] = _rectTransform.anchoredPosition;
             }
         }
-
     }
 }

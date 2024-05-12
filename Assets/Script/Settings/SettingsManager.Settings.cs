@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering.Universal.Internal;
-using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
@@ -40,6 +37,8 @@ namespace YARG.Settings
             public bool ShowAntiPiracyDialog          = true;
             public bool ShowEngineInconsistencyDialog = true;
             public SongAttribute LibrarySort = SongAttribute.Name;
+
+            public Dictionary<string, SerializableVector2> UiElementPositions = new();
 
             #endregion
 
