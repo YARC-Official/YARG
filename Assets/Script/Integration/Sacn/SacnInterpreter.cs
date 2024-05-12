@@ -354,9 +354,6 @@ namespace YARG.Integration.Sacn
         private void OnBonusFXEvent()
         {
             SetChannel(_bonusEffectChannel, (byte) BonusEffectEnum.BonusEffect);
-
-            //immediate off
-            SetChannel(_beatlineChannel, (int) BonusEffectEnum.Off);
         }
 
         private void OnPerformersEvent(PerformerEvent newEvent)
@@ -443,9 +440,6 @@ namespace YARG.Integration.Sacn
             {
                 SetChannel(_beatlineChannel, (int) BeatlineEnum.Strong);
             }
-
-            //immediate off
-            SetChannel(_beatlineChannel, (int) BeatlineEnum.Off);
         }
 
         private void OnLightingEvent(LightingEvent newType)
@@ -549,9 +543,6 @@ namespace YARG.Integration.Sacn
                         SetChannel(_keyframeChannel, (byte) KeyFrameCueEnum.KeyframeFirst);
                         break;
                 }
-
-                //immediate off
-                SetChannel(_keyframeChannel, (byte) KeyFrameCueEnum.Off);
             }
         }
 

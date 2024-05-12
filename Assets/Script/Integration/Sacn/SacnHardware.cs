@@ -134,6 +134,12 @@ namespace YARG.Integration.Sacn
 
             //Sacn spec says multicast is the correct default way to go but singlecast can be used if needed.
             _sendClient.SendMulticast((ushort) SettingsManager.Settings.DMXUniverseChannel.Value, _dataPacket);
+
+            //These channels are only on for 1 frame so they need to be turned off after sending.
+            _dataPacket[SettingsManager.Settings.DMXKeyframeChannel.Value - 1] = 0;
+            _dataPacket[SettingsManager.Settings.DMXBonusEffectChannel.Value - 1] = 0;
+            _dataPacket[SettingsManager.Settings.DMXBeatlineChannel.Value - 1] = 0;
+
         }
     }
 }
