@@ -99,10 +99,14 @@ namespace YARG.Input
             {
                 AddBinding(GuitarAction.StarPower, gh.spPedal);
             }
-            // If we add a binding for the pickup switch, that should be set up here
-            // else if (guitar is RockBandGuitar rb)
-            // {
-            // }
+            else if (guitar is RockBandGuitar rb)
+            {
+                AddBinding(GuitarAction.GreenFret, rb.soloGreen);
+                AddBinding(GuitarAction.RedFret, rb.soloRed);
+                AddBinding(GuitarAction.YellowFret, rb.soloYellow);
+                AddBinding(GuitarAction.BlueFret, rb.soloBlue);
+                AddBinding(GuitarAction.OrangeFret, rb.soloOrange);
+            }
 
             return true;
         }
@@ -308,6 +312,23 @@ namespace YARG.Input
             AddBinding(MenuAction.Down, guitar.dpad.down);
             AddBinding(MenuAction.Left, guitar.dpad.left);
             AddBinding(MenuAction.Right, guitar.dpad.right);
+
+            if (guitar is RockBandGuitar rb)
+            {
+                AddBinding(GuitarAction.GreenFret, rb.soloGreen);
+                AddBinding(GuitarAction.RedFret, rb.soloRed);
+                AddBinding(GuitarAction.YellowFret, rb.soloYellow);
+                AddBinding(GuitarAction.BlueFret, rb.soloBlue);
+                AddBinding(GuitarAction.OrangeFret, rb.soloOrange);
+
+                if (guitar is RiffmasterGuitar riff)
+                {
+                    AddBinding(MenuAction.Up, riff.joystick.up);
+                    AddBinding(MenuAction.Down, riff.joystick.down);
+                    AddBinding(MenuAction.Left, riff.joystick.left);
+                    AddBinding(MenuAction.Right, riff.joystick.right);
+                }
+            }
 
             return true;
         }
