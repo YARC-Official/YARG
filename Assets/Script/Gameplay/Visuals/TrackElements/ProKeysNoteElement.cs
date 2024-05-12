@@ -30,7 +30,7 @@ namespace YARG.Gameplay.Visuals
             var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
 
             // Set the position
-            transform.localPosition = new Vector3(GetElementX(NoteRef.Key, 17), 0f, 0f);
+            transform.localPosition = new Vector3(Player.GetNoteX(NoteRef.Key), 0f, 0f);
 
             NoteGroup = noteGroups[0];
             NoteGroup.SetActive(true);

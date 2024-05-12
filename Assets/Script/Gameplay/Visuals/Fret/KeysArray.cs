@@ -19,7 +19,7 @@ namespace YARG.Gameplay.Visuals
 
         public float KeySpacing => _trackWidth / ProKeysPlayer.WHITE_KEY_VISIBLE_COUNT;
 
-        private readonly List<Fret> _frets = new();
+        private readonly List<Fret> _keys = new();
 
         public void Initialize(ThemePreset themePreset)
         {
@@ -30,7 +30,7 @@ namespace YARG.Gameplay.Visuals
 
             // Pro-keys always starts at C
 
-            _frets.Clear();
+            _keys.Clear();
             int whitePositionIndex = 0;
             int blackPositionIndex = 0;
 
@@ -48,7 +48,7 @@ namespace YARG.Gameplay.Visuals
                     fret.transform.localPosition = new Vector3(
                         blackPositionIndex * KeySpacing + _blackKeyOffset, 0f, 0f);
 
-                    _frets.Add(fret.GetComponent<Fret>());
+                    _keys.Add(fret.GetComponent<Fret>());
 
                     // Keys 3 and 10 have gaps after them, so add two in that case
                     blackPositionIndex++;
@@ -66,12 +66,17 @@ namespace YARG.Gameplay.Visuals
                     fret.transform.localPosition = new Vector3(
                         whitePositionIndex * KeySpacing + _whiteKeyOffset, 0f, 0f);
 
-                    _frets.Add(fret.GetComponent<Fret>());
+                    _keys.Add(fret.GetComponent<Fret>());
 
                     // White keys don't have any gaps
                     whitePositionIndex++;
                 }
             }
+        }
+
+        public float GetKeyX(int index)
+        {
+            return _keys[index].transform.localPosition.x;
         }
     }
 }

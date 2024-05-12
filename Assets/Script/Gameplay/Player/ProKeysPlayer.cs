@@ -74,6 +74,11 @@ namespace YARG.Gameplay.Player
             _keysArray.Initialize(Player.ThemePreset);
         }
 
+        public float GetNoteX(int index)
+        {
+            return _keysArray.GetKeyX(index);
+        }
+
         protected override void UpdateVisuals(double songTime)
         {
             UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
