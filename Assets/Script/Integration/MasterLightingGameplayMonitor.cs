@@ -77,12 +77,12 @@ namespace YARG.Integration
                 {
                     int fretsPressed = 0;
 
-                    foreach (var c in _keys.Notes[_keysIndex].ChildNotes)
+                    // Use ChordEnumerator to iterate over the notes
+                    foreach (var note in _keys.Notes[_keysIndex].ChordEnumerator())
                     {
-                        fretsPressed += 1 << c.Fret;
+                        fretsPressed += 1 << note.Fret;
                     }
 
-                    fretsPressed += 1 << _keys.Notes[_keysIndex].Fret;
                     MasterLightingController.CurrentKeysNotes = fretsPressed;
                     _keysEndCheckIndex = _keysIndex;
                     _keysIndex++;
@@ -104,12 +104,12 @@ namespace YARG.Integration
                 while (_bassIndex < _bass.Notes.Count && _bass.Notes[_bassIndex].Time <= GameManager.SongTime)
                 {
                     int fretsPressed = 0;
-                    foreach (var c in _bass.Notes[_bassIndex].ChildNotes)
+
+                    foreach (var note in _bass.Notes[_bassIndex].ChordEnumerator())
                     {
-                        fretsPressed += 1 << c.Fret;
+                        fretsPressed += 1 << note.Fret;
                     }
 
-                    fretsPressed += 1 << _bass.Notes[_bassIndex].Fret;
                     MasterLightingController.CurrentBassNotes = fretsPressed;
                     _bassEndCheckIndex = _bassIndex;
                     _bassIndex++;
@@ -132,12 +132,10 @@ namespace YARG.Integration
                 {
                     int fretsPressed = 0;
 
-                    foreach (var c in _guitar.Notes[_guitarIndex].ChildNotes)
+                    foreach (var note in _guitar.Notes[_guitarIndex].ChordEnumerator())
                     {
-                        fretsPressed += 1 << c.Fret;
+                        fretsPressed += 1 << note.Fret;
                     }
-
-                    fretsPressed += 1 << _guitar.Notes[_guitarIndex].Fret;
 
                     MasterLightingController.CurrentGuitarNotes = fretsPressed;
                     _guitarEndCheckIndex = _guitarIndex;
@@ -164,12 +162,11 @@ namespace YARG.Integration
                 {
                     int padsHit = 0;
 
-                    foreach (var c in _drums.Notes[_drumIndex].ChildNotes)
+                    foreach (var note in _drums.Notes[_drumIndex].ChordEnumerator())
                     {
-                        padsHit += 1 << c.Pad;
+                        padsHit += 1 << note.Pad;
                     }
 
-                    padsHit += 1 << _drums.Notes[_drumIndex].Pad;
                     MasterLightingController.CurrentDrumNotes = padsHit;
                     _drumEndCheckIndex = _drumIndex;
                     _drumIndex++;
