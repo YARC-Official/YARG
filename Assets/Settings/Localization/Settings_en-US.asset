@@ -1410,9 +1410,9 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 146520641782308864
-    m_Localized: 'This channel gets additively set to the current drum notes:  Red
-      (1), Yellow (2), Blue (4), Green (8), Kick (16),  Yellow Cymbal (32), Blue
-      Cymbal (64), Green Cymbal (128).'
+    m_Localized: 'This channel gets additively set to the current drum notes:  Kick
+      (1), Red (2), Yellow (4), Blue (8), Green (16),  Yellow Cymbal (32), Blue Cymbal
+      (64), Green Cymbal (128).'
     m_Metadata:
       m_Items: []
   - m_Id: 146520773076606976
@@ -1420,18 +1420,18 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 146521261369090048
-    m_Localized: 'This channel gets additively set to the current guitar notes: Red
-      (1), Yellow (2), Blue (4), Green (8), Orange (16), Open (32).'
+    m_Localized: 'This channel gets additively set to the current guitar notes: Open
+      (1), Green (2), Red (4), Yellow (8), Blue (16), Orange (32).'
     m_Metadata:
       m_Items: []
   - m_Id: 146521359872319488
-    m_Localized: 'This channel gets additively set to the current bass notes: Red
-      (1), Yellow (2), Blue (4), Green (8), Orange (16), Open (32).'
+    m_Localized: 'This channel gets additively set to the current bass notes: Open
+      (1), Green (2), Red (4), Yellow (8), Blue (16), Orange (32).'
     m_Metadata:
       m_Items: []
   - m_Id: 146521527942275072
-    m_Localized: 'This channel gets additively set to the current key notes: Red
-      (1), Yellow (2), Blue (4), Green (8), Orange (16).'
+    m_Localized: 'This channel gets additively set to the current key notes: Green
+      (2), Red (4), Yellow (8), Blue (16), Orange (32).'
     m_Metadata:
       m_Items: []
   - m_Id: 146521706556710912
