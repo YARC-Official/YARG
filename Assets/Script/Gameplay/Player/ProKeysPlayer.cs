@@ -110,7 +110,7 @@ namespace YARG.Gameplay.Player
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerStatus += OnStarPowerStatus;
 
-            engine.OnKeyStateChange += OnKeyStateChange;
+            engine.OnCountdownChange += OnCountdownChange;
 
             return engine;
         }
