@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using PlasticBand.Haptics;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Core.Logging;
 using YARG.Gameplay;
 using Random = UnityEngine.Random;
 
@@ -44,11 +43,11 @@ namespace YARG.Integration
             Venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
-
-            chart.ProDrums.Difficulties.TryGetValue(Difficulty.Expert, out _drums);
-            chart.FiveFretGuitar.Difficulties.TryGetValue(Difficulty.Expert, out _guitar);
-            chart.FiveFretBass.Difficulties.TryGetValue(Difficulty.Expert, out _bass);
-            chart.Keys.Difficulties.TryGetValue(Difficulty.Expert, out _keys);
+            
+            _drums = chart.ProDrums.GetDifficulty(Difficulty.Expert);
+            _guitar = chart.FiveFretGuitar.GetDifficulty(Difficulty.Expert);
+            _bass = chart.FiveFretBass.GetDifficulty(Difficulty.Expert);
+            _keys = chart.Keys.GetDifficulty(Difficulty.Expert);
 
             // Reset the indexes on song restart
             _stageIndex = 0;
