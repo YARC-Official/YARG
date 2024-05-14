@@ -44,6 +44,7 @@ namespace YARG.Integration
             Venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
+
             chart.ProDrums.Difficulties.TryGetValue(Difficulty.Expert, out _drums);
             chart.FiveFretGuitar.Difficulties.TryGetValue(Difficulty.Expert, out _guitar);
             chart.FiveFretBass.Difficulties.TryGetValue(Difficulty.Expert, out _bass);
