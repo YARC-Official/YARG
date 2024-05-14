@@ -8,7 +8,7 @@ using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Persistent
 {
-    public class HelpBarButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+    public class HelpBarButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         [SerializeField]
         private Image _buttonImage;
@@ -73,11 +73,13 @@ namespace YARG.Menu.Persistent
             _buttonImage.color = Color.grey;
             _buttonLabel.color = Color.grey;
             _buttonText.color = Color.grey;
+
+            _entry?.Invoke();
         }
 
-        public void OnClick()
+        public void OnPointerUp(PointerEventData eventData)
         {
-            _entry?.Invoke();
+            _entry?.InvokeHoldOffHandler();
         }
     }
 }
