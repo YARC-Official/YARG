@@ -17,7 +17,7 @@ namespace YARG.Gameplay.Player
     public class VocalsPlayer : BasePlayer
     {
         public VocalsEngineParameters EngineParams { get; private set; }
-        public VocalsEngine Engine { get; private set; }
+        public VocalsEngine           Engine       { get; private set; }
 
         public override BaseEngine BaseEngine => Engine;
 
@@ -43,8 +43,8 @@ namespace YARG.Gameplay.Player
         private MicInputContext _inputContext;
 
         private VocalNote _lastTargetNote;
-        private double? _lastHitTime;
-        private double? _lastSingTime;
+        private double?   _lastHitTime;
+        private double?   _lastSingTime;
 
         private VocalsPlayerHUD _hud;
         private VocalPercussionTrack _percussionTrack;
