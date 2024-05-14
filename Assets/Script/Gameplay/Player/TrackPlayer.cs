@@ -17,9 +17,9 @@ namespace YARG.Gameplay.Player
 {
     public abstract class TrackPlayer : BasePlayer
     {
-        public const float STRIKE_LINE_POS       = -2f;
+        public const float STRIKE_LINE_POS = -2f;
         public const float DEFAULT_ZERO_FADE_POS = 3f;
-        public const float NOTE_SPAWN_OFFSET     = 5f;
+        public const float NOTE_SPAWN_OFFSET = 5f;
 
         public const float TRACK_WIDTH = 2f;
 
@@ -56,7 +56,7 @@ namespace YARG.Gameplay.Player
         protected Pool BeatlinePool;
 
         public float ZeroFadePosition { get; private set; }
-        public float FadeSize         { get; private set; }
+        public float FadeSize { get; private set; }
 
         public Vector2 HUDViewportPosition => TrackCamera.WorldToViewportPoint(_hudLocation.position);
 
@@ -407,7 +407,7 @@ namespace YARG.Gameplay.Player
 
                 foreach (var haptics in SantrollerHaptics)
                 {
-                    haptics.SetMultiplier((uint)_currentMultiplier);
+                    haptics.SetMultiplier((uint) _currentMultiplier);
                 }
             }
 
@@ -478,6 +478,11 @@ namespace YARG.Gameplay.Player
             {
                 haptic.SetSolo(false);
             }
+        }
+
+        protected virtual void OnCountdownChange(uint totalMeasures)
+        {
+            TrackView.UpdateCountdown(totalMeasures);
         }
 
         protected virtual void OnStarPowerPhraseHit(TNote note)

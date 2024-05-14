@@ -53,10 +53,10 @@ namespace YARG.Gameplay.Player
         {
             var mode = Player.Profile.CurrentInstrument switch
             {
-                Instrument.ProDrums      => DrumsEngineParameters.DrumMode.ProFourLane,
+                Instrument.ProDrums => DrumsEngineParameters.DrumMode.ProFourLane,
                 Instrument.FourLaneDrums => DrumsEngineParameters.DrumMode.NonProFourLane,
                 Instrument.FiveLaneDrums => DrumsEngineParameters.DrumMode.FiveLane,
-                _                        => throw new Exception("Unreachable.")
+                _ => throw new Exception("Unreachable.")
             };
 
             if (!GameManager.IsReplay)
@@ -84,7 +84,9 @@ namespace YARG.Gameplay.Player
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerStatus += OnStarPowerStatus;
 
-            engine.OnPadHit += (action, wasNoteHit, velocity) =>
+            engine.OnCountdownChange += OnCountdownChange;
+
+            engine.OnPadHit += (action, wasNoteHit) =>
             {
                 // Skip if a note was hit, because we have different logic for that below
                 if (wasNoteHit) return;
@@ -95,25 +97,25 @@ namespace YARG.Gameplay.Player
                 {
                     fret = action switch
                     {
-                        DrumsAction.Kick                                   => 0,
-                        DrumsAction.RedDrum                                => 1,
+                        DrumsAction.Kick => 0,
+                        DrumsAction.RedDrum => 1,
                         DrumsAction.YellowDrum or DrumsAction.YellowCymbal => 2,
-                        DrumsAction.BlueDrum or DrumsAction.BlueCymbal     => 3,
-                        DrumsAction.GreenDrum or DrumsAction.GreenCymbal   => 4,
-                        _                                                  => -1
+                        DrumsAction.BlueDrum or DrumsAction.BlueCymbal => 3,
+                        DrumsAction.GreenDrum or DrumsAction.GreenCymbal => 4,
+                        _ => -1
                     };
                 }
                 else
                 {
                     fret = action switch
                     {
-                        DrumsAction.Kick         => 0,
-                        DrumsAction.RedDrum      => 1,
+                        DrumsAction.Kick => 0,
+                        DrumsAction.RedDrum => 1,
                         DrumsAction.YellowCymbal => 2,
-                        DrumsAction.BlueDrum     => 3,
+                        DrumsAction.BlueDrum => 3,
                         DrumsAction.OrangeCymbal => 4,
-                        DrumsAction.GreenDrum    => 5,
-                        _                        => -1
+                        DrumsAction.GreenDrum => 5,
+                        _ => -1
                     };
                 }
 
@@ -202,23 +204,23 @@ namespace YARG.Gameplay.Player
                 {
                     fret = (FourLaneDrumPad) note.Pad switch
                     {
-                        FourLaneDrumPad.RedDrum                                    => 0,
+                        FourLaneDrumPad.RedDrum => 0,
                         FourLaneDrumPad.YellowDrum or FourLaneDrumPad.YellowCymbal => 1,
-                        FourLaneDrumPad.BlueDrum or FourLaneDrumPad.BlueCymbal     => 2,
-                        FourLaneDrumPad.GreenDrum or FourLaneDrumPad.GreenCymbal   => 3,
-                        _                                                          => -1
+                        FourLaneDrumPad.BlueDrum or FourLaneDrumPad.BlueCymbal => 2,
+                        FourLaneDrumPad.GreenDrum or FourLaneDrumPad.GreenCymbal => 3,
+                        _ => -1
                     };
                 }
                 else
                 {
                     fret = (FiveLaneDrumPad) note.Pad switch
                     {
-                        FiveLaneDrumPad.Red    => 0,
+                        FiveLaneDrumPad.Red => 0,
                         FiveLaneDrumPad.Yellow => 1,
-                        FiveLaneDrumPad.Blue   => 2,
+                        FiveLaneDrumPad.Blue => 2,
                         FiveLaneDrumPad.Orange => 3,
-                        FiveLaneDrumPad.Green  => 4,
-                        _                      => -1
+                        FiveLaneDrumPad.Green => 4,
+                        _ => -1
                     };
                 }
 
