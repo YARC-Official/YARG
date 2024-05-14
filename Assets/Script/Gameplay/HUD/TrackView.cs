@@ -1,10 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Engine;
-using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
-using YARG.Playback;
 
 namespace YARG.Gameplay.HUD
 {
