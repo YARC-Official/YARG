@@ -1,5 +1,5 @@
 This library is a modified version of Haukcode.sACN.
-The orginial can be found here: https://github.com/HakanL/Haukcode.sACN
+The original can be found here: https://github.com/HakanL/Haukcode.sACN
 
 Modifications made are:
 1) Removal of all code related to reading packets, not needed.

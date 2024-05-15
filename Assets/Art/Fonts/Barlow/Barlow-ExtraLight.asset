@@ -59,9 +59,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
   m_Name: Barlow-ExtraLight
   m_EditorClassIdentifier: 
-  hashCode: 0
+  hashCode: -585896468
   material: {fileID: 2451060936698861075}
-  materialHashCode: 0
+  materialHashCode: -205744180
   m_Version: 1.1.0
   m_SourceFontFileGUID: b0527ec427ac05f418064d49031c9dbe
   m_SourceFontFile_EditorRef: {fileID: 12800000, guid: b0527ec427ac05f418064d49031c9dbe,
@@ -5544,7 +5544,8 @@ MonoBehaviour:
   m_FontFeatureTable:
     m_GlyphPairAdjustmentRecords: []
   fallbackFontAssets: []
-  m_FallbackFontAssetTable: []
+  m_FallbackFontAssetTable:
+  - {fileID: 11400000, guid: 49fb77f895c547a4ebf4ccadc85b57ba, type: 2}
   m_CreationSettings:
     sourceFontFileName: 
     sourceFontFileGUID: b0527ec427ac05f418064d49031c9dbe

@@ -237,6 +237,9 @@ namespace YARG.Menu.ProfileList
                 }
             }
 
+            // Set AutoConnect true to automatically reconnect at start.
+            _profile.AutoConnect = true;
+
             Reinitialize();
         }
 
@@ -244,6 +247,9 @@ namespace YARG.Menu.ProfileList
         {
             // Select item to prevent confusion (it has to be through the mouse in this case)
             SetSelected(true, SelectionOrigin.Mouse);
+
+            // Set AutoConnect false to not automatically reconnect at start.
+            _profile.AutoConnect = false;
 
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
             if (player is null)

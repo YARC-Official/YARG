@@ -8,6 +8,8 @@ namespace YARG.Menu.MusicLibrary
     {
         public override BackgroundType Background => BackgroundType.Category;
 
+        public override bool UseWiderPrimaryText => true;
+
         public readonly string HeaderText;
         private readonly int _songCount;
 

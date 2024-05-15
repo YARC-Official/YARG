@@ -117,9 +117,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
   m_Name: Barlow-Thin
   m_EditorClassIdentifier: 
-  hashCode: 0
+  hashCode: 1440302995
   material: {fileID: -2861737157810636639}
-  materialHashCode: 0
+  materialHashCode: -569595565
   m_Version: 1.1.0
   m_SourceFontFileGUID: 99be956b4447e5c4d942ab55cc87f867
   m_SourceFontFile_EditorRef: {fileID: 12800000, guid: 99be956b4447e5c4d942ab55cc87f867,
@@ -5710,7 +5710,8 @@ MonoBehaviour:
   m_FontFeatureTable:
     m_GlyphPairAdjustmentRecords: []
   fallbackFontAssets: []
-  m_FallbackFontAssetTable: []
+  m_FallbackFontAssetTable:
+  - {fileID: 11400000, guid: 49fb77f895c547a4ebf4ccadc85b57ba, type: 2}
   m_CreationSettings:
     sourceFontFileName: 
     sourceFontFileGUID: 99be956b4447e5c4d942ab55cc87f867

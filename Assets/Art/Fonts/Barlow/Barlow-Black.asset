@@ -117,9 +117,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
   m_Name: Barlow-Black
   m_EditorClassIdentifier: 
-  hashCode: 1300438238
+  hashCode: 268751407
   material: {fileID: -4723213457703258798}
-  materialHashCode: 1237947454
+  materialHashCode: 131129775
   m_Version: 1.1.0
   m_SourceFontFileGUID: 3f0b0eecdbffc064cb65ce5a0f1970d4
   m_SourceFontFile_EditorRef: {fileID: 12800000, guid: 3f0b0eecdbffc064cb65ce5a0f1970d4,
@@ -5642,7 +5642,8 @@ MonoBehaviour:
   m_FontFeatureTable:
     m_GlyphPairAdjustmentRecords: []
   fallbackFontAssets: []
-  m_FallbackFontAssetTable: []
+  m_FallbackFontAssetTable:
+  - {fileID: 11400000, guid: 058d5dff3f1dc9e4bba3d08f5b47ac67, type: 2}
   m_CreationSettings:
     sourceFontFileName: 
     sourceFontFileGUID: 3f0b0eecdbffc064cb65ce5a0f1970d4

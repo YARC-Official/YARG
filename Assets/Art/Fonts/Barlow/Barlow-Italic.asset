@@ -59,9 +59,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
   m_Name: Barlow-Italic
   m_EditorClassIdentifier: 
-  hashCode: 0
+  hashCode: -272723950
   material: {fileID: 4843173334663530833}
-  materialHashCode: 0
+  materialHashCode: -870269582
   m_Version: 1.1.0
   m_SourceFontFileGUID: 17c274c2b4cea6244a1a81e7564bbc7d
   m_SourceFontFile_EditorRef: {fileID: 12800000, guid: 17c274c2b4cea6244a1a81e7564bbc7d,
@@ -5592,7 +5592,8 @@ MonoBehaviour:
   m_FontFeatureTable:
     m_GlyphPairAdjustmentRecords: []
   fallbackFontAssets: []
-  m_FallbackFontAssetTable: []
+  m_FallbackFontAssetTable:
+  - {fileID: 11400000, guid: 49fb77f895c547a4ebf4ccadc85b57ba, type: 2}
   m_CreationSettings:
     sourceFontFileName: 
     sourceFontFileGUID: 17c274c2b4cea6244a1a81e7564bbc7d
