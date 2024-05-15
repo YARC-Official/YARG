@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -27,8 +28,9 @@ namespace YARG.Menu.Persistent
 
         private bool _canInteract;
         private Coroutine _coroutine;
+        private Action _onClick;
 
-        public void Initialize(string type, string message, Sprite icon, Color color)
+        public void Initialize(string type, string message, Sprite icon, Color color, Action onClick)
         {
             _background.color = color;
 
@@ -38,6 +40,8 @@ namespace YARG.Menu.Persistent
 
             _message.color = Color.white;
             _message.text = message;
+
+            _onClick = onClick;
 
             _coroutine = StartCoroutine(ToastStartCoroutine());
         }
@@ -95,6 +99,8 @@ namespace YARG.Menu.Persistent
             {
                 return;
             }
+
+            _onClick?.Invoke();
 
             StopCoroutine(_coroutine);
             _coroutine = StartCoroutine(ToastEndCoroutine());
