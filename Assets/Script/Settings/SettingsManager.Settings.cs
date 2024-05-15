@@ -26,7 +26,6 @@ namespace YARG.Settings
     {
         public class SettingContainer
         {
-            //public static event System.Action OnDMXChannelsChanged;
 
             /// <summary>
             /// Have the settings been initialized?
@@ -269,6 +268,27 @@ namespace YARG.Settings
 
             public IntSetting DMXCueChangeChannel { get; } = new(8, 1, 512);
 
+            public IntSetting DMXBeatlineChannel { get; } = new(14, 1, 512);
+
+            public IntSetting DMXBonusEffectChannel { get; } = new(15, 1, 512);
+
+            public IntSetting DMXKeyframeChannel { get; } = new(16, 1, 512);
+
+            public IntSetting DMXDrumsChannel { get; } = new(22, 1, 512);
+
+            public IntSetting DMXPostProcessingChannel { get; } = new(23, 1, 512);
+
+            public IntSetting DMXGuitarChannel { get; } = new(24, 1, 512);
+
+            public IntSetting DMXBassChannel { get; } = new(30, 1, 512);
+
+            //NYI
+            //public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
+
+            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512);
+
+            public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
+
             #endregion
 
             #region Debug and Developer
@@ -322,7 +342,7 @@ namespace YARG.Settings
                 {
                     return;
                 }
-                SacnHardware.Instance.UpdateDMXChannelNumbers();
+                SacnInterpreter.Instance.UpdateDMXChannelNumbers();
             }
 
             private static void VSyncCallback(bool value)
