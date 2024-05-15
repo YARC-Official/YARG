@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
+using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.ProKeys;
@@ -28,6 +30,15 @@ namespace YARG.Gameplay.Player
         [Header("Pro Keys Specific")]
         [SerializeField]
         private KeysArray _keysArray;
+
+        private bool _isOffsetChanging;
+
+        private double _offsetStartTime;
+        private double _offsetEndTime;
+
+        private float _previousOffset;
+        private float _currentOffset;
+        private float _targetOffset;
 
         protected override InstrumentDifficulty<ProKeysNote> GetNotes(SongChart chart)
         {
@@ -74,14 +85,61 @@ namespace YARG.Gameplay.Player
             _keysArray.Initialize(Player.ThemePreset);
         }
 
+        private void RangeShiftTo(int noteIndex, double time)
+        {
+            _isOffsetChanging = true;
+
+            _offsetStartTime = GameManager.RealVisualTime;
+            _offsetEndTime = GameManager.RealVisualTime + time;
+
+            _previousOffset = _currentOffset;
+
+            // We need to get the offset relative to the 0th key (as that's the base)
+            _targetOffset = _keysArray.GetKeyX(0) - _keysArray.GetKeyX(noteIndex);
+        }
+
         public float GetNoteX(int index)
         {
-            return _keysArray.GetKeyX(index);
+            return _keysArray.GetKeyX(index) + _currentOffset;
         }
 
         protected override void UpdateVisuals(double songTime)
         {
             UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
+
+            if (Keyboard.current.lKey.wasPressedThisFrame)
+            {
+                int noteIndex = Random.Range(0, 9);
+                RangeShiftTo(noteIndex, 0.25);
+                YargLogger.LogFormatInfo("{0}", noteIndex);
+            }
+
+            if (_isOffsetChanging)
+            {
+                float changePercent = (float) YargMath.InverseLerpD(_offsetStartTime, _offsetEndTime,
+                    GameManager.RealVisualTime);
+
+                if (changePercent >= 1f)
+                {
+                    // If the change has finished, stop!
+                    _isOffsetChanging = false;
+                    _currentOffset = _targetOffset;
+                }
+                else
+                {
+                    _currentOffset = Mathf.Lerp(_previousOffset, _targetOffset, changePercent);
+                }
+
+                // Update the visuals with the new offsets
+
+                var keysTransform = _keysArray.transform;
+                keysTransform.localPosition = keysTransform.localPosition.WithX(_currentOffset);
+
+                foreach (var note in NotePool.AllSpawned)
+                {
+                    (note as ProKeysNoteElement)?.UpdateNoteX();
+                }
+            }
         }
 
         public override void SetStemMuteState(bool muted)

@@ -30,7 +30,8 @@ namespace YARG.Gameplay.Visuals
             var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
 
             // Set the position
-            transform.localPosition = new Vector3(Player.GetNoteX(NoteRef.Key), 0f, 0f);
+            transform.localPosition = Vector3.zero;
+            UpdateNoteX();
 
             NoteGroup = noteGroups[0];
             NoteGroup.SetActive(true);
@@ -61,6 +62,13 @@ namespace YARG.Gameplay.Visuals
             {
                 ParentPool.Return(this);
             }
+        }
+
+        public void UpdateNoteX()
+        {
+            var t = transform;
+            t.localPosition = t.localPosition
+                .WithX(Player.GetNoteX(NoteRef.Key));
         }
 
         protected override void UpdateElement()

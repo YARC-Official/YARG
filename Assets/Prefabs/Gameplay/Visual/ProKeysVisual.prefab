@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6823650258844985663}
   - component: {fileID: 679598873221959975}
   m_Layer: 0
-  m_Name: Fret Array
+  m_Name: Keys Array
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -230,9 +230,9 @@ namespace YARG.Gameplay.Player
             {
                 float changePercent = (float) YargMath.InverseLerpD(_changeStartTime, _changeEndTime, time);
 
-                // If the change has finished, stop!
                 if (changePercent >= 1f)
                 {
+                    // If the change has finished, stop!
                     _isRangeChanging = false;
                     _viewRange.Min = _targetRange.Min;
                     _viewRange.Max = _targetRange.Max;
