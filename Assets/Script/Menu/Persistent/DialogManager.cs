@@ -19,6 +19,8 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private ListDialog _listPrefab;
         [SerializeField]
+        private ListWithSettingsDialog _listWithSettingsPrefab;
+        [SerializeField]
         private RenameDialog _renameDialog;
         [SerializeField]
         private ConfirmDeleteDialog _confirmDeleteDialog;
@@ -72,6 +74,19 @@ namespace YARG.Menu.Persistent
         public ListDialog ShowList(string title)
         {
             var dialog = ShowDialog(_listPrefab);
+
+            dialog.Title.text = title;
+
+            return dialog;
+        }
+
+        /// <summary>
+        /// Displays and returns a list dialog with configurable settings.
+        /// </summary>
+        /// <inheritdoc cref="ShowDialog{ListWithSettingsDialog}(ListWithSettingsDialog)"/>
+        public ListWithSettingsDialog ShowListWithSettings(string title)
+        {
+            var dialog = ShowDialog(_listWithSettingsPrefab);
 
             dialog.Title.text = title;
 

@@ -37,7 +37,7 @@ namespace YARG.Menu.Dialogs
         public T AddListEntry<T>(T prefab)
             where T : Object
         {
-            return Instantiate(prefab, _listContainer.transform);
+            return Instantiate(prefab, _listContainer);
         }
 
         public void ClearList()
