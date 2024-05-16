@@ -155,11 +155,14 @@ namespace YARG.Menu.ProfileList
 
         public async UniTask<bool> PromptRemoveDevice()
         {
-            var dialog = DialogManager.Instance.ShowList("Remove Device");
+            var dialog = DialogManager.Instance.ShowListWithSettings("Remove Device");
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
 
             bool devicesAvailable = false;
             bool selectedDevice = false;
+            bool clearBinds = false;
+
+            dialog.AddToggleSetting("Clear Binds for Device", false, (value) => clearBinds = value);
 
             // Add available devices
             foreach (var device in InputSystem.devices)
@@ -169,6 +172,8 @@ namespace YARG.Menu.ProfileList
                 devicesAvailable = true;
                 dialog.AddListButton(device.displayName, () =>
                 {
+                    if (clearBinds)
+                        player.Bindings.ClearBindingsForDevice(device);
                     player.Bindings.RemoveDevice(device);
                     selectedDevice = true;
                 });
