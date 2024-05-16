@@ -83,6 +83,7 @@ namespace YARG.Input
         public abstract bool RemoveControl(InputControl control);
         public abstract bool ContainsControl(InputControl control);
 
+        public abstract bool ContainsBindingsForDevice(InputDevice device);
         public abstract void ClearBindingsForDevice(InputDevice device);
         public abstract void ClearAllBindings();
 
@@ -345,6 +346,23 @@ namespace YARG.Input
             }
 
             foundBinding = null;
+            return false;
+        }
+
+        public override bool ContainsBindingsForDevice(InputDevice device)
+        {
+            foreach (var binding in _bindings)
+            {
+                if (binding.Control.device == device)
+                    return true;
+            }
+
+            foreach (var serialized in _unresolvedBindings)
+            {
+                if (serialized.Device.MatchesDevice(device))
+                    return true;
+            }
+
             return false;
         }
 

@@ -142,6 +142,17 @@ namespace YARG.Input
             return false;
         }
 
+        public bool ContainsBindingsForDevice(InputDevice device)
+        {
+            foreach (var binding in _bindings)
+            {
+                if (binding.ContainsBindingsForDevice(device))
+                    return true;
+            }
+
+            return false;
+        }
+
         public void ClearBindingsForDevice(InputDevice device)
         {
             foreach (var binding in _bindings)
