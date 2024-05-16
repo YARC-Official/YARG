@@ -2,8 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XInput;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Input.Serialization;
@@ -159,6 +159,10 @@ namespace YARG.Input
             {
                 binding.ClearBindingsForDevice(device);
             }
+
+            // Remove cleared XInput devices from prompt cache
+            if (device is XInputController xinput)
+                _xinputGamepads.Remove(xinput);
         }
 
         public void ClearAllBindings()
