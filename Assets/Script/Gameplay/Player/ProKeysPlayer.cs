@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -8,6 +9,7 @@ using YARG.Core.Engine.ProKeys.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
+using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
 {
@@ -30,6 +32,8 @@ namespace YARG.Gameplay.Player
         [Header("Pro Keys Specific")]
         [SerializeField]
         private KeysArray _keysArray;
+
+        private int _phraseIndex;
 
         private bool _isOffsetChanging;
 
@@ -106,13 +110,7 @@ namespace YARG.Gameplay.Player
         protected override void UpdateVisuals(double songTime)
         {
             UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
-
-            if (Keyboard.current.lKey.wasPressedThisFrame)
-            {
-                int noteIndex = Random.Range(0, 9);
-                RangeShiftTo(noteIndex, 0.25);
-                YargLogger.LogFormatInfo("{0}", noteIndex);
-            }
+            UpdatePhrases(songTime);
 
             if (_isOffsetChanging)
             {
@@ -138,6 +136,31 @@ namespace YARG.Gameplay.Player
                 foreach (var note in NotePool.AllSpawned)
                 {
                     (note as ProKeysNoteElement)?.UpdateNoteX();
+                }
+            }
+        }
+
+        private void UpdatePhrases(double songTime)
+        {
+            var phrases = NoteTrack.Phrases;
+
+            while (_phraseIndex < phrases.Count && phrases[_phraseIndex].Time <= songTime)
+            {
+                var phrase = phrases[_phraseIndex];
+                _phraseIndex++;
+
+                if (phrase.Type is >= PhraseType.ProKeys_RangeShift0 and <= PhraseType.ProKeys_RangeShift5)
+                {
+                    RangeShiftTo(phrase.Type switch
+                    {
+                        PhraseType.ProKeys_RangeShift0 => 0,
+                        PhraseType.ProKeys_RangeShift1 => 2,
+                        PhraseType.ProKeys_RangeShift2 => 4,
+                        PhraseType.ProKeys_RangeShift3 => 5,
+                        PhraseType.ProKeys_RangeShift4 => 7,
+                        PhraseType.ProKeys_RangeShift5 => 9,
+                        _ => throw new Exception("Unreachable")
+                    }, phrase.TimeLength);
                 }
             }
         }
