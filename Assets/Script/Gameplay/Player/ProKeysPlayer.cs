@@ -1,9 +1,11 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.ProKeys;
 using YARG.Core.Engine.ProKeys.Engines;
 using YARG.Core.Input;
@@ -56,7 +58,8 @@ namespace YARG.Gameplay.Player
             {
                 // Create the engine params from the engine preset
                 // EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
-                EngineParams = new ProKeysEngineParameters();
+                EngineParams = new ProKeysEngineParameters(new HitWindowSettings(0.14, 0.14, 0.14, false), 4,
+                    StarMultiplierThresholds);
             }
             else
             {
@@ -87,6 +90,15 @@ namespace YARG.Gameplay.Player
             base.FinishInitialization();
 
             _keysArray.Initialize(Player.ThemePreset);
+        }
+
+        protected override void OnNoteHit(int index, ProKeysNote note)
+        {
+            base.OnNoteHit(index, note);
+
+            if (GameManager.Paused) return;
+
+            (NotePool.GetByKey(note) as ProKeysNoteElement)?.HitNote();
         }
 
         private void RangeShiftTo(int noteIndex, double time)
