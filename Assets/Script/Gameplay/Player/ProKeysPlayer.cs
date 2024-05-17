@@ -43,7 +43,7 @@ namespace YARG.Gameplay.Player
         protected override InstrumentDifficulty<ProKeysNote> GetNotes(SongChart chart)
         {
             var track = chart.ProKeys.Clone();
-            return track.Difficulties[Player.Profile.CurrentDifficulty];
+            return track.GetDifficulty(Player.Profile.CurrentDifficulty);
         }
 
         protected override ProKeysEngine CreateEngine()

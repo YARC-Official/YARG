@@ -106,7 +106,7 @@ namespace YARG
             bool muted = UnityEditor.EditorUtility.audioMasterMute;
             if (muted != previousMute)
             {
-                GlobalAudioHandler.SetVolumeSetting(SongStem.Master, muted ? 0 : SettingsManager.Settings.MasterMusicVolume.Value);
+                GlobalAudioHandler.SetMasterVolume(muted ? 0 : SettingsManager.Settings.MasterMusicVolume.Value);
                 previousMute = muted;
             }
         }

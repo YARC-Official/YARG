@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -26,7 +26,6 @@ namespace YARG.Settings
     {
         public class SettingContainer
         {
-            //public static event System.Action OnDMXChannelsChanged;
 
             /// <summary>
             /// Have the settings been initialized?
@@ -61,6 +60,12 @@ namespace YARG.Settings
 
             public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
+
+            public ToggleSetting ShowBattery { get; } = new(false);
+            public ToggleSetting ShowTime    { get; } = new(false, ShowTimeCallback);
+            public ToggleSetting MemoryStats { get; } = new(false, MemoryStatsCallback);
+
+            public ToggleSetting ReconnectProfiles { get; } = new(true);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public SliderSetting KickBounceMultiplier      { get; } = new(1f, 0f, 2f);
@@ -106,6 +111,11 @@ namespace YARG.Settings
             public VolumeSetting PreviewVolume     { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring   { get; } = new(0.7f, VocalMonitoringCallback);
+
+            public ToggleSetting EnablePlaybackBuffer { get; } = new(true, GlobalAudioHandler.TogglePlaybackBuffer);
+
+            public IntSetting PlaybackBufferLength { get; }
+                = new(75, GlobalAudioHandler.MinimumBufferLength, GlobalAudioHandler.MaximumBufferLength, GlobalAudioHandler.SetBufferLength);
 
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
 
@@ -260,6 +270,27 @@ namespace YARG.Settings
 
             public IntSetting DMXCueChangeChannel { get; } = new(8, 1, 512);
 
+            public IntSetting DMXBeatlineChannel { get; } = new(14, 1, 512);
+
+            public IntSetting DMXBonusEffectChannel { get; } = new(15, 1, 512);
+
+            public IntSetting DMXKeyframeChannel { get; } = new(16, 1, 512);
+
+            public IntSetting DMXDrumsChannel { get; } = new(22, 1, 512);
+
+            public IntSetting DMXPostProcessingChannel { get; } = new(23, 1, 512);
+
+            public IntSetting DMXGuitarChannel { get; } = new(24, 1, 512);
+
+            public IntSetting DMXBassChannel { get; } = new(30, 1, 512);
+
+            //NYI
+            //public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
+
+            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512);
+
+            public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
+
             #endregion
 
             #region Debug and Developer
@@ -271,6 +302,21 @@ namespace YARG.Settings
             #endregion
 
             #region Callbacks
+
+            private static void ShowTimeCallback(bool value)
+            {
+                StatsManager.Instance.SetShowing(StatsManager.Stat.Time, value);
+            }
+
+            private static void MemoryStatsCallback(bool value)
+            {
+#if UNITY_EDITOR
+                // Force in editor
+                value = true;
+#endif
+
+                StatsManager.Instance.SetShowing(StatsManager.Stat.Memory, value);
+            }
 
             private static void StageKitEnabledCallback(bool value)
             {
@@ -298,7 +344,7 @@ namespace YARG.Settings
                 {
                     return;
                 }
-                SacnHardware.Instance.UpdateDMXChannelNumbers();
+                SacnInterpreter.Instance.UpdateDMXChannelNumbers();
             }
 
             private static void VSyncCallback(bool value)
