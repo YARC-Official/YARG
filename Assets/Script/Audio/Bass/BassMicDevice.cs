@@ -243,9 +243,30 @@ namespace YARG.Audio.BASS
                 return (int) Bass.LastError;
             }
 
-            if (Bass.ChannelGetData(_recordHandle.ProcessedHandle, IntPtr.Zero, 0xFFFFFFF) == -1)
+            // This is a little bit ugly but I think this is the only way to clear the processing buffer.
+            // You can't request the available bytes from a decoding channel so there's no way to know how much data is available.
+            // And you can't just request as much data as possible into a NULL buffer because that only works for recording streams.
+            // So we have to allocate a buffer and keep requesting data until there's none left.
+            unsafe
             {
-                return (int) Bass.LastError;
+                const int bufferLength = 1024;
+
+                byte* buffer = stackalloc byte[bufferLength];
+                int bytesRead;
+                do
+                {
+                    bytesRead = Bass.ChannelGetData(_recordHandle.ProcessedHandle, (IntPtr) buffer, bufferLength);
+                    if (bytesRead >= 0)
+                    {
+                        YargLogger.LogFormatTrace("Cleared {0} bytes from processed recording buffer", bytesRead);
+                    }
+                } while(bytesRead > 0);
+
+                if (bytesRead == -1)
+                {
+                    YargLogger.LogFormatError("Failed to clear processed recording buffer: {0}!", Bass.LastError);
+                    return (int) Bass.LastError;
+                }
             }
 
             // Undefined position flag in ManagedBass. Will flush the buffer of a decoding channel when setting the position
