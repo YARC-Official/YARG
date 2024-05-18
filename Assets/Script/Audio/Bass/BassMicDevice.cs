@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Fx;
 using UnityEngine;
@@ -337,19 +338,16 @@ namespace YARG.Audio.BASS
             // Enough time has passed for pitch detection
             if(_timeAccumulated >= RECORD_PERIOD_MS)
             {
-                YargLogger.LogFormatInfo("Calculating pitch with {0} bytes, time: {1}", _processedBufferLength, _timeAccumulated);
-
-                Span<byte> procBuff = stackalloc byte[_processedBufferLength];
-
                 unsafe
                 {
-                    fixed(byte* ptr = procBuff)
-                    {
-                        Bass.ChannelGetData(_recordHandle.ProcessedHandle, (IntPtr) ptr, procBuff.Length);
-                    }
+                    byte* procBuff = stackalloc byte[_processedBufferLength];
+
+                    var readOnlySpan = new ReadOnlySpan<byte>(procBuff, _processedBufferLength);
+
+                    Bass.ChannelGetData(_recordHandle.ProcessedHandle, (IntPtr) procBuff, _processedBufferLength);
+                    CalculatePitchAndAmplitude(readOnlySpan);
                 }
 
-                CalculatePitchAndAmplitude(procBuff);
                 _timeAccumulated = 0;
                 _processedBufferLength = 0;
             }
@@ -364,16 +362,10 @@ namespace YARG.Audio.BASS
 
             // Convert 16 bit buffer to floats
             // If this isn't 16 bit god knows what device they're using.
-            unsafe
+            var shortBufferSpan = MemoryMarshal.Cast<byte, short>(buffer);
+            for (int i = 0; i < sampleCount; i++)
             {
-                fixed (byte* bytesPtr = buffer)
-                {
-                    var shortBufferSpan = new ReadOnlySpan<short>(bytesPtr, sampleCount);
-                    for (int i = 0; i < sampleCount; i++)
-                    {
-                        floatBuffer[i] = shortBufferSpan[i] / 32768f;
-                    }
-                }
+                floatBuffer[i] = shortBufferSpan[i] / 32768f;
             }
 
             // Calculate the root mean square
