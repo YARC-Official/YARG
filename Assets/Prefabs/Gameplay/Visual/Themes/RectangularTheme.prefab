@@ -126,7 +126,7 @@ GameObject:
   m_Component:
   - component: {fileID: 402095313306837402}
   - component: {fileID: 3152144640367496596}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: White Key
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -770,7 +770,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3684563651138824871}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1088,7 +1088,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5403917125361326628}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1121,7 +1121,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8267363298203021472}
   - component: {fileID: 8516139359401907059}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Black Key
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1637,6 +1637,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: RectangularWhiteKey
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2d90fad9cc5a5fd40b79cfbee4b457b0,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2d90fad9cc5a5fd40b79cfbee4b457b0, type: 3}
@@ -2333,6 +2338,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: RectangularBlackKey
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 5e7e8a6a071fdab4aba5f305fc204ec9,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5e7e8a6a071fdab4aba5f305fc204ec9, type: 3}
