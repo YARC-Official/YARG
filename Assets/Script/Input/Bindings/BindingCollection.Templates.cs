@@ -66,7 +66,7 @@ namespace YARG.Input
 
             new IndividualButtonBinding("FourDrums.YellowCymbal", (int) DrumsAction.YellowCymbal),
             new IndividualButtonBinding("FourDrums.BlueCymbal",   (int) DrumsAction.BlueCymbal),
-            new IndividualButtonBinding("FourDrums.GreenCymbal",  (int) DrumsAction.GreenCymbal),
+            new IndividualButtonBinding("FourDrums.GreenCymbal", "FourDrums.RedCymbal", (int) DrumsAction.GreenCymbal),
 
             new IndividualButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };

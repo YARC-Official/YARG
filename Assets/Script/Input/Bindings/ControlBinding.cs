@@ -44,6 +44,11 @@ namespace YARG.Input
         /// The name for this binding.
         /// </summary>
         public LocalizedString Name { get; }
+		
+        /// <summary>
+        /// Alternate name for this binding, representing lefty-flip
+        /// </summary>
+        public LocalizedString NameLefty { get; }
 
         /// <summary>
         /// The key string for this binding.
@@ -66,6 +71,15 @@ namespace YARG.Input
         {
             Key = name;
             Name = new("Bindings", name);
+            NameLefty = Name;
+            Action = action;
+        }
+		
+        public ControlBinding(string name, string nameLefty, int action)
+        {
+            Key = name;
+            Name = new("Bindings", name);
+            NameLefty = new("Bindings", nameLefty);
             Action = action;
         }
 
@@ -208,6 +222,10 @@ namespace YARG.Input
         public    IReadOnlyList<TBinding> Bindings => _bindings;
 
         public ControlBinding(string name, int action) : base(name, action)
+        {
+        }
+
+        public ControlBinding(string name, string nameLefty, int action) : base(name, nameLefty, action)
         {
         }
 
