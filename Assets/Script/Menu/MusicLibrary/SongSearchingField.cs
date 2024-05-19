@@ -12,24 +12,24 @@ namespace YARG.Menu.MusicLibrary
 {
     public class SongSearchingField : MonoBehaviour
     {
-        private static Dictionary<SortAttribute, string> DefaultQueries 
+        private static SortAttribute _currentSearchFilter = SortAttribute.Unspecified;
+        private static Dictionary<SortAttribute, string> _searchQueries;
+        private static string _fullSearchQuery = string.Empty;
+
+        static SongSearchingField()
         {
-            get
+            _searchQueries = new Dictionary<SortAttribute, string>();
+            foreach (var sort in EnumExtensions<SortAttribute>.Values)
             {
-                var queries = new Dictionary<SortAttribute, string>();
-                foreach (var sort in EnumExtensions<SortAttribute>.Values)
+                if (sort != SortAttribute.Artist_Album &&
+                    sort != SortAttribute.Playlist &&
+                    sort != SortAttribute.SongLength &&
+                    sort != SortAttribute.DateAdded &&
+                    sort != SortAttribute.Playable &&
+                    sort != SortAttribute.Instrument)
                 {
-                    if (sort != SortAttribute.Artist_Album &&
-                        sort != SortAttribute.Playlist &&
-                        sort != SortAttribute.SongLength &&
-                        sort != SortAttribute.DateAdded &&
-                        sort != SortAttribute.Playable &&
-                        sort != SortAttribute.Instrument)
-                    {
-                        queries.Add(sort, string.Empty);
-                    }
+                    _searchQueries.Add(sort, string.Empty);
                 }
-                return queries;
             }
         }
 
@@ -49,11 +49,6 @@ namespace YARG.Menu.MusicLibrary
         public bool IsUnspecified => _searchContext.IsUnspecified();
 
         public event Action<bool> OnSearchQueryUpdated;
-
-        private static SortAttribute _currentSearchFilter = SortAttribute.Unspecified;
-        private static Dictionary<SortAttribute, string> _searchQueries = DefaultQueries;
-
-        private static string _fullSearchQuery = string.Empty;
 
         private void OnEnable()
         {
@@ -165,7 +160,10 @@ namespace YARG.Menu.MusicLibrary
         public void ClearFilterQueries()
         {
             _currentSearchFilter = SortAttribute.Unspecified;
-            _searchQueries = DefaultQueries;
+            foreach (var filter in _searchQueries.Keys)
+            {
+                _searchQueries[filter] = string.Empty;
+            }
             _fullSearchQuery = string.Empty;
             _searchField.text = string.Empty;
 
