@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
-using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -20,17 +20,17 @@ namespace YARG.Gameplay.Visuals
 
         public float KeySpacing => _trackWidth / ProKeysPlayer.WHITE_KEY_VISIBLE_COUNT;
 
-        public void Initialize(TrackPlayer player, ThemePreset themePreset)
+        public void Initialize(TrackPlayer player, ColorProfile.ProKeysColors colors)
         {
             int overlayPositionIndex = 0;
 
             for (int i = 0; i < ProKeysPlayer.TOTAL_KEY_COUNT; i++)
             {
-                // The index within the octave (0-11)
-                int octaveIndex = i % 12;
+                int noteIndex = i % 12;
+                int octaveIndex = i / 12;
 
-                // Only on white keys
-                if (octaveIndex is not (1 or 3 or 6 or 8 or 10))
+                // Only create overlays on white keys
+                if (PianoHelper.IsWhiteKey(noteIndex))
                 {
                     var overlay = Instantiate(_keyOverlayPrefab, transform);
                     overlay.SetActive(true);
@@ -39,21 +39,14 @@ namespace YARG.Gameplay.Visuals
 
                     var material = overlay.GetComponentInChildren<MeshRenderer>().material;
 
-                    // Temporary colors probably
-                    var color = overlayPositionIndex switch
-                    {
-                        < 3            => ColorProfile.Default.FiveFretGuitar.RedNote.ToUnityColor(),
-                        >= 3 and < 7   => ColorProfile.Default.FiveFretGuitar.YellowNote.ToUnityColor(),
-                        >= 7 and < 10  => ColorProfile.Default.FiveFretGuitar.BlueNote.ToUnityColor(),
-                        >= 10 and < 14 => ColorProfile.Default.FiveFretGuitar.GreenNote.ToUnityColor(),
-                        _              => ColorProfile.Default.FiveFretGuitar.OrangeNote.ToUnityColor()
-                    };
+                    // Get the group index (two groups per octave)
+                    int index = octaveIndex * 2 + (PianoHelper.IsLowerHalfKey(noteIndex) ? 0 : 1);
+                    var color = colors.GetOverlayColor(index).ToUnityColor();
                     color.a = 0.2f;
                     material.color = color;
 
                     material.SetFade(player.ZeroFadePosition, player.FadeSize);
 
-                    // White keys don't have any gaps
                     overlayPositionIndex++;
                 }
             }

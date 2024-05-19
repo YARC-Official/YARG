@@ -92,7 +92,7 @@ namespace YARG.Gameplay.Player
             base.FinishInitialization();
 
             _keysArray.Initialize(Player.ThemePreset);
-            _trackOverlay.Initialize(this, Player.ThemePreset);
+            _trackOverlay.Initialize(this, Player.ColorProfile.ProKeys);
         }
 
         protected override void OnNoteHit(int index, ProKeysNote note)

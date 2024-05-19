@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core;
 using YARG.Gameplay.Player;
+using YARG.Helpers;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
@@ -37,9 +38,9 @@ namespace YARG.Gameplay.Visuals
             for (int i = 0; i < ProKeysPlayer.TOTAL_KEY_COUNT; i++)
             {
                 // The index within the octave (0-11)
-                int octaveIndex = i % 12;
+                int noteIndex = i % 12;
 
-                if (octaveIndex is 1 or 3 or 6 or 8 or 10)
+                if (PianoHelper.IsBlackKey(noteIndex))
                 {
                     // Black keys
 
@@ -50,9 +51,8 @@ namespace YARG.Gameplay.Visuals
 
                     _keys.Add(fret.GetComponent<Fret>());
 
-                    // Keys 3 and 10 have gaps after them, so add two in that case
                     blackPositionIndex++;
-                    if (octaveIndex is 3 or 10)
+                    if (PianoHelper.IsGapOnNextBlackKey(noteIndex))
                     {
                         blackPositionIndex++;
                     }
@@ -68,7 +68,6 @@ namespace YARG.Gameplay.Visuals
 
                     _keys.Add(fret.GetComponent<Fret>());
 
-                    // White keys don't have any gaps
                     whitePositionIndex++;
                 }
             }
