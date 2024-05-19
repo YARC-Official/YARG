@@ -75,11 +75,11 @@ namespace YARG.Input
             Action = action;
         }
 		
-        public ControlBinding(string name, string namelefty, int action)
+        public ControlBinding(string name, string nameLefty, int action)
         {
             Key = name;
             Name = new("Bindings", name);
-            NameLefty = new("Bindings", namelefty);
+            NameLefty = new("Bindings", nameLefty);
             Action = action;
         }
 
@@ -224,7 +224,7 @@ namespace YARG.Input
         {
         }
 
-        public ControlBinding(string name, string namelefty, int action) : base(name, namelefty, action)
+        public ControlBinding(string name, string nameLefty, int action) : base(name, nameLefty, action)
         {
         }
 

@@ -201,7 +201,7 @@ namespace YARG.Input
         {
         }
 
-        public ButtonBinding(string name, string namelefty, int action) : base(name, namelefty, action)
+        public ButtonBinding(string name, string nameLefty, int action) : base(name, nameLefty, action)
         {
         }
 

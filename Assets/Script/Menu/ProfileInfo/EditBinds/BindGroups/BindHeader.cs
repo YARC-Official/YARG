@@ -38,9 +38,12 @@ namespace YARG.Menu.ProfileInfo
             _player = player;
             _binding = binding;
 
-            if (player.Profile.LeftyFlip) {
+            if (player.Profile.LeftyFlip)
+            {
                 _bindingNameText.StringReference = binding.NameLefty;
-            } else {
+            }
+            else
+            {
                 _bindingNameText.StringReference = binding.Name;
             }
 
