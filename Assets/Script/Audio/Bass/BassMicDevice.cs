@@ -342,9 +342,11 @@ namespace YARG.Audio.BASS
                 {
                     byte* procBuff = stackalloc byte[_processedBufferLength];
 
-                    var readOnlySpan = new ReadOnlySpan<byte>(procBuff, _processedBufferLength);
-
                     Bass.ChannelGetData(_recordHandle.ProcessedHandle, (IntPtr) procBuff, _processedBufferLength);
+
+                    var shortLength = _processedBufferLength / sizeof(short);
+                    var readOnlySpan = new ReadOnlySpan<short>(procBuff, shortLength);
+
                     CalculatePitchAndAmplitude(readOnlySpan);
                 }
 
@@ -355,17 +357,16 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        private void CalculatePitchAndAmplitude(ReadOnlySpan<byte> buffer)
+        private void CalculatePitchAndAmplitude(ReadOnlySpan<short> buffer)
         {
-            int sampleCount = buffer.Length / sizeof(short);
+            int sampleCount = buffer.Length;
             Span<float> floatBuffer = stackalloc float[sampleCount];
 
             // Convert 16 bit buffer to floats
             // If this isn't 16 bit god knows what device they're using.
-            var shortBufferSpan = MemoryMarshal.Cast<byte, short>(buffer);
             for (int i = 0; i < sampleCount; i++)
             {
-                floatBuffer[i] = shortBufferSpan[i] / 32768f;
+                floatBuffer[i] = buffer[i] / 32768f;
             }
 
             // Calculate the root mean square
