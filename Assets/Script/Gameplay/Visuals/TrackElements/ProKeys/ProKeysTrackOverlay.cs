@@ -16,54 +16,31 @@ namespace YARG.Gameplay.Visuals
 
         [Space]
         [SerializeField]
-        private float _whiteKeyOffset;
-        [SerializeField]
-        private float _blackKeyOffset;
+        private float _overlayOffset;
 
         public float KeySpacing => _trackWidth / ProKeysPlayer.WHITE_KEY_VISIBLE_COUNT;
 
-        public void Initialize(ThemePreset themePreset)
+        public void Initialize(TrackPlayer player, ThemePreset themePreset)
         {
-            int whitePositionIndex = 0;
-            int blackPositionIndex = 0;
+            int overlayPositionIndex = 0;
 
             for (int i = 0; i < ProKeysPlayer.TOTAL_KEY_COUNT; i++)
             {
                 // The index within the octave (0-11)
                 int octaveIndex = i % 12;
 
-                if (octaveIndex is 1 or 3 or 6 or 8 or 10)
+                // Only on white keys
+                if (octaveIndex is not (1 or 3 or 6 or 8 or 10))
                 {
-                    // Black keys
+                    var overlay = Instantiate(_keyOverlayPrefab, transform);
+                    overlay.SetActive(true);
+                    overlay.transform.localPosition = new Vector3(
+                        overlayPositionIndex * KeySpacing + _overlayOffset, 0f, 0f);
 
-                    // var keyOverlay = Instantiate(_keyOverlayPrefab, transform);
-                    // keyOverlay.SetActive(true);
-                    // keyOverlay.transform.localPosition = new Vector3(
-                    //     blackPositionIndex * KeySpacing + _blackKeyOffset, 0f, 0f);
-                    //
-                    // //_keys.Add(keyOverlay.GetComponent<Fret>());
-                    //
-                    // // Keys 3 and 10 have gaps after them, so add two in that case
-                    // blackPositionIndex++;
-                    // if (octaveIndex is 3 or 10)
-                    // {
-                    //     blackPositionIndex++;
-                    // }
-                }
-                else
-                {
-                    // White keys
-
-                    var fret = Instantiate(_keyOverlayPrefab, transform);
-                    fret.SetActive(true);
-                    fret.transform.localScale = fret.transform.localScale.WithX(0.1f);
-
-                    // Dont know why it needs * 5 but it works
-                    fret.transform.localPosition = new Vector3(
-                        (whitePositionIndex * KeySpacing + _whiteKeyOffset) * 5, 0f, 0f);
+                    var material = overlay.GetComponentInChildren<MeshRenderer>().material;
 
                     // Temporary colors probably
-                    var matColor = whitePositionIndex switch
+                    var color = overlayPositionIndex switch
                     {
                         < 3            => ColorProfile.Default.FiveFretGuitar.RedNote.ToUnityColor(),
                         >= 3 and < 7   => ColorProfile.Default.FiveFretGuitar.YellowNote.ToUnityColor(),
@@ -71,15 +48,13 @@ namespace YARG.Gameplay.Visuals
                         >= 10 and < 14 => ColorProfile.Default.FiveFretGuitar.GreenNote.ToUnityColor(),
                         _              => ColorProfile.Default.FiveFretGuitar.OrangeNote.ToUnityColor()
                     };
+                    color.a = 0.2f;
+                    material.color = color;
 
-                    matColor.a = 0.25f;
-
-                    fret.GetComponentInChildren<MeshRenderer>().material.color = matColor;
-
-                    //_keys.Add(fret.GetComponent<Fret>());
+                    material.SetFade(player.ZeroFadePosition, player.FadeSize);
 
                     // White keys don't have any gaps
-                    whitePositionIndex++;
+                    overlayPositionIndex++;
                 }
             }
         }
