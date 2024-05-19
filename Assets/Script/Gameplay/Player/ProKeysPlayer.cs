@@ -34,6 +34,8 @@ namespace YARG.Gameplay.Player
         [Header("Pro Keys Specific")]
         [SerializeField]
         private KeysArray _keysArray;
+        [SerializeField]
+        private ProKeysTrackOverlay _trackOverlay;
 
         private int _phraseIndex;
 
@@ -90,6 +92,7 @@ namespace YARG.Gameplay.Player
             base.FinishInitialization();
 
             _keysArray.Initialize(Player.ThemePreset);
+            _trackOverlay.Initialize(Player.ThemePreset);
         }
 
         protected override void OnNoteHit(int index, ProKeysNote note)
@@ -144,6 +147,9 @@ namespace YARG.Gameplay.Player
 
                 var keysTransform = _keysArray.transform;
                 keysTransform.localPosition = keysTransform.localPosition.WithX(_currentOffset);
+
+                var overlayTransform = _trackOverlay.transform;
+                overlayTransform.localPosition = overlayTransform.localPosition.WithX(_currentOffset);
 
                 foreach (var note in NotePool.AllSpawned)
                 {

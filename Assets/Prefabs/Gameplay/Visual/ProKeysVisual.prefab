@@ -1,5 +1,54 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &702147224014447965
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 752553197285310691}
+  - component: {fileID: 7995190430839588284}
+  m_Layer: 7
+  m_Name: Keys Overlay
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &752553197285310691
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 702147224014447965}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.001, z: 15}
+  m_LocalScale: {x: 0.2, y: 1, z: 3.6}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5152681405528319168}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7995190430839588284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 702147224014447965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6367ef7159324647a2569e4bd7e6c3f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _keyOverlayPrefab: {fileID: 8633516561021093830, guid: 48cecd6e87dfaba4592ef8b20aa71f8d,
+    type: 3}
+  _trackWidth: 2
+  _whiteKeyOffset: -0.9134
+  _blackKeyOffset: -0.812
 --- !u!1 &6615351421081173628
 GameObject:
   m_ObjectHideFlags: 0
@@ -125,6 +174,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 861361446070616044, guid: 03b0fdd0f2d131d4682ccf3aaf6ee2a7,
         type: 3}
+    - target: {fileID: 1454173494555058106, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2166581194060232035, guid: 5800c42510b55c549be95ec3ecd75e1c,
         type: 3}
       propertyPath: m_IsActive
@@ -238,6 +292,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a7beac659084035953f1987970c9d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &5152681405528319168 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2354278908002001216, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
 --- !u!20 &5450824049626431651 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 3209698564276094243, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -298,6 +358,7 @@ MonoBehaviour:
   NotePool: {fileID: 5534384060604769120}
   BeatlinePool: {fileID: 155632028176750329}
   _keysArray: {fileID: 679598873221959975}
+  _trackOverlay: {fileID: 7995190430839588284}
 --- !u!114 &7617442645122152992 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1051735628184240032, guid: 5800c42510b55c549be95ec3ecd75e1c,
