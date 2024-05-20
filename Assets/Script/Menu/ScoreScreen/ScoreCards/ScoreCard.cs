@@ -6,9 +6,11 @@ using YARG.Core;
 using YARG.Core.Engine;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Scores;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -59,6 +61,7 @@ namespace YARG.Menu.ScoreScreen
 
         private ScoreCardColorizer _colorizer;
 
+        protected bool IsHighScore;
         protected YargPlayer Player;
         protected T Stats;
 
@@ -67,8 +70,9 @@ namespace YARG.Menu.ScoreScreen
             _colorizer = GetComponent<ScoreCardColorizer>();
         }
 
-        public void Initialize(YargPlayer player, T stats)
+        public void Initialize(bool isHighScore, YargPlayer player, T stats)
         {
+            IsHighScore = isHighScore;
             Player = player;
             Stats = stats;
         }
@@ -91,6 +95,7 @@ namespace YARG.Menu.ScoreScreen
                 AccuracyPercent.text = $"{Mathf.FloorToInt((float) Stats.NotesHit / totalNotes * 100f)}%";
             }
 
+
             // Set background and foreground colors
             if (Player.Profile.IsBot)
             {
@@ -101,6 +106,11 @@ namespace YARG.Menu.ScoreScreen
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Gold);
                 ShowTag("Full Combo");
+            }
+            else if (IsHighScore)
+            {
+                _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
+                ShowTag("High Score");
             }
             else
             {

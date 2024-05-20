@@ -9,6 +9,7 @@ using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Menu.Navigation;
 using YARG.Song;
@@ -101,7 +102,7 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.FiveFretGuitar:
                     {
                         var card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        card.Initialize(score.Player, score.Stats as GuitarStats);
+                        card.Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
                         card.SetCardContents();
                         break;
                     }
@@ -109,14 +110,14 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.FiveLaneDrums:
                     {
                         var card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        card.Initialize(score.Player, score.Stats as DrumsStats);
+                        card.Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
                         card.SetCardContents();
                         break;
                     }
                     case GameMode.Vocals:
                     {
                         var card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        card.Initialize(score.Player, score.Stats as VocalsStats);
+                        card.Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
                         card.SetCardContents();
                         break;
                     }

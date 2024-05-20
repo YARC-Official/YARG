@@ -49,11 +49,11 @@ namespace YARG.Gameplay.Player
 
         private VocalsPlayerHUD _hud;
 
-        public void Initialize(int index, YargPlayer player, SongChart chart, VocalsPlayerHUD hud)
+        public void Initialize(int index, YargPlayer player, SongChart chart, VocalsPlayerHUD hud, int? lastHighScore)
         {
             if (IsInitialized) return;
 
-            base.Initialize(index, player, chart);
+            base.Initialize(index, player, chart, lastHighScore);
 
             hud.Initialize(player.EnginePreset);
             _hud = hud;

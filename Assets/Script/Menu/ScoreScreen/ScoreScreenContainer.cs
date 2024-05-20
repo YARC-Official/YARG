@@ -5,6 +5,8 @@ namespace YARG.Menu.ScoreScreen
 {
     public struct PlayerScoreCard
     {
+        public bool IsHighScore;
+
         public YargPlayer Player;
         public BaseStats  Stats;
     }

@@ -27,8 +27,6 @@ namespace YARG.Gameplay.Player
 
         protected TrackView TrackView { get; private set; }
 
-        protected int? CurrentHighScore { get; private set; }
-
         [field: Header("Visuals")]
         [field: SerializeField]
         public Camera TrackCamera { get; private set; }
@@ -65,21 +63,16 @@ namespace YARG.Gameplay.Player
         protected List<Beatline> Beatlines;
         protected int BeatlineIndex;
 
-        protected bool IsHotStartChecked;
-        protected bool PreviousBassGrooveState;
-        protected double PreviousStarPowerAmount;
+        protected bool IsBass { get; private set; }
 
-        protected bool IsBass;
-
-        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
+        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
+            StemMixer mixer, int? lastHighScore)
         {
             if (IsInitialized) return;
 
-            Initialize(index, player, chart);
+            Initialize(index, player, chart, lastHighScore);
 
             TrackView = trackView;
-
-            CurrentHighScore = currentHighScore;
 
             Beatlines = SyncTrack.Beatlines;
             BeatlineIndex = 0;
@@ -176,6 +169,12 @@ namespace YARG.Gameplay.Player
 
         private int _currentMultiplier;
         private int _previousMultiplier;
+
+        private bool _isHotStartChecked;
+        private bool _previousBassGrooveState;
+        private double _previousStarPowerAmount;
+
+        private bool _newHighScoreShown;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
@@ -275,9 +274,9 @@ namespace YARG.Gameplay.Player
 
             TrackView.UpdateNoteStreak(stats.Combo);
 
-            if (!IsHotStartChecked && stats.ScoreMultiplier == 4)
+            if (!_isHotStartChecked && stats.ScoreMultiplier == 4)
             {
-                IsHotStartChecked = true;
+                _isHotStartChecked = true;
 
                 if (IsFc)
                 {
@@ -287,21 +286,21 @@ namespace YARG.Gameplay.Player
 
             bool currentBassGrooveState = IsBass && groove;
 
-            if (!PreviousBassGrooveState && currentBassGrooveState)
+            if (!_previousBassGrooveState && currentBassGrooveState)
             {
                 TrackView.ShowBassGroove();
             }
 
-            PreviousBassGrooveState = currentBassGrooveState;
+            _previousBassGrooveState = currentBassGrooveState;
 
             double currentStarPowerAmount = stats.StarPowerAmount;
 
-            if (!stats.IsStarPowerActive && PreviousStarPowerAmount < 0.5 && currentStarPowerAmount >= 0.5)
+            if (!stats.IsStarPowerActive && _previousStarPowerAmount < 0.5 && currentStarPowerAmount >= 0.5)
             {
                 TrackView.ShowStarPowerReady();
             }
 
-            PreviousStarPowerAmount = currentStarPowerAmount;
+            _previousStarPowerAmount = currentStarPowerAmount;
 
             foreach (var haptics in SantrollerHaptics)
             {
@@ -491,9 +490,9 @@ namespace YARG.Gameplay.Player
         {
             base.UpdateWithTimes(inputTime);
 
-            if (CurrentHighScore != null && !IsNewHighScore && Score > CurrentHighScore)
+            if (LastHighScore != null && !_newHighScoreShown && Score > LastHighScore)
             {
-                IsNewHighScore = true;
+                _newHighScoreShown = true;
                 TrackView.ShowNewHighScore();
             }
         }
