@@ -152,7 +152,7 @@ namespace YARG.Song
             {
                 SortAttribute attribute;
                 Instrument instrument = Instrument.FiveFretGuitar;
-                string argument = arg.Trim();
+                string argument = arg.Trim().ToLowerInvariant();
                 if (argument == string.Empty)
                 {
                     continue;
@@ -166,7 +166,7 @@ namespace YARG.Song
                 else if (argument.StartsWith("source:"))
                 {
                     attribute = SortAttribute.Source;
-                    argument = argument[7..].ToLower();
+                    argument = argument[7..];
                 }
                 else if (argument.StartsWith("album:"))
                 {
@@ -176,22 +176,22 @@ namespace YARG.Song
                 else if (argument.StartsWith("charter:"))
                 {
                     attribute = SortAttribute.Charter;
-                    argument = argument[8..].ToLower();
+                    argument = argument[8..];
                 }
                 else if (argument.StartsWith("year:"))
                 {
                     attribute = SortAttribute.Year;
-                    argument = argument[5..].ToLower();
+                    argument = argument[5..];
                 }
                 else if (argument.StartsWith("genre:"))
                 {
                     attribute = SortAttribute.Genre;
-                    argument = argument[6..].ToLower();
+                    argument = argument[6..];
                 }
                 else if (argument.StartsWith("playlist:"))
                 {
                     attribute = SortAttribute.Playlist;
-                    argument = argument[9..].ToLower();
+                    argument = argument[9..];
                 }
                 else if (argument.StartsWith("name:"))
                 {
@@ -210,7 +210,7 @@ namespace YARG.Song
                     {
                         attribute = SortAttribute.Instrument;
                         instrument = ALL_INSTRUMENTS[result];
-                        argument = argument[(ALL_INSTRUMENTNAMES[result].Length + 1)..];
+                        argument = argument[ALL_INSTRUMENTNAMES[result].Length..];
                     }
                     else
                     {
@@ -219,8 +219,7 @@ namespace YARG.Song
                     }
                 }
 
-                argument = argument!.Trim();
-                nodes.Add(new FilterNode(attribute, instrument, argument));
+                nodes.Add(new FilterNode(attribute, instrument, argument.Trim()));
                 if (attribute == SortAttribute.Unspecified)
                 {
                     break;
