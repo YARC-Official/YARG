@@ -10,20 +10,6 @@ namespace YARG.Song
 {
     public class SongSearching
     {
-        public IReadOnlyList<SongCategory> Refresh(SortAttribute sort, Instrument instrument)
-        {
-            searches.Clear();
-            var filter = new FilterNode(sort, instrument, string.Empty);
-            var songs = sort switch
-            {
-                SortAttribute.Instrument => SongContainer.GetSongsWithInstrument(instrument),
-                SortAttribute.Playable => SongContainer.GetPlayableSongs(PlayerContainer.Players),
-                _ => SongContainer.GetSortedCategory(sort)
-            };
-            searches.Add(new SearchNode(filter, songs));
-            return songs;
-        }
-
         public IReadOnlyList<SongCategory> Search(string value, SortAttribute sort, Instrument instrument)
         {
             var currentFilters = new List<FilterNode>()
@@ -32,45 +18,34 @@ namespace YARG.Song
             };
             currentFilters.AddRange(GetFilters(value.Split(';')));
 
-            int currFilterIndex = 0;
-            int prevFilterIndex = 0;
-            while (currFilterIndex < currentFilters.Count && prevFilterIndex < searches.Count)
+            int currFilterIndex = 1;
+            int prevFilterIndex = 1;
+            if (searches.Count > 0 && searches[0].Filter.Attribute == sort && (searches[0].Filter.Attribute != SortAttribute.Instrument || searches[0].Filter.Instrument == instrument))
             {
-                while (currentFilters[currFilterIndex].StartsWith(searches[prevFilterIndex].Filter))
+                while (currFilterIndex < currentFilters.Count)
                 {
-                    ++prevFilterIndex;
-                    if (prevFilterIndex == searches.Count)
+                    while (prevFilterIndex < searches.Count && currentFilters[currFilterIndex].StartsWith(searches[prevFilterIndex].Filter))
+                    {
+                        ++prevFilterIndex;
+                    }
+
+                    if (!currentFilters[currFilterIndex].Equals(searches[prevFilterIndex - 1].Filter))
                     {
                         break;
                     }
+                    ++currFilterIndex;
                 }
-
-                if (prevFilterIndex == 0 || currentFilters[currFilterIndex] != searches[prevFilterIndex - 1].Filter)
-                {
-                    break;
-                }
-                ++currFilterIndex;
             }
-
-            // Apply new sort
-            if (currFilterIndex == 0)
+            else
             {
-                searches.Clear();
-                var filter = currentFilters[0];
                 var songs = sort switch
                 {
                     SortAttribute.Instrument => SongContainer.GetSongsWithInstrument(instrument),
                     SortAttribute.Playable => SongContainer.GetPlayableSongs(PlayerContainer.Players),
-                    _ => SongContainer.GetSortedCategory(sort)
+                    _ => SongContainer.GetSortedCategory(sort),
                 };
-
-                if (filter.Attribute == SortAttribute.Instrument)
-                {
-                    songs = SearchInstrument(songs, filter.Instrument, filter.Argument);
-                }
-                searches.Add(new SearchNode(filter, songs));
-                prevFilterIndex = 1;
-                currFilterIndex = 1;
+                searches.Clear();
+                searches.Add(new SearchNode(currentFilters[0], songs));
             }
 
             while (currFilterIndex < currentFilters.Count)
@@ -146,16 +121,6 @@ namespace YARG.Song
             public override int GetHashCode()
             {
                 return Attribute.GetHashCode() ^ Argument.GetHashCode();
-            }
-
-            public static bool operator ==(FilterNode left, FilterNode right)
-            {
-                return left.Equals(right);
-            }
-
-            public static bool operator !=(FilterNode left, FilterNode right)
-            {
-                return !left.Equals(right);
             }
 
             public bool StartsWith(FilterNode other)

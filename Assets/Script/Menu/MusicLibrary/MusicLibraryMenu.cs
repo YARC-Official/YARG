@@ -144,7 +144,7 @@ namespace YARG.Menu.MusicLibrary
             }
             else if (_currentSong != null)
             {
-                UpdateSearch(true, true);
+                UpdateSearch(true);
             }
 
             CurrentlyPlaying = null;
@@ -369,15 +369,10 @@ namespace YARG.Menu.MusicLibrary
         private void Refresh()
         {
             SetRecommendedSongs();
-            UpdateSearch(true, true);
+            UpdateSearch(true);
         }
 
         private void UpdateSearch(bool force)
-        {
-            UpdateSearch(force, false);
-        }
-
-        private void UpdateSearch(bool force, bool refresh)
         {
             if (!force && _searchField.IsCurrentSearchInField)
             {
@@ -387,23 +382,14 @@ namespace YARG.Menu.MusicLibrary
             if (SelectedPlaylist is null)
             {
                 // If there's no playlist selected...
-
-                if (refresh)
+                if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
                 {
-                    if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
+                    if (PlayerContainer.Players.Count == 0)
                     {
-                        if (PlayerContainer.Players.Count == 0)
-                        {
-                            SettingsManager.Settings.LibrarySort = SortAttribute.Name;
-                        }
+                        SettingsManager.Settings.LibrarySort = SortAttribute.Name;
                     }
-                    _sortedSongs = _searchField.Refresh(SettingsManager.Settings.LibrarySort, SettingsManager.Settings.SortInstrument);
                 }
-                else
-                {
-                    _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort, SettingsManager.Settings.SortInstrument);
-                }
-
+                _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort, SettingsManager.Settings.SortInstrument);
                 _searchField.gameObject.SetActive(true);
             }
             else
@@ -432,16 +418,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (_reloadState != MusicLibraryReloadState.Partial)
             {
-                bool notFound;
-                if (!refresh)
-                {
-                    notFound = _searchField.IsUpdatedSearchLonger || !SetIndexTo(i => i is SongViewType view && view.SongEntry == _currentSong);
-                }
-                else
-                {
-                    notFound = _currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory);
-                }
-
+                bool notFound = _searchField.IsUpdatedSearchLonger || _currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory);
                 // Try to select the song after the first category
                 if (notFound && !SetIndexTo(i => i is CategoryViewType, 1))
                 {

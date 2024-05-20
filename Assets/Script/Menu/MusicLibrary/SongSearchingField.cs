@@ -109,12 +109,6 @@ namespace YARG.Menu.MusicLibrary
             _currentSearchText = _searchField.text;
         }
 
-        public IReadOnlyList<SongCategory> Refresh(SortAttribute sort, Instrument instrument)
-        {
-            _currentSearchText = _searchField.text = string.Empty;
-            return _searchContext.Refresh(sort, instrument);
-        }
-
         public IReadOnlyList<SongCategory> Search(SortAttribute sort, Instrument instrument)
         {
             if (_currentSearchFilter == SortAttribute.Unspecified)
