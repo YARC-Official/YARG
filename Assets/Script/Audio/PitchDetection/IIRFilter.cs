@@ -257,7 +257,15 @@ namespace YARG.Audio.PitchDetection
             {
                 m_inHistory[m_histIdx] = inBuffer[inBufferOffset + sampleIdx] + denormal;
 
-                var sum = m_aCoeff.Select((t, idx) => t * m_inHistory[(m_histIdx - idx) & kHistMask]).Sum();
+                double sum = 0;
+                for (int i = 0; i < m_aCoeff.Length; i++)
+                {
+                    var coeff = m_aCoeff[i];
+
+                    coeff *= m_inHistory[(m_histIdx - i) & kHistMask];
+
+                    sum += coeff;
+                }
 
                 for (var idx = 1; idx < m_bCoeff.Length; idx++)
                     sum -= m_bCoeff[idx] * m_outHistory[(m_histIdx - idx) & kHistMask];

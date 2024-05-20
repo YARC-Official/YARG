@@ -5,6 +5,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
@@ -16,6 +17,7 @@ using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
+using YARG.Song;
 
 namespace YARG.Menu.DifficultySelect
 {
@@ -47,6 +49,14 @@ namespace YARG.Menu.DifficultySelect
         private TMP_InputField _speedInput;
         [SerializeField]
         private TextMeshProUGUI _loadingPhrase;
+
+        [Space]
+        [SerializeField]
+        private TextMeshProUGUI _songTitleText;
+        [SerializeField]
+        private TextMeshProUGUI _artistText;
+        [SerializeField]
+        private Image _sourceIcon;
 
         [Space]
         [SerializeField]
@@ -106,6 +116,8 @@ namespace YARG.Menu.DifficultySelect
             }, false));
 
             _speedInput.text = $"{(int)(_songSpeed * 100f)}%";
+            _songTitleText.text = GlobalVariables.State.CurrentSong.Name;
+            _artistText.text = GlobalVariables.State.CurrentSong.Artist;
 
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
@@ -114,6 +126,8 @@ namespace YARG.Menu.DifficultySelect
 
             _loadingPhrase.text = RichTextUtils.StripRichTextTags(
                 GlobalVariables.State.CurrentSong.LoadingPhrase, RichTextTags.BadTags);
+
+            LoadSourceIcon();
         }
 
         private void UpdateForPlayer()
@@ -596,6 +610,20 @@ namespace YARG.Menu.DifficultySelect
             int intSpeed = (int) Math.Clamp(speed, 10, 4995);
 
             _speedInput.SetTextWithoutNotify($"{intSpeed}%");
+        }
+
+        private async void LoadSourceIcon()
+        {
+            var icon = await SongSources.SourceToIcon(GlobalVariables.State.CurrentSong.Source);
+            if (icon == null)
+            {
+                _sourceIcon.gameObject.SetActive(false);
+            }
+            else
+            {
+                _sourceIcon.gameObject.SetActive(true);
+                _sourceIcon.sprite = icon;
+            }
         }
     }
 }
