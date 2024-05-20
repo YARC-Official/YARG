@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using SQLite;
-using UnityEngine;
 using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Menu.MusicLibrary;
 using YARG.Player;
 using YARG.Song;
 
@@ -25,6 +24,7 @@ namespace YARG.Scores
         private static SQLiteConnection _db;
 
         private static readonly Dictionary<HashWrapper, PlayerScoreRecord> SongHighScores = new();
+        private static readonly Dictionary<HashWrapper, PlayerScoreRecord> SongHighScoresByPct = new();
 
         public static void Init()
         {
@@ -96,6 +96,22 @@ namespace YARG.Scores
                     SongHighScores.Add(songChecksum, bestScore);
                 }
 
+                var bestScoreByPct = playerEntries.Find(p => p.Score == playerEntries.Max(x => x.Percent));
+
+                if (SongHighScoresByPct.TryGetValue(songChecksum, out var highScoreByPct))
+                {
+                    if ((bestScoreByPct.IsFc && !highScoreByPct.IsFc)
+                    || (bestScoreByPct.IsFc == highScoreByPct.IsFc && bestScoreByPct.Percent > highScoreByPct.Percent)
+                    || (bestScoreByPct.IsFc == highScoreByPct.IsFc && bestScoreByPct.Percent == highScoreByPct.Percent && bestScoreByPct.Difficulty > highScoreByPct.Difficulty))
+                    {
+                        SongHighScoresByPct[songChecksum] = bestScoreByPct;
+                    }
+                }
+                else
+                {
+                    SongHighScoresByPct.Add(songChecksum, bestScoreByPct);
+                }
+
                 YargLogger.LogInfo("Recorded high score for song.");
             }
             catch (Exception e)
@@ -152,29 +168,16 @@ namespace YARG.Scores
             return null;
         }
 
-        public static PlayerScoreRecord GetHighScore(HashWrapper songChecksum)
+        public static PlayerScoreRecord GetHighScore(HashWrapper songChecksum, HighScorePriorityMode highScorePriority = HighScorePriorityMode.Score)
         {
-            return SongHighScores?.GetValueOrDefault(songChecksum);
-
-            // If it's not in the high score cache then it's not in the database
-
-            // try
-            // {
-            //     var query =
-            //         $"SELECT * FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id WHERE " +
-            //         $"GameRecords.SongChecksum = x'{songChecksum.ToString()}' ORDER BY Score DESC LIMIT 1";
-            //     score = _db.FindWithQuery<PlayerScoreRecord>(query);
-            //
-            //     if(score is not null)
-            //     {
-            //         SongHighScores.Add(songChecksum, score);
-            //     }
-            // }
-            // catch (Exception e)
-            // {
-            //     Debug.LogError("Failed to load high score from database. See error below for more details.");
-            //     Debug.LogException(e);
-            // }
+            if (highScorePriority == HighScorePriorityMode.Score)
+            {
+                return SongHighScores?.GetValueOrDefault(songChecksum);
+            }
+            else
+            {
+                return SongHighScoresByPct?.GetValueOrDefault(songChecksum);
+            }
         }
 
         public static void FetchHighScores()
@@ -183,9 +186,23 @@ namespace YARG.Scores
             {
                 const string highScores = "SELECT *, MAX(Score) FROM PlayerScores " +
                     "INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id GROUP BY GameRecords.SongChecksum";
+                // Tries to pick the best result by looking at isFc -> Percentage -> Difficulty
+                const string highScoresByPct = @"WITH Temp as (SELECT Id, GameRecordId, PlayerId, Instrument,
+                                                 Difficulty, EnginePresetId, Score, Stars, NotesHit, NotesMissed, IsFc,
+                                                 ifnull(Percent, cast(NotesHit as REAL) / (NotesHit + NotesMissed)) as Percent FROM PlayerScores)
+                                                 SELECT Temp.*, max(IsFc * 1000 + cast(Percent * 1000 as INT) + Difficulty * 0.1) as PctSort FROM
+                                                 Temp INNER JOIN GameRecords ON Temp.GameRecordId = GameRecords.Id GROUP BY GameRecords.SongChecksum";
+                const string highScoresByPctIfNoCol = @"WITH Temp as (SELECT Id, GameRecordId, PlayerId, Instrument,
+                                                 Difficulty, EnginePresetId, Score, Stars, NotesHit, NotesMissed, IsFc,
+                                                 cast(NotesHit as REAL) / (NotesHit + NotesMissed) as Percent FROM PlayerScores)
+                                                 SELECT Temp.*, max(IsFc * 1000 + cast(Percent * 1000 as INT) + Difficulty * 0.1) as PctSort FROM
+                                                 Temp INNER JOIN GameRecords ON Temp.GameRecordId = GameRecords.Id GROUP BY GameRecords.SongChecksum";
                 const string songs = "SELECT Id, SongChecksum FROM GameRecords";
 
                 var scoreResults = _db.Query<PlayerScoreRecord>(highScores);
+                var scoreResultsByPct = ScoresTableHasPercentColumn() ?
+                                        _db.Query<PlayerScoreRecord>(highScoresByPct) :
+                                        _db.Query<PlayerScoreRecord>(highScoresByPctIfNoCol);
                 var songResults = _db.Query<GameRecord>(songs);
 
                 foreach (var score in scoreResults)
@@ -198,11 +215,33 @@ namespace YARG.Scores
 
                     SongHighScores.Add(new HashWrapper(song.SongChecksum), score);
                 }
+                foreach (var score in scoreResultsByPct)
+                {
+                    var song = songResults.FirstOrDefault(x => x.Id == score.GameRecordId);
+                    if (song is null)
+                    {
+                        continue;
+                    }
+
+                    SongHighScoresByPct.Add(new HashWrapper(song.SongChecksum), score);
+                }
             }
             catch (Exception e)
             {
                 YargLogger.LogException(e, "Failed to load high score from database.");
             }
+        }
+
+        public class LineCountContainer
+        {
+            public int Count { get; set; }
+        }
+
+        private static bool ScoresTableHasPercentColumn()
+        {
+            const string checkForPercentColumn = @"SELECT COUNT(*) AS Count FROM pragma_table_info('PlayerScores') WHERE name='Percent'";
+            var countResult = _db.Query<LineCountContainer>(checkForPercentColumn);
+            return countResult[0].Count == 1;
         }
 
         public static PlayerScoreRecord GetHighScoreByInstrument(HashWrapper songChecksum, Instrument instrument)

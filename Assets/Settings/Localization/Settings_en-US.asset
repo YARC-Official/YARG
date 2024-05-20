@@ -1512,6 +1512,23 @@ MonoBehaviour:
     m_Localized: At startup, reconnect previously connected profiles.
     m_Metadata:
       m_Items: []
+  - m_Id: 152317105188937728
+    m_Localized: High Score Priority
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152319907466354688
+    m_Localized: Score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152319874444599296
+    m_Localized: Percentage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152321634580078592
+    m_Localized: Determines whether the result with the best percentage or the best
+      score is displayed in the Music Library.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

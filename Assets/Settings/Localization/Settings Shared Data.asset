@@ -1407,6 +1407,22 @@ MonoBehaviour:
     m_Key: Setting.ReconnectProfiles.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 152317105188937728
+    m_Key: Setting.HighScorePriority
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152319874444599296
+    m_Key: Dropdown.HighScorePriority.Percentage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152319907466354688
+    m_Key: Dropdown.HighScorePriority.Score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152321634580078592
+    m_Key: Setting.HighScorePriority.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -19,6 +19,12 @@ namespace YARG.Menu.MusicLibrary
         Off
     }
 
+    public enum HighScorePriorityMode
+    {
+        Percentage,
+        Score
+    }
+
     public class SongViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Normal;
@@ -51,7 +57,7 @@ namespace YARG.Menu.MusicLibrary
 
         public override string GetSideText(bool selected)
         {
-            var score = ScoreContainer.GetHighScore(SongEntry.Hash);
+            var score = ScoreContainer.GetHighScore(SongEntry.Hash, SettingsManager.Settings.HighScorePriority.Value);
 
             // Never played!
             if (score is null)
@@ -84,7 +90,7 @@ namespace YARG.Menu.MusicLibrary
                 return null;
             }
 
-            var score = ScoreContainer.GetHighScore(SongEntry.Hash);
+            var score = ScoreContainer.GetHighScore(SongEntry.Hash, SettingsManager.Settings.HighScorePriority.Value);
             return score?.Stars;
         }
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -92,6 +93,13 @@ namespace YARG.Settings
                 HighScoreInfoMode.Stars,
                 HighScoreInfoMode.Score,
                 HighScoreInfoMode.Off
+            };
+
+            public DropdownSetting<HighScorePriorityMode> HighScorePriority { get; }
+                = new(HighScorePriorityMode.Score)
+            {
+                HighScorePriorityMode.Score,
+                HighScorePriorityMode.Percentage
             };
 
             #endregion
