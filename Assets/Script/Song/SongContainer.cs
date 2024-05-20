@@ -120,7 +120,18 @@ namespace YARG.Song
             }
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var task = UniTask.RunOnThreadPool(() => Refresh(quick, directories));
+            var task = UniTask.RunOnThreadPool(() =>
+            {
+                const bool MULTITHREADING = true;
+                _songCache = CacheHandler.RunScan(quick,
+                    PathHelper.SongCachePath,
+                    PathHelper.BadSongsPath,
+                    MULTITHREADING,
+                    SettingsManager.Settings.AllowDuplicateSongs.Value,
+                    SettingsManager.Settings.UseFullDirectoryForPlaylists.Value,
+                    directories);
+            });
+
             while (task.Status == UniTaskStatus.Pending)
             {
                 if (context != null)
@@ -129,6 +140,7 @@ namespace YARG.Song
                 }
                 await UniTask.NextFrame();
             }
+            FillContainers();
             stopwatch.Stop();
 
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
@@ -239,17 +251,8 @@ namespace YARG.Song
             context.SetLoadingText(phrase, subText);
         }
 
-        private static void Refresh(bool quick, List<string> directories)
+        private static void FillContainers()
         {
-            const bool MULTITHREADING = true;
-            _songCache = CacheHandler.RunScan(quick,
-                PathHelper.SongCachePath,
-                PathHelper.BadSongsPath,
-                MULTITHREADING,
-                SettingsManager.Settings.AllowDuplicateSongs.Value,
-                SettingsManager.Settings.UseFullDirectoryForPlaylists.Value,
-                directories);
-
             _songs.Clear();
             foreach (var node in _songCache.Entries)
             {
@@ -283,7 +286,7 @@ namespace YARG.Song
                 {
                     foreach (var difficulty in instrument.Value)
                     {
-                        list.Add(new SongCategory($"{instrument.Key} [{difficulty.Key}]", difficulty.Value));
+                        list.Add(new SongCategory($"{instrument.Key.ToLocalizedName()} [{difficulty.Key}]", difficulty.Value));
                     }
                     _sortInstruments.Add(instrument.Key, list);
                 }
