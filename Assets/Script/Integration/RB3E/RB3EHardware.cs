@@ -34,6 +34,11 @@ namespace YARG.Integration.RB3E
         private const int PORT = 21070;                                    // That is what RB3E uses
         private UdpClient _sendClient;
 
+        private void OnApplicationQuit()
+        {
+            KillRB3E();
+        }
+
         public void HandleEnabledChanged(bool isEnabled)
         {
             if (isEnabled)
