@@ -11,6 +11,7 @@ using YARG.Core.Engine.ProKeys.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers;
 using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
@@ -199,8 +200,30 @@ namespace YARG.Gameplay.Player
 
         protected override bool InterceptInput(ref GameInput input)
         {
+            var action = input.GetAction<ProKeysAction>();
+            if (action != ProKeysAction.StarPower && action != ProKeysAction.TouchEffects)
+            {
+                int key = (int) action;
+
+                int blackKeyCount = 0;
+                for (int i = 0; i < key; i++)
+                {
+                    if (PianoHelper.IsBlackKey(i % 12))
+                    {
+                        blackKeyCount++;
+                    }
+                }
+
+                // Black keys need to be handled at some point because they kind of overlay on top of the white keys
+                // and when both the white key and black key are held it fills in the whole overlay
+
+                key -= blackKeyCount;
+
+                _trackOverlay.SetKeyHeld(key, input.Button);
+            }
+
             // Ignore SP in practice mode
-            if (input.GetAction<ProKeysAction>() == ProKeysAction.StarPower && GameManager.IsPractice) return true;
+            if (action == ProKeysAction.StarPower && GameManager.IsPractice) return true;
 
             return false;
         }

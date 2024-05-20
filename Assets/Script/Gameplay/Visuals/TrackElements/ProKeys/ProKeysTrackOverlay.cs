@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
@@ -19,6 +21,11 @@ namespace YARG.Gameplay.Visuals
         private float _overlayOffset;
 
         public float KeySpacing => _trackWidth / ProKeysPlayer.WHITE_KEY_VISIBLE_COUNT;
+
+        private List<Material> _overlays = new();
+
+        private static readonly int KeyHeld   = Shader.PropertyToID("_KeyHeld");
+        private static readonly int HeldColor = Shader.PropertyToID("_HeldColor");
 
         public void Initialize(TrackPlayer player, ColorProfile.ProKeysColors colors)
         {
@@ -45,11 +52,25 @@ namespace YARG.Gameplay.Visuals
                     color.a = 0.2f;
                     material.color = color;
 
+                    color.a = 0.5f;
+                    material.SetColor(HeldColor, color);
+
                     material.SetFade(player.ZeroFadePosition, player.FadeSize);
+                    _overlays.Add(material);
 
                     overlayPositionIndex++;
                 }
             }
+        }
+
+        public void SetKeyHeld(int keyIndex, bool held)
+        {
+            if(keyIndex < 0 || keyIndex >= _overlays.Count)
+                return;
+
+            YargLogger.LogFormatDebug("Setting key held: {0}", keyIndex);
+
+            _overlays[keyIndex].SetFloat(KeyHeld, held ? 1f : 0f);
         }
     }
 }
