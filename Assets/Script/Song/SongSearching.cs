@@ -141,7 +141,7 @@ namespace YARG.Song
             }
         }
 
-        private static readonly List<string> ALL_INSTRUMENTNAMES = new (Enum.GetNames(typeof(Instrument)));
+        private static readonly List<string> ALL_INSTRUMENTNAMES = new(Enum.GetNames(typeof(Instrument)).Select(ins => ins + ':'));
         private static readonly Instrument[] ALL_INSTRUMENTS = (Instrument[])Enum.GetValues(typeof(Instrument));
         private List<SearchNode> searches = new();
 
