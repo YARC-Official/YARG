@@ -96,13 +96,13 @@ namespace YARG.Scores
                     SongHighScores.Add(songChecksum, bestScore);
                 }
 
-                var bestScoreByPct = playerEntries.Find(p => p.Score == playerEntries.Max(x => x.Percent));
+                var bestScoreByPct = playerEntries.Find(p => p.Percent == playerEntries.Max(x => x.Percent));
 
                 if (SongHighScoresByPct.TryGetValue(songChecksum, out var highScoreByPct))
                 {
                     if ((bestScoreByPct.IsFc && !highScoreByPct.IsFc)
-                    || (bestScoreByPct.IsFc == highScoreByPct.IsFc && bestScoreByPct.Percent > highScoreByPct.Percent)
-                    || (bestScoreByPct.IsFc == highScoreByPct.IsFc && bestScoreByPct.Percent == highScoreByPct.Percent && bestScoreByPct.Difficulty > highScoreByPct.Difficulty))
+                    || ((bestScoreByPct.IsFc == highScoreByPct.IsFc) && (bestScoreByPct.Percent > highScoreByPct.Percent))
+                    || ((bestScoreByPct.IsFc == highScoreByPct.IsFc) && (bestScoreByPct.Percent == highScoreByPct.Percent) && (bestScoreByPct.Difficulty > highScoreByPct.Difficulty)))
                     {
                         SongHighScoresByPct[songChecksum] = bestScoreByPct;
                     }
