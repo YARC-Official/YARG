@@ -163,13 +163,34 @@ namespace YARG.Song
                 SortAttribute.SongLength => _sortSongLengths,
                 SortAttribute.DateAdded => _sortDatesAdded,
                 SortAttribute.Playable => _playables,
+
+                SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
+                SortAttribute.FiveFretBass   => _sortInstruments[Instrument.FiveFretBass],
+                SortAttribute.FiveFretRhythm => _sortInstruments[Instrument.FiveFretRhythm],
+                SortAttribute.FiveFretCoop   => _sortInstruments[Instrument.FiveFretCoopGuitar   ],
+                SortAttribute.Keys           => _sortInstruments[Instrument.Keys],
+                SortAttribute.SixFretGuitar  => _sortInstruments[Instrument.SixFretGuitar],
+                SortAttribute.SixFretBass    => _sortInstruments[Instrument.SixFretBass],
+                SortAttribute.SixFretRhythm  => _sortInstruments[Instrument.SixFretRhythm],
+                SortAttribute.SixFretCoop    => _sortInstruments[Instrument.SixFretCoopGuitar    ],
+                SortAttribute.FourLaneDrums  => _sortInstruments[Instrument.FourLaneDrums],
+                SortAttribute.ProDrums       => _sortInstruments[Instrument.ProDrums],
+                SortAttribute.FiveLaneDrums  => _sortInstruments[Instrument.FiveLaneDrums],
+                SortAttribute.ProGuitar_17   => _sortInstruments[Instrument.ProGuitar_17Fret],
+                SortAttribute.ProGuitar_22   => _sortInstruments[Instrument.ProGuitar_22Fret],
+                SortAttribute.ProBass_17     => _sortInstruments[Instrument.ProBass_17Fret],
+                SortAttribute.ProBass_22     => _sortInstruments[Instrument.ProBass_22Fret],
+                SortAttribute.ProKeys        => _sortInstruments[Instrument.ProKeys],
+                SortAttribute.Vocals         => _sortInstruments[Instrument.Vocals],
+                SortAttribute.Harmony        => _sortInstruments[Instrument.Harmony],
+                SortAttribute.Band           => _sortInstruments[Instrument.Band],
                 _ => throw new Exception("stoopid"),
             };
         }
 
-        public static IReadOnlyList<SongCategory> GetSongsWithInstrument(Instrument instrument)
+        public static bool HasInstrument(Instrument instrument)
         {
-            return _sortInstruments[instrument];
+            return _sortInstruments[instrument].Count > 0;
         }
 
         public static void ResetPlayableSongs()
@@ -286,7 +307,7 @@ namespace YARG.Song
                 {
                     foreach (var difficulty in instrument.Value)
                     {
-                        list.Add(new SongCategory($"{instrument.Key.ToLocalizedName()} [{difficulty.Key}]", difficulty.Value));
+                        list.Add(new SongCategory($"{instrument.Key.ToSortAttribute().ToLocalizedName()} [{difficulty.Key}]", difficulty.Value));
                     }
                     _sortInstruments.Add(instrument.Key, list);
                 }

@@ -389,7 +389,7 @@ namespace YARG.Menu.MusicLibrary
                         SettingsManager.Settings.LibrarySort = SortAttribute.Name;
                     }
                 }
-                _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort, SettingsManager.Settings.SortInstrument);
+                _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
                 _searchField.gameObject.SetActive(true);
             }
             else
@@ -552,10 +552,9 @@ namespace YARG.Menu.MusicLibrary
             SelectedIndex = index;
         }
 
-        public void ChangeSort(SortAttribute sort, Instrument instrument = Instrument.FiveFretGuitar)
+        public void ChangeSort(SortAttribute sort)
         {
             SettingsManager.Settings.LibrarySort = sort;
-            SettingsManager.Settings.SortInstrument = instrument;
             UpdateSearch(true);
         }
 

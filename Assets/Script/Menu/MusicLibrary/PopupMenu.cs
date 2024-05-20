@@ -109,22 +109,11 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
-            if (SettingsManager.Settings.LibrarySort != SortAttribute.Instrument)
+            CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
             {
-                CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
-                {
-                    _menuState = State.SortSelect;
-                    UpdateForState();
-                });
-            }
-            else
-            {
-                CreateItem("Sort By: " + SettingsManager.Settings.SortInstrument.ToLocalizedName(), () =>
-                {
-                    _menuState = State.SortSelect;
-                    UpdateForState();
-                });
-            }
+                _menuState = State.SortSelect;
+                UpdateForState();
+            });
 
             CreateItem("Go To Section...", () =>
             {
@@ -189,10 +178,14 @@ namespace YARG.Menu.MusicLibrary
             foreach (var sort in EnumExtensions<SortAttribute>.Values)
             {
                 // Skip theses because they don't make sense
-                if (sort == SortAttribute.Unspecified) continue;
-                if (sort >= SortAttribute.Instrument) continue;
+                if (sort == SortAttribute.Unspecified)
+                    continue;
+
                 if (sort == SortAttribute.Playable && PlayerContainer.Players.Count == 0)
                     continue;
+
+                if (sort >= SortAttribute.Instrument)
+                    break;
 
                 CreateItem(sort.ToLocalizedName(), () =>
                 {
@@ -203,11 +196,12 @@ namespace YARG.Menu.MusicLibrary
 
             foreach (var instrument in EnumExtensions<Instrument>.Values)
             {
-                if (SongContainer.GetSongsWithInstrument(instrument).Count > 0)
+                if (SongContainer.HasInstrument(instrument))
                 {
-                    CreateItem(instrument.ToLocalizedName(), () =>
+                    var attribute = instrument.ToSortAttribute();
+                    CreateItem(attribute.ToLocalizedName(), () =>
                     {
-                        _musicLibrary.ChangeSort(SortAttribute.Instrument, instrument);
+                        _musicLibrary.ChangeSort(attribute);
                         gameObject.SetActive(false);
                     });
                 }

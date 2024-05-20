@@ -2,6 +2,7 @@
 using UnityEngine.AddressableAssets;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using YARG.Core;
 using YARG.Core.Song;
 using YARG.Song;
 
@@ -24,7 +25,7 @@ namespace YARG.Menu.MusicLibrary
 
         private Button _searchButton;
         private SongSearchingField _songSearchingField;
-        private SortAttribute _sort;
+        private Instrument _instrument;
         private int _intensity;
 
         private void Awake()
@@ -33,12 +34,12 @@ namespace YARG.Menu.MusicLibrary
             _songSearchingField = FindObjectOfType<SongSearchingField>();
         }
 
-        public void SetInfo(string assetName, SortAttribute sort, PartValues values)
+        public void SetInfo(string assetName, Instrument instrument, PartValues values)
         {
             // Set instrument icon
             var icon = Addressables.LoadAssetAsync<Sprite>($"InstrumentIcons[{assetName}]").WaitForCompletion();
             _instrumentIcon.sprite = icon;
-            _sort = sort;
+            _instrument = instrument;
             _intensity = values.Intensity;
 
             if (values.SubTracks == 0)
@@ -73,7 +74,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void SearchFilter()
         {
-            _songSearchingField.SetSearchInput(_sort, _intensity.ToString());
+            _songSearchingField.SetSearchInput(SortAttribute.Unspecified, $"{_instrument}: {_intensity}");
         }
 
         private void OnDestroy()

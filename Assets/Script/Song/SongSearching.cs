@@ -10,17 +10,20 @@ namespace YARG.Song
 {
     public class SongSearching
     {
-        public IReadOnlyList<SongCategory> Search(string value, SortAttribute sort, Instrument instrument)
+        private List<SearchNode> searches = new();
+
+        public IReadOnlyList<SongCategory> Search(string value, SortAttribute sort)
         {
             var currentFilters = new List<FilterNode>()
             {
-                new(sort, instrument, string.Empty)
+                // Instrument of the first node doesn't matter
+                new(sort, Instrument.FiveFretGuitar, string.Empty)
             };
             currentFilters.AddRange(GetFilters(value.Split(';')));
 
             int currFilterIndex = 1;
             int prevFilterIndex = 1;
-            if (searches.Count > 0 && searches[0].Filter.Attribute == sort && (searches[0].Filter.Attribute != SortAttribute.Instrument || searches[0].Filter.Instrument == instrument))
+            if (searches.Count > 0 && searches[0].Filter.Attribute == sort)
             {
                 while (currFilterIndex < currentFilters.Count)
                 {
@@ -38,12 +41,9 @@ namespace YARG.Song
             }
             else
             {
-                var songs = sort switch
-                {
-                    SortAttribute.Instrument => SongContainer.GetSongsWithInstrument(instrument),
-                    SortAttribute.Playable => SongContainer.GetPlayableSongs(PlayerContainer.Players),
-                    _ => SongContainer.GetSortedCategory(sort),
-                };
+                var songs = sort != SortAttribute.Playable
+                    ? SongContainer.GetSortedCategory(sort)
+                    : SongContainer.GetPlayableSongs(PlayerContainer.Players);
                 searches.Clear();
                 searches.Add(new SearchNode(currentFilters[0], songs));
             }
@@ -143,7 +143,6 @@ namespace YARG.Song
 
         private static readonly List<string> ALL_INSTRUMENTNAMES = new(Enum.GetNames(typeof(Instrument)).Select(ins => ins + ':'));
         private static readonly Instrument[] ALL_INSTRUMENTS = (Instrument[])Enum.GetValues(typeof(Instrument));
-        private List<SearchNode> searches = new();
 
         private static List<FilterNode> GetFilters(string[] split)
         {

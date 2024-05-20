@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -37,7 +37,6 @@ namespace YARG.Settings
             public bool ShowAntiPiracyDialog          = true;
             public bool ShowEngineInconsistencyDialog = true;
             public SortAttribute LibrarySort = SortAttribute.Name;
-            public Instrument SortInstrument = Instrument.FiveFretGuitar;
 
             #endregion
 

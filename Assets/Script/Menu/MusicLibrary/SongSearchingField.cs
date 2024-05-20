@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
@@ -73,25 +74,32 @@ namespace YARG.Menu.MusicLibrary
 
         public void SetSearchInput(SortAttribute attribute, string input)
         {
-            var filter = attribute.ToString().ToLowerInvariant();
-            var updatedQuery = $"{filter}:{input}";
-
-            if (string.IsNullOrEmpty(_fullSearchQuery) || _currentSearchFilter == SortAttribute.Unspecified)
+            if (attribute == SortAttribute.Unspecified)
             {
-                _fullSearchQuery = updatedQuery;
+                _fullSearchQuery = input;
             }
             else
             {
-                if (!_fullSearchQuery.Contains(filter))
+                var filter = attribute.ToString().ToLowerInvariant();
+                var updatedQuery = $"{filter}:{input}";
+
+                if (string.IsNullOrEmpty(_fullSearchQuery) || _currentSearchFilter == SortAttribute.Unspecified)
                 {
-                    _fullSearchQuery += ";" + updatedQuery;
+                    _fullSearchQuery = updatedQuery;
                 }
                 else
                 {
-                    // Regex pattern: The filter specified and the search query tagged with that filter
-                    var currentQuery = $"{filter}:{_searchQueries[attribute]}";
-                    _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery,
-                        RegexOptions.IgnoreCase);
+                    if (!_fullSearchQuery.Contains(filter))
+                    {
+                        _fullSearchQuery += ";" + updatedQuery;
+                    }
+                    else
+                    {
+                        // Regex pattern: The filter specified and the search query tagged with that filter
+                        var currentQuery = $"{filter}:{_searchQueries[attribute]}";
+                        _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery,
+                            RegexOptions.IgnoreCase);
+                    }
                 }
             }
 
@@ -109,7 +117,7 @@ namespace YARG.Menu.MusicLibrary
             _currentSearchText = _searchField.text;
         }
 
-        public IReadOnlyList<SongCategory> Search(SortAttribute sort, Instrument instrument)
+        public IReadOnlyList<SongCategory> Search(SortAttribute sort)
         {
             if (_currentSearchFilter == SortAttribute.Unspecified)
             {
@@ -148,13 +156,13 @@ namespace YARG.Menu.MusicLibrary
                 _searchQueries[_currentSearchFilter] = _searchField.text;
             }
 
-            return _searchContext.Search(_fullSearchQuery, sort, instrument);
+            return _searchContext.Search(_fullSearchQuery, sort);
         }
 
         public void ClearFilterQueries()
         {
             _currentSearchFilter = SortAttribute.Unspecified;
-            foreach (var filter in _searchQueries.Keys)
+            foreach (var filter in _searchQueries.Keys.ToArray())
             {
                 _searchQueries[filter] = string.Empty;
             }
