@@ -24,7 +24,7 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextNotifications _textNotifications;
         [SerializeField]
-        private WaitCountdown _waitCountdown;
+        private CountdownDisplay _countdownDisplay;
 
         private TrackPlayer _trackPlayer;
 
@@ -79,7 +79,7 @@ namespace YARG.Gameplay.HUD
 
         public void UpdateCountdown(uint measuresLeft)
         {
-            _waitCountdown.UpdateCountdown(measuresLeft);
+            _countdownDisplay.UpdateCountdown(measuresLeft);
         }
 
         public void StartSolo(SoloSection solo)
@@ -140,7 +140,7 @@ namespace YARG.Gameplay.HUD
 
             _soloBox.ForceReset();
             _textNotifications.ForceReset();
-            _waitCountdown.ForceReset();
+            _countdownDisplay.ForceReset();
         }
     }
 }

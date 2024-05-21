@@ -55,7 +55,7 @@ MonoBehaviour:
   _topElementContainer: {fileID: 2784863481168182611}
   _soloBox: {fileID: 2390146520270845346}
   _textNotifications: {fileID: 4946571513074747625}
-  _waitCountdown: {fileID: 202077715988875599}
+  _countdownDisplay: {fileID: 202077715988875599}
 --- !u!1 &547032022231682811
 GameObject:
   m_ObjectHideFlags: 0
@@ -203,7 +203,7 @@ RectTransform:
   m_GameObject: {fileID: 881258039788376651}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.81702125, y: 0.81702125, z: 1}
+  m_LocalScale: {x: 0.877915, y: 0.87791497, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2784863481168182611}
@@ -942,12 +942,17 @@ PrefabInstance:
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.2239584
+      value: 1.4999999
       objectReference: {fileID: 0}
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.2239584
+      value: 1.4999999
+      objectReference: {fileID: 0}
+    - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
@@ -957,7 +962,7 @@ PrefabInstance:
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 25
+      value: -200
       objectReference: {fileID: 0}
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
@@ -972,17 +977,17 @@ PrefabInstance:
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
@@ -999,10 +1004,15 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
+        type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4618290287218134900, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
       propertyPath: m_Name
-      value: WaitCountdown
+      value: CountdownDisplay
       objectReference: {fileID: 0}
     - target: {fileID: 4618290287218134900, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}

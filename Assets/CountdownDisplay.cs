@@ -1,15 +1,12 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
+using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Gameplay;
-using YARG.Playback;
+using YARG.Core.Chart;
 
 namespace YARG
 {
-    public class WaitCountdown : MonoBehaviour
+    public class CountdownDisplay : MonoBehaviour
     {
         [SerializeField]
         private Image _backgroundCircle;
@@ -19,32 +16,35 @@ namespace YARG
         private Image _getReady;
 
         private uint _measuresLeft;
+        private double _circlePercentage;
 
-        public void UpdateCountdown(uint measuresLeft)
+        public bool UpdateCountdown(uint measuresLeft)
         {
+            bool countdownStillActive = true;
+
             if (measuresLeft != _measuresLeft)
             {
                 _measuresLeft = measuresLeft;
 
-                if (measuresLeft > 0)
+                if (measuresLeft >= WaitCountdown.GET_READY_MEASURE)
                 {
                     GameObject childToShow = null;
                     GameObject childToHide = null;
 
-                    if (measuresLeft >= 2)
+                    if (measuresLeft >= WaitCountdown.GET_READY_MEASURE + 1)
                     {
                         _countdownText.text = measuresLeft.ToString();
 
                         childToHide = _getReady.gameObject;
                         childToShow = _backgroundCircle.gameObject;
                     }
-                    else if (measuresLeft == 1)
+                    else if (measuresLeft == WaitCountdown.GET_READY_MEASURE)
                     {
                         childToHide = _backgroundCircle.gameObject;
                         childToShow = _getReady.gameObject;
                     }
 
-                    //update visibility of child objects
+                    // Update visibility of child objects
                     if (childToShow?.activeSelf == false)
                     {
                         childToShow.SetActive(true);
@@ -55,7 +55,7 @@ namespace YARG
                         childToHide.SetActive(false);
                     }
 
-                    //update visibility of parent object if hidden
+                    // Update visibility of parent object if hidden
                     if (!gameObject.activeSelf)
                     {
                         gameObject.SetActive(true);
@@ -63,11 +63,21 @@ namespace YARG
                 }
                 else
                 {
-                    //hide countdown when there is one measure before the next set of notes
+                    // Hide countdown
                     gameObject.SetActive(false);
+                    countdownStillActive = false;
                 }
             }
 
+            return countdownStillActive;
+        }
+
+        public void UpdateCirclePercentage(double percent)
+        {
+            if (percent != _circlePercentage)
+            {
+                _circlePercentage = percent;
+            }
         }
 
         public void ForceReset()

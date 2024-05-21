@@ -71,7 +71,7 @@ namespace YARG.Gameplay.Player
 
         [Space]
         [SerializeField]
-        private WaitCountdown _waitCountdown;
+        private CountdownDisplay _countdownDisplay;
 
         [Space]
         [SerializeField]
@@ -219,7 +219,7 @@ namespace YARG.Gameplay.Player
 
         public void UpdateCountdown(uint measuresLeft)
         {
-            _waitCountdown.UpdateCountdown(measuresLeft);
+            _countdownDisplay.UpdateCountdown(measuresLeft);
         }
 
         private void Update()
