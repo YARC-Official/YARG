@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -12,7 +12,6 @@ using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
-using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
 {
@@ -38,7 +37,10 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private ProKeysTrackOverlay _trackOverlay;
 
+        private List<ProKeysRangeShift> _rangeShifts;
+
         private int _phraseIndex;
+        private int _rangeShiftIndex;
 
         private bool _isOffsetChanging;
 
@@ -92,8 +94,29 @@ namespace YARG.Gameplay.Player
         {
             base.FinishInitialization();
 
+            _rangeShifts = NoteTrack.Phrases.Where(phrase =>
+                phrase.Type is >= PhraseType.ProKeys_RangeShift0 and <= PhraseType.ProKeys_RangeShift5).Select(phrase =>
+            {
+                return new ProKeysRangeShift { Time = phrase.Time, TimeLength = phrase.TimeLength, Key = phrase.Type switch
+                {
+                    PhraseType.ProKeys_RangeShift0 => 0,
+                    PhraseType.ProKeys_RangeShift1 => 2,
+                    PhraseType.ProKeys_RangeShift2 => 4,
+                    PhraseType.ProKeys_RangeShift3 => 5,
+                    PhraseType.ProKeys_RangeShift4 => 7,
+                    PhraseType.ProKeys_RangeShift5 => 9,
+                    _ => throw new Exception("Unreachable")
+                } };
+            }).ToList();
+
             _keysArray.Initialize(Player.ThemePreset);
             _trackOverlay.Initialize(this, Player.ColorProfile.ProKeys);
+
+            if (_rangeShifts.Count > 0)
+            {
+                RangeShiftTo(_rangeShifts[0].Key, 0);
+                _rangeShiftIndex++;
+            }
         }
 
         protected override void OnNoteHit(int index, ProKeysNote note)
@@ -105,12 +128,12 @@ namespace YARG.Gameplay.Player
             (NotePool.GetByKey(note) as ProKeysNoteElement)?.HitNote();
         }
 
-        private void RangeShiftTo(int noteIndex, double time)
+        private void RangeShiftTo(int noteIndex, double timeLength)
         {
             _isOffsetChanging = true;
 
             _offsetStartTime = GameManager.RealVisualTime;
-            _offsetEndTime = GameManager.RealVisualTime + time;
+            _offsetEndTime = GameManager.RealVisualTime + timeLength;
 
             _previousOffset = _currentOffset;
 
@@ -167,20 +190,14 @@ namespace YARG.Gameplay.Player
             {
                 var phrase = phrases[_phraseIndex];
                 _phraseIndex++;
+            }
 
-                if (phrase.Type is >= PhraseType.ProKeys_RangeShift0 and <= PhraseType.ProKeys_RangeShift5)
-                {
-                    RangeShiftTo(phrase.Type switch
-                    {
-                        PhraseType.ProKeys_RangeShift0 => 0,
-                        PhraseType.ProKeys_RangeShift1 => 2,
-                        PhraseType.ProKeys_RangeShift2 => 4,
-                        PhraseType.ProKeys_RangeShift3 => 5,
-                        PhraseType.ProKeys_RangeShift4 => 7,
-                        PhraseType.ProKeys_RangeShift5 => 9,
-                        _ => throw new Exception("Unreachable")
-                    }, phrase.TimeLength);
-                }
+            while (_rangeShiftIndex < _rangeShifts.Count && _rangeShifts[_rangeShiftIndex].Time <= songTime)
+            {
+                var rangeShift = _rangeShifts[_rangeShiftIndex];
+                _rangeShiftIndex++;
+
+                RangeShiftTo(rangeShift.Key, rangeShift.TimeLength);
             }
         }
 
@@ -227,5 +244,13 @@ namespace YARG.Gameplay.Player
 
             return false;
         }
+    }
+
+    public struct ProKeysRangeShift
+    {
+        public double Time;
+        public double TimeLength;
+
+        public int Key;
     }
 }
