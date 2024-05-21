@@ -369,6 +369,7 @@ namespace YARG.Menu.MusicLibrary
         private void Refresh()
         {
             SetRecommendedSongs();
+            _searchField.ClearList();
             UpdateSearch(true);
         }
 

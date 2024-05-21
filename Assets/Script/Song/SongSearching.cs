@@ -12,6 +12,11 @@ namespace YARG.Song
     {
         private List<SearchNode> searches = new();
 
+        public void ClearList()
+        {
+            searches.Clear();
+        }
+
         public IReadOnlyList<SongCategory> Search(string value, SortAttribute sort)
         {
             var currentFilters = new List<FilterNode>()

@@ -117,6 +117,11 @@ namespace YARG.Menu.MusicLibrary
             _currentSearchText = _searchField.text;
         }
 
+        public void ClearList()
+        {
+            _searchContext.ClearList();
+        }
+
         public IReadOnlyList<SongCategory> Search(SortAttribute sort)
         {
             if (_currentSearchFilter == SortAttribute.Unspecified)
