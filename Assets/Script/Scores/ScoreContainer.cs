@@ -96,7 +96,9 @@ namespace YARG.Scores
                     SongHighScores.Add(songChecksum, bestScore);
                 }
 
-                var bestScoreByPct = playerEntries.Find(p => p.Percent == playerEntries.Max(x => x.Percent));
+                var fcFilter = playerEntries.Where(p => p.IsFc == playerEntries.Max(x => x.IsFc));
+                var scoreFilter = fcFilter.Where(p => p.Percent == fcFilter.Max(x => x.Percent));
+                var bestScoreByPct = scoreFilter.Where(p => p.Difficulty == scoreFilter.Max(x => x.Difficulty)).First();
 
                 if (SongHighScoresByPct.TryGetValue(songChecksum, out var highScoreByPct))
                 {
@@ -186,7 +188,7 @@ namespace YARG.Scores
             {
                 const string highScores = "SELECT *, MAX(Score) FROM PlayerScores " +
                     "INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id GROUP BY GameRecords.SongChecksum";
-                // Tries to pick the best result by looking at isFc -> Percentage -> Difficulty
+                // Tries to pick the best result by looking at IsFc -> Percentage -> Difficulty
                 const string highScoresByPct = @"WITH Temp as (SELECT Id, GameRecordId, PlayerId, Instrument,
                                                  Difficulty, EnginePresetId, Score, Stars, NotesHit, NotesMissed, IsFc,
                                                  ifnull(Percent, cast(NotesHit as REAL) / (NotesHit + NotesMissed)) as Percent FROM PlayerScores)
