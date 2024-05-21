@@ -116,7 +116,6 @@ namespace Haukcode.sACN
 
             listenSocket.ExclusiveAddressUse = false;
             listenSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            listenSocket.Bind(new IPEndPoint(IPAddress.Any, port));
             // Only join local LAN group
             listenSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, 1);
 
