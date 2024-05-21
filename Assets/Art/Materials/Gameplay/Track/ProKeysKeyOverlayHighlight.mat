@@ -20,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ProKeysKeyOverlay
-  m_Shader: {fileID: -6465566751694194690, guid: 32d392026eb76fe4891ec6d8bbb5c5cd,
+  m_Name: ProKeysKeyOverlayHighlight
+  m_Shader: {fileID: -6465566751694194690, guid: ccba488fd6f3926429d42fabaad187d9,
     type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
