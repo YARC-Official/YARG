@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Core.Song;
@@ -154,8 +152,8 @@ namespace YARG.Menu.MusicLibrary
             _subHeader.text = LibraryMode switch
             {
                 MusicLibraryMode.QuickPlay => "Quickplay",
-                MusicLibraryMode.Practice => "Practice",
-                _ => throw new Exception("Unreachable.")
+                MusicLibraryMode.Practice  => "Practice",
+                _                          => throw new Exception("Unreachable.")
             };
 
             // Set IsPractice as well
@@ -314,14 +312,7 @@ namespace YARG.Menu.MusicLibrary
             var list = new List<ViewType>();
 
             // Add back button
-            list.Add(new ButtonViewType("BACK", "MusicLibraryIcons[Back]", () =>
-            {
-                SelectedPlaylist = null;
-                Refresh();
-
-                // Select playlist button
-                SetIndexTo(i => i is ButtonViewType { Id: PLAYLIST_ID });
-            }, BACK_ID));
+            list.Add(new ButtonViewType("BACK", "MusicLibraryIcons[Back]", ExitPlaylistTab, BACK_ID));
 
             // Return if there are no songs (or they haven't loaded yet)
             if (_sortedSongs is null || SongContainer.Count <= 0) return list;
@@ -345,6 +336,15 @@ namespace YARG.Menu.MusicLibrary
 
             CalculateCategoryHeaderIndices(list);
             return list;
+        }
+
+        private void ExitPlaylistTab()
+        {
+            SelectedPlaylist = null;
+            Refresh();
+
+            // Select playlist button
+            SetIndexTo(i => i is ButtonViewType { Id: PLAYLIST_ID });
         }
 
         private void CalculateCategoryHeaderIndices(List<ViewType> list)
@@ -497,6 +497,12 @@ namespace YARG.Menu.MusicLibrary
 
         private void Back()
         {
+            if (SelectedPlaylist is not null)
+            {
+                ExitPlaylistTab();
+                return;
+            }
+
             if (_searchField.IsSearching)
             {
                 _searchField.ClearFilterQueries();
@@ -549,7 +555,7 @@ namespace YARG.Menu.MusicLibrary
 
             SelectedIndex = _sectionHeaderIndices[i];
         }
-        
+
         public void SelectRandomSong()
         {
             if (!ViewList.Any(i => i is SongViewType)) return;
