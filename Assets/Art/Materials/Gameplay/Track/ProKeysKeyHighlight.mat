@@ -20,10 +20,11 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ProKeysKeyOverlayHighlight
-  m_Shader: {fileID: -6465566751694194690, guid: ccba488fd6f3926429d42fabaad187d9,
+  m_Name: ProKeysKeyHighlight
+  m_Shader: {fileID: -6465566751694194690, guid: 32d392026eb76fe4891ec6d8bbb5c5cd,
     type: 3}
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _ISHIGHLIGHT
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -110,6 +111,8 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
+    - _ISHIGHLIGHT: 1
+    - _IsHighlight: 0
     - _KeyHeld: 0
     - _Metallic: 0
     - _OcclusionStrength: 1
