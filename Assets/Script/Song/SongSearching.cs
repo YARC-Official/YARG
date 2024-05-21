@@ -358,15 +358,15 @@ namespace YARG.Song
             {
                 if (Rank != other.Rank)
                 {
-                    return Rank > other.Rank ? 1 : -1;
+                    return Rank - other.Rank;
                 }
 
                 if (_matchIndex != other._matchIndex)
                 {
-                    return _matchIndex >= 0 && _matchIndex < other._matchIndex ? 1 : -1;
+                    return other._matchIndex < 0 || _matchIndex >= 0 && _matchIndex < other._matchIndex ? 1 : -1;
                 }
 
-                return -string.Compare(Song.Name.Str, other.Song.Name.Str, StringComparison.Ordinal);
+                return string.Compare(other.Song.Name.Str, Song.Name.Str, StringComparison.Ordinal);
             }
         }
 
