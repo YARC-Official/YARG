@@ -271,6 +271,10 @@ MonoBehaviour:
     m_Key: Instrument.Vocals
     m_Metadata:
       m_Items: []
+  - m_Id: 124348840707256320
+    m_Key: Instrument.Band
+    m_Metadata:
+      m_Items: []
   - m_Id: 63848767796142081
     m_Key: Modifier.AllHopos
     m_Metadata:
@@ -308,19 +312,19 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 77970180245151744
-    m_Key: SongAttribute.Album
+    m_Key: SortAttribute.Album
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706176
-    m_Key: SongAttribute.Artist
+    m_Key: SortAttribute.Artist
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706177
-    m_Key: SongAttribute.Artist_Album
+    m_Key: SortAttribute.Artist_Album
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706178
-    m_Key: SongAttribute.Charter
+    m_Key: SortAttribute.Charter
     m_Metadata:
       m_Items: []
   - m_Id: 128368469003853824
@@ -328,35 +332,39 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706179
-    m_Key: SongAttribute.Genre
-    m_Metadata:
-      m_Items: []
-  - m_Id: 77970180278706180
-    m_Key: SongAttribute.Instrument
+    m_Key: SortAttribute.Genre
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706181
-    m_Key: SongAttribute.Name
+    m_Key: SortAttribute.Name
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706182
-    m_Key: SongAttribute.Playlist
+    m_Key: SortAttribute.Playlist
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706183
-    m_Key: SongAttribute.SongLength
+    m_Key: SortAttribute.SongLength
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706184
-    m_Key: SongAttribute.Source
+    m_Key: SortAttribute.Source
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706185
-    m_Key: SongAttribute.Unspecified
+    m_Key: SortAttribute.Unspecified
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706186
-    m_Key: SongAttribute.Year
+    m_Key: SortAttribute.Year
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112914116042452992
+    m_Key: SortAttribute.DateAdded
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124366855620423680
+    m_Key: SortAttribute.Playable
     m_Metadata:
       m_Items: []
   - m_Id: 82700299853488131
@@ -385,6 +393,86 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 82700299853488128
     m_Key: Time.Yesterday
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718459373252608
+    m_Key: SortAttribute.FiveFretGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718634665799680
+    m_Key: SortAttribute.FiveFretBass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718655578599424
+    m_Key: SortAttribute.FiveFretRhythm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718683965648896
+    m_Key: SortAttribute.FiveFretCoop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718715456483328
+    m_Key: SortAttribute.Keys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718790308032512
+    m_Key: SortAttribute.SixFretGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718829654798336
+    m_Key: SortAttribute.SixFretBass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718847400898560
+    m_Key: SortAttribute.SixFretRhythm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718873388806144
+    m_Key: SortAttribute.SixFretCoop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718895098523648
+    m_Key: SortAttribute.FourLaneDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718918800535552
+    m_Key: SortAttribute.ProDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718947447631872
+    m_Key: SortAttribute.FiveLaneDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718980473581568
+    m_Key: SortAttribute.ProGuitar_17
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719018587222016
+    m_Key: SortAttribute.ProGuitar_22
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719029421109248
+    m_Key: SortAttribute.ProBass_17
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719062468030464
+    m_Key: SortAttribute.ProBass_22
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719090410483712
+    m_Key: SortAttribute.ProKeys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719106369810432
+    m_Key: SortAttribute.Vocals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719131086843904
+    m_Key: SortAttribute.Harmony
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719159209652224
+    m_Key: SortAttribute.Band
     m_Metadata:
       m_Items: []
   m_Metadata:

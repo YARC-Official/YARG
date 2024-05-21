@@ -108,7 +108,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707464
-    m_Localized: Drums
+    m_Localized: Four Lane Drums
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707465
@@ -116,7 +116,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707466
-    m_Localized: Drums
+    m_Localized: Five Lane Drums
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707467
@@ -124,19 +124,19 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707468
-    m_Localized: Pro Guitar
+    m_Localized: Pro Guitar (17-fret)
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707469
-    m_Localized: Pro Guitar
+    m_Localized: Pro Guitar (22-fret)
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707470
-    m_Localized: Pro Bass
+    m_Localized: Pro Bass (17-fret)
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707471
-    m_Localized: Pro Bass
+    m_Localized: Pro Bass (22-fret)
     m_Metadata:
       m_Items: []
   - m_Id: 62731776066707472
@@ -231,8 +231,8 @@ MonoBehaviour:
     m_Localized: Genre
     m_Metadata:
       m_Items: []
-  - m_Id: 77970180278706180
-    m_Localized: Instrument
+  - m_Id: 124348840707256320
+    m_Localized: Band
     m_Metadata:
       m_Items: []
   - m_Id: 77970180278706181
@@ -410,8 +410,92 @@ MonoBehaviour:
     m_Localized: Setlist Manager
     m_Metadata:
       m_Items: []
-  - m_Id: 128368469003853824
+  - m_Id: 112914116042452992
     m_Localized: Date Added
+    m_Metadata:
+      m_Items: []
+  - m_Id: 124366855620423680
+    m_Localized: Playable Songs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718459373252608
+    m_Localized: Five Fret Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719159209652224
+    m_Localized: Band
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719131086843904
+    m_Localized: Harmony
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719106369810432
+    m_Localized: Vocals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719090410483712
+    m_Localized: Pro Keys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719062468030464
+    m_Localized: Pro Bass (22-fret)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719029421109248
+    m_Localized: Pro Bass (17-fret)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152719018587222016
+    m_Localized: Pro Guitar (22-fret)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718980473581568
+    m_Localized: Pro Guitar (17-fret)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718947447631872
+    m_Localized: Five Lane Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718918800535552
+    m_Localized: Pro Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718895098523648
+    m_Localized: Four Lane Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718873388806144
+    m_Localized: Six Fret Co-Op Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718847400898560
+    m_Localized: Six Fret Rhythm Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718829654798336
+    m_Localized: Six Fret Bass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718790308032512
+    m_Localized: Six Fret Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718715456483328
+    m_Localized: Keys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718683965648896
+    m_Localized: Five Fret Co-Op Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718655578599424
+    m_Localized: Five Fret Rhythm Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 152718634665799680
+    m_Localized: Five Fret Bass
     m_Metadata:
       m_Items: []
   references:

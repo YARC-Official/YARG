@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Core.Song;
@@ -143,7 +144,7 @@ namespace YARG.Menu.MusicLibrary
             }
             else if (_currentSong != null)
             {
-                UpdateSearch(true, true);
+                UpdateSearch(true);
             }
 
             CurrentlyPlaying = null;
@@ -213,14 +214,18 @@ namespace YARG.Menu.MusicLibrary
             int count = _sortedSongs.Sum(section => section.Songs.Count);
 
             // Return if there are no songs that match the search criteria
-            if (count == 0) return list;
+            if (count == 0)
+            {
+                list.Add(new SortHeaderViewType("NO SONGS MATCH CRITERIA", 0));
+                return list;
+            }
 
             // Foreach section in the sorted songs...
             foreach (var section in _sortedSongs)
             {
                 // Create header
                 var displayName = section.Category;
-                if (SettingsManager.Settings.LibrarySort == SongAttribute.Source)
+                if (SettingsManager.Settings.LibrarySort == SortAttribute.Source)
                 {
                     if (SongSources.TryGetSource(section.Category, out var parsedSource))
                     {
@@ -261,24 +266,30 @@ namespace YARG.Menu.MusicLibrary
             }
             else
             {
-                // Add "ALL SONGS" header right above the songs
-                list.Insert(0, new CategoryViewType("ALL SONGS", SongContainer.Count, SongContainer.Songs));
-
-                if (_recommendedSongs != null)
+                if (SettingsManager.Settings.LibrarySort < SortAttribute.Playable)
                 {
-                    // Add the recommended songs right above the "ALL SONGS" header
+                    // Add "ALL SONGS" header right above the songs
+                    list.Insert(0, new CategoryViewType("ALL SONGS", SongContainer.Count, SongContainer.Songs));
 
-                    list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(this, i)));
+                    if (_recommendedSongs != null)
+                    {
+                        // Add the recommended songs right above the "ALL SONGS" header
 
-                    list.Insert(0, new CategoryViewType(
-                        _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
-                        _recommendedSongs.Count, _recommendedSongs,
-                        () =>
-                        {
-                            SetRecommendedSongs();
-                            RefreshAndReselect();
-                        }
-                    ));
+                        list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(this, i)));
+                        list.Insert(0, new CategoryViewType(
+                            _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
+                            _recommendedSongs.Count, _recommendedSongs,
+                            () =>
+                            {
+                                SetRecommendedSongs();
+                                RefreshAndReselect();
+                            }
+                        ));
+                    }
+                }
+                else
+                {
+                    list.Insert(0, new CategoryViewType("PLAYABLE SONGS", count, _sortedSongs));
                 }
 
                 // Add the buttons
@@ -358,15 +369,10 @@ namespace YARG.Menu.MusicLibrary
         private void Refresh()
         {
             SetRecommendedSongs();
-            UpdateSearch(true, true);
+            UpdateSearch(true);
         }
 
         private void UpdateSearch(bool force)
-        {
-            UpdateSearch(force, false);
-        }
-
-        private void UpdateSearch(bool force, bool refresh)
         {
             if (!force && _searchField.IsCurrentSearchInField)
             {
@@ -376,16 +382,14 @@ namespace YARG.Menu.MusicLibrary
             if (SelectedPlaylist is null)
             {
                 // If there's no playlist selected...
-
-                if (refresh)
+                if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
                 {
-                    _sortedSongs = _searchField.Refresh(SettingsManager.Settings.LibrarySort);
+                    if (PlayerContainer.Players.Count == 0)
+                    {
+                        SettingsManager.Settings.LibrarySort = SortAttribute.Name;
+                    }
                 }
-                else
-                {
-                    _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
-                }
-
+                _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
                 _searchField.gameObject.SetActive(true);
             }
             else
@@ -414,21 +418,26 @@ namespace YARG.Menu.MusicLibrary
 
             if (_reloadState != MusicLibraryReloadState.Partial)
             {
-                bool notFound;
-                if (!refresh)
+                if (_searchField.IsUpdatedSearchLonger || _currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory))
                 {
-                    notFound = _searchField.IsUpdatedSearchLonger || !SetIndexTo(i => i is SongViewType view && view.SongEntry == _currentSong);
-                }
-                else
-                {
-                    notFound = _currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory);
-                }
+                    // Note: it may look like this is expensive, but the whole loop should only last for 4-5 iterations
+                    var list = ViewList;
+                    int index = 0;
+                    while (index < list.Count && list[index] is not CategoryViewType)
+                    {
+                        ++index;
+                    }
 
-                // Try to select the song after the first category
-                if (notFound && !SetIndexTo(i => i is CategoryViewType, 1))
-                {
-                    // If all else fails, jump to the first item
-                    SelectedIndex = 0;
+                    while (index < list.Count && list[index] is not SongViewType)
+                    {
+                        ++index;
+                    }
+
+                    if (index == list.Count)
+                    {
+                        index = 0;
+                    }
+                    SelectedIndex = index;
                 }
             }
             _searchField.UpdateSearchText();
@@ -557,7 +566,7 @@ namespace YARG.Menu.MusicLibrary
             SelectedIndex = index;
         }
 
-        public void ChangeSort(SongAttribute sort)
+        public void ChangeSort(SortAttribute sort)
         {
             SettingsManager.Settings.LibrarySort = sort;
             UpdateSearch(true);
@@ -568,7 +577,7 @@ namespace YARG.Menu.MusicLibrary
             return ViewList.Select((v, i) => (v, i)).Where(i => i.v is SortHeaderViewType);
         }
 
-        public void SetSearchInput(SongAttribute songAttribute, string input)
+        public void SetSearchInput(SortAttribute songAttribute, string input)
         {
             _searchField.SetSearchInput(songAttribute, input);
         }

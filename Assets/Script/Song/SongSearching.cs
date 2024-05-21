@@ -4,71 +4,48 @@ using System.Linq;
 using System.Threading.Tasks;
 using YARG.Core;
 using YARG.Core.Song;
+using YARG.Player;
 
 namespace YARG.Song
 {
     public class SongSearching
     {
-        public IReadOnlyList<SongCategory> Refresh(SongAttribute sort)
-        {
-            searches.Clear();
-            var filter = new FilterNode(sort, string.Empty);
-            var songs = SongContainer.GetSortedSongList(sort);
-            searches.Add(new SearchNode(filter, songs));
-            return songs;
-        }
+        private List<SearchNode> searches = new();
 
-        public IReadOnlyList<SongCategory> Search(string value, SongAttribute sort)
+        public IReadOnlyList<SongCategory> Search(string value, SortAttribute sort)
         {
             var currentFilters = new List<FilterNode>()
             {
-                new(sort, string.Empty)
+                // Instrument of the first node doesn't matter
+                new(sort, Instrument.FiveFretGuitar, string.Empty)
             };
             currentFilters.AddRange(GetFilters(value.Split(';')));
 
-            for (int i = 1; i < currentFilters.Count; i++)
+            int currFilterIndex = 1;
+            int prevFilterIndex = 1;
+            if (searches.Count > 0 && searches[0].Filter.Attribute == sort)
             {
-                if (currentFilters[i].attribute == SongAttribute.Instrument)
+                while (currFilterIndex < currentFilters.Count)
                 {
-                    currentFilters[0] = currentFilters[i];
-                    currentFilters.RemoveAt(i);
-                    break;
-                }
-            }
+                    while (prevFilterIndex < searches.Count && currentFilters[currFilterIndex].StartsWith(searches[prevFilterIndex].Filter))
+                    {
+                        ++prevFilterIndex;
+                    }
 
-            int currFilterIndex = 0;
-            int prevFilterIndex = 0;
-            while (currFilterIndex < currentFilters.Count && prevFilterIndex < searches.Count)
-            {
-                while (currentFilters[currFilterIndex].StartsWith(searches[prevFilterIndex].Filter))
-                {
-                    ++prevFilterIndex;
-                    if (prevFilterIndex == searches.Count)
+                    if (!currentFilters[currFilterIndex].Equals(searches[prevFilterIndex - 1].Filter))
                     {
                         break;
                     }
+                    ++currFilterIndex;
                 }
-
-                if (prevFilterIndex == 0 || currentFilters[currFilterIndex] != searches[prevFilterIndex - 1].Filter)
-                {
-                    break;
-                }
-                ++currFilterIndex;
             }
-
-            // Apply new sort
-            if (currFilterIndex == 0)
+            else
             {
+                var songs = sort != SortAttribute.Playable
+                    ? SongContainer.GetSortedCategory(sort)
+                    : SongContainer.GetPlayableSongs(PlayerContainer.Players);
                 searches.Clear();
-                var filter = currentFilters[0];
-                var songs = SongContainer.GetSortedSongList(filter.attribute);
-                if (filter.attribute == SongAttribute.Instrument)
-                {
-                    songs = FilterInstruments(songs, filter.argument);
-                }
-                searches.Add(new SearchNode(filter, songs));
-                prevFilterIndex = 1;
-                currFilterIndex = 1;
+                searches.Add(new SearchNode(currentFilters[0], songs));
             }
 
             while (currFilterIndex < currentFilters.Count)
@@ -103,18 +80,20 @@ namespace YARG.Song
                 return true;
             }
 
-            return searches[^1].Filter.attribute == SongAttribute.Unspecified;
+            return searches[^1].Filter.Attribute == SortAttribute.Unspecified;
         }
 
         private class FilterNode : IEquatable<FilterNode>
         {
-            public readonly SongAttribute attribute;
-            public readonly string argument;
+            public readonly SortAttribute Attribute;
+            public readonly Instrument Instrument;
+            public readonly string Argument;
 
-            public FilterNode(SongAttribute attribute, string argument)
+            public FilterNode(SortAttribute attribute, Instrument instrument, string argument)
             {
-                this.attribute = attribute;
-                this.argument = argument;
+                Attribute = attribute;
+                Instrument = instrument;
+                Argument = argument;
             }
 
             public override bool Equals(object o)
@@ -124,27 +103,29 @@ namespace YARG.Song
 
             public bool Equals(FilterNode other)
             {
-                return attribute == other.attribute && argument == other.argument;
+                if (Attribute != other.Attribute)
+                {
+                    return false;
+                }
+
+                if (Attribute == SortAttribute.Instrument)
+                {
+                    if (Instrument != other.Instrument)
+                    {
+                        return false;
+                    }
+                }
+                return Argument == other.Argument;
             }
 
             public override int GetHashCode()
             {
-                return attribute.GetHashCode() ^ argument.GetHashCode();
-            }
-
-            public static bool operator ==(FilterNode left, FilterNode right)
-            {
-                return left.Equals(right);
-            }
-
-            public static bool operator !=(FilterNode left, FilterNode right)
-            {
-                return !left.Equals(right);
+                return Attribute.GetHashCode() ^ Argument.GetHashCode();
             }
 
             public bool StartsWith(FilterNode other)
             {
-                return attribute == other.attribute && argument.StartsWith(other.argument);
+                return Attribute == other.Attribute && Argument.StartsWith(other.Argument);
             }
         }
 
@@ -160,15 +141,17 @@ namespace YARG.Song
             }
         }
 
-        private List<SearchNode> searches = new();
+        private static readonly List<string> ALL_INSTRUMENTNAMES = new(Enum.GetNames(typeof(Instrument)).Select(ins => ins + ':'));
+        private static readonly Instrument[] ALL_INSTRUMENTS = (Instrument[])Enum.GetValues(typeof(Instrument));
 
         private static List<FilterNode> GetFilters(string[] split)
         {
             var nodes = new List<FilterNode>();
             foreach (string arg in split)
             {
-                SongAttribute attribute;
-                string argument = arg.Trim();
+                SortAttribute attribute;
+                Instrument instrument = Instrument.FiveFretGuitar;
+                string argument = arg.Trim().ToLowerInvariant();
                 if (argument == string.Empty)
                 {
                     continue;
@@ -176,63 +159,67 @@ namespace YARG.Song
 
                 if (argument.StartsWith("artist:"))
                 {
-                    attribute = SongAttribute.Artist;
+                    attribute = SortAttribute.Artist;
                     argument = RemoveDiacriticsAndArticle(argument[7..]);
                 }
                 else if (argument.StartsWith("source:"))
                 {
-                    attribute = SongAttribute.Source;
-                    argument = argument[7..].ToLower();
+                    attribute = SortAttribute.Source;
+                    argument = argument[7..];
                 }
                 else if (argument.StartsWith("album:"))
                 {
-                    attribute = SongAttribute.Album;
+                    attribute = SortAttribute.Album;
                     argument = SortString.RemoveDiacritics(argument[6..]);
                 }
                 else if (argument.StartsWith("charter:"))
                 {
-                    attribute = SongAttribute.Charter;
-                    argument = argument[8..].ToLower();
+                    attribute = SortAttribute.Charter;
+                    argument = argument[8..];
                 }
                 else if (argument.StartsWith("year:"))
                 {
-                    attribute = SongAttribute.Year;
-                    argument = argument[5..].ToLower();
+                    attribute = SortAttribute.Year;
+                    argument = argument[5..];
                 }
                 else if (argument.StartsWith("genre:"))
                 {
-                    attribute = SongAttribute.Genre;
-                    argument = argument[6..].ToLower();
+                    attribute = SortAttribute.Genre;
+                    argument = argument[6..];
                 }
                 else if (argument.StartsWith("playlist:"))
                 {
-                    attribute = SongAttribute.Playlist;
-                    argument = argument[9..].ToLower();
+                    attribute = SortAttribute.Playlist;
+                    argument = argument[9..];
                 }
                 else if (argument.StartsWith("name:"))
                 {
-                    attribute = SongAttribute.Name;
+                    attribute = SortAttribute.Name;
                     argument = RemoveDiacriticsAndArticle(argument[5..]);
                 }
                 else if (argument.StartsWith("title:"))
                 {
-                    attribute = SongAttribute.Name;
+                    attribute = SortAttribute.Name;
                     argument = RemoveDiacriticsAndArticle(argument[6..]);
-                }
-                else if (argument.StartsWith("instrument:"))
-                {
-                    attribute = SongAttribute.Instrument;
-                    argument = RemoveDiacriticsAndArticle(argument[11..]);
                 }
                 else
                 {
-                    attribute = SongAttribute.Unspecified;
-                    argument = SortString.RemoveDiacritics(argument);
+                    var result = ALL_INSTRUMENTNAMES.FindIndex(ins => argument.StartsWith(ins.ToLower()));
+                    if (result >= 0)
+                    {
+                        attribute = SortAttribute.Instrument;
+                        instrument = ALL_INSTRUMENTS[result];
+                        argument = argument[ALL_INSTRUMENTNAMES[result].Length..];
+                    }
+                    else
+                    {
+                        attribute = SortAttribute.Unspecified;
+                        argument = SortString.RemoveDiacritics(argument);
+                    }
                 }
 
-                argument = argument!.Trim();
-                nodes.Add(new(attribute, argument));
-                if (attribute == SongAttribute.Unspecified)
+                nodes.Add(new FilterNode(attribute, instrument, argument.Trim()));
+                if (attribute == SortAttribute.Unspecified)
                 {
                     break;
                 }
@@ -242,31 +229,31 @@ namespace YARG.Song
 
         private static List<SongCategory> SearchSongs(FilterNode arg, IReadOnlyList<SongCategory> searchList)
         {
-            if (arg.attribute == SongAttribute.Unspecified)
+            if (arg.Attribute == SortAttribute.Unspecified)
             {
                 List<SongEntry> entriesToSearch = new();
                 foreach (var entry in searchList)
                 {
                     entriesToSearch.AddRange(entry.Songs);
                 }
-                return UnspecifiedSearch(entriesToSearch, arg.argument);
+                return UnspecifiedSearch(entriesToSearch, arg.Argument);
             }
 
-            if (arg.attribute == SongAttribute.Instrument)
+            if (arg.Attribute == SortAttribute.Instrument)
             {
-                return FilterInstruments(searchList, arg.argument);
+                return SearchInstrument(searchList, arg.Instrument, arg.Argument);
             }
 
-            Predicate<SongEntry> match = arg.attribute switch
+            Predicate<SongEntry> match = arg.Attribute switch
             {
-                SongAttribute.Name => entry => RemoveArticle(entry.Name.SortStr).Contains(arg.argument),
-                SongAttribute.Artist => entry => RemoveArticle(entry.Artist.SortStr).Contains(arg.argument),
-                SongAttribute.Album => entry => entry.Album.SortStr.Contains(arg.argument),
-                SongAttribute.Genre => entry => entry.Genre.SortStr.Contains(arg.argument),
-                SongAttribute.Year => entry => entry.Year.Contains(arg.argument) || entry.UnmodifiedYear.Contains(arg.argument),
-                SongAttribute.Charter => entry => entry.Charter.SortStr.Contains(arg.argument),
-                SongAttribute.Playlist => entry => entry.Playlist.SortStr.Contains(arg.argument),
-                SongAttribute.Source => entry => entry.Source.SortStr.Contains(arg.argument),
+                SortAttribute.Name => entry => RemoveArticle(entry.Name.SortStr).Contains(arg.Argument),
+                SortAttribute.Artist => entry => RemoveArticle(entry.Artist.SortStr).Contains(arg.Argument),
+                SortAttribute.Album => entry => entry.Album.SortStr.Contains(arg.Argument),
+                SortAttribute.Genre => entry => entry.Genre.SortStr.Contains(arg.Argument),
+                SortAttribute.Year => entry => entry.Year.Contains(arg.Argument) || entry.UnmodifiedYear.Contains(arg.Argument),
+                SortAttribute.Charter => entry => entry.Charter.SortStr.Contains(arg.Argument),
+                SortAttribute.Playlist => entry => entry.Playlist.SortStr.Contains(arg.Argument),
+                SortAttribute.Source => entry => entry.Source.SortStr.Contains(arg.Argument),
                 _ => throw new Exception("Unhandled seacrh filter")
             };
 
@@ -354,19 +341,19 @@ namespace YARG.Song
             return new() { new SongCategory("Search Results", results) };
         }
 
-        private static List<SongCategory> FilterInstruments(IReadOnlyList<SongCategory> searchList, string argument)
+        private static List<SongCategory> SearchInstrument(IReadOnlyList<SongCategory> searchList, Instrument instrument, string argument)
         {
-            var instruments = ((Instrument[]) Enum.GetValues(typeof(Instrument)))
-                .Select(ins => ins.ToString())
-                .Where(str => str.Contains(argument, StringComparison.OrdinalIgnoreCase))
-                .ToArray();
+            var songsToMatch = SongContainer.Instruments[instrument]
+                .Where(node => node.Key.ToString().StartsWith(argument))
+                .SelectMany(node => node.Value);
 
             List<SongCategory> result = new();
             foreach (var node in searchList)
             {
-                if (instruments.Contains(node.Category))
+                var songs = node.Songs.Intersect(songsToMatch).ToList();
+                if (songs.Count > 0)
                 {
-                    result.Add(node);
+                    result.Add(new SongCategory(node.Category, songs));
                 }
             }
             return result;
