@@ -418,12 +418,26 @@ namespace YARG.Menu.MusicLibrary
 
             if (_reloadState != MusicLibraryReloadState.Partial)
             {
-                bool notFound = _searchField.IsUpdatedSearchLonger || _currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory);
-                // Try to select the song after the first category
-                if (notFound && !SetIndexTo(i => i is CategoryViewType, 1))
+                if (_searchField.IsUpdatedSearchLonger || _currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory))
                 {
-                    // If all else fails, jump to the first item
-                    SelectedIndex = 0;
+                    // Note: it may look like this is expensive, but the whole loop should only last for 4-5 iterations
+                    var list = ViewList;
+                    int index = 0;
+                    while (index < list.Count && list[index] is not CategoryViewType)
+                    {
+                        ++index;
+                    }
+
+                    while (index < list.Count && list[index] is not SongViewType)
+                    {
+                        ++index;
+                    }
+
+                    if (index == list.Count)
+                    {
+                        index = 0;
+                    }
+                    SelectedIndex = index;
                 }
             }
             _searchField.UpdateSearchText();
