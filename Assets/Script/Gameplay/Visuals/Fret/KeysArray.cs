@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Game;
 using YARG.Gameplay.Player;
 using YARG.Helpers;
+using YARG.Helpers.Extensions;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
@@ -22,7 +24,7 @@ namespace YARG.Gameplay.Visuals
 
         private readonly List<Fret> _keys = new();
 
-        public void Initialize(ThemePreset themePreset)
+        public void Initialize(ThemePreset themePreset, ColorProfile.ProKeysColors colors)
         {
             var whiteKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, GameMode.ProKeys,
                 ThemeManager.WHITE_KEY_PREFAB_NAME);
@@ -49,7 +51,25 @@ namespace YARG.Gameplay.Visuals
                     fret.transform.localPosition = new Vector3(
                         blackPositionIndex * KeySpacing + _blackKeyOffset, 0f, 0f);
 
-                    _keys.Add(fret.GetComponent<Fret>());
+                    // This is terrible lol
+                    var fretComponent = fret.GetComponent<Fret>();
+                    var keyColor = i switch
+                    {
+                        1 or 3         => colors.GetOverlayColor(0).ToUnityColor(),
+                        6 or 8 or 10   => colors.GetOverlayColor(1).ToUnityColor(),
+                        13 or 15       => colors.GetOverlayColor(2).ToUnityColor(),
+                        18 or 20 or 22 => colors.GetOverlayColor(3).ToUnityColor(),
+                        _              => Color.white
+                    };
+
+                    keyColor.r *= 0.5f;
+                    keyColor.g *= 0.5f;
+                    keyColor.b *= 0.5f;
+
+                    // This will probably stop working if the prefab gets any more mesh renderers
+                    fret.GetComponentInChildren<MeshRenderer>().material.color = keyColor;
+
+                    _keys.Add(fretComponent);
 
                     blackPositionIndex++;
                     if (PianoHelper.IsGapOnNextBlackKey(noteIndex))

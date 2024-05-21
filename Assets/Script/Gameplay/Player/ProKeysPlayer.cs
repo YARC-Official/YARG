@@ -109,7 +109,7 @@ namespace YARG.Gameplay.Player
                 } };
             }).ToList();
 
-            _keysArray.Initialize(Player.ThemePreset);
+            _keysArray.Initialize(Player.ThemePreset, Player.ColorProfile.ProKeys);
             _trackOverlay.Initialize(this, Player.ColorProfile.ProKeys);
 
             if (_rangeShifts.Count > 0)
