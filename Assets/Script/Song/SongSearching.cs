@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -238,11 +238,6 @@ namespace YARG.Song
 
         private static IReadOnlyList<SongCategory> SearchSongs(FilterNode arg, IReadOnlyList<SongCategory> searchList)
         {
-            if (arg.Argument.Length == 0)
-            {
-                return searchList;
-            }
-
             if (arg.Attribute == SortAttribute.Unspecified)
             {
                 List<SongEntry> entriesToSearch = new();
@@ -275,13 +270,12 @@ namespace YARG.Song
             public readonly SongEntry Song;
             public readonly int Rank;
 
-            private static IEnumerable<SongAttribute> UnspecifiedAttributes { get; } = new[]
-                { SongAttribute.Name, SongAttribute.Artist };
+            private static readonly SortAttribute[] UnspecifiedAttributes = { SortAttribute.Name, SortAttribute.Artist };
 
-            private readonly Dictionary<SongAttribute, double> _ranks = new();
+            private readonly Dictionary<SortAttribute, double> _ranks = new();
             private readonly int _matchIndex;
 
-            public SortNode(SongEntry song, string argument, [CanBeNull] SongAttribute[] attributes)
+            public SortNode(SongEntry song, string argument, [CanBeNull] SortAttribute[] attributes)
             {
                 Song = song;
 
@@ -291,20 +285,20 @@ namespace YARG.Song
                 {
                     string songInfo = attribute switch
                     {
-                        SongAttribute.Name         => song.Name.SortStr,
-                        SongAttribute.Artist       => song.Artist.SortStr,
-                        SongAttribute.Album        => song.Album.SortStr,
-                        SongAttribute.Genre        => song.Genre.SortStr,
-                        SongAttribute.Year         => string.Empty,
-                        SongAttribute.Charter      => song.Charter.SortStr,
-                        SongAttribute.Playlist     => song.Playlist.SortStr,
-                        SongAttribute.Source       => song.Source.SortStr,
+                        SortAttribute.Name         => song.Name.SortStr,
+                        SortAttribute.Artist       => song.Artist.SortStr,
+                        SortAttribute.Album        => song.Album.SortStr,
+                        SortAttribute.Genre        => song.Genre.SortStr,
+                        SortAttribute.Year         => string.Empty,
+                        SortAttribute.Charter      => song.Charter.SortStr,
+                        SortAttribute.Playlist     => song.Playlist.SortStr,
+                        SortAttribute.Source       => song.Source.SortStr,
                         _                          => throw new Exception("Unhandled attribute")
                     };
 
                     double rank = 0.0;
                     int index = -1;
-                    if (attribute == SongAttribute.Year)
+                    if (attribute == SortAttribute.Year)
                     {
                         if (song.Year.Contains(argument))
                         {
@@ -376,7 +370,7 @@ namespace YARG.Song
             }
         }
 
-        private static List<SongEntry> SearchSongList(IReadOnlyList<SongEntry> songs, string argument, [CanBeNull] params SongAttribute[] attributes)
+        private static List<SongEntry> SearchSongList(IReadOnlyList<SongEntry> songs, string argument, [CanBeNull] params SortAttribute[] attributes)
         {
             var nodes = new SortNode[songs.Count];
 
