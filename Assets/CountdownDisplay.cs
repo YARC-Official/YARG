@@ -16,67 +16,38 @@ namespace YARG
         private Image _getReady;
 
         private uint _measuresLeft;
-        private double _circlePercentage;
 
-        public bool UpdateCountdown(uint measuresLeft)
+        public void UpdateCountdown(uint measuresLeft)
         {
-            bool countdownStillActive = true;
-
-            if (measuresLeft != _measuresLeft)
+            if (measuresLeft == _measuresLeft)
             {
-                _measuresLeft = measuresLeft;
-
-                if (measuresLeft >= WaitCountdown.GET_READY_MEASURE)
-                {
-                    GameObject childToShow = null;
-                    GameObject childToHide = null;
-
-                    if (measuresLeft >= WaitCountdown.GET_READY_MEASURE + 1)
-                    {
-                        _countdownText.text = measuresLeft.ToString();
-
-                        childToHide = _getReady.gameObject;
-                        childToShow = _backgroundCircle.gameObject;
-                    }
-                    else if (measuresLeft == WaitCountdown.GET_READY_MEASURE)
-                    {
-                        childToHide = _backgroundCircle.gameObject;
-                        childToShow = _getReady.gameObject;
-                    }
-
-                    // Update visibility of child objects
-                    if (childToShow?.activeSelf == false)
-                    {
-                        childToShow.SetActive(true);
-                    }
-
-                    if (childToHide?.activeSelf == true)
-                    {
-                        childToHide.SetActive(false);
-                    }
-
-                    // Update visibility of parent object if hidden
-                    if (!gameObject.activeSelf)
-                    {
-                        gameObject.SetActive(true);
-                    }
-                }
-                else
-                {
-                    // Hide countdown
-                    gameObject.SetActive(false);
-                    countdownStillActive = false;
-                }
+                return; 
             }
 
-            return countdownStillActive;
-        }
+            _measuresLeft = measuresLeft;
 
-        public void UpdateCirclePercentage(double percent)
-        {
-            if (percent != _circlePercentage)
+            if (measuresLeft <= WaitCountdown.END_COUNTDOWN_MEASURE)
             {
-                _circlePercentage = percent;
+                // New measure count is below the threshold where the countdown display should be hidden
+                gameObject.SetActive(false);
+                return;
+            }
+
+            // New measure count is above display threshold
+            gameObject.SetActive(true);
+
+            if (measuresLeft > WaitCountdown.GET_READY_MEASURE)
+            {
+                _countdownText.text = measuresLeft.ToString();
+
+                _getReady.gameObject.SetActive(false);
+                _backgroundCircle.gameObject.SetActive(true);
+            }
+            else if (measuresLeft <= WaitCountdown.GET_READY_MEASURE)
+            {
+                // Change display from number to "Get Ready!"
+                _backgroundCircle.gameObject.SetActive(false);
+                _getReady.gameObject.SetActive(true);
             }
         }
 
