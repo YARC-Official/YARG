@@ -54,10 +54,14 @@ namespace YARG.Helpers.Extensions
                     var arr = buffer != null
                         ? NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<byte>(buffer.Ptr, buffer.Length, Unity.Collections.Allocator.None)
                         : NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<byte>((void*) image.Data, image.Length, Unity.Collections.Allocator.None);
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
                     var handle = AtomicSafetyHandle.Create();
                     NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, handle);
+#endif
                     texture.SetPixelData(arr, 0);
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
                     AtomicSafetyHandle.Release(handle);
+#endif
                 }
             }
             else
