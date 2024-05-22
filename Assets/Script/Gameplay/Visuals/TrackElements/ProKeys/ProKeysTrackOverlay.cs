@@ -63,27 +63,26 @@ namespace YARG.Gameplay.Visuals
                     material.color = color;
                     material.SetFade(player.ZeroFadePosition, player.FadeSize);
 
-                    var keyword = new LocalKeyword(material.shader, "_FLIPGRADIENT");
                     switch (i)
                     {
                         case 0:
                         case 4:
-                            material.SetKeyword(keyword, i == 4);
+                            material.SetTextureScale(BaseMap, new Vector2(i == 4 ? -1f : 1f, 1f));
                             material.SetTexture(BaseMap, _edgeGradientTexture);
                             break;
                         case 5:
                         case 11:
-                            material.SetKeyword(keyword, i == 11);
+                            material.SetTextureScale(BaseMap, new Vector2(i == 11 ? -1f : 1f, 1f));
                             material.SetTexture(BaseMap, _edgeGradientTexture);
                             break;
                         case 12:
                         case 16:
-                            material.SetKeyword(keyword, i == 16);
+                            material.SetTextureScale(BaseMap, new Vector2(i == 16 ? -1f : 1f, 1f));
                             material.SetTexture(BaseMap, _edgeGradientTexture);
                             break;
                         case 17:
                         case 23:
-                            material.SetKeyword(keyword, i == 23);
+                            material.SetTextureScale(BaseMap, new Vector2(i == 23 ? -1f : 1f, 1f));
                             material.SetTexture(BaseMap, _edgeGradientTexture);
                             break;
                     }
@@ -92,7 +91,6 @@ namespace YARG.Gameplay.Visuals
                     highlightMaterial.color = color;
                     highlightMaterial.SetTexture(BaseMap, _heldGradientTexture);
                     highlightMaterial.SetFade(player.ZeroFadePosition, player.FadeSize);
-                    highlightMaterial.EnableKeyword("_ISHIGHLIGHT");
 
                     highlightRenderer.gameObject.SetActive(false);
                     _highlights.Add(highlightRenderer.gameObject);
