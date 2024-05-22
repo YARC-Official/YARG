@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
 using YARG.Core.Game;
@@ -99,6 +100,8 @@ namespace YARG.Gameplay.Visuals
 
         private void SpawnOverlay(int index, int noteIndex, TrackPlayer player, Color color)
         {
+            // Spawn overlay
+
             var overlay = Instantiate(_keyOverlayPrefabBig, transform);
             overlay.transform.localPosition = new Vector3(index * KeySpacing + _whiteKeyOffset, 0f, 0f);
 
@@ -107,18 +110,23 @@ namespace YARG.Gameplay.Visuals
             material.SetFade(player.ZeroFadePosition, player.FadeSize);
 
             // Set up the correct texture
-            switch (noteIndex)
+
+            var (edge, flip) = noteIndex switch
             {
-                case 0:
-                case 4:
-                    material.SetTextureScale(BaseMap, new Vector2(noteIndex == 4 ? -1f : 1f, 1f));
-                    material.SetTexture(BaseMap, _edgeGradientTexture);
-                    break;
-                case 5:
-                case 11:
-                    material.SetTextureScale(BaseMap, new Vector2(noteIndex == 11 ? -1f : 1f, 1f));
-                    material.SetTexture(BaseMap, _edgeGradientTexture);
-                    break;
+                0 or 5  => (true, false),
+                4 or 11 => (true, true),
+                _       => (false, false)
+            };
+
+            if (edge)
+            {
+                material.SetTexture(BaseMap, _edgeGradientTexture);
+            }
+
+            if (flip)
+            {
+                material.SetTextureScale(BaseMap, new Vector2(-1f, 1f));
+                material.SetTextureOffset(BaseMap, new Vector2(1f, 0f));
             }
         }
 
