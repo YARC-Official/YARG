@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Gameplay.Player;
@@ -58,36 +59,36 @@ namespace YARG.Gameplay.Visuals
                     var highlightRenderer = overlay.GetComponentsInChildren<MeshRenderer>()[1];
                     var highlightMaterial = highlightRenderer.material;
 
-                    color.a = 0.2f;
+                    color.a = 0.05f;
                     material.color = color;
                     material.SetFade(player.ZeroFadePosition, player.FadeSize);
 
-                    // var keyword = new LocalKeyword(material.shader, "_FLIPGRADIENT");
-                    // switch (i)
-                    // {
-                    //     case 0:
-                    //     case 4:
-                    //         material.SetKeyword(keyword, i == 4);
-                    //         material.SetTexture(BaseMap, _edgeGradientTexture);
-                    //         break;
-                    //     case 5:
-                    //     case 11:
-                    //         material.SetKeyword(keyword, i == 11);
-                    //         material.SetTexture(BaseMap, _edgeGradientTexture);
-                    //         break;
-                    //     case 12:
-                    //     case 16:
-                    //         material.SetKeyword(keyword, i == 16);
-                    //         material.SetTexture(BaseMap, _edgeGradientTexture);
-                    //         break;
-                    //     case 17:
-                    //     case 23:
-                    //         material.SetKeyword(keyword, i == 23);
-                    //         material.SetTexture(BaseMap, _edgeGradientTexture);
-                    //         break;
-                    // }
+                    var keyword = new LocalKeyword(material.shader, "_FLIPGRADIENT");
+                    switch (i)
+                    {
+                        case 0:
+                        case 4:
+                            material.SetKeyword(keyword, i == 4);
+                            material.SetTexture(BaseMap, _edgeGradientTexture);
+                            break;
+                        case 5:
+                        case 11:
+                            material.SetKeyword(keyword, i == 11);
+                            material.SetTexture(BaseMap, _edgeGradientTexture);
+                            break;
+                        case 12:
+                        case 16:
+                            material.SetKeyword(keyword, i == 16);
+                            material.SetTexture(BaseMap, _edgeGradientTexture);
+                            break;
+                        case 17:
+                        case 23:
+                            material.SetKeyword(keyword, i == 23);
+                            material.SetTexture(BaseMap, _edgeGradientTexture);
+                            break;
+                    }
 
-                    color.a = 0.5f;
+                    color.a = 0.3f;
                     highlightMaterial.color = color;
                     highlightMaterial.SetTexture(BaseMap, _heldGradientTexture);
                     highlightMaterial.SetFade(player.ZeroFadePosition, player.FadeSize);
