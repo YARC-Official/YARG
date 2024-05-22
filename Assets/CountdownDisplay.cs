@@ -1,5 +1,6 @@
+using System.Collections;
 using TMPro;
-using UnityEditor.Localization.Plugins.XLIFF.V12;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Chart;
@@ -15,6 +16,12 @@ namespace YARG
         [SerializeField]
         private Image _getReady;
 
+        [Space]
+        [SerializeField]
+        private CanvasGroup _canvasGroup;
+
+        private Coroutine _currentCoroutine;
+
         private uint _measuresLeft;
 
         public void UpdateCountdown(uint measuresLeft)
@@ -29,13 +36,11 @@ namespace YARG
             if (measuresLeft <= WaitCountdown.END_COUNTDOWN_MEASURE)
             {
                 // New measure count is below the threshold where the countdown display should be hidden
-                gameObject.SetActive(false);
+                ToggleDisplay(false);
                 return;
             }
 
             // New measure count is above display threshold
-            gameObject.SetActive(true);
-
             if (measuresLeft > WaitCountdown.GET_READY_MEASURE)
             {
                 _countdownText.text = measuresLeft.ToString();
@@ -49,11 +54,66 @@ namespace YARG
                 _backgroundCircle.gameObject.SetActive(false);
                 _getReady.gameObject.SetActive(true);
             }
+
+            ToggleDisplay(true);
         }
 
         public void ForceReset()
         {
+            StopCurrentCoroutine();
+
             gameObject.SetActive(false);
+
+             _currentCoroutine = null;
+        }
+
+        private void ToggleDisplay(bool newState)
+        {
+            if (newState == gameObject.activeSelf)
+            {
+                return;
+            }
+
+            StopCurrentCoroutine();
+
+            if (newState)
+            {
+                _canvasGroup.alpha = 0f;
+                gameObject.SetActive(true);
+                _currentCoroutine = StartCoroutine(ShowCoroutine());
+            }
+            else
+            {
+                _currentCoroutine = StartCoroutine(HideCoroutine());
+            }
+        }
+
+        private IEnumerator ShowCoroutine()
+        {
+            // Fade in
+            yield return _canvasGroup
+                .DOFade(1f, 0.6f)
+                .WaitForCompletion();
+        }
+
+        private IEnumerator HideCoroutine()
+        {
+            // Fade out
+            yield return _canvasGroup
+                .DOFade(0f, 0.6f)
+                .WaitForCompletion();
+
+            gameObject.SetActive(false);
+            _currentCoroutine = null;
+        }
+
+        private void StopCurrentCoroutine()
+        {
+            if (_currentCoroutine != null)
+            {
+                StopCoroutine(_currentCoroutine);
+                _currentCoroutine = null;
+            }
         }
     }
 }

@@ -263,6 +263,7 @@ MonoBehaviour:
   _backgroundCircle: {fileID: 2379728700076997596}
   _countdownText: {fileID: 2412034789861198308}
   _getReady: {fileID: 3191845681137605031}
+  _canvasGroup: {fileID: 8679129171894396977}
 --- !u!225 &8679129171894396977
 CanvasGroup:
   m_ObjectHideFlags: 0
