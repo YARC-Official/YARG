@@ -46,6 +46,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _keyOverlayPrefab: {fileID: 8633516561021093830, guid: 48cecd6e87dfaba4592ef8b20aa71f8d,
     type: 3}
+  _edgeGradientTexture: {fileID: 2800000, guid: 595196557d07f334785b6f9e842d1ad6,
+    type: 3}
   _heldGradientTexture: {fileID: 2800000, guid: 1e2966ff240a691458e4637ea15a3404,
     type: 3}
   _trackWidth: 2

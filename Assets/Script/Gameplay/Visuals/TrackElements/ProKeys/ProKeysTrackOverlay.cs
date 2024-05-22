@@ -14,6 +14,9 @@ namespace YARG.Gameplay.Visuals
         private GameObject _keyOverlayPrefab;
 
         [SerializeField]
+        private Texture2D _edgeGradientTexture;
+
+        [SerializeField]
         private Texture2D _heldGradientTexture;
 
         [SerializeField]
@@ -47,26 +50,49 @@ namespace YARG.Gameplay.Visuals
                     overlay.transform.localPosition = new Vector3(
                         overlayPositionIndex * KeySpacing + _overlayOffset, 0f, 0f);
 
+                    // Get the group index (two groups per octave)
+                    int index = octaveIndex * 2 + (PianoHelper.IsLowerHalfKey(noteIndex) ? 0 : 1);
+                    var color = colors.GetOverlayColor(index).ToUnityColor();
+
                     var material = overlay.GetComponentsInChildren<MeshRenderer>()[0].material;
                     var highlightRenderer = overlay.GetComponentsInChildren<MeshRenderer>()[1];
                     var highlightMaterial = highlightRenderer.material;
 
-                    // Get the group index (two groups per octave)
-                    int index = octaveIndex * 2 + (PianoHelper.IsLowerHalfKey(noteIndex) ? 0 : 1);
-                    var color = colors.GetOverlayColor(index).ToUnityColor();
                     color.a = 0.2f;
                     material.color = color;
+                    material.SetFade(player.ZeroFadePosition, player.FadeSize);
+
+                    // var keyword = new LocalKeyword(material.shader, "_FLIPGRADIENT");
+                    // switch (i)
+                    // {
+                    //     case 0:
+                    //     case 4:
+                    //         material.SetKeyword(keyword, i == 4);
+                    //         material.SetTexture(BaseMap, _edgeGradientTexture);
+                    //         break;
+                    //     case 5:
+                    //     case 11:
+                    //         material.SetKeyword(keyword, i == 11);
+                    //         material.SetTexture(BaseMap, _edgeGradientTexture);
+                    //         break;
+                    //     case 12:
+                    //     case 16:
+                    //         material.SetKeyword(keyword, i == 16);
+                    //         material.SetTexture(BaseMap, _edgeGradientTexture);
+                    //         break;
+                    //     case 17:
+                    //     case 23:
+                    //         material.SetKeyword(keyword, i == 23);
+                    //         material.SetTexture(BaseMap, _edgeGradientTexture);
+                    //         break;
+                    // }
 
                     color.a = 0.5f;
                     highlightMaterial.color = color;
                     highlightMaterial.SetTexture(BaseMap, _heldGradientTexture);
-
-                    material.SetFade(player.ZeroFadePosition, player.FadeSize);
-
                     highlightMaterial.SetFade(player.ZeroFadePosition, player.FadeSize);
-                    highlightMaterial.SetFloat(IsHighlight, 1f);
+                    highlightMaterial.EnableKeyword("_ISHIGHLIGHT");
 
-                    YargLogger.LogInfo(highlightRenderer.gameObject.name);
                     highlightRenderer.gameObject.SetActive(false);
                     _highlights.Add(highlightRenderer.gameObject);
 
