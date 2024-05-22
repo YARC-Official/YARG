@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -17,13 +15,14 @@ namespace YARG.Gameplay.Player
 {
     public abstract class TrackPlayer : BasePlayer
     {
-        public const float STRIKE_LINE_POS       = -2f;
         public const float DEFAULT_ZERO_FADE_POS = 3f;
         public const float NOTE_SPAWN_OFFSET     = 5f;
 
         public const float TRACK_WIDTH = 2f;
 
-        public double SpawnTimeOffset => (ZeroFadePosition + 2 + -STRIKE_LINE_POS) / NoteSpeed;
+        public virtual float StrikeLinePosition => -2f;
+
+        public double SpawnTimeOffset => (ZeroFadePosition + 2 + -StrikeLinePosition) / NoteSpeed;
 
         protected TrackView TrackView { get; private set; }
 

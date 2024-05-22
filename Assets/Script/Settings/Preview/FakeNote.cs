@@ -99,7 +99,7 @@ namespace YARG.Settings.Preview
         protected void Update()
         {
             float z =
-                TrackPlayer.STRIKE_LINE_POS                            // Shift origin to the strike line
+                FakeTrackPlayer.STRIKE_LINE_POS                        // Shift origin to the strike line
                 + (float) (NoteRef.Time - FakeTrackPlayer.PreviewTime) // Get time of note relative to now
                 * FakeTrackPlayer.NOTE_SPEED;                          // Adjust speed (units/s)
 
