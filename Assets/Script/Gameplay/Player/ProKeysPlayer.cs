@@ -221,21 +221,6 @@ namespace YARG.Gameplay.Player
             if (action != ProKeysAction.StarPower && action != ProKeysAction.TouchEffects)
             {
                 int key = (int) action;
-
-                int blackKeyCount = 0;
-                for (int i = 0; i < key; i++)
-                {
-                    if (PianoHelper.IsBlackKey(i % 12))
-                    {
-                        blackKeyCount++;
-                    }
-                }
-
-                // Black keys need to be handled at some point because they kind of overlay on top of the white keys
-                // and when both the white key and black key are held it fills in the whole overlay
-
-                key -= blackKeyCount;
-
                 _trackOverlay.SetKeyHeld(key, input.Button);
             }
 

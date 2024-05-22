@@ -44,14 +44,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6367ef7159324647a2569e4bd7e6c3f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _keyOverlayPrefab: {fileID: 8633516561021093830, guid: 48cecd6e87dfaba4592ef8b20aa71f8d,
+  _keyOverlayPrefabBig: {fileID: 8633516561021093830, guid: 48cecd6e87dfaba4592ef8b20aa71f8d,
+    type: 3}
+  _keyOverlayPrefabSmall: {fileID: 8633516561021093830, guid: f9b8f3cc720ff5d4c815d4734838e4be,
     type: 3}
   _edgeGradientTexture: {fileID: 2800000, guid: 595196557d07f334785b6f9e842d1ad6,
     type: 3}
   _heldGradientTexture: {fileID: 2800000, guid: 1e2966ff240a691458e4637ea15a3404,
     type: 3}
   _trackWidth: 2
-  _overlayOffset: -0.9134
+  _whiteKeyOffset: -0.9134
+  _blackKeyOffset: -0.812
 --- !u!1 &6615351421081173628
 GameObject:
   m_ObjectHideFlags: 0

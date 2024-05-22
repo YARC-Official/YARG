@@ -12,11 +12,13 @@ namespace YARG.Gameplay.Visuals
     public class ProKeysTrackOverlay : MonoBehaviour
     {
         [SerializeField]
-        private GameObject _keyOverlayPrefab;
+        private GameObject _keyOverlayPrefabBig;
+        [SerializeField]
+        private GameObject _keyOverlayPrefabSmall;
 
+        [Space]
         [SerializeField]
         private Texture2D _edgeGradientTexture;
-
         [SerializeField]
         private Texture2D _heldGradientTexture;
 
@@ -25,11 +27,13 @@ namespace YARG.Gameplay.Visuals
 
         [Space]
         [SerializeField]
-        private float _overlayOffset;
+        private float _whiteKeyOffset;
+        [SerializeField]
+        private float _blackKeyOffset;
 
         public float KeySpacing => _trackWidth / ProKeysPlayer.WHITE_KEY_VISIBLE_COUNT;
 
-        private List<GameObject> _highlights = new();
+        private readonly List<GameObject> _highlights = new();
 
         private static readonly int IsHighlight = Shader.PropertyToID("_IsHighlight");
         private static readonly int BaseMap     = Shader.PropertyToID("_BaseMap");
@@ -38,65 +42,83 @@ namespace YARG.Gameplay.Visuals
         {
             int overlayPositionIndex = 0;
 
+            _highlights.Clear();
+            int whitePositionIndex = 0;
+            int blackPositionIndex = 0;
+
             for (int i = 0; i < ProKeysPlayer.TOTAL_KEY_COUNT; i++)
             {
                 int noteIndex = i % 12;
                 int octaveIndex = i / 12;
 
-                // Only create overlays on white keys
-                if (PianoHelper.IsWhiteKey(noteIndex))
+                // Get the group index (two groups per octave)
+                int group = octaveIndex * 2 + (PianoHelper.IsLowerHalfKey(noteIndex) ? 0 : 1);
+                var groupColor = colors.GetOverlayColor(group).ToUnityColor();
+
+                if (PianoHelper.IsBlackKey(noteIndex))
                 {
-                    var overlay = Instantiate(_keyOverlayPrefab, transform);
-                    overlay.SetActive(true);
-                    overlay.transform.localPosition = new Vector3(
-                        overlayPositionIndex * KeySpacing + _overlayOffset, 0f, 0f);
+                    SpawnHighlight(true, blackPositionIndex, player, groupColor);
+                    blackPositionIndex++;
 
-                    // Get the group index (two groups per octave)
-                    int index = octaveIndex * 2 + (PianoHelper.IsLowerHalfKey(noteIndex) ? 0 : 1);
-                    var color = colors.GetOverlayColor(index).ToUnityColor();
-
-                    var material = overlay.GetComponentsInChildren<MeshRenderer>()[0].material;
-                    var highlightRenderer = overlay.GetComponentsInChildren<MeshRenderer>()[1];
-                    var highlightMaterial = highlightRenderer.material;
-
-                    color.a = 0.05f;
-                    material.color = color;
-                    material.SetFade(player.ZeroFadePosition, player.FadeSize);
-
-                    switch (i)
+                    if (PianoHelper.IsGapOnNextBlackKey(noteIndex))
                     {
-                        case 0:
-                        case 4:
-                            material.SetTextureScale(BaseMap, new Vector2(i == 4 ? -1f : 1f, 1f));
-                            material.SetTexture(BaseMap, _edgeGradientTexture);
-                            break;
-                        case 5:
-                        case 11:
-                            material.SetTextureScale(BaseMap, new Vector2(i == 11 ? -1f : 1f, 1f));
-                            material.SetTexture(BaseMap, _edgeGradientTexture);
-                            break;
-                        case 12:
-                        case 16:
-                            material.SetTextureScale(BaseMap, new Vector2(i == 16 ? -1f : 1f, 1f));
-                            material.SetTexture(BaseMap, _edgeGradientTexture);
-                            break;
-                        case 17:
-                        case 23:
-                            material.SetTextureScale(BaseMap, new Vector2(i == 23 ? -1f : 1f, 1f));
-                            material.SetTexture(BaseMap, _edgeGradientTexture);
-                            break;
+                        blackPositionIndex++;
                     }
+                }
+                else
+                {
+                    SpawnHighlight(false, whitePositionIndex, player, groupColor);
+                    whitePositionIndex++;
 
-                    color.a = 0.3f;
-                    highlightMaterial.color = color;
-                    highlightMaterial.SetTexture(BaseMap, _heldGradientTexture);
-                    highlightMaterial.SetFade(player.ZeroFadePosition, player.FadeSize);
-
-                    highlightRenderer.gameObject.SetActive(false);
-                    _highlights.Add(highlightRenderer.gameObject);
-
+                    SpawnOverlay(overlayPositionIndex, noteIndex, player, groupColor);
                     overlayPositionIndex++;
                 }
+            }
+        }
+
+        private void SpawnHighlight(bool isBlackKey, int index, TrackPlayer player, Color color)
+        {
+            var prefab = isBlackKey
+                ? _keyOverlayPrefabSmall
+                : _keyOverlayPrefabBig;
+            var offset = isBlackKey
+                ? _blackKeyOffset
+                : _whiteKeyOffset;
+
+            var highlight = Instantiate(prefab, transform);
+            highlight.transform.localPosition = new Vector3(index * KeySpacing + offset, 0f, 0f);
+
+            var material = highlight.GetComponentInChildren<MeshRenderer>().material;
+            material.color = color.WithAlpha(0.3f);
+            material.SetTexture(BaseMap, _heldGradientTexture);
+            material.SetFade(player.ZeroFadePosition, player.FadeSize);
+
+            highlight.SetActive(false);
+            _highlights.Add(highlight);
+        }
+
+        private void SpawnOverlay(int index, int noteIndex, TrackPlayer player, Color color)
+        {
+            var overlay = Instantiate(_keyOverlayPrefabBig, transform);
+            overlay.transform.localPosition = new Vector3(index * KeySpacing + _whiteKeyOffset, 0f, 0f);
+
+            var material = overlay.GetComponentInChildren<MeshRenderer>().material;
+            material.color = color.WithAlpha(0.05f);
+            material.SetFade(player.ZeroFadePosition, player.FadeSize);
+
+            // Set up the correct texture
+            switch (noteIndex)
+            {
+                case 0:
+                case 4:
+                    material.SetTextureScale(BaseMap, new Vector2(noteIndex == 4 ? -1f : 1f, 1f));
+                    material.SetTexture(BaseMap, _edgeGradientTexture);
+                    break;
+                case 5:
+                case 11:
+                    material.SetTextureScale(BaseMap, new Vector2(noteIndex == 11 ? -1f : 1f, 1f));
+                    material.SetTexture(BaseMap, _edgeGradientTexture);
+                    break;
             }
         }
 
