@@ -283,6 +283,13 @@ namespace YARG.Integration
             // This is a instantaneous event, so we don't need to keep track of the previous/current event.
             OnBonusFXEvent?.Invoke();
         }
+
+        private void OnApplicationQuit()
+        {
+            CurrentLightingCue = null;
+            CurrentFogState = FogState.Off;
+            CurrentStrobeState = StageKitStrobeSpeed.Off;
+        }
     }
 }
 

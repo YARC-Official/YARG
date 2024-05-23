@@ -205,6 +205,7 @@ namespace YARG.Integration.StageKit
         protected override void SingletonDestroy()
         {
             InputSystem.onDeviceChange -= OnDeviceChange;
+
             foreach (var kit in _stageKits)
             {
                 kit.ResetHaptics();
