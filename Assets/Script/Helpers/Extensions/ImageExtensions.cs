@@ -108,21 +108,6 @@ namespace YARG.Helpers.Extensions
             }
         }
 
-        
-        private readonly unsafe struct TextureBuffer
-        {
-            [NativeDisableUnsafePtrRestriction]
-            public readonly byte* OriginalTexture;
-            [NativeDisableUnsafePtrRestriction]
-            public readonly byte* ResultTexture;
-
-            public TextureBuffer(byte* originalTexture, byte* resultTexture)
-            {
-                OriginalTexture = originalTexture;
-                ResultTexture = resultTexture;
-            }
-        }
-
         [BurstCompile]
         private readonly unsafe struct GrayscaleToRGBJob : IJobParallelFor
         {
@@ -130,30 +115,32 @@ namespace YARG.Helpers.Extensions
             public static FixedArray<byte> Run(YARGImage image, int numPixels)
             {
                 var buffer = FixedArray<byte>.Alloc(PIXELSIZE * numPixels);
-                var texture = new TextureBuffer((byte*) image.Data, buffer.Ptr);
-
-                new GrayscaleToRGBJob(texture)
+                new GrayscaleToRGBJob((byte*) image.Data, buffer.Ptr)
                     .Schedule(image.Length, 64)
                     .Complete();
                 return buffer;
             }
 
-            private readonly TextureBuffer _buffer;
+            [NativeDisableUnsafePtrRestriction]
+            private readonly byte* OriginalTexture;
+            [NativeDisableUnsafePtrRestriction]
+            private readonly byte* ResultTexture;
 
-            private GrayscaleToRGBJob(TextureBuffer buffer)
+            private GrayscaleToRGBJob(byte* originalTexture, byte* resultTexture)
             {
-                _buffer = buffer;
+                OriginalTexture = originalTexture;
+                ResultTexture = resultTexture;
             }
 
             public readonly void Execute(int index)
             {
                 int resultIndex = PIXELSIZE * index;
 
-                var value = _buffer.OriginalTexture[index];
+                var value = OriginalTexture[index];
 
-                _buffer.ResultTexture[resultIndex] = value;
-                _buffer.ResultTexture[resultIndex + 1] = value;
-                _buffer.ResultTexture[resultIndex + 2] = value;
+                ResultTexture[resultIndex] = value;
+                ResultTexture[resultIndex + 1] = value;
+                ResultTexture[resultIndex + 2] = value;
             }
         }
 
@@ -164,19 +151,21 @@ namespace YARG.Helpers.Extensions
             public static FixedArray<byte> Run(YARGImage image, int numPixels)
             {
                 var buffer = FixedArray<byte>.Alloc(PIXELSIZE * numPixels);
-                var texture = new TextureBuffer((byte*) image.Data, buffer.Ptr);
-
-                new GrayscaleAlphaToRGBAJob(texture)
+                new GrayscaleAlphaToRGBAJob((byte*) image.Data, buffer.Ptr)
                     .Schedule(image.Length, 64)
                     .Complete();
                 return buffer;
             }
 
-            private readonly TextureBuffer _buffer;
+            [NativeDisableUnsafePtrRestriction]
+            private readonly byte* OriginalTexture;
+            [NativeDisableUnsafePtrRestriction]
+            private readonly byte* ResultTexture;
 
-            private GrayscaleAlphaToRGBAJob(TextureBuffer buffer)
+            private GrayscaleAlphaToRGBAJob(byte* originalTexture, byte* resultTexture)
             {
-                _buffer = buffer;
+                OriginalTexture = originalTexture;
+                ResultTexture = resultTexture;
             }
 
             public readonly void Execute(int index)
@@ -184,13 +173,13 @@ namespace YARG.Helpers.Extensions
                 int originalIndex = index << 1;
                 int resultIndex = index << 2;
 
-                byte value = _buffer.OriginalTexture[originalIndex];
-                byte alpha = _buffer.OriginalTexture[originalIndex + 1];
+                byte value = OriginalTexture[originalIndex];
+                byte alpha = OriginalTexture[originalIndex + 1];
 
-                _buffer.ResultTexture[resultIndex] = value;
-                _buffer.ResultTexture[resultIndex + 1] = value;
-                _buffer.ResultTexture[resultIndex + 2] = value;
-                _buffer.ResultTexture[resultIndex + 3] = alpha;
+                ResultTexture[resultIndex] = value;
+                ResultTexture[resultIndex + 1] = value;
+                ResultTexture[resultIndex + 2] = value;
+                ResultTexture[resultIndex + 3] = alpha;
             }
         }
     }
