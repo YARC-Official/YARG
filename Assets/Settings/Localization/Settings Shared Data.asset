@@ -1269,6 +1269,8 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 141442680402108416
     m_Key: Setting.RB3EBroadcastIP.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 142536672422289408
     m_Key: Setting.DMXSecondaryCueChannel
     m_Metadata:
@@ -1423,6 +1425,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 146130013221191680
     m_Key: Setting.ReconnectProfiles.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154060765403439104
+    m_Key: Setting.DMXDimmerValues
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154060811591114752
+    m_Key: Setting.DMXDimmerValues.Description
     m_Metadata:
       m_Items: []
   m_Metadata:
