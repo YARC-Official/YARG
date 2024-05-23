@@ -20,9 +20,6 @@ namespace YARG.Gameplay.Player
         public const int WHITE_KEY_VISIBLE_COUNT = 10;
         public const int TOTAL_KEY_COUNT = 25;
 
-        // Move the strike line up for pro-keys to account for the size of the keys compared to frets
-        public override float StrikeLinePosition => -1.8f;
-
         public override float[] StarMultiplierThresholds { get; protected set; } =
         {
             0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f

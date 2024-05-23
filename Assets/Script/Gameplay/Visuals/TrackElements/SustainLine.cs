@@ -100,7 +100,7 @@ namespace YARG.Gameplay.Visuals
 
             // Get the new line start position. Said position should be at
             // the strike line and relative to the note itself.
-            float newStart = -transform.parent.localPosition.z + _player.StrikeLinePosition;
+            float newStart = -transform.parent.localPosition.z + TrackPlayer.STRIKE_LINE_POS;
 
             // Apply to line renderer
             _lineRenderer.SetPosition(1, new(0f, 0f, newStart));

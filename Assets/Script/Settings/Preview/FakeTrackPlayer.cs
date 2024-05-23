@@ -17,8 +17,6 @@ namespace YARG.Settings.Preview
 {
     public class FakeTrackPlayer : MonoBehaviour
     {
-        public const float STRIKE_LINE_POS = 2f;
-
         public struct Info
         {
             public delegate ColorProfile.IFretColorProvider FretColorProviderFunc(ColorProfile c);
@@ -211,7 +209,7 @@ namespace YARG.Settings.Preview
         public const float NOTE_SPEED = 6f;
         private const double SPAWN_FREQ = 0.2;
 
-        private double SpawnTimeOffset => (TrackPlayer.NOTE_SPAWN_OFFSET + STRIKE_LINE_POS) / NOTE_SPEED;
+        private double SpawnTimeOffset => (TrackPlayer.NOTE_SPAWN_OFFSET + -TrackPlayer.STRIKE_LINE_POS) / NOTE_SPEED;
 
         [SerializeField]
         private CameraPositioner _cameraPositioner;
