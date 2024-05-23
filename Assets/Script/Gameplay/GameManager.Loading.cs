@@ -13,6 +13,7 @@ using YARG.Core.Replays;
 using YARG.Gameplay.Player;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Menu.Settings;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Replays;
@@ -133,7 +134,11 @@ namespace YARG.Gameplay
 
             if (_loadState == LoadFailureState.Rescan)
             {
-                ToastManager.ToastWarning("Chart requires a rescan!");
+                ToastManager.ToastWarning("Chart requires a rescan!", () =>
+                {
+                    SettingsMenu.Instance.gameObject.SetActive(true);
+                    SettingsMenu.Instance.SelectTabByName("SongManager");
+                });
 
                 global.LoadScene(SceneIndex.Menu);
                 return;
