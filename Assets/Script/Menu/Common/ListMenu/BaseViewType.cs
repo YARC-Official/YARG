@@ -27,7 +27,9 @@ namespace YARG.Menu.ListMenu
         public abstract string GetPrimaryText(bool selected);
         public abstract string GetSecondaryText(bool selected);
 
+#nullable enable
         public virtual Sprite? GetIcon()
+#nullable disable
         {
             return null;
         }

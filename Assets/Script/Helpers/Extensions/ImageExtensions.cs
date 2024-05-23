@@ -15,7 +15,9 @@ namespace YARG.Helpers.Extensions
     {
         public static Texture2D LoadTexture(this YARGImage image, bool mips)
         {
+#nullable enable
             FixedArray<byte>? buffer = null;
+#nullable disable
 
             TextureFormat gfxFormat;
             switch (image.Format)

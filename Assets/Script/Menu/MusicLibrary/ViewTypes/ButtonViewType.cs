@@ -34,7 +34,9 @@ namespace YARG.Menu.MusicLibrary
             return FormatAs(_text, TextType.Bright, selected);
         }
 
-        public override Sprite GetIcon()
+#nullable enable
+        public override Sprite? GetIcon()
+#nullable disable
         {
             return _sprite;
         }

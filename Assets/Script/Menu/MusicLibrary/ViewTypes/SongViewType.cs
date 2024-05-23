@@ -44,7 +44,9 @@ namespace YARG.Menu.MusicLibrary
             return FormatAs(SongEntry.Artist, TextType.Secondary, selected);
         }
 
-        public override Sprite GetIcon()
+#nullable enable
+        public override Sprite? GetIcon()
+#nullable disable
         {
             return SongSources.SourceToIcon(SongEntry.Source);
         }

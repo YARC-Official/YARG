@@ -30,7 +30,9 @@ namespace YARG.Menu.MusicLibrary
         }
 
         private static readonly Sprite _downIcon = Addressables.LoadAssetAsync<Sprite>("MusicLibraryIcons[Down]").WaitForCompletion();
-        public override Sprite GetIcon()
+#nullable enable
+        public override Sprite? GetIcon()
+#nullable disable
         {
             return _downIcon;
         }

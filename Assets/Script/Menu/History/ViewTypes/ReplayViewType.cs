@@ -37,7 +37,9 @@ namespace YARG.Menu.History
             return FormatAs(_replayEntry.ArtistName, TextType.Secondary, selected);
         }
 
-        public override Sprite GetIcon()
+#nullable enable
+        public override Sprite? GetIcon()
+#nullable disable
         {
             // TODO: Show "song missing" icon instead when _songEntry is null
             return _songEntry != null ? SongSources.SourceToIcon(_songEntry.Source) : null;

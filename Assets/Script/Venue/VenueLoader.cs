@@ -28,9 +28,11 @@ namespace YARG.Venue
             }
         }
 
+#nullable enable
         public static BackgroundResult? GetVenue(SongEntry song, out VenueSource source)
         {
             BackgroundResult? result = null;
+#nullable disable
             source = VenueSource.Song;
             if (!SettingsManager.Settings.DisablePerSongBackgrounds.Value)
             {
@@ -49,7 +51,9 @@ namespace YARG.Venue
             return result;
         }
 
+#nullable enable
         private static BackgroundResult? GetVenuePathFromGlobal()
+#nullable disable
         {
             string[] validExtensions =
             {

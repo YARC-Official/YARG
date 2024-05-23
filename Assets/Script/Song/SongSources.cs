@@ -52,11 +52,15 @@ namespace YARG.Song
         {
             private readonly string _icon;
             private readonly Dictionary<string, string> _names;
+#nullable enable
             private Sprite? _sprite;
+#nullable disable
 
             public readonly SourceType Type;
 
+#nullable enable
             public Sprite? Sprite => _sprite;
+#nullable disable
 
             public ParsedSource(string icon, Dictionary<string, string> names, SourceType type)
             {
@@ -77,8 +81,10 @@ namespace YARG.Song
                     return;
                 }
 
+#nullable enable
                 // Look for the icon file in the different folders
                 Texture2D? texture = null;
+#nullable disable
                 foreach (var root in SourceRoots)
                 {
                     string path = Path.Combine(root, $"{_icon}.png");
