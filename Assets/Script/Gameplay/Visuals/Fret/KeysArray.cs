@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Rendering;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
@@ -62,19 +63,25 @@ namespace YARG.Gameplay.Visuals
                         _              => Color.white
                     };
 
-                    keyColor.r *= 0.5f;
-                    keyColor.g *= 0.5f;
-                    keyColor.b *= 0.5f;
+                    var material = fret.GetComponentInChildren<MeshRenderer>().material;
 
-                    // This will probably stop working if the prefab gets any more mesh renderers
-                    fret.GetComponentInChildren<MeshRenderer>().material.color = keyColor;
+                    var keyword = new LocalKeyword(material.shader, "_ISPRESSED");
 
                     var container = new KeysObjectContainer
                     {
                         Transform = fret.transform,
                         ModelParent = fret.transform.Find("Model Parent"),
+                        Material = material,
+                        PressedKeyword = keyword,
                         FretComponent = fret.GetComponent<Fret>(),
                     };
+
+                    keyColor.r *= 0.5f;
+                    keyColor.g *= 0.5f;
+                    keyColor.b *= 0.5f;
+
+                    container.Material.color = keyColor;
+
                     _keys.Add(container);
 
                     blackPositionIndex++;
@@ -92,10 +99,16 @@ namespace YARG.Gameplay.Visuals
                     fret.transform.localPosition = new Vector3(
                         whitePositionIndex * KeySpacing + _whiteKeyOffset, 0f, 0f);
 
+                    var material = fret.GetComponentInChildren<MeshRenderer>().material;
+
+                    var keyword = new LocalKeyword(material.shader, "_ISPRESSED");
+
                     var container = new KeysObjectContainer
                     {
                         Transform = fret.transform,
                         ModelParent = fret.transform.Find("Model Parent"),
+                        Material = material,
+                        PressedKeyword = keyword,
                         FretComponent = fret.GetComponent<Fret>(),
                     };
 
@@ -113,6 +126,8 @@ namespace YARG.Gameplay.Visuals
 
         public void SetPressed(int index, bool pressed)
         {
+            var key = _keys[index];
+
             var rotation = Vector3.zero;
             if (pressed)
             {
@@ -121,13 +136,23 @@ namespace YARG.Gameplay.Visuals
 
             // I tried to make an animation in Unity but it wouldnt even let me add
             // a property, so I gave up and use tweening instead.
-            _keys[index].ModelParent.DOLocalRotate(rotation, 0.025f);
+            key.ModelParent.DOLocalRotate(rotation, 0.025f);
+
+            // Only do white key light ups for now
+            if (PianoHelper.IsWhiteKey(index % 12))
+            {
+                key.Material.SetKeyword(key.PressedKeyword, pressed);
+            }
         }
 
         private struct KeysObjectContainer
         {
             public Transform Transform;
             public Transform ModelParent;
+
+            public Material Material;
+
+            public LocalKeyword PressedKeyword;
 
             public Fret FretComponent;
         }
