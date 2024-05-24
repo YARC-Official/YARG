@@ -222,6 +222,7 @@ namespace YARG.Gameplay.Player
             {
                 int key = (int) action;
                 _trackOverlay.SetKeyHeld(key, input.Button);
+                _keysArray.SetPressed(key, input.Button);
             }
 
             // Ignore SP in practice mode

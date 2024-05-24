@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
@@ -22,7 +23,7 @@ namespace YARG.Gameplay.Visuals
 
         public float KeySpacing => _trackWidth / ProKeysPlayer.WHITE_KEY_VISIBLE_COUNT;
 
-        private readonly List<Fret> _keys = new();
+        private readonly List<KeysObjectContainer> _keys = new();
 
         public void Initialize(ThemePreset themePreset, ColorProfile.ProKeysColors colors)
         {
@@ -52,7 +53,6 @@ namespace YARG.Gameplay.Visuals
                         blackPositionIndex * KeySpacing + _blackKeyOffset, 0f, 0f);
 
                     // This is terrible lol
-                    var fretComponent = fret.GetComponent<Fret>();
                     var keyColor = i switch
                     {
                         1 or 3         => colors.GetOverlayColor(0).ToUnityColor(),
@@ -69,7 +69,13 @@ namespace YARG.Gameplay.Visuals
                     // This will probably stop working if the prefab gets any more mesh renderers
                     fret.GetComponentInChildren<MeshRenderer>().material.color = keyColor;
 
-                    _keys.Add(fretComponent);
+                    var container = new KeysObjectContainer
+                    {
+                        Transform = fret.transform,
+                        ModelParent = fret.transform.Find("Model Parent"),
+                        FretComponent = fret.GetComponent<Fret>(),
+                    };
+                    _keys.Add(container);
 
                     blackPositionIndex++;
                     if (PianoHelper.IsGapOnNextBlackKey(noteIndex))
@@ -86,7 +92,14 @@ namespace YARG.Gameplay.Visuals
                     fret.transform.localPosition = new Vector3(
                         whitePositionIndex * KeySpacing + _whiteKeyOffset, 0f, 0f);
 
-                    _keys.Add(fret.GetComponent<Fret>());
+                    var container = new KeysObjectContainer
+                    {
+                        Transform = fret.transform,
+                        ModelParent = fret.transform.Find("Model Parent"),
+                        FretComponent = fret.GetComponent<Fret>(),
+                    };
+
+                    _keys.Add(container);
 
                     whitePositionIndex++;
                 }
@@ -95,7 +108,28 @@ namespace YARG.Gameplay.Visuals
 
         public float GetKeyX(int index)
         {
-            return _keys[index].transform.localPosition.x;
+            return _keys[index].Transform.localPosition.x;
+        }
+
+        public void SetPressed(int index, bool pressed)
+        {
+            var rotation = Vector3.zero;
+            if (pressed)
+            {
+                rotation = Vector3.zero.WithX(-15);
+            }
+
+            // I tried to make an animation in Unity but it wouldnt even let me add
+            // a property, so I gave up and use tweening instead.
+            _keys[index].ModelParent.DOLocalRotate(rotation, 0.025f);
+        }
+
+        private struct KeysObjectContainer
+        {
+            public Transform Transform;
+            public Transform ModelParent;
+
+            public Fret FretComponent;
         }
     }
 }
