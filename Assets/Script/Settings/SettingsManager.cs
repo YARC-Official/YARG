@@ -159,6 +159,7 @@ namespace YARG.Settings
                 nameof(Settings.DMXKeysChannel),
                 new HeaderMetadata("AdvancedDMXSettings"),
                 nameof(Settings.DMXUniverseChannel),
+                nameof(Settings.DMXDimmerValues),
                 //NYI
                 //nameof(Settings.DMXPerformerChannel)
                 new HeaderMetadata("RB3E"),

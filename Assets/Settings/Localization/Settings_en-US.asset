@@ -243,7 +243,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405789
-    m_Localized: Any channel set here will be set to max (255) on game start. Useful
+    m_Localized: Channels listed here will be set on game start. Default value is
+      max (255), can be changed in 'DMX Master Dimmer Values' setting below. Useful
       for fixtures that have a master dimmer channel.
     m_Metadata:
       m_Items: []
@@ -1366,6 +1367,8 @@ MonoBehaviour:
   - m_Id: 141442680402108416
     m_Localized: Sets the target IP for the RB3E data stream packets. 255.255.255.255
       is the broadcast address for the current network
+    m_Metadata:
+      m_Items: []
   - m_Id: 142536672422289408
     m_Localized: DMX Secondary Cue Change
     m_Metadata:
@@ -1530,6 +1533,15 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 146130013221191680
     m_Localized: At startup, reconnect previously connected profiles.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154060765403439104
+    m_Localized: DMX Master Dimmer Values
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154060811591114752
+    m_Localized: These are the respective values that the Master Dimmer channels
+      willl be set to when YARG starts.
     m_Metadata:
       m_Items: []
   references:
