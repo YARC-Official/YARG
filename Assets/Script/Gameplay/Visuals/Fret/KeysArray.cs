@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
@@ -49,6 +50,7 @@ namespace YARG.Gameplay.Visuals
             {
                 // The index within the octave (0-11)
                 int noteIndex = i % 12;
+                int octaveIndex = i / 12;
 
                 if (PianoHelper.IsBlackKey(noteIndex))
                 {
@@ -59,18 +61,11 @@ namespace YARG.Gameplay.Visuals
                     fret.transform.localPosition = new Vector3(
                         blackPositionIndex * KeySpacing + _blackKeyOffset, 0f, 0f);
 
-                    // This is terrible lol
-                    var keyColor = i switch
-                    {
-                        1 or 3         => colors.GetBlackKeyColor(0),
-                        6 or 8 or 10   => colors.GetBlackKeyColor(1),
-                        13 or 15       => colors.GetBlackKeyColor(2),
-                        18 or 20 or 22 => colors.GetBlackKeyColor(3),
-                        _              => default
-                    };
+                    int group = octaveIndex * 2 + (PianoHelper.IsLowerHalfKey(noteIndex) ? 0 : 1);
+                    var color = colors.GetBlackKeyColor(group);
 
                     var fretComp = fret.GetComponent<Fret>();
-                    fretComp.Initialize(keyColor, keyColor, keyColor);
+                    fretComp.Initialize(color, color, color);
 
                     var material = fret.GetComponentInChildren<MeshRenderer>().material;
                     material.SetFloat(IndexId, player.PlayerIndex);
