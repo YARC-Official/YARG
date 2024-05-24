@@ -26,7 +26,7 @@ namespace YARG.Gameplay.Visuals
 
         private TrackPlayer _player;
 
-        private readonly List<KeysObjectContainer> _keys = new();
+        private readonly List<Fret> _keys = new();
 
         private static readonly int IndexId = Shader.PropertyToID("_Index");
 
@@ -62,33 +62,20 @@ namespace YARG.Gameplay.Visuals
                     // This is terrible lol
                     var keyColor = i switch
                     {
-                        1 or 3         => colors.GetOverlayColor(0).ToUnityColor(),
-                        6 or 8 or 10   => colors.GetOverlayColor(1).ToUnityColor(),
-                        13 or 15       => colors.GetOverlayColor(2).ToUnityColor(),
-                        18 or 20 or 22 => colors.GetOverlayColor(3).ToUnityColor(),
-                        _              => Color.white
+                        1 or 3         => colors.GetBlackKeyColor(0),
+                        6 or 8 or 10   => colors.GetBlackKeyColor(1),
+                        13 or 15       => colors.GetBlackKeyColor(2),
+                        18 or 20 or 22 => colors.GetBlackKeyColor(3),
+                        _              => default
                     };
+
+                    var fretComp = fret.GetComponent<Fret>();
+                    fretComp.Initialize(keyColor, keyColor, keyColor);
 
                     var material = fret.GetComponentInChildren<MeshRenderer>().material;
+                    material.SetFloat(IndexId, player.PlayerIndex);
 
-                    var keyword = new LocalKeyword(material.shader, "_ISPRESSED");
-
-                    var container = new KeysObjectContainer
-                    {
-                        Transform = fret.transform,
-                        ModelParent = fret.transform.Find("Model Parent"),
-                        Material = material,
-                        PressedKeyword = keyword,
-                        FretComponent = fret.GetComponent<Fret>(),
-                    };
-
-                    keyColor.r *= 0.5f;
-                    keyColor.g *= 0.5f;
-                    keyColor.b *= 0.5f;
-
-                    container.Material.color = keyColor;
-
-                    _keys.Add(container);
+                    _keys.Add(fretComp);
 
                     blackPositionIndex++;
                     if (PianoHelper.IsGapOnNextBlackKey(noteIndex))
@@ -105,64 +92,36 @@ namespace YARG.Gameplay.Visuals
                     fret.transform.localPosition = new Vector3(
                         whitePositionIndex * KeySpacing + _whiteKeyOffset, 0f, 0f);
 
+                    var color = colors.WhiteKey;
+
+                    var fretComp = fret.GetComponent<Fret>();
+                    fretComp.Initialize(color, color, color);
+
                     var material = fret.GetComponentInChildren<MeshRenderer>().material;
+                    material.SetFloat(IndexId, player.PlayerIndex);
 
-                    var keyword = new LocalKeyword(material.shader, "_ISPRESSED");
-
-                    var container = new KeysObjectContainer
-                    {
-                        Transform = fret.transform,
-                        ModelParent = fret.transform.Find("Model Parent"),
-                        Material = material,
-                        PressedKeyword = keyword,
-                        FretComponent = fret.GetComponent<Fret>(),
-                    };
-
-                    _keys.Add(container);
+                    _keys.Add(fretComp);
 
                     whitePositionIndex++;
                 }
-
-                _keys[i].Material.SetFloat(IndexId, player.PlayerIndex);
             }
         }
 
         public float GetKeyX(int index)
         {
-            return _keys[index].Transform.localPosition.x;
+            return _keys[index].transform.localPosition.x;
         }
 
         public void SetPressed(int index, bool pressed)
         {
             var key = _keys[index];
-
-            var rotation = Vector3.zero;
-            if (pressed)
-            {
-                rotation = Vector3.zero.WithX(-15);
-            }
-
-            // I tried to make an animation in Unity but it wouldnt even let me add
-            // a property, so I gave up and use tweening instead.
-            key.ModelParent.DOLocalRotate(rotation, 0.025f);
+            key.SetPressed(pressed);
 
             // Only do white key light ups for now
-            if (PianoHelper.IsWhiteKey(index % 12))
-            {
-                key.Material.SetKeyword(key.PressedKeyword, pressed);
-            }
-        }
-
-        private struct KeysObjectContainer
-        {
-            public Transform Transform;
-            public Transform ModelParent;
-
-            public Material Material;
-
-            public LocalKeyword PressedKeyword;
-
-            public Fret FretComponent;
+            // foreach (var material in key.ThemeBind.GetColoredMaterials())
+            // {
+            //     material.SetKeyword();
+            // }
         }
     }
 }
