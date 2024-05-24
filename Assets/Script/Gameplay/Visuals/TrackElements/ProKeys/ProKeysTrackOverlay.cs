@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Rendering;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Gameplay.Player;
@@ -89,7 +87,13 @@ namespace YARG.Gameplay.Visuals
             var highlight = Instantiate(prefab, transform);
             highlight.transform.localPosition = new Vector3(index * KeySpacing + offset, 0f, 0f);
 
-            var material = highlight.GetComponentInChildren<MeshRenderer>().material;
+            var meshRenderer = highlight.GetComponentInChildren<MeshRenderer>();
+
+            var htPlane = meshRenderer.gameObject.transform;
+            htPlane.localPosition = htPlane.localPosition.WithZ(0.5f);
+            htPlane.localScale = htPlane.localScale.WithY(35f);
+
+            var material = meshRenderer.material;
             material.color = color.WithAlpha(0.3f);
             material.SetTexture(BaseMap, _heldGradientTexture);
             material.SetFade(player.ZeroFadePosition, player.FadeSize);
