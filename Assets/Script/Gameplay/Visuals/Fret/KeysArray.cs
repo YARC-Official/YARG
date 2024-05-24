@@ -24,10 +24,16 @@ namespace YARG.Gameplay.Visuals
 
         public float KeySpacing => _trackWidth / ProKeysPlayer.WHITE_KEY_VISIBLE_COUNT;
 
+        private TrackPlayer _player;
+
         private readonly List<KeysObjectContainer> _keys = new();
 
-        public void Initialize(ThemePreset themePreset, ColorProfile.ProKeysColors colors)
+        private static readonly int IndexId = Shader.PropertyToID("_Index");
+
+        public void Initialize(TrackPlayer player, ThemePreset themePreset, ColorProfile.ProKeysColors colors)
         {
+            _player = player;
+
             var whiteKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, GameMode.ProKeys,
                 ThemeManager.WHITE_KEY_PREFAB_NAME);
             var blackKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, GameMode.ProKeys,
@@ -116,6 +122,8 @@ namespace YARG.Gameplay.Visuals
 
                     whitePositionIndex++;
                 }
+
+                _keys[i].Material.SetFloat(IndexId, player.PlayerIndex);
             }
         }
 

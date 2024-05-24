@@ -36,6 +36,7 @@ namespace YARG.Gameplay.Visuals
 
         private static readonly int IsHighlight = Shader.PropertyToID("_IsHighlight");
         private static readonly int BaseMap     = Shader.PropertyToID("_BaseMap");
+        private static readonly int Index       = Shader.PropertyToID("_Index");
 
         public void Initialize(TrackPlayer player, ColorProfile.ProKeysColors colors)
         {
@@ -97,6 +98,7 @@ namespace YARG.Gameplay.Visuals
             material.color = color.WithAlpha(0.3f);
             material.SetTexture(BaseMap, _heldGradientTexture);
             material.SetFade(player.ZeroFadePosition, player.FadeSize);
+            material.SetFloat(Index, player.PlayerIndex);
 
             highlight.SetActive(false);
             _highlights.Add(highlight);
@@ -112,6 +114,7 @@ namespace YARG.Gameplay.Visuals
             var material = overlay.GetComponentInChildren<MeshRenderer>().material;
             material.color = color.WithAlpha(0.05f);
             material.SetFade(player.ZeroFadePosition, player.FadeSize);
+            material.SetFloat(Index, player.PlayerIndex);
 
             // Set up the correct texture
 

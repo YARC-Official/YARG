@@ -354,7 +354,7 @@ namespace YARG.Gameplay
                     if (prefab == null) continue;
 
                     var playerObject = Instantiate(prefab,
-                        new Vector3(index * 100f, 100f, 0f), prefab.transform.rotation);
+                        new Vector3(index * TRACK_SPACING_X, 100f, 0f), prefab.transform.rotation);
 
                     // Setup player
                     var trackPlayer = playerObject.GetComponent<TrackPlayer>();

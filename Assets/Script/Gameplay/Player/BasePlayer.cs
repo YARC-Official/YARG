@@ -16,6 +16,8 @@ namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : GameplayBehaviour
     {
+        public int PlayerIndex { get; private set; }
+
         public YargPlayer Player { get; private set; }
 
         public float NoteSpeed
@@ -120,6 +122,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            PlayerIndex = index;
             Player = player;
 
             SyncTrack = chart.SyncTrack;

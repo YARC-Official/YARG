@@ -11,7 +11,6 @@ using YARG.Core.Engine.ProKeys.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
-using YARG.Helpers;
 
 namespace YARG.Gameplay.Player
 {
@@ -109,7 +108,7 @@ namespace YARG.Gameplay.Player
                 } };
             }).ToList();
 
-            _keysArray.Initialize(Player.ThemePreset, Player.ColorProfile.ProKeys);
+            _keysArray.Initialize(this, Player.ThemePreset, Player.ColorProfile.ProKeys);
             _trackOverlay.Initialize(this, Player.ColorProfile.ProKeys);
 
             if (_rangeShifts.Count > 0)
