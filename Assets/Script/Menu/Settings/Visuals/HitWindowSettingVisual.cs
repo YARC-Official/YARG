@@ -75,7 +75,8 @@ namespace YARG.Menu.Settings.Visuals
                 window.MaxWindow = _constantField.Duration;
             }
 
-            Setting.Value = window;
+            // Since the hit window is a reference type, we can just do this
+            Setting.ForceInvokeCallback();
         }
     }
 }

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
   m_Name: Settings Shared Data
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   m_TableCollectionName: Settings
   m_TableCollectionNameGuidString: 0c40e690d26fdff4a92f0b3813ac68a4
   m_Entries:
@@ -103,6 +103,18 @@ MonoBehaviour:
     m_Key: Dropdown.LyricDisplay.Transparent
     m_Metadata:
       m_Items: []
+  - m_Id: 136439865969897472
+    m_Key: Dropdown.MuteOnMiss.MultitrackOnly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 136439859598749696
+    m_Key: Dropdown.MuteOnMiss.Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 136439869740576768
+    m_Key: Dropdown.MuteOnMiss.On
+    m_Metadata:
+      m_Items: []
   - m_Id: 124723711291285504
     m_Key: Dropdown.NoteStreakFrequency.Disabled
     m_Metadata:
@@ -167,6 +179,14 @@ MonoBehaviour:
     m_Key: Header.Advanced
     m_Metadata:
       m_Items: []
+  - m_Id: 144264289307484160
+    m_Key: Header.AdvancedDMXChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 147316926256930816
+    m_Key: Header.AdvancedDMXSettings
+    m_Metadata:
+      m_Items: []
   - m_Id: 13088551106633728
     m_Key: Header.Cache
     m_Metadata:
@@ -177,6 +197,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 12836607712681984
     m_Key: Header.Camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141517638145044480
+    m_Key: Header.Customization
     m_Metadata:
       m_Items: []
   - m_Id: 79799527068782592
@@ -235,6 +259,14 @@ MonoBehaviour:
     m_Key: Header.SongUpgrades
     m_Metadata:
       m_Items: []
+  - m_Id: 144263829565628416
+    m_Key: Header.StageKitDMXChannels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144264391830962176
+    m_Key: Header.StatusBar
+    m_Metadata:
+      m_Items: []
   - m_Id: 21443095007977472
     m_Key: Header.Venues
     m_Metadata:
@@ -243,28 +275,28 @@ MonoBehaviour:
     m_Key: Header.Volume
     m_Metadata:
       m_Items: []
-  - m_Id: 116747023324405782
-    m_Key: PresetDropdown.ColorProfile.Instrument.FiveFretGuitar
+  - m_Id: 154784007447764992
+    m_Key: PresetDropdown.ColorProfile.SubSection.FiveFretGuitar
     m_Metadata:
       m_Items: []
-  - m_Id: 116747023324405783
-    m_Key: PresetDropdown.ColorProfile.Instrument.FiveLaneDrums
+  - m_Id: 154784007468736512
+    m_Key: PresetDropdown.ColorProfile.SubSection.FiveLaneDrums
     m_Metadata:
       m_Items: []
-  - m_Id: 116747023324405784
-    m_Key: PresetDropdown.ColorProfile.Instrument.FourLaneDrums
+  - m_Id: 154784007468736513
+    m_Key: PresetDropdown.ColorProfile.SubSection.FourLaneDrums
     m_Metadata:
       m_Items: []
-  - m_Id: 116747023324405785
-    m_Key: PresetDropdown.EnginePreset.GameMode.DrumsPreset
+  - m_Id: 154789379248087040
+    m_Key: PresetDropdown.EnginePreset.SubSection.Drums
     m_Metadata:
       m_Items: []
-  - m_Id: 116747023324405786
-    m_Key: PresetDropdown.EnginePreset.GameMode.FiveFretGuitarPreset
+  - m_Id: 154789379252281344
+    m_Key: PresetDropdown.EnginePreset.SubSection.FiveFretGuitar
     m_Metadata:
       m_Items: []
-  - m_Id: 133417141387255808
-    m_Key: PresetDropdown.EnginePreset.GameMode.VocalsPreset
+  - m_Id: 154789379252281345
+    m_Key: PresetDropdown.EnginePreset.SubSection.Vocals
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405845
@@ -407,10 +439,6 @@ MonoBehaviour:
     m_Key: PresetSetting.ColorProfile.GreenStarpower
     m_Metadata:
       m_Items: []
-  - m_Id: 116747023328600092
-    m_Key: PresetSetting.ColorProfile.Instrument
-    m_Metadata:
-      m_Items: []
   - m_Id: 116747023328600093
     m_Key: PresetSetting.ColorProfile.KickFret
     m_Metadata:
@@ -515,6 +543,10 @@ MonoBehaviour:
     m_Key: PresetSetting.ColorProfile.RedStarpower
     m_Metadata:
       m_Items: []
+  - m_Id: 154784007468736517
+    m_Key: PresetSetting.ColorProfile.SubSection
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023328600117
     m_Key: PresetSetting.ColorProfile.YellowCymbal
     m_Metadata:
@@ -563,16 +595,36 @@ MonoBehaviour:
     m_Key: PresetSetting.EnginePreset.AntiGhosting.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 154803277208608768
+    m_Key: PresetSetting.EnginePreset.DynamicGamma
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154803277208608769
+    m_Key: PresetSetting.EnginePreset.DynamicGamma.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154803277212803072
+    m_Key: PresetSetting.EnginePreset.DynamicScale
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154803277212803073
+    m_Key: PresetSetting.EnginePreset.DynamicScale.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154803277212803074
+    m_Key: PresetSetting.EnginePreset.DynamicSlope
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154803277212803075
+    m_Key: PresetSetting.EnginePreset.DynamicSlope.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023328600129
     m_Key: PresetSetting.EnginePreset.FrontToBackRatio
     m_Metadata:
       m_Items: []
   - m_Id: 116747023328600130
     m_Key: PresetSetting.EnginePreset.FrontToBackRatio.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 116747023328600131
-    m_Key: PresetSetting.EnginePreset.GameMode
     m_Metadata:
       m_Items: []
   - m_Id: 133417141387255809
@@ -635,6 +687,46 @@ MonoBehaviour:
     m_Key: PresetSetting.EnginePreset.IsDynamic.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 154789379252281346
+    m_Key: PresetSetting.EnginePreset.PercussionHitWindow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154803277212803076
+    m_Key: PresetSetting.EnginePreset.PerfectPitchPercent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154789379252281347
+    m_Key: PresetSetting.EnginePreset.PitchWindowE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154789379252281348
+    m_Key: PresetSetting.EnginePreset.PitchWindowE.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154789379252281349
+    m_Key: PresetSetting.EnginePreset.PitchWindowH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154789379252281350
+    m_Key: PresetSetting.EnginePreset.PitchWindowH.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154789379252281351
+    m_Key: PresetSetting.EnginePreset.PitchWindowM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154789379252281352
+    m_Key: PresetSetting.EnginePreset.PitchWindowM.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154789379252281353
+    m_Key: PresetSetting.EnginePreset.PitchWindowX
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154789379252281354
+    m_Key: PresetSetting.EnginePreset.PitchWindowX.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023328600139
     m_Key: PresetSetting.EnginePreset.StrumLeniency
     m_Metadata:
@@ -651,36 +743,8 @@ MonoBehaviour:
     m_Key: PresetSetting.EnginePreset.StrumLeniencySmall.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 133417141387255817
-    m_Key: PresetSetting.EnginePreset.WindowSizeE
-    m_Metadata:
-      m_Items: []
-  - m_Id: 133417141387255818
-    m_Key: PresetSetting.EnginePreset.WindowSizeE.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 133417141387255819
-    m_Key: PresetSetting.EnginePreset.WindowSizeH
-    m_Metadata:
-      m_Items: []
-  - m_Id: 133417141387255820
-    m_Key: PresetSetting.EnginePreset.WindowSizeH.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 133417141387255821
-    m_Key: PresetSetting.EnginePreset.WindowSizeM
-    m_Metadata:
-      m_Items: []
-  - m_Id: 133417141387255822
-    m_Key: PresetSetting.EnginePreset.WindowSizeM.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 133417141387255823
-    m_Key: PresetSetting.EnginePreset.WindowSizeX
-    m_Metadata:
-      m_Items: []
-  - m_Id: 133417141387255824
-    m_Key: PresetSetting.EnginePreset.WindowSizeX.Description
+  - m_Id: 154784007468736518
+    m_Key: PresetSetting.EnginePreset.SubSection
     m_Metadata:
       m_Items: []
   - m_Id: 62024422966812672
@@ -709,6 +773,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116747023324405800
     m_Key: Setting.AmIAwesome.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 138593433699119104
+    m_Key: Setting.ApplyVolumesInMusicLibrary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141518416825970688
+    m_Key: Setting.ApplyVolumesInMusicLibrary.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405801
@@ -775,12 +847,36 @@ MonoBehaviour:
     m_Key: Setting.DisableTextNotifications.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 144658450821046272
+    m_Key: Setting.DMXBassChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 146521359872319488
+    m_Key: Setting.DMXBassChannel.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144265595573133312
+    m_Key: Setting.DMXBeatlineChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 146520481526341632
+    m_Key: Setting.DMXBeatlineChannel.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023324405787
     m_Key: Setting.DMXBlueChannels
     m_Metadata:
       m_Items: []
   - m_Id: 117854414511955968
     m_Key: Setting.DMXBlueChannels.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144265347681378304
+    m_Key: Setting.DMXBonusEffectChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 146520773076606976
+    m_Key: Setting.DMXBonusEffectChannel.Description
     m_Metadata:
       m_Items: []
   - m_Id: 126176427087618048
@@ -801,6 +897,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116747023324405789
     m_Key: Setting.DMXDimmerChannels.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144265427771613184
+    m_Key: Setting.DMXDrumsChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 146520641782308864
+    m_Key: Setting.DMXDrumsChannel.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405790
@@ -827,6 +931,46 @@ MonoBehaviour:
     m_Key: Setting.DMXGreenChannels.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 144658252413689856
+    m_Key: Setting.DMXGuitarChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 146521261369090048
+    m_Key: Setting.DMXGuitarChannel.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144264510162755584
+    m_Key: Setting.DMXKeyframeChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144264537266348032
+    m_Key: Setting.DMXKeyframeChannel.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 145857192911855616
+    m_Key: Setting.DMXKeysChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 146521527942275072
+    m_Key: Setting.DMXKeysChannel.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144670542311612416
+    m_Key: Setting.DMXPerformerChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 146521706556710912
+    m_Key: Setting.DMXPerformerChannel.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144647306337214464
+    m_Key: Setting.DMXPostProcessingChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 146520036238057472
+    m_Key: Setting.DMXPostProcessingChannel.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023324405793
     m_Key: Setting.DMXRedChannels
     m_Metadata:
@@ -835,12 +979,24 @@ MonoBehaviour:
     m_Key: Setting.DMXRedChannels.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 142536672422289408
+    m_Key: Setting.DMXSecondaryCueChannel
+    m_Metadata:
+      m_Items: []
   - m_Id: 117866061624401920
     m_Key: Setting.DMXStrobeChannel
     m_Metadata:
       m_Items: []
   - m_Id: 117866539842166784
     m_Key: Setting.DMXStrobeChannel.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 147317658649518080
+    m_Key: Setting.DMXUniverseChannel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 147317817173237760
+    m_Key: Setting.DMXUniverseChannel.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405794
@@ -857,6 +1013,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116747023328600150
     m_Key: Setting.DrumsVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141824850801356800
+    m_Key: Setting.EnablePlaybackBuffer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141825994697109504
+    m_Key: Setting.EnablePlaybackBuffer.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405823
@@ -963,6 +1127,14 @@ MonoBehaviour:
     m_Key: Setting.MasterMusicVolume.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 144263364134207488
+    m_Key: Setting.MemoryStats
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144263416911134720
+    m_Key: Setting.MemoryStats.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023328600157
     m_Key: Setting.MicrophoneSensitivity
     m_Metadata:
@@ -1003,12 +1175,44 @@ MonoBehaviour:
     m_Key: Setting.NoteStreakFrequency.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 133417435445714944
+    m_Key: Setting.PauseOnDeviceDisconnect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417435445714945
+    m_Key: Setting.PauseOnDeviceDisconnect.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417435445714946
+    m_Key: Setting.PauseOnFocusLoss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 133417435445714947
+    m_Key: Setting.PauseOnFocusLoss.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141514322187022336
+    m_Key: Setting.PlaybackBufferLength
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141517716490448896
+    m_Key: Setting.PlaybackBufferLength.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023328600163
     m_Key: Setting.PreviewVolume
     m_Metadata:
       m_Items: []
   - m_Id: 116747023328600164
     m_Key: Setting.PreviewVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 146129952089210880
+    m_Key: Setting.ReconnectProfiles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 146130013221191680
+    m_Key: Setting.ReconnectProfiles.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405837
@@ -1043,6 +1247,14 @@ MonoBehaviour:
     m_Key: Setting.ShowAdvancedMusicLibraryOptions.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 144061522095800320
+    m_Key: Setting.ShowBattery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061567792742400
+    m_Key: Setting.ShowBattery.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 116747023324405813
     m_Key: Setting.ShowCursorTimer
     m_Metadata:
@@ -1065,6 +1277,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 116747023324405840
     m_Key: Setting.ShowHitWindow.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061360606707712
+    m_Key: Setting.ShowTime
+    m_Metadata:
+      m_Items: []
+  - m_Id: 144061415640170496
+    m_Key: Setting.ShowTime.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405841
@@ -1097,6 +1317,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 124723711295479817
     m_Key: Setting.StarPowerHighwayFx.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 142611703768539136
+    m_Key: Setting.UpcomingLyricsTime
+    m_Metadata:
+      m_Items: []
+  - m_Id: 142611793451147264
+    m_Key: Setting.UpcomingLyricsTime.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023328600171
@@ -1175,22 +1403,6 @@ MonoBehaviour:
     m_Key: Setting.WhammyPitchShiftAmount
     m_Metadata:
       m_Items: []
-  - m_Id: 133417435445714944
-    m_Key: Setting.PauseOnDeviceDisconnect
-    m_Metadata:
-      m_Items: []
-  - m_Id: 133417435445714945
-    m_Key: Setting.PauseOnDeviceDisconnect.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 133417435445714946
-    m_Key: Setting.PauseOnFocusLoss
-    m_Metadata:
-      m_Items: []
-  - m_Id: 133417435445714947
-    m_Key: Setting.PauseOnFocusLoss.Description
-    m_Metadata:
-      m_Items: []
   - m_Id: 116744829250428943
     m_Key: Tab.Advanced
     m_Metadata:
@@ -1233,186 +1445,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10936772512309248
     m_Key: Tab.Sound
-    m_Metadata:
-      m_Items: []
-  - m_Id: 136439859598749696
-    m_Key: Dropdown.MuteOnMiss.Off
-    m_Metadata:
-      m_Items: []
-  - m_Id: 136439865969897472
-    m_Key: Dropdown.MuteOnMiss.MultitrackOnly
-    m_Metadata:
-      m_Items: []
-  - m_Id: 136439869740576768
-    m_Key: Dropdown.MuteOnMiss.On
-    m_Metadata:
-      m_Items: []
-  - m_Id: 138593433699119104
-    m_Key: Setting.ApplyVolumesInMusicLibrary
-    m_Metadata:
-      m_Items: []
-  - m_Id: 142536672422289408
-    m_Key: Setting.DMXSecondaryCueChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144263829565628416
-    m_Key: Header.StageKitDMXChannels
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144264289307484160
-    m_Key: Header.AdvancedDMXChannels
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144264510162755584
-    m_Key: Setting.DMXKeyframeChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144264537266348032
-    m_Key: Setting.DMXKeyframeChannel.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144265347681378304
-    m_Key: Setting.DMXBonusEffectChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144265427771613184
-    m_Key: Setting.DMXDrumsChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144265595573133312
-    m_Key: Setting.DMXBeatlineChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144647306337214464
-    m_Key: Setting.DMXPostProcessingChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144658252413689856
-    m_Key: Setting.DMXGuitarChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144658450821046272
-    m_Key: Setting.DMXBassChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144670542311612416
-    m_Key: Setting.DMXPerformerChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 145857192911855616
-    m_Key: Setting.DMXKeysChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 146520036238057472
-    m_Key: Setting.DMXPostProcessingChannel.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 146520481526341632
-    m_Key: Setting.DMXBeatlineChannel.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 146520641782308864
-    m_Key: Setting.DMXDrumsChannel.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 146520773076606976
-    m_Key: Setting.DMXBonusEffectChannel.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 146521261369090048
-    m_Key: Setting.DMXGuitarChannel.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 146521359872319488
-    m_Key: Setting.DMXBassChannel.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 146521527942275072
-    m_Key: Setting.DMXKeysChannel.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 146521706556710912
-    m_Key: Setting.DMXPerformerChannel.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 141514322187022336
-    m_Key: Setting.PlaybackBufferLength
-    m_Metadata:
-      m_Items: []
-  - m_Id: 141517638145044480
-    m_Key: Header.Customization
-    m_Metadata:
-      m_Items: []
-  - m_Id: 141517716490448896
-    m_Key: Setting.PlaybackBufferLength.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 141518416825970688
-    m_Key: Setting.ApplyVolumesInMusicLibrary.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 141824850801356800
-    m_Key: Setting.EnablePlaybackBuffer
-    m_Metadata:
-      m_Items: []
-  - m_Id: 141825994697109504
-    m_Key: Setting.EnablePlaybackBuffer.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144061360606707712
-    m_Key: Setting.ShowTime
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144061415640170496
-    m_Key: Setting.ShowTime.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144061522095800320
-    m_Key: Setting.ShowBattery
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144061567792742400
-    m_Key: Setting.ShowBattery.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144263364134207488
-    m_Key: Setting.MemoryStats
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144263416911134720
-    m_Key: Setting.MemoryStats.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 144264391830962176
-    m_Key: Header.StatusBar
-    m_Metadata:
-      m_Items: []
-  - m_Id: 147316926256930816
-    m_Key: Header.AdvancedDMXSettings
-    m_Metadata:
-      m_Items: []
-  - m_Id: 147317658649518080
-    m_Key: Setting.DMXUniverseChannel
-    m_Metadata:
-      m_Items: []
-  - m_Id: 147317817173237760
-    m_Key: Setting.DMXUniverseChannel.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 146129952089210880
-    m_Key: Setting.ReconnectProfiles
-    m_Metadata:
-      m_Items: []
-  - m_Id: 146130013221191680
-    m_Key: Setting.ReconnectProfiles.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 142611703768539136
-    m_Key: Setting.UpcomingLyricsTime
-    m_Metadata:
-      m_Items: []
-  - m_Id: 142611793451147264
-    m_Key: Setting.UpcomingLyricsTime.Description
     m_Metadata:
       m_Items: []
   m_Metadata:
