@@ -249,7 +249,7 @@ namespace YARG.Song
             }
             if (arg.Attribute == SortAttribute.Instrument)
             {
-                return FilterInstruments(searchList, arg.argument);
+                return SearchInstrument(searchList, arg.Instrument, arg.Argument);
             }
 
             List<SongCategory> result = new();
