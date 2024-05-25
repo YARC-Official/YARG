@@ -79,6 +79,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnNoteHit += OnNoteHit;
             engine.OnNoteMissed += OnNoteMissed;
+            engine.OnOverhit += OnOverstrum;
 
             engine.OnSoloStart += OnSoloStart;
             engine.OnSoloEnd += OnSoloEnd;

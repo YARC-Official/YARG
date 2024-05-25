@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Game;
-using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
@@ -140,8 +139,6 @@ namespace YARG.Gameplay.Visuals
         public void SetKeyHeld(int keyIndex, bool held)
         {
             if (keyIndex < 0 || keyIndex >= _highlights.Count) return;
-
-            YargLogger.LogFormatDebug("Setting key held: {0}", keyIndex);
 
             _highlights[keyIndex].SetActive(held);
         }
