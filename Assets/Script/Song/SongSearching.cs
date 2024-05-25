@@ -245,7 +245,7 @@ namespace YARG.Song
                 {
                     entriesToSearch.AddRange(entry.Songs);
                 }
-                return new List<SongCategory> { new("Search Results", SearchSongList(entriesToSearch, arg.Argument)) };
+                return new List<SongCategory> { new("Search Results", SearchSongList(entriesToSearch, arg.Argument, SortAttribute.Name, SortAttribute.Artist)) };
             }
             if (arg.Attribute == SortAttribute.Instrument)
             {
@@ -270,18 +270,16 @@ namespace YARG.Song
             public readonly SongEntry Song;
             public readonly int Rank;
 
-            private static readonly SortAttribute[] UnspecifiedAttributes = { SortAttribute.Name, SortAttribute.Artist };
-
             private readonly Dictionary<SortAttribute, double> _ranks = new();
             private readonly int _matchIndex;
 
-            public SortNode(SongEntry song, string argument, [CanBeNull] SortAttribute[] attributes)
+            public SortNode(SongEntry song, string argument, SortAttribute[] attributes)
             {
                 Song = song;
 
                 Dictionary<double, int> matchIndices = new();
 
-                foreach (var attribute in attributes is { Length: > 0 } ? attributes : UnspecifiedAttributes)
+                foreach (var attribute in attributes)
                 {
                     string songInfo = attribute switch
                     {
@@ -298,6 +296,7 @@ namespace YARG.Song
 
                     double rank = 0.0;
                     int index = -1;
+
                     if (attribute == SortAttribute.Year)
                     {
                         if (song.Year.Contains(argument))
@@ -370,7 +369,7 @@ namespace YARG.Song
             }
         }
 
-        private static List<SongEntry> SearchSongList(IReadOnlyList<SongEntry> songs, string argument, [CanBeNull] params SortAttribute[] attributes)
+        private static List<SongEntry> SearchSongList(IReadOnlyList<SongEntry> songs, string argument, params SortAttribute[] attributes)
         {
             var nodes = new SortNode[songs.Count];
 
