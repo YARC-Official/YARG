@@ -62,7 +62,7 @@ namespace YARG.Gameplay.Player
             {
                 // Create the engine params from the engine preset
                 // EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
-                EngineParams = new ProKeysEngineParameters(new HitWindowSettings(0.14, 0.14, 1.0, false), 4,
+                EngineParams = new ProKeysEngineParameters(new HitWindowSettings(0.14, 0.14, 1.0, false, 0, 0, 0), 4,
                     StarMultiplierThresholds);
             }
             else

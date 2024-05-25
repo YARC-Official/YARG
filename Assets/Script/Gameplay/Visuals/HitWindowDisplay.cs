@@ -55,7 +55,7 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            YargLogger.LogFormatDebug("Updating window {0}", _player.BaseEngine.BaseParameters.SongSpeed);
+            YargLogger.LogFormatDebug("Updating window to {0}ms at {1}%", Math.Floor(totalWindow * 1000), _player.BaseEngine.BaseParameters.SongSpeed * 100);
 
             _lastTotalWindow = totalWindow;
             _lastNoteSpeed = _player.NoteSpeed;
