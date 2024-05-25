@@ -79,7 +79,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnNoteHit += OnNoteHit;
             engine.OnNoteMissed += OnNoteMissed;
-            engine.OnOverhit += OnOverstrum;
+            engine.OnOverhit += OnOverhit;
 
             engine.OnSoloStart += OnSoloStart;
             engine.OnSoloEnd += OnSoloEnd;
@@ -126,6 +126,13 @@ namespace YARG.Gameplay.Player
             if (GameManager.Paused) return;
 
             (NotePool.GetByKey(note) as ProKeysNoteElement)?.HitNote();
+        }
+
+        private void OnOverhit(int key)
+        {
+            OnOverstrum();
+
+            // do overhit visuals
         }
 
         private void RangeShiftTo(int noteIndex, double timeLength)
