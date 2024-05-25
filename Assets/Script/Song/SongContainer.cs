@@ -299,7 +299,8 @@ namespace YARG.Song
             {
                 _sortDatesAdded.Add(new(node.Key.ToLongDateString(), node.Value));
             }
-            
+
+            _sortInstruments.Clear();
             foreach (var instrument in _songCache.Instruments)
             {
                 var list = new List<SongCategory>();
