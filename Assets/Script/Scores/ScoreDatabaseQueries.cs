@@ -49,5 +49,34 @@
 
         public const string CREATE_TABLES = CREATE_PROFILES_TABLE + ";" + CREATE_GAME_HISTORY_TABLE + ";" +
             CREATE_PLAYER_GAME_HISTORY_TABLE;
+        
+        public const string BEST_SCORES_BY_PERCENT =
+        @"WITH
+            BestInstAndDiff as (SELECT PlayerScores.Instrument,
+                                    PlayerScores.Difficulty,
+                                    PlayerScores.GameRecordId,
+                                    GameRecords.SongChecksum,
+                                    max(PlayerScores.Score)
+                                FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
+                                GROUP BY GameRecords.SongChecksum),
+            BestPercents as (SELECT PlayerScores.Id,
+                                    PlayerScores.GameRecordId,
+                                    PlayerScores.PlayerId,
+                                    PlayerScores.Instrument,
+                                    PlayerScores.Difficulty,
+                                    PlayerScores.EnginePresetId,
+                                    PlayerScores.Score,
+                                    PlayerScores.Stars,
+                                    PlayerScores.NotesHit,
+                                    PlayerScores.NotesMissed,
+                                    PlayerScores.IsFc,
+                                    max(ifnull(Percent, cast(NotesHit as REAL) / (NotesHit + NotesMissed))) as Percent,
+                                    GameRecords.SongChecksum
+                                FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
+                                GROUP BY GameRecords.SongChecksum, PlayerScores.Instrument, PlayerScores.Difficulty)
+        SELECT BestPercents.*
+        FROM BestInstAndDiff INNER JOIN BestPercents ON BestInstAndDiff.Instrument = BestPercents.Instrument
+            AND BestInstAndDiff.Difficulty = BestPercents.Difficulty
+            AND BestInstAndDiff.SongChecksum = BestPercents.SongChecksum";
     }
 }
