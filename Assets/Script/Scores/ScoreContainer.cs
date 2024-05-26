@@ -25,6 +25,7 @@ namespace YARG.Scores
         private static SQLiteConnection _db;
 
         private static readonly Dictionary<HashWrapper, PlayerScoreRecord> SongHighScores = new();
+        private static readonly Dictionary<HashWrapper, PlayerScoreRecord> SongHighScoresByPct = new();
 
         public static void Init()
         {
@@ -41,6 +42,7 @@ namespace YARG.Scores
 
                 _db = new SQLiteConnection(_scoreDatabaseFile);
                 InitDatabase();
+                UpdateNullPercents();
                 FetchHighScores();
             }
             catch (Exception e)
@@ -89,11 +91,25 @@ namespace YARG.Scores
                     if (bestScore.Score > highScore.Score)
                     {
                         SongHighScores[songChecksum] = bestScore;
+
+                        if (bestScore.Instrument != highScore.Instrument || bestScore.Difficulty != highScore.Difficulty)
+                        {
+                            SongHighScoresByPct[songChecksum] = bestScore;
+                        }
+                    }
+
+                    if (bestScore.Instrument == highScore.Instrument && bestScore.Difficulty == highScore.Difficulty)
+                    {
+                        if (bestScore.GetPercent() > highScore.GetPercent())
+                        {
+                            SongHighScoresByPct[songChecksum] = bestScore;
+                        }
                     }
                 }
                 else
                 {
                     SongHighScores.Add(songChecksum, bestScore);
+                    SongHighScoresByPct.Add(songChecksum, bestScore);
                 }
 
                 YargLogger.LogInfo("Recorded high score for song.");
@@ -155,26 +171,27 @@ namespace YARG.Scores
         public static PlayerScoreRecord GetHighScore(HashWrapper songChecksum)
         {
             return SongHighScores?.GetValueOrDefault(songChecksum);
+        }
 
-            // If it's not in the high score cache then it's not in the database
+        public static PlayerScoreRecord GetBestPercentageScore(HashWrapper songChecksum)
+        {
+            return SongHighScoresByPct?.GetValueOrDefault(songChecksum);
+        }
 
-            // try
-            // {
-            //     var query =
-            //         $"SELECT * FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id WHERE " +
-            //         $"GameRecords.SongChecksum = x'{songChecksum.ToString()}' ORDER BY Score DESC LIMIT 1";
-            //     score = _db.FindWithQuery<PlayerScoreRecord>(query);
-            //
-            //     if(score is not null)
-            //     {
-            //         SongHighScores.Add(songChecksum, score);
-            //     }
-            // }
-            // catch (Exception e)
-            // {
-            //     Debug.LogError("Failed to load high score from database. See error below for more details.");
-            //     Debug.LogException(e);
-            // }
+        public static void UpdateNullPercents()
+        {
+            try
+            {
+                var n = _db.Execute(ScoreDatabaseQueries.UPDATE_NULL_PERCENTS);
+                if (n > 0)
+                {
+                    YargLogger.LogFormatInfo("Successfully updated the percentage field on {0} rows.", n);
+                }
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to update null percents in database.");
+            }
         }
 
         public static void FetchHighScores()
@@ -197,6 +214,18 @@ namespace YARG.Scores
                     }
 
                     SongHighScores.Add(new HashWrapper(song.SongChecksum), score);
+                }
+
+                var scoreResultsByPct = _db.Query<PlayerScoreRecord>(ScoreDatabaseQueries.BEST_SCORES_BY_PERCENT);
+                foreach (var score in scoreResultsByPct)
+                {
+                    var song = songResults.FirstOrDefault(x => x.Id == score.GameRecordId);
+                    if (song is null)
+                    {
+                        continue;
+                    }
+
+                    SongHighScoresByPct.Add(new HashWrapper(song.SongChecksum), score);
                 }
             }
             catch (Exception e)
