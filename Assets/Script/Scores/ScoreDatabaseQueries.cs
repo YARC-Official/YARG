@@ -50,33 +50,28 @@
         public const string CREATE_TABLES = CREATE_PROFILES_TABLE + ";" + CREATE_GAME_HISTORY_TABLE + ";" +
             CREATE_PLAYER_GAME_HISTORY_TABLE;
         
-        public const string BEST_SCORES_BY_PERCENT =
-        @"WITH
-            BestInstAndDiff as (SELECT PlayerScores.Instrument,
-                                    PlayerScores.Difficulty,
-                                    PlayerScores.GameRecordId,
-                                    GameRecords.SongChecksum,
-                                    max(PlayerScores.Score)
-                                FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
-                                GROUP BY GameRecords.SongChecksum),
-            BestPercents as (SELECT PlayerScores.Id,
-                                    PlayerScores.GameRecordId,
-                                    PlayerScores.PlayerId,
-                                    PlayerScores.Instrument,
-                                    PlayerScores.Difficulty,
-                                    PlayerScores.EnginePresetId,
-                                    PlayerScores.Score,
-                                    PlayerScores.Stars,
-                                    PlayerScores.NotesHit,
-                                    PlayerScores.NotesMissed,
-                                    PlayerScores.IsFc,
-                                    max(ifnull(Percent, cast(NotesHit as REAL) / (NotesHit + NotesMissed))) as Percent,
-                                    GameRecords.SongChecksum
-                                FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
-                                GROUP BY GameRecords.SongChecksum, PlayerScores.Instrument, PlayerScores.Difficulty)
+        public const string UPDATE_NULL_PERCENTS = @"
+            UPDATE PlayerScores
+            SET Percent = cast(NotesHit as REAL) / (NotesHit + NotesMissed)
+            WHERE Percent IS NULL";
+        
+        public const string BEST_SCORES_BY_PERCENT = @"
+        WITH
+        /*  For each song, this retrieves the records with the best score  */
+            BestScore as (SELECT *, max(Score)
+                            FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
+                            GROUP BY GameRecords.SongChecksum),
+        /*  For each song, instrument, and difficulty, this retrieves the records with the best score by percent  */
+            BestPercents as (SELECT *, max(Percent)
+                            FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
+                            GROUP BY GameRecords.SongChecksum, PlayerScores.Instrument, PlayerScores.Difficulty)
+        /*
+            Filter the lines from the BestPercents temporary table above where the instrument and difficulty match
+            the instrument and difficulty when the highest score was recorded
+        */
         SELECT BestPercents.*
-        FROM BestInstAndDiff INNER JOIN BestPercents ON BestInstAndDiff.Instrument = BestPercents.Instrument
-            AND BestInstAndDiff.Difficulty = BestPercents.Difficulty
-            AND BestInstAndDiff.SongChecksum = BestPercents.SongChecksum";
+        FROM BestPercents INNER JOIN BestScore ON BestScore.Instrument = BestPercents.Instrument
+            AND BestScore.Difficulty = BestPercents.Difficulty
+            AND BestScore.SongChecksum = BestPercents.SongChecksum";
     }
 }

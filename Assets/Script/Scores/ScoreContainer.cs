@@ -42,6 +42,7 @@ namespace YARG.Scores
 
                 _db = new SQLiteConnection(_scoreDatabaseFile);
                 InitDatabase();
+                UpdateNullPercents();
                 FetchHighScores();
             }
             catch (Exception e)
@@ -175,6 +176,22 @@ namespace YARG.Scores
         public static PlayerScoreRecord GetBestPercentageScore(HashWrapper songChecksum)
         {
             return SongHighScoresByPct?.GetValueOrDefault(songChecksum);
+        }
+
+        public static void UpdateNullPercents()
+        {
+            try
+            {
+                var n = _db.Execute(ScoreDatabaseQueries.UPDATE_NULL_PERCENTS);
+                if (n > 0)
+                {
+                    YargLogger.LogFormatInfo("Successfully updated the percentage field on {0} rows.", n);
+                }
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to update null percents in database.");
+            }
         }
 
         public static void FetchHighScores()
