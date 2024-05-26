@@ -15,7 +15,7 @@ using YARG.Song;
 
 namespace YARG.Scores
 {
-    public static class ScoreContainer
+    public static partial class ScoreContainer
     {
         public static string ScoreDirectory       { get; private set; }
         public static string ScoreReplayDirectory { get; private set; }
@@ -182,7 +182,7 @@ namespace YARG.Scores
         {
             try
             {
-                var n = _db.Execute(ScoreDatabaseQueries.UPDATE_NULL_PERCENTS);
+                var n = _db.Execute(QUERY_UPDATE_NULL_PERCENTS);
                 if (n > 0)
                 {
                     YargLogger.LogFormatInfo("Successfully updated the percentage field on {0} rows.", n);
@@ -198,13 +198,8 @@ namespace YARG.Scores
         {
             try
             {
-                const string highScores = "SELECT *, MAX(Score) FROM PlayerScores " +
-                    "INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id GROUP BY GameRecords.SongChecksum";
-                const string songs = "SELECT Id, SongChecksum FROM GameRecords";
-
-                var scoreResults = _db.Query<PlayerScoreRecord>(highScores);
-                var songResults = _db.Query<GameRecord>(songs);
-
+                var scoreResults = _db.Query<PlayerScoreRecord>(QUERY_HIGH_SCORES);
+                var songResults = _db.Query<GameRecord>(QUERY_SONGS);
                 foreach (var score in scoreResults)
                 {
                     var song = songResults.FirstOrDefault(x => x.Id == score.GameRecordId);
@@ -216,7 +211,7 @@ namespace YARG.Scores
                     SongHighScores.Add(new HashWrapper(song.SongChecksum), score);
                 }
 
-                var scoreResultsByPct = _db.Query<PlayerScoreRecord>(ScoreDatabaseQueries.BEST_SCORES_BY_PERCENT);
+                var scoreResultsByPct = _db.Query<PlayerScoreRecord>(QUERY_BEST_SCORES_BY_PERCENT);
                 foreach (var score in scoreResultsByPct)
                 {
                     var song = songResults.FirstOrDefault(x => x.Id == score.GameRecordId);
