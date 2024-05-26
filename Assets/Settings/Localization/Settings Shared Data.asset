@@ -295,6 +295,10 @@ MonoBehaviour:
     m_Key: PresetDropdown.EnginePreset.SubSection.FiveFretGuitar
     m_Metadata:
       m_Items: []
+  - m_Id: 154863302773956609
+    m_Key: PresetDropdown.EnginePreset.SubSection.ProKeys
+    m_Metadata:
+      m_Items: []
   - m_Id: 154789379252281345
     m_Key: PresetDropdown.EnginePreset.SubSection.Vocals
     m_Metadata:
@@ -595,6 +599,10 @@ MonoBehaviour:
     m_Key: PresetSetting.EnginePreset.AntiGhosting.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 154863549495500800
+    m_Key: PresetSetting.EnginePreset.ChordStaggerWindow
+    m_Metadata:
+      m_Items: []
   - m_Id: 154803277208608768
     m_Key: PresetSetting.EnginePreset.DynamicGamma
     m_Metadata:
@@ -617,6 +625,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 154803277212803075
     m_Key: PresetSetting.EnginePreset.DynamicSlope.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154863549499695104
+    m_Key: PresetSetting.EnginePreset.FatFingerWindow
     m_Metadata:
       m_Items: []
   - m_Id: 116747023328600129

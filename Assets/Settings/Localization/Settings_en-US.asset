@@ -1700,6 +1700,18 @@ MonoBehaviour:
     m_Localized: Perfect Pitch Percent
     m_Metadata:
       m_Items: []
+  - m_Id: 154863302773956609
+    m_Localized: Pro Keys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154863549495500800
+    m_Localized: Chord Stagger Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154863549499695104
+    m_Localized: Fat Finger Window
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -5,7 +5,6 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
 using YARG.Core.Engine.ProKeys;
 using YARG.Core.Engine.ProKeys.Engines;
 using YARG.Core.Input;
@@ -61,9 +60,7 @@ namespace YARG.Gameplay.Player
             if (!GameManager.IsReplay)
             {
                 // Create the engine params from the engine preset
-                // EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
-                EngineParams = new ProKeysEngineParameters(new HitWindowSettings(0.14, 0.14, 1.0, false, 0, 0, 0), 4,
-                    StarMultiplierThresholds);
+                EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds);
             }
             else
             {
