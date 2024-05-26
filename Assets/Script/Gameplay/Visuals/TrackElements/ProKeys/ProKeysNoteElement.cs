@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Engine.ProKeys;
 using YARG.Gameplay.Player;
-using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
 
@@ -103,7 +103,7 @@ namespace YARG.Gameplay.Visuals
         {
             var colors = Player.Player.ColorProfile.ProKeys;
 
-            var isBlackKey = PianoHelper.IsBlackKey(NoteRef.Key % 12);
+            var isBlackKey = ProKeysUtilities.IsBlackKey(NoteRef.Key % 12);
 
             var colorNoStarPower = isBlackKey
                 ? colors.BlackNote.ToUnityColor()
