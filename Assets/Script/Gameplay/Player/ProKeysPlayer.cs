@@ -211,12 +211,21 @@ namespace YARG.Gameplay.Player
                 float changePercent = (float) YargMath.InverseLerpD(_offsetStartTime, _offsetEndTime,
                     GameManager.RealVisualTime);
 
+                // Because the range shift is called when resetting practice mode, the start time
+                // will be that of the previous section causing the real time to be less than the start time.
+                // In that case, just complete the range shift immediately.
+                if (GameManager.RealVisualTime < _offsetStartTime)
+                {
+                    changePercent = 1f;
+                }
+
                 if (changePercent >= 1f)
                 {
-                    YargLogger.LogDebug("Offset change finished");
                     // If the change has finished, stop!
                     _isOffsetChanging = false;
                     _currentOffset = _targetOffset;
+
+                    YargLogger.LogDebug("Offset change finished");
                 }
                 else
                 {
