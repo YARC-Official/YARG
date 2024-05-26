@@ -362,15 +362,15 @@ namespace YARG.Song
                     return Rank - other.Rank;
                 }
 
+                if (_matchIndex != other._matchIndex)
+                {
+                    return other._matchIndex < 0 || _matchIndex >= 0 && _matchIndex < other._matchIndex ? 1 : -1;
+                }
+
                 if (_attribute != other._attribute)
                 {
                     // Sort by lowest SortAttribute value first, e.g. Name (1) > Artist (2)
                     return other._attribute.CompareTo(_attribute);
-                }
-
-                if (_matchIndex != other._matchIndex)
-                {
-                    return other._matchIndex < 0 || _matchIndex >= 0 && _matchIndex < other._matchIndex ? 1 : -1;
                 }
 
                 return string.Compare(other.Song.Name.Str, Song.Name.Str, StringComparison.Ordinal);
