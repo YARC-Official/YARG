@@ -1,5 +1,4 @@
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -143,7 +142,7 @@ namespace YARG.Menu.MusicLibrary
             }
             else if (_currentSong != null)
             {
-                UpdateSearch(true, true);
+                UpdateSearch(true);
             }
 
             CurrentlyPlaying = null;
@@ -370,15 +369,11 @@ namespace YARG.Menu.MusicLibrary
         private void Refresh()
         {
             SetRecommendedSongs();
-            UpdateSearch(true, true);
+            _searchField.ClearList();
+            UpdateSearch(true);
         }
 
         private void UpdateSearch(bool force)
-        {
-            UpdateSearch(force, false);
-        }
-
-        private void UpdateSearch(bool force, bool refresh)
         {
             if (!force && _searchField.IsCurrentSearchInField)
             {
