@@ -1,13 +1,9 @@
 ﻿using System.Collections.Generic;
-using DG.Tweening;
 using UnityEngine;
-using UnityEngine.Rendering;
 using YARG.Core;
+using YARG.Core.Engine.ProKeys;
 using YARG.Core.Game;
-using YARG.Core.Logging;
 using YARG.Gameplay.Player;
-using YARG.Helpers;
-using YARG.Helpers.Extensions;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
@@ -52,7 +48,7 @@ namespace YARG.Gameplay.Visuals
                 int noteIndex = i % 12;
                 int octaveIndex = i / 12;
 
-                if (PianoHelper.IsBlackKey(noteIndex))
+                if (ProKeysUtilities.IsBlackKey(noteIndex))
                 {
                     // Black keys
 
@@ -61,7 +57,7 @@ namespace YARG.Gameplay.Visuals
                     fret.transform.localPosition = new Vector3(
                         blackPositionIndex * KeySpacing + _blackKeyOffset, 0f, 0f);
 
-                    int group = octaveIndex * 2 + (PianoHelper.IsLowerHalfKey(noteIndex) ? 0 : 1);
+                    int group = octaveIndex * 2 + (ProKeysUtilities.IsLowerHalfKey(noteIndex) ? 0 : 1);
                     var color = colors.GetBlackKeyColor(group);
 
                     var fretComp = fret.GetComponent<Fret>();
@@ -73,7 +69,7 @@ namespace YARG.Gameplay.Visuals
                     _keys.Add(fretComp);
 
                     blackPositionIndex++;
-                    if (PianoHelper.IsGapOnNextBlackKey(noteIndex))
+                    if (ProKeysUtilities.IsGapOnNextBlackKey(noteIndex))
                     {
                         blackPositionIndex++;
                     }

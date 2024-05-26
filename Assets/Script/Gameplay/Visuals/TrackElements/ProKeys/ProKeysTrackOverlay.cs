@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using YARG.Core.Engine.ProKeys;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
-using YARG.Helpers;
 using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.Visuals
@@ -51,15 +51,15 @@ namespace YARG.Gameplay.Visuals
                 int octaveIndex = i / 12;
 
                 // Get the group index (two groups per octave)
-                int group = octaveIndex * 2 + (PianoHelper.IsLowerHalfKey(noteIndex) ? 0 : 1);
+                int group = octaveIndex * 2 + (ProKeysUtilities.IsLowerHalfKey(noteIndex) ? 0 : 1);
                 var groupColor = colors.GetOverlayColor(group).ToUnityColor();
 
-                if (PianoHelper.IsBlackKey(noteIndex))
+                if (ProKeysUtilities.IsBlackKey(noteIndex))
                 {
                     SpawnHighlight(true, blackPositionIndex, player, groupColor);
                     blackPositionIndex++;
 
-                    if (PianoHelper.IsGapOnNextBlackKey(noteIndex))
+                    if (ProKeysUtilities.IsGapOnNextBlackKey(noteIndex))
                     {
                         blackPositionIndex++;
                     }
