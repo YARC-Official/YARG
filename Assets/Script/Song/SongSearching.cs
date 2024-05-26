@@ -270,13 +270,14 @@ namespace YARG.Song
             public readonly SongEntry Song;
             public readonly int Rank;
 
-            private readonly Dictionary<SortAttribute, double> _ranks = new();
+            private readonly SortAttribute _attribute;
             private readonly int _matchIndex;
 
             public SortNode(SongEntry song, string argument, SortAttribute[] attributes)
             {
                 Song = song;
 
+                Dictionary<SortAttribute, double> ranks = new();
                 Dictionary<double, int> matchIndices = new();
 
                 foreach (var attribute in attributes)
@@ -315,14 +316,15 @@ namespace YARG.Song
                         (rank, index) = GetRankAndMatchIndex(songInfo, argument);
                     }
 
-                    _ranks.Add(attribute, rank);
+                    ranks.Add(attribute, rank);
                     matchIndices.TryAdd(rank, index);
                 }
 
-                var max = _ranks.Values.Max();
+                var max = ranks.Values.Max();
 
                 Rank = (int)Math.Floor(max);
                 _matchIndex = matchIndices[max];
+                _attribute = ranks.FirstOrDefault(i => i.Value.Equals(max)).Key;
             }
 
             private static (double, int) GetRankAndMatchIndex(string songStr, string argument)
@@ -358,6 +360,12 @@ namespace YARG.Song
                 if (Rank != other.Rank)
                 {
                     return Rank - other.Rank;
+                }
+
+                if (_attribute != other._attribute)
+                {
+                    // Sort by lowest SortAttribute value first, e.g. Name (1) > Artist (2)
+                    return other._attribute.CompareTo(_attribute);
                 }
 
                 if (_matchIndex != other._matchIndex)
