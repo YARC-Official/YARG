@@ -2,6 +2,8 @@
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Player;
+using YARG.Helpers;
+using YARG.Helpers.Extensions;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
@@ -99,21 +101,27 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateColor()
         {
-            // var colors = Player.Player.ColorProfile.FiveFretGuitar;
+            var colors = Player.Player.ColorProfile.ProKeys;
 
-            // Get which note color to use
-            // var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
-            // var color = NoteRef.IsStarPower
-            //     ? colors.GetNoteStarPowerColor(NoteRef.Fret)
-            //     : colorNoStarPower;
+            var isBlackKey = PianoHelper.IsBlackKey(NoteRef.Key % 12);
 
-            // Set the note color
-            NoteGroup.SetColorWithEmission(Color.white, Color.white);
+            var colorNoStarPower = isBlackKey
+                ? colors.BlackNote.ToUnityColor()
+                : colors.WhiteNote.ToUnityColor();
 
-            // The rest of this method is for sustain only
+            var colorStarPower = isBlackKey
+                ? colors.BlackNoteStarPower.ToUnityColor()
+                : colors.WhiteNoteStarPower.ToUnityColor();
+
+            var color = NoteRef.IsStarPower
+                ? colorStarPower
+                : colorNoStarPower;
+
+            NoteGroup.SetColorWithEmission(color, colorNoStarPower);
+
             if (!NoteRef.IsSustain) return;
 
-            _sustainLine.SetState(SustainState, Color.white);
+            _sustainLine.SetState(SustainState, colorNoStarPower);
         }
 
         protected override void HideElement()
