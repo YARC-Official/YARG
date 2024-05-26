@@ -116,6 +116,56 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        public override void ResetPracticeSection()
+        {
+            base.ResetPracticeSection();
+
+            _rangeShiftIndex = 0;
+
+            if (_rangeShifts.Count > 0)
+            {
+                RangeShiftTo(_rangeShifts[0].Key, 0);
+                _rangeShiftIndex++;
+            }
+        }
+
+        public override void SetPracticeSection(uint start, uint end)
+        {
+            base.SetPracticeSection(start, end);
+
+            _rangeShiftIndex = 0;
+            _rangeShifts = GetRangeShifts();
+
+            int startIndex = _rangeShifts.FindIndex(r => r.Tick >= start);
+
+            // If the range shift is not on the starting tick, get the one before it.
+            // This is so that the correct range is used at the start of the section.
+            if (_rangeShifts[startIndex].Tick > start && startIndex > 0)
+            {
+                // Only get the previous range shift if there are notes before the current first range shift.
+                // If there are no notes, we can just automatically shift to it at the start of the section like in Quickplay.
+                if (Notes.Count > 0 && Notes[0].Tick < _rangeShifts[startIndex].Tick)
+                {
+                    startIndex--;
+                }
+            }
+
+            int endIndex = _rangeShifts.FindIndex(r => r.Tick >= end);
+            if (endIndex == -1)
+            {
+                endIndex = _rangeShifts.Count;
+            }
+
+            _rangeShifts = _rangeShifts.GetRange(startIndex, endIndex - startIndex);
+
+            if (_rangeShifts.Count > 0)
+            {
+                YargLogger.LogFormatDebug("Range Shifting from SetPracticeSection to {0} over {1}", _rangeShifts[0].Key, 0);
+                RangeShiftTo(_rangeShifts[0].Key, 0);
+                _rangeShiftIndex++;
+            }
+        }
+
         protected override void OnNoteHit(int index, ProKeysNote note)
         {
             base.OnNoteHit(index, note);
@@ -134,6 +184,7 @@ namespace YARG.Gameplay.Player
 
         private void RangeShiftTo(int noteIndex, double timeLength)
         {
+            YargLogger.LogFormatDebug("Shifting to {0} over {1}", noteIndex, timeLength);
             _isOffsetChanging = true;
 
             _offsetStartTime = GameManager.RealVisualTime;
@@ -162,6 +213,7 @@ namespace YARG.Gameplay.Player
 
                 if (changePercent >= 1f)
                 {
+                    YargLogger.LogDebug("Offset change finished");
                     // If the change has finished, stop!
                     _isOffsetChanging = false;
                     _currentOffset = _targetOffset;
@@ -201,6 +253,7 @@ namespace YARG.Gameplay.Player
                 var rangeShift = _rangeShifts[_rangeShiftIndex];
                 _rangeShiftIndex++;
 
+                YargLogger.LogFormatDebug("Range Shifting from UpdatePhrases to {0} over {1}", rangeShift.Key, rangeShift.TimeLength);
                 RangeShiftTo(rangeShift.Key, rangeShift.TimeLength);
             }
         }
@@ -234,12 +287,34 @@ namespace YARG.Gameplay.Player
 
             return false;
         }
+
+        private List<ProKeysRangeShift> GetRangeShifts()
+        {
+            return NoteTrack.Phrases.Where(phrase =>
+                phrase.Type is >= PhraseType.ProKeys_RangeShift0 and <= PhraseType.ProKeys_RangeShift5).Select(phrase =>
+            {
+                return new ProKeysRangeShift { Time = phrase.Time, TimeLength = phrase.TimeLength, Tick = phrase.Tick,
+                    TickLength = phrase.TickLength, Key = phrase.Type switch
+                {
+                    PhraseType.ProKeys_RangeShift0 => 0,
+                    PhraseType.ProKeys_RangeShift1 => 2,
+                    PhraseType.ProKeys_RangeShift2 => 4,
+                    PhraseType.ProKeys_RangeShift3 => 5,
+                    PhraseType.ProKeys_RangeShift4 => 7,
+                    PhraseType.ProKeys_RangeShift5 => 9,
+                    _                              => throw new Exception("Unreachable")
+                } };
+            }).ToList();
+        }
     }
 
     public struct ProKeysRangeShift
     {
         public double Time;
         public double TimeLength;
+
+        public uint Tick;
+        public uint TickLength;
 
         public int Key;
     }
