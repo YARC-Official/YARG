@@ -263,7 +263,9 @@ namespace YARG.Gameplay.Player
                 _rangeShiftIndex++;
 
                 YargLogger.LogFormatDebug("Range Shifting from UpdatePhrases to {0} over {1}", rangeShift.Key, rangeShift.TimeLength);
-                RangeShiftTo(rangeShift.Key, rangeShift.TimeLength);
+
+                const double rangeShiftTime = 0.25;
+                RangeShiftTo(rangeShift.Key, rangeShiftTime);
             }
         }
 
