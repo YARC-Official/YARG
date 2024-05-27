@@ -107,12 +107,6 @@ namespace YARG.Gameplay.Visuals
         {
             var key = _keys[index];
             key.SetPressed(pressed);
-
-            // Only do white key light ups for now
-            // foreach (var material in key.ThemeBind.GetColoredMaterials())
-            // {
-            //     material.SetKeyword();
-            // }
         }
     }
 }

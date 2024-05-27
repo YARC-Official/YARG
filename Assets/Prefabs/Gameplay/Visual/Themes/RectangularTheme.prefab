@@ -164,10 +164,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f46efdc257804dceb9be77f1f9b48614, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _coloredMaterials:
+  _coloredMaterials: []
+  _innerMaterials:
   - Mesh: {fileID: 188795039369860854}
     MaterialIndex: 0
-  _innerMaterials: []
   <HitEffect>k__BackingField: {fileID: 5908010687274165787}
   <SustainEffect>k__BackingField: {fileID: 4176454696460499326}
   <PressedEffect>k__BackingField: {fileID: 6422925741720054375}
@@ -1205,10 +1205,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f46efdc257804dceb9be77f1f9b48614, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _coloredMaterials:
+  _coloredMaterials: []
+  _innerMaterials:
   - Mesh: {fileID: 3018587288898389075}
     MaterialIndex: 0
-  _innerMaterials: []
   <HitEffect>k__BackingField: {fileID: 7131839665916257158}
   <SustainEffect>k__BackingField: {fileID: 8606361308894237597}
   <PressedEffect>k__BackingField: {fileID: 7487306377969153328}
