@@ -105,8 +105,13 @@ namespace YARG.Gameplay.Visuals
 
         public void SetPressed(int index, bool pressed)
         {
-            var key = _keys[index];
-            key.SetPressed(pressed);
+            _keys[index].SetPressed(pressed);
+        }
+
+        public void PlayHitAnimation(int index)
+        {
+            _keys[index].PlayHitAnimation();
+            _keys[index].PlayHitParticles();
         }
     }
 }

@@ -173,6 +173,7 @@ namespace YARG.Gameplay.Player
             if (GameManager.Paused) return;
 
             (NotePool.GetByKey(note) as ProKeysNoteElement)?.HitNote();
+            _keysArray.PlayHitAnimation(note.Key);
         }
 
         private void OnOverhit(int key)
