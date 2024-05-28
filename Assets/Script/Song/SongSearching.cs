@@ -244,7 +244,7 @@ namespace YARG.Song
                 {
                     entriesToSearch.AddRange(entry.Songs);
                 }
-                return new List<SongCategory> { new("Search Results", SearchSongList(entriesToSearch, arg.Argument, SortAttribute.Name, SortAttribute.Artist)) };
+                return new List<SongCategory> { new("Search Results", SearchSongList(entriesToSearch, arg.Argument, new[] { SortAttribute.Name, SortAttribute.Artist })) };
             }
             if (arg.Attribute == SortAttribute.Instrument)
             {
@@ -254,7 +254,7 @@ namespace YARG.Song
             List<SongCategory> result = new();
             foreach (var node in searchList)
             {
-                var entries = SearchSongList(node.Songs, arg.Argument, arg.Attribute);
+                var entries = SearchSongList(node.Songs, arg.Argument, new[] { arg.Attribute });
                 if (entries.Count > 0)
                 {
                     result.Add(new SongCategory(node.Category, entries));
@@ -376,7 +376,7 @@ namespace YARG.Song
             }
         }
 
-        private static List<SongEntry> SearchSongList(IReadOnlyList<SongEntry> songs, string argument, params SortAttribute[] attributes)
+        private static List<SongEntry> SearchSongList(IReadOnlyList<SongEntry> songs, string argument, SortAttribute[] attributes)
         {
             var nodes = new SortNode[songs.Count];
 
