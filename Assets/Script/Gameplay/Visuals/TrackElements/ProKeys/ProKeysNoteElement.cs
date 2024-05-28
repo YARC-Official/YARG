@@ -10,6 +10,15 @@ namespace YARG.Gameplay.Visuals
 {
     public sealed class ProKeysNoteElement : NoteElement<ProKeysNote, ProKeysPlayer>
     {
+        private enum NoteType
+        {
+            White     = 0,
+            Black     = 1,
+            Glissando = 2,
+
+            Count
+        }
+
         [Space]
         [SerializeField]
         private SustainLine _sustainLine;
@@ -21,8 +30,10 @@ namespace YARG.Gameplay.Visuals
             Dictionary<ThemeNoteType, GameObject> models,
             Dictionary<ThemeNoteType, GameObject> starPowerModels)
         {
-            CreateNoteGroupArrays(1);
-            AssignNoteGroup(models, starPowerModels, 0, ThemeNoteType.Normal);
+            CreateNoteGroupArrays((int) NoteType.Count);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.White,     ThemeNoteType.White);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Black,     ThemeNoteType.Black);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Glissando, ThemeNoteType.Glissando);
         }
 
         protected override void InitializeElement()
@@ -35,7 +46,15 @@ namespace YARG.Gameplay.Visuals
             transform.localPosition = Vector3.zero;
             UpdateNoteX();
 
-            NoteGroup = noteGroups[0];
+            if (ProKeysUtilities.IsWhiteKey(NoteRef.Key % 12))
+            {
+                NoteGroup = noteGroups[(int) NoteType.White];
+            }
+            else
+            {
+                NoteGroup = noteGroups[(int) NoteType.Black];
+            }
+
             NoteGroup.SetActive(true);
             NoteGroup.Initialize();
 

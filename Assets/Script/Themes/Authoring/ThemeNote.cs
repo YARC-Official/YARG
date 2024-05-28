@@ -18,7 +18,11 @@ namespace YARG.Themes
         OpenHOPO,
 
         Cymbal,
-        Kick
+        Kick,
+
+        White,
+        Black,
+        Glissando,
     }
 
     public class ThemeNote : MonoBehaviour
