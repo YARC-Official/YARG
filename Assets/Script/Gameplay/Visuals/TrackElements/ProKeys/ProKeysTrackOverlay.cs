@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using YARG.Core.Engine.ProKeys;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
@@ -98,6 +99,7 @@ namespace YARG.Gameplay.Visuals
             material.SetTexture(BaseMap, _heldGradientTexture);
             material.SetFade(player.ZeroFadePosition, player.FadeSize);
             material.SetFloat(Index, player.PlayerIndex);
+            material.SetKeyword(new LocalKeyword(material.shader, "_ISHIGHLIGHT"), true);
 
             highlight.SetActive(false);
             _highlights.Add(highlight);
