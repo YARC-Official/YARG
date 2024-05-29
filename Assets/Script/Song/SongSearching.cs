@@ -363,14 +363,14 @@ namespace YARG.Song
                 },
                 SearchMode.Fuzzy => filter.Attribute switch
                 {
-                    SortAttribute.Name => entry => GetRank(entry.Name.SortStr, filter.Argument) >= RANK_THRESHOLD,
-                    SortAttribute.Artist => entry => GetRank(RemoveArticle(entry.Artist.SortStr), filter.Argument) >= RANK_THRESHOLD,
-                    SortAttribute.Album => entry => GetRank(entry.Album.SortStr, filter.Argument) >= RANK_THRESHOLD,
-                    SortAttribute.Genre => entry => GetRank(entry.Genre.SortStr, filter.Argument) >= RANK_THRESHOLD,
+                    SortAttribute.Name => entry => IsAboveFuzzyThreshold(entry.Name.SortStr, filter.Argument),
+                    SortAttribute.Artist => entry => IsAboveFuzzyThreshold(RemoveArticle(entry.Artist.SortStr), filter.Argument),
+                    SortAttribute.Album => entry => IsAboveFuzzyThreshold(entry.Album.SortStr, filter.Argument),
+                    SortAttribute.Genre => entry => IsAboveFuzzyThreshold(entry.Genre.SortStr, filter.Argument),
                     SortAttribute.Year => entry => entry.Year.Contains(filter.Argument) || entry.UnmodifiedYear.Contains(filter.Argument),
-                    SortAttribute.Charter => entry => GetRank(entry.Charter.SortStr, filter.Argument) >= RANK_THRESHOLD,
-                    SortAttribute.Playlist => entry => GetRank(entry.Playlist.SortStr, filter.Argument) >= RANK_THRESHOLD,
-                    SortAttribute.Source => entry => GetRank(entry.Source.SortStr, filter.Argument) >= RANK_THRESHOLD,
+                    SortAttribute.Charter => entry => IsAboveFuzzyThreshold(entry.Charter.SortStr, filter.Argument),
+                    SortAttribute.Playlist => entry => IsAboveFuzzyThreshold(entry.Playlist.SortStr, filter.Argument),
+                    SortAttribute.Source => entry => IsAboveFuzzyThreshold(entry.Source.SortStr, filter.Argument),
                     _ => throw new Exception("Unhandled seacrh filter")
                 },
                 SearchMode.Exact => filter.Attribute switch
@@ -402,45 +402,40 @@ namespace YARG.Song
             public static UnspecifiedSortNode? TryCreate(SongEntry song, FilterNode filter)
 #nullable disable
             {
-                int nameIndex;
-                int artistIndex;
-                int rank;
+                int nameIndex = -1;
+                int artistIndex = -1;
                 SearchMode mode;
                 if (filter.Mode == SearchMode.Exact)
                 {
+                    mode = SearchMode.Exact;
                     nameIndex = song.Name.SortStr == filter.Argument ? 0 : -1;
                     artistIndex = song.Artist.SortStr == filter.Argument ? 0 : -1;
-                    rank = nameIndex == 0 || artistIndex == 0 ? 0 : -1;
-                    mode = SearchMode.Exact;
                 }
                 else
                 {
-                    nameIndex = song.Name.SortStr.IndexOf(filter.Argument, StringComparison.Ordinal);
-                    artistIndex = song.Artist.SortStr.IndexOf(filter.Argument, StringComparison.Ordinal);
+                    mode = SearchMode.Fuzzy;
+                    bool nameFuzzy = IsAboveFuzzyThreshold(song.Name.SortStr, filter.Argument);
+                    bool artistFuzzy = IsAboveFuzzyThreshold(song.Artist.SortStr, filter.Argument);
 
-                    rank = nameIndex;
-                    if (rank < 0 || (artistIndex >= 0 && artistIndex < rank))
+                    if (nameFuzzy || artistFuzzy)
                     {
-                        rank = artistIndex;
-                    }
+                        nameIndex = song.Name.SortStr.IndexOf(filter.Argument, StringComparison.Ordinal);
+                        artistIndex = song.Artist.SortStr.IndexOf(filter.Argument, StringComparison.Ordinal);
 
-                    if (rank >= 0)
-                    {
-                        mode = SearchMode.Contains;
-                    }
-                    else
-                    {
-                        mode = SearchMode.Fuzzy;
-                        nameIndex = GetRank(song.Name.SortStr, filter.Argument) >= RANK_THRESHOLD ? GetIndex(song.Name.SortStr, filter.Argument) : -1;
-                        artistIndex = GetRank(song.Artist.SortStr, filter.Argument) >= RANK_THRESHOLD ? GetIndex(song.Artist.SortStr, filter.Argument) : -1;
-
-                        rank = nameIndex;
-                        if (rank < 0 || (artistIndex >= 0 && artistIndex < rank))
+                        if (nameIndex >= 0 || artistIndex >= 0)
                         {
-                            rank = artistIndex;
+                            mode = SearchMode.Contains;
+                        }
+                        else
+                        {
+                            nameIndex = nameFuzzy ? GetIndex(song.Name.SortStr, filter.Argument) : -1;
+                            artistIndex = artistFuzzy ? GetIndex(song.Artist.SortStr, filter.Argument) : -1;
                         }
                     }
                 }
+                int rank = nameIndex >= 0 && (artistIndex < 0 || nameIndex <= artistIndex)
+                     ? nameIndex
+                     : artistIndex;
                 return rank >= 0 ? new UnspecifiedSortNode(song, rank, nameIndex, artistIndex, mode) : null;
             }
 
@@ -574,11 +569,12 @@ namespace YARG.Song
             return result;
         }
 
-        private static double GetRank(string songStr, string argument)
+        private static bool IsAboveFuzzyThreshold(string songStr, string argument)
         {
             var songInfoLengthDiff = songStr.Length - argument.Length;
             var songInfoMult = argument.Length > songStr.Length ? 1.0 - Math.Abs(songInfoLengthDiff) / 100.0 : 1.0;
-            return OptimizedFuzzySharp.PartialRatio(argument.AsSpan(), songStr.AsSpan()) * songInfoMult;
+            var rank = OptimizedFuzzySharp.PartialRatio(argument.AsSpan(), songStr.AsSpan()) * songInfoMult;
+            return rank >= RANK_THRESHOLD;
         }
 
         private static readonly string[] Articles =
