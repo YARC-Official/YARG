@@ -35,7 +35,7 @@ namespace YARG.Song
             {
                 while (currFilterIndex < currentFilters.Count)
                 {
-                    while (prevFilterIndex < searches.Count && currentFilters[currFilterIndex].StartsWith(searches[prevFilterIndex].Filter))
+                    while (prevFilterIndex < searches.Count && currentFilters[currFilterIndex].StartsWith(searches[prevFilterIndex].Filter, prevFilterIndex))
                     {
                         ++prevFilterIndex;
                     }
@@ -134,6 +134,12 @@ namespace YARG.Song
             public bool StartsWith(FilterNode other)
             {
                 return Attribute == other.Attribute && Argument.StartsWith(other.Argument);
+            }
+
+            public bool StartsWith(FilterNode other, int maxMatchLength)
+            {
+                var matchLength = Math.Min(Argument.Length, maxMatchLength);
+                return Attribute == other.Attribute && Argument.StartsWith(other.Argument.Substring(0, matchLength));
             }
         }
 
