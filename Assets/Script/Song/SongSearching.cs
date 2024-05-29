@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using YARG.Core;
 using YARG.Core.Song;
@@ -29,7 +30,13 @@ namespace YARG.Song
 
             int currFilterIndex = 1;
             int prevFilterIndex = 1;
-            if (searches.Count > 0 && searches[0].Filter.Attribute == sort)
+
+            var regexMatch = Regex.Match(value, @"\W\S\S\S\S+\W$");
+
+            if (searches.Count > 0 && searches[0].Filter.Attribute == sort &&
+                // Invalidate cache if filter argument has a word of at least 4 characters at the end but is not the first word
+                !(value.Length > searches.Last().Filter.Argument.Length && regexMatch.Success
+                    && !searches.Last().Filter.Argument.EndsWith(regexMatch.Value)))
             {
                 while (currFilterIndex < currentFilters.Count)
                 {
