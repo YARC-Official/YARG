@@ -104,10 +104,11 @@ namespace YARG.Song
             public readonly SearchMode Mode;
             public readonly string Argument;
 
-            public FilterNode(SortAttribute attribute, Instrument instrument, string argument)
+            public FilterNode(SortAttribute attribute, Instrument instrument, SearchMode mode, string argument)
             {
                 Attribute = attribute;
                 Instrument = instrument;
+                Mode = mode;
                 Argument = argument;
             }
 
@@ -178,8 +179,8 @@ namespace YARG.Song
             foreach (string arg in split)
             {
                 SortAttribute attribute;
-                Instrument instrument = Instrument.FiveFretGuitar;
-                string argument = arg.Trim().ToLowerInvariant();
+                var instrument = Instrument.FiveFretGuitar;
+                var (argument, mode) = ParseArgument(arg);
                 if (argument == string.Empty)
                 {
                     continue;
@@ -247,13 +248,79 @@ namespace YARG.Song
                 }
                 argument = argument.Trim();
 
-                nodes.Add(new FilterNode(attribute, instrument, argument.Trim()));
+                nodes.Add(new FilterNode(attribute, instrument, mode, argument));
                 if (attribute == SortAttribute.Unspecified)
                 {
                     break;
                 }
             }
             return nodes;
+
+            static unsafe (string Argument, SearchMode Mode) ParseArgument(string arg)
+            {
+                var buffer = stackalloc char[arg.Length];
+                int length = 0;
+                int index = 0;
+                while (index < arg.Length)
+                {
+                    char c = arg[index++];
+                    if (c <= 32)
+                    {
+                        buffer[length++] = ' ';
+                        while (index < arg.Length && arg[index] <= 32)
+                        {
+                            ++index;
+                        }
+                    }
+                    else
+                    {
+                        buffer[length++] = char.ToLowerInvariant(c);
+                    }
+                }
+
+                index = 0;
+                // Trim beginning
+                while (index < length && buffer[index] <= 32)
+                {
+                    ++index;
+                }
+
+                // Time ending
+                while (index < length && buffer[length - 1] <= 32)
+                {
+                    --length;
+                }
+
+                var mode = SearchMode.Contains;
+                if (length >= index + 2 && buffer[index] == '\"' && buffer[length - 1] == '\"')
+                {
+                    ++index;
+                    --length;
+                    if (index < length && buffer[index] <= 32)
+                    {
+                        ++index;
+                    }
+
+                    if (index < length - 1 && buffer[length - 1] <= 32)
+                    {
+                        --length;
+                    }
+
+                    mode = SearchMode.Exact;
+                }
+                else if (length >= index + 1 && buffer[length - 1] == '~')
+                {
+                    --length;
+                    if (index < length - 1 && buffer[length - 1] <= 32)
+                    {
+                        --length;
+                    }
+                    mode = SearchMode.Fuzzy;
+                }
+
+                var argument = new string(buffer, index, length - index);
+                return (argument, mode);
+            }
         }
 
         private static IReadOnlyList<SongCategory> SearchSongs(FilterNode arg, IReadOnlyList<SongCategory> searchList)
