@@ -24,7 +24,7 @@ namespace YARG.Song
             var currentFilters = new List<FilterNode>()
             {
                 // Instrument of the first node doesn't matter
-                new(sort, Instrument.FiveFretGuitar, string.Empty)
+                new(sort, Instrument.FiveFretGuitar, SearchMode.Contains, string.Empty)
             };
             currentFilters.AddRange(GetFilters(value.Split(';')));
 
@@ -90,10 +90,18 @@ namespace YARG.Song
             return searches[^1].Filter.Attribute == SortAttribute.Unspecified;
         }
 
+        private enum SearchMode
+        {
+            Contains,
+            Fuzzy,
+            Exact
+        }
+
         private class FilterNode : IEquatable<FilterNode>
         {
             public readonly SortAttribute Attribute;
             public readonly Instrument Instrument;
+            public readonly SearchMode Mode;
             public readonly string Argument;
 
             public FilterNode(SortAttribute attribute, Instrument instrument, string argument)
@@ -122,7 +130,7 @@ namespace YARG.Song
                         return false;
                     }
                 }
-                return Argument == other.Argument;
+                return Mode == other.Mode && Argument == other.Argument;
             }
 
             public override int GetHashCode()
@@ -132,7 +140,20 @@ namespace YARG.Song
 
             public bool StartsWith(FilterNode other)
             {
-                return Attribute == other.Attribute && Argument.StartsWith(other.Argument);
+                if (Attribute != other.Attribute || Mode != other.Mode)
+                {
+                    return false;
+                }
+
+                return Mode switch
+                {
+                    SearchMode.Contains => Argument.StartsWith(other.Argument),
+                    SearchMode.Fuzzy => Attribute != SortAttribute.Instrument
+                                            ? Argument == other.Argument
+                                            : Argument.StartsWith(other.Argument),
+                    SearchMode.Exact => Argument == other.Argument,
+                    _ => false,
+                };
             }
         }
 
@@ -224,6 +245,7 @@ namespace YARG.Song
                         argument = SortString.RemoveDiacritics(argument);
                     }
                 }
+                argument = argument.Trim();
 
                 nodes.Add(new FilterNode(attribute, instrument, argument.Trim()));
                 if (attribute == SortAttribute.Unspecified)
