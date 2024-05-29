@@ -146,7 +146,7 @@ namespace YARG.Song
                 }
                 return Argument.Length == other.Argument.Length
                     || Mode == SearchMode.Contains
-                    || (Mode == SearchMode.Fuzzy && Attribute == SortAttribute.Instrument);
+                    || (Mode == SearchMode.Fuzzy && (Attribute is SortAttribute.Instrument or SortAttribute.Year));
             }
         }
 
