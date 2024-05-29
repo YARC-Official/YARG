@@ -1,9 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using FuzzySharp;
 using YARG.Core;
 using YARG.Core.Song;
 using YARG.Player;
@@ -342,7 +341,7 @@ namespace YARG.Song
                 var songInfoLengthDiff = songStr.Length - argument.Length;
                 var songInfoMult = argument.Length > songStr.Length ? 1.0 - Math.Abs(songInfoLengthDiff) / 100.0 : 1.0;
 
-                rank = Fuzz.PartialRatio(argument, songStr) * songInfoMult;
+                rank = OptimizedFuzzySharp.PartialRatio(argument, songStr) * songInfoMult;
 
                 var commonChars = string.Join(string.Empty, argument.Intersect(songStr));
                 var commonString = !string.IsNullOrEmpty(commonChars)
