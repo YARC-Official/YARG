@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -138,21 +138,18 @@ namespace YARG.Song
                 return Attribute.GetHashCode() ^ Argument.GetHashCode();
             }
 
-            public bool StartsWith(FilterNode other)
+            public bool StartsWith(FilterNode other) => StartsWith(other, other.Argument.Length);
+
+            public bool StartsWith(FilterNode other, int maxMatchLength)
             {
-                if (Attribute != other.Attribute || Mode != other.Mode || !Argument.StartsWith(other.Argument))
+                var matchLength = Math.Min(other.Argument.Length, maxMatchLength);
+                if (Attribute != other.Attribute || Mode != other.Mode || !Argument.StartsWith(other.Argument.Substring(0, matchLength)))
                 {
                     return false;
                 }
                 return Argument.Length == other.Argument.Length
                     || Mode == SearchMode.Contains
                     || (Mode == SearchMode.Fuzzy && (Attribute is SortAttribute.Instrument or SortAttribute.Year));
-            }
-
-            public bool StartsWith(FilterNode other, int maxMatchLength)
-            {
-                var matchLength = Math.Min(Argument.Length, maxMatchLength);
-                return Attribute == other.Attribute && Argument.StartsWith(other.Argument.Substring(0, matchLength));
             }
         }
 
