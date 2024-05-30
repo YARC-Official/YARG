@@ -254,7 +254,7 @@ namespace YARG.Song
             return matchingBlocks;
         }
 
-        private static EditOp[] GetEditOps(ReadOnlySpan<char> c1, ReadOnlySpan<char> c2)
+        private static unsafe EditOp[] GetEditOps(ReadOnlySpan<char> c1, ReadOnlySpan<char> c2)
         {
             int len1 = c1.Length;
             int len2 = c2.Length;
@@ -279,7 +279,7 @@ namespace YARG.Song
 
             len1++;
             len2++;
-            var matrix = new int[len2 * len1];
+            var matrix = stackalloc int[len2 * len1];
             for (int i = 0; i < len2; i++)
             {
                 matrix[i] = i;
@@ -326,7 +326,7 @@ namespace YARG.Song
             return EditOpsFromCostMatrix(len1, c1, p1, len1o, len2, c2, p2, len2o, matrix);
         }
 
-        private static EditOp[] EditOpsFromCostMatrix(int len1, ReadOnlySpan<char> c1, int p1, int o1, int len2, ReadOnlySpan<char> c2, int p2, int o2, int[] matrix)
+        private static unsafe EditOp[] EditOpsFromCostMatrix(int len1, ReadOnlySpan<char> c1, int p1, int o1, int len2, ReadOnlySpan<char> c2, int p2, int o2, int* matrix)
         {
             int dir = 0;
             int pos = matrix[len1 * len2 - 1];
@@ -418,7 +418,7 @@ namespace YARG.Song
             return 1.0;
         }
 
-        private static int EditDistance(ReadOnlySpan<char> c1, ReadOnlySpan<char> c2)
+        private static unsafe int EditDistance(ReadOnlySpan<char> c1, ReadOnlySpan<char> c2)
         {
             int str1 = 0;
             int str2 = 0;
@@ -477,7 +477,7 @@ namespace YARG.Song
             len2++;
             int half = len1 >> 1;
 
-            var row = new int[len2];
+            var row = stackalloc int[len2];
             int end = len2 - 1;
             for (int i = 0; i < len2; i++)
             {
