@@ -24,10 +24,9 @@ namespace YARG.Song
             var filters = GetFilters(value.Split(';'));
             int filterIndex = 0;
 
-            SongCategory[] searchList;
             if (_baseList != null && _sort == sort)
             {
-                searchList = _baseList;
+                int removeIndex = 0;
                 while (filterIndex < filters.Count && filterIndex < searches.Count)
                 {
                     var curr = filters[filterIndex];
@@ -41,37 +40,40 @@ namespace YARG.Song
                     int subIndex = 0;
                     while (subIndex < prev.Nodes.Count)
                     {
-                        var (Argument, Songs) = prev.Nodes[subIndex];
+                        var (Argument, _) = prev.Nodes[subIndex];
                         if (!curr.Argument.StartsWith(Argument))
                         {
                             break;
                         }
-                        searchList = Songs;
                         ++subIndex;
                     }
 
+                    ++removeIndex;
                     if (subIndex < prev.Nodes.Count)
                     {
                         prev.Nodes.RemoveRange(subIndex, prev.Nodes.Count - subIndex);
-                        if (subIndex > 0 && prev.Nodes[subIndex - 1].Argument.Length == curr.Argument.Length)
+                        // The argument is the same as one that was already searched, so we can skip to the next filter
+                        if (subIndex > 0 && prev.Nodes[^1].Argument.Length == curr.Argument.Length)
                         {
                             ++filterIndex;
                         }
                         break;
                     }
-                    else if (prev.Nodes[subIndex - 1].Argument.Length != curr.Argument.Length)
+                    else if (prev.Nodes[^1].Argument.Length != curr.Argument.Length)
                     {
                         break;
                     }
 
                     ++filterIndex;
                 }
+
+                searches.RemoveRange(removeIndex, searches.Count - removeIndex);
             }
             else
             {
                 searches.Clear();
                 _sort = sort;
-                searchList = _baseList = sort != SortAttribute.Playable
+                _baseList = sort != SortAttribute.Playable
                     ? SongContainer.GetSortedCategory(sort)
                     : SongContainer.GetPlayableSongs(PlayerContainer.Players);
             }
@@ -79,7 +81,8 @@ namespace YARG.Song
             while (filterIndex < filters.Count)
             {
                 var filter = filters[filterIndex];
-                searchList = SearchSongs(filter, searchList);
+                var searchList = filterIndex == 0 ? _baseList : searches[filterIndex - 1].Nodes[^1].Songs;
+                var songs = SearchSongs(filter, searchList);
                 SearchNode node;
                 if (filterIndex < searches.Count)
                 {
@@ -90,7 +93,7 @@ namespace YARG.Song
                     searches.Add(node = new(filter.Attribute, filter.Mode));
                 }
 
-                node.Nodes.Add((filter.Argument, searchList));
+                node.Nodes.Add((filter.Argument, songs));
                 ++filterIndex;
             }
 
@@ -98,7 +101,7 @@ namespace YARG.Song
             {
                 searches.RemoveRange(filterIndex, searches.Count - filterIndex);
             }
-            return searchList;
+            return searches.Count > 0 ? searches[^1].Nodes[^1].Songs : _baseList;
         }
 
         public bool IsUnspecified()
