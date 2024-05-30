@@ -352,10 +352,6 @@ namespace YARG.Song
                 if (filter.Mode == SearchMode.Exact)
                 {
                     _mode = SearchMode.Exact;
-                    if (song.Name.Length == 1)
-                    {
-                        YargLogger.LogDebug("");
-                    }
                     _nameIndex = song.Name.SortStr == filter.Argument ? 0 : -1;
                     _artistIndex = song.Artist.SortStr == filter.Argument ? 0 : -1;
                 }
