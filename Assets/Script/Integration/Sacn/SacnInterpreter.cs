@@ -420,7 +420,6 @@ namespace YARG.Integration.Sacn
 
         private void OnLightingEvent(LightingEvent newType)
         {
-            YargLogger.LogInfo("In OLE IN SI: ON Lighting event: " + newType.Type);
             SetCueChannel(newType?.Type);
         }
 
