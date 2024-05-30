@@ -203,8 +203,6 @@ namespace YARG.Integration.Sacn
         {
             if (subscribe)
             {
-                SceneManager.sceneUnloaded += OnSceneUnloaded;
-
                 // Basic
                 StageKitInterpreter.OnLedEvent += HandleLedEvent;
 
@@ -222,8 +220,6 @@ namespace YARG.Integration.Sacn
             }
             else
             {
-                SceneManager.sceneUnloaded -= OnSceneUnloaded;
-
                 // Basic
                 StageKitInterpreter.OnLedEvent -= HandleLedEvent;
 
@@ -283,12 +279,7 @@ namespace YARG.Integration.Sacn
             SetChannel(_guitarChannel, (byte) FogEnum.Off);
             SetChannel(_bassChannel, (byte) FogEnum.Off);
         }
-
-        private void OnSceneUnloaded(Scene scene)
-        {
-            AllChannelsOff();
-        }
-
+        
         private void OnFogStateEvent(MasterLightingController.FogState fogState)
         {
             if (fogState == MasterLightingController.FogState.On)
