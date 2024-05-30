@@ -30,7 +30,7 @@ namespace YARG.Integration.RB3E
             DisableAll = 0xFF
         }
 
-        private IPAddress _ipAddress = IPAddress.Parse("255.255.255.255"); // "this" network's broadcast address
+        public IPAddress _ipAddress = IPAddress.Parse("255.255.255.255"); // "this" network's broadcast address
         private const int PORT = 21070;                                    // That is what RB3E uses
         private UdpClient _sendClient;
 
@@ -52,8 +52,6 @@ namespace YARG.Integration.RB3E
                 StageKitInterpreter.OnLedEvent += HandleLedEvent;
                 //Bonus Effects are ignored, since the stage kit doesn't seem to do anything with them.
 
-                HandleBroadcastIPChanged();
-
                 _sendClient = new UdpClient();
             }
             else
@@ -61,12 +59,7 @@ namespace YARG.Integration.RB3E
                 KillRB3E();
             }
         }
-
-        public void HandleBroadcastIPChanged()
-        {
-            _ipAddress = new IPAddress(SettingsManager.Settings.RB3EBroadcastIP.Value);
-        }
-
+        
         private void KillRB3E()
         {
             if (_sendClient == null) return;

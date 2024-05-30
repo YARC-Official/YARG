@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -252,42 +253,42 @@ namespace YARG.Settings
             public ToggleSetting RB3EEnabled     { get; } = new(false, RB3EEnabledCallback);
 
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(
-                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, DMXCallback);
+                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => { SacnInterpreter.Instance._dimmerChannels = v;});
             public DMXChannelsSetting DMXBlueChannels { get; } = new(
-                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, DMXCallback);
+                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => {SacnInterpreter.Instance._blueChannels = v;});
             public DMXChannelsSetting DMXRedChannels { get; } = new(
-                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, DMXCallback);
+                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => {SacnInterpreter.Instance._redChannels = v;});
             public DMXChannelsSetting DMXGreenChannels { get; } = new(
-                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, DMXCallback);
+                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => {SacnInterpreter.Instance._greenChannels = v;});
             public DMXChannelsSetting DMXYellowChannels { get; } = new(
-                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, DMXCallback);
+                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => {SacnInterpreter.Instance._yellowChannels = v;});
 
-            public IntSetting DMXFogChannel { get; } = new(6, 1, 512);
+            public IntSetting DMXFogChannel { get; } = new(6, 1, 512, v => { SacnInterpreter.Instance._fogChannel = v; });
 
-            public IntSetting DMXStrobeChannel { get; } = new(7, 1, 512);
+            public IntSetting DMXStrobeChannel { get; } = new(7, 1, 512, v => { SacnInterpreter.Instance._strobeChannel = v; });
 
-            public IntSetting DMXCueChangeChannel { get; } = new(8, 1, 512);
+            public IntSetting DMXCueChangeChannel { get; } = new(8, 1, 512, v => { SacnInterpreter.Instance._cueChangeChannel = v; });
 
-            public IPv4Setting RB3EBroadcastIP { get; } = new(new byte[] { 255, 255, 255, 255 }, RB3ECallback);
+            public IPv4Setting RB3EBroadcastIP { get; } = new(new byte[] { 255, 255, 255, 255 }, v => { RB3EHardware.Instance._ipAddress = new IPAddress(v); });
 
-            public IntSetting DMXBeatlineChannel { get; } = new(14, 1, 512);
+            public IntSetting DMXBeatlineChannel { get; } = new(14, 1, 512, v => { SacnInterpreter.Instance._beatlineChannel = v; });
 
-            public IntSetting DMXBonusEffectChannel { get; } = new(15, 1, 512);
+            public IntSetting DMXBonusEffectChannel { get; } = new(15, 1, 512, v => { SacnInterpreter.Instance._bonusEffectChannel = v; });
 
-            public IntSetting DMXKeyframeChannel { get; } = new(16, 1, 512);
+            public IntSetting DMXKeyframeChannel { get; } = new(16, 1, 512, v => { SacnInterpreter.Instance._keyframeChannel = v; });
 
-            public IntSetting DMXDrumsChannel { get; } = new(22, 1, 512);
+            public IntSetting DMXDrumsChannel { get; } = new(22, 1, 512, v => { SacnInterpreter.Instance._drumChannel = v; });
 
-            public IntSetting DMXPostProcessingChannel { get; } = new(23, 1, 512);
+            public IntSetting DMXPostProcessingChannel { get; } = new(23, 1, 512, v => { SacnInterpreter.Instance._postProcessingChannel = v; });
 
-            public IntSetting DMXGuitarChannel { get; } = new(24, 1, 512);
+            public IntSetting DMXGuitarChannel { get; } = new(24, 1, 512, v => { SacnInterpreter.Instance._guitarChannel = v; });
 
-            public IntSetting DMXBassChannel { get; } = new(30, 1, 512);
+            public IntSetting DMXBassChannel { get; } = new(30, 1, 512, v => { SacnInterpreter.Instance._bassChannel = v; });
 
             //NYI
             //public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
 
-            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512);
+            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => { SacnInterpreter.Instance._keysChannel = v; });
 
             public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
 
@@ -305,26 +306,6 @@ namespace YARG.Settings
 
             #region Callbacks
 
-            private static void RB3EEnabledCallback(bool value)
-            {
-                if (!IsInitialized)
-                {
-                    return;
-                }
-
-                RB3EHardware.Instance.HandleEnabledChanged(value);
-            }
-
-            private static void RB3ECallback(byte[] value)
-            {
-                if (!IsInitialized)
-                {
-                    return;
-                }
-
-                RB3EHardware.Instance.HandleBroadcastIPChanged();
-            }
-
             private static void ShowTimeCallback(bool value)
             {
                 StatsManager.Instance.SetShowing(StatsManager.Stat.Time, value);
@@ -340,33 +321,19 @@ namespace YARG.Settings
                 StatsManager.Instance.SetShowing(StatsManager.Stat.Memory, value);
             }
 
+            private static void RB3EEnabledCallback(bool value)
+            {
+                RB3EHardware.Instance.HandleEnabledChanged(value);
+            }
+
             private static void StageKitEnabledCallback(bool value)
             {
-                if (!IsInitialized)
-                {
-                    return;
-                }
-
                 StageKitHardware.Instance.HandleEnabledChanged(value);
             }
 
             private static void DMXEnabledCallback(bool value)
             {
-                if (!IsInitialized)
-                {
-                    return;
-                }
-
                 SacnHardware.Instance.HandleEnabledChanged(value);
-            }
-
-            private static void DMXCallback(int[] value)
-            {
-                if (!IsInitialized)
-                {
-                    return;
-                }
-                SacnInterpreter.Instance.UpdateDMXChannelNumbers();
             }
 
             private static void VSyncCallback(bool value)

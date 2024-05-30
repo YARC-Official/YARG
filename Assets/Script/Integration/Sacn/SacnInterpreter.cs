@@ -3,6 +3,7 @@ using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Integration.StageKit;
 using YARG.Settings;
 
@@ -157,34 +158,32 @@ namespace YARG.Integration.Sacn
 
         // Basic DMX channels
         // 8 per color to match the stageKit layout. Default channels, the user must change them in settings.
-        private int[] _dimmerChannels;
-        private int[] _redChannels;
-        private int[] _greenChannels;
-        private int[] _blueChannels;
-        private int[] _yellowChannels;
-        private int _fogChannel;
-        private int _strobeChannel;
+        public int[] _dimmerChannels;
+        public int[] _redChannels;
+        public int[] _greenChannels;
+        public int[] _blueChannels;
+        public int[] _yellowChannels;
+        public int _fogChannel;
+        public int _strobeChannel;
 
         // Advanced DMX channels
-        private int _cueChangeChannel;
-        private int _keyframeChannel;
-        private int _beatlineChannel;
-        private int _bonusEffectChannel;
-        private int _postProcessingChannel;
-        private int _performerChannel;
+        public int _cueChangeChannel;
+        public int _keyframeChannel;
+        public int _beatlineChannel;
+        public int _bonusEffectChannel;
+        public int _postProcessingChannel;
+        public int _performerChannel;
 
         // Instrument DMX channels
-        private int _drumChannel;
-        private int _guitarChannel;
-        private int _bassChannel;
-        private int _keysChannel;
+        public int _drumChannel;
+        public int _guitarChannel;
+        public int _bassChannel;
+        public int _keysChannel;
         //Currently no advanced vocals channel as it doesn't seem needed.
 
         public void Start()
         {
             ManageEventSubscription(true);
-
-            UpdateDMXChannelNumbers();
 
             AllChannelsOff();
 
@@ -195,33 +194,9 @@ namespace YARG.Integration.Sacn
                 SetChannel(_dimmerChannels[i], (byte)SettingsManager.Settings.DMXDimmerValues.Value[i]);
             }
 
-        }
+            //Since the master controller comes up first, we miss its events until now.
+            OnLightingEvent(MasterLightingController.CurrentLightingCue);
 
-        public void UpdateDMXChannelNumbers()
-        {
-            //basic
-            _dimmerChannels = SettingsManager.Settings.DMXDimmerChannels.Value;
-            _redChannels = SettingsManager.Settings.DMXRedChannels.Value;
-            _greenChannels = SettingsManager.Settings.DMXGreenChannels.Value;
-            _blueChannels = SettingsManager.Settings.DMXBlueChannels.Value;
-            _yellowChannels = SettingsManager.Settings.DMXYellowChannels.Value;
-            _fogChannel = SettingsManager.Settings.DMXFogChannel.Value;
-            _strobeChannel = SettingsManager.Settings.DMXStrobeChannel.Value;
-
-            //advanced
-            _cueChangeChannel = SettingsManager.Settings.DMXCueChangeChannel.Value;
-            _keyframeChannel = SettingsManager.Settings.DMXKeyframeChannel.Value;
-            _beatlineChannel = SettingsManager.Settings.DMXBeatlineChannel.Value;
-            _bonusEffectChannel = SettingsManager.Settings.DMXBonusEffectChannel.Value;
-            _postProcessingChannel = SettingsManager.Settings.DMXPostProcessingChannel.Value;
-            //NYI
-            //_performerChannel = SettingsManager.Settings.DMXPerformerChannel.Value;
-
-            //instruments
-            _drumChannel = SettingsManager.Settings.DMXDrumsChannel.Value;
-            _guitarChannel = SettingsManager.Settings.DMXGuitarChannel.Value;
-            _bassChannel = SettingsManager.Settings.DMXBassChannel.Value;
-            _keysChannel = SettingsManager.Settings.DMXKeysChannel.Value;
         }
 
         private void ManageEventSubscription(bool subscribe)
@@ -445,6 +420,7 @@ namespace YARG.Integration.Sacn
 
         private void OnLightingEvent(LightingEvent newType)
         {
+            YargLogger.LogInfo("In OLE IN SI: ON Lighting event: " + newType.Type);
             SetCueChannel(newType?.Type);
         }
 
