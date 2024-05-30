@@ -140,7 +140,7 @@ namespace YARG.Menu.MusicLibrary
                 {
                     var currentQuery = $"{filter}:{_searchQueries[_currentSearchFilter]}";
                     var updatedQuery = $"{filter}:{_searchField.text}";
-                    _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery, RegexOptions.IgnoreCase);
+                    _fullSearchQuery = _fullSearchQuery.Replace(currentQuery, updatedQuery, StringComparison.OrdinalIgnoreCase);
                 }
                 else
                 {
