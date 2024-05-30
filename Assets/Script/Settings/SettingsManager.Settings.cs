@@ -291,6 +291,8 @@ namespace YARG.Settings
 
             public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
 
+            public DMXChannelsSetting DMXDimmerValues { get; } = new(new[] { 255, 255, 255, 255, 255, 255, 255, 255 });
+
             #endregion
 
             #region Debug and Developer
