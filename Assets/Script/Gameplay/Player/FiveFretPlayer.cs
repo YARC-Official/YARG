@@ -166,7 +166,7 @@ namespace YARG.Gameplay.Player
 
             if (GameManager.Paused) return;
 
-            foreach (var note in chordParent.ChordEnumerator())
+            foreach (var note in chordParent.AllNotes)
             {
                 (NotePool.GetByKey(note) as FiveFretNoteElement)?.HitNote();
 
@@ -185,7 +185,7 @@ namespace YARG.Gameplay.Player
         {
             base.OnNoteMissed(index, chordParent);
 
-            foreach (var note in chordParent.ChordEnumerator())
+            foreach (var note in chordParent.AllNotes)
             {
                 (NotePool.GetByKey(note) as FiveFretNoteElement)?.MissNote();
             }
@@ -205,7 +205,7 @@ namespace YARG.Gameplay.Player
 
         private void OnSustainStart(GuitarNote parent)
         {
-            foreach (var note in parent.ChordEnumerator())
+            foreach (var note in parent.AllNotes)
             {
                 if (parent.IsDisjoint && parent != note)
                 {
@@ -221,7 +221,7 @@ namespace YARG.Gameplay.Player
 
         private void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
         {
-            foreach (var note in parent.ChordEnumerator())
+            foreach (var note in parent.AllNotes)
             {
                 if (parent.IsDisjoint && parent != note)
                 {

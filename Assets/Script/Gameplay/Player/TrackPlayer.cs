@@ -330,7 +330,7 @@ namespace YARG.Gameplay.Player
                 }
 
                 // Spawn all of the notes and child notes
-                foreach (var child in note.ChordEnumerator())
+                foreach (var child in note.AllNotes)
                 {
                     SpawnNote(child);
                 }

@@ -43,7 +43,7 @@ namespace YARG.Integration
             Venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
-            
+
             _drums = chart.ProDrums.GetDifficulty(Difficulty.Expert);
             _guitar = chart.FiveFretGuitar.GetDifficulty(Difficulty.Expert);
             _bass = chart.FiveFretBass.GetDifficulty(Difficulty.Expert);
@@ -78,7 +78,7 @@ namespace YARG.Integration
                     int fretsPressed = 0;
 
                     // Use ChordEnumerator to iterate over the notes
-                    foreach (var note in _keys.Notes[_keysIndex].ChordEnumerator())
+                    foreach (var note in _keys.Notes[_keysIndex].AllNotes)
                     {
                         fretsPressed += 1 << note.Fret;
                     }
@@ -105,7 +105,7 @@ namespace YARG.Integration
                 {
                     int fretsPressed = 0;
 
-                    foreach (var note in _bass.Notes[_bassIndex].ChordEnumerator())
+                    foreach (var note in _bass.Notes[_bassIndex].AllNotes)
                     {
                         fretsPressed += 1 << note.Fret;
                     }
@@ -132,7 +132,7 @@ namespace YARG.Integration
                 {
                     int fretsPressed = 0;
 
-                    foreach (var note in _guitar.Notes[_guitarIndex].ChordEnumerator())
+                    foreach (var note in _guitar.Notes[_guitarIndex].AllNotes)
                     {
                         fretsPressed += 1 << note.Fret;
                     }
@@ -162,7 +162,7 @@ namespace YARG.Integration
                 {
                     int padsHit = 0;
 
-                    foreach (var note in _drums.Notes[_drumIndex].ChordEnumerator())
+                    foreach (var note in _drums.Notes[_drumIndex].AllNotes)
                     {
                         padsHit += 1 << note.Pad;
                     }
