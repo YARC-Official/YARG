@@ -117,12 +117,12 @@ namespace YARG.Menu.MusicLibrary
             _currentSearchText = _searchField.text;
         }
 
-        public void ClearList()
+        public void Reset()
         {
-            _searchContext.ClearList();
+            _searchContext.Reset();
         }
 
-        public IReadOnlyList<SongCategory> Search(SortAttribute sort)
+        public SongCategory[] Search(SortAttribute sort)
         {
             if (_currentSearchFilter == SortAttribute.Unspecified)
             {

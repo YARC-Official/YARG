@@ -62,7 +62,7 @@ namespace YARG.Song
         {
             if (input1.Length == 0 || input2.Length == 0)
             {
-                return 0;
+                return input1.Length == input2.Length ? 100 : 0;
             }
 
             ReadOnlySpan<char> shorter;
