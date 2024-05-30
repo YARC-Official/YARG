@@ -74,7 +74,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void SearchFilter()
         {
-            _songSearchingField.SetSearchInput(SortAttribute.Unspecified, $"{_instrument}: {_intensity}");
+            _songSearchingField.SetSearchInput(SortAttribute.Unspecified, $"{_instrument}: \"{_intensity}\"");
         }
 
         private void OnDestroy()
