@@ -4,6 +4,7 @@ using System.Linq;
 using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Helpers.Extensions;
 using YARG.Player;
 
 namespace YARG.Song
@@ -149,25 +150,18 @@ namespace YARG.Song
             }
         }
 
-        private static readonly (string Name, SortAttribute Attribute, Instrument Instrument)[] INSTRUMENTS;
+        private static readonly (string Name, SortAttribute Attribute)[] INSTRUMENTS;
 
         static SongSearching()
         {
             var instruments = (Instrument[]) Enum.GetValues(typeof(Instrument));
-            var names = instruments.Select(ins => ins.ToString() + ':').ToArray();
-            var allsorts = (SortAttribute[]) Enum.GetValues(typeof(SortAttribute));
-            int index = 0;
-            while (index < allsorts.Length && allsorts[index] != SortAttribute.FiveFretGuitar)
-            {
-                ++index;
-            }
 
-            INSTRUMENTS = new (string, SortAttribute, Instrument)[allsorts.Length - index];
-            for (int i = 0; index + i < allsorts.Length; ++i)
+            INSTRUMENTS = new (string, SortAttribute)[instruments.Length];
+            for (int i = 0; i < instruments.Length; ++i)
             {
-                INSTRUMENTS[i].Name = names[i];
-                INSTRUMENTS[i].Attribute = allsorts[index + i];
-                INSTRUMENTS[i].Instrument = instruments[i];
+                var attribute = instruments[i].ToSortAttribute();
+                INSTRUMENTS[i].Name = attribute.ToString().ToLower() + ':';
+                INSTRUMENTS[i].Attribute = attribute;
             }
         }
 
@@ -230,7 +224,7 @@ namespace YARG.Song
                 }
                 else
                 {
-                    var result = Array.FindIndex(INSTRUMENTS, ins => argument.StartsWith(ins.Name.ToLower()));
+                    var result = Array.FindIndex(INSTRUMENTS, ins => argument.StartsWith(ins.Name));
                     if (result >= 0)
                     {
                         attribute = INSTRUMENTS[result].Attribute;
@@ -475,8 +469,7 @@ namespace YARG.Song
 
         private static SongCategory[] SearchInstrument(FilterNode filter, SongCategory[] searchList)
         {
-            var instrument = INSTRUMENTS[filter.Attribute - SortAttribute.FiveFretGuitar].Instrument;
-            var songsToMatch = SongContainer.Instruments[instrument]
+            var songsToMatch = SongContainer.Instruments[filter.Attribute.ToInstrument()]
                 .Where(node =>
                 {
                     string key = node.Key.ToString();

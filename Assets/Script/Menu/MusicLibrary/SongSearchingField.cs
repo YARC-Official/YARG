@@ -74,32 +74,25 @@ namespace YARG.Menu.MusicLibrary
 
         public void SetSearchInput(SortAttribute attribute, string input)
         {
-            if (attribute == SortAttribute.Unspecified)
+            var filter = attribute.ToString().ToLowerInvariant();
+            var updatedQuery = $"{filter}:{input}";
+
+            if (string.IsNullOrEmpty(_fullSearchQuery) || _currentSearchFilter == SortAttribute.Unspecified)
             {
-                _fullSearchQuery = input;
+                _fullSearchQuery = updatedQuery;
             }
             else
             {
-                var filter = attribute.ToString().ToLowerInvariant();
-                var updatedQuery = $"{filter}:{input}";
-
-                if (string.IsNullOrEmpty(_fullSearchQuery) || _currentSearchFilter == SortAttribute.Unspecified)
+                if (!_fullSearchQuery.Contains(filter))
                 {
-                    _fullSearchQuery = updatedQuery;
+                    _fullSearchQuery += ";" + updatedQuery;
                 }
                 else
                 {
-                    if (!_fullSearchQuery.Contains(filter))
-                    {
-                        _fullSearchQuery += ";" + updatedQuery;
-                    }
-                    else
-                    {
-                        // Regex pattern: The filter specified and the search query tagged with that filter
-                        var currentQuery = $"{filter}:{_searchQueries[attribute]}";
-                        _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery,
-                            RegexOptions.IgnoreCase);
-                    }
+                    // Regex pattern: The filter specified and the search query tagged with that filter
+                    var currentQuery = $"{filter}:{_searchQueries[attribute]}";
+                    _fullSearchQuery = Regex.Replace(_fullSearchQuery, currentQuery, updatedQuery,
+                        RegexOptions.IgnoreCase);
                 }
             }
 
