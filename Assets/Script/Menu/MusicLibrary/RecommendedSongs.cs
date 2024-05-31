@@ -10,30 +10,16 @@ namespace YARG.Menu.MusicLibrary
 {
     public static class RecommendedSongs
     {
-        public static List<SongEntry> GetRecommendedSongs()
+        public static SongEntry[] GetRecommendedSongs()
         {
-            _recommendedSongs.Clear();
-
-            AddMostPlayedSongs();
-            AddRandomSongs();
-
-            // YARG songs first
-            _recommendedSongs.Sort((x, y) =>
-            {
-                // This is technically YARG songs last because of the reverse below
-                if (x.Source.SortStr == "yarg") return -1;
-                if (y.Source.SortStr == "yarg") return 1;
-                return 0;
-            });
-
-            // Reverse (because that's how they are added to the song select)
-            _recommendedSongs.Reverse();
-
-            return _recommendedSongs;
+            var songs = new SongEntry[5];
+            int index = 0;
+            AddMostPlayedSongs(songs, ref index);
+            AddRandomSongs(songs, ref index);
+            return songs[..index];
         }
 
-        private static readonly List<SongEntry> _recommendedSongs = new(5);
-        private static void AddMostPlayedSongs()
+        private static void AddMostPlayedSongs(SongEntry[] songs, ref int index)
         {
             const float RNG_PER_SONG = .05f;
 
@@ -44,14 +30,14 @@ namespace YARG.Menu.MusicLibrary
                 float rng = mostPlayed.Count * RNG_PER_SONG;
                 if (Random.value < rng)
                 {
-                    AddSongFromMostPlayed(ref mostPlayed);
+                    AddSongFromMostPlayed(songs, ref index, ref mostPlayed);
                 }
-                AddSongsFromTopPlayedArtists(ref mostPlayed);
+                AddSongsFromTopPlayedArtists(songs, ref index, ref mostPlayed);
             }
         }
 
         private static readonly SortString _YARGSOURCE = "yarg";
-        private static void AddRandomSongs()
+        private static void AddRandomSongs(SongEntry[] songs, ref int index)
         {
             const float STARTING_RNG = .75f;
             const float RNG_DECREMENT = .25f;
@@ -59,7 +45,7 @@ namespace YARG.Menu.MusicLibrary
             SongContainer.Sources.TryGetValue(_YARGSOURCE, out var yargSongs);
 
             float yargSongRNG = yargSongs != null ? STARTING_RNG : 0;
-            while (_recommendedSongs.Count < 5)
+            while (index < 5)
             {
                 SongEntry song;
                 if (Random.value <= yargSongRNG)
@@ -72,31 +58,31 @@ namespace YARG.Menu.MusicLibrary
                     song = SongContainer.GetRandomSong();
                 }
 
-                if (!_recommendedSongs.Contains(song))
+                if (!songs.Contains(song))
                 {
-                    _recommendedSongs.Add(song);
+                    songs[index++] = song;
                 }
             }
         }
 
-        private static void AddSongFromMostPlayed(ref List<SongEntry> mostPlayed)
+        private static void AddSongFromMostPlayed(SongEntry[] songs, ref int index, ref List<SongEntry> mostPlayed)
         {
             int songIndex = Random.Range(0, mostPlayed.Count);
             var song = mostPlayed[songIndex];
             mostPlayed.RemoveAt(songIndex);
-            _recommendedSongs.Add(song);
+            songs[index++] = song;
         }
 
-        private static void AddSongsFromTopPlayedArtists(ref List<SongEntry> mostPlayed)
+        private static void AddSongsFromTopPlayedArtists(SongEntry[] songs, ref int index, ref List<SongEntry> mostPlayed)
         {
             var artists = SongContainer.Artists;
             while (mostPlayed.Count > 0)
             {
                 int songIndex = Random.Range(0, mostPlayed.Count);
                 var song = artists[mostPlayed[songIndex].Artist].Pick();
-                if (!mostPlayed.Contains(song) && !_recommendedSongs.Contains(song))
+                if (!mostPlayed.Contains(song) && !songs.Contains(song))
                 {
-                    _recommendedSongs.Add(song);
+                    songs[index++] = song;
                     break;
                 }
                 mostPlayed.RemoveAt(songIndex);

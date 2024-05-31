@@ -56,15 +56,15 @@ namespace YARG.Song
     public readonly struct SongCategory
     {
         public readonly string Category;
-        public readonly List<SongEntry> Songs;
+        public readonly SongEntry[] Songs;
 
-        public SongCategory(string category, List<SongEntry> songs)
+        public SongCategory(string category, SongEntry[] songs)
         {
             Category = category;
             Songs = songs;
         }
 
-        public void Deconstruct(out string category, out List<SongEntry> songs)
+        public void Deconstruct(out string category, out SongEntry[] songs)
         {
             category = Category;
             songs = Songs;
@@ -74,22 +74,22 @@ namespace YARG.Song
     public static class SongContainer
     {
         private static SongCache _songCache = new();
-        private static List<SongEntry> _songs = new();
+        private static SongEntry[] _songs = Array.Empty<SongEntry>();
 
-        private static List<SongCategory> _sortTitles = new();
-        private static List<SongCategory> _sortArtists = new();
-        private static List<SongCategory> _sortAlbums = new();
-        private static List<SongCategory> _sortGenres = new();
-        private static List<SongCategory> _sortYears = new();
-        private static List<SongCategory> _sortCharters = new();
-        private static List<SongCategory> _sortPlaylists = new();
-        private static List<SongCategory> _sortSources = new();
-        private static List<SongCategory> _sortArtistAlbums = new();
-        private static List<SongCategory> _sortSongLengths = new();
-        private static List<SongCategory> _sortDatesAdded = new();
-        private static Dictionary<Instrument, List<SongCategory>> _sortInstruments = new();
+        private static SongCategory[] _sortTitles = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortArtists = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortAlbums = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortGenres = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortYears = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortCharters = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortPlaylists = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortSources = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortArtistAlbums = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortSongLengths = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortDatesAdded = Array.Empty<SongCategory>();
+        private static Dictionary<Instrument, SongCategory[]> _sortInstruments = new();
         
-        private static List<SongCategory> _playables = null;
+        private static SongCategory[] _playables = null;
 
         public static IReadOnlyDictionary<string, List<SongEntry>> Titles => _songCache.Titles;
         public static IReadOnlyDictionary<string, List<SongEntry>> Years => _songCache.Years;
@@ -104,9 +104,9 @@ namespace YARG.Song
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Sources => _songCache.Sources;
         public static IReadOnlyDictionary<Instrument, SortedDictionary<int, List<SongEntry>>> Instruments => _songCache.Instruments;
 
-        public static int Count => _songs.Count;
+        public static int Count => _songs.Length;
         public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
-        public static IReadOnlyList<SongEntry> Songs => _songs;
+        public static SongEntry[] Songs => _songs;
 
 #nullable enable
         public static async UniTask RunRefresh(bool quick, LoadingContext? context = null)
@@ -147,7 +147,7 @@ namespace YARG.Song
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
         }
         
-        public static IReadOnlyList<SongCategory> GetSortedCategory(SortAttribute sort)
+        public static SongCategory[] GetSortedCategory(SortAttribute sort)
         {
             return sort switch
             {
@@ -190,7 +190,7 @@ namespace YARG.Song
 
         public static bool HasInstrument(Instrument instrument)
         {
-            return _sortInstruments[instrument].Count > 0;
+            return _sortInstruments[instrument].Length > 0;
         }
 
         public static void ResetPlayableSongs()
@@ -198,13 +198,13 @@ namespace YARG.Song
             _playables = null;
         }
 
-        public static IReadOnlyList<SongCategory> GetPlayableSongs(IReadOnlyList<YargPlayer> players)
+        public static SongCategory[] GetPlayableSongs(IReadOnlyList<YargPlayer> players)
         {
             if (_playables == null)
             {
                 if (players.Count == 0)
                 {
-                    _playables = new List<SongCategory>();
+                    _playables = Array.Empty<SongCategory>();
                 }
                 else
                 {
@@ -221,10 +221,19 @@ namespace YARG.Song
                         queries = queries == null ? list : queries.Intersect(list);
                     }
 
-                    _playables = _sortTitles
-                        .Select(node => new SongCategory($"Playable [{node.Category}]", node.Songs.Intersect(queries).ToList()))
-                        .Where(node => node.Songs.Count > 0)
-                        .ToList();
+                    var arr = new SongCategory[_sortTitles.Length];
+                    int count = 0;
+                    for (int i = 0; i < arr.Length; i++)
+                    {
+                        var node = _sortTitles[i];
+                        var intersect = node.Songs.Intersect(queries);
+                        if (intersect.Count() > 0)
+                        {
+                            arr[count++] = new SongCategory($"Playable [{node.Category}]", intersect.ToArray());
+                        }
+                    }
+
+                    _playables = arr[..count];
                 }
             }
 
@@ -274,43 +283,41 @@ namespace YARG.Song
 
         private static void FillContainers()
         {
-            _songs.Clear();
-            foreach (var node in _songCache.Entries)
-            {
-                _songs.AddRange(node.Value);
-            }
-            _songs.TrimExcess();
-            
+            _songs = SetAllSongs(_songCache.Entries);
+            _sortArtists   = Convert(_songCache.Artists, SongAttribute.Artist);
+            _sortAlbums    = Convert(_songCache.Albums, SongAttribute.Album);
+            _sortGenres    = Convert(_songCache.Genres, SongAttribute.Genre);
+            _sortCharters  = Convert(_songCache.Charters, SongAttribute.Charter);
+            _sortPlaylists = Convert(_songCache.Playlists, SongAttribute.Playlist);
+            _sortSources   = Convert(_songCache.Sources, SongAttribute.Source);
+
+            _sortTitles       = Cast(_songCache.Titles);
+            _sortYears        = Cast(_songCache.Years);
+            _sortArtistAlbums = Cast(_songCache.ArtistAlbums);
+            _sortSongLengths  = Cast(_songCache.SongLengths);
             _playables = null;
-            Convert(_sortArtists, _songCache.Artists, SongAttribute.Artist);
-            Convert(_sortAlbums, _songCache.Albums, SongAttribute.Album);
-            Convert(_sortGenres, _songCache.Genres, SongAttribute.Genre);
-            Convert(_sortCharters, _songCache.Charters, SongAttribute.Charter);
-            Convert(_sortPlaylists, _songCache.Playlists, SongAttribute.Playlist);
-            Convert(_sortSources, _songCache.Sources, SongAttribute.Source);
 
-            Cast(_sortTitles, _songCache.Titles);
-            Cast(_sortYears, _songCache.Years);
-            Cast(_sortArtistAlbums, _songCache.ArtistAlbums);
-            Cast(_sortSongLengths, _songCache.SongLengths);
-
-            _sortDatesAdded.Clear();
-            foreach (var node in _songCache.DatesAdded)
+            _sortDatesAdded = new SongCategory[_songCache.DatesAdded.Count];
             {
-                _sortDatesAdded.Add(new(node.Key.ToLongDateString(), node.Value));
+                int index = 0;
+                foreach (var node in _songCache.DatesAdded)
+                {
+                    _sortDatesAdded[index++] = new(node.Key.ToLongDateString(), node.Value.ToArray());
+                }
             }
-
+            
             _sortInstruments.Clear();
             foreach (var instrument in _songCache.Instruments)
             {
-                var list = new List<SongCategory>();
                 try
                 {
+                    var arr = new SongCategory[instrument.Value.Count];
+                    int index = 0;
                     foreach (var difficulty in instrument.Value)
                     {
-                        list.Add(new SongCategory($"{instrument.Key.ToSortAttribute().ToLocalizedName()} [{difficulty.Key}]", difficulty.Value));
+                        arr[index++] = new SongCategory($"{instrument.Key.ToSortAttribute().ToLocalizedName()} [{difficulty.Key}]", difficulty.Value.ToArray());
                     }
-                    _sortInstruments.Add(instrument.Key, list);
+                    _sortInstruments.Add(instrument.Key, arr);
                 }
                 catch (Exception ex)
                 {
@@ -318,9 +325,30 @@ namespace YARG.Song
                 }
             }
 
-            static void Convert(List<SongCategory> sections, SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute)
+            static SongEntry[] SetAllSongs(Dictionary<HashWrapper, List<SongEntry>> entries)
             {
-                sections.Clear();
+                int songCount = 0;
+                foreach (var node in entries)
+                {
+                    songCount += node.Value.Count;
+                }
+
+                var songs = new SongEntry[songCount];
+                int index = 0;
+                foreach (var node in entries)
+                {
+                    for (int i = 0; i < node.Value.Count; i++)
+                    {
+                        songs[index++] = node.Value[i];
+                    }
+                }
+                return songs;
+            }
+
+            static SongCategory[] Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute)
+            {
+                var sections = new SongCategory[list.Count];
+                int index = 0;
                 foreach (var node in list)
                 {
                     string key = node.Key;
@@ -330,17 +358,20 @@ namespace YARG.Song
                         if (node.Key.Length > 1)
                             key += node.Key.Str[1..];
                     }
-                    sections.Add(new(key, node.Value));
+                    sections[index++] = new SongCategory(key, node.Value.ToArray());
                 }
+                return sections;
             }
 
-            static void Cast(List<SongCategory> sections, SortedDictionary<string, List<SongEntry>> list)
+            static SongCategory[] Cast(SortedDictionary<string, List<SongEntry>> list)
             {
-                sections.Clear();
+                var sections = new SongCategory[list.Count];
+                int index = 0;
                 foreach (var section in list)
                 {
-                    sections.Add(new SongCategory(section.Key, section.Value));
+                    sections[index++] = new SongCategory(section.Key, section.Value.ToArray());
                 }
+                return sections;
             }
         }
     }

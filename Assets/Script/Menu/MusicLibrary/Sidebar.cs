@@ -284,19 +284,19 @@ namespace YARG.Menu.MusicLibrary
             switch (type)
             {
                 case "source":
-                    _songSearchingField.SetSearchInput(SortAttribute.Source, songEntry.Source.SortStr);
+                    _songSearchingField.SetSearchInput(SortAttribute.Source, $"\"{songEntry.Source.SortStr}\"");
                     break;
                 case "album":
-                    _songSearchingField.SetSearchInput(SortAttribute.Album, songEntry.Album.SortStr);
+                    _songSearchingField.SetSearchInput(SortAttribute.Album, $"\"{songEntry.Album.SortStr}\"");
                     break;
                 case "year":
-                    _songSearchingField.SetSearchInput(SortAttribute.Year, songEntry.Year);
+                    _songSearchingField.SetSearchInput(SortAttribute.Year, $"\"{songEntry.Year}\"");
                     break;
                 case "charter":
-                    _songSearchingField.SetSearchInput(SortAttribute.Charter, songEntry.Charter.SortStr);
+                    _songSearchingField.SetSearchInput(SortAttribute.Charter, $"\"{songEntry.Charter.SortStr}\"");
                     break;
                 case "genre":
-                    _songSearchingField.SetSearchInput(SortAttribute.Genre, songEntry.Genre.SortStr);
+                    _songSearchingField.SetSearchInput(SortAttribute.Genre, $"\"{songEntry.Genre.SortStr}\"");
                     break;
             }
         }

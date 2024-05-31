@@ -43,7 +43,7 @@ namespace YARG.Menu.MusicLibrary
         public static Playlist SelectedPlaylist;
 
 #nullable enable
-        private static List<SongEntry>? _recommendedSongs;
+        private static SongEntry[]? _recommendedSongs;
 #nullable disable
 
         private static string _currentSearch = string.Empty;
@@ -70,7 +70,7 @@ namespace YARG.Menu.MusicLibrary
         protected override int ExtraListViewPadding => 15;
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
-        private IReadOnlyList<SongCategory> _sortedSongs;
+        private SongCategory[] _sortedSongs;
 
         private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
@@ -209,7 +209,7 @@ namespace YARG.Menu.MusicLibrary
             if (_sortedSongs is null || SongContainer.Count <= 0) return list;
 
             // Get the number of songs
-            int count = _sortedSongs.Sum(section => section.Songs.Count);
+            int count = _sortedSongs.Sum(section => section.Songs.Length);
 
             // Return if there are no songs that match the search criteria
             if (count == 0)
@@ -238,7 +238,7 @@ namespace YARG.Menu.MusicLibrary
                         displayName = SongSources.Default.GetDisplayName();
                     }
                 }
-                list.Add(new SortHeaderViewType(displayName, section.Songs.Count));
+                list.Add(new SortHeaderViewType(displayName, section.Songs.Length));
 
                 // Add all of the songs
                 list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
@@ -251,7 +251,7 @@ namespace YARG.Menu.MusicLibrary
                 // Create the category
                 var categoryView = new CategoryViewType("SEARCH RESULTS", count, _sortedSongs);
 
-                if (_sortedSongs.Count == 1)
+                if (_sortedSongs.Length == 1)
                 {
                     // If there is only one header, just replace it
                     list[0] = categoryView;
@@ -275,8 +275,8 @@ namespace YARG.Menu.MusicLibrary
 
                         list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(this, i)));
                         list.Insert(0, new CategoryViewType(
-                            _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
-                            _recommendedSongs.Count, _recommendedSongs,
+                            _recommendedSongs.Length == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
+                            _recommendedSongs.Length, _recommendedSongs,
                             () =>
                             {
                                 SetRecommendedSongs();
@@ -318,7 +318,7 @@ namespace YARG.Menu.MusicLibrary
             if (_sortedSongs is null || SongContainer.Count <= 0) return list;
 
             // Get the number of songs
-            int count = _sortedSongs.Sum(section => section.Songs.Count);
+            int count = _sortedSongs.Sum(section => section.Songs.Length);
 
             // Return if there are no songs in the playlist
             if (count == 0) return list;
@@ -328,7 +328,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Create header
                 var displayName = section.Category;
-                list.Add(new SortHeaderViewType(displayName.ToUpperInvariant(), section.Songs.Count));
+                list.Add(new SortHeaderViewType(displayName.ToUpperInvariant(), section.Songs.Length));
 
                 // Add all of the songs
                 list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
@@ -369,7 +369,7 @@ namespace YARG.Menu.MusicLibrary
         private void Refresh()
         {
             SetRecommendedSongs();
-            _searchField.ClearList();
+            _searchField.Reset();
             UpdateSearch(true);
         }
 
@@ -397,19 +397,20 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Show playlist...
 
-                var songs = new List<SongEntry>();
+                var songs = new SongEntry[SelectedPlaylist.SongHashes.Count];
+                int count = 0;
                 foreach (var hash in SelectedPlaylist.SongHashes)
                 {
                     // Get the first song with the specified hash
                     if (SongContainer.SongsByHash.TryGetValue(hash, out var song))
                     {
-                        songs.Add(song[0]);
+                        songs[count++] = song[0];
                     }
                 }
 
-                _sortedSongs = new List<SongCategory>
+                _sortedSongs = new SongCategory[]
                 {
-                    new(SelectedPlaylist.Name, songs)
+                    new(SelectedPlaylist.Name, songs[..count])
                 };
 
                 _searchField.gameObject.SetActive(false);

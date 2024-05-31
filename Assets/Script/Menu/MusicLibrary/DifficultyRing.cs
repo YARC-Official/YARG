@@ -4,6 +4,7 @@ using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Song;
+using YARG.Helpers.Extensions;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -74,7 +75,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void SearchFilter()
         {
-            _songSearchingField.SetSearchInput(SortAttribute.Unspecified, $"{_instrument}: {_intensity}");
+            _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"\"{_intensity}\"");
         }
 
         private void OnDestroy()
