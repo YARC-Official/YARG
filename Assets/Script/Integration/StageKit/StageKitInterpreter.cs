@@ -136,7 +136,6 @@ namespace YARG.Integration.StageKit
             {
                 if (value == null)
                 {
-                    YargLogger.LogInfo("Lighting event: " + value?.Type);
                     SetLed(StageKitLedColor.Red, NONE);
                     SetLed(StageKitLedColor.Green, NONE);
                     SetLed(StageKitLedColor.Blue, NONE);
@@ -152,7 +151,6 @@ namespace YARG.Integration.StageKit
                 }
                 else if (_cueDictionary.TryGetValue(value.Type, out var cue))
                 {
-                    YargLogger.LogInfo("Lighting event: " + value.Type);
                     ChangeCues(cue);
                 }
                 else
