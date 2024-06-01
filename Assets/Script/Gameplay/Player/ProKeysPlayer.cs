@@ -147,10 +147,26 @@ namespace YARG.Gameplay.Player
 
             GetRangeShifts();
 
+            // This should never happen unless the chart has no range shifts, which is just bad charting
+            if (_rangeShifts.Count == 0)
+            {
+                YargLogger.LogWarning("No range shifts found in chart. Defaulting to 0.");
+                RangeShiftTo(0, 0);
+                _rangeShiftIndex++;
+
+                return;
+            }
+
             _rangeShiftIndex = 0;
             _shiftIndicatorIndex = 0;
 
             int startIndex = _rangeShifts.FindIndex(r => r.Tick >= start);
+
+            // No range shifts were >= start, so get the one prior.
+            if(startIndex == -1)
+            {
+                startIndex = _rangeShifts.FindLastIndex(r => r.Tick < start);
+            }
 
             // If the range shift is not on the starting tick, get the one before it.
             // This is so that the correct range is used at the start of the section.
@@ -174,7 +190,6 @@ namespace YARG.Gameplay.Player
 
             if (_rangeShifts.Count > 0)
             {
-                YargLogger.LogFormatDebug("Range Shifting from SetPracticeSection to {0} over {1}", _rangeShifts[0].Key, 0);
                 RangeShiftTo(_rangeShifts[0].Key, 0);
                 _rangeShiftIndex++;
             }
@@ -205,7 +220,6 @@ namespace YARG.Gameplay.Player
 
         private void RangeShiftTo(int noteIndex, double timeLength)
         {
-            YargLogger.LogFormatDebug("Shifting to {0} over {1}", noteIndex, timeLength);
             _isOffsetChanging = true;
 
             _offsetStartTime = GameManager.RealVisualTime;
@@ -245,8 +259,6 @@ namespace YARG.Gameplay.Player
                     // If the change has finished, stop!
                     _isOffsetChanging = false;
                     _currentOffset = _targetOffset;
-
-                    YargLogger.LogDebug("Offset change finished");
                 }
                 else
                 {
@@ -273,9 +285,6 @@ namespace YARG.Gameplay.Player
             while (_rangeShiftIndex < _rangeShifts.Count && _rangeShifts[_rangeShiftIndex].Time <= songTime)
             {
                 var rangeShift = _rangeShifts[_rangeShiftIndex];
-
-                YargLogger.LogFormatDebug("Range Shifting from UpdatePhrases to {0} over {1}", rangeShift.Key,
-                    rangeShift.TimeLength);
 
                 const double rangeShiftTime = 0.25;
                 RangeShiftTo(rangeShift.Key, rangeShiftTime);
