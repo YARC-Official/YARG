@@ -323,6 +323,8 @@ namespace YARG.Gameplay.Player
 
                 NoteIndex++;
 
+                OnNoteSpawned(note);
+
                 // Don't spawn hit or missed notes
                 if (note.WasHit || note.WasMissed)
                 {
@@ -335,6 +337,10 @@ namespace YARG.Gameplay.Player
                     SpawnNote(child);
                 }
             }
+        }
+
+        protected virtual void OnNoteSpawned(TNote parentNote)
+        {
         }
 
         public override void SetPracticeSection(uint start, uint end)

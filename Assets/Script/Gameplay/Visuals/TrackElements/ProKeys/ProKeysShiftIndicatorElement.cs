@@ -3,7 +3,7 @@ using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class ProKeysShiftIndicatorElement : TrackElement<TrackPlayer>
+    public class ProKeysShiftIndicatorElement : TrackElement<ProKeysPlayer>
     {
         public ProKeysPlayer.RangeShiftIndicator RangeShiftIndicator;
 

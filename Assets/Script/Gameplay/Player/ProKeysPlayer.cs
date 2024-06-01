@@ -55,6 +55,8 @@ namespace YARG.Gameplay.Player
         private ProKeysTrackOverlay _trackOverlay;
         [SerializeField]
         private Pool _shiftIndicatorPool;
+        [SerializeField]
+        private Pool _chordBarPool;
 
         private List<RangeShift> _rangeShifts;
         private readonly List<RangeShiftIndicator> _shiftIndicators = new();
@@ -331,6 +333,29 @@ namespace YARG.Gameplay.Player
         protected override void InitializeSpawnedNote(IPoolable poolable, ProKeysNote note)
         {
             ((ProKeysNoteElement) poolable).NoteRef = note;
+        }
+
+        protected override void OnNoteSpawned(ProKeysNote parentNote)
+        {
+            if (parentNote.WasHit || parentNote.ChildNotes.Count <= 0)
+            {
+                return;
+            }
+
+            if (!_chordBarPool.CanSpawnAmount(1))
+            {
+                return;
+            }
+
+            var poolable = _chordBarPool.TakeWithoutEnabling();
+            if (poolable == null)
+            {
+                YargLogger.LogWarning("Attempted to spawn shift indicator, but it's at its cap!");
+                return;
+            }
+
+            ((ProKeysChordBarElement) poolable).NoteRef = parentNote;
+            poolable.EnableFromPool();
         }
 
         protected override bool InterceptInput(ref GameInput input)
