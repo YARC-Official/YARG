@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Unity.Burst;
@@ -15,70 +16,49 @@ namespace YARG.Helpers.Extensions
     {
         public static Texture2D LoadTexture(this YARGImage image, bool mips)
         {
-#nullable enable
-            FixedArray<byte>? buffer = null;
-#nullable disable
-
-            TextureFormat gfxFormat;
-            switch (image.Format)
+            var gfxFormat = image.Format switch
             {
-                case ImageFormat.Grayscale:
-                    // Unity does not directly support Grayscale formats
-                    buffer = GrayscaleToRGBJob.Run(image, image.Length);
-                    gfxFormat = TextureFormat.RGB24;
-                    break;
-                case ImageFormat.GrayScale_Alpha:
-                    // Unity does not directly support Grayscale formats
-                    buffer = GrayscaleAlphaToRGBAJob.Run(image, image.Width * image.Height);
-                    gfxFormat = TextureFormat.RGBA32;
-                    break;
-                case ImageFormat.RGB:
-                    gfxFormat = TextureFormat.RGB24;
-                    break;
-                case ImageFormat.RGBA:
-                    gfxFormat = TextureFormat.RGBA32;
-                    break;
-                case ImageFormat.DXT1:
-                    gfxFormat = TextureFormat.DXT1;
-                    break;
-                case ImageFormat.DXT5:
-                    gfxFormat = TextureFormat.DXT5;
-                    break;
-                default:
-                    throw new ArgumentException("Unsupported image format");
-            }
+                ImageFormat.RGB or ImageFormat.Grayscale => TextureFormat.RGB24,
+                ImageFormat.RGBA or ImageFormat.GrayScale_Alpha => TextureFormat.RGBA32,
+                ImageFormat.DXT1 => TextureFormat.DXT1,
+                ImageFormat.DXT5 => TextureFormat.DXT5,
+                _ => throw new ArgumentException("Unsupported image format"),
+            };
 
             var texture = new Texture2D(image.Width, image.Height, gfxFormat, mips);
-            if (mips)
+            unsafe
             {
-                unsafe
+                var data = texture.GetPixelData<byte>(0);
+                var ptr = (byte*)data.GetUnsafeReadOnlyPtr();
+                switch (image.Format)
                 {
-                    var arr = buffer != null
-                        ? NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<byte>(buffer.Ptr, buffer.Length, Unity.Collections.Allocator.None)
-                        : NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<byte>((void*) image.Data, image.Length, Unity.Collections.Allocator.None);
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-                    var handle = AtomicSafetyHandle.Create();
-                    NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, handle);
-#endif
-                    texture.SetPixelData(arr, 0);
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-                    AtomicSafetyHandle.Release(handle);
-#endif
+                    case ImageFormat.Grayscale:
+                        // Unity does not directly support Grayscale formats
+                        new GrayscaleToRGBJob(image.Data, ptr)
+                            .Schedule(image.Width * image.Height, 128)
+                            .Complete();
+                        break;
+                    case ImageFormat.GrayScale_Alpha:
+                        // Unity does not directly support Grayscale formats
+                        new GrayscaleAlphaToRGBAJob(image.Data, ptr)
+                            .Schedule(image.Width * image.Height, 128)
+                            .Complete();
+                        break;
+                    case ImageFormat.DXT1:
+                    case ImageFormat.DXT5:
+                        for (int i = 0; i < data.Length; i += 2)
+                        {
+                            ptr[i] = image.Data[i + 1];
+                            ptr[i + 1] = image.Data[i];
+                        }
+                        break;
+                    default:
+                        Unsafe.CopyBlock(ptr, image.Data, (uint) data.Length);
+                        break;
+
                 }
             }
-            else
-            {
-                if (buffer != null)
-                {
-                    texture.LoadRawTextureData(buffer.IntPtr, buffer.Length);
-                }
-                else
-                {
-                    texture.LoadRawTextureData(image.Data, image.Length);
-                }
-            }
-            buffer?.Dispose();
-            texture.Apply();
+            texture.Apply(true, true);
             return texture;
         }
 
@@ -113,61 +93,42 @@ namespace YARG.Helpers.Extensions
         [BurstCompile]
         private readonly unsafe struct GrayscaleToRGBJob : IJobParallelFor
         {
-            private const int PIXELSIZE = 3;
-            public static FixedArray<byte> Run(YARGImage image, int numPixels)
-            {
-                var buffer = FixedArray<byte>.Alloc(PIXELSIZE * numPixels);
-                new GrayscaleToRGBJob((byte*) image.Data, buffer.Ptr)
-                    .Schedule(image.Length, 64)
-                    .Complete();
-                return buffer;
-            }
-
             [NativeDisableUnsafePtrRestriction]
-            private readonly byte* OriginalTexture;
+            private readonly byte* _originalTexture;
             [NativeDisableUnsafePtrRestriction]
-            private readonly byte* ResultTexture;
+            private readonly byte* _resultTexture;
 
-            private GrayscaleToRGBJob(byte* originalTexture, byte* resultTexture)
+            public GrayscaleToRGBJob(byte* originalTexture, byte* resultTexture)
             {
-                OriginalTexture = originalTexture;
-                ResultTexture = resultTexture;
+                _originalTexture = originalTexture;
+                _resultTexture = resultTexture;
             }
 
             public readonly void Execute(int index)
             {
+                const int PIXELSIZE = 3;
                 int resultIndex = PIXELSIZE * index;
 
-                var value = OriginalTexture[index];
+                var value = _originalTexture[index];
 
-                ResultTexture[resultIndex] = value;
-                ResultTexture[resultIndex + 1] = value;
-                ResultTexture[resultIndex + 2] = value;
+                _resultTexture[resultIndex] = value;
+                _resultTexture[resultIndex + 1] = value;
+                _resultTexture[resultIndex + 2] = value;
             }
         }
 
         [BurstCompile]
         private readonly unsafe struct GrayscaleAlphaToRGBAJob : IJobParallelFor
         {
-            private const int PIXELSIZE = 4;
-            public static FixedArray<byte> Run(YARGImage image, int numPixels)
-            {
-                var buffer = FixedArray<byte>.Alloc(PIXELSIZE * numPixels);
-                new GrayscaleAlphaToRGBAJob((byte*) image.Data, buffer.Ptr)
-                    .Schedule(image.Length, 64)
-                    .Complete();
-                return buffer;
-            }
-
             [NativeDisableUnsafePtrRestriction]
-            private readonly byte* OriginalTexture;
+            private readonly byte* _originalTexture;
             [NativeDisableUnsafePtrRestriction]
-            private readonly byte* ResultTexture;
+            private readonly byte* _resultTexture;
 
-            private GrayscaleAlphaToRGBAJob(byte* originalTexture, byte* resultTexture)
+            public GrayscaleAlphaToRGBAJob(byte* originalTexture, byte* resultTexture)
             {
-                OriginalTexture = originalTexture;
-                ResultTexture = resultTexture;
+                _originalTexture = originalTexture;
+                _resultTexture = resultTexture;
             }
 
             public readonly void Execute(int index)
@@ -175,13 +136,13 @@ namespace YARG.Helpers.Extensions
                 int originalIndex = index << 1;
                 int resultIndex = index << 2;
 
-                byte value = OriginalTexture[originalIndex];
-                byte alpha = OriginalTexture[originalIndex + 1];
+                byte value = _originalTexture[originalIndex];
+                byte alpha = _originalTexture[originalIndex + 1];
 
-                ResultTexture[resultIndex] = value;
-                ResultTexture[resultIndex + 1] = value;
-                ResultTexture[resultIndex + 2] = value;
-                ResultTexture[resultIndex + 3] = alpha;
+                _resultTexture[resultIndex] = value;
+                _resultTexture[resultIndex + 1] = value;
+                _resultTexture[resultIndex + 2] = value;
+                _resultTexture[resultIndex + 3] = alpha;
             }
         }
     }
