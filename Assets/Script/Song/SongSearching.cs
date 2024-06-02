@@ -242,7 +242,10 @@ namespace YARG.Song
                 {
                     SearchMode mode;
                     (argument, mode) = ParseArgument(argument);
-                    filters.Add(new FilterNode(attribute, mode, argument));
+                    if (argument.Length > 0)
+                    {
+                        filters.Add(new FilterNode(attribute, mode, argument));
+                    }
                 }
                 
                 if (attribute == SortAttribute.Unspecified)
@@ -500,6 +503,11 @@ namespace YARG.Song
             double threshold = RANK_THRESHOLD;
             if (argument.Length > songStr.Length)
             {
+                if (songStr.Length == 0)
+                {
+                    return argument.Length == 1;
+                }
+
                 threshold *= (double) argument.Length / songStr.Length;
                 if (threshold > 1.0)
                 {

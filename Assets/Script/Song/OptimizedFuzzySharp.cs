@@ -58,24 +58,19 @@ namespace YARG.Song
             public int DestPos;
         }
 
-        public static double PartialRatio(ReadOnlySpan<char> input1, ReadOnlySpan<char> input2)
+        public static double PartialRatio(ReadOnlySpan<char> argument, ReadOnlySpan<char> songStr)
         {
-            if (input1.Length == 0 || input2.Length == 0)
-            {
-                return input1.Length == input2.Length ? 100 : 0;
-            }
-
             ReadOnlySpan<char> shorter;
             ReadOnlySpan<char> longer;
-            if (input1.Length < input2.Length)
+            if (argument.Length < songStr.Length)
             {
-                shorter = input1;
-                longer = input2;
+                shorter = argument;
+                longer = songStr;
             }
             else
             {
-                shorter = input2;
-                longer = input1;
+                shorter = songStr;
+                longer = argument;
             }
 
             var matchingBlocks = GetMatchingBlocks(shorter.Length, longer.Length, GetEditOps(shorter, longer));
