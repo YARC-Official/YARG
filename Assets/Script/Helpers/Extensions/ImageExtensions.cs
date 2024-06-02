@@ -74,19 +74,22 @@ namespace YARG.Helpers.Extensions
                 return;
             }
 
-            // Dispose of the old texture (prevent memory leaks)
-            UnityEngine.Object.Destroy(rawImage.texture);
+            lock (rawImage)
+            {
+                // Dispose of the old texture (prevent memory leaks)
+                UnityEngine.Object.Destroy(rawImage.texture);
 
-            if (image != null && !cancellationToken.IsCancellationRequested)
-            {
-                rawImage.texture = image.LoadTexture(false);
-                rawImage.uvRect = new Rect(0f, 0f, 1f, -1f);
-                rawImage.color = Color.white;
-            }
-            else
-            {
-                rawImage.texture = null;
-                rawImage.color = Color.clear;
+                if (image != null && !cancellationToken.IsCancellationRequested)
+                {
+                    rawImage.texture = image.LoadTexture(false);
+                    rawImage.uvRect = new Rect(0f, 0f, 1f, -1f);
+                    rawImage.color = Color.white;
+                }
+                else
+                {
+                    rawImage.texture = null;
+                    rawImage.color = Color.clear;
+                }
             }
         }
 
