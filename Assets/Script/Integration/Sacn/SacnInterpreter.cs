@@ -1,10 +1,7 @@
 using System;
 using PlasticBand.Haptics;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 using YARG.Core.Chart;
-using YARG.Core.Logging;
 using YARG.Integration.StageKit;
 using YARG.Settings;
 
@@ -18,12 +15,6 @@ namespace YARG.Integration.Sacn
         // YARG is doing and to be able to react to it.
 
         private enum LedEnum
-        {
-            Off = 0,
-            On = 255,
-        }
-
-        private enum DimmerEnum
         {
             Off = 0,
             On = 255,
