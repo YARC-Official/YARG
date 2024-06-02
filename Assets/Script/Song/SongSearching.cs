@@ -553,7 +553,7 @@ namespace YARG.Song
             while (index < arg.Length)
             {
                 char curr = arg[index++];
-                if (buffer[length] > 32 || curr > 32)
+                if (curr > 32 || (length > 0 && buffer[length - 1] > 32))
                 {
                     if (curr > 32)
                     {
