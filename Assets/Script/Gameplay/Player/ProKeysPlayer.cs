@@ -48,6 +48,8 @@ namespace YARG.Gameplay.Player
 
         public override bool ShouldUpdateInputsOnResume => true;
 
+        public float RangeShiftOffset => _currentOffset;
+
         [Header("Pro Keys Specific")]
         [SerializeField]
         private KeysArray _keysArray;
@@ -277,7 +279,12 @@ namespace YARG.Gameplay.Player
 
                 foreach (var note in NotePool.AllSpawned)
                 {
-                    (note as ProKeysNoteElement)?.UpdateNoteX();
+                    (note as ProKeysNoteElement)?.UpdateXPosition();
+                }
+
+                foreach (var bar in _chordBarPool.AllSpawned)
+                {
+                    (bar as ProKeysChordBarElement)?.UpdateXPosition();
                 }
             }
         }

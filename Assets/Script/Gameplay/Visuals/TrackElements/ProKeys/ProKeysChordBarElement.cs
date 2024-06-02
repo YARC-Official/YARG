@@ -18,6 +18,8 @@ namespace YARG.Gameplay.Visuals
 
         [Space]
         [SerializeField]
+        private Transform _container;
+        [SerializeField]
         private Transform _middleModel;
         [SerializeField]
         private Transform _leftModel;
@@ -42,8 +44,9 @@ namespace YARG.Gameplay.Visuals
                 }
             }
 
-            var minPos = Player.GetNoteX(min!.Value) - _middlePadding;
-            var maxPos = Player.GetNoteX(max!.Value) + _middlePadding;
+            // Subtract range shift offset because that will be applied to the container
+            var minPos = Player.GetNoteX(min!.Value) - _middlePadding - Player.RangeShiftOffset;
+            var maxPos = Player.GetNoteX(max!.Value) + _middlePadding - Player.RangeShiftOffset;
 
             var size = maxPos - minPos;
             var mid = (minPos + maxPos) / 2f;
@@ -56,6 +59,14 @@ namespace YARG.Gameplay.Visuals
             // Transform the end models
             _leftModel.localPosition = _leftModel.localPosition.WithX(minPos - _endOffsets);
             _rightModel.localPosition = _rightModel.localPosition.WithX(maxPos + _endOffsets);
+
+            // Update the container to the proper range shift offset
+            UpdateXPosition();
+        }
+
+        public void UpdateXPosition()
+        {
+            _container.localPosition = _container.localPosition.WithX(Player.RangeShiftOffset);
         }
 
         protected override void UpdateElement()

@@ -44,7 +44,7 @@ namespace YARG.Gameplay.Visuals
 
             // Set the position
             transform.localPosition = Vector3.zero;
-            UpdateNoteX();
+            UpdateXPosition();
 
             if (ProKeysUtilities.IsWhiteKey(NoteRef.Key % 12))
             {
@@ -85,7 +85,7 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void UpdateNoteX()
+        public void UpdateXPosition()
         {
             var t = transform;
             t.localPosition = t.localPosition
