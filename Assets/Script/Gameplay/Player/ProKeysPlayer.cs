@@ -58,7 +58,7 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private Pool _shiftIndicatorPool;
         [SerializeField]
-        private Pool _chordBarPool;
+        private KeyedPool _chordBarPool;
 
         private List<RangeShift> _rangeShifts;
         private readonly List<RangeShiftIndicator> _shiftIndicators = new();
@@ -207,6 +207,10 @@ namespace YARG.Gameplay.Player
 
             (NotePool.GetByKey(note) as ProKeysNoteElement)?.HitNote();
             _keysArray.PlayHitAnimation(note.Key);
+
+            // Chord bars are spawned based on the parent element
+            var parent = note.ParentOrSelf;
+            (_chordBarPool.GetByKey(parent) as ProKeysChordBarElement)?.CheckForChordHit();
         }
 
         private void OnOverhit(int key)
@@ -354,7 +358,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            var poolable = _chordBarPool.TakeWithoutEnabling();
+            var poolable = _chordBarPool.KeyedTakeWithoutEnabling(parentNote);
             if (poolable == null)
             {
                 YargLogger.LogWarning("Attempted to spawn shift indicator, but it's at its cap!");

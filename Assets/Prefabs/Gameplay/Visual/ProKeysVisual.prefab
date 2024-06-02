@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5140617837963962188}
-  - component: {fileID: 6201973084498919383}
+  - component: {fileID: 604328965033258162}
   m_Layer: 0
   m_Name: Chord Bar Pool
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Father: {fileID: 3199692730525133945}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6201973084498919383
+--- !u!114 &604328965033258162
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,7 +41,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 525293006923955842}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Script: {fileID: 11500000, guid: c24a6ee95ca2444fa768766e48b11579, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   <Prefab>k__BackingField: {fileID: 8633516561021093830, guid: 5174edb1ad694a34ca17a0571cb586e1,
@@ -468,7 +468,7 @@ MonoBehaviour:
   _keysArray: {fileID: 679598873221959975}
   _trackOverlay: {fileID: 7995190430839588284}
   _shiftIndicatorPool: {fileID: 1927606851816881999}
-  _chordBarPool: {fileID: 6201973084498919383}
+  _chordBarPool: {fileID: 604328965033258162}
 --- !u!114 &7617442645122152992 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1051735628184240032, guid: 5800c42510b55c549be95ec3ecd75e1c,

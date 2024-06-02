@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.Visuals
@@ -67,6 +66,15 @@ namespace YARG.Gameplay.Visuals
         public void UpdateXPosition()
         {
             _container.localPosition = _container.localPosition.WithX(Player.RangeShiftOffset);
+        }
+
+        public void CheckForChordHit()
+        {
+            // If the note was fully hit, remove the chord bar
+            if (NoteRef.WasFullyHit())
+            {
+                ParentPool.Return(this);
+            }
         }
 
         protected override void UpdateElement()
