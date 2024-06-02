@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -35,7 +35,6 @@ namespace YARG
 
             // Fast scan (cache read) on startup
             await SongContainer.RunRefresh(true, context);
-            SongSources.LoadSprites(context);
 
             // If we want to reconnect profiles
             if (SettingsManager.Settings.ReconnectProfiles.Value)
