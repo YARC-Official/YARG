@@ -19,7 +19,7 @@ namespace YARG.Menu.MusicLibrary
         private readonly int _songCount;
         private readonly Action _clickAction;
 
-        public CategoryViewType(string primary, int songCount, IReadOnlyList<SongEntry> songsUnderCategory,
+        public CategoryViewType(string primary, int songCount, SongEntry[] songsUnderCategory,
             Action clickAction = null)
         {
             _primary = primary;
@@ -31,7 +31,7 @@ namespace YARG.Menu.MusicLibrary
             GenreCountText = $"{CountOf(songsUnderCategory, i => i.Genre)} genres";
         }
 
-        public CategoryViewType(string primary, int songCount, IReadOnlyList<SongCategory> songsUnderCategory)
+        public CategoryViewType(string primary, int songCount, SongCategory[] songsUnderCategory)
         {
             _primary = primary;
             _songCount = songCount;
@@ -67,9 +67,14 @@ namespace YARG.Menu.MusicLibrary
             _clickAction?.Invoke();
         }
 
-        private static int CountOf(IEnumerable<SongEntry> songs, Func<SongEntry, SortString> selector)
+        private static int CountOf(SongEntry[] songs, Func<SongEntry, SortString> selector)
         {
-            return songs.Select(selector).Distinct().Count();
+            var set = new HashSet<SortString>();
+            foreach (var song in songs)
+            {
+                set.Add(selector(song));
+            }
+            return set.Count;
         }
     }
 }

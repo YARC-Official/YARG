@@ -155,8 +155,7 @@ namespace YARG.Menu.MusicLibrary
             UpdateDifficulties(songEntry);
 
             _cancellationToken = new();
-            // Finally, update album cover
-            LoadAlbumCover();
+            _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token);
         }
 
         private void UpdateDifficulties(SongEntry entry)
@@ -247,24 +246,6 @@ namespace YARG.Menu.MusicLibrary
             _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
         }
 
-        public async void LoadAlbumCover()
-        {
-            var viewType = _musicLibraryMenu.CurrentSelection;
-
-            if (viewType is not SongViewType songViewType) return;
-
-            var originalTexture = _albumCover.texture;
-
-            // Load the new one
-            await _albumCover.LoadAlbumCover(songViewType.SongEntry, _cancellationToken.Token);
-
-            // Dispose of the old texture (prevent memory leaks)
-            if (originalTexture != null)
-            {
-                Destroy(originalTexture);
-            }
-        }
-
         public void PrimaryButtonClick()
         {
             _musicLibraryMenu.CurrentSelection.PrimaryButtonClick();
@@ -284,19 +265,19 @@ namespace YARG.Menu.MusicLibrary
             switch (type)
             {
                 case "source":
-                    _songSearchingField.SetSearchInput(SortAttribute.Source, songEntry.Source.SortStr);
+                    _songSearchingField.SetSearchInput(SortAttribute.Source, $"\"{songEntry.Source.SortStr}\"");
                     break;
                 case "album":
-                    _songSearchingField.SetSearchInput(SortAttribute.Album, songEntry.Album.SortStr);
+                    _songSearchingField.SetSearchInput(SortAttribute.Album, $"\"{songEntry.Album.SortStr}\"");
                     break;
                 case "year":
-                    _songSearchingField.SetSearchInput(SortAttribute.Year, songEntry.Year);
+                    _songSearchingField.SetSearchInput(SortAttribute.Year, $"\"{songEntry.Year}\"");
                     break;
                 case "charter":
-                    _songSearchingField.SetSearchInput(SortAttribute.Charter, songEntry.Charter.SortStr);
+                    _songSearchingField.SetSearchInput(SortAttribute.Charter, $"\"{songEntry.Charter.SortStr}\"");
                     break;
                 case "genre":
-                    _songSearchingField.SetSearchInput(SortAttribute.Genre, songEntry.Genre.SortStr);
+                    _songSearchingField.SetSearchInput(SortAttribute.Genre, $"\"{songEntry.Genre.SortStr}\"");
                     break;
             }
         }

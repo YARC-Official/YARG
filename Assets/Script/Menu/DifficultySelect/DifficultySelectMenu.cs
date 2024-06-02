@@ -127,7 +127,8 @@ namespace YARG.Menu.DifficultySelect
             _loadingPhrase.text = RichTextUtils.StripRichTextTags(
                 GlobalVariables.State.CurrentSong.LoadingPhrase, RichTextTags.BadTags);
 
-            LoadSourceIcon();
+            _sourceIcon.sprite = SongSources.SourceToIcon(GlobalVariables.State.CurrentSong.Source);
+            _sourceIcon.gameObject.SetActive(_sourceIcon.sprite != null);
         }
 
         private void UpdateForPlayer()
@@ -610,20 +611,6 @@ namespace YARG.Menu.DifficultySelect
             int intSpeed = (int) Math.Clamp(speed, 10, 4995);
 
             _speedInput.SetTextWithoutNotify($"{intSpeed}%");
-        }
-
-        private async void LoadSourceIcon()
-        {
-            var icon = await SongSources.SourceToIcon(GlobalVariables.State.CurrentSong.Source);
-            if (icon == null)
-            {
-                _sourceIcon.gameObject.SetActive(false);
-            }
-            else
-            {
-                _sourceIcon.gameObject.SetActive(true);
-                _sourceIcon.sprite = icon;
-            }
         }
     }
 }

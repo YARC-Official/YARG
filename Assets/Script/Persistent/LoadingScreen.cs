@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -24,7 +24,6 @@ namespace YARG
         private async void Start()
         {
             using var context = new LoadingContext();
-            context.SetLoadingText("Loading song sources...");
             try
             {
                 await SongSources.LoadSources(context);

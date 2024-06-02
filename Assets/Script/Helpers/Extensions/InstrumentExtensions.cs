@@ -30,7 +30,35 @@ namespace YARG.Helpers.Extensions
                 Instrument.Vocals             => SortAttribute.Vocals,
                 Instrument.Harmony            => SortAttribute.Harmony,
                 Instrument.Band               => SortAttribute.Band,
-                _ => throw new NotImplementedException()
+                _ => throw new InvalidOperationException("Invalid instrument value")
+            };
+        }
+
+         public static Instrument ToInstrument(this SortAttribute attribute)
+        {
+            return attribute switch
+            {
+                SortAttribute.FiveFretGuitar => Instrument.FiveFretGuitar,
+                SortAttribute.FiveFretBass   => Instrument.FiveFretBass,
+                SortAttribute.FiveFretRhythm => Instrument.FiveFretRhythm,
+                SortAttribute.FiveFretCoop   => Instrument.FiveFretCoopGuitar,
+                SortAttribute.Keys           => Instrument.Keys,
+                SortAttribute.SixFretGuitar  => Instrument.SixFretGuitar,
+                SortAttribute.SixFretBass    => Instrument.SixFretBass,
+                SortAttribute.SixFretRhythm  => Instrument.SixFretRhythm,
+                SortAttribute.SixFretCoop    => Instrument.SixFretCoopGuitar,
+                SortAttribute.FourLaneDrums  => Instrument.FourLaneDrums,
+                SortAttribute.ProDrums       => Instrument.ProDrums,
+                SortAttribute.FiveLaneDrums  => Instrument.FiveLaneDrums,
+                SortAttribute.ProGuitar_17   => Instrument.ProGuitar_17Fret,
+                SortAttribute.ProGuitar_22   => Instrument.ProGuitar_22Fret,
+                SortAttribute.ProBass_17     => Instrument.ProBass_17Fret,
+                SortAttribute.ProBass_22     => Instrument.ProBass_22Fret,
+                SortAttribute.ProKeys        => Instrument.ProKeys,
+                SortAttribute.Vocals         => Instrument.Vocals,
+                SortAttribute.Harmony        => Instrument.Harmony,
+                SortAttribute.Band           => Instrument.Band,
+                _ => throw new NotImplementedException("SortAttribute was not an instrument type")
             };
         }
 
