@@ -30,8 +30,8 @@ namespace YARG.Integration.RB3E
             DisableAll = 0xFF
         }
 
-        public IPAddress _ipAddress = IPAddress.Parse("255.255.255.255"); // "this" network's broadcast address
-        private const int PORT = 21070;                                    // That is what RB3E uses
+        public IPAddress IPAddress = IPAddress.Parse("255.255.255.255"); // "this" network's broadcast address
+        private const int PORT = 21070;                                  // That is what RB3E uses
         private UdpClient _sendClient;
 
         private void OnApplicationQuit()
@@ -59,7 +59,7 @@ namespace YARG.Integration.RB3E
                 KillRB3E();
             }
         }
-        
+
         private void KillRB3E()
         {
             if (_sendClient == null) return;
@@ -147,7 +147,7 @@ namespace YARG.Integration.RB3E
                 commandID               // Right stagekit channel, command ID
             };
 
-            _sendClient.Send(packetData, packetData.Length, _ipAddress.ToString(), PORT);
+            _sendClient.Send(packetData, packetData.Length, IPAddress.ToString(), PORT);
         }
     }
 }

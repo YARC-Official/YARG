@@ -26,7 +26,6 @@ namespace YARG.Settings
     {
         public class SettingContainer
         {
-
             /// <summary>
             /// Have the settings been initialized?
             /// </summary>
@@ -36,7 +35,7 @@ namespace YARG.Settings
 
             public List<string> SongFolders = new();
 
-            public bool ShowAntiPiracyDialog          = true;
+            public bool ShowAntiPiracyDialog = true;
             public bool ShowEngineInconsistencyDialog = true;
             public SortAttribute LibrarySort = SortAttribute.Name;
 
@@ -58,22 +57,22 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
-            public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
+            public ToggleSetting DisableGlobalBackgrounds { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
 
             public ToggleSetting ShowBattery { get; } = new(false);
-            public ToggleSetting ShowTime    { get; } = new(false, ShowTimeCallback);
+            public ToggleSetting ShowTime { get; } = new(false, ShowTimeCallback);
             public ToggleSetting MemoryStats { get; } = new(false, MemoryStatsCallback);
 
             public ToggleSetting ReconnectProfiles { get; } = new(true);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
-            public SliderSetting KickBounceMultiplier      { get; } = new(1f, 0f, 2f);
+            public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
 
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 
             public ToggleSetting PauseOnDeviceDisconnect { get; } = new(true);
-            public ToggleSetting PauseOnFocusLoss     { get; } = new(true);
+            public ToggleSetting PauseOnFocusLoss { get; } = new(true);
 
             public ToggleSetting AmIAwesome { get; } = new(false);
 
@@ -81,41 +80,61 @@ namespace YARG.Settings
 
             #region Songs
 
-            public ToggleSetting AllowDuplicateSongs          { get; } = new(true);
+            public ToggleSetting AllowDuplicateSongs { get; } = new(true);
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
 
             public DropdownSetting<HighScoreInfoMode> HighScoreInfo { get; }
                 = new(HighScoreInfoMode.Stars)
-            {
-                HighScoreInfoMode.Stars,
-                HighScoreInfoMode.Score,
-                HighScoreInfoMode.Off
-            };
+                {
+                    HighScoreInfoMode.Stars,
+                    HighScoreInfoMode.Score,
+                    HighScoreInfoMode.Off
+                };
 
             #endregion
 
             #region Sound
 
             public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => GlobalAudioHandler.SetMasterVolume(v));
-            public VolumeSetting GuitarVolume      { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Guitar, v));
-            public VolumeSetting RhythmVolume      { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Rhythm, v));
-            public VolumeSetting BassVolume        { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Bass, v));
-            public VolumeSetting KeysVolume        { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Keys, v));
-            public VolumeSetting DrumsVolume       { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Drums, v));
-            public VolumeSetting VocalsVolume      { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Vocals, v));
-            public VolumeSetting SongVolume        { get; } = new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Song, v));
-            public VolumeSetting CrowdVolume       { get; } = new(0.5f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
-            public VolumeSetting SfxVolume         { get; } = new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
-            public VolumeSetting PreviewVolume     { get; } = new(0.25f);
+
+            public VolumeSetting GuitarVolume { get; } =
+                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Guitar, v));
+
+            public VolumeSetting RhythmVolume { get; } =
+                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Rhythm, v));
+
+            public VolumeSetting BassVolume { get; } =
+                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Bass, v));
+
+            public VolumeSetting KeysVolume { get; } =
+                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Keys, v));
+
+            public VolumeSetting DrumsVolume { get; } =
+                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Drums, v));
+
+            public VolumeSetting VocalsVolume { get; } =
+                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Vocals, v));
+
+            public VolumeSetting SongVolume { get; } =
+                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Song, v));
+
+            public VolumeSetting CrowdVolume { get; } =
+                new(0.5f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
+
+            public VolumeSetting SfxVolume { get; } =
+                new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
+
+            public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
-            public VolumeSetting VocalMonitoring   { get; } = new(0.7f, VocalMonitoringCallback);
+            public VolumeSetting VocalMonitoring { get; } = new(0.7f, VocalMonitoringCallback);
 
             public ToggleSetting EnablePlaybackBuffer { get; } = new(true, GlobalAudioHandler.TogglePlaybackBuffer);
 
             public IntSetting PlaybackBufferLength { get; }
-                = new(75, GlobalAudioHandler.MinimumBufferLength, GlobalAudioHandler.MaximumBufferLength, GlobalAudioHandler.SetBufferLength);
+                = new(75, GlobalAudioHandler.MinimumBufferLength, GlobalAudioHandler.MaximumBufferLength,
+                    GlobalAudioHandler.SetBufferLength);
 
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
 
@@ -146,67 +165,67 @@ namespace YARG.Settings
 
             #region Graphics
 
-            public ToggleSetting VSync  { get; } = new(true, VSyncCallback);
-            public IntSetting    FpsCap { get; } = new(60, 1, onChange: FpsCapCallback);
+            public ToggleSetting VSync { get; } = new(true, VSyncCallback);
+            public IntSetting FpsCap { get; } = new(60, 1, onChange: FpsCapCallback);
 
             public DropdownSetting<FullScreenMode> FullscreenMode { get; }
                 = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)
-            {
+                {
 #if UNITY_STANDALONE_WIN
-                FullScreenMode.ExclusiveFullScreen,
+                    FullScreenMode.ExclusiveFullScreen,
 #elif UNITY_STANDALONE_OSX
                 FullScreenMode.MaximizedWindow,
 #endif
-                FullScreenMode.FullScreenWindow,
-                FullScreenMode.Windowed,
-            };
+                    FullScreenMode.FullScreenWindow,
+                    FullScreenMode.Windowed,
+                };
 
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
-            public ToggleSetting     FpsStats   { get; } = new(false, FpsCounterCallback);
+            public ToggleSetting FpsStats { get; } = new(false, FpsCounterCallback);
 
-            public ToggleSetting LowQuality   { get; } = new(false, LowQualityCallback);
+            public ToggleSetting LowQuality { get; } = new(false, LowQualityCallback);
             public ToggleSetting DisableBloom { get; } = new(false, DisableBloomCallback);
 
             public DropdownSetting<StarPowerHighwayFxMode> StarPowerHighwayFx { get; }
                 = new(StarPowerHighwayFxMode.On)
-            {
-                StarPowerHighwayFxMode.On,
-                StarPowerHighwayFxMode.Reduced,
-                StarPowerHighwayFxMode.Off
-            };
+                {
+                    StarPowerHighwayFxMode.On,
+                    StarPowerHighwayFxMode.Reduced,
+                    StarPowerHighwayFxMode.Off
+                };
 
-            public ToggleSetting ShowHitWindow            { get; } = new(false, ShowHitWindowCallback);
+            public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 
             public DropdownSetting<NoteStreakFrequencyMode> NoteStreakFrequency { get; }
                 = new(NoteStreakFrequencyMode.Frequent)
-            {
-                NoteStreakFrequencyMode.Frequent,
-                NoteStreakFrequencyMode.Sparse,
-                NoteStreakFrequencyMode.Disabled
-            };
+                {
+                    NoteStreakFrequencyMode.Frequent,
+                    NoteStreakFrequencyMode.Sparse,
+                    NoteStreakFrequencyMode.Disabled
+                };
 
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; }
                 = new(SongProgressMode.CountUpOnly)
-            {
-                SongProgressMode.None,
-                SongProgressMode.CountUpAndTotal,
-                SongProgressMode.CountDownAndTotal,
-                SongProgressMode.CountUpOnly,
-                SongProgressMode.CountDownOnly,
-                SongProgressMode.TotalOnly
-            };
+                {
+                    SongProgressMode.None,
+                    SongProgressMode.CountUpAndTotal,
+                    SongProgressMode.CountDownAndTotal,
+                    SongProgressMode.CountUpOnly,
+                    SongProgressMode.CountDownOnly,
+                    SongProgressMode.TotalOnly
+                };
 
             public ToggleSetting GraphicalProgressOnScoreBox { get; } = new(true);
 
             public DropdownSetting<LyricDisplayMode> LyricDisplay { get; }
                 = new(LyricDisplayMode.Normal)
-            {
-                LyricDisplayMode.Normal,
-                LyricDisplayMode.Transparent,
-                LyricDisplayMode.NoBackground,
-                LyricDisplayMode.Disabled
-            };
+                {
+                    LyricDisplayMode.Normal,
+                    LyricDisplayMode.Transparent,
+                    LyricDisplayMode.NoBackground,
+                    LyricDisplayMode.Disabled
+                };
 
             public ToggleSetting KeepSongInfoVisible { get; } = new(false);
 
@@ -249,46 +268,59 @@ namespace YARG.Settings
             #region Lighting Peripherals
 
             public ToggleSetting StageKitEnabled { get; } = new(true, StageKitEnabledCallback);
-            public ToggleSetting DMXEnabled      { get; } = new(false, DMXEnabledCallback);
-            public ToggleSetting RB3EEnabled     { get; } = new(false, RB3EEnabledCallback);
+            public ToggleSetting DMXEnabled { get; } = new(false, DMXEnabledCallback);
+            public ToggleSetting RB3EEnabled { get; } = new(false, RB3EEnabledCallback);
 
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(
-                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => { SacnInterpreter.Instance._dimmerChannels = v;});
+                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => SacnInterpreter.Instance.dimmerChannels = v);
+
             public DMXChannelsSetting DMXBlueChannels { get; } = new(
-                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => {SacnInterpreter.Instance._blueChannels = v;});
+                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => SacnInterpreter.Instance.blueChannels = v);
+
             public DMXChannelsSetting DMXRedChannels { get; } = new(
-                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => {SacnInterpreter.Instance._redChannels = v;});
+                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => SacnInterpreter.Instance.redChannels = v);
+
             public DMXChannelsSetting DMXGreenChannels { get; } = new(
-                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => {SacnInterpreter.Instance._greenChannels = v;});
+                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => SacnInterpreter.Instance.greenChannels = v);
+
             public DMXChannelsSetting DMXYellowChannels { get; } = new(
-                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => {SacnInterpreter.Instance._yellowChannels = v;});
+                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => SacnInterpreter.Instance.yellowChannels = v);
 
-            public IntSetting DMXFogChannel { get; } = new(6, 1, 512, v => { SacnInterpreter.Instance._fogChannel = v; });
+            public IntSetting DMXFogChannel { get; } = new(6, 1, 512, v => SacnInterpreter.Instance.fogChannel = v);
 
-            public IntSetting DMXStrobeChannel { get; } = new(7, 1, 512, v => { SacnInterpreter.Instance._strobeChannel = v; });
+            public IntSetting DMXStrobeChannel { get; } =
+                new(7, 1, 512, v => SacnInterpreter.Instance.strobeChannel = v);
 
-            public IntSetting DMXCueChangeChannel { get; } = new(8, 1, 512, v => { SacnInterpreter.Instance._cueChangeChannel = v; });
+            public IntSetting DMXCueChangeChannel { get; } =
+                new(8, 1, 512, v => SacnInterpreter.Instance.cueChangeChannel = v);
 
-            public IPv4Setting RB3EBroadcastIP { get; } = new(new byte[] { 255, 255, 255, 255 }, v => { RB3EHardware.Instance._ipAddress = new IPAddress(v); });
+            public IPv4Setting RB3EBroadcastIP { get; } = new(new byte[] { 255, 255, 255, 255 },
+                v => RB3EHardware.Instance.IPAddress = new IPAddress(v));
 
-            public IntSetting DMXBeatlineChannel { get; } = new(14, 1, 512, v => { SacnInterpreter.Instance._beatlineChannel = v; });
+            public IntSetting DMXBeatlineChannel { get; } =
+                new(14, 1, 512, v => SacnInterpreter.Instance.beatlineChannel = v);
 
-            public IntSetting DMXBonusEffectChannel { get; } = new(15, 1, 512, v => { SacnInterpreter.Instance._bonusEffectChannel = v; });
+            public IntSetting DMXBonusEffectChannel { get; } =
+                new(15, 1, 512, v => SacnInterpreter.Instance.bonusEffectChannel = v);
 
-            public IntSetting DMXKeyframeChannel { get; } = new(16, 1, 512, v => { SacnInterpreter.Instance._keyframeChannel = v; });
+            public IntSetting DMXKeyframeChannel { get; } =
+                new(16, 1, 512, v => SacnInterpreter.Instance.keyframeChannel = v);
 
-            public IntSetting DMXDrumsChannel { get; } = new(22, 1, 512, v => { SacnInterpreter.Instance._drumChannel = v; });
+            public IntSetting DMXDrumsChannel { get; } =
+                new(22, 1, 512, v => SacnInterpreter.Instance.drumChannel = v);
 
-            public IntSetting DMXPostProcessingChannel { get; } = new(23, 1, 512, v => { SacnInterpreter.Instance._postProcessingChannel = v; });
+            public IntSetting DMXPostProcessingChannel { get; } =
+                new(23, 1, 512, v => SacnInterpreter.Instance.postProcessingChannel = v);
 
-            public IntSetting DMXGuitarChannel { get; } = new(24, 1, 512, v => { SacnInterpreter.Instance._guitarChannel = v; });
+            public IntSetting DMXGuitarChannel { get; } =
+                new(24, 1, 512, v => SacnInterpreter.Instance.guitarChannel = v);
 
-            public IntSetting DMXBassChannel { get; } = new(30, 1, 512, v => { SacnInterpreter.Instance._bassChannel = v; });
+            public IntSetting DMXBassChannel { get; } = new(30, 1, 512, v => SacnInterpreter.Instance.bassChannel = v);
 
             //NYI
             //public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
 
-            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => { SacnInterpreter.Instance._keysChannel = v; });
+            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => SacnInterpreter.Instance.keysChannel = v);
 
             public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
 
@@ -470,7 +502,8 @@ namespace YARG.Settings
 
                 foreach (var device in InputSystem.devices)
                 {
-                    YargLogger.LogFormatInfo("Description for device {0}:\n{1}\n", device.displayName, item2: device.description.ToJson());
+                    YargLogger.LogFormatInfo("Description for device {0}:\n{1}\n", device.displayName,
+                        item2: device.description.ToJson());
                 }
             }
 

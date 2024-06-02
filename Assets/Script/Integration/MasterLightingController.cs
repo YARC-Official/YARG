@@ -243,6 +243,7 @@ namespace YARG.Integration
             // This is a instantaneous event, so we don't need to keep track of the previous/current event.
             OnBonusFXEvent?.Invoke();
         }
+
         public static void Initializer(Scene scene)
         {
             switch ((SceneIndex) scene.buildIndex)
@@ -271,6 +272,7 @@ namespace YARG.Integration
                     break;
             }
         }
+
         private static void OnApplicationQuit()
         {
             CurrentLightingCue = null;
