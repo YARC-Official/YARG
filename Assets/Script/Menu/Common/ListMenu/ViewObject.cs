@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -105,27 +103,8 @@ namespace YARG.Menu.ListMenu
 
         private void SetIcon(TViewType type, CancellationToken token)
         {
-            _icon.gameObject.SetActive(false);
-
-            try
-            {
-                var icon = type.GetIcon();
-
-                token.ThrowIfCancellationRequested();
-
-                if (icon == null)
-                {
-                    _icon.gameObject.SetActive(false);
-                }
-                else
-                {
-                    _icon.gameObject.SetActive(true);
-                    _icon.sprite = icon;
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
+            _icon.sprite = type.GetIcon();
+            _icon.gameObject.SetActive(_icon.sprite != null);
         }
 
         public void IconClick()
