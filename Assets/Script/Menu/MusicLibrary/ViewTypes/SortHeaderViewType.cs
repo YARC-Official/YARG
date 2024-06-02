@@ -29,12 +29,11 @@ namespace YARG.Menu.MusicLibrary
             return CreateSongCountString(_songCount);
         }
 
-        private static readonly Sprite _downIcon = Addressables.LoadAssetAsync<Sprite>("MusicLibraryIcons[Down]").WaitForCompletion();
 #nullable enable
         public override Sprite? GetIcon()
 #nullable disable
         {
-            return _downIcon;
+            return Addressables.LoadAssetAsync<Sprite>("MusicLibraryIcons[Down]").WaitForCompletion();
         }
     }
 }
