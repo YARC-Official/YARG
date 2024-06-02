@@ -315,14 +315,14 @@ namespace YARG.Song
                 },
                 SearchMode.Exact => filter.Attribute switch
                 {
-                    SortAttribute.Name => entry => RemoveUnwantedWhitespace(entry.Name.SortStr) == filter.Argument,
+                    SortAttribute.Name => entry => entry.Name.SortStr == filter.Argument,
                     SortAttribute.Artist => entry => RemoveArticle(entry.Artist.SortStr) == filter.Argument,
-                    SortAttribute.Album => entry => RemoveUnwantedWhitespace(entry.Album.SortStr) == filter.Argument,
-                    SortAttribute.Genre => entry => RemoveUnwantedWhitespace(entry.Genre.SortStr) == filter.Argument,
-                    SortAttribute.Year => entry => RemoveUnwantedWhitespace(entry.Year) == filter.Argument || RemoveUnwantedWhitespace(entry.UnmodifiedYear) == filter.Argument,
-                    SortAttribute.Charter => entry => RemoveUnwantedWhitespace(entry.Charter.SortStr) == filter.Argument,
-                    SortAttribute.Playlist => entry => RemoveUnwantedWhitespace(entry.Playlist.SortStr) == filter.Argument,
-                    SortAttribute.Source => entry => RemoveUnwantedWhitespace(entry.Source.SortStr) == filter.Argument,
+                    SortAttribute.Album => entry => entry.Album.SortStr == filter.Argument,
+                    SortAttribute.Genre => entry => entry.Genre.SortStr == filter.Argument,
+                    SortAttribute.Year => entry => entry.Year == filter.Argument || entry.UnmodifiedYear == filter.Argument,
+                    SortAttribute.Charter => entry => entry.Charter.SortStr == filter.Argument,
+                    SortAttribute.Playlist => entry => entry.Playlist.SortStr == filter.Argument,
+                    SortAttribute.Source => entry => entry.Source.SortStr == filter.Argument,
                     _ => throw new Exception("Unhandled seacrh filter")
                 },
                 _ => throw new Exception("Unused Mode type"),
@@ -346,8 +346,8 @@ namespace YARG.Song
                 if (filter.Mode == SearchMode.Exact)
                 {
                     _mode = SearchMode.Exact;
-                    _nameIndex = RemoveUnwantedWhitespace(song.Name.SortStr) == filter.Argument ? 0 : -1;
-                    _artistIndex = RemoveUnwantedWhitespace(song.Artist.SortStr) == filter.Argument ? 0 : -1;
+                    _nameIndex = song.Name.SortStr == filter.Argument ? 0 : -1;
+                    _artistIndex = song.Artist.SortStr == filter.Argument ? 0 : -1;
                 }
                 else
                 {
@@ -506,9 +506,7 @@ namespace YARG.Song
                     return false;
                 }
             }
-
-            var adjustSongStr = RemoveUnwantedWhitespace(songStr);
-            return OptimizedFuzzySharp.PartialRatio(argument.AsSpan(), adjustSongStr.AsSpan()) >= threshold;
+            return OptimizedFuzzySharp.PartialRatio(argument.AsSpan(), songStr.AsSpan()) >= threshold;
         }
 
         private static readonly string[] Articles =
