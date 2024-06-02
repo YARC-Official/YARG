@@ -80,7 +80,6 @@ namespace YARG.Menu.ScoreScreen
             // Put the scores in!
             CreateScoreCards(scoreScreenStats);
 
-            // Set the icon. This is async, so we have to do it last so everything loads in.
             _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
         }
 
