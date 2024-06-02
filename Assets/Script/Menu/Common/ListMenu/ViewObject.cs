@@ -32,8 +32,6 @@ namespace YARG.Menu.ListMenu
 
         protected TViewType ViewType;
 
-        private CancellationTokenSource _iconCancellationToken;
-
         public virtual void Show(bool selected, TViewType viewType)
         {
             Showing = true;
@@ -53,13 +51,8 @@ namespace YARG.Menu.ListMenu
                 i.text = viewType.GetSecondaryText(selected);
             }
 
-            // Set icon
-            if (_iconCancellationToken is { IsCancellationRequested: false })
-            {
-                _iconCancellationToken.Cancel();
-            }
-            _iconCancellationToken = new CancellationTokenSource();
-            SetIcon(viewType, _iconCancellationToken.Token);
+            _icon.sprite = viewType.GetIcon();
+            _icon.gameObject.SetActive(_icon.sprite != null);
         }
 
         public virtual void Hide()
@@ -99,12 +92,6 @@ namespace YARG.Menu.ListMenu
 
                     break;
             }
-        }
-
-        private void SetIcon(TViewType type, CancellationToken token)
-        {
-            _icon.sprite = type.GetIcon();
-            _icon.gameObject.SetActive(_icon.sprite != null);
         }
 
         public void IconClick()
