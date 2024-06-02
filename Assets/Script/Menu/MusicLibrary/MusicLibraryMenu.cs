@@ -344,7 +344,7 @@ namespace YARG.Menu.MusicLibrary
             Refresh();
 
             // Select playlist button
-            SetIndexTo(i => i is ButtonViewType { Id: PLAYLIST_ID });
+            SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
         }
 
         private void CalculateCategoryHeaderIndices(List<ViewType> list)

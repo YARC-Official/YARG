@@ -44,9 +44,11 @@ namespace YARG.Menu.MusicLibrary
             return FormatAs(SongEntry.Artist, TextType.Secondary, selected);
         }
 
-        public override async UniTask<Sprite> GetIcon()
+#nullable enable
+        public override Sprite? GetIcon()
+#nullable disable
         {
-            return await SongSources.SourceToIcon(SongEntry.Source);
+            return SongSources.SourceToIcon(SongEntry.Source);
         }
 
         public override string GetSideText(bool selected)

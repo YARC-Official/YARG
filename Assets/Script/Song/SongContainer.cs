@@ -145,6 +145,7 @@ namespace YARG.Song
 
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
+            SongSources.LoadSprites(context);
         }
         
         public static SongCategory[] GetSortedCategory(SortAttribute sort)
