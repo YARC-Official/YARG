@@ -1,15 +1,14 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering.Universal.Internal;
-using YARG.Audio;
+using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
-using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
+using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
 using YARG.Menu.MusicLibrary;
@@ -26,7 +25,6 @@ namespace YARG.Settings
     {
         public class SettingContainer
         {
-            //public static event System.Action OnDMXChannelsChanged;
 
             /// <summary>
             /// Have the settings been initialized?
@@ -39,7 +37,7 @@ namespace YARG.Settings
 
             public bool ShowAntiPiracyDialog          = true;
             public bool ShowEngineInconsistencyDialog = true;
-            public SongAttribute LibrarySort = SongAttribute.Name;
+            public SortAttribute LibrarySort = SortAttribute.Name;
 
             #endregion
 
@@ -251,6 +249,7 @@ namespace YARG.Settings
 
             public ToggleSetting StageKitEnabled { get; } = new(true, StageKitEnabledCallback);
             public ToggleSetting DMXEnabled      { get; } = new(false, DMXEnabledCallback);
+            public ToggleSetting RB3EEnabled     { get; } = new(false, RB3EEnabledCallback);
 
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(
                 new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, DMXCallback);
@@ -269,6 +268,31 @@ namespace YARG.Settings
 
             public IntSetting DMXCueChangeChannel { get; } = new(8, 1, 512);
 
+            public IPv4Setting RB3EBroadcastIP { get; } = new(new byte[] { 255, 255, 255, 255 }, RB3ECallback);
+
+            public IntSetting DMXBeatlineChannel { get; } = new(14, 1, 512);
+
+            public IntSetting DMXBonusEffectChannel { get; } = new(15, 1, 512);
+
+            public IntSetting DMXKeyframeChannel { get; } = new(16, 1, 512);
+
+            public IntSetting DMXDrumsChannel { get; } = new(22, 1, 512);
+
+            public IntSetting DMXPostProcessingChannel { get; } = new(23, 1, 512);
+
+            public IntSetting DMXGuitarChannel { get; } = new(24, 1, 512);
+
+            public IntSetting DMXBassChannel { get; } = new(30, 1, 512);
+
+            //NYI
+            //public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
+
+            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512);
+
+            public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
+
+            public DMXChannelsSetting DMXDimmerValues { get; } = new(new[] { 255, 255, 255, 255, 255, 255, 255, 255 });
+
             #endregion
 
             #region Debug and Developer
@@ -280,6 +304,26 @@ namespace YARG.Settings
             #endregion
 
             #region Callbacks
+
+            private static void RB3EEnabledCallback(bool value)
+            {
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                RB3EHardware.Instance.HandleEnabledChanged(value);
+            }
+
+            private static void RB3ECallback(byte[] value)
+            {
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                RB3EHardware.Instance.HandleBroadcastIPChanged();
+            }
 
             private static void ShowTimeCallback(bool value)
             {
@@ -322,7 +366,7 @@ namespace YARG.Settings
                 {
                     return;
                 }
-                SacnHardware.Instance.UpdateDMXChannelNumbers();
+                SacnInterpreter.Instance.UpdateDMXChannelNumbers();
             }
 
             private static void VSyncCallback(bool value)

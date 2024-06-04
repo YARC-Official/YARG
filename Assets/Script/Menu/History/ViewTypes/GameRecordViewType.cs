@@ -28,7 +28,7 @@ namespace YARG.Menu.History
         {
             GameRecord = gameRecord;
 
-            if (SongContainer.SongsByHash.TryGetValue(new HashWrapper(gameRecord.SongChecksum), out var songs))
+            if (SongContainer.SongsByHash.TryGetValue(HashWrapper.Create(gameRecord.SongChecksum), out var songs))
             {
                 _songEntry = songs[0];
             }
@@ -76,7 +76,7 @@ namespace YARG.Menu.History
             replayEntry.ReplayPath = path;
 
             // Compare hashes
-            var databaseHash = new HashWrapper(GameRecord.ReplayChecksum);
+            var databaseHash = HashWrapper.Create(GameRecord.ReplayChecksum);
             if (!replayFile.Header.ReplayChecksum.Equals(databaseHash))
             {
                 DialogManager.Instance.ShowMessage("Cannot Play Replay",
@@ -102,12 +102,12 @@ namespace YARG.Menu.History
             LoadIntoReplay(replayEntry, _songEntry);
         }
 
-        public override async UniTask<Sprite> GetIcon()
+#nullable enable
+        public override Sprite? GetIcon()
+#nullable disable
         {
-            // TODO: Show "song missing" icon instead
-            if (_songEntry is null) return null;
-
-            return await SongSources.SourceToIcon(_songEntry.Source);
+            // TODO: Show "song missing" icon instead when _songEntry is null
+            return _songEntry != null ? SongSources.SourceToIcon(_songEntry.Source) : null;
         }
 
         public override GameInfo? GetGameInfo()

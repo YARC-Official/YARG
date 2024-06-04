@@ -44,6 +44,11 @@ namespace YARG.Input
         /// The name for this binding.
         /// </summary>
         public LocalizedString Name { get; }
+		
+        /// <summary>
+        /// Alternate name for this binding, representing lefty-flip
+        /// </summary>
+        public LocalizedString NameLefty { get; }
 
         /// <summary>
         /// The key string for this binding.
@@ -66,6 +71,15 @@ namespace YARG.Input
         {
             Key = name;
             Name = new("Bindings", name);
+            NameLefty = Name;
+            Action = action;
+        }
+		
+        public ControlBinding(string name, string nameLefty, int action)
+        {
+            Key = name;
+            Name = new("Bindings", name);
+            NameLefty = new("Bindings", nameLefty);
             Action = action;
         }
 
@@ -83,6 +97,7 @@ namespace YARG.Input
         public abstract bool RemoveControl(InputControl control);
         public abstract bool ContainsControl(InputControl control);
 
+        public abstract bool ContainsBindingsForDevice(InputDevice device);
         public abstract void ClearBindingsForDevice(InputDevice device);
         public abstract void ClearAllBindings();
 
@@ -207,6 +222,10 @@ namespace YARG.Input
         public    IReadOnlyList<TBinding> Bindings => _bindings;
 
         public ControlBinding(string name, int action) : base(name, action)
+        {
+        }
+
+        public ControlBinding(string name, string nameLefty, int action) : base(name, nameLefty, action)
         {
         }
 
@@ -345,6 +364,23 @@ namespace YARG.Input
             }
 
             foundBinding = null;
+            return false;
+        }
+
+        public override bool ContainsBindingsForDevice(InputDevice device)
+        {
+            foreach (var binding in _bindings)
+            {
+                if (binding.Control.device == device)
+                    return true;
+            }
+
+            foreach (var serialized in _unresolvedBindings)
+            {
+                if (serialized.Device.MatchesDevice(device))
+                    return true;
+            }
+
             return false;
         }
 

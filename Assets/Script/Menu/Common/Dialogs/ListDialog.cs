@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using YARG.Helpers.Extensions;
+using YARG.Menu.Persistent;
 
 namespace YARG.Menu.Dialogs
 {
@@ -12,12 +13,23 @@ namespace YARG.Menu.Dialogs
         [SerializeField]
         private ColoredButton _listButtonPrefab;
 
-        public ColoredButton AddListButton(string text, UnityAction handler)
+        public ColoredButton AddListButton(string text, UnityAction handler, bool closeOnClick = true)
         {
             var button = AddListEntry(_listButtonPrefab);
 
             button.Text.text = text;
-            button.OnClick.AddListener(handler);
+            if (closeOnClick)
+            {
+                button.OnClick.AddListener(() =>
+                {
+                    handler();
+                    DialogManager.Instance.ClearDialog();
+                });
+            }
+            else
+            {
+                button.OnClick.AddListener(handler);
+            }
 
             return button;
         }
@@ -25,7 +37,7 @@ namespace YARG.Menu.Dialogs
         public T AddListEntry<T>(T prefab)
             where T : Object
         {
-            return Instantiate(prefab, _listContainer.transform);
+            return Instantiate(prefab, _listContainer);
         }
 
         public void ClearList()

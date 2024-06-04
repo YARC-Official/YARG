@@ -18,17 +18,27 @@ namespace YARG.Integration
 
         2) Lighting Interpreters. These classes listen to the events from the Master Lighting Controller and translate them
         into the actual timing and light patterns, for example, interpreting flare_fast as 8 blue leds turning on.
-        Currently there is only one lighting controller, the Stage Kit Interpreter (which uses its Cues and Primitives classes),
+        Currently there are two. The Stage Kit Interpreter (which uses its Cues and Primitives classes),
         that attempts to make cues be as close to the Rock Band Stage Kit as possible but in the future there could others.
+        And the sACN Interpreter, which sets DMX channel values based on the lighting cues and other things.
 
         3) Hardware controllers. These classes listen to the Lighting Interpreters and translate the lighting cues into
         the actual hardware commands. Currently there are two hardware controllers, one for DMX and one for the Stage Kits.
+        Hardware controllers are what is toggled on and off by the enable menu setttings.
         */
 
         public enum FogState
         {
             Off,
             On,
+        }
+
+        public enum InstrumentType
+        {
+            Drums,
+            Guitar,
+            Bass,
+            Keys,
         }
 
         public static LightingEvent CurrentLightingCue
@@ -43,6 +53,19 @@ namespace YARG.Integration
         }
 
         public static LightingEvent PreviousLightingCue;
+
+        public static PostProcessingEvent CurrentPostProcessing
+        {
+            get => _currentPostProcessing;
+            set
+            {
+                PreviousPostProcessing = _currentPostProcessing;
+                _currentPostProcessing = value;
+                OnPostProcessing?.Invoke(value);
+            }
+        }
+
+        public static PostProcessingEvent PreviousPostProcessing;
 
         public static FogState CurrentFogState
         {
@@ -70,15 +93,70 @@ namespace YARG.Integration
 
         public static StageKitStrobeSpeed PreviousStrobeState = StageKitStrobeSpeed.Off;
 
-        public static DrumNote CurrentDrumNote
+        public static int CurrentDrumNotes
         {
             get => _currentDrumNote;
             set
             {
+                PreviousDrumNote = _currentDrumNote;
                 _currentDrumNote = value;
-                OnDrumEvent?.Invoke(value);
+                OnInstrumentEvent?.Invoke(InstrumentType.Drums, value);
             }
         }
+
+        public static int PreviousDrumNote;
+
+        public static int CurrentGuitarNotes
+        {
+            get => _currentGuitarNote;
+            set
+            {
+                PreviousGuitarNote = _currentGuitarNote;
+                _currentGuitarNote = value;
+                OnInstrumentEvent?.Invoke(InstrumentType.Guitar, value);
+            }
+        }
+
+        public static int PreviousGuitarNote;
+
+        public static int CurrentKeysNotes
+        {
+            get => _currentKeysNote;
+            set
+            {
+                PreviousKeysNote = _currentKeysNote;
+                _currentKeysNote = value;
+                OnInstrumentEvent?.Invoke(InstrumentType.Keys, value);
+            }
+        }
+
+        public static int PreviousKeysNote;
+
+        public static int CurrentBassNotes
+        {
+            get => _currentBassNote;
+            set
+            {
+                PreviousBassNote = _currentBassNote;
+                _currentBassNote = value;
+                OnInstrumentEvent?.Invoke(InstrumentType.Bass, value);
+            }
+        }
+
+        public static int PreviousBassNote;
+
+        public static PerformerEvent CurrentPerformerEvent
+        {
+            get => _currentPerformerEvent;
+            set
+            {
+                PreviousPerformerEvent = _currentPerformerEvent;
+                _currentPerformerEvent = value;
+                OnPerformerEvent?.Invoke(value);
+            }
+        }
+
+        public static PerformerEvent PreviousPerformerEvent;
 
         public static VocalNote CurrentVocalNote
         {
@@ -136,23 +214,29 @@ namespace YARG.Integration
         public static event Action OnBonusFXEvent;
         public static event Action<bool> OnLargeVenue;
         public static event Action<FogState> OnFogState;
-        public static event Action<DrumNote> OnDrumEvent;
+        public static event Action<InstrumentType, int> OnInstrumentEvent;
         public static event Action<VocalNote> OnVocalsEvent;
         public static event Action<Beatline> OnBeatLineEvent;
         public static event Action<LightingEvent> OnLightingEvent;
         public static event Action<StageKitStrobeSpeed> OnStrobeEvent;
+        public static event Action<PostProcessingEvent> OnPostProcessing;
+        public static event Action<PerformerEvent> OnPerformerEvent;
 
         private static bool _paused;
         private static bool _largeVenue;
         private static Beatline _currentBeatline;
-        private static DrumNote _currentDrumNote;
+        private static int _currentDrumNote;
         private static FogState _currentFogState;
         private static VocalNote _currentVocalNote;
         private static LightingEvent _currentLightingCue;
         private static StageEffectEvent _currentStageEffect;
         private static StageKitStrobeSpeed _currentStrobeState;
-
+        private static PostProcessingEvent _currentPostProcessing;
         private GameplayBehaviour _gameplayMonitor;
+        private static int _currentGuitarNote;
+        private static int _currentBassNote;
+        private static PerformerEvent _currentPerformerEvent;
+        private static int _currentKeysNote;
 
         private void Start()
         {
@@ -196,11 +280,19 @@ namespace YARG.Integration
 
         public static void FireBonusFXEvent()
         {
-            // This is a instantaneous event, so we don't need to keep track of it.
+            // This is a instantaneous event, so we don't need to keep track of the previous/current event.
             OnBonusFXEvent?.Invoke();
+        }
+
+        private void OnApplicationQuit()
+        {
+            CurrentLightingCue = null;
+            CurrentFogState = FogState.Off;
+            CurrentStrobeState = StageKitStrobeSpeed.Off;
         }
     }
 }
+
 /*
 "Dad always thought laughter was the best medicine, which I guess is why several of us died of tuberculosis."
 

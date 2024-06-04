@@ -16,10 +16,25 @@ namespace YARG.Integration
         private SyncTrack _sync;
         private List<VocalsPhrase> _vocals;
         private InstrumentDifficulty<DrumNote> _drums;
-        private int _eventIndex;
+        private InstrumentDifficulty<GuitarNote> _guitar;
+        private InstrumentDifficulty<GuitarNote> _bass;
+        private InstrumentDifficulty<GuitarNote> _keys;
+
+        private int _keysIndex;
         private int _syncIndex;
         private int _vocalsIndex;
         private int _drumIndex;
+        private int _guitarIndex;
+        private int _bassIndex;
+        private int _stageIndex;
+        //NYI
+        //private int _performerIndex;
+        private int _postProcessingIndex;
+
+        private int _guitarEndCheckIndex = -1;
+        private int _bassEndCheckIndex = -1;
+        private int _drumEndCheckIndex = -1;
+        private int _keysEndCheckIndex = -1;
 
         protected override void OnChartLoaded(SongChart chart)
         {
@@ -28,14 +43,24 @@ namespace YARG.Integration
             Venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
-            chart.FourLaneDrums.TryGetDifficulty(Difficulty.Expert, out _drums);
+            
+            _drums = chart.ProDrums.GetDifficulty(Difficulty.Expert);
+            _guitar = chart.FiveFretGuitar.GetDifficulty(Difficulty.Expert);
+            _bass = chart.FiveFretBass.GetDifficulty(Difficulty.Expert);
+            _keys = chart.Keys.GetDifficulty(Difficulty.Expert);
 
             // Reset the indexes on song restart
-            _eventIndex = 0;
+            _stageIndex = 0;
             LightingIndex = 0;
             _syncIndex = 0;
             _vocalsIndex = 0;
+            _guitarIndex = 0;
+            _bassIndex = 0;
             _drumIndex = 0;
+            //NYI
+            //_performerIndex = 0;
+            _postProcessingIndex = 0;
+            _keysIndex = 0;
         }
 
         private void Update()
@@ -45,12 +70,117 @@ namespace YARG.Integration
                 MasterLightingController.Paused = GameManager.Paused;
             }
 
-            // Drum events
-            while (_drumIndex < _drums.Notes.Count && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
+            // Keys events
+            if (_keysEndCheckIndex == -1)
             {
-                MasterLightingController.CurrentDrumNote = _drums.Notes[_drumIndex];
-                _drumIndex++;
+                while (_keysIndex < _keys.Notes.Count && _keys.Notes[_keysIndex].Time <= GameManager.SongTime)
+                {
+                    int fretsPressed = 0;
+
+                    // Use ChordEnumerator to iterate over the notes
+                    foreach (var note in _keys.Notes[_keysIndex].ChordEnumerator())
+                    {
+                        fretsPressed += 1 << note.Fret;
+                    }
+
+                    MasterLightingController.CurrentKeysNotes = fretsPressed;
+                    _keysEndCheckIndex = _keysIndex;
+                    _keysIndex++;
+                }
             }
+            else
+            {
+                if (_keys.Notes[_keysEndCheckIndex].TimeEnd <= GameManager.SongTime)
+                {
+                    MasterLightingController.CurrentKeysNotes = 0;
+                    _keysEndCheckIndex = -1;
+                }
+            }
+            //----
+
+            // Bass events
+            if (_bassEndCheckIndex == -1)
+            {
+                while (_bassIndex < _bass.Notes.Count && _bass.Notes[_bassIndex].Time <= GameManager.SongTime)
+                {
+                    int fretsPressed = 0;
+
+                    foreach (var note in _bass.Notes[_bassIndex].ChordEnumerator())
+                    {
+                        fretsPressed += 1 << note.Fret;
+                    }
+
+                    MasterLightingController.CurrentBassNotes = fretsPressed;
+                    _bassEndCheckIndex = _bassIndex;
+                    _bassIndex++;
+                }
+            }
+            else
+            {
+                if (_bass.Notes[_bassEndCheckIndex].TimeEnd <= GameManager.SongTime)
+                {
+                    MasterLightingController.CurrentBassNotes = 0;
+                    _bassEndCheckIndex = -1;
+                }
+            }
+            //----
+
+            // Guitar events
+            if (_guitarEndCheckIndex == -1)
+            {
+                while (_guitarIndex < _guitar.Notes.Count && _guitar.Notes[_guitarIndex].Time <= GameManager.SongTime)
+                {
+                    int fretsPressed = 0;
+
+                    foreach (var note in _guitar.Notes[_guitarIndex].ChordEnumerator())
+                    {
+                        fretsPressed += 1 << note.Fret;
+                    }
+
+                    MasterLightingController.CurrentGuitarNotes = fretsPressed;
+                    _guitarEndCheckIndex = _guitarIndex;
+                    _guitarIndex++;
+                }
+            }
+            else
+            {
+                //so instant notes should at least be on for 1 frame because of the else statement
+                if (_guitar.Notes[_guitarEndCheckIndex].TimeEnd <= GameManager.SongTime)
+                {
+                    MasterLightingController.CurrentGuitarNotes = 0;
+                    //guitarEndCheckIndex is set to -1 when the note ends
+                    _guitarEndCheckIndex = -1;
+                }
+            }
+
+            //----
+
+            // Drum events
+            if (_drumEndCheckIndex == -1)
+            {
+                while (_drumIndex < _drums.Notes.Count && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
+                {
+                    int padsHit = 0;
+
+                    foreach (var note in _drums.Notes[_drumIndex].ChordEnumerator())
+                    {
+                        padsHit += 1 << note.Pad;
+                    }
+
+                    MasterLightingController.CurrentDrumNotes = padsHit;
+                    _drumEndCheckIndex = _drumIndex;
+                    _drumIndex++;
+                }
+            }
+            else
+            {
+                if (_drums.Notes[_drumEndCheckIndex].TimeEnd <= GameManager.SongTime)
+                {
+                    MasterLightingController.CurrentDrumNotes = 0;
+                    _drumEndCheckIndex = -1;
+                }
+            }
+            //----
 
             // End of vocal phrase. SilhouetteSpot is the only cue that uses vocals, listening to the end of the phrase.
             while (_vocalsIndex < _vocals.Count &&
@@ -61,6 +191,26 @@ namespace YARG.Integration
                 _vocalsIndex++;
             }
 
+            //Camera Cut events
+            // NYI - waiting for parser rewrite
+
+            // Performer events
+            // NYI - waiting for parser rewrite
+            //while (_performerIndex < Venue.Performer.Count && Venue.Performer[_performerIndex].Time <= GameManager.SongTime)
+            //{
+            //performerEventEndtime = Venue.Performer[0].TimeEnd;
+            //MasterLightingController.CurrentPerformerEvent = Venue.Performer[_performerIndex];
+            //_performerIndex++;
+            //}
+
+            // Post processing events
+            while (_postProcessingIndex < Venue.PostProcessing.Count &&
+                Venue.PostProcessing[_postProcessingIndex].Time <= GameManager.SongTime)
+            {
+                MasterLightingController.CurrentPostProcessing = Venue.PostProcessing[_postProcessingIndex];
+                _postProcessingIndex++;
+            }
+
             // Beatline events
             while (_syncIndex < _sync.Beatlines.Count && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
             {
@@ -69,8 +219,7 @@ namespace YARG.Integration
             }
 
             // The lighting cues from the venue track are handled here.
-            while (LightingIndex < Venue.Lighting.Count &&
-                Venue.Lighting[LightingIndex].Time <= GameManager.SongTime)
+            while (LightingIndex < Venue.Lighting.Count && Venue.Lighting[LightingIndex].Time <= GameManager.SongTime)
             {
                 switch (Venue.Lighting[LightingIndex].Type)
                 {
@@ -110,26 +259,27 @@ namespace YARG.Integration
             }
 
             // For "fogOn", "fogOff", and "BonusFx" events
-            while (_eventIndex < Venue.Stage.Count && Venue.Stage[_eventIndex].Time <= GameManager.SongTime)
+            while (_stageIndex < Venue.Stage.Count && Venue.Stage[_stageIndex].Time <= GameManager.SongTime)
             {
-                if (Venue.Stage[_eventIndex].Effect == StageEffect.FogOn)
+                if (Venue.Stage[_stageIndex].Effect == StageEffect.FogOn)
                 {
                     MasterLightingController.CurrentFogState = MasterLightingController.FogState.On;
                 }
-                else if (Venue.Stage[_eventIndex].Effect == StageEffect.FogOff)
+                else if (Venue.Stage[_stageIndex].Effect == StageEffect.FogOff)
                 {
                     MasterLightingController.CurrentFogState = MasterLightingController.FogState.Off;
                 }
-                else if (Venue.Stage[_eventIndex].Effect == StageEffect.BonusFx)
+                else if (Venue.Stage[_stageIndex].Effect == StageEffect.BonusFx)
                 {
                     MasterLightingController.FireBonusFXEvent();
                 }
 
-                _eventIndex++;
+                _stageIndex++;
             }
         }
     }
 }
+
 /*
     "I hope that after I die, people will say of me: 'That guy sure owed me a lot of money.'"
 

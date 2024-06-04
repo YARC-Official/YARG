@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -34,8 +32,6 @@ namespace YARG.Menu.ListMenu
 
         protected TViewType ViewType;
 
-        private CancellationTokenSource _iconCancellationToken;
-
         public virtual void Show(bool selected, TViewType viewType)
         {
             Showing = true;
@@ -55,13 +51,8 @@ namespace YARG.Menu.ListMenu
                 i.text = viewType.GetSecondaryText(selected);
             }
 
-            // Set icon
-            if (_iconCancellationToken is { IsCancellationRequested: false })
-            {
-                _iconCancellationToken.Cancel();
-            }
-            _iconCancellationToken = new CancellationTokenSource();
-            SetIcon(viewType, _iconCancellationToken.Token).Forget();
+            _icon.sprite = viewType.GetIcon();
+            _icon.gameObject.SetActive(_icon.sprite != null);
         }
 
         public virtual void Hide()
@@ -100,31 +91,6 @@ namespace YARG.Menu.ListMenu
                     }
 
                     break;
-            }
-        }
-
-        private async UniTask SetIcon(TViewType type, CancellationToken token)
-        {
-            _icon.gameObject.SetActive(false);
-
-            try
-            {
-                var icon = await type.GetIcon();
-
-                token.ThrowIfCancellationRequested();
-
-                if (icon == null)
-                {
-                    _icon.gameObject.SetActive(false);
-                }
-                else
-                {
-                    _icon.gameObject.SetActive(true);
-                    _icon.sprite = icon;
-                }
-            }
-            catch (OperationCanceledException)
-            {
             }
         }
 

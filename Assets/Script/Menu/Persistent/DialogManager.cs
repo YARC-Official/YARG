@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
@@ -17,6 +18,8 @@ namespace YARG.Menu.Persistent
         private OneTimeMessageDialog _oneTimeMessagePrefab;
         [SerializeField]
         private ListDialog _listPrefab;
+        [SerializeField]
+        private ListWithSettingsDialog _listWithSettingsPrefab;
         [SerializeField]
         private RenameDialog _renameDialog;
         [SerializeField]
@@ -71,6 +74,19 @@ namespace YARG.Menu.Persistent
         public ListDialog ShowList(string title)
         {
             var dialog = ShowDialog(_listPrefab);
+
+            dialog.Title.text = title;
+
+            return dialog;
+        }
+
+        /// <summary>
+        /// Displays and returns a list dialog with configurable settings.
+        /// </summary>
+        /// <inheritdoc cref="ShowDialog{ListWithSettingsDialog}(ListWithSettingsDialog)"/>
+        public ListWithSettingsDialog ShowListWithSettings(string title)
+        {
+            var dialog = ShowDialog(_listWithSettingsPrefab);
 
             dialog.Title.text = title;
 
@@ -179,6 +195,17 @@ namespace YARG.Menu.Persistent
         {
             _currentDialog.Submit();
             ClearDialog();
+        }
+
+        /// <summary>
+        /// Destroys the currently-displayed dialog.
+        /// </summary>
+        public UniTask WaitUntilCurrentClosed()
+        {
+            if (_currentDialog == null)
+                return UniTask.CompletedTask;
+
+            return _currentDialog.WaitUntilClosed();
         }
     }
 }

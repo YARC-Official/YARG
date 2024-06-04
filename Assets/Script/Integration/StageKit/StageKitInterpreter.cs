@@ -42,16 +42,33 @@ namespace YARG.Integration.StageKit
         };
 
         public static event Action<StageKitLedColor, byte> OnLedEvent;
+        public static event Action<StageKitStrobeSpeed> OnStrobeSetEvent;
+
+        public static event Action<MasterLightingController.FogState> OnFogMachineEvent;
 
         // This class maintains the Stage Kit lighting cues and primitives
         public void Start()
         {
             SceneManager.sceneUnloaded += OnSceneUnloaded;
 
-            MasterLightingController.OnDrumEvent += OnDrumEvent;
+            MasterLightingController.OnInstrumentEvent += OnDrumEvent;
             MasterLightingController.OnVocalsEvent += OnVocalsEvent;
             MasterLightingController.OnLightingEvent += OnLightingEvent;
             MasterLightingController.OnBeatLineEvent += OnBeatLineEvent;
+            MasterLightingController.OnFogState += OnFogStateEvent;
+            MasterLightingController.OnStrobeEvent += OnStrobeEvent;
+        }
+
+        private void OnApplicationQuit()
+        {
+            SceneManager.sceneUnloaded -= OnSceneUnloaded;
+
+            MasterLightingController.OnInstrumentEvent -= OnDrumEvent;
+            MasterLightingController.OnVocalsEvent -= OnVocalsEvent;
+            MasterLightingController.OnLightingEvent -= OnLightingEvent;
+            MasterLightingController.OnBeatLineEvent -= OnBeatLineEvent;
+            MasterLightingController.OnFogState -= OnFogStateEvent;
+            MasterLightingController.OnStrobeEvent -= OnStrobeEvent;
         }
 
         private void OnSceneUnloaded(Scene scene)
@@ -95,6 +112,16 @@ namespace YARG.Integration.StageKit
             _currentLightingCue = null;
         }
 
+        private void OnFogStateEvent(MasterLightingController.FogState value)
+        {
+            OnFogMachineEvent?.Invoke(value);
+        }
+
+        private void OnStrobeEvent(StageKitStrobeSpeed value)
+        {
+            OnStrobeSetEvent?.Invoke(value);
+        }
+
         protected virtual void OnBeatLineEvent(Beatline value)
         {
             if (_currentLightingCue == null)
@@ -115,7 +142,6 @@ namespace YARG.Integration.StageKit
 
         protected virtual void OnLightingEvent(LightingEvent value)
         {
-
             if (value != null && value.Type == LightingType.Keyframe_Next && _currentLightingCue != null)
             {
                 if (_currentLightingCue.DirectListenEnabled)
@@ -153,21 +179,21 @@ namespace YARG.Integration.StageKit
             }
         }
 
-        protected virtual void OnDrumEvent(DrumNote value)
+        protected virtual void OnDrumEvent(MasterLightingController.InstrumentType instrument, int value)
         {
-            if (_currentLightingCue == null)
+            if (_currentLightingCue == null || instrument != MasterLightingController.InstrumentType.Drums)
             {
                 return;
             }
 
             if (_currentLightingCue.DirectListenEnabled)
             {
-                _currentLightingCue.HandleDrumEvent(value.Pad);
+                _currentLightingCue.HandleDrumEvent(value);
             }
 
             foreach (var primitive in _currentLightingCue.CuePrimitives)
             {
-                primitive.HandleDrumEvent(value.Pad);
+                primitive.HandleDrumEvent(value);
             }
         }
 

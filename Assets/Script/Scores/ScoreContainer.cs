@@ -80,7 +80,7 @@ namespace YARG.Scores
 
                 YargLogger.LogFormatInfo("Successfully added {0} rows into score database.", rowsAdded);
 
-                var songChecksum = new HashWrapper(gameRecord.SongChecksum);
+                var songChecksum = HashWrapper.Create(gameRecord.SongChecksum);
 
                 var bestScore = playerEntries.Find(p => p.Score == playerEntries.Max(x => x.Score));
 
@@ -196,7 +196,7 @@ namespace YARG.Scores
                         continue;
                     }
 
-                    SongHighScores.Add(new HashWrapper(song.SongChecksum), score);
+                    SongHighScores.Add(HashWrapper.Create(song.SongChecksum), score);
                 }
             }
             catch (Exception e)
@@ -235,7 +235,7 @@ namespace YARG.Scores
                 var mostPlayed = new List<SongEntry>();
                 foreach (var record in playCounts)
                 {
-                    var hash = new HashWrapper(record.SongChecksum);
+                    var hash = HashWrapper.Create(record.SongChecksum);
                     if (SongContainer.SongsByHash.TryGetValue(hash, out var list))
                     {
                         mostPlayed.Add(list.Pick());
