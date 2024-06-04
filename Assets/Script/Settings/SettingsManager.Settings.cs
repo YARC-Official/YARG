@@ -272,55 +272,55 @@ namespace YARG.Settings
             public ToggleSetting RB3EEnabled { get; } = new(false, RB3EEnabledCallback);
 
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(
-                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => SacnInterpreter.Instance.dimmerChannels = v);
+                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => SacnInterpreter.Instance.DimmerChannels = v);
 
             public DMXChannelsSetting DMXBlueChannels { get; } = new(
-                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => SacnInterpreter.Instance.blueChannels = v);
+                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => SacnInterpreter.Instance.BlueChannels = v);
 
             public DMXChannelsSetting DMXRedChannels { get; } = new(
-                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => SacnInterpreter.Instance.redChannels = v);
+                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => SacnInterpreter.Instance.RedChannels = v);
 
             public DMXChannelsSetting DMXGreenChannels { get; } = new(
-                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => SacnInterpreter.Instance.greenChannels = v);
+                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => SacnInterpreter.Instance.GreenChannels = v);
 
             public DMXChannelsSetting DMXYellowChannels { get; } = new(
-                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => SacnInterpreter.Instance.yellowChannels = v);
+                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => SacnInterpreter.Instance.YellowChannels = v);
 
-            public IntSetting DMXFogChannel { get; } = new(6, 1, 512, v => SacnInterpreter.Instance.fogChannel = v);
+            public IntSetting DMXFogChannel { get; } = new(6, 1, 512, v => SacnInterpreter.Instance.FogChannel = v);
 
             public IntSetting DMXStrobeChannel { get; } =
-                new(7, 1, 512, v => SacnInterpreter.Instance.strobeChannel = v);
+                new(7, 1, 512, v => SacnInterpreter.Instance.StrobeChannel = v);
 
             public IntSetting DMXCueChangeChannel { get; } =
-                new(8, 1, 512, v => SacnInterpreter.Instance.cueChangeChannel = v);
+                new(8, 1, 512, v => SacnInterpreter.Instance.CueChangeChannel = v);
 
             public IPv4Setting RB3EBroadcastIP { get; } = new(new byte[] { 255, 255, 255, 255 },
                 v => RB3EHardware.Instance.IPAddress = new IPAddress(v));
 
             public IntSetting DMXBeatlineChannel { get; } =
-                new(14, 1, 512, v => SacnInterpreter.Instance.beatlineChannel = v);
+                new(14, 1, 512, v => SacnInterpreter.Instance.BeatlineChannel = v);
 
             public IntSetting DMXBonusEffectChannel { get; } =
-                new(15, 1, 512, v => SacnInterpreter.Instance.bonusEffectChannel = v);
+                new(15, 1, 512, v => SacnInterpreter.Instance.BonusEffectChannel = v);
 
             public IntSetting DMXKeyframeChannel { get; } =
-                new(16, 1, 512, v => SacnInterpreter.Instance.keyframeChannel = v);
+                new(16, 1, 512, v => SacnInterpreter.Instance.KeyframeChannel = v);
 
             public IntSetting DMXDrumsChannel { get; } =
-                new(22, 1, 512, v => SacnInterpreter.Instance.drumChannel = v);
+                new(22, 1, 512, v => SacnInterpreter.Instance.DrumChannel = v);
 
             public IntSetting DMXPostProcessingChannel { get; } =
-                new(23, 1, 512, v => SacnInterpreter.Instance.postProcessingChannel = v);
+                new(23, 1, 512, v => SacnInterpreter.Instance.PostProcessingChannel = v);
 
             public IntSetting DMXGuitarChannel { get; } =
-                new(24, 1, 512, v => SacnInterpreter.Instance.guitarChannel = v);
+                new(24, 1, 512, v => SacnInterpreter.Instance.GuitarChannel = v);
 
-            public IntSetting DMXBassChannel { get; } = new(30, 1, 512, v => SacnInterpreter.Instance.bassChannel = v);
+            public IntSetting DMXBassChannel { get; } = new(30, 1, 512, v => SacnInterpreter.Instance.BassChannel = v);
 
             //NYI
             //public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
 
-            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => SacnInterpreter.Instance.keysChannel = v);
+            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => SacnInterpreter.Instance.KeysChannel = v);
 
             public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
 
