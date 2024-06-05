@@ -124,7 +124,7 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.ProKeys:
                     {
                         var card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                        card.Initialize(score.Player, score.Stats as ProKeysStats);
+                        card.Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
                         card.SetCardContents();
                         break;
                     }
