@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
   m_Name: Settings_en-US
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   m_LocaleId:
     m_Code: en-US
   m_SharedData: {fileID: 11400000, guid: 0c40e690d26fdff4a92f0b3813ac68a4, type: 2}
@@ -223,7 +223,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405789
-    m_Localized: Any channel set here will be set to max (255) on game start. Useful
+    m_Localized: Channels listed here will be set on game start. Default value is
+      max (255), can be changed in 'DMX Master Dimmer Values' setting below. Useful
       for fixtures that have a master dimmer channel.
     m_Metadata:
       m_Items: []
@@ -1418,6 +1419,28 @@ MonoBehaviour:
     m_Localized: Apply Volume Settings to Music Library Previews
     m_Metadata:
       m_Items: []
+  - m_Id: 141440634433200128
+    m_Localized: Enable RB3E Stage Kit data stream
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141441231903416320
+    m_Localized: Enables sending of RB3E style stage kit information packets over
+      the network, for hardware such as StageKitPied
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141441883907973120
+    m_Localized: RB3E Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141442149977841664
+    m_Localized: RB3E target IP
+    m_Metadata:
+      m_Items: []
+  - m_Id: 141442680402108416
+    m_Localized: Sets the target IP for the RB3E data stream packets. 255.255.255.255
+      is the broadcast address for the current network
+    m_Metadata:
+      m_Items: []
   - m_Id: 142536672422289408
     m_Localized: DMX Secondary Cue Change
     m_Metadata:
@@ -1710,6 +1733,15 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 154863549499695104
     m_Localized: Fat Finger Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154060765403439104
+    m_Localized: DMX Master Dimmer Values
+    m_Metadata:
+      m_Items: []
+  - m_Id: 154060811591114752
+    m_Localized: These are the respective values that the Master Dimmer channels
+      willl be set to when YARG starts.
     m_Metadata:
       m_Items: []
   references:

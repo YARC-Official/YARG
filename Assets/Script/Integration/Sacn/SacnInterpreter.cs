@@ -190,10 +190,11 @@ namespace YARG.Integration.Sacn
 
             //Many DMX fixtures have a 'Master dimmer' channel that controls the overall brightness of the fixture.
             //Got to turn those on.
-            foreach (int t in _dimmerChannels)
+            for (int i = 0; i < 8; i++)
             {
-                SetChannel(t, (byte) DimmerEnum.On);
+                SetChannel(_dimmerChannels[i], (byte)SettingsManager.Settings.DMXDimmerValues.Value[i]);
             }
+
         }
 
         public void UpdateDMXChannelNumbers()

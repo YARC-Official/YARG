@@ -44,9 +44,11 @@ namespace YARG.Menu.MusicLibrary
             return FormatAs(SongEntry.Artist, TextType.Secondary, selected);
         }
 
-        public override async UniTask<Sprite> GetIcon()
+#nullable enable
+        public override Sprite? GetIcon()
+#nullable disable
         {
-            return await SongSources.SourceToIcon(SongEntry.Source);
+            return SongSources.SourceToIcon(SongEntry.Source);
         }
 
         public override string GetSideText(bool selected)
@@ -101,7 +103,7 @@ namespace YARG.Menu.MusicLibrary
         public override void SecondaryTextClick()
         {
             base.SecondaryTextClick();
-           _musicLibrary.SetSearchInput(SongAttribute.Artist, SongEntry.Artist.SortStr);
+           _musicLibrary.SetSearchInput(SortAttribute.Artist, $"\"{SongEntry.Artist.SortStr}\"");
         }
 
         public override void PrimaryButtonClick()
@@ -116,7 +118,7 @@ namespace YARG.Menu.MusicLibrary
 
         public override void IconClick()
         {
-           _musicLibrary.SetSearchInput(SongAttribute.Source, SongEntry.Source.SortStr);
+           _musicLibrary.SetSearchInput(SortAttribute.Source, $"\"{SongEntry.Source.SortStr}\"");
         }
 
         public override void FavoriteClick()

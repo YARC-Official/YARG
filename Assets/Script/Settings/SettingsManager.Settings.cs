@@ -1,15 +1,14 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering.Universal.Internal;
-using YARG.Audio;
+using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
-using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
+using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
 using YARG.Menu.MusicLibrary;
@@ -38,7 +37,7 @@ namespace YARG.Settings
 
             public bool ShowAntiPiracyDialog          = true;
             public bool ShowEngineInconsistencyDialog = true;
-            public SongAttribute LibrarySort = SongAttribute.Name;
+            public SortAttribute LibrarySort = SortAttribute.Name;
 
             #endregion
 
@@ -252,6 +251,7 @@ namespace YARG.Settings
 
             public ToggleSetting StageKitEnabled { get; } = new(true, StageKitEnabledCallback);
             public ToggleSetting DMXEnabled      { get; } = new(false, DMXEnabledCallback);
+            public ToggleSetting RB3EEnabled     { get; } = new(false, RB3EEnabledCallback);
 
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(
                 new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, DMXCallback);
@@ -269,6 +269,8 @@ namespace YARG.Settings
             public IntSetting DMXStrobeChannel { get; } = new(7, 1, 512);
 
             public IntSetting DMXCueChangeChannel { get; } = new(8, 1, 512);
+
+            public IPv4Setting RB3EBroadcastIP { get; } = new(new byte[] { 255, 255, 255, 255 }, RB3ECallback);
 
             public IntSetting DMXBeatlineChannel { get; } = new(14, 1, 512);
 
@@ -291,6 +293,8 @@ namespace YARG.Settings
 
             public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
 
+            public DMXChannelsSetting DMXDimmerValues { get; } = new(new[] { 255, 255, 255, 255, 255, 255, 255, 255 });
+
             #endregion
 
             #region Debug and Developer
@@ -302,6 +306,26 @@ namespace YARG.Settings
             #endregion
 
             #region Callbacks
+
+            private static void RB3EEnabledCallback(bool value)
+            {
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                RB3EHardware.Instance.HandleEnabledChanged(value);
+            }
+
+            private static void RB3ECallback(byte[] value)
+            {
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                RB3EHardware.Instance.HandleBroadcastIPChanged();
+            }
 
             private static void ShowTimeCallback(bool value)
             {

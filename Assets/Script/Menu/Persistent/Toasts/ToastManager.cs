@@ -51,11 +51,13 @@ namespace YARG.Menu.Persistent
         {
             public readonly ToastType Type;
             public readonly string Text;
+            public readonly Action OnClick;
 
-            public ToastInfo(ToastType type, string text)
+            public ToastInfo(ToastType type, string text, Action onClick)
             {
                 Type = type;
                 Text = text;
+                OnClick = onClick;
             }
         }
 
@@ -68,7 +70,7 @@ namespace YARG.Menu.Persistent
 
             while (transform.childCount < MAX_TOAST_COUNT && _toastQueue.TryDequeue(out var toast))
             {
-                ShowToast(toast.Type, toast.Text);
+                ShowToast(toast.Type, toast.Text, toast.OnClick);
             }
         }
 
@@ -76,43 +78,48 @@ namespace YARG.Menu.Persistent
         /// Adds a general message toast to the toast queue.
         /// </summary>
         /// <param name="text">Text of the toast.</param>
-        public static void ToastMessage(string text)
-            => AddToast(ToastType.General, text);
+        /// <param name="onClick">Action to perform when the toast is clicked.</param>
+        public static void ToastMessage(string text, Action onClick = null)
+            => AddToast(ToastType.General, text, onClick);
 
         /// <summary>
         /// Adds an information message toast to the toast queue.
         /// </summary>
         /// <param name="text">Text of the toast.</param>
-        public static void ToastInformation(string text)
-            => AddToast(ToastType.Information, text);
+        /// <param name="onClick">Action to perform when the toast is clicked.</param>
+        public static void ToastInformation(string text, Action onClick = null)
+            => AddToast(ToastType.Information, text, onClick);
 
         /// <summary>
         /// Adds a success message toast to the toast queue.
         /// </summary>
         /// <param name="text">Text of the toast.</param>
-        public static void ToastSuccess(string text)
-            => AddToast(ToastType.Success, text);
+        /// <param name="onClick">Action to perform when the toast is clicked.</param>
+        public static void ToastSuccess(string text, Action onClick = null)
+            => AddToast(ToastType.Success, text, onClick);
 
         /// <summary>
         /// Adds a warning message toast to the toast queue.
         /// </summary>
         /// <param name="text">Text of the toast.</param>
-        public static void ToastWarning(string text)
-            => AddToast(ToastType.Warning, text);
+        /// <param name="onClick">Action to perform when the toast is clicked.</param>
+        public static void ToastWarning(string text, Action onClick = null)
+            => AddToast(ToastType.Warning, text, onClick);
 
         /// <summary>
         /// Adds an error message toast to the toast queue.
         /// </summary>
         /// <param name="text">Text of the toast.</param>
-        public static void ToastError(string text)
-            => AddToast(ToastType.Error, text);
+        /// <param name="onClick">Action to perform when the toast is clicked.</param>
+        public static void ToastError(string text, Action onClick = null)
+            => AddToast(ToastType.Error, text, onClick);
 
-        private static void AddToast(ToastType type, string text)
+        private static void AddToast(ToastType type, string text, Action onClick)
         {
-            _toastQueue.Enqueue(new ToastInfo(type, text));
+            _toastQueue.Enqueue(new ToastInfo(type, text, onClick));
         }
 
-        private void ShowToast(ToastType type, string body)
+        private void ShowToast(ToastType type, string body, Action onClick)
         {
             // Get properties for this message type
             var (text, color, icon) = type switch
@@ -126,7 +133,7 @@ namespace YARG.Menu.Persistent
             };
 
             var toast = Instantiate(_toastPrefab, transform);
-            toast.Initialize(text, body, icon, color);
+            toast.Initialize(text, body, icon, color, onClick);
         }
     }
 }

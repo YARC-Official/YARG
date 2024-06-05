@@ -71,7 +71,8 @@ namespace YARG.Gameplay.Player
         public int TotalNotes { get; protected set; }
 
         public bool IsFc { get; protected set; }
-        public bool IsNewHighScore { get; protected set; }
+
+        public int? LastHighScore { get; private set; }
 
         public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
 
@@ -115,7 +116,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected void Initialize(int index, YargPlayer player, SongChart chart)
+        protected void Initialize(int index, YargPlayer player, SongChart chart, int? lastHighScore)
         {
             if (IsInitialized)
             {
@@ -126,6 +127,8 @@ namespace YARG.Gameplay.Player
             Player = player;
 
             SyncTrack = chart.SyncTrack;
+
+            LastHighScore = lastHighScore;
 
             if (GameManager.IsReplay)
             {
