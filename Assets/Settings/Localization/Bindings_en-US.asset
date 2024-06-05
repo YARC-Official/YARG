@@ -99,7 +99,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 11183621110358016
-    m_Localized: Blue Cymbal (Second)
+    m_Localized: Blue Cymbal (Third)
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523840
@@ -107,7 +107,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523841
-    m_Localized: Green Cymbal (Third)
+    m_Localized: Green Cymbal (Fourth)
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523842
@@ -123,7 +123,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523845
-    m_Localized: Yellow Cymbal (First)
+    m_Localized: Yellow Cymbal (Second)
     m_Metadata:
       m_Items: []
   - m_Id: 11183621135523846
@@ -152,6 +152,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 98568633258508288
     m_Localized: Green Pad (Fifth)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 104795453274738688
+    m_Localized: Red Cymbal (First)
     m_Metadata:
       m_Items: []
   references:

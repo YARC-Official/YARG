@@ -38,7 +38,14 @@ namespace YARG.Menu.ProfileInfo
             _player = player;
             _binding = binding;
 
-            _bindingNameText.StringReference = binding.Name;
+            if (player.Profile.LeftyFlip)
+            {
+                _bindingNameText.StringReference = binding.NameLefty;
+            }
+            else
+            {
+                _bindingNameText.StringReference = binding.Name;
+            }
 
             var icons = MenuData.NavigationIcons;
             if (editBindsTab.SelectingMenuBinds && icons.HasIcon((MenuAction) binding.Action))

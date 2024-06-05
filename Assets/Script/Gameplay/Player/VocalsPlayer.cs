@@ -53,11 +53,11 @@ namespace YARG.Gameplay.Player
         private int _phraseIndex = -1;
 
         public void Initialize(int index, YargPlayer player, SongChart chart,
-            VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack)
+            VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore)
         {
             if (IsInitialized) return;
 
-            base.Initialize(index, player, chart);
+            base.Initialize(index, player, chart, lastHighScore);
 
             // Get the notes from the specific harmony or solo part
 

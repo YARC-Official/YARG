@@ -13,6 +13,7 @@ using YARG.Core.Replays;
 using YARG.Gameplay.Player;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Menu.Settings;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Replays;
@@ -135,7 +136,11 @@ namespace YARG.Gameplay
 
             if (_loadState == LoadFailureState.Rescan)
             {
-                ToastManager.ToastWarning("Chart requires a rescan!");
+                ToastManager.ToastWarning("Chart requires a rescan!", () =>
+                {
+                    SettingsMenu.Instance.gameObject.SetActive(true);
+                    SettingsMenu.Instance.SelectTabByName("SongManager");
+                });
 
                 global.LoadScene(SceneIndex.Menu);
                 return;
@@ -337,6 +342,10 @@ namespace YARG.Gameplay
                     player.SetPresetsFromProfile();
                 }
 
+                var lastHighScore = ScoreContainer
+                    .GetHighScoreByInstrument(Song.Hash, player.Profile.CurrentInstrument)?
+                    .Score;
+
                 if (player.Profile.GameMode != GameMode.Vocals)
                 {
                     var prefab = player.Profile.GameMode switch
@@ -359,10 +368,7 @@ namespace YARG.Gameplay
                     // Setup player
                     var trackPlayer = playerObject.GetComponent<TrackPlayer>();
                     var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
-                    var currentHighScore = ScoreContainer
-                        .GetHighScoreByInstrument(Song.Hash, player.Profile.CurrentInstrument)?
-                        .Score;
-                    trackPlayer.Initialize(index, player, Chart, trackView, _mixer, currentHighScore);
+                    trackPlayer.Initialize(index, player, Chart, trackView, _mixer, lastHighScore);
                     _players.Add(trackPlayer);
                 }
                 else
@@ -389,8 +395,9 @@ namespace YARG.Gameplay
                     var vocalsPlayer = VocalTrack.CreatePlayer();
 
                     var playerHud = _trackViewManager.CreateVocalsPlayerHUD();
+
                     var percussionTrack = VocalTrack.CreatePercussionTrack();
-                    vocalsPlayer.Initialize(index, player, Chart, playerHud, percussionTrack);
+                    vocalsPlayer.Initialize(index, player, Chart, playerHud, percussionTrack, lastHighScore);
 
                     _players.Add(vocalsPlayer);
                 }

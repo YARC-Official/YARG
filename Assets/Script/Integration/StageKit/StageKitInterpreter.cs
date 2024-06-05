@@ -61,6 +61,8 @@ namespace YARG.Integration.StageKit
 
         private void OnApplicationQuit()
         {
+            SceneManager.sceneUnloaded -= OnSceneUnloaded;
+
             MasterLightingController.OnInstrumentEvent -= OnDrumEvent;
             MasterLightingController.OnVocalsEvent -= OnVocalsEvent;
             MasterLightingController.OnLightingEvent -= OnLightingEvent;
