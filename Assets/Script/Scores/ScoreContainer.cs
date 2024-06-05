@@ -220,7 +220,7 @@ namespace YARG.Scores
                         continue;
                     }
 
-                    SongHighScoresByPct.Add(new HashWrapper(song.SongChecksum), score);
+                    SongHighScoresByPct.Add(HashWrapper.Create(song.SongChecksum), score);
                 }
             }
             catch (Exception e)
