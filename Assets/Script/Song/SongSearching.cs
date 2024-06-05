@@ -247,7 +247,7 @@ namespace YARG.Song
                         filters.Add(new FilterNode(attribute, mode, argument));
                     }
                 }
-                
+
                 if (attribute == SortAttribute.Unspecified)
                 {
                     break;
@@ -285,7 +285,7 @@ namespace YARG.Song
                 return SearchInstrument(filter, searchList);
             }
 
-            
+
             var match = GetPredicate(filter);
             var result = new SongCategory[searchList.Length];
             int count = 0;
@@ -307,7 +307,7 @@ namespace YARG.Song
                 SearchMode.Fuzzy => filter.Attribute switch
                 {
                     SortAttribute.Name => entry => IsAboveFuzzyThreshold(entry.Name.SortStr, filter.Argument),
-                    SortAttribute.Artist => entry => IsAboveFuzzyThreshold(RemoveArticle(entry.Artist.SortStr), filter.Argument),
+                    SortAttribute.Artist => entry => IsAboveFuzzyThreshold(SortString.RemoveArticle(entry.Artist.SortStr), filter.Argument),
                     SortAttribute.Album => entry => IsAboveFuzzyThreshold(entry.Album.SortStr, filter.Argument),
                     SortAttribute.Genre => entry => IsAboveFuzzyThreshold(entry.Genre.SortStr, filter.Argument),
                     SortAttribute.Year => entry => entry.Year.Contains(filter.Argument) || entry.UnmodifiedYear.Contains(filter.Argument),
@@ -319,7 +319,7 @@ namespace YARG.Song
                 SearchMode.Exact => filter.Attribute switch
                 {
                     SortAttribute.Name => entry => entry.Name.SortStr == filter.Argument,
-                    SortAttribute.Artist => entry => RemoveArticle(entry.Artist.SortStr) == filter.Argument,
+                    SortAttribute.Artist => entry => SortString.RemoveArticle(entry.Artist.SortStr) == filter.Argument,
                     SortAttribute.Album => entry => entry.Album.SortStr == filter.Argument,
                     SortAttribute.Genre => entry => entry.Genre.SortStr == filter.Argument,
                     SortAttribute.Year => entry => entry.Year == filter.Argument || entry.UnmodifiedYear == filter.Argument,
@@ -517,38 +517,10 @@ namespace YARG.Song
             return OptimizedFuzzySharp.PartialRatio(argument.AsSpan(), songStr.AsSpan()) >= threshold;
         }
 
-        private static readonly string[] Articles =
-        {
-            "The ", // The beatles, The day that never comes
-            "El ",  // El final, El sol no regresa
-            "La ",  // La quinta estacion, La bamba, La muralla verde
-            "Le ",  // Le temps de la rentrée
-            "Les ", // Les Rita Mitsouko, Les Wampas
-            "Los ", // Los fabulosos cadillacs, Los enanitos verdes,
-        };
-
-        public static string RemoveArticle(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-            {
-                return name;
-            }
-
-            foreach (var article in Articles)
-            {
-                if (name.StartsWith(article, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return name[article.Length..];
-                }
-            }
-
-            return name;
-        }
-
         public static string RemoveDiacriticsAndArticle(string text)
         {
             var textWithoutDiacritics = SortString.RemoveDiacritics(text);
-            return RemoveArticle(textWithoutDiacritics);
+            return SortString.RemoveArticle(textWithoutDiacritics);
         }
 
         private static unsafe string RemoveUnwantedWhitespace(string arg)
