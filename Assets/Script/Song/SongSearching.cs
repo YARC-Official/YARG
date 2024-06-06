@@ -180,7 +180,7 @@ namespace YARG.Song
                 if (argument.StartsWith("artist:"))
                 {
                     attribute = SortAttribute.Artist;
-                    argument = RemoveDiacriticsAndArticle(argument[7..]);
+                    argument = SortString.RemoveDiacritics(argument[7..]);
                 }
                 else if (argument.StartsWith("source:"))
                 {
@@ -215,12 +215,12 @@ namespace YARG.Song
                 else if (argument.StartsWith("name:"))
                 {
                     attribute = SortAttribute.Name;
-                    argument = RemoveDiacriticsAndArticle(argument[5..]);
+                    argument = SortString.RemoveDiacritics(argument[5..]);
                 }
                 else if (argument.StartsWith("title:"))
                 {
                     attribute = SortAttribute.Name;
-                    argument = RemoveDiacriticsAndArticle(argument[6..]);
+                    argument = SortString.RemoveDiacritics(argument[6..]);
                 }
                 else
                 {
@@ -307,7 +307,7 @@ namespace YARG.Song
                 SearchMode.Fuzzy => filter.Attribute switch
                 {
                     SortAttribute.Name => entry => IsAboveFuzzyThreshold(entry.Name.SearchStr, filter.Argument),
-                    SortAttribute.Artist => entry => IsAboveFuzzyThreshold(SortString.RemoveArticle(entry.Artist.SearchStr), filter.Argument),
+                    SortAttribute.Artist => entry => IsAboveFuzzyThreshold(entry.Artist.SearchStr, filter.Argument),
                     SortAttribute.Album => entry => IsAboveFuzzyThreshold(entry.Album.SearchStr, filter.Argument),
                     SortAttribute.Genre => entry => IsAboveFuzzyThreshold(entry.Genre.SearchStr, filter.Argument),
                     SortAttribute.Year => entry => entry.Year.Contains(filter.Argument) || entry.UnmodifiedYear.Contains(filter.Argument),
@@ -515,12 +515,6 @@ namespace YARG.Song
                 }
             }
             return OptimizedFuzzySharp.PartialRatio(argument.AsSpan(), songStr.AsSpan()) >= threshold;
-        }
-
-        public static string RemoveDiacriticsAndArticle(string text)
-        {
-            var textWithoutDiacritics = SortString.RemoveDiacritics(text);
-            return SortString.RemoveArticle(textWithoutDiacritics);
         }
 
         private static unsafe string RemoveUnwantedWhitespace(string arg)
