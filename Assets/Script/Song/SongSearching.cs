@@ -387,14 +387,14 @@ namespace YARG.Song
 
             public int CompareTo(UnspecifiedSortNode other)
             {
-                if (Rank != other.Rank)
-                {
-                    return Rank - other.Rank;
-                }
-
                 if (_mode != other._mode)
                 {
                     return _mode == SearchMode.Contains ? -1 : 1;
+                }
+
+                if (Rank != other.Rank)
+                {
+                    return Rank - other.Rank;
                 }
 
                 if (_nameIndex >= 0)
