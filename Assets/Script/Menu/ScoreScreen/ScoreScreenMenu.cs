@@ -9,6 +9,7 @@ using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Menu.Navigation;
 using YARG.Song;
@@ -40,9 +41,7 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private VocalsScoreCard _vocalsCardPrefab;
 
-        // "The Unity message 'OnEnable' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
-        private async UniTaskVoid OnEnable()
+        private void OnEnable()
         {
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -81,8 +80,7 @@ namespace YARG.Menu.ScoreScreen
             // Put the scores in!
             CreateScoreCards(scoreScreenStats);
 
-            // Set the icon. This is async, so we have to do it last so everything loads in.
-            _sourceIcon.sprite = await SongSources.SourceToIcon(song.Source);
+            _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
         }
 
         private void OnDisable()
@@ -101,7 +99,7 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.FiveFretGuitar:
                     {
                         var card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        card.Initialize(score.Player, score.Stats as GuitarStats);
+                        card.Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
                         card.SetCardContents();
                         break;
                     }
@@ -109,14 +107,14 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.FiveLaneDrums:
                     {
                         var card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        card.Initialize(score.Player, score.Stats as DrumsStats);
+                        card.Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
                         card.SetCardContents();
                         break;
                     }
                     case GameMode.Vocals:
                     {
                         var card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        card.Initialize(score.Player, score.Stats as VocalsStats);
+                        card.Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
                         card.SetCardContents();
                         break;
                     }

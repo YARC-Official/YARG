@@ -151,6 +151,10 @@ MonoBehaviour:
     m_Key: FiveDrums.GreenPad
     m_Metadata:
       m_Items: []
+  - m_Id: 104795453274738688
+    m_Key: FourDrums.RedCymbal
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
