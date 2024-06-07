@@ -276,6 +276,7 @@ GameObject:
   m_Component:
   - component: {fileID: 103030101}
   - component: {fileID: 103030103}
+  - component: {fileID: 103030106}
   - component: {fileID: 103030104}
   - component: {fileID: 103030102}
   - component: {fileID: 103030105}
@@ -434,6 +435,21 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &103030106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 103030100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26c69184c4c94e07a1c1a5403823ba9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _draggableElementName: songInfo
+  _draggingDisplayPrefab: {fileID: 5730308542642054521, guid: 2a82983eb1a960843bd5603736f9b042,
+    type: 3}
 --- !u!1 &124424924
 GameObject:
   m_ObjectHideFlags: 0
@@ -1263,7 +1279,7 @@ PrefabInstance:
     - target: {fileID: 227366190812778480, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 96.165855
+      value: -93.65
       objectReference: {fileID: 0}
     - target: {fileID: 1682100932476655723, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
@@ -1398,7 +1414,7 @@ PrefabInstance:
     - target: {fileID: 2517693471320601084, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -96.165855
+      value: 93.65
       objectReference: {fileID: 0}
     - target: {fileID: 6897601373631971078, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
@@ -1419,6 +1435,21 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 310620822}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &310620826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 310620824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26c69184c4c94e07a1c1a5403823ba9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _draggableElementName: scoreDisplay
+  _draggingDisplayPrefab: {fileID: 5730308542642054521, guid: 2a82983eb1a960843bd5603736f9b042,
+    type: 3}
 --- !u!1 &318454370
 GameObject:
   m_ObjectHideFlags: 0
@@ -2263,6 +2294,7 @@ GameObject:
   m_Component:
   - component: {fileID: 397042284}
   - component: {fileID: 397042285}
+  - component: {fileID: 397042286}
   m_Layer: 5
   m_Name: Main HUD Container
   m_TagString: Untagged
@@ -2287,7 +2319,7 @@ RectTransform:
   - {fileID: 1316571461}
   - {fileID: 103030101}
   m_Father: {fileID: 1650395555}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -2307,6 +2339,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _topPaddingForVocals: 220
+--- !u!114 &397042286
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 397042283}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a3fa9892ec94f35bb93485c9fff8343, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &417693871
 GameObject:
   m_ObjectHideFlags: 0
@@ -4047,7 +4091,7 @@ RectTransform:
   - {fileID: 658438232}
   - {fileID: 1651499654}
   m_Father: {fileID: 1650395555}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -5321,8 +5365,8 @@ RectTransform:
   - {fileID: 1773048782}
   - {fileID: 1327505391}
   - {fileID: 1330928976}
-  - {fileID: 397042284}
   - {fileID: 1047079481}
+  - {fileID: 397042284}
   - {fileID: 1323155441}
   - {fileID: 2085296270}
   - {fileID: 922548497}
@@ -6843,7 +6887,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
