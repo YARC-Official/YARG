@@ -12,6 +12,9 @@ namespace YARG.Input
         public DrumPadButtonBinding(string name, int action) : base(name, action)
         {
         }
+        public DrumPadButtonBinding(string name, string nameLefty, int action) : base(name, nameLefty, action)
+        {
+        }
 
         protected override void FireInputEvent(double time, bool wasPressed)
         {
