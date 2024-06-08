@@ -1,11 +1,13 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
     [RequireComponent(typeof(RectTransform))]
-    public class DraggableHudElement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class DraggableHudElement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler,
+        IPointerDownHandler
     {
         [SerializeField]
         private string _draggableElementName;
@@ -48,6 +50,7 @@ namespace YARG.Gameplay.HUD
             _rectTransform.anchoredPosition = _storedPosition;
 
             _draggingDisplay = Instantiate(_draggingDisplayPrefab, transform);
+            _draggingDisplay.DraggableHud = this;
             _draggingDisplay.Hide();
         }
 
@@ -72,11 +75,6 @@ namespace YARG.Gameplay.HUD
             if (_isDragging || eventData.button != PointerEventData.InputButton.Left)
             {
                 return;
-            }
-
-            if (!_isSelected)
-            {
-                _parent.SetSelectedElement(this);
             }
 
             _isDragging = true;
@@ -106,24 +104,34 @@ namespace YARG.Gameplay.HUD
             }
 
             _isDragging = false;
-
-            // Save the position to the settings
-            SettingsManager.Settings.UiElementPositions[_draggableElementName] = _rectTransform.anchoredPosition;
+            SavePosition();
         }
 
-        // public void OnPointerClick(PointerEventData eventData)
-        // {
-        //     if (eventData.button == PointerEventData.InputButton.Right)
-        //     {
-        //         // Don't reset the position if currently dragging (it breaks stuff)
-        //         if (_isDragging)
-        //         {
-        //             return;
-        //         }
-        //
-        //         _rectTransform.anchoredPosition = _originalPosition;
-        //         SettingsManager.Settings.UiElementPositions[_draggableElementName] = _rectTransform.anchoredPosition;
-        //     }
-        // }
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (_isSelected || eventData.button != PointerEventData.InputButton.Left)
+            {
+                return;
+            }
+
+            _parent.SetSelectedElement(this);
+        }
+
+        public void RevertElement()
+        {
+            _rectTransform.anchoredPosition = _originalPosition;
+            SavePosition();
+        }
+
+        public void ResetElement()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void SavePosition()
+        {
+            SettingsManager.Settings.UiElementPositions[_draggableElementName] =
+                _rectTransform.anchoredPosition;
+        }
     }
 }
