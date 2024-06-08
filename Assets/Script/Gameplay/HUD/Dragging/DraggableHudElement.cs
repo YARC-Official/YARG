@@ -119,13 +119,14 @@ namespace YARG.Gameplay.HUD
 
         public void RevertElement()
         {
-            _rectTransform.anchoredPosition = _originalPosition;
+            _rectTransform.anchoredPosition = _storedPosition;
             SavePosition();
         }
 
         public void ResetElement()
         {
-            throw new NotImplementedException();
+            _rectTransform.anchoredPosition = _originalPosition;
+            SavePosition();
         }
 
         private void SavePosition()

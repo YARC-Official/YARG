@@ -128,8 +128,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -7.4999695, y: 1}
-  m_SizeDelta: {x: -15.000061, y: 31.1614}
+  m_AnchoredPosition: {x: -11.000046, y: 1.6059}
+  m_SizeDelta: {x: -21.9999, y: 72.838}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1682100931862694992
 CanvasRenderer:
@@ -188,8 +188,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 27
-  m_fontSizeBase: 27
+  m_fontSize: 40.5
+  m_fontSizeBase: 40.5
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 0
@@ -256,7 +256,7 @@ RectTransform:
   m_GameObject: {fileID: 1682100932150968562}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1682100932898782572}
@@ -270,7 +270,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -25.350014}
+  m_AnchoredPosition: {x: 0, y: -38.024994}
   m_SizeDelta: {x: 160, y: 32}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &3417901565077600796
@@ -402,6 +402,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1682100933276730677}
   - component: {fileID: 3580836438431718176}
+  - component: {fileID: 1427118048}
   m_Layer: 5
   m_Name: ScoreDisplay
   m_TagString: Untagged
@@ -416,9 +417,9 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1682100933276730678}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2640522790579517911}
@@ -430,7 +431,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 250, y: 140}
+  m_SizeDelta: {x: 375, y: 210}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &3580836438431718176
 MonoBehaviour:
@@ -454,6 +455,21 @@ MonoBehaviour:
   _brokenBackgroundSprite: {fileID: -648612281, guid: 9a19cea8578114f42bec348c310a8891,
     type: 3}
   _brokenOverlaySprite: {fileID: 2128003, guid: 9a19cea8578114f42bec348c310a8891,
+    type: 3}
+--- !u!114 &1427118048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682100933276730678}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26c69184c4c94e07a1c1a5403823ba9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _draggableElementName: scoreDisplay
+  _draggingDisplayPrefab: {fileID: 5730308542642054521, guid: 2a82983eb1a960843bd5603736f9b042,
     type: 3}
 --- !u!1 &2302898695580999361
 GameObject:
@@ -744,9 +760,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 25.35}
-  m_SizeDelta: {x: 0, y: 50.7}
-  m_Pivot: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 76.05}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &4378126842520780952
 GameObject:
   m_ObjectHideFlags: 0
@@ -1151,8 +1167,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 25}
-  m_SizeDelta: {x: -90, y: 25.4563}
+  m_AnchoredPosition: {x: 0, y: 38.025024}
+  m_SizeDelta: {x: -135.2, y: 25.4563}
   m_Pivot: {x: 0.5, y: -0.000000029802322}
 --- !u!222 &708578129384760534
 CanvasRenderer:
@@ -1182,7 +1198,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 1:23/4:56
+  m_text: 1:23 / 4:56
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 19b7115073766a24aa48ceca884dcbf5, type: 2}
   m_sharedMaterial: {fileID: 4249517445589659644, guid: 19b7115073766a24aa48ceca884dcbf5,
@@ -1210,8 +1226,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
