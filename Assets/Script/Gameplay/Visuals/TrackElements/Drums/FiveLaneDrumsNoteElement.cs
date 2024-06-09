@@ -24,12 +24,7 @@ namespace YARG.Gameplay.Visuals
                 // Get which note model to use
                 if (SettingsManager.Settings.UseCymbalModelsInFiveLane.Value)
                 {
-                    bool isCymbal = (FiveLaneDrumPad) NoteRef.Pad switch
-                    {
-                        FiveLaneDrumPad.Yellow => true,
-                        FiveLaneDrumPad.Orange => true,
-                        _                      => false
-                    };
+                    bool isCymbal = (FiveLaneDrumPad) NoteRef.Pad is FiveLaneDrumPad.Yellow or FiveLaneDrumPad.Orange;
 
                     NoteGroup = noteGroups[GetNoteGroup(isCymbal)];
                 }
