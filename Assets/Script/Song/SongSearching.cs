@@ -319,7 +319,7 @@ namespace YARG.Song
                 SearchMode.Exact => filter.Attribute switch
                 {
                     SortAttribute.Name => entry => entry.Name.SearchStr == filter.Argument,
-                    SortAttribute.Artist => entry => SortString.RemoveArticle(entry.Artist.SearchStr) == filter.Argument,
+                    SortAttribute.Artist => entry => entry.Artist.SearchStr == filter.Argument,
                     SortAttribute.Album => entry => entry.Album.SearchStr == filter.Argument,
                     SortAttribute.Genre => entry => entry.Genre.SearchStr == filter.Argument,
                     SortAttribute.Year => entry => entry.Year == filter.Argument || entry.UnmodifiedYear == filter.Argument,
