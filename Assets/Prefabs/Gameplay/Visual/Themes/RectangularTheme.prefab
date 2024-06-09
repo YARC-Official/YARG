@@ -60854,7 +60854,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 3d87184571563894b90138a046c56d8a,
         type: 3}
       propertyPath: m_Name
-      value: CymbalGhost
+      value: CymbalGhostNote
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3d87184571563894b90138a046c56d8a, type: 3}
@@ -61187,7 +61187,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 1a56b8eb590cca340a7a795af1147ac6,
         type: 3}
       propertyPath: m_Name
-      value: CymbalAccent
+      value: CymbalAccentNote
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1a56b8eb590cca340a7a795af1147ac6, type: 3}
@@ -61293,7 +61293,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 1a56b8eb590cca340a7a795af1147ac6,
         type: 3}
       propertyPath: m_Name
-      value: CymbalAccent
+      value: CymbalAccentNote
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1a56b8eb590cca340a7a795af1147ac6, type: 3}
@@ -61419,7 +61419,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cbc2f0647e367e14291313e9420b5695,
         type: 3}
       propertyPath: m_Name
-      value: PadAccent
+      value: AccentNote
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cbc2f0647e367e14291313e9420b5695, type: 3}
@@ -62567,7 +62567,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 3d87184571563894b90138a046c56d8a,
         type: 3}
       propertyPath: m_Name
-      value: CymbalGhost
+      value: CymbalGhostNote
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3d87184571563894b90138a046c56d8a, type: 3}
@@ -63324,7 +63324,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: d70acdcb0dd69fe4e8f1510f47b73f99,
         type: 3}
       propertyPath: m_Name
-      value: PadGhost
+      value: GhostNote
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d70acdcb0dd69fe4e8f1510f47b73f99, type: 3}
@@ -63440,7 +63440,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: d70acdcb0dd69fe4e8f1510f47b73f99,
         type: 3}
       propertyPath: m_Name
-      value: PadGhost
+      value: GhostNote
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d70acdcb0dd69fe4e8f1510f47b73f99, type: 3}
@@ -63784,7 +63784,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cbc2f0647e367e14291313e9420b5695,
         type: 3}
       propertyPath: m_Name
-      value: PadAccent
+      value: AccentNote
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cbc2f0647e367e14291313e9420b5695, type: 3}
