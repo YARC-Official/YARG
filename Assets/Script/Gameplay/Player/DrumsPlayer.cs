@@ -46,7 +46,9 @@ namespace YARG.Gameplay.Player
         protected override InstrumentDifficulty<DrumNote> GetNotes(SongChart chart)
         {
             var track = chart.GetDrumsTrack(Player.Profile.CurrentInstrument).Clone();
-            return track.GetDifficulty(Player.Profile.CurrentDifficulty);
+            var difficulty = track.GetDifficulty(Player.Profile.CurrentDifficulty);
+            difficulty.GenerateActivationPhrases(SyncTrack);
+            return difficulty;
         }
 
         protected override DrumsEngine CreateEngine()
