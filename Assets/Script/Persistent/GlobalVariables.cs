@@ -166,13 +166,20 @@ namespace YARG
             }
         }
 
-        private string LoadVersion()
+        private static string LoadVersion()
         {
 #if UNITY_EDITOR
             return LoadVersionFromGit();
 #elif YARG_TEST_BUILD || YARG_NIGHTLY_BUILD
             var versionFile = Resources.Load<TextAsset>("version");
-            return versionFile.text;
+            if (versionFile != null)
+            {
+                return versionFile.text;
+            }
+            else
+            {
+                return CurrentVersion;
+            }
 #else
             return CurrentVersion;
 #endif
