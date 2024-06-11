@@ -166,7 +166,9 @@ namespace YARG
             }
         }
 
-        private static string LoadVersion()
+        // Due to the preprocessor, it doesn't know that an instance variable is being used
+        // ReSharper disable once MemberCanBeMadeStatic.Local
+        private string LoadVersion()
         {
 #if UNITY_EDITOR
             return LoadVersionFromGit();
