@@ -203,7 +203,11 @@ namespace YARG
             string commit = process.StandardOutput.ReadToEnd().Trim();
             process.WaitForExit();
 
+            #if YARG_NIGHTLY_BUILD
+            return $"b{commitCount} ({commit})";
+            #else
             return $"{branch} b{commitCount} ({commit})";
+            #endif
         }
     }
 }
