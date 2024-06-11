@@ -191,6 +191,7 @@ namespace YARG
             process.StartInfo.FileName = "git";
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
 
             // Branch
             process.StartInfo.Arguments = "rev-parse --abbrev-ref HEAD";
