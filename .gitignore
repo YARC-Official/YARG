@@ -87,6 +87,8 @@ crashlytics-build.properties
 
 # Auto-gen
 Assets/YargInput.cs
+/[Aa]ssets/[Rr]esources/version.txt
+/[Aa]ssets/[Rr]esources/version.txt.meta
 /[Aa]ssets/[Pp]ackages/
 /[Aa]ssets/[Ss]treamingAssets/sources/
 /[Aa]ssets/[Ss]treamingAssets/sources~/
