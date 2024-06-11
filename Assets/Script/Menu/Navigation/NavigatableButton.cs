@@ -9,11 +9,19 @@ namespace YARG.Menu.Navigation
     {
         [SerializeField]
         private Button.ButtonClickedEvent _onClick = new();
+        private bool eatNextClick;
 
         public override void OnPointerDown(PointerEventData eventData)
         {
             base.OnPointerDown(eventData);
-            Confirm();
+            if (!eatNextClick)
+            {
+                Confirm();
+            }
+            else
+            {
+                eatNextClick = false;
+            }
         }
 
         public override void Confirm()
@@ -30,6 +38,21 @@ namespace YARG.Menu.Navigation
         {
             _onClick.RemoveAllListeners();
             _onClick.AddListener(a);
+        }
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus)
+            {
+                eatNextClick = true;
+            }
+            else
+            {
+                Invoke("clearEatNextClick", 0.05f);
+            }
+        }
+        private void clearEatNextClick()
+        {
+            eatNextClick = false;
         }
     }
 }
