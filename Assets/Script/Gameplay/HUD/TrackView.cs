@@ -77,7 +77,7 @@ namespace YARG.Gameplay.HUD
             _topElementContainer.localPosition = localPoint;
         }
 
-        public void UpdateCountdown(uint measuresLeft)
+        public void UpdateCountdown(int measuresLeft)
         {
             _countdownDisplay.UpdateCountdown(measuresLeft);
         }

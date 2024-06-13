@@ -217,7 +217,7 @@ namespace YARG.Gameplay.Player
             return percussionTrack;
         }
 
-        public void UpdateCountdown(uint measuresLeft)
+        public void UpdateCountdown(int measuresLeft)
         {
             _countdownDisplay.UpdateCountdown(measuresLeft);
         }

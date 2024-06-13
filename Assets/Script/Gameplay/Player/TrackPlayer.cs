@@ -480,7 +480,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected virtual void OnCountdownChange(uint totalMeasures)
+        protected virtual void OnCountdownChange(int totalMeasures)
         {
             TrackView.UpdateCountdown(totalMeasures);
         }
