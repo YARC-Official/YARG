@@ -51,7 +51,7 @@ namespace YARG.Menu.MusicLibrary
                 if (Random.value <= yargSongRNG)
                 {
                     yargSongRNG -= RNG_DECREMENT;
-                    song = yargSongs.Pick();
+                    song = Pick(yargSongs);
                 }
                 else
                 {
@@ -79,7 +79,7 @@ namespace YARG.Menu.MusicLibrary
             while (mostPlayed.Count > 0)
             {
                 int songIndex = Random.Range(0, mostPlayed.Count);
-                var song = artists[mostPlayed[songIndex].Artist].Pick();
+                var song = Pick(artists[mostPlayed[songIndex].Artist]);
                 if (!mostPlayed.Contains(song) && !songs.Contains(song))
                 {
                     songs[index++] = song;
@@ -87,6 +87,20 @@ namespace YARG.Menu.MusicLibrary
                 }
                 mostPlayed.RemoveAt(songIndex);
             }
+        }
+
+        private static SongEntry Pick(SortedSet<SongEntry> songs)
+        {
+            int index = RandomExtensions.Next(songs.Count);
+            foreach (var song in songs)
+            {
+                if (index == 0)
+                {
+                    return song;
+                }
+                --index;
+            }
+            throw new System.Exception("Unreachable");
         }
     }
 }

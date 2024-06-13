@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace YARG.Helpers.Extensions
 {
-    public static class ListExtensions
+    public static class RandomExtensions
     {
         private static readonly Random Random = new();
         // Thanks! https://stackoverflow.com/questions/273313/randomize-a-listt
@@ -15,7 +15,7 @@ namespace YARG.Helpers.Extensions
                 while (n > 1)
                 {
                     n--;
-                    int k = Random.Next(0, n + 1);
+                    int k = Random.Next(n + 1);
                     (list[k], list[n]) = (list[n], list[k]);
                 }
             }
@@ -25,7 +25,15 @@ namespace YARG.Helpers.Extensions
         {
             lock (Random)
             {
-                return list[Random.Next(0, list.Count)];
+                return list[Random.Next(list.Count)];
+            }
+        }
+
+        public static int Next(int max)
+        {
+            lock (Random)
+            {
+                return Random.Next(max);
             }
         }
     }

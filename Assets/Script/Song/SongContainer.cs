@@ -91,18 +91,18 @@ namespace YARG.Song
         
         private static SongCategory[] _playables = null;
 
-        public static IReadOnlyDictionary<string, List<SongEntry>> Titles => _songCache.Titles;
-        public static IReadOnlyDictionary<string, List<SongEntry>> Years => _songCache.Years;
-        public static IReadOnlyDictionary<string, List<SongEntry>> ArtistAlbums => _songCache.ArtistAlbums;
-        public static IReadOnlyDictionary<string, List<SongEntry>> SongLengths => _songCache.SongLengths;
-        public static IReadOnlyDictionary<DateTime, List<SongEntry>> AddedDates => _songCache.DatesAdded;
-        public static IReadOnlyDictionary<SortString, List<SongEntry>> Artists => _songCache.Artists;
-        public static IReadOnlyDictionary<SortString, List<SongEntry>> Albums => _songCache.Albums;
-        public static IReadOnlyDictionary<SortString, List<SongEntry>> Genres => _songCache.Genres;
-        public static IReadOnlyDictionary<SortString, List<SongEntry>> Charters => _songCache.Charters;
-        public static IReadOnlyDictionary<SortString, List<SongEntry>> Playlists => _songCache.Playlists;
-        public static IReadOnlyDictionary<SortString, List<SongEntry>> Sources => _songCache.Sources;
-        public static IReadOnlyDictionary<Instrument, SortedDictionary<int, List<SongEntry>>> Instruments => _songCache.Instruments;
+        public static IReadOnlyDictionary<string, SortedSet<SongEntry>> Titles => _songCache.Titles;
+        public static IReadOnlyDictionary<string, SortedSet<SongEntry>> Years => _songCache.Years;
+        public static IReadOnlyDictionary<string, SortedSet<SongEntry>> ArtistAlbums => _songCache.ArtistAlbums;
+        public static IReadOnlyDictionary<string, SortedSet<SongEntry>> SongLengths => _songCache.SongLengths;
+        public static IReadOnlyDictionary<DateTime, SortedSet<SongEntry>> AddedDates => _songCache.DatesAdded;
+        public static IReadOnlyDictionary<SortString, SortedSet<SongEntry>> Artists => _songCache.Artists;
+        public static IReadOnlyDictionary<SortString, SortedSet<SongEntry>> Albums => _songCache.Albums;
+        public static IReadOnlyDictionary<SortString, SortedSet<SongEntry>> Genres => _songCache.Genres;
+        public static IReadOnlyDictionary<SortString, SortedSet<SongEntry>> Charters => _songCache.Charters;
+        public static IReadOnlyDictionary<SortString, SortedSet<SongEntry>> Playlists => _songCache.Playlists;
+        public static IReadOnlyDictionary<SortString, SortedSet<SongEntry>> Sources => _songCache.Sources;
+        public static IReadOnlyDictionary<Instrument, SortedDictionary<int, SortedSet<SongEntry>>> Instruments => _songCache.Instruments;
 
         public static int Count => _songs.Length;
         public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
@@ -346,7 +346,7 @@ namespace YARG.Song
                 return songs;
             }
 
-            static SongCategory[] Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute)
+            static SongCategory[] Convert(SortedDictionary<SortString, SortedSet<SongEntry>> list, SongAttribute attribute)
             {
                 var sections = new SongCategory[list.Count];
                 int index = 0;
@@ -364,7 +364,7 @@ namespace YARG.Song
                 return sections;
             }
 
-            static SongCategory[] Cast(SortedDictionary<string, List<SongEntry>> list)
+            static SongCategory[] Cast(SortedDictionary<string, SortedSet<SongEntry>> list)
             {
                 var sections = new SongCategory[list.Count];
                 int index = 0;
