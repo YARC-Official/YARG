@@ -22,9 +22,9 @@ namespace YARG
 
         private Coroutine _currentCoroutine;
 
-        private uint _measuresLeft;
+        private int _measuresLeft;
 
-        public void UpdateCountdown(uint measuresLeft)
+        public void UpdateCountdown(int measuresLeft)
         {
             if (measuresLeft == _measuresLeft)
             {
@@ -92,7 +92,7 @@ namespace YARG
         {
             // Fade in
             yield return _canvasGroup
-                .DOFade(1f, 0.6f)
+                .DOFade(1f, 0.45f)
                 .WaitForCompletion();
         }
 
@@ -100,7 +100,7 @@ namespace YARG
         {
             // Fade out
             yield return _canvasGroup
-                .DOFade(0f, 0.6f)
+                .DOFade(0f, 0.45f)
                 .WaitForCompletion();
 
             gameObject.SetActive(false);
