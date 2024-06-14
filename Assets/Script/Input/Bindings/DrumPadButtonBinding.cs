@@ -26,8 +26,7 @@ namespace YARG.Input
                 pressVelocity = _bindings.Max(binding => binding.Control.value);
             }
 
-            var input = new GameInput(time, Action, pressVelocity);
-            FireInputEvent(ref input);
+            base.FireInputEvent(time, pressVelocity);
         }
     }
 }
