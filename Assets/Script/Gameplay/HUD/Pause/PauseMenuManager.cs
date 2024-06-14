@@ -20,6 +20,7 @@ namespace YARG.Gameplay.HUD
             PracticePause,
             SelectSections,
             ReplayPause,
+            QuickSettings
         }
 
         private Dictionary<Menu, PauseMenuObject> _menus;
@@ -40,17 +41,7 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private RawImage _albumCover;
 
-        public bool IsOpen() => _openMenus.Count > 0;
-
-        public void Clear()
-        {
-            foreach (var menu in _openMenus)
-            {
-                _menus[menu].gameObject?.SetActive(false);
-            }
-            _openMenus.Clear();
-            gameObject?.SetActive(false);
-        }
+        public bool IsOpen => _openMenus.Count > 0;
 
         protected override void GameplayAwake()
         {
@@ -113,7 +104,7 @@ namespace YARG.Gameplay.HUD
             return newMenu;
         }
 
-        public void PopMenu(bool resume = true)
+        public void PopMenu()
         {
             // Close the currently open one
             if (_openMenus.TryPeek(out var currentMenuEnum) &&
@@ -134,31 +125,23 @@ namespace YARG.Gameplay.HUD
             {
                 throw new InvalidOperationException($"Failed to open menu {menu}.");
             }
-
-            // Clear all menus if resuming
-            if (resume)
-            {
-                while (_openMenus.Count > 0)
-                {
-                    var popped = _openMenus.Pop();
-                    if (_menus.TryGetValue(popped, out var poppedMenu))
-                    {
-                        poppedMenu.gameObject.SetActive(false);
-                    }
-                }
-            }
-
-            // Resume if nothing left
-            if (_openMenus.Count <= 0 && resume)
-            {
-                GameManager.Resume();
-            }
         }
 
-        public void OpenMenu(Menu menu)
+        public void PopAllMenusWithResume()
         {
-            PopMenu(false);
-            PushMenu(menu);
+            PopAllMenus();
+            GameManager.Resume();
+        }
+
+        public void PopAllMenus()
+        {
+            foreach (var menu in _openMenus)
+            {
+                _menus[menu].gameObject.SetActive(false);
+            }
+
+            _openMenus.Clear();
+            gameObject.SetActive(false);
         }
 
         public void Quit()
@@ -170,7 +153,7 @@ namespace YARG.Gameplay.HUD
         {
             if (GameManager.IsPractice && GlobalVariables.State.IsPractice)
             {
-                PopMenu(false);
+                PopMenu();
                 GameManager.PracticeManager.ResetPractice();
                 return;
             }

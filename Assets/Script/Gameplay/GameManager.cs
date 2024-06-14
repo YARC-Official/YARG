@@ -172,7 +172,7 @@ namespace YARG.Gameplay
                 GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
             }
 
-            _pauseMenu.Clear();
+            _pauseMenu.PopAllMenus();
             _mixer?.Dispose();
             _songRunner?.Dispose();
             BeatEventHandler?.Unsubscribe(StarPowerClap);
@@ -192,7 +192,7 @@ namespace YARG.Gameplay
                     return;
                 }
 
-                SetPaused(!_pauseMenu.IsOpen());
+                SetPaused(!_pauseMenu.IsOpen);
             }
 
             // Toggle debug text
@@ -349,7 +349,7 @@ namespace YARG.Gameplay
 
         public void Resume(bool inputCompensation = true)
         {
-            _pauseMenu.Clear();
+            _pauseMenu.PopAllMenus();
             if (_songRunner.SongTime >= SongLength + SONG_END_DELAY)
             {
                 return;
