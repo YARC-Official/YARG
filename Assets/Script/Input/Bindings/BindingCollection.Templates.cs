@@ -58,29 +58,27 @@ namespace YARG.Input
 
         public static BindingCollection CreateFourLaneDrumsBindings() => new(GameMode.FourLaneDrums)
         {
-            // TODO: Velocity support
-            new IndividualButtonBinding("FourDrums.RedPad",    (int) DrumsAction.RedDrum),
-            new IndividualButtonBinding("FourDrums.YellowPad", (int) DrumsAction.YellowDrum),
-            new IndividualButtonBinding("FourDrums.BluePad",   (int) DrumsAction.BlueDrum),
-            new IndividualButtonBinding("FourDrums.GreenPad",  (int) DrumsAction.GreenDrum),
+            new DrumPadButtonBinding("FourDrums.RedPad",    (int) DrumsAction.RedDrum),
+            new DrumPadButtonBinding("FourDrums.YellowPad", (int) DrumsAction.YellowDrum),
+            new DrumPadButtonBinding("FourDrums.BluePad",   (int) DrumsAction.BlueDrum),
+            new DrumPadButtonBinding("FourDrums.GreenPad",  (int) DrumsAction.GreenDrum),
 
-            new IndividualButtonBinding("FourDrums.YellowCymbal", (int) DrumsAction.YellowCymbal),
-            new IndividualButtonBinding("FourDrums.BlueCymbal",   (int) DrumsAction.BlueCymbal),
-            new IndividualButtonBinding("FourDrums.GreenCymbal", "FourDrums.RedCymbal", (int) DrumsAction.GreenCymbal),
+            new DrumPadButtonBinding("FourDrums.YellowCymbal", (int) DrumsAction.YellowCymbal),
+            new DrumPadButtonBinding("FourDrums.BlueCymbal",   (int) DrumsAction.BlueCymbal),
+            new DrumPadButtonBinding("FourDrums.GreenCymbal", "FourDrums.RedCymbal", (int) DrumsAction.GreenCymbal),
 
-            new IndividualButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
+            new DrumPadButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };
 
         public static BindingCollection CreateFiveLaneDrumsBindings() => new(GameMode.FiveLaneDrums)
         {
-            // TODO: Velocity support
-            new IndividualButtonBinding("FiveDrums.RedPad",       (int) DrumsAction.RedDrum),
-            new IndividualButtonBinding("FiveDrums.YellowCymbal", (int) DrumsAction.YellowCymbal),
-            new IndividualButtonBinding("FiveDrums.BluePad",      (int) DrumsAction.BlueDrum),
-            new IndividualButtonBinding("FiveDrums.OrangeCymbal", (int) DrumsAction.OrangeCymbal),
-            new IndividualButtonBinding("FiveDrums.GreenPad",     (int) DrumsAction.GreenDrum),
+            new DrumPadButtonBinding("FiveDrums.RedPad",       (int) DrumsAction.RedDrum),
+            new DrumPadButtonBinding("FiveDrums.YellowCymbal", (int) DrumsAction.YellowCymbal),
+            new DrumPadButtonBinding("FiveDrums.BluePad",      (int) DrumsAction.BlueDrum),
+            new DrumPadButtonBinding("FiveDrums.OrangeCymbal", (int) DrumsAction.OrangeCymbal),
+            new DrumPadButtonBinding("FiveDrums.GreenPad",     (int) DrumsAction.GreenDrum),
 
-            new IndividualButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
+            new DrumPadButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };
 
         public static BindingCollection CreateProGuitarBindings() => new(GameMode.ProGuitar)

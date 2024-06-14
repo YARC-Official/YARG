@@ -19,6 +19,10 @@ namespace YARG.Themes
 
         Cymbal,
         Kick,
+        Accent,
+        Ghost,
+        CymbalAccent,
+        CymbalGhost,
 
         White,
         Black,

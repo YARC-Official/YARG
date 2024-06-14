@@ -145,7 +145,7 @@ namespace YARG.Input
             FireInputEvent(ref input);
         }
 
-        protected void FireInputEvent(double time, bool value)
+        protected virtual void FireInputEvent(double time, bool value)
         {
             var input = new GameInput(time, Action, value);
             FireInputEvent(ref input);
