@@ -99,9 +99,6 @@ namespace YARG.Gameplay.Player
                 // Skip if a note was hit, because we have different logic for that below
                 if (wasNoteHit) return;
 
-                // Play drum sound effect
-                PlayDrumSoundEffect(action, velocity);
-
                 // Choose the correct fret
                 int fret;
                 if (!_fiveLaneMode)
@@ -130,16 +127,28 @@ namespace YARG.Gameplay.Player
                     };
                 }
 
+                bool isDrumFreestyle = IsDrumFreestyle();
+
+                if (isDrumFreestyle)
+                {
+                    // Play drum sound effect
+                    PlayDrumSoundEffect(action, velocity);
+                }
                 // Skip if no animation
                 if (fret == -1) return;
 
                 if (fret != 0)
                 {
-                    _fretArray.PlayDrumAnimation(fret - 1, false);
+                    _fretArray.PlayDrumAnimation(fret - 1, isDrumFreestyle);
                 }
                 else
                 {
                     _fretArray.PlayKickFretAnimation();
+                    if (isDrumFreestyle)
+                    {
+                        _kickFretFlash.PlayHitAnimation();
+                        CameraPositioner.Bounce();
+                    }
                 }
             };
 
@@ -281,7 +290,7 @@ namespace YARG.Gameplay.Player
 
         private void PlayDrumSoundEffect(DrumsAction action, float velocity)
         {   
-            if (Engine.State.NoteIndex == 0 || Engine.State.NoteIndex >= Notes.Count) // TODO: add drum fill / BRE conditions
+            if (IsDrumFreestyle())
             {
                 int actionIndex = (int) action;
                 double sampleVolume = velocity;
@@ -313,6 +322,11 @@ namespace YARG.Gameplay.Player
                     DrumSoundEffectRoundRobin[actionIndex] = 0;
                 }
             }
+        }
+
+        private bool IsDrumFreestyle()
+        {
+            return Engine.State.NoteIndex == 0 || Engine.State.NoteIndex >= Notes.Count; // TODO: add drum fill / BRE conditions
         }
     }
 }
