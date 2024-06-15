@@ -5,7 +5,7 @@ using YARG.Settings;
 namespace YARG.Gameplay.HUD
 {
     [RequireComponent(typeof(RectTransform))]
-    public class DraggableHudElement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler,
+    public class DraggableHudElement : GameplayBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler,
         IPointerDownHandler
     {
         [SerializeField]
@@ -26,8 +26,14 @@ namespace YARG.Gameplay.HUD
         private bool _isSelected;
         private bool _isDragging;
 
-        private void Awake()
+        protected override void OnSongStarted()
         {
+            if (GameManager.Players.Count > 1)
+            {
+                enabled = false;
+                return;
+            }
+
             _manager = GetComponentInParent<DraggableHudManager>();
             _rectTransform = GetComponent<RectTransform>();
 

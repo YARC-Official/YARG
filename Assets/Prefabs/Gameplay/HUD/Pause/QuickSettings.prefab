@@ -133,6 +133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e20dfdd5cd7e493aa44e7a6a522f3984, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _editHudButton: {fileID: 400257215838375240}
 --- !u!114 &1393302618078186337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -642,8 +643,19 @@ PrefabInstance:
       propertyPath: m_Name
       value: Edit HUD
       objectReference: {fileID: 0}
+    - target: {fileID: 6846856529861592903, guid: 0e2af23c2e7465444a3fb84a06d425ae,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0e2af23c2e7465444a3fb84a06d425ae, type: 3}
+--- !u!1 &400257215838375240 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6846856529861592903, guid: 0e2af23c2e7465444a3fb84a06d425ae,
+    type: 3}
+  m_PrefabInstance: {fileID: 6523767997543451151}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &400257215838375243 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6846856529861592900, guid: 0e2af23c2e7465444a3fb84a06d425ae,
