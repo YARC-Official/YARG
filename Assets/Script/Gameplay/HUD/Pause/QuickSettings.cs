@@ -9,7 +9,7 @@
 
         public void EditHUD()
         {
-
+            GameManager.SetEditHUD(true);
         }
     }
 }

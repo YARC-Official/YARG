@@ -45,6 +45,8 @@ namespace YARG.Gameplay
         private ReplayController _replayController;
         [SerializeField]
         private PauseMenuManager _pauseMenu;
+        [SerializeField]
+        private DraggableHudManager _draggableHud;
 
         [SerializeField]
         private GameObject _lyricBar;
@@ -187,12 +189,14 @@ namespace YARG.Gameplay
             // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                if (IsPractice && !PracticeManager.HasSelectedSection)
+                if (_draggableHud.EditMode)
                 {
-                    return;
+                    SetEditHUD(false);
                 }
-
-                SetPaused(!_pauseMenu.IsOpen);
+                else if (!IsPractice || PracticeManager.HasSelectedSection)
+                {
+                    SetPaused(!_pauseMenu.IsOpen);
+                }
             }
 
             // Toggle debug text
@@ -495,6 +499,20 @@ namespace YARG.Gameplay
         {
             GlobalVariables.State = PersistentState.Default;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+        }
+
+        public void SetEditHUD(bool on)
+        {
+            if (on)
+            {
+                _pauseMenu.gameObject.SetActive(false);
+                _draggableHud.SetEditHUD(true);
+            }
+            else
+            {
+                _draggableHud.SetEditHUD(false);
+                _pauseMenu.gameObject.SetActive(true);
+            }
         }
 
         public (string Name, HashWrapper Hash)? SaveReplay(double length, bool useScorePath)

@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using YARG.Settings;
 
@@ -16,7 +15,7 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private DraggingDisplay _draggingDisplayPrefab;
 
-        private DraggableHudParent _parent;
+        private DraggableHudManager _manager;
         private RectTransform _rectTransform;
 
         private DraggingDisplay _draggingDisplay;
@@ -29,7 +28,7 @@ namespace YARG.Gameplay.HUD
 
         private void Awake()
         {
-            _parent = GetComponentInParent<DraggableHudParent>();
+            _manager = GetComponentInParent<DraggableHudManager>();
             _rectTransform = GetComponent<RectTransform>();
 
             _originalPosition = _rectTransform.anchoredPosition;
@@ -66,13 +65,19 @@ namespace YARG.Gameplay.HUD
         {
             _isSelected = false;
 
+            if (_isDragging)
+            {
+                _isDragging = false;
+                SavePosition();
+            }
+
             _draggingDisplay.Hide();
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
             // Can only start dragging with the left mouse button
-            if (_isDragging || eventData.button != PointerEventData.InputButton.Left)
+            if (!_manager.EditMode || _isDragging || eventData.button != PointerEventData.InputButton.Left)
             {
                 return;
             }
@@ -109,12 +114,12 @@ namespace YARG.Gameplay.HUD
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (_isSelected || eventData.button != PointerEventData.InputButton.Left)
+            if (!_manager.EditMode || _isSelected || eventData.button != PointerEventData.InputButton.Left)
             {
                 return;
             }
 
-            _parent.SetSelectedElement(this);
+            _manager.SetSelectedElement(this);
         }
 
         public void RevertElement()
