@@ -283,18 +283,18 @@ namespace YARG.Gameplay.Player
         {   
             if (Engine.State.NoteIndex == 0 || Engine.State.NoteIndex >= Notes.Count) // TODO: add drum fill / BRE conditions
             {
-                int actionIndex = (int)action;
+                int actionIndex = (int) action;
                 double sampleVolume = velocity;
 
                 // Define sample
-                int sampleIndex = 0; // Weak (Vel. 0)
+                int sampleIndex = (int) DrumSfxSample.Vel0Pad0Smp0;
                 if (velocity > DrumSoundEffectAccentThreshold)
                 {
-                    sampleIndex = 48; // Strong (Vel. 2)
+                    sampleIndex = (int) DrumSfxSample.Vel2Pad0Smp0;
                 }
                 else if (velocity > EngineParams.VelocityThreshold)
                 {
-                    sampleIndex = 24; // Regular (Vel. 1)
+                    sampleIndex = (int) DrumSfxSample.Vel1Pad0Smp0;
                     sampleVolume = velocity / DrumSoundEffectAccentThreshold;
                 }
                 else

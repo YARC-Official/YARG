@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
   m_Name: Settings_en-US
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   m_LocaleId:
     m_Code: en-US
   m_SharedData: {fileID: 11400000, guid: 0c40e690d26fdff4a92f0b3813ac68a4, type: 2}
@@ -1742,6 +1742,15 @@ MonoBehaviour:
   - m_Id: 154060811591114752
     m_Localized: These are the respective values that the Master Dimmer channels
       willl be set to when YARG starts.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 162388399954583552
+    m_Localized: Drum SFX Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 162388592154370048
+    m_Localized: Adjusts the drum hit sound effect volume, which can be triggered
+      before the first note, after the last note, or during drum fills/BREs.
     m_Metadata:
       m_Items: []
   references:
