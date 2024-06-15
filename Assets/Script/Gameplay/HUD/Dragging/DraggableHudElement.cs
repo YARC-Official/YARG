@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using YARG.Settings;
 
@@ -10,6 +11,8 @@ namespace YARG.Gameplay.HUD
     {
         [SerializeField]
         private string _draggableElementName;
+        [SerializeField]
+        private UnityEvent<bool> _onEditModeChanged;
 
         [Space]
         [SerializeField]
@@ -78,6 +81,11 @@ namespace YARG.Gameplay.HUD
             }
 
             _draggingDisplay.Hide();
+        }
+
+        public void OnEditModeChanged(bool on)
+        {
+            _onEditModeChanged.Invoke(on);
         }
 
         public void OnBeginDrag(PointerEventData eventData)

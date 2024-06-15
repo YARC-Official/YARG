@@ -612,6 +612,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2784863481168182611}
+  - component: {fileID: 9006646617090830176}
   m_Layer: 5
   m_Name: Top Elements
   m_TagString: Untagged
@@ -641,6 +642,36 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 150}
   m_SizeDelta: {x: 768, y: 100}
   m_Pivot: {x: 0.5, y: 0.000000115484}
+--- !u!114 &9006646617090830176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4456600481854130699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26c69184c4c94e07a1c1a5403823ba9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _draggableElementName: soloBox
+  _onEditModeChanged:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 2390146520270845346}
+        m_TargetAssemblyTypeName: YARG.Gameplay.HUD.SoloBox, Assembly-CSharp
+        m_MethodName: PreviewForEditMode
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _draggingDisplayPrefab: {fileID: 5730308542642054521, guid: 2a82983eb1a960843bd5603736f9b042,
+    type: 3}
 --- !u!1 &5049063098972104369
 GameObject:
   m_ObjectHideFlags: 0

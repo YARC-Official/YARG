@@ -9,11 +9,21 @@ namespace YARG.Gameplay.HUD
 
         public DraggableHudElement SelectedElement { get; private set; }
 
+        private DraggableHudElement[] _draggableElements;
         private bool _navigationPushed;
+
+        private void Start()
+        {
+            _draggableElements = GetComponentsInChildren<DraggableHudElement>();
+        }
 
         public void SetEditHUD(bool on)
         {
             EditMode = on;
+            foreach (var element in _draggableElements)
+            {
+                element.OnEditModeChanged(on);
+            }
 
             if (on)
             {
