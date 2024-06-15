@@ -35,6 +35,9 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
+        private int[] DrumSoundEffectRoundRobin = new int[8];
+        private float DrumSoundEffectAccentThreshold;
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
             int? currentHighScore)
         {
@@ -74,6 +77,13 @@ namespace YARG.Gameplay.Player
 
             HitWindow = EngineParams.HitWindow;
 
+            // Calculating drum sound effect accent threshold based on the engine's ghost velocity threshold
+            DrumSoundEffectAccentThreshold = EngineParams.VelocityThreshold * 2;
+            if (DrumSoundEffectAccentThreshold > 0.8f)
+            {
+                DrumSoundEffectAccentThreshold = EngineParams.VelocityThreshold + ((1 - EngineParams.VelocityThreshold) / 2);
+            }
+
             engine.OnNoteHit += OnNoteHit;
             engine.OnNoteMissed += OnNoteMissed;
             engine.OnOverhit += OnOverstrum;
@@ -88,6 +98,9 @@ namespace YARG.Gameplay.Player
             {
                 // Skip if a note was hit, because we have different logic for that below
                 if (wasNoteHit) return;
+
+                // Play drum sound effect
+                PlayDrumSoundEffect(action, velocity);
 
                 // Choose the correct fret
                 int fret;
@@ -264,6 +277,42 @@ namespace YARG.Gameplay.Player
         protected override bool InterceptInput(ref GameInput input)
         {
             return false;
+        }
+
+        private void PlayDrumSoundEffect(DrumsAction action, float velocity)
+        {   
+            if (Engine.State.NoteIndex == 0 || Engine.State.NoteIndex >= Notes.Count) // TODO: add drum fill / BRE conditions
+            {
+                int actionIndex = (int)action;
+                double sampleVolume = velocity;
+
+                // Define sample
+                int sampleIndex = 0; // Weak (Vel. 0)
+                if (velocity > DrumSoundEffectAccentThreshold)
+                {
+                    sampleIndex = 48; // Strong (Vel. 2)
+                }
+                else if (velocity > EngineParams.VelocityThreshold)
+                {
+                    sampleIndex = 24; // Regular (Vel. 1)
+                    sampleVolume = velocity / DrumSoundEffectAccentThreshold;
+                }
+                else
+                {
+                    sampleVolume = velocity / EngineParams.VelocityThreshold;
+                }
+                sampleIndex += (actionIndex * DrumSampleChannel.ROUND_ROBIN_MAX_INDEX) + DrumSoundEffectRoundRobin[actionIndex];
+
+                // Play Sample
+                GlobalAudioHandler.PlayDrumSoundEffect((DrumSfxSample) sampleIndex, sampleVolume);
+
+                // Adjust round-robin
+                DrumSoundEffectRoundRobin[actionIndex] += 1;
+                if (DrumSoundEffectRoundRobin[actionIndex] == DrumSampleChannel.ROUND_ROBIN_MAX_INDEX)
+                {
+                    DrumSoundEffectRoundRobin[actionIndex] = 0;
+                }
+            }
         }
     }
 }
