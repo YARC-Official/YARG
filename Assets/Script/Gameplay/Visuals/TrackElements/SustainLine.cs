@@ -6,7 +6,11 @@ namespace YARG.Gameplay.Visuals
 {
     public class SustainLine : MonoBehaviour
     {
-        private static readonly int _emissionColor      = Shader.PropertyToID("_EmissionColor");
+        private const float GLOW_THRESHOLD = 0.15f;
+
+        private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
+        private static readonly int _glowAmount    = Shader.PropertyToID("_GlowAmount");
+
         private static readonly int _primaryAmplitude   = Shader.PropertyToID("_PrimaryAmplitude");
         private static readonly int _secondaryAmplitude = Shader.PropertyToID("_SecondaryAmplitude");
         private static readonly int _tertiaryAmplitude  = Shader.PropertyToID("_TertiaryAmplitude");
@@ -44,7 +48,7 @@ namespace YARG.Gameplay.Visuals
         {
             // Set initial line length
             // Make sure to make point 0 higher up so it renders it in the correct direction
-            _lineRenderer.SetPosition(0, new(0f, 0.01f, len));
+            _lineRenderer.SetPosition(0, new Vector3(0f, 0.01f, len));
             _lineRenderer.SetPosition(1, Vector3.zero);
 
             ResetAmplitudes();
@@ -53,19 +57,27 @@ namespace YARG.Gameplay.Visuals
         public void SetState(SustainState state, Color c)
         {
             _hitState = state;
+
+            // Get the glow value based on the value of the color
+            Color.RGBToHSV(c, out _, out _, out float value);
+            float glow = Mathf.Max((GLOW_THRESHOLD - value) / GLOW_THRESHOLD, 0f);
+
             switch (state)
             {
                 case SustainState.Waiting:
                     _material.color = c;
                     _material.SetColor(_emissionColor, c);
+                    _material.SetFloat(_glowAmount, glow * 0.9f);
                     break;
                 case SustainState.Hitting:
                     _material.color = c;
                     _material.SetColor(_emissionColor, c * 3f);
+                    _material.SetFloat(_glowAmount, glow);
                     break;
                 case SustainState.Missed:
-                    _material.color = new(0f, 0f, 0f, 1f);
-                    _material.SetColor(_emissionColor, new(0.1f, 0.1f, 0.1f, 1f));
+                    _material.color = new Color(0f, 0f, 0f, 1f);
+                    _material.SetColor(_emissionColor, new Color(0.1f, 0.1f, 0.1f, 1f));
+                    _material.SetFloat(_glowAmount, 0f);
                     ResetAmplitudes();
                     break;
             }
