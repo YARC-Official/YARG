@@ -812,11 +812,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 117853365881430016
-    m_Key: Setting.DMXFogChannel
+    m_Key: Setting.DMXFogChannels
     m_Metadata:
       m_Items: []
   - m_Id: 117853561273081856
-    m_Key: Setting.DMXFogChannel.Description
+    m_Key: Setting.DMXFogChannels.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405792
@@ -836,11 +836,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 117866061624401920
-    m_Key: Setting.DMXStrobeChannel
+    m_Key: Setting.DMXStrobeChannels
     m_Metadata:
       m_Items: []
   - m_Id: 117866539842166784
-    m_Key: Setting.DMXStrobeChannel.Description
+    m_Key: Setting.DMXStrobeChannels.Description
     m_Metadata:
       m_Items: []
   - m_Id: 116747023324405794

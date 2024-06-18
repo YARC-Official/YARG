@@ -155,8 +155,8 @@ namespace YARG.Integration.Sacn
         public int[] GreenChannels;
         public int[] BlueChannels;
         public int[] YellowChannels;
-        public int FogChannel;
-        public int StrobeChannel;
+        public int[] FogChannels;
+        public int[] StrobeChannels;
 
         // Advanced DMX channels
         public int CueChangeChannel;
@@ -233,8 +233,15 @@ namespace YARG.Integration.Sacn
         {
             //Set all channels to off
             //Basic
-            SetChannel(FogChannel, (byte) FogEnum.Off);
-            SetChannel(StrobeChannel, (byte) StrobeEnum.Off);
+            foreach (var t in FogChannels)
+            {
+                SetChannel(t, (byte) LedEnum.Off);
+            }
+
+            foreach (var t in StrobeChannels)
+            {
+                SetChannel(t, (byte) LedEnum.Off);
+            }
 
             foreach (var t in BlueChannels)
             {
@@ -276,11 +283,17 @@ namespace YARG.Integration.Sacn
         {
             if (fogState == MasterLightingController.FogState.On)
             {
-                SetChannel(FogChannel, (byte) FogEnum.On);
+                foreach (var t in FogChannels)
+                {
+                    SetChannel(t, (byte) FogEnum.On);
+                }
             }
             else
             {
-                SetChannel(FogChannel, (byte) FogEnum.Off);
+                foreach (var t in FogChannels)
+                {
+                    SetChannel(t, (byte) FogEnum.Off);
+                }
             }
         }
 
@@ -291,20 +304,40 @@ namespace YARG.Integration.Sacn
             switch (value)
             {
                 case StageKitStrobeSpeed.Off:
-                    SetChannel(StrobeChannel, (byte) StrobeEnum.Off);
+                    foreach (var t in StrobeChannels)
+                    {
+                        SetChannel(t, (byte) StrobeEnum.Off);
+                    }
                     break;
+
                 case StageKitStrobeSpeed.Slow:
-                    SetChannel(StrobeChannel, (byte) StrobeEnum.Slow);
+                    foreach (var t in StrobeChannels)
+                    {
+                        SetChannel(t, (byte) StrobeEnum.Slow);
+                    }
                     break;
+
                 case StageKitStrobeSpeed.Medium:
-                    SetChannel(StrobeChannel, (byte) StrobeEnum.Medium);
+                    foreach (var t in StrobeChannels)
+                    {
+                        SetChannel(t, (byte) StrobeEnum.Medium);
+                    }
                     break;
+
                 case StageKitStrobeSpeed.Fast:
-                    SetChannel(StrobeChannel, (byte) StrobeEnum.Fast);
+                    foreach (var t in StrobeChannels)
+                    {
+                        SetChannel(t, (byte) StrobeEnum.Fast);
+                    }
                     break;
+
                 case StageKitStrobeSpeed.Fastest:
-                    SetChannel(StrobeChannel, (byte) StrobeEnum.Fastest);
+                    foreach (var t in StrobeChannels)
+                    {
+                        SetChannel(t, (byte) StrobeEnum.Fastest);
+                    }
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(value), value, null);
             }
