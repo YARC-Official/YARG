@@ -292,7 +292,7 @@ namespace YARG.Audio.BASS
             YargLogger.LogInfo("Finished loading SFX");
         }
 
-        public void LoadDrumSfx()
+        private void LoadDrumSfx()
         {
             YargLogger.LogInfo("Loading Drum SFX");
 

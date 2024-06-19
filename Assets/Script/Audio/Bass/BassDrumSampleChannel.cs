@@ -50,7 +50,6 @@ namespace YARG.Audio.BASS
 
         protected override void SetVolume_Internal(double volume)
         {
-            volume *= GlobalAudioHandler.GetVolumeSetting(SongStem.DrumSfx);
             if (!Bass.ChannelSetAttribute(_channel, ChannelAttribute.Volume, volume))
             {
                 YargLogger.LogFormatError("Failed to set {Sample} volume: {0}!", Bass.LastError);
