@@ -274,22 +274,23 @@ namespace YARG.Settings
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(
                 new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => SacnInterpreter.Instance.DimmerChannels = v);
 
-            public DMXChannelsSetting DMXBlueChannels { get; } = new(
-                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => SacnInterpreter.Instance.BlueChannels = v);
-
             public DMXChannelsSetting DMXRedChannels { get; } = new(
                 new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => SacnInterpreter.Instance.RedChannels = v);
 
             public DMXChannelsSetting DMXGreenChannels { get; } = new(
                 new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => SacnInterpreter.Instance.GreenChannels = v);
 
+            public DMXChannelsSetting DMXBlueChannels { get; } = new(
+                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => SacnInterpreter.Instance.BlueChannels = v);
+
             public DMXChannelsSetting DMXYellowChannels { get; } = new(
                 new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => SacnInterpreter.Instance.YellowChannels = v);
 
-            public IntSetting DMXFogChannel { get; } = new(6, 1, 512, v => SacnInterpreter.Instance.FogChannel = v);
+            public DMXChannelsSetting DMXFogChannels { get; } = new(
+                new[] { 06, 14, 22, 30, 38, 46, 54, 62 }, v => SacnInterpreter.Instance.FogChannels = v);
 
-            public IntSetting DMXStrobeChannel { get; } =
-                new(7, 1, 512, v => SacnInterpreter.Instance.StrobeChannel = v);
+            public DMXChannelsSetting DMXStrobeChannels { get; } = new(
+                new[] { 07, 15, 23, 31, 39, 47, 55, 63 }, v => SacnInterpreter.Instance.StrobeChannels = v);
 
             public IntSetting DMXCueChangeChannel { get; } =
                 new(8, 1, 512, v => SacnInterpreter.Instance.CueChangeChannel = v);
