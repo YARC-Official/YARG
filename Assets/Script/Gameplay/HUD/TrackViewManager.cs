@@ -69,7 +69,8 @@ namespace YARG.Gameplay.HUD
         private void UpdateAllSizing()
         {
             int count = _trackViews.Count;
-            _trackViews.ForEach(i => i.UpdateSizing(count));
+            foreach (var view in _trackViews)
+                view.UpdateSizing(count);
         }
 
         public void SetAllHUDPositions()
@@ -77,7 +78,8 @@ namespace YARG.Gameplay.HUD
             // The positions of the track view have probably not updated yet at this point
             Canvas.ForceUpdateCanvases();
 
-            _trackViews.ForEach(i => i.UpdateHUDPosition());
+            foreach (var view in _trackViews)
+                view.UpdateHUDPosition();
         }
     }
 }
