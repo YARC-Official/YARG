@@ -45,6 +45,11 @@ namespace YARG.Player
         /// </summary>
         public static IReadOnlyList<YargPlayer> Players => _players;
 
+        /// <summary>
+        /// An enumerator over the list of all of the active players.
+        /// </summary>
+        public static List<YargPlayer>.Enumerator PlayerEnumerator => _players.GetEnumerator();
+
         private static bool _isInitialized;
         public static List<Instrument> Instruments => _instruments.ToList();
 
