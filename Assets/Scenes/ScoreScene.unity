@@ -1688,6 +1688,7 @@ GameObject:
   - component: {fileID: 1731608351534815122}
   - component: {fileID: 1731608351534815121}
   - component: {fileID: 1731608351534815136}
+  - component: {fileID: 1731608351534815137}
   m_Layer: 5
   m_Name: Score Screen
   m_TagString: Untagged
@@ -1722,3 +1723,15 @@ MonoBehaviour:
     type: 3}
   _proKeysCardPrefab: {fileID: 7609862917790866568, guid: f5b2b04f2ac03bf4687dfc0f22f83212,
     type: 3}
+--- !u!114 &1731608351534815137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1731608351534815135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15e15a0d3f161b24a8f3fc72ff301709, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

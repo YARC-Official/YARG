@@ -1026,8 +1026,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 117853561273081856
-    m_Localized: The channel set here will receive the StageKit on (255) and off
-      (0).
+    m_Localized: Each channel set here will receive the StageKit fog on (255) and
+      fog off (0).
     m_Metadata:
       m_Items: []
   - m_Id: 117854414511955968
@@ -1055,8 +1055,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 117866539842166784
-    m_Localized: This channel will receive StageKit strobe commands, either off (0),
-      slow (64), medium (127), fast (191), fastest (255).
+    m_Localized: Each channel set here will receive StageKit strobe commands, either
+      off (0), slow (64), medium (127), fast (191), fastest (255).
     m_Metadata:
       m_Items: []
   - m_Id: 124721790388133888

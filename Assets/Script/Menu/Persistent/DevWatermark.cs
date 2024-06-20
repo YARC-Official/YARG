@@ -11,11 +11,11 @@ namespace YARG.Menu.Persistent
         private void Start()
         {
 #if UNITY_EDITOR
-            _watermarkText.text = $"<b>YARG {GlobalVariables.CURRENT_VERSION}</b> Unity Editor";
+            _watermarkText.text = $"<b>YARG {GlobalVariables.Instance.CurrentVersion}</b> Unity Editor";
 #elif YARG_TEST_BUILD
-            _watermarkText.text = $"<b>YARG {GlobalVariables.CURRENT_VERSION}</b> Development Build";
+            _watermarkText.text = $"<b>YARG {GlobalVariables.Instance.CurrentVersion}</b> Development Build";
 #elif YARG_NIGHTLY_BUILD
-            _watermarkText.text = $"<b>YARG {GlobalVariables.CURRENT_VERSION}</b> Nightly Build";
+            _watermarkText.text = $"<b>YARG {GlobalVariables.Instance.CurrentVersion}</b> Nightly Build";
 #else
             gameObject.SetActive(false);
 #endif

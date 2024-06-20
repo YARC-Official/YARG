@@ -180,7 +180,7 @@ namespace YARG.Song
                 if (argument.StartsWith("artist:"))
                 {
                     attribute = SortAttribute.Artist;
-                    argument = RemoveDiacriticsAndArticle(argument[7..]);
+                    argument = SortString.RemoveDiacritics(argument[7..]);
                 }
                 else if (argument.StartsWith("source:"))
                 {
@@ -215,12 +215,12 @@ namespace YARG.Song
                 else if (argument.StartsWith("name:"))
                 {
                     attribute = SortAttribute.Name;
-                    argument = RemoveDiacriticsAndArticle(argument[5..]);
+                    argument = SortString.RemoveDiacritics(argument[5..]);
                 }
                 else if (argument.StartsWith("title:"))
                 {
                     attribute = SortAttribute.Name;
-                    argument = RemoveDiacriticsAndArticle(argument[6..]);
+                    argument = SortString.RemoveDiacritics(argument[6..]);
                 }
                 else
                 {
@@ -247,7 +247,7 @@ namespace YARG.Song
                         filters.Add(new FilterNode(attribute, mode, argument));
                     }
                 }
-                
+
                 if (attribute == SortAttribute.Unspecified)
                 {
                     break;
@@ -285,7 +285,7 @@ namespace YARG.Song
                 return SearchInstrument(filter, searchList);
             }
 
-            
+
             var match = GetPredicate(filter);
             var result = new SongCategory[searchList.Length];
             int count = 0;
@@ -306,26 +306,26 @@ namespace YARG.Song
             {
                 SearchMode.Fuzzy => filter.Attribute switch
                 {
-                    SortAttribute.Name => entry => IsAboveFuzzyThreshold(entry.Name.SortStr, filter.Argument),
-                    SortAttribute.Artist => entry => IsAboveFuzzyThreshold(RemoveArticle(entry.Artist.SortStr), filter.Argument),
-                    SortAttribute.Album => entry => IsAboveFuzzyThreshold(entry.Album.SortStr, filter.Argument),
-                    SortAttribute.Genre => entry => IsAboveFuzzyThreshold(entry.Genre.SortStr, filter.Argument),
+                    SortAttribute.Name => entry => IsAboveFuzzyThreshold(entry.Name.SearchStr, filter.Argument),
+                    SortAttribute.Artist => entry => IsAboveFuzzyThreshold(entry.Artist.SearchStr, filter.Argument),
+                    SortAttribute.Album => entry => IsAboveFuzzyThreshold(entry.Album.SearchStr, filter.Argument),
+                    SortAttribute.Genre => entry => IsAboveFuzzyThreshold(entry.Genre.SearchStr, filter.Argument),
                     SortAttribute.Year => entry => entry.Year.Contains(filter.Argument) || entry.UnmodifiedYear.Contains(filter.Argument),
-                    SortAttribute.Charter => entry => IsAboveFuzzyThreshold(entry.Charter.SortStr, filter.Argument),
-                    SortAttribute.Playlist => entry => IsAboveFuzzyThreshold(entry.Playlist.SortStr, filter.Argument),
-                    SortAttribute.Source => entry => IsAboveFuzzyThreshold(entry.Source.SortStr, filter.Argument),
+                    SortAttribute.Charter => entry => IsAboveFuzzyThreshold(entry.Charter.SearchStr, filter.Argument),
+                    SortAttribute.Playlist => entry => IsAboveFuzzyThreshold(entry.Playlist.SearchStr, filter.Argument),
+                    SortAttribute.Source => entry => IsAboveFuzzyThreshold(entry.Source.SearchStr, filter.Argument),
                     _ => throw new Exception("Unhandled seacrh filter")
                 },
                 SearchMode.Exact => filter.Attribute switch
                 {
-                    SortAttribute.Name => entry => entry.Name.SortStr == filter.Argument,
-                    SortAttribute.Artist => entry => RemoveArticle(entry.Artist.SortStr) == filter.Argument,
-                    SortAttribute.Album => entry => entry.Album.SortStr == filter.Argument,
-                    SortAttribute.Genre => entry => entry.Genre.SortStr == filter.Argument,
+                    SortAttribute.Name => entry => entry.Name.SearchStr == filter.Argument,
+                    SortAttribute.Artist => entry => entry.Artist.SearchStr == filter.Argument,
+                    SortAttribute.Album => entry => entry.Album.SearchStr == filter.Argument,
+                    SortAttribute.Genre => entry => entry.Genre.SearchStr == filter.Argument,
                     SortAttribute.Year => entry => entry.Year == filter.Argument || entry.UnmodifiedYear == filter.Argument,
-                    SortAttribute.Charter => entry => entry.Charter.SortStr == filter.Argument,
-                    SortAttribute.Playlist => entry => entry.Playlist.SortStr == filter.Argument,
-                    SortAttribute.Source => entry => entry.Source.SortStr == filter.Argument,
+                    SortAttribute.Charter => entry => entry.Charter.SearchStr == filter.Argument,
+                    SortAttribute.Playlist => entry => entry.Playlist.SearchStr == filter.Argument,
+                    SortAttribute.Source => entry => entry.Source.SearchStr == filter.Argument,
                     _ => throw new Exception("Unhandled seacrh filter")
                 },
                 _ => throw new Exception("Unused Mode type"),
@@ -349,19 +349,19 @@ namespace YARG.Song
                 if (filter.Mode == SearchMode.Exact)
                 {
                     _mode = SearchMode.Exact;
-                    _nameIndex = song.Name.SortStr == filter.Argument ? 0 : -1;
-                    _artistIndex = song.Artist.SortStr == filter.Argument ? 0 : -1;
+                    _nameIndex = song.Name.SearchStr == filter.Argument ? 0 : -1;
+                    _artistIndex = song.Artist.SearchStr == filter.Argument ? 0 : -1;
                 }
                 else
                 {
                     _mode = SearchMode.Fuzzy;
-                    bool nameFuzzy = IsAboveFuzzyThreshold(song.Name.SortStr, filter.Argument);
-                    bool artistFuzzy = IsAboveFuzzyThreshold(song.Artist.SortStr, filter.Argument);
+                    bool nameFuzzy = IsAboveFuzzyThreshold(song.Name.SearchStr, filter.Argument);
+                    bool artistFuzzy = IsAboveFuzzyThreshold(song.Artist.SearchStr, filter.Argument);
 
                     if (nameFuzzy || artistFuzzy)
                     {
-                        _nameIndex = song.Name.SortStr.IndexOf(filter.Argument, StringComparison.Ordinal);
-                        _artistIndex = song.Artist.SortStr.IndexOf(filter.Argument, StringComparison.Ordinal);
+                        _nameIndex = song.Name.SearchStr.IndexOf(filter.Argument, StringComparison.Ordinal);
+                        _artistIndex = song.Artist.SearchStr.IndexOf(filter.Argument, StringComparison.Ordinal);
 
                         if (_nameIndex >= 0 || _artistIndex >= 0)
                         {
@@ -369,8 +369,8 @@ namespace YARG.Song
                         }
                         else
                         {
-                            _nameIndex = nameFuzzy ? GetIndex(song.Name.SortStr, filter.Argument) : -1;
-                            _artistIndex = artistFuzzy ? GetIndex(song.Artist.SortStr, filter.Argument) : -1;
+                            _nameIndex = nameFuzzy ? GetIndex(song.Name.SearchStr, filter.Argument) : -1;
+                            _artistIndex = artistFuzzy ? GetIndex(song.Artist.SearchStr, filter.Argument) : -1;
                         }
                     }
                     else
@@ -387,14 +387,14 @@ namespace YARG.Song
 
             public int CompareTo(UnspecifiedSortNode other)
             {
-                if (Rank != other.Rank)
-                {
-                    return Rank - other.Rank;
-                }
-
                 if (_mode != other._mode)
                 {
                     return _mode == SearchMode.Contains ? -1 : 1;
+                }
+
+                if (Rank != other.Rank)
+                {
+                    return Rank - other.Rank;
                 }
 
                 if (_nameIndex >= 0)
@@ -515,40 +515,6 @@ namespace YARG.Song
                 }
             }
             return OptimizedFuzzySharp.PartialRatio(argument.AsSpan(), songStr.AsSpan()) >= threshold;
-        }
-
-        private static readonly string[] Articles =
-        {
-            "The ", // The beatles, The day that never comes
-            "El ",  // El final, El sol no regresa
-            "La ",  // La quinta estacion, La bamba, La muralla verde
-            "Le ",  // Le temps de la rentrée
-            "Les ", // Les Rita Mitsouko, Les Wampas
-            "Los ", // Los fabulosos cadillacs, Los enanitos verdes,
-        };
-
-        public static string RemoveArticle(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-            {
-                return name;
-            }
-
-            foreach (var article in Articles)
-            {
-                if (name.StartsWith(article, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return name[article.Length..];
-                }
-            }
-
-            return name;
-        }
-
-        public static string RemoveDiacriticsAndArticle(string text)
-        {
-            var textWithoutDiacritics = SortString.RemoveDiacritics(text);
-            return RemoveArticle(textWithoutDiacritics);
         }
 
         private static unsafe string RemoveUnwantedWhitespace(string arg)

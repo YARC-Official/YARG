@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using PlasticBand.Haptics;
+using UnityEngine.SceneManagement;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay;
@@ -38,6 +39,11 @@ namespace YARG.Integration
 
         protected override void OnChartLoaded(SongChart chart)
         {
+            MasterLightingController.CurrentLightingCue = null;
+            MasterLightingController.CurrentFogState = MasterLightingController.FogState.Off;
+            MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Off;
+            MasterLightingController.Initializer(SceneManager.GetActiveScene());
+
             // This should be read from the venue itself eventually, but for now, we'll just randomize it.
             MasterLightingController.LargeVenue = Random.Range(0, 1) == 1;
             Venue = chart.VenueTrack;

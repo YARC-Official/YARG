@@ -19,8 +19,8 @@ namespace YARG.Integration
         2) Lighting Interpreters. These classes listen to the events from the Master Lighting Controller and translate them
         into the actual timing and light patterns, for example, interpreting flare_fast as 8 blue leds turning on.
         Currently there are two. The Stage Kit Interpreter (which uses its Cues and Primitives classes),
-        that attempts to make cues be as close to the Rock Band Stage Kit as possible but in the future there could others.
-        And the sACN Interpreter, which sets DMX channel values based on the lighting cues and other things.
+        that attempts to make cues be as close to the Rock Band Stage Kit as possible and the sACN Interpreter, which
+        sets DMX channel values based on the lighting cues and other events happening.
 
         3) Hardware controllers. These classes listen to the Lighting Interpreters and translate the lighting cues into
         the actual hardware commands. Currently there are two hardware controllers, one for DMX and one for the Stage Kits.
@@ -238,38 +238,33 @@ namespace YARG.Integration
         private static PerformerEvent _currentPerformerEvent;
         private static int _currentKeysNote;
 
-        private void Start()
+        public static void FireBonusFXEvent()
         {
-            SceneManager.sceneLoaded += OnSceneLoaded;
-            SceneManager.sceneUnloaded += OnSceneUnloaded;
+            // This is a instantaneous event, so we don't need to keep track of the previous/current event.
+            OnBonusFXEvent?.Invoke();
         }
 
-        private void OnDestroy()
-        {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-            SceneManager.sceneUnloaded -= OnSceneUnloaded;
-        }
-
-        private void OnSceneUnloaded(Scene scene)
-        {
-            CurrentLightingCue = null;
-            CurrentFogState = FogState.Off;
-            CurrentStrobeState = StageKitStrobeSpeed.Off;
-        }
-
-        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        public static void Initializer(Scene scene)
         {
             switch ((SceneIndex) scene.buildIndex)
             {
                 case SceneIndex.Gameplay:
+                    //handled by the gameplay monitor
                     break;
 
                 case SceneIndex.Score:
+                    OnApplicationQuit();
                     CurrentLightingCue = new LightingEvent(LightingType.Score, 0, 0);
                     break;
 
                 case SceneIndex.Menu:
+                    OnApplicationQuit();
                     CurrentLightingCue = new LightingEvent(LightingType.Menu, 0, 0);
+                    break;
+
+                case SceneIndex.Calibration:
+                    //turn off to not be distracting
+                    OnApplicationQuit();
                     break;
 
                 default:
@@ -278,13 +273,7 @@ namespace YARG.Integration
             }
         }
 
-        public static void FireBonusFXEvent()
-        {
-            // This is a instantaneous event, so we don't need to keep track of the previous/current event.
-            OnBonusFXEvent?.Invoke();
-        }
-
-        private void OnApplicationQuit()
+        private static void OnApplicationQuit()
         {
             CurrentLightingCue = null;
             CurrentFogState = FogState.Off;
