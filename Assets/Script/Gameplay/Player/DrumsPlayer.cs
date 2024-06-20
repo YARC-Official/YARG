@@ -86,7 +86,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnCountdownChange += OnCountdownChange;
 
-            engine.OnPadHit += (action, wasNoteHit) =>
+            engine.OnPadHit += (action, wasNoteHit, velocity) =>
             {
                 // Skip if a note was hit, because we have different logic for that below
                 if (wasNoteHit) return;
