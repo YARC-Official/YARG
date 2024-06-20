@@ -40,13 +40,9 @@ namespace YARG.Gameplay.Visuals
 
         public void Initialize()
         {
-            _coloredMaterialCache = _themeNote.ColoredMaterials
-                .Select(MaterialInfo.From).ToArray();
-            _coloredMaterialNoStarPowerCache = _themeNote.ColoredMaterialsNoStarPower
-                .Select(MaterialInfo.From).ToArray();
-
-            _allColoredCache = _coloredMaterialCache.Concat(_coloredMaterialNoStarPowerCache)
-                .ToArray();
+            _coloredMaterialCache ??= _themeNote.ColoredMaterials.Select(MaterialInfo.From).ToArray();
+            _coloredMaterialNoStarPowerCache ??= _themeNote.ColoredMaterialsNoStarPower.Select(MaterialInfo.From).ToArray();
+            _allColoredCache ??= _coloredMaterialCache.Concat(_coloredMaterialNoStarPowerCache).ToArray();
 
             // Set random values
             var randomFloat = Random.Range(-1f, 1f);
