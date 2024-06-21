@@ -59,7 +59,9 @@ namespace YARG.Gameplay.HUD
 
             _draggingDisplay = Instantiate(_draggingDisplayPrefab, transform);
             _draggingDisplay.DraggableHud = this;
+
             _draggingDisplay.Hide();
+            _draggingDisplay.gameObject.SetActive(false);
         }
 
         public void Select()
@@ -85,6 +87,7 @@ namespace YARG.Gameplay.HUD
 
         public void OnEditModeChanged(bool on)
         {
+            _draggingDisplay.gameObject.SetActive(on);
             _onEditModeChanged.Invoke(on);
         }
 
