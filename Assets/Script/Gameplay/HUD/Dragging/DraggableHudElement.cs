@@ -72,6 +72,11 @@ namespace YARG.Gameplay.HUD
             _draggingDisplay.gameObject.SetActive(false);
         }
 
+        protected override void GameplayDestroy()
+        {
+            _manager.RemoveDraggableElement(this);
+        }
+
         public void Select()
         {
             _isSelected = true;

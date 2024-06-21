@@ -1,4 +1,6 @@
-﻿using YARG.Core.Input;
+﻿using System.Collections.Generic;
+using System.Linq;
+using YARG.Core.Input;
 using YARG.Menu.Navigation;
 
 namespace YARG.Gameplay.HUD
@@ -9,12 +11,17 @@ namespace YARG.Gameplay.HUD
 
         public DraggableHudElement SelectedElement { get; private set; }
 
-        private DraggableHudElement[] _draggableElements;
+        private List<DraggableHudElement> _draggableElements;
         private bool _navigationPushed;
 
         private void Start()
         {
-            _draggableElements = GetComponentsInChildren<DraggableHudElement>();
+            _draggableElements = GetComponentsInChildren<DraggableHudElement>().ToList();
+        }
+
+        public void RemoveDraggableElement(DraggableHudElement elem)
+        {
+            _draggableElements.Remove(elem);
         }
 
         public void SetEditHUD(bool on)
