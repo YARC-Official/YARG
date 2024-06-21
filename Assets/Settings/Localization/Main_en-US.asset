@@ -498,6 +498,10 @@ MonoBehaviour:
     m_Localized: Five Fret Bass
     m_Metadata:
       m_Items: []
+  - m_Id: 164494081905045504
+    m_Localized: Get Ready!
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:

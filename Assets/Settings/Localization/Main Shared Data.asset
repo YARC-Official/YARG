@@ -475,6 +475,10 @@ MonoBehaviour:
     m_Key: SortAttribute.Band
     m_Metadata:
       m_Items: []
+  - m_Id: 164494081905045504
+    m_Key: Gameplay.GetReady
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
