@@ -11,6 +11,14 @@ namespace YARG.Gameplay.HUD
     {
         [SerializeField]
         private string _draggableElementName;
+
+        [Space]
+        [SerializeField]
+        private bool _horizontal = true;
+        [SerializeField]
+        private bool _vertical = true;
+
+        [Space]
         [SerializeField]
         private UnityEvent<bool> _onEditModeChanged;
 
@@ -111,8 +119,16 @@ namespace YARG.Gameplay.HUD
             }
 
             var position = _rectTransform.anchoredPosition;
-            position.x += eventData.delta.x;
-            position.y += eventData.delta.y;
+
+            if (_horizontal)
+            {
+                position.x += eventData.delta.x;
+            }
+
+            if (_vertical)
+            {
+                position.y += eventData.delta.y;
+            }
 
             _rectTransform.anchoredPosition = position;
         }

@@ -300,7 +300,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 397042284}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
@@ -448,6 +448,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _draggableElementName: songInfo
+  _horizontal: 1
+  _vertical: 1
   _onEditModeChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -980,7 +982,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1398,7 +1400,7 @@ PrefabInstance:
     - target: {fileID: 227366190812778480, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 191.07379
+      value: -93.65
       objectReference: {fileID: 0}
     - target: {fileID: 1682100932476655723, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
@@ -1428,7 +1430,7 @@ PrefabInstance:
     - target: {fileID: 1682100933276730677, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1682100933276730677, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
@@ -1528,7 +1530,7 @@ PrefabInstance:
     - target: {fileID: 2517693471320601084, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -191.07379
+      value: 93.65
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
@@ -1918,7 +1920,7 @@ PrefabInstance:
     - target: {fileID: 4773576581307856199, guid: 72eef77c01b66604696836c2b02cb1e1,
         type: 3}
       propertyPath: m_RootOrder
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4773576581307856199, guid: 72eef77c01b66604696836c2b02cb1e1,
         type: 3}
@@ -2286,12 +2288,13 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1047079481}
   - {fileID: 793838894}
   - {fileID: 1316571461}
   - {fileID: 329669832}
   - {fileID: 103030101}
   m_Father: {fileID: 1650395555}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -3197,7 +3200,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 0.8}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -3834,7 +3837,7 @@ PrefabInstance:
     - target: {fileID: 7369758456864847374, guid: f8c143f8514898b4fb85fbadc18550c0,
         type: 3}
       propertyPath: m_RootOrder
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7369758456864847374, guid: f8c143f8514898b4fb85fbadc18550c0,
         type: 3}
@@ -4028,6 +4031,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1047079481}
   - component: {fileID: 1047079482}
+  - component: {fileID: 1047079483}
   m_Layer: 5
   m_Name: Lyric Bar
   m_TagString: Untagged
@@ -4050,8 +4054,8 @@ RectTransform:
   - {fileID: 214379079}
   - {fileID: 658438232}
   - {fileID: 1651499654}
-  m_Father: {fileID: 1650395555}
-  m_RootOrder: 3
+  m_Father: {fileID: 397042284}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -4073,6 +4077,26 @@ MonoBehaviour:
   _normalBackground: {fileID: 214379078}
   _transparentBackground: {fileID: 658438231}
   _lyricText: {fileID: 1651499655}
+--- !u!114 &1047079483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1047079480}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26c69184c4c94e07a1c1a5403823ba9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _draggableElementName: lyricBar
+  _horizontal: 0
+  _vertical: 1
+  _onEditModeChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  _draggingDisplayPrefab: {fileID: 8670888432685319550, guid: d9f80531f3f74e94083d15499b97d33c,
+    type: 3}
 --- !u!1 &1061222912
 GameObject:
   m_ObjectHideFlags: 0
@@ -4567,7 +4591,7 @@ RectTransform:
   - {fileID: 820110414}
   - {fileID: 232742145}
   m_Father: {fileID: 397042284}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -4629,7 +4653,7 @@ RectTransform:
   - {fileID: 1985479405}
   - {fileID: 1677097317}
   m_Father: {fileID: 1650395555}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -5327,7 +5351,6 @@ RectTransform:
   - {fileID: 1773048782}
   - {fileID: 1327505391}
   - {fileID: 1330928976}
-  - {fileID: 1047079481}
   - {fileID: 397042284}
   - {fileID: 1323155441}
   - {fileID: 2085296270}
@@ -7020,7 +7043,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1650395555}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
