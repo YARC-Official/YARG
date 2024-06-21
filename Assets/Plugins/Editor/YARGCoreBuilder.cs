@@ -213,6 +213,7 @@ namespace Editor
             }
             catch (Exception ex)
             {
+                EditorUtility.DisplayDialog("Error while building YARG.Core!", ex.ToString(), "OK");
                 Debug.LogError("Error while building YARG.Core!");
                 Debug.LogException(ex);
             }
