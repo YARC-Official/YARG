@@ -255,9 +255,7 @@ namespace YARG.Gameplay
 
                     text.AppendFormat("Note index: {0}\n", state.NoteIndex);
                     text.AppendFormat("Buttons: {0}\n", state.ButtonMask);
-                    text.AppendFormat("Star Power: {0:0.0000}\n", stats.StarPowerAmount);
-                    text.AppendFormat("Ticks per beat: {0}\n", state.TicksEveryBeat);
-                    text.AppendFormat("Ticks per measure: {0}\n", state.TicksEveryMeasure);
+                    text.AppendFormat("Star Power Ticks: {0}\n", stats.StarPowerTickAmount);
                 }
                 else if (_players[0] is DrumsPlayer drumsPlayer)
                 {

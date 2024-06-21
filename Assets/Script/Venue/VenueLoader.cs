@@ -17,15 +17,22 @@ namespace YARG.Venue
 
     public static class VenueLoader
     {
-        private static string _venueFolder = null;
-        public static string VenueFolder => _venueFolder ??= Path.Combine(PathHelper.PersistentDataPath, "venue");
+        private static readonly string _venueFolder;
+        public static DirectoryInfo VenueFolder
+        {
+            get
+            {
+                if (!Directory.Exists(_venueFolder))
+                {
+                    Directory.CreateDirectory(_venueFolder);
+                }
+                return new DirectoryInfo(_venueFolder);
+            }
+        }
 
         static VenueLoader()
         {
-            if (!Directory.Exists(VenueFolder))
-            {
-                Directory.CreateDirectory(VenueFolder);
-            }
+            _venueFolder = Path.Combine(PathHelper.PersistentDataPath, "venue");
         }
 
 #nullable enable
@@ -60,47 +67,38 @@ namespace YARG.Venue
                 "*.yarground", "*.mp4", "*.mov", "*.webm", "*.png", "*.jpg", "*.jpeg"
             };
 
-            List<string> filePaths = new();
-            foreach (string ext in validExtensions)
+            var dirInfo = VenueFolder;
+            var filePaths = new List<FileInfo>();
+            foreach (var ext in validExtensions)
             {
-                foreach (var file in Directory.EnumerateFiles(VenueFolder, ext, PathHelper.SafeSearchOptions))
-                {
-                    filePaths.Add(file);
-                }
+                filePaths.AddRange(dirInfo.EnumerateFiles(ext, PathHelper.SafeSearchOptions));
             }
 
             while (filePaths.Count > 0)
             {
                 int index = Random.Range(0, filePaths.Count);
-                var path = filePaths[index];
-                var extension = Path.GetExtension(path);
-
-                if (extension is ".png" or ".jpg" or ".jpeg")
+                var info = filePaths[index];
+                switch (info.Extension)
                 {
-                    var image = YARGImage.Load(path);
-                    if (image != null)
-                    {
-                        return new BackgroundResult(image);
-                    }
-                }
-                else
-                {
-                    var stream = File.OpenRead(path);
-                    if (stream != null)
-                    {
-                        if (extension == ".yarground")
+                    case ".png":
+                    case ".jpg":
+                    case ".jpeg":
+                        var image = YARGImage.Load(info);
+                        if (image != null)
                         {
-                            return new BackgroundResult(BackgroundType.Yarground, stream);
+                            return new BackgroundResult(image);
                         }
-
-                        if (extension is ".mp4" or ".mov" or ".webm")
-                        {
-                            return new BackgroundResult(BackgroundType.Video, stream);
-                        }
-                        stream.Dispose();
-                    }
+                        break;
+                    case ".mp4":
+                    case ".mov":
+                    case ".webm":
+                        return new BackgroundResult(BackgroundType.Video, File.OpenRead(info.FullName));
+                    case ".yarground":
+                        return new BackgroundResult(BackgroundType.Yarground, File.OpenRead(info.FullName));
+                    default:
+                        filePaths.RemoveAt(index);
+                        break;
                 }
-                filePaths.RemoveAt(index);
             }
             return null;
         }

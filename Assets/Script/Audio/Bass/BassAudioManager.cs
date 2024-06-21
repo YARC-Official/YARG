@@ -118,6 +118,7 @@ namespace YARG.Audio.BASS
             Bass.UpdatePeriod = 5;
             //Bass.PlaybackBufferLength = BassHelpers.PLAYBACK_BUFFER_LENGTH;
             Bass.DeviceNonStop = true;
+            Bass.AsyncFileBufferLength = 65536;
 
             // This not the same as Bass.UpdatePeriod
             // If not explicitly set by the audio driver or OS, the default will be 10
@@ -171,26 +172,22 @@ namespace YARG.Audio.BASS
 #nullable enable
         protected override StemMixer? CreateMixer(string name, float speed, double mixerVolume, bool clampStemVolume)
         {
-            const int ASYNCFILEBUFFER_SINGLE = 0xFFFF;
             YargLogger.LogDebug("Loading song");
             if (!CreateMixerHandle(out int handle))
             {
                 return null;
             }
-            Bass.AsyncFileBufferLength = ASYNCFILEBUFFER_SINGLE;
             return new BassStemMixer(name, this, speed, mixerVolume, handle, 0, clampStemVolume);
         }
 
         protected override StemMixer? CreateMixer(string name, Stream stream, float speed, double mixerVolume, bool clampStemVolume)
         {
-            const int ASYNCFILEBUFFER_MULTI = 8 * 0xFFFF;
             YargLogger.LogDebug("Loading song");
             if (!CreateMixerHandle(out int handle))
             {
                 return null;
             }
 
-            Bass.AsyncFileBufferLength = ASYNCFILEBUFFER_MULTI;
             if (!CreateSourceStream(stream, out int sourceStream))
             {
                 return null;
