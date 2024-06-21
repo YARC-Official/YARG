@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
   m_Name: Settings Shared Data
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   m_TableCollectionName: Settings
   m_TableCollectionNameGuidString: 0c40e690d26fdff4a92f0b3813ac68a4
   m_Entries:
@@ -1657,6 +1657,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 154060811591114752
     m_Key: Setting.DMXDimmerValues.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 162388399954583552
+    m_Key: Setting.DrumSfxVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 162388592154370048
+    m_Key: Setting.DrumSfxVolume.Description
     m_Metadata:
       m_Items: []
   m_Metadata:
