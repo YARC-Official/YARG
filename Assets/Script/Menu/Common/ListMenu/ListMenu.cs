@@ -40,9 +40,17 @@ namespace YARG.Menu.ListMenu
                 {
                     _selectedIndex = 0;
                 }
+                else if (value > _viewList.Count - 1)
+                {
+                    _selectedIndex = 0;
+                }
+                else if (value < 0)
+                {
+                    _selectedIndex = _viewList.Count - 1;
+                }
                 else
                 {
-                    _selectedIndex = Mathf.Clamp(value, 0, _viewList.Count - 1);
+                    _selectedIndex = value;
                 }
 
                 OnSelectedIndexChanged();

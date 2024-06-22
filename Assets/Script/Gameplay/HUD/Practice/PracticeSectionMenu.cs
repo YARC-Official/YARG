@@ -35,7 +35,18 @@ namespace YARG.Gameplay.HUD
             get => _hoveredIndex;
             private set
             {
-                _hoveredIndex = Mathf.Clamp(value, 0, _sections.Count - 1);
+                if (value > _sections.Count - 1)
+                {
+                    _hoveredIndex = 0;
+                }
+                else if (value < 0)
+                {
+                    _hoveredIndex = _sections.Count - 1;
+                }
+                else
+                {
+                    _hoveredIndex = value;
+                }
 
                 UpdateSectionViews();
             }
