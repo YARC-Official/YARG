@@ -1435,6 +1435,14 @@ MonoBehaviour:
     m_Key: Setting.DMXDimmerValues.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 164946747873472512
+    m_Key: Setting.WrapAroundNavigation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 164947486993723392
+    m_Key: Setting.WrapAroundNavigation.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

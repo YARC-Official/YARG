@@ -1544,6 +1544,15 @@ MonoBehaviour:
       willl be set to when YARG starts.
     m_Metadata:
       m_Items: []
+  - m_Id: 164946747873472512
+    m_Localized: Wrap-Around Navigation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 164947486993723392
+    m_Localized: Allow menus to jump to the bottom of a list when scrolling past
+      the top, or jump to the top of a list when scrolling past the bottom.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
