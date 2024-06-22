@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Settings;
 
 namespace YARG.Menu.ListMenu
 {
@@ -40,17 +41,26 @@ namespace YARG.Menu.ListMenu
                 {
                     _selectedIndex = 0;
                 }
-                else if (value > _viewList.Count - 1)
+                else if (SettingsManager.Settings.WrapAroundNavigation.Value)
                 {
-                    _selectedIndex = 0;
-                }
-                else if (value < 0)
-                {
-                    _selectedIndex = _viewList.Count - 1;
+                    // Wrap to bottom/top of list when moving past the start/end range
+                    if (value > _viewList.Count - 1)
+                    {
+                        _selectedIndex = 0;
+                    }
+                    else if (value < 0)
+                    {
+                        _selectedIndex = _viewList.Count - 1;
+                    }
+                    else
+                    {
+                        _selectedIndex = value;
+                    }
                 }
                 else
                 {
-                    _selectedIndex = value;
+                    // Do not allow selection to move past the start or end range
+                    _selectedIndex = Mathf.Clamp(value, 0, _viewList.Count - 1);
                 }
 
                 OnSelectedIndexChanged();

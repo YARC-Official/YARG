@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Menu.Navigation
 {
@@ -145,7 +146,10 @@ namespace YARG.Menu.Navigation
             // If the selection will go out of range...
             if (SelectedIndex is not { } selected || selected < 0 || selected >= _navigatables.Count - 1)
             {
-                SelectFirst();
+                if (SettingsManager.Settings.WrapAroundNavigation.Value)
+                {
+                    SelectFirst();
+                }
                 return;
             }
 
@@ -164,7 +168,10 @@ namespace YARG.Menu.Navigation
             // If the selection is invalid...
             if (SelectedIndex is not { } selected || selected <= 0)
             {
-                SelectLast();
+                if (SettingsManager.Settings.WrapAroundNavigation.Value)
+                {
+                    SelectLast();
+                }
                 return;
             }
 
