@@ -106,14 +106,13 @@ namespace YARG.Audio.BASS
 
     internal class RecordingHandle : IDisposable
     {
-        // This is as low as we can go with BASS
-        internal const int CLEAN_RECORD_PERIOD_MS = 5;
-
 #nullable enable
         public static RecordingHandle? CreateRecordingHandle(RecordProcedure procedure)
 #nullable disable
         {
-            int handle = Bass.RecordStart(44100, 1, BassFlags.Default, CLEAN_RECORD_PERIOD_MS,
+            var devPeriod = Bass.GetConfig(Configuration.DevicePeriod);
+
+            int handle = Bass.RecordStart(44100, 1, BassFlags.Default, devPeriod,
                 procedure, IntPtr.Zero);
             if (handle == 0)
             {
@@ -128,18 +127,21 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            return new RecordingHandle(handle, processedHandle);
+            return new RecordingHandle(handle, processedHandle, devPeriod);
         }
 
         public readonly int Handle;
         public readonly int ProcessedHandle;
 
+        public readonly int RecordPeriod;
+
         private bool _disposed;
 
-        private RecordingHandle(int handle, int processedHandle)
+        private RecordingHandle(int handle, int processedHandle, int period)
         {
             Handle = handle;
             ProcessedHandle = processedHandle;
+            RecordPeriod = period;
         }
 
         private void Dispose(bool disposing)
@@ -331,7 +333,7 @@ namespace YARG.Audio.BASS
             // Copy the data to the batch handle to apply FX
             Bass.StreamPutData(_recordHandle.ProcessedHandle, buffer, length);
 
-            _timeAccumulated += 10;//RecordingHandle.CLEAN_RECORD_PERIOD_MS;
+            _timeAccumulated += _recordHandle.RecordPeriod;
 
             _processedBufferLength += length;
 
