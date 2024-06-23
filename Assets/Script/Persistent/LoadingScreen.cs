@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -24,6 +25,18 @@ namespace YARG
         private async void Start()
         {
             using var context = new LoadingContext();
+
+            // Load language
+            try
+            {
+                await LocalizationManager.LoadLanguage(context);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e);
+            }
+
+            // Load song sources and icons
             try
             {
                 await SongSources.LoadSources(context);
@@ -36,6 +49,7 @@ namespace YARG
             // Fast scan (cache read) on startup
             await SongContainer.RunRefresh(true, context);
 
+            // TODO: This should probably be moved out of the load manager
             // If we want to reconnect profiles
             if (SettingsManager.Settings.ReconnectProfiles.Value)
             {
