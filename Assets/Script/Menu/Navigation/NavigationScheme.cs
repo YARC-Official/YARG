@@ -9,14 +9,14 @@ namespace YARG.Menu.Navigation
     {
         public readonly struct Entry
         {
-            public static readonly Entry NavigateUp = new(MenuAction.Up, "Up", () =>
+            public static readonly Entry NavigateUp = new(MenuAction.Up, "Up", context =>
             {
-                NavigationGroup.CurrentNavigationGroup.SelectPrevious();
+                NavigationGroup.CurrentNavigationGroup.SelectPrevious(context.IsRepeat);
             });
 
-            public static readonly Entry NavigateDown = new(MenuAction.Down, "Down", () =>
+            public static readonly Entry NavigateDown = new(MenuAction.Down, "Down", context =>
             {
-                NavigationGroup.CurrentNavigationGroup.SelectNext();
+                NavigationGroup.CurrentNavigationGroup.SelectNext(context.IsRepeat);
             });
 
             public static readonly Entry NavigateSelect = new(MenuAction.Green, "Confirm", () =>

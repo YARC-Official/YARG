@@ -29,6 +29,8 @@ namespace YARG.Menu.ListMenu
         private List<TViewType> _viewList;
         private readonly List<TViewObject> _viewObjects = new();
 
+        private bool _allowWrapAround;
+
         public IReadOnlyList<TViewType> ViewList => _viewList;
 
         private int _selectedIndex;
@@ -41,7 +43,7 @@ namespace YARG.Menu.ListMenu
                 {
                     _selectedIndex = 0;
                 }
-                else if (SettingsManager.Settings.WrapAroundNavigation.Value)
+                else if (_allowWrapAround)
                 {
                     // Wrap to bottom/top of list when moving past the start/end range
                     if (value > _viewList.Count - 1)
@@ -132,6 +134,18 @@ namespace YARG.Menu.ListMenu
         public void OnScrollBarChange()
         {
             SelectedIndex = Mathf.FloorToInt(_scrollbar.value * (_viewList.Count - 1));
+        }
+
+        public void SetWrapAroundState (bool newState)
+        {
+            if (SettingsManager.Settings.WrapAroundNavigation.Value)
+            {
+                _allowWrapAround = newState;
+            }
+            else if (_allowWrapAround)
+            {
+                _allowWrapAround = false;
+            }
         }
 
         private void UpdateScrollbar()
