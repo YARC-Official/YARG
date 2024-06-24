@@ -25,7 +25,6 @@ namespace YARG.Settings
     {
         public class SettingContainer
         {
-
             /// <summary>
             /// Have the settings been initialized?
             /// </summary>
@@ -39,7 +38,7 @@ namespace YARG.Settings
             public bool ShowEngineInconsistencyDialog = true;
             public SortAttribute LibrarySort = SortAttribute.Name;
 
-            public Dictionary<string, SerializableVector2> UiElementPositions = new();
+            public Dictionary<string, HUDPositionProfile> HUDPositionProfiles = new();
 
             #endregion
 

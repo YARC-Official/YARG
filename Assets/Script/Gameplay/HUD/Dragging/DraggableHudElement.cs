@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -49,19 +48,8 @@ namespace YARG.Gameplay.HUD
             _rectTransform = GetComponent<RectTransform>();
 
             _originalPosition = _rectTransform.anchoredPosition;
-
-            // Need to fetch the saved position from the settings and apply it
-            if (SettingsManager.Settings.UiElementPositions.TryGetValue(_draggableElementName,
-                out var serializedPosition))
-            {
-                _storedPosition = serializedPosition;
-            }
-            else
-            {
-                SettingsManager.Settings.UiElementPositions.Add(_draggableElementName, _originalPosition);
-
-                _storedPosition = _originalPosition;
-            }
+            _storedPosition = _manager.PositionProfile
+                .GetElementPositionOrDefault(_draggableElementName, _originalPosition);
 
             _rectTransform.anchoredPosition = _storedPosition;
 
@@ -174,8 +162,8 @@ namespace YARG.Gameplay.HUD
 
         private void SavePosition()
         {
-            SettingsManager.Settings.UiElementPositions[_draggableElementName] =
-                _rectTransform.anchoredPosition;
+            _manager.PositionProfile.SaveElementPosition(_draggableElementName,
+                _rectTransform.anchoredPosition);
         }
     }
 }

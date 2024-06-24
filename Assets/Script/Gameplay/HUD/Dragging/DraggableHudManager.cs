@@ -4,6 +4,7 @@ using YARG.Core.Input;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -12,9 +13,41 @@ namespace YARG.Gameplay.HUD
         public bool EditMode { get; private set; }
 
         public DraggableHudElement SelectedElement { get; private set; }
+        public HUDPositionProfile PositionProfile { get; private set; }
 
         private List<DraggableHudElement> _draggableElements;
         private bool _navigationPushed;
+
+        protected override void GameplayAwake()
+        {
+            base.GameplayAwake();
+
+            // Get the correct HUD profile based on the gameplay
+            string profileName;
+            if (GlobalVariables.State.IsReplay)
+            {
+                profileName = "Replay";
+            }
+            else if (GlobalVariables.State.IsPractice)
+            {
+                profileName = "Practice";
+            }
+            else
+            {
+                profileName = "Normal";
+            }
+
+            // Load that profile
+            if (SettingsManager.Settings.HUDPositionProfiles.TryGetValue(profileName, out var profile))
+            {
+                PositionProfile = profile;
+            }
+            else
+            {
+                PositionProfile = new HUDPositionProfile();
+                SettingsManager.Settings.HUDPositionProfiles[profileName] = PositionProfile;
+            }
+        }
 
         private void Start()
         {
@@ -87,7 +120,7 @@ namespace YARG.Gameplay.HUD
                 {
                     GameManager.SetEditHUD(false);
                 }),
-                new NavigationScheme.Entry(MenuAction.Orange, "Reset All", () =>
+                new NavigationScheme.Entry(MenuAction.Select, "Reset All", () =>
                 {
                     var dialog = DialogManager.Instance.ShowMessage("Are You Sure?",
                         "Are you sure you want to reset the position of all elements? This action cannot be undone.");
