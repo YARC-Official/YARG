@@ -145,6 +145,18 @@
                 "ThisYear": "This Year",
                 "MoreThanYear": "More Than A Year"
             }
+        },
+        "Main": {
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.12!</b></size></align>\n\nv0.12 is a <i>massive</i> update that completely revamps the backend code for the engine, which adds profiles, practice mode, replays, modifiers, customization presets, and much more!\n\n<b>If you find any bugs, please let us know on Discord or GitHub.</b>\n\n<b>Replays are currently in preview.</b> Replays do not produce 1:1 results to what was actually played and can be inconsistent. This is known and we are working on fixing this for the future.\n\nHave fun!",
+            "Options": {
+                "Quickplay": "Quickplay",
+                "Practice": "Practice",
+                "Profiles": "Profiles",
+                "History": "History",
+                "Settings": "Settings",
+                "Credits": "Credits",
+                "Exit": "Exit"
+            }
         }
     },
     "Discord": {
