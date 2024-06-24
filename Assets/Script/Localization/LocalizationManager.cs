@@ -118,5 +118,10 @@ namespace YARG.Localization
                 }
             }
         }
+
+        public static bool TryGetLocalizedKey(string key, out string value)
+        {
+            return _localizationMap.TryGetValue(key, out value);
+        }
     }
 }
