@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using YARG.Core.Input;
+using YARG.Menu.Data;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 
 namespace YARG.Gameplay.HUD
 {
@@ -51,6 +53,14 @@ namespace YARG.Gameplay.HUD
             }
         }
 
+        public void ResetAllHUDPositions()
+        {
+            foreach (var draggable in _draggableElements)
+            {
+                draggable.ResetElement();
+            }
+        }
+
         public void SetSelectedElement(DraggableHudElement element)
         {
             // Deselect the last element
@@ -76,6 +86,19 @@ namespace YARG.Gameplay.HUD
                 new NavigationScheme.Entry(MenuAction.Red, "Back", () =>
                 {
                     GameManager.SetEditHUD(false);
+                }),
+                new NavigationScheme.Entry(MenuAction.Orange, "Reset All", () =>
+                {
+                    var dialog = DialogManager.Instance.ShowMessage("Are You Sure?",
+                        "Are you sure you want to reset the position of all elements? This action cannot be undone.");
+
+                    dialog.ClearButtons();
+                    dialog.AddDialogButton("Cancel", MenuData.Colors.BrightButton, DialogManager.Instance.ClearDialog);
+                    dialog.AddDialogButton("Reset", MenuData.Colors.CancelButton, () =>
+                    {
+                        ResetAllHUDPositions();
+                        DialogManager.Instance.ClearDialog();
+                    });
                 })
             }, false));
 
