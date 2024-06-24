@@ -1,12 +1,19 @@
-﻿using Cysharp.Text;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using Cysharp.Text;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Song;
 
 namespace YARG.Localization
 {
     public static class Localize
     {
+        #region Key
+
         public static string Key(string key)
         {
             if (LocalizationManager.TryGetLocalizedKey(key, out var value))
@@ -14,6 +21,7 @@ namespace YARG.Localization
                 return value;
             }
 
+            YargLogger.LogFormatWarning("Failed to find translation for `{0}`. Returning empty string.", key);
             return string.Empty;
         }
 
@@ -31,6 +39,8 @@ namespace YARG.Localization
         {
             return Key(ZString.Concat(concat1, '.', concat2, '.', concat3, '.', concat4));
         }
+
+        #endregion
 
         #region Key with Formatting
 
@@ -87,6 +97,39 @@ namespace YARG.Localization
             T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             return ZString.Format(Key(key), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+        }
+
+        #endregion
+
+        #region Lists
+
+        public static string List(IEnumerable<string> elements)
+        {
+            return List((ReadOnlySpan<string>) elements.ToArray());
+        }
+
+        public static string List(ReadOnlySpan<string> elements)
+        {
+            if (elements.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            if (elements.Length == 1)
+            {
+                return elements[0];
+            }
+
+            using var sb = ZString.CreateStringBuilder();
+
+            // Join all but the last elements together
+            sb.AppendJoin(Key("Language.ListDelimiter.Default"), elements[..^1]);
+
+            // Append last element (special case)
+            sb.Append(Key("Language.ListDelimiter.Last"));
+            sb.Append(elements[^1]);
+
+            return sb.ToString();
         }
 
         #endregion

@@ -78,7 +78,9 @@ namespace YARG.Menu
                     .Distinct()
                     .Select(i => Localize.Key("Menu.Credits.Roles", i));
 
-                _descriptionText.text = Localize.KeyFormat("Menu.Credits.Description", repos, roles);
+                _descriptionText.text =
+                    Localize.KeyFormat("Menu.Credits.Description",
+                        Localize.List(repos), Localize.List(roles));
             }
         }
 

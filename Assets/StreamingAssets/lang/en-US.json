@@ -1,7 +1,11 @@
 {
     "Language": {
         "Name": "English",
-        "Region": "United States"
+        "Region": "United States",
+        "ListDelimiter": {
+            "Default": ", ",
+            "Last": ", and "
+        }
     },
     "Enum": {
         "Difficulty": {
