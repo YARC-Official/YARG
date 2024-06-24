@@ -17,9 +17,19 @@ namespace YARG.Localization
             return string.Empty;
         }
 
-        public static string Key<T1, T2>(T1 key1, T2 key2)
+        public static string Key<T1, T2>(T1 concat1, T2 concat2)
         {
-            return Key(ZString.Concat(key1, '.', key2));
+            return Key(ZString.Concat(concat1, '.', concat2));
+        }
+
+        public static string Key<T1, T2, T3>(T1 concat1, T2 concat2, T3 concat3)
+        {
+            return Key(ZString.Concat(concat1, '.', concat2, '.', concat3));
+        }
+
+        public static string Key<T1, T2, T3, T4>(T1 concat1, T2 concat2, T3 concat3, T4 concat4)
+        {
+            return Key(ZString.Concat(concat1, '.', concat2, '.', concat3, '.', concat4));
         }
 
         #region Key with Formatting
