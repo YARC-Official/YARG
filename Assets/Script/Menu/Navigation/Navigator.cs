@@ -112,9 +112,11 @@ namespace YARG.Menu.Navigation
             {
                 action = action switch
                 {
-                    MenuAction.Up   => MenuAction.Down,
-                    MenuAction.Down => MenuAction.Up,
-                    _               => action
+                    MenuAction.Up    => MenuAction.Down,
+                    MenuAction.Down  => MenuAction.Up,
+                    MenuAction.Left  => MenuAction.Right,
+                    MenuAction.Right => MenuAction.Left,
+                    _                => action
                 };
             }
 
