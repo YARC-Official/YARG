@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using UnityEditorInternal;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -177,6 +178,11 @@ namespace YARG.Gameplay.Player
                 _lastHitTime = hitting
                     ? GameManager.InputTime
                     : null;
+            };
+
+            engine.OnCountdownChange += (measuresLeft) =>
+            {
+                GameManager.VocalTrack.UpdateCountdown(measuresLeft);
             };
 
             return engine;

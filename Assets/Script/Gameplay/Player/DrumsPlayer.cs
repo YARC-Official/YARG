@@ -84,6 +84,8 @@ namespace YARG.Gameplay.Player
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerStatus += OnStarPowerStatus;
 
+            engine.OnCountdownChange += OnCountdownChange;
+
             engine.OnPadHit += (action, wasNoteHit, velocity) =>
             {
                 // Skip if a note was hit, because we have different logic for that below

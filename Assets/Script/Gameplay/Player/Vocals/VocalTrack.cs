@@ -71,6 +71,10 @@ namespace YARG.Gameplay.Player
 
         [Space]
         [SerializeField]
+        private CountdownDisplay _countdownDisplay;
+
+        [Space]
+        [SerializeField]
         private Camera _trackCamera;
         [SerializeField]
         private Transform _playerContainer;
@@ -211,6 +215,11 @@ namespace YARG.Gameplay.Player
             }
 
             return percussionTrack;
+        }
+
+        public void UpdateCountdown(int measuresLeft)
+        {
+            _countdownDisplay.UpdateCountdown(measuresLeft);
         }
 
         private void Update()
