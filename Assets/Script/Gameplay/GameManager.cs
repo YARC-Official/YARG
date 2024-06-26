@@ -129,6 +129,8 @@ namespace YARG.Gameplay
         private bool _isShowDebugText;
         private bool _isReplaySaved;
 
+        private int _originalSleepTimeout;
+
         private StemMixer _mixer;
 
         private void Awake()
@@ -156,6 +158,10 @@ namespace YARG.Gameplay
 
             // Hide vocals track (will be shown when players are initialized
             VocalTrack.gameObject.SetActive(false);
+
+            // Prevent screen from sleeping
+            _originalSleepTimeout = Screen.sleepTimeout;
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;
         }
 
         private void OnDestroy()
@@ -180,6 +186,9 @@ namespace YARG.Gameplay
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
             Time.timeScale = 1f;
+
+            // Reset sleep timeout setting
+            Screen.sleepTimeout = _originalSleepTimeout;
         }
 
         private void Update()
@@ -362,6 +371,9 @@ namespace YARG.Gameplay
             Time.timeScale = 0f;
             BackgroundManager.SetPaused(true);
             GameStateFetcher.SetPaused(true);
+
+            // Allow sleeping
+            Screen.sleepTimeout = _originalSleepTimeout;
         }
 
         public void Resume(bool inputCompensation = true)
@@ -378,6 +390,9 @@ namespace YARG.Gameplay
             Time.timeScale = 1f;
             BackgroundManager.SetPaused(false);
             GameStateFetcher.SetPaused(false);
+
+            // Disallow sleeping
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
             _isReplaySaved = false;
 
