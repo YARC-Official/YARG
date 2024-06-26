@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Settings;
 
 namespace YARG.Menu.ListMenu
 {
@@ -28,6 +29,8 @@ namespace YARG.Menu.ListMenu
         private List<TViewType> _viewList;
         private readonly List<TViewObject> _viewObjects = new();
 
+        private bool _allowWrapAround;
+
         public IReadOnlyList<TViewType> ViewList => _viewList;
 
         private int _selectedIndex;
@@ -40,8 +43,25 @@ namespace YARG.Menu.ListMenu
                 {
                     _selectedIndex = 0;
                 }
+                else if (_allowWrapAround)
+                {
+                    // Wrap to bottom/top of list when moving past the start/end range
+                    if (value > _viewList.Count - 1)
+                    {
+                        _selectedIndex = 0;
+                    }
+                    else if (value < 0)
+                    {
+                        _selectedIndex = _viewList.Count - 1;
+                    }
+                    else
+                    {
+                        _selectedIndex = value;
+                    }
+                }
                 else
                 {
+                    // Do not allow selection to move past the start or end range
                     _selectedIndex = Mathf.Clamp(value, 0, _viewList.Count - 1);
                 }
 
@@ -114,6 +134,18 @@ namespace YARG.Menu.ListMenu
         public void OnScrollBarChange()
         {
             SelectedIndex = Mathf.FloorToInt(_scrollbar.value * (_viewList.Count - 1));
+        }
+
+        public void SetWrapAroundState(bool newState)
+        {
+            if (SettingsManager.Settings.WrapAroundNavigation.Value)
+            {
+                _allowWrapAround = newState;
+            }
+            else if (_allowWrapAround)
+            {
+                _allowWrapAround = false;
+            }
         }
 
         private void UpdateScrollbar()
