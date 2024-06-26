@@ -136,7 +136,7 @@ namespace YARG.Menu.ListMenu
             SelectedIndex = Mathf.FloorToInt(_scrollbar.value * (_viewList.Count - 1));
         }
 
-        public void SetWrapAroundState (bool newState)
+        public void SetWrapAroundState(bool newState)
         {
             if (SettingsManager.Settings.WrapAroundNavigation.Value)
             {

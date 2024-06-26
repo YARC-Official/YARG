@@ -98,19 +98,27 @@ namespace YARG.Menu.MusicLibrary
                     ctx =>
                     {
                         if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        {
                             GoToPreviousSection();
+                        }
                         else
+                        {
                             SetWrapAroundState(!ctx.IsRepeat);
                             SelectedIndex--;
+                        }
                     }),
                 new NavigationScheme.Entry(MenuAction.Down, "Down",
                     ctx =>
                     {
                         if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        {
                             GoToNextSection();
+                        }
                         else
+                        {
                             SetWrapAroundState(!ctx.IsRepeat);
                             SelectedIndex++;
+                        }
                     }),
                 new NavigationScheme.Entry(MenuAction.Green, "Confirm",
                     () => CurrentSelection?.PrimaryButtonClick()),
