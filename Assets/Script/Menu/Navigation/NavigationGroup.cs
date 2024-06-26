@@ -148,7 +148,7 @@ namespace YARG.Menu.Navigation
             {
                 if (!isHeld && SettingsManager.Settings.WrapAroundNavigation.Value)
                 {
-                    SelectFirst();
+                    SelectAt(0, SelectionOrigin.Navigation);
                 }
                 return;
             }
@@ -170,7 +170,7 @@ namespace YARG.Menu.Navigation
             {
                 if (!isHeld && SettingsManager.Settings.WrapAroundNavigation.Value)
                 {
-                    SelectLast();
+                    SelectAt(_navigatables.Count - 1, SelectionOrigin.Navigation);
                 }
                 return;
             }
