@@ -362,6 +362,11 @@ namespace YARG.Settings
 
             private static void StageKitEnabledCallback(bool value)
             {
+                //To avoid being toggled on twice at start
+                if (!IsInitialized)
+                {
+                    return;
+                }
                 StageKitHardware.Instance.HandleEnabledChanged(value);
             }
 
