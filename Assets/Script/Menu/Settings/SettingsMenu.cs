@@ -4,7 +4,6 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Helpers;

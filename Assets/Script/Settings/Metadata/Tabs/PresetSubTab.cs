@@ -2,10 +2,8 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Localization.Components;
 using YARG.Core.Game;
 using YARG.Core.Logging;
-using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings.Visuals;
