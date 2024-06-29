@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Localization;
 
 namespace YARG.Helpers
 {
@@ -80,7 +81,7 @@ namespace YARG.Helpers
                         return string.Empty;
                     }
 
-                    return GlobalVariables.State.SongSpeed.ToString("P0", LocaleHelper.PercentFormat);
+                    return Localize.Percent(GlobalVariables.State.SongSpeed);
                 }
             }
         };

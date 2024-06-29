@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Cysharp.Text;
 using YARG.Core;
@@ -130,6 +131,22 @@ namespace YARG.Localization
             sb.Append(elements[^1]);
 
             return sb.ToString();
+        }
+
+        #endregion
+
+        #region Other
+
+        private static readonly NumberFormatInfo _percentFormat = new()
+        {
+            // Display as "100%" instead of "100 %"
+            PercentPositivePattern = 1,
+            PercentNegativePattern = 1,
+        };
+
+        public static string Percent(float value, int decimalPlaces = 0)
+        {
+            return value.ToString(ZString.Concat("P", decimalPlaces), _percentFormat);
         }
 
         #endregion
