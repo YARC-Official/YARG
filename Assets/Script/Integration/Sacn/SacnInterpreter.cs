@@ -1,7 +1,6 @@
 using System;
 using PlasticBand.Haptics;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
 using YARG.Integration.StageKit;
 using YARG.Settings;
@@ -16,12 +15,6 @@ namespace YARG.Integration.Sacn
         // YARG is doing and to be able to react to it.
 
         private enum LedEnum
-        {
-            Off = 0,
-            On = 255,
-        }
-
-        private enum DimmerEnum
         {
             Off = 0,
             On = 255,
@@ -157,34 +150,32 @@ namespace YARG.Integration.Sacn
 
         // Basic DMX channels
         // 8 per color to match the stageKit layout. Default channels, the user must change them in settings.
-        private int[] _dimmerChannels;
-        private int[] _redChannels;
-        private int[] _greenChannels;
-        private int[] _blueChannels;
-        private int[] _yellowChannels;
-        private int _fogChannel;
-        private int _strobeChannel;
+        public int[] DimmerChannels;
+        public int[] RedChannels;
+        public int[] GreenChannels;
+        public int[] BlueChannels;
+        public int[] YellowChannels;
+        public int[] FogChannels;
+        public int[] StrobeChannels;
 
         // Advanced DMX channels
-        private int _cueChangeChannel;
-        private int _keyframeChannel;
-        private int _beatlineChannel;
-        private int _bonusEffectChannel;
-        private int _postProcessingChannel;
-        private int _performerChannel;
+        public int CueChangeChannel;
+        public int KeyframeChannel;
+        public int BeatlineChannel;
+        public int BonusEffectChannel;
+        public int PostProcessingChannel;
+        public int PerformerChannel;
 
         // Instrument DMX channels
-        private int _drumChannel;
-        private int _guitarChannel;
-        private int _bassChannel;
-        private int _keysChannel;
+        public int DrumChannel;
+        public int GuitarChannel;
+        public int BassChannel;
+        public int KeysChannel;
         //Currently no advanced vocals channel as it doesn't seem needed.
 
         public void Start()
         {
             ManageEventSubscription(true);
-
-            UpdateDMXChannelNumbers();
 
             AllChannelsOff();
 
@@ -192,44 +183,18 @@ namespace YARG.Integration.Sacn
             //Got to turn those on.
             for (int i = 0; i < 8; i++)
             {
-                SetChannel(_dimmerChannels[i], (byte)SettingsManager.Settings.DMXDimmerValues.Value[i]);
+                SetChannel(DimmerChannels[i], (byte)SettingsManager.Settings.DMXDimmerValues.Value[i]);
             }
 
-        }
+            //Since the master controller comes up first, we miss its events until now.
+            OnLightingEvent(MasterLightingController.CurrentLightingCue);
 
-        public void UpdateDMXChannelNumbers()
-        {
-            //basic
-            _dimmerChannels = SettingsManager.Settings.DMXDimmerChannels.Value;
-            _redChannels = SettingsManager.Settings.DMXRedChannels.Value;
-            _greenChannels = SettingsManager.Settings.DMXGreenChannels.Value;
-            _blueChannels = SettingsManager.Settings.DMXBlueChannels.Value;
-            _yellowChannels = SettingsManager.Settings.DMXYellowChannels.Value;
-            _fogChannel = SettingsManager.Settings.DMXFogChannel.Value;
-            _strobeChannel = SettingsManager.Settings.DMXStrobeChannel.Value;
-
-            //advanced
-            _cueChangeChannel = SettingsManager.Settings.DMXCueChangeChannel.Value;
-            _keyframeChannel = SettingsManager.Settings.DMXKeyframeChannel.Value;
-            _beatlineChannel = SettingsManager.Settings.DMXBeatlineChannel.Value;
-            _bonusEffectChannel = SettingsManager.Settings.DMXBonusEffectChannel.Value;
-            _postProcessingChannel = SettingsManager.Settings.DMXPostProcessingChannel.Value;
-            //NYI
-            //_performerChannel = SettingsManager.Settings.DMXPerformerChannel.Value;
-
-            //instruments
-            _drumChannel = SettingsManager.Settings.DMXDrumsChannel.Value;
-            _guitarChannel = SettingsManager.Settings.DMXGuitarChannel.Value;
-            _bassChannel = SettingsManager.Settings.DMXBassChannel.Value;
-            _keysChannel = SettingsManager.Settings.DMXKeysChannel.Value;
         }
 
         private void ManageEventSubscription(bool subscribe)
         {
             if (subscribe)
             {
-                SceneManager.sceneUnloaded += OnSceneUnloaded;
-
                 // Basic
                 StageKitInterpreter.OnLedEvent += HandleLedEvent;
 
@@ -247,8 +212,6 @@ namespace YARG.Integration.Sacn
             }
             else
             {
-                SceneManager.sceneUnloaded -= OnSceneUnloaded;
-
                 // Basic
                 StageKitInterpreter.OnLedEvent -= HandleLedEvent;
 
@@ -270,59 +233,67 @@ namespace YARG.Integration.Sacn
         {
             //Set all channels to off
             //Basic
-            SetChannel(_fogChannel, (byte) FogEnum.Off);
-            SetChannel(_strobeChannel, (byte) StrobeEnum.Off);
-
-            foreach (var t in _blueChannels)
+            foreach (var t in FogChannels)
             {
                 SetChannel(t, (byte) LedEnum.Off);
             }
 
-            foreach (var t in _greenChannels)
+            foreach (var t in StrobeChannels)
             {
                 SetChannel(t, (byte) LedEnum.Off);
             }
 
-            foreach (var t in _redChannels)
+            foreach (var t in BlueChannels)
             {
                 SetChannel(t, (byte) LedEnum.Off);
             }
 
-            foreach (var t in _yellowChannels)
+            foreach (var t in GreenChannels)
+            {
+                SetChannel(t, (byte) LedEnum.Off);
+            }
+
+            foreach (var t in RedChannels)
+            {
+                SetChannel(t, (byte) LedEnum.Off);
+            }
+
+            foreach (var t in YellowChannels)
             {
                 SetChannel(t, (byte) LedEnum.Off);
             }
 
             //Advanced
-            SetChannel(_cueChangeChannel, (byte) CueEnum.NoCue);
-            SetChannel(_keyframeChannel, (byte) KeyFrameCueEnum.Off);
-            SetChannel(_beatlineChannel, (byte) BeatlineEnum.Off);
-            SetChannel(_bonusEffectChannel, (byte) BonusEffectEnum.Off);
-            SetChannel(_postProcessingChannel, (byte) PostProcessingTypeEnum.Default);
+            SetChannel(CueChangeChannel, (byte) CueEnum.NoCue);
+            SetChannel(KeyframeChannel, (byte) KeyFrameCueEnum.Off);
+            SetChannel(BeatlineChannel, (byte) BeatlineEnum.Off);
+            SetChannel(BonusEffectChannel, (byte) BonusEffectEnum.Off);
+            SetChannel(PostProcessingChannel, (byte) PostProcessingTypeEnum.Default);
             //NYI
             //SetChannel(_performerChannel, (byte) PerformerEnum.Off);
 
             //Instruments
-            SetChannel(_keysChannel, (byte) FogEnum.Off);
-            SetChannel(_drumChannel, (byte) FogEnum.Off);
-            SetChannel(_guitarChannel, (byte) FogEnum.Off);
-            SetChannel(_bassChannel, (byte) FogEnum.Off);
-        }
-
-        private void OnSceneUnloaded(Scene scene)
-        {
-            AllChannelsOff();
+            SetChannel(KeysChannel, (byte) FogEnum.Off);
+            SetChannel(DrumChannel, (byte) FogEnum.Off);
+            SetChannel(GuitarChannel, (byte) FogEnum.Off);
+            SetChannel(BassChannel, (byte) FogEnum.Off);
         }
 
         private void OnFogStateEvent(MasterLightingController.FogState fogState)
         {
             if (fogState == MasterLightingController.FogState.On)
             {
-                SetChannel(_fogChannel, (byte) FogEnum.On);
+                foreach (var t in FogChannels)
+                {
+                    SetChannel(t, (byte) FogEnum.On);
+                }
             }
             else
             {
-                SetChannel(_fogChannel, (byte) FogEnum.Off);
+                foreach (var t in FogChannels)
+                {
+                    SetChannel(t, (byte) FogEnum.Off);
+                }
             }
         }
 
@@ -333,20 +304,40 @@ namespace YARG.Integration.Sacn
             switch (value)
             {
                 case StageKitStrobeSpeed.Off:
-                    SetChannel(_strobeChannel, (byte) StrobeEnum.Off);
+                    foreach (var t in StrobeChannels)
+                    {
+                        SetChannel(t, (byte) StrobeEnum.Off);
+                    }
                     break;
+
                 case StageKitStrobeSpeed.Slow:
-                    SetChannel(_strobeChannel, (byte) StrobeEnum.Slow);
+                    foreach (var t in StrobeChannels)
+                    {
+                        SetChannel(t, (byte) StrobeEnum.Slow);
+                    }
                     break;
+
                 case StageKitStrobeSpeed.Medium:
-                    SetChannel(_strobeChannel, (byte) StrobeEnum.Medium);
+                    foreach (var t in StrobeChannels)
+                    {
+                        SetChannel(t, (byte) StrobeEnum.Medium);
+                    }
                     break;
+
                 case StageKitStrobeSpeed.Fast:
-                    SetChannel(_strobeChannel, (byte) StrobeEnum.Fast);
+                    foreach (var t in StrobeChannels)
+                    {
+                        SetChannel(t, (byte) StrobeEnum.Fast);
+                    }
                     break;
+
                 case StageKitStrobeSpeed.Fastest:
-                    SetChannel(_strobeChannel, (byte) StrobeEnum.Fastest);
+                    foreach (var t in StrobeChannels)
+                    {
+                        SetChannel(t, (byte) StrobeEnum.Fastest);
+                    }
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(value), value, null);
             }
@@ -354,7 +345,7 @@ namespace YARG.Integration.Sacn
 
         private void OnBonusFXEvent()
         {
-            SetChannel(_bonusEffectChannel, (byte) BonusEffectEnum.BonusEffect);
+            SetChannel(BonusEffectChannel, (byte) BonusEffectEnum.BonusEffect);
         }
 
         private void OnPerformersEvent(PerformerEvent newEvent)
@@ -362,7 +353,7 @@ namespace YARG.Integration.Sacn
             //TODO: Once YARG parses the PerformerEvent, this will need to be updated/changed to the master gameplay controller
             if (newEvent == null)
             {
-                SetChannel(_performerChannel, (byte) PerformerEnum.Off);
+                SetChannel(PerformerChannel, (byte) PerformerEnum.Off);
                 return;
             }
 
@@ -402,7 +393,7 @@ namespace YARG.Integration.Sacn
                     break;
             }
 
-            SetChannel(_performerChannel, perf);
+            SetChannel(PerformerChannel, perf);
         }
 
         private void OnInstrumentEvent(MasterLightingController.InstrumentType instrument, int notesHit)
@@ -410,19 +401,19 @@ namespace YARG.Integration.Sacn
             switch (instrument)
             {
                 case MasterLightingController.InstrumentType.Keys:
-                    SetChannel(_keysChannel, (byte) notesHit);
+                    SetChannel(KeysChannel, (byte) notesHit);
                     break;
 
                 case MasterLightingController.InstrumentType.Drums:
-                    SetChannel(_drumChannel, (byte) notesHit);
+                    SetChannel(DrumChannel, (byte) notesHit);
                     break;
 
                 case MasterLightingController.InstrumentType.Guitar:
-                    SetChannel(_guitarChannel, (byte) notesHit);
+                    SetChannel(GuitarChannel, (byte) notesHit);
                     break;
 
                 case MasterLightingController.InstrumentType.Bass:
-                    SetChannel(_bassChannel, (byte) notesHit);
+                    SetChannel(BassChannel, (byte) notesHit);
                     break;
 
                 default:
@@ -434,12 +425,12 @@ namespace YARG.Integration.Sacn
         {
             if (newBeatline.Type == BeatlineType.Measure)
             {
-                SetChannel(_beatlineChannel, (int) BeatlineEnum.Measure);
+                SetChannel(BeatlineChannel, (int) BeatlineEnum.Measure);
             }
 
             if (newBeatline.Type == BeatlineType.Strong)
             {
-                SetChannel(_beatlineChannel, (int) BeatlineEnum.Strong);
+                SetChannel(BeatlineChannel, (int) BeatlineEnum.Strong);
             }
         }
 
@@ -490,7 +481,7 @@ namespace YARG.Integration.Sacn
                 _                                          => (byte) PostProcessingTypeEnum.Default,
             };
 
-            SetChannel(_postProcessingChannel, postProcessingType);
+            SetChannel(PostProcessingChannel, postProcessingType);
         }
 
         private void SetCueChannel(LightingType? newType)
@@ -528,20 +519,20 @@ namespace YARG.Integration.Sacn
                     _                                  => (byte) CueEnum.NoCue,
                 };
 
-                SetChannel(_cueChangeChannel, _cueValue);
+                SetChannel(CueChangeChannel, _cueValue);
             }
             else
             {
                 switch (newType)
                 {
                     case LightingType.Keyframe_Next:
-                        SetChannel(_keyframeChannel, (byte) KeyFrameCueEnum.KeyframeNext);
+                        SetChannel(KeyframeChannel, (byte) KeyFrameCueEnum.KeyframeNext);
                         break;
                     case LightingType.Keyframe_Previous:
-                        SetChannel(_keyframeChannel, (byte) KeyFrameCueEnum.KeyframePrevious);
+                        SetChannel(KeyframeChannel, (byte) KeyFrameCueEnum.KeyframePrevious);
                         break;
                     case LightingType.Keyframe_First:
-                        SetChannel(_keyframeChannel, (byte) KeyFrameCueEnum.KeyframeFirst);
+                        SetChannel(KeyframeChannel, (byte) KeyFrameCueEnum.KeyframeFirst);
                         break;
                 }
             }
@@ -556,22 +547,22 @@ namespace YARG.Integration.Sacn
         {
             if ((color & StageKitLedColor.Blue) != 0)
             {
-                SetLedBits(_blueChannels, led);
+                SetLedBits(BlueChannels, led);
             }
 
             if ((color & StageKitLedColor.Green) != 0)
             {
-                SetLedBits(_greenChannels, led);
+                SetLedBits(GreenChannels, led);
             }
 
             if ((color & StageKitLedColor.Red) != 0)
             {
-                SetLedBits(_redChannels, led);
+                SetLedBits(RedChannels, led);
             }
 
             if ((color & StageKitLedColor.Yellow) != 0)
             {
-                SetLedBits(_yellowChannels, led);
+                SetLedBits(YellowChannels, led);
             }
         }
 
@@ -591,9 +582,3 @@ namespace YARG.Integration.Sacn
         }
     }
 }
-
-/*
-    "If you ever catch on fire, try to avoid seeing yourself in the mirror, because I bet that's what really throws you into a panic."
-
-        -Jack Handey
-*/

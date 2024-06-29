@@ -23,20 +23,26 @@ namespace YARG.Helpers.Authoring
 
         public void SetColor(Color c)
         {
-            _effectParticles.ForEach(i => i.SetColor(c));
-            _effectLights.ForEach(i => i.SetColor(c));
+            foreach (var particles in _effectParticles)
+                particles.SetColor(c);
+            foreach (var lights in _effectLights)
+                lights.SetColor(c);
         }
 
         public void Play()
         {
-            _effectParticles.ForEach(i => i.Play());
-            _effectLights.ForEach(i => i.Play());
+            foreach (var particles in _effectParticles)
+                particles.Play();
+            foreach (var lights in _effectLights)
+                lights.Play();
         }
 
         public void Stop()
         {
-            _effectParticles.ForEach(i => i.Stop());
-            _effectLights.ForEach(i => i.Stop());
+            foreach (var particles in _effectParticles)
+                particles.Stop();
+            foreach (var lights in _effectLights)
+                lights.Stop();
         }
     }
 }

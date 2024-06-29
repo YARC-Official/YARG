@@ -200,6 +200,15 @@ namespace YARG.Integration.StageKit
         private void Start()
         {
             InputSystem.onDeviceChange += OnDeviceChange;
+
+            // Build a list of all the stage kits connected
+            foreach (var device in InputSystem.devices)
+            {
+                if (device is IStageKitHaptics haptics)
+                {
+                    _stageKits.Add(haptics);
+                }
+            }
         }
 
         protected override void SingletonDestroy()
@@ -216,15 +225,6 @@ namespace YARG.Integration.StageKit
         {
             if (isEnabled)
             {
-                // Build a list of all the stage kits connected
-                foreach (var device in InputSystem.devices)
-                {
-                    if (device is IStageKitHaptics haptics)
-                    {
-                        _stageKits.Add(haptics);
-                    }
-                }
-
                 // Stage Kits remember its last state which is neat but not needed on startup
                 foreach (var kit in _stageKits)
                 {
@@ -424,9 +424,3 @@ namespace YARG.Integration.StageKit
         }
     }
 }
-/*
-    "To me, clowns aren't funny. In fact, they're kind of scary. I've wondered where this started and I think it goes
-    back to the time I went to the circus, and a clown killed my dad."
-
-    - Jack Handey.
-*/

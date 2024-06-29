@@ -87,13 +87,13 @@ namespace YARG.Song
 #nullable disable
                 foreach (var root in SourceRoots)
                 {
-                    string path = Path.Combine(root, $"{_icon}.png");
-                    if (File.Exists(path))
+                    var info = new FileInfo(Path.Combine(root, $"{_icon}.png"));
+                    if (info.Exists)
                     {
-                        using var image = await UniTask.RunOnThreadPool(() => YARGImage.Load(path));
+                        using var image = await UniTask.RunOnThreadPool(() => YARGImage.Load(info));
                         if (image == null)
                         {
-                            YargLogger.LogFormatWarning("Failed to load source icon `{0}`!", path);
+                            YargLogger.LogFormatWarning("Failed to load source icon `{0}`!", info.FullName);
                             return;
                         }
                         texture = image.LoadTexture(true);

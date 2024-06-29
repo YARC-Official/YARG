@@ -5,6 +5,7 @@ using UnityEngine.Events;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Core.Input;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
@@ -218,10 +219,10 @@ namespace YARG.Menu.MusicLibrary
                 or SortAttribute.Artist_Album)
             {
                 foreach (var (header, index) in _musicLibrary.GetSections()
-                    .GroupBy(x => ((SortHeaderViewType) x.Item1).HeaderText[0].ToAsciiUpper())
+                    .GroupBy(x => SortString.RemoveArticle(((SortHeaderViewType) x.Item1).HeaderText)[0].ToAsciiUpper())
                     .Select(g => g.First()))
                 {
-                    CreateItem(((SortHeaderViewType) header).HeaderText[0].ToString(), () =>
+                    CreateItem(SortString.RemoveArticle(((SortHeaderViewType) header).HeaderText)[0].ToString(), () =>
                     {
                         _musicLibrary.SelectedIndex = index;
                         gameObject.SetActive(false);

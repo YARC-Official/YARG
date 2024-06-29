@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -34,21 +35,24 @@ namespace YARG
     [DefaultExecutionOrder(-5000)]
     public class GlobalVariables : MonoSingleton<GlobalVariables>
     {
-        public const string CURRENT_VERSION = "v0.12.3";
-
         private const string OFFLINE_ARG = "-offline";
 
         public List<YargPlayer> Players { get; private set; }
 
         public static IReadOnlyList<string> CommandLineArguments { get; private set; }
+
         public static bool OfflineMode { get; private set; }
+
         public static PersistentState State = PersistentState.Default;
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
+        public string CurrentVersion { get; private set; } = "v0.12.4";
+
         protected override void SingletonAwake()
         {
-            YargLogger.LogFormatInfo("YARG {0}", CURRENT_VERSION);
+            CurrentVersion = LoadVersion();
+            YargLogger.LogFormatInfo("YARG {0}", CurrentVersion);
 
             // Get command line args
             // The first element is always the file name, however check just in case
@@ -160,6 +164,60 @@ namespace YARG
             {
                 LoadSceneAdditive(scene);
             }
+        }
+
+        // Due to the preprocessor, it doesn't know that an instance variable is being used
+        // ReSharper disable once MemberCanBeMadeStatic.Local
+        private string LoadVersion()
+        {
+#if UNITY_EDITOR
+            return LoadVersionFromGit();
+#elif YARG_TEST_BUILD || YARG_NIGHTLY_BUILD
+            var versionFile = Resources.Load<TextAsset>("version");
+            if (versionFile != null)
+            {
+                return versionFile.text;
+            }
+            else
+            {
+                return CurrentVersion;
+            }
+#else
+            return CurrentVersion;
+#endif
+        }
+
+        public static string LoadVersionFromGit()
+        {
+            var process = new Process();
+            process.StartInfo.FileName = "git";
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+
+            // Branch
+            process.StartInfo.Arguments = "rev-parse --abbrev-ref HEAD";
+            process.Start();
+            string branch = process.StandardOutput.ReadToEnd().Trim();
+            process.WaitForExit();
+
+            // Commit Count
+            process.StartInfo.Arguments = "rev-list --count HEAD";
+            process.Start();
+            string commitCount = process.StandardOutput.ReadToEnd().Trim();
+            process.WaitForExit();
+
+            // Commit
+            process.StartInfo.Arguments = "rev-parse --short HEAD";
+            process.Start();
+            string commit = process.StandardOutput.ReadToEnd().Trim();
+            process.WaitForExit();
+
+            #if YARG_NIGHTLY_BUILD
+            return $"b{commitCount} ({commit})";
+            #else
+            return $"{branch} b{commitCount} ({commit})";
+            #endif
         }
     }
 }

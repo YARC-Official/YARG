@@ -131,6 +131,8 @@ namespace YARG.Gameplay
         private bool _isShowDebugText;
         private bool _isReplaySaved;
 
+        private int _originalSleepTimeout;
+
         private StemMixer _mixer;
 
         private void Awake()
@@ -158,6 +160,10 @@ namespace YARG.Gameplay
 
             // Hide vocals track (will be shown when players are initialized
             VocalTrack.gameObject.SetActive(false);
+
+            // Prevent screen from sleeping
+            _originalSleepTimeout = Screen.sleepTimeout;
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;
         }
 
         private void OnDestroy()
@@ -182,6 +188,9 @@ namespace YARG.Gameplay
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
             Time.timeScale = 1f;
+
+            // Reset sleep timeout setting
+            Screen.sleepTimeout = _originalSleepTimeout;
         }
 
         private void Update()
@@ -281,7 +290,24 @@ namespace YARG.Gameplay
                 text.AppendFormat("Speed multiplier: {0}\n", _songRunner.SyncSpeedMultiplier);
                 text.AppendFormat("Input base: {0:0.000000}\n", _songRunner.InputTimeBase);
                 text.AppendFormat("Input offset: {0:0.000000}\n", _songRunner.InputTimeOffset);
-                text.AppendFormat("Current venue call: {1:000}/{2:000}: {0}\n", MasterLightingController.CurrentLightingCue?.Type, MasterLightingGameplayMonitor.LightingIndex, MasterLightingGameplayMonitor.Venue.Lighting.Count);
+
+                // Explicit check instead of using ?, as nullable enum types are not specially
+                // formatted by ZString to avoid allocations (while non-nullable enums are)
+                if (MasterLightingController.CurrentLightingCue != null)
+                {
+                    text.AppendFormat("Current venue call: {0:000}/{1:000}: {2}\n",
+                        MasterLightingGameplayMonitor.LightingIndex,
+                        MasterLightingGameplayMonitor.Venue.Lighting.Count,
+                        MasterLightingController.CurrentLightingCue.Type
+                    );
+                }
+                else
+                {
+                    text.AppendFormat("Current venue call: {0:000}/{1:000}: None\n",
+                        MasterLightingGameplayMonitor.LightingIndex,
+                        MasterLightingGameplayMonitor.Venue.Lighting.Count
+                    );
+                }
 
                 _debugText.SetText(text);
             }
@@ -349,6 +375,9 @@ namespace YARG.Gameplay
             Time.timeScale = 0f;
             BackgroundManager.SetPaused(true);
             GameStateFetcher.SetPaused(true);
+
+            // Allow sleeping
+            Screen.sleepTimeout = _originalSleepTimeout;
         }
 
         public void Resume(bool inputCompensation = true)
@@ -365,6 +394,9 @@ namespace YARG.Gameplay
             Time.timeScale = 1f;
             BackgroundManager.SetPaused(false);
             GameStateFetcher.SetPaused(false);
+
+            // Disallow sleeping
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
             _isReplaySaved = false;
 

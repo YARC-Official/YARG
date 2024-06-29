@@ -30,8 +30,8 @@ namespace YARG.Integration.RB3E
             DisableAll = 0xFF
         }
 
-        private IPAddress _ipAddress = IPAddress.Parse("255.255.255.255"); // "this" network's broadcast address
-        private const int PORT = 21070;                                    // That is what RB3E uses
+        public IPAddress IPAddress = IPAddress.Parse("255.255.255.255"); // "this" network's broadcast address
+        private const int PORT = 21070;                                  // That is what RB3E uses
         private UdpClient _sendClient;
 
         private void OnApplicationQuit()
@@ -52,19 +52,12 @@ namespace YARG.Integration.RB3E
                 StageKitInterpreter.OnLedEvent += HandleLedEvent;
                 //Bonus Effects are ignored, since the stage kit doesn't seem to do anything with them.
 
-                HandleBroadcastIPChanged();
-
                 _sendClient = new UdpClient();
             }
             else
             {
                 KillRB3E();
             }
-        }
-
-        public void HandleBroadcastIPChanged()
-        {
-            _ipAddress = new IPAddress(SettingsManager.Settings.RB3EBroadcastIP.Value);
         }
 
         private void KillRB3E()
@@ -154,13 +147,7 @@ namespace YARG.Integration.RB3E
                 commandID               // Right stagekit channel, command ID
             };
 
-            _sendClient.Send(packetData, packetData.Length, _ipAddress.ToString(), PORT);
+            _sendClient.Send(packetData, packetData.Length, IPAddress.ToString(), PORT);
         }
     }
 }
-
-/*
- "To me, boxing is like a ballet, except there's no music, no choreography and the dancers hit each other."
-
-    -Jack Handey
-*/

@@ -16,7 +16,7 @@ namespace YARG.Settings.Types
             {
                 SetValue(value);
 
-                _onChange?.Invoke(value);
+                _onChange?.Invoke(_value);
 
                 SettingsMenu.Instance.OnSettingChanged();
             }

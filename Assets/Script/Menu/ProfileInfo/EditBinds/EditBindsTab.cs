@@ -53,13 +53,17 @@ namespace YARG.Menu.ProfileInfo
 
         private void OnDisable()
         {
+            // Destroy binds list, since they register events with the bindings
+            // and need to be unregistered
+            _bindsList.DestroyChildren();
+            _gameModeList.DestroyChildren();
             _currentPlayer.EnableInputs();
         }
 
         private void RefreshGameModes()
         {
             // Remove old ones
-            _gameModeList.transform.DestroyChildren();
+            _gameModeList.DestroyChildren();
             _gameModeNavGroup.ClearNavigatables();
 
             // Spawn in a game mode view for the selected game mode

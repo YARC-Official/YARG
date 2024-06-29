@@ -1057,10 +1057,3 @@ namespace YARG.Integration.StageKit
         }
     }
 }
-/*
-    "I think a good novel would be where a bunch of men on a ship are looking for a whale. They look and look, but you
-    know what? They never find him. And you know why they never find him? It doesn't say. The book leaves it up to you,
-    the reader, to decide. Then, at the very end, there's a page that can lick and it tastes like Kool-Aid."
-
-    - Jack Handey
-*/
