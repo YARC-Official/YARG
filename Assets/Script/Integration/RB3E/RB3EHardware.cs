@@ -151,9 +151,3 @@ namespace YARG.Integration.RB3E
         }
     }
 }
-
-/*
- "To me, boxing is like a ballet, except there's no music, no choreography and the dancers hit each other."
-
-    -Jack Handey
-*/

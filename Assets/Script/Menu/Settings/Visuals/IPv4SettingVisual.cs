@@ -45,9 +45,3 @@ namespace YARG.Menu.Settings.Visuals
         }
     }
 }
-
-/*
-"If you're a cowboy and you're dragging a man behind your horse, I bet it would really make you mad if you looked back and the guy was reading a magazine."
-
-- Jack Handey.
-*/
