@@ -45,13 +45,13 @@
       "hash": "30bf1e9751a7902b849da672ed1ffef9113142ea"
     },
     "com.thenathannator.plasticband": {
-      "version": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband#v0.8.2",
+      "version": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband#v0.8.3",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "com.unity.inputsystem": "1.4.4"
       },
-      "hash": "1d7da20cf6e249f28ce4ef974daad66a7041ec5b"
+      "hash": "84062d59db00795c18d78913306299075549a24b"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
