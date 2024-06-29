@@ -1,7 +1,6 @@
-using System.Globalization;
+using System.Net;
 using TMPro;
 using UnityEngine;
-using YARG.Core.Input;
 using YARG.Menu.Navigation;
 using YARG.Settings.Types;
 
@@ -10,43 +9,32 @@ namespace YARG.Menu.Settings.Visuals
     public class IPv4SettingVisual : BaseSettingVisual<IPv4Setting>
     {
         [SerializeField]
-        private TMP_InputField[] _inputField;
+        private TMP_InputField _inputField;
 
         protected override void RefreshVisual()
         {
-            for (int i = 0; i < Setting.Value.Length; i++)
-            {
-                _inputField[i].text = Setting.Value[i].ToString(CultureInfo.InvariantCulture);
-            }
+            _inputField.text = Setting.Value;
         }
 
         public override NavigationScheme GetNavigationScheme()
         {
             return new NavigationScheme(new()
             {
-                NavigateFinish,
-                new NavigationScheme.Entry(MenuAction.Up, "Increase", () =>
-                {
-                    // need to change this to the correct index
-                    Setting.Value[0]++;
-                    RefreshVisual();
-                }),
-                new NavigationScheme.Entry(MenuAction.Down, "Decrease", () =>
-                {
-                    // need to change this to the correct index
-                    Setting.Value[0]--;
-                    RefreshVisual();
-                })
+                NavigateFinish
             }, true);
         }
 
-        public void OnTextFieldChange(int index)
+        public void OnTextFieldChange()
         {
             try
             {
-                byte value = byte.Parse(_inputField[index].text, CultureInfo.InvariantCulture);
-                value = (byte) Mathf.Clamp(value, Setting.Min, Setting.Max);
-                Setting.Value[index] = value;
+                if (IPAddress.TryParse(_inputField.text, out var ipAddress))
+                {
+                    if (IPv4Setting.IsValidIPv4(ipAddress))
+                    {
+                        Setting.Value = ipAddress.ToString();
+                    }
+                }
             }
             catch
             {
