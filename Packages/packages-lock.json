@@ -36,22 +36,22 @@
       "url": "https://package.openupm.com"
     },
     "com.thenathannator.hidrogen": {
-      "version": "https://github.com/TheNathannator/HIDrogen.git?path=/Packages/com.thenathannator.hidrogen#v0.3.1",
+      "version": "0.3.1",
       "depth": 0,
-      "source": "git",
+      "source": "registry",
       "dependencies": {
         "com.unity.inputsystem": "1.4.4"
       },
-      "hash": "30bf1e9751a7902b849da672ed1ffef9113142ea"
+      "url": "https://package.openupm.com"
     },
     "com.thenathannator.plasticband": {
-      "version": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband#v0.8.3",
+      "version": "0.8.3",
       "depth": 0,
-      "source": "git",
+      "source": "registry",
       "dependencies": {
         "com.unity.inputsystem": "1.4.4"
       },
-      "hash": "84062d59db00795c18d78913306299075549a24b"
+      "url": "https://package.openupm.com"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",

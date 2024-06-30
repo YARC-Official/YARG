@@ -45,6 +45,7 @@ MonoBehaviour:
     - com.marijnzwemmer.unity-toolbar-extender
     - com.openupm
     - com.starasgames.tmpro-dynamic-data-cleaner
+    - com.thenathannator
     m_IsDefault: 0
     m_Capabilities: 0
     m_ConfigSource: 4
@@ -53,6 +54,6 @@ MonoBehaviour:
   m_RegistryInfoDraft:
     m_Modified: 0
     m_ErrorMessage: 
-    m_UserModificationsInstanceId: -826
-    m_OriginalInstanceId: -828
+    m_UserModificationsInstanceId: -822
+    m_OriginalInstanceId: -826
   m_LoadAssets: 0
