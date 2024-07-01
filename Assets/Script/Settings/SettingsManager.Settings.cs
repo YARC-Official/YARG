@@ -157,7 +157,8 @@ namespace YARG.Settings
 
             public ToggleSetting UseWhammyFx { get; } = new(true, UseWhammyFxChange);
 
-            // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
+            public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
+
             // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
@@ -489,11 +490,11 @@ namespace YARG.Settings
                 GlobalAudioHandler.UseWhammyFx = value;
             }
 
-            // private static void WhammyPitchShiftAmountChange(float value)
-            // {
-            //     AudioManager.WhammyPitchShiftAmount = value;
-            // }
-            //
+            private static void WhammyPitchShiftAmountChange(float value)
+            {
+                GlobalAudioHandler.WhammyPitchShiftAmount = value;
+            }
+
             // private static void WhammyOversampleFactorChange(int value)
             // {
             //     AudioManager.WhammyOversampleFactor = value;

@@ -37,23 +37,43 @@ namespace YARG.Audio.BASS
         {
             percent = Mathf.Clamp(percent, 0f, 1f);
 
-            // If pitch effect hasn't been added yet, add it.
-            if ((percent > 0f) && (_streamHandles.PitchFX == 0))
+            if (percent > 0f)
             {
-                _streamHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_streamHandles.Stream, _pitchParams);
-            }
-
-            // If we have pitch effect, pitch
-            if (_streamHandles.PitchFX != 0)
-            {
-                float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
-                _pitchParams.fPitchShift = shift;
-
-                if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
+                // If pitch effect hasn't been added yet, add it.
+                if (_streamHandles.PitchFX == 0)
                 {
-                    YargLogger.LogFormatError("Failed to set pitch params: {0}", Bass.LastError);
+                    _streamHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_streamHandles.Stream, _pitchParams);
+                }
+
+                // If we have pitch effect, pitch
+                if (_streamHandles.PitchFX != 0)
+                {
+                    float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
+                    _pitchParams.fPitchShift = shift;
+
+                    if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
+                    {
+                        YargLogger.LogFormatError("Failed to set pitch params: {0}", Bass.LastError);
+                    }
                 }
             }
+            /*
+            else
+            {
+                // If pitch is effect running we could remove it.
+                // This would help with delay but there's a skip when adding or removing.
+                // Probably better to do this after at zero whammy rest for a period of time.
+
+                if (_streamHandles.PitchFX != 0)
+                {
+                    if (!Bass.ChannelRemoveFX(_streamHandles.Stream, _streamHandles.PitchFX))
+                    {
+                        YargLogger.LogFormatError("Failed to remove pitch effect: {0}!", Bass.LastError);
+                    }
+                    _streamHandles.PitchFX = 0;
+                }
+            }
+            */
         }
 
         protected override void SetPosition_Internal(double position)
