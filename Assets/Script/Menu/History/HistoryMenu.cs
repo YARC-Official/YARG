@@ -48,9 +48,15 @@ namespace YARG.Menu.History
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Up",
-                    () => SelectedIndex--),
+                    ctx => {
+                        SetWrapAroundState(!ctx.IsRepeat);
+                        SelectedIndex--;
+                    }),
                 new NavigationScheme.Entry(MenuAction.Down, "Down",
-                    () => SelectedIndex++),
+                    ctx => {
+                        SetWrapAroundState(!ctx.IsRepeat);
+                        SelectedIndex++;
+                    }),
                 new NavigationScheme.Entry(MenuAction.Green, "Confirm",
                     () => CurrentSelection?.ViewClick()),
 

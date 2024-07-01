@@ -106,6 +106,20 @@ namespace YARG.Menu.Navigation
         private void ProcessInput(YargPlayer player, ref GameInput input)
         {
             var action = (MenuAction) input.Action;
+
+            // Swap up and down for lefty flip
+            if (player.Profile.LeftyFlip)
+            {
+                action = action switch
+                {
+                    MenuAction.Up    => MenuAction.Down,
+                    MenuAction.Down  => MenuAction.Up,
+                    MenuAction.Left  => MenuAction.Right,
+                    MenuAction.Right => MenuAction.Left,
+                    _                => action
+                };
+            }
+
             var context = new NavigationContext(action, player);
 
             if (input.Button)

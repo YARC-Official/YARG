@@ -424,9 +424,3 @@ namespace YARG.Integration.StageKit
         }
     }
 }
-/*
-    "To me, clowns aren't funny. In fact, they're kind of scary. I've wondered where this started and I think it goes
-    back to the time I went to the circus, and a clown killed my dad."
-
-    - Jack Handey.
-*/

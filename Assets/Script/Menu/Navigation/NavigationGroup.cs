@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Menu.Navigation
 {
@@ -133,7 +134,7 @@ namespace YARG.Menu.Navigation
             SelectAt(_navigatables.Count - 1);
         }
 
-        public void SelectNext()
+        public void SelectNext(bool isHeld = false)
         {
             // Allows the user to quickly select an option without needing mouse
             if (SelectedIndex is null)
@@ -145,13 +146,17 @@ namespace YARG.Menu.Navigation
             // If the selection will go out of range...
             if (SelectedIndex is not { } selected || selected < 0 || selected >= _navigatables.Count - 1)
             {
+                if (!isHeld && SettingsManager.Settings.WrapAroundNavigation.Value)
+                {
+                    SelectAt(0, SelectionOrigin.Navigation);
+                }
                 return;
             }
 
             SelectAt(selected + 1, SelectionOrigin.Navigation);
         }
 
-        public void SelectPrevious()
+        public void SelectPrevious(bool isHeld = false)
         {
             // Allows the user to quickly select an option without needing mouse
             if (SelectedIndex is null)
@@ -163,6 +168,10 @@ namespace YARG.Menu.Navigation
             // If the selection is invalid...
             if (SelectedIndex is not { } selected || selected <= 0)
             {
+                if (!isHeld && SettingsManager.Settings.WrapAroundNavigation.Value)
+                {
+                    SelectAt(_navigatables.Count - 1, SelectionOrigin.Navigation);
+                }
                 return;
             }
 

@@ -74,6 +74,7 @@ namespace YARG.Settings
             public ToggleSetting PauseOnDeviceDisconnect { get; } = new(true);
             public ToggleSetting PauseOnFocusLoss { get; } = new(true);
 
+            public ToggleSetting WrapAroundNavigation { get; } = new(true);
             public ToggleSetting AmIAwesome { get; } = new(false);
 
             #endregion
@@ -295,8 +296,8 @@ namespace YARG.Settings
             public IntSetting DMXCueChangeChannel { get; } =
                 new(8, 1, 512, v => SacnInterpreter.Instance.CueChangeChannel = v);
 
-            public IPv4Setting RB3EBroadcastIP { get; } = new(new byte[] { 255, 255, 255, 255 },
-                v => RB3EHardware.Instance.IPAddress = new IPAddress(v));
+            public IPv4Setting RB3EBroadcastIP { get; } =
+                new("255.255.255.255", ip => RB3EHardware.Instance.IPAddress = IPAddress.Parse(ip));
 
             public IntSetting DMXBeatlineChannel { get; } =
                 new(14, 1, 512, v => SacnInterpreter.Instance.BeatlineChannel = v);
@@ -361,6 +362,11 @@ namespace YARG.Settings
 
             private static void StageKitEnabledCallback(bool value)
             {
+                //To avoid being toggled on twice at start
+                if (!IsInitialized)
+                {
+                    return;
+                }
                 StageKitHardware.Instance.HandleEnabledChanged(value);
             }
 
