@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Integration;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -30,6 +31,16 @@ namespace YARG
             try
             {
                 await LocalizationManager.LoadLanguage(context);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e);
+            }
+
+            // Load Discord right after (this requires localization)
+            try
+            {
+                DiscordController.Instance.Initialize();
             }
             catch (Exception e)
             {

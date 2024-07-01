@@ -42,7 +42,7 @@ namespace YARG.Integration
 
         private string _albumUrl;
 
-        private void Start()
+        public void Initialize()
         {
             // Listen to the changing of states
             GameStateFetcher.GameStateChange += OnGameStateChange;
