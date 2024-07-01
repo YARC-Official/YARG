@@ -132,6 +132,11 @@ namespace YARG.Audio.BASS
             return FXAddParameters(handle, EffectType.PeakEQ, eqParams);
         }
 
+        public static int AddPitchShiftToChannel(int handle, IEffectParameter pitchParams)
+        {
+            return FXAddParameters(handle, EffectType.PitchShift, pitchParams);
+        }
+
         public static unsafe bool ApplyGain(float gain, IntPtr buffer, int length)
         {
             var sampleBuffer = new Span<float>((void*) buffer, length / sizeof(float));

@@ -35,22 +35,24 @@ namespace YARG.Audio.BASS
 
         protected override void SetWhammyPitch_Internal(float percent)
         {
-            if (_streamHandles.PitchFX == 0 || _reverbHandles.PitchFX == 0)
-                return;
-
             percent = Mathf.Clamp(percent, 0f, 1f);
 
-            float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
-            _pitchParams.fPitchShift = shift;
-
-            if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
+            // If pitch effect hasn't been added yet, add it.
+            if ((percent > 0f) && (_streamHandles.PitchFX == 0))
             {
-                YargLogger.LogFormatError("Failed to set params (normal fx): {0}", Bass.LastError);
+                _streamHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_streamHandles.Stream, _pitchParams);
             }
 
-            if (!BassHelpers.FXSetParameters(_reverbHandles.PitchFX, _pitchParams))
+            // If we have pitch effect, pitch
+            if (_streamHandles.PitchFX != 0)
             {
-                YargLogger.LogFormatError("Failed to set params (reverb fx): {0}", Bass.LastError);
+                float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
+                _pitchParams.fPitchShift = shift;
+
+                if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
+                {
+                    YargLogger.LogFormatError("Failed to set pitch params: {0}", Bass.LastError);
+                }
             }
         }
 
