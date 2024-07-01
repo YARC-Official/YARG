@@ -155,7 +155,8 @@ namespace YARG.Settings
 
             public ToggleSetting ClapsInStarpower { get; } = new(true);
 
-            // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);
+            public ToggleSetting UseWhammyFx { get; } = new(true, UseWhammyFxChange);
+
             // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
             // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
@@ -483,10 +484,10 @@ namespace YARG.Settings
                 HelpBar.Instance.MusicPlayer.UpdateVolume(volume);
             }
 
-            // private static void UseWhammyFxChange(bool value)
-            // {
-            //     AudioManager.UseWhammyFx = value;
-            // }
+            private static void UseWhammyFxChange(bool value)
+            {
+                GlobalAudioHandler.UseWhammyFx = value;
+            }
 
             // private static void WhammyPitchShiftAmountChange(float value)
             // {
