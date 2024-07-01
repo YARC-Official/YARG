@@ -164,6 +164,19 @@
                 "Exit": "Exit"
             }
         },
+        "MusicLibrary": {
+            "NoSongsMatchCriteria": "NO SONGS MATCH CRITERIA",
+            "SearchResults": "SEARCH RESULTS",
+            "AllSongs": "ALL SONGS",
+            "RecommendedSongs": {
+                "Singular": "RECOMMENDED SONG",
+                "Plural": "RECOMMENDED SONGS"
+            },
+            "PlayableSongs": "PLAYABLE SONGS",
+            "RandomSong": "RANDOM SONG",
+            "Playlists": "PLAYLISTS",
+            "Back": "BACK"
+        },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
             "SongCount": "{0} <alpha=#60>Songs",
