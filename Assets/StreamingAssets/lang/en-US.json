@@ -657,7 +657,11 @@
             },
             "DMXDimmerValues": {
                 "Name": "DMX Master Dimmer Values",
-                "Description": "These are the respective values that the Master Dimmer channels willl be set to when YARG starts."
+                "Description": "These are the respective values that the Master Dimmer channels will be set to when YARG starts."
+            },
+            "WrapAroundNavigation": {
+                "Name": "Wrap-Around Navigation",
+                "Description": "Allow menus to jump to the bottom of a list when scrolling past the top, or jump to the top of a list when scrolling past the bottom."
             }
         },
         "PresetType": {
