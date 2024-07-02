@@ -155,8 +155,10 @@ namespace YARG.Settings
 
             public ToggleSetting ClapsInStarpower { get; } = new(true);
 
-            // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);
-            // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
+            public ToggleSetting UseWhammyFx { get; } = new(false, UseWhammyFxChange);
+
+            public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
+
             // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
@@ -336,6 +338,8 @@ namespace YARG.Settings
 
             public ToggleSetting ShowAdvancedMusicLibraryOptions { get; } = new(false);
 
+            public ToggleSetting ShowExperimental { get; } = new(false, ShowExperimentalCallback);
+
             #endregion
 
             #region Callbacks
@@ -483,16 +487,16 @@ namespace YARG.Settings
                 HelpBar.Instance.MusicPlayer.UpdateVolume(volume);
             }
 
-            // private static void UseWhammyFxChange(bool value)
-            // {
-            //     AudioManager.UseWhammyFx = value;
-            // }
+            private static void UseWhammyFxChange(bool value)
+            {
+                GlobalAudioHandler.UseWhammyFx = value;
+            }
 
-            // private static void WhammyPitchShiftAmountChange(float value)
-            // {
-            //     AudioManager.WhammyPitchShiftAmount = value;
-            // }
-            //
+            private static void WhammyPitchShiftAmountChange(float value)
+            {
+                GlobalAudioHandler.WhammyPitchShiftAmount = value;
+            }
+
             // private static void WhammyOversampleFactorChange(int value)
             // {
             //     AudioManager.WhammyOversampleFactor = value;
@@ -514,6 +518,20 @@ namespace YARG.Settings
                 }
             }
 
+            private static void ShowExperimentalCallback(bool value)
+            {
+                if (value)
+                {
+                    if (!SettingsManager.AllSettingsTabs.Contains(SettingsManager.ExperimentalTab)) { SettingsManager.AllSettingsTabs.Add(ExperimentalTab); }
+                }
+                else
+                {
+                    SettingsManager.AllSettingsTabs.Remove(SettingsManager.ExperimentalTab);
+                }
+
+                // Refresh settings
+                SettingsMenu.Instance.Refresh();
+            }
             #endregion
         }
     }
