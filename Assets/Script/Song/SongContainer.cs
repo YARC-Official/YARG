@@ -260,6 +260,9 @@ namespace YARG.Song
                 case ScanStage.LoadingSongs:
                     phrase = "Loading songs...";
                     break;
+                case ScanStage.CleaningDuplicates:
+                    phrase = "Cleaning Duplicates...";
+                    break;
                 case ScanStage.Sorting:
                     phrase = "Sorting songs...";
                     break;
