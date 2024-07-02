@@ -1557,6 +1557,25 @@ MonoBehaviour:
     m_Localized: Experimental
     m_Metadata:
       m_Items: []
+  - m_Id: 168311354298281984
+    m_Localized: 'IMPORTANT
+
+
+      These settings are experimental and are not supported.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 168311680216674304
+    m_Localized: Experimental
+    m_Metadata:
+      m_Items: []
+  - m_Id: 168323882030018560
+    m_Localized: Show Experimental Features
+    m_Metadata:
+      m_Items: []
+  - m_Id: 168324186666512384
+    m_Localized: Shows experimental features that are not yet fully supported.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
@@ -13,6 +14,12 @@ namespace YARG.Settings
 {
     public static partial class SettingsManager
     {
+        public static MetadataTab ExperimentalTab = new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
+        {
+            new HeaderMetadata("Other"),
+            // Add experimental settings here
+        };
+
         public static SettingContainer Settings { get; private set; }
 
         public static readonly List<Tab> DisplayedSettingsTabs = new()
@@ -113,11 +120,6 @@ namespace YARG.Settings
                 nameof(Settings.KeepSongInfoVisible)
             },
             new PresetsTab("Presets", icon: "Customization"),
-            new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
-            {
-                new HeaderMetadata("Other"),
-                nameof(Settings.MuteOnMiss),
-            },
             new AllSettingsTab(),
         };
 
@@ -175,7 +177,8 @@ namespace YARG.Settings
             new MetadataTab("Debug", icon: "Debug")
             {
                 nameof(Settings.InputDeviceLogging),
-                nameof(Settings.ShowAdvancedMusicLibraryOptions)
+                nameof(Settings.ShowAdvancedMusicLibraryOptions),
+                nameof(Settings.ShowExperimental),
             }
         };
 
