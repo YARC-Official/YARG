@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
-using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Persistent;
 using YARG.Menu.ProfileInfo;

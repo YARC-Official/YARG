@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Localization;
-using UnityEngine.Localization.Components;
-using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Credits;
 
 namespace YARG.Menu
@@ -41,7 +39,7 @@ namespace YARG.Menu
         [SerializeField]
         private List<SocialInfo> _socialInfos;
         [SerializeField]
-        private LocalizeStringEvent _descriptionText;
+        private TextMeshProUGUI _descriptionText;
 
         private CreditsMenu.Contributor _contributor;
 
@@ -73,25 +71,16 @@ namespace YARG.Menu
             // Description text
             if (_contributor.Contributions is not null)
             {
-                var localized = new LocalizedString
-                {
-                    TableReference = "Main",
-                    TableEntryReference = "Credits.Description"
-                };
-
                 var repos = contributor.Contributions.Keys
-                    .Select(i => LocaleHelper.LocalizeString($"Credits.Description.Repos.{i}"));
+                    .Select(i => Localize.Key("Menu.Credits.Repos", i));
                 var roles = contributor.Contributions.Values
                     .SelectMany(i => i)
                     .Distinct()
-                    .Select(i => LocaleHelper.LocalizeString($"Credits.Description.Roles.{i}"));
+                    .Select(i => Localize.Key("Menu.Credits.Roles", i));
 
-                localized.Arguments = new object[]
-                {
-                    repos, roles
-                };
-
-                _descriptionText.StringReference = localized;
+                _descriptionText.text =
+                    Localize.KeyFormat("Menu.Credits.Description",
+                        Localize.List(repos), Localize.List(roles));
             }
         }
 

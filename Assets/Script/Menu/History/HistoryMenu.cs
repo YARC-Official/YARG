@@ -6,6 +6,7 @@ using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -21,13 +22,13 @@ namespace YARG.Menu.History
 
         private static readonly (string UnlocalizedName, DateTime MinTime)[] _categoryTimes =
         {
-            ("Time.Today",           DateTime.Today              ),
-            ("Time.Yesterday",       DateTime.Today.AddDays(-1)  ),
-            ("Time.ThisWeek",        DateTime.Today.AddDays(-7)  ),
-            ("Time.ThisMonth",       DateTime.Today.AddMonths(-1)),
-            ("Time.LastThreeMonths", DateTime.Today.AddMonths(-3)),
-            ("Time.ThisYear",        DateTime.Today.AddYears(-1) ),
-            ("Time.MoreThanYear",    DateTime.MinValue           ),
+            ("Today",           DateTime.Today              ),
+            ("Yesterday",       DateTime.Today.AddDays(-1)  ),
+            ("ThisWeek",        DateTime.Today.AddDays(-7)  ),
+            ("ThisMonth",       DateTime.Today.AddMonths(-1)),
+            ("LastThreeMonths", DateTime.Today.AddMonths(-3)),
+            ("ThisYear",        DateTime.Today.AddYears(-1) ),
+            ("MoreThanYear",    DateTime.MinValue           ),
         };
 
         protected override int ExtraListViewPadding => 10;
@@ -73,8 +74,8 @@ namespace YARG.Menu.History
                 IMPORTED_REPLAYS_TAB => CreateImportedList(),
 
                 // Return an empty list when the tabs are loading
-                null                 => new List<ViewType>(),
-                _                    => throw new Exception("Unreachable.")
+                null => new List<ViewType>(),
+                _    => throw new Exception("Unreachable.")
             };
         }
 
@@ -84,8 +85,7 @@ namespace YARG.Menu.History
 
             // Add the first category
             int categoryIndex = 0;
-            list.Add(new CategoryViewType(
-                LocaleHelper.LocalizeString(_categoryTimes[0].UnlocalizedName)));
+            list.Add(new CategoryViewType(LocalizeTime(_categoryTimes[0])));
 
             foreach (var record in ScoreContainer.GetAllGameRecords())
             {
@@ -100,7 +100,7 @@ namespace YARG.Menu.History
                 // Create that category
                 if (shouldCreateCategory)
                 {
-                    string text = LocaleHelper.LocalizeString(_categoryTimes[categoryIndex].UnlocalizedName);
+                    string text = LocalizeTime(_categoryTimes[categoryIndex]);
                     list.Add(new CategoryViewType(text));
                 }
 
@@ -108,6 +108,9 @@ namespace YARG.Menu.History
             }
 
             return list;
+
+            static string LocalizeTime((string, DateTime) input) =>
+                Localize.Key("Menu.History.Time", input.Item1);
         }
 
         private List<ViewType> CreateImportedList()

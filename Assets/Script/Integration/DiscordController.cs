@@ -5,10 +5,9 @@ using System.Net.Http;
 using Cysharp.Threading.Tasks;
 using Discord;
 using UnityEngine;
-using UnityEngine.Localization;
 using YARG.Core.Logging;
 using YARG.Core.Song;
-using YARG.Helpers;
+using YARG.Localization;
 
 namespace YARG.Integration
 {
@@ -43,7 +42,7 @@ namespace YARG.Integration
 
         private string _albumUrl;
 
-        private void Start()
+        public void Initialize()
         {
             // Listen to the changing of states
             GameStateFetcher.GameStateChange += OnGameStateChange;
@@ -121,24 +120,16 @@ namespace YARG.Integration
 
             // Localize Discord Rich Presence
 
-            var discordDetails = LocaleHelper.StringReference("Discord.Song.Name");
-            discordDetails.Arguments = new object[]
-            {
-                song.Name, song.Artist
-            };
+            var discordDetails = Localize.KeyFormat("Discord.Song.Name", song.Name, song.Artist);
 
-            LocalizedString discordState;
+            string discordState;
             if (state.Paused)
             {
-                discordState = LocaleHelper.StringReference("Discord.Song.Paused");
+                discordState = Localize.Key("Discord.Song.Paused");
             }
             else
             {
-                discordState = LocaleHelper.StringReference("Discord.Song.Album");
-                discordState.Arguments = new object[]
-                {
-                    song.Album
-                };
+                discordState = Localize.KeyFormat("Discord.Song.Album", song.Album);
             }
 
             // Get activity
@@ -147,10 +138,10 @@ namespace YARG.Integration
                 Assets =
                 {
                     LargeImage = LARGE_ICON_KEY,
-                    LargeText = LocaleHelper.LocalizeString(LARGE_TEXT_KEY)
+                    LargeText = Localize.Key(LARGE_TEXT_KEY)
                 },
-                Details = discordDetails.GetLocalizedString(),
-                State = discordState.GetLocalizedString(),
+                Details = discordDetails,
+                State = discordState,
                 Timestamps =
                 {
                     // If it's paused, don't show the time elapsed
@@ -293,10 +284,10 @@ namespace YARG.Integration
                 {
                     // The image and key are defined in the Discord developer portal
                     LargeImage = LARGE_ICON_KEY,
-                    LargeText = LocaleHelper.LocalizeString(LARGE_TEXT_KEY)
+                    LargeText = Localize.Key(LARGE_TEXT_KEY)
                 },
-                Details = LocaleHelper.LocalizeString("Discord.Default.Details"),
-                State = LocaleHelper.LocalizeString("Discord.Default.State"),
+                Details = Localize.Key("Discord.Default.Details"),
+                State = Localize.Key("Discord.Default.State"),
                 Timestamps =
                 {
                     Start = _gameStartTime

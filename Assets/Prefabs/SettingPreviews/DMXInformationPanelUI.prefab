@@ -88,7 +88,7 @@ GameObject:
   - component: {fileID: 1289118411937813184}
   - component: {fileID: 3960807296820321689}
   - component: {fileID: 4746287313211377603}
-  - component: {fileID: 1405057267075460864}
+  - component: {fileID: 3116780245413428964}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -144,85 +144,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'DMX Cue Change Information:
-
-
-    0 - No cue
-
-    10 - Menu
-
-    20 -
-    Score
-
-    30 - Intro
-
-    40 - Verse
-
-    50 - Chorus
-
-    60 - Cool (loop)
-
-    70
-    - Warm (loop)
-
-    80 - Cool (manual)
-
-    90 - Warm (manual)
-
-    100 - Dischord
-
-    110
-    - Stomp
-
-    120 - Default
-
-    130 - Harmony
-
-    140 - Frenzy
-
-    150 - Silhouettes
-
-    160
-    - Silhouettes Spotlight
-
-    170 - Searchlights
-
-    180 - Sweep
-
-    190 - Strobe
-    (off)
-
-    191 - Strobe (slow)
-
-    192 - Strobe (medium)
-
-    193 - Strobe (fast)
-
-    194
-    - Strobe (fastest)
-
-    200 - Blackout (fast)
-
-    205 - Blackout (slow)
-
-    210
-    - Blackout (spotlight)
-
-    220 - Flare (slow)
-
-    225 - Flare (fast)
-
-    230
-    - Big Rock Ending
-
-    240 - Bonus Effect
-
-    245 - Bonus Effect (optional)
-
-    250
-    - Fog on
-
-    255 - Fog off'
+  m_text: DMX Info Here
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 69b34e9e884c55947b52d9bbbd4258d7, type: 2}
   m_sharedMaterial: {fileID: 4264900350419322127, guid: 69b34e9e884c55947b52d9bbbd4258d7,
@@ -292,7 +214,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &1405057267075460864
+--- !u!114 &3116780245413428964
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -301,37 +223,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 5750021000024668622}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 56eb0353ae6e5124bb35b17aff880f16, type: 3}
+  m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_StringReference:
-    m_TableReference:
-      m_TableCollectionName: GUID:0c40e690d26fdff4a92f0b3813ac68a4
-    m_TableEntryReference:
-      m_KeyId: 126176427112783873
-      m_Key: 
-    m_FallbackState: 0
-    m_WaitForCompletion: 0
-    m_LocalVariables: []
-  m_FormatArguments: []
-  m_UpdateString:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 4746287313211377603}
-        m_TargetAssemblyTypeName: TMPro.TMP_Text, Unity.TextMeshPro
-        m_MethodName: set_text
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 1
-  references:
-    version: 2
-    RefIds: []
+  _localizationKey: Menu.Settings.DMXInfo
 --- !u!1001 &9178402511681709255
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -507,12 +402,12 @@ PrefabInstance:
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e,
         type: 3}
       propertyPath: m_Size
-      value: 0.6542142
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e,
         type: 3}
       propertyPath: m_Value
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}

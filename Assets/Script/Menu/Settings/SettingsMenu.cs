@@ -4,11 +4,11 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Settings.Customization;
@@ -44,9 +44,9 @@ namespace YARG.Menu.Settings
 
         [Space]
         [SerializeField]
-        private LocalizeStringEvent _settingName;
+        private TextMeshProUGUI _settingName;
         [SerializeField]
-        private LocalizeStringEvent _settingDescription;
+        private TextMeshProUGUI _settingDescription;
 
         public Tab CurrentTab { get; private set; }
         public string SearchQuery => _searchBar.text;
@@ -78,7 +78,7 @@ namespace YARG.Menu.Settings
                 {
                     Icon = sprite,
                     Id = tab.Name,
-                    DisplayName = LocaleHelper.LocalizeString("Settings", $"Tab.{tab.Name}")
+                    DisplayName = Localize.Key("Settings.Tab", tab.Name)
                 });
             }
 
@@ -156,8 +156,8 @@ namespace YARG.Menu.Settings
         {
             if (selected == null || CurrentTab == null)
             {
-                _settingName.StringReference = LocaleHelper.EmptyString;
-                _settingDescription.StringReference = LocaleHelper.EmptyString;
+                _settingName.text = string.Empty;
+                _settingDescription.text = string.Empty;
                 return;
             }
 
@@ -166,8 +166,8 @@ namespace YARG.Menu.Settings
             // If we're not selecting a setting (for example, buttons) then skip
             if (settingNav == null)
             {
-                _settingName.StringReference = LocaleHelper.EmptyString;
-                _settingDescription.StringReference = LocaleHelper.EmptyString;
+                _settingName.text = string.Empty;
+                _settingDescription.text = string.Empty;
                 return;
             }
 
@@ -175,19 +175,17 @@ namespace YARG.Menu.Settings
             var unlocalized = settingNav.BaseSettingVisual.UnlocalizedName;
             if (!settingNav.BaseSettingVisual.IsPresetSetting)
             {
-                _settingName.StringReference = LocaleHelper.StringReference("Settings",
-                    $"Setting.{unlocalized}");
-
-                _settingDescription.StringReference = LocaleHelper.StringReference("Settings",
-                    $"Setting.{unlocalized}.Description");
+                _settingName.text =
+                    Localize.Key("Settings.Setting", unlocalized, "Name");
+                _settingDescription.text =
+                    Localize.Key("Settings.Setting", unlocalized, "Description");
             }
             else
             {
-                _settingName.StringReference = LocaleHelper.StringReference("Settings",
-                    $"PresetSetting.{unlocalized}");
-
-                _settingDescription.StringReference = LocaleHelper.StringReference("Settings",
-                    $"PresetSetting.{unlocalized}.Description");
+                _settingName.text =
+                    Localize.Key("Settings.PresetSetting", unlocalized, "Name");
+                _settingDescription.text =
+                    Localize.Key("Settings.PresetSetting", unlocalized, "Description");
             }
         }
 

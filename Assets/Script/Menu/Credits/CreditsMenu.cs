@@ -3,12 +3,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using Newtonsoft.Json;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Credits
@@ -121,8 +122,7 @@ namespace YARG.Menu.Credits
         private void CreateHeader(string unlocalizedName)
         {
             var header = Instantiate(_headerPrefab, _creditsContainer);
-            header.GetComponent<LocalizeStringEvent>().StringReference =
-                LocaleHelper.StringReference($"Credits.Header.{unlocalizedName}");
+            header.GetComponent<TextMeshProUGUI>().text = Localize.Key("Menu.Credits.Header", unlocalizedName);
         }
 
         private void CreateCredits(IEnumerable<Contributor> contributors)

@@ -4,6 +4,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Settings.Metadata;
 
@@ -23,7 +24,7 @@ namespace YARG.Menu.Settings.AllSettings
         {
             _tabName = tab.Name;
 
-            _categoryTitle.text = LocaleHelper.LocalizeString("Settings", $"Tab.{tab.Name}");
+            _categoryTitle.text = Localize.Key("Settings.Tab", tab.Name);
 
             var sprite = Addressables
                 .LoadAssetAsync<Sprite>($"TabIcons[{tab.Icon}]")

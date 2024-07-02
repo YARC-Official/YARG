@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Settings.Metadata;
@@ -56,7 +57,7 @@ namespace YARG.Menu.Settings.AllSettings
 
                     foreach (var unlocalized in unlocalizedSearch)
                     {
-                        var localized = LocaleHelper.LocalizeString("Settings", unlocalized);
+                        var localized = Localize.Key("Settings", unlocalized);
                         if (localized.ToLowerInvariant().Contains(query))
                         {
                             results.Add(new SearchResult

@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.Localization;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Input.Serialization;
@@ -41,14 +39,14 @@ namespace YARG.Input
         public event GameInputProcessed InputProcessed;
 
         /// <summary>
-        /// The name for this binding.
+        /// The unlocalized name for this binding.
         /// </summary>
-        public LocalizedString Name { get; }
-		
+        public string Name { get; }
+
         /// <summary>
-        /// Alternate name for this binding, representing lefty-flip
+        /// The alternate unlocalized name for this binding, representing lefty-flip.
         /// </summary>
-        public LocalizedString NameLefty { get; }
+        public string NameLefty { get; }
 
         /// <summary>
         /// The key string for this binding.
@@ -70,16 +68,20 @@ namespace YARG.Input
         public ControlBinding(string name, int action)
         {
             Key = name;
-            Name = new("Bindings", name);
+
+            Name = name;
             NameLefty = Name;
+
             Action = action;
         }
-		
+
         public ControlBinding(string name, string nameLefty, int action)
         {
             Key = name;
-            Name = new("Bindings", name);
-            NameLefty = new("Bindings", nameLefty);
+
+            Name = name;
+            NameLefty = nameLefty;
+
             Action = action;
         }
 

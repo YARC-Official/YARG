@@ -1,9 +1,9 @@
-using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
-using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Input;
+using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Player;
 
@@ -12,7 +12,7 @@ namespace YARG.Menu.ProfileInfo
     public class BindHeader : MonoBehaviour
     {
         [SerializeField]
-        private LocalizeStringEvent _bindingNameText;
+        private TextMeshProUGUI _bindingNameText;
         [SerializeField]
         private Image _bindingIcon;
 
@@ -38,14 +38,9 @@ namespace YARG.Menu.ProfileInfo
             _player = player;
             _binding = binding;
 
-            if (player.Profile.LeftyFlip)
-            {
-                _bindingNameText.StringReference = binding.NameLefty;
-            }
-            else
-            {
-                _bindingNameText.StringReference = binding.Name;
-            }
+            _bindingNameText.text = Localize.Key("Bindings", player.Profile.LeftyFlip
+                ? binding.NameLefty
+                : binding.Name);
 
             var icons = MenuData.NavigationIcons;
             if (editBindsTab.SelectingMenuBinds && icons.HasIcon((MenuAction) binding.Action))

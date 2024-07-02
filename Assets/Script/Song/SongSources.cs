@@ -148,13 +148,12 @@ namespace YARG.Song
 
         public static async UniTask LoadSources(LoadingContext context)
         {
-            context.SetLoadingText("Loading song sources...");
             if (!GlobalVariables.OfflineMode)
             {
                 await DownloadSources(context);
             }
 
-            context.SetSubText("Reading sources...");
+            context.SetSubText("Reading song sources...");
             ReadSources();
         }
 
@@ -174,6 +173,8 @@ namespace YARG.Song
 
         private static async UniTask DownloadSources(LoadingContext context)
         {
+            context.SetLoadingText("Loading song sources...");
+
             // Create the sources folder if it doesn't exist
             Directory.CreateDirectory(SourcesFolder);
 
@@ -292,11 +293,11 @@ namespace YARG.Song
                     {
                         var parsed = new ParsedSource(source.icon, source.names, source.type switch
                         {
-                            "game" => SourceType.Game,
+                            "game"    => SourceType.Game,
                             "charter" => SourceType.Charter,
-                            "rb" => SourceType.RB,
-                            "gh" => SourceType.GH,
-                            _ => SourceType.Custom
+                            "rb"      => SourceType.RB,
+                            "gh"      => SourceType.GH,
+                            _         => SourceType.Custom
                         });
 
                         foreach (var id in source.ids)
