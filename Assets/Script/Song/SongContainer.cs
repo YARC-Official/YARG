@@ -11,6 +11,7 @@ using YARG.Core.Logging;
 using YARG.Core;
 using YARG.Player;
 using System.Linq;
+using YARG.Localization;
 
 namespace YARG.Song
 {
@@ -88,7 +89,7 @@ namespace YARG.Song
         private static SongCategory[] _sortSongLengths = Array.Empty<SongCategory>();
         private static SongCategory[] _sortDatesAdded = Array.Empty<SongCategory>();
         private static Dictionary<Instrument, SongCategory[]> _sortInstruments = new();
-        
+
         private static SongCategory[] _playables = null;
 
         public static IReadOnlyDictionary<string, List<SongEntry>> Titles => _songCache.Titles;
@@ -147,7 +148,7 @@ namespace YARG.Song
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             SongSources.LoadSprites(context);
         }
-        
+
         public static SongCategory[] GetSortedCategory(SortAttribute sort)
         {
             return sort switch
@@ -309,7 +310,7 @@ namespace YARG.Song
                     _sortDatesAdded[index++] = new(node.Key.ToLongDateString(), node.Value.ToArray());
                 }
             }
-            
+
             _sortInstruments.Clear();
             foreach (var instrument in _songCache.Instruments)
             {
@@ -319,7 +320,9 @@ namespace YARG.Song
                     int index = 0;
                     foreach (var difficulty in instrument.Value)
                     {
-                        arr[index++] = new SongCategory($"{instrument.Key.ToSortAttribute().ToLocalizedName()} [{difficulty.Key}]", difficulty.Value.ToArray());
+                        arr[index++] = new SongCategory(
+                            $"{instrument.Key.ToSortAttribute().ToLocalizedName()} [{difficulty.Key}]",
+                            difficulty.Value.ToArray());
                     }
                     _sortInstruments.Add(instrument.Key, arr);
                 }

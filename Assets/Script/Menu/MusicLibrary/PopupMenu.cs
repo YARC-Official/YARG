@@ -8,6 +8,7 @@ using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings;
