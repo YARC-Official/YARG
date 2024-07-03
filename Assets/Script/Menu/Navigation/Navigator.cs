@@ -1,8 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using YARG.Core.Input;
 using YARG.Input;
 using YARG.Menu.Persistent;
@@ -59,6 +61,18 @@ namespace YARG.Menu.Navigation
             MenuAction.Right,
         };
 
+        private static Keyboard menuKeyboard;
+
+        private static Dictionary<Key, MenuAction> KeyboardMenuActions = new()
+        {
+            { Key.UpArrow, MenuAction.Up },
+            { Key.DownArrow, MenuAction.Down },
+            { Key.LeftArrow, MenuAction.Left },
+            { Key.RightArrow, MenuAction.Right },
+            { Key.Enter, MenuAction.Green },
+            { Key.Escape, MenuAction.Red },
+        };
+
         public class HoldContext
         {
             public readonly NavigationContext Context;
@@ -99,8 +113,34 @@ namespace YARG.Menu.Navigation
                 }
             }
 
-            // TODO: Keyboard inputs for menus
-            // UpdateKeyboardInput();
+            // Process keyboard inputs for menus
+            UpdateKeyboardInput();
+        }
+
+        private void UpdateKeyboardInput()
+        {
+            // Get current keyboard
+            Keyboard keyboard = Keyboard.current;
+
+            // If there is no keyboard, bail
+            if (keyboard == null) { return; }
+
+            // Loop through mapped keys
+            foreach (var map in KeyboardMenuActions)
+            {
+                // Get the key control
+                KeyControl key = keyboard[map.Key];
+
+                // Just pressed or released?
+                if (key.wasPressedThisFrame)
+                {
+                    ProcessKeyboardAction(map.Value, true);
+                }
+                else if (key.wasReleasedThisFrame)
+                {
+                    ProcessKeyboardAction(map.Value, false);
+                }
+            }
         }
 
         private void ProcessInput(YargPlayer player, ref GameInput input)
@@ -123,6 +163,28 @@ namespace YARG.Menu.Navigation
             var context = new NavigationContext(action, player);
 
             if (input.Button)
+            {
+                StartNavigationHold(context);
+            }
+            else
+            {
+                EndNavigationHold(context);
+            }
+        }
+
+        private void ProcessKeyboardAction(MenuAction action, bool down)
+        {
+            // Attempt to get the first player
+            YargPlayer player = PlayerContainer.Players.FirstOrDefault();
+
+            // If no player found, ignore the action
+            if (player == null) { return; }
+
+            // Create the context
+            var context = new NavigationContext(action, player);
+
+            // Process
+            if (down)
             {
                 StartNavigationHold(context);
             }
