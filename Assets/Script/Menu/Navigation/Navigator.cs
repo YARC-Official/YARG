@@ -61,8 +61,6 @@ namespace YARG.Menu.Navigation
             MenuAction.Right,
         };
 
-        private static Keyboard menuKeyboard;
-
         private static Dictionary<Key, MenuAction> KeyboardMenuActions = new()
         {
             { Key.UpArrow, MenuAction.Up },
