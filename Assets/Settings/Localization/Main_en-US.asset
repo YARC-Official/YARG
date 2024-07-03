@@ -498,6 +498,16 @@ MonoBehaviour:
     m_Localized: Five Fret Bass
     m_Metadata:
       m_Items: []
+  - m_Id: 168657087786463232
+    m_Localized: The options about to be displayed represent a work in progress.
+      These features are subject to change, may contain bugs, and <b>could even cause
+      major problems if enabled</b>.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 168657190928592896
+    m_Localized: Experimental Features Notice
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:
