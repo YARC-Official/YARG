@@ -1455,14 +1455,6 @@ MonoBehaviour:
     m_Key: Tab.Experimental
     m_Metadata:
       m_Items: []
-  - m_Id: 168323882030018560
-    m_Key: Setting.ShowExperimental
-    m_Metadata:
-      m_Items: []
-  - m_Id: 168324186666512384
-    m_Key: Setting.ShowExperimental.Description
-    m_Metadata:
-      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

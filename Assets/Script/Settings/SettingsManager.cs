@@ -14,12 +14,6 @@ namespace YARG.Settings
 {
     public static partial class SettingsManager
     {
-        public static MetadataTab ExperimentalTab = new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
-        {
-            new HeaderMetadata("Other"),
-            // Add experimental settings here
-        };
-
         public static SettingContainer Settings { get; private set; }
 
         public static readonly List<Tab> DisplayedSettingsTabs = new()
@@ -178,7 +172,11 @@ namespace YARG.Settings
             {
                 nameof(Settings.InputDeviceLogging),
                 nameof(Settings.ShowAdvancedMusicLibraryOptions),
-                nameof(Settings.ShowExperimental),
+            },
+            new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
+            {
+                new HeaderMetadata("Other"),
+                // Add experimental settings here
             }
         };
 
