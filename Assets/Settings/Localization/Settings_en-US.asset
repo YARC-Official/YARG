@@ -1014,7 +1014,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 116747023328600181
-    m_Localized: Whammy Pitch Shift Amount (semitones)
+    m_Localized: Whammy Pitch Shift Amount
     m_Metadata:
       m_Items: []
   - m_Id: 116831000492105728
@@ -1570,6 +1570,19 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 168311680216674304
     m_Localized: Experimental
+    m_Metadata:
+      m_Items: []
+  - m_Id: 168660976258592768
+    m_Localized: 'Enables pitch bending in response to the whammy bar on multi-track
+      charts.
+
+      WARNING: This setting is known to cause audio desync issues
+      on some machines.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 168661400818626560
+    m_Localized: How may semitones the pich is changed by the whammy bar when Whammy
+      FX is enabled.
     m_Metadata:
       m_Items: []
   references:
