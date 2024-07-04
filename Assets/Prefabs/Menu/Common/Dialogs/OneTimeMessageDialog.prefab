@@ -149,7 +149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _localizationKey: Dialog.DontShowAgain
+  _localizationKey: Menu.Dialog.DontShowAgain
 --- !u!1 &6146482610593487514
 GameObject:
   m_ObjectHideFlags: 0
