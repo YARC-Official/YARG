@@ -37,6 +37,7 @@ namespace YARG.Settings
 
             public bool ShowAntiPiracyDialog = true;
             public bool ShowEngineInconsistencyDialog = true;
+            public bool ShowExperimentalWarningDialog = true;
             public SortAttribute LibrarySort = SortAttribute.Name;
 
             #endregion
@@ -513,7 +514,6 @@ namespace YARG.Settings
                         item2: device.description.ToJson());
                 }
             }
-
             #endregion
         }
     }
