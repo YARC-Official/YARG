@@ -135,6 +135,10 @@
                 "Title": "Replays Are In Beta",
                 "Description": "Currently, the replay system is in beta, <b>and <i>may</i> provide inconsistent scores/stats</b>, especially for guitar.\n\nThe end goal is for replays to be reliable and accurate, and we're working on fixing these problems!"
             },
+            "Experimental": {
+                "Title": "Experimental Features Notice",
+                "Description": "The options about to be displayed represent a work in progress. These features are subject to change, may contain bugs, and <b>could even cause major problems if enabled</b>."
+            },
             "BadSongs": {
                 "Title": "Some Songs Could Not Be Scanned",
                 "Description": "One or more of the songs you scanned were corrupted, formatted incorrectly, or encrypted, and <b>could not be loaded into the game.</b>\n\nFor more info, please check the file located at \"{0}\"."
@@ -202,6 +206,11 @@
             "DMXInfo": "DMX cue change and post-processing channel values:\n\n<b>Cue Change:</b>\n\n0 - No cue\n10 - Menu\n20 - Score\n30 - Intro\n40 - Verse\n50 - Chorus\n60 - Cool (loop)\n70 - Warm (loop)\n80 - Cool (manual)\n90 - Warm (manual)\n100 - Dischord\n110 - Stomp\n120 - Default\n130 - Harmony\n140 - Frenzy\n150 - Silhouettes\n160 - Silhouettes Spotlight\n170 - Searchlights\n180 - Sweep\n190 - Blackout (fast)\n200 - Blackout (slow)\n210 - Blackout (spotlight)\n220 - Flare (slow)\n230 - Flare (fast)\n240 - Big Rock Ending\n\nFor Strobe and Fog status listen to their respective channels.\n\n<b>Post-Processing:</b>\n\n0 - Default\r\n\nBasic effects\r\n4 - Bloom\n14 - Bright\n24 - Contrast\n34 - Mirror\n44 - PhotoNegative\n54 - Posterize\n\n\rColor filters/effects\r\n64 - Black And White\n74 - Sepia Tone\n84 - Silver Tone\n94 - Choppy Black And White\n104 - Photo Negative Red And Black\n114 - Polarized Black And White\n124 - Polarized Red And Blue\n134 - Desaturated Red\n144 - Desaturated Blue\n154 - Contrast Red\n164 - Contrast Green\n174 - Contrast Blue\n\r\nGrainy\r\n184 - Grainy Film\n194 - Grainy Chromatic Abberation\n\nScanlines\r\n204 - Scanlines\n214 - Scanlines Black And White\n224 - Scanlines Blue\n234 - Scanlines Security\n\r\nTrails\r\n244 - Trails\n252 - Trails Long\n253 - Trails Desaturated\n254 - Trails Flickery\n255 - Trails Spacey\n\nSee YARG docs for more information: https://docs.yarg.in/en/DMX"
         }
     },
+	"Preview": {
+		"Experimental": {
+			"Notice": "IMPORTANT\n\nThese settings represent a work in progress. They are subject to change, may contain bugs, and could even cause major problems if enabled."
+		}
+	},		
     "Discord": {
         "Default": {
             "Details": "Hello there ladies and gentlemen!",
@@ -281,7 +290,8 @@
             "AllSettings": "All Settings",
             "LightingPeripherals": "Lighting Peripherals",
             "Debug": "Debug and Developer",
-            "FileManagement": "File Management"
+            "FileManagement": "File Management",
+            "Experimental": "Experimental"
         },
         "Header": {
             "Other": "Other",
@@ -309,7 +319,8 @@
             "StageKitDMXChannels": "Basic DMX Channels",
             "AdvancedDMXChannels": "Advanced DMX Channels",
             "StatusBar": "Status Bar",
-            "AdvancedDMXSettings": "Advanced sACN and DMX settings"
+            "AdvancedDMXSettings": "Advanced sACN and DMX settings",
+			"Experimental": "Experimental"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
