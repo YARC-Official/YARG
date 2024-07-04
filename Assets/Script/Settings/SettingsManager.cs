@@ -140,7 +140,6 @@ namespace YARG.Settings
                 nameof(Settings.StageKitEnabled),
                 nameof(Settings.DMXEnabled),
                 nameof(Settings.RB3EEnabled),
-                new HeaderMetadata("DMXChannels"),
                 new HeaderMetadata("StageKitDMXChannels"),
                 nameof(Settings.DMXDimmerChannels),
                 nameof(Settings.DMXRedChannels),
