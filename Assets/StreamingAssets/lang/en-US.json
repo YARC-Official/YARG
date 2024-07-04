@@ -597,6 +597,14 @@
                     "On": "On"
                 }
             },
+			"UseWhammyFx": {
+                "Name": "Use Whammy Fx",
+                "Description": "Enables pitch bending in response to the whammy bar on multi-track charts.\nWARNING: This setting is known to cause audio desync issues on some machines."
+            },
+			"WhammyPitchShiftAmount": {
+                "Name": "Whammy Pitch Shift Amount",
+                "Description": "How may semitones the pitch is changed by the whammy bar when Whammy FX is enabled."
+            },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",
                 "Description": "Video calibration in milliseconds. Use the calibrator to automatically calibrate. This accounts for delays between the game's processing and the actual frame being displayed."
