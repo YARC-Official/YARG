@@ -115,7 +115,7 @@ GameObject:
   - component: {fileID: 8124324986922665410}
   - component: {fileID: 8637772938993654591}
   - component: {fileID: 1491268721235881793}
-  - component: {fileID: 3637697411471211734}
+  - component: {fileID: 2599054674204460554}
   m_Layer: 5
   m_Name: Min Label
   m_TagString: Untagged
@@ -241,7 +241,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &3637697411471211734
+--- !u!114 &2599054674204460554
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -250,37 +250,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 4857200117910134837}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 56eb0353ae6e5124bb35b17aff880f16, type: 3}
+  m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_StringReference:
-    m_TableReference:
-      m_TableCollectionName: 
-    m_TableEntryReference:
-      m_KeyId: 0
-      m_Key: 
-    m_FallbackState: 0
-    m_WaitForCompletion: 0
-    m_LocalVariables: []
-  m_FormatArguments: []
-  m_UpdateString:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1491268721235881793}
-        m_TargetAssemblyTypeName: TMPro.TMP_Text, Unity.TextMeshPro
-        m_MethodName: set_text
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 1
-  references:
-    version: 2
-    RefIds: []
+  _localizationKey: Menu.Common.Min
 --- !u!1 &5528601114812922408
 GameObject:
   m_ObjectHideFlags: 0
@@ -292,7 +265,7 @@ GameObject:
   - component: {fileID: 478853891760684521}
   - component: {fileID: 6181046290428861872}
   - component: {fileID: 7931062316730460470}
-  - component: {fileID: 9113920353801149348}
+  - component: {fileID: 6533754131402293715}
   m_Layer: 5
   m_Name: Max Label
   m_TagString: Untagged
@@ -420,7 +393,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &9113920353801149348
+--- !u!114 &6533754131402293715
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -429,37 +402,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 5528601114812922408}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 56eb0353ae6e5124bb35b17aff880f16, type: 3}
+  m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_StringReference:
-    m_TableReference:
-      m_TableCollectionName: 
-    m_TableEntryReference:
-      m_KeyId: 0
-      m_Key: 
-    m_FallbackState: 0
-    m_WaitForCompletion: 0
-    m_LocalVariables: []
-  m_FormatArguments: []
-  m_UpdateString:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 7931062316730460470}
-        m_TargetAssemblyTypeName: TMPro.TMP_Text, Unity.TextMeshPro
-        m_MethodName: set_text
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 1
-  references:
-    version: 2
-    RefIds: []
+  _localizationKey: Menu.Common.Max
 --- !u!1001 &6609846725191865157
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -760,16 +706,16 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 8095148824242519626}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1727629268779748808 stripped
+--- !u!114 &3424729177075475668 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7471044473863680898, guid: 6f46741e648c07044852bd3391146600,
+  m_CorrespondingSourceObject: {fileID: 6904207334484646558, guid: 6f46741e648c07044852bd3391146600,
     type: 3}
   m_PrefabInstance: {fileID: 8095148824242519626}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 56eb0353ae6e5124bb35b17aff880f16, type: 3}
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &5552788490976803366 stripped
@@ -790,7 +736,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c863e6bd874f23967707465de4982f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _settingLabel: {fileID: 1727629268779748808}
+  _settingLabel: {fileID: 3424729177075475668}
   _dynamicContainer: {fileID: 1586354057203421423}
   _constantContainer: {fileID: 3525017439092179544}
   _minField: {fileID: 6364425538196112323}

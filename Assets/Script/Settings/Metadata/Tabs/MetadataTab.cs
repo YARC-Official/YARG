@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Localization.Components;
-using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings;
 using YARG.Menu.Settings.Visuals;
@@ -48,8 +48,8 @@ namespace YARG.Settings.Metadata
                         var go = Object.Instantiate(_headerPrefab, container);
 
                         // Set header text
-                        go.GetComponentInChildren<LocalizeStringEvent>().StringReference =
-                            LocaleHelper.StringReference("Settings", $"Header.{header.HeaderName}");
+                        go.GetComponentInChildren<TextMeshProUGUI>().text =
+                            Localize.Key("Settings.Header", header.HeaderName);
 
                         break;
                     }
@@ -69,9 +69,9 @@ namespace YARG.Settings.Metadata
                         // Spawn in the header
                         var go = Object.Instantiate(_textPrefab, container);
 
-                        // Set header text
-                        go.GetComponentInChildren<LocalizeStringEvent>().StringReference =
-                            LocaleHelper.StringReference("Settings", $"Text.{text.TextName}");
+                        // Set text
+                        go.GetComponentInChildren<TextMeshProUGUI>().text =
+                            Localize.Key("Settings.Text", text.TextName);
 
                         break;
                     }
