@@ -1614,6 +1614,7 @@ GameObject:
   - component: {fileID: 8733125285427422970}
   - component: {fileID: 5996904840843101175}
   - component: {fileID: 7910092472239420805}
+  - component: {fileID: 6247545141803290862}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -1739,6 +1740,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6247545141803290862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4609317623463205444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _localizationKey: Menu.MusicLibrary.NoPlayersConnected
 --- !u!1 &4791293875459792403
 GameObject:
   m_ObjectHideFlags: 0
@@ -2188,6 +2202,7 @@ GameObject:
   - component: {fileID: 5958352450031262970}
   - component: {fileID: 5958352450031262968}
   - component: {fileID: 5958352450031262971}
+  - component: {fileID: 9160312207685136423}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -2313,6 +2328,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &9160312207685136423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5958352450031262973}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _localizationKey: Menu.MusicLibrary.Play
 --- !u!1 &5958352450052564040
 GameObject:
   m_ObjectHideFlags: 0
@@ -6676,6 +6704,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &2758241085958610250 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4335449790031718181, guid: fbe721481a76d3340871db2a026bbbcb,
+    type: 3}
+  m_PrefabInstance: {fileID: 1904355489019509359}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5932642924664070186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2758241085958610250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _localizationKey: Menu.MusicLibrary.Name
 --- !u!224 &3796999312435110669 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3376582597907470690, guid: fbe721481a76d3340871db2a026bbbcb,

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Persistent;
 using YARG.Replays;
 using YARG.Scores;
@@ -88,8 +86,8 @@ namespace YARG.Menu.History
             if (SettingsManager.Settings.ShowEngineInconsistencyDialog)
             {
                 var dialog = DialogManager.Instance.ShowOneTimeMessage(
-                    LocaleHelper.LocalizeString("Dialogs.EngineInconsistency.Title"),
-                    LocaleHelper.LocalizeString("Dialogs.EngineInconsistency"),
+                    Localize.Key("Menu.Dialog.EngineInconsistency.Title"),
+                    Localize.Key("Menu.Dialog.EngineInconsistency.Description"),
                     () =>
                     {
                         SettingsManager.Settings.ShowEngineInconsistencyDialog = false;

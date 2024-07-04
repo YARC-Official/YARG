@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using YARG.Core;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
 using YARG.Settings.Preview;
@@ -40,8 +41,8 @@ namespace YARG.Settings.Metadata
             if (!_experimentalDialogShown && SettingsManager.Settings.ShowExperimentalWarningDialog)
             {
                 DialogManager.Instance.ShowOneTimeMessage(
-                    LocaleHelper.LocalizeString("Dialogs.Experimental.Title"),
-                    LocaleHelper.LocalizeString("Dialogs.Experimental"),
+                    Localize.Key("Menu.Dialog.Experimental.Title"),
+                    Localize.Key("Menu.Dialog.Experimental.Description"),
                     () =>
                     {
                         SettingsManager.Settings.ShowExperimentalWarningDialog = false;

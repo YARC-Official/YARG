@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using YARG.Core.Input;
-using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Settings.Types;
 
@@ -22,10 +22,8 @@ namespace YARG.Menu.Settings.Visuals
                 if (Setting.Localizable)
                 {
                     valueString = !IsPresetSetting
-                        ? LocaleHelper.LocalizeString("Settings",
-                            $"Dropdown.{UnlocalizedName}.{valueString}")
-                        : LocaleHelper.LocalizeString("Settings",
-                            $"PresetDropdown.{UnlocalizedName}.{valueString}");
+                        ? Localize.Key("Settings.Setting", UnlocalizedName, "Dropdown", valueString)
+                        : Localize.Key("Settings.PresetSetting", UnlocalizedName, "Dropdown", valueString);
                 }
 
                 _dropdown.options.Add(new(valueString));
