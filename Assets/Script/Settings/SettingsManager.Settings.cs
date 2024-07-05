@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
@@ -37,6 +35,8 @@ namespace YARG.Settings
 
             public bool ShowAntiPiracyDialog = true;
             public bool ShowEngineInconsistencyDialog = true;
+            public bool ShowExperimentalWarningDialog = true;
+
             public SortAttribute LibrarySort = SortAttribute.Name;
 
             public Dictionary<string, HUDPositionProfile> HUDPositionProfiles = new();
@@ -515,7 +515,6 @@ namespace YARG.Settings
                         item2: device.description.ToJson());
                 }
             }
-
             #endregion
         }
     }

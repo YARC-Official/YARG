@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Settings;
 using YARG.Song;
 
@@ -12,10 +13,9 @@ namespace YARG.Menu.Settings
         private static List<string> SongFolders => SettingsManager.Settings.SongFolders;
 
         [SerializeField]
-        private TextMeshProUGUI pathText;
-
+        private TextMeshProUGUI _pathText;
         [SerializeField]
-        private TextMeshProUGUI songCountText;
+        private TextMeshProUGUI _songCountText;
 
         private int _index;
 
@@ -29,25 +29,29 @@ namespace YARG.Menu.Settings
         {
             if (string.IsNullOrEmpty(SongFolders[_index]))
             {
-                pathText.text = "<i>No Folder</i>";
-                songCountText.text = "";
+                _pathText.text = Localize.Key("Menu.Settings.NoFolder");
+                _songCountText.text = string.Empty;
             }
             else
             {
-                pathText.text = SongFolders[_index];
+                _pathText.text = SongFolders[_index];
 
                 int songCount = 0;
                 foreach (var song in SongContainer.Songs)
+                {
                     if (song.Directory.StartsWith(SongFolders[_index]))
-                        ++songCount;
+                    {
+                        songCount++;
+                    }
+                }
 
                 if (songCount == 0)
                 {
-                    songCountText.text = "<alpha=#60>SCAN NEEDED";
+                    _songCountText.text = Localize.Key("Menu.Settings.ScanNeeded");
                 }
                 else
                 {
-                    songCountText.text = $"{songCount} <alpha=#60>SONGS";
+                    _songCountText.text = Localize.KeyFormat("Menu.Settings.SongCount", songCount);
                 }
             }
         }

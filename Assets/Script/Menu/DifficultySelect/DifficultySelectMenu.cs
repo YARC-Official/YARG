@@ -12,8 +12,8 @@ using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Core.Utility;
-using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -171,13 +171,15 @@ namespace YARG.Menu.DifficultySelect
             // Only show all these options if there are instruments available
             if (_possibleInstruments.Count > 0)
             {
-                CreateItem("Instrument", player.Profile.CurrentInstrument.ToLocalizedName(), _lastMenuState == State.Instrument, () =>
+                CreateItem("Instrument", player.Profile.CurrentInstrument.ToLocalizedName(),
+                    _lastMenuState == State.Instrument, () =>
                 {
                     _menuState = State.Instrument;
                     UpdateForPlayer();
                 });
 
-                CreateItem("Difficulty", player.Profile.CurrentDifficulty.ToLocalizedName(), _lastMenuState == State.Difficulty, () =>
+                CreateItem("Difficulty", player.Profile.CurrentDifficulty.ToLocalizedName(),
+                    _lastMenuState == State.Difficulty, () =>
                 {
                     _menuState = State.Difficulty;
                     UpdateForPlayer();
@@ -186,7 +188,8 @@ namespace YARG.Menu.DifficultySelect
                 // Harmony players must pick their harmony index
                 if (player.Profile.CurrentInstrument == Instrument.Harmony)
                 {
-                    CreateItem("Harmony", (player.Profile.HarmonyIndex + 1).ToString(), _lastMenuState == State.Harmony, () =>
+                    CreateItem("Harmony", (player.Profile.HarmonyIndex + 1).ToString(),
+                        _lastMenuState == State.Harmony, () =>
                     {
                         _menuState = State.Harmony;
                         UpdateForPlayer();

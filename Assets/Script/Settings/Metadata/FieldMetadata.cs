@@ -8,7 +8,7 @@ namespace YARG.Settings.Metadata
 
         public FieldMetadata(string fieldName)
         {
-            UnlocalizedSearchNames = new[] { $"Setting.{fieldName}" };
+            UnlocalizedSearchNames = new[] { $"Setting.{fieldName}.Name" };
             FieldName = fieldName;
         }
     }
