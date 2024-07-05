@@ -285,9 +285,3 @@ namespace YARG.Integration
         }
     }
 }
-
-/*
-    "I hope that after I die, people will say of me: 'That guy sure owed me a lot of money.'"
-
-    - Jack Handey.
-*/

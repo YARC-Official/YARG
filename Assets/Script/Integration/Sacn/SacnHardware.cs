@@ -143,9 +143,3 @@ namespace YARG.Integration.Sacn
         }
     }
 }
-
-/*
-    "If you ever drop your keys into a river of molten lava, let'em go...because man, they're gone.'
-
-    - Jack Handey.
-*/

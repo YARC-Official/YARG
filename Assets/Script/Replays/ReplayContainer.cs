@@ -185,7 +185,7 @@ namespace YARG.Replays
                         BandScore = reader.ReadInt32(),
                         BandStars = (StarAmount) reader.ReadByte(),
                         Date = DateTime.FromBinary(reader.ReadInt64()),
-                        SongChecksum = HashWrapper.Deserialize(reader),
+                        SongChecksum = HashWrapper.Deserialize(reader.BaseStream),
                         PlayerCount = reader.ReadInt32()
                     };
 

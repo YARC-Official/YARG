@@ -281,9 +281,3 @@ namespace YARG.Integration
         }
     }
 }
-
-/*
-"Dad always thought laughter was the best medicine, which I guess is why several of us died of tuberculosis."
-
-    -Jack Handey.
-*/

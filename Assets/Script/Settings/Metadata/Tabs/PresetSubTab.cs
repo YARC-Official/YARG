@@ -1,7 +1,7 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Localization.Components;
-using YARG.Helpers;
+using YARG.Localization;
 using YARG.Settings.Customization;
 
 namespace YARG.Settings.Metadata
@@ -28,8 +28,8 @@ namespace YARG.Settings.Metadata
             var go = Object.Instantiate(_headerPrefab, container);
 
             // Set header text
-            go.GetComponentInChildren<LocalizeStringEvent>().StringReference =
-                LocaleHelper.StringReference("Settings", $"Header.{unlocalizedText}");
+            go.GetComponentInChildren<TextMeshProUGUI>().text =
+                Localize.Key("Settings.Header", unlocalizedText);
         }
     }
 }

@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
 
@@ -24,7 +25,7 @@ namespace YARG.Menu.Settings
             _dropdown.options.Clear();
             foreach (var type in presetTypes)
             {
-                var name = LocaleHelper.LocalizeString("Settings", $"PresetType.{type.GetType().Name}");
+                var name = Localize.Key("Settings.PresetType", type.GetType().Name);
                 _dropdown.options.Add(new(name));
             }
 

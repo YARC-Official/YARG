@@ -55,10 +55,9 @@ namespace YARG.Gameplay.Visuals
         public void SetPressed(bool pressed)
         {
             float value = pressed ? 1f : 0f;
-
-            foreach (var i in _innerMaterials)
+            foreach (var material in _innerMaterials)
             {
-                i.SetFloat(_fade, value);
+                material.SetFloat(_fade, value);
             }
 
             if (_hasPressedParam)
