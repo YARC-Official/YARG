@@ -210,7 +210,7 @@
 		"Experimental": {
 			"Notice": "IMPORTANT\n\nThese settings represent a work in progress. They are subject to change, may contain bugs, and could even cause major problems if enabled."
 		}
-	},		
+	},
     "Discord": {
         "Default": {
             "Details": "Hello there ladies and gentlemen!",
@@ -701,6 +701,10 @@
                 "Name": "DMX Master Dimmer Values",
                 "Description": "These are the respective values that the Master Dimmer channels will be set to when YARG starts."
             },
+            "UpcomingLyricsTime": {
+                "Name": "Upcoming Lyrics Lead Time",
+                "Description": "The time in seconds prior to an upcoming lyric that it will appear on screen. Upcoming lyrics will always appear if the time between the current and upcoming lyrics is smaller than this value."
+            },
             "WrapAroundNavigation": {
                 "Name": "Wrap-Around Navigation",
                 "Description": "Allow menus to jump to the bottom of a list when scrolling past the top, or jump to the top of a list when scrolling past the bottom."
@@ -743,12 +747,13 @@
                 }
             },
             "ColorProfile": {
-                "Instrument": {
+                "SubSection": {
                     "Name": "Instrument",
                     "Dropdown": {
                         "FiveFretGuitar": "Five Fret Guitar",
                         "FiveLaneDrums": "Five Lane Drums",
-                        "FourLaneDrums": "Four Lane Drums"
+                        "FourLaneDrums": "Four Lane Drums",
+                        "ProKeys": "Pro Keys"
                     }
                 },
                 "ActivationNote": {
@@ -924,12 +929,13 @@
                 }
             },
             "EnginePreset": {
-                "GameMode": {
+                "SubSection": {
                     "Name": "Game Mode",
                     "Dropdown": {
-                        "DrumsPreset": "Drums (4 and 5 lane)",
-                        "FiveFretGuitarPreset": "Five Fret Guitar",
-                        "VocalsPreset": "Vocals"
+                        "Drums": "Drums (4 and 5 lane)",
+                        "FiveFretGuitar": "Five Fret Guitar",
+                        "Vocals": "Vocals",
+                        "ProKeys": "Pro Keys"
                     }
                 },
                 "AntiGhosting": {
@@ -979,21 +985,45 @@
                     "Name": "Strum Leniency (No Notes)",
                     "Description": "The amount of time a note can be strummed before it enters the hit window and it still receive the strum. Strumming earlier than this will cause an overstrum."
                 },
-                "WindowSizeE": {
+                "PitchWindowE": {
                     "Name": "Window Size (Easy)",
                     "Description": "Size of the pitch leniency window (in semitones); in other words, how off-pitch the player can sing, and the game will still detect as a correct note, in the Easy difficulty."
                 },
-                "WindowSizeH": {
+                "PitchWindowH": {
                     "Name": "Window Size (Hard)",
                     "Description": "Size of the pitch leniency window (in semitones); in other words, how off-pitch the player can sing, and the game will still detect as a correct note, in the Hard difficulty."
                 },
-                "WindowSizeM": {
+                "PitchWindowM": {
                     "Name": "Window Size (Medium)",
                     "Description": "Size of the pitch leniency window (in semitones); in other words, how off-pitch the player can sing, and the game will still detect as a correct note, in the Medium difficulty."
                 },
-                "WindowSizeX": {
+                "PitchWindowX": {
                     "Name": "Window Size (Expert)",
                     "Description": "Size of the pitch leniency window (in semitones); in other words, how off-pitch the player can sing, and the game will still detect as a correct note, in the Expert difficulty."
+                },
+                "PercussionHitWindow": {
+                    "Name": "Percussion Hit Window"
+                },
+                "ChordStaggerWindow": {
+                    "Name": "Chord Stagger Window"
+                },
+                "FatFingerWindow": {
+                    "Name": "Fat Finger Window"
+                },
+                "DynamicScale": {
+                    "Name": "Dynamic Window Scale",
+                    "Description": "The factor used to scale the distance between the notes before the dynamic hit window size is calculated."
+                },
+                "DynamicSlope": {
+                    "Name": "Dynamic Window Slope",
+                    "Description": "Affects how fast the dynamic hit window itself shrinks."
+                },
+                "DynamicGamma": {
+                    "Name": "Dynamic Window Gamma",
+                    "Description": "Biases the dynamic hit window one way or another. Values below 1 gives, on average, a looser window."
+                },
+                "PerfectPitchPercent": {
+                    "Name": "Perfect Pitch Percent"
                 }
             }
         }
