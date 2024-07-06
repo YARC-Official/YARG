@@ -401,14 +401,6 @@ namespace YARG.Menu.MusicLibrary
 
             if (SelectedPlaylist is null)
             {
-                // If there's no playlist selected...
-                if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
-                {
-                    if (PlayerContainer.Players.Count == 0)
-                    {
-                        SettingsManager.Settings.LibrarySort = SortAttribute.Name;
-                    }
-                }
                 _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
                 _searchField.gameObject.SetActive(true);
             }
