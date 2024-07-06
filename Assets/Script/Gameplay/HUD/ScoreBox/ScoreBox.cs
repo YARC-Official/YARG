@@ -67,7 +67,7 @@ namespace YARG.Gameplay.HUD
 
         protected override void OnSongStarted()
         {
-            var timeSpan = TimeSpan.FromSeconds(GameManager.SongLength);
+            var timeSpan = TimeSpan.FromSeconds(GameManager.SongLength / GameManager.SongSpeed);
 
             _songHasHours = timeSpan.TotalHours >= 1.0;
             _timeFormat = _songHasHours ? TIME_FORMAT_HOURS : TIME_FORMAT;
@@ -106,18 +106,19 @@ namespace YARG.Gameplay.HUD
             }
 
             // Update song progress
-            double time = Math.Clamp(GameManager.SongTime, 0f, GameManager.SongLength);
+            double length = GameManager.SongLength / GameManager.SongSpeed;
+            double time = Math.Clamp(GameManager.SongTime / GameManager.SongSpeed, 0f, length);
 
             if (SettingsManager.Settings.GraphicalProgressOnScoreBox.Value)
             {
-                _songProgressBar.SetProgress((float) (time / GameManager.SongLength));
+                _songProgressBar.SetProgress((float) (time / length));
             }
 
             // Skip if the song length has not been established yet, or if disabled
             if (_songLengthTime == null) return;
 
             var countUp = TimeSpan.FromSeconds(time);
-            var countDown = TimeSpan.FromSeconds(GameManager.SongLength - time);
+            var countDown = TimeSpan.FromSeconds(length - time);
 
             _songTimer.SetTextFormat(_timeFormat, countUp, countDown, _songLengthTime);
         }
