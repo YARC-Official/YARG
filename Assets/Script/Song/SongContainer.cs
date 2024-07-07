@@ -195,11 +195,6 @@ namespace YARG.Song
             return _sortInstruments[instrument].Length > 0;
         }
 
-        public static void ResetPlayableSongs()
-        {
-            _playables = null;
-        }
-
         private static HashSet<Instrument> _instruments = null;
         private static SongCategory[] GetPlayableSongs()
         {
@@ -209,7 +204,7 @@ namespace YARG.Song
                 instruments.Add(player.Profile.CurrentInstrument);
             }
 
-            if (_instruments == null || !_instruments.SetEquals(instruments))
+            if (_playables == null || !_instruments.SetEquals(instruments))
             {
                 _instruments = instruments;
                 if (instruments.Count == 0)
