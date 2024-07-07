@@ -183,9 +183,6 @@ namespace YARG.Menu.MusicLibrary
                 if (sort == SortAttribute.Unspecified)
                     continue;
 
-                if (sort == SortAttribute.Playable && PlayerContainer.Players.Count == 0)
-                    continue;
-
                 if (sort >= SortAttribute.Instrument)
                     break;
 

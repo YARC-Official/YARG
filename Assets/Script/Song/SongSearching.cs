@@ -74,9 +74,7 @@ namespace YARG.Song
             {
                 searches.Clear();
                 _sort = sort;
-                _baseList = sort != SortAttribute.Playable
-                    ? SongContainer.GetSortedCategory(sort)
-                    : SongContainer.GetPlayableSongs(PlayerContainer.Players);
+                _baseList = SongContainer.GetSortedCategory(sort);
             }
 
             while (filterIndex < filters.Count)
