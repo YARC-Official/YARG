@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
@@ -10,7 +11,7 @@ using YARG.Song;
 namespace YARG.Menu.MusicLibrary
 {
     // TODO: This should probably be redone, but I'm waiting until we refactor how the icons work
-    public class DifficultyRing : MonoBehaviour
+    public class DifficultyRing : MonoBehaviour, IPointerClickHandler
     {
         [FormerlySerializedAs("instrumentIcon")]
         [SerializeField]
@@ -24,14 +25,13 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private Sprite[] _ringSprites;
 
-        private Button _searchButton;
         private SongSearchingField _songSearchingField;
         private Instrument _instrument;
         private int _intensity;
+        private bool _active;
 
         private void Awake()
         {
-            _searchButton = GetComponent<Button>();
             _songSearchingField = FindObjectOfType<SongSearchingField>();
         }
 
@@ -46,41 +46,43 @@ namespace YARG.Menu.MusicLibrary
             if (values.SubTracks == 0)
             {
                 values.Intensity = -1;
+                _active = false;
             }
-            else if (values.Intensity < 0)
+            else
             {
-                values.Intensity = 0;
-            }
-            else if (values.Intensity > 6)
-            {
-                values.Intensity = 6;
+                _active = true;
+                if (values.Intensity < 0)
+                {
+                    values.Intensity = 0;
+                }
+                else if (values.Intensity > 6)
+                {
+                    values.Intensity = 6;
+                }
             }
 
             // Set ring sprite
-            int index = values.Intensity + 1;
-            _ringSprite.sprite = _ringSprites[index];
+            _ringSprite.sprite = _ringSprites[values.Intensity + 1];
 
             // Set instrument opacity
-            Color color = _instrumentIcon.color;
+            var color = _instrumentIcon.color;
             color.a = values.Intensity > -1 ? 1f : 0.2f;
             _instrumentIcon.color = color;
+        }
 
-            // Set search filter by instrument
-            _searchButton.onClick.RemoveAllListeners();
-            if (values.SubTracks > 0)
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (_active)
             {
-                _searchButton.onClick.AddListener(SearchFilter);
+                if (eventData.button == PointerEventData.InputButton.Right)
+                {
+                    _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"\"{_intensity}\"");
+                }
+                else if (eventData.button == PointerEventData.InputButton.Left)
+                {
+                    _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"");
+                }
             }
-        }
-
-        private void SearchFilter()
-        {
-            _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"\"{_intensity}\"");
-        }
-
-        private void OnDestroy()
-        {
-            _searchButton.onClick.RemoveAllListeners();
         }
     }
 }

@@ -240,7 +240,7 @@ namespace YARG.Song
                 {
                     SearchMode mode;
                     (argument, mode) = ParseArgument(argument);
-                    if (argument.Length > 0)
+                    if (argument.Length > 0 || attribute > SortAttribute.Instrument)
                     {
                         filters.Add(new FilterNode(attribute, mode, argument));
                     }
