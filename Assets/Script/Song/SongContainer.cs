@@ -218,30 +218,58 @@ namespace YARG.Song
                 }
                 else
                 {
-                    var gamemodes = PlayerContainer.Players.Select(player => player.Profile.GameMode).Distinct();
-                    IEnumerable<SongEntry> queries = null;
-                    foreach (var gamemode in gamemodes)
+                    var gamemodes = new HashSet<GameMode>();
+                    var queries = default(HashSet<SongEntry>);
+                    foreach (var player in PlayerContainer.Players)
                     {
-                        var list = gamemode.PossibleInstruments()
-                            .SelectMany(instrument => _songCache.Instruments[instrument])
-                            .SelectMany(group => group.Value)
-                            .Distinct();
+                        if (!gamemodes.Add(player.Profile.GameMode))
+                        {
+                            continue;
+                        }
 
-                        queries = queries == null ? list : queries.Intersect(list);
+                        var set = new HashSet<SongEntry>();
+                        foreach (var ins in player.Profile.GameMode.PossibleInstruments())
+                        {
+                            foreach (var list in _songCache.Instruments[ins].Values)
+                            {
+                                foreach (var entry in list)
+                                {
+                                    set.Add(entry);
+                                }
+                            }
+                        }
+
+                        if (queries != null)
+                        {
+                            queries.IntersectWith(set);
+                        }
+                        else
+                        {
+                            queries = set;
+                        }
                     }
 
                     var arr = new SongCategory[_sortTitles.Length];
-                    int count = 0;
+                    int categoryCount = 0;
                     for (int i = 0; i < arr.Length; i++)
                     {
                         var node = _sortTitles[i];
-                        var intersect = node.Songs.Intersect(queries);
-                        if (intersect.Count() > 0)
+                        var intersect = new SongEntry[node.Songs.Length];
+                        int intersectCount = 0;
+                        for (int songIndex = 0; songIndex < node.Songs.Length; ++songIndex)
                         {
-                            arr[count++] = new SongCategory($"Playable [{node.Category}]", intersect.ToArray());
+                            if (queries.Contains(node.Songs[songIndex]))
+                            {
+                                intersect[intersectCount++] = node.Songs[songIndex];
+                            }
+                        }
+
+                        if (intersectCount > 0)
+                        {
+                            arr[categoryCount++] = new SongCategory($"Playable [{node.Category}]", intersect[..intersectCount]);
                         }
                     }
-                    _playables = arr[..count];
+                    _playables = arr[..categoryCount];
                 }
             }
             return _playables;
