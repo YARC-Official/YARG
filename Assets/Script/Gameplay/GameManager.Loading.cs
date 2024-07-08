@@ -187,7 +187,8 @@ namespace YARG.Gameplay
 
             // TODO: Move the offset here to SFX configuration
             // The clap SFX has 20 ms of lead-up before the actual impact happens
-            BeatEventHandler.Subscribe(StarPowerClap, -0.02);
+            // Must be offset by audio calibration to account for playback delay
+            BeatEventHandler.Subscribe(StarPowerClap, -0.02 + _songRunner.AudioCalibration);
 
             // Log constant values
             YargLogger.LogFormatDebug("Audio calibration: {0}, video calibration: {1}, song offset: {2}",

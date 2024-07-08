@@ -220,7 +220,7 @@ namespace YARG.Gameplay
 
             // Update handlers
             _songRunner.Update();
-            BeatEventHandler.Update(_songRunner.RealSongTime);
+            BeatEventHandler.Update(_songRunner.SongTime);
 
             // Update players
             int totalScore = 0;
