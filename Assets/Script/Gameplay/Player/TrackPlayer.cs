@@ -185,7 +185,7 @@ namespace YARG.Gameplay.Player
             SetupTheme(player.Profile.GameMode);
 
             OriginalNoteTrack = GetNotes(chart);
-            player.Profile.ApplyModifiers(OriginalNoteTrack);
+            player.Profile.ApplyModifiers(GameManager.Song, OriginalNoteTrack);
 
             NoteTrack = OriginalNoteTrack;
             Notes = NoteTrack.Notes;
