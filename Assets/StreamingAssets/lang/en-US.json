@@ -415,6 +415,10 @@
                 "Name": "Drums Volume",
                 "Description": "Adjusts the song's drum track volume. Only does something if the song is multi-track."
             },
+            "DrumSfxVolume": {
+                "Name": "Drum SFX Volume",
+                "Description": "Adjusts the drum hit sound effect volume, which can be triggered before the first note, after the last note, or during drum fills/BREs."
+            },
             "FpsCap": {
                 "Name": "FPS Cap",
                 "Description": "The framerate cap. <color=white>YOU DO NOT NEED TO PLAY YARG ON 1000FPS.</color> VSync recommended."
