@@ -7,6 +7,7 @@ using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Core.Song;
+using YARG.Localization;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Player;
@@ -98,17 +99,27 @@ namespace YARG.Menu.MusicLibrary
                     ctx =>
                     {
                         if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        {
                             GoToPreviousSection();
+                        }
                         else
+                        {
+                            SetWrapAroundState(!ctx.IsRepeat);
                             SelectedIndex--;
+                        }
                     }),
                 new NavigationScheme.Entry(MenuAction.Down, "Down",
                     ctx =>
                     {
                         if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        {
                             GoToNextSection();
+                        }
                         else
+                        {
+                            SetWrapAroundState(!ctx.IsRepeat);
                             SelectedIndex++;
+                        }
                     }),
                 new NavigationScheme.Entry(MenuAction.Green, "Confirm",
                     () => CurrentSelection?.PrimaryButtonClick()),
@@ -151,8 +162,8 @@ namespace YARG.Menu.MusicLibrary
             // Set proper text
             _subHeader.text = LibraryMode switch
             {
-                MusicLibraryMode.QuickPlay => "Quickplay",
-                MusicLibraryMode.Practice  => "Practice",
+                MusicLibraryMode.QuickPlay => Localize.Key("Menu.Main.Options.Quickplay"),
+                MusicLibraryMode.Practice  => Localize.Key("Menu.Main.Options.Practice"),
                 _                          => throw new Exception("Unreachable.")
             };
 
@@ -171,7 +182,8 @@ namespace YARG.Menu.MusicLibrary
             _sidebar.UpdateSidebar();
             if (CurrentSelection is SongViewType song)
             {
-                if (CurrentlyPlaying == null && song.SongEntry == _currentSong && (_previewCanceller == null || !_previewCanceller.IsCancellationRequested))
+                if (CurrentlyPlaying == null && song.SongEntry == _currentSong &&
+                    (_previewCanceller == null || !_previewCanceller.IsCancellationRequested))
                 {
                     return;
                 }
@@ -214,7 +226,8 @@ namespace YARG.Menu.MusicLibrary
             // Return if there are no songs that match the search criteria
             if (count == 0)
             {
-                list.Add(new SortHeaderViewType("NO SONGS MATCH CRITERIA", 0));
+                list.Add(new SortHeaderViewType(
+                    Localize.Key("Menu.MusicLibrary.NoSongsMatchCriteria"), 0));
                 return list;
             }
 
@@ -249,7 +262,8 @@ namespace YARG.Menu.MusicLibrary
                 // If the current search is NOT empty...
 
                 // Create the category
-                var categoryView = new CategoryViewType("SEARCH RESULTS", count, _sortedSongs);
+                var categoryView = new CategoryViewType(
+                    Localize.Key("Menu.MusicLibrary.SearchResults"), count, _sortedSongs);
 
                 if (_sortedSongs.Length == 1)
                 {
@@ -267,7 +281,8 @@ namespace YARG.Menu.MusicLibrary
                 if (SettingsManager.Settings.LibrarySort < SortAttribute.Playable)
                 {
                     // Add "ALL SONGS" header right above the songs
-                    list.Insert(0, new CategoryViewType("ALL SONGS", SongContainer.Count, SongContainer.Songs));
+                    list.Insert(0, new CategoryViewType(Localize.Key("Menu.MusicLibrary.AllSongs"),
+                        SongContainer.Count, SongContainer.Songs));
 
                     if (_recommendedSongs != null)
                     {
@@ -275,7 +290,8 @@ namespace YARG.Menu.MusicLibrary
 
                         list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(this, i)));
                         list.Insert(0, new CategoryViewType(
-                            _recommendedSongs.Length == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
+                            Localize.Key("Menu.MusicLibrary.RecommendedSongs",
+                                _recommendedSongs.Length == 1 ? "Singular" : "Plural"),
                             _recommendedSongs.Length, _recommendedSongs,
                             () =>
                             {
@@ -287,15 +303,17 @@ namespace YARG.Menu.MusicLibrary
                 }
                 else
                 {
-                    list.Insert(0, new CategoryViewType("PLAYABLE SONGS", count, _sortedSongs));
+                    list.Insert(0, new CategoryViewType(
+                        Localize.Key("Menu.MusicLibrary.PlayableSongs"), count, _sortedSongs));
                 }
 
                 // Add the buttons
 
-                list.Insert(0, new ButtonViewType("RANDOM SONG", "MusicLibraryIcons[Random]",
-                    SelectRandomSong, RANDOM_SONG_ID));
+                list.Insert(0, new ButtonViewType(Localize.Key("Menu.MusicLibrary.RandomSong"),
+                    "MusicLibraryIcons[Random]", SelectRandomSong, RANDOM_SONG_ID));
 
-                list.Insert(1, new ButtonViewType("PLAYLISTS", "MusicLibraryIcons[Playlists]", () =>
+                list.Insert(1, new ButtonViewType(Localize.Key("Menu.MusicLibrary.Playlists"),
+                    "MusicLibraryIcons[Playlists]", () =>
                 {
                     // TODO: Proper playlist menu
                     SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
@@ -312,7 +330,8 @@ namespace YARG.Menu.MusicLibrary
             var list = new List<ViewType>();
 
             // Add back button
-            list.Add(new ButtonViewType("BACK", "MusicLibraryIcons[Back]", ExitPlaylistTab, BACK_ID));
+            list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
+                "MusicLibraryIcons[Back]", ExitPlaylistTab, BACK_ID));
 
             // Return if there are no songs (or they haven't loaded yet)
             if (_sortedSongs is null || SongContainer.Count <= 0) return list;
@@ -420,7 +439,8 @@ namespace YARG.Menu.MusicLibrary
 
             if (_reloadState != MusicLibraryReloadState.Partial)
             {
-                if (_searchField.IsUpdatedSearchLonger || _currentSong == null || !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory))
+                if (_searchField.IsUpdatedSearchLonger || _currentSong == null ||
+                    !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory))
                 {
                     // Note: it may look like this is expensive, but the whole loop should only last for 4-5 iterations
                     var list = ViewList;
@@ -467,7 +487,8 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed, delay, FADE_DURATION, canceller);
+            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed,
+                delay, FADE_DURATION, canceller);
             if (context != null)
             {
                 _previewContext = context;

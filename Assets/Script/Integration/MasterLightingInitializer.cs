@@ -12,9 +12,3 @@ namespace YARG.Integration
         }
     }
 }
-
-/*
-"The crows seem to be calling my name", thought Caw.
-
-    - Jack Handey.
-*/

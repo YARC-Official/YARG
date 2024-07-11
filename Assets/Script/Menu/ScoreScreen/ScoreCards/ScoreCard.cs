@@ -6,11 +6,9 @@ using YARG.Core;
 using YARG.Core.Engine;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
-using YARG.Core.Song;
-using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Player;
-using YARG.Scores;
 
 namespace YARG.Menu.ScoreScreen
 {

@@ -198,8 +198,3 @@ namespace YARG.Integration.StageKit
         }
     }
 }
-/*
-    "It takes a big man to cry, but it takes an even bigger man to laugh at that man."
-
-        - Jack Handey
-*/
