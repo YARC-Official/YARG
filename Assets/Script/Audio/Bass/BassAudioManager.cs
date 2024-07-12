@@ -308,7 +308,10 @@ namespace YARG.Audio.BASS
                         if (sfx != null)
                         {
                             DrumSfxSamples[(int) sfxSample] = sfx;
-                            YargLogger.LogFormatInfo("Loaded {0}", sfxFile);
+                        }
+                        else
+                        {
+                            YargLogger.LogFormatInfo("Failed to load {0}", sfxFile);
                         }
                         break;
                     }  
