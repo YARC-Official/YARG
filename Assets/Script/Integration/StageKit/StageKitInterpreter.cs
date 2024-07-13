@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using PlasticBand.Haptics;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 
@@ -49,8 +48,6 @@ namespace YARG.Integration.StageKit
         // This class maintains the Stage Kit lighting cues and primitives
         public void Start()
         {
-            SceneManager.sceneUnloaded += OnSceneUnloaded;
-
             MasterLightingController.OnInstrumentEvent += OnDrumEvent;
             MasterLightingController.OnVocalsEvent += OnVocalsEvent;
             MasterLightingController.OnLightingEvent += OnLightingEvent;
@@ -61,8 +58,6 @@ namespace YARG.Integration.StageKit
 
         private void OnApplicationQuit()
         {
-            SceneManager.sceneUnloaded -= OnSceneUnloaded;
-
             MasterLightingController.OnInstrumentEvent -= OnDrumEvent;
             MasterLightingController.OnVocalsEvent -= OnVocalsEvent;
             MasterLightingController.OnLightingEvent -= OnLightingEvent;
@@ -71,15 +66,21 @@ namespace YARG.Integration.StageKit
             MasterLightingController.OnStrobeEvent -= OnStrobeEvent;
         }
 
-        private void OnSceneUnloaded(Scene scene)
-        {
-            AllLedsOff();
-            KillCue();
-        }
-
         private void ChangeCues(StageKitLightingCue cue)
         {
-            KillCue();
+            if (_currentLightingCue != null)
+            {
+                foreach (var primitive in _currentLightingCue.CuePrimitives)
+                {
+                    primitive.KillSelf();
+                }
+
+                _cuePrimitives.Clear();
+                PreviousLightingCue = _currentLightingCue;
+                _currentLightingCue.DirectListenEnabled = false;
+                _currentLightingCue = null;
+            }
+
             _currentLightingCue = cue;
             _currentLightingCue?.Enable();
         }
@@ -87,29 +88,6 @@ namespace YARG.Integration.StageKit
         public void SetLed(StageKitLedColor color, byte led)
         {
             OnLedEvent?.Invoke(color, led);
-        }
-
-        private void AllLedsOff()
-        {
-            SetLed(StageKitLedColor.Red, NONE);
-            SetLed(StageKitLedColor.Green, NONE);
-            SetLed(StageKitLedColor.Blue, NONE);
-            SetLed(StageKitLedColor.Yellow, NONE);
-        }
-
-        private void KillCue()
-        {
-            if (_currentLightingCue == null) return;
-
-            foreach (var primitive in _currentLightingCue.CuePrimitives)
-            {
-                primitive.KillSelf();
-            }
-
-            _cuePrimitives.Clear();
-            PreviousLightingCue = _currentLightingCue;
-            _currentLightingCue.DirectListenEnabled = false;
-            _currentLightingCue = null;
         }
 
         private void OnFogStateEvent(MasterLightingController.FogState value)
@@ -158,6 +136,10 @@ namespace YARG.Integration.StageKit
             {
                 if (value == null)
                 {
+                    SetLed(StageKitLedColor.Red, NONE);
+                    SetLed(StageKitLedColor.Green, NONE);
+                    SetLed(StageKitLedColor.Blue, NONE);
+                    SetLed(StageKitLedColor.Yellow, NONE);
                     ChangeCues(null);
                 }
                 else if (value.Type is LightingType.Keyframe_Next or LightingType.Keyframe_Previous

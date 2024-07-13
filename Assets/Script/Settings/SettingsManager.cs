@@ -42,6 +42,7 @@ namespace YARG.Settings
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),
+                nameof(Settings.WrapAroundNavigation),
                 nameof(Settings.AmIAwesome),
             },
             new SongManagerTab("SongManager", icon: "Songs")
@@ -145,8 +146,8 @@ namespace YARG.Settings
                 nameof(Settings.DMXGreenChannels),
                 nameof(Settings.DMXBlueChannels),
                 nameof(Settings.DMXYellowChannels),
-                nameof(Settings.DMXFogChannel),
-                nameof(Settings.DMXStrobeChannel),
+                nameof(Settings.DMXFogChannels),
+                nameof(Settings.DMXStrobeChannels),
                 new HeaderMetadata("AdvancedDMXChannels"),
                 nameof(Settings.DMXCueChangeChannel),
                 nameof(Settings.DMXPostProcessingChannel),

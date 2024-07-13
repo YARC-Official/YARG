@@ -138,10 +138,12 @@ namespace YARG.Input
                     _afterUpdateTime, _latestInputTime);
 
             // Update bindings using the input update time
-            foreach (var player in PlayerContainer.Players)
+            using (var players = PlayerContainer.PlayerEnumerator)
             {
-                var profileBinds = player.Bindings;
-                profileBinds.UpdateBindingsForFrame(InputUpdateTime);
+                while (players.MoveNext())
+                {
+                    players.Current.Bindings.UpdateBindingsForFrame(InputUpdateTime);
+                }
             }
 
             // Remove any devices that happened to be actually disabled

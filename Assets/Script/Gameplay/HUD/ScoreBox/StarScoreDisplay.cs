@@ -10,23 +10,8 @@ namespace YARG.Gameplay.HUD
 {
     public class StarScoreDisplay : GameplayBehaviour
     {
-        private const string ANIMATION_POP_NEW   = "PopNew";
-        private const string ANIMATION_COMPLETED = "Completed";
-        private const string ANIMATION_GOLD      = "Gold";
-
-        private const string ANIMATION_GOLD_METER = "GoldMeter";
-
         [SerializeField]
-        private GameObject[] _starObjects;
-
-        [SerializeField]
-        private GameObject _goldMeterParent;
-        [SerializeField]
-        private GameObject[] _goldMeterObjects;
-        [SerializeField]
-        private RawImage _goldMeterLine;
-
-        private Animator _goldMeterParentAnimator;
+        private StarDisplay[] _starObjects;
 
         private int _currentStar;
         private bool _isGoldAchieved;
@@ -36,7 +21,6 @@ namespace YARG.Gameplay.HUD
 
         protected override void OnChartLoaded(SongChart chart)
         {
-            _goldMeterParentAnimator = _goldMeterParent.GetComponent<Animator>();
             _goldMeterHeight = GetComponent<RectTransform>().rect.height;
 
             GameManager.BeatEventHandler.Subscribe(PulseGoldMeter);
@@ -53,11 +37,12 @@ namespace YARG.Gameplay.HUD
                 return;
 
             _goldMeterBeatCount++;
-            if (_goldMeterBeatCount % 2 == 0 && _goldMeterParent.activeInHierarchy)
+            if (_goldMeterBeatCount % 2 == 0 && _currentStar == 5)
             {
-                // TODO: Use animation triggers instead
-                // These arguments are required for it to properly loop
-                _goldMeterParentAnimator.Play(ANIMATION_GOLD_METER, -1, 0f);
+                foreach (var star in _starObjects)
+                {
+                    star.PulseGoldMeter();
+                }
             }
         }
 
@@ -76,67 +61,47 @@ namespace YARG.Gameplay.HUD
             {
                 if (topStar > _currentStar)
                 {
+                    // Complete current star
+                    _starObjects[_currentStar++].SetProgress(1);
+
+                    // Show and complete any skipped stars
                     for (int i = _currentStar; i < topStar && i < _starObjects.Length; i++)
                     {
-                        SetStarProgress(_starObjects[i], 1);
+                        _starObjects[i].PopNew();
+                        _starObjects[i].SetProgress(1);
                     }
 
+                    // Show new star
                     _currentStar = topStar;
+                    if (_currentStar < _starObjects.Length)
+                        _starObjects[_currentStar].PopNew();
 
                     GlobalAudioHandler.PlaySoundEffect(SfxSample.StarGain);
-                    YargLogger.LogFormatDebug("Gained star at {0} ({1})", GameManager.BandScore, stars);
+                    YargLogger.LogFormatDebug("Gained star {0} at score {1}", topStar, GameManager.BandScore);
                 }
 
-                if (_currentStar < 5)
+                if (_currentStar < _starObjects.Length)
                 {
-                    SetStarProgress(_starObjects[_currentStar], starProgress);
+                    _starObjects[_currentStar].SetProgress(starProgress);
                 }
             }
 
             if (stars is >= 5f and < 6f)
             {
-                foreach (var meter in _goldMeterObjects)
+                foreach (var star in _starObjects)
                 {
-                    meter.GetComponent<Image>().fillAmount = starProgress;
+                    star.SetGoldProgress(starProgress);
                 }
-
-                _goldMeterLine.rectTransform.anchoredPosition = new Vector2(0, starProgress * _goldMeterHeight);
             }
             else if (stars >= 6f)
             {
                 foreach (var star in _starObjects)
                 {
-                    star.GetComponent<Animator>().Play(ANIMATION_GOLD);
+                    star.SetGoldProgress(1);
                 }
-
-                _goldMeterParent.SetActive(false);
 
                 GlobalAudioHandler.PlaySoundEffect(SfxSample.StarGold);
                 _isGoldAchieved = true;
-            }
-        }
-
-        private static void SetStarProgress(GameObject star, double progress)
-        {
-            if (!star.activeSelf)
-            {
-                star.SetActive(true);
-                star.GetComponent<Animator>().Play(ANIMATION_POP_NEW);
-            }
-
-            if (progress < 1)
-            {
-                // Fill the star progress
-                var image = star.transform
-                    .GetChild(0)
-                    .GetComponent<Image>();
-                image.fillAmount = (float) progress;
-            }
-            else
-            {
-                // Finish the star
-                star.transform.GetChild(0).GetComponent<Image>().fillAmount = 1;
-                star.GetComponent<Animator>().Play(ANIMATION_COMPLETED);
             }
         }
     }
