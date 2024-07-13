@@ -35,8 +35,8 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
-        private int[] DrumSoundEffectRoundRobin = new int[8];
-        private float DrumSoundEffectAccentThreshold;
+        private int[] _drumSoundEffectRoundRobin = new int[8];
+        private float _drumSoundEffectAccentThreshold;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
             int? currentHighScore)
@@ -78,10 +78,10 @@ namespace YARG.Gameplay.Player
             HitWindow = EngineParams.HitWindow;
 
             // Calculating drum sound effect accent threshold based on the engine's ghost velocity threshold
-            DrumSoundEffectAccentThreshold = EngineParams.VelocityThreshold * 2;
-            if (DrumSoundEffectAccentThreshold > 0.8f)
+            _drumSoundEffectAccentThreshold = EngineParams.VelocityThreshold * 2;
+            if (_drumSoundEffectAccentThreshold > 0.8f)
             {
-                DrumSoundEffectAccentThreshold = EngineParams.VelocityThreshold + ((1 - EngineParams.VelocityThreshold) / 2);
+                _drumSoundEffectAccentThreshold = EngineParams.VelocityThreshold + ((1 - EngineParams.VelocityThreshold) / 2);
             }
 
             engine.OnNoteHit += OnNoteHit;
@@ -297,29 +297,29 @@ namespace YARG.Gameplay.Player
 
                 // Define sample
                 int sampleIndex = (int) DrumSfxSample.Vel0Pad0Smp0;
-                if (velocity > DrumSoundEffectAccentThreshold)
+                if (velocity > _drumSoundEffectAccentThreshold)
                 {
                     sampleIndex = (int) DrumSfxSample.Vel2Pad0Smp0;
                 }
                 else if (velocity > EngineParams.VelocityThreshold)
                 {
                     sampleIndex = (int) DrumSfxSample.Vel1Pad0Smp0;
-                    sampleVolume = velocity / DrumSoundEffectAccentThreshold;
+                    sampleVolume = velocity / _drumSoundEffectAccentThreshold;
                 }
                 else
                 {
                     sampleVolume = velocity / EngineParams.VelocityThreshold;
                 }
-                sampleIndex += (actionIndex * DrumSampleChannel.ROUND_ROBIN_MAX_INDEX) + DrumSoundEffectRoundRobin[actionIndex];
+                sampleIndex += (actionIndex * DrumSampleChannel.ROUND_ROBIN_MAX_INDEX) + _drumSoundEffectRoundRobin[actionIndex];
 
                 // Play Sample
                 GlobalAudioHandler.PlayDrumSoundEffect((DrumSfxSample) sampleIndex, sampleVolume);
 
                 // Adjust round-robin
-                DrumSoundEffectRoundRobin[actionIndex] += 1;
-                if (DrumSoundEffectRoundRobin[actionIndex] == DrumSampleChannel.ROUND_ROBIN_MAX_INDEX)
+                _drumSoundEffectRoundRobin[actionIndex] += 1;
+                if (_drumSoundEffectRoundRobin[actionIndex] == DrumSampleChannel.ROUND_ROBIN_MAX_INDEX)
                 {
-                    DrumSoundEffectRoundRobin[actionIndex] = 0;
+                    _drumSoundEffectRoundRobin[actionIndex] = 0;
                 }
             }
         }
