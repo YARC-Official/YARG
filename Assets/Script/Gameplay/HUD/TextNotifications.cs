@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using YARG.Settings;
@@ -23,8 +24,6 @@ namespace YARG.Gameplay.HUD
         private Coroutine _coroutine;
 
         private readonly TextNotificationQueue _notificationQueue = new();
-
-        private readonly PerformanceTextScaler _scaler = new(2f);
 
         private void OnEnable()
         {
@@ -128,17 +127,17 @@ namespace YARG.Gameplay.HUD
         private IEnumerator ShowNextNotification(string notificationText)
         {
             _text.text = notificationText;
+            _text.transform.localScale = Vector3.zero;
 
-            _scaler.ResetAnimationTime();
-
-            while (_scaler.AnimTimeRemaining > 0f)
-            {
-                _scaler.AnimTimeRemaining -= Time.deltaTime;
-                float scale = _scaler.PerformanceTextScale();
-
-                _text.transform.localScale = new Vector3(scale, scale, scale);
-                yield return null;
-            }
+            yield return DOTween.Sequence()
+                .Append(DOTween.Sequence()
+                    .Append(_text.transform.DOScale(1.1f, 0.167f).SetEase(Ease.OutCirc))
+                    .Append(_text.transform.DOScale(1f, 0.167f).SetEase(Ease.InOutSine))
+                    .AppendInterval(2.667f))
+                .Append(DOTween.Sequence()
+                    .Append(_text.transform.DOScale(1.1f, 0.167f).SetEase(Ease.InOutSine))
+                    .Append(_text.transform.DOScale(0f, 0.167f).SetEase(Ease.InCirc)))
+                .WaitForCompletion();
 
             _text.text = string.Empty;
             _coroutine = null;

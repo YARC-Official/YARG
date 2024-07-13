@@ -73,5 +73,7 @@ namespace YARG.Gameplay.HUD
         StarPowerReady,
         HotStart,
         StrongFinish,
+        ActivateToSave,
+        Saved,
     }
 }

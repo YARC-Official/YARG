@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using Cysharp.Text;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,7 +26,6 @@ namespace YARG.Gameplay.HUD
 
         private float _comboMeterFillTarget;
 
-        private readonly PerformanceTextScaler _scaler = new(2f);
         private Coroutine _currentCoroutine;
 
         private bool _shouldPulse;
@@ -136,16 +136,17 @@ namespace YARG.Gameplay.HUD
                 _       => "AWFUL"
             };
 
-            _scaler.ResetAnimationTime();
+            _performanceText.transform.localScale = Vector3.zero;
 
-            while (_scaler.AnimTimeRemaining > 0f)
-            {
-                _scaler.AnimTimeRemaining -= Time.deltaTime;
-                float scale = _scaler.PerformanceTextScale();
-
-                _performanceText.transform.localScale = new Vector3(scale, scale, scale);
-                yield return null;
-            }
+            yield return DOTween.Sequence()
+                .Append(DOTween.Sequence()
+                    .Append(_performanceText.transform.DOScale(1.1f, 0.167f).SetEase(Ease.OutCirc))
+                    .Append(_performanceText.transform.DOScale(1f, 0.167f).SetEase(Ease.InOutSine))
+                    .AppendInterval(0.667f))
+                .Append(DOTween.Sequence()
+                    .Append(_performanceText.transform.DOScale(1.1f, 0.167f).SetEase(Ease.InOutSine))
+                    .Append(_performanceText.transform.DOScale(0f, 0.167f).SetEase(Ease.InCirc)))
+                .WaitForCompletion();
 
             _performanceText.text = string.Empty;
             _currentCoroutine = null;
