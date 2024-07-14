@@ -179,9 +179,9 @@ namespace YARG.Gameplay.Player
                     : null;
             };
 
-            engine.OnCountdownChange += (measuresLeft) =>
+            engine.OnCountdownChange += (measuresLeft, progress) =>
             {
-                GameManager.VocalTrack.UpdateCountdown(measuresLeft);
+                GameManager.VocalTrack.UpdateCountdown(measuresLeft, progress);
             };
 
             return engine;

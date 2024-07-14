@@ -77,9 +77,9 @@ namespace YARG.Gameplay.HUD
             _topElementContainer.localPosition = localPoint;
         }
 
-        public void UpdateCountdown(int measuresLeft)
+        public void UpdateCountdown(int measuresLeft, float progress)
         {
-            _countdownDisplay.UpdateCountdown(measuresLeft);
+            _countdownDisplay.UpdateCountdown(measuresLeft, progress);
         }
 
         public void StartSolo(SoloSection solo)

@@ -13,6 +13,8 @@ namespace YARG
         private Image _backgroundCircle;
         [SerializeField]
         private TextMeshProUGUI _countdownText;
+        [SerializeField]
+        private Image _progressBar;
 
         [Space]
         [SerializeField]
@@ -20,17 +22,10 @@ namespace YARG
 
         private Coroutine _currentCoroutine;
 
-        private int _measuresLeft;
+        private bool _displayState;
 
-        public void UpdateCountdown(int measuresLeft)
+        public void UpdateCountdown(int measuresLeft, float progress)
         {
-            if (measuresLeft == _measuresLeft)
-            {
-                return; 
-            }
-
-            _measuresLeft = measuresLeft;
-
             if (measuresLeft <= WaitCountdown.END_COUNTDOWN_MEASURE)
             {
                 // New measure count is below the threshold where the countdown display should be hidden
@@ -39,6 +34,7 @@ namespace YARG
             }
 
             _countdownText.text = measuresLeft.ToString();
+            _progressBar.fillAmount = 1 - progress;
 
             ToggleDisplay(true);
         }
@@ -54,10 +50,12 @@ namespace YARG
 
         private void ToggleDisplay(bool newState)
         {
-            if (newState == gameObject.activeSelf)
+            if (newState == _displayState)
             {
                 return;
             }
+
+            _displayState = newState;
 
             StopCurrentCoroutine();
 
