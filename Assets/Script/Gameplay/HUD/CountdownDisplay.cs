@@ -13,8 +13,6 @@ namespace YARG
         private Image _backgroundCircle;
         [SerializeField]
         private TextMeshProUGUI _countdownText;
-        [SerializeField]
-        private Image _getReady;
 
         [Space]
         [SerializeField]
@@ -40,20 +38,7 @@ namespace YARG
                 return;
             }
 
-            // New measure count is above display threshold
-            if (measuresLeft > WaitCountdown.GET_READY_MEASURE)
-            {
-                _countdownText.text = measuresLeft.ToString();
-
-                _getReady.gameObject.SetActive(false);
-                _backgroundCircle.gameObject.SetActive(true);
-            }
-            else if (measuresLeft <= WaitCountdown.GET_READY_MEASURE)
-            {
-                // Change display from number to "Get Ready!"
-                _backgroundCircle.gameObject.SetActive(false);
-                _getReady.gameObject.SetActive(true);
-            }
+            _countdownText.text = measuresLeft.ToString();
 
             ToggleDisplay(true);
         }
