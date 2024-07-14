@@ -49,7 +49,7 @@ namespace YARG.Menu.MusicLibrary
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () =>
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
                     if (_menuState == State.Main)
                     {

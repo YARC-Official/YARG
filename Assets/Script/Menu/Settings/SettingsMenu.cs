@@ -101,7 +101,7 @@ namespace YARG.Menu.Settings
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () =>
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
                     gameObject.SetActive(false);
                 }),
@@ -281,11 +281,11 @@ namespace YARG.Menu.Settings
             // Update header
             if (string.IsNullOrEmpty(_searchBar.text))
             {
-                _searchHeaderText.text = "All Categories";
+                _searchHeaderText.text = Localize.Key("Menu.Settings.SearchHeader.AllCategories");
             }
             else
             {
-                _searchHeaderText.text = "Results";
+                _searchHeaderText.text = Localize.Key("Menu.Settings.SearchHeader.Results");
             }
 
             // Refresh on search

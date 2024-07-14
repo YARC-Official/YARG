@@ -121,13 +121,13 @@ namespace YARG.Menu.MusicLibrary
                             SelectedIndex++;
                         }
                     }),
-                new NavigationScheme.Entry(MenuAction.Green, "Confirm",
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                     () => CurrentSelection?.PrimaryButtonClick()),
 
-                new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
-                new NavigationScheme.Entry(MenuAction.Blue, "Search",
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
+                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
                     () => _searchField.Focus()),
-                new NavigationScheme.Entry(MenuAction.Orange, "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>",
+                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                     OnButtonHit, OnButtonRelease),
             }, false));
 

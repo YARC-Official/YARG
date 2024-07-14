@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Engine;
+using YARG.Localization;
 
 namespace YARG.Gameplay.HUD
 {
@@ -122,25 +123,26 @@ namespace YARG.Gameplay.HUD
             yield return new WaitForSeconds(1f);
 
             // Show performance text
-            string resultText = HitPercent switch
+            string performanceKey = HitPercent switch
             {
-                > 100 => "HOW!?",
-                  100 => "PERFECT\nSOLO!",
-                >= 95 => "AWESOME\nSOLO!",
-                >= 90 => "GREAT\nSOLO!",
-                >= 80 => "GOOD\nSOLO!",
-                >= 70 => "SOLID\nSOLO",
-                   69 => "<i>NICE</i>\nSOLO",
-                >= 60 => "OKAY\nSOLO",
-                >= 0  => "MESSY\nSOLO",
-                <  0  => "HOW!?",
+                > 100 => "How",
+                  100 => "Perfect",
+                >= 95 => "Awesome",
+                >= 90 => "Great",
+                >= 80 => "Good",
+                >= 70 => "Solid",
+                   69 => "Nice",
+                >= 60 => "Okay",
+                >= 0  => "Messy",
+                <  0  => "How",
             };
-            _soloFullText.text = resultText;
+            
+            _soloFullText.text = Localize.Key($"Gameplay.Solo.Performance.{performanceKey}");
 
             yield return new WaitForSeconds(1f);
 
             // Show point bonus
-            _soloFullText.SetTextFormat("{0:N0}\nPOINTS", soloBonus);
+            _soloFullText.text = Localize.KeyFormat($"Gameplay.Solo.Performance.{performanceKey}", soloBonus);
 
             yield return new WaitForSeconds(1f);
 
