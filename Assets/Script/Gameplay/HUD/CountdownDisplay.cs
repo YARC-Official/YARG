@@ -26,17 +26,15 @@ namespace YARG
 
         public void UpdateCountdown(int measuresLeft, float progress)
         {
-            if (measuresLeft <= WaitCountdown.END_COUNTDOWN_MEASURE)
+            ToggleDisplay(measuresLeft > WaitCountdown.END_COUNTDOWN_MEASURE);
+            
+            if (!gameObject.activeSelf)
             {
-                // New measure count is below the threshold where the countdown display should be hidden
-                ToggleDisplay(false);
                 return;
             }
 
             _countdownText.text = measuresLeft.ToString();
             _progressBar.fillAmount = 1 - progress;
-
-            ToggleDisplay(true);
         }
 
         public void ForceReset()
