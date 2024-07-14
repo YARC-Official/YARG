@@ -10,7 +10,7 @@ namespace YARG.Menu.Settings.Visuals
 {
     public abstract class BaseSettingVisual : MonoBehaviour
     {
-        protected static readonly NavigationScheme.Entry NavigateFinish = new(MenuAction.Red, "Confirm", () =>
+        protected static readonly NavigationScheme.Entry NavigateFinish = new(MenuAction.Red, "Menu.Common.Confirm", () =>
         {
             Navigator.Instance.PopScheme();
         });

@@ -57,10 +57,10 @@ namespace YARG.Menu.History
                         SetWrapAroundState(!ctx.IsRepeat);
                         SelectedIndex++;
                     }),
-                new NavigationScheme.Entry(MenuAction.Green, "Confirm",
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                     () => CurrentSelection?.ViewClick()),
 
-                new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
             }, false));
 
             _headerTabs.TabChanged += OnTabChanged;

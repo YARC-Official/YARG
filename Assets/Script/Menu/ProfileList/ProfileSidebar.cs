@@ -304,10 +304,10 @@ namespace YARG.Menu.ProfileList
 
             // Add buttons
 
-            dialog.AddDialogButton("Cancel", MenuData.Colors.CancelButton,
+            dialog.AddDialogButton("Menu.Common.Cancel", MenuData.Colors.CancelButton,
                 () => DialogManager.Instance.ClearDialog());
 
-            dialog.AddDialogButton("Apply", MenuData.Colors.ConfirmButton, () =>
+            dialog.AddDialogButton("Menu.Common.Apply", MenuData.Colors.ConfirmButton, () =>
             {
                 _profile.CameraPreset = cameraPreset?.Id ?? CameraPreset.Default.Id;
                 _profile.ColorProfile = colorProfile?.Id ?? ColorProfile.Default.Id;

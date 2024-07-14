@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using YARG.Localization;
 
 namespace YARG.Gameplay.HUD
 {
@@ -57,10 +58,16 @@ namespace YARG.Gameplay.HUD
         public TextNotificationType Type { get; }
         public string Text { get; }
 
-        public TextNotification(TextNotificationType type, string text)
+        public TextNotification(TextNotificationType type)
         {
             Type = type;
-            Text = text;
+            Text = Localize.Key("Gameplay.Notifications." + type.ToString());
+        }
+
+        public TextNotification(TextNotificationType type, int formatArg)
+        {
+            Type = type;
+            Text = Localize.KeyFormat("Gameplay.Notifications." + type.ToString(), formatArg);
         }
     }
 

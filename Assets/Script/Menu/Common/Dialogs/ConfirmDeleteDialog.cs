@@ -1,6 +1,7 @@
 ﻿using System;
 using TMPro;
 using UnityEngine;
+using YARG.Localization;
 using YARG.Menu.Persistent;
 
 namespace YARG.Menu.Dialogs
@@ -20,9 +21,9 @@ namespace YARG.Menu.Dialogs
         {
             _confirmText = confirmText;
 
-            Title.text = $"Delete \"{confirmText}\"?";
-            Message.text = $"Are you sure you want to delete <b>{confirmText}</b>?\n\n{additionalMessageText}";
-            _inputFieldPlaceholder.text = $"Type <b>{confirmText}</b> here to confirm";
+            Title.text = Localize.KeyFormat("Menu.Dialog.ConfirmDelete.Title", confirmText);
+            Message.text = Localize.KeyFormat("Menu.Dialog.ConfirmDelete.Message", confirmText, additionalMessageText);
+            _inputFieldPlaceholder.text = Localize.KeyFormat("Menu.Dialog.ConfirmDelete.Confirm", confirmText);
         }
 
         public override void Submit()

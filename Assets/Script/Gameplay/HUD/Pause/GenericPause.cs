@@ -21,7 +21,7 @@ namespace YARG.Gameplay.HUD
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Back", Resume),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Resume),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
             }, false));

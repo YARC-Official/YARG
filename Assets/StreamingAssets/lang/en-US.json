@@ -97,10 +97,20 @@
         }
     },
     "Menu": {
+        "Calibrator": {
+            "Detected": "Detected",
+            "NotEnoughData": "There isn't enough data to get an accurate result.\nPress back to exit."
+        },
         "Common": {
+            "Apply": "Apply",
             "Back": "Back",
+            "Cancel": "Cancel",
+            "Close": "Close",
+            "Confirm": "Confirm",
+            "Delete": "Delete",
             "Max": "Max",
-            "Min": "Min"
+            "Min": "Min",
+            "Saved": "Saved!"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",
@@ -129,7 +139,16 @@
         "Dialog": {
             "AntiPiracy": {
                 "Title": "YARG Anti-Piracy Statement",
-                "Description": "<b>YARG stands firmly against all forms of piracy.</b> We neither support nor endorse piracy, as it is a violation of copyright law with serious legal consequences. Our platform's importable content—designed for creators to share their work and for educational purposes—does not justify or excuse piracy.\n\nYARG itself <b>does not</b> use any ripped/pirated assets or music and never will. By using YARG, users agree not to promote or endorse piracy in any way through our platform. Upholding these principles ensures a community that respects copyright, creativity, and legal standards.\n\nYARG stands for \"Yet Another Rhythm Game\" and NOT for pirates."
+                "Description": "<b>YARG stands firmly against all forms of piracy.</b> We neither support nor endorse piracy, as it is a violation of copyright law with serious legal consequences. Our platform's importable content—designed for creators to share their work and for educational purposes—does not justify or excuse piracy.\n\nYARG itself <b>does not</b> use any ripped/pirated assets or music and never will. By using YARG, users agree not to promote or endorse piracy in any way through our platform. Upholding these principles ensures a community that respects copyright, creativity, and legal standards.\n\nYARG stands for \"Yet Another Rhythm Game\" and NOT for pirates.",
+                "Confirm": "I Understand"
+            },
+            "ColorPicker": {
+                "Title": "Color Picker"
+            },
+            "ConfirmDelete": {
+                "Title": "Delete \"{0}\"?",
+                "Message": "Are you sure you want to delete <b>{0}</b>?\n\n{1}",
+                "Confirm": "Type <b>{0}</b> here to confirm"
             },
             "EngineInconsistency": {
                 "Title": "Replays Are In Beta",
@@ -167,7 +186,8 @@
                 "Settings": "Settings",
                 "Credits": "Credits",
                 "Exit": "Exit"
-            }
+            },
+            "GoToCurrentlyPlaying": "Go To Currently Playing"
         },
         "MusicLibrary": {
             "Name": "Music Library",
@@ -183,7 +203,9 @@
             "Playlists": "PLAYLISTS",
             "Back": "BACK",
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
-            "Play": "Play Song"
+            "Play": "Play Song",
+            "Search": "Search",
+            "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>"
         },
         "ProfileInfo": {
             "Name": "Edit Profile",
@@ -201,9 +223,49 @@
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
+            "SearchHeader": {
+                "AllCategories": "All Categories",
+                "Results": "Results"
+            },
             "SongCount": "{0:N0} <alpha=#60>Songs",
             "ScanNeeded": "<alpha=#60>Scan Needed",
             "DMXInfo": "DMX cue change and post-processing channel values:\n\n<b>Cue Change:</b>\n\n0 - No cue\n10 - Menu\n20 - Score\n30 - Intro\n40 - Verse\n50 - Chorus\n60 - Cool (loop)\n70 - Warm (loop)\n80 - Cool (manual)\n90 - Warm (manual)\n100 - Dischord\n110 - Stomp\n120 - Default\n130 - Harmony\n140 - Frenzy\n150 - Silhouettes\n160 - Silhouettes Spotlight\n170 - Searchlights\n180 - Sweep\n190 - Blackout (fast)\n200 - Blackout (slow)\n210 - Blackout (spotlight)\n220 - Flare (slow)\n230 - Flare (fast)\n240 - Big Rock Ending\n\nFor Strobe and Fog status listen to their respective channels.\n\n<b>Post-Processing:</b>\n\n0 - Default\r\n\nBasic effects\r\n4 - Bloom\n14 - Bright\n24 - Contrast\n34 - Mirror\n44 - PhotoNegative\n54 - Posterize\n\n\rColor filters/effects\r\n64 - Black And White\n74 - Sepia Tone\n84 - Silver Tone\n94 - Choppy Black And White\n104 - Photo Negative Red And Black\n114 - Polarized Black And White\n124 - Polarized Red And Blue\n134 - Desaturated Red\n144 - Desaturated Blue\n154 - Contrast Red\n164 - Contrast Green\n174 - Contrast Blue\n\r\nGrainy\r\n184 - Grainy Film\n194 - Grainy Chromatic Abberation\n\nScanlines\r\n204 - Scanlines\n214 - Scanlines Black And White\n224 - Scanlines Blue\n234 - Scanlines Security\n\r\nTrails\r\n244 - Trails\n252 - Trails Long\n253 - Trails Desaturated\n254 - Trails Flickery\n255 - Trails Spacey\n\nSee YARG docs for more information: https://docs.yarg.in/en/DMX"
+        }
+    },
+    "Gameplay": {
+        "Notifications": {
+            "BassGroove": "BASS GROOVE",
+            "CountdownGetReady": "Get Ready!",
+            "FullCombo": "FULL COMBO",
+            "HotStart": "HOT START",
+            "NewHighScore": "NEW HIGH SCORE",
+            "NoteStreak": "{0:N0}-NOTE STREAK",
+            "StarPowerReady": "STAR POWER READY",
+            "StrongFinish": "STRONG FINISH"
+        },
+        "Solo": {
+            "Performance": {
+                "Awesome": "AWESOME\nSOLO!",
+                "Good": "GOOD\nSOLO!",
+                "Great": "GREAT\nSOLO!",
+                "How": "HOW!?",
+                "Messy": "MESSY\nSOLO",
+                "Nice": "<i>NICE</i>\nSOLO",
+                "Okay": "OKAY\nSOLO",
+                "Perfect": "PERFECT\nSOLO!",
+                "Solid":  "SOLID\nSOLO"
+            },
+            "PointsResult": "{0:N0}\nPOINTS"
+        },
+        "Vocals": {
+            "Performance": {
+                "Awesome": "AWESOME!",
+                "Awful": "AWFUL",
+                "Good": "GOOD",
+                "Messy": "MESSY",
+                "Okay": "OKAY",
+                "Strong": "STRONG"
+            }
         }
     },
 	"Preview": {
