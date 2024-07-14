@@ -71,10 +71,6 @@ namespace YARG.Gameplay.Player
 
         [Space]
         [SerializeField]
-        private CountdownDisplay _countdownDisplay;
-
-        [Space]
-        [SerializeField]
         private Camera _trackCamera;
         [SerializeField]
         private Transform _playerContainer;
@@ -108,6 +104,8 @@ namespace YARG.Gameplay.Player
         private int _nextRangeIndex = 1;
         private double _changeStartTime;
         private double _changeEndTime;
+
+        private CountdownDisplay _countdownDisplay;
 
         public bool HarmonyShowing => _vocalsTrack.Instrument == Instrument.Harmony;
 
@@ -193,6 +191,13 @@ namespace YARG.Gameplay.Player
             _starpowerMaterial.SetFloat(_alphaMultiplier, 0f);
         }
 
+        public void InitializeCountdownDisplay(CountdownDisplay newPrefabInstance)
+        {
+            // The CountdownDisplay for VocalTrack lives inside of TrackViewManager's transform
+            // to prevent stretching the countdown circle into an oval when resizing the track
+            _countdownDisplay = newPrefabInstance;
+        }
+
         public VocalsPlayer CreatePlayer()
         {
             var player = Instantiate(_vocalPlayerPrefab, _playerContainer);
@@ -219,6 +224,11 @@ namespace YARG.Gameplay.Player
 
         public void UpdateCountdown(int measuresLeft, float progress)
         {
+            if (_countdownDisplay == null)
+            {
+                return;
+            }
+
             _countdownDisplay.UpdateCountdown(measuresLeft, progress);
         }
 
@@ -361,6 +371,11 @@ namespace YARG.Gameplay.Player
             }
 
             ResetPracticeSection();
+        }
+
+        public bool IsPrimaryPlayer(VocalsPlayer thisPlayer)
+        {
+            return thisPlayer == _vocalPlayers[0];
         }
     }
 }

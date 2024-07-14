@@ -20,6 +20,8 @@ namespace YARG.Gameplay.HUD
         private RawImage _vocalImage;
         [SerializeField]
         private Transform _vocalHudParent;
+        [SerializeField]
+        private CountdownDisplay _vocalsCountdownDisplay;
 
         private readonly List<TrackView> _trackViews = new();
 
@@ -51,13 +53,16 @@ namespace YARG.Gameplay.HUD
         {
             _vocalImage.gameObject.SetActive(true);
 
-            // Get the aspect ration of the vocal image
+            // Get the aspect ratio of the vocal image
             var rect = _vocalImage.rectTransform.ToScreenSpace();
             float ratio = rect.width / rect.height;
 
             // Apply the vocal track texture
             var rt = GameManager.VocalTrack.InitializeRenderTexture(ratio);
             _vocalImage.texture = rt;
+
+            // Create link between VocalTrack and the CountdownDisplay inside of this transform
+            GameManager.VocalTrack.InitializeCountdownDisplay(_vocalsCountdownDisplay);
         }
 
         public VocalsPlayerHUD CreateVocalsPlayerHUD()
