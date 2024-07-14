@@ -140,15 +140,15 @@
             "AntiPiracy": {
                 "Title": "YARG Anti-Piracy Statement",
                 "Description": "<b>YARG stands firmly against all forms of piracy.</b> We neither support nor endorse piracy, as it is a violation of copyright law with serious legal consequences. Our platform's importable content—designed for creators to share their work and for educational purposes—does not justify or excuse piracy.\n\nYARG itself <b>does not</b> use any ripped/pirated assets or music and never will. By using YARG, users agree not to promote or endorse piracy in any way through our platform. Upholding these principles ensures a community that respects copyright, creativity, and legal standards.\n\nYARG stands for \"Yet Another Rhythm Game\" and NOT for pirates.",
-                "Confirm":"I Understand"
+                "Confirm": "I Understand"
             },
             "ColorPicker": {
-                "Title":"Color Picker"
+                "Title": "Color Picker"
             },
             "ConfirmDelete": {
-                "Title":"Delete \"{0}\"?",
-                "Message":"Are you sure you want to delete <b>{0}</b>?\n\n{1}",
-                "Confirm":"Type <b>{0}</b> here to confirm"
+                "Title": "Delete \"{0}\"?",
+                "Message": "Are you sure you want to delete <b>{0}</b>?\n\n{1}",
+                "Confirm": "Type <b>{0}</b> here to confirm"
             },
             "EngineInconsistency": {
                 "Title": "Replays Are In Beta",
@@ -187,7 +187,7 @@
                 "Credits": "Credits",
                 "Exit": "Exit"
             },
-            "GoToCurrentlyPlaying":"Go To Currently Playing"
+            "GoToCurrentlyPlaying": "Go To Currently Playing"
         },
         "MusicLibrary": {
             "Name": "Music Library",
@@ -204,8 +204,8 @@
             "Back": "BACK",
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
             "Play": "Play Song",
-            "Search":"Search",
-            "MoreOptions":"<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>"
+            "Search": "Search",
+            "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>"
         },
         "ProfileInfo": {
             "Name": "Edit Profile",
