@@ -17,6 +17,8 @@ namespace YARG.Gameplay.Player
             double.NegativeInfinity, double.NegativeInfinity, double.NegativeInfinity
         };
 
+        public float TrackSpeed { get; set; }
+
         public bool TrySpawnLyric(LyricEvent lyric, VocalNote probableNotePair, bool isStarpower, int harmIndex)
         {
             // Skip this frame if the pool is full
@@ -34,7 +36,7 @@ namespace YARG.Gameplay.Player
             obj.EnableFromPool();
 
             // Set the edge time
-            _lastLyricEdgeTime[harmIndex] = obj.ElementTime + (obj.Width + LYRIC_SPACING) / VocalTrack.NOTE_SPEED;
+            _lastLyricEdgeTime[harmIndex] = obj.ElementTime + (obj.Width + LYRIC_SPACING) / TrackSpeed;
 
             return true;
         }

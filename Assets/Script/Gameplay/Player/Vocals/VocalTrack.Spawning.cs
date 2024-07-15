@@ -109,7 +109,7 @@ namespace YARG.Gameplay.Player
         {
             var pool = _notePools[harmonyIndex];
 
-            while (tracker.CurrentNoteInBounds && tracker.CurrentNote.Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
+            while (tracker.CurrentNoteInBounds && tracker.CurrentNote.Time <= GameManager.SongTime + SpawnTimeOffset)
             {
                 var note = tracker.CurrentNote;
 
@@ -153,7 +153,7 @@ namespace YARG.Gameplay.Player
 
         private void SpawnLyricsInPhrase(PhraseNoteTracker tracker, int harmonyIndex)
         {
-            while (tracker.CurrentLyricInBounds && tracker.CurrentLyric.Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
+            while (tracker.CurrentLyricInBounds && tracker.CurrentLyric.Time <= GameManager.SongTime + SpawnTimeOffset)
             {
                 if (!_lyricContainer.TrySpawnLyric(
                     tracker.CurrentLyric,
@@ -174,7 +174,7 @@ namespace YARG.Gameplay.Player
             var phrases = _vocalsTrack.Parts[harmonyIndex].NotePhrases;
             int index = _phraseMarkerIndices[harmonyIndex];
 
-            while (index < phrases.Count && phrases[index].TimeEnd <= GameManager.SongTime + SPAWN_TIME_OFFSET)
+            while (index < phrases.Count && phrases[index].TimeEnd <= GameManager.SongTime + SpawnTimeOffset)
             {
                 // Spawn the phrase end line
                 var poolable = _phraseLinePool.TakeWithoutEnabling();
