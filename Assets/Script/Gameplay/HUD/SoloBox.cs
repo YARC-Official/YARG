@@ -142,7 +142,7 @@ namespace YARG.Gameplay.HUD
             yield return new WaitForSeconds(1f);
 
             // Show point bonus
-            _soloFullText.text = Localize.KeyFormat(("Gameplay.Solo.Performance", performanceKey), soloBonus);
+            _soloFullText.text = Localize.KeyFormat("Gameplay.Solo.PointsResult", soloBonus);
 
             yield return new WaitForSeconds(1f);
 
