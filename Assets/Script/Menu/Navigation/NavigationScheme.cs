@@ -26,14 +26,17 @@ namespace YARG.Menu.Navigation
             });
 
             public readonly MenuAction Action;
-            public readonly string DisplayName;
+            public readonly string LocalizationKey;
+
             private readonly Action<NavigationContext> _handler;
             private readonly Action<NavigationContext> _onHoldOffHandler;
+
+            public string DisplayName => Localize.Key(LocalizationKey);
 
             public Entry(MenuAction action, string localizationKey, Action handler, Action onHoldOffHandler = null)
             {
                 Action = action;
-                DisplayName = Localize.Key(localizationKey);
+                LocalizationKey = localizationKey;
                 _handler = _ => handler?.Invoke();
                 _onHoldOffHandler = _ => onHoldOffHandler?.Invoke();
             }
@@ -41,7 +44,7 @@ namespace YARG.Menu.Navigation
             public Entry(MenuAction action, string localizationKey, Action<NavigationContext> handler, Action<NavigationContext> onHoldOffHandler = null)
             {
                 Action = action;
-                DisplayName = Localize.Key(localizationKey);
+                LocalizationKey = localizationKey;
                 _handler = handler;
                 _onHoldOffHandler = onHoldOffHandler;
             }
