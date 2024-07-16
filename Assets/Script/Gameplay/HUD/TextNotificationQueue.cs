@@ -61,13 +61,13 @@ namespace YARG.Gameplay.HUD
         public TextNotification(TextNotificationType type)
         {
             Type = type;
-            Text = Localize.Key("Gameplay.Notifications." + type.ToString());
+            Text = Localize.Key("Gameplay.Notifications", type);
         }
 
         public TextNotification(TextNotificationType type, int formatArg)
         {
             Type = type;
-            Text = Localize.KeyFormat("Gameplay.Notifications." + type.ToString(), formatArg);
+            Text = Localize.KeyFormat(("Gameplay.Notifications", type), formatArg);
         }
     }
 

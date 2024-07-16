@@ -137,7 +137,7 @@ namespace YARG.Gameplay.HUD
                 _       => "Awful"
             };
 
-            _performanceText.text = Localize.Key($"Gameplay.Vocals.Performance.{performanceKey}");
+            _performanceText.text = Localize.Key("Gameplay.Vocals.Performance", performanceKey);
 
             _scaler.ResetAnimationTime();
 

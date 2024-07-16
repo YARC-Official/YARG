@@ -136,13 +136,13 @@ namespace YARG.Gameplay.HUD
                 >= 0  => "Messy",
                 <  0  => "How",
             };
-            
-            _soloFullText.text = Localize.Key($"Gameplay.Solo.Performance.{performanceKey}");
+
+            _soloFullText.text = Localize.Key("Gameplay.Solo.Performance", performanceKey);
 
             yield return new WaitForSeconds(1f);
 
             // Show point bonus
-            _soloFullText.text = Localize.KeyFormat($"Gameplay.Solo.Performance.{performanceKey}", soloBonus);
+            _soloFullText.text = Localize.KeyFormat(("Gameplay.Solo.Performance", performanceKey), soloBonus);
 
             yield return new WaitForSeconds(1f);
 
