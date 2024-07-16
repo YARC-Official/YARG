@@ -22,8 +22,8 @@ namespace YARG.Localization
                 return value;
             }
 
-            YargLogger.LogFormatWarning("Failed to find translation for `{0}`. Returning empty string.", key);
-            return string.Empty;
+            YargLogger.LogFormatWarning("No translation found for key `{0}`.", key);
+            return key;
         }
 
         public static string Key<T1, T2>(T1 concat1, T2 concat2)
