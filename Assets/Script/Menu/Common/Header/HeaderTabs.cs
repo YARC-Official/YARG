@@ -38,11 +38,11 @@ namespace YARG.Menu
 
         public string SelectedTabId { get; private set; }
 
-        public NavigationScheme.Entry NavigateNextTab => new(MenuAction.Right, "Next Tab", () =>
+        public NavigationScheme.Entry NavigateNextTab => new(MenuAction.Right, "Menu.Common.NextTab", () =>
         {
             _navigationGroup.SelectNext();
         });
-        public NavigationScheme.Entry NavigatePreviousTab => new(MenuAction.Left, "Previous Tab", () =>
+        public NavigationScheme.Entry NavigatePreviousTab => new(MenuAction.Left, "Menu.Common.PreviousTab", () =>
         {
             _navigationGroup.SelectPrevious();
         });

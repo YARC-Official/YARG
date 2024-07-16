@@ -144,11 +144,11 @@ namespace YARG.Gameplay.HUD
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", Confirm),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                new NavigationScheme.Entry(MenuAction.Up, "Up", ctx => {
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up", ctx => {
                     _allowWrapAround = !ctx.IsRepeat && SettingsManager.Settings.WrapAroundNavigation.Value;
                     HoveredIndex--;
                 }),
-                new NavigationScheme.Entry(MenuAction.Down, "Down", ctx => {
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down", ctx => {
                     _allowWrapAround = !ctx.IsRepeat && SettingsManager.Settings.WrapAroundNavigation.Value;
                     HoveredIndex++;
                 })

@@ -95,7 +95,7 @@ namespace YARG.Menu.MusicLibrary
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Up, "Up",
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx =>
                     {
                         if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
@@ -108,7 +108,7 @@ namespace YARG.Menu.MusicLibrary
                             SelectedIndex--;
                         }
                     }),
-                new NavigationScheme.Entry(MenuAction.Down, "Down",
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
                     ctx =>
                     {
                         if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))

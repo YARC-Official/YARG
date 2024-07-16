@@ -108,10 +108,27 @@
             "Close": "Close",
             "Confirm": "Confirm",
             "Continue": "Continue",
-            "Delete": "Delete",
+            "On": "On",
+            "Off": "Off",
+
+            "Up": "Up",
+            "Down": "Down",
+            "Left": "Left",
+            "Right": "Right",
+
+            "Next": "Next",
+            "Previous": "Previous",
+            "NextTab": "Next Tab",
+            "PreviousTab": "Previous Tab",
+
+            "Increase": "Increase",
+            "Decrease": "Decrease",
             "Max": "Max",
             "Min": "Min",
-            "Saved": "Saved!"
+
+            "Save": "Save",
+            "Saved": "Saved!",
+            "Delete": "Delete"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",
@@ -273,7 +290,7 @@
 		"Experimental": {
 			"Notice": "IMPORTANT\n\nThese settings represent a work in progress. They are subject to change, may contain bugs, and could even cause major problems if enabled."
 		}
-	},		
+	},
     "Discord": {
         "Default": {
             "Details": "Hello there ladies and gentlemen!",
