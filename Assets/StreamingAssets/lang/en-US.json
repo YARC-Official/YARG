@@ -1037,7 +1037,8 @@
                     "Description": "This determines how much of the phrase has to be accurately sung in order to fully fill the accuracy meter, in the Expert difficulty."
                 },
                 "HitWindow": {
-                    "Name": "Hit Window"
+                    "Name": "Hit Window",
+                    "Description": "The size of the hit window, in milliseconds. Higher values allow notes to be hit earlier/later, smaller values require more precise timing."
                 },
                 "HopoLeniency": {
                     "Name": "HOPO Leniency",
