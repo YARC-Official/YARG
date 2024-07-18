@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
 
@@ -175,6 +176,13 @@ namespace YARG.Gameplay.Player
                 _harmonyStarpowerOverlay.gameObject.SetActive(false);
                 _soloStarpowerOverlay.gameObject.SetActive(true);
                 _starpowerMaterial = _soloStarpowerOverlay.material;
+            }
+
+            // this should never happen, yell in the logs if it does
+            if (_vocalsTrack.RangeShifts.Count < 1)
+            {
+                YargLogger.Fail("No vocal range shifts were calculated!");
+                _vocalsTrack.RangeShifts.Add(new(48, 72, 0, 0, 0, 0));
             }
 
             // Set pitch range
