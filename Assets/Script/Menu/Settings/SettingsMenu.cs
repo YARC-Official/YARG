@@ -173,20 +173,15 @@ namespace YARG.Menu.Settings
 
             // Set the setting name and description
             var unlocalized = settingNav.BaseSettingVisual.UnlocalizedName;
-            if (!settingNav.BaseSettingVisual.IsPresetSetting)
-            {
-                _settingName.text =
-                    Localize.Key("Settings.Setting", unlocalized, "Name");
-                _settingDescription.text =
-                    Localize.Key("Settings.Setting", unlocalized, "Description");
-            }
-            else
-            {
-                _settingName.text =
-                    Localize.Key("Settings.PresetSetting", unlocalized, "Name");
-                _settingDescription.text =
-                    Localize.Key("Settings.PresetSetting", unlocalized, "Description");
-            }
+            string baseKey = !settingNav.BaseSettingVisual.IsPresetSetting
+                ? "Settings.Setting"
+                : "Settings.PresetSetting";
+
+            _settingName.text = Localize.Key(baseKey, unlocalized, "Name");
+            _settingDescription.text = settingNav.BaseSettingVisual.HasDescription
+                ? Localize.Key(baseKey, unlocalized, "Description")
+                : string.Empty;
+
         }
 
         public void RefreshPreview(bool waitForResolution = false)

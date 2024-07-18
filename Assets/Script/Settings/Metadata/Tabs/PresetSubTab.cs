@@ -110,19 +110,29 @@ namespace YARG.Settings.Metadata
         private void CreateFields(Transform container, NavigationGroup navGroup, string presetName,
             List<(string Name, ISettingType SettingType)> settings)
         {
-            foreach ((string name, var setting) in settings)
+            foreach (var (name, setting) in settings)
             {
-                var visual = CreateField(container, presetName, name, setting);
+                var visual = CreateField(container, presetName, name, hasDescription: true, setting);
+                navGroup.AddNavigatable(visual.gameObject);
+            }
+        }
+
+        private void CreateFields(Transform container, NavigationGroup navGroup, string presetName,
+            List<(string Name, bool HasDescription, ISettingType SettingType)> settings)
+        {
+            foreach (var (name, hasDescription, setting) in settings)
+            {
+                var visual = CreateField(container, presetName, name, hasDescription, setting);
                 navGroup.AddNavigatable(visual.gameObject);
             }
         }
 
         private BaseSettingVisual CreateField(Transform container, string presetName, string name,
-            ISettingType settingType)
+            bool hasDescription, ISettingType settingType)
         {
             var visual = SpawnSettingVisual(settingType, container);
 
-            visual.AssignPresetSetting($"{presetName}.{name}", settingType);
+            visual.AssignPresetSetting($"{presetName}.{name}", hasDescription, settingType);
             _settingFields.Add(name, settingType);
 
             return visual;
