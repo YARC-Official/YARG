@@ -15,7 +15,7 @@ namespace YARG.Audio.BASS
             int handle = Bass.SampleLoad(path, 0, 0, playbackCount, BassFlags.Decode);
             if (handle == 0)
             {
-                YargLogger.LogFormatError("Failed to load {sample} {path}: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to load {0} {1}: {2}!", sample, path, Bass.LastError);
                 return null;
             }
 
@@ -23,7 +23,7 @@ namespace YARG.Audio.BASS
             if (channel == 0)
             {
                 Bass.SampleFree(handle);
-                YargLogger.LogFormatError("Failed to create {sample} channel: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to create {0} channel: {1}!", sample, Bass.LastError);
                 return null;
             }
 
@@ -44,7 +44,7 @@ namespace YARG.Audio.BASS
         {
             if (!Bass.ChannelPlay(_channel, true))
             {
-                YargLogger.LogFormatError("Failed to play {Sample} channel: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to play {0} channel: {1}!", Sample, Bass.LastError);
             }
         }
 
@@ -52,7 +52,7 @@ namespace YARG.Audio.BASS
         {
             if (!Bass.ChannelSetAttribute(_channel, ChannelAttribute.Volume, volume))
             {
-                YargLogger.LogFormatError("Failed to set {Sample} volume: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to set {0} volume: {1}!", Sample, Bass.LastError);
             }
         }
 
