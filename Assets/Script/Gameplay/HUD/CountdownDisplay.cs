@@ -73,7 +73,7 @@ namespace YARG
         {
             // Fade in
             yield return _canvasGroup
-                .DOFade(1f, 0.45f)
+                .DOFade(1f, WaitCountdown.FADE_ANIM_LENGTH)
                 .WaitForCompletion();
         }
 
@@ -81,7 +81,7 @@ namespace YARG
         {
             // Fade out
             yield return _canvasGroup
-                .DOFade(0f, 0.45f)
+                .DOFade(0f, WaitCountdown.FADE_ANIM_LENGTH)
                 .WaitForCompletion();
 
             gameObject.SetActive(false);
