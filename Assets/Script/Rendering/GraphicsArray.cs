@@ -17,20 +17,16 @@ namespace YARG.Rendering
         private readonly GraphicsBuffer.Target _target;
 
         private T[] _values;
-        private int _count = 0;
-        private readonly int _maxCapacity;
 
-        private bool _refAccessorTaken = false;
-
-        public int Count => _count;
-        public int MaxCapacity => _maxCapacity;
+        public int Count { get; private set; }
+        public int MaxCapacity { get; }
 
         /// <summary>
         /// Retrieves the item at the given index.
         /// </summary>
         /// <remarks>
         /// You must be sure that no operations that modify the collection occur while a reference is active!
-        /// Any operation that causes the backing array to be resized
+        /// Any operation that causes the backing array to be resized will cause the reference to become outdated.
         /// </remarks>
         public ref T this[int index] => ref _values[index];
 
@@ -47,7 +43,7 @@ namespace YARG.Rendering
                 initialCapacity = DEFAULT_CAPACITY;
 
             _target = target;
-            _maxCapacity = maxCapacity;
+            MaxCapacity = maxCapacity;
             Resize(initialCapacity);
         }
 
@@ -60,18 +56,17 @@ namespace YARG.Rendering
         public void Add(T value)
         {
             CheckCapacity();
-            CheckRefState();
 
-            if (_count >= _values.Length)
+            if (Count >= _values.Length)
                 Resize(_values.Length * 2);
 
-            _values[_count++] = value;
+            _values[Count++] = value;
         }
 
         private void Resize(int size)
         {
-            if (size > _maxCapacity)
-                size = _maxCapacity;
+            if (size > MaxCapacity)
+                size = MaxCapacity;
 
             Array.Resize(ref _values, size);
 
@@ -83,23 +78,16 @@ namespace YARG.Rendering
         {
             CheckIndex(index, nameof(index));
             CheckIndex(index + count, nameof(count));
-            CheckRefState();
 
             var span = _values.AsSpan();
             span[(index + count)..].CopyTo(span[index..]);
 
-            _count -= count;
+            Count -= count;
         }
 
         public void Clear()
         {
-            _count = 0;
-        }
-
-        private void CheckRefState()
-        {
-            if (_refAccessorTaken)
-                throw new InvalidOperationException("Cannot modify collection while ref accessor is taken.");
+            Count = 0;
         }
 
         private void CheckIndex(int index, string name)
@@ -110,7 +98,7 @@ namespace YARG.Rendering
 
         private void CheckCapacity()
         {
-            if (_values.Length >= _maxCapacity)
+            if (Count >= MaxCapacity)
                 throw new InvalidOperationException("Cannot exceed maximum capacity of the collection.");
         }
 
@@ -127,7 +115,7 @@ namespace YARG.Rendering
         }
     }
 
-    public static class ComputeArrayExtensions
+    public static class GraphicsArrayExtensions
     {
         public static void SetBuffer<T>(this MaterialPropertyBlock properties, string property, GraphicsArray<T> array)
             where T : unmanaged
