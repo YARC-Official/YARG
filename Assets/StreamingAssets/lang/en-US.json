@@ -535,6 +535,10 @@
                 "PauseName": "Drums",
                 "Description": "Adjusts the song's drum track volume. Only does something if the song is multi-track."
             },
+            "EnablePracticeSP": {
+                "Name": "Star Power in Practice",
+                "Description": "Allow Star Power phrases and activation while in Practice Mode."
+            },
             "FpsCap": {
                 "Name": "FPS Cap",
                 "Description": "The framerate cap. <color=white>YOU DO NOT NEED TO PLAY YARG ON 1000FPS.</color> VSync recommended."

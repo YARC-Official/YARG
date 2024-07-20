@@ -4,6 +4,7 @@ using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Gameplay.HUD;
 using YARG.Menu.Navigation;
+using YARG.Settings;
 
 namespace YARG.Gameplay
 {
@@ -141,10 +142,13 @@ namespace YARG.Gameplay
             TimeStart = timeStart;
             TimeEnd = timeEnd;
 
+            bool allowPracticeSP = SettingsManager.Settings.EnablePracticeSP.Value;
             foreach (var player in GameManager.Players)
             {
                 player.SetPracticeSection(tickStart, tickEnd);
+                player.BaseEngine.AllowStarPower(allowPracticeSP);
             }
+
             GameManager.VocalTrack.SetPracticeSection(tickStart, tickEnd);
 
             GameManager.SetSongTime(timeStart);
