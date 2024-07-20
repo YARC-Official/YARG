@@ -68,6 +68,7 @@ namespace YARG.Settings
                 nameof(Settings.SongVolume),
                 nameof(Settings.CrowdVolume),
                 nameof(Settings.SfxVolume),
+                nameof(Settings.DrumSfxVolume),
                 nameof(Settings.PreviewVolume),
                 nameof(Settings.MusicPlayerVolume),
                 nameof(Settings.VocalMonitoring),

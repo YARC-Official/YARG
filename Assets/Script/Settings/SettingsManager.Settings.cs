@@ -126,6 +126,9 @@ namespace YARG.Settings
 
             public VolumeSetting SfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
+            
+            public VolumeSetting DrumSfxVolume { get; } = 
+                new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.DrumSfx, v));
 
             public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);

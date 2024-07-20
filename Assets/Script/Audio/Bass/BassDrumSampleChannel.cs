@@ -6,10 +6,10 @@ using YARG.Input;
 
 namespace YARG.Audio.BASS
 {
-    public sealed class BassSampleChannel : SampleChannel
+    public sealed class BassDrumSampleChannel : DrumSampleChannel
     {
 #nullable enable
-        public static BassSampleChannel? Create(SfxSample sample, string path, int playbackCount)
+        public static BassDrumSampleChannel? Create(DrumSfxSample sample, string path, int playbackCount)
 #nullable disable
         {
             int handle = Bass.SampleLoad(path, 0, 0, playbackCount, BassFlags.Decode);
@@ -27,45 +27,29 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            if (!Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AudioHelpers.SfxVolume[(int) sample]))
-            {
-                YargLogger.LogFormatError("Failed to set {0} volume: {1}!", sample, Bass.LastError);
-            }
-
-            return new BassSampleChannel(handle, channel, sample, path, playbackCount);
+            return new BassDrumSampleChannel(handle, channel, sample, path, playbackCount);
         }
 
         private readonly int _sfxHandle;
         private readonly int _channel;
-        private double _lastPlaybackTime;
 
-        private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount)
+        private BassDrumSampleChannel(int handle, int channel, DrumSfxSample sample, string path, int playbackCount)
             : base(sample, path, playbackCount)
         {
             _sfxHandle = handle;
             _channel = channel;
-            _lastPlaybackTime = -1;
         }
 
         protected override void Play_Internal()
         {
-            // Suppress playback if the last instance of this sample was too recent
-            if (InputManager.CurrentInputTime - _lastPlaybackTime < PLAYBACK_SUPPRESS_THRESHOLD)
-            {
-                return;
-            }
-
             if (!Bass.ChannelPlay(_channel, true))
             {
                 YargLogger.LogFormatError("Failed to play {0} channel: {1}!", Sample, Bass.LastError);
             }
-
-            _lastPlaybackTime = InputManager.CurrentInputTime;
         }
 
         protected override void SetVolume_Internal(double volume)
         {
-            volume *= AudioHelpers.SfxVolume[(int) Sample];
             if (!Bass.ChannelSetAttribute(_channel, ChannelAttribute.Volume, volume))
             {
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", Sample, Bass.LastError);
