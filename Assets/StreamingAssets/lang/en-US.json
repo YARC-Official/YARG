@@ -492,7 +492,7 @@
             },
             "DisableTextNotifications": {
                 "Name": "Disable Text Notifications",
-                "Description": "Disables text notification on the track such as \"100-Note Streak\" and \"Full Combo."
+                "Description": "Disables text notification on the track such as \"100-Note Streak\" and \"Full Combo.\""
             },
             "DMXBlueChannels": {
                 "Name": "DMX Blue",
