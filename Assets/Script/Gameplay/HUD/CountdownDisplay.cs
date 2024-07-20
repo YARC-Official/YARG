@@ -22,7 +22,7 @@ namespace YARG
 
         private Coroutine _currentCoroutine;
 
-        private bool _displayState;
+        private bool _displayActive;
 
         public void UpdateCountdown(int measuresLeft, float progress)
         {
@@ -46,18 +46,18 @@ namespace YARG
              _currentCoroutine = null;
         }
 
-        private void ToggleDisplay(bool newState)
+        private void ToggleDisplay(bool isActive)
         {
-            if (newState == _displayState)
+            if (isActive == _displayActive)
             {
                 return;
             }
 
-            _displayState = newState;
+            _displayActive = isActive;
 
             StopCurrentCoroutine();
 
-            if (newState)
+            if (isActive)
             {
                 _canvasGroup.alpha = 0f;
                 gameObject.SetActive(true);
