@@ -53,7 +53,7 @@ inline float4x4 TRSMatrix(float3 position, float4 rotation, float3 scale)
     return m;
 }
 
-// Sets up global properties to work properly with instancing.
+// Sets up global transform properties to work properly with instancing.
 inline void SetUnityMatrices(uint instanceID, inout float4x4 objectToWorld, inout float4x4 worldToObject)
 {
     InstancedTransform transform = _InstancedTransform[instanceID];
@@ -76,7 +76,7 @@ inline void SetUnityMatrices(uint instanceID, inout float4x4 objectToWorld, inou
 }
 #endif
 
-void setup()
+void InstanceTransform_setup()
 {
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
     SetUnityMatrices(unity_InstanceID, unity_ObjectToWorld, unity_WorldToObject);

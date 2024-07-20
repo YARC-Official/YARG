@@ -343,7 +343,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "ProceduralSetup",
     "m_FunctionSource": "",
-    "m_FunctionBody": "#pragma instancing_options procedural:setup\n\nOut = In;\n"
+    "m_FunctionBody": "#pragma instancing_options procedural:InstanceTransform_setup\n\nOut = In;\n"
 }
 
 {
