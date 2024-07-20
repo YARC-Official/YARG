@@ -149,6 +149,7 @@ namespace YARG.Gameplay
                 player.BaseEngine.AllowStarPower(allowPracticeSP);
             }
 
+            GameManager.VocalTrack.AllowStarPower = allowPracticeSP;
             GameManager.VocalTrack.SetPracticeSection(tickStart, tickEnd);
 
             GameManager.SetSongTime(timeStart);
