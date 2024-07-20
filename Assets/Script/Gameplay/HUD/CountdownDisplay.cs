@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Chart;
 
-namespace YARG
+namespace YARG.Gameplay.HUD
 {
     public class CountdownDisplay : MonoBehaviour
     {

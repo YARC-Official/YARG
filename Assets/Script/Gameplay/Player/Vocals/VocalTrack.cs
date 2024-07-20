@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
 
