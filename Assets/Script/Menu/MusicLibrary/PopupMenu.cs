@@ -99,25 +99,25 @@ namespace YARG.Menu.MusicLibrary
         {
             SetHeader(null);
 
-            CreateItem("Random Song", () =>
+            CreateLocalizedItem("RandomSong", () =>
             {
                 _musicLibrary.SelectRandomSong();
                 gameObject.SetActive(false);
             });
 
-            CreateItem("Back To Top", () =>
+            CreateLocalizedItem("BackToTop", () =>
             {
                 _musicLibrary.SelectedIndex = 0;
                 gameObject.SetActive(false);
             });
 
-            CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+            CreateLocalizedItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
             {
                 _menuState = State.SortSelect;
                 UpdateForState();
             });
 
-            CreateItem("Go To Section...", () =>
+            CreateLocalizedItem("GoToSection", () =>
             {
                 _menuState = State.GoToSection;
                 UpdateForState();
@@ -131,7 +131,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 if (!favoriteInfo.IsFavorited)
                 {
-                    CreateItem("Add To Favorites", () =>
+                    CreateLocalizedItem("AddToFavorites", () =>
                     {
                         viewType.FavoriteClick();
                         _musicLibrary.RefreshViewsObjects();
@@ -141,7 +141,7 @@ namespace YARG.Menu.MusicLibrary
                 }
                 else
                 {
-                    CreateItem("Remove From Favorites", () =>
+                    CreateLocalizedItem("RemoveFromFavorites", () =>
                     {
                         viewType.FavoriteClick();
                         _musicLibrary.RefreshViewsObjects();
@@ -157,14 +157,14 @@ namespace YARG.Menu.MusicLibrary
             {
                 var song = songViewType.SongEntry;
 
-                CreateItem("View Song Folder", () =>
+                CreateLocalizedItem("ViewSongFolder", () =>
                 {
                     FileExplorerHelper.OpenFolder(song.Directory);
 
                     gameObject.SetActive(false);
                 });
 
-                CreateItem("Copy Song Checksum", () =>
+                CreateLocalizedItem("CopySongChecksum", () =>
                 {
                     GUIUtility.systemCopyBuffer = song.Hash.ToString();
 
@@ -175,7 +175,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void CreateSortSelect()
         {
-            SetHeader("Sort By...");
+            SetLocalizedHeader("SortBy");
 
             foreach (var sort in EnumExtensions<SortAttribute>.Values)
             {
@@ -209,7 +209,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void CreateGoToSection()
         {
-            SetHeader("Go To...");
+            SetLocalizedHeader("GoTo");
 
             if (SettingsManager.Settings.LibrarySort
                 is SortAttribute.Artist
@@ -240,6 +240,11 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
+        private void SetLocalizedHeader(string localizeKey)
+        {
+            SetHeader(Localize.Key("Menu.MusicLibrary.Popup.Header", localizeKey));
+        }
+        
         private void SetHeader(string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -251,6 +256,17 @@ namespace YARG.Menu.MusicLibrary
                 _header.SetActive(true);
                 _headerText.text = text;
             }
+        }
+
+        private void CreateLocalizedItem(string localizeKey, UnityAction a)
+        {
+            CreateItem(Localize.Key("Menu.MusicLibrary.Popup.Item", localizeKey), a);
+        }
+
+
+        private void CreateLocalizedItem(string localizeKey, string formatArg, UnityAction a)
+        {
+            CreateItem(Localize.KeyFormat(("Menu.MusicLibrary.Popup.Item", localizeKey), formatArg), a);
         }
 
         private void CreateItem(string body, UnityAction a)
