@@ -4,11 +4,22 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Chart;
+using YARG.Settings;
+using System;
 
 namespace YARG.Gameplay.HUD
 {
-    public class CountdownDisplay : MonoBehaviour
+    public enum CountdownDisplayMode
     {
+        Disabled,
+        Measures,
+        Seconds
+    }
+
+    public class CountdownDisplay : GameplayBehaviour
+    {
+        public static CountdownDisplayMode DisplayStyle;
+
         [SerializeField]
         private Image _backgroundCircle;
         [SerializeField]
@@ -24,17 +35,32 @@ namespace YARG.Gameplay.HUD
 
         private bool _displayActive;
 
-        public void UpdateCountdown(int measuresLeft, float progress)
+        public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
         {
+            if (DisplayStyle == CountdownDisplayMode.Disabled)
+            {
+                return;
+            }
+
             ToggleDisplay(measuresLeft > WaitCountdown.END_COUNTDOWN_MEASURE);
             
             if (!gameObject.activeSelf)
             {
                 return;
             }
+            
+            double currentTime = GameManager.SongTime;
 
-            _countdownText.text = measuresLeft.ToString();
-            _progressBar.fillAmount = 1 - progress;
+            int displayNumber = DisplayStyle switch
+            {
+                CountdownDisplayMode.Measures => measuresLeft,
+                CountdownDisplayMode.Seconds => (int) Math.Ceiling(endTime - currentTime),
+                _ => throw new Exception("Unreachable")
+            };
+
+            _countdownText.text = displayNumber.ToString();
+            
+            _progressBar.fillAmount = (float) ((endTime - currentTime) / countdownLength);
         }
 
         public void ForceReset()

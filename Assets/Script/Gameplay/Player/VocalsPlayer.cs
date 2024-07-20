@@ -183,9 +183,9 @@ namespace YARG.Gameplay.Player
 
             if (IsPrimaryPlayer)
             {
-                engine.OnCountdownChange += (measuresLeft, progress) =>
+                engine.OnCountdownChange += (measuresLeft, countdownLength, endTime) =>
                 {
-                    GameManager.VocalTrack.UpdateCountdown(measuresLeft, progress);
+                    GameManager.VocalTrack.UpdateCountdown(measuresLeft, countdownLength, endTime);
                 };
             }
 

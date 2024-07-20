@@ -360,6 +360,15 @@
                 "Name": "Star Power Claps",
                 "Description": "Enables claps to the beat while Star Power is active."
             },
+            "CountdownDisplay": {
+                "Name": "Countdown Display",
+                "Description": "Choose how countdowns should be displayed during long breaks in a song.",
+                "Dropdown": {
+                    "Measures": "In Measures",
+                    "Seconds": "In Seconds",
+                    "Disabled": "Disabled"
+                }
+            },
             "CrowdVolume": {
                 "Name": "Crowd Volume",
                 "Description": "Adjusts the song's crowd track volume. Only does something if the song is multi-track."
