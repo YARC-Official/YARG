@@ -61,7 +61,7 @@ namespace YARG.Audio.BASS
 
         public static readonly ReverbParameters FreeverbParams = new()
         {
-            fDryMix = 0.5f, fWetMix = 1.5f, fRoomSize = 0.8f, fDamp = 0.6f, fWidth = 1.0f, lMode = 0
+            fDryMix = 0.5f, fWetMix = 1.0f, fRoomSize = 0.8f, fDamp = 0.5f, fWidth = 1.0f, lMode = 0
         };
 
         public static int FXAddParameters(int streamHandle, EffectType type, IEffectParameter parameters,
