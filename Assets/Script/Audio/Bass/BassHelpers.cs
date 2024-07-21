@@ -21,11 +21,22 @@ namespace YARG.Audio.BASS
 
         public const EffectType REVERB_TYPE = EffectType.Freeverb;
 
+        /*
+         * From Bass documentation (http://bass.radio42.com/help/html/4c663bda-2751-c2c3-eaf2-770b846b6652.htm)
+         * "With a ratio of 4:1, when the (time averaged) input level is 4 dB over the threshold, the output signal level will be 1 dB over the threshold."
+         * "[Additionally,] with any threshold/ratio combination, you could calculate the gain for a 0dB peak like this: fGain=fThreshold*(1/fRatio-1)"
+         * 
+         * The intention of the gain is to normalize 0dB signals back to 0dB after compression. However, in our situation, we more want to just be a little under 0dB at peak.
+         * Since we deal with stem mixing, there is a higher likelihood of audio going above that. So, instead, we apply no positive gain.
+         * 
+         * Note: we don't apply a negative gain as the gain value effects ALL audio, not just the part that got compressed.
+         * We don't want to make quiet parts even quieter.
+         */
         public static readonly CompressorParameters CompressorParams = new()
         {
-            fGain = -3, fThreshold = -2, fAttack = 0.01f, fRelease = 0.1f, fRatio = 4,
+            fGain = 0f, fThreshold = -2, fAttack = 0.01f, fRelease = 0.1f, fRatio = 4,
         };
-
+        
         public static readonly PeakEQParameters LowEqParams = new()
         {
             fBandwidth = 1.25f, fCenter = 250.0f, fGain = -12f
