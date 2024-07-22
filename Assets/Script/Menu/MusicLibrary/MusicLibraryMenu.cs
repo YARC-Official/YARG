@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -84,6 +84,8 @@ namespace YARG.Menu.MusicLibrary
 
         private List<int> _sectionHeaderIndices = new();
         private List<HoldContext> _heldInputs = new();
+
+        private int _primaryHeaderIndex;
 
         protected override void Awake()
         {
@@ -262,23 +264,24 @@ namespace YARG.Menu.MusicLibrary
                 list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
             }
 
+            CategoryViewType primaryHeader;
+
             if (_searchField.IsSearching)
             {
                 // If the current search is NOT empty...
 
                 // Create the category
-                var categoryView = new CategoryViewType(
-                    Localize.Key("Menu.MusicLibrary.SearchResults"), count, _sortedSongs);
+                primaryHeader = new CategoryViewType(Localize.Key("Menu.MusicLibrary.SearchResults"), count, _sortedSongs);
 
                 if (_sortedSongs.Length == 1)
                 {
                     // If there is only one header, just replace it
-                    list[0] = categoryView;
+                    list[0] = primaryHeader;
                 }
                 else
                 {
                     // Otherwise add to the very top
-                    list.Insert(0, categoryView);
+                    list.Insert(0, primaryHeader);
                 }
             }
             else
@@ -286,13 +289,13 @@ namespace YARG.Menu.MusicLibrary
                 if (SettingsManager.Settings.LibrarySort < SortAttribute.Playable)
                 {
                     // Add "ALL SONGS" header right above the songs
-                    list.Insert(0, new CategoryViewType(Localize.Key("Menu.MusicLibrary.AllSongs"),
-                        SongContainer.Count, SongContainer.Songs));
+                    primaryHeader = new CategoryViewType(Localize.Key("Menu.MusicLibrary.AllSongs"), SongContainer.Count, SongContainer.Songs);
+                    
+                    list.Insert(0, primaryHeader);
 
                     if (_recommendedSongs != null)
                     {
                         // Add the recommended songs right above the "ALL SONGS" header
-
                         list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(this, i)));
                         list.Insert(0, new CategoryViewType(
                             Localize.Key("Menu.MusicLibrary.RecommendedSongs",
@@ -308,8 +311,8 @@ namespace YARG.Menu.MusicLibrary
                 }
                 else
                 {
-                    list.Insert(0, new CategoryViewType(
-                        Localize.Key("Menu.MusicLibrary.PlayableSongs"), count, _sortedSongs));
+                    primaryHeader = new CategoryViewType(Localize.Key("Menu.MusicLibrary.PlayableSongs"), count, _sortedSongs);
+                    list.Insert(0, primaryHeader);
                 }
 
                 // Add the buttons
@@ -325,6 +328,8 @@ namespace YARG.Menu.MusicLibrary
                     Refresh();
                 }, PLAYLIST_ID));
             }
+
+            _primaryHeaderIndex = list.IndexOf(primaryHeader);
 
             CalculateCategoryHeaderIndices(list);
             return list;
@@ -436,8 +441,14 @@ namespace YARG.Menu.MusicLibrary
 
             if (_reloadState != MusicLibraryReloadState.Partial)
             {
+                int newPositionStartIndex = 0;
+                if (_recommendedSongs != null)
+                {
+                    newPositionStartIndex = _primaryHeaderIndex;
+                }
+
                 if (_searchField.IsUpdatedSearchLonger || _currentSong == null ||
-                    !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory))
+                    !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory, newPositionStartIndex))
                 {
                     // Note: it may look like this is expensive, but the whole loop should only last for 4-5 iterations
                     var list = ViewList;
