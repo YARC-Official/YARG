@@ -258,7 +258,7 @@ namespace YARG.Menu.MusicLibrary
                         displayName = SongSources.Default.GetDisplayName();
                     }
                 }
-                list.Add(new SortHeaderViewType(displayName, section.Songs.Length, section.Shortcut));
+                list.Add(new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup));
 
                 // Add all of the songs
                 list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
