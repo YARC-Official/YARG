@@ -164,16 +164,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1900302462358772031 stripped
+--- !u!114 &1481148801612177571 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8299532499037330259, guid: 5800c42510b55c549be95ec3ecd75e1c,
+  m_CorrespondingSourceObject: {fileID: 9078411515056956111, guid: 5800c42510b55c549be95ec3ecd75e1c,
     type: 3}
   m_PrefabInstance: {fileID: 7598390404892836460}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 42974416b948ada45a2fd1534af7341c, type: 3}
+  m_Script: {fileID: 11500000, guid: 0a7beac659084035953f1987970c9d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &2787801384921991726 stripped
@@ -242,18 +242,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 749a177fb7f24421a01c464459b9ad68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &5459863034583426082 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2501665274994779726, guid: 5800c42510b55c549be95ec3ecd75e1c,
-    type: 3}
-  m_PrefabInstance: {fileID: 7598390404892836460}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a7beac659084035953f1987970c9d53, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &5579522060939319819 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2602119680426612839, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -305,9 +293,9 @@ MonoBehaviour:
   <TrackCamera>k__BackingField: {fileID: 5042276788195936079}
   CameraPositioner: {fileID: 2787801384921991726}
   TrackMaterial: {fileID: 5579522060939319819}
-  ComboMeter: {fileID: 5459863034583426082}
+  ComboMeter: {fileID: 1481148801612177571}
   StarpowerBar: {fileID: 4397569968834985693}
-  SunburstEffects: {fileID: 1900302462358772031}
+  SunburstEffects: {fileID: 8400489026149044294}
   IndicatorStripes: {fileID: 7487907470461173196}
   HitWindowDisplay: {fileID: 7686426392671820263}
   _hudLocation: {fileID: 4218340060847917785}
@@ -326,5 +314,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 607b14b5c54636e40a8ff8db36f0d4f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8400489026149044294 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2154532145730785834, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7598390404892836460}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42974416b948ada45a2fd1534af7341c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

@@ -10,6 +10,7 @@ using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Gameplay.Visuals.Track;
 using YARG.Player;
 using YARG.Themes;
 
