@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -72,6 +72,7 @@ namespace YARG.Menu.MusicLibrary
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
         private SongCategory[] _sortedSongs;
+        private IEnumerable<IGrouping<string, (ViewType, int)>> _shortcutQuery;
 
         private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
@@ -205,6 +206,9 @@ namespace YARG.Menu.MusicLibrary
 
         protected override List<ViewType> CreateViewList()
         {
+            // Shortcuts will be re-queried every time the list is refreshed
+            _shortcutQuery = null;
+
             if (SelectedPlaylist is not null)
             {
                 return CreatePlaylistViewList();
@@ -251,7 +255,7 @@ namespace YARG.Menu.MusicLibrary
                         displayName = SongSources.Default.GetDisplayName();
                     }
                 }
-                list.Add(new SortHeaderViewType(displayName, section.Songs.Length));
+                list.Add(new SortHeaderViewType(displayName, section.Songs.Length, section.Shortcut));
 
                 // Add all of the songs
                 list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
@@ -593,9 +597,16 @@ namespace YARG.Menu.MusicLibrary
             UpdateSearch(true);
         }
 
-        public IEnumerable<(ViewType, int)> GetSections()
+        public IEnumerable<IGrouping<string, (ViewType, int)>> GetShortcuts()
         {
-            return ViewList.Select((v, i) => (v, i)).Where(i => i.v is SortHeaderViewType);
+            if (_shortcutQuery == null)
+            {
+                _shortcutQuery = ViewList.Select((v, i) => (v, i))
+                   .Where(i => i.v is SortHeaderViewType)
+                   .GroupBy(g => ((SortHeaderViewType) g.Item1).ShortcutName);
+            }
+
+            return _shortcutQuery;
         }
 
         public void SetSearchInput(SortAttribute songAttribute, string input)

@@ -10,8 +10,8 @@ using YARG.Menu.MusicLibrary;
 using YARG.Core.Logging;
 using YARG.Core;
 using YARG.Player;
-using System.Linq;
 using YARG.Localization;
+using YARG.Core.Extensions;
 
 namespace YARG.Song
 {
@@ -57,12 +57,35 @@ namespace YARG.Song
     public readonly struct SongCategory
     {
         public readonly string Category;
+        public readonly string Shortcut;
         public readonly SongEntry[] Songs;
 
-        public SongCategory(string category, SongEntry[] songs)
+        public SongCategory(string category, SongEntry[] songs, bool createShortcut = false)
         {
             Category = category;
             Songs = songs;
+
+            if (createShortcut)
+            {
+                char firstChar = SortString.RemoveArticle(category)[0];
+
+                if (char.IsLetter(firstChar))
+                {
+                    Shortcut = firstChar.ToAsciiUpper().ToString();
+                }
+                else if (char.IsDigit(firstChar))
+                {
+                    Shortcut = "0-9";
+                }
+                else
+                {
+                    Shortcut = ".";
+                }
+            }
+            else
+            {
+                Shortcut = category;
+            }
         }
 
         public void Deconstruct(out string category, out SongEntry[] songs)
@@ -317,16 +340,16 @@ namespace YARG.Song
         private static void FillContainers()
         {
             _songs = SetAllSongs(_songCache.Entries);
-            _sortArtists      = Convert(_songCache.Artists, SongAttribute.Artist);
-            _sortAlbums       = Convert(_songCache.Albums, SongAttribute.Album);
-            _sortGenres       = Convert(_songCache.Genres, SongAttribute.Genre);
-            _sortCharters     = Convert(_songCache.Charters, SongAttribute.Charter);
-            _sortPlaylists    = Convert(_songCache.Playlists, SongAttribute.Playlist);
-            _sortSources      = Convert(_songCache.Sources, SongAttribute.Source);
-            _sortArtistAlbums = Convert(_songCache.ArtistAlbums, SongAttribute.Artist_Album);
+            _sortArtists   = Convert(_songCache.Artists, SongAttribute.Artist, createShortcuts:true);
+            _sortAlbums    = Convert(_songCache.Albums, SongAttribute.Album, createShortcuts:true);
+            _sortGenres    = Convert(_songCache.Genres, SongAttribute.Genre);
+            _sortCharters  = Convert(_songCache.Charters, SongAttribute.Charter, createShortcuts:true);
+            _sortPlaylists = Convert(_songCache.Playlists, SongAttribute.Playlist);
+            _sortSources   = Convert(_songCache.Sources, SongAttribute.Source);
 
             _sortTitles       = Cast(_songCache.Titles);
             _sortYears        = Cast(_songCache.Years);
+            _sortArtistAlbums = Cast(_songCache.ArtistAlbums, createShortcuts:true);
             _sortSongLengths  = Cast(_songCache.SongLengths);
             _playables = null;
 
@@ -380,7 +403,7 @@ namespace YARG.Song
                 return songs;
             }
 
-            static SongCategory[] Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute)
+            static SongCategory[] Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute, bool createShortcuts = false)
             {
                 var sections = new SongCategory[list.Count];
                 int index = 0;
@@ -393,18 +416,18 @@ namespace YARG.Song
                         if (node.Key.Length > 1)
                             key += node.Key.Str[1..];
                     }
-                    sections[index++] = new SongCategory(key, node.Value.ToArray());
+                    sections[index++] = new SongCategory(key, node.Value.ToArray(), createShortcuts);
                 }
                 return sections;
             }
 
-            static SongCategory[] Cast(SortedDictionary<string, List<SongEntry>> list)
+            static SongCategory[] Cast(SortedDictionary<string, List<SongEntry>> list, bool createShortcuts = false)
             {
                 var sections = new SongCategory[list.Count];
                 int index = 0;
                 foreach (var section in list)
                 {
-                    sections[index++] = new SongCategory(section.Key, section.Value.ToArray());
+                    sections[index++] = new SongCategory(section.Key, section.Value.ToArray(), createShortcuts);
                 }
                 return sections;
             }
