@@ -71,6 +71,8 @@ namespace YARG.Menu.MusicLibrary
         protected override int ExtraListViewPadding => 15;
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
+        public bool HasSortHeaders { get; private set; }
+
         private SongCategory[] _sortedSongs;
         private IEnumerable<IGrouping<string, (ViewType, int)>> _shortcutQuery;
 
@@ -209,12 +211,11 @@ namespace YARG.Menu.MusicLibrary
             // Shortcuts will be re-queried every time the list is refreshed
             _shortcutQuery = null;
 
-            if (SelectedPlaylist is not null)
-            {
-                return CreatePlaylistViewList();
-            }
+            var viewList = (SelectedPlaylist is not null) ? CreatePlaylistViewList() : CreateNormalViewList();
 
-            return CreateNormalViewList();
+            HasSortHeaders = viewList.Any(x => x is SortHeaderViewType);
+
+            return viewList;
         }
 
         private List<ViewType> CreateNormalViewList()

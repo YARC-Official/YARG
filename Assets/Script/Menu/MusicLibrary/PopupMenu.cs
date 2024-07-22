@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -111,11 +111,13 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
-            CreateItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+            if (_musicLibrary.HasSortHeaders)
             {
-                _menuState = State.SortSelect;
-                UpdateForState();
-            });
+                CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+                {
+                    _menuState = State.SortSelect;
+                    UpdateForState();
+                });
 
             CreateItem("GoToSection", () =>
             {
