@@ -155,11 +155,16 @@ namespace YARG.Gameplay
 
             FinalizeChart();
 
+            // Get audio calibration
+            int audioCalibration = SettingsManager.Settings.AudioCalibration.Value;
+            if (SettingsManager.Settings.AccountForHardwareLatency.Value)
+                audioCalibration += GlobalAudioHandler.PlaybackLatency;
+
             // Initialize song runner
             _songRunner = new SongRunner(
                 _mixer,
                 GlobalVariables.State.SongSpeed,
-                SettingsManager.Settings.AudioCalibration.Value,
+                audioCalibration,
                 SettingsManager.Settings.VideoCalibration.Value,
                 Song.SongOffsetSeconds);
 

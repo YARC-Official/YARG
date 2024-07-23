@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -218,7 +218,9 @@ namespace YARG.Menu.Calibrator
             double median = diffs.Count % 2 != 0 ? diffs[mid] : (diffs[mid] + diffs[mid - 1]) / 2f;
 
             // Set calibration
-            int calibration = (int)Math.Round(median * 1000) - GlobalAudioHandler.PlaybackLatency;
+            int calibration = (int)Math.Round(median * 1000);
+            if (SettingsManager.Settings.AccountForHardwareLatency.Value)
+                calibration -= GlobalAudioHandler.PlaybackLatency;
             SettingsManager.Settings.AudioCalibration.Value = calibration;
 
             // Set text

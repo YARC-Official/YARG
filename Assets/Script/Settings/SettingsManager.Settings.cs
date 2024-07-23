@@ -52,6 +52,8 @@ namespace YARG.Settings
             public IntSetting AudioCalibration { get; } = new(0);
             public IntSetting VideoCalibration { get; } = new(0);
 
+            public ToggleSetting AccountForHardwareLatency { get; } = new(true);
+
             public void OpenVenueFolder()
             {
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder.FullName);

@@ -427,6 +427,10 @@
                 "Name": "Audio Calibration (ms)",
                 "Description": "Audio calibration in milliseconds. Use the calibrator to automatically calibrate. Higher values make the audio play earlier, while lower ones make the audio play later."
             },
+            "AccountForHardwareLatency": {
+                "Name": "Account For Audio Hardware Latency",
+                "Description": "Automatically accounts for the detected playback latency of your audio hardware. This latency may be inaccurate, disable this setting if your audio calibration is negative."
+            },
             "BassVolume": {
                 "Name": "Bass Volume",
                 "Description": "Adjusts the song's bass guitar track volume. Only does something if the song is multi-track."

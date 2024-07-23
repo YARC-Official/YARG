@@ -241,7 +241,7 @@ namespace YARG.Playback
             _mixer = mixer;
             SongSpeed = songSpeed;
             VideoCalibration = -videoCalibration / 1000.0;
-            AudioCalibration = (-(audioCalibration + GlobalAudioHandler.PlaybackLatency) / 1000.0) - VideoCalibration;
+            AudioCalibration = (-audioCalibration / 1000.0) - VideoCalibration;
 
             SongOffset = -songOffset;
 
