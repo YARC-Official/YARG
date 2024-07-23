@@ -749,13 +749,13 @@
                 "Name": "DMX Keys",
                 "Description": "This channel gets additively set to the current key notes: Green (2), Red (4), Yellow (8), Blue (16), Orange (32)."
             },
+            "EnablePlaybackBuffer": {
+                "Name": "Use Audio Playback Buffer",
+                "Description": "Buffers audio data by decoding ahead-of-time in chunks. Improves audio stability on low-performance devices, at the cost of added latency on sound effects."
+            },
             "PlaybackBufferLength": {
                 "Name": "Playback Buffer Length",
-                "Description": "Larger values lower the chance for hearing cracks during stutters, but produce higher latency for special effects"
-            },
-            "EnablePlaybackBuffer": {
-                "Name": "Enables/Disables usage of the playback buffer",
-                "Description": "Decodes audio data ahead of time in chunks"
+                "Description": "The size of the playback buffer, in milliseconds. Larger buffers provide more stability, but further increase the latency of sound effects."
             },
             "ShowTime": {
                 "Name": "Show Time",
