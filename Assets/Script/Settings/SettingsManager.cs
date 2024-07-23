@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
@@ -141,6 +140,7 @@ namespace YARG.Settings
                 nameof(Settings.StageKitEnabled),
                 nameof(Settings.DMXEnabled),
                 nameof(Settings.RB3EEnabled),
+                new HeaderMetadata("DMXChannels"),
                 new HeaderMetadata("StageKitDMXChannels"),
                 nameof(Settings.DMXDimmerChannels),
                 nameof(Settings.DMXRedChannels),
@@ -176,7 +176,9 @@ namespace YARG.Settings
             new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
-                // Add experimental settings here
+	            nameof(Settings.UseWhammyFx),
+	            nameof(Settings.WhammyPitchShiftAmount),
+	            // nameof(Settings.WhammyOversampleFactor),
             }
         };
 
