@@ -439,6 +439,10 @@
                 "Name": "Star Power Claps",
                 "Description": "Enables claps to the beat while Star Power is active."
             },
+            "OverstrumAndOverhitSoundEffects": {
+                "Name": "Overstrum/Overhit Sound Effects",
+                "Description": "Enables the overstrum/overhit sound effect."
+            },
             "CrowdVolume": {
                 "Name": "Crowd Volume",
                 "Description": "Adjusts the song's crowd track volume. Only does something if the song is multi-track."

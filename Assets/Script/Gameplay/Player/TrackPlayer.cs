@@ -443,7 +443,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected virtual void OnOverstrum()
+        protected virtual void OnOverhit()
         {
             if (IsFc)
             {

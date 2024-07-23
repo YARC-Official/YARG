@@ -87,6 +87,7 @@ namespace YARG.Settings
                 // nameof(Settings.WhammyPitchShiftAmount),
                 // nameof(Settings.WhammyOversampleFactor),
                 nameof(Settings.ClapsInStarpower),
+                nameof(Settings.OverstrumAndOverhitSoundEffects),
                 // nameof(Settings.ReverbInStarpower),
                 nameof(Settings.UseChipmunkSpeed),
                 nameof(Settings.ApplyVolumesInMusicLibrary),

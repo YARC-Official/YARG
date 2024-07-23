@@ -10,6 +10,7 @@ using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
@@ -88,7 +89,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnNoteHit += OnNoteHit;
             engine.OnNoteMissed += OnNoteMissed;
-            engine.OnOverstrum += OnOverstrum;
+            engine.OnOverstrum += OnOverhit;
 
             engine.OnSustainStart += OnSustainStart;
             engine.OnSustainEnd += OnSustainEnd;
@@ -190,16 +191,18 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected override void OnOverstrum()
+        protected override void OnOverhit()
         {
-            base.OnOverstrum();
+            base.OnOverhit();
 
-            const int min = (int) SfxSample.Overstrum1;
-            const int max = (int) SfxSample.Overstrum4;
+            if (SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value)
+            {
+                const int MIN = (int) SfxSample.Overstrum1;
+                const int MAX = (int) SfxSample.Overstrum4;
 
-            var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
-
-            GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
+                var randomOverstrum = (SfxSample) Random.Range(MIN, MAX + 1);
+                GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
+            }
         }
 
         private void OnSustainStart(GuitarNote parent)
