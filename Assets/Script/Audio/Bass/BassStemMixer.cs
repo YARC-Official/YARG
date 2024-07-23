@@ -107,7 +107,13 @@ namespace YARG.Audio.BASS
 
             if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
             {
-                seconds -= Bass.PlaybackBufferLength / 1000.0f;
+                if (!BassAudioManager.GetSpeed(_mainHandle.Stream, out var speed))
+                {
+                    YargLogger.LogFormatError("Failed to get channel speed for buffer compensation; assuming a speed of 1.", Bass.LastError);
+                    speed = 1;
+                }
+
+                seconds -= (Bass.PlaybackBufferLength / 1000.0f) * speed;
                 // Gotta do this because ChannelBytes2Seconds() may not be less than the buffer at position 0
                 if (seconds < 0)
                 {
