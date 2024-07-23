@@ -331,22 +331,16 @@ PrefabInstance:
     - {fileID: 4421194086860702606, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
     - {fileID: 7275388750557486603, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
---- !u!1 &632404397162212954 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1828904089721583242, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
+--- !u!114 &525985604479929927 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1651695130670552727, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
     type: 3}
   m_PrefabInstance: {fileID: 1272076570556799184}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2495264194525179181
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 632404397162212954}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3932ad1e88054199b8d02b77a263c10c, type: 3}
+  m_Script: {fileID: 11500000, guid: 607b14b5c54636e40a8ff8db36f0d4f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1223668558132516053 stripped
@@ -443,4 +437,4 @@ MonoBehaviour:
   _trackMaterial: {fileID: 5950891971083158839}
   _fretArray: {fileID: 2238655681509252365}
   _notePool: {fileID: 6730988211634240432}
-  _hitWindow: {fileID: 2495264194525179181}
+  _hitWindow: {fileID: 525985604479929927}

@@ -175,6 +175,18 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 7434902305530561920}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1651695130670552727 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8198217877174457111, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 607b14b5c54636e40a8ff8db36f0d4f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1932866044203427663 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 9078411515056956111, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -259,18 +271,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c24a6ee95ca2444fa768766e48b11579, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7275388750557486603 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 277336160789584779, guid: 5800c42510b55c549be95ec3ecd75e1c,
-    type: 3}
-  m_PrefabInstance: {fileID: 7434902305530561920}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 607b14b5c54636e40a8ff8db36f0d4f4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &7381119128095886790 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 90376540996421702, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -296,7 +296,7 @@ MonoBehaviour:
   StarpowerBar: {fileID: 3700759359327549745}
   SunburstEffects: {fileID: 8847457614398773162}
   IndicatorStripes: {fileID: 7617442645122152992}
-  HitWindowDisplay: {fileID: 7275388750557486603}
+  HitWindowDisplay: {fileID: 1651695130670552727}
   _hudLocation: {fileID: 3807369616701639989}
   NotePool: {fileID: 5534384060604769120}
   BeatlinePool: {fileID: 155632028176750329}

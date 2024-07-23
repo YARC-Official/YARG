@@ -176,6 +176,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a7beac659084035953f1987970c9d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1780905825383108987 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8198217877174457111, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7598390404892836460}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 607b14b5c54636e40a8ff8db36f0d4f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &2787801384921991726 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5747337796167780418, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -297,25 +309,13 @@ MonoBehaviour:
   StarpowerBar: {fileID: 4397569968834985693}
   SunburstEffects: {fileID: 8400489026149044294}
   IndicatorStripes: {fileID: 7487907470461173196}
-  HitWindowDisplay: {fileID: 7686426392671820263}
+  HitWindowDisplay: {fileID: 1780905825383108987}
   _hudLocation: {fileID: 4218340060847917785}
   NotePool: {fileID: 4797150999688012940}
   BeatlinePool: {fileID: 897369785276829973}
   _fiveLaneMode: 0
   _fretArray: {fileID: 7353099902729507025}
   _kickFretFlash: {fileID: 5135833070940009271}
---- !u!114 &7686426392671820263 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 277336160789584779, guid: 5800c42510b55c549be95ec3ecd75e1c,
-    type: 3}
-  m_PrefabInstance: {fileID: 7598390404892836460}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 607b14b5c54636e40a8ff8db36f0d4f4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &8400489026149044294 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2154532145730785834, guid: 5800c42510b55c549be95ec3ecd75e1c,

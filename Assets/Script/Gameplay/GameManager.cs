@@ -80,6 +80,12 @@ namespace YARG.Gameplay
 
         // For clarity, try to avoid using these properties inside GameManager itself
         // These are just to expose properties from the song runner to the outside
+        /// <inheritdoc cref="SongRunner.AudioCalibration"/>
+        public double AudioCalibration => _songRunner.AudioCalibration;
+
+        /// <inheritdoc cref="SongRunner.VideoCalibration"/>
+        public double VideoCalibration => _songRunner.VideoCalibration;
+
         /// <inheritdoc cref="SongRunner.SongTime"/>
         public double SongTime => _songRunner.SongTime;
 

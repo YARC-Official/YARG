@@ -12,6 +12,7 @@ using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Gameplay.Visuals.Track;
 using YARG.Player;
+using YARG.Settings;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Player
@@ -90,6 +91,12 @@ namespace YARG.Gameplay.Player
                 FadeSize *= player.Profile.HighwayLength;
             }
 
+            // Initialize hit window
+            if (SettingsManager.Settings.ShowHitWindow.Value)
+                HitWindowDisplay.Initialize(ZeroFadePosition, FadeSize);
+            else
+                HitWindowDisplay.gameObject.SetActive(false);
+
             // Move the HUD location based on the highway length
             var change = ZeroFadePosition - DEFAULT_ZERO_FADE_POS;
             _hudLocation.position = _hudLocation.position.AddZ(change);
@@ -121,7 +128,7 @@ namespace YARG.Gameplay.Player
             NotePool.ReturnAllObjects();
             BeatlinePool.ReturnAllObjects();
 
-            HitWindowDisplay.SetHitWindowSize();
+            HitWindowDisplay.SetSize(GameManager, this);
         }
 
         protected abstract void UpdateNotes(double time);
@@ -274,6 +281,7 @@ namespace YARG.Gameplay.Player
             SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
 
             TrackView.UpdateNoteStreak(stats.Combo);
+            HitWindowDisplay.SetSize(GameManager, this);
 
             if (!_isHotStartChecked && stats.ScoreMultiplier == 4)
             {

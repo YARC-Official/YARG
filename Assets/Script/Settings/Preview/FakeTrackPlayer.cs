@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Gameplay;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
+using YARG.Gameplay.Visuals.Track;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Settings;
 using YARG.Settings.Customization;
@@ -220,10 +222,12 @@ namespace YARG.Settings.Preview
         [SerializeField]
         private KeyedPool _notePool;
         [SerializeField]
-        private FakeHitWindowDisplay _hitWindow;
+        private HitWindowDisplay _hitWindow;
 
-        public bool ForceShowHitWindow { get; set; }
         public GameMode SelectedGameMode { get; set; } = GameMode.FiveFretGuitar;
+
+        private HitWindowSettings _hitWindowSettings;
+        public bool ForceShowHitWindow { get; set; }
 
         public double PreviewTime { get; private set; }
         private double _nextSpawnTime;
@@ -251,7 +255,7 @@ namespace YARG.Settings.Preview
 
             // Show hit window if enabled
             _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Value || ForceShowHitWindow);
-            _hitWindow.NoteSpeed = NOTE_SPEED;
+            _hitWindow.Initialize(3f, PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings).FadeLength);
 
             SettingsMenu.Instance.SettingChanged += OnSettingChanged;
 
@@ -273,7 +277,7 @@ namespace YARG.Settings.Preview
             _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile), false);
 
             // Update hit window
-            _hitWindow.HitWindow = CurrentGameModeInfo.HitWindowProvider(enginePreset).Create();
+            _hitWindowSettings = CurrentGameModeInfo.HitWindowProvider(enginePreset).Create();
 
             // Update all of the notes
             foreach (var note in _notePool.AllSpawned)
@@ -302,6 +306,28 @@ namespace YARG.Settings.Preview
                 noteObj.EnableFromPool();
             }
 
+            // Update the hit window
+
+            // 1 will be max, 0 will be min. Do a sine wave between the two if it's dynamic
+            var lerp = 1f;
+            if (_hitWindowSettings.IsDynamic)
+            {
+                lerp = Mathf.Sin(Time.time * 2f) / 2f + 0.5f;
+            }
+
+            var totalWindow = YargMath.Lerp(
+                _hitWindowSettings.MinWindow,
+                _hitWindowSettings.MaxWindow, lerp
+            );
+
+            _hitWindow.SetSize(
+                -_hitWindowSettings.GetFrontEnd(totalWindow),
+                _hitWindowSettings.GetBackEnd(totalWindow),
+                NOTE_SPEED,
+                0
+            );
+
+            // Update the track scroll
             _trackMaterial.SetTrackScroll(PreviewTime, NOTE_SPEED);
         }
 
