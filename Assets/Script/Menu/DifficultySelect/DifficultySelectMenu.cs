@@ -397,9 +397,9 @@ namespace YARG.Menu.DifficultySelect
                 }
 
                 // This will always work (as it's set up in the input field)
-                // The max speed that the game can keep up with is 4995%
+                // The max speed that the game can keep up with is 5000%
                 float speed = float.Parse(_speedInput.text.TrimEnd('%')) / 100f;
-                speed = Mathf.Clamp(speed, 0.1f, 49.95f);
+                speed = Mathf.Clamp(speed, 0.1f, 50.0f);
                 _songSpeed = speed;
                 GlobalVariables.State.SongSpeed = speed;
 
@@ -611,7 +611,7 @@ namespace YARG.Menu.DifficultySelect
                 speed = 100;
             }
 
-            int intSpeed = (int) Math.Clamp(speed, 10, 4995);
+            int intSpeed = (int) Math.Clamp(speed, 10, 5000);
 
             _speedInput.SetTextWithoutNotify($"{intSpeed}%");
         }

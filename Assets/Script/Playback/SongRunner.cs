@@ -549,7 +549,6 @@ namespace YARG.Playback
         {
             lock (_syncThread)
             {
-                // 10% - 4995%, we reserve 5% so that audio syncing can still function
                 speed = ClampSongSpeed(speed);
 
                 // Set speed; save old for input offset compensation
@@ -656,8 +655,10 @@ namespace YARG.Playback
 
         public static float ClampSongSpeed(float speed)
         {
-            // 10% - 4995%, we reserve 5% so that audio syncing can still function
-            return Math.Clamp(speed, 10 / 100f, 4995 / 100f);
+            // 10% - 5000%, we reserve 5% at the bottom so that audio syncing can still function
+            // BASS (the audio library in use at the time of writing) can go up to 5100%,
+            // but we round down since 5000% looks nicer (and it gives us good)
+            return Math.Clamp(speed, 10 / 100f, 5000 / 100f);
         }
     }
 }
