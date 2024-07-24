@@ -182,6 +182,19 @@
             },
             "DontShowAgain": "Don't Show Again"
         },
+        "DifficultySelect": {
+            "Header": {
+                "Instrument": "Instrument",
+                "Difficulty": "Difficulty",
+                "Harmony": "Harmony",
+                "Modifiers": "Modifiers"
+            },
+            "Action": {
+                "Ready": "Ready",
+                "SitOut": "Sit Out",
+                "Done": "Done"
+            }
+        },
         "History": {
             "Name": "History",
             "Time": {

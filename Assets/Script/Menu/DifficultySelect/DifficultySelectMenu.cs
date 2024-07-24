@@ -86,7 +86,8 @@ namespace YARG.Menu.DifficultySelect
 
         private void OnEnable()
         {
-            _subHeader.text = GlobalVariables.State.IsPractice ? "Practice" : "Quickplay";
+            string subHeaderKey = GlobalVariables.State.IsPractice ? "Practice" : "Quickplay";
+            _subHeader.text = Localize.Key("Main.Options", subHeaderKey);
 
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -171,14 +172,16 @@ namespace YARG.Menu.DifficultySelect
             // Only show all these options if there are instruments available
             if (_possibleInstruments.Count > 0)
             {
-                CreateItem("Instrument", player.Profile.CurrentInstrument.ToLocalizedName(),
+                CreateItem(Localize.Key("Menu.DifficultySelect.Header.Instrument"), 
+                    player.Profile.CurrentInstrument.ToLocalizedName(),
                     _lastMenuState == State.Instrument, () =>
                 {
                     _menuState = State.Instrument;
                     UpdateForPlayer();
                 });
 
-                CreateItem("Difficulty", player.Profile.CurrentDifficulty.ToLocalizedName(),
+                CreateItem(Localize.Key("Menu.DifficultySelect.Header.Difficulty"),
+                    player.Profile.CurrentDifficulty.ToLocalizedName(),
                     _lastMenuState == State.Difficulty, () =>
                 {
                     _menuState = State.Difficulty;
@@ -188,7 +191,8 @@ namespace YARG.Menu.DifficultySelect
                 // Harmony players must pick their harmony index
                 if (player.Profile.CurrentInstrument == Instrument.Harmony)
                 {
-                    CreateItem("Harmony", (player.Profile.HarmonyIndex + 1).ToString(),
+                    CreateItem(Localize.Key("Menu.DifficultySelect.Header.Harmony"), 
+                        (player.Profile.HarmonyIndex + 1).ToString(),
                         _lastMenuState == State.Harmony, () =>
                     {
                         _menuState = State.Harmony;
@@ -221,7 +225,8 @@ namespace YARG.Menu.DifficultySelect
                         modifierText = modifierText.Trim();
                     }
 
-                    CreateItem("Modifiers", modifierText, _lastMenuState == State.Modifiers, () =>
+                    CreateItem(Localize.Key("Menu.DifficultySelect.Header.Modifiers"),
+                        modifierText, _lastMenuState == State.Modifiers, () =>
                     {
                         _menuState = State.Modifiers;
                         UpdateForPlayer();
@@ -229,7 +234,8 @@ namespace YARG.Menu.DifficultySelect
                 }
 
                 // Ready button
-                CreateItem("Ready", _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
+                CreateItem(Localize.Key("Menu.DifficultySelect.Action.Ready"),
+                    _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
                 {
                     // If the player just selected vocal modifiers, don't show them again
                     if (player.Profile.CurrentInstrument.ToGameMode() == GameMode.Vocals &&
@@ -246,7 +252,8 @@ namespace YARG.Menu.DifficultySelect
             if (_possibleInstruments.Count <= 0 || PlayerContainer.Players.Count != 1)
             {
                 // Sit out button
-                CreateItem("Sit Out", _possibleInstruments.Count <= 0, _difficultyRedPrefab, () =>
+                CreateItem(Localize.Key("Menu.DifficultySelect.Action.SitOut"),
+                    _possibleInstruments.Count <= 0, _difficultyRedPrefab, () =>
                 {
                     // If the user went back to sit out, and the vocal modifiers were selected,
                     // deselect them.
@@ -322,7 +329,7 @@ namespace YARG.Menu.DifficultySelect
             }
 
             // Create done button
-            CreateItem("Done", _difficultyGreenPrefab, () =>
+            CreateItem(Localize.Key("Menu.DifficultySelect.Action.Done"), _difficultyGreenPrefab, () =>
             {
                 _menuState = State.Main;
                 UpdateForPlayer();
