@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
 
@@ -26,9 +27,6 @@ namespace YARG.Gameplay.Player
 
         private static readonly int _alphaMultiplier = Shader.PropertyToID("AlphaMultiplier");
 
-        // TODO: This is temporary
-        public const float NOTE_SPEED = 5f;
-
         // TODO: Temporary until color profiles for vocals
         public readonly Color[] Colors =
         {
@@ -37,7 +35,10 @@ namespace YARG.Gameplay.Player
             new(1f, 0.859f, 0f, 1f)
         };
 
-        private const float SPAWN_TIME_OFFSET = 5f;
+        // Time offset relative to 1.0 note speed
+        private const float SPAWN_TIME_OFFSET = 25f;
+
+        public float SpawnTimeOffset => SPAWN_TIME_OFFSET / TrackSpeed;
 
         private const float TRACK_TOP = 0.90f;
         private const float TRACK_TOP_HARMONY = 0.53f;
@@ -99,6 +100,8 @@ namespace YARG.Gameplay.Player
         private double _changeStartTime;
         private double _changeEndTime;
 
+        public float TrackSpeed { get; private set; }
+
         public bool HarmonyShowing => _vocalsTrack.Instrument == Instrument.Harmony;
 
         public float CurrentNoteWidth =>
@@ -140,6 +143,8 @@ namespace YARG.Gameplay.Player
             }
 
             _vocalsTrack = _originalVocalsTrack.Clone();
+            TrackSpeed = primaryPlayer.Profile.NoteSpeed;
+            _lyricContainer.TrackSpeed = TrackSpeed;
 
             // Create trackers and indices
             var parts = _vocalsTrack.Parts;
@@ -171,6 +176,13 @@ namespace YARG.Gameplay.Player
                 _harmonyStarpowerOverlay.gameObject.SetActive(false);
                 _soloStarpowerOverlay.gameObject.SetActive(true);
                 _starpowerMaterial = _soloStarpowerOverlay.material;
+            }
+
+            // this should never happen, yell in the logs if it does
+            if (_vocalsTrack.RangeShifts.Count < 1)
+            {
+                YargLogger.Fail("No vocal range shifts were calculated!");
+                _vocalsTrack.RangeShifts.Add(new(48, 72, 0, 0, 0, 0));
             }
 
             // Set pitch range
@@ -281,7 +293,7 @@ namespace YARG.Gameplay.Player
 
         public float GetPosForTime(double time)
         {
-            return (float) time * NOTE_SPEED;
+            return (float) time * TrackSpeed;
         }
 
         public float GetPosForPitch(float pitch)

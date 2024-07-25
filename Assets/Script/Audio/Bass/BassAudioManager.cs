@@ -102,7 +102,6 @@ namespace YARG.Audio.BASS
         protected override ReadOnlySpan<string> SupportedFormats => FORMATS;
 
         private readonly int _opusHandle = 0;
-        
 
         public BassAudioManager()
         {
@@ -281,7 +280,7 @@ namespace YARG.Audio.BASS
                             YargLogger.LogFormatInfo("Loaded {0}", sfxFile);
                         }
                         break;
-                    }  
+                    }
                 }
             }
 
@@ -370,6 +369,22 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to create source stream: {0}!", Bass.LastError);
                 return false;
             }
+            return true;
+        }
+
+        internal static bool GetSpeed(int streamHandle, out float speed)
+        {
+            if (!Bass.ChannelGetAttribute(streamHandle, ChannelAttribute.Tempo, out float relativeSpeed))
+            {
+                speed = 0;
+                YargLogger.LogFormatError("Failed to get channel speed: {0}", Bass.LastError);
+                return false;
+            }
+
+            // Turn relative speed into percentage speed
+            float percentageSpeed = relativeSpeed + 100;
+            speed = percentageSpeed / 100;
+
             return true;
         }
 

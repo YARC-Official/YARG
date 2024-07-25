@@ -95,7 +95,7 @@ namespace YARG.Menu.MusicLibrary
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Up, "Up",
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx =>
                     {
                         if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
@@ -108,7 +108,7 @@ namespace YARG.Menu.MusicLibrary
                             SelectedIndex--;
                         }
                     }),
-                new NavigationScheme.Entry(MenuAction.Down, "Down",
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
                     ctx =>
                     {
                         if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
@@ -121,13 +121,13 @@ namespace YARG.Menu.MusicLibrary
                             SelectedIndex++;
                         }
                     }),
-                new NavigationScheme.Entry(MenuAction.Green, "Confirm",
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                     () => CurrentSelection?.PrimaryButtonClick()),
 
-                new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
-                new NavigationScheme.Entry(MenuAction.Blue, "Search",
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
+                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
                     () => _searchField.Focus()),
-                new NavigationScheme.Entry(MenuAction.Orange, "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>",
+                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                     OnButtonHit, OnButtonRelease),
             }, false));
 
@@ -401,14 +401,6 @@ namespace YARG.Menu.MusicLibrary
 
             if (SelectedPlaylist is null)
             {
-                // If there's no playlist selected...
-                if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
-                {
-                    if (PlayerContainer.Players.Count == 0)
-                    {
-                        SettingsManager.Settings.LibrarySort = SortAttribute.Name;
-                    }
-                }
                 _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
                 _searchField.gameObject.SetActive(true);
             }

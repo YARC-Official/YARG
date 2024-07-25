@@ -164,7 +164,7 @@ namespace YARG.Song
                 SortAttribute.Artist_Album => _sortArtistAlbums,
                 SortAttribute.SongLength => _sortSongLengths,
                 SortAttribute.DateAdded => _sortDatesAdded,
-                SortAttribute.Playable => _playables,
+                SortAttribute.Playable => GetPlayableSongs(),
 
                 SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
                 SortAttribute.FiveFretBass   => _sortInstruments[Instrument.FiveFretBass],
@@ -195,50 +195,78 @@ namespace YARG.Song
             return _sortInstruments[instrument].Length > 0;
         }
 
-        public static void ResetPlayableSongs()
+        private static HashSet<Instrument> _instruments = null;
+        private static SongCategory[] GetPlayableSongs()
         {
-            _playables = null;
-        }
-
-        public static SongCategory[] GetPlayableSongs(IReadOnlyList<YargPlayer> players)
-        {
-            if (_playables == null)
+            HashSet<Instrument> instruments = new();
+            foreach (var player in PlayerContainer.Players)
             {
-                if (players.Count == 0)
+                instruments.Add(player.Profile.CurrentInstrument);
+            }
+
+            if (_playables == null || !_instruments.SetEquals(instruments))
+            {
+                _instruments = instruments;
+                if (instruments.Count == 0)
                 {
-                    _playables = Array.Empty<SongCategory>();
+                    _playables = _sortTitles;
                 }
                 else
                 {
-                    var gamemodes = players.Select(player => player.Profile.GameMode).Distinct();
-
-                    IEnumerable<SongEntry> queries = null;
-                    foreach (var gamemode in gamemodes)
+                    var gamemodes = new HashSet<GameMode>();
+                    var queries = default(HashSet<SongEntry>);
+                    foreach (var player in PlayerContainer.Players)
                     {
-                        var list = gamemode.PossibleInstruments()
-                            .SelectMany(instrument => _songCache.Instruments[instrument])
-                            .SelectMany(group => group.Value)
-                            .Distinct();
-
-                        queries = queries == null ? list : queries.Intersect(list);
-                    }
-
-                    var arr = new SongCategory[_sortTitles.Length];
-                    int count = 0;
-                    for (int i = 0; i < arr.Length; i++)
-                    {
-                        var node = _sortTitles[i];
-                        var intersect = node.Songs.Intersect(queries);
-                        if (intersect.Count() > 0)
+                        if (!gamemodes.Add(player.Profile.GameMode))
                         {
-                            arr[count++] = new SongCategory($"Playable [{node.Category}]", intersect.ToArray());
+                            continue;
+                        }
+
+                        var set = new HashSet<SongEntry>();
+                        foreach (var ins in player.Profile.GameMode.PossibleInstruments())
+                        {
+                            foreach (var list in _songCache.Instruments[ins].Values)
+                            {
+                                foreach (var entry in list)
+                                {
+                                    set.Add(entry);
+                                }
+                            }
+                        }
+
+                        if (queries != null)
+                        {
+                            queries.IntersectWith(set);
+                        }
+                        else
+                        {
+                            queries = set;
                         }
                     }
 
-                    _playables = arr[..count];
+                    var arr = new SongCategory[_sortTitles.Length];
+                    int categoryCount = 0;
+                    for (int i = 0; i < arr.Length; i++)
+                    {
+                        var node = _sortTitles[i];
+                        var intersect = new SongEntry[node.Songs.Length];
+                        int intersectCount = 0;
+                        for (int songIndex = 0; songIndex < node.Songs.Length; ++songIndex)
+                        {
+                            if (queries.Contains(node.Songs[songIndex]))
+                            {
+                                intersect[intersectCount++] = node.Songs[songIndex];
+                            }
+                        }
+
+                        if (intersectCount > 0)
+                        {
+                            arr[categoryCount++] = new SongCategory($"Playable [{node.Category}]", intersect[..intersectCount]);
+                        }
+                    }
+                    _playables = arr[..categoryCount];
                 }
             }
-
             return _playables;
         }
 

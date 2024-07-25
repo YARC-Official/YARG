@@ -80,7 +80,7 @@ namespace YARG.Settings.Metadata
                         var setting = SettingsManager.GetSettingByName(field.FieldName);
 
                         var visual = SpawnSettingVisual(setting, container);
-                        visual.AssignSetting(field.FieldName);
+                        visual.AssignSetting(field.FieldName, field.HasDescription);
 
                         _settingVisuals.Add(field.FieldName, visual);
                         navGroup.AddNavigatable(visual.gameObject);

@@ -34,6 +34,7 @@ namespace YARG.Settings
                 new ButtonRowMetadata(nameof(Settings.OpenCalibrator)),
                 nameof(Settings.AudioCalibration),
                 nameof(Settings.VideoCalibration),
+                nameof(Settings.AccountForHardwareLatency),
 
                 new HeaderMetadata("Venues"),
                 new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),
@@ -96,6 +97,7 @@ namespace YARG.Settings
                 // nameof(Settings.WhammyPitchShiftAmount),
                 // nameof(Settings.WhammyOversampleFactor),
                 nameof(Settings.ClapsInStarpower),
+                nameof(Settings.OverstrumAndOverhitSoundEffects),
                 // nameof(Settings.ReverbInStarpower),
                 nameof(Settings.UseChipmunkSpeed),
                 nameof(Settings.ApplyVolumesInMusicLibrary),

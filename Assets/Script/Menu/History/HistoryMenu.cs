@@ -47,20 +47,20 @@ namespace YARG.Menu.History
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Up, "Up",
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx => {
                         SetWrapAroundState(!ctx.IsRepeat);
                         SelectedIndex--;
                     }),
-                new NavigationScheme.Entry(MenuAction.Down, "Down",
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
                     ctx => {
                         SetWrapAroundState(!ctx.IsRepeat);
                         SelectedIndex++;
                     }),
-                new NavigationScheme.Entry(MenuAction.Green, "Confirm",
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                     () => CurrentSelection?.ViewClick()),
 
-                new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
             }, false));
 
             _headerTabs.TabChanged += OnTabChanged;

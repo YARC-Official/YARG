@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -18,7 +19,8 @@ namespace YARG.Menu
         [Space]
         public UnityEvent<float> ValueChanged;
 
-        public bool NotifyOnChange { get; set; } = true;
+        public bool ClampMin = true;
+        public bool ClampMax = true;
 
         private float _value = 0f;
         public float Value
@@ -101,6 +103,20 @@ namespace YARG.Menu
             SetValue(value, notify: true);
         }
 
+        private float ClampValue(float value)
+        {
+            if (ClampMin)
+                value = Math.Max(value, _slider.minValue);
+
+            if (ClampMax)
+                value = Math.Min(value, _slider.maxValue);
+
+            if (_slider.wholeNumbers)
+                value = Mathf.Round(value);
+
+            return value;
+        }
+
         private void SetValue(float value, bool notify,
             bool setSlider = true, bool setValue = true, bool setText = true)
         {
@@ -110,17 +126,19 @@ namespace YARG.Menu
             // Set value and notify
             _isSettingValue = true;
 
+            value = ClampValue(value);
+
             if (setSlider)
                 _slider.SetValueWithoutNotify(value);
 
             if (setValue)
-                _value = _slider.value;
+                _value = value;
 
             if (setText)
-                _inputField.SetTextWithoutNotify(_value.ToString(_formatString));
+                _inputField.SetTextWithoutNotify(value.ToString(_formatString));
 
-            if (notify && NotifyOnChange)
-                ValueChanged.Invoke(_value);
+            if (notify)
+                ValueChanged.Invoke(value);
 
             _isSettingValue = false;
         }

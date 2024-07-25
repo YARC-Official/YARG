@@ -74,9 +74,7 @@ namespace YARG.Song
             {
                 searches.Clear();
                 _sort = sort;
-                _baseList = sort != SortAttribute.Playable
-                    ? SongContainer.GetSortedCategory(sort)
-                    : SongContainer.GetPlayableSongs(PlayerContainer.Players);
+                _baseList = SongContainer.GetSortedCategory(sort);
             }
 
             while (filterIndex < filters.Count)
@@ -242,7 +240,7 @@ namespace YARG.Song
                 {
                     SearchMode mode;
                     (argument, mode) = ParseArgument(argument);
-                    if (argument.Length > 0)
+                    if (argument.Length > 0 || attribute > SortAttribute.Instrument)
                     {
                         filters.Add(new FilterNode(attribute, mode, argument));
                     }

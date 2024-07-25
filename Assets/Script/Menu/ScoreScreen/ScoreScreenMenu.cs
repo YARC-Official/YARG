@@ -47,7 +47,7 @@ namespace YARG.Menu.ScoreScreen
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Green, "Continue", () =>
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
                 {
                     GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
                 })

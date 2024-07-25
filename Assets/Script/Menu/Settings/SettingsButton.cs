@@ -59,7 +59,7 @@ namespace YARG.Menu.Settings
             var scheme = new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () =>
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
                     Navigator.Instance.PopScheme();
                 }),
