@@ -63,7 +63,7 @@ namespace YARG.Gameplay
             useGUILayout = enabled;
         }
 
-        private void ToggleDebugEnabled() => SetDebugEnabled(_enableDebug);
+        private void ToggleDebugEnabled() => SetDebugEnabled(!_enableDebug);
 
         private void OnGUI()
         {
