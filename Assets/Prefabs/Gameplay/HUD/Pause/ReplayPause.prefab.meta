@@ -1,12 +1,6 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Assets/Prefabs/SettingPreviews/Track.meta
-guid: a53d537af736466419c9afdfa3d37484
-folderAsset: yes
-DefaultImporter:
-========
-guid: 749cd1b57259f554c8745dc595e57c7e
+guid: 7efe71303a450f348a4c71ec8eea331f
 PrefabImporter:
->>>>>>>> rewrite:Assets/Prefabs/Gameplay/HUD/Pause/ReplayPause.prefab.meta
   externalObjects: {}
   userData: 
   assetBundleName: 

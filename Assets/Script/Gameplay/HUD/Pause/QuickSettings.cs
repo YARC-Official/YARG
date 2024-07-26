@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Logging;
-using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Settings.Types;
@@ -67,6 +66,9 @@ namespace YARG.Gameplay.HUD
 
                 Destroy(child.gameObject);
             }
+
+            _subSettingsNavGroup.ClearNavigatables();
+            _subSettingsNavGroup.AddNavigatable(_subSettingsBackButton.GetComponent<NavigatableBehaviour>());
 
             foreach (var settingName in settings)
             {

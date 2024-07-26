@@ -116,11 +116,11 @@ namespace YARG.Gameplay.HUD
 
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () =>
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
                     GameManager.SetEditHUD(false);
                 }),
-                new NavigationScheme.Entry(MenuAction.Select, "Reset All", () =>
+                new NavigationScheme.Entry(MenuAction.Select, "Menu.Common.ResetAll", () =>
                 {
                     var dialog = DialogManager.Instance.ShowMessage("Are You Sure?",
                         "Are you sure you want to reset the position of all elements? This action cannot be undone.");
