@@ -13,6 +13,8 @@ namespace YARG.Gameplay.HUD
         private Transform _quickSettingsContainer;
         [SerializeField]
         private Transform _subSettingsContainer;
+        [SerializeField]
+        private GameObject _subSettingsObject;
 
         [Space]
         [SerializeField]
@@ -36,7 +38,7 @@ namespace YARG.Gameplay.HUD
             base.OnEnable();
 
             _quickSettingsContainer.gameObject.SetActive(true);
-            _subSettingsContainer.gameObject.SetActive(false);
+            _subSettingsObject.SetActive(false);
         }
 
         public override void Back()
@@ -92,7 +94,7 @@ namespace YARG.Gameplay.HUD
             }
 
             _quickSettingsContainer.gameObject.SetActive(false);
-            _subSettingsContainer.gameObject.SetActive(true);
+            _subSettingsObject.SetActive(true);
         }
     }
 }
