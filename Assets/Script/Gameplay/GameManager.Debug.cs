@@ -11,11 +11,25 @@ namespace YARG.Gameplay
 {
     public partial class GameManager
     {
+        private ref struct DebugScrollView
+        {
+            public static DebugScrollView Begin(string title, GUIStyle verticalStyle,
+                ref Vector2 scrollPosition, params GUILayoutOption[] scrollOptions)
+            {
+                GUILayout.BeginVertical(title, verticalStyle);
+                scrollPosition = GUILayout.BeginScrollView(scrollPosition, scrollOptions);
+                return new DebugScrollView();
+            }
+
+            public void Dispose()
+            {
+                GUILayout.EndScrollView();
+                GUILayout.EndVertical();
+            }
+        }
+
         private const int DEBUG_WINDOW_ID = 0;
         private const int DEBUG_WINDOW_MARGIN = 25;
-        private const int DEBUG_WINDOW_WIDTH = 400;
-        private const int DEBUG_WINDOW_ACTIVE_HEIGHT = 500;
-        private const int DEBUG_WINDOW_INACTIVE_HEIGHT = 50;
 
         private bool _enableDebug;
 
@@ -23,10 +37,7 @@ namespace YARG.Gameplay
         private GUIStyle VerticalGroupStyle => GUI.skin.window;
 
         private GUI.WindowFunction _debugWindowCallback;
-        private Rect _debugWindowRect = new(
-            DEBUG_WINDOW_MARGIN, DEBUG_WINDOW_MARGIN,
-            DEBUG_WINDOW_WIDTH, DEBUG_WINDOW_INACTIVE_HEIGHT
-        );
+        private Rect _debugWindowRect = new(DEBUG_WINDOW_MARGIN, DEBUG_WINDOW_MARGIN, 0, 0);
         private Vector2 _debugWindowScroll;
 
         private List<(string title, Action callback)> _debugMenus;
@@ -74,25 +85,18 @@ namespace YARG.Gameplay
                 return;
             }
 
-            _debugWindowRect = GUI.Window(DEBUG_WINDOW_ID, _debugWindowRect, _debugWindowCallback, "Debug Menu");
+            // Reset size so expansions don't persist
+            _debugWindowRect.size = new Vector2();
+            _debugWindowRect = GUILayout.Window(DEBUG_WINDOW_ID, _debugWindowRect, _debugWindowCallback, "Debug Menu",
+                GUILayout.MinWidth(300), GUILayout.MaxWidth(600), GUILayout.MinHeight(50), GUILayout.MaxHeight(500)
+            );
         }
 
         private void WindowCallback(int windowId)
         {
             _debugMenuIndex = GUILayout.Toolbar(_debugMenuIndex, _debugMenuTitles);
             if (_debugMenuIndex >= 0)
-            {
-                _debugWindowRect.size = new Vector2(DEBUG_WINDOW_WIDTH, DEBUG_WINDOW_ACTIVE_HEIGHT);
-                _debugWindowScroll = GUILayout.BeginScrollView(_debugWindowScroll);
-                {
-                    _debugMenus[_debugMenuIndex].callback();
-                }
-                GUILayout.EndScrollView();
-            }
-            else
-            {
-                _debugWindowRect.size = new Vector2(DEBUG_WINDOW_WIDTH, DEBUG_WINDOW_INACTIVE_HEIGHT);
-            }
+                _debugMenus[_debugMenuIndex].callback();
 
             GUI.DragWindow();
         }
@@ -101,12 +105,13 @@ namespace YARG.Gameplay
         {
             SetDebugEnabled(false);
             _debugMenuIndex = -1;
-            _debugWindowRect.size = new Vector2(DEBUG_WINDOW_WIDTH, DEBUG_WINDOW_INACTIVE_HEIGHT);
             _debugWindowRect.position = new Vector2(DEBUG_WINDOW_MARGIN, DEBUG_WINDOW_MARGIN);
         }
 
         private string[] _debugPlayers;
         private int _debugSelectedPlayer = -1;
+        private Vector2 _debugBaseEngineScroll;
+        private Vector2 _debugDerivedEngineScroll;
 
         private void PlayerDebug()
         {
@@ -120,7 +125,8 @@ namespace YARG.Gameplay
 
             var player = _players[_debugSelectedPlayer];
 
-            GUILayout.BeginVertical("Base Engine", VerticalGroupStyle);
+            using (DebugScrollView.Begin("Base Engine", VerticalGroupStyle,
+                ref _debugBaseEngineScroll, GUILayout.Height(125)))
             {
                 using var text = ZString.CreateStringBuilder(true);
 
@@ -145,7 +151,7 @@ namespace YARG.Gameplay
                 text.AppendFormat("- Star Power input active: {0}\n", state.IsStarPowerInputActive);
 
                 var stats = player.BaseEngine.BaseStats;
-                text.AppendLine("Stats:");
+                text.AppendLine("\nStats:");
                 text.AppendFormat("- Committed score: {0}\n", stats.CommittedScore);
                 text.AppendFormat("- Pending score: {0}\n", stats.PendingScore);
                 text.AppendFormat("- Total score: {0}\n", stats.TotalScore);
@@ -175,7 +181,6 @@ namespace YARG.Gameplay
 
                 GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }
-            GUILayout.EndVertical();
 
             string playerType = player switch
             {
@@ -187,106 +192,113 @@ namespace YARG.Gameplay
                 _ => "Unhandled"
             };
 
-            GUILayout.BeginVertical(playerType, VerticalGroupStyle);
-            switch (player)
+            using (DebugScrollView.Begin(playerType, VerticalGroupStyle,
+                ref _debugDerivedEngineScroll, GUILayout.Height(125)))
             {
-                case FiveFretPlayer fiveFretPlayer:
+                switch (player)
                 {
-                    using var text = ZString.CreateStringBuilder(true);
+                    case FiveFretPlayer fiveFretPlayer:
+                    {
+                        using var text = ZString.CreateStringBuilder(true);
 
-                    var state = fiveFretPlayer.Engine.State;
-                    text.AppendLine("State:");
-                    text.AppendFormat("- Button mask: 0x{0:X2}\n", state.ButtonMask);
-                    text.AppendFormat("- Last button mask: 0x{0:X2}\n", state.LastButtonMask);
-                    text.AppendFormat("- Note was ghosted: {0}\n", state.WasNoteGhosted);
-                    text.AppendLine();
-                    text.AppendFormat("- Strum leniency timer: {0}\n", state.HopoLeniencyTimer);
-                    text.AppendFormat("- HOPO leniency timer: {0}\n", state.StrumLeniencyTimer);
-                    text.AppendFormat("- Star Power whammy timer: {0}\n", state.StarPowerWhammyTimer);
-                    if (state.FrontEndExpireTime != double.MaxValue)
-                        text.AppendFormat("- Front-end expire time: {0:0.000000}\n", state.FrontEndExpireTime);
-                    else
-                        text.Append("- Front-end expire time: Not set\n");
+                        var state = fiveFretPlayer.Engine.State;
+                        text.AppendLine("State:");
+                        text.AppendFormat("- Button mask: 0x{0:X2}\n", state.ButtonMask);
+                        text.AppendFormat("- Last button mask: 0x{0:X2}\n", state.LastButtonMask);
+                        text.AppendFormat("- Note was ghosted: {0}\n", state.WasNoteGhosted);
+                        text.AppendLine();
+                        text.AppendFormat("- Strum leniency timer: {0}\n", state.HopoLeniencyTimer);
+                        text.AppendFormat("- HOPO leniency timer: {0}\n", state.StrumLeniencyTimer);
+                        text.AppendFormat("- Star Power whammy timer: {0}\n", state.StarPowerWhammyTimer);
+                        if (state.FrontEndExpireTime != double.MaxValue)
+                            text.AppendFormat("- Front-end expire time: {0:0.000000}\n", state.FrontEndExpireTime);
+                        else
+                            text.Append("- Front-end expire time: Not set\n");
 
-                    var stats = fiveFretPlayer.Engine.EngineStats;
-                    text.AppendLine("Stats:");
-                    text.AppendFormat("- Overstrums: {0}\n", stats.Overstrums);
-                    text.AppendFormat("- Ghost inputs: {0}\n", stats.GhostInputs);
-                    text.AppendFormat("- HOPOs strummed: {0}\n", stats.HoposStrummed);
-                    text.AppendFormat("- Sustain score: {0}\n", stats.SustainScore);
-                    text.AppendFormat("- Star Power whammy ticks: {0}\n", stats.WhammyTicks);
+                        var stats = fiveFretPlayer.Engine.EngineStats;
+                        text.AppendLine("\nStats:");
+                        text.AppendFormat("- Overstrums: {0}\n", stats.Overstrums);
+                        text.AppendFormat("- Ghost inputs: {0}\n", stats.GhostInputs);
+                        text.AppendFormat("- HOPOs strummed: {0}\n", stats.HoposStrummed);
+                        text.AppendFormat("- Sustain score: {0}\n", stats.SustainScore);
+                        text.AppendFormat("- Star Power whammy ticks: {0}\n", stats.WhammyTicks);
 
-                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
-                    break;
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                        break;
+                    }
+
+                    case DrumsPlayer drumsPlayer:
+                    {
+                        using var text = ZString.CreateStringBuilder(true);
+
+                        var state = drumsPlayer.Engine.State;
+                        text.AppendLine("State:");
+                        text.AppendLine("- No persistent state");
+
+                        var stats = drumsPlayer.Engine.EngineStats;
+                        text.AppendLine("\nStats:");
+                        text.AppendFormat("- Overhits: {0}\n", stats.Overhits);
+
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                        break;
+                    }
+
+                    case VocalsPlayer vocalsPlayer:
+                    {
+                        using var text = ZString.CreateStringBuilder(true);
+
+                        var state = vocalsPlayer.Engine.State;
+                        text.AppendLine("State:");
+                        text.AppendFormat("- Last pitch sang: {0:0.000}\n", state.PitchSang);
+                        text.AppendFormat("- Current phrase ticks hit: {0:0.000}/{1}\n",
+                            state.PhraseTicksHit, state.PhraseTicksTotal);
+                        text.AppendFormat("- Last sing tick: {0}\n", state.LastSingTick);
+
+                        var stats = vocalsPlayer.Engine.EngineStats;
+                        text.AppendLine("\nStats:");
+                        text.AppendFormat("- Ticks hit: {0}\n", stats.TicksHit);
+                        text.AppendFormat("- Ticks missed: {0}\n", stats.TicksMissed);
+                        text.AppendFormat("- Total ticks so far: {0}\n", stats.TotalTicks);
+
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                        break;
+                    }
+
+                    case ProKeysPlayer proKeysPlayer:
+                    {
+                        using var text = ZString.CreateStringBuilder(true);
+
+                        var state = proKeysPlayer.Engine.State;
+                        text.AppendLine("State:");
+                        text.AppendFormat("- Key mask: 0x{0:X8}\n", state.KeyMask);
+                        text.AppendFormat("- Visual key mask: 0x{0:X8}\n", state.KeyHeldMaskVisual);
+                        text.AppendLine();
+                        text.AppendFormat("- Chord stagger timer: {0}\n", state.ChordStaggerTimer);
+                        text.AppendFormat("- Fat finger timer: {0}\n", state.FatFingerTimer);
+
+                        var stats = proKeysPlayer.Engine.EngineStats;
+                        text.AppendLine("\nStats:");
+                        text.AppendFormat("- Overhits: {0}\n", stats.Overhits);
+
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                        break;
+                    }
+
+                    default:
+                        GUILayout.Label($"Player type {player.GetType()} not handled yet");
+                        break;
                 }
-
-                case DrumsPlayer drumsPlayer:
-                {
-                    using var text = ZString.CreateStringBuilder(true);
-
-                    var state = drumsPlayer.Engine.State;
-                    text.AppendLine("State:");
-                    text.AppendLine("- No persistent state");
-
-                    var stats = drumsPlayer.Engine.EngineStats;
-                    text.AppendLine("Stats:");
-                    text.AppendFormat("- Overhits: {0}\n", stats.Overhits);
-
-                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
-                    break;
-                }
-
-                case VocalsPlayer vocalsPlayer:
-                {
-                    using var text = ZString.CreateStringBuilder(true);
-
-                    var state = vocalsPlayer.Engine.State;
-                    text.AppendLine("State:");
-                    text.AppendFormat("- Last pitch sang: {0:0.000}\n", state.PitchSang);
-                    text.AppendFormat("- Current phrase ticks hit: {0:0.000}/{1}\n",
-                        state.PhraseTicksHit, state.PhraseTicksTotal);
-                    text.AppendFormat("- Last sing tick: {0}\n", state.LastSingTick);
-
-                    var stats = vocalsPlayer.Engine.EngineStats;
-                    text.AppendLine("Stats:");
-                    text.AppendFormat("- Ticks hit: {0}\n", stats.TicksHit);
-                    text.AppendFormat("- Ticks missed: {0}\n", stats.TicksMissed);
-                    text.AppendFormat("- Total ticks so far: {0}\n", stats.TotalTicks);
-
-                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
-                    break;
-                }
-
-                case ProKeysPlayer proKeysPlayer:
-                {
-                    using var text = ZString.CreateStringBuilder(true);
-
-                    var state = proKeysPlayer.Engine.State;
-                    text.AppendLine("State:");
-                    text.AppendFormat("- Key mask: 0x{0:X8}\n", state.KeyMask);
-                    text.AppendFormat("- Visual key mask: 0x{0:X8}\n", state.KeyHeldMaskVisual);
-                    text.AppendLine();
-                    text.AppendFormat("- Chord stagger timer: {0}\n", state.ChordStaggerTimer);
-                    text.AppendFormat("- Fat finger timer: {0}\n", state.FatFingerTimer);
-
-                    var stats = proKeysPlayer.Engine.EngineStats;
-                    text.AppendLine("Stats:");
-                    text.AppendFormat("- Overhits: {0}\n", stats.Overhits);
-
-                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
-                    break;
-                }
-
-                default:
-                    GUILayout.Label($"Player type {player.GetType()} not handled yet");
-                    break;
             }
-            GUILayout.EndVertical();
         }
+
+        private Vector2 _debugCalibrationScroll;
+        private Vector2 _debugTimeScroll;
+        private Vector2 _debugSyncScroll;
 
         private void TimingDebug()
         {
-            GUILayout.BeginVertical("Calibration", VerticalGroupStyle);
+            using (DebugScrollView.Begin("Calibration", VerticalGroupStyle,
+                ref _debugCalibrationScroll, GUILayout.Height(75)))
             {
                 using var text = ZString.CreateStringBuilder(true);
 
@@ -297,9 +309,9 @@ namespace YARG.Gameplay
 
                 GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }
-            GUILayout.EndVertical();
 
-            GUILayout.BeginVertical("Time", VerticalGroupStyle);
+            using (DebugScrollView.Begin("Time", VerticalGroupStyle,
+                ref _debugTimeScroll, GUILayout.Height(125)))
             {
                 using var text = ZString.CreateStringBuilder(true);
 
@@ -319,9 +331,9 @@ namespace YARG.Gameplay
 
                 GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }
-            GUILayout.EndVertical();
 
-            GUILayout.BeginVertical("Sync", VerticalGroupStyle);
+            using (DebugScrollView.Begin("Sync", VerticalGroupStyle,
+                ref _debugSyncScroll, GUILayout.Height(100)))
             {
                 using var text = ZString.CreateStringBuilder(true);
 
@@ -333,12 +345,14 @@ namespace YARG.Gameplay
 
                 GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }
-            GUILayout.EndVertical();
         }
+
+        private Vector2 _debugLightingScroll;
 
         private void VenueDebug()
         {
-            GUILayout.BeginVertical("Lighting", VerticalGroupStyle);
+            using (DebugScrollView.Begin("Lighting", VerticalGroupStyle,
+                ref _debugLightingScroll, GUILayout.Height(50)))
             {
                 using var text = ZString.CreateStringBuilder(true);
 
@@ -356,7 +370,6 @@ namespace YARG.Gameplay
 
                 GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }
-            GUILayout.EndVertical();
         }
     }
 }
