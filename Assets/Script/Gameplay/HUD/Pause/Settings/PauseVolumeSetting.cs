@@ -1,7 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Settings.Types;
@@ -12,8 +11,12 @@ namespace YARG.Gameplay.HUD
     {
         [SerializeField]
         private TextMeshProUGUI _text;
+
+        [Space]
         [SerializeField]
         private Slider _slider;
+        [SerializeField]
+        private TextMeshProUGUI _value;
 
         private VolumeSetting _setting;
 
@@ -23,11 +26,13 @@ namespace YARG.Gameplay.HUD
 
             _text.text = Localize.Key("Settings.Setting", settingName, "PauseName");
             _slider.SetValueWithoutNotify(_setting.Value);
+            _value.text = Localize.Percent(setting.Value);
         }
 
         public void OnValueChange()
         {
             _setting.Value = _slider.value;
+            _value.text = Localize.Percent(_slider.value);
         }
     }
 }
