@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using UnityEditorInternal;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
