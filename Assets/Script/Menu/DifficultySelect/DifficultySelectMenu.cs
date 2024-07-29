@@ -172,7 +172,7 @@ namespace YARG.Menu.DifficultySelect
             // Only show all these options if there are instruments available
             if (_possibleInstruments.Count > 0)
             {
-                CreateItem(CreateLocalizedHeader("Instrument"), 
+                CreateItem(LocalizeHeader("Instrument"),
                     player.Profile.CurrentInstrument.ToLocalizedName(),
                     _lastMenuState == State.Instrument, () =>
                 {
@@ -180,7 +180,7 @@ namespace YARG.Menu.DifficultySelect
                     UpdateForPlayer();
                 });
 
-                CreateItem(CreateLocalizedHeader("Difficulty"),
+                CreateItem(LocalizeHeader("Difficulty"),
                     player.Profile.CurrentDifficulty.ToLocalizedName(),
                     _lastMenuState == State.Difficulty, () =>
                 {
@@ -191,7 +191,7 @@ namespace YARG.Menu.DifficultySelect
                 // Harmony players must pick their harmony index
                 if (player.Profile.CurrentInstrument == Instrument.Harmony)
                 {
-                    CreateItem(CreateLocalizedHeader("Harmony"), 
+                    CreateItem(LocalizeHeader("Harmony"),
                         (player.Profile.HarmonyIndex + 1).ToString(),
                         _lastMenuState == State.Harmony, () =>
                     {
@@ -225,7 +225,7 @@ namespace YARG.Menu.DifficultySelect
                         modifierText = modifierText.Trim();
                     }
 
-                    CreateItem(CreateLocalizedHeader("Modifiers"),
+                    CreateItem(LocalizeHeader("Modifiers"),
                         modifierText, _lastMenuState == State.Modifiers, () =>
                     {
                         _menuState = State.Modifiers;
@@ -234,7 +234,7 @@ namespace YARG.Menu.DifficultySelect
                 }
 
                 // Ready button
-                CreateItem(CreateLocalizedAction("Ready"), _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
+                CreateItem(LocalizeHeader("Ready"), _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
                 {
                     // If the player just selected vocal modifiers, don't show them again
                     if (player.Profile.CurrentInstrument.ToGameMode() == GameMode.Vocals &&
@@ -251,7 +251,7 @@ namespace YARG.Menu.DifficultySelect
             if (_possibleInstruments.Count <= 0 || PlayerContainer.Players.Count != 1)
             {
                 // Sit out button
-                CreateItem(CreateLocalizedAction("SitOut"), _possibleInstruments.Count <= 0, _difficultyRedPrefab, () =>
+                CreateItem(LocalizeHeader("SitOut"), _possibleInstruments.Count <= 0, _difficultyRedPrefab, () =>
                 {
                     // If the user went back to sit out, and the vocal modifiers were selected,
                     // deselect them.
@@ -327,7 +327,7 @@ namespace YARG.Menu.DifficultySelect
             }
 
             // Create done button
-            CreateItem(CreateLocalizedAction("Done"), _difficultyGreenPrefab, () =>
+            CreateItem(LocalizeHeader("Done"), _difficultyGreenPrefab, () =>
             {
                 _menuState = State.Main;
                 UpdateForPlayer();
@@ -555,14 +555,9 @@ namespace YARG.Menu.DifficultySelect
             CreateItem(null, body, selected, a);
         }
 
-        private string CreateLocalizedHeader(string headerLocalizeKey)
+        private string LocalizeHeader(string key)
         {
-            return Localize.Key("Menu.DifficultySelect.Header", headerLocalizeKey);
-        }
-
-        private string CreateLocalizedAction(string bodyLocalizeKey)
-        {
-            return Localize.Key("Menu.DifficultySelect.Action", bodyLocalizeKey);
+            return Localize.Key("Menu.DifficultySelect", key);
         }
 
         private bool HasPlayableInstrument(SongEntry entry, in Instrument instrument)
