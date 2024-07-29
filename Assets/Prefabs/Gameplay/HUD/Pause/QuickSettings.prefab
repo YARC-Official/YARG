@@ -245,8 +245,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _defaultGroup: 1
   _canBeCurrent: 1
-  _addAllChildrenOnAwake: 1
-  _selectFirst: 1
+  _addAllChildrenOnAwake: 0
+  _selectFirst: 0
 --- !u!114 &2767505752476816931
 MonoBehaviour:
   m_ObjectHideFlags: 0

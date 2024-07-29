@@ -84,7 +84,6 @@ namespace YARG.Gameplay.HUD
                         settingObject.Initialize(settingName, volumeSetting);
 
                         _subSettingsNavGroup.AddNavigatable(settingObject.gameObject);
-
                         break;
                     }
                     default:
@@ -93,6 +92,7 @@ namespace YARG.Gameplay.HUD
                 }
             }
 
+            _subSettingsNavGroup.SelectFirst();
             _quickSettingsContainer.gameObject.SetActive(false);
             _subSettingsObject.SetActive(true);
         }
