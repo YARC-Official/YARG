@@ -182,6 +182,19 @@
             },
             "DontShowAgain": "Don't Show Again"
         },
+        "DifficultySelect": {
+            "Header": {
+                "Instrument": "Instrument",
+                "Difficulty": "Difficulty",
+                "Harmony": "Harmony",
+                "Modifiers": "Modifiers"
+            },
+            "Action": {
+                "Ready": "Ready",
+                "SitOut": "Sit Out",
+                "Done": "Done"
+            }
+        },
         "History": {
             "Name": "History",
             "Time": {
@@ -219,6 +232,22 @@
             "PlayableSongs": "PLAYABLE SONGS",
             "RandomSong": "RANDOM SONG",
             "Playlists": "PLAYLISTS",
+            "Popup": {
+                "Header": {
+                    "SortBy": "Sort By...",
+                    "GoTo": "Go To..."
+                },
+                "Item": {
+                    "RandomSong": "Random Song",
+                    "BackToTop": "Back to Top",
+                    "SortBy": "Sort By: {0}",
+                    "GoToSection": "Go To Section...",
+                    "AddToFavorites": "Add To Favorites",
+                    "RemoveFromFavorites": "Remove From Favorites",
+                    "ViewSongFolder": "View Song Folder",
+                    "CopySongChucksum": "Copy Song Chucksum"
+                }
+            },
             "Back": "BACK",
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
             "Play": "Play Song",
