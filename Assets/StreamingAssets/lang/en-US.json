@@ -241,7 +241,7 @@
                     "AddToFavorites": "Add To Favorites",
                     "RemoveFromFavorites": "Remove From Favorites",
                     "ViewSongFolder": "View Song Folder",
-                    "CopySongChucksum": "Copy Song Chucksum"
+                    "CopySongChecksum": "Copy Song Checksum"
                 }
             },
             "Back": "BACK",
