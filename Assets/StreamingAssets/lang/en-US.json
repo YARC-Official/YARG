@@ -935,6 +935,12 @@
                 },
                 "YellowStarpower": {
                     "Name": "Yellow Star Power"
+                },
+                "NoteMetal": {
+                    "Name": "Note Metal"
+                },
+                "NoteMetalStarpower": {
+                    "Name": "Note Metal in Star Power"
                 }
             },
             "EnginePreset": {

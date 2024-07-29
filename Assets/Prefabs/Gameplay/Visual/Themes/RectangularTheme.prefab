@@ -56,6 +56,11 @@ MonoBehaviour:
     MaterialIndex: 3
     EmissionMultiplier: 0
     EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 8720259403506147191}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &413377233256013164
 GameObject:
@@ -113,12 +118,12 @@ MonoBehaviour:
   _fiveFretNotes: {fileID: 6269854297387791962}
   _fourLaneNotes: {fileID: 6077849911011690717}
   _fiveLaneNotes: {fileID: 6012213803221084217}
-  _proKeysNotes: {fileID: 5137040662578859982}
+  _proKeysNotes: {fileID: 0}
   _fiveFretFret: {fileID: 4601662932000167061}
   _fourLaneFret: {fileID: 2781870284586889918}
   _fiveLaneFret: {fileID: 2781870284586889918}
-  _whiteKey: {fileID: 1125168594388541253}
-  _blackKey: {fileID: 6554104375422788116}
+  _whiteKey: {fileID: 0}
+  _blackKey: {fileID: 0}
   _kickFret: {fileID: 2238827561735956608}
 --- !u!1 &470677965324328071
 GameObject:
@@ -171,6 +176,11 @@ MonoBehaviour:
   - Mesh: {fileID: 1137659872165019065}
     MaterialIndex: 3
     EmissionMultiplier: 8
+    EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 1137659872165019065}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &523444858385620418
@@ -10017,6 +10027,11 @@ MonoBehaviour:
     MaterialIndex: 1
     EmissionMultiplier: 2.5
     EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 6490974643333962128}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &915166862513918969
 GameObject:
@@ -10072,6 +10087,11 @@ MonoBehaviour:
     EmissionAddition: 0
   - Mesh: {fileID: 1710559943838633900}
     MaterialIndex: 3
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 1710559943838633900}
+    MaterialIndex: 1
     EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
@@ -10316,6 +10336,11 @@ MonoBehaviour:
     EmissionAddition: 0
   - Mesh: {fileID: 8955278816051136421}
     MaterialIndex: 3
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 8955278816051136421}
+    MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
@@ -15351,6 +15376,11 @@ MonoBehaviour:
     MaterialIndex: 3
     EmissionMultiplier: 8
     EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 868360296151660442}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &2293016267227878471
 GameObject:
@@ -15499,6 +15529,11 @@ MonoBehaviour:
     MaterialIndex: 3
     EmissionMultiplier: 8
     EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 5691484211434715446}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &2519982101321810702
 GameObject:
@@ -15551,6 +15586,11 @@ MonoBehaviour:
   - Mesh: {fileID: 2145925856028161406}
     MaterialIndex: 1
     EmissionMultiplier: 8
+    EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 2145925856028161406}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &2852395855816787385
@@ -20439,6 +20479,11 @@ MonoBehaviour:
     MaterialIndex: 3
     EmissionMultiplier: 0
     EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 1442160652507622597}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &3007197943067896178
 GameObject:
@@ -20491,6 +20536,11 @@ MonoBehaviour:
   - Mesh: {fileID: 2213979832128167158}
     MaterialIndex: 0
     EmissionMultiplier: 2.5
+    EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 2213979832128167158}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &3028842569811858915
@@ -25432,6 +25482,11 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 2.5
     EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 2167952792276912750}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &3503407201778625847
 GameObject:
@@ -25484,6 +25539,11 @@ MonoBehaviour:
   - Mesh: {fileID: 5102574401048905025}
     MaterialIndex: 1
     EmissionMultiplier: 2.5
+    EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 5102574401048905025}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &3992999653289438935
@@ -30469,6 +30529,11 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 2.5
     EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 1934315736436389587}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &4787541845059292856
 GameObject:
@@ -30620,6 +30685,11 @@ MonoBehaviour:
     MaterialIndex: 1
     EmissionMultiplier: 2.5
     EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 1777600924332194509}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &5103552119702715995
 GameObject:
@@ -30673,6 +30743,11 @@ MonoBehaviour:
     MaterialIndex: 1
     EmissionMultiplier: 8
     EmissionAddition: 1
+  _metalColoredMaterials:
+  - Mesh: {fileID: 8001540958738398021}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &5105827407962776137
 GameObject:
@@ -30810,6 +30885,11 @@ MonoBehaviour:
   - Mesh: {fileID: 924727519420543321}
     MaterialIndex: 1
     EmissionMultiplier: 8
+    EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 924727519420543321}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &5319861011254233844
@@ -40657,6 +40737,11 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 8
     EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 8990243228353817618}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &6269854297387791962
 GameObject:
@@ -40860,6 +40945,11 @@ MonoBehaviour:
     MaterialIndex: 3
     EmissionMultiplier: 0
     EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 6037790144604702675}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &6602038446696215791
 GameObject:
@@ -40913,6 +41003,11 @@ MonoBehaviour:
     MaterialIndex: 1
     EmissionMultiplier: 6.25
     EmissionAddition: 0.075
+  _metalColoredMaterials:
+  - Mesh: {fileID: 148460116065036735}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &6648822484547972196
 GameObject:
@@ -41097,6 +41192,11 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 2.5
     EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 9139252112784248896}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &6666075225030478821
 GameObject:
@@ -41149,6 +41249,11 @@ MonoBehaviour:
   - Mesh: {fileID: 7881106579530006386}
     MaterialIndex: 1
     EmissionMultiplier: 2.5
+    EmissionAddition: 0
+  _metalColoredMaterials:
+  - Mesh: {fileID: 7881106579530006386}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &7038179290471763809
@@ -46090,6 +46195,11 @@ MonoBehaviour:
     MaterialIndex: 1
     EmissionMultiplier: 6.25
     EmissionAddition: 0.075
+  _metalColoredMaterials:
+  - Mesh: {fileID: 2343365409775284982}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
 --- !u!1 &7447106803091914923
 GameObject:

@@ -155,8 +155,12 @@ namespace YARG.Gameplay.Visuals
                 ? colors.GetNoteStarPowerColor(NoteRef.Fret)
                 : colorNoStarPower;
 
+            var metalColor = colors.GetMetalColor(NoteRef.IsStarPower);
+
             // Set the note color
-            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
+            NoteGroup.SetColorWithEmission(color.ToUnityColor(), 
+                                           metalColor.ToUnityColor(), 
+                                           colorNoStarPower.ToUnityColor());
 
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;

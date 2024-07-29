@@ -135,8 +135,10 @@ namespace YARG.Gameplay.Visuals
             var color = NoteRef.IsStarPower
                 ? colorStarPower
                 : colorNoStarPower;
+            
+            var metalColor = colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor();
 
-            NoteGroup.SetColorWithEmission(color, colorNoStarPower);
+            NoteGroup.SetColorWithEmission(color, metalColor, colorNoStarPower);
 
             if (!NoteRef.IsSustain) return;
 

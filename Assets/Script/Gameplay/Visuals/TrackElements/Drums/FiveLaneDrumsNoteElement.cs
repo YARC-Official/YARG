@@ -80,8 +80,12 @@ namespace YARG.Gameplay.Visuals
                 color = colors.GetNoteStarPowerColor(pad);
             }
 
+            var metalColor = colors.GetMetalColor(NoteRef.IsStarPower);
+
             // Set the note color
-            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
+            NoteGroup.SetColorWithEmission(color.ToUnityColor(), 
+                                           metalColor.ToUnityColor(), 
+                                           colorNoStarPower.ToUnityColor());
         }
     }
 }

@@ -21,6 +21,7 @@ namespace YARG.Settings.Preview
         {
             public delegate ColorProfile.IFretColorProvider FretColorProviderFunc(ColorProfile c);
             public delegate Color NoteColorProviderFunc(ColorProfile c, FakeNoteData note);
+            public delegate Color NoteMetalColorProviderFunc(ColorProfile c, FakeNoteData note);
             public delegate EnginePreset.HitWindowPreset HitWindowProviderFunc(EnginePreset e);
             public delegate FakeNoteData CreateFakeNoteFunc(double time);
 
@@ -29,6 +30,7 @@ namespace YARG.Settings.Preview
 
             public FretColorProviderFunc FretColorProvider;
             public NoteColorProviderFunc NoteColorProvider;
+            public NoteMetalColorProviderFunc NoteMetalColorProvider;
 
             public HitWindowProviderFunc HitWindowProvider;
 
@@ -47,6 +49,9 @@ namespace YARG.Settings.Preview
                     FretColorProvider = (colorProfile) => colorProfile.FiveFretGuitar,
                     NoteColorProvider = (colorProfile, note) => colorProfile.FiveFretGuitar
                         .GetNoteColor(note.Fret)
+                        .ToUnityColor(),
+                    NoteMetalColorProvider = (colorProfile, note) => colorProfile.FiveFretGuitar
+                        .GetMetalColor(false)
                         .ToUnityColor(),
 
                     HitWindowProvider = (enginePreset) => enginePreset.FiveFretGuitar.HitWindow,
@@ -117,6 +122,10 @@ namespace YARG.Settings.Preview
                             .ToUnityColor();
                     },
 
+                    NoteMetalColorProvider = (colorProfile, note) => colorProfile.FourLaneDrums
+                        .GetMetalColor(false)
+                        .ToUnityColor(),
+
                     HitWindowProvider = (enginePreset) => enginePreset.Drums.HitWindow,
 
                     CreateFakeNote = (time) =>
@@ -165,6 +174,9 @@ namespace YARG.Settings.Preview
                     FretColorProvider = (colorProfile) => colorProfile.FiveLaneDrums,
                     NoteColorProvider = (colorProfile, note) => colorProfile.FiveLaneDrums
                         .GetNoteColor(note.Fret)
+                        .ToUnityColor(),
+                    NoteMetalColorProvider = (colorProfile, note) => colorProfile.FiveLaneDrums
+                        .GetMetalColor(false)
                         .ToUnityColor(),
 
                     HitWindowProvider = (enginePreset) => enginePreset.Drums.HitWindow,
