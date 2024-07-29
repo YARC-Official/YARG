@@ -99,25 +99,25 @@ namespace YARG.Menu.MusicLibrary
         {
             SetHeader(null);
 
-            CreateLocalizedItem("RandomSong", () =>
+            CreateItem("RandomSong", () =>
             {
                 _musicLibrary.SelectRandomSong();
                 gameObject.SetActive(false);
             });
 
-            CreateLocalizedItem("BackToTop", () =>
+            CreateItem("BackToTop", () =>
             {
                 _musicLibrary.SelectedIndex = 0;
                 gameObject.SetActive(false);
             });
 
-            CreateLocalizedItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+            CreateItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
             {
                 _menuState = State.SortSelect;
                 UpdateForState();
             });
 
-            CreateLocalizedItem("GoToSection", () =>
+            CreateItem("GoToSection", () =>
             {
                 _menuState = State.GoToSection;
                 UpdateForState();
@@ -131,7 +131,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 if (!favoriteInfo.IsFavorited)
                 {
-                    CreateLocalizedItem("AddToFavorites", () =>
+                    CreateItem("AddToFavorites", () =>
                     {
                         viewType.FavoriteClick();
                         _musicLibrary.RefreshViewsObjects();
@@ -141,7 +141,7 @@ namespace YARG.Menu.MusicLibrary
                 }
                 else
                 {
-                    CreateLocalizedItem("RemoveFromFavorites", () =>
+                    CreateItem("RemoveFromFavorites", () =>
                     {
                         viewType.FavoriteClick();
                         _musicLibrary.RefreshViewsObjects();
@@ -157,14 +157,14 @@ namespace YARG.Menu.MusicLibrary
             {
                 var song = songViewType.SongEntry;
 
-                CreateLocalizedItem("ViewSongFolder", () =>
+                CreateItem("ViewSongFolder", () =>
                 {
                     FileExplorerHelper.OpenFolder(song.Directory);
 
                     gameObject.SetActive(false);
                 });
 
-                CreateLocalizedItem("CopySongChecksum", () =>
+                CreateItem("CopySongChecksum", () =>
                 {
                     GUIUtility.systemCopyBuffer = song.Hash.ToString();
 
@@ -181,12 +181,16 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Skip theses because they don't make sense
                 if (sort == SortAttribute.Unspecified)
+                {
                     continue;
+                }
 
                 if (sort >= SortAttribute.Instrument)
+                {
                     break;
+                }
 
-                CreateItem(sort.ToLocalizedName(), () =>
+                CreateItemUnlocalized(sort.ToLocalizedName(), () =>
                 {
                     _musicLibrary.ChangeSort(sort);
                     gameObject.SetActive(false);
@@ -198,7 +202,7 @@ namespace YARG.Menu.MusicLibrary
                 if (SongContainer.HasInstrument(instrument))
                 {
                     var attribute = instrument.ToSortAttribute();
-                    CreateItem(attribute.ToLocalizedName(), () =>
+                    CreateItemUnlocalized(attribute.ToLocalizedName(), () =>
                     {
                         _musicLibrary.ChangeSort(attribute);
                         gameObject.SetActive(false);
@@ -216,11 +220,13 @@ namespace YARG.Menu.MusicLibrary
                 or SortAttribute.Album
                 or SortAttribute.Artist_Album)
             {
+
                 foreach (var (header, index) in _musicLibrary.GetSections()
-                    .GroupBy(x => SortString.RemoveArticle(((SortHeaderViewType) x.Item1).HeaderText)[0].ToAsciiUpper())
+                    .GroupBy(x => GetGroupChar(x.Item1).ToAsciiUpper())
                     .Select(g => g.First()))
                 {
-                    CreateItem(SortString.RemoveArticle(((SortHeaderViewType) header).HeaderText)[0].ToString(), () =>
+
+                    CreateItemUnlocalized(GetGroupChar(header).ToString(), () =>
                     {
                         _musicLibrary.SelectedIndex = index;
                         gameObject.SetActive(false);
@@ -231,12 +237,19 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var (header, index) in _musicLibrary.GetSections())
                 {
-                    CreateItem(((SortHeaderViewType) header).HeaderText, () =>
+                    CreateItemUnlocalized(((SortHeaderViewType) header).HeaderText, () =>
                     {
                         _musicLibrary.SelectedIndex = index;
                         gameObject.SetActive(false);
                     });
                 }
+            }
+
+            return;
+
+            static char GetGroupChar(ViewType header)
+            {
+                return SortString.RemoveArticle(((SortHeaderViewType) header).HeaderText)[0];
             }
         }
 
@@ -244,7 +257,7 @@ namespace YARG.Menu.MusicLibrary
         {
             SetHeader(Localize.Key("Menu.MusicLibrary.Popup.Header", localizeKey));
         }
-        
+
         private void SetHeader(string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -258,18 +271,19 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private void CreateLocalizedItem(string localizeKey, UnityAction a)
+        private void CreateItem(string localizeKey, UnityAction a)
         {
-            CreateItem(Localize.Key("Menu.MusicLibrary.Popup.Item", localizeKey), a);
+            var localized = Localize.Key("Menu.MusicLibrary.Popup.Item", localizeKey);
+            CreateItemUnlocalized(localized, a);
         }
 
-
-        private void CreateLocalizedItem(string localizeKey, string formatArg, UnityAction a)
+        private void CreateItem(string localizeKey, string formatArg, UnityAction a)
         {
-            CreateItem(Localize.KeyFormat(("Menu.MusicLibrary.Popup.Item", localizeKey), formatArg), a);
+            var localized = Localize.KeyFormat(("Menu.MusicLibrary.Popup.Item", localizeKey), formatArg);
+            CreateItemUnlocalized(localized, a);
         }
 
-        private void CreateItem(string body, UnityAction a)
+        private void CreateItemUnlocalized(string body, UnityAction a)
         {
             var btn = Instantiate(_menuItemPrefab, _container);
             btn.Initialize(body, a);
