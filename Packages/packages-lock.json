@@ -45,7 +45,7 @@
       "url": "https://package.openupm.com"
     },
     "com.thenathannator.plasticband": {
-      "version": "0.8.3",
+      "version": "0.8.4",
       "depth": 0,
       "source": "registry",
       "dependencies": {
