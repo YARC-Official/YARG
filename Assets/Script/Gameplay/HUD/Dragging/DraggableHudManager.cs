@@ -126,8 +126,9 @@ namespace YARG.Gameplay.HUD
                         "Are you sure you want to reset the position of all elements? This action cannot be undone.");
 
                     dialog.ClearButtons();
-                    dialog.AddDialogButton("Cancel", MenuData.Colors.BrightButton, DialogManager.Instance.ClearDialog);
-                    dialog.AddDialogButton("Reset", MenuData.Colors.CancelButton, () =>
+                    dialog.AddDialogButton("Menu.Common.Cancel", MenuData.Colors.BrightButton,
+                        DialogManager.Instance.ClearDialog);
+                    dialog.AddDialogButton("Menu.Common.Reset", MenuData.Colors.CancelButton, () =>
                     {
                         ResetAllHUDPositions();
                         DialogManager.Instance.ClearDialog();
