@@ -36,14 +36,14 @@ namespace YARG.Menu.Settings.Visuals
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Increase", () =>
                 {
                     var range = Setting.Max - Setting.Min;
-                    Setting.Value += range / 30f;
+                    Setting.Value += range / 20f;
 
                     RefreshVisual();
                 }),
                 new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Decrease", () =>
                 {
                     var range = Setting.Max - Setting.Min;
-                    Setting.Value -= range / 30f;
+                    Setting.Value -= range / 20f;
 
                     RefreshVisual();
                 })

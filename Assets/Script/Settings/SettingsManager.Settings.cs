@@ -39,6 +39,8 @@ namespace YARG.Settings
 
             public SortAttribute LibrarySort = SortAttribute.Name;
 
+            public Dictionary<string, HUDPositionProfile> HUDPositionProfiles = new();
+
             #endregion
 
             #region General

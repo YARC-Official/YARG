@@ -4,8 +4,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
-using UnityEngine;
 using YARG.Core.Logging;
+using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
@@ -14,6 +14,16 @@ namespace YARG.Settings
 {
     public static partial class SettingsManager
     {
+        private static readonly JsonSerializerSettings JsonSettings = new()
+        {
+            Formatting = Formatting.Indented,
+            Converters = new List<JsonConverter>
+            {
+                new JsonColorConverter(),
+                new JsonVector2Converter()
+            }
+        };
+
         public static SettingContainer Settings { get; private set; }
 
         public static readonly List<Tab> DisplayedSettingsTabs = new()
@@ -193,7 +203,8 @@ namespace YARG.Settings
             // Create settings container
             try
             {
-                Settings = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
+                string text = File.ReadAllText(SettingsFile);
+                Settings = JsonConvert.DeserializeObject<SettingContainer>(text, JsonSettings);
             }
             catch (Exception e)
             {
@@ -225,7 +236,8 @@ namespace YARG.Settings
             // (such as closing the game before they load)
             if (SettingContainer.IsInitialized && Settings is not null)
             {
-                File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(Settings, Formatting.Indented));
+                var json = JsonConvert.SerializeObject(Settings, JsonSettings);
+                File.WriteAllText(SettingsFile, json);
             }
         }
 

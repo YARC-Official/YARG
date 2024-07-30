@@ -128,7 +128,10 @@
 
             "Save": "Save",
             "Saved": "Saved!",
-            "Delete": "Delete"
+            "Delete": "Delete",
+
+            "Reset": "Reset",
+            "ResetAll": "Reset All"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",
@@ -458,6 +461,7 @@
             },
             "BassVolume": {
                 "Name": "Bass Volume",
+                "PauseName": "Bass",
                 "Description": "Adjusts the song's bass guitar track volume. Only does something if the song is multi-track."
             },
             "ClapsInStarpower": {
@@ -470,6 +474,7 @@
             },
             "CrowdVolume": {
                 "Name": "Crowd Volume",
+                "PauseName": "Crowd",
                 "Description": "Adjusts the song's crowd track volume. Only does something if the song is multi-track."
             },
             "DisableBloom": {
@@ -526,6 +531,7 @@
             },
             "DrumsVolume": {
                 "Name": "Drums Volume",
+                "PauseName": "Drums",
                 "Description": "Adjusts the song's drum track volume. Only does something if the song is multi-track."
             },
             "FpsCap": {
@@ -552,6 +558,7 @@
             },
             "GuitarVolume": {
                 "Name": "Guitar Volume",
+                "PauseName": "Guitar",
                 "Description": "Adjusts the song's guitar track volume. Only does something if the song is multi-track."
             },
             "HighScoreInfo": {
@@ -573,6 +580,7 @@
             },
             "KeysVolume": {
                 "Name": "Keys Volume",
+                "PauseName": "Keys",
                 "Description": "Adjusts the song's keys track volume. Only does something if the song is multi-track."
             },
             "KickBounceMultiplier": {
@@ -596,6 +604,7 @@
             },
             "MasterMusicVolume": {
                 "Name": "Master Music Volume",
+                "PauseName": "Master",
                 "Description": "Adjusts the song's volume as a whole."
             },
             "MicrophoneSensitivity": {
@@ -638,10 +647,12 @@
             },
             "RhythmVolume": {
                 "Name": "Rhythm Volume",
+                "PauseName": "Rhythm",
                 "Description": "Adjusts the song's rhythm guitar track volume. Only does something if the song is multi-track. In some song formats, this may also be the bass guitar."
             },
             "SfxVolume": {
                 "Name": "SFX Volume",
+                "PauseName": "SFX",
                 "Description": "Adjusts the game's sound effect volume, such as when gaining a star, or activating starpower."
             },
             "ShowAdvancedMusicLibraryOptions": {
@@ -674,6 +685,7 @@
             },
             "SongVolume": {
                 "Name": "Backing Track Volume",
+                "PauseName": "Backing",
                 "Description": "Adjusts the song's backing track volume. These are all of the instruments that are not included in the multi-track."
             },
             "StageKitEnabled": {
@@ -716,10 +728,12 @@
             },
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",
+                "PauseName": "Monitoring",
                 "Description": "Adjusts the feedback you hear when singing."
             },
             "VocalsVolume": {
                 "Name": "Vocals Volume",
+                "PauseName": "Vocals",
                 "Description": "Adjusts the song's vocal track volume. Only does something if the song is multi-track."
             },
             "VSync": {

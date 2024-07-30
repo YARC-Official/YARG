@@ -196,7 +196,7 @@ namespace YARG.Gameplay.HUD
                 else
                 {
                     // Go back to practice pause menu
-                    _pauseMenuManager.PopMenu(false);
+                    _pauseMenuManager.PopMenu();
                     _pauseMenuManager.PushMenu(PauseMenuManager.Menu.PracticePause);
                 }
             }

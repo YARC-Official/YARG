@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Menu.Navigation;
@@ -21,7 +20,7 @@ namespace YARG.Gameplay.HUD
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Resume),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
             }, false));
@@ -32,9 +31,9 @@ namespace YARG.Gameplay.HUD
             Navigator.Instance.PopScheme();
         }
 
-        public virtual void Resume()
+        public virtual void Back()
         {
-            PauseMenuManager.PopMenu();
+            PauseMenuManager.PopAllMenusWithResume();
         }
 
         public virtual void Restart()
@@ -85,6 +84,11 @@ namespace YARG.Gameplay.HUD
         public void BackToLibrary()
         {
             PauseMenuManager.Quit();
+        }
+
+        public void OpenQuickSettings()
+        {
+            PauseMenuManager.PushMenu(PauseMenuManager.Menu.QuickSettings);
         }
     }
 }
