@@ -128,7 +128,9 @@
 
             "Save": "Save",
             "Saved": "Saved!",
-            "Delete": "Delete"
+            "Delete": "Delete",
+
+            "ResetAll": "Reset All"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",
