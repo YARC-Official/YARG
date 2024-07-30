@@ -29,6 +29,8 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _randomFloat = Shader.PropertyToID("_RandomFloat");
         private static readonly int _randomVector = Shader.PropertyToID("_RandomVector");
 
+        private static readonly int _textureStrength = Shader.PropertyToID("_TextureStrength");
+
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
         [SerializeField]
@@ -68,6 +70,12 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        public void SetColorWithEmission(Color color, (Color color, float textureStrength) metalTuple, Color colorNoStarPower)
+        {
+            SetColorWithEmission(color, metalTuple.color, colorNoStarPower);
+            SetTextureStrength(metalTuple.textureStrength, _metalColoredMaterialCache);
+        }
+
         public void SetColorWithEmission(Color color, Color metalColor, Color colorNoStarPower)
         {
             ApplyColorToMaterialCache(color, _coloredMaterialCache);
@@ -89,6 +97,19 @@ namespace YARG.Gameplay.Visuals
 
                 info.MaterialCache.color = realColor;
                 info.MaterialCache.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+            }
+        }
+
+        private void SetTextureStrength(float strength, MaterialInfo[] cache)
+        {
+            if (cache.Length == 0)
+            {
+                return;
+            }
+
+            foreach (var info in cache)
+            {
+                info.MaterialCache.SetFloat(_textureStrength, strength);
             }
         }
 

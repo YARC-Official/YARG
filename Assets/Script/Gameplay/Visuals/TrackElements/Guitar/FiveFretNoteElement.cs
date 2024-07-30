@@ -156,10 +156,11 @@ namespace YARG.Gameplay.Visuals
                 : colorNoStarPower;
 
             var metalColor = colors.GetMetalColor(NoteRef.IsStarPower);
+            float metalTextureStrength = NoteRef.IsStarPower ? 0.85f : 1;
 
             // Set the note color
             NoteGroup.SetColorWithEmission(color.ToUnityColor(), 
-                                           metalColor.ToUnityColor(), 
+                                           (metalColor.ToUnityColor(), metalTextureStrength), 
                                            colorNoStarPower.ToUnityColor());
 
             // The rest of this method is for sustain only
