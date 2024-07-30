@@ -80,13 +80,12 @@ namespace YARG.Gameplay.Visuals
                 color = colors.GetNoteStarPowerColor(pad);
             }
 
-            var metalColor = colors.GetMetalColor(NoteRef.IsStarPower);
-            float metalTextureStrength = NoteRef.IsStarPower ? 0.85f : 1;
-
             // Set the note color
-            NoteGroup.SetColorWithEmission(color.ToUnityColor(), 
-                                           (metalColor.ToUnityColor(), metalTextureStrength), 
-                                           colorNoStarPower.ToUnityColor());
+            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
+
+            // Set metal color
+            var metalColor = colors.GetMetalColor(NoteRef.IsStarPower);
+            NoteGroup.SetMetalColor(metalColor.ToUnityColor(), NoteRef.IsStarPower);
         }
     }
 }

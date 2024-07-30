@@ -41,13 +41,13 @@ namespace YARG.Themes
         [SerializeField]
         private MeshEmissionMaterialIndex[] _coloredMaterials;
         [SerializeField]
-        private MeshEmissionMaterialIndex[] _metalColoredMaterials;
-        [SerializeField]
         private MeshEmissionMaterialIndex[] _coloredMaterialsNoStarPower;
+        [SerializeField]
+        private MeshMetalMaterialIndex[] _metalColoredMaterials;
 
         public IEnumerable<MeshEmissionMaterialIndex> ColoredMaterials => _coloredMaterials;
-        public IEnumerable<MeshEmissionMaterialIndex> MetalColoredMaterials => _metalColoredMaterials;
         public IEnumerable<MeshEmissionMaterialIndex> ColoredMaterialsNoStarPower => _coloredMaterialsNoStarPower;
+        public IEnumerable<MeshMetalMaterialIndex> MetalColoredMaterials => _metalColoredMaterials;
 
         private void OnDrawGizmos()
         {

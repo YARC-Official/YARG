@@ -93,8 +93,10 @@ namespace YARG.Settings.Preview
 
             // Update color
             var color = FakeTrackPlayer.CurrentGameModeInfo.NoteColorProvider(colorProfile, NoteRef);
+            _currentNoteGroup.SetColorWithEmission(color, color);
+
             var metalColor = FakeTrackPlayer.CurrentGameModeInfo.NoteMetalColorProvider(colorProfile, NoteRef);
-            _currentNoteGroup.SetColorWithEmission(color, metalColor, color);
+            _currentNoteGroup.SetMetalColor(metalColor, forStarPower:false);
         }
 
         protected void Update()

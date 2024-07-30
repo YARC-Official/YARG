@@ -24,6 +24,24 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        private struct MetalMaterialInfo
+        {
+            public Material MaterialCache;
+
+            public float TextureStrength;
+            public float StarpowerTextureStrength;
+
+            public static MetalMaterialInfo From(MeshMetalMaterialIndex a)
+            {
+                return new MetalMaterialInfo
+                {
+                    MaterialCache            = a.Mesh.materials[a.MaterialIndex],
+                    TextureStrength          = a.TextureStrength,
+                    StarpowerTextureStrength = a.StarpowerTextureStrength,
+                };
+            }
+        }
+
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
 
         private static readonly int _randomFloat = Shader.PropertyToID("_RandomFloat");
@@ -37,19 +55,17 @@ namespace YARG.Gameplay.Visuals
         private ThemeNote _themeNote;
 
         private MaterialInfo[] _coloredMaterialCache;
-        private MaterialInfo[] _metalColoredMaterialCache;
         private MaterialInfo[] _coloredMaterialNoStarPowerCache;
         private MaterialInfo[] _allColoredCache;
+        private MetalMaterialInfo[] _metalColoredMaterialCache;
 
         public void Initialize()
         {
             _coloredMaterialCache ??= _themeNote.ColoredMaterials.Select(MaterialInfo.From).ToArray();
-            _metalColoredMaterialCache ??= _themeNote.MetalColoredMaterials.Select(MaterialInfo.From).ToArray();
             _coloredMaterialNoStarPowerCache ??= _themeNote.ColoredMaterialsNoStarPower.Select(MaterialInfo.From).ToArray();
-            _allColoredCache ??= _coloredMaterialCache
-                                .Concat(_metalColoredMaterialCache)
-                                .Concat(_coloredMaterialNoStarPowerCache)
-                                .ToArray();
+            _allColoredCache ??= _coloredMaterialCache.Concat(_coloredMaterialNoStarPowerCache).ToArray();
+            
+            _metalColoredMaterialCache ??= _themeNote.MetalColoredMaterials.Select(MetalMaterialInfo.From).ToArray();
 
             // Set random values
             var randomFloat = Random.Range(-1f, 1f);
@@ -70,27 +86,11 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void SetColorWithEmission(Color color, (Color color, float textureStrength) metalTuple, Color colorNoStarPower)
+        public void SetColorWithEmission(Color color, Color colorNoStarPower)
         {
-            SetColorWithEmission(color, metalTuple.color, colorNoStarPower);
-            SetTextureStrength(metalTuple.textureStrength, _metalColoredMaterialCache);
-        }
+            // Deal with color (with star power)
 
-        public void SetColorWithEmission(Color color, Color metalColor, Color colorNoStarPower)
-        {
-            ApplyColorToMaterialCache(color, _coloredMaterialCache);
-            ApplyColorToMaterialCache(metalColor, _metalColoredMaterialCache);
-            ApplyColorToMaterialCache(colorNoStarPower, _coloredMaterialNoStarPowerCache);
-        }
-
-        private void ApplyColorToMaterialCache(Color color, MaterialInfo[] cache)
-        {
-            if (cache.Length == 0)
-            {
-                return;
-            }
-
-            foreach (var info in cache)
+            foreach (var info in _coloredMaterialCache)
             {
                 float a = info.EmissionAddition;
                 var realColor = color + new Color(a, a, a);
@@ -98,18 +98,30 @@ namespace YARG.Gameplay.Visuals
                 info.MaterialCache.color = realColor;
                 info.MaterialCache.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
             }
+
+            // Deal with color (no star power)
+            if (_coloredMaterialNoStarPowerCache.Length == 0) return;
+
+            foreach (var info in _coloredMaterialNoStarPowerCache)
+            {
+                float a = info.EmissionAddition;
+                var realColor = colorNoStarPower + new Color(a, a, a);
+
+                info.MaterialCache.color = realColor;
+                info.MaterialCache.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+            }
         }
 
-        private void SetTextureStrength(float strength, MaterialInfo[] cache)
+        public void SetMetalColor(Color color, bool forStarPower)
         {
-            if (cache.Length == 0)
+            foreach (var info in _metalColoredMaterialCache)
             {
-                return;
-            }
+                info.MaterialCache.color = color;
+                info.MaterialCache.SetColor(_emissionColor, color);
 
-            foreach (var info in cache)
-            {
-                info.MaterialCache.SetFloat(_textureStrength, strength);
+                info.MaterialCache.SetFloat(_textureStrength, forStarPower
+                                                              ? info.StarpowerTextureStrength
+                                                              : info.TextureStrength);
             }
         }
 
