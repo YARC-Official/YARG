@@ -118,12 +118,12 @@ MonoBehaviour:
   _fiveFretNotes: {fileID: 6269854297387791962}
   _fourLaneNotes: {fileID: 6077849911011690717}
   _fiveLaneNotes: {fileID: 6012213803221084217}
-  _proKeysNotes: {fileID: 0}
+  _proKeysNotes: {fileID: 5137040662578859982}
   _fiveFretFret: {fileID: 4601662932000167061}
   _fourLaneFret: {fileID: 2781870284586889918}
   _fiveLaneFret: {fileID: 2781870284586889918}
-  _whiteKey: {fileID: 0}
-  _blackKey: {fileID: 0}
+  _whiteKey: {fileID: 1125168594388541253}
+  _blackKey: {fileID: 6554104375422788116}
   _kickFret: {fileID: 2238827561735956608}
 --- !u!1 &470677965324328071
 GameObject:
