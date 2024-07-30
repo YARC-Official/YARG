@@ -37,8 +37,9 @@ namespace YARG.Gameplay.HUD
                 profileName = "Normal";
             }
 
-            // Load that profile
-            if (SettingsManager.Settings.HUDPositionProfiles.TryGetValue(profileName, out var profile))
+            // Load that profile. If the profile version does not match the current one, create a brand new one.
+            if (SettingsManager.Settings.HUDPositionProfiles.TryGetValue(profileName, out var profile) &&
+                profile.Version == HUDPositionProfile.CURRENT_VERSION)
             {
                 PositionProfile = profile;
             }

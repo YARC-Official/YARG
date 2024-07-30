@@ -5,6 +5,9 @@ namespace YARG.Gameplay.HUD
 {
     public class HUDPositionProfile
     {
+        public const int CURRENT_VERSION = 1;
+
+        public int Version = CURRENT_VERSION;
         public Dictionary<string, Vector2> ElementPositions = new();
 
         public Vector2 GetElementPositionOrDefault(string name, Vector2 defaultPosition)
