@@ -32,7 +32,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2114988700200047864}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -275,6 +275,11 @@ PrefabInstance:
       propertyPath: m_text
       value: Setting
       objectReference: {fileID: 0}
+    - target: {fileID: 9127826232187365907, guid: 532a620ab94bd6c4d9d454f4f3725d0f,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 7888423432613039791, guid: 532a620ab94bd6c4d9d454f4f3725d0f, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 532a620ab94bd6c4d9d454f4f3725d0f, type: 3}
@@ -315,14 +320,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _selectOnHover: 1
-  _selectOnClick: 1
-  _selectedVisual: {fileID: 5540853234564911945}
+  _selectOnClick: 0
+  _selectedVisual: {fileID: 7400661890121676150}
+  _activeBackground: {fileID: 5540853234564911945}
   _text: {fileID: 2114988699327863203}
   _slider: {fileID: 845206770022391841}
   _value: {fileID: 5826641004680743252}
 --- !u!1 &5540853234564911945 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3391331689508823288, guid: 532a620ab94bd6c4d9d454f4f3725d0f,
+    type: 3}
+  m_PrefabInstance: {fileID: 7202802391327060913}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7400661890121676150 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 378601829742347975, guid: 532a620ab94bd6c4d9d454f4f3725d0f,
     type: 3}
   m_PrefabInstance: {fileID: 7202802391327060913}
   m_PrefabAsset: {fileID: 0}
@@ -346,7 +358,7 @@ PrefabInstance:
     - target: {fileID: 385803019352111189, guid: abd40d758b3e1a74486df5d631e4a775,
         type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 385803019352111189, guid: abd40d758b3e1a74486df5d631e4a775,
         type: 3}

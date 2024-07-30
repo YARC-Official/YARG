@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using YARG.Core.Logging;
 using YARG.Menu.Navigation;
 using YARG.Settings;
@@ -24,9 +25,10 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private Transform _subSettingsBackButton;
 
+        [FormerlySerializedAs("_pauseVolumeSettingPrefab")]
         [Space]
         [SerializeField]
-        private PauseVolumeSetting _pauseVolumeSettingPrefab;
+        private VolumePauseSetting _volumePauseSettingPrefab;
 
         protected override void OnSongStarted()
         {
@@ -80,7 +82,7 @@ namespace YARG.Gameplay.HUD
                 {
                     case VolumeSetting volumeSetting:
                     {
-                        var settingObject = Instantiate(_pauseVolumeSettingPrefab, _subSettingsContainer);
+                        var settingObject = Instantiate(_volumePauseSettingPrefab, _subSettingsContainer);
                         settingObject.Initialize(settingName, volumeSetting);
 
                         _subSettingsNavGroup.AddNavigatable(settingObject.gameObject);
