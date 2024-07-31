@@ -159,13 +159,13 @@ namespace YARG.Gameplay.Visuals
             NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
 
             // Set metal color
-            var metalColor = colors.GetMetalColor(NoteRef.IsStarPower);
-            NoteGroup.SetMetalColor(metalColor.ToUnityColor(), NoteRef.IsStarPower);
+            NoteGroup.SetMetalColor(NoteRef.IsStarPower);
 
             // The rest of this method is for sustain only
-            if (!NoteRef.IsSustain) return;
-
-            _sustainLine.SetState(SustainState, color.ToUnityColor());
+            if (NoteRef.IsSustain)
+            {
+                _sustainLine.SetState(SustainState, color.ToUnityColor());
+            }
         }
 
         protected override void HideElement()

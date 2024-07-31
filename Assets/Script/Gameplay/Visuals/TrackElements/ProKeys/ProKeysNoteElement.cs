@@ -140,8 +140,7 @@ namespace YARG.Gameplay.Visuals
             NoteGroup.SetColorWithEmission(color, colorNoStarPower);
 
             // Set metal color
-            var metalColor = colors.GetMetalColor(NoteRef.IsStarPower);
-            NoteGroup.SetMetalColor(metalColor.ToUnityColor(), NoteRef.IsStarPower);
+            NoteGroup.SetMetalColor(NoteRef.IsStarPower);
 
             if (!NoteRef.IsSustain) return;
 

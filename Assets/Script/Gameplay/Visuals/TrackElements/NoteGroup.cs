@@ -42,6 +42,8 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        private static readonly Color _starpowerGold = new(0.83f, 0.62f, 0, 1); // #E3A800 
+
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
 
         private static readonly int _randomFloat = Shader.PropertyToID("_RandomFloat");
@@ -112,12 +114,18 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void SetMetalColor(Color color, bool forStarPower)
+        public void SetMetalColor(bool forStarPower)
         {
+            if (_metalColoredMaterialCache.Length == 0)
+            {
+                return;
+            }
+
+            Color metalColor = forStarPower ? _starpowerGold : Color.white;
             foreach (var info in _metalColoredMaterialCache)
             {
-                info.MaterialCache.color = color;
-                info.MaterialCache.SetColor(_emissionColor, color);
+                info.MaterialCache.color = metalColor;
+                info.MaterialCache.SetColor(_emissionColor, metalColor);
 
                 info.MaterialCache.SetFloat(_textureStrength, forStarPower
                                                               ? info.StarpowerTextureStrength
