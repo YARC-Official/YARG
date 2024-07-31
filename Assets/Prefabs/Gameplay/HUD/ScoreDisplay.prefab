@@ -36,7 +36,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -93.65, y: 0}
+  m_AnchoredPosition: {x: -142.36191, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &7160602720344130192
@@ -623,7 +623,7 @@ MonoBehaviour:
   progressImg: {fileID: 227366190812778480}
   progressMask: {fileID: 2517693471320601084}
   useCustomPosition: 1
-  customPosition: 187.3
+  customPosition: 284.72382
   value: 0.5
 --- !u!1 &3593172417950958894
 GameObject:
@@ -662,7 +662,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 93.65, y: 0}
+  m_AnchoredPosition: {x: 142.36191, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &4183673759280485867
