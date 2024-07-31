@@ -198,11 +198,7 @@ namespace YARG.Gameplay
             // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                if (_draggableHud.EditMode)
-                {
-                    SetEditHUD(false);
-                }
-                else if (!IsPractice || PracticeManager.HasSelectedSection)
+                if (!IsPractice || PracticeManager.HasSelectedSection)
                 {
                     SetPaused(!_pauseMenu.IsOpen);
                 }
@@ -382,6 +378,11 @@ namespace YARG.Gameplay
 
         public void Resume(bool inputCompensation = true)
         {
+            if (_draggableHud.EditMode)
+            {
+                SetEditHUD(false);
+            }
+
             _pauseMenu.PopAllMenus();
             if (_songRunner.SongTime >= SongLength + SONG_END_DELAY)
             {
