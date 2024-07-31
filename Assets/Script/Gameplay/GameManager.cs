@@ -198,7 +198,7 @@ namespace YARG.Gameplay
             // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                if (!IsPractice || PracticeManager.HasSelectedSection)
+                if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
                 {
                     SetPaused(!_pauseMenu.IsOpen);
                 }
@@ -587,12 +587,10 @@ namespace YARG.Gameplay
             {
                 // Pause
                 case MenuAction.Start:
-                    if (IsPractice && !PracticeManager.HasSelectedSection)
+                    if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
                     {
-                        return;
+                        SetPaused(!_songRunner.Paused);
                     }
-
-                    SetPaused(!_songRunner.Paused);
                     break;
             }
         }
