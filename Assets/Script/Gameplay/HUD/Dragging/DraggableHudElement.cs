@@ -62,7 +62,10 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayDestroy()
         {
-            _manager.RemoveDraggableElement(this);
+            if (_manager != null)
+            {
+                _manager.RemoveDraggableElement(this);
+            }
         }
 
         public void Select()
