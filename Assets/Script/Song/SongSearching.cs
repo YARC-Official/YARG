@@ -444,7 +444,7 @@ namespace YARG.Song
                         return index + i;
                     }
                 }
-                throw new InvalidOperationException("Only use AFTER performing a successful fuzzy search");
+                return -1;
             }
         }
 

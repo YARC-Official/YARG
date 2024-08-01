@@ -94,7 +94,6 @@ namespace YARG.Song
 
         public static IReadOnlyDictionary<string, List<SongEntry>> Titles => _songCache.Titles;
         public static IReadOnlyDictionary<string, List<SongEntry>> Years => _songCache.Years;
-        public static IReadOnlyDictionary<string, List<SongEntry>> ArtistAlbums => _songCache.ArtistAlbums;
         public static IReadOnlyDictionary<string, List<SongEntry>> SongLengths => _songCache.SongLengths;
         public static IReadOnlyDictionary<DateTime, List<SongEntry>> AddedDates => _songCache.DatesAdded;
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Artists => _songCache.Artists;
@@ -103,6 +102,7 @@ namespace YARG.Song
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Charters => _songCache.Charters;
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Playlists => _songCache.Playlists;
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Sources => _songCache.Sources;
+        public static IReadOnlyDictionary<SortString, List<SongEntry>> ArtistAlbums => _songCache.ArtistAlbums;
         public static IReadOnlyDictionary<Instrument, SortedDictionary<int, List<SongEntry>>> Instruments => _songCache.Instruments;
 
         public static int Count => _songs.Length;
@@ -317,16 +317,16 @@ namespace YARG.Song
         private static void FillContainers()
         {
             _songs = SetAllSongs(_songCache.Entries);
-            _sortArtists   = Convert(_songCache.Artists, SongAttribute.Artist);
-            _sortAlbums    = Convert(_songCache.Albums, SongAttribute.Album);
-            _sortGenres    = Convert(_songCache.Genres, SongAttribute.Genre);
-            _sortCharters  = Convert(_songCache.Charters, SongAttribute.Charter);
-            _sortPlaylists = Convert(_songCache.Playlists, SongAttribute.Playlist);
-            _sortSources   = Convert(_songCache.Sources, SongAttribute.Source);
+            _sortArtists      = Convert(_songCache.Artists, SongAttribute.Artist);
+            _sortAlbums       = Convert(_songCache.Albums, SongAttribute.Album);
+            _sortGenres       = Convert(_songCache.Genres, SongAttribute.Genre);
+            _sortCharters     = Convert(_songCache.Charters, SongAttribute.Charter);
+            _sortPlaylists    = Convert(_songCache.Playlists, SongAttribute.Playlist);
+            _sortSources      = Convert(_songCache.Sources, SongAttribute.Source);
+            _sortArtistAlbums = Convert(_songCache.ArtistAlbums, SongAttribute.Artist_Album);
 
             _sortTitles       = Cast(_songCache.Titles);
             _sortYears        = Cast(_songCache.Years);
-            _sortArtistAlbums = Cast(_songCache.ArtistAlbums);
             _sortSongLengths  = Cast(_songCache.SongLengths);
             _playables = null;
 
