@@ -322,13 +322,13 @@ namespace YARG.Song
         {
             _songs = SetAllSongs(_songCache.Entries);
         
-            _sortArtists   = Convert(_songCache.Artists, SongAttribute.Artist, createCategoryGroups:true);
-            _sortAlbums    = Convert(_songCache.Albums, SongAttribute.Album, createCategoryGroups:true);
-            _sortGenres    = Convert(_songCache.Genres, SongAttribute.Genre);
-            _sortCharters  = Convert(_songCache.Charters, SongAttribute.Charter, createCategoryGroups:true);
-            _sortPlaylists = Convert(_songCache.Playlists, SongAttribute.Playlist);
-            _sortSources   = Convert(_songCache.Sources, SongAttribute.Source);
-            _sortArtistAlbums = Convert(_songCache.ArtistAlbums, SongAttribute.Artist_Album, createCategoryGroups:true);
+            _sortArtists   = Convert(_songCache.Artists, SongAttribute.Artist, true);
+            _sortAlbums    = Convert(_songCache.Albums, SongAttribute.Album, true);
+            _sortGenres    = Convert(_songCache.Genres, SongAttribute.Genre, false);
+            _sortCharters  = Convert(_songCache.Charters, SongAttribute.Charter, true);
+            _sortPlaylists = Convert(_songCache.Playlists, SongAttribute.Playlist, false);
+            _sortSources   = Convert(_songCache.Sources, SongAttribute.Source, false);
+            _sortArtistAlbums = Convert(_songCache.ArtistAlbums, SongAttribute.Artist_Album, true);
 
             _sortTitles       = Cast(_songCache.Titles);
             _sortYears        = Cast(_songCache.Years);
@@ -384,7 +384,7 @@ namespace YARG.Song
                 return songs;
             }
 
-            static SongCategory[] Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute, bool createCategoryGroups = false)
+            static SongCategory[] Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute, bool createCategoryGroups)
             {
                 var sections = new SongCategory[list.Count];
                 
@@ -400,8 +400,21 @@ namespace YARG.Song
                             key += node.Key.Str[1..];
                     }
 
-                    string categoryGroupName = createCategoryGroups ? GenerateGroupName(node.Key.SortStr) : key;
-
+                    string categoryGroupName;
+                    if (createCategoryGroups)
+                    {
+                        categoryGroupName = node.Key.Group switch
+                        {
+                            CharacterGroup.Empty or
+                            CharacterGroup.AsciiSymbol => "*",
+                            CharacterGroup.AsciiNumber => "0-9",
+                            _ => char.ToUpperInvariant(node.Key.SortStr[0]).ToString(),
+                        };
+                    }
+                    else
+                    {
+                        categoryGroupName = key;
+                    }
                     sections[index++] = new SongCategory(key, node.Value.ToArray(), categoryGroupName);
                 }
                 return sections;
@@ -416,29 +429,6 @@ namespace YARG.Song
                     sections[index++] = new SongCategory(key, section.ToArray(), key);
                 }
                 return sections;
-            }
-
-            static string GenerateGroupName(string singleCategoryName)
-            {
-                if (singleCategoryName.Length == 0)
-                {
-                    return string.Empty;
-                }
-
-                char first = singleCategoryName[0];
-
-                if (char.IsLetter(first))
-                {
-                    return first.ToAsciiUpper().ToString();
-                }
-                else if (char.IsDigit(first))
-                {
-                    return "0-9";
-                }
-                else
-                {
-                    return first.ToString();
-                }
             }
         }
     }
