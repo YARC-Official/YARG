@@ -217,8 +217,7 @@ namespace YARG.Menu.MusicLibrary
             var viewList = (SelectedPlaylist is not null) ? CreatePlaylistViewList() : CreateNormalViewList();
 
             // Disable shortcuts if there are less than 2 sort headers in the viewlist
-            HasSortHeaders = viewList.Where(x => x is SortHeaderViewType)
-                             .ElementAtOrDefault(1) != null;
+            HasSortHeaders = _sortedSongs is not null && _sortedSongs.Length > 1;
 
             return viewList;
         }
