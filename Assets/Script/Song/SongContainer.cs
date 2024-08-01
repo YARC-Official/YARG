@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using YARG.Core.Song.Cache;
 using YARG.Core.Song;
 using System;
@@ -406,20 +406,24 @@ namespace YARG.Song
                 return sections;
             }
 
-            static SongCategory[] Cast(SortedDictionary<string, List<SongEntry>> list, bool createCategoryGroups = false)
+            static SongCategory[] Cast(SortedDictionary<string, List<SongEntry>> list)
             {
                 var sections = new SongCategory[list.Count];
                 int index = 0;
                 foreach (var (key, section) in list)
                 {
-                    string categoryGroupName = createCategoryGroups ? GenerateGroupName(SortString.RemoveArticle(key)) : key;
-                    sections[index++] = new SongCategory(key, section.ToArray(), categoryGroupName);
+                    sections[index++] = new SongCategory(key, section.ToArray(), key);
                 }
                 return sections;
             }
 
             static string GenerateGroupName(string singleCategoryName)
             {
+                if (singleCategoryName.Length == 0)
+                {
+                    return "Unknown";
+                }
+
                 char first = singleCategoryName[0];
 
                 if (char.IsLetter(first))
@@ -432,7 +436,7 @@ namespace YARG.Song
                 }
                 else
                 {
-                    return ".";
+                    return first.ToString();
                 }
             }
         }
