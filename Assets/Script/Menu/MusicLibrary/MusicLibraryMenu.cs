@@ -226,24 +226,68 @@ namespace YARG.Menu.MusicLibrary
         {
             var list = new List<ViewType>();
 
-            // Return if there are no songs (or they haven't loaded yet)
-            if (_sortedSongs is null || SongContainer.Count <= 0) return list;
-
-            // Get the number of songs
-            int count = _sortedSongs.Sum(section => section.Songs.Length);
-
-            // Return if there are no songs that match the search criteria
-            if (count == 0)
+            // If `_sortedSongs` is null, then this function is being called during very first initialization,
+            // which means the song list hasn't been constructed yet.
+            if (_sortedSongs is null || SongContainer.Count <= 0)
             {
-                list.Add(new SortHeaderViewType(
-                    Localize.Key("Menu.MusicLibrary.NoSongsMatchCriteria"), 0, null));
                 return list;
             }
 
-            // Foreach section in the sorted songs...
+            if (!_sortedSongs.Any(section => section.Songs.Length > 0))
+            {
+                list.Add(new SortHeaderViewType(Localize.Key("Menu.MusicLibrary.NoSongsMatchCriteria"), 0, null));
+                return list;
+            }
+
+            if (_searchField.IsSearching)
+            {
+                int count = _sortedSongs.Sum(section => section.Songs.Length);
+                list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.SearchResults"), count, _sortedSongs));
+            }
+            else
+            {
+                list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.RandomSong"), "MusicLibraryIcons[Random]", SelectRandomSong, RANDOM_SONG_ID));
+                list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.Playlists"), "MusicLibraryIcons[Playlists]",
+                    () =>
+                    {
+                        // TODO: Proper playlist menu
+                        SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
+                        Refresh();
+                    },
+                    PLAYLIST_ID));
+
+                _primaryHeaderIndex += 2;
+
+                if (SettingsManager.Settings.LibrarySort < SortAttribute.Playable)
+                {
+                    list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.AllSongs"), SongContainer.Count, SongContainer.Songs));
+                    if (_recommendedSongs != null)
+                    {
+                        string key = Localize.Key("Menu.MusicLibrary.RecommendedSongs", _recommendedSongs.Length == 1 ? "Singular" : "Plural");
+                        list.Add(new CategoryViewType(key, _recommendedSongs.Length, _recommendedSongs,
+                            () =>
+                            {
+                                SetRecommendedSongs();
+                                RefreshAndReselect();
+                            }
+                        ));
+
+                        foreach (var song in _recommendedSongs)
+                        {
+                            list.Add(new SongViewType(this, song));
+                        }
+                        _primaryHeaderIndex += _recommendedSongs.Length + 1;
+                    }
+                }
+                else
+                {
+                    int count = _sortedSongs.Sum(section => section.Songs.Length);
+                    list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.PlayableSongs"), count, _sortedSongs));
+                }
+            }
+
             foreach (var section in _sortedSongs)
             {
-                // Create header
                 var displayName = section.Category;
                 if (SettingsManager.Settings.LibrarySort == SortAttribute.Source)
                 {
@@ -260,109 +304,38 @@ namespace YARG.Menu.MusicLibrary
                         displayName = SongSources.Default.GetDisplayName();
                     }
                 }
+
                 list.Add(new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup));
-
-                // Add all of the songs
-                list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
-            }
-
-            if (_searchField.IsSearching)
-            {
-                // If the current search is NOT empty...
-
-                // Create the category
-                var categoryView = new CategoryViewType(
-                    Localize.Key("Menu.MusicLibrary.SearchResults"), count, _sortedSongs);
-
-                if (_sortedSongs.Length == 1)
+                foreach (var song in section.Songs)
                 {
-                    // If there is only one header, just replace it
-                    list[0] = categoryView;
-                }
-                else
-                {
-                    // Otherwise add to the very top
-                    list.Insert(0, categoryView);
+                    list.Add(new SongViewType(this, song));
                 }
             }
-            else
-            {
-                if (SettingsManager.Settings.LibrarySort < SortAttribute.Playable)
-                {
-                    // Add "ALL SONGS" header right above the songs
-                    list.Insert(0, new CategoryViewType(Localize.Key("Menu.MusicLibrary.AllSongs"),
-                        SongContainer.Count, SongContainer.Songs));
-
-                    if (_recommendedSongs != null)
-                    {
-                        // Add the recommended songs right above the "ALL SONGS" header
-                        list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(this, i)));
-                        list.Insert(0, new CategoryViewType(
-                            Localize.Key("Menu.MusicLibrary.RecommendedSongs",
-                                _recommendedSongs.Length == 1 ? "Singular" : "Plural"),
-                            _recommendedSongs.Length, _recommendedSongs,
-                            () =>
-                            {
-                                SetRecommendedSongs();
-                                RefreshAndReselect();
-                            }
-                        ));
-
-                        _primaryHeaderIndex += _recommendedSongs.Length + 1;
-                    }
-                }
-                else
-                {
-                    list.Insert(0, new CategoryViewType(
-                        Localize.Key("Menu.MusicLibrary.PlayableSongs"), count, _sortedSongs));
-                }
-
-                // Add the buttons
-
-                list.Insert(0, new ButtonViewType(Localize.Key("Menu.MusicLibrary.RandomSong"),
-                    "MusicLibraryIcons[Random]", SelectRandomSong, RANDOM_SONG_ID));
-
-                list.Insert(1, new ButtonViewType(Localize.Key("Menu.MusicLibrary.Playlists"),
-                    "MusicLibraryIcons[Playlists]", () =>
-                {
-                    // TODO: Proper playlist menu
-                    SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
-                    Refresh();
-                }, PLAYLIST_ID));
-
-                _primaryHeaderIndex += 2;
-            }
-
             CalculateCategoryHeaderIndices(list);
             return list;
         }
 
         private List<ViewType> CreatePlaylistViewList()
         {
-            var list = new List<ViewType>();
+            var list = new List<ViewType>
+            {
+                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"), "MusicLibraryIcons[Back]", ExitPlaylistTab, BACK_ID)
+            };
 
-            // Add back button
-            list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
-                "MusicLibraryIcons[Back]", ExitPlaylistTab, BACK_ID));
+            // If `_sortedSongs` is null, then this function is being called during very first initialization,
+            // which means the song list hasn't been constructed yet.
+            if (_sortedSongs is null || SongContainer.Count <= 0 || !_sortedSongs.Any(section => section.Songs.Length > 0))
+            {
+                return list;
+            }
 
-            // Return if there are no songs (or they haven't loaded yet)
-            if (_sortedSongs is null || SongContainer.Count <= 0) return list;
-
-            // Get the number of songs
-            int count = _sortedSongs.Sum(section => section.Songs.Length);
-
-            // Return if there are no songs in the playlist
-            if (count == 0) return list;
-
-            // Add all of the songs
             foreach (var section in _sortedSongs)
             {
-                // Create header
-                var displayName = section.Category;
-                list.Add(new SortHeaderViewType(displayName.ToUpperInvariant(), section.Songs.Length, section.CategoryGroup));
-
-                // Add all of the songs
-                list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
+                list.Add(new SortHeaderViewType(section.Category.ToUpperInvariant(), section.Songs.Length, section.CategoryGroup));
+                foreach (var song in section.Songs)
+                {
+                    list.Add(new SongViewType(this, song));
+                }
             }
 
             CalculateCategoryHeaderIndices(list);
