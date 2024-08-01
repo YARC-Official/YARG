@@ -182,6 +182,7 @@ namespace YARG.Song
                 SortAttribute.FourLaneDrums  => _sortInstruments[Instrument.FourLaneDrums],
                 SortAttribute.ProDrums       => _sortInstruments[Instrument.ProDrums],
                 SortAttribute.FiveLaneDrums  => _sortInstruments[Instrument.FiveLaneDrums],
+                SortAttribute.EliteDrums     => _sortInstruments[Instrument.EliteDrums],
                 SortAttribute.ProGuitar_17   => _sortInstruments[Instrument.ProGuitar_17Fret],
                 SortAttribute.ProGuitar_22   => _sortInstruments[Instrument.ProGuitar_22Fret],
                 SortAttribute.ProBass_17     => _sortInstruments[Instrument.ProBass_17Fret],
