@@ -421,7 +421,7 @@ namespace YARG.Song
             {
                 if (singleCategoryName.Length == 0)
                 {
-                    return "Unknown";
+                    return string.Empty;
                 }
 
                 char first = singleCategoryName[0];
