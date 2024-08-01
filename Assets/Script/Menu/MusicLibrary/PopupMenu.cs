@@ -111,12 +111,15 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
-            CreateItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+            if (_musicLibrary.HasSortHeaders)
             {
-                _menuState = State.SortSelect;
-                UpdateForState();
-            });
-
+                CreateItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+                {
+                    _menuState = State.SortSelect;
+                    UpdateForState();
+                });
+            }
+            
             CreateItem("GoToSection", () =>
             {
                 _menuState = State.GoToSection;
@@ -215,41 +218,13 @@ namespace YARG.Menu.MusicLibrary
         {
             SetLocalizedHeader("GoTo");
 
-            if (SettingsManager.Settings.LibrarySort
-                is SortAttribute.Artist
-                or SortAttribute.Album
-                or SortAttribute.Artist_Album)
+            foreach (var (name, index) in _musicLibrary.Shortcuts)
             {
-
-                foreach (var (header, index) in _musicLibrary.GetSections()
-                    .GroupBy(x => GetGroupChar(x.Item1).ToAsciiUpper())
-                    .Select(g => g.First()))
+                CreateItemUnlocalized(name, () =>
                 {
-
-                    CreateItemUnlocalized(GetGroupChar(header).ToString(), () =>
-                    {
-                        _musicLibrary.SelectedIndex = index;
-                        gameObject.SetActive(false);
-                    });
-                }
-            }
-            else
-            {
-                foreach (var (header, index) in _musicLibrary.GetSections())
-                {
-                    CreateItemUnlocalized(((SortHeaderViewType) header).HeaderText, () =>
-                    {
-                        _musicLibrary.SelectedIndex = index;
-                        gameObject.SetActive(false);
-                    });
-                }
-            }
-
-            return;
-
-            static char GetGroupChar(ViewType header)
-            {
-                return SortString.RemoveArticle(((SortHeaderViewType) header).HeaderText)[0];
+                    _musicLibrary.SelectedIndex = index;
+                    gameObject.SetActive(false);
+                });
             }
         }
 
