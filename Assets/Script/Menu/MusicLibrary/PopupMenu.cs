@@ -111,21 +111,21 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
+            CreateItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+            {
+                _menuState = State.SortSelect;
+                UpdateForState();
+            });
+
             if (_musicLibrary.HasSortHeaders)
             {
-                CreateItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+                CreateItem("GoToSection", () =>
                 {
-                    _menuState = State.SortSelect;
+                    _menuState = State.GoToSection;
                     UpdateForState();
                 });
             }
             
-            CreateItem("GoToSection", () =>
-            {
-                _menuState = State.GoToSection;
-                UpdateForState();
-            });
-
             var viewType = _musicLibrary.CurrentSelection;
 
             // Add/remove to favorites
