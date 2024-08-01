@@ -74,7 +74,6 @@ namespace YARG.Menu.MusicLibrary
         public bool HasSortHeaders { get; private set; }
 
         private SongCategory[] _sortedSongs;
-        private IEnumerable<IGrouping<string, (ViewType, int)>> _shortcutQuery;
 
         private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
@@ -83,6 +82,8 @@ namespace YARG.Menu.MusicLibrary
         private SongEntry _currentSong;
 
         private List<int> _sectionHeaderIndices = new();
+        public List<(string, int)> Shortcuts { get; private set; } = new();
+
         private List<HoldContext> _heldInputs = new();
 
         private int _primaryHeaderIndex;
@@ -211,7 +212,7 @@ namespace YARG.Menu.MusicLibrary
         protected override List<ViewType> CreateViewList()
         {
             // Shortcuts will be re-queried every time the list is refreshed
-            _shortcutQuery = null;
+            _primaryHeaderIndex = 0;
 
             var viewList = (SelectedPlaylist is not null) ? CreatePlaylistViewList() : CreateNormalViewList();
 
@@ -234,7 +235,7 @@ namespace YARG.Menu.MusicLibrary
             if (count == 0)
             {
                 list.Add(new SortHeaderViewType(
-                    Localize.Key("Menu.MusicLibrary.NoSongsMatchCriteria"), 0));
+                    Localize.Key("Menu.MusicLibrary.NoSongsMatchCriteria"), 0, null));
                 return list;
             }
 
@@ -264,24 +265,23 @@ namespace YARG.Menu.MusicLibrary
                 list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
             }
 
-            CategoryViewType primaryHeader;
-
             if (_searchField.IsSearching)
             {
                 // If the current search is NOT empty...
 
                 // Create the category
-                primaryHeader = new CategoryViewType(Localize.Key("Menu.MusicLibrary.SearchResults"), count, _sortedSongs);
+                var categoryView = new CategoryViewType(
+                    Localize.Key("Menu.MusicLibrary.SearchResults"), count, _sortedSongs);
 
                 if (_sortedSongs.Length == 1)
                 {
                     // If there is only one header, just replace it
-                    list[0] = primaryHeader;
+                    list[0] = categoryView;
                 }
                 else
                 {
                     // Otherwise add to the very top
-                    list.Insert(0, primaryHeader);
+                    list.Insert(0, categoryView);
                 }
             }
             else
@@ -289,9 +289,8 @@ namespace YARG.Menu.MusicLibrary
                 if (SettingsManager.Settings.LibrarySort < SortAttribute.Playable)
                 {
                     // Add "ALL SONGS" header right above the songs
-                    primaryHeader = new CategoryViewType(Localize.Key("Menu.MusicLibrary.AllSongs"), SongContainer.Count, SongContainer.Songs);
-                    
-                    list.Insert(0, primaryHeader);
+                    list.Insert(0, new CategoryViewType(Localize.Key("Menu.MusicLibrary.AllSongs"),
+                        SongContainer.Count, SongContainer.Songs));
 
                     if (_recommendedSongs != null)
                     {
@@ -307,12 +306,14 @@ namespace YARG.Menu.MusicLibrary
                                 RefreshAndReselect();
                             }
                         ));
+
+                        _primaryHeaderIndex += _recommendedSongs.Length + 1;
                     }
                 }
                 else
                 {
-                    primaryHeader = new CategoryViewType(Localize.Key("Menu.MusicLibrary.PlayableSongs"), count, _sortedSongs);
-                    list.Insert(0, primaryHeader);
+                    list.Insert(0, new CategoryViewType(
+                        Localize.Key("Menu.MusicLibrary.PlayableSongs"), count, _sortedSongs));
                 }
 
                 // Add the buttons
@@ -327,9 +328,9 @@ namespace YARG.Menu.MusicLibrary
                     SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
                     Refresh();
                 }, PLAYLIST_ID));
-            }
 
-            _primaryHeaderIndex = list.IndexOf(primaryHeader);
+                _primaryHeaderIndex += 2;
+            }
 
             CalculateCategoryHeaderIndices(list);
             return list;
@@ -357,7 +358,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Create header
                 var displayName = section.Category;
-                list.Add(new SortHeaderViewType(displayName.ToUpperInvariant(), section.Songs.Length));
+                list.Add(new SortHeaderViewType(displayName.ToUpperInvariant(), section.Songs.Length, section.CategoryGroup));
 
                 // Add all of the songs
                 list.AddRange(section.Songs.Select(song => new SongViewType(this, song)));
@@ -378,9 +379,31 @@ namespace YARG.Menu.MusicLibrary
 
         private void CalculateCategoryHeaderIndices(List<ViewType> list)
         {
-            _sectionHeaderIndices = list.Select((v, i) => (v, i)).
-                Where(viewTypeEntry => viewTypeEntry.v is SortHeaderViewType or CategoryViewType).
-                Select(viewTypeEntry => viewTypeEntry.i).ToList();
+            _sectionHeaderIndices.Clear();
+            Shortcuts.Clear();
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                var entry = list[i];
+                if (entry is CategoryViewType)
+                {
+                    _sectionHeaderIndices.Add(i);
+                }
+                else if (entry is SortHeaderViewType header)
+                {
+                    _sectionHeaderIndices.Add(i);
+                    
+                    string curShortcut = header.ShortcutName;
+
+                    // Assume that any header with a ShortcutName of null is not meant to be included
+                    // Add this shortcut if it does not match the one at end of the list
+                    if (curShortcut != null && 
+                        (Shortcuts.Count == 0 || curShortcut != Shortcuts[^1].Item1)) 
+                    {
+                        Shortcuts.Add((curShortcut, i));
+                    }
+                }
+            }
         }
 
         private void SetRecommendedSongs()
@@ -431,7 +454,7 @@ namespace YARG.Menu.MusicLibrary
 
                 _sortedSongs = new SongCategory[]
                 {
-                    new(SelectedPlaylist.Name, songs[..count])
+                    new(SelectedPlaylist.Name, songs[..count], null)
                 };
 
                 _searchField.gameObject.SetActive(false);
@@ -607,18 +630,6 @@ namespace YARG.Menu.MusicLibrary
         {
             SettingsManager.Settings.LibrarySort = sort;
             UpdateSearch(true);
-        }
-
-        public IEnumerable<IGrouping<string, (ViewType, int)>> GetShortcuts()
-        {
-            if (_shortcutQuery == null)
-            {
-                _shortcutQuery = ViewList.Select((v, i) => (v, i))
-                   .Where(i => i.v is SortHeaderViewType)
-                   .GroupBy(g => ((SortHeaderViewType) g.Item1).ShortcutName);
-            }
-
-            return _shortcutQuery;
         }
 
         public void SetSearchInput(SortAttribute songAttribute, string input)

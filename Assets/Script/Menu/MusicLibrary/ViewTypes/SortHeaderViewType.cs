@@ -14,12 +14,12 @@ namespace YARG.Menu.MusicLibrary
         public readonly string ShortcutName;
         private readonly int _songCount;
 
-        public SortHeaderViewType(string headerText, int songCount, string shortcutName = null)
+        public SortHeaderViewType(string headerText, int songCount, string shortcutName)
         {
             HeaderText = headerText;
             _songCount = songCount;
-
-            ShortcutName = shortcutName == null ? headerText : shortcutName;
+            
+            ShortcutName = shortcutName;
         }
 
         public override string GetPrimaryText(bool selected)

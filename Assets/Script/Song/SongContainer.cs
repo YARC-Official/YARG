@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using YARG.Core.Song.Cache;
 using YARG.Core.Song;
 using System;
@@ -60,32 +60,12 @@ namespace YARG.Song
         public readonly string CategoryGroup;
         public readonly SongEntry[] Songs;
 
-        public SongCategory(string category, SongEntry[] songs, bool createGroup = false)
+        public SongCategory(string category, SongEntry[] songs, string categoryGroupName)
         {
             Category = category;
             Songs = songs;
 
-            if (createGroup)
-            {
-                char firstChar = SortString.RemoveArticle(category)[0];
-
-                if (char.IsLetter(firstChar))
-                {
-                    CategoryGroup = firstChar.ToAsciiUpper().ToString();
-                }
-                else if (char.IsDigit(firstChar))
-                {
-                    CategoryGroup = "0-9";
-                }
-                else
-                {
-                    CategoryGroup = ".";
-                }
-            }
-            else
-            {
-                CategoryGroup = category;
-            }
+            CategoryGroup = categoryGroupName;
         }
 
         public void Deconstruct(out string category, out SongEntry[] songs)
@@ -284,7 +264,7 @@ namespace YARG.Song
 
                         if (intersectCount > 0)
                         {
-                            arr[categoryCount++] = new SongCategory($"Playable [{node.Category}]", intersect[..intersectCount]);
+                            arr[categoryCount++] = new SongCategory($"Playable [{node.Category}]", intersect[..intersectCount], node.Category);
                         }
                     }
                     _playables = arr[..categoryCount];
@@ -340,16 +320,17 @@ namespace YARG.Song
         private static void FillContainers()
         {
             _songs = SetAllSongs(_songCache.Entries);
+        
             _sortArtists   = Convert(_songCache.Artists, SongAttribute.Artist, createCategoryGroups:true);
             _sortAlbums    = Convert(_songCache.Albums, SongAttribute.Album, createCategoryGroups:true);
             _sortGenres    = Convert(_songCache.Genres, SongAttribute.Genre);
             _sortCharters  = Convert(_songCache.Charters, SongAttribute.Charter, createCategoryGroups:true);
             _sortPlaylists = Convert(_songCache.Playlists, SongAttribute.Playlist);
             _sortSources   = Convert(_songCache.Sources, SongAttribute.Source);
+            _sortArtistAlbums = Convert(_songCache.ArtistAlbums, SongAttribute.Artist_Album, createCategoryGroups:true);
 
             _sortTitles       = Cast(_songCache.Titles);
             _sortYears        = Cast(_songCache.Years);
-            _sortArtistAlbums = Cast(_songCache.ArtistAlbums, createCategoryGroups:true);
             _sortSongLengths  = Cast(_songCache.SongLengths);
             _playables = null;
 
@@ -358,7 +339,7 @@ namespace YARG.Song
                 int index = 0;
                 foreach (var node in _songCache.DatesAdded)
                 {
-                    _sortDatesAdded[index++] = new(node.Key.ToLongDateString(), node.Value.ToArray());
+                    _sortDatesAdded[index++] = new(node.Key.ToLongDateString(), node.Value.ToArray(), node.Key.ToString("y"));
                 }
             }
 
@@ -371,9 +352,8 @@ namespace YARG.Song
                     int index = 0;
                     foreach (var difficulty in instrument.Value)
                     {
-                        arr[index++] = new SongCategory(
-                            $"{instrument.Key.ToSortAttribute().ToLocalizedName()} [{difficulty.Key}]",
-                            difficulty.Value.ToArray());
+                        string categoryName = $"{instrument.Key.ToSortAttribute().ToLocalizedName()} [{difficulty.Key}]";
+                        arr[index++] = new SongCategory(categoryName, difficulty.Value.ToArray(), categoryName);
                     }
                     _sortInstruments.Add(instrument.Key, arr);
                 }
@@ -406,17 +386,22 @@ namespace YARG.Song
             static SongCategory[] Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute, bool createCategoryGroups = false)
             {
                 var sections = new SongCategory[list.Count];
+                
                 int index = 0;
                 foreach (var node in list)
                 {
                     string key = node.Key;
+
                     if (attribute == SongAttribute.Genre && key.Length > 0 && char.IsLower(key[0]))
                     {
                         key = char.ToUpperInvariant(key[0]).ToString();
                         if (node.Key.Length > 1)
                             key += node.Key.Str[1..];
                     }
-                    sections[index++] = new SongCategory(key, node.Value.ToArray(), createCategoryGroups);
+
+                    string categoryGroupName = createCategoryGroups ? GenerateGroupName(node.Key.SortStr) : key;
+
+                    sections[index++] = new SongCategory(key, node.Value.ToArray(), categoryGroupName);
                 }
                 return sections;
             }
@@ -425,11 +410,30 @@ namespace YARG.Song
             {
                 var sections = new SongCategory[list.Count];
                 int index = 0;
-                foreach (var section in list)
+                foreach (var (key, section) in list)
                 {
-                    sections[index++] = new SongCategory(section.Key, section.Value.ToArray(), createCategoryGroups);
+                    string categoryGroupName = createCategoryGroups ? GenerateGroupName(SortString.RemoveArticle(key)) : key;
+                    sections[index++] = new SongCategory(key, section.ToArray(), categoryGroupName);
                 }
                 return sections;
+            }
+
+            static string GenerateGroupName(string singleCategoryName)
+            {
+                char first = singleCategoryName[0];
+
+                if (char.IsLetter(first))
+                {
+                    return first.ToAsciiUpper().ToString();
+                }
+                else if (char.IsDigit(first))
+                {
+                    return "0-9";
+                }
+                else
+                {
+                    return ".";
+                }
             }
         }
     }

@@ -113,12 +113,13 @@ namespace YARG.Menu.MusicLibrary
 
             if (_musicLibrary.HasSortHeaders)
             {
-                CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+                CreateItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
                 {
                     _menuState = State.SortSelect;
                     UpdateForState();
                 });
-
+            }
+            
             CreateItem("GoToSection", () =>
             {
                 _menuState = State.GoToSection;
@@ -217,12 +218,11 @@ namespace YARG.Menu.MusicLibrary
         {
             SetLocalizedHeader("GoTo");
 
-            foreach (var headerGroup in _musicLibrary.GetShortcuts())
+            foreach (var (name, index) in _musicLibrary.Shortcuts)
             {
-                int firstHeaderIndexInGroup = headerGroup.First().Item2;
-                CreateItem(headerGroup.Key, () =>
+                CreateItemUnlocalized(name, () =>
                 {
-                    _musicLibrary.SelectedIndex = firstHeaderIndexInGroup;
+                    _musicLibrary.SelectedIndex = index;
                     gameObject.SetActive(false);
                 });
             }
