@@ -293,6 +293,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: AssortedIcons_0
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 128
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 64b25208510f3c84f99aac89363d5925
+      internalID: 1064137891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -304,6 +325,7 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
+      AssortedIcons_0: 1064137891
       UIIcons_0: 576907288
       UIIcons_1: 1881201596
       UIIcons_2: -954546446

@@ -40,7 +40,8 @@ namespace YARG.Gameplay.HUD
 
         public void SelectSections()
         {
-            PauseMenuManager.OpenMenu(PauseMenuManager.Menu.SelectSections);
+            PauseMenuManager.PopMenu();
+            PauseMenuManager.PushMenu(PauseMenuManager.Menu.SelectSections);
         }
 
         private void UpdatePositionText()

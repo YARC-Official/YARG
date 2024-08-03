@@ -11,12 +11,15 @@ namespace YARG.Menu.MusicLibrary
         public override bool UseWiderPrimaryText => true;
 
         public readonly string HeaderText;
+        public readonly string ShortcutName;
         private readonly int _songCount;
 
-        public SortHeaderViewType(string headerText, int songCount)
+        public SortHeaderViewType(string headerText, int songCount, string shortcutName)
         {
             HeaderText = headerText;
             _songCount = songCount;
+            
+            ShortcutName = shortcutName;
         }
 
         public override string GetPrimaryText(bool selected)

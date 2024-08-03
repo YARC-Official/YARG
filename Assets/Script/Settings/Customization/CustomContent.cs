@@ -22,7 +22,8 @@ namespace YARG.Settings.Customization
             Formatting = Formatting.Indented,
             Converters = new List<JsonConverter>
             {
-                new JsonColorConverter()
+                new JsonColorConverter(),
+                new JsonVector2Converter()
             }
         };
 

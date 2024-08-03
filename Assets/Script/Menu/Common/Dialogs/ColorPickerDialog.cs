@@ -69,8 +69,8 @@ namespace YARG.Menu.Dialogs
         {
             return new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Green, "Confirm", Submit),
-                new NavigationScheme.Entry(MenuAction.Red, "Cancel", DialogManager.Instance.ClearDialog)
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", Submit),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Cancel", DialogManager.Instance.ClearDialog)
             }, null);
         }
 

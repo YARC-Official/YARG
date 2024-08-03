@@ -16,6 +16,7 @@ namespace YARG.Audio.BASS
 
         private StreamHandle _mainHandle;
         private int _songEndHandle;
+        private float _speed;
 
         public override event Action SongEnd
         {
@@ -44,10 +45,11 @@ namespace YARG.Audio.BASS
         }
 
         internal BassStemMixer(string name, BassAudioManager manager, float speed, double volume, int handle, int sourceStream, bool clampStemVolume)
-            : base(name, manager, speed, clampStemVolume)
+            : base(name, manager, clampStemVolume)
         {
             _mixerHandle = handle;
             _sourceStream = sourceStream;
+            _speed = speed;
             SetVolume_Internal(volume);
             _BufferSetter(Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value, Bass.PlaybackBufferLength);
         }
@@ -107,7 +109,7 @@ namespace YARG.Audio.BASS
 
             if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
             {
-                seconds -= Bass.PlaybackBufferLength / 1000.0f;
+                seconds -= (Bass.PlaybackBufferLength / 1000.0f) * _speed;
                 // Gotta do this because ChannelBytes2Seconds() may not be less than the buffer at position 0
                 if (seconds < 0)
                 {

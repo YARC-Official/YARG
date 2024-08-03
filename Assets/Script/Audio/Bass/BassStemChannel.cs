@@ -111,6 +111,11 @@ namespace YARG.Audio.BASS
                 {
                     YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
                 }
+
+                if (!Bass.ChannelSlideAttribute(_streamHandles.Stream, ChannelAttribute.Volume, volume, BassHelpers.REVERB_SLIDE_IN_MILLISECONDS))
+                {
+                    YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
+                }
             }
             else
             {
@@ -132,6 +137,11 @@ namespace YARG.Audio.BASS
                 _reverbHandles.ReverbFX = 0;
 
                 if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, 0, BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS))
+                {
+                    YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
+                }
+
+                if (!Bass.ChannelSlideAttribute(_streamHandles.Stream, ChannelAttribute.Volume, (float)_volume, BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS))
                 {
                     YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
                 }

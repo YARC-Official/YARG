@@ -39,6 +39,8 @@ namespace YARG.Settings
 
             public SortAttribute LibrarySort = SortAttribute.Name;
 
+            public Dictionary<string, HUDPositionProfile> HUDPositionProfiles = new();
+
             #endregion
 
             #region General
@@ -51,6 +53,8 @@ namespace YARG.Settings
 
             public IntSetting AudioCalibration { get; } = new(0);
             public IntSetting VideoCalibration { get; } = new(0);
+
+            public ToggleSetting AccountForHardwareLatency { get; } = new(true);
 
             public void OpenVenueFolder()
             {
@@ -158,6 +162,8 @@ namespace YARG.Settings
 
             public ToggleSetting ClapsInStarpower { get; } = new(true);
 
+            public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
+
             // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);
             // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
             // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
@@ -200,6 +206,7 @@ namespace YARG.Settings
 
             public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
+            public ToggleSetting EnablePracticeSP { get; } = new(false);
 
             public DropdownSetting<NoteStreakFrequencyMode> NoteStreakFrequency { get; }
                 = new(NoteStreakFrequencyMode.Frequent)

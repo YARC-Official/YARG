@@ -142,13 +142,13 @@ namespace YARG.Gameplay.HUD
 
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Green, "Confirm", Confirm),
-                new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
-                new NavigationScheme.Entry(MenuAction.Up, "Up", ctx => {
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", Confirm),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up", ctx => {
                     _allowWrapAround = !ctx.IsRepeat && SettingsManager.Settings.WrapAroundNavigation.Value;
                     HoveredIndex--;
                 }),
-                new NavigationScheme.Entry(MenuAction.Down, "Down", ctx => {
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down", ctx => {
                     _allowWrapAround = !ctx.IsRepeat && SettingsManager.Settings.WrapAroundNavigation.Value;
                     HoveredIndex++;
                 })
@@ -196,7 +196,7 @@ namespace YARG.Gameplay.HUD
                 else
                 {
                     // Go back to practice pause menu
-                    _pauseMenuManager.PopMenu(false);
+                    _pauseMenuManager.PopMenu();
                     _pauseMenuManager.PushMenu(PauseMenuManager.Menu.PracticePause);
                 }
             }

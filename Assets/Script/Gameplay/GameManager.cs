@@ -47,6 +47,8 @@ namespace YARG.Gameplay
         private ReplayController _replayController;
         [SerializeField]
         private PauseMenuManager _pauseMenu;
+        [SerializeField]
+        private DraggableHudManager _draggableHud;
 
         [SerializeField]
         private GameObject _lyricBar;
@@ -180,7 +182,7 @@ namespace YARG.Gameplay
                 GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
             }
 
-            _pauseMenu.Clear();
+            _pauseMenu.PopAllMenus();
             _mixer?.Dispose();
             _songRunner?.Dispose();
             BeatEventHandler?.Unsubscribe(StarPowerClap);
@@ -198,12 +200,10 @@ namespace YARG.Gameplay
             // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                if (IsPractice && !PracticeManager.HasSelectedSection)
+                if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
                 {
-                    return;
+                    SetPaused(!_pauseMenu.IsOpen);
                 }
-
-                SetPaused(!_pauseMenu.IsOpen());
             }
 
             // Toggle debug text
@@ -222,7 +222,7 @@ namespace YARG.Gameplay
 
             // Update handlers
             _songRunner.Update();
-            BeatEventHandler.Update(_songRunner.RealSongTime);
+            BeatEventHandler.Update(_songRunner.SongTime);
 
             // Update players
             int totalScore = 0;
@@ -378,7 +378,12 @@ namespace YARG.Gameplay
 
         public void Resume(bool inputCompensation = true)
         {
-            _pauseMenu.Clear();
+            if (_draggableHud.EditMode)
+            {
+                SetEditHUD(false);
+            }
+
+            _pauseMenu.PopAllMenus();
             if (_songRunner.SongTime >= SongLength + SONG_END_DELAY)
             {
                 return;
@@ -531,6 +536,20 @@ namespace YARG.Gameplay
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
 
+        public void SetEditHUD(bool on)
+        {
+            if (on)
+            {
+                _pauseMenu.gameObject.SetActive(false);
+                _draggableHud.SetEditHUD(true);
+            }
+            else
+            {
+                _draggableHud.SetEditHUD(false);
+                _pauseMenu.gameObject.SetActive(true);
+            }
+        }
+
         public (string Name, HashWrapper Hash)? SaveReplay(double length, bool useScorePath)
         {
             var realPlayers = _players.Where(player => !player.Player.Profile.IsBot).ToList();
@@ -570,12 +589,10 @@ namespace YARG.Gameplay
             {
                 // Pause
                 case MenuAction.Start:
-                    if (IsPractice && !PracticeManager.HasSelectedSection)
+                    if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
                     {
-                        return;
+                        SetPaused(!_songRunner.Paused);
                     }
-
-                    SetPaused(!_songRunner.Paused);
                     break;
             }
         }

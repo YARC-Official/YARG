@@ -41,14 +41,7 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to create split stream: {0}!", Bass.LastError);
                 return null;
             }
-
-            var handle = new StreamHandle(BassFx.TempoCreate(streamSplit, tempoFlags));
-            handle.CompressorFX = BassHelpers.AddCompressorToChannel(handle.Stream);
-            if (handle.CompressorFX == 0)
-            {
-                YargLogger.LogError("Failed to set up compressor for split stream!");
-            }
-            return handle;
+            return new StreamHandle(BassFx.TempoCreate(streamSplit, tempoFlags));
         }
 
         private bool _disposed;
@@ -102,7 +95,6 @@ namespace YARG.Audio.BASS
         protected override ReadOnlySpan<string> SupportedFormats => FORMATS;
 
         private readonly int _opusHandle = 0;
-        
 
         public BassAudioManager()
         {
@@ -282,7 +274,7 @@ namespace YARG.Audio.BASS
                             YargLogger.LogFormatInfo("Loaded {0}", sfxFile);
                         }
                         break;
-                    }  
+                    }
                 }
             }
 
@@ -377,11 +369,19 @@ namespace YARG.Audio.BASS
 
         private static bool CreateMixerHandle(out int mixerHandle)
         {
-            mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Default);
+            // The float flag allows >0dB signals.
+            // Note that the compressor attempts to normalize signals >-2dB, but some mixes will pierce through.
+            mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Float);
             if (mixerHandle == 0)
             {
                 YargLogger.LogFormatError("Failed to create mixer: {0}!", Bass.LastError);
                 return false;
+            }
+
+            int compressorFX = BassHelpers.AddCompressorToChannel(mixerHandle);
+            if (compressorFX == 0)
+            {
+                YargLogger.LogError("Failed to set up compressor for mixer stream!");
             }
             return true;
         }
@@ -399,6 +399,22 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to create source stream: {0}!", Bass.LastError);
                 return false;
             }
+            return true;
+        }
+
+        internal static bool GetSpeed(int streamHandle, out float speed)
+        {
+            if (!Bass.ChannelGetAttribute(streamHandle, ChannelAttribute.Tempo, out float relativeSpeed))
+            {
+                speed = 0;
+                YargLogger.LogFormatError("Failed to get channel speed: {0}", Bass.LastError);
+                return false;
+            }
+
+            // Turn relative speed into percentage speed
+            float percentageSpeed = relativeSpeed + 100;
+            speed = percentageSpeed / 100;
+
             return true;
         }
 

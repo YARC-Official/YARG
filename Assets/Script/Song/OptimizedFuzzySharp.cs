@@ -42,15 +42,6 @@ namespace YARG.Song
             KEEP
         }
 
-        private struct OpCode
-        {
-            public EditType EditType;
-            public int SourceBegin;
-            public int SourceEnd;
-            public int DestBegin;
-            public int DestEnd;
-        }
-
         private struct EditOp
         {
             public EditType EditType;

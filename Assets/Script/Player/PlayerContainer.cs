@@ -33,8 +33,6 @@ namespace YARG.Player
         private static readonly Dictionary<Guid, YargProfile>       _profilesById     = new();
         private static readonly Dictionary<YargProfile, YargPlayer> _playersByProfile = new();
 
-        private static HashSet<Instrument> _instruments = new();
-
         /// <summary>
         /// A list of all of the profiles (taken or not).
         /// </summary>
@@ -51,7 +49,6 @@ namespace YARG.Player
         public static List<YargPlayer>.Enumerator PlayerEnumerator => _players.GetEnumerator();
 
         private static bool _isInitialized;
-        public static List<Instrument> Instruments => _instruments.ToList();
 
         static PlayerContainer()
         {
@@ -68,7 +65,7 @@ namespace YARG.Player
 
             _profiles.Add(profile);
             _profilesById.Add(profile.Id, profile);
-            TestForMenuRefresh();
+            ResetPlayableSongs();
             return true;
         }
 
@@ -81,7 +78,7 @@ namespace YARG.Player
 
             _profiles.Remove(profile);
             _profilesById.Remove(profile.Id);
-            TestForMenuRefresh();
+            ResetPlayableSongs();
             return true;
         }
 
@@ -106,7 +103,7 @@ namespace YARG.Player
             player.EnableInputs();
             _players.Add(player);
             _playersByProfile.Add(profile, player);
-            TestForMenuRefresh();
+            ResetPlayableSongs();
             return player;
         }
 
@@ -118,7 +115,7 @@ namespace YARG.Player
             _playersByProfile.Remove(player.Profile);
 
             player.Dispose();
-            TestForMenuRefresh();
+            ResetPlayableSongs();
             return true;
         }
 
@@ -133,27 +130,15 @@ namespace YARG.Player
 
             var bindings = BindingsContainer.GetBindingsForProfile(newProfile);
             player.SwapToProfile(newProfile, bindings, true);
-            TestForMenuRefresh();
+            ResetPlayableSongs();
             return true;
         }
 
-        private static void TestForMenuRefresh()
+        private static void ResetPlayableSongs()
         {
-            HashSet<Instrument> instruments = new();
-            foreach (var player in  _players)
+            if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
             {
-                instruments.Add(player.Profile.CurrentInstrument);
-            }
-
-            if (!_instruments.SetEquals(instruments))
-            {
-                SongContainer.ResetPlayableSongs();
-                _instruments = instruments;
-
-                if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
-                {
-                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
-                }
+                MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
         }
 

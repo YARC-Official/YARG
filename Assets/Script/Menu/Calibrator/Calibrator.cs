@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -8,6 +8,7 @@ using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Input;
+using YARG.Localization;
 using YARG.Player;
 using YARG.Settings;
 
@@ -83,7 +84,7 @@ namespace YARG.Menu.Calibrator
                     break;
                 case State.Audio:
                     _audioCalibrateText.color = Color.green;
-                    _audioCalibrateText.text = "Detected";
+                    _audioCalibrateText.text = Localize.Key("Menu.Calibrator.Detected");
 
                     _calibrationTimes.Add(Time.realtimeSinceStartupAsDouble - _time);
                     break;
@@ -169,9 +170,7 @@ namespace YARG.Menu.Calibrator
             if (_calibrationTimes.Count <= 8)
             {
                 _audioCalibrateText.color = Color.red;
-                _audioCalibrateText.text =
-                    "There isn't enough data to get an accurate result.\n" +
-                    "Press back to exit.";
+                _audioCalibrateText.text = Localize.Key("Menu.Calibrator.NotEnoughData");
                 return;
             }
 
@@ -219,7 +218,9 @@ namespace YARG.Menu.Calibrator
             double median = diffs.Count % 2 != 0 ? diffs[mid] : (diffs[mid] + diffs[mid - 1]) / 2f;
 
             // Set calibration
-            int calibration = (int)Math.Round(median * 1000) - GlobalAudioHandler.PlaybackLatency;
+            int calibration = (int)Math.Round(median * 1000);
+            if (SettingsManager.Settings.AccountForHardwareLatency.Value)
+                calibration -= GlobalAudioHandler.PlaybackLatency;
             SettingsManager.Settings.AudioCalibration.Value = calibration;
 
             // Set text
