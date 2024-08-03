@@ -217,7 +217,7 @@ namespace YARG.Gameplay.Player
 
         private void OnOverhit(int key)
         {
-            OnOverstrum();
+            OnOverhit();
 
             // do overhit visuals
         }

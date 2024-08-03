@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Gameplay.HUD;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
@@ -36,7 +37,7 @@ namespace YARG.Gameplay.Player
         };
 
         // Time offset relative to 1.0 note speed
-        private const float SPAWN_TIME_OFFSET = 25f;
+        public const float SPAWN_TIME_OFFSET = 25f;
 
         public float SpawnTimeOffset => SPAWN_TIME_OFFSET / TrackSpeed;
 
@@ -69,10 +70,6 @@ namespace YARG.Gameplay.Player
         private MeshRenderer _soloStarpowerOverlay;
         [SerializeField]
         private MeshRenderer _harmonyStarpowerOverlay;
-
-        [Space]
-        [SerializeField]
-        private CountdownDisplay _countdownDisplay;
 
         [Space]
         [SerializeField]
@@ -209,6 +206,13 @@ namespace YARG.Gameplay.Player
             AllowStarPower = true;
         }
 
+        public void InitializeCountdownDisplay(CountdownDisplay newPrefabInstance)
+        {
+            // The CountdownDisplay for VocalTrack lives inside of TrackViewManager's transform
+            // to prevent stretching the countdown circle into an oval when resizing the track
+            _countdownDisplay = newPrefabInstance;
+        }
+
         public VocalsPlayer CreatePlayer()
         {
             var player = Instantiate(_vocalPlayerPrefab, _playerContainer);
@@ -233,9 +237,14 @@ namespace YARG.Gameplay.Player
             return percussionTrack;
         }
 
-        public void UpdateCountdown(int measuresLeft)
+        public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
         {
-            _countdownDisplay.UpdateCountdown(measuresLeft);
+            if (_countdownDisplay == null)
+            {
+                return;
+            }
+
+            _countdownDisplay.UpdateCountdown(measuresLeft, countdownLength, endTime);
         }
 
         private void Update()
@@ -377,6 +386,11 @@ namespace YARG.Gameplay.Player
             }
 
             ResetPracticeSection();
+        }
+
+        public bool IsPrimaryPlayer(VocalsPlayer thisPlayer)
+        {
+            return thisPlayer == _vocalPlayers[0];
         }
     }
 }

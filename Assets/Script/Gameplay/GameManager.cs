@@ -166,6 +166,9 @@ namespace YARG.Gameplay
             // Prevent screen from sleeping
             _originalSleepTimeout = Screen.sleepTimeout;
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
+
+            // Update countdown display style from global settings
+            CountdownDisplay.DisplayStyle = SettingsManager.Settings.CountdownDisplay.Value;
         }
 
         private void OnDestroy()

@@ -58,7 +58,7 @@ namespace YARG.Menu.History
                         SelectedIndex++;
                     }),
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
-                    () => CurrentSelection?.ViewClick()),
+                    () => CurrentSelection?.Confirm()),
 
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
                 new NavigationScheme.Entry(MenuAction.Yellow, "Analyze",

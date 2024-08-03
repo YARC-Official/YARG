@@ -37,6 +37,8 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
+        protected bool IsPrimaryPlayer => GameManager.VocalTrack.IsPrimaryPlayer(this);
+
         private InstrumentDifficulty<VocalNote> NoteTrack { get; set; }
         private InstrumentDifficulty<VocalNote> OriginalNoteTrack { get; set; }
 
@@ -192,10 +194,13 @@ namespace YARG.Gameplay.Player
                     : null;
             };
 
-            engine.OnCountdownChange += (measuresLeft) =>
+            if (IsPrimaryPlayer)
             {
-                GameManager.VocalTrack.UpdateCountdown(measuresLeft);
-            };
+                engine.OnCountdownChange += (measuresLeft, countdownLength, endTime) =>
+                {
+                    GameManager.VocalTrack.UpdateCountdown(measuresLeft, countdownLength, endTime);
+                };
+            }
 
             return engine;
         }
