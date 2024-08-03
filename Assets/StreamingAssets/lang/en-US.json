@@ -537,7 +537,7 @@
             },
             "EnablePracticeSP": {
                 "Name": "Star Power in Practice",
-                "Description": "Allow Star Power phrases and activation while in Practice Mode."
+                "Description": "Allow Star Power phrases while in Practice Mode."
             },
             "FpsCap": {
                 "Name": "FPS Cap",
