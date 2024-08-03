@@ -492,7 +492,7 @@
             },
             "DisableTextNotifications": {
                 "Name": "Disable Text Notifications",
-                "Description": "Disables text notification on the track such as \"100-Note Streak\" and \"Full Combo."
+                "Description": "Disables text notification on the track such as \"100-Note Streak\" and \"Full Combo.\""
             },
             "DMXBlueChannels": {
                 "Name": "DMX Blue",
@@ -534,6 +534,10 @@
                 "Name": "Drums Volume",
                 "PauseName": "Drums",
                 "Description": "Adjusts the song's drum track volume. Only does something if the song is multi-track."
+            },
+            "EnablePracticeSP": {
+                "Name": "Star Power in Practice",
+                "Description": "Allow Star Power phrases while in Practice Mode."
             },
             "FpsCap": {
                 "Name": "FPS Cap",

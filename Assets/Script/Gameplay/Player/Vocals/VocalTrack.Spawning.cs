@@ -158,7 +158,7 @@ namespace YARG.Gameplay.Player
                 if (!_lyricContainer.TrySpawnLyric(
                     tracker.CurrentLyric,
                     tracker.GetProbableNoteAtLyric(),
-                    tracker.CurrentPhrase.IsStarPower,
+                    AllowStarPower && tracker.CurrentPhrase.IsStarPower,
                     harmonyIndex))
                 {
                     tracker.NextLyric();
