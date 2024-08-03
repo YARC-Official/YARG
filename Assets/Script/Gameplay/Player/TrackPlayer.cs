@@ -99,6 +99,9 @@ namespace YARG.Gameplay.Player
                 or Instrument.SixFretBass
                 or Instrument.ProBass_17Fret
                 or Instrument.ProBass_22Fret;
+
+            // Consolidate tracks into a parent object for animation purposes
+            transform.SetParent(GameObject.Find("Visuals").transform);
         }
 
         protected override void UpdateVisualsWithTimes(double time)

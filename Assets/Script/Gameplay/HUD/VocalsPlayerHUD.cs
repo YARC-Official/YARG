@@ -11,6 +11,12 @@ namespace YARG.Gameplay.HUD
 {
     public class VocalsPlayerHUD : GameplayBehaviour
     {
+        private const float ANIM_LENGTH = 1f;
+        private const float ANIM_BASE_TO_PEAK_INTERVAL = 0.167f;
+        private const float ANIM_PEAK_TO_VALLEY_INTERVAL = 0.167f;
+        private const float ANIM_PEAK_SCALE = 1.1f;
+        private const float ANIM_VALLEY_SCALE = 1f;
+
         [SerializeField]
         private Image _comboMeterFill;
         [SerializeField]
@@ -138,14 +144,25 @@ namespace YARG.Gameplay.HUD
 
             _performanceText.transform.localScale = Vector3.zero;
 
+            const float animHoldInterval = ANIM_LENGTH
+                - 2f * (ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL);
+
             yield return DOTween.Sequence()
                 .Append(DOTween.Sequence()
-                    .Append(_performanceText.transform.DOScale(1.1f, 0.167f).SetEase(Ease.OutCirc))
-                    .Append(_performanceText.transform.DOScale(1f, 0.167f).SetEase(Ease.InOutSine))
-                    .AppendInterval(0.667f))
+                    .Append(_performanceText.transform
+                        .DOScale(ANIM_PEAK_SCALE, ANIM_BASE_TO_PEAK_INTERVAL)
+                        .SetEase(Ease.OutCirc))
+                    .Append(_performanceText.transform
+                        .DOScale(ANIM_VALLEY_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
+                        .SetEase(Ease.InOutSine))
+                    .AppendInterval(animHoldInterval))
                 .Append(DOTween.Sequence()
-                    .Append(_performanceText.transform.DOScale(1.1f, 0.167f).SetEase(Ease.InOutSine))
-                    .Append(_performanceText.transform.DOScale(0f, 0.167f).SetEase(Ease.InCirc)))
+                    .Append(_performanceText.transform
+                        .DOScale(ANIM_PEAK_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
+                        .SetEase(Ease.InOutSine))
+                    .Append(_performanceText.transform
+                        .DOScale(0f, ANIM_BASE_TO_PEAK_INTERVAL)
+                        .SetEase(Ease.InCirc)))
                 .WaitForCompletion();
 
             _performanceText.text = string.Empty;

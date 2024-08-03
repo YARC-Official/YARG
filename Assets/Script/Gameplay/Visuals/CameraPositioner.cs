@@ -3,7 +3,10 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using YARG.Core.Game;
+using YARG.Gameplay.HUD;
+using YARG.Gameplay.Player;
 using YARG.Settings;
+using YARG.Settings.Preview;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -11,6 +14,14 @@ namespace YARG.Gameplay.Visuals
     {
         private const float BOUNCE_UNITS = 0.03f;
         private const float SPEED = 0.25f;
+
+        private const float GLOBAL_ANIM_DELAY = 2f;
+        private const float LOCAL_ANIM_OFFSET = 0.333f;
+
+        private const float ANIM_BASE_TO_PEAK_INTERVAL = 0.333f;
+        private const float ANIM_PEAK_TO_VALLEY_INTERVAL = 0.167f;
+        private const float ANIM_INIT_ROTATION = -60f;
+        private const float ANIM_PEAK_ROTATION = 2f;
 
         private float _currentBounce;
 
@@ -58,7 +69,7 @@ namespace YARG.Gameplay.Visuals
             if (!_isHighwayRisen)
             {
                 // Animate the highway raise
-                _coroutine = StartCoroutine(RaiseHighway(_preset));
+                _coroutine = StartCoroutine(RaiseHighway(_preset, true));
                 _isHighwayRisen = true;
             }
 
@@ -86,14 +97,23 @@ namespace YARG.Gameplay.Visuals
             StopCoroutine(_coroutine);
         }
 
-        private IEnumerator RaiseHighway(CameraPreset preset)
+        private IEnumerator RaiseHighway(CameraPreset preset, bool isGameplayStart)
         {
-            transform.localRotation = Quaternion.Euler(preset.Rotation - 60f, 0f, 0f);
+            transform.localRotation = Quaternion.Euler(new Vector3().WithX(preset.Rotation + ANIM_INIT_ROTATION));
+
+            var basePlayer = GetComponentInParent<BasePlayer>();
+            float delay = isGameplayStart
+                ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET + GLOBAL_ANIM_DELAY
+                : 0f;
 
             yield return DOTween.Sequence()
-                .PrependInterval(0.5f) // Total duration of sequence
-                .Append(transform.DORotate(new Vector3(preset.Rotation + 2f, 0f, 0f), 0.333f)).SetEase(Ease.OutCirc)
-                .Append(transform.DORotate(new Vector3(preset.Rotation, 0f, 0f), 0.167f).SetEase(Ease.InOutSine));
+                .PrependInterval(delay)
+                .Append(transform
+                    .DORotate(new Vector3().WithX(preset.Rotation + ANIM_PEAK_ROTATION), ANIM_BASE_TO_PEAK_INTERVAL)
+                    .SetEase(Ease.OutCirc))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(preset.Rotation), ANIM_PEAK_TO_VALLEY_INTERVAL)
+                    .SetEase(Ease.InOutSine));
         }
     }
 }
