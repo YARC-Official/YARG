@@ -76,6 +76,8 @@ namespace YARG.Settings.Metadata
         private readonly CustomContent<T> _customContent;
         public override CustomContent CustomContent => _customContent;
 
+        private readonly bool _hasDescriptions;
+
         private T _presetRef;
 
         private readonly List<FieldSettingInfo> _fields = new();
@@ -91,10 +93,11 @@ namespace YARG.Settings.Metadata
             }
         }
 
-        public PresetSubTab(CustomContent<T> customContent, IPreviewBuilder previewBuilder = null)
+        public PresetSubTab(CustomContent<T> customContent, IPreviewBuilder previewBuilder, bool hasDescriptions)
             : base("Presets", "Generic", previewBuilder)
         {
             _customContent = customContent;
+            _hasDescriptions = hasDescriptions;
 
             foreach (var field in typeof(T).GetFields())
             {
@@ -177,7 +180,7 @@ namespace YARG.Settings.Metadata
                     dropdown.Add(subSection);
                 }
 
-                CreateField(settingContainer, navGroup, typeof(T).Name, "SubSection", dropdown);
+                CreateField(settingContainer, navGroup, typeof(T).Name, "SubSection", dropdown, false);
             }
             else
             {
@@ -341,11 +344,17 @@ namespace YARG.Settings.Metadata
         }
 
         private void CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,
-            ISettingType settingType)
+            ISettingType settingType, bool hasDescription)
         {
             var visual = SpawnSettingVisual(settingType, container);
-            visual.AssignPresetSetting($"{presetName}.{name}", true, settingType);
+            visual.AssignPresetSetting($"{presetName}.{name}", hasDescription, settingType);
             navGroup.AddNavigatable(visual.gameObject);
+        }
+
+        private void CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,
+            ISettingType settingType)
+        {
+            CreateField(container, navGroup, presetName, name, settingType, _hasDescriptions);
         }
 
         private void CreateFields(Transform container, NavigationGroup navGroup, string presetName,

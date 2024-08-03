@@ -35,15 +35,18 @@ namespace YARG.Settings.Metadata
         {
             new PresetSubTab<CameraPreset>(
                 CustomContentManager.CameraSettings,
-                new TrackPreviewBuilder()),
+                new TrackPreviewBuilder(),
+                true),
 
             new PresetSubTab<ColorProfile>(
                 CustomContentManager.ColorProfiles,
-                new TrackPreviewBuilder()),
+                new TrackPreviewBuilder(),
+                false),
 
             new PresetSubTab<EnginePreset>(
                 CustomContentManager.EnginePresets,
-                new TrackPreviewBuilder(forceShowHitWindow: true)),
+                new TrackPreviewBuilder(forceShowHitWindow: true),
+                true),
         };
 
         private static readonly Dictionary<Type, BasePreset> _lastSelectedPresetOfType = new();
