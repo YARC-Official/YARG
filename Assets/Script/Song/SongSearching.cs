@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using YARG.Core;
@@ -6,6 +6,7 @@ using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Song
 {
@@ -74,9 +75,7 @@ namespace YARG.Song
             {
                 searches.Clear();
                 _sort = sort;
-                _baseList = sort != SortAttribute.Playable
-                    ? SongContainer.GetSortedCategory(sort)
-                    : SongContainer.GetPlayableSongs(PlayerContainer.Players);
+                _baseList = SongContainer.GetSortedCategory(sort);
             }
 
             while (filterIndex < filters.Count)
@@ -242,7 +241,7 @@ namespace YARG.Song
                 {
                     SearchMode mode;
                     (argument, mode) = ParseArgument(argument);
-                    if (argument.Length > 0)
+                    if (argument.Length > 0 || attribute > SortAttribute.Instrument)
                     {
                         filters.Add(new FilterNode(attribute, mode, argument));
                     }
@@ -277,14 +276,13 @@ namespace YARG.Song
                 {
                     entriesToSearch.AddRange(entry.Songs);
                 }
-                return new SongCategory[] { new("Search Results", UnspecifiedSearch(filter, entriesToSearch)) };
+                return new SongCategory[] { new("Search Results", UnspecifiedSearch(filter, entriesToSearch), null)};
             }
 
             if (filter.Attribute >= SortAttribute.FiveFretGuitar)
             {
                 return SearchInstrument(filter, searchList);
             }
-
 
             var match = GetPredicate(filter);
             var result = new SongCategory[searchList.Length];
@@ -294,7 +292,7 @@ namespace YARG.Song
                 var entries = node.Songs.Where(match).ToArray();
                 if (entries.Length > 0)
                 {
-                    result[count++] = new SongCategory(node.Category, entries);
+                    result[count++] = new SongCategory(node.Category, entries, node.CategoryGroup);
                 }
             }
             return result[..count];
@@ -446,7 +444,7 @@ namespace YARG.Song
                         return index + i;
                     }
                 }
-                throw new InvalidOperationException("Only use AFTER performing a successful fuzzy search");
+                return -1;
             }
         }
 
@@ -491,7 +489,7 @@ namespace YARG.Song
                 var songs = node.Songs.Intersect(songsToMatch).ToArray();
                 if (songs.Length > 0)
                 {
-                    result[count++] = new SongCategory(node.Category, songs);
+                    result[count++] = new SongCategory(node.Category, songs, node.CategoryGroup);
                 }
             }
             return result[..count];

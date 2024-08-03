@@ -4,8 +4,6 @@ namespace YARG.Input
 {
     public class DebounceTimer<T>
     {
-        public const long DEBOUNCE_TIME_MAX = 25;
-
         // double.MinValue is used to simplify HasElapsed,
         // as it should result in true when not enabled
         private double _startTime = double.MinValue;
@@ -17,11 +15,8 @@ namespace YARG.Input
         /// </summary>
         public long TimeThreshold
         {
-            get => (long) (_timeThreshold * 1000);
-            // Limit debounce amount to 0-25 ms
-            // Any larger and input registration will be very bad, the max will limit to 40 inputs per second
-            // If someone needs a larger amount their controller is just busted lol
-            set => _timeThreshold = Math.Clamp(value, 0, DEBOUNCE_TIME_MAX) / 1000.0;
+            get => (long) (_timeThreshold * 1000.0);
+            set => _timeThreshold = value / 1000.0;
         }
 
         public bool IsEnabled => _timeThreshold > 0;

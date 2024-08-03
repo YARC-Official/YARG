@@ -11,6 +11,7 @@ using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Song;
 
@@ -46,7 +47,7 @@ namespace YARG.Menu.ScoreScreen
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Green, "Continue", () =>
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
                 {
                     GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
                 })
@@ -68,7 +69,7 @@ namespace YARG.Menu.ScoreScreen
             // Set speed text (if not at 100% speed)
             if (!Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f))
             {
-                var speed = GlobalVariables.State.SongSpeed.ToString("P0", LocaleHelper.PercentFormat);
+                var speed = Localize.Percent(GlobalVariables.State.SongSpeed);
 
                 _songTitle.text += $" ({speed})";
             }

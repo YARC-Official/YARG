@@ -12,8 +12,8 @@ using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Core.Utility;
-using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -86,7 +86,8 @@ namespace YARG.Menu.DifficultySelect
 
         private void OnEnable()
         {
-            _subHeader.text = GlobalVariables.State.IsPractice ? "Practice" : "Quickplay";
+            string subHeaderKey = GlobalVariables.State.IsPractice ? "Practice" : "Quickplay";
+            _subHeader.text = Localize.Key("Main.Options", subHeaderKey);
 
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -94,7 +95,7 @@ namespace YARG.Menu.DifficultySelect
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () =>
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
                     if (_menuState == State.Main)
                     {
@@ -171,13 +172,17 @@ namespace YARG.Menu.DifficultySelect
             // Only show all these options if there are instruments available
             if (_possibleInstruments.Count > 0)
             {
-                CreateItem("Instrument", player.Profile.CurrentInstrument.ToLocalizedName(), _lastMenuState == State.Instrument, () =>
+                CreateItem(LocalizeHeader("Instrument"),
+                    player.Profile.CurrentInstrument.ToLocalizedName(),
+                    _lastMenuState == State.Instrument, () =>
                 {
                     _menuState = State.Instrument;
                     UpdateForPlayer();
                 });
 
-                CreateItem("Difficulty", player.Profile.CurrentDifficulty.ToLocalizedName(), _lastMenuState == State.Difficulty, () =>
+                CreateItem(LocalizeHeader("Difficulty"),
+                    player.Profile.CurrentDifficulty.ToLocalizedName(),
+                    _lastMenuState == State.Difficulty, () =>
                 {
                     _menuState = State.Difficulty;
                     UpdateForPlayer();
@@ -186,7 +191,9 @@ namespace YARG.Menu.DifficultySelect
                 // Harmony players must pick their harmony index
                 if (player.Profile.CurrentInstrument == Instrument.Harmony)
                 {
-                    CreateItem("Harmony", (player.Profile.HarmonyIndex + 1).ToString(), _lastMenuState == State.Harmony, () =>
+                    CreateItem(LocalizeHeader("Harmony"),
+                        (player.Profile.HarmonyIndex + 1).ToString(),
+                        _lastMenuState == State.Harmony, () =>
                     {
                         _menuState = State.Harmony;
                         UpdateForPlayer();
@@ -218,7 +225,8 @@ namespace YARG.Menu.DifficultySelect
                         modifierText = modifierText.Trim();
                     }
 
-                    CreateItem("Modifiers", modifierText, _lastMenuState == State.Modifiers, () =>
+                    CreateItem(LocalizeHeader("Modifiers"),
+                        modifierText, _lastMenuState == State.Modifiers, () =>
                     {
                         _menuState = State.Modifiers;
                         UpdateForPlayer();
@@ -226,7 +234,7 @@ namespace YARG.Menu.DifficultySelect
                 }
 
                 // Ready button
-                CreateItem("Ready", _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
+                CreateItem(LocalizeHeader("Ready"), _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
                 {
                     // If the player just selected vocal modifiers, don't show them again
                     if (player.Profile.CurrentInstrument.ToGameMode() == GameMode.Vocals &&
@@ -243,7 +251,7 @@ namespace YARG.Menu.DifficultySelect
             if (_possibleInstruments.Count <= 0 || PlayerContainer.Players.Count != 1)
             {
                 // Sit out button
-                CreateItem("Sit Out", _possibleInstruments.Count <= 0, _difficultyRedPrefab, () =>
+                CreateItem(LocalizeHeader("SitOut"), _possibleInstruments.Count <= 0, _difficultyRedPrefab, () =>
                 {
                     // If the user went back to sit out, and the vocal modifiers were selected,
                     // deselect them.
@@ -319,7 +327,7 @@ namespace YARG.Menu.DifficultySelect
             }
 
             // Create done button
-            CreateItem("Done", _difficultyGreenPrefab, () =>
+            CreateItem(LocalizeHeader("Done"), _difficultyGreenPrefab, () =>
             {
                 _menuState = State.Main;
                 UpdateForPlayer();
@@ -394,9 +402,9 @@ namespace YARG.Menu.DifficultySelect
                 }
 
                 // This will always work (as it's set up in the input field)
-                // The max speed that the game can keep up with is 4995%
+                // The max speed that the game can keep up with is 5000%
                 float speed = float.Parse(_speedInput.text.TrimEnd('%')) / 100f;
-                speed = Mathf.Clamp(speed, 0.1f, 49.95f);
+                speed = Mathf.Clamp(speed, 0.1f, 50.0f);
                 _songSpeed = speed;
                 GlobalVariables.State.SongSpeed = speed;
 
@@ -547,6 +555,11 @@ namespace YARG.Menu.DifficultySelect
             CreateItem(null, body, selected, a);
         }
 
+        private string LocalizeHeader(string key)
+        {
+            return Localize.Key("Menu.DifficultySelect", key);
+        }
+
         private bool HasPlayableInstrument(SongEntry entry, in Instrument instrument)
         {
             // For vocals, all players *must* select the same gamemode (solo/harmony)
@@ -608,7 +621,7 @@ namespace YARG.Menu.DifficultySelect
                 speed = 100;
             }
 
-            int intSpeed = (int) Math.Clamp(speed, 10, 4995);
+            int intSpeed = (int) Math.Clamp(speed, 10, 5000);
 
             _speedInput.SetTextWithoutNotify($"{intSpeed}%");
         }

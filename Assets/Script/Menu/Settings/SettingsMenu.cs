@@ -4,11 +4,11 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Settings.Customization;
@@ -44,9 +44,9 @@ namespace YARG.Menu.Settings
 
         [Space]
         [SerializeField]
-        private LocalizeStringEvent _settingName;
+        private TextMeshProUGUI _settingName;
         [SerializeField]
-        private LocalizeStringEvent _settingDescription;
+        private TextMeshProUGUI _settingDescription;
 
         public Tab CurrentTab { get; private set; }
         public string SearchQuery => _searchBar.text;
@@ -78,7 +78,7 @@ namespace YARG.Menu.Settings
                 {
                     Icon = sprite,
                     Id = tab.Name,
-                    DisplayName = LocaleHelper.LocalizeString("Settings", $"Tab.{tab.Name}")
+                    DisplayName = Localize.Key("Settings.Tab", tab.Name)
                 });
             }
 
@@ -101,7 +101,7 @@ namespace YARG.Menu.Settings
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () =>
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
                     gameObject.SetActive(false);
                 }),
@@ -156,8 +156,8 @@ namespace YARG.Menu.Settings
         {
             if (selected == null || CurrentTab == null)
             {
-                _settingName.StringReference = LocaleHelper.EmptyString;
-                _settingDescription.StringReference = LocaleHelper.EmptyString;
+                _settingName.text = string.Empty;
+                _settingDescription.text = string.Empty;
                 return;
             }
 
@@ -166,29 +166,22 @@ namespace YARG.Menu.Settings
             // If we're not selecting a setting (for example, buttons) then skip
             if (settingNav == null)
             {
-                _settingName.StringReference = LocaleHelper.EmptyString;
-                _settingDescription.StringReference = LocaleHelper.EmptyString;
+                _settingName.text = string.Empty;
+                _settingDescription.text = string.Empty;
                 return;
             }
 
             // Set the setting name and description
             var unlocalized = settingNav.BaseSettingVisual.UnlocalizedName;
-            if (!settingNav.BaseSettingVisual.IsPresetSetting)
-            {
-                _settingName.StringReference = LocaleHelper.StringReference("Settings",
-                    $"Setting.{unlocalized}");
+            string baseKey = !settingNav.BaseSettingVisual.IsPresetSetting
+                ? "Settings.Setting"
+                : "Settings.PresetSetting";
 
-                _settingDescription.StringReference = LocaleHelper.StringReference("Settings",
-                    $"Setting.{unlocalized}.Description");
-            }
-            else
-            {
-                _settingName.StringReference = LocaleHelper.StringReference("Settings",
-                    $"PresetSetting.{unlocalized}");
+            _settingName.text = Localize.Key(baseKey, unlocalized, "Name");
+            _settingDescription.text = settingNav.BaseSettingVisual.HasDescription
+                ? Localize.Key(baseKey, unlocalized, "Description")
+                : string.Empty;
 
-                _settingDescription.StringReference = LocaleHelper.StringReference("Settings",
-                    $"PresetSetting.{unlocalized}.Description");
-            }
         }
 
         public void RefreshPreview(bool waitForResolution = false)
@@ -283,11 +276,11 @@ namespace YARG.Menu.Settings
             // Update header
             if (string.IsNullOrEmpty(_searchBar.text))
             {
-                _searchHeaderText.text = "All Categories";
+                _searchHeaderText.text = Localize.Key("Menu.Settings.SearchHeader.AllCategories");
             }
             else
             {
-                _searchHeaderText.text = "Results";
+                _searchHeaderText.text = Localize.Key("Menu.Settings.SearchHeader.Results");
             }
 
             // Refresh on search

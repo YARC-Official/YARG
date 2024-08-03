@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using YARG.Core.Input;
-using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Settings.Types;
 
@@ -22,10 +22,8 @@ namespace YARG.Menu.Settings.Visuals
                 if (Setting.Localizable)
                 {
                     valueString = !IsPresetSetting
-                        ? LocaleHelper.LocalizeString("Settings",
-                            $"Dropdown.{UnlocalizedName}.{valueString}")
-                        : LocaleHelper.LocalizeString("Settings",
-                            $"PresetDropdown.{UnlocalizedName}.{valueString}");
+                        ? Localize.Key("Settings.Setting", UnlocalizedName, "Dropdown", valueString)
+                        : Localize.Key("Settings.PresetSetting", UnlocalizedName, "Dropdown", valueString);
                 }
 
                 _dropdown.options.Add(new(valueString));
@@ -40,7 +38,7 @@ namespace YARG.Menu.Settings.Visuals
             return new NavigationScheme(new()
             {
                 NavigateFinish,
-                new NavigationScheme.Entry(MenuAction.Down, "Next", () =>
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Next", () =>
                 {
                     int newValue = _dropdown.value + 1;
                     if (newValue >= _dropdown.options.Count)
@@ -50,7 +48,7 @@ namespace YARG.Menu.Settings.Visuals
 
                     _dropdown.value = newValue;
                 }),
-                new NavigationScheme.Entry(MenuAction.Up, "Previous", () =>
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Previous", () =>
                 {
                     int newValue = _dropdown.value - 1;
                     if (newValue < 0)

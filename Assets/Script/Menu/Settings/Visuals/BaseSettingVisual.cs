@@ -1,7 +1,7 @@
+using TMPro;
 using UnityEngine;
-using UnityEngine.Localization.Components;
 using YARG.Core.Input;
-using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Settings.Types;
@@ -10,37 +10,38 @@ namespace YARG.Menu.Settings.Visuals
 {
     public abstract class BaseSettingVisual : MonoBehaviour
     {
-        protected static readonly NavigationScheme.Entry NavigateFinish = new(MenuAction.Red, "Confirm", () =>
+        protected static readonly NavigationScheme.Entry NavigateFinish = new(MenuAction.Red, "Menu.Common.Confirm", () =>
         {
             Navigator.Instance.PopScheme();
         });
 
         [SerializeField]
-        private LocalizeStringEvent _settingLabel;
+        private TextMeshProUGUI _settingLabel;
 
         public bool IsPresetSetting { get; private set; }
+        public bool HasDescription { get; private set; }
         public string UnlocalizedName { get; private set; }
 
-        public void AssignSetting(string settingName)
+        public void AssignSetting(string settingName, bool hasDescription)
         {
             IsPresetSetting = false;
+            HasDescription = hasDescription;
             UnlocalizedName = settingName;
 
-            _settingLabel.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{settingName}");
+            _settingLabel.text = Localize.Key("Settings.Setting", settingName, "Name");
 
             AssignSettingFromVariable(SettingsManager.GetSettingByName(settingName));
 
             OnSettingInit();
         }
 
-        public void AssignPresetSetting(string unlocalizedName, ISettingType reference)
+        public void AssignPresetSetting(string unlocalizedName, bool hasDescription, ISettingType reference)
         {
             IsPresetSetting = true;
+            HasDescription = hasDescription;
             UnlocalizedName = unlocalizedName;
 
-            _settingLabel.StringReference = LocaleHelper.StringReference(
-                "Settings", $"PresetSetting.{unlocalizedName}");
+            _settingLabel.text = Localize.Key("Settings.PresetSetting", unlocalizedName, "Name");
 
             AssignSettingFromVariable(reference);
 

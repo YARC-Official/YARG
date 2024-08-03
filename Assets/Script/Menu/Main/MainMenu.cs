@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Input;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Settings;
 using YARG.Menu.Navigation;
@@ -26,8 +27,8 @@ namespace YARG.Menu.Main
             if (!_antiPiracyDialogShown && SettingsManager.Settings.ShowAntiPiracyDialog)
             {
                 DialogManager.Instance.ShowOneTimeMessage(
-                    LocaleHelper.LocalizeString("Dialogs.AntiPiracy.Title"),
-                    LocaleHelper.LocalizeString("Dialogs.AntiPiracy"),
+                    Localize.Key("Menu.Dialog.AntiPiracy.Title"),
+                    Localize.Key("Menu.Dialog.AntiPiracy.Description"),
                     () =>
                     {
                         SettingsManager.Settings.ShowAntiPiracyDialog = false;
@@ -46,7 +47,7 @@ namespace YARG.Menu.Main
                 NavigationScheme.Entry.NavigateSelect,
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
-                new NavigationScheme.Entry(MenuAction.Select, "Go To Currently Playing", CurrentlyPlaying),
+                new NavigationScheme.Entry(MenuAction.Select, "Menu.Main.GoToCurrentlyPlaying", CurrentlyPlaying),
             }, true));
         }
 

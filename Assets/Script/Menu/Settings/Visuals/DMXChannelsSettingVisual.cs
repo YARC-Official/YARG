@@ -25,13 +25,13 @@ namespace YARG.Menu.Settings.Visuals
             return new NavigationScheme(new()
             {
                 NavigateFinish,
-                new NavigationScheme.Entry(MenuAction.Up, "Increase", () =>
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Increase", () =>
                 {
                     // need to change this to the correct index
                     Setting.Value[0]++;
                     RefreshVisual();
                 }),
-                new NavigationScheme.Entry(MenuAction.Down, "Decrease", () =>
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Decrease", () =>
                 {
                     // need to change this to the correct index
                     Setting.Value[0]--;

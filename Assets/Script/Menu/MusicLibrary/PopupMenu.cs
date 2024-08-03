@@ -8,6 +8,7 @@ using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings;
@@ -48,7 +49,7 @@ namespace YARG.Menu.MusicLibrary
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () =>
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
                     if (_menuState == State.Main)
                     {
@@ -98,30 +99,33 @@ namespace YARG.Menu.MusicLibrary
         {
             SetHeader(null);
 
-            CreateItem("Random Song", () =>
+            CreateItem("RandomSong", () =>
             {
                 _musicLibrary.SelectRandomSong();
                 gameObject.SetActive(false);
             });
 
-            CreateItem("Back To Top", () =>
+            CreateItem("BackToTop", () =>
             {
                 _musicLibrary.SelectedIndex = 0;
                 gameObject.SetActive(false);
             });
 
-            CreateItem("Sort By: " + SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+            CreateItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
             {
                 _menuState = State.SortSelect;
                 UpdateForState();
             });
 
-            CreateItem("Go To Section...", () =>
+            if (_musicLibrary.HasSortHeaders)
             {
-                _menuState = State.GoToSection;
-                UpdateForState();
-            });
-
+                CreateItem("GoToSection", () =>
+                {
+                    _menuState = State.GoToSection;
+                    UpdateForState();
+                });
+            }
+            
             var viewType = _musicLibrary.CurrentSelection;
 
             // Add/remove to favorites
@@ -130,7 +134,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 if (!favoriteInfo.IsFavorited)
                 {
-                    CreateItem("Add To Favorites", () =>
+                    CreateItem("AddToFavorites", () =>
                     {
                         viewType.FavoriteClick();
                         _musicLibrary.RefreshViewsObjects();
@@ -140,7 +144,7 @@ namespace YARG.Menu.MusicLibrary
                 }
                 else
                 {
-                    CreateItem("Remove From Favorites", () =>
+                    CreateItem("RemoveFromFavorites", () =>
                     {
                         viewType.FavoriteClick();
                         _musicLibrary.RefreshViewsObjects();
@@ -156,14 +160,14 @@ namespace YARG.Menu.MusicLibrary
             {
                 var song = songViewType.SongEntry;
 
-                CreateItem("View Song Folder", () =>
+                CreateItem("ViewSongFolder", () =>
                 {
                     FileExplorerHelper.OpenFolder(song.Directory);
 
                     gameObject.SetActive(false);
                 });
 
-                CreateItem("Copy Song Checksum", () =>
+                CreateItem("CopySongChecksum", () =>
                 {
                     GUIUtility.systemCopyBuffer = song.Hash.ToString();
 
@@ -174,21 +178,22 @@ namespace YARG.Menu.MusicLibrary
 
         private void CreateSortSelect()
         {
-            SetHeader("Sort By...");
+            SetLocalizedHeader("SortBy");
 
             foreach (var sort in EnumExtensions<SortAttribute>.Values)
             {
                 // Skip theses because they don't make sense
                 if (sort == SortAttribute.Unspecified)
+                {
                     continue;
-
-                if (sort == SortAttribute.Playable && PlayerContainer.Players.Count == 0)
-                    continue;
+                }
 
                 if (sort >= SortAttribute.Instrument)
+                {
                     break;
+                }
 
-                CreateItem(sort.ToLocalizedName(), () =>
+                CreateItemUnlocalized(sort.ToLocalizedName(), () =>
                 {
                     _musicLibrary.ChangeSort(sort);
                     gameObject.SetActive(false);
@@ -200,7 +205,7 @@ namespace YARG.Menu.MusicLibrary
                 if (SongContainer.HasInstrument(instrument))
                 {
                     var attribute = instrument.ToSortAttribute();
-                    CreateItem(attribute.ToLocalizedName(), () =>
+                    CreateItemUnlocalized(attribute.ToLocalizedName(), () =>
                     {
                         _musicLibrary.ChangeSort(attribute);
                         gameObject.SetActive(false);
@@ -211,35 +216,21 @@ namespace YARG.Menu.MusicLibrary
 
         private void CreateGoToSection()
         {
-            SetHeader("Go To...");
+            SetLocalizedHeader("GoTo");
 
-            if (SettingsManager.Settings.LibrarySort
-                is SortAttribute.Artist
-                or SortAttribute.Album
-                or SortAttribute.Artist_Album)
+            foreach (var (name, index) in _musicLibrary.Shortcuts)
             {
-                foreach (var (header, index) in _musicLibrary.GetSections()
-                    .GroupBy(x => SortString.RemoveArticle(((SortHeaderViewType) x.Item1).HeaderText)[0].ToAsciiUpper())
-                    .Select(g => g.First()))
+                CreateItemUnlocalized(name, () =>
                 {
-                    CreateItem(SortString.RemoveArticle(((SortHeaderViewType) header).HeaderText)[0].ToString(), () =>
-                    {
-                        _musicLibrary.SelectedIndex = index;
-                        gameObject.SetActive(false);
-                    });
-                }
+                    _musicLibrary.SelectedIndex = index;
+                    gameObject.SetActive(false);
+                });
             }
-            else
-            {
-                foreach (var (header, index) in _musicLibrary.GetSections())
-                {
-                    CreateItem(((SortHeaderViewType) header).HeaderText, () =>
-                    {
-                        _musicLibrary.SelectedIndex = index;
-                        gameObject.SetActive(false);
-                    });
-                }
-            }
+        }
+
+        private void SetLocalizedHeader(string localizeKey)
+        {
+            SetHeader(Localize.Key("Menu.MusicLibrary.Popup.Header", localizeKey));
         }
 
         private void SetHeader(string text)
@@ -255,7 +246,19 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private void CreateItem(string body, UnityAction a)
+        private void CreateItem(string localizeKey, UnityAction a)
+        {
+            var localized = Localize.Key("Menu.MusicLibrary.Popup.Item", localizeKey);
+            CreateItemUnlocalized(localized, a);
+        }
+
+        private void CreateItem(string localizeKey, string formatArg, UnityAction a)
+        {
+            var localized = Localize.KeyFormat(("Menu.MusicLibrary.Popup.Item", localizeKey), formatArg);
+            CreateItemUnlocalized(localized, a);
+        }
+
+        private void CreateItemUnlocalized(string body, UnityAction a)
         {
             var btn = Instantiate(_menuItemPrefab, _container);
             btn.Initialize(body, a);

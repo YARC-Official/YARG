@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Engine;
+using YARG.Localization;
 
 namespace YARG.Gameplay.HUD
 {
@@ -39,6 +40,8 @@ namespace YARG.Gameplay.HUD
 
         private bool _soloEnded;
         private SoloSection _solo;
+
+        private bool _showingForPreview;
 
         private int HitPercent => Mathf.FloorToInt((float) _solo.NotesHit / _solo.NoteCount * 100f);
 
@@ -75,7 +78,7 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
-            if (_soloEnded) return;
+            if (_soloEnded || _showingForPreview) return;
 
             _soloTopText.SetTextFormat("{0}%", HitPercent);
             _soloBottomText.SetTextFormat("{0}/{1}", _solo.NotesHit, _solo.NoteCount);
@@ -122,25 +125,26 @@ namespace YARG.Gameplay.HUD
             yield return new WaitForSeconds(1f);
 
             // Show performance text
-            string resultText = HitPercent switch
+            string performanceKey = HitPercent switch
             {
-                > 100 => "HOW!?",
-                  100 => "PERFECT\nSOLO!",
-                >= 95 => "AWESOME\nSOLO!",
-                >= 90 => "GREAT\nSOLO!",
-                >= 80 => "GOOD\nSOLO!",
-                >= 70 => "SOLID\nSOLO",
-                   69 => "<i>NICE</i>\nSOLO",
-                >= 60 => "OKAY\nSOLO",
-                >= 0  => "MESSY\nSOLO",
-                <  0  => "HOW!?",
+                > 100 => "How",
+                  100 => "Perfect",
+                >= 95 => "Awesome",
+                >= 90 => "Great",
+                >= 80 => "Good",
+                >= 70 => "Solid",
+                   69 => "Nice",
+                >= 60 => "Okay",
+                >= 0  => "Messy",
+                <  0  => "How",
             };
-            _soloFullText.text = resultText;
+
+            _soloFullText.text = Localize.Key("Gameplay.Solo.Performance", performanceKey);
 
             yield return new WaitForSeconds(1f);
 
             // Show point bonus
-            _soloFullText.SetTextFormat("{0:N0}\nPOINTS", soloBonus);
+            _soloFullText.text = Localize.KeyFormat("Gameplay.Solo.PointsResult", soloBonus);
 
             yield return new WaitForSeconds(1f);
 
@@ -162,6 +166,28 @@ namespace YARG.Gameplay.HUD
             {
                 StopCoroutine(_currentCoroutine);
                 _currentCoroutine = null;
+            }
+        }
+
+        public void PreviewForEditMode(bool on)
+        {
+            if (on && !_soloBox.gameObject.activeSelf)
+            {
+                _soloBox.gameObject.SetActive(true);
+
+                // Set preview solo box properties
+                _soloFullText.text = string.Empty;
+                _soloBox.sprite = _soloSpriteNormal;
+                _soloTopText.text = "50%";
+                _soloBottomText.text = "50/100";
+                _soloBoxCanvasGroup.alpha = 1f;
+
+                _showingForPreview = true;
+            }
+            else if (!on && _showingForPreview)
+            {
+                _soloBox.gameObject.SetActive(false);
+                _showingForPreview = false;
             }
         }
     }

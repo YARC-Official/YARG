@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
+using YARG.Localization;
 using YARG.Scores;
 
 namespace YARG.Menu.ProfileInfo.Overview
@@ -31,7 +32,7 @@ namespace YARG.Menu.ProfileInfo.Overview
             var scores = ScoreContainer.GetAllPlayerScores(profile.Id);
 
             _profileName.text = profile.Name;
-            _profileExtras.text = $"{scores.Count:N0} Song Plays";
+            _profileExtras.text = Localize.KeyFormat("Menu.ProfileInfo.Stats.SongPlays", scores.Count);
 
             // Make sure to cast to double to prevent overflows
             _totalScore.text = scores

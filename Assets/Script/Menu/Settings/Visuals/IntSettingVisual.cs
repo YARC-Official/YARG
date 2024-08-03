@@ -22,12 +22,12 @@ namespace YARG.Menu.Settings.Visuals
             return new NavigationScheme(new()
             {
                 NavigateFinish,
-                new NavigationScheme.Entry(MenuAction.Up, "Increase", () =>
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Increase", () =>
                 {
                     Setting.Value++;
                     RefreshVisual();
                 }),
-                new NavigationScheme.Entry(MenuAction.Down, "Decrease", () =>
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Decrease", () =>
                 {
                     Setting.Value--;
                     RefreshVisual();

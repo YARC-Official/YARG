@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.Localization.Components;
+﻿using TMPro;
+using UnityEngine;
 using YARG.Core;
-using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu.ProfileInfo
@@ -10,7 +10,7 @@ namespace YARG.Menu.ProfileInfo
     {
         [Space]
         [SerializeField]
-        private LocalizeStringEvent _gameModeName;
+        private TextMeshProUGUI _gameModeName;
 
         private EditBindsTab _editBindsTab;
 
@@ -24,7 +24,7 @@ namespace YARG.Menu.ProfileInfo
             _gameMode = gameMode;
             _isMenuBindings = false;
 
-            _gameModeName.StringReference = LocaleHelper.StringReference($"GameMode.{gameMode}");
+            _gameModeName.text = gameMode.ToLocalizedName();
         }
 
         public void InitAsMenuBindings(EditBindsTab editBindsTab)
@@ -33,7 +33,7 @@ namespace YARG.Menu.ProfileInfo
 
             _isMenuBindings = true;
 
-            _gameModeName.StringReference = LocaleHelper.StringReference("GameMode.Menu");
+            _gameModeName.text = Localize.Key("Enum.GameMode.Menu");
         }
 
         protected override void OnSelectionChanged(bool selected)

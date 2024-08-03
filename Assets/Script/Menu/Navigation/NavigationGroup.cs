@@ -94,7 +94,8 @@ namespace YARG.Menu.Navigation
             if (_addAllChildrenOnAwake)
             {
                 YargLogger.LogFormatWarning("Navigation group {0} has 'Add All Children On Awake' enabled but is being added " +
-                    "to manually! This is most likely an error and will result in duplicate entries, so it has been disabled.", this);
+                    "to manually! This is most likely an error and will result in duplicate entries, so it has been disabled.",
+                    ToString());
                 _addAllChildrenOnAwake = false;
             }
 

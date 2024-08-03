@@ -241,7 +241,7 @@ namespace YARG.Menu.MusicLibrary
                 _difficultyRings[6].SetInfo("rhythm", Instrument.FiveFretRhythm, entry[Instrument.FiveFretRhythm]);
             }
 
-            _difficultyRings[7].SetInfo("trueDrums", default, PartValues.Default);
+            _difficultyRings[7].SetInfo("trueDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
             _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
             _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
         }

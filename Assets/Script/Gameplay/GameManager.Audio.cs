@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Settings;

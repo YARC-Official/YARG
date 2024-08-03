@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
-using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Core.Input;
-using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 
@@ -31,8 +31,8 @@ namespace YARG.Menu.Settings
                 var button = Instantiate(_buttonTemplate, _container);
 
                 // Set button text
-                button.GetComponentInChildren<LocalizeStringEvent>().StringReference =
-                    LocaleHelper.StringReference("Settings", $"Button.{buttonName}");
+                button.GetComponentInChildren<TextMeshProUGUI>().text =
+                    Localize.Key("Settings.Button", buttonName);
 
                 // Set button action
                 var capture = buttonName;
@@ -49,8 +49,7 @@ namespace YARG.Menu.Settings
 
         public void SetCustomCallback(Action action, string localizationKey)
         {
-            _buttonTemplate.GetComponentInChildren<LocalizeStringEvent>().StringReference =
-                LocaleHelper.StringReference("Settings", localizationKey);
+            _buttonTemplate.GetComponentInChildren<TextMeshProUGUI>().text = Localize.Key(localizationKey);
 
             _buttonTemplate.GetComponentInChildren<Button>().onClick.AddListener(() => action?.Invoke());
         }
@@ -60,7 +59,7 @@ namespace YARG.Menu.Settings
             var scheme = new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () =>
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
                     Navigator.Instance.PopScheme();
                 }),

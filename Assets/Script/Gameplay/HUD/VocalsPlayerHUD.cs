@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Chart;
 using YARG.Core.Game;
+using YARG.Localization;
 
 namespace YARG.Gameplay.HUD
 {
@@ -132,17 +133,18 @@ namespace YARG.Gameplay.HUD
 
         private IEnumerator ShowNextNotification(double hitPercent)
         {
-            _performanceText.text = hitPercent switch
+            string performanceKey = hitPercent switch
             {
-                >= 1f   => "AWESOME!",
-                >= 0.8f => "STRONG",
-                >= 0.7f => "GOOD",
-                >= 0.6f => "OKAY",
-                >= 0.1f => "MESSY",
-                _       => "AWFUL"
+                >= 1f   => "Awesome",
+                >= 0.8f => "Strong",
+                >= 0.7f => "Good",
+                >= 0.6f => "Okay",
+                >= 0.1f => "Messy",
+                _       => "Awful"
             };
 
             _performanceText.transform.localScale = Vector3.zero;
+            _performanceText.text = Localize.Key("Gameplay.Vocals.Performance", performanceKey);
 
             const float animHoldInterval = ANIM_LENGTH
                 - 2f * (ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
@@ -26,7 +27,7 @@ namespace YARG.Settings.Metadata
             CameraPreset cameraPreset)
         {
             SpawnHeader(container, "PresetSettings");
-            CreateFields(container, navGroup, CAMERA_PRESET, new()
+            CreateFields(container, navGroup, CAMERA_PRESET, new List<(string, ISettingType)>()
             {
                 (nameof(cameraPreset.FieldOfView), new SliderSetting(cameraPreset.FieldOfView,  40f, 150f)),
                 (nameof(cameraPreset.PositionY),   new SliderSetting(cameraPreset.PositionY,    0f, 4f)),
@@ -59,7 +60,7 @@ namespace YARG.Settings.Metadata
             }
 
             // Create instrument dropdown
-            var dropdown = CreateField(container, COLOR_PROFILE, "Instrument",
+            var dropdown = CreateField(container, COLOR_PROFILE, "Instrument", hasDescription: false,
                 new DropdownSetting<string>(_subSection, RefreshForSubSection)
                 {
                     nameof(GameMode.FiveFretGuitar),
@@ -95,7 +96,8 @@ namespace YARG.Settings.Metadata
                 var color = ((SystemColor) field.GetValue(gameModeProfile)).ToUnityColor();
 
                 // Add field
-                var visual = CreateField(container, COLOR_PROFILE, field.Name, new ColorSetting(color, true));
+                var visual = CreateField(container, COLOR_PROFILE, field.Name, hasDescription: false,
+                    new ColorSetting(color, true));
                 navGroup.AddNavigatable(visual.gameObject);
             }
         }
@@ -139,7 +141,7 @@ namespace YARG.Settings.Metadata
             }
 
             // Create game mode dropdown
-            var dropdown = CreateField(container, ENGINE_PRESET, "GameMode",
+            var dropdown = CreateField(container, ENGINE_PRESET, "GameMode", hasDescription: false,
                 new DropdownSetting<string>(_subSection, RefreshForSubSection)
                 {
                     nameof(EnginePreset.FiveFretGuitarPreset),
@@ -176,7 +178,7 @@ namespace YARG.Settings.Metadata
                 {
                     var preset = enginePreset.FiveFretGuitar;
 
-                    CreateFields(container, navGroup, ENGINE_PRESET, new()
+                    CreateFields(container, navGroup, ENGINE_PRESET, new List<(string, ISettingType)>()
                     {
                         (
                             nameof(preset.AntiGhosting),
@@ -226,7 +228,7 @@ namespace YARG.Settings.Metadata
                 {
                     var preset = enginePreset.Drums;
 
-                    CreateFields(container, navGroup, ENGINE_PRESET, new()
+                    CreateFields(container, navGroup, ENGINE_PRESET, new List<(string, ISettingType)>()
                     {
                         (
                             nameof(preset.HitWindow.IsDynamic),
@@ -256,7 +258,7 @@ namespace YARG.Settings.Metadata
                 {
                     var preset = enginePreset.Vocals;
 
-                    CreateFields(container, navGroup, ENGINE_PRESET, new()
+                    CreateFields(container, navGroup, ENGINE_PRESET, new List<(string, ISettingType)>()
                     {
                         (
                             nameof(preset.WindowSizeE),

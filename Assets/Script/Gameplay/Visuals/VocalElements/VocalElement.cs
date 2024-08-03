@@ -20,7 +20,7 @@ namespace YARG.Gameplay.Visuals
             float x =
                 SING_LINE_POS                                        // Shift origin to the sing line
                 + (float) (ElementTime - GameManager.RealVisualTime) // Get time of note relative to now
-                * VocalTrack.NOTE_SPEED;                             // Adjust speed (units/s)
+                * VocalTrack.TrackSpeed;                             // Adjust speed (units/s)
 
             var cacheTransform = transform;
             cacheTransform.localPosition = cacheTransform.localPosition.WithX(x);

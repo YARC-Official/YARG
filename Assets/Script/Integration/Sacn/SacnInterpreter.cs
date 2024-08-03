@@ -582,9 +582,3 @@ namespace YARG.Integration.Sacn
         }
     }
 }
-
-/*
-    "If you ever catch on fire, try to avoid seeing yourself in the mirror, because I bet that's what really throws you into a panic."
-
-        -Jack Handey
-*/
