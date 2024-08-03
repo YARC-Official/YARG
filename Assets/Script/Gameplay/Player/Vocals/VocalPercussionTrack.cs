@@ -10,6 +10,9 @@ namespace YARG.Gameplay.Player
 {
     public class VocalPercussionTrack : GameplayBehaviour
     {
+        // Time offset relative to 1.0 note speed
+        private const float SPAWN_TIME_OFFSET = 25f;
+
         [SerializeField]
         private KeyedPool _pool;
 
@@ -25,6 +28,10 @@ namespace YARG.Gameplay.Player
 
         private int _phraseIndex;
         private int _noteIndex;
+
+        // TODO: Consolidate this with VocalTrack's SpawnTimeOffset
+        public float TrackSpeed { get; set; }
+        private float SpawnTimeOffset => SPAWN_TIME_OFFSET / TrackSpeed;
 
         private VocalNote CurrentNote =>
             _notes[_phraseIndex].ChildNotes[_noteIndex];
@@ -44,7 +51,7 @@ namespace YARG.Gameplay.Player
 
         private void Update()
         {
-            while (CurrentNoteInBounds && CurrentNote.Time <= GameManager.SongTime + VocalTrack.SPAWN_TIME_OFFSET)
+            while (CurrentNoteInBounds && CurrentNote.Time <= GameManager.SongTime + SpawnTimeOffset)
             {
                 var note = CurrentNote;
 

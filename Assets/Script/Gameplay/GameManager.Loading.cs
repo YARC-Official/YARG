@@ -403,6 +403,7 @@ namespace YARG.Gameplay
                     var playerHud = _trackViewManager.CreateVocalsPlayerHUD();
 
                     var percussionTrack = VocalTrack.CreatePercussionTrack();
+                    percussionTrack.TrackSpeed = VocalTrack.TrackSpeed;
                     vocalsPlayer.Initialize(index, player, Chart, playerHud, percussionTrack, lastHighScore);
 
                     _players.Add(vocalsPlayer);

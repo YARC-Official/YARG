@@ -47,7 +47,7 @@ namespace YARG.Menu.History
             return FormatAs(GameRecord.SongArtist, TextType.Secondary, selected);
         }
 
-        public override void Confirm()
+        public override void ViewClick()
         {
             if (_songEntry is null) return;
 
