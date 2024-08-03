@@ -952,7 +952,6 @@ MonoBehaviour:
     type: 2}
   _soloStarpowerOverlay: {fileID: 1455779198085257863}
   _harmonyStarpowerOverlay: {fileID: 668675497782990623}
-  _countdownDisplay: {fileID: 0}
   _trackCamera: {fileID: 5801866609797806294}
   _playerContainer: {fileID: 5801866610949471565}
   _percussionTrackContainer: {fileID: 2624867373783605506}
