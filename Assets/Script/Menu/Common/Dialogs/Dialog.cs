@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 
@@ -41,7 +42,7 @@ namespace YARG.Menu.Dialogs
             Navigator.Instance.PopScheme();
         }
 
-        public ColoredButton AddDialogButton(string text, UnityAction action)
+        public ColoredButton AddDialogButton(string localizeKey, UnityAction action)
         {
             var button = Instantiate(_dialogButtonPrefab, _dialogButtonContainer);
 
@@ -52,15 +53,15 @@ namespace YARG.Menu.Dialogs
                 _navigationGroup.AddNavigatable(nav);
             }
 
-            button.Text.text = text;
+            button.Text.text = Localize.Key(localizeKey);
             button.OnClick.AddListener(action);
 
             return button;
         }
 
-        public ColoredButton AddDialogButton(string text, Color backgroundColor, UnityAction action)
+        public ColoredButton AddDialogButton(string localizeKey, Color backgroundColor, UnityAction action)
         {
-            var button = AddDialogButton(text, action);
+            var button = AddDialogButton(localizeKey, action);
 
             button.SetBackgroundAndTextColor(backgroundColor);
 

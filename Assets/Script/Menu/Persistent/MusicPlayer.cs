@@ -86,7 +86,7 @@ namespace YARG.Menu.Persistent
 
                 lock (_lock)
                 {
-                    if (_current != task)
+                    if (_current != task || !gameObject.activeSelf)
                     {
                         mixer.Dispose();
                         continue;

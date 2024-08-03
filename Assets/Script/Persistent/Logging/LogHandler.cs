@@ -99,7 +99,7 @@ namespace YARG.Logging
                     return;
                 }
 
-                var builder = ZString.CreateStringBuilder();
+                using var builder = ZString.CreateStringBuilder();
                 var output = builder; // Necessary to escape 'using variable' status and pass by ref
 
                 using var item = FormatLogItem.MakeItem(

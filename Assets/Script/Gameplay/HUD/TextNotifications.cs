@@ -46,17 +46,17 @@ namespace YARG.Gameplay.HUD
             if (!gameObject.activeSelf) return;
 
             // Queue the  notification
-            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NewHighScore, "NEW HIGH SCORE"));
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NewHighScore));
         }
 
         public void ShowFullCombo()
         {
-            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.FullCombo, "FULL COMBO"));
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.FullCombo));
         }
 
         public void ShowStrongFinish()
         {
-            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StrongFinish, "STRONG FINISH"));
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StrongFinish));
         }
 
         public void ShowHotStart()
@@ -64,7 +64,7 @@ namespace YARG.Gameplay.HUD
             // Don't build up notifications during a solo
             if (!gameObject.activeSelf) return;
 
-            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.HotStart, "HOT START"));
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.HotStart));
         }
 
         public void ShowBassGroove()
@@ -72,7 +72,7 @@ namespace YARG.Gameplay.HUD
             // Don't build up notifications during a solo
             if (!gameObject.activeSelf) return;
 
-            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.BassGroove, "BASS GROOVE"));
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.BassGroove));
         }
 
         public void ShowStarPowerReady()
@@ -80,7 +80,7 @@ namespace YARG.Gameplay.HUD
             // Don't build up notifications during a solo
             if (!gameObject.activeSelf) return;
 
-            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StarPowerReady, "STAR POWER READY"));
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StarPowerReady));
         }
 
         public void UpdateNoteStreak(int streak)
@@ -106,8 +106,7 @@ namespace YARG.Gameplay.HUD
             {
                 if (SettingsManager.Settings.NoteStreakFrequency.Value != NoteStreakFrequencyMode.Disabled)
                 {
-                    _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NoteStreak,
-                        $"{_nextStreakCount}-NOTE STREAK"));
+                    _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NoteStreak, _nextStreakCount));
                 }
                 NextNoteStreakNotification();
             }

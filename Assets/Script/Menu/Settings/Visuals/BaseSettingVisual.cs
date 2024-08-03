@@ -10,7 +10,7 @@ namespace YARG.Menu.Settings.Visuals
 {
     public abstract class BaseSettingVisual : MonoBehaviour
     {
-        protected static readonly NavigationScheme.Entry NavigateFinish = new(MenuAction.Red, "Confirm", () =>
+        protected static readonly NavigationScheme.Entry NavigateFinish = new(MenuAction.Red, "Menu.Common.Confirm", () =>
         {
             Navigator.Instance.PopScheme();
         });
@@ -19,11 +19,13 @@ namespace YARG.Menu.Settings.Visuals
         private TextMeshProUGUI _settingLabel;
 
         public bool IsPresetSetting { get; private set; }
+        public bool HasDescription { get; private set; }
         public string UnlocalizedName { get; private set; }
 
-        public void AssignSetting(string settingName)
+        public void AssignSetting(string settingName, bool hasDescription)
         {
             IsPresetSetting = false;
+            HasDescription = hasDescription;
             UnlocalizedName = settingName;
 
             _settingLabel.text = Localize.Key("Settings.Setting", settingName, "Name");
@@ -33,9 +35,10 @@ namespace YARG.Menu.Settings.Visuals
             OnSettingInit();
         }
 
-        public void AssignPresetSetting(string unlocalizedName, ISettingType reference)
+        public void AssignPresetSetting(string unlocalizedName, bool hasDescription, ISettingType reference)
         {
             IsPresetSetting = true;
+            HasDescription = hasDescription;
             UnlocalizedName = unlocalizedName;
 
             _settingLabel.text = Localize.Key("Settings.PresetSetting", unlocalizedName, "Name");

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using YARG.Core.Input;
+using YARG.Localization;
 
 namespace YARG.Menu.Navigation
 {
@@ -9,38 +10,41 @@ namespace YARG.Menu.Navigation
     {
         public readonly struct Entry
         {
-            public static readonly Entry NavigateUp = new(MenuAction.Up, "Up", context =>
+            public static readonly Entry NavigateUp = new(MenuAction.Up, "Menu.Common.Up", context =>
             {
                 NavigationGroup.CurrentNavigationGroup.SelectPrevious(context.IsRepeat);
             });
 
-            public static readonly Entry NavigateDown = new(MenuAction.Down, "Down", context =>
+            public static readonly Entry NavigateDown = new(MenuAction.Down, "Menu.Common.Down", context =>
             {
                 NavigationGroup.CurrentNavigationGroup.SelectNext(context.IsRepeat);
             });
 
-            public static readonly Entry NavigateSelect = new(MenuAction.Green, "Confirm", () =>
+            public static readonly Entry NavigateSelect = new(MenuAction.Green, "Menu.Common.Confirm", () =>
             {
                 NavigationGroup.CurrentNavigationGroup.ConfirmSelection();
             });
 
             public readonly MenuAction Action;
-            public readonly string DisplayName;
+            public readonly string LocalizationKey;
+
             private readonly Action<NavigationContext> _handler;
             private readonly Action<NavigationContext> _onHoldOffHandler;
 
-            public Entry(MenuAction action, string displayName, Action handler, Action onHoldOffHandler = null)
+            public string DisplayName => Localize.Key(LocalizationKey);
+
+            public Entry(MenuAction action, string localizationKey, Action handler, Action onHoldOffHandler = null)
             {
                 Action = action;
-                DisplayName = displayName;
+                LocalizationKey = localizationKey;
                 _handler = _ => handler?.Invoke();
                 _onHoldOffHandler = _ => onHoldOffHandler?.Invoke();
             }
 
-            public Entry(MenuAction action, string displayName, Action<NavigationContext> handler, Action<NavigationContext> onHoldOffHandler = null)
+            public Entry(MenuAction action, string localizationKey, Action<NavigationContext> handler, Action<NavigationContext> onHoldOffHandler = null)
             {
                 Action = action;
-                DisplayName = displayName;
+                LocalizationKey = localizationKey;
                 _handler = handler;
                 _onHoldOffHandler = onHoldOffHandler;
             }

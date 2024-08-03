@@ -41,21 +41,28 @@ namespace YARG.Localization
             await UniTask.RunOnThreadPool(() =>
             {
                 // Attempt to load the selected language
-                if (!ParseAndLoadLanguage(CultureCode))
+                if (!TryParseAndLoadLanguage(CultureCode))
                 {
-                    YargLogger.LogError("Failed to parse and load language! Falling back to default.");
-                    CultureCode = DEFAULT_CULTURE;
-
-                    // If that fails for whatever reason, load the default one instead
-                    if (!ParseAndLoadLanguage(CultureCode))
+                    if (CultureCode != DEFAULT_CULTURE)
                     {
-                        YargLogger.LogError("Failed to parse and load default language!");
+                        // If that fails for whatever reason, load the default one instead
+                        YargLogger.LogError("Failed to parse and load language! Falling back to default.");
+
+                        CultureCode = DEFAULT_CULTURE;
+                        if (!TryParseAndLoadLanguage(CultureCode))
+                        {
+                            YargLogger.LogError("Failed to parse and load default language!");
+                        }
+                    }
+                    else
+                    {
+                        YargLogger.LogError("Failed to parse and load the default language! (no fallback)");
                     }
                 }
             });
         }
 
-        private static bool ParseAndLoadLanguage(string cultureCode)
+        private static bool TryParseAndLoadLanguage(string cultureCode)
         {
             YargLogger.LogFormatInfo("Loading language `{0}`...", cultureCode);
 
@@ -63,17 +70,15 @@ namespace YARG.Localization
             {
                 _localizationMap.Clear();
 
-                // Get the path of the localization file
-                var file = Path.Combine(PathHelper.StreamingAssetsPath, "lang", $"{cultureCode}.json");
-                if (!File.Exists(file))
-                {
-                    return false;
-                }
+                ParseAndLoadLanguage(cultureCode);
 
-                // Read, parse, and scan for localization keys
-                var json = File.ReadAllText(file);
-                var obj = JObject.Parse(json);
-                ParseObjectRecursive(null, obj);
+                // Also combine the keys of the default culture. The default culture is guaranteed to be
+                // the most up to date as that is the one attached to the repo. The other languages are
+                // fetched periodically from Crowdin which means there may be some desync.
+                if (cultureCode != DEFAULT_CULTURE)
+                {
+                    ParseAndLoadLanguage(DEFAULT_CULTURE);
+                }
             }
             catch (Exception e)
             {
@@ -82,6 +87,21 @@ namespace YARG.Localization
             }
 
             return true;
+        }
+
+        private static void ParseAndLoadLanguage(string cultureCode)
+        {
+            // Get the path of the localization file
+            var file = Path.Combine(PathHelper.StreamingAssetsPath, "lang", $"{cultureCode}.json");
+            if (!File.Exists(file))
+            {
+                throw new Exception($"The language file for the specified culture ({cultureCode}) does not exist!");
+            }
+
+            // Read, parse, and scan for localization keys
+            var json = File.ReadAllText(file);
+            var obj = JObject.Parse(json);
+            ParseObjectRecursive(null, obj);
         }
 
         private static void ParseObjectRecursive(string parentKey, JObject obj)
@@ -109,7 +129,7 @@ namespace YARG.Localization
                         break;
                     // If a string is found, that's the end! Add it to the localization map.
                     case JTokenType.String:
-                        _localizationMap.Add(fullKey, token.ToString());
+                        _localizationMap.TryAdd(fullKey, token.ToString());
                         break;
                     // Otherwise... something went wrong.
                     default:

@@ -1,0 +1,36 @@
+name: Crowdin PR
+
+on:
+  schedule:
+    - cron: '0 0 * * sun'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  crowdin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - name: Synchronize with Crowdin
+        uses: crowdin/github-action@v2
+        with:
+          upload_sources: false
+          upload_translations: false
+          download_translations: true
+          localization_branch_name: crowdin_translations
+
+          create_pull_request: true
+          pull_request_title: 'Translation Updates'
+          pull_request_body: 'This week''s localization/translation updates from [the YARG Crowdin project](https://crowdin.com/project/yarg)!'
+          pull_request_base_branch_name: 'dev'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

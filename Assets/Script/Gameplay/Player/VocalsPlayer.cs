@@ -82,6 +82,19 @@ namespace YARG.Gameplay.Player
             percussionTrack.Initialize(NoteTrack.Notes);
             _percussionTrack = percussionTrack;
 
+            // Update speed of particles
+            var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
+            foreach (var system in particles)
+            {
+                // This interface is weird lol, `.main` is readonly but
+                // doesn't need to be re-assigned, changes are forwarded automatically
+                var main = system.main;
+
+                var startSpeed = main.startSpeed;
+                startSpeed.constant *= player.Profile.NoteSpeed;
+                main.startSpeed = startSpeed;
+            }
+
             // Create and start an input context for the mic
             if (!GameManager.IsReplay && player.Bindings.Microphone is not null)
             {

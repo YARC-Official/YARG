@@ -38,7 +38,7 @@ namespace YARG.Menu.Settings.Visuals
             return new NavigationScheme(new()
             {
                 NavigateFinish,
-                new NavigationScheme.Entry(MenuAction.Down, "Next", () =>
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Next", () =>
                 {
                     int newValue = _dropdown.value + 1;
                     if (newValue >= _dropdown.options.Count)
@@ -48,7 +48,7 @@ namespace YARG.Menu.Settings.Visuals
 
                     _dropdown.value = newValue;
                 }),
-                new NavigationScheme.Entry(MenuAction.Up, "Previous", () =>
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Previous", () =>
                 {
                     int newValue = _dropdown.value - 1;
                     if (newValue < 0)

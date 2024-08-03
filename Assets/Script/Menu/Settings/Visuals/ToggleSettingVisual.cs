@@ -21,11 +21,11 @@ namespace YARG.Menu.Settings.Visuals
             return new NavigationScheme(new()
             {
                 NavigateFinish,
-                new NavigationScheme.Entry(MenuAction.Down, "On", () =>
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.On", () =>
                 {
                     _toggle.isOn = true;
                 }),
-                new NavigationScheme.Entry(MenuAction.Up, "Off", () =>
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Off", () =>
                 {
                     _toggle.isOn = false;
                 })

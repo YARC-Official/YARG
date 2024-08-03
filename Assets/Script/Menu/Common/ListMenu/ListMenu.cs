@@ -111,19 +111,19 @@ namespace YARG.Menu.ListMenu
 
         /// <summary>
         /// Sets the <see cref="SelectedIndex"/> to the first match (via the <paramref name="predicate"/>).
-        /// If the <paramref name="offset"/> is specified, it will offset the select index by that amount.
+        /// If the <paramref name="searchStartIndex"/> is specified, it will offset the select index by that amount.
         /// If nothing is found, the index remains unchanged.
         /// </summary>
         /// <returns>
         /// Whether or not the index was set.
         /// </returns>
-        protected bool SetIndexTo(Predicate<TViewType> predicate, int offset = 0)
+        protected bool SetIndexTo(Predicate<TViewType> predicate, int searchStartIndex = 0)
         {
-            for (int i = 0; i < _viewList.Count; i++)
+            for (int i = searchStartIndex; i < _viewList.Count; i++)
             {
                 if (predicate(_viewList[i]))
                 {
-                    SelectedIndex = i + offset;
+                    SelectedIndex = i;
                     return true;
                 }
             }
