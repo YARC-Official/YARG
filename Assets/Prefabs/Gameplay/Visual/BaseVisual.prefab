@@ -1795,6 +1795,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1454173494555058106}
+  - component: {fileID: 867696350017812680}
   m_Layer: 0
   m_Name: Info
   m_TagString: Untagged
@@ -1821,6 +1822,18 @@ Transform:
   m_Father: {fileID: 90376540996421698}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &867696350017812680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7591903428180761324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49d0e1baa0f8482ba602367b7a4d0335, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7704206754271723838
 GameObject:
   m_ObjectHideFlags: 0
@@ -1830,6 +1843,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2647690867028395734}
+  - component: {fileID: 6506386979238904553}
   m_Layer: 0
   m_Name: Strikeline
   m_TagString: Untagged
@@ -1855,6 +1869,18 @@ Transform:
   m_Father: {fileID: 90376540996421698}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6506386979238904553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7704206754271723838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49d0e1baa0f8482ba602367b7a4d0335, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7746566109821236113
 GameObject:
   m_ObjectHideFlags: 0
