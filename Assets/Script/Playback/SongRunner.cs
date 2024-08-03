@@ -353,7 +353,7 @@ namespace YARG.Playback
                     SyncAudioTime = realAudioTime + offset;
                     SyncVisualTime = realVisualTime;
 
-                    if (_pauseSync || SyncVisualTime < offset)
+                    if (_pauseSync || SyncVisualTime < offset || SyncVisualTime >= (_mixer.Length + offset))
                     {
                         continue;
                     }
