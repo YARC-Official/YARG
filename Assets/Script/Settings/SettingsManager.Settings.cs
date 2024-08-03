@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -234,6 +234,14 @@ namespace YARG.Settings
             public SliderSetting UpcomingLyricsTime { get; } = new(3f, 0f, 10f);
 
             public ToggleSetting KeepSongInfoVisible { get; } = new(false);
+
+            public DropdownSetting<CountdownDisplayMode> CountdownDisplay { get; }
+                = new(CountdownDisplayMode.Measures)
+                {
+                    CountdownDisplayMode.Measures,
+                    CountdownDisplayMode.Seconds,
+                    CountdownDisplayMode.Disabled
+                };
 
             #endregion
 

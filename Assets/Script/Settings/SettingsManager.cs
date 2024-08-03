@@ -113,7 +113,8 @@ namespace YARG.Settings
                 nameof(Settings.UpcomingLyricsTime),
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox),
-                nameof(Settings.KeepSongInfoVisible)
+                nameof(Settings.KeepSongInfoVisible),
+                nameof(Settings.CountdownDisplay)
             },
             new PresetsTab("Presets", icon: "Customization"),
             new AllSettingsTab(),

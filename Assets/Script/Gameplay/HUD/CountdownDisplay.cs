@@ -4,17 +4,28 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Chart;
+using YARG.Settings;
+using System;
 
-namespace YARG
+namespace YARG.Gameplay.HUD
 {
-    public class CountdownDisplay : MonoBehaviour
+    public enum CountdownDisplayMode
     {
+        Disabled,
+        Measures,
+        Seconds
+    }
+
+    public class CountdownDisplay : GameplayBehaviour
+    {
+        public static CountdownDisplayMode DisplayStyle;
+
         [SerializeField]
         private Image _backgroundCircle;
         [SerializeField]
         private TextMeshProUGUI _countdownText;
         [SerializeField]
-        private Image _getReady;
+        private Image _progressBar;
 
         [Space]
         [SerializeField]
@@ -22,40 +33,34 @@ namespace YARG
 
         private Coroutine _currentCoroutine;
 
-        private int _measuresLeft;
+        private bool _displayActive;
 
-        public void UpdateCountdown(int measuresLeft)
+        public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
         {
-            if (measuresLeft == _measuresLeft)
+            if (DisplayStyle == CountdownDisplayMode.Disabled)
             {
-                return; 
-            }
-
-            _measuresLeft = measuresLeft;
-
-            if (measuresLeft <= WaitCountdown.END_COUNTDOWN_MEASURE)
-            {
-                // New measure count is below the threshold where the countdown display should be hidden
-                ToggleDisplay(false);
                 return;
             }
 
-            // New measure count is above display threshold
-            if (measuresLeft > WaitCountdown.GET_READY_MEASURE)
+            ToggleDisplay(measuresLeft > WaitCountdown.END_COUNTDOWN_MEASURE);
+            
+            if (!gameObject.activeSelf)
             {
-                _countdownText.text = measuresLeft.ToString();
-
-                _getReady.gameObject.SetActive(false);
-                _backgroundCircle.gameObject.SetActive(true);
+                return;
             }
-            else if (measuresLeft <= WaitCountdown.GET_READY_MEASURE)
+            
+            double currentTime = GameManager.SongTime;
+
+            int displayNumber = DisplayStyle switch
             {
-                // Change display from number to "Get Ready!"
-                _backgroundCircle.gameObject.SetActive(false);
-                _getReady.gameObject.SetActive(true);
-            }
+                CountdownDisplayMode.Measures => measuresLeft,
+                CountdownDisplayMode.Seconds => (int) Math.Ceiling(endTime - currentTime),
+                _ => throw new Exception("Unreachable")
+            };
 
-            ToggleDisplay(true);
+            _countdownText.text = displayNumber.ToString();
+            
+            _progressBar.fillAmount = (float) ((endTime - currentTime) / countdownLength);
         }
 
         public void ForceReset()
@@ -67,16 +72,18 @@ namespace YARG
              _currentCoroutine = null;
         }
 
-        private void ToggleDisplay(bool newState)
+        private void ToggleDisplay(bool isActive)
         {
-            if (newState == gameObject.activeSelf)
+            if (isActive == _displayActive)
             {
                 return;
             }
 
+            _displayActive = isActive;
+
             StopCurrentCoroutine();
 
-            if (newState)
+            if (isActive)
             {
                 _canvasGroup.alpha = 0f;
                 gameObject.SetActive(true);
@@ -92,7 +99,7 @@ namespace YARG
         {
             // Fade in
             yield return _canvasGroup
-                .DOFade(1f, 0.45f)
+                .DOFade(1f, WaitCountdown.FADE_ANIM_LENGTH)
                 .WaitForCompletion();
         }
 
@@ -100,7 +107,7 @@ namespace YARG
         {
             // Fade out
             yield return _canvasGroup
-                .DOFade(0f, 0.45f)
+                .DOFade(0f, WaitCountdown.FADE_ANIM_LENGTH)
                 .WaitForCompletion();
 
             gameObject.SetActive(false);

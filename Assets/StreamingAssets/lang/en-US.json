@@ -208,7 +208,7 @@
     },
     "Gameplay": {
         "Notifications": {
-            "CountdownGetReady": "Get Ready!"
+            
         }
     },
 	"Preview": {
@@ -359,6 +359,15 @@
             "ClapsInStarpower": {
                 "Name": "Star Power Claps",
                 "Description": "Enables claps to the beat while Star Power is active."
+            },
+            "CountdownDisplay": {
+                "Name": "Countdown Display",
+                "Description": "Choose how countdowns should be displayed during long breaks in a song.",
+                "Dropdown": {
+                    "Measures": "In Measures",
+                    "Seconds": "In Seconds",
+                    "Disabled": "Disabled"
+                }
             },
             "CrowdVolume": {
                 "Name": "Crowd Volume",
