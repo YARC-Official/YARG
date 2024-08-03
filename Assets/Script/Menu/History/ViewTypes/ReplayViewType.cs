@@ -48,7 +48,7 @@ namespace YARG.Menu.History
             return _songEntry != null ? SongSources.SourceToIcon(_songEntry.Source) : null;
         }
 
-        public override void Confirm()
+        public override void ViewClick()
         {
             if (_songEntry is null) return;
 

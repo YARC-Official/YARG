@@ -344,7 +344,7 @@ namespace YARG.Settings.Metadata
             ISettingType settingType)
         {
             var visual = SpawnSettingVisual(settingType, container);
-            visual.AssignPresetSetting($"{presetName}.{name}", settingType);
+            visual.AssignPresetSetting($"{presetName}.{name}", true, settingType);
             navGroup.AddNavigatable(visual.gameObject);
         }
 

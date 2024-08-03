@@ -37,8 +37,6 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
-        protected bool IsPrimaryPlayer => GameManager.VocalTrack.IsPrimaryPlayer(this);
-
         private InstrumentDifficulty<VocalNote> NoteTrack { get; set; }
         private InstrumentDifficulty<VocalNote> OriginalNoteTrack { get; set; }
 
@@ -60,6 +58,19 @@ namespace YARG.Gameplay.Player
             if (IsInitialized) return;
 
             base.Initialize(index, player, chart, lastHighScore);
+
+            // Update speed of particles
+            var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
+            foreach (var system in particles)
+            {
+                // This interface is weird lol, `.main` is readonly but
+                // doesn't need to be re-assigned, changes are forwarded automatically
+                var main = system.main;
+
+                var startSpeed = main.startSpeed;
+                startSpeed.constant *= player.Profile.NoteSpeed;
+                main.startSpeed = startSpeed;
+            }
 
             // Get the notes from the specific harmony or solo part
 
@@ -83,19 +94,6 @@ namespace YARG.Gameplay.Player
 
             percussionTrack.Initialize(NoteTrack.Notes);
             _percussionTrack = percussionTrack;
-
-            // Update speed of particles
-            var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
-            foreach (var system in particles)
-            {
-                // This interface is weird lol, `.main` is readonly but
-                // doesn't need to be re-assigned, changes are forwarded automatically
-                var main = system.main;
-
-                var startSpeed = main.startSpeed;
-                startSpeed.constant *= player.Profile.NoteSpeed;
-                main.startSpeed = startSpeed;
-            }
 
             // Create and start an input context for the mic
             if (!GameManager.IsReplay && player.Bindings.Microphone is not null)
@@ -194,13 +192,10 @@ namespace YARG.Gameplay.Player
                     : null;
             };
 
-            if (IsPrimaryPlayer)
+            engine.OnCountdownChange += (measuresLeft) =>
             {
-                engine.OnCountdownChange += (measuresLeft, countdownLength, endTime) =>
-                {
-                    GameManager.VocalTrack.UpdateCountdown(measuresLeft, countdownLength, endTime);
-                };
-            }
+                GameManager.VocalTrack.UpdateCountdown(measuresLeft);
+            };
 
             return engine;
         }

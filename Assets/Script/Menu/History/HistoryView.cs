@@ -30,7 +30,7 @@ namespace YARG.Menu.History
 
         public void OnClick()
         {
-            ViewType.Confirm();
+            ViewType.ViewClick();
         }
 
         public override void Show(bool selected, ViewType viewType)
