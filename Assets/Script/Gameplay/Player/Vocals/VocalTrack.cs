@@ -73,6 +73,10 @@ namespace YARG.Gameplay.Player
 
         [Space]
         [SerializeField]
+        private CountdownDisplay _countdownDisplay;
+
+        [Space]
+        [SerializeField]
         private Camera _trackCamera;
         [SerializeField]
         private Transform _playerContainer;
