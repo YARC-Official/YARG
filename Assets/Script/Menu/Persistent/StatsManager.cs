@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Cysharp.Text;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
+using YARG.Player;
 using YARG.Settings;
 
 namespace YARG.Menu.Persistent
@@ -15,13 +16,15 @@ namespace YARG.Menu.Persistent
         private const float BATTERY_CRITICAL_LOW_THRESHOLD = 10;
         private const float BATTERY_LOW_MEDIUM_THRESHOLD = 40;
         private const float BATTERY_MEDIUM_FULL_THRESHOLD = 90;
-
+        private const int MAX_SHOWN_PLAYER_NAMES = 3;
         public enum Stat
         {
             FPS,
             Memory,
             Time,
-            Battery
+            Battery,
+            ActivePlayers,
+            ActiveBots,
         }
 
         [SerializeField]
@@ -71,6 +74,18 @@ namespace YARG.Menu.Persistent
 
         [Space]
         [SerializeField]
+        private GameObject _activePlayers;
+        [SerializeField]
+        private TextMeshProUGUI _activePlayersText;
+
+        [Space]
+        [SerializeField]
+        private GameObject _activeBots;
+        [SerializeField]
+        private TextMeshProUGUI _activeBotsText;
+
+        [Space]
+        [SerializeField]
         private float _updateRate;
 
         private int _screenRefreshRate;
@@ -78,6 +93,9 @@ namespace YARG.Menu.Persistent
         private List<float> _frameTimes = new();
 
         private float _nextUpdateTime;
+
+        private int _activeBotCount => PlayerContainer.Players.Count(p => p.Profile.IsBot);
+        private int _activePlayerCount => PlayerContainer.Players.Count(p => !p.Profile.IsBot);
 
         protected override void SingletonAwake()
         {
@@ -88,11 +106,13 @@ namespace YARG.Menu.Persistent
         {
             return stat switch
             {
-                Stat.FPS     => _fpsCounter,
-                Stat.Memory  => _memoryStats,
-                Stat.Time    => _time,
+                Stat.FPS => _fpsCounter,
+                Stat.Memory => _memoryStats,
+                Stat.Time => _time,
                 Stat.Battery => _battery,
-                _            => throw new Exception("Unreachable.")
+                Stat.ActiveBots => _activeBots,
+                Stat.ActivePlayers => _activePlayers,
+                _ => throw new Exception("Unreachable.")
             };
         }
 
@@ -119,10 +139,19 @@ namespace YARG.Menu.Persistent
                 && SystemInfo.batteryLevel is >= 0 and <= 1;
             SetShowing(Stat.Battery, showBattery);
 
+            // Only show the bot count if there are active bots.
+            var showBots = SettingsManager.Settings.ShowActiveBots.Value
+                && _activeBotCount > 0;
+            SetShowing(Stat.ActiveBots, showBots);
+
             UpdateFpsCounter();
             UpdateMemoryStats();
             UpdateTime();
             UpdateBattery();
+            UpdateActivePlayers();
+
+
+            UpdateActiveBots();
 
             // Reset the update time
             _nextUpdateTime = Time.unscaledTime + _updateRate;
@@ -231,5 +260,30 @@ namespace YARG.Menu.Persistent
                 _ => _batterySpriteCritical
             };
         }
+
+        private void UpdateActivePlayers()
+        {
+            if (!IsShowing(Stat.ActivePlayers)) return;
+
+            var activePlayers = PlayerContainer.Players.Where(p => !p.Profile.IsBot);
+
+            _activePlayersText.text = _activePlayerCount switch
+            {
+                0 => "No profiles active",
+                // Show a comma separated list of player names.
+                <= MAX_SHOWN_PLAYER_NAMES => activePlayers.Select(e => e.Profile.Name).Aggregate((cur, next) => cur + ", " + next),
+                // Show the number of active players.
+                _ => $"x{_activePlayerCount}"
+            };
+        }
+
+        private void UpdateActiveBots()
+        {
+            if (!IsShowing(Stat.ActiveBots)) return;
+
+
+            _activeBotsText.text = $"x{_activeBotCount}";
+        }
+
     }
 }

@@ -67,6 +67,8 @@ namespace YARG.Settings
             public ToggleSetting ShowBattery { get; } = new(false);
             public ToggleSetting ShowTime { get; } = new(false, ShowTimeCallback);
             public ToggleSetting MemoryStats { get; } = new(false, MemoryStatsCallback);
+            public ToggleSetting ShowActivePlayers { get; } = new(true, ShowActivePlayersCallback);
+            public ToggleSetting ShowActiveBots { get; } = new(true, ShowActiveBotsCallback);
 
             public ToggleSetting ReconnectProfiles { get; } = new(true);
 
@@ -359,6 +361,16 @@ namespace YARG.Settings
 #endif
 
                 StatsManager.Instance.SetShowing(StatsManager.Stat.Memory, value);
+            }
+
+            private static void ShowActivePlayersCallback(bool value)
+            {
+                StatsManager.Instance.SetShowing(StatsManager.Stat.ActivePlayers, value);
+            }
+
+            private static void ShowActiveBotsCallback(bool value)
+            {
+                StatsManager.Instance.SetShowing(StatsManager.Stat.ActiveBots, value);
             }
 
             private static void RB3EEnabledCallback(bool value)

@@ -817,6 +817,14 @@
                 "Name": "Show Memory Stats",
                 "Description": "Show memory usage stats on the Status Bar"
             },
+            "ShowActivePlayers": {
+                "Name": "Show Active Players",
+                "Description": "Show the active players on the Status Bar, excluding bots. For bands consisting of more than 3 players, this will show the number of players instead."
+            },
+            "ShowActiveBots": {
+                "Name": "Show Active Bots",
+                "Description": "Show the number of active bot profiles on the Status Bar (if any)"
+            },
             "DMXUniverseChannel": {
                 "Name": "DMX Broadcast Universe",
                 "Description": "This is the universe that YARG will send the sACN packet to. Default is 1. Maximum is 65535"

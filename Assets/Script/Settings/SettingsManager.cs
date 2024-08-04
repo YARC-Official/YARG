@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
 using YARG.Core.Logging;
 using YARG.Core.Utility;
 using YARG.Helpers;
@@ -46,6 +45,8 @@ namespace YARG.Settings
                 nameof(Settings.ShowTime),
                 nameof(Settings.MemoryStats),
                 nameof(Settings.FpsStats),
+                nameof(Settings.ShowActivePlayers),
+                nameof(Settings.ShowActiveBots),
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.ReconnectProfiles),
