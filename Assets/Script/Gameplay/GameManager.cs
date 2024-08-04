@@ -452,20 +452,7 @@ namespace YARG.Gameplay
                 return true;
             }
 
-            // Pass the score info to the stats screen
-            GlobalVariables.State.ScoreScreenStats = new ScoreScreenStats
-            {
-                PlayerScores = _players.Select(player => new PlayerScoreCard
-                {
-                    IsHighScore = player.Score > player.LastHighScore,
-                    Player = player.Player,
-                    Stats = player.BaseStats
-                }).ToArray(),
-                BandScore = BandScore,
-                BandStars = (int) BandStars
-            };
-
-            (string Name, HashWrapper Hash)? replayInfo;
+            (ReplayEntry Entry, HashWrapper Hash)? replayInfo;
             try
             {
                 _isReplaySaved = false;
@@ -476,6 +463,21 @@ namespace YARG.Gameplay
                 replayInfo = null;
                 YargLogger.LogException(e, "Failed to save replay!");
             }
+
+            // Pass the score info to the stats screen
+            GlobalVariables.State.ScoreScreenStats = new ScoreScreenStats
+            {
+                PlayerScores = _players.Select(player => new PlayerScoreCard
+                {
+                    IsHighScore = player.Score > player.LastHighScore,
+                    Player = player.Player,
+                    Stats = player.BaseStats
+                }).ToArray(),
+                BandScore = BandScore,
+                BandStars = (int) BandStars,
+                ReplayEntry = replayInfo?.Entry,
+            };
+
 
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
@@ -518,7 +520,7 @@ namespace YARG.Gameplay
                     SongArtist = Song.Artist,
                     SongCharter = Song.Charter,
 
-                    ReplayFileName = replayInfo?.Name,
+                    ReplayFileName = replayInfo?.Entry.GetReplayName(),
                     ReplayChecksum = replayInfo?.Hash.HashBytes,
 
                     BandScore = BandScore,
@@ -553,7 +555,7 @@ namespace YARG.Gameplay
             }
         }
 
-        public (string Name, HashWrapper Hash)? SaveReplay(double length, bool useScorePath)
+        public (ReplayEntry Entry, HashWrapper Hash)? SaveReplay(double length, bool useScorePath)
         {
             var realPlayers = _players.Where(player => !player.Player.Profile.IsBot).ToList();
 
@@ -583,7 +585,7 @@ namespace YARG.Gameplay
             }
 
             _isReplaySaved = true;
-            return (name, hash.Value);
+            return (entry, hash.Value);
         }
 
         private void OnNavigationEvent(NavigationContext context)

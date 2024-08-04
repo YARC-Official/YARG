@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Cysharp.Threading.Tasks;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
@@ -10,10 +8,13 @@ using YARG.Core.Engine.ProKeys;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Replays;
+using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
-using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
+using YARG.Replays;
 using YARG.Song;
 
 namespace YARG.Menu.ScoreScreen
@@ -45,6 +46,8 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private ProKeysScoreCard _proKeysCardPrefab;
 
+        private bool _analyzingReplay;
+
         private void OnEnable()
         {
             // Set navigation scheme
@@ -52,7 +55,10 @@ namespace YARG.Menu.ScoreScreen
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
                 {
-                    GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                    if (!_analyzingReplay)
+                    {
+                        GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                    }
                 })
             }, true));
 
@@ -64,6 +70,17 @@ namespace YARG.Menu.ScoreScreen
 
             var song = GlobalVariables.State.CurrentSong;
             var scoreScreenStats = GlobalVariables.State.ScoreScreenStats.Value;
+
+            // Do analysis of replay before showing any score data
+            // This will make it so that if the analysis takes a while the screen is blank
+            // (kinda like a loading screen)
+            if (!AnalyzeReplay(song, scoreScreenStats.ReplayEntry))
+            {
+                DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
+                    "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
+                    "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
+                    $"Chart Hash: {song.Hash.ToString()}");
+            }
 
             // Set text
             _songTitle.text = song.Name;
@@ -140,6 +157,53 @@ namespace YARG.Menu.ScoreScreen
             {
                 _horizontalScrollBar.value = 0f;
             }
+        }
+
+        private bool AnalyzeReplay(SongEntry songEntry, ReplayEntry replayEntry)
+        {
+            _analyzingReplay = true;
+
+            var chart = songEntry.LoadChart();
+
+            if (chart is null)
+            {
+                YargLogger.LogError("Chart did not load");
+                _analyzingReplay = false;
+                return true;
+            }
+
+            if (replayEntry is null)
+            {
+                YargLogger.LogError("ReplayEntry is null");
+                _analyzingReplay = false;
+                return true;
+            }
+
+            var replayReadResult = ReplayIO.ReadReplay(replayEntry.ReplayPath, out var replayFile);
+            if (replayReadResult != ReplayReadResult.Valid)
+            {
+                YargLogger.LogFormatError("Replay did not load. {0}", replayReadResult);
+                _analyzingReplay = false;
+                return true;
+            }
+
+            var replay = replayFile!.Replay;
+
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, replay);
+
+            for(int i = 0; i < results.Length; i++)
+            {
+                var analysisResult = results[i];
+
+                if (!analysisResult.Passed)
+                {
+                    _analyzingReplay = false;
+                    return false;
+                }
+            }
+
+            _analyzingReplay = false;
+            return true;
         }
     }
 }
