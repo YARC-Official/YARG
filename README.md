@@ -43,7 +43,7 @@ YARG (a.k.a. Yet Another Rhythm Game) is a free, open-source, plastic guitar gam
 - [🔨 Building/Contributing](#-buildingcontributing)
   - [Setup Instructions](#setup-instructions)
   - [Unity YAML Merge Tool](#unity-yaml-merge-tool)
-- [✍️ Contributing](#️-contributing)
+- [✍️ Contributing and Credits](#️-contributing-and-credits)
 - [🛡️ License](#️-license)
 - [🧰 External Licenses](#-external-licenses)
 - [📦 External Assets and Libraries](#-external-assets-and-libraries)
@@ -156,9 +156,17 @@ Resolving conflicts:
 2. If the conflict doesn't resolve automatically, open the command prompt and use `git merge-tool`.
 3. Verify that the conflict was resolved correctly, then commit/continue the merge.
 
-## ✍️ Contributing
+## ✍️ Contributing and Credits
 
 If you want to contribute, please feel free! It's recommended you join [our Discord](https://discord.gg/sqpu4R552r) so we can provide feedback quickly.
+
+In order to get your name added to the YARG credits, you need to first contribute to any of the following:
+* YARG
+* The Official Setlist and/or DLC
+* YARC Launcher
+* OpenSource
+* The community (community moderator, socials manager, etc).
+After that, you must create a pull request on [this repo](https://github.com/YARC-Official/Contributors) to get your name added. If you need help with this, feel free to ask in our Discord!
 
 ## 🛡️ License
 
