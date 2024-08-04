@@ -104,6 +104,8 @@ namespace YARG.Gameplay.Player
 
         public bool HarmonyShowing => _vocalsTrack.Instrument == Instrument.Harmony;
 
+        public bool AllowStarPower;
+
         public float CurrentNoteWidth =>
             ((_currentTrackTop - TRACK_BOTTOM) / (_viewRange.Max - _viewRange.Min)) * NOTE_WIDTH_MULTIPLIER;
 
@@ -193,6 +195,8 @@ namespace YARG.Gameplay.Player
 
             // Hide overlay
             _starpowerMaterial.SetFloat(_alphaMultiplier, 0f);
+
+            AllowStarPower = true;
         }
 
         public VocalsPlayer CreatePlayer()

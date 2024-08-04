@@ -182,22 +182,21 @@ namespace YARG.Playback
         public float SyncWorstDelta => _syncWorstDelta;
 
         /// <summary>
-        /// The instantaneous current audio time, used for audio synchronization.<br/>
+        /// The audio time used by audio synchronization.<br/>
         /// Accounts for song speed, audio calibration, and song offset.
         /// </summary>
-        public double SyncSongTime { get; private set; }
+        public double SyncAudioTime { get; private set; }
 
         /// <summary>
-        /// The instantaneous current visual time, used for audio synchronization.<br/>
+        /// The visual time used by audio synchronization.<br/>
         /// Accounts for song speed, but <b>not</b> video calibration.
         /// </summary>
         public double SyncVisualTime { get; private set; }
 
         /// <summary>
-        /// The instantaneous current visual time, used for audio synchronization.<br/>
-        /// Accounts for song speed, but <b>not</b> video calibration.
+        /// The difference between the visual and audio times used by audio synchronization.
         /// </summary>
-        public double SyncDelta => SyncVisualTime - SyncSongTime;
+        public double SyncDelta => SyncVisualTime - SyncAudioTime;
         #endregion
 
         #region Seek debugging
@@ -347,9 +346,14 @@ namespace YARG.Playback
             {
                 lock (_syncThread)
                 {
-                    double offset = SongOffset + AudioCalibration * SongSpeed;
-                    SyncVisualTime = GetRelativeInputTime(InputManager.CurrentInputTime);
-                    if (_pauseSync || SyncVisualTime < offset)
+                    double realAudioTime = _mixer.GetPosition();
+                    double realVisualTime = GetRelativeInputTime(InputManager.CurrentInputTime);
+                    double offset = SongOffset + (AudioCalibration * SongSpeed);
+
+                    SyncAudioTime = realAudioTime + offset;
+                    SyncVisualTime = realVisualTime;
+
+                    if (_pauseSync || SyncVisualTime < offset || SyncVisualTime >= (_mixer.Length + offset))
                     {
                         continue;
                     }
@@ -359,20 +363,17 @@ namespace YARG.Playback
                         _mixer.Play(false);
                     }
 
-                    RealAudioTime = _mixer.GetPosition();
-                    if (RealAudioTime >= _mixer.Length)
+                    if (realAudioTime >= _mixer.Length)
                     {
                         continue;
                     }
-
-                    SyncSongTime = RealAudioTime + offset;
 
                     // Account for song speed
                     double initialThreshold = INITIAL_SYNC_THRESH * SongSpeed;
                     double adjustThreshold = ADJUST_SYNC_THRESH * SongSpeed;
 
                     // Check the difference between visual and audio times
-                    double delta = SyncVisualTime - SyncSongTime;
+                    double delta = SyncVisualTime - SyncAudioTime;
                     double deltaAbs = Math.Abs(delta);
 
                     // Don't sync if below the initial sync threshold, and we haven't adjusted the speed
@@ -449,6 +450,8 @@ namespace YARG.Playback
             // where it will sometimes not fire the song end event when the audio ends
             // Using visual time guarantees a reliable timing source, and therefore song end timing
             RealSongTime = RealVisualTime - AudioCalibration;
+            // Not technically an input time, but needs to be updated upon request
+            RealAudioTime = _mixer.GetPosition() + SongOffset;
         }
 
         private void SetInputBase(double inputBase)

@@ -305,7 +305,11 @@ namespace YARG.Menu.MusicLibrary
                     }
                 }
 
-                list.Add(new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup));
+                if (_sortedSongs.Length > 1)
+                {
+                    list.Add(new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup));
+                }
+
                 foreach (var song in section.Songs)
                 {
                     list.Add(new SongViewType(this, song));
