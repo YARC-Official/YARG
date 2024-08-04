@@ -74,9 +74,7 @@ namespace YARG.Menu.Persistent
 
         [Space]
         [SerializeField]
-        private GameObject _activePlayers;
-        [SerializeField]
-        private TextMeshProUGUI _activePlayersText;
+        private ActivePlayerList _activePlayerList;
 
         [Space]
         [SerializeField]
@@ -111,7 +109,7 @@ namespace YARG.Menu.Persistent
                 Stat.Time => _time,
                 Stat.Battery => _battery,
                 Stat.ActiveBots => _activeBots,
-                Stat.ActivePlayers => _activePlayers,
+                Stat.ActivePlayers => _activePlayerList.gameObject,
                 _ => throw new Exception("Unreachable.")
             };
         }
@@ -263,18 +261,10 @@ namespace YARG.Menu.Persistent
 
         private void UpdateActivePlayers()
         {
+
             if (!IsShowing(Stat.ActivePlayers)) return;
 
-            var activePlayers = PlayerContainer.Players.Where(p => !p.Profile.IsBot);
-
-            _activePlayersText.text = _activePlayerCount switch
-            {
-                0 => "No profiles active",
-                // Show a comma separated list of player names.
-                <= MAX_SHOWN_PLAYER_NAMES => activePlayers.Select(e => e.Profile.Name).Aggregate((cur, next) => cur + ", " + next),
-                // Show the number of active players.
-                _ => $"x{_activePlayerCount}"
-            };
+            _activePlayerList.UpdatePlayerList(PlayerContainer.Players);
         }
 
         private void UpdateActiveBots()
