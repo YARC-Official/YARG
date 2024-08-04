@@ -16,7 +16,7 @@ namespace YARG.Menu.Persistent
         private const float BATTERY_CRITICAL_LOW_THRESHOLD = 10;
         private const float BATTERY_LOW_MEDIUM_THRESHOLD = 40;
         private const float BATTERY_MEDIUM_FULL_THRESHOLD = 90;
-        private const int MAX_SHOWN_PLAYER_NAMES = 3;
+
         public enum Stat
         {
             FPS,
