@@ -93,7 +93,6 @@ namespace YARG.Menu.Persistent
         private float _nextUpdateTime;
 
         private int _activeBotCount => PlayerContainer.Players.Count(p => p.Profile.IsBot);
-        private int _activePlayerCount => PlayerContainer.Players.Count(p => !p.Profile.IsBot);
 
         protected override void SingletonAwake()
         {
@@ -147,8 +146,6 @@ namespace YARG.Menu.Persistent
             UpdateTime();
             UpdateBattery();
             UpdateActivePlayers();
-
-
             UpdateActiveBots();
 
             // Reset the update time
@@ -261,7 +258,6 @@ namespace YARG.Menu.Persistent
 
         private void UpdateActivePlayers()
         {
-
             if (!IsShowing(Stat.ActivePlayers)) return;
 
             _activePlayerList.UpdatePlayerList(PlayerContainer.Players);
@@ -270,7 +266,6 @@ namespace YARG.Menu.Persistent
         private void UpdateActiveBots()
         {
             if (!IsShowing(Stat.ActiveBots)) return;
-
 
             _activeBotsText.text = $"x{_activeBotCount}";
         }
