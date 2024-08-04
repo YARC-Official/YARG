@@ -68,7 +68,7 @@ namespace YARG.Settings
             public ToggleSetting ShowTime { get; } = new(false, ShowTimeCallback);
             public ToggleSetting MemoryStats { get; } = new(false, MemoryStatsCallback);
             public ToggleSetting ShowActivePlayers { get; } = new(true, ShowActivePlayersCallback);
-            public ToggleSetting ShowActiveBots { get; } = new(true, ShowActiveBotsCallback);
+            public ToggleSetting ShowActiveBots { get; } = new(false, ShowActiveBotsCallback);
 
             public ToggleSetting ReconnectProfiles { get; } = new(true);
 
