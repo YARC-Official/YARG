@@ -348,7 +348,11 @@ namespace YARG.Gameplay
         public void Pause(bool showMenu = true)
         {
             _songRunner.Pause();
+            PauseCore(showMenu);
+        }
 
+        private void PauseCore(bool showMenu)
+        {
             if (showMenu)
             {
                 if (IsReplay)
@@ -381,6 +385,12 @@ namespace YARG.Gameplay
 
         public void Resume()
         {
+            _songRunner.Resume();
+            ResumeCore();
+        }
+
+        public void ResumeCore()
+        {
             if (_draggableHud.EditMode)
             {
                 SetEditHUD(false);
@@ -391,8 +401,6 @@ namespace YARG.Gameplay
             {
                 return;
             }
-
-            _songRunner.Resume();
 
             // Unpause the background/venue
             Time.timeScale = 1f;
@@ -423,6 +431,20 @@ namespace YARG.Gameplay
             {
                 Resume();
             }
+        }
+
+        public void OverridePause()
+        {
+            _songRunner.OverridePause();
+            PauseCore(showMenu: false);
+        }
+
+        public bool OverrideResume()
+        {
+            bool resumed = _songRunner.OverrideResume();
+            if (resumed)
+                ResumeCore();
+            return resumed;
         }
 
         public double GetRelativeInputTime(double timeFromInputSystem)

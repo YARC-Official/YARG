@@ -151,10 +151,8 @@ namespace YARG.Playback
         /// </summary>
         public double PauseStartTime { get; private set; }
 
-        /// <summary>
-        /// Whether or not to resume audio playback when <see cref="Resume"/> is called.
-        /// </summary>
-        private bool _playAudioOnResume = false;
+        private bool _overridePause;
+        private bool _resumeAfterOverride;
 
         /// <summary>
         /// Whether or not <see cref="InitializeSongTime"/> has been called yet.
@@ -166,8 +164,6 @@ namespace YARG.Playback
         private Thread _syncThread;
 
         private bool _disposed;
-
-        private volatile bool _pauseSync;
 
         private volatile float _syncSpeedAdjustment;
         private volatile int _syncSpeedMultiplier;
@@ -349,7 +345,7 @@ namespace YARG.Playback
                 {
                     double offset = SongOffset + AudioCalibration * SongSpeed;
                     SyncVisualTime = GetRelativeInputTime(InputManager.CurrentInputTime);
-                    if (_pauseSync || SyncVisualTime < offset)
+                    if (Paused || SyncVisualTime < offset)
                     {
                         continue;
                     }
@@ -535,12 +531,12 @@ namespace YARG.Playback
                 {
                     seekTime = 0;
                     _mixer.SetPosition(seekTime);
-                    _playAudioOnResume = false;
                 }
                 else
                 {
                     _mixer.SetPosition(seekTime);
-                    _mixer.Play(true);
+                    if (!Paused)
+                        _mixer.Play(true);
                 }
 
                 RealAudioTime = _previousRealAudioTime = seekTime;
@@ -576,24 +572,22 @@ namespace YARG.Playback
         /// <summary>
         /// Pauses the song.
         /// </summary>
-        /// <remarks>
-        /// The song runner keeps track of the number of pending pauses to prevent pausing in one place
-        /// being overridden by resuming in another. For correct behavior, every call to <see cref="Pause"/>
-        /// must be matched with a future call to <see cref="Resume"/>.
-        /// </remarks>
         public void Pause()
         {
-            if (Paused)
+            if (_overridePause)
             {
+                _resumeAfterOverride = false;
                 return;
             }
+
+            if (Paused)
+                return;
+
             Paused = true;
 
             // Visual time is used for pause time since it's closer to when
             // the song runner is actually being updated; the asserts in Update get hit otherwise
             PauseStartTime = RealVisualTime;
-            _playAudioOnResume = !_mixer.IsPaused;
-            _pauseSync = true;
             _mixer.Pause();
 
             YargLogger.LogFormatDebug("Paused at song time {0:0.000000} (real: {1:0.000000}), visual time {2:0.000000} " +
@@ -604,22 +598,19 @@ namespace YARG.Playback
         /// <summary>
         /// Resumes the song.
         /// </summary>
-        /// <remarks>
-        /// The song runner keeps track of the number of pending pauses to prevent pausing in one place
-        /// being overridden by resuming in another. For correct behavior, every call to <see cref="Resume"/>
-        /// must be matched with a previous call to <see cref="Pause"/>.
-        /// </remarks>
         public void Resume()
         {
-            if (!Paused)
+            if (_overridePause)
             {
+                _resumeAfterOverride = true;
                 return;
             }
 
+            if (!Paused)
+                return;
+
             Paused = false;
             SetInputBaseChecked(PauseStartTime);
-
-            _pauseSync = false;
 
             YargLogger.LogFormatDebug("Resumed at song time {0:0.000000} (real: {1:0.000000}), visual time {2:0.000000} " +
                 "(real: {3:0.000000}), input time {4:0.000000} (real: {5:0.000000}).",
@@ -636,6 +627,39 @@ namespace YARG.Playback
             {
                 Resume();
             }
+        }
+
+        /// <summary>
+        /// Forces the song to be paused until <see cref="OverrideResume"/> is called,
+        /// for long-running operations that must be completed before resuming.
+        /// </summary>
+        public void OverridePause()
+        {
+            if (_overridePause)
+                throw new InvalidOperationException("Pause override is already active!");
+
+            Pause();
+            _overridePause = true;
+            _resumeAfterOverride = true;
+        }
+
+        /// <summary>
+        /// Removes the forced pause set by an <see cref="OverridePause"/> call.
+        /// </summary>
+        /// <returns>
+        /// Whether or not the song was resumed. A pause that occurs during the override
+        /// will take precedence, and prevent a resume from occurring here.
+        /// </returns>
+        public bool OverrideResume()
+        {
+            if (!_overridePause)
+                throw new InvalidOperationException("Pause override is not active!");
+
+            _overridePause = false;
+            if (_resumeAfterOverride)
+                Resume();
+
+            return !Paused;
         }
 
         public static float ClampSongSpeed(float speed)

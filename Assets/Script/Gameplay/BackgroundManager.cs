@@ -226,7 +226,7 @@ namespace YARG.Gameplay
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
-                        GameManager.Pause(showMenu: false);
+                        GameManager.OverridePause();
 
                         _videoPlayer.time = videoTime;
                     }
@@ -239,8 +239,8 @@ namespace YARG.Gameplay
             if (!_videoSeeking)
                 return;
 
-            GameManager.Resume();
-            player.Play();
+            if (GameManager.OverrideResume())
+                player.Play();
 
             enabled = double.IsNaN(_videoEndTime);
             _videoSeeking = false;
