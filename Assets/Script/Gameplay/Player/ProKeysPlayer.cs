@@ -104,6 +104,9 @@ namespace YARG.Gameplay.Player
             engine.OnNoteMissed += OnNoteMissed;
             engine.OnOverhit += OnOverhit;
 
+            engine.OnSustainStart += OnSustainStart;
+            engine.OnSustainEnd += OnSustainEnd;
+
             engine.OnSoloStart += OnSoloStart;
             engine.OnSoloEnd += OnSoloEnd;
 
@@ -215,11 +218,36 @@ namespace YARG.Gameplay.Player
             (_chordBarPool.GetByKey(parent) as ProKeysChordBarElement)?.CheckForChordHit();
         }
 
+        protected override void OnNoteMissed(int index, ProKeysNote chordParent)
+        {
+            base.OnNoteMissed(index, chordParent);
+
+            (NotePool.GetByKey(chordParent) as ProKeysNoteElement)?.MissNote();
+        }
+
         private void OnOverhit(int key)
         {
             OnOverhit();
 
             // do overhit visuals
+        }
+
+        private void OnSustainStart(ProKeysNote parent)
+        {
+
+        }
+
+        private void OnSustainEnd(ProKeysNote parent, double timeEnded, bool finished)
+        {
+            (NotePool.GetByKey(parent) as ProKeysNoteElement)?.SustainEnd(finished);
+
+            // Mute the stem if you let go of the sustain too early.
+            // Leniency is handled by the engine's sustain burst threshold.
+            if (!finished)
+            {
+                // Do we want to check if its part of a chord, and if so, if all sustains were dropped to mute?
+                SetStemMuteState(true);
+            }
         }
 
         private void OnKeyStateChange(int key, bool isPressed)
