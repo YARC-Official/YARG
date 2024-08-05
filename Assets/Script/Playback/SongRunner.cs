@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using UnityEngine;
 using YARG.Core.Logging;
@@ -500,6 +500,9 @@ namespace YARG.Playback
             // Set input offsets
             SetInputBase(seekTime);
 
+            // Override pause time so resuming works correctly
+            PauseStartTime = RealVisualTime;
+
             // Previously audio calibration was handled on input time, as it consistently started out synced
             // within 50 ms (within 5 ms a majority of the time)
             // But it makes more sense to apply it to audio instead, and the small initial desync it
@@ -606,18 +609,15 @@ namespace YARG.Playback
         /// being overridden by resuming in another. For correct behavior, every call to <see cref="Resume"/>
         /// must be matched with a previous call to <see cref="Pause"/>.
         /// </remarks>
-        public void Resume(bool inputCompensation = true)
+        public void Resume()
         {
             if (!Paused)
             {
                 return;
             }
-            Paused = false;
 
-            if (inputCompensation)
-            {
-                SetInputBaseChecked(PauseStartTime);
-            }
+            Paused = false;
+            SetInputBaseChecked(PauseStartTime);
 
             _pauseSync = false;
 
@@ -636,21 +636,6 @@ namespace YARG.Playback
             {
                 Resume();
             }
-        }
-
-        public void OverridePauseTime(double pauseTime = -1)
-        {
-            if (!Paused)
-            {
-                return;
-            }
-
-            // Visual time is used for pause time since it's closer to when
-            // the song runner is actually being updated; the asserts in Update get hit otherwise
-            if (pauseTime < 0)
-                pauseTime = RealVisualTime;
-
-            PauseStartTime = pauseTime;
         }
 
         public static float ClampSongSpeed(float speed)

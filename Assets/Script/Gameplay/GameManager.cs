@@ -379,7 +379,7 @@ namespace YARG.Gameplay
             Screen.sleepTimeout = _originalSleepTimeout;
         }
 
-        public void Resume(bool inputCompensation = true)
+        public void Resume()
         {
             if (_draggableHud.EditMode)
             {
@@ -392,7 +392,7 @@ namespace YARG.Gameplay
                 return;
             }
 
-            _songRunner.Resume(inputCompensation);
+            _songRunner.Resume();
 
             // Unpause the background/venue
             Time.timeScale = 1f;
@@ -424,8 +424,6 @@ namespace YARG.Gameplay
                 Resume();
             }
         }
-
-        public void OverridePauseTime(double pauseTime = -1) => _songRunner.OverridePauseTime(pauseTime);
 
         public double GetRelativeInputTime(double timeFromInputSystem)
             => _songRunner.GetRelativeInputTime(timeFromInputSystem);

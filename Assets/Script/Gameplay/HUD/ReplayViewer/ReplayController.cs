@@ -214,7 +214,6 @@ namespace YARG.Gameplay.HUD
 
             // Do this before we do it for the players so the notes don't get destroyed early
             GameManager.SetSongTime(time, 0);
-            GameManager.OverridePauseTime();
 
             foreach (var player in GameManager.Players)
             {
