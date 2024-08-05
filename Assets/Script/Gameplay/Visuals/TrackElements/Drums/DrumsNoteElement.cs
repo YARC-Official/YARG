@@ -63,7 +63,8 @@ namespace YARG.Gameplay.Visuals
             {
                 return (int) (isCymbal ? NoteType.CymbalAccent : NoteType.Accent);
             }
-            else if (NoteRef.IsGhost)
+
+            if (NoteRef.IsGhost)
             {
                 return (int) (isCymbal ? NoteType.CymbalGhost : NoteType.Ghost);
             }

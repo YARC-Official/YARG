@@ -46,15 +46,26 @@ namespace YARG.Gameplay.Visuals
             transform.localPosition = Vector3.zero;
             UpdateXPosition();
 
+            // Get the note type
+            NoteType noteType;
             if (ProKeysUtilities.IsWhiteKey(NoteRef.Key % 12))
             {
-                NoteGroup = noteGroups[(int) NoteType.White];
+                if ((NoteRef.ProKeysFlags & ProKeysNoteFlags.Glissando) != 0)
+                {
+                    noteType = NoteType.Glissando;
+                }
+                else
+                {
+                    noteType = NoteType.White;
+                }
             }
             else
             {
-                NoteGroup = noteGroups[(int) NoteType.Black];
+                noteType = NoteType.Black;
             }
 
+            // Initialize the note group
+            NoteGroup = noteGroups[(int) noteType];
             NoteGroup.SetActive(true);
             NoteGroup.Initialize();
 
