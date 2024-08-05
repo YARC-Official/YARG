@@ -48,7 +48,6 @@ namespace YARG.Logging
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
 
 #if UNITY_EDITOR
-            YargLogger.MinimumLogLevel = LogLevel.Debug;
             AppDomain.CurrentDomain.DomainUnload += ShutdownLogHandler;
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 #else

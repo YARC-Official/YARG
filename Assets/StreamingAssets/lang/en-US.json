@@ -627,6 +627,17 @@
                 "PauseName": "Master",
                 "Description": "Adjusts the song's volume as a whole."
             },
+            "MinimumLogLevel": {
+                "Name": "Minimum Log Level",
+                "Description": "Controls how much information is written to log files.",
+                "Dropdown": {
+                    "Trace": "Trace",
+                    "Debug": "Debug",
+                    "Info": "Info",
+                    "Warning": "Warning",
+                    "Error": "Error"
+                }
+            },
             "MicrophoneSensitivity": {
                 "Name": "Microphone Sensitivity (Db)",
                 "Description": "Adjusts your microphone's sensitivity in decibels. Lower values are more sensitive."

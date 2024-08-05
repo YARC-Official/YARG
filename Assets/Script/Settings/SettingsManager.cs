@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -187,6 +187,7 @@ namespace YARG.Settings
             {
                 nameof(Settings.InputDeviceLogging),
                 nameof(Settings.ShowAdvancedMusicLibraryOptions),
+                nameof(Settings.MinimumLogLevel),
             },
             new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
             {
