@@ -863,6 +863,10 @@
                 "Name": "Upcoming Lyrics Lead Time",
                 "Description": "The time in seconds prior to an upcoming lyric that it will appear on screen. Upcoming lyrics will always appear if the time between the current and upcoming lyrics is smaller than this value."
             },
+            "WaitForSongVideo": {
+                "Name": "Wait For Song Videos When Seeking",
+                "Description": "Waits for a song-specific video background to finish seeking when restarting/changing sections in practice or seeking a replay."
+            },
             "WrapAroundNavigation": {
                 "Name": "Wrap-Around Navigation",
                 "Description": "Allow menus to jump to the bottom of a list when scrolling past the top, or jump to the top of a list when scrolling past the bottom."

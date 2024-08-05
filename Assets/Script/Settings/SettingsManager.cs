@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -40,6 +40,7 @@ namespace YARG.Settings
                 new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),
                 nameof(Settings.DisableGlobalBackgrounds),
                 nameof(Settings.DisablePerSongBackgrounds),
+                nameof(Settings.WaitForSongVideo),
 
                 new HeaderMetadata("StatusBar"),
                 nameof(Settings.ShowBattery),

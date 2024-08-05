@@ -63,6 +63,7 @@ namespace YARG.Settings
 
             public ToggleSetting DisableGlobalBackgrounds { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
+            public ToggleSetting WaitForSongVideo { get; } = new(true);
 
             public ToggleSetting ShowBattery { get; } = new(false);
             public ToggleSetting ShowTime { get; } = new(false, ShowTimeCallback);

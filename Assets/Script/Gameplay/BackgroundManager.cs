@@ -9,6 +9,7 @@ using YARG.Core.Extensions;
 using YARG.Core.IO;
 using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
+using YARG.Settings;
 using YARG.Venue;
 
 namespace YARG.Gameplay
@@ -226,7 +227,8 @@ namespace YARG.Gameplay
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
-                        GameManager.OverridePause();
+                        if (SettingsManager.Settings.WaitForSongVideo.Value)
+                            GameManager.OverridePause();
 
                         _videoPlayer.time = videoTime;
                     }
@@ -239,7 +241,7 @@ namespace YARG.Gameplay
             if (!_videoSeeking)
                 return;
 
-            if (GameManager.OverrideResume())
+            if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
                 player.Play();
 
             enabled = double.IsNaN(_videoEndTime);
