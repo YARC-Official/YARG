@@ -1,0 +1,1129 @@
+{
+    "Language": {
+        "Name": "Español",
+        "Region": "España, América Latina",
+        "ListDelimiter": {
+            "Default": ", ",
+            "Last": ", y "
+        }
+    },
+    "Enum": {
+        "Difficulty": {
+            "Easy": "Fácil",
+            "Hard": "Difícil",
+            "Expert": "Experto",
+            "ExpertPlus": "Experto+",
+            "Medium": "Medio"
+        },
+        "GameMode": {
+            "FiveFretGuitar": "Guitarra de Cinco Trastes",
+            "SixFretGuitar": "Guitarra de Seis Trastes",
+            "FourLaneDrums": "Batería Estándar",
+            "FiveLaneDrums": "Batería de 5 Líneas",
+            "ProGuitar": "Guitarra Pro",
+            "ProKeys": "Teclado Pro",
+            "Menu": "Menú",
+            "Vocals": "Vocales"
+        },
+        "Instrument": {
+            "FiveFretGuitar": "Guitarra",
+            "FiveFretBass": "Bajo",
+            "FiveFretRhythm": "Guitarra Rítmica",
+            "FiveFretCoopGuitar": "Guitarra Cooperativa",
+            "Keys": "Teclado",
+            "SixFretGuitar": "Guitarra",
+            "SixFretBass": "Bajo",
+            "SixFretRhythm": "Guitarra Rítmica",
+            "SixFretCoopGuitar": "Guitarra Cooperativa",
+            "FourLaneDrums": "Batería de Cuatro Líneas",
+            "ProDrums": "Batería Pro",
+            "FiveLaneDrums": "Batería de Cinco Líneas",
+            "EliteDrums": "Batería Élite",
+            "ProGuitar_17Fret": "Guitarra Pro (17 Trastes)",
+            "ProGuitar_22Fret": "Guitarra Pro (22 Trastes)",
+            "ProBass_17Fret": "Bajo Pro (17 Trastes)",
+            "ProBass_22Fret": "Bajo Pro (22 Trastes)",
+            "ProKeys": "Teclado Pro",
+            "Vocals": "Vocales",
+            "Harmony": "Armonía",
+            "Dj": "DJ",
+            "Band": "Banda"
+        },
+        "Modifier": {
+            "None": "Ninguno",
+            "AllStrums": "Todo Rasgueos",
+            "AllHopos": "Todo HOPOs",
+            "AllTaps": "Todo Taps",
+            "HoposToTaps": "HOPOs a Taps",
+            "NoteShuffle": "Mezclar Notas",
+            "NoKicks": "Sin Bombos",
+            "TapsToHopos": "Taps a HOPOs",
+            "UnpitchedOnly": "Solo Sin Tonos"
+        },
+        "SortAttribute": {
+            "Album": "Álbum",
+            "Artist": "Artista",
+            "Artist_Album": "Artista - Álbum",
+            "Charter": "Charter",
+            "Genre": "Género",
+            "Name": "Canción",
+            "Playlist": "Playlist",
+            "SongLength": "Duración",
+            "Source": "Origen",
+            "Unspecified": "Ninguno",
+            "Year": "Año",
+            "DateAdded": "Fecha de Adición",
+            "Playable": "Canciones Jugables",
+            "FiveFretGuitar": "Guitarra de Cinco Trastes",
+            "FiveFretBass": "Bajo de Cinco Trastes",
+            "FiveFretRhythm": "Guitarra Rítmica de Cinco Trastes",
+            "FiveFretCoop": "Guitarra Cooperativa de Cinco Trastes",
+            "Keys": "Teclado",
+            "SixFretGuitar": "Guitarra de Seis Trastes",
+            "SixFretBass": "Bajo de Seis Trastes",
+            "SixFretRhythm": "Guitarra Rítmica de Seis Trastes",
+            "SixFretCoop": "Guitarra Cooperativa de Seis Trastes",
+            "FourLaneDrums": "Batería de Cuatro Líneas",
+            "ProDrums": "Batería Pro",
+            "FiveLaneDrums": "Batería de Cinco Líneas",
+            "EliteDrums": "Batería Élite",
+            "ProGuitar_17": "Guitarra Pro (17 Trastes)",
+            "ProGuitar_22": "Guitarra Pro (22 Trastes)",
+            "ProBass_17": "Bajo Pro (17 Trastes)",
+            "ProBass_22": "Bajo Pro (22 Trastes)",
+            "ProKeys": "Teclado Pro",
+            "Vocals": "Vocales",
+            "Harmony": "Armonía",
+            "Band": "Banda"
+        }
+    },
+    "Menu": {
+        "Calibrator": {
+            "Detected": "Detectado",
+            "NotEnoughData": "No hay suficientes datos para obtener un resultado preciso. Presiona Atrás para salir."
+        },
+        "Common": {
+            "Apply": "Aplicar",
+            "Back": "Volver",
+            "Cancel": "Cancelar",
+            "Close": "Cerrar",
+            "Confirm": "Confirmar",
+            "Continue": "Continuar",
+            "On": "Encendido",
+            "Off": "Apagado",
+            "Up": "Arriba",
+            "Down": "Abajo",
+            "Left": "Izquierda",
+            "Right": "Derecha",
+            "Next": "Siguiente",
+            "Previous": "Previo",
+            "NextTab": "Pestaña Siguiente",
+            "PreviousTab": "Pestaña Anterior",
+            "Increase": "Aumentar",
+            "Decrease": "Disminuir",
+            "Max": "Máx",
+            "Min": "Mín",
+            "Save": "Guardar",
+            "Saved": "¡Guardado!",
+            "Delete": "Eliminar",
+            "Reset": "Restablecer",
+            "ResetAll": "Restablecer Todo"
+        },
+        "Credits": {
+            "Description": "Contribuyó A: {0}\n\n{1}",
+            "Repos": {
+                "Community": "Comunidad",
+                "OpenSource": "OpenSource",
+                "YARC-Charters": "La Setlist Oficial de YARG",
+                "YARC-Launcher": "El Launcher de YARC",
+                "YARG": "YARG"
+            },
+            "Roles": {
+                "Artist": "Artista",
+                "Charter": "Charter",
+                "Developer": "Desarrollador",
+                "Moderator": "Moderador"
+            },
+            "Header": {
+                "Contributors": "Contribuidores",
+                "GameStartedBy": "Un Juego Iniciado Por",
+                "LeadArtist": "Artista Líder",
+                "Maintainers": "Mantenedores",
+                "SpecialThanks": "Agradecimientos Especiales",
+                "SetlistManager": "Administrador de Setlist"
+            }
+        },
+        "Dialog": {
+            "AntiPiracy": {
+                "Title": "Declaración Anti-Piratería de YARG",
+                "Description": "<b>YARG se opone firmemente a todas las formas de piratería.</b> No apoyamos ni incitamos la piratería, ya que es una violación a las leyes de derecho de autor con serias consecuencias legales. El contenido importable de nuestra plataforma - diseñada para que creadores compartan su trabajo con fines educacionales - no justifican ni excusan la piratería.\n\nYARG en sí mismo <b>no</b> usa ningún recurso o música copiada/pirateada y nunca lo hará. Al usar YARG, los usuarios están de acuerdo en no promover ni incitar la piratería en ninguna forma a través de nuestra plataforma. Mantener estos principios asegura una comunidad que respeta los derechos de autor, la creatividad y los estándares legales.\n\nYARG es para \"Yet Another Rhythm Game (Otro Juego de Ritmo Más)\" y NO para piratas.",
+                "Confirm": "Entendido"
+            },
+            "ColorPicker": {
+                "Title": "Seleccionar Color"
+            },
+            "ConfirmDelete": {
+                "Title": "¿Eliminar \"{0}\"?",
+                "Message": "¿Estás seguro que deseas eliminar <b>{0}</b>?",
+                "Confirm": "Escribe <b>{0}</b> aquí para confirmar"
+            },
+            "EngineInconsistency": {
+                "Title": "Repeticiones En Beta",
+                "Description": "Actualmente, el sistema de repeticiones se encuentra en beta, <b>y <i>puede</i> proveer puntajes/estadísticas inconsistentes</b>, especialmente para guitarra.\n\nLa meta final es que las repeticiones sean confiables y precisas, ¡y estamos trabajando para arreglar estos problemas!"
+            },
+            "Experimental": {
+                "Title": "Aviso de Características Experimentales",
+                "Description": "Las opciones que se mostrarán representan un trabajo en progreso. Estas características están sujetas a cambios, pueden contener errores, e incluso <b>podrían causar problemas severos si se habilitan</b>."
+            },
+            "BadSongs": {
+                "Title": "No Se Pudieron Escanear Algunas Canciones",
+                "Description": "Una o más canciones que escaneaste estaban dañadas, en un formato incorrecto o encriptadas, y <b>no pudieron ser cargadas en el juego.</b>\n\nPara más información, consulta el archivo ubicado en \"{0}\"."
+            },
+            "DontShowAgain": "No Mostrar de Nuevo"
+        },
+        "DifficultySelect": {
+            "Instrument": "Instrumento",
+            "Difficulty": "Dificultad",
+            "Harmony": "Armonía",
+            "Modifiers": "Modificadores",
+            "Ready": "Listo",
+            "SitOut": "Permanecer Fuera",
+            "Done": "Hecho"
+        },
+        "History": {
+            "Name": "Historial",
+            "Time": {
+                "Today": "Hoy",
+                "Yesterday": "Ayer",
+                "ThisWeek": "Esta Semana",
+                "ThisMonth": "Este Mes",
+                "LastThreeMonths": "Últimos 3 Meses",
+                "ThisYear": "Este Año",
+                "MoreThanYear": "Más De Un Año"
+            }
+        },
+        "Main": {
+            "MessageOfTheDay": "<align=center><size=32><b>¡Bienvenidos a la v0.12!</b></size></align>\n\nLa v0.12 es una actualización <i>masiva</i> que mejora completamente el código detrás del motor, añade perfiles, modo de práctica, repeticiones, modificadores, ajustes de personalización ¡Y mucho más!\n\n<b>Si encuentras algún error, por favor háganoslo saber en Discord o GitHub.</b>\n\n<b>Las repeticiones están actualmente en prueba.</b> Las repeticiones no producen resultados 1:1 a lo que realmente se jugó y puede ser inconsistente. Esto es conocido y estamos trabajando en arreglar esto para el futuro.\n\n¡Diviértanse!",
+            "Options": {
+                "Quickplay": "Partida Rápida",
+                "Practice": "Práctica",
+                "Profiles": "Perfiles",
+                "History": "Historial",
+                "Settings": "Configuración",
+                "Credits": "Créditos",
+                "Exit": "Salir"
+            },
+            "GoToCurrentlyPlaying": "Ir a Reproducción en Curso"
+        },
+        "MusicLibrary": {
+            "Name": "Biblioteca de Música",
+            "NoSongsMatchCriteria": "NO HAY CANCIONES CON ESE CRITERIO",
+            "SearchResults": "RESULTADOS DE BÚSQUEDA",
+            "AllSongs": "TODAS LAS CANCIONES",
+            "RecommendedSongs": {
+                "Singular": "CANCIÓN RECOMENDADA",
+                "Plural": "CANCIONES RECOMENDADAS"
+            },
+            "PlayableSongs": "CANCIONES JUGABLES",
+            "RandomSong": "CANCIÓN ALEATORIA",
+            "Playlists": "LISTAS DE REPRODUCCIÓN",
+            "Popup": {
+                "Header": {
+                    "SortBy": "Ordenar por...",
+                    "GoTo": "Ir a..."
+                },
+                "Item": {
+                    "RandomSong": "Canción Aleatoria",
+                    "BackToTop": "Volver Arriba",
+                    "SortBy": "Ordenar por: {0}",
+                    "GoToSection": "Ir a Sección...",
+                    "AddToFavorites": "Agregar a Favoritos",
+                    "RemoveFromFavorites": "Eliminar de Favoritos",
+                    "ViewSongFolder": "Ver Carpeta de Canciones",
+                    "CopySongChecksum": "Copiar Checksum de Canciones"
+                }
+            },
+            "Back": "VOLVER",
+            "NoPlayersConnected": "¡No hay jugadores conectados! Ve al menú de perfiles para conectar a un jugador.",
+            "Play": "Reproducir Canción",
+            "Search": "Buscar",
+            "MoreOptions": "<align=left><size=80%>Más Opciones<br>(Mantener) Navegar Secciones</size></align>"
+        },
+        "ProfileInfo": {
+            "Name": "Editar Perfil",
+            "Stats": {
+                "SongPlays": "{0:N0} Reproducciones",
+                "TotalScore": "Puntuación Total",
+                "TotalStarsEarned": "Total de Estrellas Obtenidas",
+                "FullCombos": "Combos Totales"
+            }
+        },
+        "ProfileList": {
+            "Name": "Perfiles",
+            "AddBot": "Añadir Bot",
+            "AddProfile": "Añadir Perfil"
+        },
+        "Settings": {
+            "NoFolder": "<i>Sin Carpeta</i>",
+            "SearchHeader": {
+                "AllCategories": "Todas las Categorías",
+                "Results": "Resultados"
+            },
+            "SongCount": "{0:N0} <alpha=#60>Canciones",
+            "ScanNeeded": "<alpha=#60>Escaneo Necesario",
+            "DMXInfo": "Cambio de señal DMX y valores de canal de postprocesamiento:\n\n<b>Cambio de Señal:</b>\n\n0 - Sin señal\n10 - Menú\n20 - Puntuación\n30 - Introducción\n40 - Estrofa\n50 - Coro\n60 - Frío (bucle)\n70 - Cálido (bucle)\n80 - Frío (manual)\n90 - Cálido (manual)\n100 - Discordia\n110 - Pisotón\n120 - Predeterminado\n130 - Armonía\n140 - Frenesí\n150 - Siluetas\n160 - Siluetas destacadas\n170 - Reflectores\n180 - Barrido\n190 - Apagón (rápido)\n200 - Apagón (lento)\n210 - Apagón (foco)\n220 - Resplandor (lento)\n230 - Resplandor (rápido)\n240 - Gran Final de Rock\n\nPara el estado de Strobe y Niebla, consulta sus respectivos canales.\n\n<b>Postprocesamiento:</b>\n\n0 - Predeterminado\n\nEfectos básicos\n4 - Resplandor\n14 - Brillante\n24 - Contraste\n34 - Espejo\n44 - Negativo Fotográfico\n54 - Posterizar\n\n\nFiltros/efectos de color\n64 - Blanco y Negro\n74 - Tono Sepia\n84 - Tono Plateado\n94 - Blanco y Negro entrecortado\n104 - Negativo Fotográfico Rojo y Negro\n114 - Polarizado Blanco y Negro\n124 - Polarizado Rojo y Azul\n134 - Rojo Desaturado\n144 - Azul Desaturado\n154 - Contraste Rojo\n164 - Contraste Verde\n174 - Contraste Azul\n\nGranulado\n184 - Película Granulada\n194 - Aberración Cromática Granulada\n\nLíneas de escaneo\n204 - Líneas de Escaneo\n214 - Líneas de Escaneo Blanco y Negro\n224 - Líneas de Escaneo Azul\n234 - Líneas de Escaneo de Seguridad\n\nEstelas\n244 - Estelas\n252 - Estelas Largas\n253 - Estelas Desaturadas\n254 - Estelas Parpadeantes\n255 - Estelas Espaciales\n\nConsulta los documentos de YARG para más información: https://docs.yarg.in/en/DMX"
+        }
+    },
+    "Gameplay": {
+        "Notifications": {
+            "BassGroove": "GROOVE DE BAJO",
+            "CountdownGetReady": "¡Prepárate!",
+            "FullCombo": "COMBO TOTAL",
+            "HotStart": "ARRANQUE EN CALIENTE",
+            "NewHighScore": "NUEVO RÉCORD",
+            "NoteStreak": "RACHA DE {0:N0} NOTAS",
+            "StarPowerReady": "ENERGÍA ESTRELLA LISTA",
+            "StrongFinish": "FINAL FUERTE"
+        },
+        "Solo": {
+            "Performance": {
+                "Awesome": "¡INCREÍBLE\nSOLO!",
+                "Good": "¡BUEN\nSOLO!",
+                "Great": "¡GRAN\nSOLO!",
+                "How": "¿¡CÓMO!?",
+                "Messy": "SOLO\nCAÓTICO",
+                "Nice": "<i>BONITO</i>\nSOLO",
+                "Okay": "SOLO\nDECENTE",
+                "Perfect": "¡SOLO\nPERFECTO!",
+                "Solid": "SOLO\nSÓLIDO"
+            },
+            "PointsResult": "{0:N0}\nPUNTOS"
+        },
+        "Vocals": {
+            "Performance": {
+                "Awesome": "¡INCREÍBLE!",
+                "Awful": "HORRIBLE",
+                "Good": "BUENO",
+                "Messy": "CAÓTICO",
+                "Okay": "DECENTE",
+                "Strong": "SÓLIDO"
+            }
+        }
+    },
+    "Preview": {
+        "Experimental": {
+            "Notice": "IMPORTANTE\n\nEstos ajustes representan un trabajo en progreso. Están sujetos a cambios, pueden contener errores, e incluso podrían causar problemas severos si se habilitan."
+        }
+    },
+    "Discord": {
+        "Default": {
+            "Details": "Hello there ladies and gentlemen!",
+            "LargeText": {
+                "Dev": "Yet Another Rhythm Game (Build de Desarrollo)",
+                "Nightly": "Yet Another Rhythm Game (Nightly)",
+                "Stable": "Yet Another Rhythm Game"
+            },
+            "State": "Are you ready to rock?"
+        },
+        "Song": {
+            "Name": "{0} por {1}",
+            "Album": "en {0}",
+            "Paused": "Canción en pausa..."
+        }
+    },
+    "Bindings": {
+        "Menu": {
+            "Green": "Verde (Confirmar)",
+            "Red": "Rojo (Atrás)",
+            "Yellow": "Amarillo (Atajo 1)",
+            "Blue": "Azul (Atajo 2)",
+            "Orange": "Naranja (Atajo 3)",
+            "Up": "Arriba",
+            "Down": "Abajo",
+            "Left": "Izquierda",
+            "Right": "Derecha",
+            "Start": "Start (Pausa)",
+            "Select": "Select"
+        },
+        "FiveFret": {
+            "Green": "Traste Verde (Primero)",
+            "Red": "Traste Rojo (Segundo)",
+            "Yellow": "Traste Amarillo (Tercero)",
+            "Blue": "Traste Azul (Cuarto)",
+            "Orange": "Traste Naranjo (Quinto)"
+        },
+        "Guitar": {
+            "StrumUp": "Rasgueo Arriba",
+            "StrumDown": "Rasgueo Abajo",
+            "StarPower": "Poder Estrella",
+            "Whammy": "Trémolo"
+        },
+        "FourDrums": {
+            "BlueCymbal": "Platillo Azul (Tercero)",
+            "BluePad": "Pad Azul (Tercero)",
+            "GreenCymbal": "Platillo Verde (Cuarto)",
+            "GreenPad": "Pad Verde (Cuarto)",
+            "RedPad": "Pad Rojo (Primero)",
+            "YellowCymbal": "Platillo Amarillo (Segundo)",
+            "YellowPad": "Pad Amarillo (Segundo)",
+            "RedCymbal": "Platillo Rojo (Primero)"
+        },
+        "Drums": {
+            "Kick": "Pedal de Bombo"
+        },
+        "Vocals": {
+            "StarPower": "Activación de Energía Estrella"
+        },
+        "FiveDrums": {
+            "RedPad": "Pad Rojo (Primero)",
+            "YellowCymbal": "Platillo Amarillo (Segundo)",
+            "BluePad": "Pad Azul (Tercero)",
+            "OrangeCymbal": "Platillo Naranjo (Cuarto)",
+            "GreenPad": "Pad Verde (Quinto)"
+        }
+    },
+    "Settings": {
+        "Tab": {
+            "General": "General",
+            "Graphics": "Gráficos",
+            "Engine": "Motor",
+            "Sound": "Sonido",
+            "SongManager": "Canciones",
+            "Presets": "Predefinidos",
+            "Advanced": "Avanzado",
+            "AllSettings": "Todos los Ajustes",
+            "LightingPeripherals": "Periféricos de Iluminación",
+            "Debug": "Depuración y Desarrollo",
+            "FileManagement": "Gestión de Archivos",
+            "Experimental": "Experimental"
+        },
+        "Header": {
+            "Other": "Otro",
+            "Display": "Pantalla",
+            "Volume": "Volumen",
+            "Graphics": "Gráficos",
+            "Camera": "Cámara",
+            "SongFolders": "Carpetas de Canciones",
+            "SongUpgrades": "Mejoras de Canciones",
+            "Cache": "Caché",
+            "Venues": "Escenarios/Fondos",
+            "Calibration": "Calibración",
+            "Input": "Entrada",
+            "PresetSettings": "Ajustes Predefinidos",
+            "Debug": "Depuración",
+            "Advanced": "Avanzado",
+            "DMXChannels": "Canales DMX",
+            "LightingGeneral": "Iluminación General",
+            "Export": "Exportar",
+            "PathsAndFolders": "Rutas y Carpetas",
+            "MusicLibrary": "Biblioteca de Música",
+            "ScanningOptions": "Opciones de Escaneo",
+            "RB3E": "Ajustes de RB3E",
+            "Customization": "Personalización de Búfer",
+            "StageKitDMXChannels": "Canales DMX Básicos",
+            "AdvancedDMXChannels": "Canales DMX Avanzados",
+            "StatusBar": "Barra de Estado",
+            "AdvancedDMXSettings": "Ajustes avanzados de sACN y DMX",
+            "Experimental": "Experimental"
+        },
+        "Button": {
+            "CopyCurrentSongJsonFilePath": "Copiar Ruta de Archivo Json de Canción Actual",
+            "CopyCurrentSongTextFilePath": "Copiar Ruta de Archivo de Texto de Canción Actual",
+            "ExportSongsOuvert": "Exportar Lista de Canciones (Para Ouvert Bot)",
+            "ExportSongsText": "Exportar Lista de Canciones (Solo Texto)",
+            "OpenCalibrator": "Abrir Calibrador",
+            "OpenVenueFolder": "Abrir Carpeta de Escenarios/Fondos",
+            "AddFolder": "Añadir Carpeta",
+            "RefreshCache": "Escanear Canciones",
+            "OpenExecutablePath": "Abrir Ruta de Ejecutable",
+            "OpenPersistentDataPath": "Abrir Ruta de Datos Persistentes"
+        },
+        "Setting": {
+            "AllowDuplicateSongs": {
+                "Name": "Permitir Canciones Duplicadas",
+                "Description": "Permite que las canciones duplicadas se escaneen y muestren en la biblioteca. <color=white>¡Se requiere reescanear si se cambia!</color>"
+            },
+            "AmIAwesome": {
+                "Name": "Detección de Genialidad",
+                "Description": "¿Eres genial?"
+            },
+            "AudioCalibration": {
+                "Name": "Calibración de Audio (ms)",
+                "Description": "Calibración de audio en milisegundos. Usa el calibrador para calibrar automáticamente. Los valores altos hacen que el audio suene antes, mientras que los bajos hacen que suene después."
+            },
+            "AccountForHardwareLatency": {
+                "Name": "Cuenta para la Latencia de Hardware de Audio",
+                "Description": "Configura automáticamente la latencia de reproducción detectada del hardware de audio. Esta latencia puede ser inexacta, deshabilita esta opción si la calibración de audio es negativa."
+            },
+            "BassVolume": {
+                "Name": "Volumen del Bajo",
+                "PauseName": "Bajo",
+                "Description": "Ajusta el volumen del bajo en canciones. Solo funciona si la canción es multipista."
+            },
+            "ClapsInStarpower": {
+                "Name": "Aplausos de Energía Estrella",
+                "Description": "Habilita aplausos que van al ritmo mientras la Energía Estrella esté activa."
+            },
+            "OverstrumAndOverhitSoundEffects": {
+                "Name": "Efectos de Sonido por Sobregolpes/Rasgueos en Exceso",
+                "Description": "Habilita los efectos de sonido por sobregolpes/rasgueos en exceso."
+            },
+            "CrowdVolume": {
+                "Name": "Volumen del Público",
+                "PauseName": "Público",
+                "Description": "Ajusta el volumen de la pista del público. Solo funciona si la canción es multipista."
+            },
+            "DisableBloom": {
+                "Name": "Deshabilitar Bloom",
+                "Description": "Deshabilita el Bloom de postprocesamiento (el efecto brillante). Puede aumentar el rendimiento."
+            },
+            "DisableGlobalBackgrounds": {
+                "Name": "Deshabilitar Fondos Globales",
+                "Description": "Deshabilita los fondos de tu carpeta de escenarios y muestra los que se incluyen con canciones."
+            },
+            "DisablePerSongBackgrounds": {
+                "Name": "Deshabilitar Fondos Individuales",
+                "Description": "Deshabilita los fondos que se incluyen con canciones y muestra los que están en tu carpeta de escenarios."
+            },
+            "DisableTextNotifications": {
+                "Name": "Deshabilitar Notificaciones de Texto",
+                "Description": "Deshabilita las notificaciones de texto en la pista como \"Racha de 100 Notas\" y \"Combo Total.\""
+            },
+            "DMXBlueChannels": {
+                "Name": "Azul DMX",
+                "Description": "Los ocho canales representan los ocho LEDs azules del StageKit. Recibirán comandos de Encendido (255) y Apagado (0)."
+            },
+            "DMXCueChangeChannel": {
+                "Name": "Señal de Cambio DMX",
+                "Description": "El valor de este canal cambiará cuando la señal de iluminación cambie. Revisa los siguientes valores:"
+            },
+            "DMXDimmerChannels": {
+                "Name": "Atenuador Maestro DMX",
+                "Description": "Los canales listados aquí se ajustarán al iniciar el juego. Por defecto está al máximo (255), pero se puede cambiar en los ajustes de 'Valores de Atenuador Maestro DMX'. Útil para dispositivos con canal de atenuador maestro."
+            },
+            "DMXEnabled": {
+                "Name": "Habilitar Salida DMX",
+                "Description": "Habilita el envío de paquetes de sACN (DMX-por-ethernet) por la red al universo 1. Agrega 250kbps al tráfico de red."
+            },
+            "DMXFogChannels": {
+                "Name": "Niebla DMX",
+                "Description": "Cada canal establecido recibirá comandos del StageKit de niebla activada (255) y desactivada (0)."
+            },
+            "DMXGreenChannels": {
+                "Name": "Verde DMX",
+                "Description": "Los ocho canales representan los ocho LEDs verdes del StageKit. Recibirán comandos de Encendido (255) y Apagado (0)."
+            },
+            "DMXRedChannels": {
+                "Name": "Rojo DMX",
+                "Description": "Los ocho canales representan los ocho LEDs rojos del StageKit. Recibirán comandos de Encendido (255) y Apagado (0)."
+            },
+            "DMXStrobeChannels": {
+                "Name": "Luz Estroboscópica DMX",
+                "Description": "Cada canal ajustado recibirá comandos de luz estroboscópica del StageKit, ya sea Apagado (0), Lento (64), Medio (127), Rápido (191), Máximo (255)."
+            },
+            "DMXYellowChannels": {
+                "Name": "Amarillo DMX",
+                "Description": "Los ocho canales representan los ocho LEDs amarillos del StageKit. Recibirán comandos de Encendido (255) y Apagado (0)."
+            },
+            "DrumsVolume": {
+                "Name": "Volumen de la Batería",
+                "PauseName": "Batería",
+                "Description": "Ajusta el volumen de la pista de la batería. Solo funciona si la canción es multipista."
+            },
+            "EnablePracticeSP": {
+                "Name": "Energía Estrella en Práctica",
+                "Description": "Permite las frases de Energía Estrella en el Modo Práctica."
+            },
+            "FpsCap": {
+                "Name": "Límite de FPS",
+                "Description": "El límite de fotogramas. <color=white>NO NECESITAS JUGAR YARG A 1000FPS.</color> Se recomienda usar VSync."
+            },
+            "FpsStats": {
+                "Name": "Mostrar el Contador de FPS",
+                "Description": "Muestra el contador de fotogramas en la Barra de Estado"
+            },
+            "FullscreenMode": {
+                "Name": "Modo Pantalla Completa",
+                "Description": "Cambia el modo de pantalla completa.",
+                "Dropdown": {
+                    "ExclusiveFullScreen": "Pantalla Completa",
+                    "FullScreenWindow": "Pantalla Completa Sin Bordes",
+                    "MaximizedWindow": "Ventana Maximizada",
+                    "Windowed": "En Ventana"
+                }
+            },
+            "GraphicalProgressOnScoreBox": {
+                "Name": "Progreso Gráfico en Caja de Puntaje",
+                "Description": "Alterna el gráfico del contorno azul en la caja de puntaje que muestra el progreso de la canción."
+            },
+            "GuitarVolume": {
+                "Name": "Volumen de la Guitarra",
+                "PauseName": "Guitarra",
+                "Description": "Ajusta el volumen de la guitarra en canciones. Solo funciona si la canción es multipista."
+            },
+            "HighScoreInfo": {
+                "Name": "Muestra de Puntajes Altos",
+                "Description": "Cambia la forma en la que se muestran los puntajes altos en la Biblioteca de Música.",
+                "Dropdown": {
+                    "Off": "Apagado",
+                    "Score": "Puntaje",
+                    "Stars": "Estrellas"
+                }
+            },
+            "InputDeviceLogging": {
+                "Name": "Registro de Dispositivos de Entrada",
+                "Description": "Exporta información de los dispositivos de entrada conectados al registro del juego. No habilites esto a menos que tengas problemas con dispositivos específicos, ¡puede exportar mucho texto para algunos dispositivos!"
+            },
+            "KeepSongInfoVisible": {
+                "Name": "Mantener Información de la Canción Visible",
+                "Description": "Si se activa, mantiene la información de la canción visible por toda su duración. De lo contrario, desaparecerá después de 10 segundos."
+            },
+            "KeysVolume": {
+                "Name": "Volumen del Teclado",
+                "PauseName": "Teclados",
+                "Description": "Ajusta el volumen de la pista del teclado. Solo funciona si la canción es multipista."
+            },
+            "KickBounceMultiplier": {
+                "Name": "Multiplicador de Rebote del Bombo",
+                "Description": "Controla la cantidad de rebote de la pista cuando golpeas una nota de bombo (solo para batería). Ajústalo a cero si lo quieres deshabilitar."
+            },
+            "LowQuality": {
+                "Name": "Modo de Baja Calidad",
+                "Description": "Si se habilita, el juego desactivará el anti-aliasing y usará modelos y texturas de menor calidad. Esto aumentará significativamente el rendimiento."
+            },
+            "LyricDisplay": {
+                "Name": "Muestra de Letras",
+                "Description": "Elige cómo se mostrará la barra de letras en el juego.",
+                "Dropdown": {
+                    "Compatibility": "Modo de Compatibilidad",
+                    "Disabled": "Deshabilitado",
+                    "NoBackground": "Sin Fondo",
+                    "Normal": "Normal",
+                    "Transparent": "Fondo Translúcido"
+                }
+            },
+            "MasterMusicVolume": {
+                "Name": "Volumen de Música Maestro",
+                "PauseName": "Maestro",
+                "Description": "Ajusta el volumen de la canción en su totalidad."
+            },
+            "MicrophoneSensitivity": {
+                "Name": "Sensibilidad del Micrófono (Db)",
+                "Description": "Ajusta la sensibilidad de tu micrófono en decibeles. Los valores bajos son más sensibles."
+            },
+            "MusicPlayerVolume": {
+                "Name": "Volumen del Reproductor de Música",
+                "Description": "Ajusta el volumen de la música que se reproduce en el menú principal. Ajústala en \"0\" para desactivarla."
+            },
+            "MuteOnMiss": {
+                "Name": "Silenciar Con Fallos",
+                "Description": "Silencia la pista del instrumento que falla una nota. Solo funciona si la canción es multipista.",
+                "Dropdown": {
+                    "Off": "Apagado",
+                    "MultitrackOnly": "Solo Multipista",
+                    "On": "Encendido - Fondo limitado a 50%"
+                }
+            },
+            "NoKicks": {
+                "Name": "Sin Bombos",
+                "Description": "Remueve todas las notas de bombo (solo para batería)."
+            },
+            "NoteStreakFrequency": {
+                "Name": "Frecuencia de Racha de Notas",
+                "Description": "Establece la frecuencia de las notificaciones de racha de notas.",
+                "Dropdown": {
+                    "Disabled": "Deshabilitado",
+                    "Frequent": "50, 100, 200, 300, ...",
+                    "Sparse": "50, 100, 250, 500, ..."
+                }
+            },
+            "PreviewVolume": {
+                "Name": "Volumen de Vista Previa",
+                "Description": "Ajusta el volumen de la vista previa en la biblioteca de música."
+            },
+            "Resolution": {
+                "Name": "Resolución",
+                "Description": "Elige la resolución de tu pantalla. Se recomienda usar \"Más alto\"."
+            },
+            "RhythmVolume": {
+                "Name": "Volumen de la Guitarra Rítmica",
+                "PauseName": "Guitarra Rítmica",
+                "Description": "Ajusta el volumen de la guitarra rítmica en canciones. Solo funciona si la canción es multipista. En algunos formatos, esta pista puede ser la del bajo."
+            },
+            "SfxVolume": {
+                "Name": "Volumen de los Efectos de Sonido",
+                "PauseName": "Efectos de Sonido",
+                "Description": "Ajusta el volumen de los efectos de sonido del juego, como al obtener una estrella o al activar la Energía Estrella."
+            },
+            "ShowAdvancedMusicLibraryOptions": {
+                "Name": "Mostrar Opciones Avanzadas de la Biblioteca de Música",
+                "Description": "Añade ajustes avanzados al menú de \"Más Opciones\" en la Biblioteca de Música como \"Ver Carpeta de Canción\" y \"Copiar Verificación de Canción\"."
+            },
+            "ShowCursorTimer": {
+                "Name": "Tiempo de Muestra del Cursor",
+                "Description": "Cuánto tiempo se mostrará el cursor antes de ocultarlo. Ponlo en \"0\" para no ocultarlo (modo de reproducción)."
+            },
+            "ShowFavoriteButton": {
+                "Name": "Mostrar Botón de Favoritos",
+                "Description": "Muestra y oculta el botón de favoritos en la Biblioteca de Música. Se pueden marcar canciones como favoritas en el menú \"Más Opciones\" cuando este botón está oculto."
+            },
+            "ShowHitWindow": {
+                "Name": "Mostrar Ventana de Golpe",
+                "Description": "Si se habilita, se mostrará una caja en tu pista que representa la \"ventana\" en la que puedes tocar notas."
+            },
+            "SongTimeOnScoreBox": {
+                "Name": "Tiempo de Canción en Caja de Puntaje",
+                "Description": "Cambia la manera en que se muestra el tiempo sobre la caja de puntaje. En los ejemplos dados, la canción dura 5 minutos y 30 segundos, y llevas 1 minuto y 10 segundos jugando.",
+                "Dropdown": {
+                    "CountDownAndTotal": "Restante y Total<pos=50%>(4:20 / 5:30)",
+                    "CountDownOnly": "Solo Restante<pos=50%>(4:20)",
+                    "CountUpAndTotal": "Tiempo y Total<pos=50%>(1:10 / 5:30)",
+                    "CountUpOnly": "Solo Tiempo<pos=50%>(1:10)",
+                    "None": "Ninguno",
+                    "TotalOnly": "Solo Total<pos=50%>(5:30)"
+                }
+            },
+            "SongVolume": {
+                "Name": "Volumen de Pista de Fondo",
+                "PauseName": "Melodía de Fondo",
+                "Description": "Ajusta el volumen de la pista de fondo de la canción. Estos son todos los instrumentos que no están incluidos en la multipista."
+            },
+            "StageKitEnabled": {
+                "Name": "Habilitar Kit de Escenario",
+                "Description": "Habilita el envío de datos de iluminación de Kit de Escenario a todos los dispositivos capaces de leerlo."
+            },
+            "StarPowerHighwayFx": {
+                "Name": "Modo de Efecto en Pista de Energía Estrella",
+                "Description": "Deshabilita elementos visuales que aparecen en la pista cuando se activa la Energía Estrella",
+                "Dropdown": {
+                    "Off": "Apagado",
+                    "On": "Encendido",
+                    "Reduced": "Reducido"
+                }
+            },
+            "UseChipmunkSpeed": {
+                "Name": "Velocidad Ardilla",
+                "Description": "Deshabilita la corrección de tono al jugar canciones a velocidad rápida o lenta, lo que puede llevar a... resultados interesantes."
+            },
+            "UseCymbalModelsInFiveLane": {
+                "Name": "Usar Modelos de Platillos en Cinco Líneas",
+                "Description": "Si se habilita, se usarán los modelos de platillos para la segunda y cuarta línea en vez del modelo de notas estándar (solo para batería de cinco líneas)."
+            },
+            "UseFullDirectoryForPlaylists": {
+                "Name": "Usar Directorio Completo Para Playlists",
+                "Description": "Usa el directorio completo para la opción de ordenar playlists en la biblioteca de música. <color=white>¡Se requiere reescanear si se cambia!</color>"
+            },
+            "UseStarpowerFx": {
+                "Name": "Usar Efectos de Sonido de Energía Estrella",
+                "Description": "Si se habilita, se añadirá eco a las pistas donde el jugador tenga la Energía Estrella activada.",
+                "Dropdown": {
+                    "MultitrackOnly": "Solo Multipista",
+                    "Off": "Apagado",
+                    "On": "Encendido"
+                }
+            },
+            "VideoCalibration": {
+                "Name": "Calibración de Video (ms)",
+                "Description": "Calibración de vídeo en milisegundos. Usa el calibrador para calibrar automáticamente. Esto toma en cuenta las demoras entre el procesamiento del juego y el cuadro que se muestra."
+            },
+            "VocalMonitoring": {
+                "Name": "Volumen de Monitoreo Vocal",
+                "PauseName": "Monitoreo",
+                "Description": "Ajusta el monitoreo que escuchas al cantar."
+            },
+            "VocalsVolume": {
+                "Name": "Volumen de Vocales",
+                "PauseName": "Voz",
+                "Description": "Ajusta el volumen de la pista de las vocales. Solo funciona si la canción es multipista."
+            },
+            "VSync": {
+                "Name": "Habilitar VSync",
+                "Description": "Habilita el VSync. El VSync limita los fotogramas al máximo de tu monitor, evitando distorsiones."
+            },
+            "PauseOnDeviceDisconnect": {
+                "Name": "Pausar Al Desconectar Dispositivo",
+                "Description": "Pausa el juego si un dispositivo que está siendo usado se desconecta en medio de una canción."
+            },
+            "PauseOnFocusLoss": {
+                "Name": "Pausar Al Perder Foco",
+                "Description": "Pausa el juego si se cambia de ventana en medio de una canción."
+            },
+            "ApplyVolumesInMusicLibrary": {
+                "Name": "Aplicar Ajustes de Volumen a las Vistas Previas de la Biblioteca de Música",
+                "Description": "Creo que no hace falta explicarlo"
+            },
+            "RB3EEnabled": {
+                "Name": "Habilitar transmisión de datos de Kit de Escenario de RB3E",
+                "Description": "Habilita el envío de paquetes de información del Kit de Escenario al estilo RB3E a través de la red, para hardware como StageKitPied"
+            },
+            "RB3EBroadcastIP": {
+                "Name": "IP objetivo de RB3E",
+                "Description": "Establece la IP de destino para la transmisión de paquetes de datos de RB3E. 255.255.255.255 es la dirección de transmisión para la red actual"
+            },
+            "DMXKeyframeChannel": {
+                "Name": "Fotograma Clave DMX",
+                "Description": "Este canal recibe las señales de fotogramas clave: Siguiente (3), Anterior (13) y Primero (23)."
+            },
+            "DMXBonusEffectChannel": {
+                "Name": "Efecto Adicional DMX",
+                "Description": "Este canal se establece (2) cuando ocurre un efecto adicional de escenario."
+            },
+            "DMXDrumsChannel": {
+                "Name": "Batería DMX",
+                "Description": "Este canal se ajusta a las notas de batería actuales: Bombo (1), Rojo (2), Amarillo (4), Azul (8), Verde (16), Platillo Amarillo (32), Platillo Azul (64), Platillo Verde (128)."
+            },
+            "DMXBeatlineChannel": {
+                "Name": "Marca de Tempo DMX",
+                "Description": "Este canal se establece en cada compás del tempo (1) y del tempo Fuerte (11)."
+            },
+            "DMXPostProcessingChannel": {
+                "Name": "Post-procesado DMX",
+                "Description": "Este canal se ajusta al efecto de video que ocurre en el escenario del juego. Revisa los siguientes valores:"
+            },
+            "DMXGuitarChannel": {
+                "Name": "Guitarra DMX",
+                "Description": "Este canal se ajusta a las notas de guitarra actuales: Abierta (1), Verde (2), Rojo (4), Amarillo (8), Azul (16), Naranja (32)."
+            },
+            "DMXBassChannel": {
+                "Name": "Bajo DMX",
+                "Description": "Este canal se ajusta a las notas de bajo actuales: Abierta (1), Verde (2), Rojo (4), Amarillo (8), Azul (16), Naranja (32)."
+            },
+            "DMXPerformerChannel": {
+                "Name": "Intérprete DMX",
+                "Description": "Este canal se ajusta al foco principal y a los cantos"
+            },
+            "DMXKeysChannel": {
+                "Name": "Teclado DMX",
+                "Description": "Este canal se ajusta a las notas de teclado actuales: Verde (2), Rojo (4), Amarillo (8), Azul (16), Naranja (32)."
+            },
+            "EnablePlaybackBuffer": {
+                "Name": "Usar Buffer de Reproducción de Audio",
+                "Description": "Almacena los datos de audio en el Búfer de forma anticipada. Mejora la estabilidad de audio en dispositivos de bajo rendimiento, a costa de añadir latencia en los efectos de sonido."
+            },
+            "PlaybackBufferLength": {
+                "Name": "Duración del Búfer de Reproducción",
+                "Description": "El tamaño del búfer de reproducción en milisegundos. Los búferes más grandes proporcionan más estabilidad, pero aumentan la latencia de los efectos de sonido."
+            },
+            "ShowTime": {
+                "Name": "Mostrar Hora",
+                "Description": "Muestra la hora actual en la Barra de Estado"
+            },
+            "ShowBattery": {
+                "Name": "Mostrar Batería",
+                "Description": "Muestra el nivel de batería en la Barra de Estado (si la batería no se está cargando)"
+            },
+            "MemoryStats": {
+                "Name": "Mostrar Estadísticas de Memoria",
+                "Description": "Muestra estadísticas del uso de memoria en la Barra de Estado"
+            },
+            "DMXUniverseChannel": {
+                "Name": "Universo de Transmisión DMX",
+                "Description": "Este es el universo al que YARG enviará el paquete sACN. Por defecto es 1. El máximo es 65535"
+            },
+            "ReconnectProfiles": {
+                "Name": "Reconectar Perfiles",
+                "Description": "Al iniciar, reconecta los perfiles conectados previamente."
+            },
+            "DMXDimmerValues": {
+                "Name": "Valores de Atenuador Maestro DMX",
+                "Description": "Estos son los valores respectivos a los que se configurarán los canales del Atenuador Maestro cuando se inicie YARG."
+            },
+            "WrapAroundNavigation": {
+                "Name": "Navegación Circular",
+                "Description": "Permitir que los menús salten a la parte inferior de una lista al ir más allá de la parte superior, o saltar a la parte superior de una lista cuando se mueva más allá de la parte inferior."
+            }
+        },
+        "PresetType": {
+            "CameraSettingsContainer": "Preajustes de Cámara",
+            "ColorProfileContainer": "Perfiles de Colores",
+            "EnginePresetContainer": "Preajustes de Motor"
+        },
+        "PresetSetting": {
+            "CameraPreset": {
+                "CurveFactor": {
+                    "Name": "Curvatura",
+                    "Description": "La curvatura de la pista."
+                },
+                "FadeLength": {
+                    "Name": "Tamaño de Difuminado",
+                    "Description": "El tamaño de difuminado de la pista. Un tamaño de \"0\" removerá el difuminado."
+                },
+                "FadeStart": {
+                    "Name": "Posición de Difuminado",
+                    "Description": "La posición del difuminado de la pista. Valores bajos acercan el difuminado a los trastes. Esto también controla el largo de la pista."
+                },
+                "FieldOfView": {
+                    "Name": "Campo de Visión de la Cámara",
+                    "Description": "El campo de visión de la cámara de la pista."
+                },
+                "PositionY": {
+                    "Name": "Posición Y de la Cámara",
+                    "Description": "La posición vertical de la cámara de la pista (arriba y abajo)."
+                },
+                "PositionZ": {
+                    "Name": "Posición Z de la Cámara",
+                    "Description": "La posición horizontal de la cámara de la pista (adelante y atrás)."
+                },
+                "Rotation": {
+                    "Name": "Rotación de la Cámara",
+                    "Description": "La rotación de la cámara de la pista (arriba y abajo)."
+                }
+            },
+            "ColorProfile": {
+                "Instrument": {
+                    "Name": "Instrumento",
+                    "Dropdown": {
+                        "FiveFretGuitar": "Guitarra de Cinco Trastes",
+                        "FiveLaneDrums": "Batería de Cinco Líneas",
+                        "FourLaneDrums": "Batería de Cuatro Líneas"
+                    }
+                },
+                "ActivationNote": {
+                    "Name": "Nota de Activación"
+                },
+                "BlueCymbal": {
+                    "Name": "Platillo Azul"
+                },
+                "BlueCymbalStarpower": {
+                    "Name": "Platillo Azul con Energía Estrella"
+                },
+                "BlueDrum": {
+                    "Name": "Tambor Azul"
+                },
+                "BlueDrumStarpower": {
+                    "Name": "Tambor Azul con Energía Estrella"
+                },
+                "BlueFret": {
+                    "Name": "Traste Azul"
+                },
+                "BlueFretInner": {
+                    "Name": "Interior de Traste Azul"
+                },
+                "BlueNote": {
+                    "Name": "Nota Azul"
+                },
+                "BlueNoteStarPower": {
+                    "Name": "Nota Azul con Energía Estrella"
+                },
+                "BlueParticles": {
+                    "Name": "Partículas Azules"
+                },
+                "BlueStarpower": {
+                    "Name": "Azul con Energía Estrella"
+                },
+                "GreenCymbal": {
+                    "Name": "Platillo Verde"
+                },
+                "GreenCymbalStarpower": {
+                    "Name": "Platillo Verde con Energía Estrella"
+                },
+                "GreenDrum": {
+                    "Name": "Tambor Verde"
+                },
+                "GreenDrumStarpower": {
+                    "Name": "Tambor Verde con Energía Estrella"
+                },
+                "GreenFret": {
+                    "Name": "Traste Verde"
+                },
+                "GreenFretInner": {
+                    "Name": "Interior de Traste Verde"
+                },
+                "GreenNote": {
+                    "Name": "Nota Verde"
+                },
+                "GreenNoteStarPower": {
+                    "Name": "Nota Verde con Energía Estrella"
+                },
+                "GreenParticles": {
+                    "Name": "Partículas Verdes"
+                },
+                "GreenStarpower": {
+                    "Name": "Verde con Energía Estrella"
+                },
+                "KickFret": {
+                    "Name": "Traste de Bombo"
+                },
+                "KickFretInner": {
+                    "Name": "Interior de Traste de Bombo"
+                },
+                "KickNote": {
+                    "Name": "Nota de Bombo"
+                },
+                "KickParticles": {
+                    "Name": "Partículas de Bombo"
+                },
+                "KickStarpower": {
+                    "Name": "Bombo con Energía Estrella"
+                },
+                "OpenFret": {
+                    "Name": "Traste Abierto"
+                },
+                "OpenFretInner": {
+                    "Name": "Interior de Traste Abierto"
+                },
+                "OpenNote": {
+                    "Name": "Nota Abierta"
+                },
+                "OpenNoteStarPower": {
+                    "Name": "Nota Abierta con Energía Estrella"
+                },
+                "OpenParticles": {
+                    "Name": "Partículas Abiertas"
+                },
+                "OrangeFret": {
+                    "Name": "Traste Naranja"
+                },
+                "OrangeFretInner": {
+                    "Name": "Interior de Traste Naranja"
+                },
+                "OrangeNote": {
+                    "Name": "Nota Naranja"
+                },
+                "OrangeNoteStarPower": {
+                    "Name": "Nota Naranja con Energía Estrella"
+                },
+                "OrangeParticles": {
+                    "Name": "Partículas Naranjas"
+                },
+                "OrangeStarpower": {
+                    "Name": "Naranja con Energía Estrella"
+                },
+                "RedCymbal": {
+                    "Name": "Platillo Rojo"
+                },
+                "RedCymbalStarpower": {
+                    "Name": "Platillo Rojo con Energía Estrella"
+                },
+                "RedDrum": {
+                    "Name": "Tambor Rojo"
+                },
+                "RedDrumStarpower": {
+                    "Name": "Tambor Rojo con Energía Estrella"
+                },
+                "RedFret": {
+                    "Name": "Traste Rojo"
+                },
+                "RedFretInner": {
+                    "Name": "Interior de Traste Rojo"
+                },
+                "RedNote": {
+                    "Name": "Nota Roja"
+                },
+                "RedNoteStarPower": {
+                    "Name": "Nota Roja con Energía Estrella"
+                },
+                "RedParticles": {
+                    "Name": "Partículas Rojas"
+                },
+                "RedStarpower": {
+                    "Name": "Rojo con Energía Estrella"
+                },
+                "YellowCymbal": {
+                    "Name": "Platillo Amarillo"
+                },
+                "YellowCymbalStarpower": {
+                    "Name": "Platillo Amarillo con Energía Estrella"
+                },
+                "YellowDrum": {
+                    "Name": "Tambor Amarillo"
+                },
+                "YellowDrumStarpower": {
+                    "Name": "Tambor Amarillo con Energía Estrella"
+                },
+                "YellowFret": {
+                    "Name": "Traste Amarillo"
+                },
+                "YellowFretInner": {
+                    "Name": "Interior de Traste Amarillo"
+                },
+                "YellowNote": {
+                    "Name": "Nota Amarilla"
+                },
+                "YellowNoteStarPower": {
+                    "Name": "Nota Amarilla con Energía Estrella"
+                },
+                "YellowParticles": {
+                    "Name": "Partículas Amarillas"
+                },
+                "YellowStarpower": {
+                    "Name": "Amarillo con Energía Estrella"
+                }
+            },
+            "EnginePreset": {
+                "GameMode": {
+                    "Name": "Modo De Juego",
+                    "Dropdown": {
+                        "DrumsPreset": "Batería (4 y 5 líneas)",
+                        "FiveFretGuitarPreset": "Guitarra de Cinco Trastes",
+                        "VocalsPreset": "Vocales"
+                    }
+                },
+                "AntiGhosting": {
+                    "Name": "Anti-Ghosting",
+                    "Description": "Al hacer ghosting (o trastear una nota que no está) el jugador romperá el combo (solo para guitarra)."
+                },
+                "FrontToBackRatio": {
+                    "Name": "Relación de Ventana de Golpe",
+                    "Description": "La relación frontal y trasera de la ventana de golpe. 0 traerá la ventana de golpe hacia atrás, 1 la mantendrá en el centro y 2 la moverá al frente."
+                },
+                "HitPercentE": {
+                    "Name": "Porcentaje de Golpe (Fácil)",
+                    "Description": "Esto determina qué tanto hay que cantar con precisión para llenar completamente el medidor, en la dificultad Fácil."
+                },
+                "HitPercentH": {
+                    "Name": "Porcentaje de Golpe (Difícil)",
+                    "Description": "Esto determina qué tanto hay que cantar con precisión para llenar completamente el medidor, en la dificultad Difícil."
+                },
+                "HitPercentM": {
+                    "Name": "Porcentaje de Golpe (Medio)",
+                    "Description": "Esto determina qué tanto hay que cantar con precisión para llenar completamente el medidor, en la dificultad Medio."
+                },
+                "HitPercentX": {
+                    "Name": "Porcentaje de Golpe (Experto)",
+                    "Description": "Esto determina qué tanto hay que cantar con precisión para llenar completamente el medidor, en la dificultad Experto."
+                },
+                "HitWindow": {
+                    "Name": "Ventana de Golpe",
+                    "Description": "El tamaño de la ventana de golpe en milisegundos. Valores altos permitirán que las notas sean golpeadas antes/después, mientras que valores bajos requieren más precisión."
+                },
+                "HopoLeniency": {
+                    "Name": "Leniencia de HOPO",
+                    "Description": "La cantidad de tiempo que se le permite a un HOPO aceptar un rasgueo. Rasguear después de este lapso resultará en un sobrerasgueo."
+                },
+                "InfiniteFrontEnd": {
+                    "Name": "Frente Infinito",
+                    "Description": "Si se activa, los HOPOs y los Taps se podrán trastear antes de que entren a la ventana de golpe (solo para guitarra)."
+                },
+                "IsDynamic": {
+                    "Name": "Ventana de Golpe Dinámica",
+                    "Description": "La ventana de tiempo se ajusta en tamaño dependiendo de que tan cerca que estén las notas. Cuanto más rápidas sean las notas, más pequeña será la ventana (solo para guitarra)."
+                },
+                "StrumLeniency": {
+                    "Name": "Leniencia de Rasgueo",
+                    "Description": "La cantidad de tiempo que un rasgueo puede ser introducido antes de trastear la nota correcta. Trastear después de este lapso resultará en un sobrerasgueo."
+                },
+                "StrumLeniencySmall": {
+                    "Name": "Leniencia de Rasgueo (Sin Notas)",
+                    "Description": "La cantidad de tiempo que una nota puede ser rasgueada antes de entrar a la ventana de golpe y aun así recibe el rasgueo. Rasguear antes causará un sobrerasgueo."
+                },
+                "WindowSizeE": {
+                    "Name": "Tamaño de la ventana (Fácil)",
+                    "Description": "El tamaño de la ventana de leniencia de tono (en semitonos); en otras palabras, qué tan fuera de tono puede cantar un jugador para que el juego siga detectándolo como una nota correcta, en la dificultad Fácil."
+                },
+                "WindowSizeH": {
+                    "Name": "Tamaño de la ventana (Difícil)",
+                    "Description": "El tamaño de la ventana de leniencia de tono (en semitonos); en otras palabras, qué tan fuera de tono puede cantar un jugador para que el juego siga detectándolo como una nota correcta, en la dificultad Difícil."
+                },
+                "WindowSizeM": {
+                    "Name": "Tamaño de la ventana (Medio)",
+                    "Description": "El tamaño de la ventana de leniencia de tono (en semitonos); en otras palabras, qué tan fuera de tono puede cantar un jugador para que el juego siga detectándolo como una nota correcta, en la dificultad Medio."
+                },
+                "WindowSizeX": {
+                    "Name": "Tamaño de la ventana (Experto)",
+                    "Description": "El tamaño de la ventana de leniencia de tono (en semitonos); en otras palabras, qué tan fuera de tono puede cantar un jugador para que el juego siga detectándolo como una nota correcta, en la dificultad Experto."
+                }
+            }
+        }
+    }
+}
