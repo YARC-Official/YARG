@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using UnityEngine;
 using YARG.Core.Logging;
@@ -157,7 +157,7 @@ namespace YARG.Playback
         private bool _playAudioOnResume = false;
 
         /// <summary>
-        /// Whether or not <see cref="InitializeSongTime"/> has been called yet..
+        /// Whether or not <see cref="InitializeSongTime"/> has been called yet.
         /// </summary>
         private bool _songTimeInitialized = false;
         #endregion
@@ -483,7 +483,7 @@ namespace YARG.Playback
                 "Unexpected visual time change! Went from {0} to {1}, threshold {2}",
                 previousVisualTime, VisualTime, threshold);
             YargLogger.AssertFormat(Math.Abs(InputTime - previousInputTime) <= threshold,
-                "Unexpected visual time change! Went from {0} to {1}, threshold {2}",
+                "Unexpected input time change! Went from {0} to {1}, threshold {2}",
                 previousInputTime, InputTime, threshold);
         }
 
