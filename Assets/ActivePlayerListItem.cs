@@ -8,7 +8,7 @@ namespace YARG
     public class ActivePlayerListItem : MonoBehaviour
     {
         [SerializeField]
-        private TextMeshProUGUI _PlayerNameText;
+        private TextMeshProUGUI _playerNameText;
         [SerializeField]
         private Image _playerGameModeIcon;
 
@@ -25,15 +25,15 @@ namespace YARG
                 _profile = value;
 
                 Debug.Assert(_profile != null);
-                _PlayerNameText.text = _profile.Name;
+                _playerNameText.text = _profile.Name;
                 _playerGameModeIcon.sprite = _gameModeIcons[(int) _profile.GameMode];
             }
         }
 
         public bool ShowName
         {
-            get => _PlayerNameText.gameObject.activeSelf;
-            set => _PlayerNameText.gameObject.SetActive(value);
+            get => _playerNameText.gameObject.activeSelf;
+            set => _playerNameText.gameObject.SetActive(value);
         }
         [SerializeField]
         private Sprite[] _gameModeIcons = new Sprite[0];

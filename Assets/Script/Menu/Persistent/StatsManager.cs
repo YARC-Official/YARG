@@ -92,7 +92,7 @@ namespace YARG.Menu.Persistent
 
         private float _nextUpdateTime;
 
-        private int _activeBotCount => PlayerContainer.Players.Count(p => p.Profile.IsBot);
+        private int ActiveBotCount => PlayerContainer.Players.Count(p => p.Profile.IsBot);
 
         protected override void SingletonAwake()
         {
@@ -103,13 +103,13 @@ namespace YARG.Menu.Persistent
         {
             return stat switch
             {
-                Stat.FPS => _fpsCounter,
-                Stat.Memory => _memoryStats,
-                Stat.Time => _time,
-                Stat.Battery => _battery,
-                Stat.ActiveBots => _activeBots,
-                Stat.ActivePlayers => _activePlayerList.gameObject,
-                _ => throw new Exception("Unreachable.")
+                Stat.FPS            => _fpsCounter,
+                Stat.Memory         => _memoryStats,
+                Stat.Time           => _time,
+                Stat.Battery        => _battery,
+                Stat.ActiveBots     => _activeBots,
+                Stat.ActivePlayers  => _activePlayerList.gameObject,
+                _                   => throw new Exception("Unreachable.")
             };
         }
 
@@ -138,15 +138,13 @@ namespace YARG.Menu.Persistent
 
             // Only show the bot count if there are active bots.
             var showBots = SettingsManager.Settings.ShowActiveBots.Value
-                && _activeBotCount > 0;
+                && ActiveBotCount > 0;
             SetShowing(Stat.ActiveBots, showBots);
 
             UpdateFpsCounter();
             UpdateMemoryStats();
             UpdateTime();
             UpdateBattery();
-            UpdateActivePlayers();
-            UpdateActiveBots();
 
             // Reset the update time
             _nextUpdateTime = Time.unscaledTime + _updateRate;
@@ -256,19 +254,10 @@ namespace YARG.Menu.Persistent
             };
         }
 
-        private void UpdateActivePlayers()
+        public void UpdateActivePlayers()
         {
-            if (!IsShowing(Stat.ActivePlayers)) return;
-
             _activePlayerList.UpdatePlayerList(PlayerContainer.Players);
+            _activeBotsText.text = $"x{ActiveBotCount}";
         }
-
-        private void UpdateActiveBots()
-        {
-            if (!IsShowing(Stat.ActiveBots)) return;
-
-            _activeBotsText.text = $"x{_activeBotCount}";
-        }
-
     }
 }

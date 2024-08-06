@@ -1,16 +1,15 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Newtonsoft.Json;
 using UnityEngine.InputSystem;
-using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.MusicLibrary;
+using YARG.Menu.Persistent;
 using YARG.Settings;
 using YARG.Song;
 
@@ -140,6 +139,8 @@ namespace YARG.Player
             {
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
+
+            StatsManager.Instance.UpdateActivePlayers();
         }
 
         public static YargPlayer GetPlayerFromProfile(YargProfile profile)

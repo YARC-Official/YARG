@@ -7,28 +7,32 @@ namespace YARG
 {
     public class ActivePlayerList : MonoBehaviour
     {
-        public GameObject NoPlayersContainer;
-        public GameObject PlayerNamesContainer;
-        public GameObject PlayerNamesPrefab;
+        [SerializeField]
+        private GameObject _noPlayersContainer;
+        [SerializeField]
+        private GameObject _playerNamesContainer;
+        [SerializeField]
+        private GameObject _playerNamesPrefab;
 
-        public int MaxShownPlayerNames = 3;
+        [SerializeField]
+        private int _maxShownPlayerNames = 3;
 
         public void UpdatePlayerList(IReadOnlyCollection<YargPlayer> players)
         {
             // Only show this message if there are no players, including bots.
-            NoPlayersContainer.SetActive(players.Count == 0);
+            _noPlayersContainer.SetActive(players.Count == 0);
 
             players = players.Where(e => !e.Profile.IsBot).ToList();
-            var showPlayerNames = players.Count <= MaxShownPlayerNames;
+            var showPlayerNames = players.Count <= _maxShownPlayerNames;
 
-            foreach (Transform child in PlayerNamesContainer.transform)
+            foreach (Transform child in _playerNamesContainer.transform)
             {
                 Destroy(child.gameObject);
             }
 
             foreach (var player in players)
             {
-                var newObj = Instantiate(PlayerNamesPrefab, PlayerNamesContainer.transform);
+                var newObj = Instantiate(_playerNamesPrefab, _playerNamesContainer.transform);
                 newObj.name = "Player: " + player.Profile.Name;
                 var itemComponent = newObj.GetComponent<ActivePlayerListItem>();
                 itemComponent.Profile = player.Profile;
