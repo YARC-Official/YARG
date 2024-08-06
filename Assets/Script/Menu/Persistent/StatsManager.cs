@@ -136,11 +136,6 @@ namespace YARG.Menu.Persistent
                 && SystemInfo.batteryLevel is >= 0 and <= 1;
             SetShowing(Stat.Battery, showBattery);
 
-            // Only show the bot count if there are active bots.
-            var showBots = SettingsManager.Settings.ShowActiveBots.Value
-                && ActiveBotCount > 0;
-            SetShowing(Stat.ActiveBots, showBots);
-
             UpdateFpsCounter();
             UpdateMemoryStats();
             UpdateTime();
@@ -256,6 +251,11 @@ namespace YARG.Menu.Persistent
 
         public void UpdateActivePlayers()
         {
+            // Only show the bot count if there are active bots.
+            var showBots = SettingsManager.Settings.ShowActiveBots.Value
+                && ActiveBotCount > 0;
+            SetShowing(Stat.ActiveBots, showBots);
+
             _activePlayerList.UpdatePlayerList(PlayerContainer.Players);
             _activeBotsText.text = $"x{ActiveBotCount}";
         }

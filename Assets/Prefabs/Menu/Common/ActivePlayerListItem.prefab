@@ -285,7 +285,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a902332af6d0e4d4b834e0099dbb90b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _PlayerNameText: {fileID: 5968729197423260406}
+  _playerNameText: {fileID: 5968729197423260406}
   _playerGameModeIcon: {fileID: 658912062219492502}
   _gameModeIcons:
   - {fileID: 1445730593, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
@@ -308,7 +308,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  - {fileID: -1793394884, guid: 0a16c58d433eacb44a1354456c1c8abd, type: 3}
+  - {fileID: 248047085, guid: 9a7443e591e54de4cb9bc5796a8ab687, type: 3}
 --- !u!114 &8373888489887330168
 MonoBehaviour:
   m_ObjectHideFlags: 0
