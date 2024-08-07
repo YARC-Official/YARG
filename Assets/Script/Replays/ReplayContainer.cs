@@ -86,21 +86,26 @@ namespace YARG.Replays
             }
         }
 
-        public static ReplayReadResult LoadReplayFile(ReplayEntry entry, out ReplayFile replayFile)
+        public static ReplayReadResult LoadReplayFile(ReplayEntry entry, out Replay replay)
         {
-            return ReplayIO.ReadReplay(entry.ReplayPath, out replayFile);
+            return ReplayIO.ReadReplay(entry.ReplayPath, out replay);
         }
 
         public static Replay CreateNewReplay(SongEntry song, IList<BasePlayer> players, double replayLength)
         {
-            var replay = new Replay
+            var metadata = new ReplayMetadata
             {
                 SongName = song.Name,
                 ArtistName = song.Artist,
                 CharterName = song.Charter,
-                SongChecksum = song.Hash,
                 ReplayLength = replayLength,
                 Date = DateTime.Now,
+                SongChecksum = song.Hash,
+            };
+
+            var replay = new Replay
+            {
+                Metadata = metadata,
                 PlayerCount = players.Count,
                 PlayerNames = new string[players.Count],
                 Frames = new ReplayFrame[players.Count],
@@ -121,32 +126,30 @@ namespace YARG.Replays
                 bandStars += player.Stars;
 
                 // Make sure preset files are saved
-                replay.ReplayPresetContainer.StoreColorProfile(player.Player.ColorProfile);
-                replay.ReplayPresetContainer.StoreCameraPreset(player.Player.CameraPreset);
+                replay.PresetContainer.StoreColorProfile(player.Player.ColorProfile);
+                replay.PresetContainer.StoreCameraPreset(player.Player.CameraPreset);
             }
 
-            replay.BandScore = bandScore;
-            replay.BandStars = StarAmountHelper.GetStarsFromInt((int) (bandStars / players.Count));
+            metadata.BandScore = bandScore;
+            metadata.BandStars = StarAmountHelper.GetStarsFromInt((int) (bandStars / players.Count));
 
             return replay;
         }
 
-        public static ReplayEntry CreateEntryFromReplayFile(ReplayFile replayFile)
+        public static ReplayEntry CreateEntryFromReplayFile(Replay replay)
         {
-            var replay = replayFile.Replay;
-
             var entry = new ReplayEntry
             {
-                SongName = replay.SongName,
-                ArtistName = replay.ArtistName,
-                CharterName = replay.CharterName,
-                BandScore = replay.BandScore,
-                BandStars = replay.BandStars,
-                Date = replay.Date,
-                SongChecksum = replay.SongChecksum,
+                SongName = replay.Metadata.SongName,
+                ArtistName = replay.Metadata.ArtistName,
+                CharterName = replay.Metadata.CharterName,
+                BandScore = replay.Metadata.BandScore,
+                BandStars = replay.Metadata.BandStars,
+                Date = replay.Metadata.Date,
+                SongChecksum = replay.Metadata.SongChecksum,
                 PlayerCount = replay.PlayerCount,
                 PlayerNames = replay.PlayerNames,
-                EngineVersion = replayFile.Header.EngineVersion
+                EngineVersion = replay.Header.EngineVersion
             };
 
             entry.ReplayPath = Path.Combine(ReplayDirectory, entry.GetReplayName());
@@ -365,8 +368,6 @@ namespace YARG.Replays
 
             frame.Inputs = player.ReplayInputs.ToArray();
             frame.InputCount = player.ReplayInputs.Count;
-
-            frame.EventLog = player.BaseEngine.EventLogger;
 
             return frame;
         }

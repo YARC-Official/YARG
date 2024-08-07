@@ -217,11 +217,11 @@ namespace YARG.Gameplay
 
         private bool LoadReplay()
         {
-            ReplayFile replayFile = null!;
+            Replay replay = null!;
             ReplayReadResult result;
             try
             {
-                result = ReplayContainer.LoadReplayFile(GlobalVariables.State.CurrentReplay, out replayFile);
+                result = ReplayContainer.LoadReplayFile(GlobalVariables.State.CurrentReplay, out replay);
             }
             catch (Exception ex)
             {
@@ -234,7 +234,7 @@ namespace YARG.Gameplay
                 return false;
             }
 
-            Replay = replayFile.Replay;
+            Replay = replay!;
 
             // Create YargPlayers from the replay frames
             var players = new List<YargPlayer>();
@@ -242,7 +242,7 @@ namespace YARG.Gameplay
             {
                 var yargPlayer = new YargPlayer(frame.PlayerInfo.Profile, null, false);
 
-                yargPlayer.SetPresetsFromReplay(Replay.ReplayPresetContainer);
+                yargPlayer.SetPresetsFromReplay(Replay.PresetContainer);
                 yargPlayer.EngineParameterOverride = frame.EngineParameters;
 
                 players.Add(yargPlayer);

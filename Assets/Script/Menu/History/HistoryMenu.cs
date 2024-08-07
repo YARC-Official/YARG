@@ -174,17 +174,17 @@ namespace YARG.Menu.History
             FileExplorerHelper.OpenChooseFile(null, "replay", path =>
             {
                 // We need to check if the replay is valid before importing it
-                ReplayFile replayFile;
+                Replay replay;
                 try
                 {
-                    var result = ReplayIO.ReadReplay(path, out replayFile);
+                    var result = ReplayIO.ReadReplay(path, out replay);
 
                     if (result != ReplayReadResult.Valid)
                     {
                         throw new Exception($"Replay read result is {result}.");
                     }
 
-                    if (replayFile is null)
+                    if (replay is null)
                     {
                         throw new Exception("Replay file is null.");
                     }
@@ -212,7 +212,7 @@ namespace YARG.Menu.History
                 File.Copy(path, dest);
 
                 // Add it to the replay container...
-                var entry = ReplayContainer.CreateEntryFromReplayFile(replayFile);
+                var entry = ReplayContainer.CreateEntryFromReplayFile(replay);
                 ReplayContainer.AddReplay(entry);
 
                 // then refresh list (to show the replay)
