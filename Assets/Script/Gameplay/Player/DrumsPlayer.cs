@@ -291,7 +291,7 @@ namespace YARG.Gameplay.Player
         }
 
         private void PlayDrumSoundEffect(DrumsAction action, float velocity)
-        {   
+        {
             int actionIndex = (int) action;
             double sampleVolume = velocity;
 
@@ -302,7 +302,7 @@ namespace YARG.Gameplay.Player
                 sampleIndex = (int) DrumSfxSample.Vel2Pad0Smp0;
             }
             // VelocityThreshold refers to the maximum ghost input velocity
-            else if (velocity > EngineParams.VelocityThreshold) 
+            else if (velocity > EngineParams.VelocityThreshold)
             {
                 sampleIndex = (int) DrumSfxSample.Vel1Pad0Smp0;
                 // This division is normalizing the volume using _drumSoundEffectAccentThreshold as pseudo "1"
@@ -328,7 +328,7 @@ namespace YARG.Gameplay.Player
 
         private bool IsDrumFreestyle()
         {
-            return Engine.State.NoteIndex == 0 || Engine.State.NoteIndex >= Notes.Count; // TODO: add drum fill / BRE conditions
+            return Engine.NoteIndex == 0 || Engine.NoteIndex >= Notes.Count; // TODO: add drum fill / BRE conditions
         }
     }
 }

@@ -262,18 +262,18 @@ namespace YARG.Gameplay
 
                 if (_players[0] is FiveFretPlayer fiveFretPlayer)
                 {
-                    var state = fiveFretPlayer.Engine.State;
+                    var engine = fiveFretPlayer.Engine;
                     var stats = fiveFretPlayer.Engine.EngineStats;
 
-                    text.AppendFormat("Note index: {0}\n", state.NoteIndex);
-                    text.AppendFormat("Buttons: {0}\n", state.ButtonMask);
+                    text.AppendFormat("Note index: {0}\n", engine.NoteIndex);
+                    text.AppendFormat("Buttons: {0}\n", engine.ButtonMask);
                     text.AppendFormat("Star Power Ticks: {0}\n", stats.StarPowerTickAmount);
                 }
                 else if (_players[0] is DrumsPlayer drumsPlayer)
                 {
-                    var state = drumsPlayer.Engine.State;
+                    var engine = drumsPlayer.Engine;
 
-                    text.AppendFormat("Note index: {0}\n", state.NoteIndex);
+                    text.AppendFormat("Note index: {0}\n", engine.NoteIndex);
                 }
 
                 text.AppendFormat("Device audio latency: {0}ms\n", GlobalAudioHandler.PlaybackLatency);

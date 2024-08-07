@@ -261,9 +261,9 @@ namespace YARG.Gameplay.Player
 
             // Get combo meter fill
             float fill = 0f;
-            if (Engine.State.PhraseTicksTotal != null && Engine.State.PhraseTicksTotal.Value != 0)
+            if (Engine.PhraseTicksTotal != null && Engine.PhraseTicksTotal.Value != 0)
             {
-                fill = (float) (Engine.State.PhraseTicksHit / Engine.State.PhraseTicksTotal.Value);
+                fill = (float) (Engine.PhraseTicksHit / Engine.PhraseTicksTotal.Value);
                 fill /= (float) EngineParams.PhraseHitPercent;
             }
 
@@ -317,7 +317,7 @@ namespace YARG.Gameplay.Player
 
                         // Rotate the needle a little bit depending on how off it is (unless it's non-pitched)
                         // Get how off the player is
-                        (float pitchDist, _) = GetPitchDistanceIgnoringOctave(lastNotePitch, Engine.State.PitchSang);
+                        (float pitchDist, _) = GetPitchDistanceIgnoringOctave(lastNotePitch, Engine.PitchSang);
 
                         // Determine how off that is compared to the hit window
                         float distPercent = Mathf.Clamp(pitchDist / (float) EngineParams.HitWindow.MaxWindow, -1f, 1f);
@@ -328,7 +328,7 @@ namespace YARG.Gameplay.Player
                     else
                     {
                         // If the note is non-pitched, just use the singing position
-                        pitch = Engine.State.PitchSang + 12f;
+                        pitch = Engine.PitchSang + 12f;
                     }
 
                     // Transform!
@@ -345,7 +345,7 @@ namespace YARG.Gameplay.Player
 
                     // Since the player is not hitting the note here, we need to offset it correctly.
                     // Get the pitch, and move to the correct octave.
-                    float pitch = Engine.State.PitchSang;
+                    float pitch = Engine.PitchSang;
                     if (_lastTargetNote is not null && !_lastTargetNote.IsNonPitched)
                     {
                         (_, int octaveShift) = GetPitchDistanceIgnoringOctave(lastNotePitch, pitch);
@@ -353,7 +353,7 @@ namespace YARG.Gameplay.Player
                         int lastNoteOctave = (int) (lastNotePitch / 12f);
 
                         // Set the pitch's octave to the target one
-                        pitch = Engine.State.PitchSang % 12f;
+                        pitch = Engine.PitchSang % 12f;
                         pitch += 12f * (lastNoteOctave + octaveShift);
                     }
                     else
