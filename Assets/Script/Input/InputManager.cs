@@ -62,18 +62,13 @@ namespace YARG.Input
         private static bool              _focusChanged;
         private static List<InputDevice> _backgroundDisabledDevices = new();
 
-        private static IDisposable _onEventListener;
-
         public static void Initialize()
         {
             // High polling rate
             // TODO: Allow configuring this?
             InputSystem.pollingFrequency = 500f;
 
-            _onEventListener?.Dispose();
-            // InputSystem.onEvent is *not* a C# event, it's a property which is intended to be used with observables
-            // In order to unsubscribe from it you *must* keep track of the IDisposable returned at the end
-            _onEventListener = InputSystem.onEvent.Call(OnEvent);
+            InputSystem.onEvent += OnEvent;
 
             InputSystem.onBeforeUpdate += OnBeforeUpdate;
             InputSystem.onAfterUpdate += OnAfterUpdate;
@@ -98,8 +93,7 @@ namespace YARG.Input
 
         public static void Destroy()
         {
-            _onEventListener?.Dispose();
-            _onEventListener = null;
+            InputSystem.onEvent -= OnEvent;
 
             InputSystem.onBeforeUpdate -= OnBeforeUpdate;
             InputSystem.onAfterUpdate -= OnAfterUpdate;
@@ -160,17 +154,18 @@ namespace YARG.Input
         }
 
         // For input time handling/debugging
-        private static void OnEvent(InputEventPtr eventPtr)
+        private static void OnEvent(InputEventPtr eventPtr, InputDevice device)
         {
             double currentTime = CurrentInputTime;
 
             // Only check state events
-            if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>()) return;
+            if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
+                return;
 
             // Keep track of the latest input event
-            if (eventPtr.time > _latestInputTime) _latestInputTime = eventPtr.time;
+            if (eventPtr.time > _latestInputTime)
+                _latestInputTime = eventPtr.time;
 
-            var device = InputSystem.GetDeviceById(eventPtr.deviceId);
             if (device is null)
             {
                 // We need to do the formatting up-front here, InputEventPtr points
