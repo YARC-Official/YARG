@@ -179,7 +179,7 @@ namespace YARG.Menu.ScoreScreen
                 return true;
             }
 
-            var replayReadResult = ReplayIO.ReadReplay(replayEntry.ReplayPath, out var replayFile);
+            var replayReadResult = ReplayIO.ReadReplay(replayEntry.ReplayPath, out var replay);
             if (replayReadResult != ReplayReadResult.Valid)
             {
                 YargLogger.LogFormatError("Replay did not load. {0}", replayReadResult);
@@ -187,7 +187,7 @@ namespace YARG.Menu.ScoreScreen
                 return true;
             }
 
-            var replay = replayFile!.Replay;
+            replay = replay!;
 
             var results = ReplayAnalyzer.AnalyzeReplay(chart, replay);
 

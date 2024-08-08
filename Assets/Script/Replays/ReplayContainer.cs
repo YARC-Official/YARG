@@ -286,8 +286,7 @@ namespace YARG.Replays
                 return;
             }
 
-            var result = ReplayIO.ReadReplay(e.FullPath, out var replayFile);
-            var replay = replayFile?.Replay;
+            var result = ReplayIO.ReadReplay(e.FullPath, out var replay);
 
             switch (result)
             {
@@ -307,17 +306,19 @@ namespace YARG.Replays
                     throw new ArgumentOutOfRangeException();
             }
 
+            replay = replay!;
+
             var entry = new ReplayEntry
             {
-                SongName = replay.SongName,
-                ArtistName = replay.ArtistName,
-                CharterName = replay.CharterName,
-                BandScore = replay.BandScore,
-                Date = replay.Date,
-                SongChecksum = replay.SongChecksum,
+                SongName = replay.Metadata.SongName,
+                ArtistName = replay.Metadata.ArtistName,
+                CharterName = replay.Metadata.CharterName,
+                BandScore = replay.Metadata.BandScore,
+                Date = replay.Metadata.Date,
+                SongChecksum = replay.Metadata.SongChecksum,
                 PlayerCount = replay.PlayerCount,
                 PlayerNames = replay.PlayerNames,
-                EngineVersion = replayFile.Header.EngineVersion,
+                EngineVersion = replay.Header.EngineVersion,
                 ReplayPath = e.FullPath,
             };
 

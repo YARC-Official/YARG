@@ -92,14 +92,14 @@ namespace YARG.Menu.History
                 return;
             }
 
-            var replayReadResult = ReplayIO.ReadReplay(_replayEntry.ReplayPath, out var replayFile);
+            var replayReadResult = ReplayIO.ReadReplay(_replayEntry.ReplayPath, out var replay);
             if (replayReadResult != ReplayReadResult.Valid)
             {
                 YargLogger.LogFormatError("Replay did not load. {0}", replayReadResult);
                 return;
             }
 
-            var replay = replayFile!.Replay;
+            replay = replay!;
 
             var results = ReplayAnalyzer.AnalyzeReplay(chart, replay);
 
