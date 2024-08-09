@@ -839,7 +839,7 @@
             },
             "ReduceNoteSpeedByDifficulty": {
                 "Name": "Reduce Note Speed By Difficulty",
-                "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The note speed set by a profile is applied to Expert charts, and lower difficulty charts receive a reduction in speed."
+                "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The specified note speed is applied to Expert, and lower difficulties receive a reduction in speed. This setting does not affect vocal tracks."
             }
         },
         "PresetType": {
