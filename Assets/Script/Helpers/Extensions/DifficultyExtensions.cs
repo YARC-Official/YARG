@@ -46,5 +46,26 @@ namespace YARG.Helpers.Extensions
                 _ => "Unknown"
             };
         }
+
+        /// <summary>
+        /// Returns the scale by which the note speed should be adjusted
+        /// according to the difficulty of the track.
+        /// </summary>
+        /// <remarks>
+        /// These multipliers are the same as for the Rock Band series.
+        /// </remarks>
+        public static float NoteSpeedScale(this Difficulty difficulty)
+        {
+            return difficulty switch
+            {
+                Difficulty.Easy       => 0.5f,
+                Difficulty.Medium     => 0.66f,
+                Difficulty.Hard       => 0.83f,
+                Difficulty.Expert     => 1.0f,
+                Difficulty.ExpertPlus => 1.0f,
+
+                _ => 1.0f
+            };
+        }
     }
 }

@@ -50,6 +50,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.ReconnectProfiles),
                 nameof(Settings.UseCymbalModelsInFiveLane),
+                nameof(Settings.ReduceNoteSpeedByDifficulty),
                 nameof(Settings.KickBounceMultiplier),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),

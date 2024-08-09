@@ -836,6 +836,10 @@
             "WrapAroundNavigation": {
                 "Name": "Wrap-Around Navigation",
                 "Description": "Allow menus to jump to the bottom of a list when scrolling past the top, or jump to the top of a list when scrolling past the bottom."
+            },
+            "ReduceNoteSpeedByDifficulty": {
+                "Name": "Reduce Note Speed By Difficulty",
+                "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The note speed set by a profile is applied to Expert charts, and lower difficulty charts receive a reduction in speed."
             }
         },
         "PresetType": {

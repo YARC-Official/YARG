@@ -71,6 +71,8 @@ namespace YARG.Settings
             public ToggleSetting ReconnectProfiles { get; } = new(true);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
+
+            public ToggleSetting ReduceNoteSpeedByDifficulty { get; } = new(true);
             public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
 
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
