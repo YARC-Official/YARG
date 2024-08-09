@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using YARG.Player;
 
@@ -17,8 +16,9 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private int _maxShownPlayerNames = 3;
 
-        public void UpdatePlayerList(IReadOnlyCollection<YargPlayer> players)
+        public void UpdatePlayerList()
         {
+            var players  = PlayerContainer.Players;
             // Only show this message if there are no players, including bots.
             _noPlayersContainer.SetActive(players.Count == 0);
 

@@ -256,7 +256,7 @@ namespace YARG.Menu.Persistent
                 && ActiveBotCount > 0;
             SetShowing(Stat.ActiveBots, showBots);
 
-            _activePlayerList.UpdatePlayerList(PlayerContainer.Players);
+            _activePlayerList.UpdatePlayerList();
             _activeBotsText.text = ZString.Format("x{0}", ActiveBotCount);
         }
     }
