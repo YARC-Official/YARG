@@ -73,8 +73,8 @@ namespace YARG.Menu.History
             }
 
             // Read
-            var result = ReplayIO.ReadReplay(path, out var replayFile);
-            if (result != ReplayReadResult.Valid || replayFile == null)
+            var result = ReplayIO.ReadReplay(path, out var replay);
+            if (result != ReplayReadResult.Valid || replay == null)
             {
                 DialogManager.Instance.ShowMessage("Cannot Play Replay",
                     "The replay for this song is most likely corrupted, or out of date.");
@@ -82,12 +82,12 @@ namespace YARG.Menu.History
             }
 
             // Create a replay entry
-            var replayEntry = ReplayContainer.CreateEntryFromReplayFile(replayFile);
+            var replayEntry = ReplayEntry.CreateFromReplay(replay);
             replayEntry.ReplayPath = path;
 
             // Compare hashes
             var databaseHash = HashWrapper.Create(GameRecord.ReplayChecksum);
-            if (!replayFile.Header.ReplayChecksum.Equals(databaseHash))
+            if (!replay.Header.ReplayChecksum.Equals(databaseHash))
             {
                 DialogManager.Instance.ShowMessage("Cannot Play Replay",
                     "The replay's hash does not match the hash present in the database. Was the database modified?");

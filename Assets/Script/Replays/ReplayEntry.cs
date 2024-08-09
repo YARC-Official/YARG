@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using YARG.Core.Game;
+using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Core.Utility;
 
@@ -32,6 +34,32 @@ namespace YARG.Replays
             var charter = ReplayNameRegex.Replace(RichTextUtils.StripRichTextTags(CharterName), "");
 
             return $"{artist}-{song}-{charter}-{Date:yy-MM-dd-HH-mm-ss}.replay";
+        }
+
+        public ReplayReadResult LoadReplay(out Replay replay)
+        {
+            return ReplayIO.ReadReplay(ReplayPath, out replay);
+        }
+
+        public static ReplayEntry CreateFromReplay(Replay replay)
+        {
+            var entry = new ReplayEntry
+            {
+                SongName = replay.Metadata.SongName,
+                ArtistName = replay.Metadata.ArtistName,
+                CharterName = replay.Metadata.CharterName,
+                BandScore = replay.Metadata.BandScore,
+                BandStars = replay.Metadata.BandStars,
+                Date = replay.Metadata.Date,
+                SongChecksum = replay.Metadata.SongChecksum,
+                PlayerCount = replay.PlayerCount,
+                PlayerNames = replay.PlayerNames,
+                EngineVersion = replay.Header.EngineVersion
+            };
+
+            entry.ReplayPath = Path.Combine(ReplayContainer.ReplayDirectory, entry.GetReplayName());
+
+            return entry;
         }
     }
 }

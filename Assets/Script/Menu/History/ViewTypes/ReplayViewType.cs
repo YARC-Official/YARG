@@ -99,9 +99,7 @@ namespace YARG.Menu.History
                 return;
             }
 
-            replay = replay!;
-
-            var results = ReplayAnalyzer.AnalyzeReplay(chart, replay);
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, replay!);
 
             for(int i = 0; i < results.Length; i++)
             {

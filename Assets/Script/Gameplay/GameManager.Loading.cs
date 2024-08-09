@@ -221,7 +221,7 @@ namespace YARG.Gameplay
             ReplayReadResult result;
             try
             {
-                result = ReplayContainer.LoadReplayFile(GlobalVariables.State.CurrentReplay, out replay);
+                result = GlobalVariables.State.CurrentReplay.LoadReplay(out replay);
             }
             catch (Exception ex)
             {

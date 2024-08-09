@@ -514,7 +514,7 @@ namespace YARG.Gameplay
             }
 
             var replay = ReplayContainer.CreateNewReplay(Song, realPlayers, length);
-            var entry = ReplayContainer.CreateEntryFromReplayFile(replay);
+            var entry = ReplayEntry.CreateFromReplay(replay);
 
             var name = entry.GetReplayName();
 

@@ -174,27 +174,13 @@ namespace YARG.Menu.History
             FileExplorerHelper.OpenChooseFile(null, "replay", path =>
             {
                 // We need to check if the replay is valid before importing it
-                Replay replay;
-                try
-                {
-                    var result = ReplayIO.ReadReplay(path, out replay);
 
-                    if (result != ReplayReadResult.Valid)
-                    {
-                        throw new Exception($"Replay read result is {result}.");
-                    }
+                var result = ReplayIO.ReadReplay(path, out var replay);
 
-                    if (replay is null)
-                    {
-                        throw new Exception("Replay file is null.");
-                    }
-                }
-                catch (Exception e)
+                if (result != ReplayReadResult.Valid)
                 {
                     DialogManager.Instance.ShowMessage("Cannot Import Replay",
                         "The selected replay is most likely corrupted, or is not a valid replay file.");
-
-                    YargLogger.LogException(e, "Failed to import replay");
                     return;
                 }
 
@@ -212,8 +198,8 @@ namespace YARG.Menu.History
                 File.Copy(path, dest);
 
                 // Add it to the replay container...
-                var entry = ReplayContainer.CreateEntryFromReplayFile(replay);
-                ReplayContainer.AddReplay(entry);
+                var entry = ReplayEntry.CreateFromReplay(replay);
+                ReplayContainer.AddReplayToCache(entry);
 
                 // then refresh list (to show the replay)
                 RequestViewListUpdate();
