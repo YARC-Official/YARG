@@ -64,7 +64,7 @@ namespace YARG.Player
 
             _profiles.Add(profile);
             _profilesById.Add(profile.Id, profile);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
@@ -77,7 +77,7 @@ namespace YARG.Player
 
             _profiles.Remove(profile);
             _profilesById.Remove(profile.Id);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
@@ -102,7 +102,7 @@ namespace YARG.Player
             player.EnableInputs();
             _players.Add(player);
             _playersByProfile.Add(profile, player);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return player;
         }
 
@@ -114,7 +114,7 @@ namespace YARG.Player
             _playersByProfile.Remove(player.Profile);
 
             player.Dispose();
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
@@ -129,11 +129,11 @@ namespace YARG.Player
 
             var bindings = BindingsContainer.GetBindingsForProfile(newProfile);
             player.SwapToProfile(newProfile, bindings, true);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
-        private static void ResetPlayableSongs()
+        private static void ActiveProfilesChanged()
         {
             if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
             {

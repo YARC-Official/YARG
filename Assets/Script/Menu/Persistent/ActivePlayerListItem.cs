@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Game;
 
-namespace YARG
+namespace YARG.Menu.Persistent
 {
     public class ActivePlayerListItem : MonoBehaviour
     {
