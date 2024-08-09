@@ -92,8 +92,6 @@ namespace YARG.Menu.Persistent
 
         private float _nextUpdateTime;
 
-        private int ActiveBotCount => PlayerContainer.Players.Count(p => p.Profile.IsBot);
-
         protected override void SingletonAwake()
         {
             _screenRefreshRate = Screen.currentResolution.refreshRate;
@@ -251,13 +249,14 @@ namespace YARG.Menu.Persistent
 
         public void UpdateActivePlayers()
         {
+            var activeBotCount = PlayerContainer.Players.Count(p => p.Profile.IsBot);
+
             // Only show the bot count if there are active bots.
-            var showBots = SettingsManager.Settings.ShowActiveBots.Value
-                && ActiveBotCount > 0;
+            var showBots = SettingsManager.Settings.ShowActiveBots.Value && activeBotCount > 0;
             SetShowing(Stat.ActiveBots, showBots);
 
             _activePlayerList.UpdatePlayerList();
-            _activeBotsText.text = ZString.Format("x{0}", ActiveBotCount);
+            _activeBotsText.text = ZString.Format("x{0}", activeBotCount);
         }
     }
 }
