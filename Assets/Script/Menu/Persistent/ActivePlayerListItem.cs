@@ -1,7 +1,10 @@
-﻿using TMPro;
+﻿using System;
+using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Core.Game;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Menu.Persistent
 {
@@ -12,30 +15,23 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private Image _playerGameModeIcon;
 
-        [SerializeField]
-        private YargProfile _profile;
-        public YargProfile Profile
-        {
-            get
-            {
-                return _profile;
-            }
-            set
-            {
-                _profile = value;
-
-                Debug.Assert(_profile != null);
-                _playerNameText.text = _profile.Name;
-                _playerGameModeIcon.sprite = _gameModeIcons[(int) _profile.GameMode];
-            }
-        }
-
         public bool ShowName
         {
             get => _playerNameText.gameObject.activeSelf;
             set => _playerNameText.gameObject.SetActive(value);
         }
-        [SerializeField]
-        private Sprite[] _gameModeIcons = new Sprite[0];
+
+        public void Initialize(YargProfile profile)
+        {
+            if (profile == null)
+            {
+                throw new ArgumentNullException(nameof(profile));
+            }
+
+            _playerNameText.text = profile.Name;
+            _playerGameModeIcon.sprite = Addressables
+                .LoadAssetAsync<Sprite>($"InstrumentIcons[{profile.CurrentInstrument.ToResourceName()}]")
+                .WaitForCompletion();
+        }
     }
 }

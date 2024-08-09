@@ -34,7 +34,7 @@ namespace YARG.Menu.Persistent
             {
                 var newObj = Instantiate(_playerNamesPrefab, _playerNamesContainer.transform);
                 var itemComponent = newObj.GetComponent<ActivePlayerListItem>();
-                itemComponent.Profile = player.Profile;
+                itemComponent.Initialize(player.Profile);
                 itemComponent.ShowName = showPlayerNames;
             }
         }
