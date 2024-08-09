@@ -39,6 +39,7 @@ namespace YARG.Replays
         public static void Init()
         {
             _replays = new List<ReplayEntry>();
+            _replayCache = new Dictionary<string, ReplayEntry>();
 
             ReplayDirectory = Path.Combine(PathHelper.PersistentDataPath, "importedReplays");
             _replayCacheFile = Path.Combine(ReplayDirectory, "cache.bin");
@@ -286,7 +287,7 @@ namespace YARG.Replays
 
         private static void OnReplayCreated(object sender, FileSystemEventArgs e)
         {
-            YargLogger.LogFormatDebug("Replay Created: {0}", e.Name);
+            YargLogger.LogFormatDebug("Replay File Created: {0}", e.Name);
             if (_replayCache.ContainsKey(e.FullPath))
             {
                 return;
