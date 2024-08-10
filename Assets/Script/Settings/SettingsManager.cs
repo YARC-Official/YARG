@@ -127,6 +127,11 @@ namespace YARG.Settings
                 nameof(Settings.KeepSongInfoVisible)
             },
             new PresetsTab("Presets", icon: "Customization"),
+            new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
+            {
+                new HeaderMetadata("Other"),
+                nameof(Settings.MuteOnMiss),
+            },
             new AllSettingsTab(),
         };
 
