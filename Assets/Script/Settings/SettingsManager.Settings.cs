@@ -516,6 +516,7 @@ namespace YARG.Settings
                         item2: device.description.ToJson());
                 }
             }
+
             #endregion
         }
     }
