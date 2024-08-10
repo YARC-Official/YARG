@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
@@ -35,11 +37,7 @@ namespace YARG.Settings
 
             public bool ShowAntiPiracyDialog = true;
             public bool ShowEngineInconsistencyDialog = true;
-            public bool ShowExperimentalWarningDialog = true;
-
             public SortAttribute LibrarySort = SortAttribute.Name;
-
-            public Dictionary<string, HUDPositionProfile> HUDPositionProfiles = new();
 
             #endregion
 
@@ -53,8 +51,6 @@ namespace YARG.Settings
 
             public IntSetting AudioCalibration { get; } = new(0);
             public IntSetting VideoCalibration { get; } = new(0);
-
-            public ToggleSetting AccountForHardwareLatency { get; } = new(true);
 
             public void OpenVenueFolder()
             {
@@ -159,9 +155,8 @@ namespace YARG.Settings
 
             public ToggleSetting ClapsInStarpower { get; } = new(true);
 
-            public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
+            public ToggleSetting UseWhammyFx { get; } = new(true, UseWhammyFxChange);
 
-            // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);
             // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
             // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
@@ -203,7 +198,6 @@ namespace YARG.Settings
 
             public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
-            public ToggleSetting EnablePracticeSP { get; } = new(false);
 
             public DropdownSetting<NoteStreakFrequencyMode> NoteStreakFrequency { get; }
                 = new(NoteStreakFrequencyMode.Frequent)
@@ -490,10 +484,10 @@ namespace YARG.Settings
                 HelpBar.Instance.MusicPlayer.UpdateVolume(volume);
             }
 
-            // private static void UseWhammyFxChange(bool value)
-            // {
-            //     AudioManager.UseWhammyFx = value;
-            // }
+            private static void UseWhammyFxChange(bool value)
+            {
+                GlobalAudioHandler.UseWhammyFx = value;
+            }
 
             // private static void WhammyPitchShiftAmountChange(float value)
             // {
@@ -520,6 +514,7 @@ namespace YARG.Settings
                         item2: device.description.ToJson());
                 }
             }
+
             #endregion
         }
     }
