@@ -35,26 +35,30 @@ namespace YARG.Audio.BASS
 
         protected override void SetWhammyPitch_Internal(float percent)
         {
-            percent = Mathf.Clamp(percent, 0f, 1f);
-
-            if (percent > 0f)
+            // If pitch effect hasn't been added yet, add it.
+            if (_streamHandles.PitchFX == 0)
             {
-                // If pitch effect hasn't been added yet, add it.
-                if (_streamHandles.PitchFX == 0)
+                _streamHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_streamHandles.Stream, _pitchParams);
+            }
+            if (_reverbHandles.PitchFX == 0)
+            {
+                _reverbHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_reverbHandles.Stream, _pitchParams);
+            }
+
+            // If we have pitch effect, pitch
+            if (_streamHandles.PitchFX != 0)
+            {
+                float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
+                _pitchParams.fPitchShift = shift;
+
+                if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
                 {
-                    _streamHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_streamHandles.Stream, _pitchParams);
+                    YargLogger.LogFormatError("Failed to set pitch on stream: {0}", Bass.LastError);
                 }
 
-                // If we have pitch effect, pitch
-                if (_streamHandles.PitchFX != 0)
+                if (!BassHelpers.FXSetParameters(_reverbHandles.PitchFX, _pitchParams))
                 {
-                    float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
-                    _pitchParams.fPitchShift = shift;
-
-                    if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
-                    {
-                        YargLogger.LogFormatError("Failed to set pitch params: {0}", Bass.LastError);
-                    }
+                    YargLogger.LogFormatError("Failed to set pitch on reverb: {0}", Bass.LastError);
                 }
             }
             /*
@@ -70,7 +74,12 @@ namespace YARG.Audio.BASS
                     {
                         YargLogger.LogFormatError("Failed to remove pitch effect: {0}!", Bass.LastError);
                     }
+                    if (!Bass.ChannelRemoveFX(_reverbHandles.Stream, _streamHandles.PitchFX))
+                    {
+                        YargLogger.LogFormatError("Failed to remove pitch effect: {0}!", Bass.LastError);
+                    }
                     _streamHandles.PitchFX = 0;
+                    _reverbHandles.PitchFX = 0;
                 }
             }
             */
