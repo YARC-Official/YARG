@@ -4,8 +4,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using UnityEngine;
 using YARG.Core.Logging;
-using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
@@ -14,14 +14,10 @@ namespace YARG.Settings
 {
     public static partial class SettingsManager
     {
-        private static readonly JsonSerializerSettings JsonSettings = new()
+        public static MetadataTab ExperimentalTab = new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
         {
-            Formatting = Formatting.Indented,
-            Converters = new List<JsonConverter>
-            {
-                new JsonColorConverter(),
-                new JsonVector2Converter()
-            }
+            new HeaderMetadata("Other"),
+            // Add experimental settings here
         };
 
         public static SettingContainer Settings { get; private set; }
@@ -34,7 +30,6 @@ namespace YARG.Settings
                 new ButtonRowMetadata(nameof(Settings.OpenCalibrator)),
                 nameof(Settings.AudioCalibration),
                 nameof(Settings.VideoCalibration),
-                nameof(Settings.AccountForHardwareLatency),
 
                 new HeaderMetadata("Venues"),
                 new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),
@@ -93,11 +88,10 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.MuteOnMiss),
                 nameof(Settings.UseStarpowerFx),
-                nameof(Settings.UseWhammyFx),
-                nameof(Settings.WhammyPitchShiftAmount),
+                // nameof(Settings.UseWhammyFx),
+                // nameof(Settings.WhammyPitchShiftAmount),
                 // nameof(Settings.WhammyOversampleFactor),
                 nameof(Settings.ClapsInStarpower),
-                nameof(Settings.OverstrumAndOverhitSoundEffects),
                 // nameof(Settings.ReverbInStarpower),
                 nameof(Settings.UseChipmunkSpeed),
                 nameof(Settings.ApplyVolumesInMusicLibrary),
@@ -119,7 +113,6 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.ShowHitWindow),
                 nameof(Settings.DisableTextNotifications),
-                nameof(Settings.EnablePracticeSP),
                 nameof(Settings.NoteStreakFrequency),
                 nameof(Settings.LyricDisplay),
                 nameof(Settings.SongTimeOnScoreBox),
@@ -127,11 +120,6 @@ namespace YARG.Settings
                 nameof(Settings.KeepSongInfoVisible)
             },
             new PresetsTab("Presets", icon: "Customization"),
-            new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
-            {
-                new HeaderMetadata("Other"),
-                nameof(Settings.MuteOnMiss),
-            },
             new AllSettingsTab(),
         };
 
@@ -158,6 +146,7 @@ namespace YARG.Settings
                 nameof(Settings.StageKitEnabled),
                 nameof(Settings.DMXEnabled),
                 nameof(Settings.RB3EEnabled),
+                new HeaderMetadata("DMXChannels"),
                 new HeaderMetadata("StageKitDMXChannels"),
                 nameof(Settings.DMXDimmerChannels),
                 nameof(Settings.DMXRedChannels),
@@ -189,11 +178,7 @@ namespace YARG.Settings
             {
                 nameof(Settings.InputDeviceLogging),
                 nameof(Settings.ShowAdvancedMusicLibraryOptions),
-            },
-            new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
-            {
-                new HeaderMetadata("Other"),
-                // Add experimental settings here
+                nameof(Settings.ShowExperimental),
             }
         };
 
@@ -209,8 +194,7 @@ namespace YARG.Settings
             // Create settings container
             try
             {
-                string text = File.ReadAllText(SettingsFile);
-                Settings = JsonConvert.DeserializeObject<SettingContainer>(text, JsonSettings);
+                Settings = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
             }
             catch (Exception e)
             {
@@ -242,8 +226,7 @@ namespace YARG.Settings
             // (such as closing the game before they load)
             if (SettingContainer.IsInitialized && Settings is not null)
             {
-                var json = JsonConvert.SerializeObject(Settings, JsonSettings);
-                File.WriteAllText(SettingsFile, json);
+                File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(Settings, Formatting.Indented));
             }
         }
 

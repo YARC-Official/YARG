@@ -338,6 +338,8 @@ namespace YARG.Settings
 
             public ToggleSetting ShowAdvancedMusicLibraryOptions { get; } = new(false);
 
+            public ToggleSetting ShowExperimental { get; } = new(false, ShowExperimentalCallback);
+
             #endregion
 
             #region Callbacks
@@ -516,6 +518,20 @@ namespace YARG.Settings
                 }
             }
 
+            private static void ShowExperimentalCallback(bool value)
+            {
+                if (value)
+                {
+                    if (!SettingsManager.AllSettingsTabs.Contains(SettingsManager.ExperimentalTab)) { SettingsManager.AllSettingsTabs.Add(ExperimentalTab); }
+                }
+                else
+                {
+                    SettingsManager.AllSettingsTabs.Remove(SettingsManager.ExperimentalTab);
+                }
+
+                // Refresh settings
+                SettingsMenu.Instance.Refresh();
+            }
             #endregion
         }
     }
