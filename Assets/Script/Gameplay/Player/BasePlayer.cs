@@ -28,15 +28,15 @@ namespace YARG.Gameplay.Player
                 // which is saved in the engine parameter override.
                 if (GameManager.IsReplay)
                 {
-                    return Player.Profile.NoteSpeed * (SettingsManager.Settings.ReduceNoteSpeedByDifficulty.Value ? Player.Profile.CurrentDifficulty.NoteSpeedScale() : 1.0f) / (float) Player.EngineParameterOverride.SongSpeed;
+                    return Player.Profile.NoteSpeed * Player.Profile.CurrentDifficulty.NoteSpeedScale() / (float) Player.EngineParameterOverride.SongSpeed;
                 }
 
                 if (GameManager.IsPractice && GameManager.SongSpeed < 1)
                 {
-                    return Player.Profile.NoteSpeed * (SettingsManager.Settings.ReduceNoteSpeedByDifficulty.Value ? Player.Profile.CurrentDifficulty.NoteSpeedScale() : 1.0f);
+                    return Player.Profile.NoteSpeed * Player.Profile.CurrentDifficulty.NoteSpeedScale();
                 }
 
-                return Player.Profile.NoteSpeed * (SettingsManager.Settings.ReduceNoteSpeedByDifficulty.Value ? Player.Profile.CurrentDifficulty.NoteSpeedScale() : 1.0f) / GameManager.SongSpeed;
+                return Player.Profile.NoteSpeed * Player.Profile.CurrentDifficulty.NoteSpeedScale() / GameManager.SongSpeed;
             }
         }
 

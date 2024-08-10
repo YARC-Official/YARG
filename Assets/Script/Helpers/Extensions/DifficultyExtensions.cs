@@ -1,5 +1,6 @@
 using System;
 using YARG.Core;
+using YARG.Settings;
 
 namespace YARG.Helpers.Extensions
 {
@@ -53,15 +54,20 @@ namespace YARG.Helpers.Extensions
         /// </summary>
         public static float NoteSpeedScale(this Difficulty difficulty)
         {
+            if (!SettingsManager.Settings.ReduceNoteSpeedByDifficulty.Value)
+            {
+                return 1f;
+            }
+            
             return difficulty switch
             {
                 Difficulty.Easy       => 0.421875f,
                 Difficulty.Medium     => 0.5625f,
                 Difficulty.Hard       => 0.75f,
-                Difficulty.Expert     => 1.0f,
-                Difficulty.ExpertPlus => 1.0f,
+                Difficulty.Expert     => 1f,
+                Difficulty.ExpertPlus => 1f,
 
-                _ => 1.0f
+                _ => 1f
             };
         }
     }
