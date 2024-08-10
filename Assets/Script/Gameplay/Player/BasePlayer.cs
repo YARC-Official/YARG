@@ -8,6 +8,7 @@ using YARG.Core.Engine;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
+using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Player;
 using YARG.Settings;
@@ -29,15 +30,15 @@ namespace YARG.Gameplay.Player
                 // which is saved in the engine parameter override.
                 if (GameManager.IsReplay)
                 {
-                    return Player.Profile.NoteSpeed / (float) Player.EngineParameterOverride.SongSpeed;
+                    return Player.Profile.NoteSpeed * Player.Profile.CurrentDifficulty.NoteSpeedScale() / (float) Player.EngineParameterOverride.SongSpeed;
                 }
 
                 if (GameManager.IsPractice && GameManager.SongSpeed < 1)
                 {
-                    return Player.Profile.NoteSpeed;
+                    return Player.Profile.NoteSpeed * Player.Profile.CurrentDifficulty.NoteSpeedScale();
                 }
 
-                return Player.Profile.NoteSpeed / GameManager.SongSpeed;
+                return Player.Profile.NoteSpeed * Player.Profile.CurrentDifficulty.NoteSpeedScale() / GameManager.SongSpeed;
             }
         }
 
