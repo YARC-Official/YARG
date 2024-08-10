@@ -155,7 +155,7 @@ namespace YARG.Settings
 
             public ToggleSetting ClapsInStarpower { get; } = new(true);
 
-            public ToggleSetting UseWhammyFx { get; } = new(true, UseWhammyFxChange);
+            public ToggleSetting UseWhammyFx { get; } = new(false, UseWhammyFxChange);
 
             public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
 

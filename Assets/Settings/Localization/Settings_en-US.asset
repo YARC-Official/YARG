@@ -1014,7 +1014,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 116747023328600181
-    m_Localized: Whammy Pitch Shift Amount (semitones)
+    m_Localized: Whammy Pitch Shift Amount
     m_Metadata:
       m_Items: []
   - m_Id: 116831000492105728
@@ -1574,6 +1574,17 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 168324186666512384
     m_Localized: Shows experimental features that are not yet fully supported.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 168334555329933312
+    m_Localized: 'Allows the whammy bar pitch pend effect on multi-channel charts.
+
+      WARNING:
+      This feature is known to cause audio desync issues on some machines.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 168334963423129600
+    m_Localized: The amount the whammy bar shifts the pitch when the effect is enabled.
     m_Metadata:
       m_Items: []
   references:
