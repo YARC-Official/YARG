@@ -167,28 +167,30 @@ namespace YARG.Gameplay
 
         public void ChangeStemWhammyPitch(SongStem stem, float percent)
         {
+            // If Whammy FX is turned off, ignore.
             var setting = SettingsManager.Settings.UseWhammyFx.Value;
             if (setting == false)
             {
                 return;
             }
 
-            StemState state;
-            while (!_stemStates.TryGetValue(stem, out state))
-            {
-                if (stem == _backgroundStem)
-                {
-                    return;
-                }
-                stem = _backgroundStem;
-            }
-
-            // Whammy is not supported on single track
+            // If the specified stem is the same as the background stem, 
+            // ignore the request. This may be a chart without separate
+            // stems for each instrument. In that scenario we don't want
+            // to pitch bend because we'd be bending the entire track.
             if (stem == _backgroundStem)
             {
                 return;
             }
 
+            // If we can't get the state for the stem, bail.
+            StemState state;
+            if (!_stemStates.TryGetValue(stem, out state))
+            {
+                return;
+            }
+
+            // Set the pitch
             float percentActive = state.SetWhammyPitch(percent);
             GlobalAudioHandler.SetWhammyPitchSetting(stem, percentActive);
         }

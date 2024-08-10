@@ -166,9 +166,9 @@ namespace YARG.Settings
 
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
             
-            public ToggleSetting UseWhammyFx { get; } = new(false, UseWhammyFxChange);
+            public ToggleSetting UseWhammyFx { get; } = new(false, v => GlobalAudioHandler.UseWhammyFx = v);
 
-            public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 5, WhammyPitchShiftAmountChange);
+            public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 5, v => GlobalAudioHandler.WhammyPitchShiftAmount = v);
 
             // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
@@ -530,16 +530,6 @@ namespace YARG.Settings
             private static void MusicPlayerVolumeCallback(float volume)
             {
                 HelpBar.Instance.MusicPlayer.UpdateVolume(volume);
-            }
-
-            private static void UseWhammyFxChange(bool value)
-            {
-                GlobalAudioHandler.UseWhammyFx = value;
-            }
-
-            private static void WhammyPitchShiftAmountChange(float value)
-            {
-                GlobalAudioHandler.WhammyPitchShiftAmount = value;
             }
 
             // private static void WhammyOversampleFactorChange(int value)
