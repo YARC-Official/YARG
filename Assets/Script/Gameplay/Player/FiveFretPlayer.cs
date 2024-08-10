@@ -146,6 +146,11 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        public void SetStemWhammyPitch(float percent)
+        {
+            GameManager.ChangeStemWhammyPitch(_stem, percent);
+        }
+
         public override void SetStarPowerFX(bool active)
         {
             GameManager.ChangeStemReverbState(_stem, active);
@@ -265,6 +270,7 @@ namespace YARG.Gameplay.Player
             if (input.GetAction<GuitarAction>() == GuitarAction.Whammy)
             {
                 WhammyFactor = Mathf.Clamp01(input.Axis);
+                SetStemWhammyPitch(WhammyFactor);
             }
         }
     }

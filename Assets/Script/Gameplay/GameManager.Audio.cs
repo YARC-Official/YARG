@@ -15,6 +15,7 @@ namespace YARG.Gameplay
             public int Total;
             public int Audible;
             public int ReverbCount;
+            public float WhammyPitch;
 
             public StemState(double volume)
             {
@@ -46,6 +47,14 @@ namespace YARG.Gameplay
                     --ReverbCount;
                 }
                 return ReverbCount > 0;
+            }
+
+            public float SetWhammyPitch(float percent)
+            {
+                // TODO: Would be nice to handle multiple inputs
+                // but for now last one wins
+                WhammyPitch = (percent < 0 || percent > 1 ? 0 : percent);
+                return WhammyPitch;
             }
 
             public double CalculateVolumeSetting()
@@ -154,6 +163,34 @@ namespace YARG.Gameplay
 
             bool reverbActive = state.SetReverb(reverb);
             GlobalAudioHandler.SetReverbSetting(stem, reverbActive);
+        }
+
+        public void ChangeStemWhammyPitch(SongStem stem, float percent)
+        {
+            var setting = SettingsManager.Settings.UseWhammyFx.Value;
+            if (setting == false)
+            {
+                return;
+            }
+
+            StemState state;
+            while (!_stemStates.TryGetValue(stem, out state))
+            {
+                if (stem == _backgroundStem)
+                {
+                    return;
+                }
+                stem = _backgroundStem;
+            }
+
+            // Whammy is not supported on single track
+            if (stem == _backgroundStem)
+            {
+                return;
+            }
+
+            float percentActive = state.SetWhammyPitch(percent);
+            GlobalAudioHandler.SetWhammyPitchSetting(stem, percentActive);
         }
     }
 }
