@@ -45,17 +45,20 @@ namespace YARG.Audio.BASS
                 _reverbHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_reverbHandles.Stream, _pitchParams);
             }
 
+            // Calculate shift
+            float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
+            _pitchParams.fPitchShift = shift;
+
             // If we have pitch effect, pitch
             if (_streamHandles.PitchFX != 0)
             {
-                float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
-                _pitchParams.fPitchShift = shift;
-
                 if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
                 {
                     YargLogger.LogFormatError("Failed to set pitch on stream: {0}", Bass.LastError);
                 }
-
+            }
+            if (_reverbHandles.PitchFX != 0)
+            {
                 if (!BassHelpers.FXSetParameters(_reverbHandles.PitchFX, _pitchParams))
                 {
                     YargLogger.LogFormatError("Failed to set pitch on reverb: {0}", Bass.LastError);
