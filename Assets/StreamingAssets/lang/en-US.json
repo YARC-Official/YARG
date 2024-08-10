@@ -727,6 +727,10 @@
                     "On": "On"
                 }
             },
+            "UseWhammyFx": {
+                "Name": "Use Whammy SFX",
+                "Description": "If enabled, it will add pitch bending to guitar stems when the player presses the whammy bar.\nWARNING: This setting is known to cause audio desync issues on some machines."
+            },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",
                 "Description": "Video calibration in milliseconds. Use the calibrator to automatically calibrate. This accounts for delays between the game's processing and the actual frame being displayed."
@@ -745,6 +749,10 @@
                 "Name": "Enable VSync",
                 "Description": "Enables VSync. VSync caps the framerate at your monitor's maximum framerate, and prevents tearing."
             },
+            "WhammyPitchShiftAmount": {
+                "Name": "Whammy Pitch Shift Amount",
+                "Description": "Number of semitones the pitch is changed when the whammy bar is fully depressed. Most guitars shift between 1 and 3 semitones."
+            },			
             "PauseOnDeviceDisconnect": {
                 "Name": "Pause On Device Disconnect",
                 "Description": "Pauses the game if a device taken by a profile disconnects in the middle of a song."
