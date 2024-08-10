@@ -14,14 +14,6 @@ namespace YARG.Settings
 {
     public static partial class SettingsManager
     {
-        public static MetadataTab ExperimentalTab = new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
-        {
-            new HeaderMetadata("Other"),
-            nameof(Settings.UseWhammyFx),
-            nameof(Settings.WhammyPitchShiftAmount),
-            // nameof(Settings.WhammyOversampleFactor),
-        };
-
         public static SettingContainer Settings { get; private set; }
 
         public static readonly List<Tab> DisplayedSettingsTabs = new()
@@ -90,6 +82,9 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.MuteOnMiss),
                 nameof(Settings.UseStarpowerFx),
+                // nameof(Settings.UseWhammyFx),
+                // nameof(Settings.WhammyPitchShiftAmount),
+                // nameof(Settings.WhammyOversampleFactor),
                 nameof(Settings.ClapsInStarpower),
                 // nameof(Settings.ReverbInStarpower),
                 nameof(Settings.UseChipmunkSpeed),
@@ -177,7 +172,11 @@ namespace YARG.Settings
             {
                 nameof(Settings.InputDeviceLogging),
                 nameof(Settings.ShowAdvancedMusicLibraryOptions),
-                nameof(Settings.ShowExperimental),
+            },
+            new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
+            {
+                new HeaderMetadata("Other"),
+                // Add experimental settings here
             }
         };
 
