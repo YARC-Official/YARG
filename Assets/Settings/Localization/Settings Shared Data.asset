@@ -1455,6 +1455,14 @@ MonoBehaviour:
     m_Key: Tab.Experimental
     m_Metadata:
       m_Items: []
+  - m_Id: 168660976258592768
+    m_Key: Setting.UseWhammyFx.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 168661400818626560
+    m_Key: Setting.WhammyPitchShiftAmount.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
