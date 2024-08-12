@@ -168,8 +168,7 @@ namespace YARG.Gameplay
         public void ChangeStemWhammyPitch(SongStem stem, float percent)
         {
             // If Whammy FX is turned off, ignore.
-            var setting = SettingsManager.Settings.UseWhammyFx.Value;
-            if (setting == false)
+            if (!SettingsManager.Settings.UseWhammyFx.Value)
             {
                 return;
             }
