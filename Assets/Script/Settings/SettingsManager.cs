@@ -52,6 +52,7 @@ namespace YARG.Settings
                 nameof(Settings.ReconnectProfiles),
                 nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.KickBounceMultiplier),
+                nameof(Settings.VoiceActivatedVocalStarPower),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),

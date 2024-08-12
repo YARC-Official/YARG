@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -73,6 +73,8 @@ namespace YARG.Settings
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
+
+            public ToggleSetting VoiceActivatedVocalStarPower {get; } = new(true);
 
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 
