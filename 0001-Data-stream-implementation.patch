@@ -1,0 +1,4553 @@
+From 88e83f20fc26444a66fb87ec6d4b40c7638c0e23 Mon Sep 17 00:00:00 2001
+From: TheFatBastid <tfb@sof.ws>
+Date: Mon, 12 Aug 2024 15:37:47 -0400
+Subject: [PATCH] Data stream implementation
+
+Created a UDP data stream that YARG will output on port 36107. This data stream contains information on virtually everything YARG is doing at the moment. This replaces all built-in IRL lighting protocols: Stage Kit, DMX, RB3E, HUE, etc. These are now all handled by the external program, YALCY. (all related settings removed as well)
+---
+ Assets/Scenes/PersistentScene.unity           |  139 +--
+ .../Integration/MasterLightingController.cs   |  657 +++++++---
+ .../MasterLightingGameplayMonitor.cs          |  278 +++--
+ .../Integration/MasterLightingInitializer.cs  |    1 -
+ Assets/Script/Integration/RB3E.meta           |    8 -
+ .../Script/Integration/RB3E/RB3EHardware.cs   |  153 ---
+ .../Integration/RB3E/RB3EHardware.cs.meta     |   11 -
+ Assets/Script/Integration/Sacn.meta           |    8 -
+ .../Script/Integration/Sacn/SacnHardware.cs   |  145 ---
+ .../Integration/Sacn/SacnHardware.cs.meta     |   11 -
+ .../Integration/Sacn/SacnInterpreter.cs       |  584 ---------
+ .../Integration/Sacn/SacnInterpreter.cs.meta  |   11 -
+ Assets/Script/Integration/StageKit.meta       |    8 -
+ .../Integration/StageKit/StageKitHardware.cs  |  426 -------
+ .../StageKit/StageKitHardware.cs.meta         |   11 -
+ .../StageKit/StageKitInterpreter.cs           |  200 ----
+ .../StageKit/StageKitInterpreter.cs.meta      |   11 -
+ .../StageKit/StageKitLighting.Cues.cs         | 1059 -----------------
+ .../StageKit/StageKitLighting.Cues.cs.meta    |   11 -
+ .../StageKit/StageKitLighting.Primitives.cs   |  238 ----
+ .../StageKitLighting.Primitives.cs.meta       |   11 -
+ .../Settings/SettingsManager.Settings.cs      |   67 +-
+ Assets/Script/Settings/SettingsManager.cs     |   35 +-
+ YARG.Core                                     |    2 +-
+ 24 files changed, 676 insertions(+), 3409 deletions(-)
+ delete mode 100644 Assets/Script/Integration/RB3E.meta
+ delete mode 100644 Assets/Script/Integration/RB3E/RB3EHardware.cs
+ delete mode 100644 Assets/Script/Integration/RB3E/RB3EHardware.cs.meta
+ delete mode 100644 Assets/Script/Integration/Sacn.meta
+ delete mode 100644 Assets/Script/Integration/Sacn/SacnHardware.cs
+ delete mode 100644 Assets/Script/Integration/Sacn/SacnHardware.cs.meta
+ delete mode 100644 Assets/Script/Integration/Sacn/SacnInterpreter.cs
+ delete mode 100644 Assets/Script/Integration/Sacn/SacnInterpreter.cs.meta
+ delete mode 100644 Assets/Script/Integration/StageKit.meta
+ delete mode 100644 Assets/Script/Integration/StageKit/StageKitHardware.cs
+ delete mode 100644 Assets/Script/Integration/StageKit/StageKitHardware.cs.meta
+ delete mode 100644 Assets/Script/Integration/StageKit/StageKitInterpreter.cs
+ delete mode 100644 Assets/Script/Integration/StageKit/StageKitInterpreter.cs.meta
+ delete mode 100644 Assets/Script/Integration/StageKit/StageKitLighting.Cues.cs
+ delete mode 100644 Assets/Script/Integration/StageKit/StageKitLighting.Cues.cs.meta
+ delete mode 100644 Assets/Script/Integration/StageKit/StageKitLighting.Primitives.cs
+ delete mode 100644 Assets/Script/Integration/StageKit/StageKitLighting.Primitives.cs.meta
+
+diff --git a/Assets/Scenes/PersistentScene.unity b/Assets/Scenes/PersistentScene.unity
+index c63a5bc1..1ba05b4d 100644
+--- a/Assets/Scenes/PersistentScene.unity
++++ b/Assets/Scenes/PersistentScene.unity
+@@ -1262,6 +1262,7 @@ GameObject:
+   - component: {fileID: 728815264}
+   - component: {fileID: 728815265}
+   - component: {fileID: 728815267}
++  - component: {fileID: 728815268}
+   m_Layer: 0
+   m_Name: Integrations
+   m_TagString: Untagged
+@@ -1308,6 +1309,18 @@ MonoBehaviour:
+   m_Script: {fileID: 11500000, guid: cb438f304d0d4064fb1de229c53becde, type: 3}
+   m_Name: 
+   m_EditorClassIdentifier: 
++--- !u!114 &728815268
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 728815263}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 525ce11d5f9f48a48adee4bc7515712a, type: 3}
++  m_Name: 
++  m_EditorClassIdentifier: 
+ --- !u!1 &782876828
+ GameObject:
+   m_ObjectHideFlags: 0
+@@ -2863,132 +2876,6 @@ CanvasRenderer:
+   m_PrefabAsset: {fileID: 0}
+   m_GameObject: {fileID: 1604709610}
+   m_CullTransparentMesh: 1
+---- !u!1 &1617137644
+-GameObject:
+-  m_ObjectHideFlags: 0
+-  m_CorrespondingSourceObject: {fileID: 0}
+-  m_PrefabInstance: {fileID: 0}
+-  m_PrefabAsset: {fileID: 0}
+-  serializedVersion: 6
+-  m_Component:
+-  - component: {fileID: 1617137651}
+-  - component: {fileID: 1617137650}
+-  - component: {fileID: 1617137649}
+-  - component: {fileID: 1617137648}
+-  - component: {fileID: 1617137647}
+-  - component: {fileID: 1617137646}
+-  - component: {fileID: 1617137645}
+-  m_Layer: 0
+-  m_Name: Lighting Master
+-  m_TagString: Untagged
+-  m_Icon: {fileID: 0}
+-  m_NavMeshLayer: 0
+-  m_StaticEditorFlags: 0
+-  m_IsActive: 1
+---- !u!114 &1617137645
+-MonoBehaviour:
+-  m_ObjectHideFlags: 0
+-  m_CorrespondingSourceObject: {fileID: 0}
+-  m_PrefabInstance: {fileID: 0}
+-  m_PrefabAsset: {fileID: 0}
+-  m_GameObject: {fileID: 1617137644}
+-  m_Enabled: 1
+-  m_EditorHideFlags: 0
+-  m_Script: {fileID: 11500000, guid: e549df73151ee6b48a2700b69f0e6be2, type: 3}
+-  m_Name: 
+-  m_EditorClassIdentifier: 
+---- !u!114 &1617137646
+-MonoBehaviour:
+-  m_ObjectHideFlags: 0
+-  m_CorrespondingSourceObject: {fileID: 0}
+-  m_PrefabInstance: {fileID: 0}
+-  m_PrefabAsset: {fileID: 0}
+-  m_GameObject: {fileID: 1617137644}
+-  m_Enabled: 1
+-  m_EditorHideFlags: 0
+-  m_Script: {fileID: 11500000, guid: 1d1faa5ee2902ba40bafec9aea861ebd, type: 3}
+-  m_Name: 
+-  m_EditorClassIdentifier: 
+---- !u!114 &1617137647
+-MonoBehaviour:
+-  m_ObjectHideFlags: 0
+-  m_CorrespondingSourceObject: {fileID: 0}
+-  m_PrefabInstance: {fileID: 0}
+-  m_PrefabAsset: {fileID: 0}
+-  m_GameObject: {fileID: 1617137644}
+-  m_Enabled: 1
+-  m_EditorHideFlags: 0
+-  m_Script: {fileID: 11500000, guid: 3e0fb070e46d59947a7b18b7f97747e6, type: 3}
+-  m_Name: 
+-  m_EditorClassIdentifier: 
+-  _dimmerChannels: 
+-  _redChannels: 
+-  _greenChannels: 
+-  _blueChannels: 
+-  _yellowChannels: 
+-  _fogChannel: 0
+-  _strobeChannel: 0
+-  _cueChangeChannel: 0
+-  _keyframeChannel: 0
+-  _beatlineChannel: 0
+-  _bonusEffectChannel: 0
+-  _postProcessingChannel: 0
+-  _performerChannel: 0
+-  _drumChannel: 0
+-  _guitarChannel: 0
+-  _bassChannel: 0
+-  _keysChannel: 0
+---- !u!114 &1617137648
+-MonoBehaviour:
+-  m_ObjectHideFlags: 0
+-  m_CorrespondingSourceObject: {fileID: 0}
+-  m_PrefabInstance: {fileID: 0}
+-  m_PrefabAsset: {fileID: 0}
+-  m_GameObject: {fileID: 1617137644}
+-  m_Enabled: 1
+-  m_EditorHideFlags: 0
+-  m_Script: {fileID: 11500000, guid: 2e6d233a733a6014891836deea6c0bc2, type: 3}
+-  m_Name: 
+-  m_EditorClassIdentifier: 
+---- !u!114 &1617137649
+-MonoBehaviour:
+-  m_ObjectHideFlags: 0
+-  m_CorrespondingSourceObject: {fileID: 0}
+-  m_PrefabInstance: {fileID: 0}
+-  m_PrefabAsset: {fileID: 0}
+-  m_GameObject: {fileID: 1617137644}
+-  m_Enabled: 1
+-  m_EditorHideFlags: 0
+-  m_Script: {fileID: 11500000, guid: 4d68c6b6734cabc468852f66a540c7b9, type: 3}
+-  m_Name: 
+-  m_EditorClassIdentifier: 
+---- !u!114 &1617137650
+-MonoBehaviour:
+-  m_ObjectHideFlags: 0
+-  m_CorrespondingSourceObject: {fileID: 0}
+-  m_PrefabInstance: {fileID: 0}
+-  m_PrefabAsset: {fileID: 0}
+-  m_GameObject: {fileID: 1617137644}
+-  m_Enabled: 1
+-  m_EditorHideFlags: 0
+-  m_Script: {fileID: 11500000, guid: 525ce11d5f9f48a48adee4bc7515712a, type: 3}
+-  m_Name: 
+-  m_EditorClassIdentifier: 
+---- !u!4 &1617137651
+-Transform:
+-  m_ObjectHideFlags: 0
+-  m_CorrespondingSourceObject: {fileID: 0}
+-  m_PrefabInstance: {fileID: 0}
+-  m_PrefabAsset: {fileID: 0}
+-  m_GameObject: {fileID: 1617137644}
+-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+-  m_LocalPosition: {x: 1171.9512, y: 283.89728, z: 1638.9523}
+-  m_LocalScale: {x: 1, y: 1, z: 1}
+-  m_ConstrainProportionsScale: 0
+-  m_Children: []
+-  m_Father: {fileID: 0}
+-  m_RootOrder: 8
+-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+ --- !u!1 &1665662509
+ GameObject:
+   m_ObjectHideFlags: 0
+diff --git a/Assets/Script/Integration/MasterLightingController.cs b/Assets/Script/Integration/MasterLightingController.cs
+index 19d3e851..66146440 100644
+--- a/Assets/Script/Integration/MasterLightingController.cs
++++ b/Assets/Script/Integration/MasterLightingController.cs
+@@ -1,31 +1,228 @@
+ using System;
++using System.Net;
++using System.Net.Sockets;
++using System.Timers;
+ using PlasticBand.Haptics;
+ using UnityEngine;
+ using UnityEngine.SceneManagement;
+ using YARG.Core.Chart;
+ using YARG.Core.Logging;
+-using YARG.Gameplay;
++using YARG.Settings;
+ 
+ namespace YARG.Integration
+ {
++    /*
++        Real-life lighting integration works in 2 parts:
++        1) This lighting controller (along with its gameplay monitor and initializer) builds and sends a data packet of whatever YARG is currently doing, to the network.
++        2) YALCY reads this data packet and converts to various protocols (DMX, stage kit, etc) to control the lights.
++   */
++
+     public class MasterLightingController : MonoBehaviour
+     {
+-        /*
+-        Real-life lighting integration works in 3 parts:
+-        1) This class, the Master lighting controller, which maintains the state of the lighting and stage effects.
+-        It listens for events from the venue track, sync (beat) track, etc, maintains a list of current lighting cues,
+-         fog state, etc, and broadcasts those events on change.
+-
+-        2) Lighting Interpreters. These classes listen to the events from the Master Lighting Controller and translate them
+-        into the actual timing and light patterns, for example, interpreting flare_fast as 8 blue leds turning on.
+-        Currently there are two. The Stage Kit Interpreter (which uses its Cues and Primitives classes),
+-        that attempts to make cues be as close to the Rock Band Stage Kit as possible and the sACN Interpreter, which
+-        sets DMX channel values based on the lighting cues and other events happening.
+-
+-        3) Hardware controllers. These classes listen to the Lighting Interpreters and translate the lighting cues into
+-        the actual hardware commands. Currently there are two hardware controllers, one for DMX and one for the Stage Kits.
+-        Hardware controllers are what is toggled on and off by the enable menu setttings.
+-        */
++        private enum ByteIndex
++        {
++            //header
++            HeaderByte1,
++            HeaderByte2,
++            HeaderByte3,
++            HeaderByte4,
++            //Tech info
++            DatagramVersion,
++            Platform,
++            //game info
++            CurrentScene,
++            PauseState,
++            VenueSize,
++            //song info
++            BeatsPerMinute,
++            SongSection,
++            //instruments
++            GuitarNotes,
++            BassNotes,
++            DrumsNotes,
++            KeysNotes,
++            VocalsNote,
++            Harmony0Note,
++            Harmony1Note,
++            Harmony2Note,
++            // Lighting information
++            LightingCue,
++            PostProcessing,
++            FogState,
++            StrobeState,
++            Performer,
++            Beat,
++            Keyframe,
++            BonusEffect,
++        }
++
++        public enum VocalHarmonyBytes
++        {
++            None = 0,
++            Unpitched = 255,
++            C6 = 84,
++            B5 = 83,
++            Bb5 = 82,
++            A5 = 81,
++            GSharp5 = 80, // G#5
++            G5 = 79,
++            FSharp5 = 78, // F#5
++            F5 = 77,
++            E5 = 76,
++            Eb5 = 75,
++            D5 = 74,
++            CSharp5 = 73, // C#5
++            C5 = 72,
++            B4 = 71,
++            Bb4 = 70,
++            A4 = 69,
++            GSharp4 = 68, // G#4
++            G4 = 67,
++            FSharp4 = 66, // F#4
++            F4 = 65,
++            E4 = 64,
++            Eb4 = 63,
++            D4 = 62,
++            CSharp4 = 61, // C#4
++            C4 = 60,
++            B3 = 59,
++            Bb3 = 58,
++            A3 = 57,
++            GSharp3 = 56, // G#3
++            G3 = 55,
++            FSharp3 = 54, // F#3
++            F3 = 53,
++            E3 = 52,
++            Eb3 = 51,
++            D3 = 50,
++            CSharp3 = 49, // C#3
++            C3 = 48,
++            B2 = 47,
++            Bb2 = 46,
++            A2 = 45,
++            GSharp2 = 44, // G#2
++            G2 = 43,
++            FSharp2 = 42, // F#2
++            F2 = 41,
++            E2 = 40,
++            Eb2 = 39,
++            D2 = 38,
++            CSharp2 = 37, // C#2
++            C2 = 36
++        }
++
++        private enum HeaderBytes
++        {
++            HeaderByte1 = 0x59, // Y
++            HeaderByte2 = 0x41, // A
++            HeaderByte3 = 0x52, // R
++            HeaderByte4 = 0x47, // G
++        }
++
++        private enum DatagramVersionByte
++        {
++            Version = 0,
++        }
++
++        private enum PlatformByte
++        {
++            Unknown,
++            Windows,
++            Linux,
++            Mac,
++        }
++
++        private enum SceneIndexByte
++        {
++            Unknown,
++            Menu,
++            Gameplay,
++            Score,
++            Calibration,
++        }
++
++        private enum PauseByte
++        {
++            Unpaused,
++            Paused,
++        }
++
++        private enum VenueSizeByte
++        {
++            NoVenue,
++            Small,
++            Large,
++        }
++
++        private enum CueByte
++        {
++            NoCue = 0,
++            Menu = 10,
++            Score = 20,
++            Intro = 30,
++            CoolLoop = 60,
++            WarmLoop = 70,
++            CoolManual = 80,
++            WarmManual = 90,
++            Dischord = 100,
++            Stomp = 110,
++            Default = 120,
++            Harmony = 130,
++            Frenzy = 140,
++            Silhouettes = 150,
++            SilhouettesSpotlight = 160,
++            Searchlights = 170,
++            Sweep = 180,
++            BlackoutFast = 190,
++            BlackoutSlow = 200,
++            BlackoutSpotlight = 210,
++            FlareSlow = 220,
++            FlareFast = 230,
++            BigRockEnding = 240,
++        }
++
++        private enum PostProcessingByte
++        {
++            Default = 0,
++
++            // Basic effects
++            Bloom = 4,
++            Bright = 14,
++            Contrast = 24,
++            Mirror = 34,
++            PhotoNegative = 44,
++            Posterize = 54,
++
++            // Color filters/effects
++            BlackAndWhite = 64,
++            SepiaTone = 74,
++            SilverTone = 84,
++            ChoppyBlackAndWhite = 94,
++            PhotoNegativeRedAndBlack = 104,
++            PolarizedBlackAndWhite = 114,
++            PolarizedRedAndBlue = 124,
++            DesaturatedRed = 134,
++            DesaturatedBlue = 144,
++            ContrastRed = 154,
++            ContrastGreen = 164,
++            ContrastBlue = 174,
++
++            // Grainy
++            GrainyFilm = 184,
++            GrainyChromaticAbberation = 194,
++            // Scanlines
++            Scanlines = 204,
++            ScanlinesBlackAndWhite = 214,
++            ScanlinesBlue = 224,
++            ScanlinesSecurity = 234,
++
++            // Trails
++            Trails = 244,
++            TrailsLong = 252,
++            TrailsDesaturated = 253,
++            TrailsFlickery = 254,
++            TrailsSpacey = 255,
++        }
+ 
+         public enum FogState
+         {
+@@ -33,251 +230,367 @@ namespace YARG.Integration
+             On,
+         }
+ 
+-        public enum InstrumentType
++        public enum StrobeSpeedByte
+         {
+-            Drums,
+-            Guitar,
+-            Bass,
+-            Keys,
++            Off,
++            Slow,
++            Medium,
++            Fast,
++            Fastest,
+         }
+ 
+-        public static LightingEvent CurrentLightingCue
++        private enum BeatByte
+         {
+-            get => _currentLightingCue;
+-            set
+-            {
+-                PreviousLightingCue = _currentLightingCue;
+-                _currentLightingCue = value;
+-                OnLightingEvent?.Invoke(value);
+-            }
++            Off,
++            Measure,
++            Strong,
++            Weak,
+         }
+ 
+-        public static LightingEvent PreviousLightingCue;
+-
+-        public static PostProcessingEvent CurrentPostProcessing
++        private enum KeyFrameCueEByte
+         {
+-            get => _currentPostProcessing;
+-            set
+-            {
+-                PreviousPostProcessing = _currentPostProcessing;
+-                _currentPostProcessing = value;
+-                OnPostProcessing?.Invoke(value);
+-            }
++            Off,
++            KeyframeNext,
++            KeyframePrevious,
++            KeyframeFirst,
+         }
+ 
+-        public static PostProcessingEvent PreviousPostProcessing;
++        private enum BonusEffectByte
++        {
++            Off,
++            On,
++        }
+ 
+-        public static FogState CurrentFogState
++        private enum SongSectionByte
+         {
+-            get => _currentFogState;
+-            set
+-            {
+-                PreviousFogState = _currentFogState;
+-                _currentFogState = value;
+-                OnFogState?.Invoke(value);
+-            }
++            None,
++            Verse,
++            Chorus,
+         }
+ 
+-        public static FogState PreviousFogState = FogState.Off;
++        private static readonly IPAddress
++            IPAddress = IPAddress.Parse("255.255.255.255"); // "this" network's broadcast address
++        private const int PORT = 36107;                     // Just punched some keys on the keyboard
++        private static UdpClient _sendClient = new();
+ 
+-        public static StageKitStrobeSpeed CurrentStrobeState
++        //Has to be at least 44 because of DMX, 88 should be enough... for now...
++        private const float TARGET_FPS = 88f;
++        private const float TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
++        private static Timer _timer;
++
++        private static byte[] _dataPacket = new byte[Enum.GetValues(typeof(ByteIndex)).Length];
++
++        public static bool Paused
+         {
+-            get => _currentStrobeState;
+-            set
+-            {
+-                PreviousStrobeState = _currentStrobeState;
+-                _currentStrobeState = value;
+-                OnStrobeEvent?.Invoke(value);
+-            }
++            set =>
++                _dataPacket[(int) ByteIndex.PauseState] = value ? (byte) PauseByte.Paused : (byte) PauseByte.Unpaused;
+         }
+ 
+-        public static StageKitStrobeSpeed PreviousStrobeState = StageKitStrobeSpeed.Off;
++        public static bool LargeVenue
++        {
++            set =>
++                _dataPacket[(int) ByteIndex.VenueSize] =
++                    value ? (byte) VenueSizeByte.Large : (byte) VenueSizeByte.Small;
++        }
+ 
+-        public static int CurrentDrumNotes
++        public static PostProcessingEvent CurrentPostProcessing
+         {
+-            get => _currentDrumNote;
+             set
+             {
+-                PreviousDrumNote = _currentDrumNote;
+-                _currentDrumNote = value;
+-                OnInstrumentEvent?.Invoke(InstrumentType.Drums, value);
++                _dataPacket[(int) ByteIndex.PostProcessing] = value.Type switch
++                {
++                    PostProcessingType.Default                   => (byte) PostProcessingByte.Default,
++                    PostProcessingType.Bloom                     => (byte) PostProcessingByte.Bloom,
++                    PostProcessingType.Bright                    => (byte) PostProcessingByte.Bright,
++                    PostProcessingType.Contrast                  => (byte) PostProcessingByte.Contrast,
++                    PostProcessingType.Mirror                    => (byte) PostProcessingByte.Mirror,
++                    PostProcessingType.PhotoNegative             => (byte) PostProcessingByte.PhotoNegative,
++                    PostProcessingType.Posterize                 => (byte) PostProcessingByte.Posterize,
++                    PostProcessingType.BlackAndWhite             => (byte) PostProcessingByte.BlackAndWhite,
++                    PostProcessingType.SepiaTone                 => (byte) PostProcessingByte.SepiaTone,
++                    PostProcessingType.SilverTone                => (byte) PostProcessingByte.SilverTone,
++                    PostProcessingType.Choppy_BlackAndWhite      => (byte) PostProcessingByte.ChoppyBlackAndWhite,
++                    PostProcessingType.PhotoNegative_RedAndBlack => (byte) PostProcessingByte.PhotoNegativeRedAndBlack,
++                    PostProcessingType.Polarized_BlackAndWhite   => (byte) PostProcessingByte.PolarizedBlackAndWhite,
++                    PostProcessingType.Polarized_RedAndBlue      => (byte) PostProcessingByte.PolarizedRedAndBlue,
++                    PostProcessingType.Desaturated_Red           => (byte) PostProcessingByte.DesaturatedRed,
++                    PostProcessingType.Desaturated_Blue          => (byte) PostProcessingByte.DesaturatedBlue,
++                    PostProcessingType.Contrast_Red              => (byte) PostProcessingByte.ContrastRed,
++                    PostProcessingType.Contrast_Green            => (byte) PostProcessingByte.ContrastGreen,
++                    PostProcessingType.Contrast_Blue             => (byte) PostProcessingByte.ContrastBlue,
++                    PostProcessingType.Grainy_Film               => (byte) PostProcessingByte.GrainyFilm,
++                    PostProcessingType.Grainy_ChromaticAbberation =>
++                        (byte) PostProcessingByte.GrainyChromaticAbberation,
++                    PostProcessingType.Scanlines               => (byte) PostProcessingByte.Scanlines,
++                    PostProcessingType.Scanlines_BlackAndWhite => (byte) PostProcessingByte.ScanlinesBlackAndWhite,
++                    PostProcessingType.Scanlines_Blue          => (byte) PostProcessingByte.ScanlinesBlue,
++                    PostProcessingType.Scanlines_Security      => (byte) PostProcessingByte.ScanlinesSecurity,
++                    PostProcessingType.Trails                  => (byte) PostProcessingByte.Trails,
++                    PostProcessingType.Trails_Long             => (byte) PostProcessingByte.TrailsLong,
++                    PostProcessingType.Trails_Desaturated      => (byte) PostProcessingByte.TrailsDesaturated,
++                    PostProcessingType.Trails_Flickery         => (byte) PostProcessingByte.TrailsFlickery,
++                    PostProcessingType.Trails_Spacey           => (byte) PostProcessingByte.TrailsSpacey,
++                    _                                          => (byte) PostProcessingByte.Default,
++                };
+             }
+         }
+ 
+-        public static int PreviousDrumNote;
++        //public static PerformerEvent CurrentPerformerEvent;
+ 
+         public static int CurrentGuitarNotes
+         {
+-            get => _currentGuitarNote;
+-            set
+-            {
+-                PreviousGuitarNote = _currentGuitarNote;
+-                _currentGuitarNote = value;
+-                OnInstrumentEvent?.Invoke(InstrumentType.Guitar, value);
+-            }
++            set => _dataPacket[(int) ByteIndex.GuitarNotes] = (byte) value;
++        }
++
++        public static int CurrentBassNotes
++        {
++            set => _dataPacket[(int) ByteIndex.BassNotes] = (byte) value;
+         }
+ 
+-        public static int PreviousGuitarNote;
++        public static int CurrentDrumNotes
++        {
++            set => _dataPacket[(int) ByteIndex.DrumsNotes] = (byte) value;
++        }
+ 
+         public static int CurrentKeysNotes
+         {
+-            get => _currentKeysNote;
+-            set
+-            {
+-                PreviousKeysNote = _currentKeysNote;
+-                _currentKeysNote = value;
+-                OnInstrumentEvent?.Invoke(InstrumentType.Keys, value);
+-            }
++            set => _dataPacket[(int) ByteIndex.KeysNotes] = (byte) value;
+         }
+ 
+-        public static int PreviousKeysNote;
++        public static int CurrentVocalNote
++        {
++            set => _dataPacket[(int) ByteIndex.VocalsNote] = (byte) value;
++        }
+ 
+-        public static int CurrentBassNotes
++        public static int CurrentHarmony0Note
+         {
+-            get => _currentBassNote;
+-            set
+-            {
+-                PreviousBassNote = _currentBassNote;
+-                _currentBassNote = value;
+-                OnInstrumentEvent?.Invoke(InstrumentType.Bass, value);
+-            }
++            set => _dataPacket[(int) ByteIndex.Harmony0Note] = (byte) value;
+         }
+ 
+-        public static int PreviousBassNote;
++        public static int CurrentHarmony1Note
++        {
++            set => _dataPacket[(int) ByteIndex.Harmony1Note] = (byte) value;
++        }
+ 
+-        public static PerformerEvent CurrentPerformerEvent
++        public static int CurrentHarmony2Note
+         {
+-            get => _currentPerformerEvent;
+-            set
+-            {
+-                PreviousPerformerEvent = _currentPerformerEvent;
+-                _currentPerformerEvent = value;
+-                OnPerformerEvent?.Invoke(value);
+-            }
++            set => _dataPacket[(int) ByteIndex.Harmony2Note] = (byte) value;
++        }
++
++        public static int CurrentSongSection
++        {
++            set => _dataPacket[(int) ByteIndex.SongSection] = (byte) value;
+         }
+ 
+-        public static PerformerEvent PreviousPerformerEvent;
++        public static FogState CurrentFogState
++        {
++            set => _dataPacket[(int) ByteIndex.FogState] = (byte) value;
++        }
+ 
+-        public static VocalNote CurrentVocalNote
++        public static StageKitStrobeSpeed CurrentStrobeState
+         {
+-            get => _currentVocalNote;
+-            set
+-            {
+-                _currentVocalNote = value;
+-                OnVocalsEvent?.Invoke(value);
+-            }
++            set => _dataPacket[(int) ByteIndex.StrobeState] = (byte) value;
+         }
+ 
+-        public static Beatline CurrentBeatline
++        public static byte CurrentBPM
+         {
+-            get => _currentBeatline;
+-            set
+-            {
+-                _currentBeatline = value;
+-                OnBeatLineEvent?.Invoke(value);
+-            }
++            set => _dataPacket[(int) ByteIndex.BeatsPerMinute] = value;
+         }
+ 
+-        public static bool Paused
++        public static Beatline CurrentBeat
++        {
++            set =>
++                _dataPacket[(int) ByteIndex.Beat] = value.Type switch
++                {
++                    BeatlineType.Measure => (byte) BeatByte.Measure,
++                    BeatlineType.Strong  => (byte) BeatByte.Strong,
++                    BeatlineType.Weak    => (byte) BeatByte.Weak,
++                    _                    => (byte) BeatByte.Off,
++                };
++        }
++
++        public static LightingEvent CurrentLightingCue
+         {
+-            get => _paused;
+             set
+             {
+-                // On Pause, turn off the fog and strobe so people don't die, but leave the leds on, looks nice.
+-                if (value)
++                //Keyframes are indicators and not really lighting cues themselves, also chorus and verse act more and modifiers and section labels and also not really lighting cues
++                if (value.Type != LightingType.Keyframe_Next && value.Type != LightingType.Keyframe_Previous &&
++                    value.Type != LightingType.Keyframe_First && value.Type != LightingType.Chorus &&
++                    value.Type != LightingType.Verse)
+                 {
+-                    CurrentFogState = FogState.Off;
+-                    CurrentStrobeState = StageKitStrobeSpeed.Off;
++                    _dataPacket[(int) ByteIndex.LightingCue] = value.Type switch
++                    {
++                        LightingType.Default               => (byte) CueByte.Default,
++                        LightingType.Dischord              => (byte) CueByte.Dischord,
++                        LightingType.Frenzy                => (byte) CueByte.Frenzy,
++                        LightingType.Harmony               => (byte) CueByte.Harmony,
++                        LightingType.Intro                 => (byte) CueByte.Intro,
++                        LightingType.Menu                  => (byte) CueByte.Menu,
++                        LightingType.Score                 => (byte) CueByte.Score,
++                        LightingType.Silhouettes           => (byte) CueByte.Silhouettes,
++                        LightingType.Silhouettes_Spotlight => (byte) CueByte.SilhouettesSpotlight,
++                        LightingType.Sweep                 => (byte) CueByte.Sweep,
++                        LightingType.Searchlights          => (byte) CueByte.Searchlights,
++                        LightingType.Stomp                 => (byte) CueByte.Stomp,
++                        LightingType.Blackout_Fast         => (byte) CueByte.BlackoutFast,
++                        LightingType.Blackout_Slow         => (byte) CueByte.BlackoutSlow,
++                        LightingType.Blackout_Spotlight    => (byte) CueByte.BlackoutSpotlight,
++                        LightingType.Cool_Automatic        => (byte) CueByte.CoolLoop,
++                        LightingType.Cool_Manual           => (byte) CueByte.CoolManual,
++                        LightingType.Flare_Fast            => (byte) CueByte.FlareFast,
++                        LightingType.Flare_Slow            => (byte) CueByte.FlareSlow,
++                        LightingType.Warm_Automatic        => (byte) CueByte.WarmLoop,
++                        LightingType.Warm_Manual           => (byte) CueByte.WarmManual,
++                        LightingType.BigRockEnding         => (byte) CueByte.BigRockEnding,
++                        _                                  => (byte) CueByte.NoCue,
++                    };
+                 }
+-                else
++                else if (value.Type is LightingType.Keyframe_Next or LightingType.Keyframe_Previous
++                    or LightingType.Keyframe_First)
+                 {
+-                    CurrentFogState = PreviousFogState;
+-                    CurrentStrobeState = PreviousStrobeState;
++                    _dataPacket[(int) ByteIndex.Keyframe] = value.Type switch
++                    {
++                        LightingType.Keyframe_Next     => (byte) KeyFrameCueEByte.KeyframeNext,
++                        LightingType.Keyframe_Previous => (byte) KeyFrameCueEByte.KeyframePrevious,
++                        LightingType.Keyframe_First    => (byte) KeyFrameCueEByte.KeyframeFirst,
++                        _                              => _dataPacket[(int) ByteIndex.Keyframe]
++                    };
++                }
++                else if (value.Type is LightingType.Verse or LightingType.Chorus)
++                {
++                    _dataPacket[(int) ByteIndex.SongSection] = value.Type switch
++                    {
++                        LightingType.Verse  => (byte) SongSectionByte.Verse,
++                        LightingType.Chorus => (byte) SongSectionByte.Chorus,
++                        _                   => _dataPacket[(int) ByteIndex.SongSection]
++                    };
+                 }
+-
+-                _paused = value;
+-                OnPause?.Invoke(value);
+             }
+         }
+ 
+-        public static bool LargeVenue
++        private void Start()
+         {
+-            get => _largeVenue;
+-            set
++            _dataPacket[(int) ByteIndex.HeaderByte1] = (byte) HeaderBytes.HeaderByte1;
++            _dataPacket[(int) ByteIndex.HeaderByte2] = (byte) HeaderBytes.HeaderByte2;
++            _dataPacket[(int) ByteIndex.HeaderByte3] = (byte) HeaderBytes.HeaderByte3;
++            _dataPacket[(int) ByteIndex.HeaderByte4] = (byte) HeaderBytes.HeaderByte4;
++            _dataPacket[(int) ByteIndex.DatagramVersion] = (byte) DatagramVersionByte.Version;
++            _dataPacket[(int) ByteIndex.Platform] = SetPlatformByte();
++            _dataPacket[(int) ByteIndex.Performer] = 0x00; //Performer not parsed yet
++
++            _timer = new Timer(TIME_BETWEEN_CALLS * 1000);
++            _timer.Elapsed += (sender, e) => Sender();
++            _timer.Start();
++        }
++
++        private void Sender()
++        {
++            if (!SettingsManager.Settings.EnableYALCYDatastream.Value) return;
++            try
++            {
++                _sendClient.Send(_dataPacket, _dataPacket.Length, IPAddress.ToString(), PORT);
++                _dataPacket[(int) ByteIndex.BonusEffect] = (byte) BonusEffectByte.Off;
++                _dataPacket[(int) ByteIndex.Keyframe] = (byte) KeyFrameCueEByte.Off;
++                _dataPacket[(int) ByteIndex.Beat] = (byte) BeatByte.Off;
++            }
++            catch (Exception ex)
+             {
+-                _largeVenue = value;
+-                OnLargeVenue?.Invoke(value);
++                YargLogger.LogError($"Error sending UDP packet: {ex.Message}");
+             }
+         }
+ 
+-        public static event Action<bool> OnPause;
+-        public static event Action OnBonusFXEvent;
+-        public static event Action<bool> OnLargeVenue;
+-        public static event Action<FogState> OnFogState;
+-        public static event Action<InstrumentType, int> OnInstrumentEvent;
+-        public static event Action<VocalNote> OnVocalsEvent;
+-        public static event Action<Beatline> OnBeatLineEvent;
+-        public static event Action<LightingEvent> OnLightingEvent;
+-        public static event Action<StageKitStrobeSpeed> OnStrobeEvent;
+-        public static event Action<PostProcessingEvent> OnPostProcessing;
+-        public static event Action<PerformerEvent> OnPerformerEvent;
+-
+-        private static bool _paused;
+-        private static bool _largeVenue;
+-        private static Beatline _currentBeatline;
+-        private static int _currentDrumNote;
+-        private static FogState _currentFogState;
+-        private static VocalNote _currentVocalNote;
+-        private static LightingEvent _currentLightingCue;
+-        private static StageEffectEvent _currentStageEffect;
+-        private static StageKitStrobeSpeed _currentStrobeState;
+-        private static PostProcessingEvent _currentPostProcessing;
+-        private GameplayBehaviour _gameplayMonitor;
+-        private static int _currentGuitarNote;
+-        private static int _currentBassNote;
+-        private static PerformerEvent _currentPerformerEvent;
+-        private static int _currentKeysNote;
++        private static byte SetPlatformByte()
++        {
++            var platform = Application.platform;
++            switch (platform)
++            {
++                case RuntimePlatform.WindowsPlayer:
++                case RuntimePlatform.WindowsEditor:
++                    return (byte) PlatformByte.Windows;
++
++                case RuntimePlatform.OSXPlayer:
++                case RuntimePlatform.OSXEditor:
++                    return (byte) PlatformByte.Mac;
++
++                case RuntimePlatform.LinuxPlayer:
++                case RuntimePlatform.LinuxEditor:
++                    return (byte) PlatformByte.Linux;
++
++                default:
++                    YargLogger.LogWarning("Running on an unknown platform");
++                    return (byte) PlatformByte.Unknown;
++            }
++        }
+ 
+         public static void FireBonusFXEvent()
+         {
+-            // This is a instantaneous event, so we don't need to keep track of the previous/current event.
+-            OnBonusFXEvent?.Invoke();
++            _dataPacket[(byte) ByteIndex.BonusEffect] = (byte) BonusEffectByte.On;
+         }
+ 
+         public static void Initializer(Scene scene)
+         {
++            // Ignore the persistent scene
++            if ((SceneIndex) scene.buildIndex == SceneIndex.Persistent) return;
++
++            CurrentFogState = FogState.Off;
++            CurrentStrobeState = StageKitStrobeSpeed.Off;
++            CurrentBPM = 0;
++            CurrentDrumNotes = 0;
++            CurrentGuitarNotes = 0;
++            CurrentKeysNotes = 0;
++            CurrentBassNotes = 0;
++            CurrentVocalNote = 0;
++            CurrentHarmony0Note = 0;
++            CurrentHarmony1Note = 0;
++            CurrentHarmony2Note = 0;
++            CurrentSongSection = 0;
++
+             switch ((SceneIndex) scene.buildIndex)
+             {
+                 case SceneIndex.Gameplay:
+-                    //handled by the gameplay monitor
+-                    break;
+-
+-                case SceneIndex.Score:
+-                    OnApplicationQuit();
+-                    CurrentLightingCue = new LightingEvent(LightingType.Score, 0, 0);
++                    _dataPacket[(byte) ByteIndex.CurrentScene] = (byte) SceneIndexByte.Gameplay;
+                     break;
+ 
+                 case SceneIndex.Menu:
+-                    OnApplicationQuit();
+                     CurrentLightingCue = new LightingEvent(LightingType.Menu, 0, 0);
++                    _dataPacket[(byte) ByteIndex.CurrentScene] = (byte) SceneIndexByte.Menu;
+                     break;
+ 
+                 case SceneIndex.Calibration:
+-                    //turn off to not be distracting
+-                    OnApplicationQuit();
++                    _dataPacket[(byte) ByteIndex.CurrentScene] |= (byte) SceneIndexByte.Calibration;
++                    break;
++
++                case SceneIndex.Score:
++                    CurrentLightingCue = new LightingEvent(LightingType.Score, 0, 0);
++                    _dataPacket[(byte) ByteIndex.CurrentScene] |= (byte) SceneIndexByte.Score;
+                     break;
+ 
+                 default:
+                     YargLogger.LogWarning("Unknown Scene loaded!");
++                    _dataPacket[(byte) ByteIndex.CurrentScene] |= (byte) SceneIndexByte.Unknown;
+                     break;
+             }
+         }
+ 
+-        private static void OnApplicationQuit()
++        private void OnApplicationQuit()
+         {
+-            CurrentLightingCue = null;
+-            CurrentFogState = FogState.Off;
+-            CurrentStrobeState = StageKitStrobeSpeed.Off;
++            YargLogger.LogInfo("Killing Lighting sender...");
++
++            _timer?.Stop();
++            _timer?.Dispose();
++
++            if (_sendClient == null) return;
++
++            Array.Clear(_dataPacket, 0, _dataPacket.Length);
++            _dataPacket[(int) ByteIndex.HeaderByte1] = (byte) HeaderBytes.HeaderByte1;
++            _dataPacket[(int) ByteIndex.HeaderByte2] = (byte) HeaderBytes.HeaderByte2;
++            _dataPacket[(int) ByteIndex.HeaderByte3] = (byte) HeaderBytes.HeaderByte3;
++            _dataPacket[(int) ByteIndex.HeaderByte4] = (byte) HeaderBytes.HeaderByte4;
++            _sendClient.Send(_dataPacket, _dataPacket.Length, IPAddress.ToString(),
++                PORT); //force send a blank packet to clear the lights
++            Array.Clear(_dataPacket, 0, _dataPacket.Length);
++
++            _sendClient.Dispose();
+         }
+     }
+ }
+diff --git a/Assets/Script/Integration/MasterLightingGameplayMonitor.cs b/Assets/Script/Integration/MasterLightingGameplayMonitor.cs
+index e1b6275d..faa911aa 100644
+--- a/Assets/Script/Integration/MasterLightingGameplayMonitor.cs
++++ b/Assets/Script/Integration/MasterLightingGameplayMonitor.cs
+@@ -1,6 +1,6 @@
+-using System;
+ using System.Collections.Generic;
+ using PlasticBand.Haptics;
++using UnityEngine;
+ using UnityEngine.SceneManagement;
+ using YARG.Core;
+ using YARG.Core.Chart;
+@@ -11,19 +11,35 @@ namespace YARG.Integration
+ {
+     public class MasterLightingGameplayMonitor : GameplayBehaviour
+     {
+-        public static VenueTrack Venue { get; private set; }
+-        public static int LightingIndex { get; private set; }
++        private struct VocalNoteEvent
++        {
++            public float Pitch;
++            public double StartTime;
++            public double EndTime;
++            public bool IsActive;
++        }
++
++        private static VenueTrack Venue { get; set; }
++        private static int LightingIndex { get; set; }
+ 
+         private SyncTrack _sync;
++
+         private List<VocalsPhrase> _vocals;
++        private List<VocalsPhrase> _harmony0;
++        private List<VocalsPhrase> _harmony1;
++        private List<VocalsPhrase> _harmony2;
+         private InstrumentDifficulty<DrumNote> _drums;
+         private InstrumentDifficulty<GuitarNote> _guitar;
+         private InstrumentDifficulty<GuitarNote> _bass;
+         private InstrumentDifficulty<GuitarNote> _keys;
+ 
++        private int _vocalsIndex;
++        private int _harmony0Index;
++        private int _harmony1Index;
++        private int _harmony2Index;
+         private int _keysIndex;
+         private int _syncIndex;
+-        private int _vocalsIndex;
++        private int _bpmIndex;
+         private int _drumIndex;
+         private int _guitarIndex;
+         private int _bassIndex;
+@@ -37,9 +53,13 @@ namespace YARG.Integration
+         private int _drumEndCheckIndex = -1;
+         private int _keysEndCheckIndex = -1;
+ 
++        private List<VocalNoteEvent> _vocalsNotes;
++        private List<VocalNoteEvent> _harmony0Notes;
++        private List<VocalNoteEvent> _harmony1Notes;
++        private List<VocalNoteEvent> _harmony2Notes;
++
+         protected override void OnChartLoaded(SongChart chart)
+         {
+-            MasterLightingController.CurrentLightingCue = null;
+             MasterLightingController.CurrentFogState = MasterLightingController.FogState.Off;
+             MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Off;
+             MasterLightingController.Initializer(SceneManager.GetActiveScene());
+@@ -49,6 +69,9 @@ namespace YARG.Integration
+             Venue = chart.VenueTrack;
+             _sync = chart.SyncTrack;
+             _vocals = chart.Vocals.Parts[0].NotePhrases;
++            _harmony0 = chart.Harmony.Parts[0].NotePhrases;
++            _harmony1 = chart.Harmony.Parts[1].NotePhrases;
++            _harmony2 = chart.Harmony.Parts[2].NotePhrases;
+ 
+             _drums = chart.ProDrums.GetDifficulty(Difficulty.Expert);
+             _guitar = chart.FiveFretGuitar.GetDifficulty(Difficulty.Expert);
+@@ -67,134 +90,141 @@ namespace YARG.Integration
+             //_performerIndex = 0;
+             _postProcessingIndex = 0;
+             _keysIndex = 0;
++
++            _vocalsNotes = GetAllNoteEvents(_vocals);
++            _harmony0Notes = GetAllNoteEvents(_harmony0);
++            _harmony1Notes = GetAllNoteEvents(_harmony1);
++            _harmony2Notes = GetAllNoteEvents(_harmony2);
+         }
+ 
+-        private void Update()
++        private int GuitarBassKeyboardEventChecker(InstrumentDifficulty<GuitarNote> instrument, ref int instrumentIndex)
+         {
+-            if (MasterLightingController.Paused != GameManager.Paused)
++            int fretsPressed = 0;
++
++            // Check if the index is within bounds
++            if (instrumentIndex >= instrument.Notes.Count)
+             {
+-                MasterLightingController.Paused = GameManager.Paused;
++                return 0; // No notes to process
+             }
+ 
+-            // Keys events
+-            if (_keysEndCheckIndex == -1)
+-            {
+-                while (_keysIndex < _keys.Notes.Count && _keys.Notes[_keysIndex].Time <= GameManager.SongTime)
+-                {
+-                    int fretsPressed = 0;
++            var currentNote = instrument.Notes[instrumentIndex];
+ 
+-                    // Use ChordEnumerator to iterate over the notes
+-                    foreach (var note in _keys.Notes[_keysIndex].ChordEnumerator())
+-                    {
+-                        fretsPressed += 1 << note.Fret;
+-                    }
++            // Handle sustained notes
++            if (currentNote.Time < currentNote.TimeEnd && currentNote.TimeEnd <= GameManager.SongTime)
++            {
++                instrumentIndex++;
++                return 0; // Sustain note has ended
++            }
+ 
+-                    MasterLightingController.CurrentKeysNotes = fretsPressed;
+-                    _keysEndCheckIndex = _keysIndex;
+-                    _keysIndex++;
+-                }
++            // Handle instant notes
++            if (!(currentNote.Time <= GameManager.SongTime)) return 0; // No notes currently active
++            foreach (var note in currentNote.ChordEnumerator())
++            {
++                fretsPressed |= (1 << note.Fret);
+             }
+-            else
++
++            if (currentNote.Time == currentNote.TimeEnd)
+             {
+-                if (_keys.Notes[_keysEndCheckIndex].TimeEnd <= GameManager.SongTime)
+-                {
+-                    MasterLightingController.CurrentKeysNotes = 0;
+-                    _keysEndCheckIndex = -1;
+-                }
++                // Note is instant, so it is done.
++                instrumentIndex++;
+             }
+-            //----
+ 
+-            // Bass events
+-            if (_bassEndCheckIndex == -1)
++            return fretsPressed; // Return instant notes pressed
++        }
++
++        private int DrumsEventChecker(InstrumentDifficulty<DrumNote> instrument, ref int instrumentIndex)
++        {
++            int fretsPressed = 0;
++
++            // Check if the index is within bounds
++            if (instrumentIndex >= instrument.Notes.Count)
+             {
+-                while (_bassIndex < _bass.Notes.Count && _bass.Notes[_bassIndex].Time <= GameManager.SongTime)
+-                {
+-                    int fretsPressed = 0;
++                return 0; // No notes to process
++            }
+ 
+-                    foreach (var note in _bass.Notes[_bassIndex].ChordEnumerator())
+-                    {
+-                        fretsPressed += 1 << note.Fret;
+-                    }
++            var currentNote = instrument.Notes[instrumentIndex];
+ 
+-                    MasterLightingController.CurrentBassNotes = fretsPressed;
+-                    _bassEndCheckIndex = _bassIndex;
+-                    _bassIndex++;
+-                }
++            // Handle sustained notes
++            if (currentNote.Time < currentNote.TimeEnd && currentNote.TimeEnd <= GameManager.SongTime)
++            {
++                instrumentIndex++;
++                return 0; // Sustain note has ended
+             }
+-            else
++
++            // Handle instant notes
++            if (!(currentNote.Time <= GameManager.SongTime)) return 0; // No notes currently active
++
++            foreach (var note in currentNote.ChordEnumerator())
+             {
+-                if (_bass.Notes[_bassEndCheckIndex].TimeEnd <= GameManager.SongTime)
+-                {
+-                    MasterLightingController.CurrentBassNotes = 0;
+-                    _bassEndCheckIndex = -1;
+-                }
++                fretsPressed |= (1 << note.Pad);
+             }
+-            //----
+ 
+-            // Guitar events
+-            if (_guitarEndCheckIndex == -1)
++            if (currentNote.Time == currentNote.TimeEnd)
+             {
+-                while (_guitarIndex < _guitar.Notes.Count && _guitar.Notes[_guitarIndex].Time <= GameManager.SongTime)
+-                {
+-                    int fretsPressed = 0;
++                // Note is instant
++                instrumentIndex++;
++            }
+ 
+-                    foreach (var note in _guitar.Notes[_guitarIndex].ChordEnumerator())
+-                    {
+-                        fretsPressed += 1 << note.Fret;
+-                    }
++            return fretsPressed; // Return notes for sustain
++        }
+ 
+-                    MasterLightingController.CurrentGuitarNotes = fretsPressed;
+-                    _guitarEndCheckIndex = _guitarIndex;
+-                    _guitarIndex++;
+-                }
++        private int VocalEventChecker(List<VocalNoteEvent> list, ref int listIndex)
++        {
++            if (listIndex < list.Count && list[listIndex].EndTime <= GameManager.SongTime)
++            {
++                listIndex++;
++                return (int) MasterLightingController.VocalHarmonyBytes.None;
+             }
+-            else
++
++            if (listIndex < list.Count && list[listIndex].StartTime <= GameManager.SongTime)
+             {
+-                //so instant notes should at least be on for 1 frame because of the else statement
+-                if (_guitar.Notes[_guitarEndCheckIndex].TimeEnd <= GameManager.SongTime)
+-                {
+-                    MasterLightingController.CurrentGuitarNotes = 0;
+-                    //guitarEndCheckIndex is set to -1 when the note ends
+-                    _guitarEndCheckIndex = -1;
+-                }
++                return (int) list[listIndex].Pitch;
+             }
+ 
+-            //----
++            return -1;
++        }
+ 
+-            // Drum events
+-            if (_drumEndCheckIndex == -1)
+-            {
+-                while (_drumIndex < _drums.Notes.Count && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
+-                {
+-                    int padsHit = 0;
++        private void Update()
++        {
++            MasterLightingController.Paused = GameManager.Paused;
+ 
+-                    foreach (var note in _drums.Notes[_drumIndex].ChordEnumerator())
+-                    {
+-                        padsHit += 1 << note.Pad;
+-                    }
++            // Can't ref the CurrentXNotes properties.
++            // Instrument events
++            var h = DrumsEventChecker(_drums, ref _drumIndex);
++            MasterLightingController.CurrentDrumNotes = h;
+ 
+-                    MasterLightingController.CurrentDrumNotes = padsHit;
+-                    _drumEndCheckIndex = _drumIndex;
+-                    _drumIndex++;
+-                }
++            var g = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
++            MasterLightingController.CurrentGuitarNotes = g;
++
++            var f = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
++            MasterLightingController.CurrentBassNotes = f;
++
++            var e = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
++            MasterLightingController.CurrentKeysNotes = e;
++
++            // Vocal events
++            var a = VocalEventChecker(_vocalsNotes, ref _vocalsIndex);
++            if (a != -1)
++            {
++                MasterLightingController.CurrentVocalNote = a;
+             }
+-            else
++
++            var b = VocalEventChecker(_harmony0Notes, ref _harmony0Index);
++            if (b != -1)
+             {
+-                if (_drums.Notes[_drumEndCheckIndex].TimeEnd <= GameManager.SongTime)
+-                {
+-                    MasterLightingController.CurrentDrumNotes = 0;
+-                    _drumEndCheckIndex = -1;
+-                }
++                MasterLightingController.CurrentHarmony0Note = b;
+             }
+-            //----
+ 
+-            // End of vocal phrase. SilhouetteSpot is the only cue that uses vocals, listening to the end of the phrase.
+-            while (_vocalsIndex < _vocals.Count &&
+-                Math.Min(_vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1].TotalTimeEnd,
+-                    _vocals[_vocalsIndex].TimeEnd) <= GameManager.SongTime)
++            var c = VocalEventChecker(_harmony1Notes, ref _harmony1Index);
++            if (c != -1)
+             {
+-                MasterLightingController.CurrentVocalNote = _vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1];
+-                _vocalsIndex++;
++                MasterLightingController.CurrentHarmony1Note = c;
++            }
++
++            var d = VocalEventChecker(_harmony2Notes, ref _harmony2Index);
++            if (d != -1)
++            {
++                MasterLightingController.CurrentHarmony2Note = d;
+             }
+ 
+             //Camera Cut events
+@@ -202,12 +232,6 @@ namespace YARG.Integration
+ 
+             // Performer events
+             // NYI - waiting for parser rewrite
+-            //while (_performerIndex < Venue.Performer.Count && Venue.Performer[_performerIndex].Time <= GameManager.SongTime)
+-            //{
+-            //performerEventEndtime = Venue.Performer[0].TimeEnd;
+-            //MasterLightingController.CurrentPerformerEvent = Venue.Performer[_performerIndex];
+-            //_performerIndex++;
+-            //}
+ 
+             // Post processing events
+             while (_postProcessingIndex < Venue.PostProcessing.Count &&
+@@ -220,10 +244,16 @@ namespace YARG.Integration
+             // Beatline events
+             while (_syncIndex < _sync.Beatlines.Count && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
+             {
+-                MasterLightingController.CurrentBeatline = _sync.Beatlines[_syncIndex];
++                MasterLightingController.CurrentBeat = _sync.Beatlines[_syncIndex];
+                 _syncIndex++;
+             }
+ 
++            while (_bpmIndex < _sync.Tempos.Count && _sync.Tempos[_bpmIndex].Time <= GameManager.SongTime)
++            {
++                MasterLightingController.CurrentBPM = (byte) Mathf.Round(_sync.Tempos[_bpmIndex].BeatsPerMinute);
++                _bpmIndex++;
++            }
++
+             // The lighting cues from the venue track are handled here.
+             while (LightingIndex < Venue.Lighting.Count && Venue.Lighting[LightingIndex].Time <= GameManager.SongTime)
+             {
+@@ -253,9 +283,7 @@ namespace YARG.Integration
+                         // Okay so this a bit odd. The stage kit never has the strobe on with a lighting cue.
+                         // But the Strobe_Off event is almost never used, relying instead on the cue change to turn it off.
+                         // So this technically should be in the stage kit lighting controller code but I don't want the
+-                        // stage kit reaching into this main lighting controller. Also, Each subclass of the lighting
+-                        // controller (dmx, stage kit, rgb, etc) could handle this differently but then we have to guess
+-                        // at how long the strobe should be on. So we'll just turn it off here.
++                        // stage kit reaching into this main lighting controller.So we'll just turn it off here.
+                         MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Off;
+                         MasterLightingController.CurrentLightingCue = Venue.Lighting[LightingIndex];
+                         break;
+@@ -283,5 +311,37 @@ namespace YARG.Integration
+                 _stageIndex++;
+             }
+         }
++
++        private List<VocalNoteEvent> GetAllNoteEvents(List<VocalsPhrase> vocalPhrases)
++        {
++            var allNoteEvents = new List<VocalNoteEvent>();
++
++            foreach (var phrase in vocalPhrases)
++            {
++                foreach (var childNote in phrase.PhraseParentNote.ChildNotes)
++                {
++                    allNoteEvents.Add(new VocalNoteEvent
++                    {
++                        Pitch = (int) childNote.Pitch,
++                        StartTime = childNote.Time,
++                        EndTime = childNote.TimeEnd,
++                    });
++
++                    foreach (var grandChildNote in childNote.ChildNotes)
++                    {
++                        allNoteEvents.Add(new VocalNoteEvent
++                        {
++                            Pitch = (int) grandChildNote.Pitch,
++                            StartTime = grandChildNote.Time,
++                            EndTime = grandChildNote.TimeEnd,
++                        });
++                    }
++                }
++            }
++
++            // Sort events by time to ensure correct order
++            allNoteEvents.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
++            return allNoteEvents;
++        }
+     }
+ }
+diff --git a/Assets/Script/Integration/MasterLightingInitializer.cs b/Assets/Script/Integration/MasterLightingInitializer.cs
+index 1090caae..9656c452 100644
+--- a/Assets/Script/Integration/MasterLightingInitializer.cs
++++ b/Assets/Script/Integration/MasterLightingInitializer.cs
+@@ -1,4 +1,3 @@
+-using System;
+ using UnityEngine;
+ using UnityEngine.SceneManagement;
+ 
+diff --git a/Assets/Script/Integration/RB3E.meta b/Assets/Script/Integration/RB3E.meta
+deleted file mode 100644
+index 8a30683a..00000000
+--- a/Assets/Script/Integration/RB3E.meta
++++ /dev/null
+@@ -1,8 +0,0 @@
+-fileFormatVersion: 2
+-guid: 9eecc98cfe62a9f428054e3083b90546
+-folderAsset: yes
+-DefaultImporter:
+-  externalObjects: {}
+-  userData: 
+-  assetBundleName: 
+-  assetBundleVariant: 
+diff --git a/Assets/Script/Integration/RB3E/RB3EHardware.cs b/Assets/Script/Integration/RB3E/RB3EHardware.cs
+deleted file mode 100644
+index 46bb3e37..00000000
+--- a/Assets/Script/Integration/RB3E/RB3EHardware.cs
++++ /dev/null
+@@ -1,153 +0,0 @@
+-using System;
+-using System.Net;
+-using System.Net.Sockets;
+-using PlasticBand.Haptics;
+-using UnityEngine;
+-using YARG.Core.Logging;
+-using YARG.Integration.StageKit;
+-using YARG.Settings;
+-
+-namespace YARG.Integration.RB3E
+-{
+-    public class RB3EHardware : MonoSingleton<RB3EHardware>
+-    {
+-        private enum CommandID : byte
+-        {
+-            FogOn = 0x01,
+-            FogOff = 0x02,
+-
+-            StrobeSlow = 0x03,
+-            StrobeMedium = 0x04,
+-            StrobeFast = 0x05,
+-            StrobeFastest = 0x06,
+-            StrobeOff = 0x07,
+-
+-            BlueLeds = 0x20,
+-            GreenLeds = 0x40,
+-            YellowLeds = 0x60,
+-            RedLeds = 0x80,
+-
+-            DisableAll = 0xFF
+-        }
+-
+-        public IPAddress IPAddress = IPAddress.Parse("255.255.255.255"); // "this" network's broadcast address
+-        private const int PORT = 21070;                                  // That is what RB3E uses
+-        private UdpClient _sendClient;
+-
+-        private void OnApplicationQuit()
+-        {
+-            KillRB3E();
+-        }
+-
+-        public void HandleEnabledChanged(bool isEnabled)
+-        {
+-            if (isEnabled)
+-            {
+-                if (_sendClient != null) return;
+-
+-                YargLogger.LogInfo("Starting RB3E lighting hardware...");
+-
+-                MasterLightingController.OnFogState += OnFogStateEvent;
+-                MasterLightingController.OnStrobeEvent += OnStrobeEvent;
+-                StageKitInterpreter.OnLedEvent += HandleLedEvent;
+-                //Bonus Effects are ignored, since the stage kit doesn't seem to do anything with them.
+-
+-                _sendClient = new UdpClient();
+-            }
+-            else
+-            {
+-                KillRB3E();
+-            }
+-        }
+-
+-        private void KillRB3E()
+-        {
+-            if (_sendClient == null) return;
+-
+-            YargLogger.LogInfo("Killing RB3E lighting hardware...");
+-
+-            MasterLightingController.OnFogState -= OnFogStateEvent;
+-            MasterLightingController.OnStrobeEvent -= OnStrobeEvent;
+-            StageKitInterpreter.OnLedEvent -= HandleLedEvent;
+-
+-            SendPacket((byte) CommandID.DisableAll, 0x00);
+-
+-            _sendClient.Dispose();
+-        }
+-
+-        private void HandleLedEvent(StageKitLedColor color, byte led)
+-        {
+-            if ((color & StageKitLedColor.Blue) != 0)
+-            {
+-                SendPacket((byte) CommandID.BlueLeds, led);
+-            }
+-
+-            if ((color & StageKitLedColor.Green) != 0)
+-            {
+-                SendPacket((byte) CommandID.GreenLeds, led);
+-            }
+-
+-            if ((color & StageKitLedColor.Red) != 0)
+-            {
+-                SendPacket((byte) CommandID.RedLeds, led);
+-            }
+-
+-            if ((color & StageKitLedColor.Yellow) != 0)
+-            {
+-                SendPacket((byte) CommandID.YellowLeds, led);
+-            }
+-        }
+-
+-        private void OnFogStateEvent(MasterLightingController.FogState fogState)
+-        {
+-            if (fogState == MasterLightingController.FogState.On)
+-            {
+-                SendPacket((byte) CommandID.FogOn, 0x00);
+-            }
+-            else
+-            {
+-                SendPacket((byte) CommandID.FogOff, 0x00);
+-            }
+-        }
+-
+-        private void OnStrobeEvent(StageKitStrobeSpeed value)
+-        {
+-            switch (value)
+-            {
+-                case StageKitStrobeSpeed.Off:
+-                    SendPacket((byte) CommandID.StrobeOff, 0x00);
+-                    break;
+-                case StageKitStrobeSpeed.Slow:
+-                    SendPacket((byte) CommandID.StrobeSlow, 0x00);
+-                    break;
+-                case StageKitStrobeSpeed.Medium:
+-                    SendPacket((byte) CommandID.StrobeMedium, 0x00);
+-                    break;
+-                case StageKitStrobeSpeed.Fast:
+-                    SendPacket((byte) CommandID.StrobeFast, 0x00);
+-                    break;
+-                case StageKitStrobeSpeed.Fastest:
+-                    SendPacket((byte) CommandID.StrobeFastest, 0x00);
+-                    break;
+-                default:
+-                    throw new ArgumentOutOfRangeException(nameof(value), value, null);
+-            }
+-        }
+-
+-        private void SendPacket(byte commandID, byte parameter)
+-        {
+-            byte[] packetData = new byte[]
+-            {
+-                0x52, 0x42, 0x33, 0x45, // Magic
+-                0x00,                   // Version
+-                0x06,                   // Packet type (RB3E_EVENT_STAGEKIT)
+-                0x02,                   // Packet size
+-                0x80,                   // Platform (RB3E_PLATFORM_YARG)
+-                parameter,              // Left stagekit channel, parameter ID
+-                commandID               // Right stagekit channel, command ID
+-            };
+-
+-            _sendClient.Send(packetData, packetData.Length, IPAddress.ToString(), PORT);
+-        }
+-    }
+-}
+diff --git a/Assets/Script/Integration/RB3E/RB3EHardware.cs.meta b/Assets/Script/Integration/RB3E/RB3EHardware.cs.meta
+deleted file mode 100644
+index 531cb6eb..00000000
+--- a/Assets/Script/Integration/RB3E/RB3EHardware.cs.meta
++++ /dev/null
+@@ -1,11 +0,0 @@
+-fileFormatVersion: 2
+-guid: 4d68c6b6734cabc468852f66a540c7b9
+-MonoImporter:
+-  externalObjects: {}
+-  serializedVersion: 2
+-  defaultReferences: []
+-  executionOrder: 0
+-  icon: {instanceID: 0}
+-  userData: 
+-  assetBundleName: 
+-  assetBundleVariant: 
+diff --git a/Assets/Script/Integration/Sacn.meta b/Assets/Script/Integration/Sacn.meta
+deleted file mode 100644
+index 770a603c..00000000
+--- a/Assets/Script/Integration/Sacn.meta
++++ /dev/null
+@@ -1,8 +0,0 @@
+-fileFormatVersion: 2
+-guid: c587fb1cd3a503847a4f67e4a013c1b6
+-folderAsset: yes
+-DefaultImporter:
+-  externalObjects: {}
+-  userData: 
+-  assetBundleName: 
+-  assetBundleVariant: 
+diff --git a/Assets/Script/Integration/Sacn/SacnHardware.cs b/Assets/Script/Integration/Sacn/SacnHardware.cs
+deleted file mode 100644
+index 776c6896..00000000
+--- a/Assets/Script/Integration/Sacn/SacnHardware.cs
++++ /dev/null
+@@ -1,145 +0,0 @@
+-using System;
+-using System.Collections.Generic;
+-using Haukcode.sACN;
+-using UnityEngine;
+-using YARG.Core.Logging;
+-using YARG.Settings;
+-
+-namespace YARG.Integration.Sacn
+-{
+-    public class SacnHardware : MonoSingleton<SacnHardware>
+-    {
+-        // DMX spec says 44 updates per second is the max
+-        private const float TARGET_FPS = 44f;
+-        private const float TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
+-
+-        // Each universe supports up to 512 channels
+-        private const int UNIVERSE_SIZE = 512;
+-
+-        private const string ACN_SOURCE_NAME = "YARG";
+-
+-        // A 128-bit (16 byte) UUID that translates to "KEEP PLAYING YARG!"
+-        private readonly Guid _acnSourceId = new Guid("{4B454550-504C-4159-494E-475941524721}");
+-
+-        private SACNClient _sendClient;
+-
+-        private readonly byte[] _dataPacket = new byte[UNIVERSE_SIZE];
+-
+-        Queue<byte> _keysQueue = new Queue<byte>();
+-        Queue<byte> _guitarQueue = new Queue<byte>();
+-        Queue<byte> _bassQueue = new Queue<byte>();
+-        Queue<byte> _drumsQueue = new Queue<byte>();
+-
+-        public void HandleEnabledChanged(bool isEnabled)
+-        {
+-            if (isEnabled)
+-            {
+-                if (_sendClient != null) return;
+-
+-                YargLogger.LogInfo("Starting sACN Hardware Controller...");
+-
+-                SacnInterpreter.OnChannelSet += HandleChannelEvent;
+-
+-                _sendClient = new SACNClient(senderId: _acnSourceId, senderName: ACN_SOURCE_NAME,
+-                    localAddress: SACNCommon.GetFirstBindAddress().IPAddress);
+-
+-                InvokeRepeating(nameof(Sender), 0, TIME_BETWEEN_CALLS);
+-            }
+-            else
+-            {
+-                KillSacn();
+-            }
+-        }
+-
+-        private void HandleChannelEvent(int channel, byte value)
+-        {
+-            //only the instrument channels need to be queued as they are the only ones who end at note off.
+-            if (channel == SettingsManager.Settings.DMXBassChannel.Value)
+-            {
+-                _bassQueue.Enqueue(value);
+-            }
+-            else if (channel == SettingsManager.Settings.DMXDrumsChannel.Value)
+-            {
+-                _drumsQueue.Enqueue(value);
+-            }
+-            else if (channel == SettingsManager.Settings.DMXGuitarChannel.Value)
+-            {
+-                _guitarQueue.Enqueue(value);
+-            }
+-            else if (channel == SettingsManager.Settings.DMXKeysChannel.Value)
+-            {
+-                _keysQueue.Enqueue(value);
+-            }
+-            else
+-            {
+-                _dataPacket[channel - 1] = value;
+-            }
+-        }
+-
+-        private void KillSacn()
+-        {
+-            if (_sendClient == null) return;
+-
+-            YargLogger.LogInfo("Killing sACN Controller...");
+-
+-            CancelInvoke(nameof(Sender));
+-
+-            // Clear the command queue
+-            _bassQueue.Clear();
+-            _drumsQueue.Clear();
+-            _guitarQueue.Clear();
+-            _keysQueue.Clear();
+-
+-            // A good controller will also turn everything off after not receiving a packet after 2.5 seconds.
+-            // But this doesn't hurt to do.
+-            for (int i = 0; i < _dataPacket.Length; i++)
+-            {
+-                //turn everything off directly
+-                _dataPacket[i] = 0;
+-            }
+-
+-            //force send final packet.
+-            _sendClient.SendMulticast((ushort) SettingsManager.Settings.DMXUniverseChannel.Value, _dataPacket);
+-
+-            _sendClient.Dispose();
+-            _sendClient = null;
+-        }
+-
+-        private void OnApplicationQuit()
+-        {
+-            KillSacn();
+-        }
+-
+-        private void Sender()
+-        {
+-            if (_bassQueue.Count > 0)
+-            {
+-                _dataPacket[SettingsManager.Settings.DMXBassChannel.Value - 1] = _bassQueue.Dequeue();
+-            }
+-
+-            if (_drumsQueue.Count > 0)
+-            {
+-                _dataPacket[SettingsManager.Settings.DMXDrumsChannel.Value - 1] = _drumsQueue.Dequeue();
+-            }
+-
+-            if (_guitarQueue.Count > 0)
+-            {
+-                _dataPacket[SettingsManager.Settings.DMXGuitarChannel.Value - 1] = _guitarQueue.Dequeue();
+-            }
+-
+-            if (_keysQueue.Count > 0)
+-            {
+-                _dataPacket[SettingsManager.Settings.DMXKeysChannel.Value - 1] = _keysQueue.Dequeue();
+-            }
+-
+-            //Sacn spec says multicast is the correct default way to go but singlecast can be used if needed.
+-            _sendClient.SendMulticast((ushort) SettingsManager.Settings.DMXUniverseChannel.Value, _dataPacket);
+-
+-            //These channels are only on for 1 frame so they need to be turned off after sending.
+-            _dataPacket[SettingsManager.Settings.DMXKeyframeChannel.Value - 1] = 0;
+-            _dataPacket[SettingsManager.Settings.DMXBonusEffectChannel.Value - 1] = 0;
+-            _dataPacket[SettingsManager.Settings.DMXBeatlineChannel.Value - 1] = 0;
+-
+-        }
+-    }
+-}
+diff --git a/Assets/Script/Integration/Sacn/SacnHardware.cs.meta b/Assets/Script/Integration/Sacn/SacnHardware.cs.meta
+deleted file mode 100644
+index 63f38272..00000000
+--- a/Assets/Script/Integration/Sacn/SacnHardware.cs.meta
++++ /dev/null
+@@ -1,11 +0,0 @@
+-fileFormatVersion: 2
+-guid: 2e6d233a733a6014891836deea6c0bc2
+-MonoImporter:
+-  externalObjects: {}
+-  serializedVersion: 2
+-  defaultReferences: []
+-  executionOrder: 0
+-  icon: {instanceID: 0}
+-  userData: 
+-  assetBundleName: 
+-  assetBundleVariant: 
+diff --git a/Assets/Script/Integration/Sacn/SacnInterpreter.cs b/Assets/Script/Integration/Sacn/SacnInterpreter.cs
+deleted file mode 100644
+index cd73c67f..00000000
+--- a/Assets/Script/Integration/Sacn/SacnInterpreter.cs
++++ /dev/null
+@@ -1,584 +0,0 @@
+-using System;
+-using PlasticBand.Haptics;
+-using UnityEngine;
+-using YARG.Core.Chart;
+-using YARG.Integration.StageKit;
+-using YARG.Settings;
+-
+-namespace YARG.Integration.Sacn
+-{
+-    public class SacnInterpreter : MonoSingleton<SacnInterpreter>
+-    {
+-        // This interpreter basically has two sub-interpreters.
+-        // First is the Stage Kit Interpreter part which sets the 'basic' DMX channels to whatever the Stage Kit is doing.
+-        // Second is 'advanced' channels. This is more for external programs such as LightJams, QLC+, etc. to know what
+-        // YARG is doing and to be able to react to it.
+-
+-        private enum LedEnum
+-        {
+-            Off = 0,
+-            On = 255,
+-        }
+-
+-        private enum FogEnum
+-        {
+-            Off = 0,
+-            On = 255,
+-        }
+-
+-        private enum StrobeEnum
+-        {
+-            Off = 0,
+-            Slow = 64,
+-            Medium = 127,
+-            Fast = 191,
+-            Fastest = 255,
+-        }
+-
+-        private enum CueEnum
+-        {
+-            NoCue = 0,
+-            Menu = 10,
+-            Score = 20,
+-            Intro = 30,
+-            Verse = 40,
+-            Chorus = 50,
+-            CoolLoop = 60,
+-            WarmLoop = 70,
+-            CoolManual = 80,
+-            WarmManual = 90,
+-            Dischord = 100,
+-            Stomp = 110,
+-            Default = 120,
+-            Harmony = 130,
+-            Frenzy = 140,
+-            Silhouettes = 150,
+-            SilhouettesSpotlight = 160,
+-            Searchlights = 170,
+-            Sweep = 180,
+-            BlackoutFast = 190,
+-            BlackoutSlow = 200,
+-            BlackoutSpotlight = 210,
+-            FlareSlow = 220,
+-            FlareFast = 230,
+-            BigRockEnding = 240,
+-        }
+-
+-        private enum BeatlineEnum
+-        {
+-            Off = 0,
+-            Measure = 1,
+-            Strong = 11,
+-        }
+-
+-        private enum BonusEffectEnum
+-        {
+-            Off = 0,
+-            BonusEffect = 2,
+-        }
+-
+-        private enum KeyFrameCueEnum
+-        {
+-            Off = 0,
+-            KeyframeNext = 3,
+-            KeyframePrevious = 13,
+-            KeyframeFirst = 23,
+-        }
+-
+-        private enum PostProcessingTypeEnum
+-        {
+-            Default = 0,
+-
+-            // Basic effects
+-            Bloom = 4,
+-            Bright = 14,
+-            Contrast = 24,
+-            Mirror = 34,
+-            PhotoNegative = 44,
+-            Posterize = 54,
+-
+-            // Color filters/effects
+-            BlackAndWhite = 64,
+-            SepiaTone = 74,
+-            SilverTone = 84,
+-            ChoppyBlackAndWhite = 94,
+-            PhotoNegativeRedAndBlack = 104,
+-            PolarizedBlackAndWhite = 114,
+-            PolarizedRedAndBlue = 124,
+-            DesaturatedRed = 134,
+-            DesaturatedBlue = 144,
+-            ContrastRed = 154,
+-            ContrastGreen = 164,
+-            ContrastBlue = 174,
+-
+-            // Grainy
+-            GrainyFilm = 184,
+-            GrainyChromaticAbberation = 194,
+-            // Scanlines
+-            Scanlines = 204,
+-            ScanlinesBlackAndWhite = 214,
+-            ScanlinesBlue = 224,
+-            ScanlinesSecurity = 234,
+-
+-            // Trails
+-            Trails = 244,
+-            TrailsLong = 252,
+-            TrailsDesaturated = 253,
+-            TrailsFlickery = 254,
+-            TrailsSpacey = 255,
+-        }
+-
+-        private enum PerformerEnum
+-        {
+-            Off = 0,
+-            //Type
+-
+-            Spotlight = 1,
+-            Singalong = 2,
+-
+-            // Performer
+-            Guitar = 4,
+-            Bass = 8,
+-            Drums = 16,
+-            Vocals = 32,
+-            Keyboard = 64,
+-        }
+-
+-        public static event Action<int, byte> OnChannelSet;
+-
+-        private byte _cueValue;
+-
+-        // Basic DMX channels
+-        // 8 per color to match the stageKit layout. Default channels, the user must change them in settings.
+-        public int[] DimmerChannels;
+-        public int[] RedChannels;
+-        public int[] GreenChannels;
+-        public int[] BlueChannels;
+-        public int[] YellowChannels;
+-        public int[] FogChannels;
+-        public int[] StrobeChannels;
+-
+-        // Advanced DMX channels
+-        public int CueChangeChannel;
+-        public int KeyframeChannel;
+-        public int BeatlineChannel;
+-        public int BonusEffectChannel;
+-        public int PostProcessingChannel;
+-        public int PerformerChannel;
+-
+-        // Instrument DMX channels
+-        public int DrumChannel;
+-        public int GuitarChannel;
+-        public int BassChannel;
+-        public int KeysChannel;
+-        //Currently no advanced vocals channel as it doesn't seem needed.
+-
+-        public void Start()
+-        {
+-            ManageEventSubscription(true);
+-
+-            AllChannelsOff();
+-
+-            //Many DMX fixtures have a 'Master dimmer' channel that controls the overall brightness of the fixture.
+-            //Got to turn those on.
+-            for (int i = 0; i < 8; i++)
+-            {
+-                SetChannel(DimmerChannels[i], (byte)SettingsManager.Settings.DMXDimmerValues.Value[i]);
+-            }
+-
+-            //Since the master controller comes up first, we miss its events until now.
+-            OnLightingEvent(MasterLightingController.CurrentLightingCue);
+-
+-        }
+-
+-        private void ManageEventSubscription(bool subscribe)
+-        {
+-            if (subscribe)
+-            {
+-                // Basic
+-                StageKitInterpreter.OnLedEvent += HandleLedEvent;
+-
+-                // Advanced
+-                MasterLightingController.OnFogState += OnFogStateEvent;
+-                MasterLightingController.OnStrobeEvent += OnStrobeEvent;
+-                MasterLightingController.OnBonusFXEvent += OnBonusFXEvent;
+-                MasterLightingController.OnLightingEvent += OnLightingEvent;
+-                MasterLightingController.OnBeatLineEvent += OnBeatLineEvent;
+-                MasterLightingController.OnPostProcessing += OnPostProcessing;
+-                MasterLightingController.OnPerformerEvent += OnPerformersEvent;
+-
+-                //Instruments
+-                MasterLightingController.OnInstrumentEvent += OnInstrumentEvent;
+-            }
+-            else
+-            {
+-                // Basic
+-                StageKitInterpreter.OnLedEvent -= HandleLedEvent;
+-
+-                // Advanced
+-                MasterLightingController.OnFogState -= OnFogStateEvent;
+-                MasterLightingController.OnStrobeEvent -= OnStrobeEvent;
+-                MasterLightingController.OnBonusFXEvent -= OnBonusFXEvent;
+-                MasterLightingController.OnLightingEvent -= OnLightingEvent;
+-                MasterLightingController.OnBeatLineEvent -= OnBeatLineEvent;
+-                MasterLightingController.OnPostProcessing -= OnPostProcessing;
+-                MasterLightingController.OnPerformerEvent -= OnPerformersEvent;
+-
+-                //Instruments
+-                MasterLightingController.OnInstrumentEvent -= OnInstrumentEvent;
+-            }
+-        }
+-
+-        private void AllChannelsOff()
+-        {
+-            //Set all channels to off
+-            //Basic
+-            foreach (var t in FogChannels)
+-            {
+-                SetChannel(t, (byte) LedEnum.Off);
+-            }
+-
+-            foreach (var t in StrobeChannels)
+-            {
+-                SetChannel(t, (byte) LedEnum.Off);
+-            }
+-
+-            foreach (var t in BlueChannels)
+-            {
+-                SetChannel(t, (byte) LedEnum.Off);
+-            }
+-
+-            foreach (var t in GreenChannels)
+-            {
+-                SetChannel(t, (byte) LedEnum.Off);
+-            }
+-
+-            foreach (var t in RedChannels)
+-            {
+-                SetChannel(t, (byte) LedEnum.Off);
+-            }
+-
+-            foreach (var t in YellowChannels)
+-            {
+-                SetChannel(t, (byte) LedEnum.Off);
+-            }
+-
+-            //Advanced
+-            SetChannel(CueChangeChannel, (byte) CueEnum.NoCue);
+-            SetChannel(KeyframeChannel, (byte) KeyFrameCueEnum.Off);
+-            SetChannel(BeatlineChannel, (byte) BeatlineEnum.Off);
+-            SetChannel(BonusEffectChannel, (byte) BonusEffectEnum.Off);
+-            SetChannel(PostProcessingChannel, (byte) PostProcessingTypeEnum.Default);
+-            //NYI
+-            //SetChannel(_performerChannel, (byte) PerformerEnum.Off);
+-
+-            //Instruments
+-            SetChannel(KeysChannel, (byte) FogEnum.Off);
+-            SetChannel(DrumChannel, (byte) FogEnum.Off);
+-            SetChannel(GuitarChannel, (byte) FogEnum.Off);
+-            SetChannel(BassChannel, (byte) FogEnum.Off);
+-        }
+-
+-        private void OnFogStateEvent(MasterLightingController.FogState fogState)
+-        {
+-            if (fogState == MasterLightingController.FogState.On)
+-            {
+-                foreach (var t in FogChannels)
+-                {
+-                    SetChannel(t, (byte) FogEnum.On);
+-                }
+-            }
+-            else
+-            {
+-                foreach (var t in FogChannels)
+-                {
+-                    SetChannel(t, (byte) FogEnum.Off);
+-                }
+-            }
+-        }
+-
+-        private void OnStrobeEvent(StageKitStrobeSpeed value)
+-        {
+-            // TODO: I'm honestly just guessing at these values. I don't have a DMX strobe light to test with
+-            // and don't know if every DMX strobe light uses the same values the same way.
+-            switch (value)
+-            {
+-                case StageKitStrobeSpeed.Off:
+-                    foreach (var t in StrobeChannels)
+-                    {
+-                        SetChannel(t, (byte) StrobeEnum.Off);
+-                    }
+-                    break;
+-
+-                case StageKitStrobeSpeed.Slow:
+-                    foreach (var t in StrobeChannels)
+-                    {
+-                        SetChannel(t, (byte) StrobeEnum.Slow);
+-                    }
+-                    break;
+-
+-                case StageKitStrobeSpeed.Medium:
+-                    foreach (var t in StrobeChannels)
+-                    {
+-                        SetChannel(t, (byte) StrobeEnum.Medium);
+-                    }
+-                    break;
+-
+-                case StageKitStrobeSpeed.Fast:
+-                    foreach (var t in StrobeChannels)
+-                    {
+-                        SetChannel(t, (byte) StrobeEnum.Fast);
+-                    }
+-                    break;
+-
+-                case StageKitStrobeSpeed.Fastest:
+-                    foreach (var t in StrobeChannels)
+-                    {
+-                        SetChannel(t, (byte) StrobeEnum.Fastest);
+-                    }
+-                    break;
+-
+-                default:
+-                    throw new ArgumentOutOfRangeException(nameof(value), value, null);
+-            }
+-        }
+-
+-        private void OnBonusFXEvent()
+-        {
+-            SetChannel(BonusEffectChannel, (byte) BonusEffectEnum.BonusEffect);
+-        }
+-
+-        private void OnPerformersEvent(PerformerEvent newEvent)
+-        {
+-            //TODO: Once YARG parses the PerformerEvent, this will need to be updated/changed to the master gameplay controller
+-            if (newEvent == null)
+-            {
+-                SetChannel(PerformerChannel, (byte) PerformerEnum.Off);
+-                return;
+-            }
+-
+-            byte perf = 0;
+-
+-            switch (newEvent.Type)
+-            {
+-                case PerformerEventType.Singalong:
+-                    perf += (int) PerformerEnum.Singalong;
+-                    break;
+-
+-                case PerformerEventType.Spotlight:
+-                    perf += (int) PerformerEnum.Spotlight;
+-                    break;
+-            }
+-
+-            switch (newEvent.Performers)
+-            {
+-                case Performer.Guitar:
+-                    perf += (int) PerformerEnum.Guitar;
+-                    break;
+-
+-                case Performer.Bass:
+-                    perf += (int) PerformerEnum.Bass;
+-                    break;
+-
+-                case Performer.Drums:
+-                    perf += (int) PerformerEnum.Drums;
+-                    break;
+-
+-                case Performer.Vocals:
+-                    perf += (int) PerformerEnum.Vocals;
+-                    break;
+-
+-                case Performer.Keyboard:
+-                    perf += (int) PerformerEnum.Keyboard;
+-                    break;
+-            }
+-
+-            SetChannel(PerformerChannel, perf);
+-        }
+-
+-        private void OnInstrumentEvent(MasterLightingController.InstrumentType instrument, int notesHit)
+-        {
+-            switch (instrument)
+-            {
+-                case MasterLightingController.InstrumentType.Keys:
+-                    SetChannel(KeysChannel, (byte) notesHit);
+-                    break;
+-
+-                case MasterLightingController.InstrumentType.Drums:
+-                    SetChannel(DrumChannel, (byte) notesHit);
+-                    break;
+-
+-                case MasterLightingController.InstrumentType.Guitar:
+-                    SetChannel(GuitarChannel, (byte) notesHit);
+-                    break;
+-
+-                case MasterLightingController.InstrumentType.Bass:
+-                    SetChannel(BassChannel, (byte) notesHit);
+-                    break;
+-
+-                default:
+-                    throw new ArgumentOutOfRangeException(nameof(instrument), instrument, null);
+-            }
+-        }
+-
+-        private void OnBeatLineEvent(Beatline newBeatline)
+-        {
+-            if (newBeatline.Type == BeatlineType.Measure)
+-            {
+-                SetChannel(BeatlineChannel, (int) BeatlineEnum.Measure);
+-            }
+-
+-            if (newBeatline.Type == BeatlineType.Strong)
+-            {
+-                SetChannel(BeatlineChannel, (int) BeatlineEnum.Strong);
+-            }
+-        }
+-
+-        private void OnLightingEvent(LightingEvent newType)
+-        {
+-            SetCueChannel(newType?.Type);
+-        }
+-
+-        private void OnPostProcessing(PostProcessingEvent newType)
+-        {
+-            if (newType == null)
+-            {
+-                return;
+-            }
+-
+-            var postProcessingType = newType.Type switch
+-            {
+-                PostProcessingType.Bloom                     => (byte) PostProcessingTypeEnum.Bloom,
+-                PostProcessingType.Bright                    => (byte) PostProcessingTypeEnum.Bright,
+-                PostProcessingType.Contrast                  => (byte) PostProcessingTypeEnum.Contrast,
+-                PostProcessingType.Mirror                    => (byte) PostProcessingTypeEnum.Mirror,
+-                PostProcessingType.PhotoNegative             => (byte) PostProcessingTypeEnum.PhotoNegative,
+-                PostProcessingType.Posterize                 => (byte) PostProcessingTypeEnum.Posterize,
+-                PostProcessingType.BlackAndWhite             => (byte) PostProcessingTypeEnum.BlackAndWhite,
+-                PostProcessingType.SepiaTone                 => (byte) PostProcessingTypeEnum.SepiaTone,
+-                PostProcessingType.SilverTone                => (byte) PostProcessingTypeEnum.SilverTone,
+-                PostProcessingType.Choppy_BlackAndWhite      => (byte) PostProcessingTypeEnum.ChoppyBlackAndWhite,
+-                PostProcessingType.PhotoNegative_RedAndBlack => (byte) PostProcessingTypeEnum.PhotoNegativeRedAndBlack,
+-                PostProcessingType.Polarized_BlackAndWhite   => (byte) PostProcessingTypeEnum.PolarizedBlackAndWhite,
+-                PostProcessingType.Polarized_RedAndBlue      => (byte) PostProcessingTypeEnum.PolarizedRedAndBlue,
+-                PostProcessingType.Desaturated_Red           => (byte) PostProcessingTypeEnum.DesaturatedRed,
+-                PostProcessingType.Desaturated_Blue          => (byte) PostProcessingTypeEnum.DesaturatedBlue,
+-                PostProcessingType.Contrast_Red              => (byte) PostProcessingTypeEnum.ContrastRed,
+-                PostProcessingType.Contrast_Green            => (byte) PostProcessingTypeEnum.ContrastGreen,
+-                PostProcessingType.Contrast_Blue             => (byte) PostProcessingTypeEnum.ContrastBlue,
+-                PostProcessingType.Grainy_Film               => (byte) PostProcessingTypeEnum.GrainyFilm,
+-                PostProcessingType.Grainy_ChromaticAbberation =>
+-                    (byte) PostProcessingTypeEnum.GrainyChromaticAbberation,
+-                PostProcessingType.Scanlines               => (byte) PostProcessingTypeEnum.Scanlines,
+-                PostProcessingType.Scanlines_BlackAndWhite => (byte) PostProcessingTypeEnum.ScanlinesBlackAndWhite,
+-                PostProcessingType.Scanlines_Blue          => (byte) PostProcessingTypeEnum.ScanlinesBlue,
+-                PostProcessingType.Scanlines_Security      => (byte) PostProcessingTypeEnum.ScanlinesSecurity,
+-                PostProcessingType.Trails                  => (byte) PostProcessingTypeEnum.Trails,
+-                PostProcessingType.Trails_Long             => (byte) PostProcessingTypeEnum.TrailsLong,
+-                PostProcessingType.Trails_Desaturated      => (byte) PostProcessingTypeEnum.TrailsDesaturated,
+-                PostProcessingType.Trails_Flickery         => (byte) PostProcessingTypeEnum.TrailsFlickery,
+-                PostProcessingType.Trails_Spacey           => (byte) PostProcessingTypeEnum.TrailsSpacey,
+-                _                                          => (byte) PostProcessingTypeEnum.Default,
+-            };
+-
+-            SetChannel(PostProcessingChannel, postProcessingType);
+-        }
+-
+-        private void SetCueChannel(LightingType? newType)
+-        {
+-            if (newType != LightingType.Keyframe_Next && newType != LightingType.Keyframe_Previous &&
+-                newType != LightingType.Keyframe_First)
+-            {
+-                _cueValue = newType switch
+-                {
+-                    LightingType.Chorus                => (byte) CueEnum.Chorus,
+-                    LightingType.Default               => (byte) CueEnum.Default,
+-                    LightingType.Dischord              => (byte) CueEnum.Dischord,
+-                    LightingType.Frenzy                => (byte) CueEnum.Frenzy,
+-                    LightingType.Harmony               => (byte) CueEnum.Harmony,
+-                    LightingType.Intro                 => (byte) CueEnum.Intro,
+-                    LightingType.Menu                  => (byte) CueEnum.Menu,
+-                    LightingType.Score                 => (byte) CueEnum.Score,
+-                    LightingType.Silhouettes           => (byte) CueEnum.Silhouettes,
+-                    LightingType.Silhouettes_Spotlight => (byte) CueEnum.SilhouettesSpotlight,
+-                    LightingType.Sweep                 => (byte) CueEnum.Sweep,
+-                    LightingType.Searchlights          => (byte) CueEnum.Searchlights,
+-                    LightingType.Stomp                 => (byte) CueEnum.Stomp,
+-                    LightingType.Verse                 => (byte) CueEnum.Verse,
+-                    LightingType.Blackout_Fast         => (byte) CueEnum.BlackoutFast,
+-                    LightingType.Blackout_Slow         => (byte) CueEnum.BlackoutSlow,
+-                    LightingType.Blackout_Spotlight    => (byte) CueEnum.BlackoutSpotlight,
+-                    LightingType.Cool_Automatic        => (byte) CueEnum.CoolLoop,
+-                    LightingType.Cool_Manual           => (byte) CueEnum.CoolManual,
+-                    LightingType.Flare_Fast            => (byte) CueEnum.FlareFast,
+-                    LightingType.Flare_Slow            => (byte) CueEnum.FlareSlow,
+-                    LightingType.Warm_Automatic        => (byte) CueEnum.WarmLoop,
+-                    LightingType.Warm_Manual           => (byte) CueEnum.WarmManual,
+-                    LightingType.BigRockEnding         => (byte) CueEnum.BigRockEnding,
+-                    null                               => (byte) CueEnum.NoCue,
+-                    _                                  => (byte) CueEnum.NoCue,
+-                };
+-
+-                SetChannel(CueChangeChannel, _cueValue);
+-            }
+-            else
+-            {
+-                switch (newType)
+-                {
+-                    case LightingType.Keyframe_Next:
+-                        SetChannel(KeyframeChannel, (byte) KeyFrameCueEnum.KeyframeNext);
+-                        break;
+-                    case LightingType.Keyframe_Previous:
+-                        SetChannel(KeyframeChannel, (byte) KeyFrameCueEnum.KeyframePrevious);
+-                        break;
+-                    case LightingType.Keyframe_First:
+-                        SetChannel(KeyframeChannel, (byte) KeyFrameCueEnum.KeyframeFirst);
+-                        break;
+-                }
+-            }
+-        }
+-
+-        private void OnApplicationQuit()
+-        {
+-            ManageEventSubscription(false);
+-        }
+-
+-        private void HandleLedEvent(StageKitLedColor color, byte led)
+-        {
+-            if ((color & StageKitLedColor.Blue) != 0)
+-            {
+-                SetLedBits(BlueChannels, led);
+-            }
+-
+-            if ((color & StageKitLedColor.Green) != 0)
+-            {
+-                SetLedBits(GreenChannels, led);
+-            }
+-
+-            if ((color & StageKitLedColor.Red) != 0)
+-            {
+-                SetLedBits(RedChannels, led);
+-            }
+-
+-            if ((color & StageKitLedColor.Yellow) != 0)
+-            {
+-                SetLedBits(YellowChannels, led);
+-            }
+-        }
+-
+-        private void SetLedBits(int[] colorChannel, byte led)
+-        {
+-            for (int i = 0; i < 8; i++)
+-            {
+-                byte bitmask = (byte) (1 << i);
+-                bool isBitSet = (led & bitmask) != 0;
+-                SetChannel(colorChannel[i], isBitSet ? (byte) LedEnum.On : (byte) LedEnum.Off);
+-            }
+-        }
+-
+-        private static void SetChannel(int channel, byte value)
+-        {
+-            OnChannelSet?.Invoke(channel, value);
+-        }
+-    }
+-}
+diff --git a/Assets/Script/Integration/Sacn/SacnInterpreter.cs.meta b/Assets/Script/Integration/Sacn/SacnInterpreter.cs.meta
+deleted file mode 100644
+index 911ed931..00000000
+--- a/Assets/Script/Integration/Sacn/SacnInterpreter.cs.meta
++++ /dev/null
+@@ -1,11 +0,0 @@
+-fileFormatVersion: 2
+-guid: 3e0fb070e46d59947a7b18b7f97747e6
+-MonoImporter:
+-  externalObjects: {}
+-  serializedVersion: 2
+-  defaultReferences: []
+-  executionOrder: 0
+-  icon: {instanceID: 0}
+-  userData: 
+-  assetBundleName: 
+-  assetBundleVariant: 
+diff --git a/Assets/Script/Integration/StageKit.meta b/Assets/Script/Integration/StageKit.meta
+deleted file mode 100644
+index 8e4c4544..00000000
+--- a/Assets/Script/Integration/StageKit.meta
++++ /dev/null
+@@ -1,8 +0,0 @@
+-fileFormatVersion: 2
+-guid: 2d69651275056d4498d9b2ee12737f51
+-folderAsset: yes
+-DefaultImporter:
+-  externalObjects: {}
+-  userData: 
+-  assetBundleName: 
+-  assetBundleVariant: 
+diff --git a/Assets/Script/Integration/StageKit/StageKitHardware.cs b/Assets/Script/Integration/StageKit/StageKitHardware.cs
+deleted file mode 100644
+index 42735c27..00000000
+--- a/Assets/Script/Integration/StageKit/StageKitHardware.cs
++++ /dev/null
+@@ -1,426 +0,0 @@
+-using System;
+-using System.Collections.Generic;
+-using UnityEngine;
+-using PlasticBand.Haptics;
+-using UnityEngine.InputSystem;
+-using Cysharp.Threading.Tasks;
+-using YARG.Core.Logging;
+-
+-/*
+- Software Layout:
+-    Cues are made up of set of primitives that either follow the beat, triggered by an event, or timed. Some cues have
+-    multiple patterns. These patterns are not random, the same song in the same venue will have the same patterns for
+-    the cues each time. I do not know how that decided. Each venue is flagged as either Large or Small. This is used to
+-    determine which pattern sets will be uses for some cues. This is randomized currently, since there is no way to get
+-    venue size from the game, at the moment.
+-
+- Hardware layout:
+-    LED numbers on the pod:
+-    rockband logo
+-     7 0 1
+-      \|/
+-    6 -+-  2
+-      /|\
+-     5 4 3
+-    xbox button
+-    as well as the fog machine and strobe light. The fog machine has 2 settings, on and off. The strobe light has 5
+-    settings, off, slow, medium, fast, fastest. Only slow and fast are used in official songs. For details on how to
+-    send commands to the kit, see the IStageKitHaptics interface and Nate's fantastic work
+-    at https://github.com/TheNathannator/PlasticBand/blob/main/Docs/Other/Stage%20Kit/Xbox%20360.md
+-
+- Bugs and notes:
+-    During official light shows (For example, using the stage kit with RB2, on a xbox 360) the lights will sometimes
+-    behave in unexpected, song specific, one-off ways. It is hard to say if this is a bug or complex intended behavior.
+-    Since there are known bugs with the stage kit as is, I am going to assume these are also bugs since the programming
+-    required to make these bespoke song effects is not trivial and doesn't seem to make sense
+-    (such as random one led flashes). So stage shows will be slightly different than the official ones, but hopefully
+-    more consistent and predictable with what was intended. Sometimes just straight up better as entire cues are
+-    missing from the official shows.
+-    Sometimes pause doesn't work for fast strobe?? I legit don't know why this happens. It seems to be a
+-    bug with the stage kit itself.
+-
+-  Not implemented because these things don't exist YARG:
+-    "About to fail song" light cues are not implemented since we don't support failing songs right now.
+-    Intro "walk on" lighting before the song starts (where it says "<user name> as <character name>") is not
+-    implemented because that doesn't exist.
+-
+- Implemented by YARG but not in the original game:
+-    Menu lighting
+-
+-
+- The individual effects for the stage kit:
+-
+-    NR = No visible response from Stage Kit
+-    VR = Response changes based on venue size
+-    RE = Response is the same regardless of venue size
+-
+-    Keyframed calls:
+-
+-        NR	verse						Doesn't seem to do anything.
+-        NR	chorus						Doesn't seem to do anything.
+-
+-        RE	loop_cool                   2 blue LEDs 180 degrees apart rotating counter clockwise, 1 green led starting
+-                                        at 90 degrees rotating clockwise. To the beat.
+-        RE	loop_warm                   2 red LEDs 180 degrees apart rotating clockwise, 1 yellow led starting at 90
+-                                        counter rotating counterclockwise. To the beat.
+-        RE	manual_cool					2 blue LEDs 180 degrees apart rotating counter clockwise, 1 green led starting
+-                                        at 90 degrees rotating clockwise. To the beat. Does not turn off strobe on
+-                                        initial call, turns it off on [next]
+-        RE	manual_warm					2 red LEDs 180 degrees apart rotating clockwise, 1 yellow led starting at
+-                                        90 counter rotating counterclockwise. To the beat. Does not turn off strobe
+-                                        on initial call, turns it off on [next]
+-
+-        VR	dischord					1 yellow led clock circles on major and minor beat.
+-                                        Red ring on drum red fret
+-                                        Blue follows [next], pattern is 6|2 ,off, 6|2|0|4. Turns off on initial call
+-                                        then on with next. (not 100% sure on this one)
+-
+-                                        Small venue:
+-                                        1 Green led @ 0, counter-clockwise circles to beat.
+-
+-                                        Large Venue:
+-                                        On Major beat toggles between: 1 Green led@0 counter clock circles to beat | all
+-                                        green leds on.
+-
+-        VR	stomp						Initial call turns on leds. Responds to the [next], toggling lights on or off.
+-
+-                                        Small Venue:
+-                                        Red, Green, Yellow
+-
+-                                        Large Venue:
+-                                        All colors
+-
+-
+-        VR	Empty (i.e. [lighting ()])	Small Venue:
+-            Default lighting.			All red on, all blue on, changing on [next]. Yellow ring on, half beat flash on
+-                                        drum red fret.
+-                                        Green, off
+-
+-                                        Large Venue:
+-                                        All blue on,  all red on. changing on [next].
+-
+-    Automatic calls:
+-
+-        RE	harmony             blue @4 clockwise on beat and green @4 clockwise on beat
+-
+-        VR	frenzy				sequence of alternating patterns. I think each color is half a beat.
+-                                    Large venue: all red, off, all blue, all yellow
+-                                    Small venue: half red, other half red, 4 green , 2 side blue, other 6 blue
+-
+-        RE	silhouettes			Turn on a green ring (doesn't seem to turn it off)
+-
+-        NR	silhouettes_spot	Responses change depending on the cue before it.
+-                                For Dischord, It turns on both blue and green rings, with the blue toggling on and off
+-                                depending on the vocal note end after each major beat.
+-                                Does nothing with Stomp
+-                                Turns off all lights for everything else.
+-
+-        VR	searchlights     	On beat.
+-                                Small venue pattern:
+-                                    1 yellow and 1 red rotate together. Counter clock
+-
+-                                Large venue patterns:
+-                                    1 yellow@2 clockwise and 1 blue@0 counter clock.
+-
+-                                    There are other patterns for both cues that change which leds start. I don't know
+-                                    how they are chosen yet.
+-
+-        RE	sweep               On beat.
+-                                small venue:
+-                                    Yellow@ 6 and 2, counter-clock
+-                                    Blue@0, clock
+-
+-                                Large venue:
+-                                    Red @6 and 2, counter-clock
+-
+-        RE	strobe_slow			Strobe light that blinks every 16th note/120 ticks.
+-        RE	strobe_fast			Strobe light that blinks every 32nd note/60 ticks.
+-                                The strobe_off call is exceedingly rare, the strobe is typically turned off by other
+-                                cues starting.
+-
+-        NR	blackout_fast		Turns off strobe. Turns of all LEDs
+-        NR	blackout_slow       Turns off strobe. Turns of all LEDs
+-        ??	blackout_spot       (untested, rare) Turns off strobe. Turns of all LEDs
+-        RE	flare_slow          All LEDS on.
+-        RE	flare_fast			All 8 blue LEDS turn on. Turns on greens after cool.
+-        RE	bre                 All Red, Green, Yellow, Blue leds turn on in sequence. Two times a beat.
+-        NR	bonusfx             Doesn't seem to do anything.
+-        NR	bonusfx_optional    Doesn't seem to do anything.
+-
+-        RE	FogOn				Turns the fog machine on. No other cue interacts with the fog machine!
+-        RE	FogOff				Turns the fog machine off. No other cue interacts with the fog machine!
+-
+-        RE	intro               Doesn't seem to do anything.
+-
+-    Extra calls:
+-        VR	Score card  		small venue
+-                                2 yellow at 180 to each other clock 2 second starting on 6 and 2, 1 blue@0 counter
+-                                clock 1 second
+-
+-                                large venue
+-                                2 yellow at 180 to each other clock 2 second, 2 red at 180 counter clock 1 second
+-
+-        RE Menu lighting        1 blue@0 rotates counter clock every two seconds. Made by me. Not in the original game.
+- */
+-namespace YARG.Integration.StageKit
+-{
+-    public class StageKitHardware : MonoSingleton<StageKitHardware>
+-    {
+-        private enum CommandType
+-        {
+-            LedBlue,
+-            LedGreen,
+-            LedYellow,
+-            LedRed,
+-            FogMachine,
+-            StrobeSpeed,
+-        }
+-
+-        private readonly List<IStageKitHaptics> _stageKits = new();
+-
+-        // Stuff for the actual command sending to the unit
+-        private bool _isSendingCommands;
+-        private readonly Queue<(int command, byte data)> _commandQueue = new();
+-        private byte _currentBlueLedState;
+-        private byte _currentGreenLedState;
+-        private byte _currentYellowLedState;
+-        private byte _currentRedLedState;
+-
+-        // This is only for the SendCommands() command to limit swamping the kit.
+-        private byte _previousBlueLedState;
+-        private byte _previousGreenLedState;
+-        private byte _previousYellowLedState;
+-        private byte _previousRedLedState;
+-
+-        // Necessary to prevent the stage kit from getting overwhelmed and dropping commands. In seconds. 0.001 is the
+-        // minimum. Preliminary testing indicated that 7ms was needed to prevent dropped commands, but it seems that
+-        // most songs are slow enough to allow 1ms.
+-        private const float SEND_DELAY = 0.001f;
+-
+-        private void Start()
+-        {
+-            InputSystem.onDeviceChange += OnDeviceChange;
+-
+-            // Build a list of all the stage kits connected
+-            foreach (var device in InputSystem.devices)
+-            {
+-                if (device is IStageKitHaptics haptics)
+-                {
+-                    _stageKits.Add(haptics);
+-                }
+-            }
+-        }
+-
+-        protected override void SingletonDestroy()
+-        {
+-            InputSystem.onDeviceChange -= OnDeviceChange;
+-
+-            foreach (var kit in _stageKits)
+-            {
+-                kit.ResetHaptics();
+-            }
+-        }
+-
+-        public void HandleEnabledChanged(bool isEnabled)
+-        {
+-            if (isEnabled)
+-            {
+-                // Stage Kits remember its last state which is neat but not needed on startup
+-                foreach (var kit in _stageKits)
+-                {
+-                    kit.ResetHaptics();
+-                }
+-
+-                StageKitInterpreter.OnLedEvent += HandleLedEvent;
+-                StageKitInterpreter.OnFogMachineEvent += HandleFogEvent;
+-                StageKitInterpreter.OnStrobeSetEvent += HandleStrobeEvent;
+-            }
+-            else
+-            {
+-                StageKitInterpreter.OnLedEvent -= HandleLedEvent;
+-                StageKitInterpreter.OnFogMachineEvent -= HandleFogEvent;
+-                StageKitInterpreter.OnStrobeSetEvent -= HandleStrobeEvent;
+-            }
+-        }
+-
+-        private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+-        {
+-            // Listen for new stage kits being added or removed at any time.
+-            if (change == InputDeviceChange.Added)
+-            {
+-                if (device is IStageKitHaptics haptics) _stageKits.Add(haptics);
+-            }
+-            else if (change == InputDeviceChange.Removed)
+-            {
+-                if (device is IStageKitHaptics haptics) _stageKits.Remove(haptics);
+-            }
+-        }
+-
+-        //The actual queueing and sending of commands
+-        private void EnqueueCommand(int command, byte data)
+-        {
+-            _commandQueue.Enqueue((command, data));
+-
+-            if (_isSendingCommands)
+-            {
+-                return;
+-            }
+-
+-            SendCommands().Forget();
+-        }
+-
+-        private async UniTask SendCommands()
+-        {
+-            _isSendingCommands = true;
+-            var things = MasterLightingController.CurrentLightingCue;
+-
+-            while (_commandQueue.Count > 0)
+-            {
+-                var curCommand = _commandQueue.Dequeue();
+-
+-                switch (curCommand.command)
+-                {
+-                    case (int) CommandType.LedBlue:
+-                        if (_currentBlueLedState == _previousBlueLedState)
+-                        {
+-                            await UniTask.Yield();
+-                        }
+-
+-                        foreach (var kit in _stageKits)
+-                        {
+-                            kit.SetLeds(StageKitLedColor.Blue, (StageKitLed) curCommand.data);
+-                        }
+-
+-                        _previousBlueLedState = _currentBlueLedState;
+-                        break;
+-
+-                    case (int) CommandType.LedGreen:
+-                        if (_currentGreenLedState == _previousGreenLedState)
+-                        {
+-                            await UniTask.Yield();
+-                        }
+-
+-                        foreach (var kit in _stageKits)
+-                        {
+-                            kit.SetLeds(StageKitLedColor.Green, (StageKitLed) curCommand.data);
+-                        }
+-
+-                        _previousGreenLedState = _currentGreenLedState;
+-                        break;
+-
+-                    case (int) CommandType.LedYellow:
+-                        if (_currentYellowLedState == _previousYellowLedState)
+-                        {
+-                            await UniTask.Yield();
+-                        }
+-
+-                        foreach (var kit in _stageKits)
+-                        {
+-                            kit.SetLeds(StageKitLedColor.Yellow, (StageKitLed) curCommand.data);
+-                        }
+-
+-                        _previousYellowLedState = _currentYellowLedState;
+-                        break;
+-
+-                    case (int) CommandType.LedRed:
+-                        if (_currentRedLedState == _previousRedLedState)
+-                        {
+-                            await UniTask.Yield();
+-                        }
+-
+-                        foreach (var kit in _stageKits)
+-                        {
+-                            kit.SetLeds(StageKitLedColor.Red, (StageKitLed) curCommand.data);
+-                        }
+-
+-                        _previousRedLedState = _currentRedLedState;
+-                        break;
+-
+-                    case (int) CommandType.FogMachine:
+-                        foreach (var kit in _stageKits)
+-                        {
+-                            kit.SetFogMachine(curCommand.data == 1);
+-                        }
+-
+-                        break;
+-
+-                    case (int) CommandType.StrobeSpeed:
+-                        foreach (var kit in _stageKits)
+-                        {
+-                            kit.SetStrobeSpeed((StageKitStrobeSpeed) curCommand.data);
+-                        }
+-
+-                        break;
+-
+-                    default:
+-                        YargLogger.LogWarning("Unknown command: " + curCommand.command);
+-                        break;
+-                }
+-
+-                // If there is more 1/20th of a second in commands left in the queue when the cue changes, clear it.
+-                // Really fast songs can build up a queue in the thousands while in BRE or Frenzy. 1/20th of a
+-                // second is said to be the blink of an eye.
+-                if (things != MasterLightingController.CurrentLightingCue && _commandQueue.Count > 0.05f / SEND_DELAY)
+-                {
+-                    _commandQueue.Clear();
+-                    things = MasterLightingController.CurrentLightingCue;
+-                }
+-
+-                await UniTask.Delay(TimeSpan.FromSeconds(SEND_DELAY), ignoreTimeScale: true);
+-            }
+-
+-            _isSendingCommands = false;
+-        }
+-
+-        private void HandleFogEvent(MasterLightingController.FogState value)
+-        {
+-            EnqueueCommand((int) CommandType.FogMachine, (byte) value);
+-        }
+-
+-        private void HandleStrobeEvent(StageKitStrobeSpeed value)
+-        {
+-            EnqueueCommand((int) CommandType.StrobeSpeed, (byte) value);
+-        }
+-
+-        private void HandleLedEvent(StageKitLedColor color, byte led)
+-        {
+-            switch (color)
+-            {
+-                case StageKitLedColor.Blue:
+-                    _currentBlueLedState = led;
+-                    EnqueueCommand((int) CommandType.LedBlue, _currentBlueLedState);
+-                    break;
+-
+-                case StageKitLedColor.Green:
+-                    _currentGreenLedState = led;
+-                    EnqueueCommand((int) CommandType.LedGreen, _currentGreenLedState);
+-                    break;
+-
+-                case StageKitLedColor.Yellow:
+-                    _currentYellowLedState = led;
+-                    EnqueueCommand((int) CommandType.LedYellow, _currentYellowLedState);
+-                    break;
+-
+-                case StageKitLedColor.Red:
+-                    _currentRedLedState = led;
+-                    EnqueueCommand((int) CommandType.LedRed, _currentRedLedState);
+-                    break;
+-
+-                case StageKitLedColor.All:
+-                    _currentBlueLedState = led;
+-                    _currentGreenLedState = led;
+-                    _currentYellowLedState = led;
+-                    _currentRedLedState = led;
+-                    EnqueueCommand((int) CommandType.LedBlue, _currentBlueLedState);
+-                    EnqueueCommand((int) CommandType.LedGreen, _currentGreenLedState);
+-                    EnqueueCommand((int) CommandType.LedYellow, _currentYellowLedState);
+-                    EnqueueCommand((int) CommandType.LedRed, _currentRedLedState);
+-                    break;
+-
+-                default:
+-                    YargLogger.LogWarning(" Unknown color: " + color);
+-                    return;
+-            }
+-        }
+-    }
+-}
+diff --git a/Assets/Script/Integration/StageKit/StageKitHardware.cs.meta b/Assets/Script/Integration/StageKit/StageKitHardware.cs.meta
+deleted file mode 100644
+index 831e5f96..00000000
+--- a/Assets/Script/Integration/StageKit/StageKitHardware.cs.meta
++++ /dev/null
+@@ -1,11 +0,0 @@
+-fileFormatVersion: 2
+-guid: 1d1faa5ee2902ba40bafec9aea861ebd
+-MonoImporter:
+-  externalObjects: {}
+-  serializedVersion: 2
+-  defaultReferences: []
+-  executionOrder: 0
+-  icon: {instanceID: 0}
+-  userData: 
+-  assetBundleName: 
+-  assetBundleVariant: 
+diff --git a/Assets/Script/Integration/StageKit/StageKitInterpreter.cs b/Assets/Script/Integration/StageKit/StageKitInterpreter.cs
+deleted file mode 100644
+index 9f79cd6c..00000000
+--- a/Assets/Script/Integration/StageKit/StageKitInterpreter.cs
++++ /dev/null
+@@ -1,200 +0,0 @@
+-using System;
+-using System.Collections.Generic;
+-using PlasticBand.Haptics;
+-using UnityEngine;
+-using YARG.Core.Chart;
+-using YARG.Core.Logging;
+-
+-namespace YARG.Integration.StageKit
+-{
+-    public class StageKitInterpreter : MonoSingleton<StageKitInterpreter>
+-    {
+-        private readonly List<StageKitLighting> _cuePrimitives = new();
+-        private StageKitLightingCue _currentLightingCue;
+-        public static StageKitLightingCue PreviousLightingCue;
+-        private const byte NONE = 0b00000000;
+-
+-        private readonly Dictionary<LightingType, StageKitLightingCue> _cueDictionary = new()
+-        {
+-            { LightingType.Menu, new MenuLighting() },
+-            { LightingType.Score, new ScoreLighting() },
+-            { LightingType.Warm_Manual, new ManualWarm() },
+-            { LightingType.Cool_Manual, new ManualCool() },
+-            { LightingType.Dischord, new Dischord() },
+-            { LightingType.Stomp, new Stomp() },
+-            { LightingType.Default, new Default() },
+-            { LightingType.Warm_Automatic, new LoopWarm() },
+-            { LightingType.Cool_Automatic, new LoopCool() },
+-            { LightingType.BigRockEnding, new BigRockEnding() },
+-            { LightingType.Searchlights, new SearchLight() },
+-            { LightingType.Frenzy, new Frenzy() },
+-            { LightingType.Sweep, new Sweep() },
+-            { LightingType.Harmony, new Harmony() },
+-            { LightingType.Flare_Slow, new FlareSlow() },
+-            { LightingType.Flare_Fast, new FlareFast() },
+-            { LightingType.Silhouettes_Spotlight, new SilhouetteSpot() },
+-            { LightingType.Silhouettes, new Silhouettes() },
+-            { LightingType.Blackout_Spotlight, new Blackout() },
+-            { LightingType.Blackout_Slow, new Blackout() },
+-            { LightingType.Blackout_Fast, new Blackout() },
+-            { LightingType.Intro, new Intro() }
+-        };
+-
+-        public static event Action<StageKitLedColor, byte> OnLedEvent;
+-        public static event Action<StageKitStrobeSpeed> OnStrobeSetEvent;
+-
+-        public static event Action<MasterLightingController.FogState> OnFogMachineEvent;
+-
+-        // This class maintains the Stage Kit lighting cues and primitives
+-        public void Start()
+-        {
+-            MasterLightingController.OnInstrumentEvent += OnDrumEvent;
+-            MasterLightingController.OnVocalsEvent += OnVocalsEvent;
+-            MasterLightingController.OnLightingEvent += OnLightingEvent;
+-            MasterLightingController.OnBeatLineEvent += OnBeatLineEvent;
+-            MasterLightingController.OnFogState += OnFogStateEvent;
+-            MasterLightingController.OnStrobeEvent += OnStrobeEvent;
+-        }
+-
+-        private void OnApplicationQuit()
+-        {
+-            MasterLightingController.OnInstrumentEvent -= OnDrumEvent;
+-            MasterLightingController.OnVocalsEvent -= OnVocalsEvent;
+-            MasterLightingController.OnLightingEvent -= OnLightingEvent;
+-            MasterLightingController.OnBeatLineEvent -= OnBeatLineEvent;
+-            MasterLightingController.OnFogState -= OnFogStateEvent;
+-            MasterLightingController.OnStrobeEvent -= OnStrobeEvent;
+-        }
+-
+-        private void ChangeCues(StageKitLightingCue cue)
+-        {
+-            if (_currentLightingCue != null)
+-            {
+-                foreach (var primitive in _currentLightingCue.CuePrimitives)
+-                {
+-                    primitive.KillSelf();
+-                }
+-
+-                _cuePrimitives.Clear();
+-                PreviousLightingCue = _currentLightingCue;
+-                _currentLightingCue.DirectListenEnabled = false;
+-                _currentLightingCue = null;
+-            }
+-
+-            _currentLightingCue = cue;
+-            _currentLightingCue?.Enable();
+-        }
+-
+-        public void SetLed(StageKitLedColor color, byte led)
+-        {
+-            OnLedEvent?.Invoke(color, led);
+-        }
+-
+-        private void OnFogStateEvent(MasterLightingController.FogState value)
+-        {
+-            OnFogMachineEvent?.Invoke(value);
+-        }
+-
+-        private void OnStrobeEvent(StageKitStrobeSpeed value)
+-        {
+-            OnStrobeSetEvent?.Invoke(value);
+-        }
+-
+-        protected virtual void OnBeatLineEvent(Beatline value)
+-        {
+-            if (_currentLightingCue == null)
+-            {
+-                return;
+-            }
+-
+-            if (_currentLightingCue.DirectListenEnabled)
+-            {
+-                _currentLightingCue.HandleBeatlineEvent(value.Type);
+-            }
+-
+-            foreach (var primitive in _currentLightingCue.CuePrimitives)
+-            {
+-                primitive.HandleBeatlineEvent(value.Type);
+-            }
+-        }
+-
+-        protected virtual void OnLightingEvent(LightingEvent value)
+-        {
+-            if (value != null && value.Type == LightingType.Keyframe_Next && _currentLightingCue != null)
+-            {
+-                if (_currentLightingCue.DirectListenEnabled)
+-                {
+-                    _currentLightingCue.HandleLightingEvent(value.Type);
+-                }
+-
+-                foreach (var primitive in _currentLightingCue.CuePrimitives)
+-                {
+-                    primitive.HandleLightingEvent(value.Type);
+-                }
+-            }
+-            else
+-            {
+-                if (value == null)
+-                {
+-                    SetLed(StageKitLedColor.Red, NONE);
+-                    SetLed(StageKitLedColor.Green, NONE);
+-                    SetLed(StageKitLedColor.Blue, NONE);
+-                    SetLed(StageKitLedColor.Yellow, NONE);
+-                    ChangeCues(null);
+-                }
+-                else if (value.Type is LightingType.Keyframe_Next or LightingType.Keyframe_Previous
+-                    or LightingType.Keyframe_First or LightingType.Verse or LightingType.Chorus)
+-                {
+-                    // Next is handled in the cue classes via their primitive calls.
+-                    // No cue listens to Previous or First.
+-                    // Verse and Chorus are ignored by the stage kits but might do something with in an extended "funky fresh" mode.
+-                }
+-                else if (_cueDictionary.TryGetValue(value.Type, out var cue))
+-                {
+-                    ChangeCues(cue);
+-                }
+-                else
+-                {
+-                    // Handle cases where the LightingType is not found in the dictionary
+-                    YargLogger.LogWarning("Unhandled lighting event: " + value?.Type);
+-                }
+-            }
+-        }
+-
+-        protected virtual void OnDrumEvent(MasterLightingController.InstrumentType instrument, int value)
+-        {
+-            if (_currentLightingCue == null || instrument != MasterLightingController.InstrumentType.Drums)
+-            {
+-                return;
+-            }
+-
+-            if (_currentLightingCue.DirectListenEnabled)
+-            {
+-                _currentLightingCue.HandleDrumEvent(value);
+-            }
+-
+-            foreach (var primitive in _currentLightingCue.CuePrimitives)
+-            {
+-                primitive.HandleDrumEvent(value);
+-            }
+-        }
+-
+-        protected virtual void OnVocalsEvent(VocalNote value)
+-        {
+-            if (_currentLightingCue == null)
+-            {
+-                return;
+-            }
+-
+-            if (_currentLightingCue.DirectListenEnabled)
+-            {
+-                _currentLightingCue.HandleVocalEvent(0);
+-            }
+-
+-            foreach (var primitive in _currentLightingCue.CuePrimitives)
+-            {
+-                primitive.HandleVocalEvent(0);
+-            }
+-        }
+-    }
+-}
+diff --git a/Assets/Script/Integration/StageKit/StageKitInterpreter.cs.meta b/Assets/Script/Integration/StageKit/StageKitInterpreter.cs.meta
+deleted file mode 100644
+index 930a9c12..00000000
+--- a/Assets/Script/Integration/StageKit/StageKitInterpreter.cs.meta
++++ /dev/null
+@@ -1,11 +0,0 @@
+-fileFormatVersion: 2
+-guid: e549df73151ee6b48a2700b69f0e6be2
+-MonoImporter:
+-  externalObjects: {}
+-  serializedVersion: 2
+-  defaultReferences: []
+-  executionOrder: 0
+-  icon: {instanceID: 0}
+-  userData: 
+-  assetBundleName: 
+-  assetBundleVariant: 
+diff --git a/Assets/Script/Integration/StageKit/StageKitLighting.Cues.cs b/Assets/Script/Integration/StageKit/StageKitLighting.Cues.cs
+deleted file mode 100644
+index 479dec2a..00000000
+--- a/Assets/Script/Integration/StageKit/StageKitLighting.Cues.cs
++++ /dev/null
+@@ -1,1059 +0,0 @@
+-using System;
+-using System.Collections.Generic;
+-using PlasticBand.Haptics;
+-using YARG.Core.Chart;
+-using YARG.Gameplay;
+-using Object = UnityEngine.Object;
+-
+-namespace YARG.Integration.StageKit
+-{
+-    // Parent of primitives
+-    // Grandparent of cues
+-    public abstract class StageKitLighting
+-    {
+-        protected const byte NONE = 0b00000000;
+-        protected const byte ZERO = 0b00000001;
+-        protected const byte ONE = 0b00000010;
+-        protected const byte TWO = 0b00000100;
+-        protected const byte THREE = 0b00001000;
+-        protected const byte FOUR = 0b00010000;
+-        protected const byte FIVE = 0b00100000;
+-        protected const byte SIX = 0b01000000;
+-        protected const byte SEVEN = 0b10000000;
+-        protected const byte ALL = 0b11111111;
+-
+-        [Flags]
+-        public enum ListenTypes
+-        {
+-            Next = 1,
+-            MajorBeat = 2,
+-            MinorBeat = 4,
+-            RedFretDrums = 8,
+-        }
+-
+-        public virtual void Enable()
+-        {
+-        }
+-
+-        public virtual void HandleLightingEvent(LightingType eventName)
+-        {
+-        }
+-
+-        public virtual void HandleBeatlineEvent(BeatlineType eventName)
+-        {
+-        }
+-
+-        public virtual void HandleDrumEvent(int eventName)
+-        {
+-        }
+-
+-        public virtual void HandleVocalEvent(double eventName)
+-        {
+-        }
+-
+-        public virtual void KillSelf()
+-        {
+-        }
+-    }
+-
+-    // This is the parent class of all lighting cues. (not primitives)
+-    public abstract class StageKitLightingCue : StageKitLighting
+-    {
+-        protected const StageKitLedColor COLOR_NONE = StageKitLedColor.None;
+-        protected const StageKitLedColor BLUE = StageKitLedColor.Blue;
+-        protected const StageKitLedColor GREEN = StageKitLedColor.Green;
+-        protected const StageKitLedColor YELLOW = StageKitLedColor.Yellow;
+-        protected const StageKitLedColor RED = StageKitLedColor.Red;
+-        protected const StageKitLedColor COLOR_ALL = StageKitLedColor.All;
+-
+-        public List<StageKitLighting> CuePrimitives = new();
+-        // While most cues only listen to events through their primitives, some cues listen directly to events so
+-        // We only want this switched on when enabled.
+-        public bool DirectListenEnabled;
+-    }
+-
+-    public class BigRockEnding : StageKitLightingCue
+-    {
+-        private static readonly (StageKitLedColor, byte)[] PatternList1 =
+-        {
+-            (RED, ALL),
+-            (RED, NONE),
+-            (RED, NONE),
+-            (RED, NONE),
+-        };
+-        private static readonly (StageKitLedColor, byte)[] PatternList2 =
+-        {
+-            (YELLOW, NONE),
+-            (YELLOW, NONE),
+-            (YELLOW, ALL),
+-            (YELLOW, NONE),
+-        };
+-        private static readonly (StageKitLedColor, byte)[] PatternList3 =
+-        {
+-            (GREEN, NONE),
+-            (GREEN, ALL),
+-            (GREEN, NONE),
+-            (GREEN, NONE),
+-        };
+-        private static readonly (StageKitLedColor, byte)[] PatternList4 =
+-        {
+-            (BLUE, NONE),
+-            (BLUE, NONE),
+-            (BLUE, NONE),
+-            (BLUE, ALL),
+-        };
+-
+-        public BigRockEnding()
+-        {
+-            CuePrimitives.Add(new BeatPattern(PatternList1, 0.5f));
+-            CuePrimitives.Add(new BeatPattern(PatternList2, 0.5f));
+-            CuePrimitives.Add(new BeatPattern(PatternList3, 0.5f));
+-            CuePrimitives.Add(new BeatPattern(PatternList4, 0.5f));
+-        }
+-
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(COLOR_ALL, ALL);
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-
+-    public class LoopWarm : StageKitLightingCue
+-    {
+-        private static readonly (StageKitLedColor, byte)[] PatternList1 =
+-        {
+-            (RED, ZERO | FOUR),
+-            (RED, ONE | FIVE),
+-            (RED, TWO | SIX),
+-            (RED, THREE | SEVEN),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] PatternList2 =
+-        {
+-            (YELLOW, TWO),
+-            (YELLOW, ONE),
+-            (YELLOW, ZERO),
+-            (YELLOW, SEVEN),
+-            (YELLOW, SIX),
+-            (YELLOW, FIVE),
+-            (YELLOW, FOUR),
+-            (YELLOW, THREE),
+-        };
+-
+-        public LoopWarm()
+-        {
+-            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
+-            CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
+-        }
+-
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-            StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-
+-    public class LoopCool : StageKitLightingCue
+-    {
+-        private static readonly (StageKitLedColor, byte)[] PatternList1 =
+-        {
+-            (BLUE, ZERO | FOUR),
+-            (BLUE, ONE | FIVE),
+-            (BLUE, TWO | SIX),
+-            (BLUE, THREE | SEVEN),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] PatternList2 =
+-        {
+-            (GREEN, TWO),
+-            (GREEN, ONE),
+-            (GREEN, ZERO),
+-            (GREEN, SEVEN),
+-            (GREEN, SIX),
+-            (GREEN, FIVE),
+-            (GREEN, FOUR),
+-            (GREEN, THREE),
+-        };
+-
+-        public LoopCool()
+-        {
+-            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
+-            CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
+-        }
+-
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            StageKitInterpreter.Instance.SetLed(RED, NONE);
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-
+-    public class Harmony : StageKitLightingCue
+-    {
+-        private static readonly (StageKitLedColor, byte)[] LargePatternList1 =
+-        {
+-            (YELLOW, THREE),
+-            (YELLOW, TWO),
+-            (YELLOW, ONE),
+-            (YELLOW, ZERO),
+-            (YELLOW, SEVEN),
+-            (YELLOW, SIX),
+-            (YELLOW, FIVE),
+-            (YELLOW, FOUR),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] LargePatternList2 =
+-        {
+-            (RED, FOUR),
+-            (RED, THREE),
+-            (RED, TWO),
+-            (RED, ONE),
+-            (RED, ZERO),
+-            (RED, SEVEN),
+-            (RED, SIX),
+-            (RED, FIVE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList1 =
+-        {
+-            (GREEN, FOUR),
+-            (GREEN, FIVE),
+-            (GREEN, SIX),
+-            (GREEN, SEVEN),
+-            (GREEN, ZERO),
+-            (GREEN, ONE),
+-            (GREEN, TWO),
+-            (GREEN, THREE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList2 =
+-        {
+-            (BLUE, FOUR),
+-            (BLUE, FIVE),
+-            (BLUE, SIX),
+-            (BLUE, SEVEN),
+-            (BLUE, ZERO),
+-            (BLUE, ONE),
+-            (BLUE, TWO),
+-            (BLUE, THREE),
+-        };
+-
+-        public Harmony()
+-        {
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                CuePrimitives.Add(new BeatPattern(LargePatternList1, 4f));
+-                CuePrimitives.Add(new BeatPattern(LargePatternList2, 4f));
+-            }
+-            else
+-            {
+-                CuePrimitives.Add(new BeatPattern(SmallPatternList1, 4f));
+-                CuePrimitives.Add(new BeatPattern(SmallPatternList2, 4f));
+-            }
+-        }
+-
+-        public override void Enable()
+-        {
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-            }
+-            else
+-            {
+-                StageKitInterpreter.Instance.SetLed(RED, NONE);
+-                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            }
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-
+-    public class Sweep : StageKitLightingCue
+-    {
+-        private static readonly (StageKitLedColor, byte)[] LargePatternList1 =
+-        {
+-            (RED, SIX | TWO),
+-            (RED, FIVE | ONE),
+-            (RED, FOUR | ZERO),
+-            (RED, THREE | SEVEN),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList1 =
+-        {
+-            (YELLOW, SIX | TWO),
+-            (YELLOW, FIVE | ONE),
+-            (YELLOW, FOUR | ZERO),
+-            (YELLOW, THREE | SEVEN),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList2 =
+-        {
+-            (BLUE, ZERO),
+-            (BLUE, ONE),
+-            (BLUE, TWO),
+-            (BLUE, THREE),
+-            (BLUE, FOUR),
+-            (BLUE, NONE),
+-            (BLUE, NONE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList3 =
+-        {
+-            (GREEN, NONE),
+-            (GREEN, NONE),
+-            (GREEN, NONE),
+-            (GREEN, NONE),
+-            (GREEN, FOUR),
+-            (GREEN, THREE),
+-            (GREEN, TWO),
+-            (GREEN, ONE),
+-            (GREEN, ZERO),
+-        };
+-
+-        public Sweep()
+-        {
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                CuePrimitives.Add(new BeatPattern(LargePatternList1, 4f));
+-            }
+-            else
+-            {
+-                CuePrimitives.Add(new BeatPattern(SmallPatternList1, 4f));
+-                CuePrimitives.Add(new BeatPattern(SmallPatternList2, 4f));
+-                CuePrimitives.Add(new BeatPattern(SmallPatternList3, 2f));
+-            }
+-        }
+-
+-        public override void Enable()
+-        {
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-            }
+-            else
+-            {
+-                StageKitInterpreter.Instance.SetLed(RED, NONE);
+-            }
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-
+-    public class Frenzy : StageKitLightingCue
+-    {
+-        // Red off blue yellow
+-        private static readonly (StageKitLedColor, byte)[] LargePatternList1 =
+-        {
+-            (RED, ALL),
+-            (RED, NONE),
+-            (RED, NONE),
+-            (RED, NONE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] LargePatternList2 =
+-        {
+-            (BLUE, NONE),
+-            (BLUE, NONE),
+-            (BLUE, ALL),
+-            (BLUE, NONE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] LargePatternList3 =
+-        {
+-            (YELLOW, NONE),
+-            (YELLOW, NONE),
+-            (YELLOW, NONE),
+-            (YELLOW, ALL),
+-        };
+-
+-        // Small venue: half red, other half red, 4 green , 2 side blue, other 6 blue
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList1 =
+-        {
+-            (RED, NONE),
+-            (RED, ALL),
+-            (RED, ZERO | TWO | FOUR | SIX),
+-            (RED, ONE | THREE | FIVE | SEVEN),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList2 =
+-        {
+-            (GREEN, NONE),
+-            (GREEN, NONE),
+-            (GREEN, ONE | THREE | FIVE | SEVEN),
+-            (GREEN, NONE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList3 =
+-        {
+-            (BLUE, ALL),
+-            (BLUE, NONE),
+-            (BLUE, NONE),
+-            (BLUE, SIX | TWO),
+-        };
+-
+-        public Frenzy()
+-        {
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                // 4 times a beats to control on and off because of the 2 different patterns on one color
+-                CuePrimitives.Add(new BeatPattern(LargePatternList1, 1f));
+-                CuePrimitives.Add(new BeatPattern(LargePatternList2, 1f));
+-                CuePrimitives.Add(new BeatPattern(LargePatternList3, 1f));
+-            }
+-            else
+-            {
+-                // 4 times a beats to control on and off because of the 2 different patterns on one color
+-                CuePrimitives.Add(new BeatPattern(SmallPatternList1, 1f));
+-                CuePrimitives.Add(new BeatPattern(SmallPatternList2, 1f));
+-                CuePrimitives.Add(new BeatPattern(SmallPatternList3, 1f));
+-            }
+-        }
+-
+-        public override void Enable()
+-        {
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-            }
+-            else
+-            {
+-                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            }
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-
+-    public class SearchLight : StageKitLightingCue
+-    {
+-        private static readonly (StageKitLedColor, byte)[] LargePatternList1 =
+-        {
+-            (YELLOW, TWO),
+-            (YELLOW, THREE),
+-            (YELLOW, FOUR),
+-            (YELLOW, FIVE),
+-            (YELLOW, SIX),
+-            (YELLOW, SEVEN),
+-            (YELLOW, ZERO),
+-            (YELLOW, ONE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] LargePatternList2 =
+-        {
+-            (BLUE, ZERO),
+-            (BLUE, SEVEN),
+-            (BLUE, SIX),
+-            (BLUE, FIVE),
+-            (BLUE, FOUR),
+-            (BLUE, THREE),
+-            (BLUE, TWO),
+-            (BLUE, ONE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList1 =
+-        {
+-            (YELLOW, ZERO),
+-            (YELLOW, SEVEN),
+-            (YELLOW, SIX),
+-            (YELLOW, FIVE),
+-            (YELLOW, FOUR),
+-            (YELLOW, THREE),
+-            (YELLOW, TWO),
+-            (YELLOW, ONE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList2 =
+-        {
+-            (RED, ZERO),
+-            (RED, SEVEN),
+-            (RED, SIX),
+-            (RED, FIVE),
+-            (RED, FOUR),
+-            (RED, THREE),
+-            (RED, TWO),
+-            (RED, ONE),
+-        };
+-
+-        public SearchLight()
+-        {
+-            // 1 yellow@2 clockwise and 1 blue@0 counter clock.
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                CuePrimitives.Add(new BeatPattern(LargePatternList1, 2f));
+-                CuePrimitives.Add(new BeatPattern(LargePatternList2, 2f));
+-            }
+-            else
+-            {
+-                CuePrimitives.Add(new BeatPattern(SmallPatternList1, 2f));
+-                CuePrimitives.Add(new BeatPattern(SmallPatternList2, 2f));
+-            }
+-        }
+-
+-        public override void Enable()
+-        {
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                StageKitInterpreter.Instance.SetLed(RED, NONE);
+-            }
+-            else
+-            {
+-                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-            }
+-
+-            StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-
+-    public class Intro : StageKitLightingCue
+-    {
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            StageKitInterpreter.Instance.SetLed(RED, NONE);
+-            StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-            StageKitInterpreter.Instance.SetLed(GREEN, ALL);
+-        }
+-    }
+-
+-    public class FlareFast : StageKitLightingCue
+-    {
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            StageKitInterpreter.Instance.SetLed(RED, NONE);
+-
+-            if (StageKitInterpreter.PreviousLightingCue is ManualCool or LoopCool)
+-            {
+-                StageKitInterpreter.Instance.SetLed(GREEN, ALL);
+-            }
+-            else
+-            {
+-                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-            }
+-
+-            StageKitInterpreter.Instance.SetLed(BLUE, ALL);
+-        }
+-    }
+-
+-    public class FlareSlow : StageKitLightingCue
+-    {
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(COLOR_ALL, ALL);
+-        }
+-    }
+-
+-    public class SilhouetteSpot : StageKitLightingCue
+-    {
+-        private bool _blueOn = true;
+-        private bool _enableBlueLedVocals;
+-
+-        public SilhouetteSpot()
+-        {
+-            if (StageKitInterpreter.PreviousLightingCue is Intro)
+-            {
+-                CuePrimitives.Add(new ListenPattern(new (StageKitLedColor, byte)[] { (BLUE, ALL) },
+-                    ListenTypes.RedFretDrums, true));
+-            }
+-        }
+-
+-        public override void Enable()
+-        {
+-            if (StageKitInterpreter.PreviousLightingCue is Dischord)
+-            {
+-                StageKitInterpreter.Instance.SetLed(RED, NONE);
+-                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-                StageKitInterpreter.Instance.SetLed(BLUE, ONE | THREE | FIVE | SEVEN);
+-                StageKitInterpreter.Instance.SetLed(GREEN, ALL);
+-
+-                _enableBlueLedVocals = true;
+-            }
+-            else if (StageKitInterpreter.PreviousLightingCue is Stomp)
+-            {
+-                // Do nothing (for the chop suey ending at least)
+-            }
+-            else
+-            {
+-                StageKitInterpreter.Instance.SetLed(RED, NONE);
+-                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            }
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-
+-            DirectListenEnabled = true;
+-        }
+-
+-        public override void HandleVocalEvent(double eventName)
+-        {
+-            if (!_enableBlueLedVocals) return;
+-
+-            if (_blueOn)
+-            {
+-                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-                _blueOn = false;
+-            }
+-            else
+-            {
+-                StageKitInterpreter.Instance.SetLed(BLUE, ONE | THREE | FIVE | SEVEN);
+-                _blueOn = true;
+-            }
+-
+-            _enableBlueLedVocals = false;
+-        }
+-
+-        public override void HandleBeatlineEvent(BeatlineType eventName)
+-        {
+-            if (eventName != BeatlineType.Measure || StageKitInterpreter.PreviousLightingCue is not Dischord) return;
+-            if (StageKitInterpreter.PreviousLightingCue is not Dischord) return;
+-            _enableBlueLedVocals = true;
+-        }
+-    }
+-
+-    public class Silhouettes : StageKitLightingCue
+-    {
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(GREEN, ALL);
+-            StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-            StageKitInterpreter.Instance.SetLed(RED, NONE);
+-        }
+-    }
+-
+-    public class Blackout : StageKitLightingCue
+-    {
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-            StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-            StageKitInterpreter.Instance.SetLed(RED, NONE);
+-        }
+-    }
+-
+-    public class ManualWarm : StageKitLightingCue
+-    {
+-        private static readonly (StageKitLedColor, byte)[] PatternList1 =
+-        {
+-            (RED, ZERO | FOUR),
+-            (RED, ONE | FIVE),
+-            (RED, TWO | SIX),
+-            (RED, THREE | SEVEN),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] PatternList2 =
+-        {
+-            (YELLOW, TWO),
+-            (YELLOW, ONE),
+-            (YELLOW, ZERO),
+-            (YELLOW, SEVEN),
+-            (YELLOW, SIX),
+-            (YELLOW, FIVE),
+-            (YELLOW, FOUR),
+-            (YELLOW, THREE),
+-        };
+-
+-        public ManualWarm()
+-        {
+-            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
+-            CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
+-            // I thought the Manuals listens to the next but it doesn't seem to. I'll save this for funky fresh mode
+-            // new ListenPattern(new List<(int, byte)>(), StageKitLightingPrimitives.ListenTypes.Next);
+-        }
+-
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-            StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-
+-    public class ManualCool : StageKitLightingCue
+-    {
+-        private static readonly (StageKitLedColor, byte)[] PatternList1 =
+-        {
+-            (BLUE, ZERO | FOUR),
+-            (BLUE, ONE | FIVE),
+-            (BLUE, TWO | SIX),
+-            (BLUE, THREE | SEVEN),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] PatternList2 =
+-        {
+-            (GREEN, TWO),
+-            (GREEN, ONE),
+-            (GREEN, ZERO),
+-            (GREEN, SEVEN),
+-            (GREEN, SIX),
+-            (GREEN, FIVE),
+-            (GREEN, FOUR),
+-            (GREEN, THREE),
+-        };
+-
+-        public ManualCool()
+-        {
+-            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
+-            CuePrimitives.Add(new BeatPattern(PatternList2, 4f));
+-        }
+-
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            StageKitInterpreter.Instance.SetLed(RED, NONE);
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-
+-    public class Stomp : StageKitLightingCue
+-    {
+-        private bool _anythingOn;
+-
+-        public override void Enable()
+-        {
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                StageKitInterpreter.Instance.SetLed(BLUE, ALL);
+-            }
+-            else
+-            {
+-                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-            }
+-
+-            StageKitInterpreter.Instance.SetLed(RED, ALL);
+-            StageKitInterpreter.Instance.SetLed(GREEN, ALL);
+-            StageKitInterpreter.Instance.SetLed(YELLOW, ALL);
+-
+-            _anythingOn = true;
+-
+-            DirectListenEnabled = true;
+-        }
+-
+-        public override void HandleLightingEvent(LightingType eventName)
+-        {
+-            if (eventName != LightingType.Keyframe_Next) return;
+-            if (_anythingOn)
+-            {
+-                StageKitInterpreter.Instance.SetLed(RED, NONE);
+-                StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            }
+-            else
+-            {
+-                if (MasterLightingController.LargeVenue)
+-                {
+-                    StageKitInterpreter.Instance.SetLed(BLUE, ALL);
+-                }
+-                else
+-                {
+-                    StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-                }
+-
+-                StageKitInterpreter.Instance.SetLed(RED, ALL);
+-                StageKitInterpreter.Instance.SetLed(GREEN, ALL);
+-                StageKitInterpreter.Instance.SetLed(YELLOW, ALL);
+-            }
+-
+-            _anythingOn = !_anythingOn;
+-        }
+-    }
+-
+-    public class Dischord : StageKitLightingCue
+-    {
+-        private GameManager _gameManager;
+-        private float _currentPitch;
+-        private bool _greenIsSpinning;
+-        private bool _blueOnTwo = true;
+-        private readonly StageKitLighting _greenPattern;
+-        private byte _patternByte;
+-        private readonly BeatPattern _blueFour;
+-        private readonly BeatPattern _blueTwo;
+-
+-        private static readonly (StageKitLedColor, byte)[] PatternList1 =
+-        {
+-            (YELLOW, ZERO),
+-            (YELLOW, ONE),
+-            (YELLOW, TWO),
+-            (YELLOW, THREE),
+-            (YELLOW, FOUR),
+-            (YELLOW, FIVE),
+-            (YELLOW, SIX),
+-            (YELLOW, SEVEN),
+-        };
+-        private static readonly (StageKitLedColor, byte)[] PatternList2 =
+-        {
+-            (GREEN, ZERO),
+-            (GREEN, SEVEN),
+-            (GREEN, SIX),
+-            (GREEN, FIVE),
+-            (GREEN, FOUR),
+-            (GREEN, THREE),
+-            (GREEN, TWO),
+-            (GREEN, ONE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] BlueFourPattern =
+-        {
+-            (BLUE, NONE),
+-            (BLUE, ZERO | TWO | FOUR | SIX),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] BlueTwoPattern =
+-        {
+-            (BLUE, NONE),
+-            (BLUE, TWO | SIX),
+-        };
+-
+-        public Dischord()
+-        {
+-            _greenIsSpinning = true;
+-            _greenPattern = new BeatPattern(PatternList2, 2f);
+-            _blueFour = new BeatPattern(BlueFourPattern, 4f, false);
+-            _blueTwo = new BeatPattern(BlueTwoPattern, 4f, false);
+-            CuePrimitives.Add(new ListenPattern(PatternList1, ListenTypes.MajorBeat | ListenTypes.MinorBeat));
+-            CuePrimitives.Add(new ListenPattern(new (StageKitLedColor, byte)[] { (RED, ALL) }, ListenTypes.RedFretDrums,
+-                true));
+-            CuePrimitives.Add(_blueTwo);
+-            CuePrimitives.Add(_blueFour);
+-            CuePrimitives.Add(_greenPattern);
+-        }
+-
+-        public override void Enable()
+-        {
+-            _gameManager = Object.FindObjectOfType<GameManager>();
+-            StageKitInterpreter.Instance.SetLed(RED, NONE);
+-            StageKitInterpreter.Instance.SetLed(BLUE, TWO | SIX);
+-
+-            // Don't want to enable all, that turns on both blue patterns.
+-            CuePrimitives[0].Enable();
+-            CuePrimitives[1].Enable();
+-            _blueTwo.Enable();
+-            _greenPattern.Enable();
+-
+-            DirectListenEnabled = true;
+-        }
+-
+-        public override void HandleLightingEvent(LightingType eventName)
+-        {
+-            if (eventName != LightingType.Keyframe_Next)
+-            {
+-                return;
+-            }
+-
+-            if (_blueOnTwo)
+-            {
+-                _blueTwo.KillSelf();
+-                _blueFour.Enable();
+-                _blueOnTwo = false;
+-            }
+-            else
+-            {
+-                _blueFour.KillSelf();
+-                _blueTwo.Enable();
+-                _blueOnTwo = true;
+-            }
+-        }
+-
+-        public override void HandleBeatlineEvent(BeatlineType eventName)
+-        {
+-            if (MasterLightingController.LargeVenue || eventName != BeatlineType.Measure) return;
+-            if (_greenIsSpinning)
+-            {
+-                _greenPattern.KillSelf();
+-
+-                StageKitInterpreter.Instance.SetLed(GREEN, ALL);
+-            }
+-            else
+-            {
+-                _greenPattern.Enable();
+-            }
+-
+-            _greenIsSpinning = !_greenIsSpinning;
+-        }
+-    }
+-
+-    public class Default : StageKitLightingCue
+-    {
+-        private static readonly (StageKitLedColor, byte)[] LargePatternList1 =
+-        {
+-            (BLUE, ALL),
+-            (RED, ALL),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList1 =
+-        {
+-            (RED, ALL),
+-            (BLUE, ALL),
+-        };
+-
+-        public Default()
+-        {
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                CuePrimitives.Add(new ListenPattern(LargePatternList1, ListenTypes.Next));
+-            }
+-            else
+-            {
+-                CuePrimitives.Add(new ListenPattern(new (StageKitLedColor, byte)[] { (YELLOW, ALL) },
+-                    ListenTypes.RedFretDrums, true, true));
+-                CuePrimitives.Add(new ListenPattern(SmallPatternList1, ListenTypes.Next));
+-            }
+-        }
+-
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-
+-            if (!MasterLightingController.LargeVenue)
+-            {
+-                StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            }
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-
+-    public class MenuLighting : StageKitLightingCue
+-    {
+-        private static readonly (StageKitLedColor, byte)[] PatternList1 =
+-        {
+-            (BLUE, ZERO),
+-            (BLUE, ONE),
+-            (BLUE, TWO),
+-            (BLUE, THREE),
+-            (BLUE, FOUR),
+-            (BLUE, FIVE),
+-            (BLUE, SIX),
+-            (BLUE, SEVEN),
+-        };
+-
+-        public MenuLighting()
+-        {
+-            CuePrimitives.Add(new TimedPattern(PatternList1, 2f));
+-        }
+-
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-            StageKitInterpreter.Instance.SetLed(RED, NONE);
+-            StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-
+-    public class ScoreLighting : StageKitLightingCue
+-    {
+-        private static readonly (StageKitLedColor, byte)[] LargePatternList1 =
+-        {
+-            (RED, SIX | TWO),
+-            (RED, ONE | FIVE),
+-            (RED, ZERO | FOUR),
+-            (RED, SEVEN | THREE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] SmallPatternList1 =
+-        {
+-            (BLUE, ZERO),
+-            (BLUE, SEVEN),
+-            (BLUE, SIX),
+-            (BLUE, FIVE),
+-            (BLUE, FOUR),
+-            (BLUE, THREE),
+-            (BLUE, TWO),
+-            (BLUE, ONE),
+-        };
+-
+-        private static readonly (StageKitLedColor, byte)[] PatternList2 =
+-        {
+-            (YELLOW, SIX | TWO),
+-            (YELLOW, SEVEN | THREE),
+-            (YELLOW, ZERO | FOUR),
+-            (YELLOW, ONE | FIVE),
+-        };
+-
+-        public ScoreLighting()
+-        {
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                CuePrimitives.Add(new TimedPattern(LargePatternList1, 1f));
+-            }
+-            else
+-            {
+-                CuePrimitives.Add(new TimedPattern(SmallPatternList1, 1f));
+-            }
+-
+-            CuePrimitives.Add(new TimedPattern(PatternList2, 2f));
+-        }
+-
+-        public override void Enable()
+-        {
+-            StageKitInterpreter.Instance.SetLed(GREEN, NONE);
+-
+-            if (MasterLightingController.LargeVenue)
+-            {
+-                StageKitInterpreter.Instance.SetLed(BLUE, NONE);
+-            }
+-            else
+-            {
+-                StageKitInterpreter.Instance.SetLed(RED, NONE);
+-            }
+-
+-            foreach (var primitive in CuePrimitives)
+-            {
+-                primitive.Enable();
+-            }
+-        }
+-    }
+-}
+diff --git a/Assets/Script/Integration/StageKit/StageKitLighting.Cues.cs.meta b/Assets/Script/Integration/StageKit/StageKitLighting.Cues.cs.meta
+deleted file mode 100644
+index 6d4e4173..00000000
+--- a/Assets/Script/Integration/StageKit/StageKitLighting.Cues.cs.meta
++++ /dev/null
+@@ -1,11 +0,0 @@
+-fileFormatVersion: 2
+-guid: cbef2b819b82cb7408b811f52c38593a
+-MonoImporter:
+-  externalObjects: {}
+-  serializedVersion: 2
+-  defaultReferences: []
+-  executionOrder: 0
+-  icon: {instanceID: 0}
+-  userData: 
+-  assetBundleName: 
+-  assetBundleVariant: 
+diff --git a/Assets/Script/Integration/StageKit/StageKitLighting.Primitives.cs b/Assets/Script/Integration/StageKit/StageKitLighting.Primitives.cs
+deleted file mode 100644
+index 58e20238..00000000
+--- a/Assets/Script/Integration/StageKit/StageKitLighting.Primitives.cs
++++ /dev/null
+@@ -1,238 +0,0 @@
+-using System;
+-using System.Threading;
+-using Cysharp.Threading.Tasks;
+-using PlasticBand.Haptics;
+-using YARG.Core.Chart;
+-using YARG.Gameplay;
+-using Object = UnityEngine.Object;
+-
+-namespace YARG.Integration.StageKit
+-{
+-    public class BeatPattern : StageKitLighting
+-    {
+-        private readonly bool _continuous;
+-        private int _patternIndex;
+-        private readonly (StageKitLedColor color, byte data)[] _patternList;
+-        private GameManager _gameManager;
+-        private readonly float _beatsPerCycle;
+-
+-        public BeatPattern((StageKitLedColor, byte)[] patternList, float beatsPerCycle, bool continuous = true)
+-        {
+-            _continuous = continuous;
+-            _patternList = patternList;
+-            _beatsPerCycle = beatsPerCycle;
+-        }
+-
+-        public override void Enable()
+-        {
+-            _patternIndex = 0;
+-            // Brought to you by Hacky Hack and the Hacktones
+-            _gameManager = Object.FindObjectOfType<GameManager>();
+-            _gameManager.BeatEventHandler.Subscribe(OnBeat, _beatsPerCycle / _patternList.Length);
+-        }
+-
+-        private void OnBeat()
+-        {
+-            StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
+-            _patternIndex++;
+-
+-            // Some beat patterns are not continuous (single fire), so we need to kill them after they've run once
+-            // otherwise they pile up.
+-            if (!_continuous && _patternIndex == _patternList.Length)
+-            {
+-                _gameManager.BeatEventHandler.Unsubscribe(OnBeat);
+-                KillSelf();
+-            }
+-
+-            if (_patternIndex >= _patternList.Length)
+-            {
+-                _patternIndex = 0;
+-            }
+-        }
+-
+-        public override void KillSelf()
+-        {
+-            if (_gameManager != null)
+-            {
+-                _gameManager.BeatEventHandler.Unsubscribe(OnBeat);
+-            }
+-        }
+-    }
+-
+-    public class ListenPattern : StageKitLighting
+-    {
+-        private readonly ListenTypes _listenType;
+-        private int _patternIndex;
+-        private readonly (StageKitLedColor color, byte data)[] _patternList;
+-        private readonly bool _flash;
+-        private readonly bool _inverse;
+-        private bool _enabled;
+-
+-        public ListenPattern((StageKitLedColor color, byte data)[] patternList, ListenTypes listenType,
+-            bool flash = false, bool inverse = false)
+-        {
+-            _flash = flash;
+-            _patternList = patternList;
+-            _listenType = listenType;
+-            _inverse = inverse;
+-        }
+-
+-        public override void Enable()
+-        {
+-            _patternIndex = 0;
+-            _enabled = true;
+-            if (!_inverse) return;
+-            StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
+-            _patternIndex++;
+-
+-            if (_patternIndex >= _patternList.Length)
+-            {
+-                _patternIndex = 0;
+-            }
+-        }
+-
+-        public override void HandleBeatlineEvent(BeatlineType eventName)
+-        {
+-            if (!_enabled)
+-            {
+-                return;
+-            }
+-
+-            if (((_listenType & ListenTypes.MajorBeat) == 0 || eventName != BeatlineType.Measure) &&
+-                ((_listenType & ListenTypes.MinorBeat) == 0 || eventName != BeatlineType.Strong))
+-            {
+-                return;
+-            }
+-
+-            ProcessEvent();
+-        }
+-
+-        public override void HandleDrumEvent(int eventName)
+-        {
+-            if (!_enabled)
+-            {
+-                return;
+-            }
+-
+-            if ((_listenType & ListenTypes.RedFretDrums) == 0 || (eventName & (int)FourLaneDrumPad.RedDrum) == 0)
+-            {
+-                return;
+-            }
+-
+-            ProcessEvent();
+-        }
+-
+-        public override void HandleLightingEvent(LightingType eventName)
+-        {
+-            if (!_enabled)
+-            {
+-                return;
+-            }
+-
+-            if ((_listenType & ListenTypes.Next) == 0 || eventName != LightingType.Keyframe_Next)
+-            {
+-                return;
+-            }
+-
+-            ProcessEvent();
+-        }
+-
+-        private void ProcessEvent()
+-        {
+-            // This might be a bug in the official stage kit code. Instead of turning off the strobe as soon as cue
+-            // changes, if the cue listens for something, it only turns off the strobe on the first event of it.
+-            // To make that happen, strobe off would have to be here and removed from the master controller as well as
+-            // added to the lighting event switch case for all the non-listening cues.
+-
+-            if (_inverse)
+-            {
+-                StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color, NONE);
+-            }
+-            else
+-            {
+-                StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color,
+-                    _patternList[_patternIndex].data);
+-            }
+-
+-            if (_flash)
+-            {
+-                OnFlash().Forget();
+-            }
+-
+-            _patternIndex++;
+-
+-            if (_patternIndex >= _patternList.Length)
+-            {
+-                _patternIndex = 0;
+-            }
+-        }
+-
+-        private async UniTaskVoid OnFlash()
+-        {
+-            // I wonder if this should be beat based instead of time based. like 1/2 a beat or something.
+-            // But a really fast song would be bad looking.
+-            await UniTask.Delay(200);
+-            if (_inverse)
+-            {
+-                StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color,
+-                    _patternList[_patternIndex].data);
+-            }
+-            else
+-            {
+-                StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color, NONE);
+-            }
+-        }
+-
+-        public override void KillSelf()
+-        {
+-            _enabled = false;
+-        }
+-    }
+-
+-    public class TimedPattern : StageKitLighting
+-    {
+-        private readonly float _seconds;
+-        private int _patternIndex;
+-        private readonly (StageKitLedColor color, byte data)[] _patternList;
+-        private CancellationTokenSource _cancellationTokenSource;
+-
+-        public TimedPattern((StageKitLedColor, byte)[] patternList, float seconds)
+-        {
+-            // Token only for timed events
+-            _cancellationTokenSource = new CancellationTokenSource();
+-            _seconds = seconds;
+-            _patternList = patternList;
+-        }
+-
+-        public override void Enable()
+-        {
+-            _patternIndex = 0;
+-            _cancellationTokenSource = new CancellationTokenSource();
+-            TimedCircleCoroutine(_cancellationTokenSource.Token).Forget();
+-        }
+-
+-        private async UniTask TimedCircleCoroutine(CancellationToken cancellationToken)
+-        {
+-            while (!cancellationToken.IsCancellationRequested)
+-            {
+-                StageKitInterpreter.Instance.SetLed(_patternList[_patternIndex].color,
+-                    _patternList[_patternIndex].data);
+-
+-                await UniTask.Delay(TimeSpan.FromSeconds(_seconds / _patternList.Length),
+-                    cancellationToken: cancellationToken);
+-
+-                _patternIndex++;
+-
+-                if (_patternIndex >= _patternList.Length)
+-                {
+-                    _patternIndex = 0;
+-                }
+-            }
+-        }
+-
+-        public override void KillSelf()
+-        {
+-            _cancellationTokenSource?.Cancel();
+-        }
+-    }
+-}
+diff --git a/Assets/Script/Integration/StageKit/StageKitLighting.Primitives.cs.meta b/Assets/Script/Integration/StageKit/StageKitLighting.Primitives.cs.meta
+deleted file mode 100644
+index 014bc8f2..00000000
+--- a/Assets/Script/Integration/StageKit/StageKitLighting.Primitives.cs.meta
++++ /dev/null
+@@ -1,11 +0,0 @@
+-fileFormatVersion: 2
+-guid: f013c730dfb9fc645bf6f9383ea383d3
+-MonoImporter:
+-  externalObjects: {}
+-  serializedVersion: 2
+-  defaultReferences: []
+-  executionOrder: 0
+-  icon: {instanceID: 0}
+-  userData: 
+-  assetBundleName: 
+-  assetBundleVariant: 
+diff --git a/Assets/Script/Settings/SettingsManager.Settings.cs b/Assets/Script/Settings/SettingsManager.Settings.cs
+index 2cd58614..43df5768 100644
+--- a/Assets/Script/Settings/SettingsManager.Settings.cs
++++ b/Assets/Script/Settings/SettingsManager.Settings.cs
+@@ -7,9 +7,6 @@ using YARG.Core.Logging;
+ using YARG.Gameplay.HUD;
+ using YARG.Helpers;
+ using YARG.Integration;
+-using YARG.Integration.RB3E;
+-using YARG.Integration.Sacn;
+-using YARG.Integration.StageKit;
+ using YARG.Menu.MusicLibrary;
+ using YARG.Menu.Persistent;
+ using YARG.Menu.Settings;
+@@ -274,66 +271,7 @@ namespace YARG.Settings
+             #endregion
+ 
+             #region Lighting Peripherals
+-
+-            public ToggleSetting StageKitEnabled { get; } = new(true, StageKitEnabledCallback);
+-            public ToggleSetting DMXEnabled { get; } = new(false, DMXEnabledCallback);
+-            public ToggleSetting RB3EEnabled { get; } = new(false, RB3EEnabledCallback);
+-
+-            public DMXChannelsSetting DMXDimmerChannels { get; } = new(
+-                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => SacnInterpreter.Instance.DimmerChannels = v);
+-
+-            public DMXChannelsSetting DMXRedChannels { get; } = new(
+-                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => SacnInterpreter.Instance.RedChannels = v);
+-
+-            public DMXChannelsSetting DMXGreenChannels { get; } = new(
+-                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => SacnInterpreter.Instance.GreenChannels = v);
+-
+-            public DMXChannelsSetting DMXBlueChannels { get; } = new(
+-                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => SacnInterpreter.Instance.BlueChannels = v);
+-
+-            public DMXChannelsSetting DMXYellowChannels { get; } = new(
+-                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => SacnInterpreter.Instance.YellowChannels = v);
+-
+-            public DMXChannelsSetting DMXFogChannels { get; } = new(
+-                new[] { 06, 14, 22, 30, 38, 46, 54, 62 }, v => SacnInterpreter.Instance.FogChannels = v);
+-
+-            public DMXChannelsSetting DMXStrobeChannels { get; } = new(
+-                new[] { 07, 15, 23, 31, 39, 47, 55, 63 }, v => SacnInterpreter.Instance.StrobeChannels = v);
+-
+-            public IntSetting DMXCueChangeChannel { get; } =
+-                new(8, 1, 512, v => SacnInterpreter.Instance.CueChangeChannel = v);
+-
+-            public IPv4Setting RB3EBroadcastIP { get; } =
+-                new("255.255.255.255", ip => RB3EHardware.Instance.IPAddress = IPAddress.Parse(ip));
+-
+-            public IntSetting DMXBeatlineChannel { get; } =
+-                new(14, 1, 512, v => SacnInterpreter.Instance.BeatlineChannel = v);
+-
+-            public IntSetting DMXBonusEffectChannel { get; } =
+-                new(15, 1, 512, v => SacnInterpreter.Instance.BonusEffectChannel = v);
+-
+-            public IntSetting DMXKeyframeChannel { get; } =
+-                new(16, 1, 512, v => SacnInterpreter.Instance.KeyframeChannel = v);
+-
+-            public IntSetting DMXDrumsChannel { get; } =
+-                new(22, 1, 512, v => SacnInterpreter.Instance.DrumChannel = v);
+-
+-            public IntSetting DMXPostProcessingChannel { get; } =
+-                new(23, 1, 512, v => SacnInterpreter.Instance.PostProcessingChannel = v);
+-
+-            public IntSetting DMXGuitarChannel { get; } =
+-                new(24, 1, 512, v => SacnInterpreter.Instance.GuitarChannel = v);
+-
+-            public IntSetting DMXBassChannel { get; } = new(30, 1, 512, v => SacnInterpreter.Instance.BassChannel = v);
+-
+-            //NYI
+-            //public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
+-
+-            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => SacnInterpreter.Instance.KeysChannel = v);
+-
+-            public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
+-
+-            public DMXChannelsSetting DMXDimmerValues { get; } = new(new[] { 255, 255, 255, 255, 255, 255, 255, 255 });
++            public ToggleSetting EnableYALCYDatastream{ get; } = new(true);
+ 
+             #endregion
+ 
+@@ -362,6 +300,7 @@ namespace YARG.Settings
+                 StatsManager.Instance.SetShowing(StatsManager.Stat.Memory, value);
+             }
+ 
++<<<<<<< HEAD
+             private static void RB3EEnabledCallback(bool value)
+             {
+                 RB3EHardware.Instance.HandleEnabledChanged(value);
+@@ -381,6 +320,8 @@ namespace YARG.Settings
+             {
+                 SacnHardware.Instance.HandleEnabledChanged(value);
+             }
++=======
++>>>>>>> 70e559fd (Data stream implementation)
+ 
+             private static void VSyncCallback(bool value)
+             {
+diff --git a/Assets/Script/Settings/SettingsManager.cs b/Assets/Script/Settings/SettingsManager.cs
+index 17f53010..90deea89 100644
+--- a/Assets/Script/Settings/SettingsManager.cs
++++ b/Assets/Script/Settings/SettingsManager.cs
+@@ -147,39 +147,12 @@ namespace YARG.Settings
+                 new ButtonRowMetadata(nameof(Settings.OpenPersistentDataPath)),
+                 new ButtonRowMetadata(nameof(Settings.OpenExecutablePath)),
+             },
+-            new MetadataTab("LightingPeripherals", icon: "Lighting", new DMXInformationPanelBuilder())
++            new MetadataTab("LightingPeripherals", icon: "Lighting")
+             {
+-                new HeaderMetadata("LightingGeneral"),
+-                nameof(Settings.StageKitEnabled),
+-                nameof(Settings.DMXEnabled),
+-                nameof(Settings.RB3EEnabled),
+-                new HeaderMetadata("StageKitDMXChannels"),
+-                nameof(Settings.DMXDimmerChannels),
+-                nameof(Settings.DMXRedChannels),
+-                nameof(Settings.DMXGreenChannels),
+-                nameof(Settings.DMXBlueChannels),
+-                nameof(Settings.DMXYellowChannels),
+-                nameof(Settings.DMXFogChannels),
+-                nameof(Settings.DMXStrobeChannels),
+-                new HeaderMetadata("AdvancedDMXChannels"),
+-                nameof(Settings.DMXCueChangeChannel),
+-                nameof(Settings.DMXPostProcessingChannel),
+-                nameof(Settings.DMXKeyframeChannel),
+-                nameof(Settings.DMXBeatlineChannel),
+-                nameof(Settings.DMXBonusEffectChannel),
+-                nameof(Settings.DMXDrumsChannel),
+-                nameof(Settings.DMXGuitarChannel),
+-                nameof(Settings.DMXBassChannel),
+-                nameof(Settings.DMXKeysChannel),
+-                new HeaderMetadata("AdvancedDMXSettings"),
+-                nameof(Settings.DMXUniverseChannel),
+-                nameof(Settings.DMXDimmerValues),
+-                //NYI
+-                //nameof(Settings.DMXPerformerChannel)
+-                new HeaderMetadata("RB3E"),
+-                nameof(Settings.RB3EBroadcastIP),
+-
++                new HeaderMetadata("YALCY"),
++                nameof(Settings.EnableYALCYDatastream),
+             },
++
+             new MetadataTab("Debug", icon: "Debug")
+             {
+                 nameof(Settings.InputDeviceLogging),
+diff --git a/YARG.Core b/YARG.Core
+index c488f865..6a049294 160000
+--- a/YARG.Core
++++ b/YARG.Core
+@@ -1 +1 @@
+-Subproject commit c488f8657717ef0b99c0e68a31a8d1ca27fdbba8
++Subproject commit 6a0492943e39e9e46f8a1c9ffb4b681fb1dd4938
+-- 
+2.44.0.windows.1
+
