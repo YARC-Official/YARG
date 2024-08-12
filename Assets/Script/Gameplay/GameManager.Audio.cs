@@ -184,8 +184,7 @@ namespace YARG.Gameplay
             }
 
             // If we can't get the state for the stem, bail.
-            StemState state;
-            if (!_stemStates.TryGetValue(stem, out state))
+            if (!_stemStates.TryGetValue(stem, out var state))
             {
                 return;
             }
