@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using PlasticBand.Haptics;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -11,19 +11,35 @@ namespace YARG.Integration
 {
     public class MasterLightingGameplayMonitor : GameplayBehaviour
     {
-        public static VenueTrack Venue { get; private set; }
-        public static int LightingIndex { get; private set; }
+        private struct VocalNoteEvent
+        {
+            public float Pitch;
+            public double StartTime;
+            public double EndTime;
+            public bool IsActive;
+        }
+
+        private static VenueTrack Venue { get; set; }
+        private static int LightingIndex { get; set; }
 
         private SyncTrack _sync;
+
         private List<VocalsPhrase> _vocals;
+        private List<VocalsPhrase> _harmony0;
+        private List<VocalsPhrase> _harmony1;
+        private List<VocalsPhrase> _harmony2;
         private InstrumentDifficulty<DrumNote> _drums;
         private InstrumentDifficulty<GuitarNote> _guitar;
         private InstrumentDifficulty<GuitarNote> _bass;
         private InstrumentDifficulty<GuitarNote> _keys;
 
+        private int _vocalsIndex;
+        private int _harmony0Index;
+        private int _harmony1Index;
+        private int _harmony2Index;
         private int _keysIndex;
         private int _syncIndex;
-        private int _vocalsIndex;
+        private int _bpmIndex;
         private int _drumIndex;
         private int _guitarIndex;
         private int _bassIndex;
@@ -37,9 +53,13 @@ namespace YARG.Integration
         private int _drumEndCheckIndex = -1;
         private int _keysEndCheckIndex = -1;
 
+        private List<VocalNoteEvent> _vocalsNotes;
+        private List<VocalNoteEvent> _harmony0Notes;
+        private List<VocalNoteEvent> _harmony1Notes;
+        private List<VocalNoteEvent> _harmony2Notes;
+
         protected override void OnChartLoaded(SongChart chart)
         {
-            MasterLightingController.CurrentLightingCue = null;
             MasterLightingController.CurrentFogState = MasterLightingController.FogState.Off;
             MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Off;
             MasterLightingController.Initializer(SceneManager.GetActiveScene());
@@ -49,6 +69,9 @@ namespace YARG.Integration
             Venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
+            _harmony0 = chart.Harmony.Parts[0].NotePhrases;
+            _harmony1 = chart.Harmony.Parts[1].NotePhrases;
+            _harmony2 = chart.Harmony.Parts[2].NotePhrases;
 
             _drums = chart.ProDrums.GetDifficulty(Difficulty.Expert);
             _guitar = chart.FiveFretGuitar.GetDifficulty(Difficulty.Expert);
@@ -67,134 +90,141 @@ namespace YARG.Integration
             //_performerIndex = 0;
             _postProcessingIndex = 0;
             _keysIndex = 0;
+
+            _vocalsNotes = GetAllNoteEvents(_vocals);
+            _harmony0Notes = GetAllNoteEvents(_harmony0);
+            _harmony1Notes = GetAllNoteEvents(_harmony1);
+            _harmony2Notes = GetAllNoteEvents(_harmony2);
+        }
+
+        private int GuitarBassKeyboardEventChecker(InstrumentDifficulty<GuitarNote> instrument, ref int instrumentIndex)
+        {
+            int fretsPressed = 0;
+
+            // Check if the index is within bounds
+            if (instrumentIndex >= instrument.Notes.Count)
+            {
+                return 0; // No notes to process
+            }
+
+            var currentNote = instrument.Notes[instrumentIndex];
+
+            // Handle sustained notes
+            if (currentNote.Time < currentNote.TimeEnd && currentNote.TimeEnd <= GameManager.SongTime)
+            {
+                instrumentIndex++;
+                return 0; // Sustain note has ended
+            }
+
+            // Handle instant notes
+            if (!(currentNote.Time <= GameManager.SongTime)) return 0; // No notes currently active
+            foreach (var note in currentNote.ChordEnumerator())
+            {
+                fretsPressed |= (1 << note.Fret);
+            }
+
+            if (currentNote.Time == currentNote.TimeEnd)
+            {
+                // Note is instant, so it is done.
+                instrumentIndex++;
+            }
+
+            return fretsPressed; // Return instant notes pressed
+        }
+
+        private int DrumsEventChecker(InstrumentDifficulty<DrumNote> instrument, ref int instrumentIndex)
+        {
+            int fretsPressed = 0;
+
+            // Check if the index is within bounds
+            if (instrumentIndex >= instrument.Notes.Count)
+            {
+                return 0; // No notes to process
+            }
+
+            var currentNote = instrument.Notes[instrumentIndex];
+
+            // Handle sustained notes
+            if (currentNote.Time < currentNote.TimeEnd && currentNote.TimeEnd <= GameManager.SongTime)
+            {
+                instrumentIndex++;
+                return 0; // Sustain note has ended
+            }
+
+            // Handle instant notes
+            if (!(currentNote.Time <= GameManager.SongTime)) return 0; // No notes currently active
+
+            foreach (var note in currentNote.ChordEnumerator())
+            {
+                fretsPressed |= (1 << note.Pad);
+            }
+
+            if (currentNote.Time == currentNote.TimeEnd)
+            {
+                // Note is instant
+                instrumentIndex++;
+            }
+
+            return fretsPressed; // Return notes for sustain
+        }
+
+        private int VocalEventChecker(List<VocalNoteEvent> list, ref int listIndex)
+        {
+            if (listIndex < list.Count && list[listIndex].EndTime <= GameManager.SongTime)
+            {
+                listIndex++;
+                return (int) MasterLightingController.VocalHarmonyBytes.None;
+            }
+
+            if (listIndex < list.Count && list[listIndex].StartTime <= GameManager.SongTime)
+            {
+                return (int) list[listIndex].Pitch;
+            }
+
+            return -1;
         }
 
         private void Update()
         {
-            if (MasterLightingController.Paused != GameManager.Paused)
+            MasterLightingController.Paused = GameManager.Paused;
+
+            // Can't ref the CurrentXNotes properties.
+            // Instrument events
+            var h = DrumsEventChecker(_drums, ref _drumIndex);
+            MasterLightingController.CurrentDrumNotes = h;
+
+            var g = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
+            MasterLightingController.CurrentGuitarNotes = g;
+
+            var f = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
+            MasterLightingController.CurrentBassNotes = f;
+
+            var e = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
+            MasterLightingController.CurrentKeysNotes = e;
+
+            // Vocal events
+            var a = VocalEventChecker(_vocalsNotes, ref _vocalsIndex);
+            if (a != -1)
             {
-                MasterLightingController.Paused = GameManager.Paused;
+                MasterLightingController.CurrentVocalNote = a;
             }
 
-            // Keys events
-            if (_keysEndCheckIndex == -1)
+            var b = VocalEventChecker(_harmony0Notes, ref _harmony0Index);
+            if (b != -1)
             {
-                while (_keysIndex < _keys.Notes.Count && _keys.Notes[_keysIndex].Time <= GameManager.SongTime)
-                {
-                    int fretsPressed = 0;
-
-                    // Use ChordEnumerator to iterate over the notes
-                    foreach (var note in _keys.Notes[_keysIndex].ChordEnumerator())
-                    {
-                        fretsPressed += 1 << note.Fret;
-                    }
-
-                    MasterLightingController.CurrentKeysNotes = fretsPressed;
-                    _keysEndCheckIndex = _keysIndex;
-                    _keysIndex++;
-                }
-            }
-            else
-            {
-                if (_keys.Notes[_keysEndCheckIndex].TimeEnd <= GameManager.SongTime)
-                {
-                    MasterLightingController.CurrentKeysNotes = 0;
-                    _keysEndCheckIndex = -1;
-                }
-            }
-            //----
-
-            // Bass events
-            if (_bassEndCheckIndex == -1)
-            {
-                while (_bassIndex < _bass.Notes.Count && _bass.Notes[_bassIndex].Time <= GameManager.SongTime)
-                {
-                    int fretsPressed = 0;
-
-                    foreach (var note in _bass.Notes[_bassIndex].ChordEnumerator())
-                    {
-                        fretsPressed += 1 << note.Fret;
-                    }
-
-                    MasterLightingController.CurrentBassNotes = fretsPressed;
-                    _bassEndCheckIndex = _bassIndex;
-                    _bassIndex++;
-                }
-            }
-            else
-            {
-                if (_bass.Notes[_bassEndCheckIndex].TimeEnd <= GameManager.SongTime)
-                {
-                    MasterLightingController.CurrentBassNotes = 0;
-                    _bassEndCheckIndex = -1;
-                }
-            }
-            //----
-
-            // Guitar events
-            if (_guitarEndCheckIndex == -1)
-            {
-                while (_guitarIndex < _guitar.Notes.Count && _guitar.Notes[_guitarIndex].Time <= GameManager.SongTime)
-                {
-                    int fretsPressed = 0;
-
-                    foreach (var note in _guitar.Notes[_guitarIndex].ChordEnumerator())
-                    {
-                        fretsPressed += 1 << note.Fret;
-                    }
-
-                    MasterLightingController.CurrentGuitarNotes = fretsPressed;
-                    _guitarEndCheckIndex = _guitarIndex;
-                    _guitarIndex++;
-                }
-            }
-            else
-            {
-                //so instant notes should at least be on for 1 frame because of the else statement
-                if (_guitar.Notes[_guitarEndCheckIndex].TimeEnd <= GameManager.SongTime)
-                {
-                    MasterLightingController.CurrentGuitarNotes = 0;
-                    //guitarEndCheckIndex is set to -1 when the note ends
-                    _guitarEndCheckIndex = -1;
-                }
+                MasterLightingController.CurrentHarmony0Note = b;
             }
 
-            //----
-
-            // Drum events
-            if (_drumEndCheckIndex == -1)
+            var c = VocalEventChecker(_harmony1Notes, ref _harmony1Index);
+            if (c != -1)
             {
-                while (_drumIndex < _drums.Notes.Count && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
-                {
-                    int padsHit = 0;
-
-                    foreach (var note in _drums.Notes[_drumIndex].ChordEnumerator())
-                    {
-                        padsHit += 1 << note.Pad;
-                    }
-
-                    MasterLightingController.CurrentDrumNotes = padsHit;
-                    _drumEndCheckIndex = _drumIndex;
-                    _drumIndex++;
-                }
+                MasterLightingController.CurrentHarmony1Note = c;
             }
-            else
-            {
-                if (_drums.Notes[_drumEndCheckIndex].TimeEnd <= GameManager.SongTime)
-                {
-                    MasterLightingController.CurrentDrumNotes = 0;
-                    _drumEndCheckIndex = -1;
-                }
-            }
-            //----
 
-            // End of vocal phrase. SilhouetteSpot is the only cue that uses vocals, listening to the end of the phrase.
-            while (_vocalsIndex < _vocals.Count &&
-                Math.Min(_vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1].TotalTimeEnd,
-                    _vocals[_vocalsIndex].TimeEnd) <= GameManager.SongTime)
+            var d = VocalEventChecker(_harmony2Notes, ref _harmony2Index);
+            if (d != -1)
             {
-                MasterLightingController.CurrentVocalNote = _vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1];
-                _vocalsIndex++;
+                MasterLightingController.CurrentHarmony2Note = d;
             }
 
             //Camera Cut events
@@ -202,12 +232,6 @@ namespace YARG.Integration
 
             // Performer events
             // NYI - waiting for parser rewrite
-            //while (_performerIndex < Venue.Performer.Count && Venue.Performer[_performerIndex].Time <= GameManager.SongTime)
-            //{
-            //performerEventEndtime = Venue.Performer[0].TimeEnd;
-            //MasterLightingController.CurrentPerformerEvent = Venue.Performer[_performerIndex];
-            //_performerIndex++;
-            //}
 
             // Post processing events
             while (_postProcessingIndex < Venue.PostProcessing.Count &&
@@ -220,8 +244,14 @@ namespace YARG.Integration
             // Beatline events
             while (_syncIndex < _sync.Beatlines.Count && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
             {
-                MasterLightingController.CurrentBeatline = _sync.Beatlines[_syncIndex];
+                MasterLightingController.CurrentBeat = _sync.Beatlines[_syncIndex];
                 _syncIndex++;
+            }
+
+            while (_bpmIndex < _sync.Tempos.Count && _sync.Tempos[_bpmIndex].Time <= GameManager.SongTime)
+            {
+                MasterLightingController.CurrentBPM = (byte) Mathf.Round(_sync.Tempos[_bpmIndex].BeatsPerMinute);
+                _bpmIndex++;
             }
 
             // The lighting cues from the venue track are handled here.
@@ -253,9 +283,7 @@ namespace YARG.Integration
                         // Okay so this a bit odd. The stage kit never has the strobe on with a lighting cue.
                         // But the Strobe_Off event is almost never used, relying instead on the cue change to turn it off.
                         // So this technically should be in the stage kit lighting controller code but I don't want the
-                        // stage kit reaching into this main lighting controller. Also, Each subclass of the lighting
-                        // controller (dmx, stage kit, rgb, etc) could handle this differently but then we have to guess
-                        // at how long the strobe should be on. So we'll just turn it off here.
+                        // stage kit reaching into this main lighting controller.So we'll just turn it off here.
                         MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Off;
                         MasterLightingController.CurrentLightingCue = Venue.Lighting[LightingIndex];
                         break;
@@ -282,6 +310,38 @@ namespace YARG.Integration
 
                 _stageIndex++;
             }
+        }
+
+        private List<VocalNoteEvent> GetAllNoteEvents(List<VocalsPhrase> vocalPhrases)
+        {
+            var allNoteEvents = new List<VocalNoteEvent>();
+
+            foreach (var phrase in vocalPhrases)
+            {
+                foreach (var childNote in phrase.PhraseParentNote.ChildNotes)
+                {
+                    allNoteEvents.Add(new VocalNoteEvent
+                    {
+                        Pitch = (int) childNote.Pitch,
+                        StartTime = childNote.Time,
+                        EndTime = childNote.TimeEnd,
+                    });
+
+                    foreach (var grandChildNote in childNote.ChildNotes)
+                    {
+                        allNoteEvents.Add(new VocalNoteEvent
+                        {
+                            Pitch = (int) grandChildNote.Pitch,
+                            StartTime = grandChildNote.Time,
+                            EndTime = grandChildNote.TimeEnd,
+                        });
+                    }
+                }
+            }
+
+            // Sort events by time to ensure correct order
+            allNoteEvents.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
+            return allNoteEvents;
         }
     }
 }
