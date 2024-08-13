@@ -204,16 +204,16 @@ namespace YARG.Gameplay
                         var engine = fiveFretPlayer.Engine;
                         text.AppendLine("State:");
                         text.AppendFormat("- Button mask: 0x{0:X2}\n", engine.ButtonMask);
-                        text.AppendFormat("- Last button mask: 0x{0:X2}\n", engine.LastButtonMask);
-                        text.AppendFormat("- Note was ghosted: {0}\n", engine.WasNoteGhosted);
+                        // text.AppendFormat("- Last button mask: 0x{0:X2}\n", engine.LastButtonMask);
+                        // text.AppendFormat("- Note was ghosted: {0}\n", engine.WasNoteGhosted);
                         text.AppendLine();
-                        text.AppendFormat("- Strum leniency timer: {0}\n", engine.HopoLeniencyTimer);
-                        text.AppendFormat("- HOPO leniency timer: {0}\n", engine.StrumLeniencyTimer);
+                        // text.AppendFormat("- Strum leniency timer: {0}\n", engine.HopoLeniencyTimer);
+                        // text.AppendFormat("- HOPO leniency timer: {0}\n", engine.StrumLeniencyTimer);
                         text.AppendFormat("- Star Power whammy timer: {0}\n", engine.StarPowerWhammyTimer);
-                        if (engine.FrontEndExpireTime != double.MaxValue)
-                            text.AppendFormat("- Front-end expire time: {0:0.000000}\n", engine.FrontEndExpireTime);
-                        else
-                            text.Append("- Front-end expire time: Not set\n");
+                        // if (engine.FrontEndExpireTime != double.MaxValue)
+                        //     text.AppendFormat("- Front-end expire time: {0:0.000000}\n", engine.FrontEndExpireTime);
+                        // else
+                        //     text.Append("- Front-end expire time: Not set\n");
 
                         var stats = fiveFretPlayer.Engine.EngineStats;
                         text.AppendLine("\nStats:");
@@ -270,11 +270,11 @@ namespace YARG.Gameplay
 
                         var engine = proKeysPlayer.Engine;
                         text.AppendLine("State:");
-                        text.AppendFormat("- Key mask: 0x{0:X8}\n", engine.KeyMask);
-                        text.AppendFormat("- Previous key mask: 0x{0:X8}\n", engine.PreviousKeyMask);
+                        // text.AppendFormat("- Key mask: 0x{0:X8}\n", engine.KeyMask);
+                        // text.AppendFormat("- Previous key mask: 0x{0:X8}\n", engine.PreviousKeyMask);
                         text.AppendLine();
-                        text.AppendFormat("- Chord stagger timer: {0}\n", engine.ChordStaggerTimer);
-                        text.AppendFormat("- Fat finger timer: {0}\n", engine.FatFingerTimer);
+                        // text.AppendFormat("- Chord stagger timer: {0}\n", engine.ChordStaggerTimer);
+                        // text.AppendFormat("- Fat finger timer: {0}\n", engine.FatFingerTimer);
 
                         var stats = proKeysPlayer.Engine.EngineStats;
                         text.AppendLine("\nStats:");
