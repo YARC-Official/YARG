@@ -210,8 +210,8 @@ namespace YARG.Menu.Persistent
 
         private void UpdateTime()
         {
-            var time = DateTime.Now.ToShortTimeString();
-            _timeText.SetText(time);
+            // Use current culture's short time format
+            _timeText.SetTextFormat("{0:t}", DateTime.Now);
         }
 
         private void UpdateBattery()
@@ -220,7 +220,7 @@ namespace YARG.Menu.Persistent
 
             // Show battery percentage.
             var battery = SystemInfo.batteryLevel * 100;
-            _batteryText.SetText($"{battery:F0}%");
+            _batteryText.SetTextFormat("{0:F0}%", battery);
 
             // Set battery icon.
             _batteryIcon.sprite = battery switch
