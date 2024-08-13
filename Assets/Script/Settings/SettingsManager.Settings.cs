@@ -7,9 +7,6 @@ using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
-using YARG.Integration.RB3E;
-using YARG.Integration.Sacn;
-using YARG.Integration.StageKit;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -288,66 +285,7 @@ namespace YARG.Settings
             #endregion
 
             #region Lighting Peripherals
-
-            public ToggleSetting StageKitEnabled { get; } = new(true, StageKitEnabledCallback);
-            public ToggleSetting DMXEnabled { get; } = new(false, DMXEnabledCallback);
-            public ToggleSetting RB3EEnabled { get; } = new(false, RB3EEnabledCallback);
-
-            public DMXChannelsSetting DMXDimmerChannels { get; } = new(
-                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => SacnInterpreter.Instance.DimmerChannels = v);
-
-            public DMXChannelsSetting DMXRedChannels { get; } = new(
-                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => SacnInterpreter.Instance.RedChannels = v);
-
-            public DMXChannelsSetting DMXGreenChannels { get; } = new(
-                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => SacnInterpreter.Instance.GreenChannels = v);
-
-            public DMXChannelsSetting DMXBlueChannels { get; } = new(
-                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => SacnInterpreter.Instance.BlueChannels = v);
-
-            public DMXChannelsSetting DMXYellowChannels { get; } = new(
-                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => SacnInterpreter.Instance.YellowChannels = v);
-
-            public DMXChannelsSetting DMXFogChannels { get; } = new(
-                new[] { 06, 14, 22, 30, 38, 46, 54, 62 }, v => SacnInterpreter.Instance.FogChannels = v);
-
-            public DMXChannelsSetting DMXStrobeChannels { get; } = new(
-                new[] { 07, 15, 23, 31, 39, 47, 55, 63 }, v => SacnInterpreter.Instance.StrobeChannels = v);
-
-            public IntSetting DMXCueChangeChannel { get; } =
-                new(8, 1, 512, v => SacnInterpreter.Instance.CueChangeChannel = v);
-
-            public IPv4Setting RB3EBroadcastIP { get; } =
-                new("255.255.255.255", ip => RB3EHardware.Instance.IPAddress = IPAddress.Parse(ip));
-
-            public IntSetting DMXBeatlineChannel { get; } =
-                new(14, 1, 512, v => SacnInterpreter.Instance.BeatlineChannel = v);
-
-            public IntSetting DMXBonusEffectChannel { get; } =
-                new(15, 1, 512, v => SacnInterpreter.Instance.BonusEffectChannel = v);
-
-            public IntSetting DMXKeyframeChannel { get; } =
-                new(16, 1, 512, v => SacnInterpreter.Instance.KeyframeChannel = v);
-
-            public IntSetting DMXDrumsChannel { get; } =
-                new(22, 1, 512, v => SacnInterpreter.Instance.DrumChannel = v);
-
-            public IntSetting DMXPostProcessingChannel { get; } =
-                new(23, 1, 512, v => SacnInterpreter.Instance.PostProcessingChannel = v);
-
-            public IntSetting DMXGuitarChannel { get; } =
-                new(24, 1, 512, v => SacnInterpreter.Instance.GuitarChannel = v);
-
-            public IntSetting DMXBassChannel { get; } = new(30, 1, 512, v => SacnInterpreter.Instance.BassChannel = v);
-
-            //NYI
-            //public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
-
-            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => SacnInterpreter.Instance.KeysChannel = v);
-
-            public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
-
-            public DMXChannelsSetting DMXDimmerValues { get; } = new(new[] { 255, 255, 255, 255, 255, 255, 255, 255 });
+            public ToggleSetting EnableYALCYDatastream{ get; } = new(true);
 
             #endregion
 
@@ -399,26 +337,6 @@ namespace YARG.Settings
 #endif
 
                 StatsManager.Instance.SetShowing(StatsManager.Stat.Memory, value);
-            }
-
-            private static void RB3EEnabledCallback(bool value)
-            {
-                RB3EHardware.Instance.HandleEnabledChanged(value);
-            }
-
-            private static void StageKitEnabledCallback(bool value)
-            {
-                //To avoid being toggled on twice at start
-                if (!IsInitialized)
-                {
-                    return;
-                }
-                StageKitHardware.Instance.HandleEnabledChanged(value);
-            }
-
-            private static void DMXEnabledCallback(bool value)
-            {
-                SacnHardware.Instance.HandleEnabledChanged(value);
             }
 
             private static void VSyncCallback(bool value)
