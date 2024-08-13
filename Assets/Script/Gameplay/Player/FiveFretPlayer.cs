@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -74,7 +75,6 @@ namespace YARG.Gameplay.Player
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
-                //EngineParams = EnginePreset.Precision.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
             }
             else
             {
