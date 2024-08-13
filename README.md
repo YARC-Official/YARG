@@ -166,7 +166,6 @@ In order to get your name added to the YARG credits, you need to first contribut
 * YARC Launcher
 * OpenSource
 * The community (community moderator, socials manager, etc).
-
 After that, you must create a pull request on [this repo](https://github.com/YARC-Official/Contributors) to get your name added. If you need help with this, feel free to ask in our Discord!
 
 ## 🛡️ License
