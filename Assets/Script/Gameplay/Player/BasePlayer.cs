@@ -8,6 +8,7 @@ using YARG.Core.Engine;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
+using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Player;
 using YARG.Settings;
@@ -24,20 +25,22 @@ namespace YARG.Gameplay.Player
         {
             get
             {
+                float noteSpeed = Player.Profile.NoteSpeed * Player.Profile.CurrentDifficulty.NoteSpeedScale();
+
                 // If we're in a replay, don't change the note speed (it should be like a video
                 // slowing down/speeding up). The actual song speed should be taken into account though,
                 // which is saved in the engine parameter override.
                 if (GameManager.IsReplay)
                 {
-                    return Player.Profile.NoteSpeed / (float) Player.EngineParameterOverride.SongSpeed;
+                    return noteSpeed / (float) Player.EngineParameterOverride.SongSpeed;
                 }
 
                 if (GameManager.IsPractice && GameManager.SongSpeed < 1)
                 {
-                    return Player.Profile.NoteSpeed;
+                    return noteSpeed;
                 }
 
-                return Player.Profile.NoteSpeed / GameManager.SongSpeed;
+                return noteSpeed / GameManager.SongSpeed;
             }
         }
 
