@@ -130,25 +130,25 @@ namespace YARG.Gameplay
             {
                 using var text = ZString.CreateStringBuilder(true);
 
-                var state = player.BaseEngine.BaseState;
+                var engine = player.BaseEngine;
                 text.AppendLine("State:");
-                text.AppendFormat("- Current tick: {0}\n", state.CurrentTick);
-                text.AppendFormat("- Current time: {0:0.000000}\n", state.CurrentTime);
-                text.AppendFormat("- Last tick: {0}\n", state.LastTick);
-                text.AppendFormat("- Last time: {0:0.000000}\n", state.LastUpdateTime);
-                if (state.LastQueuedInputTime != double.MinValue)
-                    text.AppendFormat("- Last queued input time: {0:0.000000}\n", state.LastQueuedInputTime);
+                text.AppendFormat("- Current tick: {0}\n", engine.CurrentTick);
+                text.AppendFormat("- Current time: {0:0.000000}\n", engine.CurrentTime);
+                text.AppendFormat("- Last tick: {0}\n", engine.LastTick);
+                text.AppendFormat("- Last time: {0:0.000000}\n", engine.LastUpdateTime);
+                if (engine.LastQueuedInputTime != double.MinValue)
+                    text.AppendFormat("- Last queued input time: {0:0.000000}\n", engine.LastQueuedInputTime);
                 else
                     text.Append("- Last queued input time: None\n");
                 text.AppendLine();
-                text.AppendFormat("- Note index: {0}\n", state.NoteIndex);
-                text.AppendFormat("- Solo index: {0}\n", state.CurrentSoloIndex);
-                text.AppendFormat("- Star index: {0}\n", state.CurrentStarIndex);
-                text.AppendFormat("- Countdown index: {0}\n", state.CurrentWaitCountdownIndex);
+                text.AppendFormat("- Note index: {0}\n", engine.NoteIndex);
+                text.AppendFormat("- Solo index: {0}\n", engine.CurrentSoloIndex);
+                text.AppendFormat("- Star index: {0}\n", engine.CurrentStarIndex);
+                text.AppendFormat("- Countdown index: {0}\n", engine.CurrentWaitCountdownIndex);
                 text.AppendLine();
-                text.AppendFormat("- Solo active: {0}\n", state.IsSoloActive);
-                text.AppendFormat("- Wait countdown active: {0}\n", state.IsWaitCountdownActive);
-                text.AppendFormat("- Star Power input active: {0}\n", state.IsStarPowerInputActive);
+                text.AppendFormat("- Solo active: {0}\n", engine.IsSoloActive);
+                text.AppendFormat("- Wait countdown active: {0}\n", engine.IsWaitCountdownActive);
+                text.AppendFormat("- Star Power input active: {0}\n", engine.IsStarPowerInputActive);
 
                 var stats = player.BaseEngine.BaseStats;
                 text.AppendLine("\nStats:");
@@ -201,17 +201,17 @@ namespace YARG.Gameplay
                     {
                         using var text = ZString.CreateStringBuilder(true);
 
-                        var state = fiveFretPlayer.Engine.State;
+                        var engine = fiveFretPlayer.Engine;
                         text.AppendLine("State:");
-                        text.AppendFormat("- Button mask: 0x{0:X2}\n", state.ButtonMask);
-                        text.AppendFormat("- Last button mask: 0x{0:X2}\n", state.LastButtonMask);
-                        text.AppendFormat("- Note was ghosted: {0}\n", state.WasNoteGhosted);
+                        text.AppendFormat("- Button mask: 0x{0:X2}\n", engine.ButtonMask);
+                        text.AppendFormat("- Last button mask: 0x{0:X2}\n", engine.LastButtonMask);
+                        text.AppendFormat("- Note was ghosted: {0}\n", engine.WasNoteGhosted);
                         text.AppendLine();
-                        text.AppendFormat("- Strum leniency timer: {0}\n", state.HopoLeniencyTimer);
-                        text.AppendFormat("- HOPO leniency timer: {0}\n", state.StrumLeniencyTimer);
-                        text.AppendFormat("- Star Power whammy timer: {0}\n", state.StarPowerWhammyTimer);
-                        if (state.FrontEndExpireTime != double.MaxValue)
-                            text.AppendFormat("- Front-end expire time: {0:0.000000}\n", state.FrontEndExpireTime);
+                        text.AppendFormat("- Strum leniency timer: {0}\n", engine.HopoLeniencyTimer);
+                        text.AppendFormat("- HOPO leniency timer: {0}\n", engine.StrumLeniencyTimer);
+                        text.AppendFormat("- Star Power whammy timer: {0}\n", engine.StarPowerWhammyTimer);
+                        if (engine.FrontEndExpireTime != double.MaxValue)
+                            text.AppendFormat("- Front-end expire time: {0:0.000000}\n", engine.FrontEndExpireTime);
                         else
                             text.Append("- Front-end expire time: Not set\n");
 
@@ -231,7 +231,7 @@ namespace YARG.Gameplay
                     {
                         using var text = ZString.CreateStringBuilder(true);
 
-                        var state = drumsPlayer.Engine.State;
+                        var engine = drumsPlayer.Engine;
                         text.AppendLine("State:");
                         text.AppendLine("- No persistent state");
 
@@ -247,12 +247,12 @@ namespace YARG.Gameplay
                     {
                         using var text = ZString.CreateStringBuilder(true);
 
-                        var state = vocalsPlayer.Engine.State;
+                        var engine = vocalsPlayer.Engine;
                         text.AppendLine("State:");
-                        text.AppendFormat("- Last pitch sang: {0:0.000}\n", state.PitchSang);
+                        text.AppendFormat("- Last pitch sang: {0:0.000}\n", engine.PitchSang);
                         text.AppendFormat("- Current phrase ticks hit: {0:0.000}/{1}\n",
-                            state.PhraseTicksHit, state.PhraseTicksTotal);
-                        text.AppendFormat("- Last sing tick: {0}\n", state.LastSingTick);
+                            engine.PhraseTicksHit, engine.PhraseTicksTotal);
+                        text.AppendFormat("- Last sing tick: {0}\n", engine.LastSingTick);
 
                         var stats = vocalsPlayer.Engine.EngineStats;
                         text.AppendLine("\nStats:");
@@ -268,13 +268,13 @@ namespace YARG.Gameplay
                     {
                         using var text = ZString.CreateStringBuilder(true);
 
-                        var state = proKeysPlayer.Engine.State;
+                        var engine = proKeysPlayer.Engine;
                         text.AppendLine("State:");
-                        text.AppendFormat("- Key mask: 0x{0:X8}\n", state.KeyMask);
-                        text.AppendFormat("- Visual key mask: 0x{0:X8}\n", state.KeyHeldMaskVisual);
+                        text.AppendFormat("- Key mask: 0x{0:X8}\n", engine.KeyMask);
+                        text.AppendFormat("- Previous key mask: 0x{0:X8}\n", engine.PreviousKeyMask);
                         text.AppendLine();
-                        text.AppendFormat("- Chord stagger timer: {0}\n", state.ChordStaggerTimer);
-                        text.AppendFormat("- Fat finger timer: {0}\n", state.FatFingerTimer);
+                        text.AppendFormat("- Chord stagger timer: {0}\n", engine.ChordStaggerTimer);
+                        text.AppendFormat("- Fat finger timer: {0}\n", engine.FatFingerTimer);
 
                         var stats = proKeysPlayer.Engine.EngineStats;
                         text.AppendLine("\nStats:");
