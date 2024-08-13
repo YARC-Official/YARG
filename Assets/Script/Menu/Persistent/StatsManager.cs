@@ -73,7 +73,7 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private float _updateRate;
 
-        private int _screenRefreshRate;
+        private float _screenRefreshRate;
 
         private List<float> _frameTimes = new();
 
@@ -138,11 +138,11 @@ namespace YARG.Menu.Persistent
             _frameTimes.Clear();
 
             // Color the circle sprite based on the FPS
-            if (fps < _screenRefreshRate / 2)
+            if (fps < (_screenRefreshRate * 0.5f))
             {
                 _fpsCircle.color = _red;
             }
-            else if (fps < _screenRefreshRate)
+            else if (fps < (_screenRefreshRate * 0.9f))
             {
                 _fpsCircle.color = _yellow;
             }
