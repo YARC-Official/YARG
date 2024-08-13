@@ -53,6 +53,7 @@ namespace YARG.Settings
                 nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.ReduceNoteSpeedByDifficulty),
                 nameof(Settings.KickBounceMultiplier),
+                nameof(Settings.VoiceActivatedVocalStarPower),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),

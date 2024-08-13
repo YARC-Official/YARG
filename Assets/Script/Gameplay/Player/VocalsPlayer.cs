@@ -11,6 +11,7 @@ using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
@@ -125,9 +126,11 @@ namespace YARG.Gameplay.Player
         {
             if (!GameManager.IsReplay)
             {
+                var singToActivateStarPower = SettingsManager.Settings.VoiceActivatedVocalStarPower.Value;
+
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.Vocals.Create(StarMultiplierThresholds,
-                    Player.Profile.CurrentDifficulty, MicDevice.UPDATES_PER_SECOND);
+                    Player.Profile.CurrentDifficulty, MicDevice.UPDATES_PER_SECOND, singToActivateStarPower);
             }
             else
             {
