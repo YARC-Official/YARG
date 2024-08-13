@@ -113,12 +113,6 @@ namespace YARG.Menu.Persistent
             // Wait for next update period
             if (Time.unscaledTime < _nextUpdateTime) return;
 
-            // Check if battery is discharging and we get a valid level.
-            var showBattery = SettingsManager.Settings.ShowBattery.Value
-                && SystemInfo.batteryStatus == BatteryStatus.Discharging
-                && SystemInfo.batteryLevel is >= 0 and <= 1;
-            SetShowing(Stat.Battery, showBattery);
-
             UpdateFpsCounter();
             UpdateMemoryStats();
             UpdateTime();
