@@ -73,7 +73,7 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private float _updateRate;
 
-        private int _screenRefreshRate;
+        private float _screenRefreshRate;
 
         private List<float> _frameTimes = new();
 
@@ -113,12 +113,6 @@ namespace YARG.Menu.Persistent
             // Wait for next update period
             if (Time.unscaledTime < _nextUpdateTime) return;
 
-            // Check if battery is discharging and we get a valid level.
-            var showBattery = SettingsManager.Settings.ShowBattery.Value
-                && SystemInfo.batteryStatus == BatteryStatus.Discharging
-                && SystemInfo.batteryLevel is >= 0 and <= 1;
-            SetShowing(Stat.Battery, showBattery);
-
             UpdateFpsCounter();
             UpdateMemoryStats();
             UpdateTime();
@@ -138,11 +132,11 @@ namespace YARG.Menu.Persistent
             _frameTimes.Clear();
 
             // Color the circle sprite based on the FPS
-            if (fps < _screenRefreshRate / 2)
+            if (fps < (_screenRefreshRate * 0.5f))
             {
                 _fpsCircle.color = _red;
             }
-            else if (fps < _screenRefreshRate)
+            else if (fps < (_screenRefreshRate * 0.9f))
             {
                 _fpsCircle.color = _yellow;
             }
@@ -164,24 +158,13 @@ namespace YARG.Menu.Persistent
             long nativeMemory = Profiler.GetTotalAllocatedMemoryLong();
             long totalMemory = managedMemory + nativeMemory;
 
-            var managedUsage = GetMemoryUsage(managedMemory);
-            var nativeUsage = GetMemoryUsage(nativeMemory);
-            var totalUsage = GetMemoryUsage(totalMemory);
+            var (totalUsage, totalSuffix) = GetMemoryUsage(totalMemory);
+            var (managedUsage, managedSuffix) = GetMemoryUsage(managedMemory);
+            var (nativeUsage, nativeSuffix) = GetMemoryUsage(nativeMemory);
 
-            // Display the memory usage
-            using var builder = ZString.CreateStringBuilder(true);
-
-            const string memoryFormat = "{0:0.00} {1}";
-
-            builder.Append("<b>Memory:</b> ");
-            builder.AppendFormat(memoryFormat, totalUsage.usage, totalUsage.suffix);
-            builder.Append(" (managed: ");
-            builder.AppendFormat(memoryFormat, managedUsage.usage, managedUsage.suffix);
-            builder.Append(", native: ");
-            builder.AppendFormat(memoryFormat, nativeUsage.usage, nativeUsage.suffix);
-            builder.Append(")");
-
-            _memoryText.SetText(builder);
+            // Display usage
+            _memoryText.SetTextFormat("<b>Memory:</b> {0:0.00} {1} (managed: {2:0.00} {3}, native: {4:0.00} {5})",
+                totalUsage, totalSuffix, managedUsage, managedSuffix, nativeUsage, nativeSuffix);
         }
 
         private static (float usage, string suffix) GetMemoryUsage(long bytes)
@@ -210,8 +193,8 @@ namespace YARG.Menu.Persistent
 
         private void UpdateTime()
         {
-            var time = DateTime.Now.ToShortTimeString();
-            _timeText.SetText(time);
+            // Use current culture's short time format
+            _timeText.SetTextFormat("{0:t}", DateTime.Now);
         }
 
         private void UpdateBattery()
@@ -220,7 +203,7 @@ namespace YARG.Menu.Persistent
 
             // Show battery percentage.
             var battery = SystemInfo.batteryLevel * 100;
-            _batteryText.SetText($"{battery:F0}%");
+            _batteryText.SetTextFormat("{0:F0}%", battery);
 
             // Set battery icon.
             _batteryIcon.sprite = battery switch

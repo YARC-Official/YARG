@@ -1,5 +1,6 @@
 using System;
 using YARG.Core;
+using YARG.Settings;
 
 namespace YARG.Helpers.Extensions
 {
@@ -44,6 +45,29 @@ namespace YARG.Helpers.Extensions
                 Difficulty.ExpertPlus => "Expert+",
 
                 _ => "Unknown"
+            };
+        }
+
+        /// <summary>
+        /// Returns the scale by which the note speed should be adjusted
+        /// according to the difficulty of the track.
+        /// </summary>
+        public static float NoteSpeedScale(this Difficulty difficulty)
+        {
+            if (!SettingsManager.Settings.ReduceNoteSpeedByDifficulty.Value)
+            {
+                return 1f;
+            }
+            
+            return difficulty switch
+            {
+                Difficulty.Easy       => 0.421875f,
+                Difficulty.Medium     => 0.5625f,
+                Difficulty.Hard       => 0.75f,
+                Difficulty.Expert     => 1f,
+                Difficulty.ExpertPlus => 1f,
+
+                _ => 1f
             };
         }
     }

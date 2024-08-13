@@ -65,13 +65,15 @@ namespace YARG.Settings
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
             public ToggleSetting WaitForSongVideo { get; } = new(true);
 
-            public ToggleSetting ShowBattery { get; } = new(false);
+            public ToggleSetting ShowBattery { get; } = new(false, ShowBatteryCallback);
             public ToggleSetting ShowTime { get; } = new(false, ShowTimeCallback);
             public ToggleSetting MemoryStats { get; } = new(false, MemoryStatsCallback);
 
             public ToggleSetting ReconnectProfiles { get; } = new(true);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
+
+            public ToggleSetting ReduceNoteSpeedByDifficulty { get; } = new(true);
             public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
 
             public ToggleSetting VoiceActivatedVocalStarPower {get; } = new(true);
@@ -386,6 +388,14 @@ namespace YARG.Settings
             private static void SetLogLevelCallback(LogLevel level)
             {
                 YargLogger.MinimumLogLevel = level;
+            }
+
+            private static void ShowBatteryCallback(bool value)
+            {
+                // Only show if battery status is reported and has a valid value
+                value &= SystemInfo.batteryStatus != BatteryStatus.Unknown &&
+                    SystemInfo.batteryLevel is >= 0 and <= 1;
+                StatsManager.Instance.SetShowing(StatsManager.Stat.Battery, value);
             }
 
             private static void ShowTimeCallback(bool value)
