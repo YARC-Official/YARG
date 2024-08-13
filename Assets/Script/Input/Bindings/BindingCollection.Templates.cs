@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using YARG.Core;
 using YARG.Core.Input;
 
@@ -144,6 +144,7 @@ namespace YARG.Input
             // new AxisBinding("Vocals.Pitch", (int) VocalsAction.Pitch),
 
             new IndividualButtonBinding("Vocals.Hit", (int) VocalsAction.Hit),
+            new IndividualButtonBinding("Vocals.StarPower", (int) VocalsAction.StarPower)
         };
 
         public static BindingCollection CreateGameplayBindings(GameMode mode)

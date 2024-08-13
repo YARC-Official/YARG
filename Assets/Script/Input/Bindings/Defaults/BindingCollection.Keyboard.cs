@@ -1,4 +1,4 @@
-using UnityEngine.InputSystem;
+﻿using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Input;
 
@@ -179,6 +179,7 @@ namespace YARG.Input
                 return false;
 
             AddBinding(VocalsAction.Hit, keyboard.backspaceKey);
+            AddBinding(VocalsAction.StarPower, keyboard.spaceKey);
 
             return true;
         }
