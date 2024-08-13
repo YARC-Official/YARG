@@ -769,7 +769,7 @@
             },
             "VoiceActivatedVocalStarPower" : {
 				"Name": "Voice Activated Star Power (Vocals)",
-				"Description": "If enabled, vocalists can activate their Star Power by making noise when not singing (or by singing badly). Keybindings can be used instead, regardless of this setting."
+				"Description": "If enabled, vocalists can activate their Star Power by making a noise. Keybinds can be used instead, regardless of this setting."
 			},
             "VSync": {
                 "Name": "Enable VSync",

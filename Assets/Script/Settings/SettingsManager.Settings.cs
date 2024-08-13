@@ -76,7 +76,7 @@ namespace YARG.Settings
             public ToggleSetting ReduceNoteSpeedByDifficulty { get; } = new(true);
             public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
 
-            public ToggleSetting VoiceActivatedVocalStarPower {get; } = new(true);
+            public ToggleSetting VoiceActivatedVocalStarPower { get; } = new(true);
 
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 
