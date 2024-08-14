@@ -18,7 +18,7 @@ namespace YARG.Gameplay.Player
     public class VocalsPlayer : BasePlayer
     {
         public VocalsEngineParameters EngineParams { get; private set; }
-        public VocalsEngine Engine { get; private set; }
+        public VocalsEngine           Engine       { get; private set; }
 
         public override BaseEngine BaseEngine => Engine;
 
@@ -34,14 +34,6 @@ namespace YARG.Gameplay.Player
         public override float[] StarMultiplierThresholds { get; protected set; } =
         {
             0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.18f
-        };
-
-        // TODO: Temporary until color profiles for vocals
-        public readonly Color[] Colors =
-        {
-            new(0f, 0.800f, 1f, 1f),
-            new(1f, 0.522f, 0f, 1f),
-            new(1f, 0.859f, 0f, 1f)
         };
 
         public override int[] StarScoreThresholds { get; protected set; }
@@ -86,7 +78,7 @@ namespace YARG.Gameplay.Player
                 var startSpeed = main.startSpeed;
                 startSpeed.constant *= player.Profile.NoteSpeed;
                 main.startSpeed = startSpeed;
-                main.startColor = Colors[partIndex];
+                main.startColor = GameManager.VocalTrack.Colors[partIndex];
             }
 
             // Get the notes from the specific harmony or solo part
