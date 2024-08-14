@@ -51,7 +51,7 @@ namespace YARG.Gameplay.Visuals
 
             var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
 
-            if (NoteRef.Fret != 0)
+            if (NoteRef.Fret != (int) FiveFretGuitarFret.Open)
             {
                 // Deal with non-open notes
 
