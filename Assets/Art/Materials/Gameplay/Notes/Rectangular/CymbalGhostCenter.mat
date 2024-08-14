@@ -68,7 +68,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ShineMap:
-        m_Texture: {fileID: 2800000, guid: c8d4301f741cf7d4e842c707fd93da3e, type: 3}
+        m_Texture: {fileID: 2800000, guid: 24ca247c496528c48bb51faf978df7ec, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Shine_Map:
@@ -115,7 +115,7 @@ Material:
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _SHINE: 1
-    - _ShineAmount: 0.2
+    - _ShineAmount: 0.07
     - _Shine_Amount: 0.2
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
@@ -126,7 +126,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Color: {r: 0, g: 1, b: 0.8823528, a: 1}
+    - _Color: {r: 0, g: 0.5018867, b: 0.44284117, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Emission_Color: {r: 1, g: 1, b: 1, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
