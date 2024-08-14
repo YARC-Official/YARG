@@ -18,7 +18,7 @@ namespace YARG.Gameplay.Player
     public class VocalsPlayer : BasePlayer
     {
         public VocalsEngineParameters EngineParams { get; private set; }
-        public VocalsEngine           Engine       { get; private set; }
+        public VocalsEngine Engine { get; private set; }
 
         public override BaseEngine BaseEngine => Engine;
 
@@ -34,6 +34,14 @@ namespace YARG.Gameplay.Player
         public override float[] StarMultiplierThresholds { get; protected set; } =
         {
             0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.18f
+        };
+
+        // TODO: Temporary until color profiles for vocals
+        public readonly Color[] Colors =
+        {
+            new(0f, 0.800f, 1f, 1f),
+            new(1f, 0.522f, 0f, 1f),
+            new(1f, 0.859f, 0f, 1f)
         };
 
         public override int[] StarScoreThresholds { get; protected set; }
@@ -60,6 +68,13 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, lastHighScore);
 
+            hud.Initialize(player.EnginePreset);
+            _hud = hud;
+
+            var partIndex = Player.Profile.CurrentInstrument == Instrument.Harmony
+                ? Player.Profile.HarmonyIndex
+                : 0;
+
             // Update speed of particles
             var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
             foreach (var system in particles)
@@ -71,14 +86,12 @@ namespace YARG.Gameplay.Player
                 var startSpeed = main.startSpeed;
                 startSpeed.constant *= player.Profile.NoteSpeed;
                 main.startSpeed = startSpeed;
+                main.startColor = Colors[partIndex];
             }
 
             // Get the notes from the specific harmony or solo part
 
             var multiTrack = chart.GetVocalsTrack(Player.Profile.CurrentInstrument);
-            var partIndex = Player.Profile.CurrentInstrument == Instrument.Harmony
-                ? Player.Profile.HarmonyIndex
-                : 0;
 
             var track = multiTrack.Parts[partIndex];
             player.Profile.ApplyVocalModifiers(track);
