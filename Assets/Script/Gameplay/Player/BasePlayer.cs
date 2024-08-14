@@ -25,7 +25,7 @@ namespace YARG.Gameplay.Player
         {
             get
             {
-                float noteSpeed = Player.Profile.NoteSpeed * Player.Profile.CurrentDifficulty.NoteSpeedScale();
+                float noteSpeed = Player.Profile.NoteSpeed * _noteSpeedDifficultyScale;
 
                 // If we're in a replay, don't change the note speed (it should be like a video
                 // slowing down/speeding up). The actual song speed should be taken into account though,
@@ -97,6 +97,8 @@ namespace YARG.Gameplay.Player
 
         private int _replayInputIndex;
 
+        private float _noteSpeedDifficultyScale;
+
         protected override void GameplayAwake()
         {
             _replayInputs = new List<GameInput>();
@@ -132,6 +134,8 @@ namespace YARG.Gameplay.Player
             SyncTrack = chart.SyncTrack;
 
             LastHighScore = lastHighScore;
+
+            _noteSpeedDifficultyScale = Player.Profile.CurrentDifficulty.NoteSpeedScale();
 
             if (GameManager.IsReplay)
             {
