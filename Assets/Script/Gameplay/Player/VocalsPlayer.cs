@@ -60,6 +60,10 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, lastHighScore);
 
+            var partIndex = Player.Profile.CurrentInstrument == Instrument.Harmony
+                ? Player.Profile.HarmonyIndex
+                : 0;
+
             // Update speed of particles
             var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
             foreach (var system in particles)
@@ -71,14 +75,12 @@ namespace YARG.Gameplay.Player
                 var startSpeed = main.startSpeed;
                 startSpeed.constant *= player.Profile.NoteSpeed;
                 main.startSpeed = startSpeed;
+                main.startColor = GameManager.VocalTrack.Colors[partIndex];
             }
 
             // Get the notes from the specific harmony or solo part
 
             var multiTrack = chart.GetVocalsTrack(Player.Profile.CurrentInstrument);
-            var partIndex = Player.Profile.CurrentInstrument == Instrument.Harmony
-                ? Player.Profile.HarmonyIndex
-                : 0;
 
             var track = multiTrack.Parts[partIndex];
             player.Profile.ApplyVocalModifiers(track);
