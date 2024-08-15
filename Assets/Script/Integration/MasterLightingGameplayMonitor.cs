@@ -168,7 +168,7 @@ namespace YARG.Integration
             if (listIndex < list.Count && list[listIndex].EndTime <= GameManager.SongTime)
             {
                 listIndex++;
-                return (int) MasterLightingController.VocalHarmonyBytes.None;
+                return 0; // Note has ended
             }
 
             if (listIndex < list.Count && list[listIndex].StartTime <= GameManager.SongTime)
@@ -232,7 +232,7 @@ namespace YARG.Integration
             while (_postProcessingIndex < Venue.PostProcessing.Count &&
                 Venue.PostProcessing[_postProcessingIndex].Time <= GameManager.SongTime)
             {
-                MasterLightingController.CurrentPostProcessing = Venue.PostProcessing[_postProcessingIndex];
+                MasterLightingController.MLCPostProcessing = (byte) Venue.PostProcessing[_postProcessingIndex].Type;
                 _postProcessingIndex++;
             }
 
