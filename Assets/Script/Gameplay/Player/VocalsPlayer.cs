@@ -60,9 +60,6 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, lastHighScore);
 
-            hud.Initialize(player.EnginePreset);
-            _hud = hud;
-
             var partIndex = Player.Profile.CurrentInstrument == Instrument.Harmony
                 ? Player.Profile.HarmonyIndex
                 : 0;
