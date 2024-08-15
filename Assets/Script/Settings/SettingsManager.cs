@@ -155,6 +155,8 @@ namespace YARG.Settings
             {
                 new HeaderMetadata("YALCY"),
                 nameof(Settings.EnableYALCYDatastream),
+                nameof(Settings.YALCYDatastreamIP),
+                nameof(Settings.YALCYDatastreamPort),
             },
 
             new MetadataTab("Debug", icon: "Debug")

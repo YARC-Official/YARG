@@ -55,12 +55,12 @@ namespace YARG.Integration
 
         protected override void OnChartLoaded(SongChart chart)
         {
-            MasterLightingController.CurrentFogState = MasterLightingController.FogState.Off;
-            MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Off;
+            MasterLightingController.MLCFogState = false;
+            MasterLightingController.MLCStrobeState = (byte) StageKitStrobeSpeed.Off;
             MasterLightingController.Initializer(SceneManager.GetActiveScene());
 
             // This should be read from the venue itself eventually, but for now, we'll just randomize it.
-            MasterLightingController.LargeVenue = Random.Range(0, 1) == 1;
+            MasterLightingController.MLCLargeVenue = Random.Range(0, 1) == 1;
             Venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
@@ -181,45 +181,45 @@ namespace YARG.Integration
 
         private void Update()
         {
-            MasterLightingController.Paused = GameManager.Paused;
+            MasterLightingController.MLCPaused = GameManager.Paused;
 
             // Can't ref the CurrentXNotes properties.
             // Instrument events
-            var h = DrumsEventChecker(_drums, ref _drumIndex);
-            MasterLightingController.CurrentDrumNotes = h;
+            var DrumsNotes = DrumsEventChecker(_drums, ref _drumIndex);
+            MasterLightingController.MLCCurrentDrumNotes = (byte)DrumsNotes;
 
-            var g = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
-            MasterLightingController.CurrentGuitarNotes = g;
+            var GuitarNotes = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
+            MasterLightingController.MLCCurrentGuitarNotes = (byte)GuitarNotes;
 
-            var f = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
-            MasterLightingController.CurrentBassNotes = f;
+            var BassNotes = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
+            MasterLightingController.MLCCurrentBassNotes = (byte)BassNotes;
 
-            var e = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
-            MasterLightingController.CurrentKeysNotes = e;
+            var KeysNotes = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
+            MasterLightingController.MLCCurrentKeysNotes = (byte)KeysNotes;
 
             // Vocal events
-            var a = VocalEventChecker(_vocalsNotes, ref _vocalsIndex);
-            if (a != -1)
+            var VocalNote = VocalEventChecker(_vocalsNotes, ref _vocalsIndex);
+            if (VocalNote != -1)
             {
-                MasterLightingController.CurrentVocalNote = a;
+                MasterLightingController.MLCCurrentVocalNote = (byte)VocalNote;
             }
 
-            var b = VocalEventChecker(_harmony0Notes, ref _harmony0Index);
-            if (b != -1)
+            var Harmony0Note = VocalEventChecker(_harmony0Notes, ref _harmony0Index);
+            if (Harmony0Note != -1)
             {
-                MasterLightingController.CurrentHarmony0Note = b;
+                MasterLightingController.MLCCurrentHarmony0Note = (byte)Harmony0Note;
             }
 
-            var c = VocalEventChecker(_harmony1Notes, ref _harmony1Index);
-            if (c != -1)
+            var Harmony1Note = VocalEventChecker(_harmony1Notes, ref _harmony1Index);
+            if (Harmony1Note != -1)
             {
-                MasterLightingController.CurrentHarmony1Note = c;
+                MasterLightingController.MLCCurrentHarmony1Note = (byte)Harmony1Note;
             }
 
-            var d = VocalEventChecker(_harmony2Notes, ref _harmony2Index);
-            if (d != -1)
+            var Harmony2Note = VocalEventChecker(_harmony2Notes, ref _harmony2Index);
+            if (Harmony2Note != -1)
             {
-                MasterLightingController.CurrentHarmony2Note = d;
+                MasterLightingController.MLCCurrentHarmony2Note = (byte)Harmony2Note;
             }
 
             //Camera Cut events
@@ -239,13 +239,20 @@ namespace YARG.Integration
             // Beatline events
             while (_syncIndex < _sync.Beatlines.Count && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
             {
-                MasterLightingController.CurrentBeat = _sync.Beatlines[_syncIndex];
+                MasterLightingController.MLCCurrentBeat = _sync.Beatlines[_syncIndex].Type switch
+                {
+                    BeatlineType.Measure => 1,
+                    BeatlineType.Strong  => 2,
+                    BeatlineType.Weak    => 3,
+                    _                    => 0,
+                };
+
                 _syncIndex++;
             }
 
             while (_bpmIndex < _sync.Tempos.Count && _sync.Tempos[_bpmIndex].Time <= GameManager.SongTime)
             {
-                MasterLightingController.CurrentBPM = (byte) Mathf.Round(_sync.Tempos[_bpmIndex].BeatsPerMinute);
+                MasterLightingController.MLCCurrentBPM = Mathf.Round(_sync.Tempos[_bpmIndex].BeatsPerMinute);
                 _bpmIndex++;
             }
 
@@ -255,23 +262,23 @@ namespace YARG.Integration
                 switch (Venue.Lighting[LightingIndex].Type)
                 {
                     case LightingType.Strobe_Off:
-                        MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Off;
+                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Off;
                         break;
 
                     case LightingType.Strobe_Fast:
-                        MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Fast;
+                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Fast;
                         break;
 
                     case LightingType.Strobe_Medium:
-                        MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Medium;
+                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Medium;
                         break;
 
                     case LightingType.Strobe_Slow:
-                        MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Slow;
+                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Slow;
                         break;
 
                     case LightingType.Strobe_Fastest:
-                        MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Fastest;
+                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Fastest;
                         break;
 
                     default:
@@ -279,7 +286,7 @@ namespace YARG.Integration
                         // But the Strobe_Off event is almost never used, relying instead on the cue change to turn it off.
                         // So this technically should be in the stage kit lighting controller code but I don't want the
                         // stage kit reaching into this main lighting controller.So we'll just turn it off here.
-                        MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Off;
+                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Off;
                         MasterLightingController.CurrentLightingCue = Venue.Lighting[LightingIndex];
                         break;
                 }
@@ -292,15 +299,15 @@ namespace YARG.Integration
             {
                 if (Venue.Stage[_stageIndex].Effect == StageEffect.FogOn)
                 {
-                    MasterLightingController.CurrentFogState = MasterLightingController.FogState.On;
+                    MasterLightingController.MLCFogState = true;
                 }
                 else if (Venue.Stage[_stageIndex].Effect == StageEffect.FogOff)
                 {
-                    MasterLightingController.CurrentFogState = MasterLightingController.FogState.Off;
+                    MasterLightingController.MLCFogState = false;
                 }
                 else if (Venue.Stage[_stageIndex].Effect == StageEffect.BonusFx)
                 {
-                    MasterLightingController.FireBonusFXEvent();
+                    MasterLightingController.MLCBonusFX = true;
                 }
 
                 _stageIndex++;
