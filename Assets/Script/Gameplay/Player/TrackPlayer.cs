@@ -260,6 +260,8 @@ namespace YARG.Gameplay.Player
                 maxMultiplier *= 2;
             }
 
+            double currentStarPowerAmount = Engine.GetStarPowerBarAmount();
+
             bool groove = stats.ScoreMultiplier == maxMultiplier;
 
             _currentMultiplier = stats.ScoreMultiplier;
@@ -269,7 +271,7 @@ namespace YARG.Gameplay.Player
             TrackMaterial.StarpowerMode = stats.IsStarPowerActive;
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
-            StarpowerBar.SetStarpower(stats.StarPowerBarAmount, stats.IsStarPowerActive);
+            StarpowerBar.SetStarpower(currentStarPowerAmount, stats.IsStarPowerActive);
             SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
 
             TrackView.UpdateNoteStreak(stats.Combo);
@@ -293,8 +295,6 @@ namespace YARG.Gameplay.Player
 
             _previousBassGrooveState = currentBassGrooveState;
 
-            double currentStarPowerAmount = stats.StarPowerBarAmount;
-
             if (!stats.IsStarPowerActive && _previousStarPowerAmount < 0.5 && currentStarPowerAmount >= 0.5)
             {
                 TrackView.ShowStarPowerReady();
@@ -304,7 +304,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var haptics in SantrollerHaptics)
             {
-                haptics.SetStarPowerFill((float) BaseStats.StarPowerBarAmount);
+                haptics.SetStarPowerFill((float) currentStarPowerAmount);
             }
         }
 

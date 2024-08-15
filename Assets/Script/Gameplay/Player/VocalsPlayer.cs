@@ -274,7 +274,7 @@ namespace YARG.Gameplay.Player
 
             // Update HUD
             _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier,
-                (float) Engine.EngineStats.StarPowerBarAmount, Engine.EngineStats.IsStarPowerActive);
+                (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
 
             // Get the appropriate sing time
             var singTime = GameManager.InputTime - Player.Profile.InputCalibrationSeconds;
