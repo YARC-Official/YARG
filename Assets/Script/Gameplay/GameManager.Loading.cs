@@ -173,6 +173,14 @@ namespace YARG.Gameplay
             // Spawn players
             CreatePlayers();
 
+            if (_loadState == LoadFailureState.Error)
+            {
+                ToastManager.ToastError(_loadFailureMessage);
+
+                global.LoadScene(SceneIndex.Menu);
+                return;
+            }
+
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
 
@@ -262,7 +270,7 @@ namespace YARG.Gameplay
             {
                 _loadState = LoadFailureState.Error;
                 _loadFailureMessage = "Failed to load chart!";
-                YargLogger.LogException(ex);
+                YargLogger.LogException(ex, "Failed to load chart!");
             }
         }
 
@@ -319,118 +327,127 @@ namespace YARG.Gameplay
 
         private void CreatePlayers()
         {
-            _players = new List<BasePlayer>();
-
-            bool vocalTrackInitialized = false;
-
-            int index = -1;
-            foreach (var player in YargPlayers)
+            try
             {
-                index++;
+                _players = new List<BasePlayer>();
 
-                if (!IsReplay)
+                bool vocalTrackInitialized = false;
+
+                int index = -1;
+                foreach (var player in YargPlayers)
                 {
-                    // Reset microphone (resets channel buffers)
-                    // We probably wanna do this no matter what, so put it up here
-                    player.Bindings.Microphone?.Reset();
-                }
+                    index++;
 
-                // Skip if the player is sitting out
-                if (player.SittingOut)
-                {
-                    continue;
-                }
-
-                if (!IsReplay)
-                {
-                    // Don't do this if it's a replay, because the replay
-                    // would've already set its own presets at this point
-                    player.SetPresetsFromProfile();
-                }
-
-                var lastHighScore = ScoreContainer
-                    .GetHighScoreByInstrument(Song.Hash, player.Profile.CurrentInstrument)?
-                    .Score;
-
-                if (player.Profile.GameMode != GameMode.Vocals)
-                {
-                    var prefab = player.Profile.GameMode switch
+                    if (!IsReplay)
                     {
-                        GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
-                        GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
-                        GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
-                        GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
-                        GameMode.ProKeys        => _proKeysPrefab,
-                        GameMode.ProGuitar      => _proGuitarPrefab,
-                        _ => null
-                    };
-
-                    // Skip if there's no prefab for the game mode
-                    if (prefab == null) continue;
-
-                    var playerObject = Instantiate(prefab,
-                        new Vector3(index * TRACK_SPACING_X, 100f, 0f), prefab.transform.rotation);
-
-                    // Setup player
-                    var trackPlayer = playerObject.GetComponent<TrackPlayer>();
-                    var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
-                    trackPlayer.Initialize(index, player, Chart, trackView, _mixer, lastHighScore);
-                    _players.Add(trackPlayer);
-                }
-                else
-                {
-                    // Initialize the vocal track if it hasn't been already, and hide lyric bar
-                    if (!vocalTrackInitialized)
-                    {
-                        VocalTrack.gameObject.SetActive(true);
-                        _trackViewManager.CreateVocalTrackView();
-
-                        // Since all players have to select the same vocals
-                        // type (solo/harmony) this works no problem.
-                        var chart = player.Profile.CurrentInstrument == Instrument.Vocals
-                            ? Chart.Vocals
-                            : Chart.Harmony;
-                        VocalTrack.Initialize(chart, player);
-
-                        _lyricBar.SetActive(false);
-                        vocalTrackInitialized = true;
+                        // Reset microphone (resets channel buffers)
+                        // We probably wanna do this no matter what, so put it up here
+                        player.Bindings.Microphone?.Reset();
                     }
 
-                    // Create the player on the vocal track
+                    // Skip if the player is sitting out
+                    if (player.SittingOut)
+                    {
+                        continue;
+                    }
 
-                    var vocalsPlayer = VocalTrack.CreatePlayer();
+                    if (!IsReplay)
+                    {
+                        // Don't do this if it's a replay, because the replay
+                        // would've already set its own presets at this point
+                        player.SetPresetsFromProfile();
+                    }
 
-                    var playerHud = _trackViewManager.CreateVocalsPlayerHUD();
+                    var lastHighScore = ScoreContainer
+                        .GetHighScoreByInstrument(Song.Hash, player.Profile.CurrentInstrument)?
+                        .Score;
 
-                    var percussionTrack = VocalTrack.CreatePercussionTrack();
-                    percussionTrack.TrackSpeed = VocalTrack.TrackSpeed;
-                    vocalsPlayer.Initialize(index, player, Chart, playerHud, percussionTrack, lastHighScore);
+                    if (player.Profile.GameMode != GameMode.Vocals)
+                    {
+                        var prefab = player.Profile.GameMode switch
+                        {
+                            GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
+                            GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
+                            GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
+                            GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
+                            GameMode.ProKeys        => _proKeysPrefab,
+                            GameMode.ProGuitar      => _proGuitarPrefab,
+                            _                       => null
+                        };
 
-                    _players.Add(vocalsPlayer);
+                        // Skip if there's no prefab for the game mode
+                        if (prefab == null) continue;
+
+                        var playerObject = Instantiate(prefab,
+                            new Vector3(index * TRACK_SPACING_X, 100f, 0f), prefab.transform.rotation);
+
+                        // Setup player
+                        var trackPlayer = playerObject.GetComponent<TrackPlayer>();
+                        var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
+                        trackPlayer.Initialize(index, player, Chart, trackView, _mixer, lastHighScore);
+                        _players.Add(trackPlayer);
+                    }
+                    else
+                    {
+                        // Initialize the vocal track if it hasn't been already, and hide lyric bar
+                        if (!vocalTrackInitialized)
+                        {
+                            VocalTrack.gameObject.SetActive(true);
+                            _trackViewManager.CreateVocalTrackView();
+
+                            // Since all players have to select the same vocals
+                            // type (solo/harmony) this works no problem.
+                            var chart = player.Profile.CurrentInstrument == Instrument.Vocals
+                                ? Chart.Vocals
+                                : Chart.Harmony;
+                            VocalTrack.Initialize(chart, player);
+
+                            _lyricBar.SetActive(false);
+                            vocalTrackInitialized = true;
+                        }
+
+                        // Create the player on the vocal track
+
+                        var vocalsPlayer = VocalTrack.CreatePlayer();
+
+                        var playerHud = _trackViewManager.CreateVocalsPlayerHUD();
+
+                        var percussionTrack = VocalTrack.CreatePercussionTrack();
+                        percussionTrack.TrackSpeed = VocalTrack.TrackSpeed;
+                        vocalsPlayer.Initialize(index, player, Chart, playerHud, percussionTrack, lastHighScore);
+
+                        _players.Add(vocalsPlayer);
+                    }
+
+                    // Add (or increase total of) the stem state
+                    var stem = player.Profile.CurrentInstrument.ToSongStem();
+                    if (stem == SongStem.Bass && !_stemStates.ContainsKey(SongStem.Bass))
+                    {
+                        stem = SongStem.Rhythm;
+                    }
+
+                    if (stem != _backgroundStem && _stemStates.TryGetValue(stem, out var state))
+                    {
+                        ++state.Total;
+                        ++state.Audible;
+                    }
+                    else if (_stemStates.TryGetValue(_backgroundStem, out state))
+                    {
+                        // Ensures the stem will still play at a minimum of 50%, even if all players mute
+                        state.Total += 2;
+                        state.Audible += 2;
+                    }
                 }
 
-                // Add (or increase total of) the stem state
-                var stem = player.Profile.CurrentInstrument.ToSongStem();
-                if (stem == SongStem.Bass && !_stemStates.ContainsKey(SongStem.Bass))
-                {
-                    stem = SongStem.Rhythm;
-                }
-
-                if (stem != _backgroundStem && _stemStates.TryGetValue(stem, out var state))
-                {
-                    ++state.Total;
-                    ++state.Audible;
-                }
-                else if (_stemStates.TryGetValue(_backgroundStem, out state))
-                {
-                    // Ensures the stem will still play at a minimum of 50%, even if all players mute
-                    state.Total += 2;
-                    state.Audible += 2;
-                }
+                // Make sure to set up all of the HUD positions
+                _trackViewManager.SetAllHUDPositions();
             }
-
-            // Make sure to set up all of the HUD positions
-            _trackViewManager.SetAllHUDPositions();
+            catch (Exception ex)
+            {
+                _loadState = LoadFailureState.Error;
+                _loadFailureMessage = "Failed to load song!";
+                YargLogger.LogException(ex, "Failed to load song!");
+            }
         }
     }
 }
