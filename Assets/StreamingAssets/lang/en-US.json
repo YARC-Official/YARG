@@ -777,7 +777,7 @@
             },
             "WhammyPitchShiftAmount": {
                 "Name": "Whammy Pitch Shift Amount",
-                "Description": "Number of semitones the pitch is changed when the whammy bar is fully depressed. Most guitars shift between 1 and 3 semitones."
+                "Description": "Number of semitones the pitch is changed when the whammy bar is fully pressed. Larger amounts result in lower pitches; default is 1."
             },			
             "PauseOnDeviceDisconnect": {
                 "Name": "Pause On Device Disconnect",
