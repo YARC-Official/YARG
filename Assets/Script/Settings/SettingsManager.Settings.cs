@@ -295,8 +295,8 @@ namespace YARG.Settings
 
             #region Lighting Peripherals
             public ToggleSetting EnableYALCYDatastream{ get; } = new(true);
-            public IPv4Setting YALCYDatastreamIP { get; } = new("255.255.255.255");
-            public IntSetting YALCYDatastreamPort { get; } = new(36107, 1, 65535);
+            public IPv4Setting YALCYDatastreamIP { get; } = new("255.255.255.255", v => MasterLightingController.MLCudpIP =v);
+            public IntSetting YALCYDatastreamPort { get; } = new(36107, 1, 65535, v => MasterLightingController.MLCudpPort = (ushort) v);
             #endregion
 
             #region Debug and Developer
