@@ -1,4 +1,5 @@
-﻿using Cysharp.Text;
+﻿using System;
+using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -76,8 +77,8 @@ namespace YARG.Gameplay.HUD
 
         public void UpdateVisual()
         {
-            _inputTimeText.SetText(_inputTime);
-            _holdTimeText.SetText(_holdTime);
+            _inputTimeText.SetText(Math.Round(_inputTime, 3));
+            _holdTimeText.SetText(Math.Round(_inputTime, 3));
             _pressCountText.SetText(_pressCount);
 
             var color = ButtonColor;
@@ -103,7 +104,7 @@ namespace YARG.Gameplay.HUD
             {
                 _holdTime = _gameManager.InputTime - _holdStartTime + GameManager.SONG_START_DELAY;
 
-                _holdTimeText.SetText(_holdTime);
+                _holdTimeText.SetText(Math.Round(_holdTime, 3));
             }
         }
     }
