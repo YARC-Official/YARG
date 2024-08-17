@@ -31,10 +31,24 @@ namespace YARG.Gameplay
         private const int DEBUG_WINDOW_ID = 0;
         private const int DEBUG_WINDOW_MARGIN = 25;
 
+        // The values used for everything were designed under a height of
+        // 550 pixels (using the Unity editor viewport).
+        // Decided to round it down to 500 since it gives a little more room
+        // after scaling calculation is applied
+        private const int DEBUG_WINDOW_DESIGN_HEIGHT = 500;
+
+        private const int DEBUG_WINDOW_MIN_WIDTH = 300;
+        private const int DEBUG_WINDOW_MAX_WIDTH = 600;
+
+        private const int DEBUG_WINDOW_MAX_HEIGHT = DEBUG_WINDOW_DESIGN_HEIGHT - (DEBUG_WINDOW_MARGIN * 2);
+
         private bool _enableDebug;
 
         // Box style doesn't account for the title text, so window style it is
         private GUIStyle VerticalGroupStyle => GUI.skin.window;
+
+        private int _debugLastScreenHeight;
+        private float _debugGuiScale;
 
         private GUI.WindowFunction _debugWindowCallback;
         private Rect _debugWindowRect = new(DEBUG_WINDOW_MARGIN, DEBUG_WINDOW_MARGIN, 0, 0);
@@ -85,10 +99,31 @@ namespace YARG.Gameplay
                 return;
             }
 
+            // Update GUI scale as needed
+            if (Screen.height != _debugLastScreenHeight)
+            {
+                _debugLastScreenHeight = Screen.height;
+
+                float oldScale = _debugGuiScale;
+                _debugGuiScale = (float) Screen.height / DEBUG_WINDOW_DESIGN_HEIGHT;
+
+                // Adjust window rect to prevent errors in the clamping code below
+                _debugWindowRect.width = (_debugWindowRect.width / oldScale) * _debugGuiScale;
+                _debugWindowRect.height = (_debugWindowRect.height / oldScale) * _debugGuiScale;
+            }
+
+            // Clamp position to screen bounds
+            _debugWindowRect.x = Math.Clamp(_debugWindowRect.x, 0, Screen.width - _debugWindowRect.width);
+            _debugWindowRect.y = Math.Clamp(_debugWindowRect.y, 0, Screen.height - _debugWindowRect.height);
+
             // Reset size so expansions don't persist
             _debugWindowRect.size = new Vector2();
-            _debugWindowRect = GUILayout.Window(DEBUG_WINDOW_ID, _debugWindowRect, _debugWindowCallback, "Debug Menu",
-                GUILayout.MinWidth(300), GUILayout.MaxWidth(600), GUILayout.MinHeight(50), GUILayout.MaxHeight(500)
+
+            _debugWindowRect = GUILayout.Window(
+                DEBUG_WINDOW_ID, _debugWindowRect, _debugWindowCallback, "Debug Menu",
+                GUILayout.MinWidth(DEBUG_WINDOW_MIN_WIDTH),
+                GUILayout.MaxWidth(DEBUG_WINDOW_MAX_WIDTH * _debugGuiScale),
+                GUILayout.MaxHeight(DEBUG_WINDOW_MAX_HEIGHT * _debugGuiScale)
             );
         }
 
@@ -128,7 +163,7 @@ namespace YARG.Gameplay
             var player = _players[_debugSelectedPlayer];
 
             using (DebugScrollView.Begin("Base Engine", VerticalGroupStyle,
-                ref _debugBaseEngineScroll, GUILayout.Height(125)))
+                ref _debugBaseEngineScroll, GUILayout.Height(125 * _debugGuiScale)))
             {
                 using var text = ZString.CreateStringBuilder(true);
 
@@ -222,7 +257,7 @@ namespace YARG.Gameplay
             };
 
             using (DebugScrollView.Begin(playerType, VerticalGroupStyle,
-                ref _debugDerivedEngineScroll, GUILayout.Height(125)))
+                ref _debugDerivedEngineScroll, GUILayout.Height(125 * _debugGuiScale)))
             {
                 switch (player)
                 {
@@ -343,7 +378,7 @@ namespace YARG.Gameplay
         private void TimingDebug()
         {
             using (DebugScrollView.Begin("Calibration", VerticalGroupStyle,
-                ref _debugCalibrationScroll, GUILayout.Height(75)))
+                ref _debugCalibrationScroll, GUILayout.Height(75 * _debugGuiScale)))
             {
                 using var text = ZString.CreateStringBuilder(true);
 
@@ -356,7 +391,7 @@ namespace YARG.Gameplay
             }
 
             using (DebugScrollView.Begin("Time", VerticalGroupStyle,
-                ref _debugTimeScroll, GUILayout.Height(125)))
+                ref _debugTimeScroll, GUILayout.Height(125 * _debugGuiScale)))
             {
                 using var text = ZString.CreateStringBuilder(true);
 
@@ -378,7 +413,7 @@ namespace YARG.Gameplay
             }
 
             using (DebugScrollView.Begin("Sync", VerticalGroupStyle,
-                ref _debugSyncScroll, GUILayout.Height(100)))
+                ref _debugSyncScroll, GUILayout.Height(100 * _debugGuiScale)))
             {
                 using var text = ZString.CreateStringBuilder(true);
 
@@ -397,7 +432,7 @@ namespace YARG.Gameplay
         private void VenueDebug()
         {
             using (DebugScrollView.Begin("Lighting", VerticalGroupStyle,
-                ref _debugLightingScroll, GUILayout.Height(50)))
+                ref _debugLightingScroll, GUILayout.Height(50 * _debugGuiScale)))
             {
                 using var text = ZString.CreateStringBuilder(true);
 
