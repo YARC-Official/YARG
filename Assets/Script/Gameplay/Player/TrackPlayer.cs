@@ -125,37 +125,7 @@ namespace YARG.Gameplay.Player
 
         protected abstract void UpdateNotes(double time);
 
-        private void UpdateBeatlines(double time)
-        {
-            while (BeatlineIndex < Beatlines.Count && Beatlines[BeatlineIndex].Time <= time + SpawnTimeOffset)
-            {
-                if(BeatlineIndex + 1 < Beatlines.Count && Beatlines[BeatlineIndex + 1].Time <= time + SpawnTimeOffset)
-                {
-                    BeatlineIndex++;
-                    continue;
-                }
-
-                var beatline = Beatlines[BeatlineIndex];
-
-                // Skip this frame if the pool is full
-                if (!BeatlinePool.CanSpawnAmount(1))
-                {
-                    break;
-                }
-
-                var poolable = BeatlinePool.TakeWithoutEnabling();
-                if (poolable == null)
-                {
-                    YargLogger.LogWarning("Attempted to spawn beatline, but it's at its cap!");
-                    break;
-                }
-
-                ((BeatlineElement) poolable).BeatlineRef = beatline;
-                poolable.EnableFromPool();
-
-                BeatlineIndex++;
-            }
-        }
+        protected abstract void UpdateBeatlines(double time);
     }
 
     public abstract class TrackPlayer<TEngine, TNote> : TrackPlayer
@@ -341,6 +311,43 @@ namespace YARG.Gameplay.Player
                 {
                     SpawnNote(child);
                 }
+            }
+        }
+
+        protected override void UpdateBeatlines(double time)
+        {
+            while (BeatlineIndex < Beatlines.Count && Beatlines[BeatlineIndex].Time <= time + SpawnTimeOffset)
+            {
+                if(BeatlineIndex + 1 < Beatlines.Count && Beatlines[BeatlineIndex + 1].Time <= time + SpawnTimeOffset)
+                {
+                    BeatlineIndex++;
+                    continue;
+                }
+
+                var beatline = Beatlines[BeatlineIndex];
+
+                if (Notes.Count > 0 && beatline.Time > Notes[^1].TimeEnd)
+                {
+                    return;
+                }
+
+                // Skip this frame if the pool is full
+                if (!BeatlinePool.CanSpawnAmount(1))
+                {
+                    break;
+                }
+
+                var poolable = BeatlinePool.TakeWithoutEnabling();
+                if (poolable == null)
+                {
+                    YargLogger.LogWarning("Attempted to spawn beatline, but it's at its cap!");
+                    break;
+                }
+
+                ((BeatlineElement) poolable).BeatlineRef = beatline;
+                poolable.EnableFromPool();
+
+                BeatlineIndex++;
             }
         }
 
