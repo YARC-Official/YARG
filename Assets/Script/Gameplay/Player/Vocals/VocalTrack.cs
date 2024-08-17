@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -64,6 +64,8 @@ namespace YARG.Gameplay.Player
         private Material _twoLaneHarmonyTrackMaterial;
         [SerializeField]
         private Material _threeLaneHarmonyTrackMaterial;
+        [SerializeField]
+        private MeshRenderer _guidelineRenderer;
 
         [Space]
         [SerializeField]
@@ -274,6 +276,7 @@ namespace YARG.Gameplay.Player
                     _isRangeChanging = false;
                     _viewRange.Min = _targetRange.Min;
                     _viewRange.Max = _targetRange.Max;
+                    UpdateHighwayGuidelines();
                 }
                 else
                 {
@@ -282,6 +285,7 @@ namespace YARG.Gameplay.Player
 
                     _viewRange.Min = newMin;
                     _viewRange.Max = newMax;
+                    UpdateHighwayGuidelines();
                 }
 
                 // Update notes to match new range values
@@ -315,6 +319,16 @@ namespace YARG.Gameplay.Player
                 _starpowerMaterial.SetFloat(_alphaMultiplier,
                     Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
             }
+        }
+
+        private void UpdateHighwayGuidelines()
+        {
+            const int DEFAULT_GUIDELINE_SCALE = 24;
+            var scale = (_viewRange.Max - _viewRange.Min) / DEFAULT_GUIDELINE_SCALE;
+            var offset = (_viewRange.Min % DEFAULT_GUIDELINE_SCALE) / DEFAULT_GUIDELINE_SCALE;            
+            _guidelineRenderer.material.mainTextureOffset = new Vector2(1, offset);
+            _guidelineRenderer.material.mainTextureScale = new Vector2(1, scale);
+            Debug.Log($"Range Min: {_viewRange.Min}, Max: {_viewRange.Max}, Offset: {offset}, Scale: {scale}");
         }
 
         private void ChangeRange(VocalsRangeShift range)

@@ -358,8 +358,9 @@ namespace YARG.Gameplay.Player
                         int lastNoteOctave = (int) (lastNotePitch / 12f);
 
                         // Set the pitch's octave to the target one
-                        pitch = Engine.PitchSang % 12f;
-                        pitch += 12f * (lastNoteOctave + octaveShift);
+                        // TODO: Undo before code review!
+                       // pitch = Engine.PitchSang % 12f;
+                      //  pitch += 12f * (lastNoteOctave + octaveShift);
                     }
                     else
                     {
