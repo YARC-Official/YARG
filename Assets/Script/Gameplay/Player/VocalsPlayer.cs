@@ -1,5 +1,7 @@
 ﻿using System.Linq;
+using Unity.Burst.Intrinsics;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -25,6 +27,8 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private GameObject _needleVisualContainer;
         [SerializeField]
+        private MeshRenderer _needleRenderer;
+        [SerializeField]
         private Transform _needleTransform;
         [SerializeField]
         private ParticleGroup _hittingParticleGroup;
@@ -37,6 +41,8 @@ namespace YARG.Gameplay.Player
         };
 
         public override int[] StarScoreThresholds { get; protected set; }
+
+        public int VocalPlayerIndex { get; private set; }
 
         private InstrumentDifficulty<VocalNote> NoteTrack { get; set; }
         private InstrumentDifficulty<VocalNote> OriginalNoteTrack { get; set; }
@@ -53,13 +59,21 @@ namespace YARG.Gameplay.Player
 
         private int _phraseIndex = -1;
 
-        public void Initialize(int index, YargPlayer player, SongChart chart,
+        private const int NEEDLES_COUNT = 7;
+
+        public void Initialize(int index, int vocalIndex, YargPlayer player, SongChart chart,
             VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore)
         {
             if (IsInitialized) return;
 
             base.Initialize(index, player, chart, lastHighScore);
+            VocalPlayerIndex = vocalIndex;
 
+            // Needle materials have names starting from 1.
+            var needleIndex = (VocalPlayerIndex % NEEDLES_COUNT) + 1;
+            var materialPath = $"Assets/Art/Materials/Gameplay/Visual/VocalElements/VocalNeedle{needleIndex}.mat";
+            _needleRenderer.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
+            
             var partIndex = Player.Profile.CurrentInstrument == Instrument.Harmony
                 ? Player.Profile.HarmonyIndex
                 : 0;

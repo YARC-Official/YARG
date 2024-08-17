@@ -177,6 +177,76 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b68a573841c0df43b615b07a9fa8a80
+    m_Address: Assets/Art/Textures/PlayMode/Needles/Needle_1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6c4556492c4d6da49ac6ae4204f6d10a
+    m_Address: Assets/Art/Textures/PlayMode/Needles/Needle_2.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 029be4c7f0bed9f4ea00ee2c26be53f2
+    m_Address: Assets/Art/Textures/PlayMode/Needles/Needle_3.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 00be5b45e060bcc4ea7a4233ed157d47
+    m_Address: Assets/Art/Textures/PlayMode/Needles/Needle_4.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5c946b527f23cbe438e258cadbf6542e
+    m_Address: Assets/Art/Textures/PlayMode/Needles/Needle_5.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 60f34417203db20409cbad721139466b
+    m_Address: Assets/Art/Textures/PlayMode/Needles/Needle_6.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c75f7ae331c92ba4a96938e48ae7391c
+    m_Address: Assets/Art/Textures/PlayMode/Needles/Needle_7.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e0e605abd541a884fa54a20c69463dae
+    m_Address: Assets/Art/Materials/Gameplay/Visual/VocalElements/VocalNeedle6.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 55e41705c37b9714290555abec1a7c20
+    m_Address: Assets/Art/Materials/Gameplay/Visual/VocalElements/VocalNeedle7.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a525db7d8caeaf043bc242aafb1f8ce2
+    m_Address: Assets/Art/Materials/Gameplay/Visual/VocalElements/VocalNeedle1.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c0533cc84aeadc84b853c51e509ea5da
+    m_Address: Assets/Art/Materials/Gameplay/Visual/VocalElements/VocalNeedle2.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6a2ad74716468f2469bcb68fb2791dc7
+    m_Address: Assets/Art/Materials/Gameplay/Visual/VocalElements/VocalNeedle3.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4b42c3eb19b10a14d8b5ff4f6afd4b62
+    m_Address: Assets/Art/Materials/Gameplay/Visual/VocalElements/VocalNeedle4.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a9026989456792b44a04bc025209b979
+    m_Address: Assets/Art/Materials/Gameplay/Visual/VocalElements/VocalNeedle5.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: e05274e5aee7ff54bb550557e8a635f2, type: 2}
   m_SchemaSet:

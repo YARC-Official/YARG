@@ -334,6 +334,7 @@ namespace YARG.Gameplay
                 bool vocalTrackInitialized = false;
 
                 int index = -1;
+                int vocalIndex = -1;
                 foreach (var player in YargPlayers)
                 {
                     index++;
@@ -409,12 +410,12 @@ namespace YARG.Gameplay
                         // Create the player on the vocal track
 
                         var vocalsPlayer = VocalTrack.CreatePlayer();
-
+                        vocalIndex++;
                         var playerHud = _trackViewManager.CreateVocalsPlayerHUD();
 
                         var percussionTrack = VocalTrack.CreatePercussionTrack();
                         percussionTrack.TrackSpeed = VocalTrack.TrackSpeed;
-                        vocalsPlayer.Initialize(index, player, Chart, playerHud, percussionTrack, lastHighScore);
+                        vocalsPlayer.Initialize(index, vocalIndex, player, Chart, playerHud, percussionTrack, lastHighScore);
 
                         _players.Add(vocalsPlayer);
                     }
