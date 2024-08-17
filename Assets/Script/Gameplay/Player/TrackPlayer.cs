@@ -129,6 +129,12 @@ namespace YARG.Gameplay.Player
         {
             while (BeatlineIndex < Beatlines.Count && Beatlines[BeatlineIndex].Time <= time + SpawnTimeOffset)
             {
+                if(BeatlineIndex + 1 < Beatlines.Count && Beatlines[BeatlineIndex + 1].Time <= time + SpawnTimeOffset)
+                {
+                    BeatlineIndex++;
+                    continue;
+                }
+
                 var beatline = Beatlines[BeatlineIndex];
 
                 // Skip this frame if the pool is full
@@ -358,7 +364,6 @@ namespace YARG.Gameplay.Player
 
             ResetNoteCounters();
 
-            Beatlines = SyncTrack.Beatlines.Where(b => b.Tick >= start && b.Tick <= end).ToList();
             BeatlineIndex = 0;
 
             Engine = CreateEngine();
