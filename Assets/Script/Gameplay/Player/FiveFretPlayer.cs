@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -265,6 +266,7 @@ namespace YARG.Gameplay.Player
             if (input.GetAction<GuitarAction>() == GuitarAction.Whammy)
             {
                 WhammyFactor = Mathf.Clamp01(input.Axis);
+                GameManager.ChangeStemWhammyPitch(_stem, WhammyFactor);
             }
         }
     }
