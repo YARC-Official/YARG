@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Timers;
 using PlasticBand.Haptics;
 using UnityEngine;
@@ -12,50 +11,41 @@ using YARG.Settings;
 
 namespace YARG.Integration
 {
-    /*
-        Real-life lighting integration works in 2 parts:
-        1) This lighting controller (along with its gameplay monitor and initializer) builds and sends a data packet of whatever YARG is currently doing, to the network.
-        2) YALCY reads this data packet and converts to various protocols (DMX, stage kit, etc) to control the lights.
-   */
-
     public class MasterLightingController : MonoBehaviour
     {
         [Serializable]
         public struct LightingMessage
         {
-            public byte HeaderByte1;
-            public byte HeaderByte2;
-            public byte HeaderByte3;
-            public byte HeaderByte4;
+            public uint Header;
 
             public byte DatagramVersion;
-            public byte Platform;
-            public byte CurrentScene;
+            public PlatformByte Platform;
+            public SceneIndexByte CurrentScene;
             public bool Paused;
             public bool LargeVenue;
 
             public float BeatsPerMinute;
-            public byte CurrentSongSection;
-            public byte CurrentGuitarNotes;
-            public byte CurrentBassNotes;
-            public byte CurrentDrumNotes;
-            public byte CurrentKeysNotes;
-            public byte CurrentVocalNote;
-            public byte CurrentHarmony0Note;
-            public byte CurrentHarmony1Note;
-            public byte CurrentHarmony2Note;
+            public LightingType CurrentSongSection;
+            public int CurrentGuitarNotes;
+            public int CurrentBassNotes;
+            public int CurrentDrumNotes;
+            public int CurrentKeysNotes;
+            public float CurrentVocalNote;
+            public float CurrentHarmony0Note;
+            public float CurrentHarmony1Note;
+            public float CurrentHarmony2Note;
 
-            public byte LightingCue;
-            public byte PostProcessing;
+            public LightingType LightingCue;
+            public PostProcessingType PostProcessing;
             public bool FogState;
-            public byte StrobeState;
+            public StageKitStrobeSpeed StrobeState;
             public byte Performer;
-            public byte Beat;
-            public byte Keyframe;
+            public BeatlineType Beat;
+            public LightingType Keyframe;
             public bool BonusEffect;
         }
 
-        private enum PlatformByte
+        public enum PlatformByte
         {
             Unknown,
             Windows,
@@ -63,7 +53,7 @@ namespace YARG.Integration
             Mac,
         }
 
-        private enum SceneIndexByte
+        public enum SceneIndexByte
         {
             Unknown,
             Menu,
@@ -81,31 +71,36 @@ namespace YARG.Integration
 
         // NYI - waiting for parser rewrite.
         // public static PerformerEvent CurrentPerformerEvent;
+        public static PlatformByte MLCPlatform;
         public static bool MLCPaused;
         public static bool MLCLargeVenue;
-        public static byte MLCSceneIndex;
-        public static byte MLCCurrentGuitarNotes;
-        public static byte MLCCurrentBassNotes;
-        public static byte MLCCurrentDrumNotes;
-        public static byte MLCCurrentKeysNotes;
-        public static byte MLCCurrentVocalNote;
-        public static byte MLCCurrentHarmony0Note;
-        public static byte MLCCurrentHarmony1Note;
-        public static byte MLCCurrentHarmony2Note;
+        public static SceneIndexByte MLCSceneIndex;
+        public static int MLCCurrentGuitarNotes;
+        public static int MLCCurrentBassNotes;
+        public static int MLCCurrentDrumNotes;
+        public static int MLCCurrentKeysNotes;
+        public static float MLCCurrentVocalNote;
+        public static float MLCCurrentHarmony0Note;
+        public static float MLCCurrentHarmony1Note;
+        public static float MLCCurrentHarmony2Note;
         public static bool MLCBonusFX;
-        public static byte MLCCurrentSongSection;
+        public static LightingType MLCCurrentSongSection;
         public static bool MLCFogState;
-        public static byte MLCStrobeState;
+        public static StageKitStrobeSpeed MLCStrobeState;
         public static float MLCCurrentBPM;
-        public static byte MLCCurrentBeat;
-        public static byte MLCKeyframe;
-        public static byte MLCCurrentLightingCue;
-        public static byte MLCPostProcessing;
+        public static BeatlineType MLCCurrentBeat;
+        public static LightingType MLCKeyframe;
+        public static LightingType MLCCurrentLightingCue;
+        public static PostProcessingType MLCPostProcessing;
 
         public static ushort MLCudpPort;
         public static string MLCudpIP;
 
         private static LightingEvent _currentLightingCue;
+
+        public static LightingMessage message = new LightingMessage();
+        public static MemoryStream ms = new MemoryStream();
+        public static BinaryWriter writer = new BinaryWriter(ms);
 
         public static LightingEvent CurrentLightingCue
         {
@@ -119,96 +114,72 @@ namespace YARG.Integration
                 _currentLightingCue = value;
 
                 //Keyframes are indicators and not really lighting cues themselves, also chorus and verse act more as modifiers and section labels and also not really lighting cues, they can be stacked under a lighting cue.
-                if (value.Type != LightingType.Keyframe_Next && value.Type != LightingType.Keyframe_Previous &&
-                    value.Type != LightingType.Keyframe_First && value.Type != LightingType.Chorus &&
-                    value.Type != LightingType.Verse)
+                if (value.Type is not (LightingType.Keyframe_Next or LightingType.Keyframe_Previous
+                    or LightingType.Keyframe_First or LightingType.Chorus or LightingType.Verse))
                 {
-                    MLCCurrentLightingCue = (byte) value.Type;
-                    // might need a null check here = NoCue
+                    MLCCurrentLightingCue = value.Type;
+                    // might need a null check here = NoCue, testing needed
                 }
                 else if (value.Type is LightingType.Keyframe_Next or LightingType.Keyframe_Previous
                     or LightingType.Keyframe_First)
                 {
-                    MLCKeyframe = (byte) value.Type;
-                    //might need an else here to keep keyframe at current value
+                    MLCKeyframe = value.Type;
+                    //might need an else here to keep keyframe at current value, testing needed
                 }
                 else if (value.Type is LightingType.Verse or LightingType.Chorus)
                 {
-                    MLCCurrentSongSection = (byte) value.Type;
-                    //might need an else here to keep section at current value
+                    MLCCurrentSongSection = value.Type;
+                    //might need an else here to keep section at current value, testing needed
                 }
             }
         }
 
         private void Start()
         {
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            MLCPlatform = PlatformByte.Windows;
+#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+			MLCPlatform = PlatformByte.Mac;
+#elif UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+			MLCPlatform = PlatformByte.Linux;
+#endif
+
             _timer = new Timer(TIME_BETWEEN_CALLS * 1000);
-            _timer.Elapsed += (sender, e) => Sender();
+            _timer.Elapsed += (sender, e) => Sender(message);
             _timer.Start();
         }
 
-        public static void Sender()
+        public static void Sender(LightingMessage message)
         {
-            if (!SettingsManager.Settings.EnableYALCYDatastream.Value) return;
+            message.Header = 0x59415247; // Y A R G
 
-            var message = new LightingMessage
-            {
-                HeaderByte1 = 0x59, // Y
-                HeaderByte2 = 0x41, // A
-                HeaderByte3 = 0x52, // R
-                HeaderByte4 = 0x47, // G
+            message.DatagramVersion = 0;          // version 0 currently
+            message.Platform = MLCPlatform;       // Set by the Preprocessor Directive above.
+            message.CurrentScene = MLCSceneIndex; // gets set by the initializer.
+            message.Paused = MLCPaused;           // gets set by the GameplayMonitor.
+            message.LargeVenue = MLCLargeVenue;   // gets set on chart load by the GameplayMonitor.
 
-                DatagramVersion = 0,
-                Platform = SetPlatformByte(),
-                CurrentScene = MLCSceneIndex, // gets set by the initializer, below.
-                Paused = MLCPaused,           // gets set by the GameplayMonitor.
-                LargeVenue = MLCLargeVenue,   // gets set on chart load by the GameplayMonitor.
+            message.BeatsPerMinute = MLCCurrentBPM;             // gets set by the GameplayMonitor.
+            message.LightingCue = MLCCurrentLightingCue;        // setter triggered by the GameplayMonitor.
+            message.PostProcessing = MLCPostProcessing;         // setter triggered by the GameplayMonitor.
+            message.FogState = MLCFogState;                     // gets set by the GameplayMonitor.
+            message.StrobeState = MLCStrobeState;               // gets set by the GameplayMonitor.
+            message.Performer = 0x00;                           // Performer not parsed yet
+            message.Beat = MLCCurrentBeat;                      // gets set by the GameplayMonitor.
+            message.Keyframe = MLCKeyframe;                     // gets set on lighting cue change.
+            message.BonusEffect = MLCBonusFX;                   // gets set by the GameplayMonitor.
+            message.CurrentSongSection = MLCCurrentSongSection; // gets set on lighting cue change.
 
-                BeatsPerMinute = MLCCurrentBPM,             // gets set by the GameplayMonitor.
-                LightingCue = MLCCurrentLightingCue,        // setter triggered by the GameplayMonitor.
-                PostProcessing = MLCPostProcessing,         // setter triggered by the GameplayMonitor.
-                FogState = MLCFogState,                     // gets set by the GameplayMonitor.
-                StrobeState = MLCStrobeState,               // gets set by the GameplayMonitor.
-                Performer = 0x00,                           // Performer not parsed yet
-                Beat = MLCCurrentBeat,                      // gets set by the GameplayMonitor.
-                Keyframe = MLCKeyframe,                     // gets set on lighting cue change.
-                BonusEffect = MLCBonusFX,                   // gets set by the GameplayMonitor.
-                CurrentSongSection = MLCCurrentSongSection, // gets set on lighting cue change.
-
-                CurrentGuitarNotes = MLCCurrentGuitarNotes,   // gets set by the GameplayMonitor.
-                CurrentBassNotes = MLCCurrentBassNotes,       // gets set by the GameplayMonitor.
-                CurrentDrumNotes = MLCCurrentDrumNotes,       // gets set by the GameplayMonitor.
-                CurrentKeysNotes = MLCCurrentKeysNotes,       // gets set by the GameplayMonitor.
-                CurrentVocalNote = MLCCurrentVocalNote,       // gets set by the GameplayMonitor.
-                CurrentHarmony0Note = MLCCurrentHarmony0Note, // gets set by the GameplayMonitor.
-                CurrentHarmony1Note = MLCCurrentHarmony1Note, // gets set by the GameplayMonitor.
-                CurrentHarmony2Note = MLCCurrentHarmony2Note, // gets set by the GameplayMonitor.
-            };
+            message.CurrentGuitarNotes = MLCCurrentGuitarNotes;   // gets set by the GameplayMonitor.
+            message.CurrentBassNotes = MLCCurrentBassNotes;       // gets set by the GameplayMonitor.
+            message.CurrentDrumNotes = MLCCurrentDrumNotes;       // gets set by the GameplayMonitor.
+            message.CurrentKeysNotes = MLCCurrentKeysNotes;       // gets set by the GameplayMonitor.
+            message.CurrentVocalNote = MLCCurrentVocalNote;       // gets set by the GameplayMonitor.
+            message.CurrentHarmony0Note = MLCCurrentHarmony0Note; // gets set by the GameplayMonitor.
+            message.CurrentHarmony1Note = MLCCurrentHarmony1Note; // gets set by the GameplayMonitor.
+            message.CurrentHarmony2Note = MLCCurrentHarmony2Note; // gets set by the GameplayMonitor.
 
             SerializeAndSend(message);
-        }
-
-        private static byte SetPlatformByte()
-        {
-            var platform = Application.platform;
-            switch (platform)
-            {
-                case RuntimePlatform.WindowsPlayer:
-                case RuntimePlatform.WindowsEditor:
-                    return (byte) PlatformByte.Windows;
-
-                case RuntimePlatform.OSXPlayer:
-                case RuntimePlatform.OSXEditor:
-                    return (byte) PlatformByte.Mac;
-
-                case RuntimePlatform.LinuxPlayer:
-                case RuntimePlatform.LinuxEditor:
-                    return (byte) PlatformByte.Linux;
-
-                default:
-                    YargLogger.LogWarning("Running on an unknown platform");
-                    return (byte) PlatformByte.Unknown;
-            }
         }
 
         public static void Initializer(Scene scene)
@@ -217,7 +188,7 @@ namespace YARG.Integration
             if ((SceneIndex) scene.buildIndex == SceneIndex.Persistent) return;
 
             MLCFogState = false;
-            MLCStrobeState = (byte) StageKitStrobeSpeed.Off;
+            MLCStrobeState = StageKitStrobeSpeed.Off;
             MLCCurrentBPM = 0;
             MLCCurrentDrumNotes = 0;
             MLCCurrentGuitarNotes = 0;
@@ -232,26 +203,26 @@ namespace YARG.Integration
             switch ((SceneIndex) scene.buildIndex)
             {
                 case SceneIndex.Gameplay:
-                    MLCSceneIndex = (byte) SceneIndexByte.Gameplay;
+                    MLCSceneIndex = SceneIndexByte.Gameplay;
                     break;
 
                 case SceneIndex.Menu:
                     CurrentLightingCue = new LightingEvent(LightingType.Menu, 0, 0);
-                    MLCSceneIndex = (byte) SceneIndexByte.Menu;
+                    MLCSceneIndex = SceneIndexByte.Menu;
                     break;
 
                 case SceneIndex.Calibration:
-                    MLCSceneIndex = (byte) SceneIndexByte.Calibration;
+                    MLCSceneIndex = SceneIndexByte.Calibration;
                     break;
 
                 case SceneIndex.Score:
                     CurrentLightingCue = new LightingEvent(LightingType.Score, 0, 0);
-                    MLCSceneIndex = (byte) SceneIndexByte.Score;
+                    MLCSceneIndex = SceneIndexByte.Score;
                     break;
 
                 default:
                     YargLogger.LogWarning("Unknown Scene loaded!");
-                    MLCSceneIndex = (byte) SceneIndexByte.Unknown;
+                    MLCSceneIndex = SceneIndexByte.Unknown;
                     break;
             }
         }
@@ -267,14 +238,30 @@ namespace YARG.Integration
 
             // force send a blank packet to turn everything off.
 
-            var message = new LightingMessage
-            {
-                HeaderByte1 = 0x59, // Y
-                HeaderByte2 = 0x41, // A
-                HeaderByte3 = 0x52, // R
-                HeaderByte4 = 0x47, // G
-                //everything else is 0
-            };
+            message.Header = 0x59415247; // Y A R G
+            message.DatagramVersion = 0;
+            message.Platform = 0;
+            message.CurrentScene = 0;
+            message.Paused = false;
+            message.LargeVenue = false;
+            message.BeatsPerMinute = 0;
+            message.CurrentSongSection = 0;
+            message.CurrentGuitarNotes = 0;
+            message.CurrentBassNotes = 0;
+            message.CurrentDrumNotes = 0;
+            message.CurrentKeysNotes = 0;
+            message.CurrentVocalNote = 0;
+            message.CurrentHarmony0Note = 0;
+            message.CurrentHarmony1Note = 0;
+            message.CurrentHarmony2Note = 0;
+            message.LightingCue = 0;
+            message.PostProcessing = 0;
+            message.FogState = false;
+            message.StrobeState = 0;
+            message.Performer = 0;
+            message.Beat = 0;
+            message.Keyframe = 0;
+            message.BonusEffect = false;
 
             SerializeAndSend(message);
 
@@ -283,16 +270,41 @@ namespace YARG.Integration
 
         private static void SerializeAndSend(LightingMessage message)
         {
+            if (!SettingsManager.Settings.EnableYALCYDatastream.Value) return;
+
             try
             {
-                // serialize
-                byte[] data;
-                using (var ms = new MemoryStream())
-                {
-                    var formatter = new BinaryFormatter();
-                    formatter.Serialize(ms, message);
-                    data = ms.ToArray();
-                }
+                // Reset the MemoryStream
+                ms.SetLength(0);
+
+                writer.Write(message.Header);
+                writer.Write(message.DatagramVersion);
+                writer.Write((byte) message.Platform);
+                writer.Write((byte) message.CurrentScene);
+                writer.Write(message.Paused);
+                writer.Write(message.LargeVenue);
+
+                writer.Write(message.BeatsPerMinute);
+                writer.Write((byte) message.CurrentSongSection);
+                writer.Write((byte) message.CurrentGuitarNotes); // while Write can do an int, the instruments
+                writer.Write((byte) message.CurrentBassNotes);   // are only 5 to 8 bits, so might as well save space.
+                writer.Write((byte) message.CurrentDrumNotes);
+                writer.Write((byte) message.CurrentKeysNotes);
+                writer.Write(message.CurrentVocalNote);
+                writer.Write(message.CurrentHarmony0Note);
+                writer.Write(message.CurrentHarmony1Note);
+                writer.Write(message.CurrentHarmony2Note);
+
+                writer.Write((byte) message.LightingCue);
+                writer.Write((byte) message.PostProcessing);
+                writer.Write(message.FogState);
+                writer.Write((byte) message.StrobeState);
+                writer.Write(message.Performer);
+                writer.Write((byte) message.Beat);
+                writer.Write((byte) message.Keyframe);
+                writer.Write(message.BonusEffect);
+
+                byte[] data = ms.ToArray();
 
                 _sendClient.Send(data, data.Length, MLCudpIP, MLCudpPort);
             }
