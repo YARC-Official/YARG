@@ -117,12 +117,15 @@ namespace YARG.Audio.BASS
         protected override void SetVolume_Internal(double volume)
         {
             _volume = volume;
-            if (!Bass.ChannelSetAttribute(_streamHandles.Stream, ChannelAttribute.Volume, volume))
+
+            // Using ChannelSlideAttribute with a duration of 0 here instead of ChannelSetAttribute
+            // This will cancel any slides in progress that were started SetReverb_Internal
+            if (!Bass.ChannelSlideAttribute(_streamHandles.Stream, ChannelAttribute.Volume, (float) volume, 0))
                 YargLogger.LogFormatError("Failed to set stream volume: {0}!", Bass.LastError);
 
-            double reverbVolume = _isReverbing ? volume * BassHelpers.REVERB_VOLUME_MULTIPLIER : 0;
-
-            if (!Bass.ChannelSetAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, reverbVolume))
+            float reverbVolume = _isReverbing ? (float) volume * BassHelpers.REVERB_VOLUME_MULTIPLIER : 0;
+            
+            if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, reverbVolume, 0))
                 YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
         }
 
