@@ -11,16 +11,22 @@ namespace YARG.Integration
 {
     public class MasterLightingGameplayMonitor : GameplayBehaviour
     {
-        private struct VocalNoteEvent
+        private readonly struct VocalNoteEvent
         {
-            public float Pitch;
-            public double StartTime;
-            public double EndTime;
-            public bool IsActive;
+            public readonly float Pitch { get; }
+            public readonly double StartTime { get; }
+            public readonly double EndTime { get; }
+
+            public VocalNoteEvent(float pitch, double startTime, double endTime, bool isActive = false)
+            {
+                Pitch = pitch;
+                StartTime = startTime;
+                EndTime = endTime;
+            }
         }
 
-        public static VenueTrack Venue { get; set; }
-        public static int LightingIndex { get; set; }
+        public static VenueTrack Venue { get; private set; }
+        public static int LightingIndex { get; private set; }
 
         private SyncTrack _sync;
 
@@ -56,7 +62,7 @@ namespace YARG.Integration
         protected override void OnChartLoaded(SongChart chart)
         {
             MasterLightingController.MLCFogState = false;
-            MasterLightingController.MLCStrobeState = (byte) StageKitStrobeSpeed.Off;
+            MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Off;
             MasterLightingController.Initializer(SceneManager.GetActiveScene());
 
             // This should be read from the venue itself eventually, but for now, we'll just randomize it.
@@ -163,7 +169,7 @@ namespace YARG.Integration
             return fretsPressed; // Return notes for sustain
         }
 
-        private int VocalEventChecker(List<VocalNoteEvent> list, ref int listIndex)
+        private float VocalEventChecker(List<VocalNoteEvent> list, ref int listIndex)
         {
             if (listIndex < list.Count && list[listIndex].EndTime <= GameManager.SongTime)
             {
@@ -173,53 +179,48 @@ namespace YARG.Integration
 
             if (listIndex < list.Count && list[listIndex].StartTime <= GameManager.SongTime)
             {
-                return (int) list[listIndex].Pitch;
+                return list[listIndex].Pitch; // new note starting
             }
 
-            return -1;
+            return -1; // don't change the current note
         }
 
         private void Update()
         {
+            // Lets get the current state of the game
+
+            // Pause state
             MasterLightingController.MLCPaused = GameManager.Paused;
 
-            // Can't ref the CurrentXNotes properties.
             // Instrument events
-            var DrumsNotes = DrumsEventChecker(_drums, ref _drumIndex);
-            MasterLightingController.MLCCurrentDrumNotes = (byte)DrumsNotes;
-
-            var GuitarNotes = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
-            MasterLightingController.MLCCurrentGuitarNotes = (byte)GuitarNotes;
-
-            var BassNotes = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
-            MasterLightingController.MLCCurrentBassNotes = (byte)BassNotes;
-
-            var KeysNotes = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
-            MasterLightingController.MLCCurrentKeysNotes = (byte)KeysNotes;
+            MasterLightingController.MLCCurrentDrumNotes = DrumsEventChecker(_drums, ref _drumIndex);
+            MasterLightingController.MLCCurrentGuitarNotes = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
+            MasterLightingController.MLCCurrentBassNotes = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
+            MasterLightingController.MLCCurrentKeysNotes = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
 
             // Vocal events
-            var VocalNote = VocalEventChecker(_vocalsNotes, ref _vocalsIndex);
-            if (VocalNote != -1)
+            var vocalNote = VocalEventChecker(_vocalsNotes, ref _vocalsIndex);
+            if (vocalNote != -1)
             {
-                MasterLightingController.MLCCurrentVocalNote = (byte)VocalNote;
+                MasterLightingController.MLCCurrentVocalNote = vocalNote;
             }
 
-            var Harmony0Note = VocalEventChecker(_harmony0Notes, ref _harmony0Index);
-            if (Harmony0Note != -1)
+            var harmony0Note = VocalEventChecker(_harmony0Notes, ref _harmony0Index);
+            if (harmony0Note != -1)
             {
-                MasterLightingController.MLCCurrentHarmony0Note = (byte)Harmony0Note;
+                MasterLightingController.MLCCurrentHarmony0Note = harmony0Note;
             }
 
-            var Harmony1Note = VocalEventChecker(_harmony1Notes, ref _harmony1Index);
-            if (Harmony1Note != -1)
+            var harmony1Note = VocalEventChecker(_harmony1Notes, ref _harmony1Index);
+            if (harmony1Note != -1)
             {
-                MasterLightingController.MLCCurrentHarmony1Note = (byte)Harmony1Note;
+                MasterLightingController.MLCCurrentHarmony1Note = harmony1Note;
             }
 
-            var Harmony2Note = VocalEventChecker(_harmony2Notes, ref _harmony2Index);
-            if (Harmony2Note != -1)
+            var harmony2Note = VocalEventChecker(_harmony2Notes, ref _harmony2Index);
+            if (harmony2Note != -1)
             {
-                MasterLightingController.MLCCurrentHarmony2Note = (byte)Harmony2Note;
+                MasterLightingController.MLCCurrentHarmony2Note = harmony2Note;
             }
 
             //Camera Cut events
@@ -232,21 +233,14 @@ namespace YARG.Integration
             while (_postProcessingIndex < Venue.PostProcessing.Count &&
                 Venue.PostProcessing[_postProcessingIndex].Time <= GameManager.SongTime)
             {
-                MasterLightingController.MLCPostProcessing = (byte) Venue.PostProcessing[_postProcessingIndex].Type;
+                MasterLightingController.MLCPostProcessing = Venue.PostProcessing[_postProcessingIndex].Type;
                 _postProcessingIndex++;
             }
 
             // Beatline events
             while (_syncIndex < _sync.Beatlines.Count && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
             {
-                MasterLightingController.MLCCurrentBeat = _sync.Beatlines[_syncIndex].Type switch
-                {
-                    BeatlineType.Measure => 1,
-                    BeatlineType.Strong  => 2,
-                    BeatlineType.Weak    => 3,
-                    _                    => 0,
-                };
-
+                MasterLightingController.MLCCurrentBeat = _sync.Beatlines[_syncIndex].Type;
                 _syncIndex++;
             }
 
@@ -262,23 +256,23 @@ namespace YARG.Integration
                 switch (Venue.Lighting[LightingIndex].Type)
                 {
                     case LightingType.Strobe_Off:
-                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Off;
+                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Off;
                         break;
 
                     case LightingType.Strobe_Fast:
-                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Fast;
+                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Fast;
                         break;
 
                     case LightingType.Strobe_Medium:
-                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Medium;
+                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Medium;
                         break;
 
                     case LightingType.Strobe_Slow:
-                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Slow;
+                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Slow;
                         break;
 
                     case LightingType.Strobe_Fastest:
-                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Fastest;
+                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Fastest;
                         break;
 
                     default:
@@ -286,7 +280,7 @@ namespace YARG.Integration
                         // But the Strobe_Off event is almost never used, relying instead on the cue change to turn it off.
                         // So this technically should be in the stage kit lighting controller code but I don't want the
                         // stage kit reaching into this main lighting controller.So we'll just turn it off here.
-                        MasterLightingController.MLCStrobeState = (byte)StageKitStrobeSpeed.Off;
+                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Off;
                         MasterLightingController.CurrentLightingCue = Venue.Lighting[LightingIndex];
                         break;
                 }
@@ -322,21 +316,12 @@ namespace YARG.Integration
             {
                 foreach (var childNote in phrase.PhraseParentNote.ChildNotes)
                 {
-                    allNoteEvents.Add(new VocalNoteEvent
-                    {
-                        Pitch = (int) childNote.Pitch,
-                        StartTime = childNote.Time,
-                        EndTime = childNote.TimeEnd,
-                    });
+                    allNoteEvents.Add(new VocalNoteEvent(childNote.Pitch, childNote.Time, childNote.TimeEnd));
 
                     foreach (var grandChildNote in childNote.ChildNotes)
                     {
-                        allNoteEvents.Add(new VocalNoteEvent
-                        {
-                            Pitch = (int) grandChildNote.Pitch,
-                            StartTime = grandChildNote.Time,
-                            EndTime = grandChildNote.TimeEnd,
-                        });
+                        allNoteEvents.Add(new VocalNoteEvent(grandChildNote.Pitch, grandChildNote.Time,
+                            grandChildNote.TimeEnd));
                     }
                 }
             }
