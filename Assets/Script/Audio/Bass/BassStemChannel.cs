@@ -35,23 +35,57 @@ namespace YARG.Audio.BASS
 
         protected override void SetWhammyPitch_Internal(float percent)
         {
-            if (_streamHandles.PitchFX == 0 || _reverbHandles.PitchFX == 0)
-                return;
+            // If pitch effect hasn't been added yet, add it.
+            if (_streamHandles.PitchFX == 0)
+            {
+                _streamHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_streamHandles.Stream, _pitchParams);
+            }
+            if (_reverbHandles.PitchFX == 0)
+            {
+                _reverbHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_reverbHandles.Stream, _pitchParams);
+            }
 
-            percent = Mathf.Clamp(percent, 0f, 1f);
-
+            // Calculate shift
             float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
             _pitchParams.fPitchShift = shift;
 
-            if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
+            // If we have pitch effect, pitch
+            if (_streamHandles.PitchFX != 0)
             {
-                YargLogger.LogFormatError("Failed to set params (normal fx): {0}", Bass.LastError);
+                if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
+                {
+                    YargLogger.LogFormatError("Failed to set pitch on stream: {0}", Bass.LastError);
+                }
             }
+            if (_reverbHandles.PitchFX != 0)
+            {
+                if (!BassHelpers.FXSetParameters(_reverbHandles.PitchFX, _pitchParams))
+                {
+                    YargLogger.LogFormatError("Failed to set pitch on reverb: {0}", Bass.LastError);
+                }
+            }
+            /*
+            else
+            {
+                // If pitch is effect running we could remove it.
+                // This would help with delay but there's a skip when adding or removing.
+                // Probably better to do this after at zero whammy rest for a period of time.
 
-            if (!BassHelpers.FXSetParameters(_reverbHandles.PitchFX, _pitchParams))
-            {
-                YargLogger.LogFormatError("Failed to set params (reverb fx): {0}", Bass.LastError);
+                if (_streamHandles.PitchFX != 0)
+                {
+                    if (!Bass.ChannelRemoveFX(_streamHandles.Stream, _streamHandles.PitchFX))
+                    {
+                        YargLogger.LogFormatError("Failed to remove pitch effect: {0}!", Bass.LastError);
+                    }
+                    if (!Bass.ChannelRemoveFX(_reverbHandles.Stream, _streamHandles.PitchFX))
+                    {
+                        YargLogger.LogFormatError("Failed to remove pitch effect: {0}!", Bass.LastError);
+                    }
+                    _streamHandles.PitchFX = 0;
+                    _reverbHandles.PitchFX = 0;
+                }
             }
+            */
         }
 
         protected override void SetPosition_Internal(double position)
