@@ -195,7 +195,9 @@ namespace YARG.Settings
             new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
-                // Add experimental settings here
+	            nameof(Settings.UseWhammyFx),
+	            nameof(Settings.WhammyPitchShiftAmount),
+	            // nameof(Settings.WhammyOversampleFactor),
             }
         };
 

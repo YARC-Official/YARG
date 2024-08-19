@@ -184,11 +184,11 @@ namespace YARG.Gameplay
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
 
-            // Show debug info
+            // Debug info
+            InitializeDebugGUI();
 #if UNITY_EDITOR
-            _isShowDebugText = true;
+            SetDebugEnabled(true);
 #endif
-            _debugText.gameObject.SetActive(_isShowDebugText);
 
             // Initialize/destroy practice mode
             if (IsPractice)
