@@ -42,11 +42,18 @@ namespace YARG.Gameplay.Player
         public float SpawnTimeOffset => SPAWN_TIME_OFFSET / TrackSpeed;
 
         private const float TRACK_TOP = 0.90f;
+        // Original
         private const float TRACK_TOP_HARMONY = 0.53f;
+        // Possible fix
+        // private const float TRACK_TOP_HARMONY = 0.64f;
 
+        // Original
         private const float TRACK_BOTTOM = -0.53f;
+        // Possible fix
+        //private const float TRACK_BOTTOM = -0.63f;
 
         private const float NOTE_WIDTH_MULTIPLIER = 1.5f;
+        private const float RANGE_PADDING = NOTE_WIDTH_MULTIPLIER / 2;
 
         private const float MINIMUM_SEMITONE_RANGE = 20;
 
@@ -65,7 +72,9 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private Material _threeLaneHarmonyTrackMaterial;
         [SerializeField]
-        private MeshRenderer _guidelineRenderer;
+        private MeshRenderer _soloGuidelineRenderer;
+        [SerializeField]
+        private MeshRenderer _harmonyGuidelineRenderer;
 
         [Space]
         [SerializeField]
@@ -184,6 +193,9 @@ namespace YARG.Gameplay.Player
                 _soloStarpowerOverlay.gameObject.SetActive(false);
                 _harmonyStarpowerOverlay.gameObject.SetActive(true);
                 _starpowerMaterial = _harmonyStarpowerOverlay.material;
+
+                _soloGuidelineRenderer.gameObject.SetActive(false);
+                _harmonyGuidelineRenderer.gameObject.SetActive(true);
             }
             else
             {
@@ -191,6 +203,9 @@ namespace YARG.Gameplay.Player
                 _harmonyStarpowerOverlay.gameObject.SetActive(false);
                 _soloStarpowerOverlay.gameObject.SetActive(true);
                 _starpowerMaterial = _soloStarpowerOverlay.material;
+
+                _harmonyGuidelineRenderer.gameObject.SetActive(false);
+                _soloGuidelineRenderer.gameObject.SetActive(true);
             }
 
             // this should never happen, yell in the logs if it does
@@ -323,19 +338,23 @@ namespace YARG.Gameplay.Player
 
         private void UpdateHighwayGuidelines()
         {
-            const int DEFAULT_GUIDELINE_SCALE = 24;
+            const int DEFAULT_GUIDELINE_SCALE = 24;     // The semi-tone range of the guideline texture
+
             var scale = (_viewRange.Max - _viewRange.Min) / DEFAULT_GUIDELINE_SCALE;
-            var offset = (_viewRange.Min % DEFAULT_GUIDELINE_SCALE) / DEFAULT_GUIDELINE_SCALE;            
-            _guidelineRenderer.material.mainTextureOffset = new Vector2(1, offset);
-            _guidelineRenderer.material.mainTextureScale = new Vector2(1, scale);
+            var offset = (_viewRange.Min % DEFAULT_GUIDELINE_SCALE) / DEFAULT_GUIDELINE_SCALE;
+            _soloGuidelineRenderer.material.mainTextureOffset = new Vector2(1, offset);
+            _soloGuidelineRenderer.material.mainTextureScale = new Vector2(1, scale);
+            _harmonyGuidelineRenderer.material.mainTextureOffset = new Vector2(1, offset);
+            _harmonyGuidelineRenderer.material.mainTextureScale = new Vector2(1, scale);
+            // Remove before submitting PR.
             Debug.Log($"Range Min: {_viewRange.Min}, Max: {_viewRange.Max}, Offset: {offset}, Scale: {scale}");
         }
 
         private void ChangeRange(VocalsRangeShift range)
         {
             // Pad out range based on note width
-            float minPitch = range.MinimumPitch - NOTE_WIDTH_MULTIPLIER / 2;
-            float maxPitch = range.MaximumPitch + NOTE_WIDTH_MULTIPLIER / 2;
+            float minPitch = range.MinimumPitch - RANGE_PADDING;
+            float maxPitch = range.MaximumPitch + RANGE_PADDING;
 
             // Ensure range is at least a minimum size
             float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
