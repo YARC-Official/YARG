@@ -41,19 +41,19 @@ namespace YARG.Gameplay.Player
 
         public float SpawnTimeOffset => SPAWN_TIME_OFFSET / TrackSpeed;
 
+        // The top edge of the vocal highway track when playing without harmonies (excluding the lyric track)
         private const float TRACK_TOP = 0.90f;
-        // Original
-        private const float TRACK_TOP_HARMONY = 0.53f;
-        // Possible fix
-        // private const float TRACK_TOP_HARMONY = 0.64f;
 
-        // Original
-        private const float TRACK_BOTTOM = -0.53f;
-        // Possible fix
-        //private const float TRACK_BOTTOM = -0.63f;
+        // The top edge of the vocal highway track when harmonies are enabled (excluding the lyric tracks)
+        private const float TRACK_TOP_HARMONY = 0.64f;
+
+        // The bottom edge of the vocal highway track (excluding the lyric track)
+        private const float TRACK_BOTTOM = -0.63f;
+
+        // The amount of additional padding to apply to the visible semi-tone range, expressed as a percentage.
+        private const float RANGE_PADDING_PERCENT = 0.1f;
 
         private const float NOTE_WIDTH_MULTIPLIER = 1.5f;
-        private const float RANGE_PADDING = NOTE_WIDTH_MULTIPLIER / 2;
 
         private const float MINIMUM_SEMITONE_RANGE = 20;
 
@@ -105,7 +105,6 @@ namespace YARG.Gameplay.Player
         private Pool _phraseLinePool;
 
         private readonly List<VocalsPlayer> _vocalPlayers = new();
-        private bool _currentStarpowerState;
 
         private float _currentTrackTop = TRACK_TOP;
         private Material _starpowerMaterial;
@@ -353,13 +352,18 @@ namespace YARG.Gameplay.Player
         private void ChangeRange(VocalsRangeShift range)
         {
             // Pad out range based on note width
-            float minPitch = range.MinimumPitch - RANGE_PADDING;
-            float maxPitch = range.MaximumPitch + RANGE_PADDING;
+            float minPitch = range.MinimumPitch;
+            float maxPitch = range.MaximumPitch;
 
             // Ensure range is at least a minimum size
             float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
             float rangeMin = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), minPitch);
             float rangeMax = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), maxPitch);
+
+            // Apply padding to the range
+            var rangePadding = (rangeMax - rangeMin) * RANGE_PADDING_PERCENT;
+            rangeMin -= rangePadding;
+            rangeMax += rangePadding;
 
             // Start the change!
             _previousRange = _viewRange;
