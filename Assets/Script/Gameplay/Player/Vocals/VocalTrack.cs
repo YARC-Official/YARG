@@ -349,14 +349,11 @@ namespace YARG.Gameplay.Player
 
         private void ChangeRange(VocalsRangeShift range)
         {
-            // Pad out range based on note width
-            float minPitch = range.MinimumPitch;
-            float maxPitch = range.MaximumPitch;
 
             // Ensure range is at least a minimum size
             float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
-            float rangeMin = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), minPitch);
-            float rangeMax = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), maxPitch);
+            float rangeMin = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), range.MinimumPitch);
+            float rangeMax = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), range.MaximumPitch);
 
             // Apply padding to the range
             var rangePadding = (rangeMax - rangeMin) * RANGE_PADDING_PERCENT;
