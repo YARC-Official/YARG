@@ -42,7 +42,7 @@ namespace YARG.Gameplay.Player
         public float SpawnTimeOffset => SPAWN_TIME_OFFSET / TrackSpeed;
 
         // The top edge of the vocal highway track when playing without harmonies (excluding the lyric track)
-        private const float TRACK_TOP = 0.90f;
+        private const float TRACK_TOP = 1.25f;
 
         // The top edge of the vocal highway track when harmonies are enabled (excluding the lyric tracks)
         private const float TRACK_TOP_HARMONY = 0.64f;
