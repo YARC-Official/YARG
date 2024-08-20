@@ -345,8 +345,6 @@ namespace YARG.Gameplay.Player
             _soloGuidelineRenderer.material.mainTextureScale = new Vector2(1, scale);
             _harmonyGuidelineRenderer.material.mainTextureOffset = new Vector2(1, offset);
             _harmonyGuidelineRenderer.material.mainTextureScale = new Vector2(1, scale);
-            // Remove before submitting PR.
-            Debug.Log($"Range Min: {_viewRange.Min}, Max: {_viewRange.Max}, Offset: {offset}, Scale: {scale}");
         }
 
         private void ChangeRange(VocalsRangeShift range)
