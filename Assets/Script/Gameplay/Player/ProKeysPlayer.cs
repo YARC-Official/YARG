@@ -323,6 +323,13 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected override void ResetVisuals()
+        {
+            base.ResetVisuals();
+
+            _chordBarPool.ReturnAllObjects();
+        }
+
         private void UpdatePhrases(double songTime)
         {
             while (_rangeShiftIndex < _rangeShifts.Count && _rangeShifts[_rangeShiftIndex].Time <= songTime)
