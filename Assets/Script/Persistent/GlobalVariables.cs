@@ -62,7 +62,10 @@ namespace YARG
                 YargLogger.LogInfo("Playing in offline mode");
             }
 
-            PathHelper.SetSetlistPathFromDownloadLocation(args.DownloadLocation);
+            if (!string.IsNullOrEmpty(args.DownloadLocation))
+            {
+                PathHelper.SetSetlistPathFromDownloadLocation(args.DownloadLocation);
+            }
 
             // Initialize important classes
 
