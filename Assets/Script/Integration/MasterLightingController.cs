@@ -67,7 +67,11 @@ namespace YARG.Integration
         //Has to be at least 44 because of DMX, 88 should be enough... for now...
         private const float TARGET_FPS = 88f;
         private const float TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
-        private static Timer _timer;
+        private Timer _timer;
+        private LightingMessage _message = new LightingMessage();
+        private static LightingEvent _currentLightingCue;
+        private static MemoryStream _ms = new MemoryStream();
+        private static BinaryWriter _writer = new BinaryWriter(_ms);
 
         // NYI - waiting for parser rewrite.
         // public static PerformerEvent CurrentPerformerEvent;
@@ -92,15 +96,8 @@ namespace YARG.Integration
         public static LightingType MLCKeyframe;
         public static LightingType MLCCurrentLightingCue;
         public static PostProcessingType MLCPostProcessing;
-
         public static ushort MLCudpPort;
         public static string MLCudpIP;
-
-        private static LightingEvent _currentLightingCue;
-
-        public static LightingMessage message = new LightingMessage();
-        public static MemoryStream ms = new MemoryStream();
-        public static BinaryWriter writer = new BinaryWriter(ms);
 
         public static LightingEvent CurrentLightingCue
         {
@@ -145,7 +142,7 @@ namespace YARG.Integration
 #endif
 
             _timer = new Timer(TIME_BETWEEN_CALLS * 1000);
-            _timer.Elapsed += (sender, e) => Sender(message);
+            _timer.Elapsed += (sender, e) => Sender(_message);
             _timer.Start();
         }
 
@@ -238,32 +235,13 @@ namespace YARG.Integration
 
             // force send a blank packet to turn everything off.
 
-            message.Header = 0x59415247; // Y A R G
-            message.DatagramVersion = 0;
-            message.Platform = 0;
-            message.CurrentScene = 0;
-            message.Paused = false;
-            message.LargeVenue = false;
-            message.BeatsPerMinute = 0;
-            message.CurrentSongSection = 0;
-            message.CurrentGuitarNotes = 0;
-            message.CurrentBassNotes = 0;
-            message.CurrentDrumNotes = 0;
-            message.CurrentKeysNotes = 0;
-            message.CurrentVocalNote = 0;
-            message.CurrentHarmony0Note = 0;
-            message.CurrentHarmony1Note = 0;
-            message.CurrentHarmony2Note = 0;
-            message.LightingCue = 0;
-            message.PostProcessing = 0;
-            message.FogState = false;
-            message.StrobeState = 0;
-            message.Performer = 0;
-            message.Beat = 0;
-            message.Keyframe = 0;
-            message.BonusEffect = false;
+            _message = new LightingMessage
+            {
+                Header = 0x59415247, // Y A R G
+                // Everything else is 0 or off
+            };
 
-            SerializeAndSend(message);
+            SerializeAndSend(_message);
 
             _sendClient.Dispose();
         }
@@ -274,39 +252,38 @@ namespace YARG.Integration
 
             try
             {
-                // Reset the MemoryStream
-                ms.SetLength(0);
+                // Reset the MemoryStream's position to the beginning
+                _ms.Position = 0;
 
-                writer.Write(message.Header);
-                writer.Write(message.DatagramVersion);
-                writer.Write((byte) message.Platform);
-                writer.Write((byte) message.CurrentScene);
-                writer.Write(message.Paused);
-                writer.Write(message.LargeVenue);
+                _writer.Write(message.Header);
+                _writer.Write(message.DatagramVersion);
+                _writer.Write((byte) message.Platform);
+                _writer.Write((byte) message.CurrentScene);
+                _writer.Write(message.Paused);
+                _writer.Write(message.LargeVenue);
 
-                writer.Write(message.BeatsPerMinute);
-                writer.Write((byte) message.CurrentSongSection);
-                writer.Write((byte) message.CurrentGuitarNotes); // while Write can do an int, the instruments
-                writer.Write((byte) message.CurrentBassNotes);   // are only 5 to 8 bits, so might as well save space.
-                writer.Write((byte) message.CurrentDrumNotes);
-                writer.Write((byte) message.CurrentKeysNotes);
-                writer.Write(message.CurrentVocalNote);
-                writer.Write(message.CurrentHarmony0Note);
-                writer.Write(message.CurrentHarmony1Note);
-                writer.Write(message.CurrentHarmony2Note);
+                _writer.Write(message.BeatsPerMinute);
+                _writer.Write((byte) message.CurrentSongSection);
+                _writer.Write((byte) message.CurrentGuitarNotes); // While .Write can do an int, the instruments
+                _writer.Write((byte) message.CurrentBassNotes);   // are only 5 to 8 bits, so might as well save space.
+                _writer.Write((byte) message.CurrentDrumNotes);
+                _writer.Write((byte) message.CurrentKeysNotes);
+                _writer.Write(message.CurrentVocalNote);
+                _writer.Write(message.CurrentHarmony0Note);
+                _writer.Write(message.CurrentHarmony1Note);
+                _writer.Write(message.CurrentHarmony2Note);
 
-                writer.Write((byte) message.LightingCue);
-                writer.Write((byte) message.PostProcessing);
-                writer.Write(message.FogState);
-                writer.Write((byte) message.StrobeState);
-                writer.Write(message.Performer);
-                writer.Write((byte) message.Beat);
-                writer.Write((byte) message.Keyframe);
-                writer.Write(message.BonusEffect);
+                _writer.Write((byte) message.LightingCue);
+                _writer.Write((byte) message.PostProcessing);
+                _writer.Write(message.FogState);
+                _writer.Write((byte) message.StrobeState);
+                _writer.Write(message.Performer);
+                _writer.Write((byte) message.Beat);
+                _writer.Write((byte) message.Keyframe);
+                _writer.Write(message.BonusEffect);
 
-                byte[] data = ms.ToArray();
-
-                _sendClient.Send(data, data.Length, MLCudpIP, MLCudpPort);
+                // Get the buffer and send the data with the correct length
+                _sendClient.Send(_ms.GetBuffer(), (int) _ms.Position, MLCudpIP, MLCudpPort);
             }
             catch (Exception ex)
             {

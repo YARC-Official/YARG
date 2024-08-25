@@ -13,9 +13,9 @@ namespace YARG.Integration
     {
         private readonly struct VocalNoteEvent
         {
-            public readonly float Pitch { get; }
-            public readonly double StartTime { get; }
-            public readonly double EndTime { get; }
+            public float Pitch { get; }
+            public double StartTime { get; }
+            public double EndTime { get; }
 
             public VocalNoteEvent(float pitch, double startTime, double endTime, bool isActive = false)
             {
