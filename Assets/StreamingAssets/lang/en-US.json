@@ -732,6 +732,10 @@
                     "Reduced": "Reduced"
                 }
             },
+			"SongBackgroundOpacity": {
+				"Name": "Song Background Opacity",
+				"Description": "Adjusts the opacity of background during gameplay."
+			},
             "UseChipmunkSpeed": {
                 "Name": "Chipmunk Speed",
                 "Description": "Disables pitch correction when playing songs at a fast or slow speed which may lead to some... interesting results."

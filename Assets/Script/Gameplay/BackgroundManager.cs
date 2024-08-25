@@ -17,10 +17,15 @@ namespace YARG.Gameplay
     public class BackgroundManager : GameplayBehaviour, IDisposable
     {
         private string VIDEO_PATH;
+
         [SerializeField]
         private VideoPlayer _videoPlayer;
+
         [SerializeField]
         private RawImage _backgroundImage;
+
+        [SerializeField]
+        private Image _backgroundDimmer;
 
         private BackgroundType _type;
         private VenueSource _source;
@@ -47,6 +52,10 @@ namespace YARG.Gameplay
             {
                 return;
             }
+
+            var colorDim = _backgroundDimmer.color.WithAlpha(1 - SettingsManager.Settings.SongBackgroundOpacity.Value);
+
+            _backgroundDimmer.color = colorDim;
 
             _type = result.Type;
             switch (_type)

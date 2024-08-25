@@ -119,6 +119,7 @@ namespace YARG.Settings
                 nameof(Settings.LowQuality),
                 nameof(Settings.DisableBloom),
                 nameof(Settings.StarPowerHighwayFx),
+                nameof(Settings.SongBackgroundOpacity),
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.ShowHitWindow),
