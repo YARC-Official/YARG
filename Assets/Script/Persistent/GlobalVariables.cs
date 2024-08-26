@@ -10,6 +10,7 @@ using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Core.Audio;
 using YARG.Core.Song;
+using YARG.Helpers;
 using YARG.Input;
 using YARG.Integration;
 using YARG.Localization;
@@ -36,11 +37,6 @@ namespace YARG
     [DefaultExecutionOrder(-5000)]
     public class GlobalVariables : MonoSingleton<GlobalVariables>
     {
-        // Yes, these should probably be prefixed with "--", however, this is based upon
-        // Unity's existing command line arguments to make them consistent in style.
-        private const string OFFLINE_ARG = "-offline";
-        private const string LANGUAGE_ARG = "-lang";
-
         public List<YargPlayer> Players { get; private set; }
 
         public static bool OfflineMode { get; private set; }
@@ -49,42 +45,35 @@ namespace YARG
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
-        public string CurrentVersion { get; private set; } = "v0.12.5";
+        public string CurrentVersion { get; private set; } = "v0.12.6";
 
         protected override void SingletonAwake()
         {
             CurrentVersion = LoadVersion();
             YargLogger.LogFormatInfo("YARG {0}", CurrentVersion);
 
-            // Get command line args
-            var argsArray = Environment.GetCommandLineArgs();
-            var args = new List<string>();
-            if (argsArray.Length >= 1)
-            {
-                args = argsArray[1..].ToList();
-            }
+            // Command line arguments
 
-            // Get the language specified in the launch options, otherwise, use default
-            string cultureCode = null;
-            var languageArgIndex = args.IndexOf(LANGUAGE_ARG);
-            if (languageArgIndex != -1 && languageArgIndex + 1 < args.Count)
-            {
-                cultureCode = args[languageArgIndex + 1];
-            }
+            var args = CommandLineArgs.Parse(Environment.GetCommandLineArgs());
 
-            // Check for offline mode
-            OfflineMode = args.Contains(OFFLINE_ARG);
+            OfflineMode = args.Offline;
             if (OfflineMode)
             {
                 YargLogger.LogInfo("Playing in offline mode");
             }
 
+            if (!string.IsNullOrEmpty(args.DownloadLocation))
+            {
+                PathHelper.SetSetlistPathFromDownloadLocation(args.DownloadLocation);
+            }
+
             // Initialize important classes
+
             ReplayContainer.Init();
             ScoreContainer.Init();
             PlaylistContainer.Initialize();
             CustomContentManager.Initialize();
-            LocalizationManager.Initialize(cultureCode);
+            LocalizationManager.Initialize(args.Language);
 
             int profileCount = PlayerContainer.LoadProfiles();
             YargLogger.LogFormatInfo("Loaded {0} profiles", profileCount);
