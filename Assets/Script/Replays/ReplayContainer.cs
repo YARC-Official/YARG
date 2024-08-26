@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using YARG.Core;
+using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Vocals;
@@ -197,39 +199,22 @@ namespace YARG.Replays
 
         private static ReplayFrame CreateReplayFrame(int id, BasePlayer player)
         {
-            // Create the replay frame with the stats
-            var frame = player switch
+            BaseEngineParameters engineParams = player switch
             {
-                FiveFretPlayer fiveFretPlayer => new ReplayFrame
-                {
-                    Stats = new GuitarStats(fiveFretPlayer.Engine.EngineStats),
-                    EngineParameters = fiveFretPlayer.EngineParams
-                },
-                DrumsPlayer drumsPlayer => new ReplayFrame
-                {
-                    Stats = new DrumsStats(drumsPlayer.Engine.EngineStats),
-                    EngineParameters = drumsPlayer.EngineParams
-                },
-                VocalsPlayer vocalsPlayer => new ReplayFrame
-                {
-                    Stats = new VocalsStats(vocalsPlayer.Engine.EngineStats),
-                    EngineParameters = vocalsPlayer.EngineParams
-                },
+                FiveFretPlayer fiveFretPlayer => fiveFretPlayer.EngineParams,
+                DrumsPlayer drumsPlayer => drumsPlayer.EngineParams,
+                ProKeysPlayer proKeysPlayer => proKeysPlayer.EngineParams,
+                VocalsPlayer vocalsPlayer => vocalsPlayer.EngineParams,
                 _ => throw new ArgumentOutOfRangeException(player.GetType().ToString(), "Invalid instrument player.")
             };
 
-            // Insert other frame information
-
-            frame!.PlayerInfo = new ReplayPlayerInfo
+            var playerInfo = new ReplayPlayerInfo
             {
                 PlayerId = id,
                 Profile = player.Player.Profile,
             };
 
-            frame.Inputs = player.ReplayInputs.ToArray();
-            frame.InputCount = player.ReplayInputs.Count;
-
-            return frame;
+            return new ReplayFrame(playerInfo, engineParams, player.BaseStats, player.ReplayInputs.ToArray());
         }
 
         private static void DiscoverReplayFiles()
