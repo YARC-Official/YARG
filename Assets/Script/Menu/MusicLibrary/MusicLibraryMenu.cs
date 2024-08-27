@@ -449,7 +449,7 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 if (_searchField.IsUpdatedSearchLonger || _currentSong == null ||
-                    !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory, newPositionStartIndex))
+                    !SetIndexTo(i => i is SongViewType view && view.SongEntry.Location == _currentSong.Location, newPositionStartIndex))
                 {
                     // Note: it may look like this is expensive, but the whole loop should only last for 4-5 iterations
                     var list = ViewList;

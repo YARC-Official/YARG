@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using YARG.Core;
@@ -429,7 +429,7 @@ namespace YARG.Song
                     (strCmp = Song.Album.CompareTo(other.Song.Album)) == 0 &&
                     (strCmp = Song.Charter.CompareTo(other.Song.Charter)) == 0)
                 {
-                    strCmp = Song.Directory.CompareTo(other.Song.Directory);
+                    strCmp = Song.Location.CompareTo(other.Song.Location);
                 }
                 return strCmp;
             }
