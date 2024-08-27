@@ -35,6 +35,10 @@ namespace YARG.Gameplay.Player
                 float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
                 Min = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), minPitch);
                 Max = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), maxPitch);
+
+                var rangePadding = (Max - Min) * RANGE_PADDING_PERCENT;
+                Min -= rangePadding;
+                Max += rangePadding;
             }
         }
 
@@ -48,27 +52,43 @@ namespace YARG.Gameplay.Player
             new(1f, 0.859f, 0f, 1f)
         };
 
-        // Time offset relative to 1.0 note speed
+        /// <summary>
+        /// Time offset relative to 1.0 note speed
+        /// </summary>
         public const float SPAWN_TIME_OFFSET = 25f;
 
         public float SpawnTimeOffset => SPAWN_TIME_OFFSET / TrackSpeed;
 
-        // The top edge of the vocal highway track when playing without harmonies (excluding the lyric track)
+        /// <summary>
+        /// The top edge of the vocal highway track when playing without harmonies (excluding the lyric track)
+        /// </summary>
         private const float TRACK_TOP = 1.25f;
 
-        // The top edge of the vocal highway track when harmonies are enabled (excluding the lyric tracks)
+        /// <summary>
+        /// The top edge of the vocal highway track when harmonies are enabled (excluding the lyric tracks)
+        /// </summary>
         private const float TRACK_TOP_HARMONY = 0.64f;
 
-        // The bottom edge of the vocal highway track (excluding the lyric track)
+        /// <summary>
+        /// The bottom edge of the vocal highway track (excluding the lyric track)
+        /// </summary>
         private const float TRACK_BOTTOM = -0.63f;
 
-        // The amount of additional padding to apply to the visible semi-tone range, expressed as a percentage.
+        /// <summary>
+        /// The amount of additional padding to apply to the visible semi-tone range, expressed as a percentage.
+        /// </summary>
         private const float RANGE_PADDING_PERCENT = 0.1f;
 
         private const float NOTE_WIDTH_MULTIPLIER = 1.5f;
 
+        /// <summary>
+        /// The minimum vocal range that should be displayed on the vocal highway, in semi-tones.
+        /// </summary>
         private const float MINIMUM_SEMITONE_RANGE = 20;
 
+        /// <summary>
+        /// The minimum amount of time a vocal range shift should take, in seconds.
+        /// </summary>
         private const double MINIMUM_SHIFT_TIME = 0.25;
 
         [SerializeField]
@@ -123,6 +143,8 @@ namespace YARG.Gameplay.Player
 
         private VocalsTrack _originalVocalsTrack;
         private VocalsTrack _vocalsTrack;
+
+        private Material _guidelineMaterial;
 
         private bool _isRangeChanging;
         private Range _viewRange;
@@ -207,6 +229,7 @@ namespace YARG.Gameplay.Player
 
                 _soloGuidelineRenderer.gameObject.SetActive(false);
                 _harmonyGuidelineRenderer.gameObject.SetActive(true);
+                _guidelineMaterial = _harmonyGuidelineRenderer.material;
             }
             else
             {
@@ -217,6 +240,7 @@ namespace YARG.Gameplay.Player
 
                 _harmonyGuidelineRenderer.gameObject.SetActive(false);
                 _soloGuidelineRenderer.gameObject.SetActive(true);
+                _guidelineMaterial = _soloGuidelineRenderer.material;
             }
 
             // this should never happen, yell in the logs if it does
@@ -350,15 +374,13 @@ namespace YARG.Gameplay.Player
 
             var scale = (_viewRange.Max - _viewRange.Min) / DEFAULT_GUIDELINE_SCALE;
             var offset = (_viewRange.Min % DEFAULT_GUIDELINE_SCALE) / DEFAULT_GUIDELINE_SCALE;
-            _soloGuidelineRenderer.material.mainTextureOffset = new Vector2(1, offset);
-            _soloGuidelineRenderer.material.mainTextureScale = new Vector2(1, scale);
-            _harmonyGuidelineRenderer.material.mainTextureOffset = new Vector2(1, offset);
-            _harmonyGuidelineRenderer.material.mainTextureScale = new Vector2(1, scale);
+            _guidelineMaterial.mainTextureOffset = new Vector2(1, offset);
+            _guidelineMaterial.mainTextureScale = new Vector2(1, scale);
         }
 
         private void SetRange(VocalsRangeShift range)
         {
-            ApplyPadding(range);
+
             _previousRange = _viewRange;
             _targetRange = new Range(range);
             _viewRange = _targetRange;
@@ -370,20 +392,12 @@ namespace YARG.Gameplay.Player
 
         private void StartRangeChange(VocalsRangeShift range)
         {
-            ApplyPadding(range);
             _previousRange = _viewRange;
             _targetRange = new Range(range);
 
             _changeStartTime = range.Time;
             _changeEndTime = range.Time + Math.Max(MINIMUM_SHIFT_TIME, range.TimeLength);
             _isRangeChanging = true;
-        }
-
-        public void ApplyRangePadding(VocalsRangeShift range)
-        {
-            var rangePadding = (rangeMax - rangeMin) * RANGE_PADDING_PERCENT;
-            rangeMin -= rangePadding;
-            rangeMax += rangePadding;
         }
 
         public float GetPosForTime(double time)
