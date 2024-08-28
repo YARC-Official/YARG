@@ -12,4 +12,6 @@
         "Temp/":true
     },
     "dotnet.defaultSolution": "YARG.sln",
+    "cmake.sourceDirectory": "E:/Programming/Source/Unity/YARG/YARG.Core",
+    "cmake.buildDirectory": "${workspaceFolder}/YARG.Core/build"
 }
