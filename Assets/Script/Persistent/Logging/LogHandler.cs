@@ -8,7 +8,6 @@ using YARG.Logging.Unity;
 
 namespace YARG.Logging
 {
-    [DefaultExecutionOrder(-4000)]
     public static class LogHandler
     {
         private static bool _isInitialized;
@@ -17,8 +16,7 @@ namespace YARG.Logging
 
         private static FileYargLogListener _fileYargLogListener;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
-        private static void SetupLogHandler()
+        public static void Initialize()
         {
             if (_isInitialized)
             {
@@ -47,13 +45,6 @@ namespace YARG.Logging
 
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
 
-#if UNITY_EDITOR
-            AppDomain.CurrentDomain.DomainUnload += ShutdownLogHandler;
-            UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-#else
-            AppDomain.CurrentDomain.ProcessExit += ShutdownLogHandler;
-#endif
-
             YargLogger.LogFormatInfo("System Information:\n" +
                 "CPU: {0} ({1}MHz {2} Cores)\n" +
                 "RAM: {3}MB\n" +
@@ -66,7 +57,7 @@ namespace YARG.Logging
             _isInitialized = true;
         }
 
-        public static void ShutdownLogHandler(object sender, EventArgs e)
+        public static void Uninitialize()
         {
             if (!_isInitialized)
             {
@@ -79,10 +70,6 @@ namespace YARG.Logging
             UnityInternalLogWrapper.RestoreUnityInternals();
 
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
-#if UNITY_EDITOR
-            AppDomain.CurrentDomain.DomainUnload -= ShutdownLogHandler;
-            UnityEditor.EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-#endif
 
             _isInitialized = false;
         }
@@ -109,16 +96,6 @@ namespace YARG.Logging
                 _fileYargLogListener.WriteLogItem(ref output, item);
             }
         }
-
-#if UNITY_EDITOR
-        private static void OnPlayModeStateChanged(UnityEditor.PlayModeStateChange state)
-        {
-            if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
-            {
-                ShutdownLogHandler(null, null);
-            }
-        }
-#endif
 
         private static string GetLogPath()
         {
