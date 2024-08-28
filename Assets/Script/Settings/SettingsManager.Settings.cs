@@ -169,7 +169,7 @@ namespace YARG.Settings
             public ToggleSetting ClapsInStarpower { get; } = new(true);
 
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
-            
+
             public ToggleSetting UseWhammyFx { get; } = new(false, v => GlobalAudioHandler.UseWhammyFx = v);
 
             public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 5, v => GlobalAudioHandler.WhammyPitchShiftAmount = v);
@@ -211,6 +211,8 @@ namespace YARG.Settings
                     StarPowerHighwayFxMode.Reduced,
                     StarPowerHighwayFxMode.Off
                 };
+
+            public SliderSetting SongBackgroundOpacity { get; } = new(1f, 0f, 1f);
 
             public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
