@@ -24,6 +24,18 @@ namespace YARG.Gameplay.Player
                 Min = min;
                 Max = max;
             }
+
+            public Range(VocalsRangeShift range)
+            {
+                // Pad out range based on note width
+                float minPitch = range.MinimumPitch - NOTE_WIDTH_MULTIPLIER / 2;
+                float maxPitch = range.MaximumPitch + NOTE_WIDTH_MULTIPLIER / 2;
+
+                // Ensure range is at least a minimum size
+                float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
+                Min = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), minPitch);
+                Max = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), maxPitch);
+            }
         }
 
         private static readonly int _alphaMultiplier = Shader.PropertyToID("AlphaMultiplier");
@@ -199,10 +211,7 @@ namespace YARG.Gameplay.Player
             }
 
             // Set pitch range
-            ChangeRange(_vocalsTrack.RangeShifts[0]);
-            _viewRange = _targetRange;
-            _previousRange = _targetRange;
-            _changeEndTime = _changeStartTime;
+            SetRange(_vocalsTrack.RangeShifts[0]);
 
             // Hide overlay
             _starpowerMaterial.SetFloat(_alphaMultiplier, 0f);
@@ -259,7 +268,7 @@ namespace YARG.Gameplay.Player
             var ranges = _vocalsTrack.RangeShifts;
             while (_nextRangeIndex < ranges.Count && ranges[_nextRangeIndex].Time < time)
             {
-                ChangeRange(ranges[_nextRangeIndex]);
+                StartRangeChange(ranges[_nextRangeIndex]);
                 _nextRangeIndex++;
             }
 
@@ -317,20 +326,21 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void ChangeRange(VocalsRangeShift range)
+        private void SetRange(VocalsRangeShift range)
         {
-            // Pad out range based on note width
-            float minPitch = range.MinimumPitch - NOTE_WIDTH_MULTIPLIER / 2;
-            float maxPitch = range.MaximumPitch + NOTE_WIDTH_MULTIPLIER / 2;
-
-            // Ensure range is at least a minimum size
-            float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
-            float rangeMin = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), minPitch);
-            float rangeMax = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), maxPitch);
-
-            // Start the change!
             _previousRange = _viewRange;
-            _targetRange = new Range(rangeMin, rangeMax);
+            _targetRange = new Range(range);
+            _viewRange = _targetRange;
+
+            _changeStartTime = range.Time;
+            _changeEndTime = range.Time;
+            _isRangeChanging = false;
+        }
+
+        private void StartRangeChange(VocalsRangeShift range)
+        {
+            _previousRange = _viewRange;
+            _targetRange = new Range(range);
 
             _changeStartTime = range.Time;
             _changeEndTime = range.Time + Math.Max(MINIMUM_SHIFT_TIME, range.TimeLength);
@@ -369,6 +379,12 @@ namespace YARG.Gameplay.Player
             }
             _lyricContainer.ResetVisuals();
             _talkiePool.ReturnAllObjects();
+
+            // Reset pitch range
+            // SetPracticeSection() already takes care of removing irrelevant ranges,
+            // so we can just use the first range here
+            _nextRangeIndex = 1;
+            SetRange(_vocalsTrack.RangeShifts[0]);
         }
 
         public void SetPracticeSection(uint start, uint end)
@@ -378,7 +394,7 @@ namespace YARG.Gameplay.Player
 
             _vocalsTrack = _originalVocalsTrack.Clone();
 
-            // Remove all notes not in the section
+            // Remove all events not in the section
             for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
             {
                 var part = _vocalsTrack.Parts[i];
@@ -388,6 +404,10 @@ namespace YARG.Gameplay.Player
                 _noteTrackers[i] = new PhraseNoteTracker(part, false);
                 _lyricTrackers[i] = new PhraseNoteTracker(part, true);
             }
+
+            // The most recent range shift before the start tick should still be preserved
+            uint rangesStart = _vocalsTrack.RangeShifts.GetPrevious(start).Tick;
+            _vocalsTrack.RangeShifts.RemoveAll(n => n.Tick < rangesStart || n.Tick >= end);
 
             ResetPracticeSection();
         }

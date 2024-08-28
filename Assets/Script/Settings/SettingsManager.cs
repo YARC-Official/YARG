@@ -119,6 +119,7 @@ namespace YARG.Settings
                 nameof(Settings.LowQuality),
                 nameof(Settings.DisableBloom),
                 nameof(Settings.StarPowerHighwayFx),
+                nameof(Settings.SongBackgroundOpacity),
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.ShowHitWindow),
@@ -195,7 +196,9 @@ namespace YARG.Settings
             new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
-                // Add experimental settings here
+	            nameof(Settings.UseWhammyFx),
+	            nameof(Settings.WhammyPitchShiftAmount),
+	            // nameof(Settings.WhammyOversampleFactor),
             }
         };
 

@@ -56,9 +56,6 @@ namespace YARG.Gameplay
         [field: SerializeField]
         public VocalTrack VocalTrack { get; private set; }
 
-        [SerializeField]
-        private TextMeshProUGUI _debugText;
-
         /// <summary>
         /// Equal to either <see cref="PlayerContainer.Players"/> or the players in the replay.
         /// </summary>
@@ -130,7 +127,6 @@ namespace YARG.Gameplay
 
         public IReadOnlyList<BasePlayer> Players => _players;
 
-        private bool _isShowDebugText;
         private bool _isReplaySaved;
 
         private int _originalSleepTimeout;
@@ -212,9 +208,7 @@ namespace YARG.Gameplay
             // Toggle debug text
             if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
             {
-                _isShowDebugText = !_isShowDebugText;
-
-                _debugText.gameObject.SetActive(_isShowDebugText);
+                ToggleDebugEnabled();
             }
 
             // Skip the rest if paused
@@ -251,64 +245,6 @@ namespace YARG.Gameplay
                 {
                     return;
                 }
-            }
-
-            // Debug text
-            // Note: this must come last in the update sequence!
-            // Any updates happening after this will not reflect until the next frame
-            if (_isShowDebugText)
-            {
-                using var text = ZString.CreateStringBuilder(true);
-
-                if (_players[0] is FiveFretPlayer fiveFretPlayer)
-                {
-                    var engine = fiveFretPlayer.Engine;
-                    var stats = fiveFretPlayer.Engine.EngineStats;
-
-                    text.AppendFormat("Note index: {0}\n", engine.NoteIndex);
-                    text.AppendFormat("Buttons: {0}\n", engine.ButtonMask);
-                    text.AppendFormat("Star Power Ticks: {0}\n", stats.StarPowerTickAmount);
-                }
-                else if (_players[0] is DrumsPlayer drumsPlayer)
-                {
-                    var engine = drumsPlayer.Engine;
-
-                    text.AppendFormat("Note index: {0}\n", engine.NoteIndex);
-                }
-
-                text.AppendFormat("Device audio latency: {0}ms\n", GlobalAudioHandler.PlaybackLatency);
-                text.AppendFormat("Song time: {0:0.000000}\n", _songRunner.SongTime);
-                text.AppendFormat("Audio time: {0:0.000000}\n", _songRunner.AudioTime);
-                text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
-                text.AppendFormat("Input time: {0:0.000000}\n", _songRunner.InputTime);
-                text.AppendFormat("Pause time: {0:0.000000}\n", _songRunner.PauseStartTime);
-                text.AppendFormat("Sync difference: {0:0.000000}\n", _songRunner.SyncDelta);
-                text.AppendFormat("Sync start delta: {0:0.000000}\n", _songRunner.SyncStartDelta);
-                text.AppendFormat("Sync worst delta: {0:0.000000}\n", _songRunner.SyncWorstDelta);
-                text.AppendFormat("Speed adjustment: {0:0.00}\n", _songRunner.SyncSpeedAdjustment);
-                text.AppendFormat("Speed multiplier: {0}\n", _songRunner.SyncSpeedMultiplier);
-                text.AppendFormat("Input base: {0:0.000000}\n", _songRunner.InputTimeBase);
-                text.AppendFormat("Input offset: {0:0.000000}\n", _songRunner.InputTimeOffset);
-
-                // Explicit check instead of using ?, as nullable enum types are not specially
-                // formatted by ZString to avoid allocations (while non-nullable enums are)
-                if (MasterLightingController.CurrentLightingCue != null)
-                {
-                    text.AppendFormat("Current venue call: {0:000}/{1:000}: {2}\n",
-                        MasterLightingGameplayMonitor.LightingIndex,
-                        MasterLightingGameplayMonitor.Venue.Lighting.Count,
-                        MasterLightingController.CurrentLightingCue.Type
-                    );
-                }
-                else
-                {
-                    text.AppendFormat("Current venue call: {0:000}/{1:000}: None\n",
-                        MasterLightingGameplayMonitor.LightingIndex,
-                        MasterLightingGameplayMonitor.Venue.Lighting.Count
-                    );
-                }
-
-                _debugText.SetText(text);
             }
         }
 
@@ -369,11 +305,6 @@ namespace YARG.Gameplay
                 }
             }
 
-            if (!IsReplay)
-            {
-                _debugText.gameObject.SetActive(false);
-            }
-
             // Pause the background/venue
             Time.timeScale = 0f;
             BackgroundManager.SetPaused(true);
@@ -411,8 +342,6 @@ namespace YARG.Gameplay
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
             _isReplaySaved = false;
-
-            _debugText.gameObject.SetActive(_isShowDebugText);
 
             foreach (var player in _players)
             {

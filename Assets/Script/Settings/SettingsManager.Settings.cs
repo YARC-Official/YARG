@@ -2,6 +2,7 @@
 using System.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
@@ -169,8 +170,10 @@ namespace YARG.Settings
 
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
 
-            // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);
-            // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
+            public ToggleSetting UseWhammyFx { get; } = new(false, v => GlobalAudioHandler.UseWhammyFx = v);
+
+            public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 5, v => GlobalAudioHandler.WhammyPitchShiftAmount = v);
+
             // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
@@ -208,6 +211,8 @@ namespace YARG.Settings
                     StarPowerHighwayFxMode.Reduced,
                     StarPowerHighwayFxMode.Off
                 };
+
+            public SliderSetting SongBackgroundOpacity { get; } = new(1f, 0f, 1f);
 
             public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
@@ -541,16 +546,6 @@ namespace YARG.Settings
                 HelpBar.Instance.MusicPlayer.UpdateVolume(volume);
             }
 
-            // private static void UseWhammyFxChange(bool value)
-            // {
-            //     AudioManager.UseWhammyFx = value;
-            // }
-
-            // private static void WhammyPitchShiftAmountChange(float value)
-            // {
-            //     AudioManager.WhammyPitchShiftAmount = value;
-            // }
-            //
             // private static void WhammyOversampleFactorChange(int value)
             // {
             //     AudioManager.WhammyOversampleFactor = value;

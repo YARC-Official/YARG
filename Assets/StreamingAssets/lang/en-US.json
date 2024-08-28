@@ -732,6 +732,10 @@
                     "Reduced": "Reduced"
                 }
             },
+			"SongBackgroundOpacity": {
+				"Name": "Song Background Opacity",
+				"Description": "Adjusts the opacity of background during gameplay."
+			},
             "UseChipmunkSpeed": {
                 "Name": "Chipmunk Speed",
                 "Description": "Disables pitch correction when playing songs at a fast or slow speed which may lead to some... interesting results."
@@ -752,6 +756,14 @@
                     "Off": "Off",
                     "On": "On"
                 }
+            },
+            "UseWhammyFx": {
+                "Name": "Use Whammy SFX",
+                "Description": "If enabled, it will add pitch bending to guitar stems when the player presses the whammy bar.\nWARNING: This setting is known to cause audio desync issues on some machines."
+            },
+            "WhammyPitchShiftAmount": {
+                "Name": "Whammy Pitch Shift Amount",
+                "Description": "Number of semitones the pitch is changed when the whammy bar is fully pressed. Larger amounts result in lower pitches; default is 1."
             },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",

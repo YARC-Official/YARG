@@ -109,6 +109,7 @@ namespace YARG.Helpers
             LauncherPath = Path.Join(localAppdata, "YARC", "Launcher");
 
             // Get official setlist path
+            // (this is replaced by the launch argument if it is set)
             SetlistPath = FindSetlistPath();
         }
 
@@ -138,6 +139,11 @@ namespace YARG.Helpers
                 YargLogger.LogException(e, "Failed to load setlist path.");
                 return null;
             }
+        }
+
+        public static void SetSetlistPathFromDownloadLocation(string downloadLocation)
+        {
+            SetlistPath = Path.Join(downloadLocation, "Setlists");
         }
 
         /// <summary>
