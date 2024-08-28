@@ -1,4 +1,6 @@
+using STB2CSharp;
 using UnityEngine;
+using YARG.Core.IO;
 using YARG.Logging;
 
 namespace YARG
@@ -15,11 +17,15 @@ namespace YARG
             Application.quitting += Uninitialize;
 
             LogHandler.Initialize();
+
+            YARGImage.Decoder = new StbImageDecoder();
         }
 
         private static void Uninitialize()
         {
             Application.quitting -= Uninitialize;
+
+            YARGImage.Decoder = null;
 
             LogHandler.Uninitialize();
         }

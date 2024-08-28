@@ -19,7 +19,7 @@ namespace YARG.Helpers.Extensions
             var gfxFormat = image.Format switch
             {
                 ImageFormat.RGB or ImageFormat.Grayscale => TextureFormat.RGB24,
-                ImageFormat.RGBA or ImageFormat.GrayScale_Alpha => TextureFormat.RGBA32,
+                ImageFormat.RGBA or ImageFormat.Grayscale_Alpha => TextureFormat.RGBA32,
                 ImageFormat.DXT1 => TextureFormat.DXT1,
                 ImageFormat.DXT5 => TextureFormat.DXT5,
                 _ => throw new ArgumentException("Unsupported image format"),
@@ -29,7 +29,7 @@ namespace YARG.Helpers.Extensions
             unsafe
             {
                 var data = texture.GetPixelData<byte>(0);
-                var ptr = (byte*)data.GetUnsafeReadOnlyPtr();
+                var ptr = (byte*) data.GetUnsafeReadOnlyPtr();
                 switch (image.Format)
                 {
                     case ImageFormat.Grayscale:
@@ -38,7 +38,7 @@ namespace YARG.Helpers.Extensions
                             .Schedule(image.Width * image.Height, 128)
                             .Complete();
                         break;
-                    case ImageFormat.GrayScale_Alpha:
+                    case ImageFormat.Grayscale_Alpha:
                         // Unity does not directly support Grayscale formats
                         new GrayscaleAlphaToRGBAJob(image.Data, ptr)
                             .Schedule(image.Width * image.Height, 128)
