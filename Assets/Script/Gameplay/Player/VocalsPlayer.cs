@@ -42,8 +42,6 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
-        public int VocalPlayerIndex { get; private set; }
-
         private InstrumentDifficulty<VocalNote> NoteTrack { get; set; }
         private InstrumentDifficulty<VocalNote> OriginalNoteTrack { get; set; }
 
@@ -67,11 +65,10 @@ namespace YARG.Gameplay.Player
             if (IsInitialized) return;
 
             base.Initialize(index, player, chart, lastHighScore);
-            VocalPlayerIndex = vocalIndex;
 
             // Needle materials have names starting from 1.
-            var needleIndex = (VocalPlayerIndex % NEEDLES_COUNT) + 1;
-            var materialPath = $"Assets/Art/Materials/Gameplay/Visual/VocalElements/VocalNeedle{needleIndex}.mat";
+            var needleIndex = (vocalIndex % NEEDLES_COUNT) + 1;
+            var materialPath = $"VocalNeedle/{needleIndex}";
             _needleRenderer.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
             
             var partIndex = Player.Profile.CurrentInstrument == Instrument.Harmony
