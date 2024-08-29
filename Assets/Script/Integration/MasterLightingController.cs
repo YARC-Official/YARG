@@ -21,8 +21,8 @@ namespace YARG.Integration
             public byte DatagramVersion;
             public PlatformByte Platform;
             public SceneIndexByte CurrentScene;
-            public bool Paused;
-            public bool LargeVenue;
+            public PauseStateType Paused;
+            public VenueType Venue;
 
             public float BeatsPerMinute;
             public LightingType CurrentSongSection;
@@ -62,6 +62,21 @@ namespace YARG.Integration
             Calibration,
         }
 
+        public enum VenueType
+        {
+            None,
+            Small,
+            Large,
+        }
+
+        public enum PauseStateType
+        {
+            AtMenu,
+            Unpaused,
+            Paused,
+        }
+
+
         private static UdpClient _sendClient = new();
 
         //Has to be at least 44 because of DMX, 88 should be enough... for now...
@@ -76,8 +91,8 @@ namespace YARG.Integration
         // NYI - waiting for parser rewrite.
         // public static PerformerEvent CurrentPerformerEvent;
         public static PlatformByte MLCPlatform;
-        public static bool MLCPaused;
-        public static bool MLCLargeVenue;
+        public static PauseStateType MLCPaused;
+        public static VenueType MLCVenue;
         public static SceneIndexByte MLCSceneIndex;
         public static int MLCCurrentGuitarNotes;
         public static int MLCCurrentBassNotes;
@@ -154,7 +169,7 @@ namespace YARG.Integration
             message.Platform = MLCPlatform;       // Set by the Preprocessor Directive above.
             message.CurrentScene = MLCSceneIndex; // gets set by the initializer.
             message.Paused = MLCPaused;           // gets set by the GameplayMonitor.
-            message.LargeVenue = MLCLargeVenue;   // gets set on chart load by the GameplayMonitor.
+            message.Venue = MLCVenue;   // gets set on chart load by the GameplayMonitor.
 
             message.BeatsPerMinute = MLCCurrentBPM;             // gets set by the GameplayMonitor.
             message.LightingCue = MLCCurrentLightingCue;        // setter triggered by the GameplayMonitor.
@@ -259,8 +274,8 @@ namespace YARG.Integration
                 _writer.Write(message.DatagramVersion);
                 _writer.Write((byte) message.Platform);
                 _writer.Write((byte) message.CurrentScene);
-                _writer.Write(message.Paused);
-                _writer.Write(message.LargeVenue);
+                _writer.Write((byte)message.Paused);
+                _writer.Write((byte)message.Venue);
 
                 _writer.Write(message.BeatsPerMinute);
                 _writer.Write((byte) message.CurrentSongSection);
