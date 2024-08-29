@@ -66,7 +66,7 @@ namespace YARG.Integration
             MasterLightingController.Initializer(SceneManager.GetActiveScene());
 
             // This should be read from the venue itself eventually, but for now, we'll just randomize it.
-            MasterLightingController.MLCLargeVenue = Random.Range(0, 1) == 1;
+            MasterLightingController.MLCVenue = (MasterLightingController.VenueType)Random.Range(1, 2);
             Venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
@@ -190,7 +190,15 @@ namespace YARG.Integration
             // Lets get the current state of the game
 
             // Pause state
-            MasterLightingController.MLCPaused = GameManager.Paused;
+            if (GameManager.Paused)
+            {
+                MasterLightingController.MLCPaused = MasterLightingController.PauseStateType.Paused;
+            }
+            else
+            {
+                MasterLightingController.MLCPaused = MasterLightingController.PauseStateType.Unpaused;
+            }
+
 
             // Instrument events
             MasterLightingController.MLCCurrentDrumNotes = DrumsEventChecker(_drums, ref _drumIndex);
