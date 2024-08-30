@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 658912062219492502}
   - component: {fileID: 2355946093059868444}
   m_Layer: 5
-  m_Name: ImgPlayerGameMode
+  m_Name: ImgPlayerInstrument
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -282,33 +282,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 8447274380983360095}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a902332af6d0e4d4b834e0099dbb90b2, type: 3}
+  m_Script: {fileID: 11500000, guid: f3933ba24ce82a64591deb5583cba58a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _playerNameText: {fileID: 5968729197423260406}
-  _playerGameModeIcon: {fileID: 658912062219492502}
-  _gameModeIcons:
-  - {fileID: 1445730593, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
-  - {fileID: 1095511443, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: -1591131112, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
-  - {fileID: -1041038840, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
-  - {fileID: 1405555635, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 1760769726, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
-  - {fileID: -1173955509, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: -212029294, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 248047085, guid: 9a7443e591e54de4cb9bc5796a8ab687, type: 3}
+  _playerInstrumentIcon: {fileID: 658912062219492502}
 --- !u!114 &8373888489887330168
 MonoBehaviour:
   m_ObjectHideFlags: 0

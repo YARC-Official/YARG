@@ -47,6 +47,8 @@ namespace YARG.Settings
                 nameof(Settings.ShowTime),
                 nameof(Settings.MemoryStats),
                 nameof(Settings.FpsStats),
+                nameof(Settings.ShowActivePlayers),
+                nameof(Settings.ShowActiveBots),
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.ReconnectProfiles),
@@ -114,8 +116,6 @@ namespace YARG.Settings
                 nameof(Settings.FullscreenMode),
                 nameof(Settings.Resolution),
                 nameof(Settings.FpsStats),
-                nameof(Settings.ShowActivePlayers),
-                nameof(Settings.ShowActiveBots),
 
                 new HeaderMetadata("Graphics"),
                 nameof(Settings.LowQuality),
@@ -198,8 +198,8 @@ namespace YARG.Settings
             new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
-	            nameof(Settings.UseWhammyFx),
-	            nameof(Settings.WhammyPitchShiftAmount),
+                nameof(Settings.UseWhammyFx),
+                nameof(Settings.WhammyPitchShiftAmount),
 	            // nameof(Settings.WhammyOversampleFactor),
             }
         };

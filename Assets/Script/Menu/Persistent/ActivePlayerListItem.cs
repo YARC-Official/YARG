@@ -13,7 +13,7 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private TextMeshProUGUI _playerNameText;
         [SerializeField]
-        private Image _playerGameModeIcon;
+        private Image _playerInstrumentIcon;
 
         public bool ShowName
         {
@@ -29,7 +29,7 @@ namespace YARG.Menu.Persistent
             }
 
             _playerNameText.text = profile.Name;
-            _playerGameModeIcon.sprite = Addressables
+            _playerInstrumentIcon.sprite = Addressables
                 .LoadAssetAsync<Sprite>($"InstrumentIcons[{profile.CurrentInstrument.ToResourceName()}]")
                 .WaitForCompletion();
         }
