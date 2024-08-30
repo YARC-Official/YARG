@@ -38,7 +38,7 @@ namespace YARG.Integration
             public LightingType LightingCue;
             public PostProcessingType PostProcessing;
             public bool FogState;
-            public StageKitStrobeSpeed StrobeState;
+            public LightingType StrobeState;
             public byte Performer;
             public BeatlineType Beat;
             public LightingType Keyframe;
@@ -94,23 +94,27 @@ namespace YARG.Integration
         public static PauseStateType MLCPaused;
         public static VenueType MLCVenue;
         public static SceneIndexByte MLCSceneIndex;
+
         public static int MLCCurrentGuitarNotes;
         public static int MLCCurrentBassNotes;
         public static int MLCCurrentDrumNotes;
         public static int MLCCurrentKeysNotes;
+
         public static float MLCCurrentVocalNote;
         public static float MLCCurrentHarmony0Note;
         public static float MLCCurrentHarmony1Note;
         public static float MLCCurrentHarmony2Note;
+
         public static bool MLCBonusFX;
         public static LightingType MLCCurrentSongSection;
         public static bool MLCFogState;
-        public static StageKitStrobeSpeed MLCStrobeState;
+        public static LightingType MLCStrobeState;
         public static float MLCCurrentBPM;
         public static BeatlineType MLCCurrentBeat;
         public static LightingType MLCKeyframe;
         public static LightingType MLCCurrentLightingCue;
         public static PostProcessingType MLCPostProcessing;
+
         public static ushort MLCudpPort;
         public static string MLCudpIP;
 
@@ -126,8 +130,7 @@ namespace YARG.Integration
                 _currentLightingCue = value;
 
                 //Keyframes are indicators and not really lighting cues themselves, also chorus and verse act more as modifiers and section labels and also not really lighting cues, they can be stacked under a lighting cue.
-                if (value.Type is not (LightingType.Keyframe_Next or LightingType.Keyframe_Previous
-                    or LightingType.Keyframe_First or LightingType.Chorus or LightingType.Verse))
+                if (value.Type is not (LightingType.Keyframe_Next or LightingType.Keyframe_Previous or LightingType.Keyframe_First or LightingType.Chorus or LightingType.Verse))
                 {
                     MLCCurrentLightingCue = value.Type;
                     // might need a null check here = NoCue, testing needed
@@ -193,6 +196,12 @@ namespace YARG.Integration
             message.BonusEffect = MLCBonusFX;                   // gets set by the GameplayMonitor.
 
             SerializeAndSend(message);
+
+            // Reset the keyframe and section after sending
+            // Honestly, this iS a bit of a hack to have it here.
+            MLCKeyframe = 0;
+            MLCCurrentBeat = 0;
+            MLCBonusFX = false;
         }
 
         public static void Initializer(Scene scene)
@@ -200,18 +209,28 @@ namespace YARG.Integration
             // Ignore the persistent scene
             if ((SceneIndex) scene.buildIndex == SceneIndex.Persistent) return;
 
-            MLCFogState = false;
-            MLCStrobeState = StageKitStrobeSpeed.Off;
+            MLCPaused = PauseStateType.AtMenu;
+            MLCVenue = VenueType.None;
             MLCCurrentBPM = 0;
-            MLCCurrentDrumNotes = 0;
+            MLCCurrentSongSection = 0;
+
             MLCCurrentGuitarNotes = 0;
-            MLCCurrentKeysNotes = 0;
             MLCCurrentBassNotes = 0;
+            MLCCurrentDrumNotes = 0;
+            MLCCurrentKeysNotes = 0;
+
             MLCCurrentVocalNote = 0;
             MLCCurrentHarmony0Note = 0;
             MLCCurrentHarmony1Note = 0;
             MLCCurrentHarmony2Note = 0;
-            MLCCurrentSongSection = 0;
+
+            MLCPostProcessing = 0;
+            MLCFogState = false;
+            MLCStrobeState = LightingType.Strobe_Off;
+            MLCCurrentBeat = 0;
+            MLCKeyframe = 0;
+            MLCBonusFX = false;
+
 
             switch ((SceneIndex) scene.buildIndex)
             {

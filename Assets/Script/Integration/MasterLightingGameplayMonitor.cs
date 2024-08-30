@@ -63,7 +63,7 @@ namespace YARG.Integration
         protected override void OnChartLoaded(SongChart chart)
         {
             MasterLightingController.MLCFogState = false;
-            MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Off;
+            MasterLightingController.MLCStrobeState = LightingType.Strobe_Off;
             MasterLightingController.Initializer(SceneManager.GetActiveScene());
 
             // This should be read from the venue itself eventually, but for now, we'll just randomize it.
@@ -265,23 +265,23 @@ namespace YARG.Integration
                 switch (Venue.Lighting[LightingIndex].Type)
                 {
                     case LightingType.Strobe_Off:
-                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Off;
+                        MasterLightingController.MLCStrobeState = LightingType.Strobe_Off;
                         break;
 
                     case LightingType.Strobe_Fast:
-                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Fast;
+                        MasterLightingController.MLCStrobeState = LightingType.Strobe_Fast;
                         break;
 
                     case LightingType.Strobe_Medium:
-                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Medium;
+                        MasterLightingController.MLCStrobeState = LightingType.Strobe_Medium;
                         break;
 
                     case LightingType.Strobe_Slow:
-                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Slow;
+                        MasterLightingController.MLCStrobeState = LightingType.Strobe_Slow;
                         break;
 
                     case LightingType.Strobe_Fastest:
-                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Fastest;
+                        MasterLightingController.MLCStrobeState = LightingType.Strobe_Fastest;
                         break;
 
                     default:
@@ -289,7 +289,7 @@ namespace YARG.Integration
                         // But the Strobe_Off event is almost never used, relying instead on the cue change to turn it off.
                         // So this technically should be in the stage kit lighting controller code but I don't want the
                         // stage kit reaching into this main lighting controller.So we'll just turn it off here.
-                        MasterLightingController.MLCStrobeState = StageKitStrobeSpeed.Off;
+                        MasterLightingController.MLCStrobeState = LightingType.Strobe_Off;
                         MasterLightingController.CurrentLightingCue = Venue.Lighting[LightingIndex];
                         break;
                 }
