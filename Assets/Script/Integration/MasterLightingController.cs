@@ -165,13 +165,24 @@ namespace YARG.Integration
         {
             message.Header = 0x59415247; // Y A R G
 
-            message.DatagramVersion = 0;          // version 0 currently
-            message.Platform = MLCPlatform;       // Set by the Preprocessor Directive above.
-            message.CurrentScene = MLCSceneIndex; // gets set by the initializer.
-            message.Paused = MLCPaused;           // gets set by the GameplayMonitor.
-            message.Venue = MLCVenue;   // gets set on chart load by the GameplayMonitor.
+            message.DatagramVersion = 0;                          // version 0 currently
+            message.Platform = MLCPlatform;                       // Set by the Preprocessor Directive above.
+            message.CurrentScene = MLCSceneIndex;                 // gets set by the initializer.
+            message.Paused = MLCPaused;                           // gets set by the GameplayMonitor.
+            message.Venue = MLCVenue;                             // gets set on chart load by the GameplayMonitor.
+            message.BeatsPerMinute = MLCCurrentBPM;               // gets set by the GameplayMonitor.
+            message.CurrentSongSection = MLCCurrentSongSection;   // gets set on lighting cue change.
 
-            message.BeatsPerMinute = MLCCurrentBPM;             // gets set by the GameplayMonitor.
+            message.CurrentGuitarNotes = MLCCurrentGuitarNotes;   // gets set by the GameplayMonitor.
+            message.CurrentBassNotes = MLCCurrentBassNotes;       // gets set by the GameplayMonitor.
+            message.CurrentDrumNotes = MLCCurrentDrumNotes;       // gets set by the GameplayMonitor.
+            message.CurrentKeysNotes = MLCCurrentKeysNotes;       // gets set by the GameplayMonitor.
+
+            message.CurrentVocalNote = MLCCurrentVocalNote;       // gets set by the GameplayMonitor.
+            message.CurrentHarmony0Note = MLCCurrentHarmony0Note; // gets set by the GameplayMonitor.
+            message.CurrentHarmony1Note = MLCCurrentHarmony1Note; // gets set by the GameplayMonitor.
+            message.CurrentHarmony2Note = MLCCurrentHarmony2Note; // gets set by the GameplayMonitor.
+
             message.LightingCue = MLCCurrentLightingCue;        // setter triggered by the GameplayMonitor.
             message.PostProcessing = MLCPostProcessing;         // setter triggered by the GameplayMonitor.
             message.FogState = MLCFogState;                     // gets set by the GameplayMonitor.
@@ -180,16 +191,6 @@ namespace YARG.Integration
             message.Beat = MLCCurrentBeat;                      // gets set by the GameplayMonitor.
             message.Keyframe = MLCKeyframe;                     // gets set on lighting cue change.
             message.BonusEffect = MLCBonusFX;                   // gets set by the GameplayMonitor.
-            message.CurrentSongSection = MLCCurrentSongSection; // gets set on lighting cue change.
-
-            message.CurrentGuitarNotes = MLCCurrentGuitarNotes;   // gets set by the GameplayMonitor.
-            message.CurrentBassNotes = MLCCurrentBassNotes;       // gets set by the GameplayMonitor.
-            message.CurrentDrumNotes = MLCCurrentDrumNotes;       // gets set by the GameplayMonitor.
-            message.CurrentKeysNotes = MLCCurrentKeysNotes;       // gets set by the GameplayMonitor.
-            message.CurrentVocalNote = MLCCurrentVocalNote;       // gets set by the GameplayMonitor.
-            message.CurrentHarmony0Note = MLCCurrentHarmony0Note; // gets set by the GameplayMonitor.
-            message.CurrentHarmony1Note = MLCCurrentHarmony1Note; // gets set by the GameplayMonitor.
-            message.CurrentHarmony2Note = MLCCurrentHarmony2Note; // gets set by the GameplayMonitor.
 
             SerializeAndSend(message);
         }
@@ -270,32 +271,33 @@ namespace YARG.Integration
                 // Reset the MemoryStream's position to the beginning
                 _ms.Position = 0;
 
-                _writer.Write(message.Header);
-                _writer.Write(message.DatagramVersion);
+                _writer.Write(message.Header); //uint
+                _writer.Write(message.DatagramVersion); //byte
                 _writer.Write((byte) message.Platform);
                 _writer.Write((byte) message.CurrentScene);
                 _writer.Write((byte)message.Paused);
                 _writer.Write((byte)message.Venue);
-
-                _writer.Write(message.BeatsPerMinute);
+                _writer.Write(message.BeatsPerMinute); //float
                 _writer.Write((byte) message.CurrentSongSection);
+
                 _writer.Write((byte) message.CurrentGuitarNotes); // While .Write can do an int, the instruments
                 _writer.Write((byte) message.CurrentBassNotes);   // are only 5 to 8 bits, so might as well save space.
                 _writer.Write((byte) message.CurrentDrumNotes);
                 _writer.Write((byte) message.CurrentKeysNotes);
-                _writer.Write(message.CurrentVocalNote);
-                _writer.Write(message.CurrentHarmony0Note);
-                _writer.Write(message.CurrentHarmony1Note);
-                _writer.Write(message.CurrentHarmony2Note);
+
+                _writer.Write(message.CurrentVocalNote);    //float
+                _writer.Write(message.CurrentHarmony0Note); //float
+                _writer.Write(message.CurrentHarmony1Note); //float
+                _writer.Write(message.CurrentHarmony2Note); //float
 
                 _writer.Write((byte) message.LightingCue);
                 _writer.Write((byte) message.PostProcessing);
-                _writer.Write(message.FogState);
+                _writer.Write(message.FogState); //bool
                 _writer.Write((byte) message.StrobeState);
-                _writer.Write(message.Performer);
+                _writer.Write(message.Performer); //byte
                 _writer.Write((byte) message.Beat);
                 _writer.Write((byte) message.Keyframe);
-                _writer.Write(message.BonusEffect);
+                _writer.Write(message.BonusEffect); //bool
 
                 // Get the buffer and send the data with the correct length
                 _sendClient.Send(_ms.GetBuffer(), (int) _ms.Position, MLCudpIP, MLCudpPort);

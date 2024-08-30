@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Gameplay;
 using Random = UnityEngine.Random;
 
@@ -182,7 +183,7 @@ namespace YARG.Integration
                 return list[listIndex].Pitch; // new note starting
             }
 
-            return -1; // don't change the current note
+            return -2; // don't change the current note
         }
 
         private void Update()
@@ -208,25 +209,25 @@ namespace YARG.Integration
 
             // Vocal events
             var vocalNote = VocalEventChecker(_vocalsNotes, ref _vocalsIndex);
-            if (vocalNote != -1)
+            if (vocalNote != -2)
             {
                 MasterLightingController.MLCCurrentVocalNote = vocalNote;
             }
 
             var harmony0Note = VocalEventChecker(_harmony0Notes, ref _harmony0Index);
-            if (harmony0Note != -1)
+            if (harmony0Note != -2)
             {
                 MasterLightingController.MLCCurrentHarmony0Note = harmony0Note;
             }
 
             var harmony1Note = VocalEventChecker(_harmony1Notes, ref _harmony1Index);
-            if (harmony1Note != -1)
+            if (harmony1Note != -2)
             {
                 MasterLightingController.MLCCurrentHarmony1Note = harmony1Note;
             }
 
             var harmony2Note = VocalEventChecker(_harmony2Notes, ref _harmony2Index);
-            if (harmony2Note != -1)
+            if (harmony2Note != -2)
             {
                 MasterLightingController.MLCCurrentHarmony2Note = harmony2Note;
             }
