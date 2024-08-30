@@ -40,7 +40,7 @@ namespace YARG.Integration
             public bool FogState;
             public LightingType StrobeState;
             public byte Performer;
-            public BeatlineType Beat;
+            public byte Beat;
             public LightingType Keyframe;
             public bool BonusEffect;
         }
@@ -110,7 +110,7 @@ namespace YARG.Integration
         public static bool MLCFogState;
         public static LightingType MLCStrobeState;
         public static float MLCCurrentBPM;
-        public static BeatlineType MLCCurrentBeat;
+        public static byte MLCCurrentBeat;
         public static LightingType MLCKeyframe;
         public static LightingType MLCCurrentLightingCue;
         public static PostProcessingType MLCPostProcessing;
@@ -200,7 +200,7 @@ namespace YARG.Integration
             // Reset the keyframe and section after sending
             // Honestly, this iS a bit of a hack to have it here.
             MLCKeyframe = 0;
-            MLCCurrentBeat = 0;
+            MLCCurrentBeat = 3; // I'm using 3 here as 'off' for the beatline due to the BeatlineType enum. This also changes the casting of it.
             MLCBonusFX = false;
         }
 

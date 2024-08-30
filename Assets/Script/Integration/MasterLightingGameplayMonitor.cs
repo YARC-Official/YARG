@@ -249,7 +249,7 @@ namespace YARG.Integration
             // Beatline events
             while (_syncIndex < _sync.Beatlines.Count && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
             {
-                MasterLightingController.MLCCurrentBeat = _sync.Beatlines[_syncIndex].Type;
+                MasterLightingController.MLCCurrentBeat = (byte)_sync.Beatlines[_syncIndex].Type;
                 _syncIndex++;
             }
 
