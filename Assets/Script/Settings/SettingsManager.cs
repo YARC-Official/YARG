@@ -154,39 +154,14 @@ namespace YARG.Settings
                 new ButtonRowMetadata(nameof(Settings.OpenPersistentDataPath)),
                 new ButtonRowMetadata(nameof(Settings.OpenExecutablePath)),
             },
-            new MetadataTab("LightingPeripherals", icon: "Lighting", new DMXInformationPanelBuilder())
+            new MetadataTab("LightingPeripherals", icon: "Lighting")
             {
-                new HeaderMetadata("LightingGeneral"),
-                nameof(Settings.StageKitEnabled),
-                nameof(Settings.DMXEnabled),
-                nameof(Settings.RB3EEnabled),
-                new HeaderMetadata("StageKitDMXChannels"),
-                nameof(Settings.DMXDimmerChannels),
-                nameof(Settings.DMXRedChannels),
-                nameof(Settings.DMXGreenChannels),
-                nameof(Settings.DMXBlueChannels),
-                nameof(Settings.DMXYellowChannels),
-                nameof(Settings.DMXFogChannels),
-                nameof(Settings.DMXStrobeChannels),
-                new HeaderMetadata("AdvancedDMXChannels"),
-                nameof(Settings.DMXCueChangeChannel),
-                nameof(Settings.DMXPostProcessingChannel),
-                nameof(Settings.DMXKeyframeChannel),
-                nameof(Settings.DMXBeatlineChannel),
-                nameof(Settings.DMXBonusEffectChannel),
-                nameof(Settings.DMXDrumsChannel),
-                nameof(Settings.DMXGuitarChannel),
-                nameof(Settings.DMXBassChannel),
-                nameof(Settings.DMXKeysChannel),
-                new HeaderMetadata("AdvancedDMXSettings"),
-                nameof(Settings.DMXUniverseChannel),
-                nameof(Settings.DMXDimmerValues),
-                //NYI
-                //nameof(Settings.DMXPerformerChannel)
-                new HeaderMetadata("RB3E"),
-                nameof(Settings.RB3EBroadcastIP),
-
+                new HeaderMetadata("YALCY"),
+                nameof(Settings.EnableYALCYDatastream),
+                nameof(Settings.YALCYDatastreamIP),
+                nameof(Settings.YALCYDatastreamPort),
             },
+
             new MetadataTab("Debug", icon: "Debug")
             {
                 nameof(Settings.InputDeviceLogging),

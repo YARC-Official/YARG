@@ -1,283 +1,332 @@
 using System;
+using System.IO;
+using System.Net.Sockets;
+using System.Timers;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
-using YARG.Gameplay;
+using YARG.Settings;
 
 namespace YARG.Integration
 {
     public class MasterLightingController : MonoBehaviour
     {
-        /*
-        Real-life lighting integration works in 3 parts:
-        1) This class, the Master lighting controller, which maintains the state of the lighting and stage effects.
-        It listens for events from the venue track, sync (beat) track, etc, maintains a list of current lighting cues,
-         fog state, etc, and broadcasts those events on change.
-
-        2) Lighting Interpreters. These classes listen to the events from the Master Lighting Controller and translate them
-        into the actual timing and light patterns, for example, interpreting flare_fast as 8 blue leds turning on.
-        Currently there are two. The Stage Kit Interpreter (which uses its Cues and Primitives classes),
-        that attempts to make cues be as close to the Rock Band Stage Kit as possible and the sACN Interpreter, which
-        sets DMX channel values based on the lighting cues and other events happening.
-
-        3) Hardware controllers. These classes listen to the Lighting Interpreters and translate the lighting cues into
-        the actual hardware commands. Currently there are two hardware controllers, one for DMX and one for the Stage Kits.
-        Hardware controllers are what is toggled on and off by the enable menu setttings.
-        */
-
-        public enum FogState
+        [Serializable]
+        public struct LightingMessage
         {
-            Off,
-            On,
+            public uint Header;
+
+            public byte DatagramVersion;
+            public PlatformByte Platform;
+            public SceneIndexByte CurrentScene;
+            public PauseStateType Paused;
+            public VenueType Venue;
+
+            public float BeatsPerMinute;
+            public LightingType CurrentSongSection;
+            public int CurrentGuitarNotes;
+            public int CurrentBassNotes;
+            public int CurrentDrumNotes;
+            public int CurrentKeysNotes;
+            public float CurrentVocalNote;
+            public float CurrentHarmony0Note;
+            public float CurrentHarmony1Note;
+            public float CurrentHarmony2Note;
+
+            public LightingType LightingCue;
+            public PostProcessingType PostProcessing;
+            public bool FogState;
+            public LightingType StrobeState;
+            public byte Performer;
+            public byte Beat;
+            public LightingType Keyframe;
+            public bool BonusEffect;
         }
 
-        public enum InstrumentType
+        public enum PlatformByte
         {
-            Drums,
-            Guitar,
-            Bass,
-            Keys,
+            Unknown,
+            Windows,
+            Linux,
+            Mac,
         }
+
+        public enum SceneIndexByte
+        {
+            Unknown,
+            Menu,
+            Gameplay,
+            Score,
+            Calibration,
+        }
+
+        public enum VenueType
+        {
+            None,
+            Small,
+            Large,
+        }
+
+        public enum PauseStateType
+        {
+            AtMenu,
+            Unpaused,
+            Paused,
+        }
+
+
+        private static UdpClient _sendClient = new();
+
+        //Has to be at least 44 because of DMX, 88 should be enough... for now...
+        private const float TARGET_FPS = 88f;
+        private const float TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
+        private Timer _timer;
+        private LightingMessage _message = new LightingMessage();
+        private static LightingEvent _currentLightingCue;
+        private static MemoryStream _ms = new MemoryStream();
+        private static BinaryWriter _writer = new BinaryWriter(_ms);
+
+        // NYI - waiting for parser rewrite.
+        // public static PerformerEvent CurrentPerformerEvent;
+        public static PlatformByte MLCPlatform;
+        public static PauseStateType MLCPaused;
+        public static VenueType MLCVenue;
+        public static SceneIndexByte MLCSceneIndex;
+
+        public static int MLCCurrentGuitarNotes;
+        public static int MLCCurrentBassNotes;
+        public static int MLCCurrentDrumNotes;
+        public static int MLCCurrentKeysNotes;
+
+        public static float MLCCurrentVocalNote;
+        public static float MLCCurrentHarmony0Note;
+        public static float MLCCurrentHarmony1Note;
+        public static float MLCCurrentHarmony2Note;
+
+        public static bool MLCBonusFX;
+        public static LightingType MLCCurrentSongSection;
+        public static bool MLCFogState;
+        public static LightingType MLCStrobeState;
+        public static float MLCCurrentBPM;
+        public static byte MLCCurrentBeat;
+        public static LightingType MLCKeyframe;
+        public static LightingType MLCCurrentLightingCue;
+        public static PostProcessingType MLCPostProcessing;
+
+        public static ushort MLCudpPort;
+        public static string MLCudpIP;
 
         public static LightingEvent CurrentLightingCue
         {
             get => _currentLightingCue;
+
             set
             {
-                PreviousLightingCue = _currentLightingCue;
+                // Could probably move this into the gameplay monitor
+
+                // This is for the debug menu
                 _currentLightingCue = value;
-                OnLightingEvent?.Invoke(value);
-            }
-        }
 
-        public static LightingEvent PreviousLightingCue;
-
-        public static PostProcessingEvent CurrentPostProcessing
-        {
-            get => _currentPostProcessing;
-            set
-            {
-                PreviousPostProcessing = _currentPostProcessing;
-                _currentPostProcessing = value;
-                OnPostProcessing?.Invoke(value);
-            }
-        }
-
-        public static PostProcessingEvent PreviousPostProcessing;
-
-        public static FogState CurrentFogState
-        {
-            get => _currentFogState;
-            set
-            {
-                PreviousFogState = _currentFogState;
-                _currentFogState = value;
-                OnFogState?.Invoke(value);
-            }
-        }
-
-        public static FogState PreviousFogState = FogState.Off;
-
-        public static StageKitStrobeSpeed CurrentStrobeState
-        {
-            get => _currentStrobeState;
-            set
-            {
-                PreviousStrobeState = _currentStrobeState;
-                _currentStrobeState = value;
-                OnStrobeEvent?.Invoke(value);
-            }
-        }
-
-        public static StageKitStrobeSpeed PreviousStrobeState = StageKitStrobeSpeed.Off;
-
-        public static int CurrentDrumNotes
-        {
-            get => _currentDrumNote;
-            set
-            {
-                PreviousDrumNote = _currentDrumNote;
-                _currentDrumNote = value;
-                OnInstrumentEvent?.Invoke(InstrumentType.Drums, value);
-            }
-        }
-
-        public static int PreviousDrumNote;
-
-        public static int CurrentGuitarNotes
-        {
-            get => _currentGuitarNote;
-            set
-            {
-                PreviousGuitarNote = _currentGuitarNote;
-                _currentGuitarNote = value;
-                OnInstrumentEvent?.Invoke(InstrumentType.Guitar, value);
-            }
-        }
-
-        public static int PreviousGuitarNote;
-
-        public static int CurrentKeysNotes
-        {
-            get => _currentKeysNote;
-            set
-            {
-                PreviousKeysNote = _currentKeysNote;
-                _currentKeysNote = value;
-                OnInstrumentEvent?.Invoke(InstrumentType.Keys, value);
-            }
-        }
-
-        public static int PreviousKeysNote;
-
-        public static int CurrentBassNotes
-        {
-            get => _currentBassNote;
-            set
-            {
-                PreviousBassNote = _currentBassNote;
-                _currentBassNote = value;
-                OnInstrumentEvent?.Invoke(InstrumentType.Bass, value);
-            }
-        }
-
-        public static int PreviousBassNote;
-
-        public static PerformerEvent CurrentPerformerEvent
-        {
-            get => _currentPerformerEvent;
-            set
-            {
-                PreviousPerformerEvent = _currentPerformerEvent;
-                _currentPerformerEvent = value;
-                OnPerformerEvent?.Invoke(value);
-            }
-        }
-
-        public static PerformerEvent PreviousPerformerEvent;
-
-        public static VocalNote CurrentVocalNote
-        {
-            get => _currentVocalNote;
-            set
-            {
-                _currentVocalNote = value;
-                OnVocalsEvent?.Invoke(value);
-            }
-        }
-
-        public static Beatline CurrentBeatline
-        {
-            get => _currentBeatline;
-            set
-            {
-                _currentBeatline = value;
-                OnBeatLineEvent?.Invoke(value);
-            }
-        }
-
-        public static bool Paused
-        {
-            get => _paused;
-            set
-            {
-                // On Pause, turn off the fog and strobe so people don't die, but leave the leds on, looks nice.
-                if (value)
+                //Keyframes are indicators and not really lighting cues themselves, also chorus and verse act more as modifiers and section labels and also not really lighting cues, they can be stacked under a lighting cue.
+                if (value.Type is not (LightingType.Keyframe_Next or LightingType.Keyframe_Previous or LightingType.Keyframe_First or LightingType.Chorus or LightingType.Verse))
                 {
-                    CurrentFogState = FogState.Off;
-                    CurrentStrobeState = StageKitStrobeSpeed.Off;
+                    MLCCurrentLightingCue = value.Type;
+                    // might need a null check here = NoCue, testing needed
                 }
-                else
+                else if (value.Type is LightingType.Keyframe_Next or LightingType.Keyframe_Previous
+                    or LightingType.Keyframe_First)
                 {
-                    CurrentFogState = PreviousFogState;
-                    CurrentStrobeState = PreviousStrobeState;
+                    MLCKeyframe = value.Type;
+                    //might need an else here to keep keyframe at current value, testing needed
                 }
-
-                _paused = value;
-                OnPause?.Invoke(value);
+                else if (value.Type is LightingType.Verse or LightingType.Chorus)
+                {
+                    MLCCurrentSongSection = value.Type;
+                    //might need an else here to keep section at current value, testing needed
+                }
             }
         }
 
-        public static bool LargeVenue
+        private void Start()
         {
-            get => _largeVenue;
-            set
-            {
-                _largeVenue = value;
-                OnLargeVenue?.Invoke(value);
-            }
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            MLCPlatform = PlatformByte.Windows;
+#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+			MLCPlatform = PlatformByte.Mac;
+#elif UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+			MLCPlatform = PlatformByte.Linux;
+#endif
+
+            _timer = new Timer(TIME_BETWEEN_CALLS * 1000);
+            _timer.Elapsed += (sender, e) => Sender(_message);
+            _timer.Start();
         }
 
-        public static event Action<bool> OnPause;
-        public static event Action OnBonusFXEvent;
-        public static event Action<bool> OnLargeVenue;
-        public static event Action<FogState> OnFogState;
-        public static event Action<InstrumentType, int> OnInstrumentEvent;
-        public static event Action<VocalNote> OnVocalsEvent;
-        public static event Action<Beatline> OnBeatLineEvent;
-        public static event Action<LightingEvent> OnLightingEvent;
-        public static event Action<StageKitStrobeSpeed> OnStrobeEvent;
-        public static event Action<PostProcessingEvent> OnPostProcessing;
-        public static event Action<PerformerEvent> OnPerformerEvent;
-
-        private static bool _paused;
-        private static bool _largeVenue;
-        private static Beatline _currentBeatline;
-        private static int _currentDrumNote;
-        private static FogState _currentFogState;
-        private static VocalNote _currentVocalNote;
-        private static LightingEvent _currentLightingCue;
-        private static StageEffectEvent _currentStageEffect;
-        private static StageKitStrobeSpeed _currentStrobeState;
-        private static PostProcessingEvent _currentPostProcessing;
-        private GameplayBehaviour _gameplayMonitor;
-        private static int _currentGuitarNote;
-        private static int _currentBassNote;
-        private static PerformerEvent _currentPerformerEvent;
-        private static int _currentKeysNote;
-
-        public static void FireBonusFXEvent()
+        public static void Sender(LightingMessage message)
         {
-            // This is a instantaneous event, so we don't need to keep track of the previous/current event.
-            OnBonusFXEvent?.Invoke();
+            message.Header = 0x59415247; // Y A R G
+
+            message.DatagramVersion = 0;                          // version 0 currently
+            message.Platform = MLCPlatform;                       // Set by the Preprocessor Directive above.
+            message.CurrentScene = MLCSceneIndex;                 // gets set by the initializer.
+            message.Paused = MLCPaused;                           // gets set by the GameplayMonitor.
+            message.Venue = MLCVenue;                             // gets set on chart load by the GameplayMonitor.
+            message.BeatsPerMinute = MLCCurrentBPM;               // gets set by the GameplayMonitor.
+            message.CurrentSongSection = MLCCurrentSongSection;   // gets set on lighting cue change.
+
+            message.CurrentGuitarNotes = MLCCurrentGuitarNotes;   // gets set by the GameplayMonitor.
+            message.CurrentBassNotes = MLCCurrentBassNotes;       // gets set by the GameplayMonitor.
+            message.CurrentDrumNotes = MLCCurrentDrumNotes;       // gets set by the GameplayMonitor.
+            message.CurrentKeysNotes = MLCCurrentKeysNotes;       // gets set by the GameplayMonitor.
+
+            message.CurrentVocalNote = MLCCurrentVocalNote;       // gets set by the GameplayMonitor.
+            message.CurrentHarmony0Note = MLCCurrentHarmony0Note; // gets set by the GameplayMonitor.
+            message.CurrentHarmony1Note = MLCCurrentHarmony1Note; // gets set by the GameplayMonitor.
+            message.CurrentHarmony2Note = MLCCurrentHarmony2Note; // gets set by the GameplayMonitor.
+
+            message.LightingCue = MLCCurrentLightingCue;        // setter triggered by the GameplayMonitor.
+            message.PostProcessing = MLCPostProcessing;         // setter triggered by the GameplayMonitor.
+            message.FogState = MLCFogState;                     // gets set by the GameplayMonitor.
+            message.StrobeState = MLCStrobeState;               // gets set by the GameplayMonitor.
+            message.Performer = 0x00;                           // Performer not parsed yet
+            message.Beat = MLCCurrentBeat;                      // gets set by the GameplayMonitor.
+            message.Keyframe = MLCKeyframe;                     // gets set on lighting cue change.
+            message.BonusEffect = MLCBonusFX;                   // gets set by the GameplayMonitor.
+
+            SerializeAndSend(message);
+
+            // Reset the keyframe and section after sending
+            // Honestly, this iS a bit of a hack to have it here.
+            MLCKeyframe = 0;
+            MLCCurrentBeat = 3; // I'm using 3 here as 'off' for the beatline due to the BeatlineType enum. This also changes the casting of it.
+            MLCBonusFX = false;
         }
 
         public static void Initializer(Scene scene)
         {
+            // Ignore the persistent scene
+            if ((SceneIndex) scene.buildIndex == SceneIndex.Persistent) return;
+
+            MLCPaused = PauseStateType.AtMenu;
+            MLCVenue = VenueType.None;
+            MLCCurrentBPM = 0;
+            MLCCurrentSongSection = 0;
+
+            MLCCurrentGuitarNotes = 0;
+            MLCCurrentBassNotes = 0;
+            MLCCurrentDrumNotes = 0;
+            MLCCurrentKeysNotes = 0;
+
+            MLCCurrentVocalNote = 0;
+            MLCCurrentHarmony0Note = 0;
+            MLCCurrentHarmony1Note = 0;
+            MLCCurrentHarmony2Note = 0;
+
+            MLCPostProcessing = 0;
+            MLCFogState = false;
+            MLCStrobeState = LightingType.Strobe_Off;
+            MLCCurrentBeat = 0;
+            MLCKeyframe = 0;
+            MLCBonusFX = false;
+
+
             switch ((SceneIndex) scene.buildIndex)
             {
                 case SceneIndex.Gameplay:
-                    //handled by the gameplay monitor
-                    break;
-
-                case SceneIndex.Score:
-                    OnApplicationQuit();
-                    CurrentLightingCue = new LightingEvent(LightingType.Score, 0, 0);
+                    MLCSceneIndex = SceneIndexByte.Gameplay;
                     break;
 
                 case SceneIndex.Menu:
-                    OnApplicationQuit();
                     CurrentLightingCue = new LightingEvent(LightingType.Menu, 0, 0);
+                    MLCSceneIndex = SceneIndexByte.Menu;
                     break;
 
                 case SceneIndex.Calibration:
-                    //turn off to not be distracting
-                    OnApplicationQuit();
+                    MLCSceneIndex = SceneIndexByte.Calibration;
+                    break;
+
+                case SceneIndex.Score:
+                    CurrentLightingCue = new LightingEvent(LightingType.Score, 0, 0);
+                    MLCSceneIndex = SceneIndexByte.Score;
                     break;
 
                 default:
                     YargLogger.LogWarning("Unknown Scene loaded!");
+                    MLCSceneIndex = SceneIndexByte.Unknown;
                     break;
             }
         }
 
-        private static void OnApplicationQuit()
+        private void OnApplicationQuit()
         {
-            CurrentLightingCue = null;
-            CurrentFogState = FogState.Off;
-            CurrentStrobeState = StageKitStrobeSpeed.Off;
+            YargLogger.LogInfo("Killing Lighting sender...");
+
+            _timer?.Stop();
+            _timer?.Dispose();
+
+            if (_sendClient == null) return;
+
+            // force send a blank packet to turn everything off.
+
+            _message = new LightingMessage
+            {
+                Header = 0x59415247, // Y A R G
+                // Everything else is 0 or off
+            };
+
+            SerializeAndSend(_message);
+
+            _sendClient.Dispose();
+        }
+
+        private static void SerializeAndSend(LightingMessage message)
+        {
+            if (!SettingsManager.Settings.EnableYALCYDatastream.Value) return;
+
+            try
+            {
+                // Reset the MemoryStream's position to the beginning
+                _ms.Position = 0;
+
+                _writer.Write(message.Header); //uint
+                _writer.Write(message.DatagramVersion); //byte
+
+                _writer.Write((byte) message.Platform);
+                _writer.Write((byte) message.CurrentScene);
+                _writer.Write((byte)message.Paused);
+                _writer.Write((byte)message.Venue);
+                _writer.Write(message.BeatsPerMinute); //float
+
+                _writer.Write((byte) message.CurrentSongSection);
+                _writer.Write((byte) message.CurrentGuitarNotes); // While .Write can do an int, the instruments
+                _writer.Write((byte) message.CurrentBassNotes);   // are only 5 to 8 bits, so might as well save space.
+                _writer.Write((byte) message.CurrentDrumNotes);
+                _writer.Write((byte) message.CurrentKeysNotes);
+
+                _writer.Write(message.CurrentVocalNote);    //float
+                _writer.Write(message.CurrentHarmony0Note); //float
+                _writer.Write(message.CurrentHarmony1Note); //float
+                _writer.Write(message.CurrentHarmony2Note); //float
+
+                _writer.Write((byte) message.LightingCue);
+                _writer.Write((byte) message.PostProcessing);
+                _writer.Write(message.FogState); //bool
+                _writer.Write((byte) message.StrobeState);
+                _writer.Write(message.Performer); //byte
+                _writer.Write((byte) message.Beat);
+                _writer.Write((byte) message.Keyframe);
+                _writer.Write(message.BonusEffect); //bool
+
+
+                // Get the buffer and send the data with the correct length
+                _sendClient.Send(_ms.GetBuffer(), (int) _ms.Position, MLCudpIP, MLCudpPort);
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogError($"Error sending UDP packet: {ex.Message}");
+            }
         }
     }
 }
