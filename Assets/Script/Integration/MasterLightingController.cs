@@ -273,13 +273,14 @@ namespace YARG.Integration
 
                 _writer.Write(message.Header); //uint
                 _writer.Write(message.DatagramVersion); //byte
+
                 _writer.Write((byte) message.Platform);
                 _writer.Write((byte) message.CurrentScene);
                 _writer.Write((byte)message.Paused);
                 _writer.Write((byte)message.Venue);
                 _writer.Write(message.BeatsPerMinute); //float
-                _writer.Write((byte) message.CurrentSongSection);
 
+                _writer.Write((byte) message.CurrentSongSection);
                 _writer.Write((byte) message.CurrentGuitarNotes); // While .Write can do an int, the instruments
                 _writer.Write((byte) message.CurrentBassNotes);   // are only 5 to 8 bits, so might as well save space.
                 _writer.Write((byte) message.CurrentDrumNotes);
@@ -298,6 +299,7 @@ namespace YARG.Integration
                 _writer.Write((byte) message.Beat);
                 _writer.Write((byte) message.Keyframe);
                 _writer.Write(message.BonusEffect); //bool
+
 
                 // Get the buffer and send the data with the correct length
                 _sendClient.Send(_ms.GetBuffer(), (int) _ms.Position, MLCudpIP, MLCudpPort);
