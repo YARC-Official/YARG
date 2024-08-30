@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
+using YARG.Player;
 using YARG.Settings;
 
 namespace YARG.Menu.Persistent
@@ -21,7 +22,9 @@ namespace YARG.Menu.Persistent
             FPS,
             Memory,
             Time,
-            Battery
+            Battery,
+            ActivePlayers,
+            ActiveBots
         }
 
         [SerializeField]
@@ -71,6 +74,16 @@ namespace YARG.Menu.Persistent
 
         [Space]
         [SerializeField]
+        private ActivePlayerList _activePlayerList;
+
+        [Space]
+        [SerializeField]
+        private GameObject _activeBots;
+        [SerializeField]
+        private TextMeshProUGUI _activeBotsText;
+
+        [Space]
+        [SerializeField]
         private float _updateRate;
 
         private float _screenRefreshRate;
@@ -88,11 +101,13 @@ namespace YARG.Menu.Persistent
         {
             return stat switch
             {
-                Stat.FPS     => _fpsCounter,
-                Stat.Memory  => _memoryStats,
-                Stat.Time    => _time,
-                Stat.Battery => _battery,
-                _            => throw new Exception("Unreachable.")
+                Stat.FPS            => _fpsCounter,
+                Stat.Memory         => _memoryStats,
+                Stat.Time           => _time,
+                Stat.Battery        => _battery,
+                Stat.ActivePlayers  => _activePlayerList.gameObject,
+                Stat.ActiveBots     => _activeBots,
+                _                   => throw new Exception("Unreachable.")
             };
         }
 
@@ -213,6 +228,18 @@ namespace YARG.Menu.Persistent
                 >= BATTERY_CRITICAL_LOW_THRESHOLD => _batterySpriteLow,
                 _ => _batterySpriteCritical
             };
+        }
+
+        public void UpdateActivePlayers()
+        {
+            var activeBotCount = PlayerContainer.Players.Count(p => p.Profile.IsBot);
+
+            // Only show the bot count if there are active bots.
+            var showBots = SettingsManager.Settings.ShowActiveBots.Value && activeBotCount > 0;
+            SetShowing(Stat.ActiveBots, showBots);
+
+            _activePlayerList.UpdatePlayerList();
+            _activeBotsText.text = ZString.Format("x{0}", activeBotCount);
         }
     }
 }

@@ -114,6 +114,8 @@ namespace YARG.Settings
                 nameof(Settings.FullscreenMode),
                 nameof(Settings.Resolution),
                 nameof(Settings.FpsStats),
+                nameof(Settings.ShowActivePlayers),
+                nameof(Settings.ShowActiveBots),
 
                 new HeaderMetadata("Graphics"),
                 nameof(Settings.LowQuality),

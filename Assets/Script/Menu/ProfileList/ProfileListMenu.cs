@@ -4,6 +4,7 @@ using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Player;
 
 namespace YARG.Menu.ProfileList
@@ -36,6 +37,9 @@ namespace YARG.Menu.ProfileList
         private void OnDisable()
         {
             PlayerContainer.SaveProfiles();
+
+            // Update player icons if a profile has changed its GameMode.
+            StatsManager.Instance.UpdateActivePlayers();
 
             Navigator.Instance.PopScheme();
         }

@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine.InputSystem;
-using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.MusicLibrary;
+using YARG.Menu.Persistent;
 using YARG.Settings;
 using YARG.Song;
 
@@ -65,7 +64,7 @@ namespace YARG.Player
 
             _profiles.Add(profile);
             _profilesById.Add(profile.Id, profile);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
@@ -78,7 +77,7 @@ namespace YARG.Player
 
             _profiles.Remove(profile);
             _profilesById.Remove(profile.Id);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
@@ -103,7 +102,7 @@ namespace YARG.Player
             player.EnableInputs();
             _players.Add(player);
             _playersByProfile.Add(profile, player);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return player;
         }
 
@@ -115,7 +114,7 @@ namespace YARG.Player
             _playersByProfile.Remove(player.Profile);
 
             player.Dispose();
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
@@ -130,16 +129,18 @@ namespace YARG.Player
 
             var bindings = BindingsContainer.GetBindingsForProfile(newProfile);
             player.SwapToProfile(newProfile, bindings, true);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
-        private static void ResetPlayableSongs()
+        private static void ActiveProfilesChanged()
         {
             if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
             {
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
+
+            StatsManager.Instance.UpdateActivePlayers();
         }
 
         public static YargPlayer GetPlayerFromProfile(YargProfile profile)
