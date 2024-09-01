@@ -227,7 +227,7 @@ namespace YARG.Gameplay
             var players = new List<YargPlayer>();
             foreach (var frame in data.Frames)
             {
-                var yargPlayer = new YargPlayer(frame.PlayerInfo.Profile, null, false);
+                var yargPlayer = new YargPlayer(frame.Profile, null, false);
 
                 yargPlayer.SetPresetsFromReplay(data);
                 yargPlayer.EngineParameterOverride = frame.EngineParameters;

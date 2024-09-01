@@ -140,7 +140,7 @@ namespace YARG.Menu.History
             {
                 var analysisResult = results[i];
 
-                var profile = data.Frames[i].PlayerInfo.Profile;
+                var profile = data.Frames[i].Profile;
                 if (analysisResult.Passed)
                 {
                     YargLogger.LogFormatInfo("({0}, {1}/{2}) PASSED verification!", profile.Name, profile.CurrentInstrument, profile.CurrentDifficulty);

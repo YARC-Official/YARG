@@ -503,8 +503,7 @@ namespace YARG.Gameplay.Player
 #nullable enable
         public override ReplayFrame? CreateReplayFrame(int id)
         {
-            var info = new ReplayPlayerInfo(id, 0/*Currently ignored*/, Player.Profile);
-            return new ReplayFrame(info, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            return new ReplayFrame(id, 0/*Currently ignored*/, Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
         }
 #nullable disable
     }
