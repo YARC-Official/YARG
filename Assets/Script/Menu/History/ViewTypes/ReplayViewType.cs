@@ -80,7 +80,7 @@ namespace YARG.Menu.History
         }
 
         // AKA, the Play Replay Button
-        public override void ViewClick()
+        public override async void ViewClick()
         {
             _entry ??= LoadReplay("Cannot Play Replay");
             if (_entry == null)
@@ -100,7 +100,7 @@ namespace YARG.Menu.History
                         SettingsManager.SaveSettings();
                     });
 
-                dialog.WaitUntilClosed().Forget();
+                await dialog.WaitUntilClosed();
             }
 
             LoadIntoReplay(_entry, _songEntry);
