@@ -339,7 +339,7 @@ namespace YARG.Gameplay
                     {
                         // Don't do this if it's a replay, because the replay
                         // would've already set its own presets at this point
-                        player.SetPresetsFromProfile();
+                        player.RefreshPresets();
                     }
 
                     var lastHighScore = ScoreContainer

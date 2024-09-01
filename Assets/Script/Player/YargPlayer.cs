@@ -35,10 +35,10 @@ namespace YARG.Player
         /// </summary>
         public BaseEngineParameters EngineParameterOverride { get; set; }
 
-        public YargPlayer(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
+        public YargPlayer(YargProfile profile, ProfileBindings bindings)
         {
-            SwapToProfile(profile, bindings, resolveDevices);
-            SetPresetsFromProfile();
+            Profile = profile;
+            Bindings = bindings;
         }
 
         public YargPlayer(ReplayFrame frame, ReplayData replay)
@@ -83,7 +83,7 @@ namespace YARG.Player
             }
         }
 
-        public void SetPresetsFromProfile()
+        public void RefreshPresets()
         {
             EnginePreset = CustomContentManager.EnginePresets.GetPresetById(Profile.EnginePreset)
                 ?? EnginePreset.Default;
