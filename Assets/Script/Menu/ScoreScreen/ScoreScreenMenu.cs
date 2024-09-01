@@ -74,7 +74,7 @@ namespace YARG.Menu.ScoreScreen
             // Do analysis of replay before showing any score data
             // This will make it so that if the analysis takes a while the screen is blank
             // (kinda like a loading screen)
-            if (!AnalyzeReplay(song, scoreScreenStats.ReplayEntry))
+            if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
             {
                 DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
                     "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
@@ -159,38 +159,34 @@ namespace YARG.Menu.ScoreScreen
             }
         }
 
-        private bool AnalyzeReplay(SongEntry songEntry, ReplayEntry replayEntry)
+        private bool AnalyzeReplay(SongEntry songEntry, ReplayInfo? replayEntry)
         {
             _analyzingReplay = true;
 
             var chart = songEntry.LoadChart();
-
-            if (chart is null)
+            if (chart == null)
             {
                 YargLogger.LogError("Chart did not load");
                 _analyzingReplay = false;
                 return true;
             }
 
-            if (replayEntry is null)
+            if (replayEntry == null)
             {
                 YargLogger.LogError("ReplayEntry is null");
                 _analyzingReplay = false;
                 return true;
             }
 
-            var replayReadResult = ReplayIO.ReadReplay(replayEntry.ReplayPath, out var replayFile);
-            if (replayReadResult != ReplayReadResult.Valid)
+            var (result, data) = ReplayIO.TryLoadData(replayEntry);
+            if (result != ReplayReadResult.Valid)
             {
-                YargLogger.LogFormatError("Replay did not load. {0}", replayReadResult);
+                YargLogger.LogFormatError("Replay did not load. {0}", result);
                 _analyzingReplay = false;
                 return true;
             }
 
-            var replay = replayFile!.Replay;
-
-            var results = ReplayAnalyzer.AnalyzeReplay(chart, replay);
-
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
             for(int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];

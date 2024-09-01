@@ -109,10 +109,9 @@ namespace YARG.Gameplay
 
             YargLogger.LogFormatInfo("Loading song {0} - {1}", Song.Name, Song.Artist);
 
-            if (IsReplay)
+            if (ReplayInfo != null)
             {
-                if (!SongContainer.SongsByHash.TryGetValue(
-                    GlobalVariables.State.CurrentReplay.SongChecksum, out var songs))
+                if (!SongContainer.SongsByHash.TryGetValue(GlobalVariables.State.CurrentReplay.SongChecksum, out var songs))
                 {
                     ToastManager.ToastWarning("Song not present in library");
                     global.LoadScene(SceneIndex.Menu);
@@ -217,37 +216,26 @@ namespace YARG.Gameplay
 
         private bool LoadReplay()
         {
-            ReplayFile replayFile = null!;
-            ReplayReadResult result;
-            try
-            {
-                result = ReplayContainer.LoadReplayFile(GlobalVariables.State.CurrentReplay, out replayFile);
-            }
-            catch (Exception ex)
-            {
-                result = ReplayReadResult.Corrupted;
-                YargLogger.LogException(ex, "Failed to load replay!");
-            }
-
+            var (result, data) = ReplayIO.TryLoadData(ReplayInfo);
             if (result != ReplayReadResult.Valid)
             {
+                YargLogger.LogError("Failed to load replay!");
                 return false;
             }
 
-            Replay = replayFile.Replay;
-
             // Create YargPlayers from the replay frames
             var players = new List<YargPlayer>();
-            foreach (var frame in Replay.Frames)
+            foreach (var frame in data.Frames)
             {
                 var yargPlayer = new YargPlayer(frame.PlayerInfo.Profile, null, false);
 
-                yargPlayer.SetPresetsFromReplay(Replay.ReplayPresetContainer);
+                yargPlayer.SetPresetsFromReplay(data.ReplayPresetContainer);
                 yargPlayer.EngineParameterOverride = frame.EngineParameters;
 
                 players.Add(yargPlayer);
             }
 
+            ReplayData = data;
             YargPlayers = players;
             return true;
         }
@@ -339,7 +327,7 @@ namespace YARG.Gameplay
                 {
                     index++;
 
-                    if (!IsReplay)
+                    if (ReplayInfo == null)
                     {
                         // Reset microphone (resets channel buffers)
                         // We probably wanna do this no matter what, so put it up here
@@ -352,7 +340,7 @@ namespace YARG.Gameplay
                         continue;
                     }
 
-                    if (!IsReplay)
+                    if (ReplayInfo == null)
                     {
                         // Don't do this if it's a replay, because the replay
                         // would've already set its own presets at this point

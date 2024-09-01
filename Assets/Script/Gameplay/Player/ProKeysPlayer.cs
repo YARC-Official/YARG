@@ -83,7 +83,7 @@ namespace YARG.Gameplay.Player
 
         protected override ProKeysEngine CreateEngine()
         {
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds);

@@ -6,7 +6,9 @@ using UnityEngine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Vocals;
+using YARG.Core.Extensions;
 using YARG.Core.Game;
+using YARG.Core.IO.Disposables;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Song;
@@ -23,27 +25,21 @@ namespace YARG.Replays
         /// Format is YY_MM_DD_RR: Y = year, M = month, D = day, R = revision (reset across dates, only increment
         /// if multiple cache version changes happen in a single day).
         /// </summary>
-        private const int CACHE_VERSION = 23_11_12_01;
-
-        // Arbitrary limit to prevent the game from crashing if someone tries to load a replay with a ridiculous number of players
-        private const int PLAYER_LIMIT = 128;
+        private const int CACHE_VERSION = 24_8_26_02;
 
         public static string ReplayDirectory { get; private set; }
 
         private static string _replayCacheFile;
 
-        private static List<ReplayEntry>               _replays;
-        private static Dictionary<string, ReplayEntry> _replayFileMap;
+        private static Dictionary<HashWrapper, ReplayInfo> _replayHashMap = new();
+        private static Dictionary<string, ReplayInfo> _replayFileMap = new();
 
         private static FileSystemWatcher _watcher;
 
-        public static IReadOnlyList<ReplayEntry> Replays => _replays;
+        public static Dictionary<HashWrapper, ReplayInfo>.ValueCollection Replays => _replayHashMap.Values;
 
         public static void Init()
         {
-            _replays = new List<ReplayEntry>();
-            _replayFileMap = new Dictionary<string, ReplayEntry>();
-
             ReplayDirectory = Path.Combine(PathHelper.PersistentDataPath, "importedReplays");
             _replayCacheFile = Path.Combine(ReplayDirectory, "cache.bin");
 
@@ -68,95 +64,38 @@ namespace YARG.Replays
             WriteReplayCache();
         }
 
-        public static void AddReplay(ReplayEntry replay)
+        public static bool AddEntry(ReplayInfo entry)
         {
-            if (!_replays.Contains(replay) && !_replayFileMap.ContainsKey(replay.ReplayPath))
+            // Ensures the replay is unique
+            if (!_replayHashMap.TryAdd(entry.ReplayChecksum, entry))
             {
-                _replays.Add(replay);
-                _replayFileMap.Add(replay.ReplayPath, replay);
-            }
-        }
-
-        public static void RemoveReplay(ReplayEntry replay)
-        {
-            if (_replays.Contains(replay) && _replayFileMap.ContainsKey(replay.ReplayPath))
-            {
-                _replays.Remove(replay);
-                _replayFileMap.Remove(replay.ReplayPath);
-            }
-        }
-
-        public static ReplayReadResult LoadReplayFile(ReplayEntry entry, out ReplayFile replayFile)
-        {
-            return ReplayIO.ReadReplay(entry.ReplayPath, out replayFile);
-        }
-
-        public static Replay CreateNewReplay(SongEntry song, IList<BasePlayer> players, double replayLength)
-        {
-            var replay = new Replay
-            {
-                SongName = song.Name,
-                ArtistName = song.Artist,
-                CharterName = song.Charter,
-                SongChecksum = song.Hash,
-                ReplayLength = replayLength,
-                Date = DateTime.Now,
-                PlayerCount = players.Count,
-                PlayerNames = new string[players.Count],
-                Frames = new ReplayFrame[players.Count],
-            };
-
-            int bandScore = 0;
-            float bandStars = 0f;
-
-            // Loop through all of the players
-            for (int i = 0; i < players.Count; i++)
-            {
-                var player = players[i];
-
-                replay.PlayerNames[i] = player.Player.Profile.Name;
-                replay.Frames[i] = CreateReplayFrame(i, player);
-
-                bandScore += player.Score;
-                bandStars += player.Stars;
-
-                // Make sure preset files are saved
-                replay.ReplayPresetContainer.StoreColorProfile(player.Player.ColorProfile);
-                replay.ReplayPresetContainer.StoreCameraPreset(player.Player.CameraPreset);
+                return false;
             }
 
-            replay.BandScore = bandScore;
-            replay.BandStars = StarAmountHelper.GetStarsFromInt((int) (bandStars / players.Count));
-
-            return replay;
+            // Possibly was an overwrite (rare)
+            if (!_replayFileMap.TryAdd(entry.FilePath, entry))
+            {
+                var oldEntry = _replayFileMap[entry.FilePath];
+                _replayFileMap[entry.FilePath] = entry;
+                _replayHashMap.Remove(oldEntry.ReplayChecksum);
+            }
+            return true;
         }
 
-        public static ReplayEntry CreateEntryFromReplayFile(ReplayFile replayFile)
+        public static bool RemoveReplay(string path)
         {
-            var replay = replayFile.Replay;
-
-            var entry = new ReplayEntry
+            if (!_replayFileMap.Remove(path, out var replay))
             {
-                SongName = replay.SongName,
-                ArtistName = replay.ArtistName,
-                CharterName = replay.CharterName,
-                BandScore = replay.BandScore,
-                BandStars = replay.BandStars,
-                Date = replay.Date,
-                SongChecksum = replay.SongChecksum,
-                PlayerCount = replay.PlayerCount,
-                PlayerNames = replay.PlayerNames,
-                EngineVersion = replayFile.Header.EngineVersion
-            };
-
-            entry.ReplayPath = Path.Combine(ReplayDirectory, entry.GetReplayName());
-
-            return entry;
+                return false;
+            }
+            _replayHashMap.Remove(replay.ReplayChecksum);
+            return true;
         }
 
         public static void LoadReplayCache()
         {
-            if (!File.Exists(_replayCacheFile))
+            var info = new FileInfo(_replayCacheFile);
+            if (!info.Exists)
             {
                 return;
             }
@@ -165,58 +104,30 @@ namespace YARG.Replays
 
             try
             {
-                using var stream = File.OpenRead(_replayCacheFile);
-                using var reader = new BinaryReader(stream);
+                using var data = MemoryMappedArray.Load(info);
+                using var stream = data.ToStream();
 
-                int version = reader.ReadInt32();
+                int version = stream.Read<int>(Endianness.Little);
                 if (version != CACHE_VERSION)
                 {
                     YargLogger.LogFormatWarning("Replay cache version mismatch: {0} != {1}", version, CACHE_VERSION);
                     return;
                 }
 
-                while (stream.Position < stream.Length)
+                int count = stream.Read<int>(Endianness.Little);
+                for (int i = 0; i < count; i++)
                 {
-                    var replay = new ReplayEntry
+                    string path = stream.ReadString();
+                    var entry = new ReplayInfo(path, stream);
+                    if (File.Exists(path))
                     {
-                        SongName = reader.ReadString(),
-                        ArtistName = reader.ReadString(),
-                        CharterName = reader.ReadString(),
-                        BandScore = reader.ReadInt32(),
-                        BandStars = (StarAmount) reader.ReadByte(),
-                        Date = DateTime.FromBinary(reader.ReadInt64()),
-                        SongChecksum = HashWrapper.Deserialize(reader.BaseStream),
-                        PlayerCount = reader.ReadInt32()
-                    };
-
-                    // Check player count for a limit before allocating a potentially huge array of strings
-                    if (replay.PlayerCount > PLAYER_LIMIT)
-                    {
-                        YargLogger.LogWarning("Replay cache contains a replay with an extremely high player count." +
-                            " The replay cache is corrupted as this is not supported.");
-
-                        throw new Exception($"Replay cache corrupted. Player count too high ({replay.PlayerCount})");
-                    }
-
-                    replay.PlayerNames = new string[replay.PlayerCount];
-
-                    for (int i = 0; i < replay.PlayerNames.Length; i++)
-                    {
-                        replay.PlayerNames[i] = reader.ReadString();
-                    }
-
-                    replay.EngineVersion = reader.ReadInt32();
-                    replay.ReplayPath = reader.ReadString();
-
-                    if (File.Exists(replay.ReplayPath))
-                    {
-                        AddReplay(replay);
+                        AddEntry(entry);
                     }
                 }
             }
             catch (Exception e)
             {
-                _replays.Clear();
+                _replayHashMap.Clear();
                 _replayFileMap.Clear();
                 YargLogger.LogException(e, "Failed to load replay cache");
             }
@@ -228,24 +139,11 @@ namespace YARG.Replays
             using var writer = new NullStringBinaryWriter(stream);
 
             writer.Write(CACHE_VERSION);
-            foreach (var entry in _replays)
+            writer.Write(_replayHashMap.Count);
+            foreach (var (path, entry) in _replayFileMap)
             {
-                writer.Write(entry.SongName);
-                writer.Write(entry.ArtistName);
-                writer.Write(entry.CharterName);
-                writer.Write(entry.BandScore);
-                writer.Write((byte) entry.BandStars);
-                writer.Write(entry.Date.ToBinary());
-                entry.SongChecksum.Serialize(writer);
-
-                writer.Write(entry.PlayerCount);
-                for (int i = 0; i < entry.PlayerCount; i++)
-                {
-                    writer.Write(entry.PlayerNames[i]);
-                }
-
-                writer.Write(entry.EngineVersion);
-                writer.Write(entry.ReplayPath);
+                writer.Write(path);
+                entry.Serialize(writer);
             }
         }
 
@@ -259,17 +157,11 @@ namespace YARG.Replays
                     continue;
                 }
 
-                var result = ReplayIO.ReadReplay(file.FullName, out var replayFile);
-
-                if (result != ReplayReadResult.Valid)
+                var (result, info) = ReplayIO.TryReadMetadata(file.FullName);
+                if (result == ReplayReadResult.Valid || result == ReplayReadResult.MetadataOnly)
                 {
-                    continue;
+                    AddEntry(info);
                 }
-
-                var entry = CreateEntryFromReplayFile(replayFile);
-                entry.ReplayPath = file.FullName;
-
-                AddReplay(entry);
             }
 
             WriteReplayCache();
@@ -283,42 +175,29 @@ namespace YARG.Replays
                 return;
             }
 
-            var result = ReplayIO.ReadReplay(e.FullPath, out var replayFile);
-            var replay = replayFile?.Replay;
-
+            var (result, info)  = ReplayIO.TryReadMetadata(e.FullPath);
             switch (result)
             {
                 case ReplayReadResult.Valid:
-                    YargLogger.LogFormatDebug("Read new replay: {0}", e.Name);
+                    YargLogger.LogFormatDebug("New playable replay: {0}", e.Name);
                     break;
-                case ReplayReadResult.NotAReplay:
-                    YargLogger.LogFormatDebug("{0} is not a YARG Replay.", e.Name);
-                    return;
+                case ReplayReadResult.MetadataOnly:
+                    YargLogger.LogFormatDebug("Out of date replay: {0}", e.Name);
+                    break;
                 case ReplayReadResult.InvalidVersion:
                     YargLogger.LogFormatWarning("{0} has an invalid replay version.", e.Name);
+                    return;
+                case ReplayReadResult.NotAReplay:
+                    YargLogger.LogFormatDebug("{0} is not a YARG Replay.", e.Name);
                     return;
                 case ReplayReadResult.Corrupted:
                     YargLogger.LogFormatWarning("Replay `{0}` is corrupted.", e.Name);
                     return;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new InvalidOperationException();
             }
 
-            var entry = new ReplayEntry
-            {
-                SongName = replay.SongName,
-                ArtistName = replay.ArtistName,
-                CharterName = replay.CharterName,
-                BandScore = replay.BandScore,
-                Date = replay.Date,
-                SongChecksum = replay.SongChecksum,
-                PlayerCount = replay.PlayerCount,
-                PlayerNames = replay.PlayerNames,
-                EngineVersion = replayFile.Header.EngineVersion,
-                ReplayPath = e.FullPath,
-            };
-
-            AddReplay(entry);
+            AddEntry(info);
             WriteReplayCache();
         }
 
@@ -327,48 +206,9 @@ namespace YARG.Replays
             YargLogger.LogFormatDebug("Replay Deleted: ", e.Name);
             if (_replayFileMap.TryGetValue(e.Name, out var value))
             {
-                RemoveReplay(value);
+                RemoveReplay(e.Name);
                 WriteReplayCache();
             }
-        }
-
-        private static ReplayFrame CreateReplayFrame(int id, BasePlayer player)
-        {
-            // Create the replay frame with the stats
-            var frame = player switch
-            {
-                FiveFretPlayer fiveFretPlayer => new ReplayFrame
-                {
-                    Stats = new GuitarStats(fiveFretPlayer.Engine.EngineStats),
-                    EngineParameters = fiveFretPlayer.EngineParams
-                },
-                DrumsPlayer drumsPlayer => new ReplayFrame
-                {
-                    Stats = new DrumsStats(drumsPlayer.Engine.EngineStats),
-                    EngineParameters = drumsPlayer.EngineParams
-                },
-                VocalsPlayer vocalsPlayer => new ReplayFrame
-                {
-                    Stats = new VocalsStats(vocalsPlayer.Engine.EngineStats),
-                    EngineParameters = vocalsPlayer.EngineParams
-                },
-                _ => throw new ArgumentOutOfRangeException(player.GetType().ToString(), "Invalid instrument player.")
-            };
-
-            // Insert other frame information
-
-            frame!.PlayerInfo = new ReplayPlayerInfo
-            {
-                PlayerId = id,
-                Profile = player.Player.Profile,
-            };
-
-            frame.Inputs = player.ReplayInputs.ToArray();
-            frame.InputCount = player.ReplayInputs.Count;
-
-            frame.EventLog = player.BaseEngine.EventLogger;
-
-            return frame;
         }
     }
 }

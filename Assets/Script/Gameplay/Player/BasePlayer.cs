@@ -30,7 +30,7 @@ namespace YARG.Gameplay.Player
                 // If we're in a replay, don't change the note speed (it should be like a video
                 // slowing down/speeding up). The actual song speed should be taken into account though,
                 // which is saved in the engine parameter override.
-                if (GameManager.IsReplay)
+                if (GameManager.ReplayInfo != null)
                 {
                     return noteSpeed / (float) Player.EngineParameterOverride.SongSpeed;
                 }
@@ -115,7 +115,7 @@ namespace YARG.Gameplay.Player
                 SantrollerHaptics = Player.Bindings.GetDevicesByType<ISantrollerHaptics>();
             }
 
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 SubscribeToInputEvents();
             }
@@ -137,9 +137,9 @@ namespace YARG.Gameplay.Player
 
             _noteSpeedDifficultyScale = Player.Profile.CurrentDifficulty.NoteSpeedScale();
 
-            if (GameManager.IsReplay)
+            if (GameManager.ReplayInfo != null)
             {
-                _replayInputs = new List<GameInput>(GameManager.Replay.Frames[index].Inputs);
+                _replayInputs = new List<GameInput>(GameManager.ReplayData.Frames[index].Inputs);
                 YargLogger.LogFormatDebug("Initialized replay inputs with {0} inputs", _replayInputs.Count);
             }
 
@@ -203,7 +203,7 @@ namespace YARG.Gameplay.Player
 
         protected override void GameplayDestroy()
         {
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 UnsubscribeFromInputEvents();
             }
@@ -221,7 +221,7 @@ namespace YARG.Gameplay.Player
             // Video offset is already accounted for
             time += InputCalibration;
 
-            if (GameManager.IsReplay)
+            if (GameManager.ReplayInfo != null)
             {
                 while (_replayInputIndex < ReplayInputs.Count)
                 {
