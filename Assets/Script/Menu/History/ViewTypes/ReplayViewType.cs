@@ -73,50 +73,19 @@ namespace YARG.Menu.History
             return FormatAs(_artistName, TextType.Secondary, selected);
         }
 
-#nullable enable
         public override Sprite? GetIcon()
-#nullable disable
         {
             // TODO: Show "song missing" icon instead when _songEntry is null
             return _sprite;
         }
 
+        // AKA, the Play Replay Button
         public override void ViewClick()
         {
-            if (_songEntry is null) return;
-
-            PlayReplay().Forget();
-        }
-
-        public override void Shortcut1()
-        {
-            if (_songEntry is null) return;
-
-            AnalyzeReplay();
-        }
-
-        public void ExportReplay()
-        {
+            _entry ??= LoadReplay("Cannot Play Replay");
             if (_entry == null)
             {
-                if (!LoadReplay("Cannot Export Replay"))
-                {
-                    return;
-                }
-            }
-
-            // Ask the user for an ending location
-            FileExplorerHelper.OpenSaveFile(null, _entry.ReplayName, "replay", path => File.Copy(_entry.FilePath, path, true));
-        }
-
-        private async UniTaskVoid PlayReplay()
-        {
-            if (_entry == null)
-            {
-                if (!LoadReplay("Cannot Play Replay"))
-                {
-                    return;
-                }
+                return;
             }
 
             // Show warning
@@ -131,14 +100,27 @@ namespace YARG.Menu.History
                         SettingsManager.SaveSettings();
                     });
 
-                await dialog.WaitUntilClosed();
+                dialog.WaitUntilClosed().Forget();
             }
 
             LoadIntoReplay(_entry, _songEntry);
         }
 
-        private void AnalyzeReplay()
+        // Anaylze Replay Button
+        public override void Shortcut1()
         {
+            if (_songEntry == null)
+            {
+                DialogManager.Instance.ShowMessage("Unavailable Song", "A song compatible with the selected play is not present in your library! Most likely deleted!");
+                return;
+            }
+
+            _entry ??= LoadReplay("Cannot Analyze Replay");
+            if (_entry == null)
+            {
+                return;
+            }
+
             var chart = _songEntry.LoadChart();
             if (chart == null)
             {
@@ -154,7 +136,7 @@ namespace YARG.Menu.History
             }
 
             var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
-            for(int i = 0; i < results.Length; i++)
+            for (int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];
 
@@ -171,17 +153,35 @@ namespace YARG.Menu.History
             }
         }
 
+        public void ExportReplay()
+        {
+            _entry ??= LoadReplay("Cannot Export Replay");
+            if (_entry == null)
+            {
+                return;
+            }
+
+            // Ask the user for an ending location
+            FileExplorerHelper.OpenSaveFile(null, _entry!.ReplayName, "replay", path => File.Copy(_entry.FilePath, path, true));
+        }
+
         public override GameInfo? GetGameInfo()
         {
             return _gameInfo;
         }
 
-        private bool LoadReplay(string messageBoxTitle)
+        private ReplayInfo? LoadReplay(string messageBoxTitle)
         {
+            if (_record == null)
+            {
+                YargLogger.LogDebug("Do not use this function with a non-gamerecord view");
+                return null;
+            }
+
             if (_record.ReplayFileName == null)
             {
-                DialogManager.Instance.ShowMessage(messageBoxTitle, "A replay was not created for this score");
-                return false;
+                DialogManager.Instance.ShowMessage(messageBoxTitle, "This playthrough did not generate an accompanying replay!");
+                return null;
             }
 
             // Get the replay path
@@ -190,29 +190,28 @@ namespace YARG.Menu.History
             path = Path.ChangeExtension(path, ".replay");
             if (!File.Exists(path))
             {
-                DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay for this song does not exist. It has probably been deleted.");
-                return false;
+                DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay for this song does not exist! It has probably been deleted!");
+                return null;
             }
 
             // Read
             var (result, entry) = ReplayIO.TryReadMetadata(path);
             if (result != ReplayReadResult.Valid)
             {
-                DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay for this song is most likely corrupted, or out of date.");
-                return false;
+                DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay for this song is most likely corrupted, or out of date!");
+                return null;
             }
 
             // Compare hashes
             var databaseHash = HashWrapper.Create(_record.ReplayChecksum);
             if (!entry.ReplayChecksum.Equals(databaseHash))
             {
-                DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay's hash does not match the hash present in the database. Was the database modified?");
-                return false;
+                DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay's hash does not match the hash present in the database! Was the database modified?");
+                return null;
             }
 
-            _entry = entry;
             ReplayContainer.AddEntry(entry);
-            return true;
+            return entry;
         }
     }
 }
