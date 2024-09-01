@@ -159,7 +159,9 @@ namespace YARG.Menu.ScoreScreen
             }
         }
 
+#nullable enable
         private bool AnalyzeReplay(SongEntry songEntry, ReplayInfo? replayEntry)
+#nullable disable
         {
             _analyzingReplay = true;
 

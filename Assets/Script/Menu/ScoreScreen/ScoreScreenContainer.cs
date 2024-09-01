@@ -20,6 +20,8 @@ namespace YARG.Menu.ScoreScreen
         public int BandStars;
         public int BandScore;
 
+#nullable enable
         public ReplayInfo? ReplayInfo;
+#nullable disable
     }
 }
