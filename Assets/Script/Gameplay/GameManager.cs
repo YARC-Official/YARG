@@ -531,7 +531,7 @@ namespace YARG.Gameplay
                     continue;
                 }
 
-                frames.Add(player.CreateReplayFrame(frames.Count));
+                frames.Add(player.CreateReplayFrame());
                 bandScore += player.Score;
                 bandStars += player.Stars;
 

@@ -386,7 +386,7 @@ namespace YARG.Gameplay.Player
         }
 
 #nullable enable
-        public abstract ReplayFrame? CreateReplayFrame(int id);
+        public abstract ReplayFrame? CreateReplayFrame();
 #nullable disable
     }
 }
