@@ -224,15 +224,10 @@ namespace YARG.Gameplay
             }
 
             // Create YargPlayers from the replay frames
-            var players = new List<YargPlayer>();
-            foreach (var frame in data.Frames)
+            var players = new YargPlayer[data.Frames.Length];
+            for (int i = 0; i < data.Frames.Length; ++i)
             {
-                var yargPlayer = new YargPlayer(frame.Profile, null, false);
-
-                yargPlayer.SetPresetsFromReplay(data);
-                yargPlayer.EngineParameterOverride = frame.EngineParameters;
-
-                players.Add(yargPlayer);
+                players[i] = new YargPlayer(data.Frames[i], data);
             }
 
             ReplayData = data;

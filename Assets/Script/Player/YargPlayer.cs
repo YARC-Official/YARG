@@ -41,6 +41,24 @@ namespace YARG.Player
             SetPresetsFromProfile();
         }
 
+        public YargPlayer(ReplayFrame frame, ReplayData replay)
+        {
+            Profile = frame.Profile;
+            Bindings = null;
+            EngineParameterOverride = frame.EngineParameters;
+
+            EnginePreset = CustomContentManager.EnginePresets.GetPresetById(Profile.EnginePreset)
+                ?? EnginePreset.Default;
+            ThemePreset = CustomContentManager.ThemePresets.GetPresetById(Profile.ThemePreset)
+                ?? ThemePreset.Default;
+            ColorProfile = replay.GetColorProfile(Profile.ColorProfile)
+                ?? CustomContentManager.ColorProfiles.GetPresetById(Profile.ColorProfile)
+                ?? ColorProfile.Default;
+            CameraPreset = replay.GetCameraPreset(Profile.CameraPreset)
+                ?? CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
+                ?? CameraPreset.Default;
+        }
+
         public void SwapToProfile(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
         {
             // Force-disable inputs
@@ -75,21 +93,6 @@ namespace YARG.Player
                 ?? ColorProfile.Default;
             CameraPreset = CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
                 ?? CameraPreset.Default;
-        }
-
-        public void SetPresetsFromReplay(ReplayData replay)
-        {
-            var colorProfile = replay.GetColorProfile(Profile.ColorProfile);
-            if (colorProfile is not null)
-            {
-                ColorProfile = colorProfile;
-            }
-
-            var cameraPreset = replay.GetCameraPreset(Profile.CameraPreset);
-            if (cameraPreset is not null)
-            {
-                CameraPreset = cameraPreset;
-            }
         }
 
         public void EnableInputs()
