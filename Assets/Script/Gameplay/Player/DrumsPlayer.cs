@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -7,6 +8,7 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
@@ -333,5 +335,13 @@ namespace YARG.Gameplay.Player
                 Engine.IsWaitCountdownActive; // Can freestyle during WaitCountdown
             // TODO: add drum fill / BRE conditions
         }
+
+#nullable enable
+        public override ReplayFrame? CreateReplayFrame(int id)
+        {
+            var info = new ReplayPlayerInfo(id, 0/*Currently ignored*/, Player.Profile);
+            return new ReplayFrame(info, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+        }
+#nullable disable
     }
 }

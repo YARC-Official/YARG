@@ -404,8 +404,9 @@ namespace YARG.Gameplay
                 Pause(false);
                 return true;
             }
-
+#nullable enable
             ReplayInfo? replayInfo = null;
+#nullable disable
             try
             {
                 _isReplaySaved = false;
@@ -507,7 +508,9 @@ namespace YARG.Gameplay
             }
         }
 
+#nullable enable
         public ReplayInfo? SaveReplay(double length, string directory)
+#nullable disable
         {
             if (_isReplaySaved)
             {
@@ -528,9 +531,7 @@ namespace YARG.Gameplay
                     continue;
                 }
 
-                var frame = CreateReplayFrame(frames.Count, player);
-                frames.Add(frame);
-
+                frames.Add(player.CreateReplayFrame(frames.Count));
                 bandScore += player.Score;
                 bandStars += player.Stars;
 
@@ -583,35 +584,6 @@ namespace YARG.Gameplay
             {
                 SetPaused(true);
             }
-        }
-
-        private static ReplayFrame CreateReplayFrame(int id, BasePlayer player)
-        {
-            var info = new ReplayPlayerInfo(id, 0/*Currently ignored*/, player.Player.Profile);
-            var inputs = player.ReplayInputs.ToArray();
-
-            return player switch
-            {
-                FiveFretPlayer fiveFretPlayer => new ReplayFrame(
-                    info,
-                    fiveFretPlayer.EngineParams,
-                    new GuitarStats(fiveFretPlayer.Engine.EngineStats),
-                    inputs
-                    ),
-                DrumsPlayer drumsPlayer => new ReplayFrame(
-                    info,
-                    drumsPlayer.EngineParams,
-                    new DrumsStats(drumsPlayer.Engine.EngineStats),
-                    inputs
-                    ),
-                VocalsPlayer vocalsPlayer => new ReplayFrame(
-                    info,
-                    vocalsPlayer.EngineParams,
-                    new VocalsStats(vocalsPlayer.Engine.EngineStats),
-                    inputs
-                    ),
-                _ => throw new ArgumentOutOfRangeException(player.GetType().ToString(), "Invalid instrument player.")
-            };
         }
     }
 }

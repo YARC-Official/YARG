@@ -9,6 +9,7 @@ using YARG.Core.Engine.ProKeys;
 using YARG.Core.Engine.ProKeys.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Replays;
 using YARG.Gameplay.Visuals;
 
 namespace YARG.Gameplay.Player
@@ -495,5 +496,13 @@ namespace YARG.Gameplay.Player
                 }
             }
         }
+
+#nullable enable
+        public override ReplayFrame? CreateReplayFrame(int id)
+        {
+            var info = new ReplayPlayerInfo(id, 0/*Currently ignored*/, Player.Profile);
+            return new ReplayFrame(info, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+        }
+#nullable disable
     }
 }

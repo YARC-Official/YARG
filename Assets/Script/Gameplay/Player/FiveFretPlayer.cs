@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -8,6 +9,7 @@ using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
@@ -269,5 +271,13 @@ namespace YARG.Gameplay.Player
                 GameManager.ChangeStemWhammyPitch(_stem, WhammyFactor);
             }
         }
+
+#nullable enable
+        public override ReplayFrame? CreateReplayFrame(int id)
+        {
+            var info = new ReplayPlayerInfo(id, 0/*Currently ignored*/, Player.Profile);
+            return new ReplayFrame(info, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+        }
+#nullable disable
     }
 }

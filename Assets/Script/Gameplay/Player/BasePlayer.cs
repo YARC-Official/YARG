@@ -7,6 +7,7 @@ using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Helpers.Extensions;
 using YARG.Input;
@@ -383,5 +384,9 @@ namespace YARG.Gameplay.Player
 
             return starScoreThresh;
         }
+
+#nullable enable
+        public abstract ReplayFrame? CreateReplayFrame(int id);
+#nullable disable
     }
 }

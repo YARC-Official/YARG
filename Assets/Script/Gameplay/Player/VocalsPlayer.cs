@@ -9,6 +9,7 @@ using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Engine.Vocals.Engines;
 using YARG.Core.Input;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Input;
@@ -498,5 +499,13 @@ namespace YARG.Gameplay.Player
 
             return (closest, octaveShift);
         }
+
+#nullable enable
+        public override ReplayFrame? CreateReplayFrame(int id)
+        {
+            var info = new ReplayPlayerInfo(id, 0/*Currently ignored*/, Player.Profile);
+            return new ReplayFrame(info, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+        }
+#nullable disable
     }
 }
