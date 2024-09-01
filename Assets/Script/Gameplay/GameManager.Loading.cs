@@ -229,7 +229,7 @@ namespace YARG.Gameplay
             {
                 var yargPlayer = new YargPlayer(frame.PlayerInfo.Profile, null, false);
 
-                yargPlayer.SetPresetsFromReplay(data.ReplayPresetContainer);
+                yargPlayer.SetPresetsFromReplay(data);
                 yargPlayer.EngineParameterOverride = frame.EngineParameters;
 
                 players.Add(yargPlayer);

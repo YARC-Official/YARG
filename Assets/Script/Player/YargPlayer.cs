@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Core.Input;
@@ -77,15 +77,15 @@ namespace YARG.Player
                 ?? CameraPreset.Default;
         }
 
-        public void SetPresetsFromReplay(ReplayPresetContainer presetContainer)
+        public void SetPresetsFromReplay(ReplayData replay)
         {
-            var colorProfile = presetContainer.GetColorProfile(Profile.ColorProfile);
+            var colorProfile = replay.GetColorProfile(Profile.ColorProfile);
             if (colorProfile is not null)
             {
                 ColorProfile = colorProfile;
             }
 
-            var cameraPreset = presetContainer.GetCameraPreset(Profile.CameraPreset);
+            var cameraPreset = replay.GetCameraPreset(Profile.CameraPreset);
             if (cameraPreset is not null)
             {
                 CameraPreset = cameraPreset;

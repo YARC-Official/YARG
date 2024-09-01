@@ -552,8 +552,8 @@ namespace YARG.Gameplay
             }
 
             var stars = StarAmountHelper.GetStarsFromInt((int) (bandStars / frames.Count));
-            var presets = new ReplayPresetContainer(colorProfiles, cameraPresets);
-            var (success, replayInfo) = ReplayIO.TrySerialize(directory, Song, length, bandScore, stars, presets, frames.ToArray());
+            var data = new ReplayData(colorProfiles, cameraPresets, frames.ToArray());
+            var (success, replayInfo) = ReplayIO.TrySerialize(directory, Song, length, bandScore, stars, data);
             if (!success)
             {
                 return null;
