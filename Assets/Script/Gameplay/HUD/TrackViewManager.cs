@@ -60,9 +60,6 @@ namespace YARG.Gameplay.HUD
             // Apply the vocal track texture
             var rt = GameManager.VocalTrack.InitializeRenderTexture(ratio);
             _vocalImage.texture = rt;
-
-            // Create link between VocalTrack and the CountdownDisplay inside of this transform
-            GameManager.VocalTrack.InitializeCountdownDisplay(_vocalsCountdownDisplay);
         }
 
         public VocalsPlayerHUD CreateVocalsPlayerHUD()
