@@ -36,8 +36,10 @@ namespace YARG.Menu.ProfileList
 
         private void OnDisable()
         {
-            PlayerContainer.SaveProfiles();
+            PlayerContainer.EnsureValidInstruments();
 
+            PlayerContainer.SaveProfiles();
+            
             // Update player icons if a profile has changed its GameMode.
             StatsManager.Instance.UpdateActivePlayers();
 

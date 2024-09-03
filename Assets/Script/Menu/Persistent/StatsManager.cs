@@ -232,6 +232,9 @@ namespace YARG.Menu.Persistent
 
         public void UpdateActivePlayers()
         {
+            if (!(IsShowing(Stat.ActivePlayers) || IsShowing(Stat.ActiveBots)))
+                return;
+
             var activeBotCount = PlayerContainer.Players.Count(p => p.Profile.IsBot);
 
             // Only show the bot count if there are active bots.

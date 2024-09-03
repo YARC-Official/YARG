@@ -278,6 +278,9 @@ namespace YARG.Menu.DifficultySelect
 
                     _menuState = State.Main;
                     UpdateForPlayer();
+
+                    // Update the instrument icons on the Status Bar (if enabled)
+                    StatsManager.Instance.UpdateActivePlayers();
                 });
             }
         }

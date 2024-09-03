@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using UnityEngine.InputSystem;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers;
@@ -248,6 +249,17 @@ namespace YARG.Player
             while (_players.Count > 0)
             {
                 DisposePlayer(_players[0]);
+            }
+        }
+
+        public static void EnsureValidInstruments()
+        {
+            foreach (var profile in _profiles)
+            {
+                if (!profile.HasValidInstrument)
+                {
+                    profile.CurrentInstrument =  profile.GameMode.PossibleInstruments()[0];
+                }
             }
         }
     }
