@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Core.Logging;
 using YARG.Gameplay;
 using Random = UnityEngine.Random;
 
@@ -67,7 +65,7 @@ namespace YARG.Integration
             MasterLightingController.Initializer(SceneManager.GetActiveScene());
 
             // This should be read from the venue itself eventually, but for now, we'll just randomize it.
-            MasterLightingController.MLCVenue = (MasterLightingController.VenueType)Random.Range(1, 2);
+            MasterLightingController.MLCVenue = (MasterLightingController.VenueType) Random.Range(1, 2);
             Venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
@@ -200,7 +198,6 @@ namespace YARG.Integration
                 MasterLightingController.MLCPaused = MasterLightingController.PauseStateType.Unpaused;
             }
 
-
             // Instrument events
             MasterLightingController.MLCCurrentDrumNotes = DrumsEventChecker(_drums, ref _drumIndex);
             MasterLightingController.MLCCurrentGuitarNotes = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
@@ -249,7 +246,7 @@ namespace YARG.Integration
             // Beatline events
             while (_syncIndex < _sync.Beatlines.Count && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
             {
-                MasterLightingController.MLCCurrentBeat = (byte)_sync.Beatlines[_syncIndex].Type;
+                MasterLightingController.MLCCurrentBeat = (byte) _sync.Beatlines[_syncIndex].Type;
                 _syncIndex++;
             }
 
@@ -285,10 +282,8 @@ namespace YARG.Integration
                         break;
 
                     default:
-                        // Okay so this a bit odd. The stage kit never has the strobe on with a lighting cue.
+                        // The stage kit never has the strobe on with a lighting cue.
                         // But the Strobe_Off event is almost never used, relying instead on the cue change to turn it off.
-                        // So this technically should be in the stage kit lighting controller code but I don't want the
-                        // stage kit reaching into this main lighting controller.So we'll just turn it off here.
                         MasterLightingController.MLCStrobeState = LightingType.Strobe_Off;
                         MasterLightingController.CurrentLightingCue = Venue.Lighting[LightingIndex];
                         break;
