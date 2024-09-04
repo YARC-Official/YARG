@@ -385,8 +385,6 @@ namespace YARG.Gameplay.Player
             return starScoreThresh;
         }
 
-#nullable enable
-        public abstract ReplayFrame? CreateReplayFrame();
-#nullable disable
+        public abstract (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData();
     }
 }

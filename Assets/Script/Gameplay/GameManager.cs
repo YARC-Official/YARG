@@ -518,6 +518,7 @@ namespace YARG.Gameplay
             }
 
             var frames = new List<ReplayFrame>(_players.Count);
+            var replayStats = new List<ReplayStats>(_players.Count);
             var colorProfiles = new Dictionary<Guid, ColorProfile>();
             var cameraPresets = new Dictionary<Guid, CameraPreset>();
 
@@ -531,7 +532,9 @@ namespace YARG.Gameplay
                     continue;
                 }
 
-                frames.Add(player.CreateReplayFrame());
+                var (frame, stats) = player.ConstructReplayData();
+                frames.Add(frame);
+                replayStats.Add(stats);
                 bandScore += player.Score;
                 bandStars += player.Stars;
 
@@ -553,7 +556,7 @@ namespace YARG.Gameplay
 
             var stars = StarAmountHelper.GetStarsFromInt((int) (bandStars / frames.Count));
             var data = new ReplayData(colorProfiles, cameraPresets, frames.ToArray());
-            var (success, replayInfo) = ReplayIO.TrySerialize(directory, Song, length, bandScore, stars, data);
+            var (success, replayInfo) = ReplayIO.TrySerialize(directory, Song, length, bandScore, stars, replayStats.ToArray(), data);
             if (!success)
             {
                 return null;

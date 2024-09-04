@@ -497,11 +497,10 @@ namespace YARG.Gameplay.Player
             }
         }
 
-#nullable enable
-        public override ReplayFrame? CreateReplayFrame()
+        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
         {
-            return new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
         }
-#nullable disable
     }
 }
