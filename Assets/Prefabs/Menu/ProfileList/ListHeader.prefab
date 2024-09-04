@@ -147,7 +147,6 @@ GameObject:
   - component: {fileID: 5753369685943773596}
   - component: {fileID: 5418030377928633389}
   - component: {fileID: 9115088283461521973}
-  - component: {fileID: 218248417518123082}
   m_Layer: 5
   m_Name: ListHeader
   m_TagString: Untagged
@@ -214,16 +213,3 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &218248417518123082
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5753369685943773599}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6599b23dcd7e25f4c9f99e722f97d2c2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _textComponent: {fileID: 5753369685925887171}

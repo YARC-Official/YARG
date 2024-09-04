@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
@@ -53,19 +54,17 @@ namespace YARG.Menu.ProfileList
             _profileList.transform.DestroyChildren();
             _navigationGroup.ClearNavigatables();
 
-            // Is there a better way of doing this?
             var activeProfiles = PlayerContainer.Players.Select(e => e.Profile).OrderBy(e => e.Name).ToArray();
             var otherProfiles = PlayerContainer.Profiles.Except(activeProfiles).OrderBy(e => e.Name).ToArray();
             AddListGroup("Active Profiles", activeProfiles);
             AddListGroup("Players", otherProfiles.Where(e => !e.IsBot));
             AddListGroup("Bots", otherProfiles.Where(e => e.IsBot));
-
         }
 
         private void AddListGroup(string header, IEnumerable<YargProfile> profiles)
         {
             var headerGo = Instantiate(_profileListHeaderPrefab, _profileList);
-            headerGo.GetComponent<ListHeader>().Text = header;
+            headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
             _navigationGroup.AddNavigatable(headerGo);
 
             // Spawn in a profile view for each player
