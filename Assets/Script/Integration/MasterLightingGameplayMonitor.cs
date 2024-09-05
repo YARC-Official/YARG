@@ -262,30 +262,29 @@ namespace YARG.Integration
                 switch (Venue.Lighting[LightingIndex].Type)
                 {
                     case LightingType.Strobe_Off:
-                        MasterLightingController.MLCStrobeState = LightingType.Strobe_Off;
-                        break;
-
                     case LightingType.Strobe_Fast:
-                        MasterLightingController.MLCStrobeState = LightingType.Strobe_Fast;
-                        break;
-
                     case LightingType.Strobe_Medium:
-                        MasterLightingController.MLCStrobeState = LightingType.Strobe_Medium;
-                        break;
-
                     case LightingType.Strobe_Slow:
-                        MasterLightingController.MLCStrobeState = LightingType.Strobe_Slow;
+                    case LightingType.Strobe_Fastest:
+                        MasterLightingController.MLCStrobeState = Venue.Lighting[LightingIndex].Type;
                         break;
 
-                    case LightingType.Strobe_Fastest:
-                        MasterLightingController.MLCStrobeState = LightingType.Strobe_Fastest;
+                    case LightingType.Keyframe_First:
+                    case LightingType.Keyframe_Next:
+                    case LightingType.Keyframe_Previous:
+                        MasterLightingController.MLCCurrentLightingCue = Venue.Lighting[LightingIndex];
+                        break;
+
+                    case LightingType.Verse:
+                    case LightingType.Chorus:
+                        MasterLightingController.MLCCurrentSongSection = Venue.Lighting[LightingIndex].Type;
                         break;
 
                     default:
                         // The stage kit never has the strobe on with a lighting cue.
                         // But the Strobe_Off event is almost never used, relying instead on the cue change to turn it off.
                         MasterLightingController.MLCStrobeState = LightingType.Strobe_Off;
-                        MasterLightingController.CurrentLightingCue = Venue.Lighting[LightingIndex];
+                        MasterLightingController.MLCCurrentLightingCue = Venue.Lighting[LightingIndex];
                         break;
                 }
 

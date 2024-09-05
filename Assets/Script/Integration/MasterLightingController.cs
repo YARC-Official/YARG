@@ -34,7 +34,7 @@ namespace YARG.Integration
             public float CurrentHarmony1Note;
             public float CurrentHarmony2Note;
 
-            public LightingType LightingCue;
+            public LightingEvent LightingCue;
             public PostProcessingType PostProcessing;
             public bool FogState;
             public LightingType StrobeState;
@@ -111,40 +111,16 @@ namespace YARG.Integration
         public static float MLCCurrentBPM;
         public static byte MLCCurrentBeat;
         public static LightingType MLCKeyframe;
-        public static LightingType MLCCurrentLightingCue;
+        public static LightingEvent MLCCurrentLightingCue;
         public static PostProcessingType MLCPostProcessing;
 
         public static ushort MLCudpPort;
         public static string MLCudpIP;
 
-        public static LightingEvent CurrentLightingCue
-        {
-            get => _currentLightingCue;
-
-            set
-            {
-                // Could probably move this into the gameplay monitor
-
-                // This is for the debug menu
-                _currentLightingCue = value;
-
-                //Keyframes are indicators and not really lighting cues themselves, also chorus and verse act more as modifiers and section labels and also not really lighting cues, they can be stacked under a lighting cue.
-                if (value.Type is not (LightingType.Keyframe_Next or LightingType.Keyframe_Previous
-                    or LightingType.Keyframe_First or LightingType.Chorus or LightingType.Verse))
-                {
-                    MLCCurrentLightingCue = value.Type;
-                }
-                else if (value.Type is LightingType.Keyframe_Next or LightingType.Keyframe_Previous
-                    or LightingType.Keyframe_First)
-                {
-                    MLCKeyframe = value.Type;
-                }
-                else if (value.Type is LightingType.Verse or LightingType.Chorus)
-                {
-                    MLCCurrentSongSection = value.Type;
-                }
-            }
-        }
+        // Save some allocations by setting this up here.
+        private static LightingEvent MenuLightingCue = new(LightingType.Menu, 0, 0);
+        private static LightingEvent ScoreLightingCue = new(LightingType.Score, 0, 0);
+        private static LightingEvent NoLightingCue = new(LightingType.NoCue, 0, 0);
 
         private void Start()
         {
@@ -229,6 +205,8 @@ namespace YARG.Integration
             MLCKeyframe = 0;
             MLCBonusFX = false;
 
+            MLCCurrentLightingCue = NoLightingCue;
+
             switch ((SceneIndex) scene.buildIndex)
             {
                 case SceneIndex.Gameplay:
@@ -236,7 +214,7 @@ namespace YARG.Integration
                     break;
 
                 case SceneIndex.Menu:
-                    CurrentLightingCue = new LightingEvent(LightingType.Menu, 0, 0);
+                    MLCCurrentLightingCue = MenuLightingCue;
                     MLCSceneIndex = SceneIndexByte.Menu;
                     break;
 
@@ -245,7 +223,7 @@ namespace YARG.Integration
                     break;
 
                 case SceneIndex.Score:
-                    CurrentLightingCue = new LightingEvent(LightingType.Score, 0, 0);
+                    MLCCurrentLightingCue = ScoreLightingCue;
                     MLCSceneIndex = SceneIndexByte.Score;
                     break;
 
@@ -307,7 +285,7 @@ namespace YARG.Integration
                 _writer.Write(message.CurrentHarmony1Note); //float
                 _writer.Write(message.CurrentHarmony2Note); //float
 
-                _writer.Write((byte) message.LightingCue);
+                _writer.Write((byte) message.LightingCue.Type);
                 _writer.Write((byte) message.PostProcessing);
                 _writer.Write(message.FogState); //bool
                 _writer.Write((byte) message.StrobeState);

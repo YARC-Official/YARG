@@ -443,8 +443,8 @@ namespace YARG.Gameplay
 
                 // Explicit check instead of using ?, as nullable enum types are not specially
                 // formatted by ZString to avoid allocations (while non-nullable enums are)
-                if (MasterLightingController.CurrentLightingCue != null)
-                    text.AppendFormat("Lighting event: {0}\n", MasterLightingController.CurrentLightingCue.Type);
+                if (MasterLightingController.MLCCurrentLightingCue != null)
+                    text.AppendFormat("Lighting event: {0}\n", MasterLightingController.MLCCurrentLightingCue.Type);
                 else
                     text.Append("Lighting event: None\n");
 
