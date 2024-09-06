@@ -25,7 +25,7 @@ namespace YARG.Replays
         /// Format is YY_MM_DD_RR: Y = year, M = month, D = day, R = revision (reset across dates, only increment
         /// if multiple cache version changes happen in a single day).
         /// </summary>
-        private const int CACHE_VERSION = 24_09_04_02;
+        private const int CACHE_VERSION = 24_09_05_01;
 
         public static string ReplayDirectory { get; private set; }
 
