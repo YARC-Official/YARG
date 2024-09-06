@@ -6,6 +6,7 @@ using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Player;
 
@@ -56,13 +57,18 @@ namespace YARG.Menu.ProfileList
 
             var activeProfiles = PlayerContainer.Players.Select(e => e.Profile).OrderBy(e => e.Name).ToArray();
             var otherProfiles = PlayerContainer.Profiles.Except(activeProfiles).OrderBy(e => e.Name).ToArray();
-            AddListGroup("Active Profiles", activeProfiles);
-            AddListGroup("Players", otherProfiles.Where(e => !e.IsBot));
-            AddListGroup("Bots", otherProfiles.Where(e => e.IsBot));
+            AddListGroup(Localize.Key("Menu.ProfileList.ActiveProfiles"), activeProfiles);
+            AddListGroup(Localize.Key("Menu.ProfileList.Players"), otherProfiles.Where(e => !e.IsBot));
+            AddListGroup(Localize.Key("Menu.ProfileList.Bots"), otherProfiles.Where(e => e.IsBot));
         }
 
         private void AddListGroup(string header, IEnumerable<YargProfile> profiles)
         {
+            if (!profiles.Any())
+            {
+                return;
+            }
+
             var headerGo = Instantiate(_profileListHeaderPrefab, _profileList);
             headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
             _navigationGroup.AddNavigatable(headerGo);
