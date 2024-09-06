@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -35,6 +35,10 @@ namespace YARG.Gameplay.Player
                 float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
                 Min = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), minPitch);
                 Max = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), maxPitch);
+
+                var rangePadding = (Max - Min) * RANGE_PADDING_PERCENT;
+                Min -= rangePadding;
+                Max += rangePadding;
             }
         }
 
@@ -48,20 +52,43 @@ namespace YARG.Gameplay.Player
             new(1f, 0.859f, 0f, 1f)
         };
 
-        // Time offset relative to 1.0 note speed
+        /// <summary>
+        /// Time offset relative to 1.0 note speed
+        /// </summary>
         public const float SPAWN_TIME_OFFSET = 25f;
 
         public float SpawnTimeOffset => SPAWN_TIME_OFFSET / TrackSpeed;
 
-        private const float TRACK_TOP = 0.90f;
-        private const float TRACK_TOP_HARMONY = 0.53f;
+        /// <summary>
+        /// The top edge of the vocal highway track when playing without harmonies (excluding the lyric track)
+        /// </summary>
+        private const float TRACK_TOP = 1.25f;
 
-        private const float TRACK_BOTTOM = -0.53f;
+        /// <summary>
+        /// The top edge of the vocal highway track when harmonies are enabled (excluding the lyric tracks)
+        /// </summary>
+        private const float TRACK_TOP_HARMONY = 0.64f;
+
+        /// <summary>
+        /// The bottom edge of the vocal highway track (excluding the lyric track)
+        /// </summary>
+        private const float TRACK_BOTTOM = -0.63f;
+
+        /// <summary>
+        /// The amount of additional padding to apply to the visible semi-tone range, expressed as a percentage.
+        /// </summary>
+        private const float RANGE_PADDING_PERCENT = 0.1f;
 
         private const float NOTE_WIDTH_MULTIPLIER = 1.5f;
 
+        /// <summary>
+        /// The minimum vocal range that should be displayed on the vocal highway, in semi-tones.
+        /// </summary>
         private const float MINIMUM_SEMITONE_RANGE = 20;
 
+        /// <summary>
+        /// The minimum amount of time a vocal range shift should take, in seconds.
+        /// </summary>
         private const double MINIMUM_SHIFT_TIME = 0.25;
 
         [SerializeField]
@@ -76,6 +103,10 @@ namespace YARG.Gameplay.Player
         private Material _twoLaneHarmonyTrackMaterial;
         [SerializeField]
         private Material _threeLaneHarmonyTrackMaterial;
+        [SerializeField]
+        private MeshRenderer _soloGuidelineRenderer;
+        [SerializeField]
+        private MeshRenderer _harmonyGuidelineRenderer;
 
         [Space]
         [SerializeField]
@@ -106,13 +137,14 @@ namespace YARG.Gameplay.Player
         private Pool _phraseLinePool;
 
         private readonly List<VocalsPlayer> _vocalPlayers = new();
-        private bool _currentStarpowerState;
 
         private float _currentTrackTop = TRACK_TOP;
         private Material _starpowerMaterial;
 
         private VocalsTrack _originalVocalsTrack;
         private VocalsTrack _vocalsTrack;
+
+        private Material _guidelineMaterial;
 
         private bool _isRangeChanging;
         private Range _viewRange;
@@ -194,6 +226,10 @@ namespace YARG.Gameplay.Player
                 _soloStarpowerOverlay.gameObject.SetActive(false);
                 _harmonyStarpowerOverlay.gameObject.SetActive(true);
                 _starpowerMaterial = _harmonyStarpowerOverlay.material;
+
+                _soloGuidelineRenderer.gameObject.SetActive(false);
+                _harmonyGuidelineRenderer.gameObject.SetActive(true);
+                _guidelineMaterial = _harmonyGuidelineRenderer.material;
             }
             else
             {
@@ -201,6 +237,10 @@ namespace YARG.Gameplay.Player
                 _harmonyStarpowerOverlay.gameObject.SetActive(false);
                 _soloStarpowerOverlay.gameObject.SetActive(true);
                 _starpowerMaterial = _soloStarpowerOverlay.material;
+
+                _harmonyGuidelineRenderer.gameObject.SetActive(false);
+                _soloGuidelineRenderer.gameObject.SetActive(true);
+                _guidelineMaterial = _soloGuidelineRenderer.material;
             }
 
             // this should never happen, yell in the logs if it does
@@ -283,6 +323,7 @@ namespace YARG.Gameplay.Player
                     _isRangeChanging = false;
                     _viewRange.Min = _targetRange.Min;
                     _viewRange.Max = _targetRange.Max;
+                    UpdateHighwayGuidelines();
                 }
                 else
                 {
@@ -291,6 +332,7 @@ namespace YARG.Gameplay.Player
 
                     _viewRange.Min = newMin;
                     _viewRange.Max = newMax;
+                    UpdateHighwayGuidelines();
                 }
 
                 // Update notes to match new range values
@@ -326,8 +368,19 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        private void UpdateHighwayGuidelines()
+        {
+            const int DEFAULT_GUIDELINE_SCALE = 24;     // The semi-tone range of the guideline texture
+
+            var scale = (_viewRange.Max - _viewRange.Min) / DEFAULT_GUIDELINE_SCALE;
+            var offset = (_viewRange.Min % DEFAULT_GUIDELINE_SCALE) / DEFAULT_GUIDELINE_SCALE;
+            _guidelineMaterial.mainTextureOffset = new Vector2(1, offset);
+            _guidelineMaterial.mainTextureScale = new Vector2(1, scale);
+        }
+
         private void SetRange(VocalsRangeShift range)
         {
+
             _previousRange = _viewRange;
             _targetRange = new Range(range);
             _viewRange = _targetRange;

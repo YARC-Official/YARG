@@ -328,7 +328,10 @@ namespace YARG.Gameplay.Player
 
         private bool IsDrumFreestyle()
         {
-            return Engine.NoteIndex == 0 || Engine.NoteIndex >= Notes.Count; // TODO: add drum fill / BRE conditions
+            return Engine.NoteIndex == 0 || // Can freestyle before first note is hit/missed
+                Engine.NoteIndex >= Notes.Count || // Can freestyle after last note
+                Engine.IsWaitCountdownActive; // Can freestyle during WaitCountdown
+            // TODO: add drum fill / BRE conditions
         }
     }
 }
