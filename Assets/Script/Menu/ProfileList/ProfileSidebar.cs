@@ -30,7 +30,8 @@ namespace YARG.Menu.ProfileList
             GameMode.FourLaneDrums,
             GameMode.FiveLaneDrums,
             GameMode.Vocals,
-            GameMode.ProKeys
+            GameMode.ProKeys,
+            GameMode.ProGuitar
         };
 
         [SerializeField]
