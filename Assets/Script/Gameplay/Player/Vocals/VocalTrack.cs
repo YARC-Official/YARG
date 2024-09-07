@@ -259,13 +259,6 @@ namespace YARG.Gameplay.Player
             AllowStarPower = true;
         }
 
-        public void InitializeCountdownDisplay(CountdownDisplay newPrefabInstance)
-        {
-            // The CountdownDisplay for VocalTrack lives inside of TrackViewManager's transform
-            // to prevent stretching the countdown circle into an oval when resizing the track
-            _countdownDisplay = newPrefabInstance;
-        }
-
         public VocalsPlayer CreatePlayer()
         {
             var player = Instantiate(_vocalPlayerPrefab, _playerContainer);
