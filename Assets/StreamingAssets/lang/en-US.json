@@ -267,8 +267,11 @@
         },
         "ProfileList": {
             "Name": "Profiles",
+            "ActiveProfiles" : "Active Profiles",
             "AddBot": "Add Bot",
-            "AddProfile": "Add Profile"
+            "AddProfile": "Add Profile",
+            "Bots" : "Bots",
+            "Players" : "Players"
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
