@@ -42,14 +42,26 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            ToggleDisplay(measuresLeft > WaitCountdown.END_COUNTDOWN_MEASURE);
+            double currentTime = GameManager.SongTime;
+
+            bool shouldDisplay = measuresLeft > WaitCountdown.END_COUNTDOWN_MEASURE;
+            if (GameManager.IsPractice)
+            {
+                double sectionStartTime = GameManager.PracticeManager.TimeStart;
+                if (currentTime <= sectionStartTime)
+                {
+                    // Do not show a countdown before the start of a practice section
+                    // where all of the notes before that section are removed for practice stats
+                    shouldDisplay = false;
+                }
+            }
+
+            ToggleDisplay(shouldDisplay);
             
             if (!gameObject.activeSelf)
             {
                 return;
             }
-            
-            double currentTime = GameManager.SongTime;
 
             int displayNumber = DisplayStyle switch
             {
@@ -87,6 +99,7 @@ namespace YARG.Gameplay.HUD
             {
                 _canvasGroup.alpha = 0f;
                 gameObject.SetActive(true);
+
                 _currentCoroutine = StartCoroutine(ShowCoroutine());
             }
             else
