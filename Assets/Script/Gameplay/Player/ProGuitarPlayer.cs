@@ -38,6 +38,8 @@ namespace YARG.Gameplay.Player
 
         public float WhammyFactor { get; private set; }
 
+        protected override bool AllowTheming => false;
+
         private SongStem _stem;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,

@@ -143,6 +143,8 @@ namespace YARG.Gameplay.Player
 
         private InstrumentDifficulty<TNote> OriginalNoteTrack { get; set; }
 
+        protected virtual bool AllowTheming => true;
+
         private int _currentMultiplier;
         private int _previousMultiplier;
 
@@ -190,6 +192,11 @@ namespace YARG.Gameplay.Player
 
         private void SetupTheme(GameMode gameMode)
         {
+            if (!AllowTheming)
+            {
+                return;
+            }
+
             var themePrefab = ThemeManager.Instance.CreateNotePrefabFromTheme(
                 Player.ThemePreset, gameMode, NotePool.Prefab);
             NotePool.SetPrefabAndReset(themePrefab);

@@ -22,6 +22,7 @@
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=assets_005Cscript_005Cgameplay_005Cvisuals_005Ctrackelements/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=assets_005Cscript_005Cgameplay_005Cvisuals_005Ctrackelements_005Cdrums/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=assets_005Cscript_005Cgameplay_005Cvisuals_005Ctrackelements_005Cguitar/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=assets_005Cscript_005Cgameplay_005Cvisuals_005Ctrackelements_005Cproguitar/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=assets_005Cscript_005Cgameplay_005Cvisuals_005Ctrackelements_005Cprokeys/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=assets_005Cscript_005Cgameplay_005Cvisuals_005Cvocalelements/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=assets_005Cscript_005Cgameplay_005Cvisuals_005Cvocals/@EntryIndexedValue">True</s:Boolean>

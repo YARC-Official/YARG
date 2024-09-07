@@ -10,6 +10,7 @@ using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Settings;
 

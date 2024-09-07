@@ -67,6 +67,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: ProGuitarVisual
       objectReference: {fileID: 0}
+    - target: {fileID: 3161527738386327264, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: <Prefab>k__BackingField
+      value: 
+      objectReference: {fileID: 861361446070616044, guid: 0d7d9012c6505f74aa7242e00f4be271,
+        type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
 --- !u!114 &407167691443906637 stripped
