@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Helpers.Extensions;
@@ -20,6 +20,8 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _layer4ColorProperty = Shader.PropertyToID("_Layer_4_Color");
 
         private static readonly int _soloStateProperty = Shader.PropertyToID("_Solo_State");
+
+        private static readonly int _starPowerColorProperty = Shader.PropertyToID("_Starpower_Color");
 
         public struct Preset
         {
@@ -146,7 +148,7 @@ namespace YARG.Gameplay.Visuals
             };
         }
 
-        public void Initialize(float fadePos, float fadeSize)
+        public void Initialize(float fadePos, float fadeSize, Color starPowerColor)
         {
             // Set all fade values
             _material.SetFade(fadePos, fadeSize);
@@ -154,6 +156,8 @@ namespace YARG.Gameplay.Visuals
             {
                 trimMat.SetFade(fadePos, fadeSize);
             }
+
+            _material.SetColor(_starPowerColorProperty, starPowerColor );
         }
 
         private void Update()

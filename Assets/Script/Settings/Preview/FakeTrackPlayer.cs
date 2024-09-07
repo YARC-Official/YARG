@@ -265,8 +265,9 @@ namespace YARG.Settings.Preview
             var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
             var enginePreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.EnginePresets);
 
+            var currentColorProfile = CurrentGameModeInfo.FretColorProvider(colorProfile);
             // Update camera presets
-            _trackMaterial.Initialize(3f, cameraPreset.FadeLength);
+            _trackMaterial.Initialize(3f, cameraPreset.FadeLength, currentColorProfile.GetFretColor(2));
             _cameraPositioner.Initialize(cameraPreset);
 
             // Update color profiles
