@@ -254,6 +254,7 @@ namespace YARG.Player
 
         public static void EnsureValidInstruments()
         {
+            /*
             foreach (var profile in _profiles)
             {
                 if (!profile.HasValidInstrument)
@@ -261,6 +262,7 @@ namespace YARG.Player
                     profile.CurrentInstrument =  profile.GameMode.PossibleInstruments()[0];
                 }
             }
+            */
         }
     }
 }
