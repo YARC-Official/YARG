@@ -152,9 +152,30 @@ namespace YARG.Gameplay.Player
             // _fretArray.ResetAll();
         }
 
+        protected override bool CanSpawnNoteAndChildren(ProGuitarNote note)
+        {
+            return NotePool.CanSpawnAmount(1);
+        }
+
+        protected override void SpawnNoteAndChildren(ProGuitarNote note)
+        {
+            // For pro guitar, each chord is one object, so we must override this so only the
+            // chord parent gets spawned.
+
+            var poolable = NotePool.KeyedTakeWithoutEnabling(note);
+            if (poolable == null)
+            {
+                YargLogger.LogWarning("Attempted to spawn note, but it's at its cap!");
+                return;
+            }
+
+            InitializeSpawnedNote(poolable, note);
+            poolable.EnableFromPool();
+        }
+
         protected override void InitializeSpawnedNote(IPoolable poolable, ProGuitarNote note)
         {
-            // ((FiveFretNoteElement) poolable).NoteRef = note;
+            ((ProGuitarNoteElement) poolable).ChordRef = note;
         }
 
         protected override void OnNoteHit(int index, ProGuitarNote chordParent)

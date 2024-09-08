@@ -19,6 +19,7 @@ namespace YARG.Gameplay.Visuals
         {
             foreach (var note in ChordRef.AllNotes)
             {
+                _textObjects[note.String].gameObject.SetActive(true);
                 _textObjects[note.String].text = ZString.Format("{0}", note.Fret);
             }
         }

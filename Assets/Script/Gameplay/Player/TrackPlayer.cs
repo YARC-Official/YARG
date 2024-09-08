@@ -297,8 +297,7 @@ namespace YARG.Gameplay.Player
             {
                 var note = Notes[NoteIndex];
 
-                // Skip this frame if the pool is full
-                if (!NotePool.CanSpawnAmount(note.ChildNotes.Count + 1))
+                if (!CanSpawnNoteAndChildren(note))
                 {
                     break;
                 }
@@ -313,11 +312,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                // Spawn all of the notes and child notes
-                foreach (var child in note.AllNotes)
-                {
-                    SpawnNote(child);
-                }
+                SpawnNoteAndChildren(note);
             }
         }
 
@@ -402,17 +397,26 @@ namespace YARG.Gameplay.Player
             base.SetReplayTime(time);
         }
 
-        protected void SpawnNote(TNote note)
+        protected virtual bool CanSpawnNoteAndChildren(TNote note)
         {
-            var poolable = NotePool.KeyedTakeWithoutEnabling(note);
-            if (poolable == null)
-            {
-                YargLogger.LogWarning("Attempted to spawn note, but it's at its cap!");
-                return;
-            }
+            return NotePool.CanSpawnAmount(note.ChildNotes.Count + 1);
+        }
 
-            InitializeSpawnedNote(poolable, note);
-            poolable.EnableFromPool();
+        protected virtual void SpawnNoteAndChildren(TNote note)
+        {
+            // Spawn all of the notes and child notes
+            foreach (var child in note.AllNotes)
+            {
+                var poolable = NotePool.KeyedTakeWithoutEnabling(child);
+                if (poolable == null)
+                {
+                    YargLogger.LogWarning("Attempted to spawn note, but it's at its cap!");
+                    return;
+                }
+
+                InitializeSpawnedNote(poolable, child);
+                poolable.EnableFromPool();
+            }
         }
 
         protected abstract void InitializeSpawnedNote(IPoolable poolable, TNote note);
