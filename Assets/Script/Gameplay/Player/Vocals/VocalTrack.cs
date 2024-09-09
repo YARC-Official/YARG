@@ -381,6 +381,8 @@ namespace YARG.Gameplay.Player
             _changeStartTime = range.Time;
             _changeEndTime = range.Time;
             _isRangeChanging = false;
+
+            UpdateHighwayGuidelines();
         }
 
         private void StartRangeChange(VocalsRangeShift range)
@@ -391,6 +393,8 @@ namespace YARG.Gameplay.Player
             _changeStartTime = range.Time;
             _changeEndTime = range.Time + Math.Max(MINIMUM_SHIFT_TIME, range.TimeLength);
             _isRangeChanging = true;
+
+            // UpdateHighwayGuidelines() is not needed here as it is handled in Update().
         }
 
         public float GetPosForTime(double time)
