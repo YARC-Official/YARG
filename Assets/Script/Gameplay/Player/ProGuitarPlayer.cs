@@ -76,7 +76,7 @@ namespace YARG.Gameplay.Player
                     isBass ? EnginePreset.BASS_MAX_MULTIPLIER : EnginePreset.DEFAULT_MAX_MULTIPLIER,
                     EnginePreset.DEFAULT_WHAMMY_BUFFER,
                     EnginePreset.DEFAULT_SUSTAIN_DROP_LENIENCY,
-                    StarMultiplierThresholds);
+                    StarMultiplierThresholds, 0.08);
             }
             else
             {
