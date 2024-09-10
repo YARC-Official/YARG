@@ -53,6 +53,7 @@ MonoBehaviour:
   - {fileID: 5561174260732228344}
   - {fileID: 5753860762872506702}
   - {fileID: 7390696232965524026}
+  _chordMeshParent: {fileID: 8200097100987288837}
 --- !u!1 &2733895140620921434
 GameObject:
   m_ObjectHideFlags: 0

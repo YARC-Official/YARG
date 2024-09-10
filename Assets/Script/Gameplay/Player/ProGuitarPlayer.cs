@@ -184,19 +184,7 @@ namespace YARG.Gameplay.Player
 
             if (GameManager.Paused) return;
 
-            // foreach (var note in chordParent.AllNotes)
-            // {
-            //     (NotePool.GetByKey(note) as FiveFretNoteElement)?.HitNote();
-            //
-            //     if (note.Fret != (int) FiveFretGuitarFret.Open)
-            //     {
-            //         _fretArray.PlayHitAnimation(note.Fret - 1);
-            //     }
-            //     else
-            //     {
-            //         _fretArray.PlayOpenHitAnimation();
-            //     }
-            // }
+            (NotePool.GetByKey(chordParent) as ProGuitarNoteElement)?.HitNote();
         }
 
         protected override void OnNoteMissed(int index, ProGuitarNote chordParent)

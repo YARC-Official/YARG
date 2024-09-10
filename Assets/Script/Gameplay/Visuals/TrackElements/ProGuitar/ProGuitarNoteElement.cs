@@ -14,9 +14,13 @@ namespace YARG.Gameplay.Visuals
 
         [SerializeField]
         private TextMeshPro[] _textObjects;
+        [SerializeField]
+        private GameObject _chordMeshParent;
 
         protected override void InitializeElement()
         {
+            _chordMeshParent.SetActive(true);
+
             foreach (var note in ChordRef.AllNotes)
             {
                 _textObjects[note.String].gameObject.SetActive(true);
@@ -30,10 +34,17 @@ namespace YARG.Gameplay.Visuals
 
         protected override void HideElement()
         {
+            _chordMeshParent.SetActive(false);
+
             foreach (var text in _textObjects)
             {
                 text.gameObject.SetActive(false);
             }
+        }
+
+        public void HitNote()
+        {
+            HideElement();
         }
     }
 }
