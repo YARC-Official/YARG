@@ -38,7 +38,7 @@ namespace YARG.Gameplay.Visuals
             // Find the lowest and highest values
             byte? min = null;
             byte? max = null;
-            for (int i = 1; i < 6; i++)
+            for (int i = 0; i < 6; i++)
             {
                 var fret = mask[i];
                 if (fret == FretBytes.IGNORE_BYTE)
