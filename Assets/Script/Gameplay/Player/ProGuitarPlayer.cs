@@ -29,6 +29,10 @@ namespace YARG.Gameplay.Player
             0.21f, 0.50f, 0.90f, 2.77f, 4.62f, 6.78f
         };
 
+        [Header("Pro Guitar Specific")]
+        [SerializeField]
+        private ProStringArray _stringArray;
+
         public ProGuitarEngineParameters EngineParams { get; private set; }
 
         public override float[] StarMultiplierThresholds { get; protected set; } =
@@ -118,17 +122,14 @@ namespace YARG.Gameplay.Player
         {
             base.ResetPracticeSection();
 
-            // _fretArray.ResetAll();
+            _stringArray.ResetAll();
         }
 
         protected override void UpdateVisuals(double songTime)
         {
             UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
 
-            // for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
-            // {
-            //     _fretArray.SetPressed((int) fret, Engine.IsFretHeld(fret));
-            // }
+            _stringArray.UpdatePressed(Engine.HeldFrets);
         }
 
         public override void SetStemMuteState(bool muted)
@@ -149,7 +150,7 @@ namespace YARG.Gameplay.Player
         {
             base.ResetVisuals();
 
-            // _fretArray.ResetAll();
+            _stringArray.ResetAll();
         }
 
         protected override bool CanSpawnNoteAndChildren(ProGuitarNote note)
