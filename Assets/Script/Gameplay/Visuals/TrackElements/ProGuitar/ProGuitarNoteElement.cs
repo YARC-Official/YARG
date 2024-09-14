@@ -13,6 +13,9 @@ namespace YARG.Gameplay.Visuals
         public const int HEIGHT_DEFAULT = 2;
         public const int HEIGHT_VARIATIONS = 6;
 
+        public const int SMALL_CHORD_THRESHOLD = 2;
+        public const int SMALL_CHORD_OFFSET = 1;
+
         public ProGuitarNote ChordRef { get; set; }
 
         public override double ElementTime => ChordRef.Time;
@@ -92,9 +95,21 @@ namespace YARG.Gameplay.Visuals
                 }
                 else
                 {
+                    int dist = max.Value - min.Value;
+                    int heightCount = HEIGHT_VARIATIONS - 1;
+                    int heightOffset = 0;
+
+                    // For smaller chords, don't use the whole range of possible heights to better
+                    // differentiate between a |2|4| and a |2|5| for example.
+                    if (dist <= SMALL_CHORD_THRESHOLD)
+                    {
+                        heightCount = HEIGHT_VARIATIONS / 2 - 1;
+                        heightOffset = SMALL_CHORD_OFFSET;
+                    }
+
                     // Find the percent of the height relative to the min and max fret values of the chord
-                    float percent = (float) (fret - min.Value) / (max.Value - min.Value);
-                    height = Mathf.RoundToInt((HEIGHT_VARIATIONS - 1) * percent);
+                    float percent = (float) (fret - min.Value) / dist;
+                    height = Mathf.RoundToInt(heightCount * percent) + heightOffset;
                 }
                 _fretObjects[i].Initialize(height);
             }
