@@ -39,7 +39,6 @@ namespace YARG.Logging
             // Persistent Data Path override passed in from CLI
             if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
             {
-                Debug.Log(CommandLineArgs.PersistentDataPath);
                 persistentPath = PathHelper.SanitizePath(CommandLineArgs.PersistentDataPath);
                 Directory.CreateDirectory(persistentPath);
             }
