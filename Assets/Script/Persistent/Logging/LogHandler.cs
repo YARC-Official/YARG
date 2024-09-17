@@ -30,10 +30,13 @@ namespace YARG.Logging
 
 #if UNITY_EDITOR || YARG_TEST_BUILD
             persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "dev"));
+#elif YARG_NIGHTLY_BUILD
+            persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "nightly"));
 #else
             persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "release"));
 #endif
 
+            // Persistent Data Path override passed in from CLI
             if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
             {
                 Debug.Log(CommandLineArgs.PersistentDataPath);

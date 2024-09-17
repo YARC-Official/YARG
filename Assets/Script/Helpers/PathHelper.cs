@@ -85,10 +85,13 @@ namespace YARG.Helpers
             RealPersistentDataPath = SanitizePath(Application.persistentDataPath);
 #if UNITY_EDITOR || YARG_TEST_BUILD
             PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "dev"));
+#elif YARG_NIGHTLY_BUILD
+            PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "nightly"));
 #else
             PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "release"));
 #endif
 
+            // Persistent Data Path override passed in from CLI
             if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
             {
                 Directory.CreateDirectory(CommandLineArgs.PersistentDataPath);
