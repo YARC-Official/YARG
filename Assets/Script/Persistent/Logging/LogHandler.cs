@@ -34,6 +34,13 @@ namespace YARG.Logging
             persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "release"));
 #endif
 
+            if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
+            {
+                Debug.Log(CommandLineArgs.PersistentDataPath);
+                persistentPath = PathHelper.SanitizePath(CommandLineArgs.PersistentDataPath);
+                Directory.CreateDirectory(persistentPath);
+            }
+
             _logsDirectory = Path.Combine(persistentPath, "logs");
             Directory.CreateDirectory(_logsDirectory);
 

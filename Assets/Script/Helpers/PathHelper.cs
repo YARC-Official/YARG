@@ -89,6 +89,12 @@ namespace YARG.Helpers
             PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "release"));
 #endif
 
+            if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
+            {
+                Directory.CreateDirectory(CommandLineArgs.PersistentDataPath);
+                PersistentDataPath = SanitizePath(CommandLineArgs.PersistentDataPath);
+            }
+
             // Get other paths that are only allowed on the main thread
             ApplicationDataPath = SanitizePath(Application.dataPath);
             ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;

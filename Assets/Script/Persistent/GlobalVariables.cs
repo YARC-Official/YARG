@@ -41,6 +41,8 @@ namespace YARG
 
         public static bool OfflineMode { get; private set; }
 
+        public static string PersistentDataPathOverride { get; private set; }
+
         public static PersistentState State = PersistentState.Default;
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
@@ -54,17 +56,14 @@ namespace YARG
 
             // Command line arguments
 
-            var args = CommandLineArgs.Parse(Environment.GetCommandLineArgs());
-
-            OfflineMode = args.Offline;
-            if (OfflineMode)
+            if (CommandLineArgs.Offline)
             {
                 YargLogger.LogInfo("Playing in offline mode");
             }
 
-            if (!string.IsNullOrEmpty(args.DownloadLocation))
+            if (!string.IsNullOrEmpty(CommandLineArgs.DownloadLocation))
             {
-                PathHelper.SetSetlistPathFromDownloadLocation(args.DownloadLocation);
+                PathHelper.SetSetlistPathFromDownloadLocation(CommandLineArgs.DownloadLocation);
             }
 
             // Initialize important classes
@@ -73,7 +72,7 @@ namespace YARG
             ScoreContainer.Init();
             PlaylistContainer.Initialize();
             CustomContentManager.Initialize();
-            LocalizationManager.Initialize(args.Language);
+            LocalizationManager.Initialize(CommandLineArgs.Language);
 
             int profileCount = PlayerContainer.LoadProfiles();
             YargLogger.LogFormatInfo("Loaded {0} profiles", profileCount);
