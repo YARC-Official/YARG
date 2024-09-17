@@ -38,7 +38,7 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private float _hudAnimationTime;
 
-        private Replay _replay;
+        private ReplayData _replay;
 
         private float _hudHiddenY;
         private bool _hudVisible;
@@ -47,7 +47,7 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayAwake()
         {
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 Destroy(gameObject);
                 return;
@@ -72,7 +72,7 @@ namespace YARG.Gameplay.HUD
                 .FromSeconds(GameManager.SongLength + GameManager.SONG_START_DELAY)
                 .ToString(TIME_FORMATTING);
 
-            _replay = GameManager.Replay;
+            _replay = GameManager.ReplayData;
         }
 
         protected override void OnSongStarted()

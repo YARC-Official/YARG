@@ -113,7 +113,12 @@ namespace YARG.Player
             }
 
             var bindings = BindingsContainer.GetBindingsForProfile(profile);
-            var player = new YargPlayer(profile, bindings, resolveDevices);
+            if (resolveDevices)
+            {
+                bindings.ResolveDevices();
+            }
+
+            var player = new YargPlayer(profile, bindings);
             player.EnableInputs();
             _players.Add(player);
             _playersByProfile.Add(profile, player);

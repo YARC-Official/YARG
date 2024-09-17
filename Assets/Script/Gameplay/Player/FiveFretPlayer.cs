@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -8,6 +9,7 @@ using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
@@ -71,7 +73,7 @@ namespace YARG.Gameplay.Player
                 StarMultiplierThresholds = BassStarMultiplierThresholds;
             }
 
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
@@ -268,6 +270,12 @@ namespace YARG.Gameplay.Player
                 WhammyFactor = Mathf.Clamp01(input.Axis);
                 GameManager.ChangeStemWhammyPitch(_stem, WhammyFactor);
             }
+        }
+
+        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
+        {
+            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
         }
     }
 }

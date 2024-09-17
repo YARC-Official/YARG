@@ -12,6 +12,9 @@ using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine.Drums;
+using YARG.Core.Engine.Guitar;
+using YARG.Core.Engine.Vocals;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
@@ -19,6 +22,7 @@ using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Integration;
 using YARG.Menu.Navigation;
@@ -115,15 +119,15 @@ namespace YARG.Gameplay
         public bool Paused => _songRunner.Paused;
 
         public double SongLength { get; private set; }
-
-        public bool IsReplay   { get; private set; }
+        
         public bool IsPractice { get; private set; }
 
         public int   BandScore { get; private set; }
         public int   BandCombo { get; private set; }
         public float BandStars { get; private set; }
 
-        public Replay Replay { get; private set; }
+        public ReplayInfo ReplayInfo { get; private set; }
+        public ReplayData ReplayData { get; private set; }
 
         public IReadOnlyList<BasePlayer> Players => _players;
 
@@ -142,8 +146,8 @@ namespace YARG.Gameplay
             YargPlayers = PlayerContainer.Players;
 
             Song = GlobalVariables.State.CurrentSong;
-            IsReplay = GlobalVariables.State.IsReplay;
-            IsPractice = GlobalVariables.State.IsPractice && !IsReplay;
+            ReplayInfo = GlobalVariables.State.CurrentReplay;
+            IsPractice = GlobalVariables.State.IsPractice && ReplayInfo == null;
 
             Navigator.Instance.PopAllSchemes();
             GameStateFetcher.SetSongEntry(Song);
@@ -291,7 +295,7 @@ namespace YARG.Gameplay
         {
             if (showMenu)
             {
-                if (IsReplay)
+                if (ReplayInfo != null)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
                 }
@@ -395,21 +399,21 @@ namespace YARG.Gameplay
                 return false;
             }
 
-            if (IsReplay)
+            if (ReplayInfo != null)
             {
                 Pause(false);
                 return true;
             }
-
-            (ReplayEntry Entry, HashWrapper Hash)? replayInfo;
+#nullable enable
+            ReplayInfo? replayInfo = null;
+#nullable disable
             try
             {
                 _isReplaySaved = false;
-                replayInfo = SaveReplay(Song.SongLengthSeconds, true);
+                replayInfo = SaveReplay(Song.SongLengthSeconds, ScoreContainer.ScoreReplayDirectory);
             }
             catch (Exception e)
             {
-                replayInfo = null;
                 YargLogger.LogException(e, "Failed to save replay!");
             }
 
@@ -424,7 +428,7 @@ namespace YARG.Gameplay
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
-                ReplayEntry = replayInfo?.Entry,
+                ReplayInfo = replayInfo,
             };
 
 
@@ -469,8 +473,8 @@ namespace YARG.Gameplay
                     SongArtist = Song.Artist,
                     SongCharter = Song.Charter,
 
-                    ReplayFileName = replayInfo?.Entry.GetReplayName(),
-                    ReplayChecksum = replayInfo?.Hash.HashBytes,
+                    ReplayFileName = replayInfo?.ReplayName,
+                    ReplayChecksum = replayInfo?.ReplayChecksum.HashBytes,
 
                     BandScore = BandScore,
                     BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
@@ -504,37 +508,63 @@ namespace YARG.Gameplay
             }
         }
 
-        public (ReplayEntry Entry, HashWrapper Hash)? SaveReplay(double length, bool useScorePath)
+#nullable enable
+        public ReplayInfo? SaveReplay(double length, string directory)
+#nullable disable
         {
-            var realPlayers = _players.Where(player => !player.Player.Profile.IsBot).ToList();
-
-            if (_isReplaySaved || realPlayers.Count == 0)
+            if (_isReplaySaved)
             {
                 return null;
             }
 
-            var replay = ReplayContainer.CreateNewReplay(Song, realPlayers, length);
-            var entry = ReplayContainer.CreateEntryFromReplayFile(new ReplayFile(replay));
+            var frames = new List<ReplayFrame>(_players.Count);
+            var replayStats = new List<ReplayStats>(_players.Count);
+            var colorProfiles = new Dictionary<Guid, ColorProfile>();
+            var cameraPresets = new Dictionary<Guid, CameraPreset>();
 
-            var name = entry.GetReplayName();
-
-            if (useScorePath)
+            int bandScore = 0;
+            float bandStars = 0f;
+            for (int i = 0; i < _players.Count; i++)
             {
-                entry.ReplayPath = Path.Combine(ScoreContainer.ScoreReplayDirectory, name);
-            }
-            else
-            {
-                entry.ReplayPath = Path.Combine(ReplayContainer.ReplayDirectory, name);
+                var player = _players[i];
+                if (player.Player.Profile.IsBot)
+                {
+                    continue;
+                }
+
+                var (frame, stats) = player.ConstructReplayData();
+                frames.Add(frame);
+                replayStats.Add(stats);
+                bandScore += player.Score;
+                bandStars += player.Stars;
+
+                if (!player.Player.ColorProfile.DefaultPreset)
+                {
+                    colorProfiles.TryAdd(player.Player.ColorProfile.Id, player.Player.ColorProfile);
+                }
+
+                if (!player.Player.CameraPreset.DefaultPreset)
+                {
+                    cameraPresets.TryAdd(player.Player.CameraPreset.Id, player.Player.CameraPreset);
+                }
             }
 
-            var hash = ReplayIO.WriteReplay(entry.ReplayPath, replay);
-            if (hash == null)
+            if (frames.Count == 0)
             {
                 return null;
             }
 
+            var stars = StarAmountHelper.GetStarsFromInt((int) (bandStars / frames.Count));
+            var data = new ReplayData(colorProfiles, cameraPresets, frames.ToArray());
+            var (success, replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, replayStats.ToArray(), data);
+            if (!success)
+            {
+                return null;
+            }
+
+           ReplayContainer.AddEntry(replayInfo);
             _isReplaySaved = true;
-            return (entry, hash.Value);
+            return replayInfo;
         }
 
         private void OnNavigationEvent(NavigationContext context)
