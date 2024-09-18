@@ -44,6 +44,8 @@ namespace YARG.Gameplay
 
         public const float TRACK_SPACING_X = 100f;
 
+        public bool IsSeekingReplay;
+
         [Header("References")]
         [SerializeField]
         private TrackViewManager _trackViewManager;
@@ -119,8 +121,8 @@ namespace YARG.Gameplay
         public bool Paused => _songRunner.Paused;
 
         public double SongLength { get; private set; }
-        
-        public bool IsPractice { get; private set; }
+
+        public bool IsPractice      { get; private set; }
 
         public int   BandScore { get; private set; }
         public int   BandCombo { get; private set; }

@@ -201,6 +201,11 @@ namespace YARG.Gameplay.Player
         {
             base.OnOverhit();
 
+            if (GameManager.IsSeekingReplay)
+            {
+                return;
+            }
+
             if (SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value)
             {
                 const int MIN = (int) SfxSample.Overstrum1;

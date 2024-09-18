@@ -212,6 +212,8 @@ namespace YARG.Gameplay.HUD
         {
             YargLogger.LogFormatDebug("Set replay time to {0}", time);
 
+            GameManager.IsSeekingReplay = true;
+
             // Do this before we do it for the players so the notes don't get destroyed early
             GameManager.SetSongTime(time, 0);
 
@@ -219,6 +221,8 @@ namespace YARG.Gameplay.HUD
             {
                 player.SetReplayTime(time);
             }
+
+            GameManager.IsSeekingReplay = false;
         }
 
         private void OnNavigationEvent(NavigationContext context)

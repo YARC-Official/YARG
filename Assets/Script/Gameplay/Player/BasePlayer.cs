@@ -194,9 +194,11 @@ namespace YARG.Gameplay.Player
 
         public virtual void SetReplayTime(double time)
         {
+            IsFc = true;
+
             _replayInputIndex = BaseEngine.ProcessUpToTime(time, ReplayInputs);
 
-            IsFc = true;
+            SetStemMuteState(false);
 
             ResetVisuals();
             UpdateVisualsWithTimes(time);
@@ -338,7 +340,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnStarPowerPhraseHit()
         {
-            if (!GameManager.Paused)
+            if (!GameManager.Paused && !GameManager.IsSeekingReplay)
             {
                 GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerAward);
             }

@@ -61,6 +61,7 @@ namespace YARG.Gameplay.Player
         public Vector2 HUDViewportPosition => TrackCamera.WorldToViewportPoint(_hudLocation.position);
 
         protected List<Beatline> Beatlines;
+
         protected int BeatlineIndex;
 
         protected bool IsBass { get; private set; }
@@ -133,6 +134,7 @@ namespace YARG.Gameplay.Player
         where TNote : Note<TNote>
     {
         public TEngine Engine { get; private set; }
+
         public override BaseEngine BaseEngine => Engine;
 
         protected List<TNote> Notes { get; private set; }
@@ -148,11 +150,12 @@ namespace YARG.Gameplay.Player
 
         private bool _isHotStartChecked;
         private bool _previousBassGrooveState;
-        private double _previousStarPowerAmount;
-
         private bool _newHighScoreShown;
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
+        private double _previousStarPowerAmount;
+
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
+            StemMixer mixer, int? currentHighScore)
         {
             if (IsInitialized) return;
 
@@ -318,7 +321,7 @@ namespace YARG.Gameplay.Player
         {
             while (BeatlineIndex < Beatlines.Count && Beatlines[BeatlineIndex].Time <= time + SpawnTimeOffset)
             {
-                if(BeatlineIndex + 1 < Beatlines.Count && Beatlines[BeatlineIndex + 1].Time <= time + SpawnTimeOffset)
+                if (BeatlineIndex + 1 < Beatlines.Count && Beatlines[BeatlineIndex + 1].Time <= time + SpawnTimeOffset)
                 {
                     BeatlineIndex++;
                     continue;
@@ -412,26 +415,29 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
-            SetStemMuteState(false);
-            if (_currentMultiplier != _previousMultiplier)
+            if (!GameManager.IsSeekingReplay)
             {
-                _previousMultiplier = _currentMultiplier;
+                SetStemMuteState(false);
+                if (_currentMultiplier != _previousMultiplier)
+                {
+                    _previousMultiplier = _currentMultiplier;
 
-                foreach (var haptics in SantrollerHaptics)
-                {
-                    haptics.SetMultiplier((uint)_currentMultiplier);
+                    foreach (var haptics in SantrollerHaptics)
+                    {
+                        haptics.SetMultiplier((uint) _currentMultiplier);
+                    }
                 }
-            }
 
-            if (index >= Notes.Count - 1 && note.ParentOrSelf.WasFullyHit())
-            {
-                if (IsFc)
+                if (index >= Notes.Count - 1 && note.ParentOrSelf.WasFullyHit())
                 {
-                    TrackView.ShowFullCombo();
-                }
-                else if (Combo >= 30) // 30 to coincide with 4x multiplier (including on bass)
-                {
-                    TrackView.ShowStrongFinish();
+                    if (IsFc)
+                    {
+                        TrackView.ShowFullCombo();
+                    }
+                    else if (Combo >= 30) // 30 to coincide with 4x multiplier (including on bass)
+                    {
+                        TrackView.ShowStrongFinish();
+                    }
                 }
             }
 
@@ -446,19 +452,22 @@ namespace YARG.Gameplay.Player
                 IsFc = false;
             }
 
-            SetStemMuteState(true);
-
-            if (LastCombo >= 10)
+            if (!GameManager.IsSeekingReplay)
             {
-                GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
+                SetStemMuteState(true);
+
+                if (LastCombo >= 10)
+                {
+                    GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
+                }
+
+                foreach (var haptics in SantrollerHaptics)
+                {
+                    haptics.SetMultiplier(0);
+                }
             }
 
             LastCombo = Combo;
-
-            foreach (var haptics in SantrollerHaptics)
-            {
-                haptics.SetMultiplier(0);
-            }
         }
 
         protected virtual void OnOverhit()
