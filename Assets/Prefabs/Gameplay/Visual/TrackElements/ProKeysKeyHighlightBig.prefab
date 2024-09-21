@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3545866477119867482}
   - component: {fileID: 6796682235019703159}
   - component: {fileID: 7473544646219168564}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Quad
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 7413696986459841979}
   m_LocalRotation: {x: 0.70710576, y: -0, z: -0, w: 0.70710784}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.1, y: 36, z: 1}
+  m_LocalScale: {x: 0.185, y: 36, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4327806709304797894}
@@ -61,7 +61,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9e10e53b476408243a52d03b81b92136, type: 2}
+  - {fileID: 2100000, guid: 6f4c56bf1eae0b3479a5b0b4c5cd0388, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -92,8 +92,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4327806709304797894}
-  m_Layer: 6
-  m_Name: ProKeysKeyOverlaySmall
+  m_Layer: 7
+  m_Name: ProKeysKeyHighlightBig
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

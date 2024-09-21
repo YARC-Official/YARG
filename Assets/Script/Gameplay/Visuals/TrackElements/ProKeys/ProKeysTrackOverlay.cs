@@ -11,9 +11,11 @@ namespace YARG.Gameplay.Visuals
     public class ProKeysTrackOverlay : MonoBehaviour
     {
         [SerializeField]
-        private GameObject _keyOverlayPrefabBig;
+        private GameObject _keyOverlayPrefab;
         [SerializeField]
-        private GameObject _keyOverlayPrefabSmall;
+        private GameObject _keyHighlightPrefabBig;
+        [SerializeField]
+        private GameObject _keyHighlightPrefabSmall;
 
         [Space]
         [SerializeField]
@@ -79,8 +81,8 @@ namespace YARG.Gameplay.Visuals
         private void SpawnHighlight(bool isBlackKey, int index, TrackPlayer player, Color color)
         {
             var prefab = isBlackKey
-                ? _keyOverlayPrefabSmall
-                : _keyOverlayPrefabBig;
+                ? _keyHighlightPrefabSmall
+                : _keyHighlightPrefabBig;
             var offset = isBlackKey
                 ? _blackKeyOffset
                 : _whiteKeyOffset;
@@ -109,7 +111,7 @@ namespace YARG.Gameplay.Visuals
         {
             // Spawn overlay
 
-            var overlay = Instantiate(_keyOverlayPrefabBig, transform);
+            var overlay = Instantiate(_keyOverlayPrefab, transform);
             overlay.transform.localPosition = new Vector3(index * KeySpacing + _whiteKeyOffset, 0f, 0f);
 
             var material = overlay.GetComponentInChildren<MeshRenderer>().material;

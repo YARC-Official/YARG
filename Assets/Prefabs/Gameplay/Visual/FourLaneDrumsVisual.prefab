@@ -218,6 +218,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c24a6ee95ca2444fa768766e48b11579, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &4861346879596673407 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3027578847186909971, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7598390404892836460}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!20 &5042276788195936079 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 3209698564276094243, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -312,6 +324,7 @@ MonoBehaviour:
   HitWindowDisplay: {fileID: 7686426392671820263}
   _hudLocation: {fileID: 4218340060847917785}
   NotePool: {fileID: 4797150999688012940}
+  LanePool: {fileID: 4861346879596673407}
   BeatlinePool: {fileID: 897369785276829973}
   _fiveLaneMode: 0
   _fretArray: {fileID: 7353099902729507025}

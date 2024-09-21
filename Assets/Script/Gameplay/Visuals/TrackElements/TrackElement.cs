@@ -55,14 +55,19 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        protected override bool UpdateElementPosition()
+        protected float GetZPositionAtTime(double time)
         {
             // Calibration is not taken into consideration here, as that is instead handled in more
             // critical areas such as the game manager and players
-            float z =
-                TrackPlayer.STRIKE_LINE_POS                          // Shift origin to the strike line
-                + (float) (ElementTime - GameManager.RealVisualTime) // Get time of note relative to now
+
+            return TrackPlayer.STRIKE_LINE_POS                          // Shift origin to the strike line
+                + (float) (time - GameManager.RealVisualTime) // Get time of note relative to now
                 * Player.NoteSpeed;                                  // Adjust speed (units/s)
+        }
+
+        protected override bool UpdateElementPosition()
+        {
+            float z = GetZPositionAtTime(ElementTime);
 
             var cacheTransform = transform;
             cacheTransform.localPosition = cacheTransform.localPosition.WithZ(z);

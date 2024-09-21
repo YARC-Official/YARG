@@ -12,6 +12,7 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Settings;
 
@@ -123,6 +124,8 @@ namespace YARG.Gameplay.Player
                 Player.Profile.GameMode,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip);
+
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, 4);
         }
 
         public override void ResetPracticeSection()
@@ -166,6 +169,20 @@ namespace YARG.Gameplay.Player
         protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
         {
             ((FiveFretNoteElement) poolable).NoteRef = note;
+        }
+
+        protected override void InitializeSpawnedLane(LaneElement lane, int fret)
+        {
+            lane.SetAppearance(Player.Profile.CurrentInstrument, fret, 5, 
+                               Player.ColorProfile.FiveFretGuitar.GetNoteColor(fret).ToUnityColor());
+        }
+
+        protected override void ModifyLaneFromNote(LaneElement lane, GuitarNote note)
+        {
+            if (note.IsTap || note.IsHopo)
+            {
+                lane.MultiplyScale(0.85f);
+            }
         }
 
         protected override void OnNoteHit(int index, GuitarNote chordParent)
