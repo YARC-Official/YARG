@@ -45,6 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FretCount: 5
+  DontFlipColorsLeftyFlip: 0
   UseKickFrets: 0
   _trackWidth: 2
   _leftKickFretPosition: {fileID: 1059056642713352937}
@@ -270,6 +271,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c24a6ee95ca2444fa768766e48b11579, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &5560268419379379859 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3027578847186909971, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &7275388750557486603 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 277336160789584779, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -310,6 +323,7 @@ MonoBehaviour:
   HitWindowDisplay: {fileID: 7275388750557486603}
   _hudLocation: {fileID: 3807369616701639989}
   NotePool: {fileID: 5534384060604769120}
+  LanePool: {fileID: 5560268419379379859}
   BeatlinePool: {fileID: 155632028176750329}
   _fretArray: {fileID: 1060069523843335645}
 --- !u!114 &7617442645122152992 stripped

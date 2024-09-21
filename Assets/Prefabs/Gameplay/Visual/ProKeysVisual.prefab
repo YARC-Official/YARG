@@ -140,9 +140,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6367ef7159324647a2569e4bd7e6c3f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _keyOverlayPrefabBig: {fileID: 8633516561021093830, guid: 48cecd6e87dfaba4592ef8b20aa71f8d,
+  _keyOverlayPrefab: {fileID: 8633516561021093830, guid: 48cecd6e87dfaba4592ef8b20aa71f8d,
     type: 3}
-  _keyOverlayPrefabSmall: {fileID: 8633516561021093830, guid: f9b8f3cc720ff5d4c815d4734838e4be,
+  _keyHighlightPrefabBig: {fileID: 8633516561021093830, guid: b670e409d70ca494a86b396fe93cebb0,
+    type: 3}
+  _keyHighlightPrefabSmall: {fileID: 8633516561021093830, guid: f9b8f3cc720ff5d4c815d4734838e4be,
     type: 3}
   _edgeGradientTexture: {fileID: 2800000, guid: 595196557d07f334785b6f9e842d1ad6,
     type: 3}
@@ -303,6 +305,11 @@ PrefabInstance:
       propertyPath: m_RootOrder
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 4990919120353829588, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 7610118164488372073, guid: 5800c42510b55c549be95ec3ecd75e1c,
         type: 3}
       propertyPath: m_RootOrder
@@ -424,6 +431,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c24a6ee95ca2444fa768766e48b11579, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &5560268419379379859 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3027578847186909971, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &7275388750557486603 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 277336160789584779, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -464,6 +483,7 @@ MonoBehaviour:
   HitWindowDisplay: {fileID: 7275388750557486603}
   _hudLocation: {fileID: 3807369616701639989}
   NotePool: {fileID: 5534384060604769120}
+  LanePool: {fileID: 5560268419379379859}
   BeatlinePool: {fileID: 155632028176750329}
   _keysArray: {fileID: 679598873221959975}
   _trackOverlay: {fileID: 7995190430839588284}

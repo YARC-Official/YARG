@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -52,6 +52,8 @@ namespace YARG.Gameplay.Player
         [Header("Pools")]
         [SerializeField]
         protected KeyedPool NotePool;
+        [SerializeField]
+        protected Pool LanePool;
         [SerializeField]
         protected Pool BeatlinePool;
 
@@ -119,6 +121,7 @@ namespace YARG.Gameplay.Player
             TrackView.ForceReset();
 
             NotePool.ReturnAllObjects();
+            LanePool.ReturnAllObjects();
             BeatlinePool.ReturnAllObjects();
 
             HitWindowDisplay.SetHitWindowSize();
