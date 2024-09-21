@@ -29,7 +29,8 @@ namespace YARG.Menu.ProfileList
             GameMode.FiveFretGuitar,
             GameMode.FourLaneDrums,
             GameMode.FiveLaneDrums,
-            GameMode.Vocals
+            GameMode.Vocals,
+            GameMode.ProKeys
         };
 
         [SerializeField]

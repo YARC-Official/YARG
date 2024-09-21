@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Gameplay.HUD;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
@@ -23,6 +24,22 @@ namespace YARG.Gameplay.Player
                 Min = min;
                 Max = max;
             }
+
+            public Range(VocalsRangeShift range)
+            {
+                // Pad out range based on note width
+                float minPitch = range.MinimumPitch - NOTE_WIDTH_MULTIPLIER / 2;
+                float maxPitch = range.MaximumPitch + NOTE_WIDTH_MULTIPLIER / 2;
+
+                // Ensure range is at least a minimum size
+                float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
+                Min = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), minPitch);
+                Max = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), maxPitch);
+
+                var rangePadding = (Max - Min) * RANGE_PADDING_PERCENT;
+                Min -= rangePadding;
+                Max += rangePadding;
+            }
         }
 
         private static readonly int _alphaMultiplier = Shader.PropertyToID("AlphaMultiplier");
@@ -35,24 +52,49 @@ namespace YARG.Gameplay.Player
             new(1f, 0.859f, 0f, 1f)
         };
 
-        // Time offset relative to 1.0 note speed
-        private const float SPAWN_TIME_OFFSET = 25f;
+        /// <summary>
+        /// Time offset relative to 1.0 note speed
+        /// </summary>
+        public const float SPAWN_TIME_OFFSET = 25f;
 
         public float SpawnTimeOffset => SPAWN_TIME_OFFSET / TrackSpeed;
 
-        private const float TRACK_TOP = 0.90f;
-        private const float TRACK_TOP_HARMONY = 0.53f;
+        /// <summary>
+        /// The top edge of the vocal highway track when playing without harmonies (excluding the lyric track)
+        /// </summary>
+        private const float TRACK_TOP = 1.25f;
 
-        private const float TRACK_BOTTOM = -0.53f;
+        /// <summary>
+        /// The top edge of the vocal highway track when harmonies are enabled (excluding the lyric tracks)
+        /// </summary>
+        private const float TRACK_TOP_HARMONY = 0.64f;
+
+        /// <summary>
+        /// The bottom edge of the vocal highway track (excluding the lyric track)
+        /// </summary>
+        private const float TRACK_BOTTOM = -0.63f;
+
+        /// <summary>
+        /// The amount of additional padding to apply to the visible semi-tone range, expressed as a percentage.
+        /// </summary>
+        private const float RANGE_PADDING_PERCENT = 0.1f;
 
         private const float NOTE_WIDTH_MULTIPLIER = 1.5f;
 
+        /// <summary>
+        /// The minimum vocal range that should be displayed on the vocal highway, in semi-tones.
+        /// </summary>
         private const float MINIMUM_SEMITONE_RANGE = 20;
 
+        /// <summary>
+        /// The minimum amount of time a vocal range shift should take, in seconds.
+        /// </summary>
         private const double MINIMUM_SHIFT_TIME = 0.25;
 
         [SerializeField]
-        private GameObject _vocalPlayerPrefab;
+        private VocalsPlayer _vocalPlayerPrefab;
+        [SerializeField]
+        private VocalPercussionTrack _percussionTrackPrefab;
 
         [Space]
         [SerializeField]
@@ -61,6 +103,10 @@ namespace YARG.Gameplay.Player
         private Material _twoLaneHarmonyTrackMaterial;
         [SerializeField]
         private Material _threeLaneHarmonyTrackMaterial;
+        [SerializeField]
+        private MeshRenderer _soloGuidelineRenderer;
+        [SerializeField]
+        private MeshRenderer _harmonyGuidelineRenderer;
 
         [Space]
         [SerializeField]
@@ -70,26 +116,35 @@ namespace YARG.Gameplay.Player
 
         [Space]
         [SerializeField]
+        private CountdownDisplay _countdownDisplay;
+
+        [Space]
+        [SerializeField]
         private Camera _trackCamera;
         [SerializeField]
         private Transform _playerContainer;
+        [SerializeField]
+        private Transform _percussionTrackContainer;
+        [SerializeField]
+        private VocalLyricContainer _lyricContainer;
+
+        [Space]
         [SerializeField]
         private Pool[] _notePools;
         [SerializeField]
         private Pool _talkiePool;
         [SerializeField]
-        private VocalLyricContainer _lyricContainer;
-        [SerializeField]
         private Pool _phraseLinePool;
 
         private readonly List<VocalsPlayer> _vocalPlayers = new();
-        private bool _currentStarpowerState;
 
         private float _currentTrackTop = TRACK_TOP;
         private Material _starpowerMaterial;
 
         private VocalsTrack _originalVocalsTrack;
         private VocalsTrack _vocalsTrack;
+
+        private Material _guidelineMaterial;
 
         private bool _isRangeChanging;
         private Range _viewRange;
@@ -171,6 +226,10 @@ namespace YARG.Gameplay.Player
                 _soloStarpowerOverlay.gameObject.SetActive(false);
                 _harmonyStarpowerOverlay.gameObject.SetActive(true);
                 _starpowerMaterial = _harmonyStarpowerOverlay.material;
+
+                _soloGuidelineRenderer.gameObject.SetActive(false);
+                _harmonyGuidelineRenderer.gameObject.SetActive(true);
+                _guidelineMaterial = _harmonyGuidelineRenderer.material;
             }
             else
             {
@@ -178,6 +237,10 @@ namespace YARG.Gameplay.Player
                 _harmonyStarpowerOverlay.gameObject.SetActive(false);
                 _soloStarpowerOverlay.gameObject.SetActive(true);
                 _starpowerMaterial = _soloStarpowerOverlay.material;
+
+                _harmonyGuidelineRenderer.gameObject.SetActive(false);
+                _soloGuidelineRenderer.gameObject.SetActive(true);
+                _guidelineMaterial = _soloGuidelineRenderer.material;
             }
 
             // this should never happen, yell in the logs if it does
@@ -188,10 +251,7 @@ namespace YARG.Gameplay.Player
             }
 
             // Set pitch range
-            ChangeRange(_vocalsTrack.RangeShifts[0]);
-            _viewRange = _targetRange;
-            _previousRange = _targetRange;
-            _changeEndTime = _changeStartTime;
+            SetRange(_vocalsTrack.RangeShifts[0]);
 
             // Hide overlay
             _starpowerMaterial.SetFloat(_alphaMultiplier, 0f);
@@ -201,12 +261,36 @@ namespace YARG.Gameplay.Player
 
         public VocalsPlayer CreatePlayer()
         {
-            var playerObj = Instantiate(_vocalPlayerPrefab, _playerContainer);
-            var player = playerObj.GetComponent<VocalsPlayer>();
-
+            var player = Instantiate(_vocalPlayerPrefab, _playerContainer);
             _vocalPlayers.Add(player);
 
             return player;
+        }
+
+        public VocalPercussionTrack CreatePercussionTrack()
+        {
+            var percussionTrack = Instantiate(_percussionTrackPrefab, _percussionTrackContainer);
+
+            // Space out the percussion tracks evenly
+            const float FULL_HEIGHT = TRACK_TOP - TRACK_BOTTOM;
+            var offset = FULL_HEIGHT / (_percussionTrackContainer.childCount + 1);
+            for (int i = 0; i < _percussionTrackContainer.childCount; i++)
+            {
+                var child = _percussionTrackContainer.GetChild(i);
+                child.localPosition = child.localPosition.WithZ(TRACK_TOP - offset * (i + 1));
+            }
+
+            return percussionTrack;
+        }
+
+        public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
+        {
+            if (_countdownDisplay == null)
+            {
+                return;
+            }
+
+            _countdownDisplay.UpdateCountdown(measuresLeft, countdownLength, endTime);
         }
 
         private void Update()
@@ -217,7 +301,7 @@ namespace YARG.Gameplay.Player
             var ranges = _vocalsTrack.RangeShifts;
             while (_nextRangeIndex < ranges.Count && ranges[_nextRangeIndex].Time < time)
             {
-                ChangeRange(ranges[_nextRangeIndex]);
+                StartRangeChange(ranges[_nextRangeIndex]);
                 _nextRangeIndex++;
             }
 
@@ -226,12 +310,13 @@ namespace YARG.Gameplay.Player
             {
                 float changePercent = (float) YargMath.InverseLerpD(_changeStartTime, _changeEndTime, time);
 
-                // If the change has finished, stop!
                 if (changePercent >= 1f)
                 {
+                    // If the change has finished, stop!
                     _isRangeChanging = false;
                     _viewRange.Min = _targetRange.Min;
                     _viewRange.Max = _targetRange.Max;
+                    UpdateHighwayGuidelines();
                 }
                 else
                 {
@@ -240,6 +325,7 @@ namespace YARG.Gameplay.Player
 
                     _viewRange.Min = newMin;
                     _viewRange.Max = newMax;
+                    UpdateHighwayGuidelines();
                 }
 
                 // Update notes to match new range values
@@ -275,24 +361,40 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void ChangeRange(VocalsRangeShift range)
+        private void UpdateHighwayGuidelines()
         {
-            // Pad out range based on note width
-            float minPitch = range.MinimumPitch - NOTE_WIDTH_MULTIPLIER / 2;
-            float maxPitch = range.MaximumPitch + NOTE_WIDTH_MULTIPLIER / 2;
+            const int DEFAULT_GUIDELINE_SCALE = 24;     // The semi-tone range of the guideline texture
 
-            // Ensure range is at least a minimum size
-            float rangeMiddle = (range.MaximumPitch + range.MinimumPitch) / 2;
-            float rangeMin = Math.Min(rangeMiddle - (MINIMUM_SEMITONE_RANGE / 2), minPitch);
-            float rangeMax = Math.Max(rangeMiddle + (MINIMUM_SEMITONE_RANGE / 2), maxPitch);
+            var scale = (_viewRange.Max - _viewRange.Min) / DEFAULT_GUIDELINE_SCALE;
+            var offset = (_viewRange.Min % DEFAULT_GUIDELINE_SCALE) / DEFAULT_GUIDELINE_SCALE;
+            _guidelineMaterial.mainTextureOffset = new Vector2(1, offset);
+            _guidelineMaterial.mainTextureScale = new Vector2(1, scale);
+        }
 
-            // Start the change!
+        private void SetRange(VocalsRangeShift range)
+        {
+
             _previousRange = _viewRange;
-            _targetRange = new Range(rangeMin, rangeMax);
+            _targetRange = new Range(range);
+            _viewRange = _targetRange;
+
+            _changeStartTime = range.Time;
+            _changeEndTime = range.Time;
+            _isRangeChanging = false;
+
+            UpdateHighwayGuidelines();
+        }
+
+        private void StartRangeChange(VocalsRangeShift range)
+        {
+            _previousRange = _viewRange;
+            _targetRange = new Range(range);
 
             _changeStartTime = range.Time;
             _changeEndTime = range.Time + Math.Max(MINIMUM_SHIFT_TIME, range.TimeLength);
             _isRangeChanging = true;
+
+            // UpdateHighwayGuidelines() is not needed here as it is handled in Update().
         }
 
         public float GetPosForTime(double time)
@@ -327,6 +429,12 @@ namespace YARG.Gameplay.Player
             }
             _lyricContainer.ResetVisuals();
             _talkiePool.ReturnAllObjects();
+
+            // Reset pitch range
+            // SetPracticeSection() already takes care of removing irrelevant ranges,
+            // so we can just use the first range here
+            _nextRangeIndex = 1;
+            SetRange(_vocalsTrack.RangeShifts[0]);
         }
 
         public void SetPracticeSection(uint start, uint end)
@@ -336,7 +444,7 @@ namespace YARG.Gameplay.Player
 
             _vocalsTrack = _originalVocalsTrack.Clone();
 
-            // Remove all notes not in the section
+            // Remove all events not in the section
             for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
             {
                 var part = _vocalsTrack.Parts[i];
@@ -347,7 +455,16 @@ namespace YARG.Gameplay.Player
                 _lyricTrackers[i] = new PhraseNoteTracker(part, true);
             }
 
+            // The most recent range shift before the start tick should still be preserved
+            uint rangesStart = _vocalsTrack.RangeShifts.GetPrevious(start).Tick;
+            _vocalsTrack.RangeShifts.RemoveAll(n => n.Tick < rangesStart || n.Tick >= end);
+
             ResetPracticeSection();
+        }
+
+        public bool IsPrimaryPlayer(VocalsPlayer thisPlayer)
+        {
+            return thisPlayer == _vocalPlayers[0];
         }
     }
 }

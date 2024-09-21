@@ -1,12 +1,15 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
@@ -70,10 +73,11 @@ namespace YARG.Gameplay.Player
                 StarMultiplierThresholds = BassStarMultiplierThresholds;
             }
 
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
+                //EngineParams = EnginePreset.Precision.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
             }
             else
             {
@@ -81,7 +85,7 @@ namespace YARG.Gameplay.Player
                 EngineParams = (GuitarEngineParameters) Player.EngineParameterOverride;
             }
 
-            var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams);
+            var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -99,6 +103,8 @@ namespace YARG.Gameplay.Player
 
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerStatus += OnStarPowerStatus;
+
+            engine.OnCountdownChange += OnCountdownChange;
 
             return engine;
         }
@@ -166,11 +172,11 @@ namespace YARG.Gameplay.Player
 
             if (GameManager.Paused) return;
 
-            foreach (var note in chordParent.ChordEnumerator())
+            foreach (var note in chordParent.AllNotes)
             {
                 (NotePool.GetByKey(note) as FiveFretNoteElement)?.HitNote();
 
-                if (note.Fret != 0)
+                if (note.Fret != (int) FiveFretGuitarFret.Open)
                 {
                     _fretArray.PlayHitAnimation(note.Fret - 1);
                 }
@@ -185,7 +191,7 @@ namespace YARG.Gameplay.Player
         {
             base.OnNoteMissed(index, chordParent);
 
-            foreach (var note in chordParent.ChordEnumerator())
+            foreach (var note in chordParent.AllNotes)
             {
                 (NotePool.GetByKey(note) as FiveFretNoteElement)?.MissNote();
             }
@@ -194,6 +200,11 @@ namespace YARG.Gameplay.Player
         protected override void OnOverhit()
         {
             base.OnOverhit();
+
+            if (GameManager.IsSeekingReplay)
+            {
+                return;
+            }
 
             if (SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value)
             {
@@ -207,14 +218,14 @@ namespace YARG.Gameplay.Player
 
         private void OnSustainStart(GuitarNote parent)
         {
-            foreach (var note in parent.ChordEnumerator())
+            foreach (var note in parent.AllNotes)
             {
                 if (parent.IsDisjoint && parent != note)
                 {
                     continue;
                 }
 
-                if (note.Fret != 0)
+                if (note.Fret != (int) FiveFretGuitarFret.Open)
                 {
                     _fretArray.SetSustained(note.Fret - 1, true);
                 }
@@ -223,7 +234,7 @@ namespace YARG.Gameplay.Player
 
         private void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
         {
-            foreach (var note in parent.ChordEnumerator())
+            foreach (var note in parent.AllNotes)
             {
                 if (parent.IsDisjoint && parent != note)
                 {
@@ -232,7 +243,7 @@ namespace YARG.Gameplay.Player
 
                 (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd(finished);
 
-                if (note.Fret != 0)
+                if (note.Fret != (int) FiveFretGuitarFret.Open)
                 {
                     _fretArray.SetSustained(note.Fret - 1, false);
                 }
@@ -262,7 +273,14 @@ namespace YARG.Gameplay.Player
             if (input.GetAction<GuitarAction>() == GuitarAction.Whammy)
             {
                 WhammyFactor = Mathf.Clamp01(input.Axis);
+                GameManager.ChangeStemWhammyPitch(_stem, WhammyFactor);
             }
+        }
+
+        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
+        {
+            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
         }
     }
 }

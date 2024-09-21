@@ -2,6 +2,7 @@
 using System.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
@@ -63,15 +64,22 @@ namespace YARG.Settings
 
             public ToggleSetting DisableGlobalBackgrounds { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
+            public ToggleSetting WaitForSongVideo { get; } = new(true);
 
-            public ToggleSetting ShowBattery { get; } = new(false);
+            public ToggleSetting ShowBattery { get; } = new(false, ShowBatteryCallback);
             public ToggleSetting ShowTime { get; } = new(false, ShowTimeCallback);
             public ToggleSetting MemoryStats { get; } = new(false, MemoryStatsCallback);
+            public ToggleSetting ShowActivePlayers { get; } = new(false, ShowActivePlayersCallback);
+            public ToggleSetting ShowActiveBots { get; } = new(false, ShowActiveBotsCallback);
 
             public ToggleSetting ReconnectProfiles { get; } = new(true);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
+
+            public ToggleSetting ReduceNoteSpeedByDifficulty { get; } = new(true);
             public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
+
+            public ToggleSetting VoiceActivatedVocalStarPower { get; } = new(true);
 
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 
@@ -131,6 +139,9 @@ namespace YARG.Settings
             public VolumeSetting SfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
 
+            public VolumeSetting DrumSfxVolume { get; } =
+                new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.DrumSfx, v));
+
             public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring { get; } = new(0.7f, VocalMonitoringCallback);
@@ -161,8 +172,10 @@ namespace YARG.Settings
 
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
 
-            // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);
-            // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
+            public ToggleSetting UseWhammyFx { get; } = new(false, v => GlobalAudioHandler.UseWhammyFx = v);
+
+            public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 5, v => GlobalAudioHandler.WhammyPitchShiftAmount = v);
+
             // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
@@ -201,6 +214,8 @@ namespace YARG.Settings
                     StarPowerHighwayFxMode.Off
                 };
 
+            public SliderSetting SongBackgroundOpacity { get; } = new(1f, 0f, 1f);
+
             public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
             public ToggleSetting EnablePracticeSP { get; } = new(false);
@@ -235,7 +250,17 @@ namespace YARG.Settings
                     LyricDisplayMode.Disabled
                 };
 
+            public SliderSetting UpcomingLyricsTime { get; } = new(3f, 0f, 10f);
+
             public ToggleSetting KeepSongInfoVisible { get; } = new(false);
+
+            public DropdownSetting<CountdownDisplayMode> CountdownDisplay { get; }
+                = new(CountdownDisplayMode.Measures)
+                {
+                    CountdownDisplayMode.Measures,
+                    CountdownDisplayMode.Seconds,
+                    CountdownDisplayMode.Disabled
+                };
 
             #endregion
 
@@ -343,9 +368,42 @@ namespace YARG.Settings
 
             public ToggleSetting ShowAdvancedMusicLibraryOptions { get; } = new(false);
 
+            public DropdownSetting<LogLevel> MinimumLogLevel { get; } = new(
+#if UNITY_EDITOR
+                LogLevel.Debug,
+#else
+                LogLevel.Info,
+#endif
+                SetLogLevelCallback
+            )
+            {
+                LogLevel.Trace,
+                LogLevel.Debug,
+                LogLevel.Info,
+                LogLevel.Warning,
+                LogLevel.Error,
+                // No real need to distinguish these two,
+                // they're very important to have in logs regardless
+                // LogLevel.Exception,
+                // LogLevel.Failure,
+            };
+
             #endregion
 
             #region Callbacks
+
+            private static void SetLogLevelCallback(LogLevel level)
+            {
+                YargLogger.MinimumLogLevel = level;
+            }
+
+            private static void ShowBatteryCallback(bool value)
+            {
+                // Only show if battery status is reported and has a valid value
+                value &= SystemInfo.batteryStatus != BatteryStatus.Unknown &&
+                    SystemInfo.batteryLevel is >= 0 and <= 1;
+                StatsManager.Instance.SetShowing(StatsManager.Stat.Battery, value);
+            }
 
             private static void ShowTimeCallback(bool value)
             {
@@ -360,6 +418,16 @@ namespace YARG.Settings
 #endif
 
                 StatsManager.Instance.SetShowing(StatsManager.Stat.Memory, value);
+            }
+
+            private static void ShowActivePlayersCallback(bool value)
+            {
+                StatsManager.Instance.SetShowing(StatsManager.Stat.ActivePlayers, value);
+            }
+
+            private static void ShowActiveBotsCallback(bool value)
+            {
+                StatsManager.Instance.SetShowing(StatsManager.Stat.ActiveBots, value);
             }
 
             private static void RB3EEnabledCallback(bool value)
@@ -490,16 +558,6 @@ namespace YARG.Settings
                 HelpBar.Instance.MusicPlayer.UpdateVolume(volume);
             }
 
-            // private static void UseWhammyFxChange(bool value)
-            // {
-            //     AudioManager.UseWhammyFx = value;
-            // }
-
-            // private static void WhammyPitchShiftAmountChange(float value)
-            // {
-            //     AudioManager.WhammyPitchShiftAmount = value;
-            // }
-            //
             // private static void WhammyOversampleFactorChange(int value)
             // {
             //     AudioManager.WhammyOversampleFactor = value;

@@ -40,7 +40,7 @@ namespace YARG.Gameplay.Visuals
         {
             // Create points
             _points.Clear();
-            foreach (var note in NoteRef.ChordEnumerator())
+            foreach (var note in NoteRef.AllNotes)
             {
                 var z = VocalTrack.GetPosForPitch(note.Pitch);
 

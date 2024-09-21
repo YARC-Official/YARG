@@ -1721,6 +1721,8 @@ MonoBehaviour:
     type: 3}
   _vocalsCardPrefab: {fileID: 8427776599031895052, guid: d037b5975b78e3a4481a5c9d3d7f8c35,
     type: 3}
+  _proKeysCardPrefab: {fileID: 7609862917790866568, guid: f5b2b04f2ac03bf4687dfc0f22f83212,
+    type: 3}
 --- !u!114 &1731608351534815137
 MonoBehaviour:
   m_ObjectHideFlags: 0

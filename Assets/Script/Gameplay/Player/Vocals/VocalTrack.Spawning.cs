@@ -113,13 +113,6 @@ namespace YARG.Gameplay.Player
             {
                 var note = tracker.CurrentNote;
 
-                // TODO: Implement vocal percussion. This is temporary.
-                if (note.IsPercussion)
-                {
-                    tracker.NextNote();
-                    continue;
-                }
-
                 if (note.IsNonPitched)
                 {
                     // Skip this frame if the pool is full
@@ -133,7 +126,7 @@ namespace YARG.Gameplay.Player
                     ((VocalTalkieElement) noteObj).NoteRef = note;
                     noteObj.EnableFromPool();
                 }
-                else
+                else if (!note.IsPercussion)
                 {
                     // Skip this frame if the pool is full
                     if (!pool.CanSpawnAmount(1))

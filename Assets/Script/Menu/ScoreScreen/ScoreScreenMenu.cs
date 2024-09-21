@@ -1,18 +1,20 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Cysharp.Threading.Tasks;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
+using YARG.Core.Engine.ProKeys;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Replays;
+using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
-using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
+using YARG.Replays;
 using YARG.Song;
 
 namespace YARG.Menu.ScoreScreen
@@ -41,6 +43,10 @@ namespace YARG.Menu.ScoreScreen
         private DrumsScoreCard _drumsCardPrefab;
         [SerializeField]
         private VocalsScoreCard _vocalsCardPrefab;
+        [SerializeField]
+        private ProKeysScoreCard _proKeysCardPrefab;
+
+        private bool _analyzingReplay;
 
         private void OnEnable()
         {
@@ -49,7 +55,10 @@ namespace YARG.Menu.ScoreScreen
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
                 {
-                    GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                    if (!_analyzingReplay)
+                    {
+                        GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                    }
                 })
             }, true));
 
@@ -61,6 +70,17 @@ namespace YARG.Menu.ScoreScreen
 
             var song = GlobalVariables.State.CurrentSong;
             var scoreScreenStats = GlobalVariables.State.ScoreScreenStats.Value;
+
+            // Do analysis of replay before showing any score data
+            // This will make it so that if the analysis takes a while the screen is blank
+            // (kinda like a loading screen)
+            if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
+            {
+                DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
+                    "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
+                    "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
+                    $"Chart Hash: {song.Hash.ToString()}");
+            }
 
             // Set text
             _songTitle.text = song.Name;
@@ -119,6 +139,13 @@ namespace YARG.Menu.ScoreScreen
                         card.SetCardContents();
                         break;
                     }
+                    case GameMode.ProKeys:
+                    {
+                        var card = Instantiate(_proKeysCardPrefab, _cardContainer);
+                        card.Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
+                        card.SetCardContents();
+                        break;
+                    }
                 }
             }
 
@@ -130,6 +157,51 @@ namespace YARG.Menu.ScoreScreen
             {
                 _horizontalScrollBar.value = 0f;
             }
+        }
+
+#nullable enable
+        private bool AnalyzeReplay(SongEntry songEntry, ReplayInfo? replayEntry)
+#nullable disable
+        {
+            _analyzingReplay = true;
+
+            var chart = songEntry.LoadChart();
+            if (chart == null)
+            {
+                YargLogger.LogError("Chart did not load");
+                _analyzingReplay = false;
+                return true;
+            }
+
+            if (replayEntry == null)
+            {
+                YargLogger.LogError("ReplayEntry is null");
+                _analyzingReplay = false;
+                return true;
+            }
+
+            var (result, data) = ReplayIO.TryLoadData(replayEntry);
+            if (result != ReplayReadResult.Valid)
+            {
+                YargLogger.LogFormatError("Replay did not load. {0}", result);
+                _analyzingReplay = false;
+                return true;
+            }
+
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
+            for(int i = 0; i < results.Length; i++)
+            {
+                var analysisResult = results[i];
+
+                if (!analysisResult.Passed)
+                {
+                    _analyzingReplay = false;
+                    return false;
+                }
+            }
+
+            _analyzingReplay = false;
+            return true;
         }
     }
 }

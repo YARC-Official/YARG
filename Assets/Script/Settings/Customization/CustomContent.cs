@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using TMPro;
-using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Core.Utility;

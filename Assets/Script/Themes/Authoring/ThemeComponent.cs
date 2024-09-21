@@ -18,6 +18,8 @@ namespace YARG.Themes
         private GameObject _fourLaneNotes;
         [SerializeField]
         private GameObject _fiveLaneNotes;
+        [SerializeField]
+        private GameObject _proKeysNotes;
 
         [Space]
         [SerializeField]
@@ -26,6 +28,12 @@ namespace YARG.Themes
         private GameObject _fourLaneFret;
         [SerializeField]
         private GameObject _fiveLaneFret;
+
+        [Space]
+        [SerializeField]
+        private GameObject _whiteKey;
+        [SerializeField]
+        private GameObject _blackKey;
 
         [Space]
         [SerializeField]
@@ -38,6 +46,7 @@ namespace YARG.Themes
                 GameMode.FiveFretGuitar => _fiveFretNotes,
                 GameMode.FourLaneDrums  => _fourLaneNotes,
                 GameMode.FiveLaneDrums  => _fiveLaneNotes,
+                GameMode.ProKeys        => _proKeysNotes,
                 _ => throw new Exception("Unreachable.")
             };
 
@@ -58,21 +67,16 @@ namespace YARG.Themes
             return dict;
         }
 
-        public GameObject GetModelForGameMode<T>(GameMode gameMode)
+        public GameObject GetModelForGameMode(GameMode gameMode, string name)
         {
-            // TODO: Make this cleaner
-
-            if (typeof(T) == typeof(ThemeFret))
+            return name switch
             {
-                return GetFretModelForGameMode(gameMode);
-            }
-
-            if (typeof(T) == typeof(ThemeKickFret))
-            {
-                return _kickFret;
-            }
-
-            throw new Exception("Unreachable.");
+                ThemeManager.FRET_PREFAB_NAME      => GetFretModelForGameMode(gameMode),
+                ThemeManager.KICK_FRET_PREFAB_NAME => _kickFret,
+                ThemeManager.WHITE_KEY_PREFAB_NAME => _whiteKey,
+                ThemeManager.BLACK_KEY_PREFAB_NAME => _blackKey,
+                _                                  => throw new Exception("Unreachable.")
+            };
         }
 
         private GameObject GetFretModelForGameMode(GameMode gameMode)

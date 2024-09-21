@@ -1,4 +1,4 @@
-using UnityEngine.InputSystem;
+﻿using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Input;
 
@@ -121,54 +121,54 @@ namespace YARG.Input
             // screw it, we ballin'
 
             // // Lower keyboard
-            // AddBinding(ProKeysAction.Key1, keyboard.zKey);
-            // AddBinding(ProKeysAction.Key2, keyboard.sKey);
-            // AddBinding(ProKeysAction.Key3, keyboard.xKey);
-            // AddBinding(ProKeysAction.Key4, keyboard.dKey);
-            // AddBinding(ProKeysAction.Key5, keyboard.cKey);
+            AddBinding(ProKeysAction.Key1, keyboard.zKey);
+            AddBinding(ProKeysAction.Key2, keyboard.sKey);
+            AddBinding(ProKeysAction.Key3, keyboard.xKey);
+            AddBinding(ProKeysAction.Key4, keyboard.dKey);
+            AddBinding(ProKeysAction.Key5, keyboard.cKey);
 
-            // AddBinding(ProKeysAction.Key6, keyboard.vKey);
-            // AddBinding(ProKeysAction.Key7, keyboard.gKey);
-            // AddBinding(ProKeysAction.Key8, keyboard.bKey);
-            // AddBinding(ProKeysAction.Key9, keyboard.hKey);
-            // AddBinding(ProKeysAction.Key10, keyboard.nKey);
-            // AddBinding(ProKeysAction.Key11, keyboard.jKey);
-            // AddBinding(ProKeysAction.Key12, keyboard.mKey);
+            AddBinding(ProKeysAction.Key6, keyboard.vKey);
+            AddBinding(ProKeysAction.Key7, keyboard.gKey);
+            AddBinding(ProKeysAction.Key8, keyboard.bKey);
+            AddBinding(ProKeysAction.Key9, keyboard.hKey);
+            AddBinding(ProKeysAction.Key10, keyboard.nKey);
+            AddBinding(ProKeysAction.Key11, keyboard.jKey);
+            AddBinding(ProKeysAction.Key12, keyboard.mKey);
 
-            // AddBinding(ProKeysAction.Key13, keyboard.commaKey);
-            // AddBinding(ProKeysAction.Key14, keyboard.lKey);
-            // AddBinding(ProKeysAction.Key15, keyboard.periodKey);
-            // AddBinding(ProKeysAction.Key16, keyboard.semicolonKey);
-            // AddBinding(ProKeysAction.Key17, keyboard.slashKey);
+            AddBinding(ProKeysAction.Key13, keyboard.commaKey);
+            AddBinding(ProKeysAction.Key14, keyboard.lKey);
+            AddBinding(ProKeysAction.Key15, keyboard.periodKey);
+            AddBinding(ProKeysAction.Key16, keyboard.semicolonKey);
+            AddBinding(ProKeysAction.Key17, keyboard.slashKey);
 
-            // // Higher keyboard
-            // AddBinding(ProKeysAction.Key6, keyboard.qKey);
-            // AddBinding(ProKeysAction.Key7, keyboard.digit2Key);
-            // AddBinding(ProKeysAction.Key8, keyboard.wKey);
-            // AddBinding(ProKeysAction.Key9, keyboard.digit3Key);
-            // AddBinding(ProKeysAction.Key10, keyboard.eKey);
-            // AddBinding(ProKeysAction.Key11, keyboard.digit4key);
-            // AddBinding(ProKeysAction.Key12, keyboard.rKey);
+            // Higher keyboard
+            AddBinding(ProKeysAction.Key6, keyboard.qKey);
+            AddBinding(ProKeysAction.Key7, keyboard.digit2Key);
+            AddBinding(ProKeysAction.Key8, keyboard.wKey);
+            AddBinding(ProKeysAction.Key9, keyboard.digit3Key);
+            AddBinding(ProKeysAction.Key10, keyboard.eKey);
+            AddBinding(ProKeysAction.Key11, keyboard.digit4Key);
+            AddBinding(ProKeysAction.Key12, keyboard.rKey);
 
-            // AddBinding(ProKeysAction.Key13, keyboard.tKey);
-            // AddBinding(ProKeysAction.Key14, keyboard.digit6Key);
-            // AddBinding(ProKeysAction.Key15, keyboard.yKey);
-            // AddBinding(ProKeysAction.Key16, keyboard.digit7Key);
-            // AddBinding(ProKeysAction.Key17, keyboard.uKey);
+            AddBinding(ProKeysAction.Key13, keyboard.tKey);
+            AddBinding(ProKeysAction.Key14, keyboard.digit6Key);
+            AddBinding(ProKeysAction.Key15, keyboard.yKey);
+            AddBinding(ProKeysAction.Key16, keyboard.digit7Key);
+            AddBinding(ProKeysAction.Key17, keyboard.uKey);
 
-            // AddBinding(ProKeysAction.Key18, keyboard.iKey);
-            // AddBinding(ProKeysAction.Key19, keyboard.digit9Key);
-            // AddBinding(ProKeysAction.Key20, keyboard.oKey);
-            // AddBinding(ProKeysAction.Key21, keyboard.digit0Key);
-            // AddBinding(ProKeysAction.Key22, keyboard.pKey);
-            // AddBinding(ProKeysAction.Key23, keyboard.minusKey);
-            // AddBinding(ProKeysAction.Key24, keyboard.leftBracketKey);
+            AddBinding(ProKeysAction.Key18, keyboard.iKey);
+            AddBinding(ProKeysAction.Key19, keyboard.digit9Key);
+            AddBinding(ProKeysAction.Key20, keyboard.oKey);
+            AddBinding(ProKeysAction.Key21, keyboard.digit0Key);
+            AddBinding(ProKeysAction.Key22, keyboard.pKey);
+            AddBinding(ProKeysAction.Key23, keyboard.minusKey);
+            AddBinding(ProKeysAction.Key24, keyboard.leftBracketKey);
 
-            // AddBinding(ProKeysAction.Key25, keyboard.rightBracketKey);
+            AddBinding(ProKeysAction.Key25, keyboard.rightBracketKey);
 
-            // AddBinding(ProKeysAction.StarPower, keyboard.backspaceKey);
+            AddBinding(ProKeysAction.StarPower, keyboard.backspaceKey);
 
-            // AddBinding(ProKeysAction.TouchEffects, keyboard.quoteKey);
+            AddBinding(ProKeysAction.TouchEffects, keyboard.quoteKey);
 
             return true;
         }
@@ -178,7 +178,8 @@ namespace YARG.Input
             if (Mode != GameMode.Vocals)
                 return false;
 
-            AddBinding(VocalsAction.StarPower, keyboard.backspaceKey);
+            AddBinding(VocalsAction.Hit, keyboard.backspaceKey);
+            AddBinding(VocalsAction.StarPower, keyboard.spaceKey);
 
             return true;
         }

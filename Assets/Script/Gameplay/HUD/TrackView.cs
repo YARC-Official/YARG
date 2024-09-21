@@ -23,6 +23,8 @@ namespace YARG.Gameplay.HUD
         private SoloBox _soloBox;
         [SerializeField]
         private TextNotifications _textNotifications;
+        [SerializeField]
+        private CountdownDisplay _countdownDisplay;
 
         private TrackPlayer _trackPlayer;
 
@@ -73,6 +75,11 @@ namespace YARG.Gameplay.HUD
                 (RectTransform) _topElementContainer.parent,
                 screenPos, null, out var localPoint);
             _topElementContainer.localPosition = localPoint;
+        }
+
+        public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
+        {
+            _countdownDisplay.UpdateCountdown(measuresLeft, countdownLength, endTime);
         }
 
         public void StartSolo(SoloSection solo)
@@ -133,6 +140,7 @@ namespace YARG.Gameplay.HUD
 
             _soloBox.ForceReset();
             _textNotifications.ForceReset();
+            _countdownDisplay.ForceReset();
         }
     }
 }

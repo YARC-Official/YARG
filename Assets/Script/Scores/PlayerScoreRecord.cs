@@ -33,7 +33,16 @@ namespace YARG.Scores
         public int  NotesMissed { get; set; }
         public bool IsFc        { get; set; }
 
-        [Ignore]
-        public float Percent => (float) NotesHit / (NotesHit + NotesMissed);
+        /// <remarks>
+        /// This property was added afterwards, so it is nullable.
+        /// Use <see cref="GetPercent"/> to get the actual percent value.
+        /// </remarks>
+        public float? Percent { get; set; }
+
+        public float GetPercent()
+        {
+            return Percent
+                ?? (float) NotesHit / (NotesHit + NotesMissed);
+        }
     }
 }

@@ -9,6 +9,7 @@ using YARG.Core.Extensions;
 using YARG.Core.IO;
 using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
+using YARG.Settings;
 using YARG.Venue;
 
 namespace YARG.Gameplay
@@ -16,17 +17,21 @@ namespace YARG.Gameplay
     public class BackgroundManager : GameplayBehaviour, IDisposable
     {
         private string VIDEO_PATH;
+
         [SerializeField]
         private VideoPlayer _videoPlayer;
+
         [SerializeField]
         private RawImage _backgroundImage;
+
+        [SerializeField]
+        private Image _backgroundDimmer;
 
         private BackgroundType _type;
         private VenueSource _source;
 
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
-        private bool _compensateInputOnSeek = false;
 
         // These values are relative to the video, not to song time!
         // A negative start time will delay when the video starts, a positive one will set the video position
@@ -47,6 +52,10 @@ namespace YARG.Gameplay
             {
                 return;
             }
+
+            var colorDim = _backgroundDimmer.color.WithAlpha(1 - SettingsManager.Settings.SongBackgroundOpacity.Value);
+
+            _backgroundDimmer.color = colorDim;
 
             _type = result.Type;
             switch (_type)
@@ -227,8 +236,8 @@ namespace YARG.Gameplay
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
-                        _compensateInputOnSeek = !GameManager.Paused;
-                        GameManager.Pause(showMenu: false);
+                        if (SettingsManager.Settings.WaitForSongVideo.Value)
+                            GameManager.OverridePause();
 
                         _videoPlayer.time = videoTime;
                     }
@@ -241,8 +250,8 @@ namespace YARG.Gameplay
             if (!_videoSeeking)
                 return;
 
-            GameManager.Resume(inputCompensation: _compensateInputOnSeek);
-            player.Play();
+            if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
+                player.Play();
 
             enabled = double.IsNaN(_videoEndTime);
             _videoSeeking = false;

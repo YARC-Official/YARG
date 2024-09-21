@@ -1,7 +1,6 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.Serialization;
-using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -9,6 +8,7 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
@@ -37,6 +37,9 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
+        private int[] _drumSoundEffectRoundRobin = new int[8];
+        private float _drumSoundEffectAccentThreshold;
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
             int? currentHighScore)
         {
@@ -61,7 +64,7 @@ namespace YARG.Gameplay.Player
                 _                        => throw new Exception("Unreachable.")
             };
 
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.Drums.Create(StarMultiplierThresholds, mode);
@@ -72,9 +75,16 @@ namespace YARG.Gameplay.Player
                 EngineParams = (DrumsEngineParameters) Player.EngineParameterOverride;
             }
 
-            var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams);
+            var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
 
             HitWindow = EngineParams.HitWindow;
+
+            // Calculating drum sound effect accent threshold based on the engine's ghost velocity threshold
+            _drumSoundEffectAccentThreshold = EngineParams.VelocityThreshold * 2;
+            if (_drumSoundEffectAccentThreshold > 0.8f)
+            {
+                _drumSoundEffectAccentThreshold = EngineParams.VelocityThreshold + ((1 - EngineParams.VelocityThreshold) / 2);
+            }
 
             engine.OnNoteHit += OnNoteHit;
             engine.OnNoteMissed += OnNoteMissed;
@@ -86,7 +96,9 @@ namespace YARG.Gameplay.Player
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerStatus += OnStarPowerStatus;
 
-            engine.OnPadHit += (action, wasNoteHit) =>
+            engine.OnCountdownChange += OnCountdownChange;
+
+            engine.OnPadHit += (action, wasNoteHit, velocity) =>
             {
                 // Skip if a note was hit, because we have different logic for that below
                 if (wasNoteHit) return;
@@ -119,16 +131,28 @@ namespace YARG.Gameplay.Player
                     };
                 }
 
+                bool isDrumFreestyle = IsDrumFreestyle();
+
+                if (isDrumFreestyle)
+                {
+                    // Play drum sound effect
+                    PlayDrumSoundEffect(action, velocity);
+                }
                 // Skip if no animation
                 if (fret == -1) return;
 
                 if (fret != 0)
                 {
-                    _fretArray.PlayDrumAnimation(fret - 1, false);
+                    _fretArray.PlayDrumAnimation(fret - 1, isDrumFreestyle);
                 }
                 else
                 {
                     _fretArray.PlayKickFretAnimation();
+                    if (isDrumFreestyle)
+                    {
+                        _kickFretFlash.PlayHitAnimation();
+                        CameraPositioner.Bounce();
+                    }
                 }
             };
 
@@ -266,6 +290,56 @@ namespace YARG.Gameplay.Player
         protected override bool InterceptInput(ref GameInput input)
         {
             return false;
+        }
+
+        private void PlayDrumSoundEffect(DrumsAction action, float velocity)
+        {
+            int actionIndex = (int) action;
+            double sampleVolume = velocity;
+
+            // Define sample
+            int sampleIndex = (int) DrumSfxSample.Vel0Pad0Smp0;
+            if (velocity > _drumSoundEffectAccentThreshold)
+            {
+                sampleIndex = (int) DrumSfxSample.Vel2Pad0Smp0;
+            }
+            // VelocityThreshold refers to the maximum ghost input velocity
+            else if (velocity > EngineParams.VelocityThreshold)
+            {
+                sampleIndex = (int) DrumSfxSample.Vel1Pad0Smp0;
+                // This division is normalizing the volume using _drumSoundEffectAccentThreshold as pseudo "1"
+                sampleVolume = velocity / _drumSoundEffectAccentThreshold;
+            }
+            else
+            {
+                // This division is normalizing the volume using EngineParams.VelocityThreshold as pseudo "1"
+                sampleVolume = velocity / EngineParams.VelocityThreshold;
+            }
+            sampleIndex += (actionIndex * DrumSampleChannel.ROUND_ROBIN_MAX_INDEX) + _drumSoundEffectRoundRobin[actionIndex];
+
+            // Play Sample
+            GlobalAudioHandler.PlayDrumSoundEffect((DrumSfxSample) sampleIndex, sampleVolume);
+
+            // Adjust round-robin
+            _drumSoundEffectRoundRobin[actionIndex] += 1;
+            if (_drumSoundEffectRoundRobin[actionIndex] == DrumSampleChannel.ROUND_ROBIN_MAX_INDEX)
+            {
+                _drumSoundEffectRoundRobin[actionIndex] = 0;
+            }
+        }
+
+        private bool IsDrumFreestyle()
+        {
+            return Engine.NoteIndex == 0 || // Can freestyle before first note is hit/missed
+                Engine.NoteIndex >= Notes.Count || // Can freestyle after last note
+                Engine.IsWaitCountdownActive; // Can freestyle during WaitCountdown
+            // TODO: add drum fill / BRE conditions
+        }
+
+        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
+        {
+            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
         }
     }
 }

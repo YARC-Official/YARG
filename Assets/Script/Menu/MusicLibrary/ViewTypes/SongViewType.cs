@@ -54,6 +54,7 @@ namespace YARG.Menu.MusicLibrary
         public override string GetSideText(bool selected)
         {
             var score = ScoreContainer.GetHighScore(SongEntry.Hash);
+            var bestPctScore = ScoreContainer.GetBestPercentageScore(SongEntry.Hash);
 
             // Never played!
             if (score is null)
@@ -63,7 +64,7 @@ namespace YARG.Menu.MusicLibrary
 
             var instrument = score.Instrument.ToResourceName();
             var difficultyChar = score.Difficulty.ToChar();
-            var percent = Mathf.Floor(score.Percent * 100f);
+            var percent = Mathf.Floor(bestPctScore.GetPercent() * 100f);
 
             using var builder = ZString.CreateStringBuilder();
             builder.AppendFormat("<sprite name=\"{0}\"> <b>{1}</b> {2:N0}%",

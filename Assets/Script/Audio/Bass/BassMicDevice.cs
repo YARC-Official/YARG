@@ -171,6 +171,8 @@ namespace YARG.Audio.BASS
 
     public sealed class BassMicDevice : MicDevice
     {
+        private const float MIC_HIT_INPUT_THRESHOLD = 25f;
+
 #nullable enable
         internal static BassMicDevice? Create(int deviceId, string name)
 #nullable disable
@@ -218,6 +220,9 @@ namespace YARG.Audio.BASS
             fBandwidth = 2.5f, fCenter = 10_000f, fGain = -10f
         };
 
+        private float? _lastPitch;
+        private float? _lastAmplitude;
+
         private readonly ConcurrentQueue<MicOutputFrame> _frameQueue = new();
 
         private readonly PitchTracker _pitchDetector = new();
@@ -227,8 +232,6 @@ namespace YARG.Audio.BASS
         private readonly int _deviceId;
 
         private RecordingHandle _recordHandle;
-
-        private float? _lastPitchOutput;
 
         private int _timeAccumulated;
         private int _processedBufferLength;
@@ -388,10 +391,19 @@ namespace YARG.Audio.BASS
                 amplitude = -160f;
             }
 
+            // Detect peaks for hit inputs
+            if (amplitude > _lastAmplitude && Mathf.Abs(amplitude - _lastAmplitude.Value) >= MIC_HIT_INPUT_THRESHOLD)
+            {
+                var hitFrame = new MicOutputFrame(InputManager.CurrentInputTime, true, -1f, -1f);
+                _frameQueue.Enqueue(hitFrame);
+            }
+
+            _lastAmplitude = amplitude;
+
             // Skip pitch detection if not speaking
             if (amplitude < SettingsManager.Settings.MicrophoneSensitivity.Value)
             {
-                _lastPitchOutput = null;
+                _lastPitch = null;
                 return;
             }
 
@@ -399,18 +411,18 @@ namespace YARG.Audio.BASS
             var pitchOutput = _pitchDetector.ProcessBuffer(floatBuffer);
             if (pitchOutput != null)
             {
-                _lastPitchOutput = pitchOutput;
+                _lastPitch = pitchOutput;
             }
 
             // We cannot push a frame if there was no pitch
-            if (_lastPitchOutput == null)
+            if (_lastPitch == null)
             {
                 return;
             }
 
             // Queue a MicOutput frame
-            var frame = new MicOutputFrame(
-                InputManager.CurrentInputTime, _lastPitchOutput.Value, amplitude);
+            var frame = new MicOutputFrame(InputManager.CurrentInputTime, false,
+                _lastPitch.Value, amplitude);
             _frameQueue.Enqueue(frame);
         }
 

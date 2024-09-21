@@ -7,7 +7,9 @@ using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
+using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Player;
 using YARG.Settings;
@@ -16,26 +18,30 @@ namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : GameplayBehaviour
     {
+        public int PlayerIndex { get; private set; }
+
         public YargPlayer Player { get; private set; }
 
         public float NoteSpeed
         {
             get
             {
+                float noteSpeed = Player.Profile.NoteSpeed * _noteSpeedDifficultyScale;
+
                 // If we're in a replay, don't change the note speed (it should be like a video
                 // slowing down/speeding up). The actual song speed should be taken into account though,
                 // which is saved in the engine parameter override.
-                if (GameManager.IsReplay)
+                if (GameManager.ReplayInfo != null)
                 {
-                    return Player.Profile.NoteSpeed / (float) Player.EngineParameterOverride.SongSpeed;
+                    return noteSpeed / (float) Player.EngineParameterOverride.SongSpeed;
                 }
 
                 if (GameManager.IsPractice && GameManager.SongSpeed < 1)
                 {
-                    return Player.Profile.NoteSpeed;
+                    return noteSpeed;
                 }
 
-                return Player.Profile.NoteSpeed / GameManager.SongSpeed;
+                return noteSpeed / GameManager.SongSpeed;
             }
         }
 
@@ -92,6 +98,8 @@ namespace YARG.Gameplay.Player
 
         private int _replayInputIndex;
 
+        private float _noteSpeedDifficultyScale;
+
         protected override void GameplayAwake()
         {
             _replayInputs = new List<GameInput>();
@@ -108,7 +116,7 @@ namespace YARG.Gameplay.Player
                 SantrollerHaptics = Player.Bindings.GetDevicesByType<ISantrollerHaptics>();
             }
 
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 SubscribeToInputEvents();
             }
@@ -121,15 +129,18 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            PlayerIndex = index;
             Player = player;
 
             SyncTrack = chart.SyncTrack;
 
             LastHighScore = lastHighScore;
 
-            if (GameManager.IsReplay)
+            _noteSpeedDifficultyScale = Player.Profile.CurrentDifficulty.NoteSpeedScale();
+
+            if (GameManager.ReplayInfo != null)
             {
-                _replayInputs = new List<GameInput>(GameManager.Replay.Frames[index].Inputs);
+                _replayInputs = new List<GameInput>(GameManager.ReplayData.Frames[index].Inputs);
                 YargLogger.LogFormatDebug("Initialized replay inputs with {0} inputs", _replayInputs.Count);
             }
 
@@ -183,9 +194,11 @@ namespace YARG.Gameplay.Player
 
         public virtual void SetReplayTime(double time)
         {
+            IsFc = true;
+
             _replayInputIndex = BaseEngine.ProcessUpToTime(time, ReplayInputs);
 
-            IsFc = true;
+            SetStemMuteState(false);
 
             ResetVisuals();
             UpdateVisualsWithTimes(time);
@@ -193,7 +206,7 @@ namespace YARG.Gameplay.Player
 
         protected override void GameplayDestroy()
         {
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 UnsubscribeFromInputEvents();
             }
@@ -211,13 +224,7 @@ namespace YARG.Gameplay.Player
             // Video offset is already accounted for
             time += InputCalibration;
 
-            if (Player.Profile.IsBot)
-            {
-                BaseEngine.UpdateBot(time);
-                return;
-            }
-
-            if (GameManager.IsReplay)
+            if (GameManager.ReplayInfo != null)
             {
                 while (_replayInputIndex < ReplayInputs.Count)
                 {
@@ -236,14 +243,7 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            if (BaseEngine.IsInputQueued)
-            {
-                BaseEngine.UpdateEngineInputs();
-            }
-            else
-            {
-                BaseEngine.UpdateEngineToTime(time);
-            }
+            BaseEngine.Update(time);
         }
 
         private void SubscribeToInputEvents()
@@ -340,7 +340,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnStarPowerPhraseHit()
         {
-            if (!GameManager.Paused)
+            if (!GameManager.Paused && !GameManager.IsSeekingReplay)
             {
                 GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerAward);
             }
@@ -386,5 +386,7 @@ namespace YARG.Gameplay.Player
 
             return starScoreThresh;
         }
+
+        public abstract (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData();
     }
 }

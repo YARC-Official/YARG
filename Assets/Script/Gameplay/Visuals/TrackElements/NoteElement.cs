@@ -16,7 +16,7 @@ namespace YARG.Gameplay.Visuals
         Missed
     }
 
-    public abstract class NoteElement<TNote, TPlayer> : TrackElement<TPlayer>, IThemePrefabCreator
+    public abstract class NoteElement<TNote, TPlayer> : TrackElement<TPlayer>, IThemeNoteCreator
         where TNote : Note<TNote>
         where TPlayer : TrackPlayer
     {

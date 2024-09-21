@@ -1,4 +1,5 @@
 ﻿using YARG.Core.Game;
+using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Menu.ListMenu;
 using YARG.Replays;
@@ -20,12 +21,27 @@ namespace YARG.Menu.History
 
         }
 
+        public virtual void Shortcut1()
+        {
+
+        }
+
+        public virtual void Shortcut2()
+        {
+
+        }
+
+        public virtual void Shortcut3()
+        {
+
+        }
+
         public virtual GameInfo? GetGameInfo()
         {
             return null;
         }
 
-        protected static void LoadIntoReplay(ReplayEntry replay, SongEntry song)
+        protected static void LoadIntoReplay(ReplayInfo replay, SongEntry song)
         {
             GlobalVariables.State = PersistentState.Default;
 
