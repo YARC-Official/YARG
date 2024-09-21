@@ -92,8 +92,7 @@ namespace YARG.Menu.History
             if (SettingsManager.Settings.ShowEngineInconsistencyDialog)
             {
                 var dialog = DialogManager.Instance.ShowOneTimeMessage(
-                    Localize.Key("Menu.Dialog.EngineInconsistency.Title"),
-                    Localize.Key("Menu.Dialog.EngineInconsistency.Description"),
+                    "Menu.Dialog.EngineInconsistency",
                     () =>
                     {
                         SettingsManager.Settings.ShowEngineInconsistencyDialog = false;

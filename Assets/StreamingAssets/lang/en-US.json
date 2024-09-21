@@ -161,10 +161,16 @@
             }
         },
         "Dialog": {
+            "DontShowAgain": "Don't Show Again",
+
             "AntiPiracy": {
                 "Title": "YARG Anti-Piracy Statement",
                 "Description": "<b>YARG stands firmly against all forms of piracy.</b> We neither support nor endorse piracy, as it is a violation of copyright law with serious legal consequences. Our platform's importable content—designed for creators to share their work and for educational purposes—does not justify or excuse piracy.\n\nYARG itself <b>does not</b> use any ripped/pirated assets or music and never will. By using YARG, users agree not to promote or endorse piracy in any way through our platform. Upholding these principles ensures a community that respects copyright, creativity, and legal standards.\n\nYARG stands for \"Yet Another Rhythm Game\" and NOT for pirates.",
                 "Confirm": "I Understand"
+            },
+            "BadSongs": {
+                "Title": "Some Songs Could Not Be Scanned",
+                "Description": "One or more of the songs you scanned were corrupted, formatted incorrectly, or encrypted, and <b>could not be loaded into the game.</b>\n\nFor more info, please check the file located at \"{0}\"."
             },
             "ColorPicker": {
                 "Title": "Color Picker"
@@ -176,17 +182,14 @@
             },
             "EngineInconsistency": {
                 "Title": "Replays Are In Beta",
-                "Description": "Currently, the replay system is in beta, <b>and <i>may</i> provide inconsistent scores/stats</b>, especially for guitar.\n\nThe end goal is for replays to be reliable and accurate, and we're working on fixing these problems!"
+                "Description": "Currently, the replay system is in beta, <b>and <i>may</i> provide inconsistent scores/stats</b>, especially for guitar.\n\nThe end goal is for replays to be reliable and accurate, and we're working on fixing these problems!",
+                "Confirm": "I Understand"
             },
             "Experimental": {
                 "Title": "Experimental Features Notice",
-                "Description": "The options about to be displayed represent a work in progress. These features are subject to change, may contain bugs, and <b>could even cause major problems if enabled</b>."
-            },
-            "BadSongs": {
-                "Title": "Some Songs Could Not Be Scanned",
-                "Description": "One or more of the songs you scanned were corrupted, formatted incorrectly, or encrypted, and <b>could not be loaded into the game.</b>\n\nFor more info, please check the file located at \"{0}\"."
-            },
-            "DontShowAgain": "Don't Show Again"
+                "Description": "The options about to be displayed represent a work in progress. These features are subject to change, may contain bugs, and <b>could even cause major problems if enabled</b>.",
+                "Confirm": "I Understand"
+            }
         },
         "DifficultySelect": {
             "Instrument": "Instrument",

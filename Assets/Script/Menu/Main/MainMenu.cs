@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using YARG.Core.Input;
 using YARG.Helpers;
@@ -27,8 +27,7 @@ namespace YARG.Menu.Main
             if (!_antiPiracyDialogShown && SettingsManager.Settings.ShowAntiPiracyDialog)
             {
                 DialogManager.Instance.ShowOneTimeMessage(
-                    Localize.Key("Menu.Dialog.AntiPiracy.Title"),
-                    Localize.Key("Menu.Dialog.AntiPiracy.Description"),
+                    "Menu.Dialog.AntiPiracy",
                     () =>
                     {
                         SettingsManager.Settings.ShowAntiPiracyDialog = false;
