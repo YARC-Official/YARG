@@ -61,7 +61,7 @@ namespace YARG.Menu.History
                     () => CurrentSelection?.ViewClick()),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back",
                     Back),
-                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.Common.Analyze",
+                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.History.Analyze",
                     () => CurrentSelection?.Shortcut1()),
             }, false));
 
