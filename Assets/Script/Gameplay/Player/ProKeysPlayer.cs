@@ -11,6 +11,7 @@ using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.Player
 {
@@ -135,6 +136,8 @@ namespace YARG.Gameplay.Player
                 RangeShiftTo(_rangeShifts[0].Key, 0);
                 _rangeShiftIndex++;
             }
+
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, WHITE_KEY_VISIBLE_COUNT); // 
         }
 
         public override void ResetPracticeSection()
@@ -317,6 +320,11 @@ namespace YARG.Gameplay.Player
                     (note as ProKeysNoteElement)?.UpdateXPosition();
                 }
 
+                foreach (var lane in LanePool.AllSpawned)
+                {
+                    (lane as LaneElement)?.OffsetXPosition(_currentOffset);
+                }
+
                 foreach (var bar in _chordBarPool.AllSpawned)
                 {
                     (bar as ProKeysChordBarElement)?.UpdateXPosition();
@@ -384,8 +392,49 @@ namespace YARG.Gameplay.Player
             ((ProKeysNoteElement) poolable).NoteRef = note;
         }
 
+        protected override void InitializeSpawnedLane(LaneElement lane, int key)
+        {
+            int noteIndex = key % 12;
+            int octaveIndex = key / 12;
+
+            // Get the group index (two groups per octave)
+            int group = octaveIndex * 2 + (ProKeysUtilities.IsLowerHalfKey(noteIndex) ? 0 : 1);
+
+            lane.SetAppearance(Player.Profile.CurrentInstrument, key, GetNoteX(key), Player.ColorProfile.ProKeys.GetOverlayColor(group).ToUnityColor());
+        }
+
+        protected override void ModifyLaneFromNote(LaneElement lane, ProKeysNote note)
+        {
+            if ((note.Flags & NoteFlags.Trill) != 0 && note.NextNote != null)
+            {
+                // Trills between adjacent white and black keys should have a single, wider lane
+                int leftKey = Math.Min(note.Key, note.NextNote.Key);
+                int rightKey = Math.Max(note.Key, note.NextNote.Key);
+                
+                if (rightKey - leftKey == 1 &&
+                    ProKeysUtilities.IsBlackKey(note.Key) != ProKeysUtilities.IsBlackKey(rightKey))
+                {
+                    lane.SetIndexRange(leftKey, rightKey);
+
+                    float leftKeyPosition = GetNoteX(leftKey);
+                    lane.SetXPosition(leftKeyPosition + (GetNoteX(rightKey) - leftKeyPosition)/2);
+                    lane.MultiplyScale(1.75f);
+
+                    return;
+                }
+            }
+            
+            if (ProKeysUtilities.IsWhiteKey(note.Key))
+            {
+                // White notes are slightly wider than the lane
+                lane.MultiplyScale(1.25f);
+            }
+        }
+
         protected override void OnNoteSpawned(ProKeysNote parentNote)
         {
+            base.OnNoteSpawned(parentNote);
+
             if (parentNote.WasHit || parentNote.ChildNotes.Count <= 0)
             {
                 return;
