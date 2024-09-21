@@ -242,7 +242,7 @@ namespace YARG.Gameplay.Player
 
         protected override void ModifyLaneFromNote(LaneElement lane, DrumNote note)
         {
-            if ((note.Flags & NoteFlags.Tremolo) != 0)
+            if (note.IsTremolo)
             {
                 // Widen drum roll lanes to make them easier to see
                 lane.MultiplyScale(1.2f);

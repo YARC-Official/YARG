@@ -405,7 +405,7 @@ namespace YARG.Gameplay.Player
 
         protected override void ModifyLaneFromNote(LaneElement lane, ProKeysNote note)
         {
-            if ((note.Flags & NoteFlags.Trill) != 0 && note.NextNote != null)
+            if (note.IsTrill && note.NextNote != null)
             {
                 // Trills between adjacent white and black keys should have a single, wider lane
                 int leftKey = Math.Min(note.Key, note.NextNote.Key);

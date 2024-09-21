@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -369,17 +369,16 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            if ((parentNote.Flags & NoteFlags.LaneStart) != 0)
+            if (parentNote.IsLaneStart)
             {
-                bool isTrill = (parentNote.Flags & NoteFlags.Trill) != 0;
-                var thisLaneFlag = isTrill ? NoteFlags.Trill : NoteFlags.Tremolo;
+                var thisLaneFlag = parentNote.IsTrill ? NoteFlags.Trill : NoteFlags.Tremolo;
 
                 (int index, double startTime, double endTime) firstLane = (parentNote.LaneIndex, parentNote.Time, -1);
                 (int index, double startTime, double endTime) secondLane = (-1, -1, -1);
 
                 // Find the ending note to determine the length of this lane
                 var noteRef = parentNote.NextNote;
-                if (isTrill && noteRef != null)
+                if (parentNote.IsTrill && noteRef != null)
                 {
                     secondLane.index = noteRef.LaneIndex;
                     secondLane.startTime = noteRef.Time;
@@ -387,12 +386,6 @@ namespace YARG.Gameplay.Player
 
                 while (noteRef != null)
                 {
-                    if ((noteRef.Flags & thisLaneFlag) == 0)
-                    {
-                        YargLogger.LogFormatDebug("Lane at index {0}, tick {1} ended without a LaneEnd flag.", firstLane.index, parentNote.Tick);
-                        break;
-                    }
-
                     if (noteRef.LaneIndex == firstLane.index)
                     {
                         firstLane.endTime = noteRef.Time;
@@ -402,7 +395,7 @@ namespace YARG.Gameplay.Player
                         secondLane.endTime = noteRef.Time;
                     }
 
-                    if ((noteRef.Flags & NoteFlags.LaneEnd) != 0)
+                    if (noteRef.IsLaneEnd)
                     {
                         break;
                     }
@@ -436,7 +429,7 @@ namespace YARG.Gameplay.Player
                             {
                                 // New lane will overlap with existing one
                                 // Determine if the previous notes in this chart should prevent combining
-                                int notesToSearch = isTrill ? 2 : 1;
+                                int notesToSearch = firstLaneNote.IsTrill ? 2 : 1;
                                 noteRef = firstLaneNote.PreviousNote;
                                 for (int n = 0; n < notesToSearch; n++)
                                 {
