@@ -393,6 +393,35 @@
             "BluePad": "Blue Pad (Third)",
             "OrangeCymbal": "Orange Cymbal (Fourth)",
             "GreenPad": "Green Pad (Fifth)"
+        },
+        "ProKeys": {
+            "Key1": "Key 1 (C2)",
+            "Key2": "Key 2 (C#2)",
+            "Key3": "Key 3 (D2)",
+            "Key4": "Key 4 (D#2)",
+            "Key5": "Key 5 (E2)",
+            "Key6": "Key 6 (F2)",
+            "Key7": "Key 7 (F#2)",
+            "Key8": "Key 8 (G2)",
+            "Key9": "Key 9 (G#2)",
+            "Key10": "Key 10 (A2)",
+            "Key11": "Key 11 (A#2)",
+            "Key12": "Key 12 (B2)",
+            "Key13": "Key 13 (C3)",
+            "Key14": "Key 14 (C#3)",
+            "Key15": "Key 15 (D3)",
+            "Key16": "Key 16 (D#3)",
+            "Key17": "Key 17 (E3)",
+            "Key18": "Key 18 (F3)",
+            "Key19": "Key 19 (F#3)",
+            "Key20": "Key 20 (G3)",
+            "Key21": "Key 21 (G#3)",
+            "Key22": "Key 22 (A3)",
+            "Key23": "Key 23 (A#3)",
+            "Key24": "Key 24 (B3)",
+            "Key25": "Key 25 (C4)",
+            "StarPower": "Star Power Activate",
+            "TouchEffects": "Touch Effects"
         }
     },
     "Settings": {
@@ -1122,6 +1151,51 @@
                 },
                 "YellowStarpower": {
                     "Name": "Yellow Star Power"
+                },
+                "WhiteKey": {
+                    "Name": "White Key"
+                },
+                "RedKey": {
+                    "Name": "Red Key"
+                },
+                "YellowKey": {
+                    "Name": "Yellow Key"
+                },
+                "BlueKey": {
+                    "Name": "Blue Key"
+                },
+                "GreenKey": {
+                    "Name": "Green Key"
+                },
+                "OrangeKey": {
+                    "Name": "Orange Key"
+                },
+                "RedOverlay": {
+                    "Name": "Red Overlay"
+                },
+                "YellowOverlay": {
+                    "Name": "Yellow Overlay"
+                },
+                "BlueOverlay": {
+                    "Name": "Blue Overlay"
+                },
+                "GreenOverlay": {
+                    "Name": "Green Overlay"
+                },
+                "OrangeOverlay": {
+                    "Name": "Orange Overlay"
+                },
+                "WhiteNote": {
+                    "Name": "White Note"
+                },
+                "BlackNote": {
+                    "Name": "Black Note"
+                },
+                "WhiteNoteStarPower": {
+                    "Name": "White Note Star Power"
+                },
+                "BlackNoteStarPower": {
+                    "Name": "Black Note Star Power"
                 }
             },
             "EnginePreset": {
