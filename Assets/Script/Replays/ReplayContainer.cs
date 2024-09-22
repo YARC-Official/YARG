@@ -8,7 +8,7 @@ using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
-using YARG.Core.IO.Disposables;
+using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Song;
@@ -94,8 +94,7 @@ namespace YARG.Replays
 
         public static void LoadReplayCache()
         {
-            var info = new FileInfo(_replayCacheFile);
-            if (!info.Exists)
+            if (!File.Exists(_replayCacheFile))
             {
                 return;
             }
@@ -104,7 +103,7 @@ namespace YARG.Replays
 
             try
             {
-                using var data = MemoryMappedArray.Load(info);
+                using var data = FixedArray<byte>.Load(_replayCacheFile);
                 using var stream = data.ToStream();
 
                 int version = stream.Read<int>(Endianness.Little);
