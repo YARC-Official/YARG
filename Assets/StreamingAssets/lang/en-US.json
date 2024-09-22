@@ -1273,13 +1273,16 @@
                     "Description": "Size of the pitch leniency window (in semitones); in other words, how off-pitch the player can sing, and the game will still detect as a correct note, in the Expert difficulty."
                 },
                 "PercussionHitWindow": {
-                    "Name": "Percussion Hit Window"
+                    "Name": "Percussion Hit Window",
+                    "Description": ""
                 },
                 "ChordStaggerWindow": {
-                    "Name": "Chord Stagger Window"
+                    "Name": "Chord Stagger Window",
+                    "Description": ""
                 },
                 "FatFingerWindow": {
-                    "Name": "Fat Finger Window"
+                    "Name": "Fat Finger Window",
+                    "Description": ""
                 },
                 "DynamicScale": {
                     "Name": "Dynamic Window Scale",
@@ -1294,7 +1297,12 @@
                     "Description": "Biases the dynamic hit window one way or another. Values below 1 gives, on average, a looser window."
                 },
                 "PerfectPitchPercent": {
-                    "Name": "Perfect Pitch Percent"
+                    "Name": "Perfect Pitch Percent",
+                    "Description": ""
+                },
+                "SustainDropLeniency": {
+                    "Name": "Sustain Drop Leniency",
+                    "Description": ""
                 }
             }
         }
