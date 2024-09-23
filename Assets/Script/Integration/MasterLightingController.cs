@@ -87,40 +87,40 @@ namespace YARG.Integration
         private static MemoryStream _ms = new MemoryStream();
         private static BinaryWriter _writer = new BinaryWriter(_ms);
 
-        // NYI - waiting for parser rewrite.
-        // public static PerformerEvent CurrentPerformerEvent;
-        public static PlatformByte MLCPlatform;
-        public static PauseStateType MLCPaused;
-        public static VenueType MLCVenue;
-        public static SceneIndexByte MLCSceneIndex;
-
-        public static int MLCCurrentGuitarNotes;
-        public static int MLCCurrentBassNotes;
-        public static int MLCCurrentDrumNotes;
-        public static int MLCCurrentKeysNotes;
-
-        public static float MLCCurrentVocalNote;
-        public static float MLCCurrentHarmony0Note;
-        public static float MLCCurrentHarmony1Note;
-        public static float MLCCurrentHarmony2Note;
-
-        public static bool MLCBonusFX;
-        public static LightingType MLCCurrentSongSection;
-        public static bool MLCFogState;
-        public static LightingType MLCStrobeState;
-        public static float MLCCurrentBPM;
-        public static byte MLCCurrentBeat;
-        public static LightingType MLCKeyframe;
-        public static LightingEvent MLCCurrentLightingCue;
-        public static PostProcessingType MLCPostProcessing;
-
-        public static ushort MLCudpPort;
-        public static string MLCudpIP;
-
         // Save some allocations by setting this up here.
         private static LightingEvent MenuLightingCue = new(LightingType.Menu, 0, 0);
         private static LightingEvent ScoreLightingCue = new(LightingType.Score, 0, 0);
         private static LightingEvent NoLightingCue = new(LightingType.NoCue, 0, 0);
+        
+        // NYI - waiting for parser rewrite.
+        // public static PerformerEvent CurrentPerformerEvent;
+        public static PlatformByte MLCPlatform;
+        public static PauseStateType MLCPaused= PauseStateType.AtMenu;
+        public static VenueType MLCVenue = VenueType.None;
+        public static SceneIndexByte MLCSceneIndex;
+
+        public static int MLCCurrentGuitarNotes = 0;
+        public static int MLCCurrentBassNotes = 0;
+        public static int MLCCurrentDrumNotes = 0;
+        public static int MLCCurrentKeysNotes = 0;
+
+        public static float MLCCurrentVocalNote = 0;
+        public static float MLCCurrentHarmony0Note = 0;
+        public static float MLCCurrentHarmony1Note = 0;
+        public static float MLCCurrentHarmony2Note = 0;
+
+        public static bool MLCBonusFX = false;
+        public static LightingType MLCCurrentSongSection = 0;
+        public static bool MLCFogState = false;
+        public static LightingType MLCStrobeState = LightingType.Strobe_Off;
+        public static float MLCCurrentBPM  = 0;
+        public static byte MLCCurrentBeat = 0;
+        public static LightingType MLCKeyframe = 0;
+        public static LightingEvent MLCCurrentLightingCue = NoLightingCue;
+        public static PostProcessingType MLCPostProcessing = 0;
+
+        public static ushort MLCudpPort;
+        public static string MLCudpIP;
 
         private void Start()
         {
