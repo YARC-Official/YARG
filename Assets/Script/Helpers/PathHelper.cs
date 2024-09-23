@@ -138,7 +138,7 @@ namespace YARG.Helpers
                 var json = JObject.Parse(settingsFile);
                 if (!json.TryGetValue("download_location", out var downloadLocation)) return null;
 
-                string setlistPath = Path.Join(downloadLocation.ToString(), "Setlists", "official");
+                string setlistPath = Path.Join(downloadLocation.ToString(), "Setlists");
                 if (!Directory.Exists(setlistPath)) return null;
 
                 return setlistPath;
