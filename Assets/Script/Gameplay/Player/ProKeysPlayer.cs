@@ -411,8 +411,9 @@ namespace YARG.Gameplay.Player
                 int leftKey = Math.Min(note.Key, note.NextNote.Key);
                 int rightKey = Math.Max(note.Key, note.NextNote.Key);
                 
-                if (rightKey - leftKey == 1 &&
-                    ProKeysUtilities.IsBlackKey(note.Key) != ProKeysUtilities.IsBlackKey(rightKey))
+                bool keysAreSameType = ProKeysUtilities.IsBlackKey(leftKey) == ProKeysUtilities.IsBlackKey(rightKey);
+                
+                if (!keysAreSameType && rightKey - leftKey == 1)
                 {
                     lane.SetIndexRange(leftKey, rightKey);
 
@@ -421,6 +422,11 @@ namespace YARG.Gameplay.Player
                     lane.MultiplyScale(1.75f);
 
                     return;
+                }
+                else if (keysAreSameType && rightKey - leftKey <= 2)
+                {
+                    // Lanes have enough space to be separate, but are still touching, adjust size to prevent clipping
+                    lane.MultiplyScale(0.9f);
                 }
             }
             

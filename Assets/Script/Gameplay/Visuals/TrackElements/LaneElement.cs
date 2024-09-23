@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Gameplay.Player;
+using YARG.Helpers.Extensions;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
@@ -11,10 +13,8 @@ namespace YARG.Gameplay.Visuals
         // Maximum time in seconds where consecutive lanes at the same note index should be combined
         public const float COMBINE_LANE_THRESHOLD = 0.1f;
 
-        // Sizes of nested objects in the prefab
-        private const float LANE_Y = 0.003f;
-        private const float SEGMENT_BASE_WIDTH = 1f;
-        private const float SEGMENT_BASE_LENGTH = 1f;
+        // Conversion rate from end cap bone movement units to 1 TrackElement.GetZPositionAtTime unit
+        private const float LANE_LENGTH_RATIO = 0.02f;
 
         private static readonly int _emissionEnabled = Shader.PropertyToID("_Emission");
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
@@ -28,20 +28,19 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
             
-            float laneScaleX = (TrackPlayer.TRACK_WIDTH / subdivisions) / SEGMENT_BASE_WIDTH;
+            float laneScaleX = TrackPlayer.TRACK_WIDTH / subdivisions;
             _scaleByInstrument.Add(instrument, laneScaleX);
         }
 
         [SerializeField]
-        private Transform _scaleTransform; // Pivot point at lane start position
+        private Transform _scaleTransform;
+
         [SerializeField]
-        private Transform _lineTransform; // Pivot point at end of start cap
-        [SerializeField]
-        private Transform _endCapTransform; // Pivot point at lane end position
+        private Transform _endCapPlacement;
 
         [Space]
         [SerializeField]
-        private MeshEmissionMaterialIndex[] _coloredMaterials;
+        private SkinnedMeshRenderer _meshRenderer;
 
         public override double ElementTime => _startTime;
         [HideInInspector]
@@ -154,12 +153,7 @@ namespace YARG.Gameplay.Visuals
 
         protected void RenderLength()
         {
-            // Set line length
-            float lineScale = _zLength / SEGMENT_BASE_LENGTH / _scale;
-            _lineTransform.localScale = _lineTransform.localScale.WithZ(lineScale);
-
-            // Place end cap
-            _endCapTransform.localPosition = _endCapTransform.localPosition.WithZ(SEGMENT_BASE_LENGTH * lineScale);
+            _endCapPlacement.localPosition = _endCapPlacement.localPosition.WithY(_zLength * LANE_LENGTH_RATIO / _scale);
         }
 
         protected void RenderScale()
@@ -173,21 +167,25 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
-            // Prevent overlapping elements in adjacent lanes
-            int overlapModifier = _startIndex % 2;
-
             // Set position
             // Prevent mesh overlap with adjacent lanes
-            transform.localPosition = new Vector3(_xPosition + _xOffset, LANE_Y + LANE_Y * overlapModifier);
+            transform.localPosition = transform.localPosition.WithX(_xPosition + _xOffset);
 
             RenderScale();
 
-            // Set color
-            foreach (var info in _coloredMaterials)
+            // Initialize materials
+            for (int i = 0; i < _meshRenderer.materials.Length; i++)
             {
-                var coloredMaterial = info.Mesh.materials[info.MaterialIndex];
-                coloredMaterial.color = _color;
-                coloredMaterial.SetColor(_emissionColor, _color);
+                var thisMaterial = _meshRenderer.materials[i];
+
+                thisMaterial.SetFade(Player.ZeroFadePosition, Player.FadeSize);
+
+                if (i == 0)
+                {
+                    // Set color
+                    thisMaterial.color = _color;
+                    thisMaterial.SetColor(_emissionColor, _color);
+                }
             }
         }
 
