@@ -391,12 +391,6 @@ namespace YARG.Gameplay.Player
 
         private float GetNeedleRotation(float pitchDist)
         {
-            // This prevents a division by zero when calculating rotation.
-            if (EngineParams.PitchWindow == EngineParams.PitchWindowPerfect)
-            {
-                return 0.0f;
-            }
-
             const float NEEDLE_ROT_MAX = 12f;
 
             // Reduce the provided distance by applying a dead zone. This will prevent oversteer if the player's current pitch is well within the "Perfect" window.
