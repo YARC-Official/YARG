@@ -175,6 +175,7 @@ namespace YARG.Menu.MusicLibrary
 
             // Set IsPractice as well
             GlobalVariables.State.IsPractice = LibraryMode == MusicLibraryMode.Practice;
+            GlobalVariables.State.CurrentReplay = null;
 
             // Show no player warning
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
@@ -370,13 +371,13 @@ namespace YARG.Menu.MusicLibrary
                 else if (entry is SortHeaderViewType header)
                 {
                     _sectionHeaderIndices.Add(i);
-                    
+
                     string curShortcut = header.ShortcutName;
 
                     // Assume that any header with a ShortcutName of null is not meant to be included
                     // Add this shortcut if it does not match the one at end of the list
-                    if (curShortcut != null && 
-                        (Shortcuts.Count == 0 || curShortcut != Shortcuts[^1].Item1)) 
+                    if (curShortcut != null &&
+                        (Shortcuts.Count == 0 || curShortcut != Shortcuts[^1].Item1))
                     {
                         Shortcuts.Add((curShortcut, i));
                     }

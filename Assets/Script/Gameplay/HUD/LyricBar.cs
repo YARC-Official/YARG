@@ -17,22 +17,27 @@ namespace YARG.Gameplay.HUD
 
     public class LyricBar : GameplayBehaviour
     {
+        private const double PHRASE_START_PADDING = 0.5;
+        private const double PHRASE_DISTANCE_THRESHOLD = 2.0;
+
         [SerializeField]
         private GameObject _normalBackground;
         [SerializeField]
         private GameObject _transparentBackground;
 
+        [Space]
         [SerializeField]
         private TextMeshProUGUI _lyricText;
-
         [SerializeField]
-        private TextMeshProUGUI _nextLyricText;
+        private TextMeshProUGUI _upcomingLyricText;
 
         private LyricsTrack _lyrics;
-        private int _currentPhraseIndex = 0;
-        private int _currentLyricIndex = 0;
 
         private double _upcomingLyricsThreshold;
+        private bool _upcomingLyricsSet;
+
+        private int _currentPhraseIndex = 0;
+        private int _currentLyricIndex = 0;
 
         protected override void GameplayAwake()
         {
@@ -63,7 +68,7 @@ namespace YARG.Gameplay.HUD
 
             // Reset the lyrics
             _lyricText.text = string.Empty;
-            _nextLyricText.text = string.Empty;
+            _upcomingLyricText.text = string.Empty;
 
             _upcomingLyricsThreshold = SettingsManager.Settings.UpcomingLyricsTime.Value;
         }
@@ -72,13 +77,13 @@ namespace YARG.Gameplay.HUD
         {
             _lyrics = chart.Lyrics;
             if (_lyrics.Phrases.Count < 1)
+            {
                 gameObject.SetActive(false);
+            }
         }
 
         private void Update()
         {
-            const double PHRASE_DISTANCE_THRESHOLD = 1.0;
-
             var phrases = _lyrics.Phrases;
 
             // If the current phrase ended AND
@@ -91,109 +96,123 @@ namespace YARG.Gameplay.HUD
                  phrases[_currentPhraseIndex + 1].Time <= GameManager.SongTime))
             {
                 _currentPhraseIndex++;
-                _currentLyricIndex = 0;
+                _currentLyricIndex = -1;
+
                 _lyricText.text = string.Empty;
+
+                _upcomingLyricText.text = string.Empty;
+                _upcomingLyricsSet = false;
             }
 
             // Exit if we've complete all phrases
-            if (_currentPhraseIndex == phrases.Count)
+            if (_currentPhraseIndex == _lyrics.Phrases.Count)
+            {
                 return;
-
-            SetUpcomingLyrics(phrases);
-
-            // Exit if it's not time to show lyrics
-            if (GameManager.SongTime < phrases[_currentPhraseIndex].Time)
-                return;
+            }
 
             var lyrics = phrases[_currentPhraseIndex].Lyrics;
 
-            // Check following lyrics
-            int currIndex = _currentLyricIndex;
-            while(currIndex < lyrics.Count && lyrics[currIndex].Time <= GameManager.SongTime)
-                currIndex++;
+            // If it's not time to show the lyrics...
+            if (GameManager.SongTime < phrases[_currentPhraseIndex].Time - PHRASE_START_PADDING)
+            {
+                // Add it to the upcoming line, if the timing is right
+                if (!_upcomingLyricsSet &&
+                    GameManager.SongTime >= phrases[_currentPhraseIndex].Time - _upcomingLyricsThreshold)
+                {
+                    SetUpcomingLyrics(lyrics);
+                }
 
-            // No update necessary
-            if (_currentLyricIndex == currIndex)
+                // Exit
                 return;
+            }
+
+            // At this point, if the current lyric is being displayed (which happens below),
+            // then update the upcoming one (if it's not the last).
+            if (_currentPhraseIndex + 1 < phrases.Count)
+            {
+                var nextPhrase = phrases[_currentPhraseIndex + 1];
+                if (GameManager.SongTime >= nextPhrase.Time - _upcomingLyricsThreshold)
+                {
+                    if (!_upcomingLyricsSet)
+                    {
+                        SetUpcomingLyrics(nextPhrase.Lyrics);
+                    }
+                }
+                else
+                {
+                    _upcomingLyricText.text = string.Empty;
+                    _upcomingLyricsSet = false;
+                }
+            }
+            else
+            {
+                _upcomingLyricText.text = string.Empty;
+                _upcomingLyricsSet = false;
+            }
+
+            // Update the lyric index
+            int currIndex = _currentLyricIndex;
+            while (currIndex == -1 ||
+                (currIndex < lyrics.Count && lyrics[currIndex].Time <= GameManager.SongTime))
+            {
+                currIndex++;
+            }
+
+            // If the lyric index hasn't changed, then skip
+            if (_currentLyricIndex == currIndex)
+            {
+                return;
+            }
 
             // Construct lyrics to be displayed
             using var output = ZString.CreateStringBuilder(true);
 
-            // Start highlight
+            // Highlighted words
             output.Append("<color=#5CB9FF>");
-
             int i = 0;
             while (i < currIndex)
             {
                 var lyric = lyrics[i++];
                 output.Append(lyric.Text);
                 if (!lyric.JoinWithNext && i < lyrics.Count)
+                {
                     output.Append(' ');
+                }
             }
-
-            // End highlight
             output.Append("</color>");
 
+            // Non-highlighted words
             while (i < lyrics.Count)
             {
                 var lyric = lyrics[i++];
                 output.Append(lyric.Text);
                 if (!lyric.JoinWithNext && i < lyrics.Count)
+                {
                     output.Append(' ');
+                }
             }
 
             _currentLyricIndex = currIndex;
             _lyricText.SetText(output);
         }
 
-
-        /// <summary>
-        /// Handles showing and hiding upcoming lyrics.
-        /// </summary>
-        private void SetUpcomingLyrics(List<LyricsPhrase> phrases)
+        private void SetUpcomingLyrics(IReadOnlyList<LyricEvent> lyrics)
         {
-            // Exit if there are no upcoming lyrics
-            if (_currentPhraseIndex + 1 == phrases.Count)
-            {
-                _nextLyricText.text = null;
-                return;
-            }
+            using var output = ZString.CreateStringBuilder(false);
 
-            // If we're in the current phrase already but lyrics haven't started
-            if (GameManager.SongTime >= phrases[_currentPhraseIndex].Time - _upcomingLyricsThreshold &&
-                _lyricText.text == string.Empty)
-            {
-                // Show the upcoming lyric in the main lyrics text box
-                _lyricText.SetText(BuildPhraseString(phrases[_currentPhraseIndex]));
-            }
-            // If the next phrase is soon
-            else if (GameManager.SongTime >= phrases[_currentPhraseIndex + 1].Time - _upcomingLyricsThreshold ||
-                // OR it appears soon after the current playing phrase
-                (phrases[_currentPhraseIndex + 1].Time - phrases[_currentPhraseIndex].TimeEnd <
-                    _upcomingLyricsThreshold && _lyricText.text != string.Empty))
-            {
-                // Show the upcoming lyric in the upcoming lyrics text box
-                _nextLyricText.SetText(BuildPhraseString(phrases[_currentPhraseIndex + 1]));
-            }
-            else
-            {
-                // Hide the upcoming lyrics. Hiding the main lyrics text is handled in Update.
-                _nextLyricText.text = null;
-            }
-        }
-
-        private Utf16ValueStringBuilder BuildPhraseString(LyricsPhrase phrase)
-        {
-            using var output = ZString.CreateStringBuilder();
             int i = 0;
-            while (i < phrase.Lyrics.Count)
+            while (i < lyrics.Count)
             {
-                var lyric = phrase.Lyrics[i++];
+                var lyric = lyrics[i++];
                 output.Append(lyric.Text);
-                if (!lyric.JoinWithNext && i < phrase.Lyrics.Count)
+                if (!lyric.JoinWithNext && i < lyrics.Count)
+                {
                     output.Append(' ');
+                }
             }
-            return output;
+
+            _upcomingLyricText.SetText(output);
+            _upcomingLyricsSet = true;
         }
     }
 }

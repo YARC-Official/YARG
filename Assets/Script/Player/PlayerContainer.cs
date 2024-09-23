@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine.InputSystem;
-using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.MusicLibrary;
+using YARG.Menu.Persistent;
 using YARG.Settings;
 using YARG.Song;
 
@@ -61,24 +60,33 @@ namespace YARG.Player
 
         public static bool AddProfile(YargProfile profile)
         {
-            if (_profiles.Contains(profile)) return false;
+            if (_profiles.Contains(profile))
+            {
+                return false;
+            }
 
             _profiles.Add(profile);
             _profilesById.Add(profile.Id, profile);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
         public static bool RemoveProfile(YargProfile profile)
         {
-            if (!_profiles.Contains(profile)) return false;
+            if (!_profiles.Contains(profile))
+            {
+                return false;
+            }
 
             // A profile that is taken can't be removed
-            if (_playersByProfile.ContainsKey(profile)) return false;
+            if (_playersByProfile.ContainsKey(profile))
+            {
+                return false;
+            }
 
             _profiles.Remove(profile);
             _profilesById.Remove(profile.Id);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
@@ -94,57 +102,82 @@ namespace YARG.Player
 
         public static YargPlayer CreatePlayerFromProfile(YargProfile profile, bool resolveDevices)
         {
-            if (!_profiles.Contains(profile)) return null;
+            if (!_profiles.Contains(profile))
+            {
+                return null;
+            }
 
-            if (IsProfileTaken(profile)) return null;
+            if (IsProfileTaken(profile))
+            {
+                return null;
+            }
 
             var bindings = BindingsContainer.GetBindingsForProfile(profile);
-            var player = new YargPlayer(profile, bindings, resolveDevices);
+            if (resolveDevices)
+            {
+                bindings.ResolveDevices();
+            }
+
+            var player = new YargPlayer(profile, bindings);
             player.EnableInputs();
             _players.Add(player);
             _playersByProfile.Add(profile, player);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return player;
         }
 
         public static bool DisposePlayer(YargPlayer player)
         {
-            if (!_players.Contains(player)) return false;
+            if (!_players.Contains(player))
+            {
+                return false;
+            }
 
             _players.Remove(player);
             _playersByProfile.Remove(player.Profile);
 
             player.Dispose();
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
         public static bool SwapPlayerToProfile(YargPlayer player, YargProfile newProfile)
         {
-            if (!_players.Contains(player)) return false;
+            if (!_players.Contains(player))
+            {
+                return false;
+            }
 
-            if (IsProfileTaken(newProfile)) return false;
+            if (IsProfileTaken(newProfile))
+            {
+                return false;
+            }
 
             _playersByProfile.Remove(player.Profile);
             _playersByProfile.Add(newProfile, player);
 
             var bindings = BindingsContainer.GetBindingsForProfile(newProfile);
             player.SwapToProfile(newProfile, bindings, true);
-            ResetPlayableSongs();
+            ActiveProfilesChanged();
             return true;
         }
 
-        private static void ResetPlayableSongs()
+        private static void ActiveProfilesChanged()
         {
             if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
             {
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
+
+            StatsManager.Instance.UpdateActivePlayers();
         }
 
         public static YargPlayer GetPlayerFromProfile(YargProfile profile)
         {
-            if (!_playersByProfile.TryGetValue(profile, out var player)) return null;
+            if (!_playersByProfile.TryGetValue(profile, out var player))
+            {
+                return null;
+            }
 
             return player;
         }
@@ -153,7 +186,10 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                if (player.Bindings.ContainsDevice(device)) return true;
+                if (player.Bindings.ContainsDevice(device))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -247,6 +283,15 @@ namespace YARG.Player
             while (_players.Count > 0)
             {
                 DisposePlayer(_players[0]);
+            }
+        }
+
+        public static void EnsureValidInstruments()
+        {
+            foreach (var profile in _profiles)
+            {
+                profile.EnsureValidInstrument();
+
             }
         }
     }

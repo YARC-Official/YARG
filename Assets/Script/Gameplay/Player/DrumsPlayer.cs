@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -7,6 +8,7 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
@@ -62,7 +64,7 @@ namespace YARG.Gameplay.Player
                 _                        => throw new Exception("Unreachable.")
             };
 
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.Drums.Create(StarMultiplierThresholds, mode);
@@ -328,7 +330,16 @@ namespace YARG.Gameplay.Player
 
         private bool IsDrumFreestyle()
         {
-            return Engine.NoteIndex == 0 || Engine.NoteIndex >= Notes.Count; // TODO: add drum fill / BRE conditions
+            return Engine.NoteIndex == 0 || // Can freestyle before first note is hit/missed
+                Engine.NoteIndex >= Notes.Count || // Can freestyle after last note
+                Engine.IsWaitCountdownActive; // Can freestyle during WaitCountdown
+            // TODO: add drum fill / BRE conditions
+        }
+
+        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
+        {
+            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
         }
     }
 }

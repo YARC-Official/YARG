@@ -9,6 +9,7 @@ using YARG.Core.Engine.ProKeys;
 using YARG.Core.Engine.ProKeys.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Replays;
 using YARG.Gameplay.Visuals;
 
 namespace YARG.Gameplay.Player
@@ -83,7 +84,7 @@ namespace YARG.Gameplay.Player
 
         protected override ProKeysEngine CreateEngine()
         {
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds);
@@ -494,6 +495,12 @@ namespace YARG.Gameplay.Player
                     });
                 }
             }
+        }
+
+        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
+        {
+            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using YARG.Input;
@@ -29,7 +30,7 @@ namespace YARG.Menu.ProfileInfo
 
             // Set with notify for propogation to other components
             _velocityThresholdSlider.SetValueWithoutNotify(MAX_VELOCITY); // Ensure change event is fired, this starts at 1
-            _velocityThresholdSlider.Value = (int) (singleBinding.PressPoint * MAX_VELOCITY);
+            _velocityThresholdSlider.Value = (int) Math.Round(singleBinding.PressPoint * MAX_VELOCITY);
             _debounceModeDropdown.value = (int) singleBinding.DebounceMode;
             _debounceSlider.Value = singleBinding.DebounceThreshold;
 

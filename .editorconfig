@@ -1,4 +1,4 @@
-[*.{cs,vb}]
+﻿[*.{cs,vb}]
 
 # IDE0044: Add readonly modifier (Not needed on Unity serialized fields)
 dotnet_diagnostic.ide0044.severity = none
@@ -11,6 +11,7 @@ csharp_space_after_cast = true
 csharp_style_prefer_utf8_string_literals = true:suggestion
 csharp_style_var_elsewhere = false:none
 csharp_style_var_for_built_in_types = false:none
+csharp_prefer_braces = true:suggestion
 dotnet_naming_rule.constants_rule.import_to_resharper = as_predefined
 dotnet_naming_rule.constants_rule.severity = warning
 dotnet_naming_rule.constants_rule.style = all_upper_style

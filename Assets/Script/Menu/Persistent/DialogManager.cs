@@ -52,18 +52,25 @@ namespace YARG.Menu.Persistent
         /// Displays and returns a one time message dialog. If the "dont show again" toggle is checked,
         /// <paramref name="dontShowAgainAction"/> will be invoked.
         /// </summary>
+        /// <remarks>
+        /// The given localization key must have <c>Title</c>, <c>Description</c>, and <c>Confirm</c> children.
+        /// </remarks>
         /// <inheritdoc cref="ShowDialog{MessageDialog}(MessageDialog)"/>
-        public OneTimeMessageDialog ShowOneTimeMessage(string title, string message, Action dontShowAgainAction)
+        public OneTimeMessageDialog ShowOneTimeMessage(string localizationKey, Action dontShowAgainAction)
         {
             var dialog = ShowDialog(_oneTimeMessagePrefab);
 
-            dialog.Title.text = title;
-            dialog.Message.text = message;
+            dialog.Title.text = Localize.Key(localizationKey, "Title");
+            dialog.Message.text = Localize.Key(localizationKey, "Description");
 
             dialog.DontShowAgainAction = dontShowAgainAction;
 
             dialog.ClearButtons();
-            dialog.AddDialogButton("Menu.Dialog.AntiPiracy.Confirm", MenuData.Colors.ConfirmButton, ClearDialog);
+            dialog.AddDialogButton(
+                Localize.MakeKey(localizationKey, "Confirm"),
+                MenuData.Colors.ConfirmButton,
+                ClearDialog
+            );
 
             return dialog;
         }

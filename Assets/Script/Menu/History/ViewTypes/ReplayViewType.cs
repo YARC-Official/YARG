@@ -1,75 +1,98 @@
 ﻿using Cysharp.Threading.Tasks;
+using System.Drawing.Drawing2D;
+using System.IO;
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
+using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.Persistent;
 using YARG.Replays;
+using YARG.Scores;
 using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Menu.History
 {
+#nullable enable
     public class ReplayViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Normal;
 
         public override bool UseFullContainer => true;
 
-        private readonly ReplayEntry _replayEntry;
-        private readonly SongEntry _songEntry;
+        // Non-readonly as we may find it later
+        private ReplayInfo? _entry;
+        private readonly GameRecord? _record;
 
-        public ReplayViewType(ReplayEntry replayEntry)
+        private readonly SongEntry? _songEntry;
+        private readonly string _songName;
+        private readonly string _artistName;
+
+        private readonly GameInfo _gameInfo;
+        private readonly Sprite? _sprite;
+
+        public ReplayViewType(GameRecord record)
         {
-            _replayEntry = replayEntry;
-            if (SongContainer.SongsByHash.TryGetValue(replayEntry.SongChecksum, out var songs))
+            _record = record;
+            if (SongContainer.SongsByHash.TryGetValue(HashWrapper.Create(record.SongChecksum), out var songs))
             {
                 _songEntry = songs[0];
+                _sprite = SongSources.SourceToIcon(_songEntry.Source);
             }
+            _gameInfo.BandScore = _record.BandScore;
+            _gameInfo.BandStars = _record.BandStars;
+            _songName = _record.SongName;
+            _artistName = _record.SongArtist;
         }
+
+        public ReplayViewType(ReplayInfo entry)
+        {
+            _entry = entry;
+            if (SongContainer.SongsByHash.TryGetValue(entry.SongChecksum, out var songs))
+            {
+                _songEntry = songs[0];
+                _sprite = SongSources.SourceToIcon(_songEntry.Source);
+            }
+            _gameInfo.BandScore = _entry.BandScore;
+            _gameInfo.BandStars = _entry.BandStars;
+            _songName = _entry.SongName;
+            _artistName = _entry.ArtistName;
+        }
+
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(_replayEntry.SongName, TextType.Primary, selected);
+            return FormatAs(_songName, TextType.Primary, selected);
         }
 
         public override string GetSecondaryText(bool selected)
         {
-            return FormatAs(_replayEntry.ArtistName, TextType.Secondary, selected);
+            return FormatAs(_artistName, TextType.Secondary, selected);
         }
 
-#nullable enable
         public override Sprite? GetIcon()
-#nullable disable
         {
             // TODO: Show "song missing" icon instead when _songEntry is null
-            return _songEntry != null ? SongSources.SourceToIcon(_songEntry.Source) : null;
+            return _sprite;
         }
 
-        public override void ViewClick()
+        // AKA, the Play Replay Button
+        public override async void ViewClick()
         {
-            if (_songEntry is null) return;
+            _entry ??= LoadReplay("Cannot Play Replay");
+            if (_entry == null)
+            {
+                return;
+            }
 
-            PlayReplay().Forget();
-        }
-
-        public override void Shortcut1()
-        {
-            if (_songEntry is null) return;
-
-            AnalyzeReplay();
-        }
-
-        private async UniTaskVoid PlayReplay()
-        {
             // Show warning
             if (SettingsManager.Settings.ShowEngineInconsistencyDialog)
             {
                 var dialog = DialogManager.Instance.ShowOneTimeMessage(
-                    Localize.Key("Menu.Dialog.EngineInconsistency.Title"),
-                    Localize.Key("Menu.Dialog.EngineInconsistency.Description"),
+                    "Menu.Dialog.EngineInconsistency",
                     () =>
                     {
                         SettingsManager.Settings.ShowEngineInconsistencyDialog = false;
@@ -79,35 +102,44 @@ namespace YARG.Menu.History
                 await dialog.WaitUntilClosed();
             }
 
-            LoadIntoReplay(_replayEntry, _songEntry);
+            LoadIntoReplay(_entry, _songEntry);
         }
 
-        private void AnalyzeReplay()
+        // Anaylze Replay Button
+        public override void Shortcut1()
         {
+            if (_songEntry == null)
+            {
+                DialogManager.Instance.ShowMessage("Unavailable Song", "A song compatible with the selected play is not present in your library! Most likely deleted!");
+                return;
+            }
+
+            _entry ??= LoadReplay("Cannot Analyze Replay");
+            if (_entry == null)
+            {
+                return;
+            }
+
             var chart = _songEntry.LoadChart();
-
-            if (chart is null)
+            if (chart == null)
             {
-                YargLogger.LogError("Chart did not load");
+                YargLogger.LogError("Failed to load chart");
                 return;
             }
 
-            var replayReadResult = ReplayIO.ReadReplay(_replayEntry.ReplayPath, out var replayFile);
-            if (replayReadResult != ReplayReadResult.Valid)
+            var (result, data) = ReplayIO.TryLoadData(_entry);
+            if (result != ReplayReadResult.Valid)
             {
-                YargLogger.LogFormatError("Replay did not load. {0}", replayReadResult);
+                YargLogger.LogFormatError("Failed to load replay. {0}", result);
                 return;
             }
 
-            var replay = replayFile!.Replay;
-
-            var results = ReplayAnalyzer.AnalyzeReplay(chart, replay);
-
-            for(int i = 0; i < results.Length; i++)
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
+            for (int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];
 
-                var profile = replay.Frames[i].PlayerInfo.Profile;
+                var profile = data.Frames[i].Profile;
                 if (analysisResult.Passed)
                 {
                     YargLogger.LogFormatInfo("({0}, {1}/{2}) PASSED verification!", profile.Name, profile.CurrentInstrument, profile.CurrentDifficulty);
@@ -120,13 +152,65 @@ namespace YARG.Menu.History
             }
         }
 
+        public void ExportReplay()
+        {
+            _entry ??= LoadReplay("Cannot Export Replay");
+            if (_entry == null)
+            {
+                return;
+            }
+
+            // Ask the user for an ending location
+            FileExplorerHelper.OpenSaveFile(null, _entry!.ReplayName, "replay", path => File.Copy(_entry.FilePath, path, true));
+        }
+
         public override GameInfo? GetGameInfo()
         {
-            return new GameInfo
+            return _gameInfo;
+        }
+
+        private ReplayInfo? LoadReplay(string messageBoxTitle)
+        {
+            if (_record == null)
             {
-                BandScore = _replayEntry.BandScore,
-                BandStars = _replayEntry.BandStars
-            };
+                YargLogger.LogDebug("Do not use this function with a non-gamerecord view");
+                return null;
+            }
+
+            if (_record.ReplayFileName == null)
+            {
+                DialogManager.Instance.ShowMessage(messageBoxTitle, "This playthrough did not generate an accompanying replay!");
+                return null;
+            }
+
+            // Get the replay path
+            var path = Path.Combine(ScoreContainer.ScoreReplayDirectory, _record.ReplayFileName);
+            // Accounts the change to ReplayName to remove the ".replay"
+            path = Path.ChangeExtension(path, ".replay");
+            if (!File.Exists(path))
+            {
+                DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay for this song does not exist! It has probably been deleted!");
+                return null;
+            }
+
+            // Read
+            var (result, entry) = ReplayIO.TryReadMetadata(path);
+            if (result != ReplayReadResult.Valid)
+            {
+                DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay for this song is most likely corrupted, or out of date!");
+                return null;
+            }
+
+            // Compare hashes
+            var databaseHash = HashWrapper.Create(_record.ReplayChecksum);
+            if (!entry.ReplayChecksum.Equals(databaseHash))
+            {
+                DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay's hash does not match the hash present in the database! Was the database modified?");
+                return null;
+            }
+
+            ReplayContainer.AddEntry(entry);
+            return entry;
         }
     }
 }

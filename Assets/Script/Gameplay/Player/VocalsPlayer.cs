@@ -9,6 +9,7 @@ using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Engine.Vocals.Engines;
 using YARG.Core.Input;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Input;
@@ -110,7 +111,7 @@ namespace YARG.Gameplay.Player
             _percussionTrack = percussionTrack;
 
             // Create and start an input context for the mic
-            if (!GameManager.IsReplay && player.Bindings.Microphone is not null)
+            if (GameManager.ReplayInfo == null && player.Bindings.Microphone != null)
             {
                 _inputContext = new MicInputContext(player.Bindings.Microphone, GameManager);
                 _inputContext.Start();
@@ -137,7 +138,7 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 var singToActivateStarPower = SettingsManager.Settings.VoiceActivatedVocalStarPower.Value;
 
@@ -239,7 +240,7 @@ namespace YARG.Gameplay.Player
         protected override void UpdateInputs(double time)
         {
             // Push all inputs from mic
-            if (!GameManager.IsReplay && _inputContext is not null)
+            if (GameManager.ReplayInfo == null && _inputContext != null)
             {
                 foreach (var input in _inputContext.GetInputsFromMic())
                 {
@@ -497,6 +498,12 @@ namespace YARG.Gameplay.Player
             }
 
             return (closest, octaveShift);
+        }
+
+        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
+        {
+            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
         }
     }
 }

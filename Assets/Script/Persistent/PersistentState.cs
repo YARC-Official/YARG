@@ -1,4 +1,5 @@
-﻿using YARG.Core.Song;
+﻿using YARG.Core.Replays;
+using YARG.Core.Song;
 using YARG.Menu.ScoreScreen;
 using YARG.Replays;
 
@@ -12,13 +13,15 @@ namespace YARG
         };
 
         public SongEntry   CurrentSong;
-        public ReplayEntry CurrentReplay;
+#nullable enable
+        public ReplayInfo? CurrentReplay;
+#nullable disable
 
         public ScoreScreenStats? ScoreScreenStats;
 
         public float SongSpeed;
 
         public bool IsPractice;
-        public bool IsReplay => CurrentReplay is not null;
+        public readonly bool IsReplay => CurrentReplay is not null;
     }
 }
