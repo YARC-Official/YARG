@@ -391,13 +391,33 @@ namespace YARG.Gameplay.Player
 
         private float GetNeedleRotation(float pitchDist)
         {
+            // This prevents a division by zero when calculating rotation.
+            if (EngineParams.PitchWindow == EngineParams.PitchWindowPerfect)
+            {
+                return 0.0f;
+            }
+
             const float NEEDLE_ROT_MAX = 12f;
 
-            // Determine how off the pitch distance is compared to the hit window
-            float distPercent = Mathf.Clamp(pitchDist / (EngineParams.PitchWindow), -1f, 1f);
+            // Reduce the provided distance by applying a dead zone. This will prevent oversteer if the player's current pitch is well within the "Perfect" window.
+            var deadzoneInSemitones = EngineParams.PitchWindowPerfect / 2;
+            var adjustedPitchDist = ApplyPitchDeadZone(pitchDist, deadzoneInSemitones);
+
+            // Determine how off that is compared to the hit window
+            float distPercent = Mathf.Clamp(adjustedPitchDist / (EngineParams.PitchWindow - deadzoneInSemitones), -1f, 1f);
 
             // Use that to get the target rotation
             return distPercent * NEEDLE_ROT_MAX;
+        }
+
+        private float ApplyPitchDeadZone(float pitchDist, float deadZoneInSemitones)
+        {
+            if (pitchDist >= 0.0f)
+            {
+                return Mathf.Max(0.0f, pitchDist - deadZoneInSemitones);
+            }
+
+            return Mathf.Min(0.0f, pitchDist + deadZoneInSemitones);
         }
 
         private void UpdatePercussionPhrase(double time)
