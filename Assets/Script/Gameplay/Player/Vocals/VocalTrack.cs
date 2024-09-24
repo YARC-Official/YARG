@@ -461,10 +461,5 @@ namespace YARG.Gameplay.Player
 
             ResetPracticeSection();
         }
-
-        public bool IsPrimaryPlayer(VocalsPlayer thisPlayer)
-        {
-            return thisPlayer == _vocalPlayers[0];
-        }
     }
 }
