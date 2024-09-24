@@ -118,6 +118,22 @@ namespace YARG.Gameplay.Player
             }
 
             Engine = CreateEngine();
+            if (vocalIndex == 0)
+            {
+                if (Player.Profile.CurrentInstrument == Instrument.Vocals)
+                {
+                    Engine.BuildCountdownsFromSelectedPart();
+                }
+                else
+                {
+                    Engine.BuildCountdownsFromAllParts(chart);
+                }
+
+                Engine.OnCountdownChange += (measuresLeft, countdownLength, endTime) =>
+                {
+                    GameManager.VocalTrack.UpdateCountdown(measuresLeft, countdownLength, endTime);
+                };
+            }
 
             if (GameManager.IsPractice)
             {
@@ -207,11 +223,6 @@ namespace YARG.Gameplay.Player
                 _lastHitTime = hitting
                     ? GameManager.InputTime
                     : null;
-            };
-
-            engine.OnCountdownChange += (measuresLeft, countdownLength, endTime) =>
-            {
-                GameManager.VocalTrack.UpdateCountdown(measuresLeft, countdownLength, endTime);
             };
 
             return engine;
