@@ -27,11 +27,13 @@ namespace YARG.Menu.MusicLibrary
 
         private readonly MusicLibraryMenu _musicLibrary;
         public readonly SongEntry SongEntry;
+        public readonly PlayerScoreRecord PlayerScoreRecord;
 
-        public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry)
+        public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry, PlayerScoreRecord playerScoreRecord)
         {
             _musicLibrary = musicLibrary;
             SongEntry = songEntry;
+            PlayerScoreRecord = playerScoreRecord;
         }
 
         public override string GetPrimaryText(bool selected)
@@ -53,27 +55,31 @@ namespace YARG.Menu.MusicLibrary
 
         public override string GetSideText(bool selected)
         {
-            var score = ScoreContainer.GetHighScore(SongEntry.Hash);
-            var bestPctScore = ScoreContainer.GetBestPercentageScore(SongEntry.Hash);
-
+         
             // Never played!
-            if (score is null)
+            if (PlayerScoreRecord is null)
             {
                 return string.Empty;
             }
 
-            var instrument = score.Instrument.ToResourceName();
-            var difficultyChar = score.Difficulty.ToChar();
-            var percent = Mathf.Floor(bestPctScore.GetPercent() * 100f);
+            var instrument = PlayerScoreRecord.Instrument.ToResourceName();
+            var difficultyChar = PlayerScoreRecord.Difficulty.ToChar();
+            var percent = Mathf.Floor(PlayerScoreRecord.GetPercent() * 100f);
 
             using var builder = ZString.CreateStringBuilder();
-            builder.AppendFormat("<sprite name=\"{0}\"> <b>{1}</b> {2:N0}%",
-                instrument, difficultyChar, percent);
+
+            if (PlayerScoreRecord.IsFc)
+            {
+                // TODO: Replace this with a FC sprite.
+                builder.AppendFormat("<sprite name=\"{0}\">", instrument);
+            }
+
+            builder.AppendFormat( "<b>{0}</b> {1:N0}%", difficultyChar, percent);
 
             // Append the score if the setting is enabled
             if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
             {
-                builder.AppendFormat("<space=2em> {0:N0}", score.Score);
+                builder.AppendFormat("<space=2em> {0:N0}", PlayerScoreRecord.Score);
             }
 
             return builder.ToString();
@@ -87,8 +93,7 @@ namespace YARG.Menu.MusicLibrary
                 return null;
             }
 
-            var score = ScoreContainer.GetHighScore(SongEntry.Hash);
-            return score?.Stars;
+           return PlayerScoreRecord?.Stars;
         }
 
         public override FavoriteInfo GetFavoriteInfo()

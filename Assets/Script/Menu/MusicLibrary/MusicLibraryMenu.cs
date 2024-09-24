@@ -12,6 +12,7 @@ using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Playlists;
+using YARG.Scores;
 using YARG.Settings;
 using YARG.Song;
 using static YARG.Menu.Navigation.Navigator;
@@ -223,6 +224,8 @@ namespace YARG.Menu.MusicLibrary
             return viewList;
         }
 
+        private bool _shouldDisplaySoloHighScores => PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 1;
+
         private List<ViewType> CreateNormalViewList()
         {
             var list = new List<ViewType>();
@@ -275,7 +278,7 @@ namespace YARG.Menu.MusicLibrary
 
                         foreach (var song in _recommendedSongs)
                         {
-                            list.Add(new SongViewType(this, song));
+                            list.Add(new SongViewType(this, song, GetHighScoreForSong(song)));
                         }
                         _primaryHeaderIndex += _recommendedSongs.Length + 1;
                     }
@@ -313,11 +316,24 @@ namespace YARG.Menu.MusicLibrary
 
                 foreach (var song in section.Songs)
                 {
-                    list.Add(new SongViewType(this, song));
+                    list.Add(new SongViewType(this, song, GetHighScoreForSong(song)));
                 }
             }
             CalculateCategoryHeaderIndices(list);
             return list;
+        }
+
+        private PlayerScoreRecord GetHighScoreForSong(SongEntry song)
+        {
+            if (_shouldDisplaySoloHighScores)
+            {
+                var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+                var result = ScoreContainer.GetHighScore(song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, true);
+                return result;
+            }
+
+            // TODO: Show some kind of band high score in multiplayer.
+            return null;
         }
 
         private List<ViewType> CreatePlaylistViewList()
@@ -339,7 +355,7 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new SortHeaderViewType(section.Category.ToUpperInvariant(), section.Songs.Length, section.CategoryGroup));
                 foreach (var song in section.Songs)
                 {
-                    list.Add(new SongViewType(this, song));
+                    list.Add(new SongViewType(this, song, GetHighScoreForSong(song)));
                 }
             }
 

@@ -10,6 +10,17 @@
             INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
             GROUP BY GameRecords.SongChecksum";
 
+        private const string QUERY_PLAYER_HIGH_SCORES = @"
+            SELECT t1.* FROM 
+             (
+              SELECT PlayerScores.*, GameRecords.SongChecksum, 
+                row_number() OVER (PARTITION BY SongChecksum, PlayerId, Instrument ORDER BY Score DESC) AS RowNumber 
+              FROM PlayerScores
+              INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
+              WHERE PlayerId = ? AND Instrument = ?
+            ) t1
+            WHERE RowNumber = 1";
+
         private const string QUERY_UPDATE_NULL_PERCENTS = @"
             UPDATE PlayerScores
             SET Percent = cast(NotesHit as REAL) / (NotesHit + NotesMissed)
