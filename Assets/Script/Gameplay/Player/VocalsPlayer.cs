@@ -126,7 +126,7 @@ namespace YARG.Gameplay.Player
                 }
                 else
                 {
-                    Engine.BuildCountdownsFromAllParts(chart);
+                    Engine.BuildCountdownsFromAllParts(multiTrack.Parts);
                 }
 
                 Engine.OnCountdownChange += (measuresLeft, countdownLength, endTime) =>
