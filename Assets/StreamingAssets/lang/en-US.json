@@ -155,7 +155,17 @@
                 "LeadArtist": "Lead Artist",
                 "Maintainers": "Maintainers",
                 "SpecialThanks": "Special Thanks",
-                "SetlistManager": "Setlist Manager"
+                "SetlistManager": "Setlist Manager",
+                "Songs": "Songs"
+            },
+            "Song": {
+                "Name": "\"{0}\" By {1}",
+                "WrittenBy": "Written By: {0}",
+                "PerformedBy": "Performed By: {0}",
+                "WrittenAndPerformedBy": "Written and Performed By: {0}",
+                "CourtesyOf": "Courtesy Of: {0}",
+                "AlbumCover": "Album Cover By: {0}",
+                "License": "Song License: {0}"
             }
         },
         "Dialog": {
