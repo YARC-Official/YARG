@@ -22,9 +22,10 @@ namespace YARG.Scores
 
         private static SQLiteConnection _db;
 
-        private static readonly Dictionary<HashWrapper, PlayerScoreRecord> SongHighScores = new();
-        private static readonly Dictionary<HashWrapper, PlayerScoreRecord> SongHighScoresByPct = new();
-        private static readonly Dictionary<HashWrapper, PlayerScoreRecord> PlayerInstrumentHighScores = new();
+        private static readonly Dictionary<HashWrapper, PlayerScoreRecord> PlayerHighScores = new();
+        private static readonly Dictionary<HashWrapper, PlayerScoreRecord> PlayerHighScoresByPct = new();
+        private static readonly Dictionary<HashWrapper, GameRecord> BandHighScores = new();
+
         private static Instrument _currentInstrument = Instrument.Band;
         private static Guid _currentPlayerId;
 
@@ -44,11 +45,29 @@ namespace YARG.Scores
                 _db = new SQLiteConnection(_scoreDatabaseFile);
                 InitDatabase();
                 UpdateNullPercents();
-                FetchHighScores();
+                FetchBandHighScores();
             }
             catch (Exception e)
             {
                 YargLogger.LogException(e, "Failed to setup ScoreContainer");
+            }
+        }
+
+        private static void FetchBandHighScores()
+        {
+            try
+            {
+                BandHighScores.Clear();
+                var result =  _db.Query<GameRecord>(QUERY_BAND_BEST_SCORES);
+
+                foreach (var record in result)
+                {
+                    BandHighScores.Add(HashWrapper.Create(record.SongChecksum), record);
+                }
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to load all GameRecords from database.");
             }
         }
 
@@ -87,12 +106,9 @@ namespace YARG.Scores
 
                 if (playerEntries.Count == 1)
                 {
-                    // Update the cached player instrument high scores. Only relevant if there is a single human player.
-                    UpdatePlayerInstrumentHighScore(gameRecord, playerEntries.First());
-                }
-
-                var bestScore = playerEntries.Find(p => p.Score == playerEntries.Max(x => x.Score));
-                UpdateSongHighScores(songChecksum, bestScore);
+                    // Update the cached player high scores. Only relevant if there is a single human player.
+                     UpdatePlayerHighScores(songChecksum, playerEntries.First());
+                }          
 
                 YargLogger.LogInfo("Recorded high score for song.");
             }
@@ -102,53 +118,25 @@ namespace YARG.Scores
             }
         }
 
-        private static void UpdatePlayerInstrumentHighScore(GameRecord gameRecord, PlayerScoreRecord playerScoreRecord)
+        private static void UpdatePlayerHighScores(HashWrapper songChecksum, PlayerScoreRecord newScore)
         {
-            if (_currentInstrument != playerScoreRecord.Instrument || _currentPlayerId != playerScoreRecord.PlayerId)
+
+            if (!PlayerHighScores.TryGetValue(songChecksum, out var currentBest))
             {
-                // This player + instrument isn't currently cached. No need to update the cache.
+                PlayerHighScores.Add(songChecksum, newScore);
+                PlayerHighScoresByPct.Add(songChecksum, newScore);
                 return;
             }
 
-            var hash = HashWrapper.Create(gameRecord.SongChecksum);
-            var currentBest = GetHighScore(hash, playerScoreRecord.PlayerId, playerScoreRecord.Instrument);
-
-            if (currentBest != null && currentBest.Score >= playerScoreRecord.Score)
+            if (newScore.Score > currentBest.Score)
             {
-                // Didn't beat the current high score. Try not to suck next time.
-                return;
-            }
+                PlayerHighScores[songChecksum] = newScore;
 
-            PlayerInstrumentHighScores[hash] = playerScoreRecord;
-        }
-
-        [Obsolete]
-        private static void UpdateSongHighScores(HashWrapper songChecksum, PlayerScoreRecord bestScore)
-        {
-            if (SongHighScores.TryGetValue(songChecksum, out var highScore))
-            {
-                if (bestScore.Score > highScore.Score)
+                // The best score percentage entry must match the other best score's difficulty.
+                if (newScore.Difficulty != currentBest.Difficulty || newScore.GetPercent() > currentBest.GetPercent())
                 {
-                    SongHighScores[songChecksum] = bestScore;
-
-                    if (bestScore.Instrument != highScore.Instrument || bestScore.Difficulty != highScore.Difficulty)
-                    {
-                        SongHighScoresByPct[songChecksum] = bestScore;
-                    }
+                    PlayerHighScoresByPct[songChecksum] = newScore;
                 }
-
-                if (bestScore.Instrument == highScore.Instrument && bestScore.Difficulty == highScore.Difficulty)
-                {
-                    if (bestScore.GetPercent() > highScore.GetPercent())
-                    {
-                        SongHighScoresByPct[songChecksum] = bestScore;
-                    }
-                }
-            }
-            else
-            {
-                SongHighScores.Add(songChecksum, bestScore);
-                SongHighScoresByPct.Add(songChecksum, bestScore);
             }
         }
 
@@ -200,19 +188,13 @@ namespace YARG.Scores
             return null;
         }
 
-        [Obsolete]
-        public static PlayerScoreRecord GetHighScore(HashWrapper songChecksum)
-        {
-            return SongHighScores.GetValueOrDefault(songChecksum);
-        }
-
         /// <summary>
         /// Get the high score for a specific song, player and instrument. If `allowCacheUpdate` is true, all high scores for the player and instrument will be fetched from the database and cached,
-        /// to speed up subsequent high score requests.
+        /// to speed up subsequent player high score requests.
         /// </summary>
-        /// <param name="songChecksum"></param>
-        /// <param name="playerId"></param>
-        /// <param name="instrument"></param>
+        /// <param name="songChecksum">The ID of the song to retrieve a high score for.</param>
+        /// <param name="playerId">The ID of the player profile to retrieve a high score for.</param>
+        /// <param name="instrument">The instrument to retrieve a high score for.</param>
         /// <param name="allowCacheUpdate">Sets whether all high scores for this player and instrument should be cached. Set this to true when fetching a large number of high scores for the same player and instrument
         /// (such as when displaying high scores on the Music Library). Set this to false when fetching multiple high scores for different players in a row.</param>
         /// <returns></returns>
@@ -220,30 +202,56 @@ namespace YARG.Scores
         {
             if (allowCacheUpdate)
             {
-                FetchPlayerInstrumentHighScores(playerId, instrument);
+                FetchHighScores(playerId, instrument);
             }
 
             if (_currentInstrument == instrument && _currentPlayerId == playerId)
             {
-                return PlayerInstrumentHighScores.GetValueOrDefault(songChecksum);
+                return PlayerHighScores.GetValueOrDefault(songChecksum);
             }
 
             return GetHighScoreFromDatabase(songChecksum, playerId, instrument);
         }
 
-        private static PlayerScoreRecord GetHighScoreFromDatabase(HashWrapper songChecksum, Guid playerId, Instrument instrument)
+        public static GameRecord GetBandHighScore(HashWrapper songChecksum)
         {
-            var query =
-                $"SELECT * FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id WHERE " +
-                $"GameRecords.SongChecksum = x'{songChecksum.ToString()}' AND PlayerScores.Instrument = {(int) instrument} " +
-                $"AND PlayerScores.PlayerId = '{playerId}' ORDER BY Score DESC LIMIT 1";
-            return _db.FindWithQuery<PlayerScoreRecord>(query);
+            if (BandHighScores.TryGetValue(songChecksum, out var record))
+            {
+                return record;
+            }
+
+            return null;
         }
 
-        [Obsolete]
-        public static PlayerScoreRecord GetBestPercentageScore(HashWrapper songChecksum)
+        private static PlayerScoreRecord GetHighScoreFromDatabase(HashWrapper songChecksum, Guid playerId, Instrument instrument)
         {
-            return SongHighScoresByPct.GetValueOrDefault(songChecksum);
+            var query = QUERY_SINGLE_PLAYER_HIGH_SCORE;
+
+            try
+            {
+                return _db.FindWithQuery<PlayerScoreRecord>(query, songChecksum.ToString(), playerId, (int) instrument);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, $"Failed to load high score from database for player with ID {playerId}.");
+                return null;
+            }
+        }
+
+        public static PlayerScoreRecord GetBestPercentageScore(HashWrapper songChecksum, Guid playerId, Instrument instrument, bool allowCacheUpdate = true)
+        {
+            if (allowCacheUpdate)
+            {
+                FetchHighScores(playerId, instrument);
+            }
+
+            if (_currentInstrument == instrument && _currentPlayerId == playerId)
+            {
+                return PlayerHighScoresByPct.GetValueOrDefault(songChecksum);
+            }
+
+            // TODO: Fetch best % from database if there's a cache miss. Not currently needed.
+            throw new NotImplementedException();
         }
 
         public static void UpdateNullPercents()
@@ -262,43 +270,22 @@ namespace YARG.Scores
             }
         }
 
-        private static void FetchPlayerInstrumentHighScores(Guid playerId, Instrument instrument)
+
+        private static void FetchHighScores(Guid playerId, Instrument instrument)
         {
-            if (_currentPlayerId == playerId && _currentInstrument == instrument)
+            if (_currentPlayerId == playerId && _currentInstrument == instrument && PlayerHighScores.Any())
             {
                 // Already cached. No need to fetch again from the database.
                 return;
             }
 
-            PlayerInstrumentHighScores.Clear();
-            var results = _db.Query<PlayerScoreRecord>(QUERY_PLAYER_HIGH_SCORES, playerId, (int) instrument);
-            var songs = _db.Query<GameRecord>(QUERY_SONGS);
-
-            foreach (var score in results)
-            {
-                var song = songs.FirstOrDefault(x => x.Id == score.GameRecordId);
-                if (song is null)
-                {
-                    continue;
-                }
-
-                PlayerInstrumentHighScores.Add(HashWrapper.Create(song.SongChecksum), score);
-            }
-
-            _currentInstrument = instrument;
-            _currentPlayerId = playerId;
-        }
-
-        [Obsolete]
-        private static void FetchHighScores()
-        {
             try
             {
-                SongHighScores.Clear();
-                SongHighScoresByPct.Clear();
+                PlayerHighScores.Clear();
+                PlayerHighScoresByPct.Clear();
 
-                var scoreResults = _db.Query<PlayerScoreRecord>(QUERY_HIGH_SCORES);
-                var songResults = _db.Query<GameRecord>(QUERY_SONGS);
+                var scoreResults = _db.Query<PlayerScoreRecord>(QUERY_HIGH_SCORES, playerId, (int) instrument);
+                var songResults = _db.Query<GameRecord>(QUERY_SONGS, playerId, (int) instrument);
                 foreach (var score in scoreResults)
                 {
                     var song = songResults.FirstOrDefault(x => x.Id == score.GameRecordId);
@@ -307,7 +294,7 @@ namespace YARG.Scores
                         continue;
                     }
 
-                    SongHighScores.Add(HashWrapper.Create(song.SongChecksum), score);
+                    PlayerHighScores.Add(HashWrapper.Create(song.SongChecksum), score);
                 }
 
                 var scoreResultsByPct = _db.Query<PlayerScoreRecord>(QUERY_BEST_SCORES_BY_PERCENT);
@@ -319,8 +306,11 @@ namespace YARG.Scores
                         continue;
                     }
 
-                    SongHighScoresByPct.Add(HashWrapper.Create(song.SongChecksum), score);
+                    PlayerHighScoresByPct.Add(HashWrapper.Create(song.SongChecksum), score);
                 }
+
+                _currentInstrument = instrument;
+                _currentPlayerId = playerId;
             }
             catch (Exception e)
             {
@@ -328,6 +318,7 @@ namespace YARG.Scores
             }
         }
 
+        /*
         [Obsolete]
         public static PlayerScoreRecord GetHighScoreByInstrument(HashWrapper songChecksum, Instrument instrument)
         {
@@ -346,6 +337,7 @@ namespace YARG.Scores
 
             return null;
         }
+        */
 
         public static List<SongEntry> GetMostPlayedSongs(int maxCount)
         {

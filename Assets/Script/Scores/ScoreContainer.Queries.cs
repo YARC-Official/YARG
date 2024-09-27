@@ -8,18 +8,18 @@
         private const string QUERY_HIGH_SCORES = @"
             SELECT *, MAX(Score) FROM PlayerScores
             INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
+            WHERE PlayerId = ? AND Instrument = ?
             GROUP BY GameRecords.SongChecksum";
 
-        private const string QUERY_PLAYER_HIGH_SCORES = @"
-            SELECT t1.* FROM 
-             (
-              SELECT PlayerScores.*, GameRecords.SongChecksum, 
-                row_number() OVER (PARTITION BY SongChecksum, PlayerId, Instrument ORDER BY Score DESC) AS RowNumber 
-              FROM PlayerScores
-              INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
-              WHERE PlayerId = ? AND Instrument = ?
-            ) t1
-            WHERE RowNumber = 1";
+        private const string QUERY_SINGLE_PLAYER_HIGH_SCORE = @"
+            SELECT *
+            FROM PlayerScores
+            INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
+            WHERE GameRecords.SongChecksum = ?
+                AND PlayerScores.Instrument = ?
+                AND PlayerScores.PlayerId = ?
+            ORDER BY Score DESC
+            LIMIT 1";
 
         private const string QUERY_UPDATE_NULL_PERCENTS = @"
             UPDATE PlayerScores
@@ -41,8 +41,16 @@
             the instrument and difficulty when the highest score was recorded
         */
         SELECT BestPercents.*
-        FROM BestPercents INNER JOIN BestScore ON BestScore.Instrument = BestPercents.Instrument
+        FROM BestPercents
+        INNER JOIN BestScore ON BestScore.Instrument = BestPercents.Instrument
             AND BestScore.Difficulty = BestPercents.Difficulty
-            AND BestScore.SongChecksum = BestPercents.SongChecksum";
+            AND BestScore.SongChecksum = BestPercents.SongChecksum
+        WHERE BestScore.PlayerId = ? AND BestScore.Instrument = ?;
+        ";
+
+        private const string QUERY_BAND_BEST_SCORES = @"
+            SELECT *, MAX(BandScore) FROM GameRecords
+            GROUP BY GameRecords.SongChecksum
+        ";
     }
 }

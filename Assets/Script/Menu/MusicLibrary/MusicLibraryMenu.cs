@@ -278,7 +278,7 @@ namespace YARG.Menu.MusicLibrary
 
                         foreach (var song in _recommendedSongs)
                         {
-                            list.Add(new SongViewType(this, song, GetHighScoreForSong(song)));
+                            list.Add(new SongViewType(this, song, GetHighScoreForSong(song), GetBandHighScoreForSong(song)));
                         }
                         _primaryHeaderIndex += _recommendedSongs.Length + 1;
                     }
@@ -316,7 +316,7 @@ namespace YARG.Menu.MusicLibrary
 
                 foreach (var song in section.Songs)
                 {
-                    list.Add(new SongViewType(this, song, GetHighScoreForSong(song)));
+                    list.Add(new SongViewType(this, song, GetHighScoreForSong(song), GetBandHighScoreForSong(song)));
                 }
             }
             CalculateCategoryHeaderIndices(list);
@@ -325,15 +325,23 @@ namespace YARG.Menu.MusicLibrary
 
         private PlayerScoreRecord GetHighScoreForSong(SongEntry song)
         {
-            if (_shouldDisplaySoloHighScores)
+            if (!_shouldDisplaySoloHighScores)
             {
+                return null;
+            }
                 var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
                 var result = ScoreContainer.GetHighScore(song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, true);
                 return result;
+        }
+
+        private GameRecord GetBandHighScoreForSong(SongEntry song)
+        {
+            if (_shouldDisplaySoloHighScores)
+            {
+                return null;
             }
 
-            // TODO: Show some kind of band high score in multiplayer.
-            return null;
+            return ScoreContainer.GetBandHighScore(song.Hash);
         }
 
         private List<ViewType> CreatePlaylistViewList()
@@ -355,7 +363,7 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new SortHeaderViewType(section.Category.ToUpperInvariant(), section.Songs.Length, section.CategoryGroup));
                 foreach (var song in section.Songs)
                 {
-                    list.Add(new SongViewType(this, song, GetHighScoreForSong(song)));
+                    list.Add(new SongViewType(this, song, GetHighScoreForSong(song), GetBandHighScoreForSong(song)));
                 }
             }
 
@@ -403,7 +411,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void SetRecommendedSongs()
         {
-            if (SongContainer.Count > 5)
+            if (SongContainer.Count > RecommendedSongs.RECOMMEND_SONGS_COUNT)
             {
                 _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
             }
