@@ -58,7 +58,7 @@ namespace YARG.Scores
             try
             {
                 BandHighScores.Clear();
-                var result =  _db.Query<GameRecord>(QUERY_BAND_BEST_SCORES);
+                var result = _db.Query<GameRecord>(QUERY_BAND_BEST_SCORES);
 
                 foreach (var record in result)
                 {
@@ -107,8 +107,10 @@ namespace YARG.Scores
                 if (playerEntries.Count == 1)
                 {
                     // Update the cached player high scores. Only relevant if there is a single human player.
-                     UpdatePlayerHighScores(songChecksum, playerEntries.First());
-                }          
+                    UpdatePlayerHighScores(songChecksum, playerEntries.First());
+                }
+
+                UpdateBandHighScore(songChecksum, gameRecord);
 
                 YargLogger.LogInfo("Recorded high score for song.");
             }
@@ -118,9 +120,24 @@ namespace YARG.Scores
             }
         }
 
+        private static void UpdateBandHighScore(HashWrapper songChecksum, GameRecord currentBandScore)
+        {
+            if (!BandHighScores.TryGetValue(songChecksum, out var currentBest))
+            {
+                BandHighScores.Add(songChecksum, currentBandScore);
+            }
+            if (currentBest.BandScore >= currentBandScore.BandScore)
+            {
+                return;
+            }
+
+            BandHighScores[songChecksum] = currentBandScore;
+        }
+
         private static void UpdatePlayerHighScores(HashWrapper songChecksum, PlayerScoreRecord newScore)
         {
 
+            PlayerHighScoresByPct.TryGetValue(songChecksum, out var currentBestPct);
             if (!PlayerHighScores.TryGetValue(songChecksum, out var currentBest))
             {
                 PlayerHighScores.Add(songChecksum, newScore);
@@ -132,12 +149,19 @@ namespace YARG.Scores
             {
                 PlayerHighScores[songChecksum] = newScore;
 
-                // The best score percentage entry must match the other best score's difficulty.
+                // If there's a new best score on a different difficulty, the old best percentage entry is irrelevant. Use the new score as the new best percentage entry.
                 if (newScore.Difficulty != currentBest.Difficulty || newScore.GetPercent() > currentBest.GetPercent())
                 {
                     PlayerHighScoresByPct[songChecksum] = newScore;
                 }
             }
+
+            // Update the best percentage entry if appropriate.
+            if (newScore.Difficulty == currentBestPct.Difficulty || newScore.GetPercent() > currentBest.GetPercent())
+            {
+                PlayerHighScoresByPct[songChecksum] = newScore;
+            }
+
         }
 
         public static void RecordPlayerInfo(Guid id, string name)
@@ -297,7 +321,7 @@ namespace YARG.Scores
                     PlayerHighScores.Add(HashWrapper.Create(song.SongChecksum), score);
                 }
 
-                var scoreResultsByPct = _db.Query<PlayerScoreRecord>(QUERY_BEST_SCORES_BY_PERCENT);
+                var scoreResultsByPct = _db.Query<PlayerScoreRecord>(QUERY_BEST_SCORES_BY_PERCENT, playerId, (int) instrument);
                 foreach (var score in scoreResultsByPct)
                 {
                     var song = songResults.FirstOrDefault(x => x.Id == score.GameRecordId);

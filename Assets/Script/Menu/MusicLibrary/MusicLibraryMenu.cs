@@ -329,9 +329,18 @@ namespace YARG.Menu.MusicLibrary
             {
                 return null;
             }
-                var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
-                var result = ScoreContainer.GetHighScore(song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, true);
-                return result;
+
+            var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+            var result = ScoreContainer.GetHighScore(song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, true);
+            var percResult = ScoreContainer.GetBestPercentageScore(song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, true);
+
+            if (result != null)
+            {
+                Debug.Assert(percResult != null, "Best Percentage score is missing!");
+                result.Percent = percResult?.GetPercent() ?? 0;
+            }
+       
+            return result;
         }
 
         private GameRecord GetBandHighScoreForSong(SongEntry song)

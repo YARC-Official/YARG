@@ -45,6 +45,7 @@
         INNER JOIN BestScore ON BestScore.Instrument = BestPercents.Instrument
             AND BestScore.Difficulty = BestPercents.Difficulty
             AND BestScore.SongChecksum = BestPercents.SongChecksum
+            AND BestScore.PlayerId = BestPercents.PlayerId
         WHERE BestScore.PlayerId = ? AND BestScore.Instrument = ?;
         ";
 
