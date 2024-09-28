@@ -1,5 +1,6 @@
 ﻿using Cysharp.Text;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Song;
 using YARG.Helpers.Extensions;
@@ -50,7 +51,7 @@ namespace YARG.Menu.MusicLibrary
 #nullable enable
         public override Sprite? GetIcon()
 #nullable disable
-        {
+        {          
             return SongSources.SourceToIcon(SongEntry.Source);
         }
 
@@ -79,22 +80,15 @@ namespace YARG.Menu.MusicLibrary
             var difficultyChar = PlayerScoreRecord.Difficulty.ToChar();
             var percent = Mathf.Floor(PlayerScoreRecord.GetPercent() * 100f);
 
-            if (PlayerScoreRecord.IsFc)
-            {
-                // TODO: Replace this with a FC sprite.
-                builder.AppendFormat("<sprite name=\"{0}\">", fcSprite);
-            }
+            string percentColor = PlayerScoreRecord.IsFc ? "#fcd13c" : "#ffffff";
 
-            if (PlayerScoreRecord != null)
-            {
-                 builder.AppendFormat( "<b>{0}</b> {1:N0}%", difficultyChar, percent);
+            builder.AppendFormat( "<b>{0}</b> <color={1}>{2:N0}%</color>", difficultyChar, percentColor, percent);
 
-                // Append the score if the setting is enabled
-                if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
-                {
-                    builder.AppendFormat("<space=2em> {0:N0}", PlayerScoreRecord.Score);
-                }
-            }
+            // Append the score if the setting is enabled
+            if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
+            {
+                builder.AppendFormat("<space=2em> {0:N0}", PlayerScoreRecord.Score);
+            }      
 
             return builder.ToString();
         }

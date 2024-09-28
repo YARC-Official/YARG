@@ -125,6 +125,7 @@ namespace YARG.Scores
             if (!BandHighScores.TryGetValue(songChecksum, out var currentBest))
             {
                 BandHighScores.Add(songChecksum, currentBandScore);
+                return;
             }
             if (currentBest.BandScore >= currentBandScore.BandScore)
             {

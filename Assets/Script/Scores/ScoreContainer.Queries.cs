@@ -31,11 +31,11 @@
         /*  For each song, this retrieves the records with the best score  */
             BestScore as (SELECT *, max(Score)
                             FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
-                            GROUP BY GameRecords.SongChecksum),
+                            GROUP BY GameRecords.SongChecksum, PlayerScores.Instrument, PlayerScores.PlayerId),
         /*  For each song, instrument, and difficulty, this retrieves the records with the best score by percent  */
             BestPercents as (SELECT *, max(Percent)
                             FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id
-                            GROUP BY GameRecords.SongChecksum, PlayerScores.Instrument, PlayerScores.Difficulty)
+                            GROUP BY GameRecords.SongChecksum, PlayerScores.Instrument, PlayerScores.PlayerId, PlayerScores.Difficulty)
         /*
             Filter the lines from the BestPercents temporary table above where the instrument and difficulty match
             the instrument and difficulty when the highest score was recorded
