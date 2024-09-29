@@ -76,13 +76,11 @@ namespace YARG.Menu.MusicLibrary
                 return string.Empty;
             }
 
-            var fcSprite = PlayerScoreRecord.Instrument.ToResourceName();
-            var difficultyChar = PlayerScoreRecord.Difficulty.ToChar();
+            var difficultySprite = PlayerScoreRecord.Difficulty.ToString();
             var percent = Mathf.Floor(PlayerScoreRecord.GetPercent() * 100f);
+            var percentColor = PlayerScoreRecord.IsFc ? "#fcd13c" : "#ffffff";
 
-            string percentColor = PlayerScoreRecord.IsFc ? "#fcd13c" : "#ffffff";
-
-            builder.AppendFormat( "<b>{0}</b> <color={1}>{2:N0}%</color>", difficultyChar, percentColor, percent);
+            builder.AppendFormat( "<sprite name=\"{0}\"> <color={1}>{2:N0}%</color>", difficultySprite, percentColor, percent);
 
             // Append the score if the setting is enabled
             if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
