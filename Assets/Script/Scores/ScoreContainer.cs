@@ -214,15 +214,15 @@ namespace YARG.Scores
         }
 
         /// <summary>
-        /// Get the high score for a specific song, player and instrument. If `allowCacheUpdate` is true, all high scores for the player and instrument will be fetched from the database and cached,
-        /// to speed up subsequent player high score requests.
+        /// Get the highest score (in points) for a specific song, player and instrument.
+        /// If `allowCacheUpdate` is true, all high scores for the player and instrument will be fetched from the database and cached, to speed up subsequent player high score requests.
         /// </summary>
         /// <param name="songChecksum">The ID of the song to retrieve a high score for.</param>
         /// <param name="playerId">The ID of the player profile to retrieve a high score for.</param>
         /// <param name="instrument">The instrument to retrieve a high score for.</param>
         /// <param name="allowCacheUpdate">Sets whether all high scores for this player and instrument should be cached. Set this to true when fetching a large number of high scores for the same player and instrument
         /// (such as when displaying high scores on the Music Library). Set this to false when fetching multiple high scores for different players in a row.</param>
-        /// <returns></returns>
+        /// <returns>The highest score for the provided song, player and instrument, or null if no high score exists.</returns>
         public static PlayerScoreRecord GetHighScore(HashWrapper songChecksum, Guid playerId, Instrument instrument, bool allowCacheUpdate = true)
         {
             if (allowCacheUpdate)
@@ -263,6 +263,17 @@ namespace YARG.Scores
             }
         }
 
+        /// <summary>
+        /// Get the highest score percentage (regardless of points) for a specific song, player and instrument.
+        /// Note that this can be different from the highest score in points, as it is possible to get a higher percentage with a lower score.
+        /// If `allowCacheUpdate` is true, all high scores for the player and instrument will be fetched from the database and cached, to speed up subsequent player high score requests.
+        /// </summary>
+        /// <param name="songChecksum">The ID of the song to retrieve a high score for.</param>
+        /// <param name="playerId">The ID of the player profile to retrieve a high score for.</param>
+        /// <param name="instrument">The instrument to retrieve a high score for.</param>
+        /// <param name="allowCacheUpdate">Sets whether all high scores for this player and instrument should be cached. Set this to true when fetching a large number of high scores for the same player and instrument
+        /// (such as when displaying high scores on the Music Library). Set this to false when fetching multiple high scores for different players in a row.</param>
+        /// <returns>The highest score percentage for the provided song, player and instrument, or null if no high score exists.</returns>
         public static PlayerScoreRecord GetBestPercentageScore(HashWrapper songChecksum, Guid playerId, Instrument instrument, bool allowCacheUpdate = true)
         {
             if (allowCacheUpdate)
@@ -275,8 +286,8 @@ namespace YARG.Scores
                 return PlayerHighScoresByPct.GetValueOrDefault(songChecksum);
             }
 
-            // TODO: Fetch best % from database if there's a cache miss. Not currently needed.
-            throw new NotImplementedException();
+            // TODO: Fetch best % from database if there's a cache miss. Not currently used.
+            throw new NotImplementedException("Attempted to load best solo score percentage from database. Not implemented.");
         }
 
         public static void UpdateNullPercents()
@@ -342,27 +353,6 @@ namespace YARG.Scores
                 YargLogger.LogException(e, "Failed to load high score from database.");
             }
         }
-
-        /*
-        [Obsolete]
-        public static PlayerScoreRecord GetHighScoreByInstrument(HashWrapper songChecksum, Instrument instrument)
-        {
-            try
-            {
-                var query =
-                    $"SELECT * FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id WHERE " +
-                    $"GameRecords.SongChecksum = x'{songChecksum.ToString()}' AND PlayerScores.Instrument = {(int) instrument} " +
-                    $"ORDER BY Score DESC LIMIT 1";
-                return _db.FindWithQuery<PlayerScoreRecord>(query);
-            }
-            catch (Exception e)
-            {
-                YargLogger.LogException(e, "Failed to load high score from database.");
-            }
-
-            return null;
-        }
-        */
 
         public static List<SongEntry> GetMostPlayedSongs(int maxCount)
         {
