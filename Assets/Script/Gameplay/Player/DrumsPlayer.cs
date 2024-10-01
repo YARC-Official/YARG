@@ -224,39 +224,41 @@ namespace YARG.Gameplay.Player
             ((DrumsNoteElement) poolable).NoteRef = note;
         }
 
-        protected override void InitializeSpawnedLane(LaneElement lane, int pad)
+        protected override int GetLaneIndex(DrumNote note)
         {
-            int laneIndex = pad;
+            int laneIndex = note.Pad;
 
+            if (!_fiveLaneMode && laneIndex >= (int) FourLaneDrumPad.YellowCymbal)
+            {
+                laneIndex -= 3;
+            }
+
+            return laneIndex;
+        }
+
+        protected override void InitializeSpawnedLane(LaneElement lane, int index)
+        {
             Color laneColor;
             int totalLanes;
 
             if (_fiveLaneMode)
             {
-                laneColor = Player.ColorProfile.FiveLaneDrums.GetNoteColor(pad).ToUnityColor();
+                laneColor = Player.ColorProfile.FiveLaneDrums.GetNoteColor(index).ToUnityColor();
                 totalLanes = 5;
             }
             else
             {
-                laneColor = Player.ColorProfile.FourLaneDrums.GetNoteColor(pad).ToUnityColor();
+                laneColor = Player.ColorProfile.FourLaneDrums.GetNoteColor(index).ToUnityColor();
                 totalLanes = 4;
-
-                if (pad >= (int) FourLaneDrumPad.YellowCymbal)
-                {
-                    laneIndex -= 3;
-                }
             }
 
-            lane.SetAppearance(Player.Profile.CurrentInstrument, laneIndex, totalLanes, laneColor);
+            lane.SetAppearance(Player.Profile.CurrentInstrument, index, totalLanes, laneColor);
+            
         }
 
         protected override void ModifyLaneFromNote(LaneElement lane, DrumNote note)
         {
-            if (note.IsTremolo)
-            {
-                // Widen drum roll lanes to make them easier to see
-                lane.MultiplyScale(1.2f);
-            }
+            lane.ToggleOpen(note.Pad == 0);
         }
 
         protected override void OnNoteHit(int index, DrumNote note)

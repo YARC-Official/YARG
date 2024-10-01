@@ -171,6 +171,11 @@ namespace YARG.Gameplay.Player
             ((FiveFretNoteElement) poolable).NoteRef = note;
         }
 
+        protected override int GetLaneIndex(GuitarNote note)
+        {
+            return note.Fret;
+        }
+
         protected override void InitializeSpawnedLane(LaneElement lane, int fret)
         {
             lane.SetAppearance(Player.Profile.CurrentInstrument, fret, 5, 
@@ -179,7 +184,11 @@ namespace YARG.Gameplay.Player
 
         protected override void ModifyLaneFromNote(LaneElement lane, GuitarNote note)
         {
-            if (note.IsTap || note.IsHopo)
+            if (note.Fret == (int) FiveFretGuitarFret.Open)
+            {
+                lane.ToggleOpen(true);
+            }
+            else if (note.IsTap || note.IsHopo)
             {
                 lane.MultiplyScale(0.85f);
             }

@@ -364,7 +364,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteSpawned(TNote parentNote)
         {
-            if (Engine.CurrentLaneIndex > Engine.TotalLanes)
+            if (!Engine.LanesExist)
             {
                 return;
             }
@@ -376,30 +376,40 @@ namespace YARG.Gameplay.Player
 
             if (parentNote.IsLaneStart)
             {
+                var laneStartTimes = new Dictionary<int, double>();
+                var laneEndTimes = new Dictionary<int, double>();
+                
+                // Iterate forward to find the length of all lanes in this phrase
+                var noteRef = parentNote;
                 var thisLaneFlag = parentNote.IsTrill ? NoteFlags.Trill : NoteFlags.Tremolo;
-
-                (int index, double startTime, double endTime) firstLane = (parentNote.LaneIndex, parentNote.Time, -1);
-                (int index, double startTime, double endTime) secondLane = (-1, -1, -1);
-
-                // Find the ending note to determine the length of this lane
-                var noteRef = parentNote.NextNote;
-                if (parentNote.IsTrill && noteRef != null)
-                {
-                    secondLane.index = noteRef.LaneIndex;
-                    secondLane.startTime = noteRef.Time;
-                }
 
                 while (noteRef != null)
                 {
-                    if (noteRef.LaneIndex == firstLane.index)
+                    // Create one lane for single notes, create multiple lanes for non-drum chords
+                    foreach (var childNote in noteRef.AllNotes)
                     {
-                        firstLane.endTime = noteRef.Time;
-                    }
-                    else if (noteRef.LaneIndex == secondLane.index)
-                    {
-                        secondLane.endTime = noteRef.Time;
-                    }
+                        if (childNote.IsLane)
+                        {
+                            int laneIndex = GetLaneIndex(childNote);
 
+                            if (laneStartTimes.ContainsKey(laneIndex))
+                            {
+                                if (thisLaneFlag == NoteFlags.Tremolo && !noteRef.IsLaneEnd)
+                                {
+                                    // Tremolo lanes will always end on the LaneEnd flag
+                                    // Do not iterate through child notes until we get there
+                                    break;
+                                }
+
+                                laneEndTimes[laneIndex] = noteRef.Time;
+                            }
+                            else
+                            {
+                                laneStartTimes[laneIndex] = noteRef.Time;
+                            }
+                        }
+                    }
+                    
                     if (noteRef.IsLaneEnd)
                     {
                         break;
@@ -408,29 +418,27 @@ namespace YARG.Gameplay.Player
                     noteRef = noteRef.NextNote;
                 }
 
-                if (firstLane.endTime == -1)
+                foreach (int laneIndex in laneStartTimes.Keys)
                 {
-                    // Ending note was not found, do not create lane
-                    return;
-                }
-
-                for (int i = 0; i < 2; i++)
-                {
-                    var thisLane = i == 0 ? firstLane : secondLane;
-                    if (thisLane.index == -1)
+                    if (!laneEndTimes.ContainsKey(laneIndex))
                     {
+                        // Ending note was not found, do not create lane
                         continue;
                     }
 
-                    var firstLaneNote = i == 0 ? parentNote : parentNote.NextNote;
+                    double startTime = laneStartTimes[laneIndex];
+                    double endTime = laneEndTimes[laneIndex];
+
+                    // Secondary trill lanes will start on the second note in the phrase
+                    var firstLaneNote = startTime == parentNote.Time ? parentNote : parentNote.NextNote;
 
                     // Extend a previous lane if possible instead of creating two adjoining lanes at the same index
                     bool extendExisting = false;
                     foreach (LaneElement existingLane in LanePool.AllSpawned)
                     {
-                        if (existingLane.ContainsIndex(thisLane.index))
+                        if (existingLane.ContainsIndex(laneIndex))
                         {
-                            if (thisLane.startTime - existingLane.EndTime <= LaneElement.COMBINE_LANE_THRESHOLD)
+                            if (startTime - existingLane.EndTime <= LaneElement.COMBINE_LANE_THRESHOLD)
                             {
                                 // New lane will overlap with existing one
                                 // Determine if the previous notes in this chart should prevent combining
@@ -443,7 +451,7 @@ namespace YARG.Gameplay.Player
                                         break;
                                     }
 
-                                    if (existingLane.ContainsIndex(noteRef.LaneIndex) && (noteRef.Flags & thisLaneFlag) != 0)
+                                    if (existingLane.ContainsIndex(GetLaneIndex(noteRef)) && (noteRef.Flags & thisLaneFlag) != 0)
                                     {
                                         extendExisting = true;
                                         break;
@@ -455,7 +463,7 @@ namespace YARG.Gameplay.Player
 
                             if (extendExisting)
                             {
-                                existingLane.SetTimeRange(existingLane.ElementTime, Math.Max(thisLane.endTime, existingLane.EndTime));
+                                existingLane.SetTimeRange(existingLane.ElementTime, Math.Max(endTime, existingLane.EndTime));
                             }
 
                             break;
@@ -469,13 +477,18 @@ namespace YARG.Gameplay.Player
 
                     // Create a new lane element at this index
                     var newLane = (LaneElement) LanePool.TakeWithoutEnabling();
-                    newLane.SetTimeRange(thisLane.startTime, thisLane.endTime);
-                    InitializeSpawnedLane(newLane, thisLane.index);
+                    newLane.SetTimeRange(startTime, endTime);
+                    InitializeSpawnedLane(newLane, laneIndex);
                     ModifyLaneFromNote(newLane, firstLaneNote);
 
                     newLane.EnableFromPool();
                 }
             }
+        }
+
+        protected virtual int GetLaneIndex(TNote note)
+        {
+            return note.LaneNote;
         }
 
         public override void SetPracticeSection(uint start, uint end)
