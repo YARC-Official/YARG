@@ -15,6 +15,9 @@ namespace YARG.Gameplay.Visuals
 
         // Conversion rate from end cap bone movement units to 1 TrackElement.GetZPositionAtTime unit
         private const float LANE_LENGTH_RATIO = 0.02f;
+        
+        private const float OPEN_LANE_SCALE = 0.5f;
+        private const float OPEN_LANE_START_TIME_OFFSET = 0.05f;
 
         private static readonly int _emissionEnabled = Shader.PropertyToID("_Emission");
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
@@ -33,7 +36,7 @@ namespace YARG.Gameplay.Visuals
         }
 
         [SerializeField]
-        private Transform _scaleTransform;
+        private Transform _meshTransform;
 
         [SerializeField]
         private Transform _endCapPlacement;
@@ -61,6 +64,8 @@ namespace YARG.Gameplay.Visuals
         private float _scale;
 
         private Color _color;
+
+        private bool _isOpen = false;
 
         public void SetAppearance(Instrument instrument, int index, int subdivisions, Color color)
         {
@@ -151,27 +156,32 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        protected void RenderLength()
+        public void ToggleOpen(bool state)
         {
-            _endCapPlacement.localPosition = _endCapPlacement.localPosition.WithY(_zLength * LANE_LENGTH_RATIO / _scale);
-        }
+            if (state == _isOpen)
+            {
+                return;
+            }
 
-        protected void RenderScale()
-        {
-            // Set scale
-            _scaleTransform.localScale = new Vector3(_scale, 1f, _scale);
-            
-            // Recalculate length from new scale
-            RenderLength();
+            _isOpen = state;
+
+            //_meshRenderer.sortingOrder += _isOpen ? -50 : 50;
+            _meshTransform.localPosition = _meshTransform.localPosition.WithY(_isOpen ? -0.01f : 0);
+
+            if (Initialized)
+            {
+                RenderOpen();
+            }
         }
 
         protected override void InitializeElement()
         {
+            RenderOpen();
+            RenderScale();
+
             // Set position
             // Prevent mesh overlap with adjacent lanes
             transform.localPosition = transform.localPosition.WithX(_xPosition + _xOffset);
-
-            RenderScale();
 
             // Initialize materials
             for (int i = 0; i < _meshRenderer.materials.Length; i++)
@@ -195,6 +205,45 @@ namespace YARG.Gameplay.Visuals
 
         protected override void HideElement()
         {
+            ToggleOpen(false);
+        }
+
+        private void RenderLength()
+        {
+            _endCapPlacement.localPosition = _endCapPlacement.localPosition.WithY(_zLength * LANE_LENGTH_RATIO / _scale);
+        }
+
+        private void RenderScale()
+        {
+            // Set scale
+            _meshTransform.localScale = new Vector3(_scale, 1f, _scale);
+            
+            // Recalculate length from new scale
+            RenderLength();
+        }
+
+        private void RenderOpen()
+        {
+            // This is the only shape key on the mesh, has an index of 0
+            _meshRenderer.SetBlendShapeWeight(0, _isOpen ? 100 : 0);
+
+            if (_isOpen == true)
+            {
+                SetXPosition(0);
+                
+                SetTimeRange(_startTime - OPEN_LANE_START_TIME_OFFSET, EndTime);
+
+                _scale = OPEN_LANE_SCALE;
+
+                if (Initialized)
+                {
+                    RenderScale();
+                }
+            }
+            else
+            {
+                _meshTransform.localPosition.WithY(0);
+            }
         }
     }
 }
