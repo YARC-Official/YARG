@@ -1238,6 +1238,10 @@
                     "Name": "Hit Window Ratio",
                     "Description": "The hit window's front to back ratio. 0 will bring the hit window fully backwards, 1 will keep it in the center, and 2 will move it to the front."
                 },
+                "TremoloFrontEndPercent": {
+                    "Name": "Tremolo Hit Window",
+                    "Description": "This determines how many notes can be hit with a single input during a tremolo or trill phrase. Calculated as a percentage of the current hit window frontend."
+                },
                 "HitPercentE": {
                     "Name": "Hit Percent (Easy)",
                     "Description": "This determines how much of the phrase has to be accurately sung in order to fully fill the accuracy meter, in the Easy difficulty."

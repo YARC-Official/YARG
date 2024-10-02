@@ -322,10 +322,25 @@ namespace YARG.Settings.Metadata
                 foreach (var windowField in _hitWindowFields)
                 {
                     // Every field should not be added if it is not a dynamic window (except for the ratio)
-                    if (!hitWindow.IsDynamic &&
-                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.FrontToBackRatio))
+                    if (!hitWindow.IsDynamic)
                     {
-                        continue;
+                        bool dynamicOnlyField;
+                        switch(windowField.Field.Name)
+                        {
+                            case nameof(EnginePreset.HitWindowPreset.FrontToBackRatio):
+                            case nameof(EnginePreset.HitWindowPreset.TremoloFrontEndPercent):
+                                dynamicOnlyField = false;
+                                break;
+
+                            default:
+                                dynamicOnlyField = true;
+                                break;
+                        }
+
+                        if (dynamicOnlyField)
+                        {
+                            continue;
+                        }
                     }
 
                     if (windowField.Type != SettingType.Slider)
