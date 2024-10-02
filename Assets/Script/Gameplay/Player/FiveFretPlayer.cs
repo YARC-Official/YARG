@@ -188,8 +188,9 @@ namespace YARG.Gameplay.Player
             {
                 lane.ToggleOpen(true);
             }
-            else if (note.IsTap || note.IsHopo)
+            else
             {
+                // Correct size of lane slightly for padding in fret array
                 lane.MultiplyScale(0.85f);
             }
         }

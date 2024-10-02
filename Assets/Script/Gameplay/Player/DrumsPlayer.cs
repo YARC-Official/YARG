@@ -258,7 +258,15 @@ namespace YARG.Gameplay.Player
 
         protected override void ModifyLaneFromNote(LaneElement lane, DrumNote note)
         {
-            lane.ToggleOpen(note.Pad == 0);
+            if (note.Pad == 0)
+            {
+                lane.ToggleOpen(true);
+            }
+            else
+            {
+                // Correct size of lane slightly for padding in fret array
+                lane.MultiplyScale(0.97f);
+            }
         }
 
         protected override void OnNoteHit(int index, DrumNote note)
