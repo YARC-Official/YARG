@@ -13,6 +13,7 @@ using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
@@ -101,7 +102,17 @@ namespace YARG.Gameplay.Player
             engine.OnPadHit += (action, wasNoteHit, velocity) =>
             {
                 // Skip if a note was hit, because we have different logic for that below
-                if (wasNoteHit) return;
+            if (SettingsManager.Settings.AlwaysOnDrumSFX.Value)
+            {
+                if (!wasNoteHit)
+                {
+                    PlayDrumSoundEffect(action, velocity);
+                }
+                else
+                {
+                    PlayDrumSoundEffect(action, velocity);
+                }
+            }
 
                 // Choose the correct fret
                 int fret;

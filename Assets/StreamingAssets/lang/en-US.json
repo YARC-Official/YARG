@@ -519,6 +519,10 @@
                 "Name": "Overstrum/Overhit Sound Effects",
                 "Description": "Enables the overstrum/overhit sound effect."
             },
+            "AlwaysOnDrumSFX": {
+                "Name": "Always-On Drum SFX",
+                "Description": "Enables Drum SFX at all times."
+            },
             "CrowdVolume": {
                 "Name": "Crowd Volume",
                 "PauseName": "Crowd",
