@@ -172,7 +172,7 @@ namespace YARG.Settings
 
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
 
-            public ToggleSetting AlwaysOnDrumSFX { get; } = new(true);
+            public ToggleSetting AlwaysOnDrumSFX { get; } = new(false);
 
             public ToggleSetting UseWhammyFx { get; } = new(false, v => GlobalAudioHandler.UseWhammyFx = v);
 
