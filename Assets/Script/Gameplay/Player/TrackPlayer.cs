@@ -400,13 +400,6 @@ namespace YARG.Gameplay.Player
 
                             if (laneStartNotes.ContainsKey(laneIndex))
                             {
-                                if (thisLaneFlag == NoteFlags.Tremolo && !containsLaneEnd)
-                                {
-                                    // Tremolo lanes will always end on the LaneEnd flag
-                                    // Do not iterate through child notes until we get there
-                                    break;
-                                }
-
                                 laneEndTimes[laneIndex] = noteRef.Time;
                             }
                             else
