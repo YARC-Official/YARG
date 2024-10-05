@@ -85,9 +85,18 @@ namespace YARG.Helpers
             RealPersistentDataPath = SanitizePath(Application.persistentDataPath);
 #if UNITY_EDITOR || YARG_TEST_BUILD
             PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "dev"));
+#elif YARG_NIGHTLY_BUILD
+            PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "nightly"));
 #else
             PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "release"));
 #endif
+
+            // Persistent Data Path override passed in from CLI
+            if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
+            {
+                Directory.CreateDirectory(CommandLineArgs.PersistentDataPath);
+                PersistentDataPath = SanitizePath(CommandLineArgs.PersistentDataPath);
+            }
 
             // Get other paths that are only allowed on the main thread
             ApplicationDataPath = SanitizePath(Application.dataPath);
@@ -129,7 +138,7 @@ namespace YARG.Helpers
                 var json = JObject.Parse(settingsFile);
                 if (!json.TryGetValue("download_location", out var downloadLocation)) return null;
 
-                string setlistPath = Path.Join(downloadLocation.ToString(), "Setlists", "official");
+                string setlistPath = Path.Join(downloadLocation.ToString(), "Setlists");
                 if (!Directory.Exists(setlistPath)) return null;
 
                 return setlistPath;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Core.Input;
@@ -35,10 +35,28 @@ namespace YARG.Player
         /// </summary>
         public BaseEngineParameters EngineParameterOverride { get; set; }
 
-        public YargPlayer(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
+        public YargPlayer(YargProfile profile, ProfileBindings bindings)
         {
-            SwapToProfile(profile, bindings, resolveDevices);
-            SetPresetsFromProfile();
+            Profile = profile;
+            Bindings = bindings;
+        }
+
+        public YargPlayer(ReplayFrame frame, ReplayData replay)
+        {
+            Profile = frame.Profile;
+            Bindings = null;
+            EngineParameterOverride = frame.EngineParameters;
+
+            EnginePreset = CustomContentManager.EnginePresets.GetPresetById(Profile.EnginePreset)
+                ?? EnginePreset.Default;
+            ThemePreset = CustomContentManager.ThemePresets.GetPresetById(Profile.ThemePreset)
+                ?? ThemePreset.Default;
+            ColorProfile = replay.GetColorProfile(Profile.ColorProfile)
+                ?? CustomContentManager.ColorProfiles.GetPresetById(Profile.ColorProfile)
+                ?? ColorProfile.Default;
+            CameraPreset = replay.GetCameraPreset(Profile.CameraPreset)
+                ?? CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
+                ?? CameraPreset.Default;
         }
 
         public void SwapToProfile(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
@@ -65,7 +83,7 @@ namespace YARG.Player
             }
         }
 
-        public void SetPresetsFromProfile()
+        public void RefreshPresets()
         {
             EnginePreset = CustomContentManager.EnginePresets.GetPresetById(Profile.EnginePreset)
                 ?? EnginePreset.Default;
@@ -75,21 +93,6 @@ namespace YARG.Player
                 ?? ColorProfile.Default;
             CameraPreset = CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
                 ?? CameraPreset.Default;
-        }
-
-        public void SetPresetsFromReplay(ReplayPresetContainer presetContainer)
-        {
-            var colorProfile = presetContainer.GetColorProfile(Profile.ColorProfile);
-            if (colorProfile is not null)
-            {
-                ColorProfile = colorProfile;
-            }
-
-            var cameraPreset = presetContainer.GetCameraPreset(Profile.CameraPreset);
-            if (cameraPreset is not null)
-            {
-                CameraPreset = cameraPreset;
-            }
         }
 
         public void EnableInputs()

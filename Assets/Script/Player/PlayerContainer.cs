@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using UnityEngine.InputSystem;
-using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers;
@@ -61,7 +60,10 @@ namespace YARG.Player
 
         public static bool AddProfile(YargProfile profile)
         {
-            if (_profiles.Contains(profile)) return false;
+            if (_profiles.Contains(profile))
+            {
+                return false;
+            }
 
             _profiles.Add(profile);
             _profilesById.Add(profile.Id, profile);
@@ -71,10 +73,16 @@ namespace YARG.Player
 
         public static bool RemoveProfile(YargProfile profile)
         {
-            if (!_profiles.Contains(profile)) return false;
+            if (!_profiles.Contains(profile))
+            {
+                return false;
+            }
 
             // A profile that is taken can't be removed
-            if (_playersByProfile.ContainsKey(profile)) return false;
+            if (_playersByProfile.ContainsKey(profile))
+            {
+                return false;
+            }
 
             _profiles.Remove(profile);
             _profilesById.Remove(profile.Id);
@@ -94,12 +102,23 @@ namespace YARG.Player
 
         public static YargPlayer CreatePlayerFromProfile(YargProfile profile, bool resolveDevices)
         {
-            if (!_profiles.Contains(profile)) return null;
+            if (!_profiles.Contains(profile))
+            {
+                return null;
+            }
 
-            if (IsProfileTaken(profile)) return null;
+            if (IsProfileTaken(profile))
+            {
+                return null;
+            }
 
             var bindings = BindingsContainer.GetBindingsForProfile(profile);
-            var player = new YargPlayer(profile, bindings, resolveDevices);
+            if (resolveDevices)
+            {
+                bindings.ResolveDevices();
+            }
+
+            var player = new YargPlayer(profile, bindings);
             player.EnableInputs();
             _players.Add(player);
             _playersByProfile.Add(profile, player);
@@ -109,7 +128,10 @@ namespace YARG.Player
 
         public static bool DisposePlayer(YargPlayer player)
         {
-            if (!_players.Contains(player)) return false;
+            if (!_players.Contains(player))
+            {
+                return false;
+            }
 
             _players.Remove(player);
             _playersByProfile.Remove(player.Profile);
@@ -121,9 +143,15 @@ namespace YARG.Player
 
         public static bool SwapPlayerToProfile(YargPlayer player, YargProfile newProfile)
         {
-            if (!_players.Contains(player)) return false;
+            if (!_players.Contains(player))
+            {
+                return false;
+            }
 
-            if (IsProfileTaken(newProfile)) return false;
+            if (IsProfileTaken(newProfile))
+            {
+                return false;
+            }
 
             _playersByProfile.Remove(player.Profile);
             _playersByProfile.Add(newProfile, player);
@@ -146,7 +174,10 @@ namespace YARG.Player
 
         public static YargPlayer GetPlayerFromProfile(YargProfile profile)
         {
-            if (!_playersByProfile.TryGetValue(profile, out var player)) return null;
+            if (!_playersByProfile.TryGetValue(profile, out var player))
+            {
+                return null;
+            }
 
             return player;
         }
@@ -155,7 +186,10 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                if (player.Bindings.ContainsDevice(device)) return true;
+                if (player.Bindings.ContainsDevice(device))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -254,15 +288,11 @@ namespace YARG.Player
 
         public static void EnsureValidInstruments()
         {
-            /*
             foreach (var profile in _profiles)
             {
-                if (!profile.HasValidInstrument)
-                {
-                    profile.CurrentInstrument =  profile.GameMode.PossibleInstruments()[0];
-                }
+                profile.EnsureValidInstrument();
+
             }
-            */
         }
     }
 }

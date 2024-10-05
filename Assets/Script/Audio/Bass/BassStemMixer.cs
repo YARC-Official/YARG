@@ -325,7 +325,7 @@ namespace YARG.Audio.BASS
         {
             if (_channels.Count == 0)
             {
-                _mainHandle.Dispose();
+                _mainHandle?.Dispose();
                 return;
             }
 

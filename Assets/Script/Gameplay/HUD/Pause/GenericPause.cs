@@ -3,6 +3,7 @@ using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Replays;
 
 namespace YARG.Gameplay.HUD
 {
@@ -49,25 +50,17 @@ namespace YARG.Gameplay.HUD
 
         public void SaveReplay()
         {
-            bool failed = false;
-
+            bool succeeded = false;
             try
             {
-                var output = GameManager.SaveReplay(GameManager.InputTime, false);
-
-                if (output is null)
-                {
-                    failed = true;
-                }
+                succeeded = GameManager.SaveReplay(GameManager.InputTime, ReplayContainer.ReplayDirectory) != null;
             }
             catch (Exception e)
             {
                 YargLogger.LogException(e, "Failed to save replay mid-song");
-
-                failed = true;
             }
 
-            if (!failed)
+            if (succeeded)
             {
                 DialogManager.Instance.ShowMessage("Replay Saved",
                     "The replay was successfully saved mid-song. This replay can be accessed in the " +

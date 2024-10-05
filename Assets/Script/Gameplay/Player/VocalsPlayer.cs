@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Unity.Burst.Intrinsics;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
@@ -9,6 +8,7 @@ using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Engine.Vocals.Engines;
 using YARG.Core.Input;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Input;
@@ -62,7 +62,10 @@ namespace YARG.Gameplay.Player
         public void Initialize(int index, int vocalIndex, YargPlayer player, SongChart chart,
             VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore)
         {
-            if (IsInitialized) return;
+            if (IsInitialized)
+            {
+                return;
+            }
 
             base.Initialize(index, player, chart, lastHighScore);
 
@@ -70,7 +73,7 @@ namespace YARG.Gameplay.Player
             var needleIndex = (vocalIndex % NEEDLES_COUNT) + 1;
             var materialPath = $"VocalNeedle/{needleIndex}";
             _needleRenderer.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
-            
+
             var partIndex = Player.Profile.CurrentInstrument == Instrument.Harmony
                 ? Player.Profile.HarmonyIndex
                 : 0;
@@ -110,13 +113,29 @@ namespace YARG.Gameplay.Player
             _percussionTrack = percussionTrack;
 
             // Create and start an input context for the mic
-            if (!GameManager.IsReplay && player.Bindings.Microphone is not null)
+            if (GameManager.ReplayInfo == null && player.Bindings.Microphone != null)
             {
                 _inputContext = new MicInputContext(player.Bindings.Microphone, GameManager);
                 _inputContext.Start();
             }
 
             Engine = CreateEngine();
+            if (vocalIndex == 0)
+            {
+                if (Player.Profile.CurrentInstrument == Instrument.Vocals)
+                {
+                    Engine.BuildCountdownsFromSelectedPart();
+                }
+                else
+                {
+                    Engine.BuildCountdownsFromAllParts(multiTrack.Parts);
+                }
+
+                Engine.OnCountdownChange += (measuresLeft, countdownLength, endTime) =>
+                {
+                    GameManager.VocalTrack.UpdateCountdown(measuresLeft, countdownLength, endTime);
+                };
+            }
 
             if (GameManager.IsPractice)
             {
@@ -137,7 +156,7 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 var singToActivateStarPower = SettingsManager.Settings.VoiceActivatedVocalStarPower.Value;
 
@@ -208,11 +227,6 @@ namespace YARG.Gameplay.Player
                     : null;
             };
 
-            engine.OnCountdownChange += (measuresLeft, countdownLength, endTime) =>
-            {
-                GameManager.VocalTrack.UpdateCountdown(measuresLeft, countdownLength, endTime);
-            };
-
             return engine;
         }
 
@@ -239,7 +253,7 @@ namespace YARG.Gameplay.Player
         protected override void UpdateInputs(double time)
         {
             // Push all inputs from mic
-            if (!GameManager.IsReplay && _inputContext is not null)
+            if (GameManager.ReplayInfo == null && _inputContext != null)
             {
                 foreach (var input in _inputContext.GetInputsFromMic())
                 {
@@ -273,7 +287,6 @@ namespace YARG.Gameplay.Player
             const float NEEDLE_POS_SNAP_MULTIPLIER = 10f;
 
             const float NEEDLE_ROT_LERP = 25f;
-            const float NEEDLE_ROT_MAX = 12f;
 
             // Get combo meter fill
             float fill = 0f;
@@ -334,12 +347,7 @@ namespace YARG.Gameplay.Player
                         // Rotate the needle a little bit depending on how off it is (unless it's non-pitched)
                         // Get how off the player is
                         (float pitchDist, _) = GetPitchDistanceIgnoringOctave(lastNotePitch, Engine.PitchSang);
-
-                        // Determine how off that is compared to the hit window
-                        float distPercent = Mathf.Clamp(pitchDist / (float) EngineParams.HitWindow.MaxWindow, -1f, 1f);
-
-                        // Use that to get the target rotation
-                        targetRotation = distPercent * NEEDLE_ROT_MAX;
+                        targetRotation = GetNeedleRotation(pitchDist);
                     }
                     else
                     {
@@ -389,6 +397,31 @@ namespace YARG.Gameplay.Player
                         Quaternion.identity, Time.deltaTime * NEEDLE_ROT_LERP);
                 }
             }
+        }
+
+        private float GetNeedleRotation(float pitchDist)
+        {
+            const float NEEDLE_ROT_MAX = 12f;
+
+            // Reduce the provided distance by applying a dead zone. This will prevent oversteer if the player's current pitch is well within the "Perfect" window.
+            var deadzoneInSemitones = EngineParams.PitchWindowPerfect / 2;
+            var adjustedPitchDist = ApplyPitchDeadZone(pitchDist, deadzoneInSemitones);
+
+            // Determine how off that is compared to the hit window
+            float distPercent = Mathf.Clamp(adjustedPitchDist / (EngineParams.PitchWindow - deadzoneInSemitones), -1f, 1f);
+
+            // Use that to get the target rotation
+            return distPercent * NEEDLE_ROT_MAX;
+        }
+
+        private float ApplyPitchDeadZone(float pitchDist, float deadZoneInSemitones)
+        {
+            if (pitchDist >= 0.0f)
+            {
+                return Mathf.Max(0.0f, pitchDist - deadZoneInSemitones);
+            }
+
+            return Mathf.Min(0.0f, pitchDist + deadZoneInSemitones);
         }
 
         private void UpdatePercussionPhrase(double time)
@@ -497,6 +530,12 @@ namespace YARG.Gameplay.Player
             }
 
             return (closest, octaveShift);
+        }
+
+        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
+        {
+            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
         }
     }
 }

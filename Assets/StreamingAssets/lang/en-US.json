@@ -132,9 +132,7 @@
             "Delete": "Delete",
 
             "Reset": "Reset",
-            "ResetAll": "Reset All",
-
-            "Analyze": "Analyze"
+            "ResetAll": "Reset All"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",
@@ -157,14 +155,30 @@
                 "LeadArtist": "Lead Artist",
                 "Maintainers": "Maintainers",
                 "SpecialThanks": "Special Thanks",
-                "SetlistManager": "Setlist Manager"
+                "SetlistManager": "Setlist Manager",
+                "Songs": "Songs"
+            },
+            "Song": {
+                "Name": "\"{0}\" By {1}",
+                "WrittenBy": "Written By: {0}",
+                "PerformedBy": "Performed By: {0}",
+                "WrittenAndPerformedBy": "Written and Performed By: {0}",
+                "CourtesyOf": "Courtesy Of: {0}",
+                "AlbumCover": "Album Cover By: {0}",
+                "License": "Song License: {0}"
             }
         },
         "Dialog": {
+            "DontShowAgain": "Don't Show Again",
+
             "AntiPiracy": {
                 "Title": "YARG Anti-Piracy Statement",
                 "Description": "<b>YARG stands firmly against all forms of piracy.</b> We neither support nor endorse piracy, as it is a violation of copyright law with serious legal consequences. Our platform's importable content—designed for creators to share their work and for educational purposes—does not justify or excuse piracy.\n\nYARG itself <b>does not</b> use any ripped/pirated assets or music and never will. By using YARG, users agree not to promote or endorse piracy in any way through our platform. Upholding these principles ensures a community that respects copyright, creativity, and legal standards.\n\nYARG stands for \"Yet Another Rhythm Game\" and NOT for pirates.",
                 "Confirm": "I Understand"
+            },
+            "BadSongs": {
+                "Title": "Some Songs Could Not Be Scanned",
+                "Description": "One or more of the songs you scanned were corrupted, formatted incorrectly, or encrypted, and <b>could not be loaded into the game.</b>\n\nFor more info, please check the file located at \"{0}\"."
             },
             "ColorPicker": {
                 "Title": "Color Picker"
@@ -176,17 +190,14 @@
             },
             "EngineInconsistency": {
                 "Title": "Replays Are In Beta",
-                "Description": "Currently, the replay system is in beta, <b>and <i>may</i> provide inconsistent scores/stats</b>, especially for guitar.\n\nThe end goal is for replays to be reliable and accurate, and we're working on fixing these problems!"
+                "Description": "Currently, the replay system is in beta, <b>and <i>may</i> provide inconsistent scores/stats</b>, especially for guitar.\n\nThe end goal is for replays to be reliable and accurate, and we're working on fixing these problems!",
+                "Confirm": "I Understand"
             },
             "Experimental": {
                 "Title": "Experimental Features Notice",
-                "Description": "The options about to be displayed represent a work in progress. These features are subject to change, may contain bugs, and <b>could even cause major problems if enabled</b>."
-            },
-            "BadSongs": {
-                "Title": "Some Songs Could Not Be Scanned",
-                "Description": "One or more of the songs you scanned were corrupted, formatted incorrectly, or encrypted, and <b>could not be loaded into the game.</b>\n\nFor more info, please check the file located at \"{0}\"."
-            },
-            "DontShowAgain": "Don't Show Again"
+                "Description": "The options about to be displayed represent a work in progress. These features are subject to change, may contain bugs, and <b>could even cause major problems if enabled</b>.",
+                "Confirm": "I Understand"
+            }
         },
         "DifficultySelect": {
             "Instrument": "Instrument",
@@ -207,10 +218,12 @@
                 "LastThreeMonths": "Last 3 Months",
                 "ThisYear": "This Year",
                 "MoreThanYear": "More Than A Year"
-            }
+            },
+
+            "Analyze": "Analyze"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.12!</b></size></align>\n\nv0.12 is a <i>massive</i> update that completely revamps the backend code for the engine, which adds profiles, practice mode, replays, modifiers, customization presets, and much more!\n\n<b>If you find any bugs, please let us know on Discord or GitHub.</b>\n\n<b>Replays are currently in preview.</b> Replays do not produce 1:1 results to what was actually played and can be inconsistent. This is known and we are working on fixing this for the future.\n\nHave fun!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to the v0.13 Nightly!</b></size></align>\n\nv0.13 adds Pro Keys to the game, as well as reintroducing Pro Guitar/Bass after it was removed in v0.12 due to time constraints. Please let us know how these instruments feel, as well as any bugs you find and missing features.\n\nInstrument engine code has once again gone through major changes to facilitate producing replays with 1:1 results to the original gameplay. <b>If you encounter any inconsistent replay results, report it to the YARG team on Discord or GitHub.</b>\n\nIf you previously played on the v0.12 nightly, all of your settings will be reset. This is due to nightly builds now using a separate location for data storage. Your nightly settings/scores will not persist to stable versions of YARG, and vice versa.\n\nAs we previously announced, <b>we do not recommend playing nightly full time, instead only for testing.</b> Nightly is now going to be much more unstable with many more bugs and unfinished systems.\n\n<b>If you have any feedback, please let us know on Discord or GitHub.</b>\n\nHave fun!",
             "Options": {
                 "Quickplay": "Quickplay",
                 "Practice": "Practice",
@@ -390,6 +403,35 @@
             "BluePad": "Blue Pad (Third)",
             "OrangeCymbal": "Orange Cymbal (Fourth)",
             "GreenPad": "Green Pad (Fifth)"
+        },
+        "ProKeys": {
+            "Key1": "Key 1 (C2)",
+            "Key2": "Key 2 (C#2)",
+            "Key3": "Key 3 (D2)",
+            "Key4": "Key 4 (D#2)",
+            "Key5": "Key 5 (E2)",
+            "Key6": "Key 6 (F2)",
+            "Key7": "Key 7 (F#2)",
+            "Key8": "Key 8 (G2)",
+            "Key9": "Key 9 (G#2)",
+            "Key10": "Key 10 (A2)",
+            "Key11": "Key 11 (A#2)",
+            "Key12": "Key 12 (B2)",
+            "Key13": "Key 13 (C3)",
+            "Key14": "Key 14 (C#3)",
+            "Key15": "Key 15 (D3)",
+            "Key16": "Key 16 (D#3)",
+            "Key17": "Key 17 (E3)",
+            "Key18": "Key 18 (F3)",
+            "Key19": "Key 19 (F#3)",
+            "Key20": "Key 20 (G3)",
+            "Key21": "Key 21 (G#3)",
+            "Key22": "Key 22 (A3)",
+            "Key23": "Key 23 (A#3)",
+            "Key24": "Key 24 (B3)",
+            "Key25": "Key 25 (C4)",
+            "StarPower": "Star Power Activate",
+            "TouchEffects": "Touch Effects"
         }
     },
     "Settings": {
@@ -1119,6 +1161,51 @@
                 },
                 "YellowStarpower": {
                     "Name": "Yellow Star Power"
+                },
+                "WhiteKey": {
+                    "Name": "White Key"
+                },
+                "RedKey": {
+                    "Name": "Red Key"
+                },
+                "YellowKey": {
+                    "Name": "Yellow Key"
+                },
+                "BlueKey": {
+                    "Name": "Blue Key"
+                },
+                "GreenKey": {
+                    "Name": "Green Key"
+                },
+                "OrangeKey": {
+                    "Name": "Orange Key"
+                },
+                "RedOverlay": {
+                    "Name": "Red Overlay"
+                },
+                "YellowOverlay": {
+                    "Name": "Yellow Overlay"
+                },
+                "BlueOverlay": {
+                    "Name": "Blue Overlay"
+                },
+                "GreenOverlay": {
+                    "Name": "Green Overlay"
+                },
+                "OrangeOverlay": {
+                    "Name": "Orange Overlay"
+                },
+                "WhiteNote": {
+                    "Name": "White Note"
+                },
+                "BlackNote": {
+                    "Name": "Black Note"
+                },
+                "WhiteNoteStarPower": {
+                    "Name": "White Note Star Power"
+                },
+                "BlackNoteStarPower": {
+                    "Name": "Black Note Star Power"
                 }
             },
             "EnginePreset": {
@@ -1196,13 +1283,16 @@
                     "Description": "Size of the pitch leniency window (in semitones); in other words, how off-pitch the player can sing, and the game will still detect as a correct note, in the Expert difficulty."
                 },
                 "PercussionHitWindow": {
-                    "Name": "Percussion Hit Window"
+                    "Name": "Percussion Hit Window",
+                    "Description": ""
                 },
                 "ChordStaggerWindow": {
-                    "Name": "Chord Stagger Window"
+                    "Name": "Chord Stagger Window",
+                    "Description": ""
                 },
                 "FatFingerWindow": {
-                    "Name": "Fat Finger Window"
+                    "Name": "Fat Finger Window",
+                    "Description": ""
                 },
                 "DynamicScale": {
                     "Name": "Dynamic Window Scale",
@@ -1217,7 +1307,12 @@
                     "Description": "Biases the dynamic hit window one way or another. Values below 1 gives, on average, a looser window."
                 },
                 "PerfectPitchPercent": {
-                    "Name": "Perfect Pitch Percent"
+                    "Name": "Perfect Pitch Percent",
+                    "Description": ""
+                },
+                "SustainDropLeniency": {
+                    "Name": "Sustain Drop Leniency",
+                    "Description": ""
                 }
             }
         }

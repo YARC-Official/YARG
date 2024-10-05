@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -8,6 +9,7 @@ using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
@@ -44,6 +46,8 @@ namespace YARG.Gameplay.Player
 
         public float WhammyFactor { get; private set; }
 
+        private int _sustainCount;
+
         private SongStem _stem;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
@@ -71,7 +75,7 @@ namespace YARG.Gameplay.Player
                 StarMultiplierThresholds = BassStarMultiplierThresholds;
             }
 
-            if (!GameManager.IsReplay)
+            if (GameManager.ReplayInfo == null)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
@@ -199,6 +203,11 @@ namespace YARG.Gameplay.Player
         {
             base.OnOverhit();
 
+            if (GameManager.IsSeekingReplay)
+            {
+                return;
+            }
+
             if (SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value)
             {
                 const int MIN = (int) SfxSample.Overstrum1;
@@ -213,6 +222,7 @@ namespace YARG.Gameplay.Player
         {
             foreach (var note in parent.AllNotes)
             {
+                // If the note is disjoint, only iterate the parent as sustains are added separately
                 if (parent.IsDisjoint && parent != note)
                 {
                     continue;
@@ -222,6 +232,8 @@ namespace YARG.Gameplay.Player
                 {
                     _fretArray.SetSustained(note.Fret - 1, true);
                 }
+
+                _sustainCount++;
             }
         }
 
@@ -229,6 +241,7 @@ namespace YARG.Gameplay.Player
         {
             foreach (var note in parent.AllNotes)
             {
+                // If the note is disjoint, only iterate the parent as sustains are added separately
                 if (parent.IsDisjoint && parent != note)
                 {
                     continue;
@@ -240,13 +253,24 @@ namespace YARG.Gameplay.Player
                 {
                     _fretArray.SetSustained(note.Fret - 1, false);
                 }
+
+                _sustainCount--;
             }
 
             // Mute the stem if you let go of the sustain too early.
             // Leniency is handled by the engine's sustain burst threshold.
-            if (!parent.IsDisjoint && !finished)
+            if (!finished)
             {
-                SetStemMuteState(true);
+                if (!parent.IsDisjoint || _sustainCount == 0)
+                {
+                    SetStemMuteState(true);
+                }
+            }
+
+            if (_sustainCount == 0)
+            {
+                WhammyFactor = 0;
+                GameManager.ChangeStemWhammyPitch(_stem, 0);
             }
         }
 
@@ -263,11 +287,17 @@ namespace YARG.Gameplay.Player
             base.OnInputQueued(input);
 
             // Update the whammy factor
-            if (input.GetAction<GuitarAction>() == GuitarAction.Whammy)
+            if (_sustainCount > 0 && input.GetAction<GuitarAction>() == GuitarAction.Whammy)
             {
                 WhammyFactor = Mathf.Clamp01(input.Axis);
                 GameManager.ChangeStemWhammyPitch(_stem, WhammyFactor);
             }
+        }
+
+        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
+        {
+            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
         }
     }
 }

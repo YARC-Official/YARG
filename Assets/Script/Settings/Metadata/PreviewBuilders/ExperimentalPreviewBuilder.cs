@@ -41,8 +41,7 @@ namespace YARG.Settings.Metadata
             if (!_experimentalDialogShown && SettingsManager.Settings.ShowExperimentalWarningDialog)
             {
                 DialogManager.Instance.ShowOneTimeMessage(
-                    Localize.Key("Menu.Dialog.Experimental.Title"),
-                    Localize.Key("Menu.Dialog.Experimental.Description"),
+                    "Menu.Dialog.Experimental",
                     () =>
                     {
                         SettingsManager.Settings.ShowExperimentalWarningDialog = false;

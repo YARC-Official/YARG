@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using UnityEngine;
+using YARG.Helpers.Extensions;
 using YARG.Player;
 
 namespace YARG.Menu.Persistent
@@ -25,10 +26,7 @@ namespace YARG.Menu.Persistent
             players = players.Where(e => !e.Profile.IsBot).ToList();
             var showPlayerNames = players.Count <= _maxShownPlayerNames;
 
-            foreach (Transform child in _playerNamesContainer.transform)
-            {
-                Destroy(child.gameObject);
-            }
+            _playerNamesContainer.transform.DestroyChildren();
 
             foreach (var player in players)
             {

@@ -11,6 +11,7 @@ using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Song;
 
 namespace YARG.Menu.Credits
 {
@@ -40,7 +41,9 @@ namespace YARG.Menu.Credits
         [SerializeField]
         private GameObject _headerPrefab;
         [SerializeField]
-        private GameObject _cardPrefab;
+        private CreditEntry _cardPrefab;
+        [SerializeField]
+        private SongCreditEntry _songCreditPrefab;
 
         private float _scrollRate;
 
@@ -101,6 +104,9 @@ namespace YARG.Menu.Credits
             CreateCredits(contributors
                 .Where(i => i.SpecialRole == "Supporter")
             );
+
+            CreateHeader("Songs");
+            CreateSongCredits();
         }
 
         private void Update()
@@ -133,7 +139,24 @@ namespace YARG.Menu.Credits
             foreach (var contributor in contributors)
             {
                 var card = Instantiate(_cardPrefab, _creditsContainer);
-                card.GetComponent<CreditEntry>().Initialize(contributor);
+                card.Initialize(contributor);
+            }
+        }
+
+        private void CreateSongCredits()
+        {
+            foreach (var song in SongContainer.Songs)
+            {
+                // If the song has any of these properties, then add it to the credits
+                if (!string.IsNullOrEmpty(song.CreditWrittenBy) ||
+                    !string.IsNullOrEmpty(song.CreditPerformedBy) ||
+                    !string.IsNullOrEmpty(song.CreditCourtesyOf) ||
+                    !string.IsNullOrEmpty(song.CreditAlbumCover) ||
+                    !string.IsNullOrEmpty(song.CreditLicense))
+                {
+                    var card = Instantiate(_songCreditPrefab, _creditsContainer);
+                    card.Initialize(song);
+                }
             }
         }
 
