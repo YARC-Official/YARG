@@ -376,7 +376,7 @@ namespace YARG.Gameplay.Player
 
             if (parentNote.IsLaneStart)
             {
-                var laneStartTimes = new Dictionary<int, double>();
+                var laneStartNotes = new Dictionary<int, TNote>();
                 var laneEndTimes = new Dictionary<int, double>();
                 
                 // Iterate forward to find the length of all lanes in this phrase
@@ -386,15 +386,21 @@ namespace YARG.Gameplay.Player
                 while (noteRef != null)
                 {
                     // Create one lane for single notes, create multiple lanes for non-drum chords
+                    bool containsLaneEnd = false;
                     foreach (var childNote in noteRef.AllNotes)
                     {
+                        if (childNote.IsLaneEnd)
+                        {
+                            containsLaneEnd = true;
+                        }
+
                         if (childNote.IsLane)
                         {
                             int laneIndex = GetLaneIndex(childNote);
 
-                            if (laneStartTimes.ContainsKey(laneIndex))
+                            if (laneStartNotes.ContainsKey(laneIndex))
                             {
-                                if (thisLaneFlag == NoteFlags.Tremolo && !noteRef.IsLaneEnd)
+                                if (thisLaneFlag == NoteFlags.Tremolo && !containsLaneEnd)
                                 {
                                     // Tremolo lanes will always end on the LaneEnd flag
                                     // Do not iterate through child notes until we get there
@@ -405,12 +411,12 @@ namespace YARG.Gameplay.Player
                             }
                             else
                             {
-                                laneStartTimes[laneIndex] = noteRef.Time;
+                                laneStartNotes[laneIndex] = childNote;
                             }
                         }
                     }
                     
-                    if (noteRef.IsLaneEnd)
+                    if (containsLaneEnd)
                     {
                         break;
                     }
@@ -418,19 +424,17 @@ namespace YARG.Gameplay.Player
                     noteRef = noteRef.NextNote;
                 }
 
-                foreach (int laneIndex in laneStartTimes.Keys)
+                foreach (int laneIndex in laneStartNotes.Keys)
                 {
                     if (!laneEndTimes.ContainsKey(laneIndex))
                     {
                         // Ending note was not found, do not create lane
                         continue;
                     }
-
-                    double startTime = laneStartTimes[laneIndex];
+                    
+                    var firstLaneNote = laneStartNotes[laneIndex];
+                    double startTime = firstLaneNote.Time;
                     double endTime = laneEndTimes[laneIndex];
-
-                    // Secondary trill lanes will start on the second note in the phrase
-                    var firstLaneNote = startTime == parentNote.Time ? parentNote : parentNote.NextNote;
 
                     // Extend a previous lane if possible instead of creating two adjoining lanes at the same index
                     bool extendExisting = false;
