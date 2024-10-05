@@ -71,7 +71,10 @@ namespace YARG.Gameplay.Player
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
         {
-            if (IsInitialized) return;
+            if (IsInitialized)
+            {
+                return;
+            }
 
             Initialize(index, player, chart, lastHighScore);
 
@@ -159,7 +162,10 @@ namespace YARG.Gameplay.Player
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
         {
-            if (IsInitialized) return;
+            if (IsInitialized)
+            {
+                return;
+            }
 
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
@@ -206,9 +212,8 @@ namespace YARG.Gameplay.Player
         protected virtual void FinishInitialization()
         {
             GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar);
-            Color color = Player.ColorProfile.StarPowerColor.ToUnityColor();
 
-            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, color);
+            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.ColorProfile);
             CameraPositioner.Initialize(Player.CameraPreset);
         }
 

@@ -988,7 +988,8 @@
                         "FiveFretGuitar": "Five Fret Guitar",
                         "FiveLaneDrums": "Five Lane Drums",
                         "FourLaneDrums": "Four Lane Drums",
-                        "ProKeys": "Pro Keys"
+                        "ProKeys": "Pro Keys",
+                        "Common" : "Common"
                     }
                 },
                 "ActivationNote": {
@@ -1053,6 +1054,18 @@
                 },
                 "GreenStarpower": {
                     "Name": "Green Star Power"
+                },
+                "GrooveColor1": {
+                    "Name": "Groove Color 1"
+                },
+                "GrooveColor2": {
+                    "Name": "Groove Color 2"
+                },
+                "GrooveColor3": {
+                    "Name": "Groove Color 3"
+                },
+                "GrooveColor4": {
+                    "Name": "Groove Color 4"
                 },
                 "KickFret": {
                     "Name": "Kick Fret"
@@ -1131,6 +1144,9 @@
                 },
                 "RedStarpower": {
                     "Name": "Red Star Power"
+                },
+                "StarPowerColor": {
+                    "Name": "Star Power Color"
                 },
                 "YellowCymbal": {
                     "Name": "Yellow Cymbal"

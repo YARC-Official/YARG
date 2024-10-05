@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 
@@ -34,6 +35,14 @@ namespace YARG.Gameplay.Visuals
             public Layer Layer2;
             public Layer Layer3;
             public Layer Layer4;
+
+            public void SetFromProfile(ColorProfile colorProfile)
+            {
+                Layer1.Color = colorProfile.Common.GrooveColor1.ToUnityColor();
+                Layer2.Color = colorProfile.Common.GrooveColor2.ToUnityColor();
+                Layer3.Color = colorProfile.Common.GrooveColor3.ToUnityColor();
+                Layer4.Color = colorProfile.Common.GrooveColor4.ToUnityColor();
+            }
         }
 
         private static Preset _normalPreset;
@@ -148,7 +157,7 @@ namespace YARG.Gameplay.Visuals
             };
         }
 
-        public void Initialize(float fadePos, float fadeSize, Color starPowerColor)
+        public void Initialize(float fadePos, float fadeSize, ColorProfile colorProfile)
         {
             // Set all fade values
             _material.SetFade(fadePos, fadeSize);
@@ -157,7 +166,8 @@ namespace YARG.Gameplay.Visuals
                 trimMat.SetFade(fadePos, fadeSize);
             }
 
-            _material.SetColor(_starPowerColorProperty, starPowerColor );
+            _material.SetColor(_starPowerColorProperty, colorProfile.Common.StarPowerColor.ToUnityColor() );
+            _groovePreset.SetFromProfile(colorProfile);
         }
 
         private void Update()
