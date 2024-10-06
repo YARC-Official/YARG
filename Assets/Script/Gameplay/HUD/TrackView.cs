@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
+using YARG.Helpers.UI;
 
 namespace YARG.Gameplay.HUD
 {
@@ -15,6 +16,8 @@ namespace YARG.Gameplay.HUD
 
         [SerializeField]
         private AspectRatioFitter _aspectRatioFitter;
+        [SerializeField]
+        private ScaleByParentSize _UIScaler;
         [SerializeField]
         private RectTransform _topElementContainer;
 
@@ -31,6 +34,7 @@ namespace YARG.Gameplay.HUD
         private void Start()
         {
             _aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
+            _UIScaler.Initialize();
         }
 
         public void Initialize(RenderTexture rt, CameraPreset cameraPreset, TrackPlayer trackPlayer)
