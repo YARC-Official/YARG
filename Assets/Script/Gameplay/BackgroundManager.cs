@@ -128,16 +128,16 @@ namespace YARG.Gameplay
             if (_videoSeeking)
                 return;
 
+            double time = GameManager.SongTime + GameManager.Song.SongOffsetSeconds;
             // Start video
             if (!_videoStarted)
             {
                 // Don't start playing the video until the start of the song
-                if (GameManager.SongTime < 0.0)
+                if (time < 0.0)
                     return;
 
                 // Delay until the start time is reached
-                if (_source == VenueSource.Song &&
-                    _videoStartTime < 0 && GameManager.SongTime < -_videoStartTime)
+                if (_source == VenueSource.Song && time < -_videoStartTime)
                     return;
 
                 if (_videoEndTime == 0)
@@ -156,7 +156,7 @@ namespace YARG.Gameplay
             }
 
             // End video when reaching the specified end time
-            if (GameManager.SongTime - _videoStartTime >= _videoEndTime)
+            if (time - _videoStartTime >= _videoEndTime)
             {
                 _videoPlayer.Stop();
                 _videoPlayer.enabled = false;
