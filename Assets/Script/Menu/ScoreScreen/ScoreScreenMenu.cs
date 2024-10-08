@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
@@ -15,6 +16,7 @@ using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Replays;
+using YARG.Scores;
 using YARG.Song;
 
 namespace YARG.Menu.ScoreScreen
@@ -33,6 +35,8 @@ namespace YARG.Menu.ScoreScreen
         private StarView _bandStarView;
         [SerializeField]
         private TextMeshProUGUI _bandScore;
+        [SerializeField]
+        private TextMeshProUGUI _bandScoreNotSavedMessage;
         [SerializeField]
         private Scrollbar _horizontalScrollBar;
 
@@ -85,6 +89,8 @@ namespace YARG.Menu.ScoreScreen
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
+            _bandScoreNotSavedMessage.gameObject.SetActive(!ScoreContainer.ShouldRecordBandScore(scoreScreenStats.SongSpeed));
+            _bandScoreNotSavedMessage.text = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
 
             // Set speed text (if not at 100% speed)
             if (!Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f))
@@ -172,7 +178,12 @@ namespace YARG.Menu.ScoreScreen
                 _analyzingReplay = false;
                 return true;
             }
-
+            if (GlobalVariables.State.ScoreScreenStats.Value.PlayerScores.Length == 0)
+            {
+                YargLogger.LogInfo("No human players in ReplayEntry.");
+                _analyzingReplay = false;
+                return true;
+            }
             if (replayEntry == null)
             {
                 YargLogger.LogError("ReplayEntry is null");

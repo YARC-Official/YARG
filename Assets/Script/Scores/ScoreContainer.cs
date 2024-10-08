@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using SQLite;
-using UnityEngine;
 using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Core.Song;
-using YARG.Gameplay.Player;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Player;

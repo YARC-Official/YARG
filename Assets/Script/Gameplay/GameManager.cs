@@ -433,6 +433,7 @@ namespace YARG.Gameplay
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
+                SongSpeed = SongSpeed,
                 ReplayInfo = replayInfo,
             };
 

@@ -286,6 +286,9 @@
             "Bots" : "Bots",
             "Players" : "Players"
         },
+        "ScoreScreen" : {
+            "BandScoreNotSaved" : "(Band score not saved)"
+        },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
             "SearchHeader": {
