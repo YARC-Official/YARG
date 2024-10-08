@@ -1,9 +1,7 @@
 ﻿using Cysharp.Text;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Song;
-using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
@@ -27,11 +25,15 @@ namespace YARG.Menu.MusicLibrary
 
         private readonly MusicLibraryMenu _musicLibrary;
         public readonly SongEntry SongEntry;
+        public readonly PlayerScoreRecord PlayerScoreRecord;
+        public readonly GameRecord BandScoreRecord;
 
-        public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry)
+        public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry, PlayerScoreRecord playerScoreRecord, GameRecord bandScoreRecord)
         {
             _musicLibrary = musicLibrary;
             SongEntry = songEntry;
+            PlayerScoreRecord = playerScoreRecord;
+            BandScoreRecord = bandScoreRecord;
         }
 
         public override string GetPrimaryText(bool selected)
@@ -53,28 +55,36 @@ namespace YARG.Menu.MusicLibrary
 
         public override string GetSideText(bool selected)
         {
-            var score = ScoreContainer.GetHighScore(SongEntry.Hash);
-            var bestPctScore = ScoreContainer.GetBestPercentageScore(SongEntry.Hash);
+            using var builder = ZString.CreateStringBuilder();
+
+            if (BandScoreRecord != null)
+            {
+                // Append the band score if the setting is enabled
+                if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
+                {
+                    builder.AppendFormat("<space=2em> {0:N0}", BandScoreRecord.BandScore);
+                }
+
+                return builder.ToString();
+            }
 
             // Never played!
-            if (score is null)
+            if (PlayerScoreRecord is null)
             {
                 return string.Empty;
             }
 
-            var instrument = score.Instrument.ToResourceName();
-            var difficultyChar = score.Difficulty.ToChar();
-            var percent = Mathf.Floor(bestPctScore.GetPercent() * 100f);
+            var difficultySprite = PlayerScoreRecord.Difficulty.ToString();
+            var percent = Mathf.Floor(PlayerScoreRecord.GetPercent() * 100f);
+            var percentColor = PlayerScoreRecord.IsFc ? "#fcd13c" : "#ffffff";
 
-            using var builder = ZString.CreateStringBuilder();
-            builder.AppendFormat("<sprite name=\"{0}\"> <b>{1}</b> {2:N0}%",
-                instrument, difficultyChar, percent);
+            builder.AppendFormat( "<sprite name=\"{0}\"> <color={1}>{2:N0}%</color>", difficultySprite, percentColor, percent);
 
             // Append the score if the setting is enabled
             if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
             {
-                builder.AppendFormat("<space=2em> {0:N0}", score.Score);
-            }
+                builder.AppendFormat("<space=2em> {0:N0}", PlayerScoreRecord.Score);
+            }      
 
             return builder.ToString();
         }
@@ -87,8 +97,12 @@ namespace YARG.Menu.MusicLibrary
                 return null;
             }
 
-            var score = ScoreContainer.GetHighScore(SongEntry.Hash);
-            return score?.Stars;
+            if (BandScoreRecord != null)
+            {
+                return BandScoreRecord.BandStars;
+            }
+
+            return PlayerScoreRecord?.Stars;
         }
 
         public override FavoriteInfo GetFavoriteInfo()
@@ -110,7 +124,10 @@ namespace YARG.Menu.MusicLibrary
         {
             base.PrimaryButtonClick();
 
-            if (PlayerContainer.Players.Count <= 0) return;
+            if (PlayerContainer.Players.Count <= 0)
+            {
+                return;
+            }
 
             GlobalVariables.State.CurrentSong = SongEntry;
             MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
