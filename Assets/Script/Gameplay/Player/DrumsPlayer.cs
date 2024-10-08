@@ -108,8 +108,8 @@ namespace YARG.Gameplay.Player
                     if (SettingsManager.Settings.AlwaysOnDrumSFX.Value)
                     {
                         PlayDrumSoundEffect(action, velocity);
-                    }
-                } return;
+                    } return;
+                }
 
                 // Choose the correct fret
                 int fret;
