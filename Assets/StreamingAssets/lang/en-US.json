@@ -995,6 +995,30 @@
                 "ActivationNote": {
                     "Name": "Activation Note"
                 },
+                "BackgroundBaseColor1": {
+                    "Name": "Background Base Color 1"
+                },
+                "BackgroundBaseColor2": {
+                    "Name": "Background Base Color 2"
+                },
+                "BackgroundBaseColor3": {
+                    "Name": "Background UNKNOWN Color"
+                },
+                "BackgroundPatternColor": {
+                    "Name": "Background Pattern Color"
+                },
+                "BackgroundGrooveBaseColor1": {
+                    "Name": "Groove Base Color 1"
+                },
+                "BackgroundGrooveBaseColor2": {
+                    "Name": "Groove Base Color 2"
+                },
+                "BackgroundGrooveBaseColor3": {
+                    "Name": "Groove UNKNOWN Color"
+                },
+                "BackgroundGroovePatternColor": {
+                    "Name": "Groove Pattern Color"
+                },
                 "BlueCymbal": {
                     "Name": "Blue Cymbal"
                 },
@@ -1054,18 +1078,6 @@
                 },
                 "GreenStarpower": {
                     "Name": "Green Star Power"
-                },
-                "GrooveColor1": {
-                    "Name": "Groove Color 1"
-                },
-                "GrooveColor2": {
-                    "Name": "Groove Color 2"
-                },
-                "GrooveColor3": {
-                    "Name": "Groove Color 3"
-                },
-                "GrooveColor4": {
-                    "Name": "Groove Color 4"
                 },
                 "KickFret": {
                     "Name": "Kick Fret"

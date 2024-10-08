@@ -252,6 +252,8 @@ namespace YARG.Settings.Preview
             // Show hit window if enabled
             _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Value || ForceShowHitWindow);
             _hitWindow.NoteSpeed = NOTE_SPEED;
+            _trackMaterial.StarpowerMode = true;
+            _trackMaterial.GrooveMode = true;
 
             SettingsMenu.Instance.SettingChanged += OnSettingChanged;
 

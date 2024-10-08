@@ -36,17 +36,37 @@ namespace YARG.Gameplay.Visuals
             public Layer Layer3;
             public Layer Layer4;
 
-            public void SetFromProfile(ColorProfile colorProfile)
+            public static Preset FromColors(System.Drawing.Color[] colors)
             {
-                Layer1.Color = colorProfile.Common.GrooveColor1.ToUnityColor();
-                Layer2.Color = colorProfile.Common.GrooveColor2.ToUnityColor();
-                Layer3.Color = colorProfile.Common.GrooveColor3.ToUnityColor();
-                Layer4.Color = colorProfile.Common.GrooveColor4.ToUnityColor();
+                if (colors.Length < 4)
+                {
+                    throw new ArgumentException("Insufficient number of colors supplied to TrackMaterial.Preset.FromColors()");
+                }
+
+                return new Preset
+                {
+                    Layer1 = new Layer
+                    {
+                        Color = colors[0].ToUnityColor()
+                    },
+                    Layer2 = new Layer
+                    {
+                        Color = colors[1].ToUnityColor()
+                    },
+                    Layer3 = new Layer
+                    {
+                        Color = colors[2].ToUnityColor()
+                    },
+                    Layer4 = new Layer
+                    {
+                        Color = colors[3].ToUnityColor()
+                    }
+                };
             }
         }
 
-        private static Preset _normalPreset;
-        private static Preset _groovePreset;
+        private Preset _normalPreset;
+        private Preset _groovePreset;
 
         private float _grooveState;
         private float GrooveState
@@ -167,7 +187,8 @@ namespace YARG.Gameplay.Visuals
             }
 
             _material.SetColor(_starPowerColorProperty, colorProfile.Common.StarPowerColor.ToUnityColor() );
-            _groovePreset.SetFromProfile(colorProfile);
+            _normalPreset = Preset.FromColors(colorProfile.Common.BackgroundBaseColors);
+            _groovePreset = Preset.FromColors(colorProfile.Common.BackgroundGrooveBaseColors);
         }
 
         private void Update()
