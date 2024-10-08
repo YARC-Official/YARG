@@ -26,6 +26,11 @@ namespace YARG.Helpers.UI
         [SerializeField]
         private Vector2 _initialSize = Vector2.one;
 
+        public void Initialize()
+        {
+            _initialSize = ParentRectTransform.rect.size;
+        }
+
         private void Update()
         {
             UpdateScale();
