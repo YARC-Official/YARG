@@ -453,7 +453,7 @@ namespace YARG.Gameplay
                 var profile = player.Player.Profile;
 
                 // Skip bots and anyone that's obviously cheating.
-                if (!ScoreContainer.ShouldRecordSoloScore(SongSpeed, player.Player))
+                if (!ScoreContainer.IsSoloScoreValid(SongSpeed, player.Player))
                 {
                     continue;
                 }
@@ -479,7 +479,7 @@ namespace YARG.Gameplay
             }
                     
             // Record the score into the database (but only if there are no bots, and Song Speed is at least 100%)
-            if (ScoreContainer.ShouldRecordBandScore( SongSpeed))
+            if (ScoreContainer.IsBandScoreValid( SongSpeed))
             {
                 ScoreContainer.RecordScore(new GameRecord
                 {

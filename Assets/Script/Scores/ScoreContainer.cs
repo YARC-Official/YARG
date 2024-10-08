@@ -56,9 +56,15 @@ namespace YARG.Scores
             _db.CreateTable<PlayerInfoRecord>();
         }
 
-        public static bool ShouldRecordBandScore(float songSpeed)
+        public static bool IsBandScoreValid(float songSpeed)
         {
-            if (songSpeed < 1.0f || !PlayerContainer.Players.Any() || PlayerContainer.HasBots)
+            if (!PlayerContainer.Players.Any())
+            {
+                return false;
+            }
+
+            // If any player is disqualified from a valid Solo Score, this should disqualify the Band Score as well.
+            if (PlayerContainer.Players.Any(e => !IsSoloScoreValid(songSpeed, e)))
             {
                 return false;
             }
@@ -66,12 +72,13 @@ namespace YARG.Scores
             return true;
         }
 
-        public static bool ShouldRecordSoloScore(float songSpeed, YargPlayer player)
+        public static bool IsSoloScoreValid(float songSpeed, YargPlayer player)
         {
             if (songSpeed < 1.0f || player.Profile.IsBot)
             {
                 return false;
             }
+
             return true;
         }
 

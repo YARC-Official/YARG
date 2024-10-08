@@ -89,7 +89,7 @@ namespace YARG.Menu.ScoreScreen
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-            _bandScoreNotSavedMessage.gameObject.SetActive(!ScoreContainer.ShouldRecordBandScore(scoreScreenStats.SongSpeed));
+            _bandScoreNotSavedMessage.gameObject.SetActive(!ScoreContainer.IsBandScoreValid(scoreScreenStats.SongSpeed));
             _bandScoreNotSavedMessage.text = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
 
             // Set speed text (if not at 100% speed)
