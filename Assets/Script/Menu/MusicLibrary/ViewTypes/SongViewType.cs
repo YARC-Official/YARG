@@ -49,7 +49,7 @@ namespace YARG.Menu.MusicLibrary
 #nullable enable
         public override Sprite? GetIcon()
 #nullable disable
-        {          
+        {
             return SongSources.SourceToIcon(SongEntry.Source);
         }
 

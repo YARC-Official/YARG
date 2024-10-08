@@ -224,7 +224,7 @@ namespace YARG.Menu.MusicLibrary
             return viewList;
         }
 
-        private bool _shouldDisplaySoloHighScores => PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 1;
+        private bool ShouldDisplaySoloHighScores => PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 1;
 
         private List<ViewType> CreateNormalViewList()
         {
@@ -325,7 +325,7 @@ namespace YARG.Menu.MusicLibrary
 
         private PlayerScoreRecord GetHighScoreForSong(SongEntry song)
         {
-            if (!_shouldDisplaySoloHighScores)
+            if (!ShouldDisplaySoloHighScores)
             {
                 return null;
             }
@@ -345,7 +345,7 @@ namespace YARG.Menu.MusicLibrary
 
         private GameRecord GetBandHighScoreForSong(SongEntry song)
         {
-            if (_shouldDisplaySoloHighScores)
+            if (ShouldDisplaySoloHighScores)
             {
                 return null;
             }

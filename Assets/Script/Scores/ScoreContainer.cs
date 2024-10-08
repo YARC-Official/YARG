@@ -137,7 +137,6 @@ namespace YARG.Scores
 
         private static void UpdatePlayerHighScores(HashWrapper songChecksum, PlayerScoreRecord newScore)
         {
-
             PlayerHighScoresByPct.TryGetValue(songChecksum, out var currentBestPct);
             if (!PlayerHighScores.TryGetValue(songChecksum, out var currentBest))
             {
@@ -162,7 +161,6 @@ namespace YARG.Scores
             {
                 PlayerHighScoresByPct[songChecksum] = newScore;
             }
-
         }
 
         public static void RecordPlayerInfo(Guid id, string name)
