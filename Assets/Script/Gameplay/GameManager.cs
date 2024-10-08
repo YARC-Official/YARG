@@ -436,6 +436,15 @@ namespace YARG.Gameplay
                 ReplayInfo = replayInfo,
             };
 
+            RecordScores(replayInfo);
+
+            // Go to the score screen
+            GlobalVariables.Instance.LoadScene(SceneIndex.Score);
+            return true;
+        }
+
+        private void RecordScores(ReplayInfo replayInfo)
+        {      
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
             foreach (var player in _players)
@@ -443,7 +452,7 @@ namespace YARG.Gameplay
                 var profile = player.Player.Profile;
 
                 // Skip bots and anyone that's obviously cheating.
-                if (ScoreContainer.ShouldRecordSoloScore(SongSpeed, player.Player))
+                if (!ScoreContainer.ShouldRecordSoloScore(SongSpeed, player.Player))
                 {
                     continue;
                 }
@@ -489,10 +498,6 @@ namespace YARG.Gameplay
                     SongSpeed = SongSpeed
                 }, playerEntries);
             }
-
-            // Go to the score screen
-            GlobalVariables.Instance.LoadScene(SceneIndex.Score);
-            return true;
         }
 
         public void ForceQuitSong()
