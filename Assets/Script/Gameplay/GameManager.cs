@@ -378,7 +378,10 @@ namespace YARG.Gameplay
         {
             bool resumed = _songRunner.OverrideResume();
             if (resumed)
+            {
                 ResumeCore();
+            }
+
             return resumed;
         }
 
@@ -433,15 +436,17 @@ namespace YARG.Gameplay
                 ReplayInfo = replayInfo,
             };
 
-
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
             foreach (var player in _players)
             {
                 var profile = player.Player.Profile;
 
-                // Skip bots
-                if (player.Player.Profile.IsBot) continue;
+                // Skip bots and anyone that's obviously cheating.
+                if (ScoreContainer.ShouldRecordSoloScore(SongSpeed, player.Player))
+                {
+                    continue;
+                }
 
                 playerEntries.Add(new PlayerScoreRecord
                 {
@@ -462,9 +467,9 @@ namespace YARG.Gameplay
                     Percent = player.BaseStats.Percent
                 });
             }
-
-            // Record the score into the database (if there's at least 1 non-bot player)
-            if (playerEntries.Count > 0)
+                    
+            // Record the score into the database (but only if there are no bots, and Song Speed is at least 100%)
+            if (ScoreContainer.ShouldRecordBandScore( SongSpeed))
             {
                 ScoreContainer.RecordScore(new GameRecord
                 {

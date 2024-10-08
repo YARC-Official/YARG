@@ -8,6 +8,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Gameplay.Player;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Player;
@@ -56,6 +57,25 @@ namespace YARG.Scores
             _db.CreateTable<GameRecord>();
             _db.CreateTable<PlayerScoreRecord>();
             _db.CreateTable<PlayerInfoRecord>();
+        }
+
+        public static bool ShouldRecordBandScore(float songSpeed)
+        {
+            if (songSpeed < 1.0f || !PlayerContainer.Players.Any() || PlayerContainer.HasBots)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool ShouldRecordSoloScore(float songSpeed, YargPlayer player)
+        {
+            if (songSpeed < 1.0f || player.Profile.IsBot)
+            {
+                return false;
+            }
+            return true;
         }
 
         public static void RecordScore(GameRecord gameRecord, List<PlayerScoreRecord> playerEntries)
