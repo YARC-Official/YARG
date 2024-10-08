@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Core.Song;
@@ -451,17 +452,20 @@ namespace YARG.Song
         private static SongEntry[] UnspecifiedSearch(FilterNode filter, List<SongEntry> songs)
         {
             var nodes = new List<UnspecifiedSortNode>(songs.Count);
-            for (int i = 0; i < songs.Count; ++i)
+            Parallel.ForEach(songs, song =>
             {
-                var node = new UnspecifiedSortNode(songs[i], filter);
+                var node = new UnspecifiedSortNode(song, filter);
                 if (node.Rank >= 0)
                 {
-                    nodes.Insert(~nodes.BinarySearch(node), node);
+                    lock (nodes)
+                    {
+                        nodes.Insert(~nodes.BinarySearch(node), node);
+                    }
                 }
-            }
+            });
 
             var arr = new SongEntry[nodes.Count];
-            for (int i = 0; i < arr.Length; ++i)
+            for (int i = 0; i < nodes.Count; ++i)
             {
                 arr[i] = nodes[i].Song;
             }
