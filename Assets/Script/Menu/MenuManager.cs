@@ -107,33 +107,34 @@ namespace YARG.Menu
 
         public void PopMenu()
         {
+            //Don't pop the only remaining menu
+            if (_openMenus.Count == 1)
+            {
+                return;
+            }
+
             // Close the currently open one
-            if (_openMenus.TryPeek(out var currentMenuEnum) &&
+            if (_openMenus.TryPop(out var currentMenuEnum) &&
                 _menus.TryGetValue(currentMenuEnum, out var currentMenu))
             {
                 currentMenu.gameObject.SetActive(false);
             }
 
-            _openMenus.Pop();
-            var menu = _openMenus.Peek();
-
-            // Show the under one
-            if (_menus.TryGetValue(menu, out var newMenu))
+            if (_openMenus.TryPeek(out var newMenuEnum) &&
+                _menus.TryGetValue(newMenuEnum, out var newMenu))
             {
                 newMenu.gameObject.SetActive(true);
             }
             else
             {
-                throw new InvalidOperationException($"Failed to open menu {menu}.");
+                throw new InvalidOperationException($"Failed to open menu {newMenuEnum}.");
             }
         }
 
         public void ReactivateCurrentMenu()
         {
-            var menu = _openMenus.Peek();
-
             // Show the under one
-            if (_menus.TryGetValue(menu, out var newMenu))
+            if (_openMenus.TryPeek(out var menu) && _menus.TryGetValue(menu, out var newMenu))
             {
                 newMenu.gameObject.SetActive(false);
                 newMenu.gameObject.SetActive(true);
