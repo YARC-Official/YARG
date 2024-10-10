@@ -378,7 +378,10 @@ namespace YARG.Gameplay
         {
             bool resumed = _songRunner.OverrideResume();
             if (resumed)
+            {
                 ResumeCore();
+            }
+
             return resumed;
         }
 
@@ -430,18 +433,30 @@ namespace YARG.Gameplay
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
+                SongSpeed = SongSpeed,
                 ReplayInfo = replayInfo,
             };
 
+            RecordScores(replayInfo);
 
+            // Go to the score screen
+            GlobalVariables.Instance.LoadScene(SceneIndex.Score);
+            return true;
+        }
+
+        private void RecordScores(ReplayInfo replayInfo)
+        {      
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
             foreach (var player in _players)
             {
                 var profile = player.Player.Profile;
 
-                // Skip bots
-                if (player.Player.Profile.IsBot) continue;
+                // Skip bots and anyone that's obviously cheating.
+                if (!ScoreContainer.IsSoloScoreValid(SongSpeed, player.Player))
+                {
+                    continue;
+                }
 
                 playerEntries.Add(new PlayerScoreRecord
                 {
@@ -462,9 +477,9 @@ namespace YARG.Gameplay
                     Percent = player.BaseStats.Percent
                 });
             }
-
-            // Record the score into the database (if there's at least 1 non-bot player)
-            if (playerEntries.Count > 0)
+                    
+            // Record the score into the database (but only if there are no bots, and Song Speed is at least 100%)
+            if (ScoreContainer.IsBandScoreValid( SongSpeed))
             {
                 ScoreContainer.RecordScore(new GameRecord
                 {
@@ -484,10 +499,6 @@ namespace YARG.Gameplay
                     SongSpeed = SongSpeed
                 }, playerEntries);
             }
-
-            // Go to the score screen
-            GlobalVariables.Instance.LoadScene(SceneIndex.Score);
-            return true;
         }
 
         public void ForceQuitSong()

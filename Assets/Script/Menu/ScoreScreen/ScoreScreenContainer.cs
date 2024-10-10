@@ -19,6 +19,7 @@ namespace YARG.Menu.ScoreScreen
 
         public int BandStars;
         public int BandScore;
+        public float SongSpeed;
 
 #nullable enable
         public ReplayInfo? ReplayInfo;
