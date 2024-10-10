@@ -302,7 +302,7 @@ namespace YARG.Audio.BASS
                             DrumSfxSamples[(int) sfxSample] = sfx;
                         }
                         break;
-                    }  
+                    }
                 }
             }
 
@@ -492,8 +492,15 @@ namespace YARG.Audio.BASS
 
         internal static bool SetupPitchBend(in PitchShiftParametersStruct pitchParams, StreamHandle handles)
         {
-            handles.CompressorFX = BassHelpers.FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
-            if (handles.CompressorFX == 0)
+            var pitchParamsFixed = new PitchShiftParameters
+            {
+                fPitchShift = pitchParams.fPitchShift,
+                fSemitones = pitchParams.fSemitones,
+                lFFTsize = pitchParams.FFTSize,
+                lOsamp = pitchParams.OversampleFactor
+            };
+            handles.PitchFX = BassHelpers.AddPitchShiftToChannel(handles.Stream, pitchParamsFixed);
+            if (handles.PitchFX == 0)
             {
                 YargLogger.LogError("Failed to set up pitch bend for main stream!");
                 return false;
