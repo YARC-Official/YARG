@@ -56,6 +56,7 @@ namespace YARG.Settings
                 nameof(Settings.ReduceNoteSpeedByDifficulty),
                 nameof(Settings.KickBounceMultiplier),
                 nameof(Settings.VoiceActivatedVocalStarPower),
+                nameof(Settings.PracticeRestartDelay),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),
