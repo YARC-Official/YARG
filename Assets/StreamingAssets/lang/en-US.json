@@ -934,10 +934,6 @@
                 "Name": "Wrap-Around Navigation",
                 "Description": "Allow menus to jump to the bottom of a list when scrolling past the top, or jump to the top of a list when scrolling past the bottom."
             },
-            "DisableSearchButton": {
-                "Name": "Disable Search Button",
-                "Description": "Disables the search button to avoid accidental instrument presses. Search can still be clicked on at the top with a mouse."
-            },
             "ReduceNoteSpeedByDifficulty": {
                 "Name": "Reduce Note Speed by Difficulty",
                 "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The specified note speed is applied to Expert, and lower difficulties receive a reduction in speed. This setting does not affect vocal tracks."
