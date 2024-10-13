@@ -99,7 +99,7 @@ namespace YARG.Menu.MusicLibrary
         private void OnEnable()
         {
             // Set navigation scheme
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            var navigationEntries = new List<NavigationScheme.Entry>
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx =>
@@ -131,11 +131,20 @@ namespace YARG.Menu.MusicLibrary
                     () => CurrentSelection?.PrimaryButtonClick()),
 
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
-                    () => _searchField.Focus()),
-                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                    OnButtonHit, OnButtonRelease),
-            }, false));
+            };
+
+            // Conditionally add the search action entry
+            if (!SettingsManager.Settings.DisableSearchButton.Value)
+            {
+                navigationEntries.Add(new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
+                    () => _searchField.Focus()));
+            }
+            // Add "more options" entry after search to maintain original order.
+            navigationEntries.Add(new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
+                OnButtonHit, OnButtonRelease));
+
+            // Push the navigation scheme with the final list of entries
+            Navigator.Instance.PushScheme(new NavigationScheme(navigationEntries, false));
 
             // Restore search
             _searchField.Restore();
