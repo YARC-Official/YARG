@@ -433,7 +433,6 @@ namespace YARG.Gameplay
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
-                SongSpeed = SongSpeed,
                 ReplayInfo = replayInfo,
             };
 
@@ -445,9 +444,15 @@ namespace YARG.Gameplay
         }
 
         private void RecordScores(ReplayInfo replayInfo)
-        {      
+        {
+            if (!ScoreContainer.IsBandScoreValid(SongSpeed))
+            {
+                return;
+            }
+
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
+
             foreach (var player in _players)
             {
                 var profile = player.Player.Profile;
@@ -477,28 +482,25 @@ namespace YARG.Gameplay
                     Percent = player.BaseStats.Percent
                 });
             }
-                    
+
             // Record the score into the database (but only if there are no bots, and Song Speed is at least 100%)
-            if (ScoreContainer.IsBandScoreValid( SongSpeed))
+            ScoreContainer.RecordScore(new GameRecord
             {
-                ScoreContainer.RecordScore(new GameRecord
-                {
-                    Date = DateTime.Now,
+                Date = DateTime.Now,
 
-                    SongChecksum = Song.Hash.HashBytes,
-                    SongName = Song.Name,
-                    SongArtist = Song.Artist,
-                    SongCharter = Song.Charter,
+                SongChecksum = Song.Hash.HashBytes,
+                SongName = Song.Name,
+                SongArtist = Song.Artist,
+                SongCharter = Song.Charter,
 
-                    ReplayFileName = replayInfo?.ReplayName,
-                    ReplayChecksum = replayInfo?.ReplayChecksum.HashBytes,
+                ReplayFileName = replayInfo?.ReplayName,
+                ReplayChecksum = replayInfo?.ReplayChecksum.HashBytes,
 
-                    BandScore = BandScore,
-                    BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
+                BandScore = BandScore,
+                BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
 
-                    SongSpeed = SongSpeed
-                }, playerEntries);
-            }
+                SongSpeed = SongSpeed
+            }, playerEntries);
         }
 
         public void ForceQuitSong()

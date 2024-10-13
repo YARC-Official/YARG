@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine.InputSystem;
 using YARG.Core.Game;
@@ -47,11 +46,6 @@ namespace YARG.Player
         /// An enumerator over the list of all of the active players.
         /// </summary>
         public static List<YargPlayer>.Enumerator PlayerEnumerator => _players.GetEnumerator();
-
-        /// <summary>
-        /// Returns whether or not there are any bots in the game.
-        /// </summary>
-        public static bool HasBots => _players.Any(i => i.Profile.IsBot);
 
         private static bool _isInitialized;
 

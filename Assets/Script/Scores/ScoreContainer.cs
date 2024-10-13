@@ -64,7 +64,7 @@ namespace YARG.Scores
             }
 
             // If any player is disqualified from a valid Solo Score, this should disqualify the Band Score as well.
-            if (PlayerContainer.Players.Any(e => !IsSoloScoreValid(songSpeed, e)))
+            if (PlayerContainer.Players.Any(e => !e.SittingOut && !IsSoloScoreValid(songSpeed, e)))
             {
                 return false;
             }
