@@ -58,7 +58,8 @@
             "NoteShuffle": "Note Shuffle",
             "NoKicks": "No Kicks",
             "TapsToHopos": "Taps to HOPOs",
-            "UnpitchedOnly": "Unpitched Only"
+            "UnpitchedOnly": "Unpitched Only",
+            "NoDynamics": "No Dynamics"
         },
         "SortAttribute": {
             "Album": "Album",
@@ -715,6 +716,10 @@
                     "Frequent": "50, 100, 200, 300, ...",
                     "Sparse": "50, 100, 250, 500, ..."
                 }
+            },
+            "PracticeRestartDelay": {
+                "Name": "Practice Restart Delay",
+                "Description": "The amount of time (in seconds) to delay the beginning of a section in Practice Mode."
             },
             "PreviewVolume": {
                 "Name": "Preview Volume",
