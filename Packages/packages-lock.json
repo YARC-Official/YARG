@@ -42,7 +42,7 @@
       "dependencies": {
         "com.unity.inputsystem": "1.4.4"
       },
-      "hash": "67e24b3b5b68aa2f8a2f4362773e0b0697f4547a"
+      "hash": "bd0c69666e925f5697ce7a3c505f405faf94dcac"
     },
     "com.thenathannator.plasticband": {
       "version": "0.8.5",
