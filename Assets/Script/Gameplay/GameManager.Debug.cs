@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Text;
 using UnityEngine;
+using UnityEngine.InputSystem.LowLevel;
 using YARG.Core.Audio;
+using YARG.Core.Extensions;
 using YARG.Gameplay.Player;
 using YARG.Integration;
 
@@ -59,13 +61,14 @@ namespace YARG.Gameplay
         private int _debugMenuIndex = -1;
 
         // Needed because of non-static methods being used as delegates
-        private void InitializeDebugGUI()
+        private void InitializeDebug()
         {
             _debugWindowCallback = WindowCallback;
             _debugMenus = new()
             {
                 ("Player", PlayerDebug),
                 ("Timing", TimingDebug),
+                ("Input",  InputDebug),
                 ("Venue",  VenueDebug),
 
                 ("Close",  CloseDebug),
@@ -79,6 +82,22 @@ namespace YARG.Gameplay
                 debugPlayers.Add($"{i + 1}: {player.Player.Profile.Name}");
             }
             _debugPlayers = debugPlayers.ToArray();
+
+            _debugInputEventTrace.onFilterEvent = (eventPtr, device) =>
+            {
+                if (_debugSelectedPlayer < 0 || _debugSelectedPlayer >= _players.Count)
+                {
+                    return false;
+                }
+
+                var player = _players[_debugSelectedPlayer];
+                return player.Player.Bindings.ContainsDevice(device);
+            };
+        }
+
+        private void DisposeDebug()
+        {
+            _debugInputEventTrace.Dispose();
         }
 
         private void SetDebugEnabled(bool enabled)
@@ -86,6 +105,17 @@ namespace YARG.Gameplay
             _enableDebug = enabled;
             // GUI layout is toggled since merely having it enabled causes needless memory allocations
             useGUILayout = enabled;
+
+            if (enabled)
+            {
+                _debugInputEventTrace.Clear();
+                _debugInputEventTrace.Enable();
+            }
+            else
+            {
+                _debugInputEventTrace.Disable();
+                _debugInputEventTrace.Clear();
+            }
         }
 
         private void ToggleDebugEnabled() => SetDebugEnabled(!_enableDebug);
@@ -150,12 +180,20 @@ namespace YARG.Gameplay
 
         private bool _debugProKeysPressTimesToggle;
 
-        private void PlayerDebug()
+        private bool PlayerDebugSelection()
         {
             GUILayout.BeginVertical("Player Selection", VerticalGroupStyle);
             int buttonStride = 50 / _debugPlayers.Max((p) => p.Length);
+            int lastSelected = _debugSelectedPlayer;
             _debugSelectedPlayer = GUILayout.SelectionGrid(_debugSelectedPlayer, _debugPlayers, buttonStride);
             GUILayout.EndVertical();
+
+            return _debugSelectedPlayer != lastSelected;
+        }
+
+        private void PlayerDebug()
+        {
+            PlayerDebugSelection();
 
             if (_debugSelectedPlayer < 0 || _debugSelectedPlayer >= _players.Count)
                 return;
@@ -425,6 +463,94 @@ namespace YARG.Gameplay
 
                 GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }
+        }
+
+        private InputEventTrace _debugInputEventTrace = new();
+        private long _debugLastInputCount;
+        private Vector2 _debugInputLogScroll;
+        private bool _debugInputLogAutoScroll = true;
+
+        private void InputDebug()
+        {
+            if (PlayerDebugSelection())
+            {
+                _debugInputEventTrace.Clear();
+            }
+
+            GUILayout.BeginVertical("Input Event Log", VerticalGroupStyle);
+            {
+                _debugInputLogAutoScroll = GUILayout.Toggle(_debugInputLogAutoScroll, "Auto-scroll input event log");
+                if (GUILayout.Button("Clear input event log"))
+                {
+                    _debugInputEventTrace.Clear();
+                }
+
+                if (_debugInputLogAutoScroll && _debugInputEventTrace.eventCount != _debugLastInputCount)
+                {
+                    _debugLastInputCount = _debugInputEventTrace.eventCount;
+                    _debugInputLogScroll.y = 999999999;
+                }
+
+                _debugInputLogScroll = GUILayout.BeginScrollView(_debugInputLogScroll,
+                    GUILayout.Width(300 * _debugGuiScale), GUILayout.Height(250 * _debugGuiScale));
+                {
+                    using var text = ZString.CreateStringBuilder(true);
+                    foreach (var inputEvent in _debugInputEventTrace)
+                    {
+                        text.AppendFormat("{0:0.000000} {1}", inputEvent.time, inputEvent.type);
+
+                        if (inputEvent.type == StateEvent.Type)
+                        {
+                            unsafe
+                            {
+                                var state = StateEvent.From(inputEvent);
+                                text.AppendFormat(" {0} size={1}\n", state->stateFormat, state->stateSizeInBytes);
+                                PrintState(new(state->state, (int)state->stateSizeInBytes));
+                            }
+                        }
+                        else if (inputEvent.type == DeltaStateEvent.Type)
+                        {
+                            unsafe
+                            {
+                                var state = DeltaStateEvent.From(inputEvent);
+                                text.AppendFormat(" {0} size={1} offset={2}\n",
+                                    state->stateFormat, state->stateOffset, state->deltaStateSizeInBytes);
+                                PrintState(new(state->deltaState, (int)state->deltaStateSizeInBytes));
+                            }
+                        }
+                        else
+                        {
+                            text.AppendFormat(" {0}", inputEvent.sizeInBytes);
+                        }
+
+                        void PrintState(ReadOnlySpan<byte> bytes)
+                        {
+                            const int bytesPerLine = 24;
+
+                            Span<char> formatBuffer = stackalloc char[bytes.Length * 3];
+                            for (int i = 0; i < bytes.Length; i += bytesPerLine)
+                            {
+                                text.Append("    ");
+
+                                var lineBytes = bytes[i..Math.Min(bytesPerLine, bytes.Length)];
+                                if (!lineBytes.TryFormatHex(formatBuffer, out int written, dashes: true))
+                                {
+                                    text.AppendLine("Failed to format state bytes");
+                                    return;
+                                }
+                                text.Append(formatBuffer[..written]);
+
+                                text.AppendLine();
+                            }
+                        }
+
+                        text.AppendLine();
+                    }
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
+                GUILayout.EndScrollView();
+            }
+            GUILayout.EndVertical();
         }
 
         private Vector2 _debugLightingScroll;
