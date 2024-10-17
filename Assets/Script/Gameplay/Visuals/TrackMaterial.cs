@@ -177,7 +177,7 @@ namespace YARG.Gameplay.Visuals
             };
         }
 
-        public void Initialize(float fadePos, float fadeSize, ColorProfile colorProfile)
+        public void Initialize(float fadePos, float fadeSize, HighwayPreset highwayPreset)
         {
             // Set all fade values
             _material.SetFade(fadePos, fadeSize);
@@ -186,9 +186,9 @@ namespace YARG.Gameplay.Visuals
                 trimMat.SetFade(fadePos, fadeSize);
             }
 
-            _material.SetColor(_starPowerColorProperty, colorProfile.Common.StarPowerColor.ToUnityColor() );
-            _normalPreset = Preset.FromColors(colorProfile.Common.BackgroundBaseColors);
-            _groovePreset = Preset.FromColors(colorProfile.Common.BackgroundGrooveBaseColors);
+            _material.SetColor(_starPowerColorProperty, highwayPreset.StarPowerColor.ToUnityColor() );
+            _normalPreset = Preset.FromColors(highwayPreset.BackgroundBaseColors);
+            _groovePreset = Preset.FromColors(highwayPreset.BackgroundGrooveBaseColors);
         }
 
         private void Update()

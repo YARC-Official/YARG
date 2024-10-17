@@ -14,7 +14,6 @@ using YARG.Settings.Customization;
 using YARG.Settings.Types;
 
 using SystemColor = System.Drawing.Color;
-using UnityColor = UnityEngine.Color;
 
 namespace YARG.Settings.Metadata
 {
@@ -122,7 +121,7 @@ namespace YARG.Settings.Metadata
         {
             // Since we don't wanna put attributes on each color within the color profile,
             // add a special case for that.
-            if (field.FieldType == typeof(SystemColor) && typeof(T) == typeof(ColorProfile))
+            if (field.FieldType == typeof(SystemColor) && (typeof(T) == typeof(ColorProfile)))
             {
                 list.Add(new FieldSettingInfo
                 {
@@ -202,7 +201,6 @@ namespace YARG.Settings.Metadata
                             nameof(ColorProfile.FourLaneDrums)  => GameMode.FourLaneDrums,
                             nameof(ColorProfile.FiveLaneDrums)  => GameMode.FiveLaneDrums,
                             nameof(ColorProfile.ProKeys)        => GameMode.ProKeys,
-                            nameof(ColorProfile.Common)         => GameMode.FiveFretGuitar, 
                             _                                   => throw new Exception("Unreachable.")
                         };
                     }
