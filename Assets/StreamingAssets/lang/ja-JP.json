@@ -58,8 +58,7 @@
             "NoteShuffle": "Note Shuffle",
             "NoKicks": "No Kicks",
             "TapsToHopos": "Taps to HOPOs",
-            "UnpitchedOnly": "Unpitched Only",
-            "NoDynamics": "No Dynamics"
+            "UnpitchedOnly": "Unpitched Only"
         },
         "SortAttribute": {
             "Album": "Album",
@@ -112,26 +111,21 @@
             "Continue": "Continue",
             "On": "On",
             "Off": "Off",
-
             "Up": "Up",
             "Down": "Down",
             "Left": "Left",
             "Right": "Right",
-
             "Next": "Next",
             "Previous": "Previous",
             "NextTab": "Next Tab",
             "PreviousTab": "Previous Tab",
-
             "Increase": "Increase",
             "Decrease": "Decrease",
             "Max": "Max",
             "Min": "Min",
-
             "Save": "Save",
             "Saved": "Saved!",
             "Delete": "Delete",
-
             "Reset": "Reset",
             "ResetAll": "Reset All"
         },
@@ -171,7 +165,6 @@
         },
         "Dialog": {
             "DontShowAgain": "Don't Show Again",
-
             "AntiPiracy": {
                 "Title": "YARG Anti-Piracy Statement",
                 "Description": "<b>YARG stands firmly against all forms of piracy.</b> We neither support nor endorse piracy, as it is a violation of copyright law with serious legal consequences. Our platform's importable content—designed for creators to share their work and for educational purposes—does not justify or excuse piracy.\n\nYARG itself <b>does not</b> use any ripped/pirated assets or music and never will. By using YARG, users agree not to promote or endorse piracy in any way through our platform. Upholding these principles ensures a community that respects copyright, creativity, and legal standards.\n\nYARG stands for \"Yet Another Rhythm Game\" and NOT for pirates.",
@@ -220,7 +213,6 @@
                 "ThisYear": "This Year",
                 "MoreThanYear": "More Than A Year"
             },
-
             "Analyze": "Analyze"
         },
         "Main": {
@@ -281,11 +273,11 @@
         },
         "ProfileList": {
             "Name": "Profiles",
-            "ActiveProfiles" : "Active Profiles",
+            "ActiveProfiles": "Active Profiles",
             "AddBot": "Add Bot",
             "AddProfile": "Add Profile",
-            "Bots" : "Bots",
-            "Players" : "Players"
+            "Bots": "Bots",
+            "Players": "Players"
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
@@ -319,7 +311,7 @@
                 "Nice": "<i>NICE</i>\nSOLO",
                 "Okay": "OKAY\nSOLO",
                 "Perfect": "PERFECT\nSOLO!",
-                "Solid":  "SOLID\nSOLO"
+                "Solid": "SOLID\nSOLO"
             },
             "PointsResult": "{0:N0}\nPOINTS"
         },
@@ -334,11 +326,11 @@
             }
         }
     },
-	"Preview": {
-		"Experimental": {
-			"Notice": "IMPORTANT\n\nThese settings represent a work in progress. They are subject to change, may contain bugs, and could even cause major problems if enabled."
-		}
-	},
+    "Preview": {
+        "Experimental": {
+            "Notice": "IMPORTANT\n\nThese settings represent a work in progress. They are subject to change, may contain bugs, and could even cause major problems if enabled."
+        }
+    },
     "Discord": {
         "Default": {
             "Details": "Hello there ladies and gentlemen!",
@@ -477,7 +469,7 @@
             "AdvancedDMXChannels": "Advanced DMX Channels",
             "StatusBar": "Status Bar",
             "AdvancedDMXSettings": "Advanced sACN and DMX settings",
-			"Experimental": "Experimental"
+            "Experimental": "Experimental"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
@@ -714,10 +706,6 @@
                     "Sparse": "50, 100, 250, 500, ..."
                 }
             },
-            "PracticeRestartDelay": {
-                "Name": "Practice Restart Delay",
-                "Description": "The amount of time (in seconds) to delay the beginning of a section in Practice Mode."
-            },
             "PreviewVolume": {
                 "Name": "Preview Volume",
                 "Description": "The preview volume while in the music library."
@@ -782,10 +770,10 @@
                     "Reduced": "Reduced"
                 }
             },
-			"SongBackgroundOpacity": {
-				"Name": "Song Background Opacity",
-				"Description": "Adjusts the opacity of background during gameplay."
-			},
+            "SongBackgroundOpacity": {
+                "Name": "Song Background Opacity",
+                "Description": "Adjusts the opacity of background during gameplay."
+            },
             "UseChipmunkSpeed": {
                 "Name": "Chipmunk Speed",
                 "Description": "Disables pitch correction when playing songs at a fast or slow speed which may lead to some... interesting results."
@@ -829,10 +817,10 @@
                 "PauseName": "Vocals",
                 "Description": "Adjusts the song's vocal track volume. Only does something if the song is multi-track."
             },
-            "VoiceActivatedVocalStarPower" : {
-				"Name": "Voice Activated Star Power (Vocals)",
-				"Description": "If enabled, vocalists can activate their Star Power by making a noise. Keybinds can be used instead, regardless of this setting."
-			},
+            "VoiceActivatedVocalStarPower": {
+                "Name": "Voice Activated Star Power (Vocals)",
+                "Description": "If enabled, vocalists can activate their Star Power by making a noise. Keybinds can be used instead, regardless of this setting."
+            },
             "VSync": {
                 "Name": "Enable VSync",
                 "Description": "Enables VSync. VSync caps the framerate at your monitor's maximum framerate, and prevents tearing."
@@ -993,36 +981,11 @@
                         "FiveFretGuitar": "Five Fret Guitar",
                         "FiveLaneDrums": "Five Lane Drums",
                         "FourLaneDrums": "Four Lane Drums",
-                        "ProKeys": "Pro Keys",
-                        "Common" : "Common"
+                        "ProKeys": "Pro Keys"
                     }
                 },
                 "ActivationNote": {
                     "Name": "Activation Note"
-                },
-                "BackgroundBaseColor1": {
-                    "Name": "Background Base Color 1"
-                },
-                "BackgroundBaseColor2": {
-                    "Name": "Background Base Color 2"
-                },
-                "BackgroundBaseColor3": {
-                    "Name": "Background UNKNOWN Color"
-                },
-                "BackgroundPatternColor": {
-                    "Name": "Background Pattern Color"
-                },
-                "BackgroundGrooveBaseColor1": {
-                    "Name": "Groove Base Color 1"
-                },
-                "BackgroundGrooveBaseColor2": {
-                    "Name": "Groove Base Color 2"
-                },
-                "BackgroundGrooveBaseColor3": {
-                    "Name": "Groove UNKNOWN Color"
-                },
-                "BackgroundGroovePatternColor": {
-                    "Name": "Groove Pattern Color"
                 },
                 "BlueCymbal": {
                     "Name": "Blue Cymbal"
@@ -1161,9 +1124,6 @@
                 },
                 "RedStarpower": {
                     "Name": "Red Star Power"
-                },
-                "StarPowerColor": {
-                    "Name": "Star Power Color"
                 },
                 "YellowCymbal": {
                     "Name": "Yellow Cymbal"

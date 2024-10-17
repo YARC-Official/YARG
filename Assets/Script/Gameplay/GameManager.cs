@@ -259,7 +259,7 @@ namespace YARG.Gameplay
             _songRunner.SetSongTime(time, delayTime);
 
             BeatEventHandler.ResetTimers();
-            BackgroundManager.SetTime(_songRunner.SongTime);
+            BackgroundManager.SetTime(_songRunner.SongTime + Song.SongOffsetSeconds);
         }
 
         public void SetSongSpeed(float speed)

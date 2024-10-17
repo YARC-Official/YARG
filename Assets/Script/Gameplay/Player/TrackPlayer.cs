@@ -13,6 +13,7 @@ using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Settings;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Player
@@ -25,7 +26,7 @@ namespace YARG.Gameplay.Player
 
         public const float TRACK_WIDTH = 2f;
 
-        public double SpawnTimeOffset => (ZeroFadePosition + 2 + -STRIKE_LINE_POS) / NoteSpeed;
+        public double SpawnTimeOffset => (ZeroFadePosition + _spawnAheadDelay + -STRIKE_LINE_POS) / NoteSpeed;
 
         protected TrackView TrackView { get; private set; }
 
@@ -68,6 +69,8 @@ namespace YARG.Gameplay.Player
 
         protected bool IsBass { get; private set; }
 
+        private float _spawnAheadDelay;
+
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
         {
@@ -90,6 +93,8 @@ namespace YARG.Gameplay.Player
             // Set fade information and highway length
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
             FadeSize = Player.CameraPreset.FadeLength;
+
+            _spawnAheadDelay = GameManager.IsPractice ? SettingsManager.Settings.PracticeRestartDelay.Value : 2;
             if (player.Profile.HighwayLength > 1)
             {
                 FadeSize *= player.Profile.HighwayLength;
