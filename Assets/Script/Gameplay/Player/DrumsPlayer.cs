@@ -13,6 +13,7 @@ using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
@@ -101,7 +102,15 @@ namespace YARG.Gameplay.Player
             engine.OnPadHit += (action, wasNoteHit, velocity) =>
             {
                 // Skip if a note was hit, because we have different logic for that below
-                if (wasNoteHit) return;
+                if (wasNoteHit)
+                {
+                    // If AODSFX is turned on and a note was hit, Play the drum sfx. Without this, drum sfx will only play on misses.
+                    if (SettingsManager.Settings.AlwaysOnDrumSFX.Value)
+                    {
+                        PlayDrumSoundEffect(action, velocity);
+                    }
+                    return;
+                }
 
                 // Choose the correct fret
                 int fret;
@@ -133,7 +142,8 @@ namespace YARG.Gameplay.Player
 
                 bool isDrumFreestyle = IsDrumFreestyle();
 
-                if (isDrumFreestyle)
+                // Figure out wether its a drum freestyle or if AODSFX is enabled
+                if (SettingsManager.Settings.AlwaysOnDrumSFX.Value || isDrumFreestyle)
                 {
                     // Play drum sound effect
                     PlayDrumSoundEffect(action, velocity);

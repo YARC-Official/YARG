@@ -105,6 +105,7 @@ namespace YARG.Settings
                 // nameof(Settings.WhammyOversampleFactor),
                 nameof(Settings.ClapsInStarpower),
                 nameof(Settings.OverstrumAndOverhitSoundEffects),
+                nameof(Settings.AlwaysOnDrumSFX),
                 // nameof(Settings.ReverbInStarpower),
                 nameof(Settings.UseChipmunkSpeed),
                 nameof(Settings.ApplyVolumesInMusicLibrary),

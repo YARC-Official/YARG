@@ -184,7 +184,7 @@ namespace YARG.Gameplay
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
 
             // Debug info
-            InitializeDebugGUI();
+            InitializeDebug();
 #if UNITY_EDITOR
             SetDebugEnabled(true);
 #endif

@@ -187,6 +187,7 @@ namespace YARG.Gameplay
                 GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
             }
 
+            DisposeDebug();
             _pauseMenu.PopAllMenus();
             _mixer?.Dispose();
             _songRunner?.Dispose();
