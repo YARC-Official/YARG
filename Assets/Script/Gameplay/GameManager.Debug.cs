@@ -513,7 +513,7 @@ namespace YARG.Gameplay
                             unsafe
                             {
                                 var state = DeltaStateEvent.From(inputEvent);
-                                text.AppendFormat(" {0} size={1} offset={2}\n",
+                                text.AppendFormat(" {0} offset={1} size={2}\n",
                                     state->stateFormat, state->stateOffset, state->deltaStateSizeInBytes);
                                 PrintState(new(state->deltaState, (int)state->deltaStateSizeInBytes));
                             }
