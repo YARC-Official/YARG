@@ -164,6 +164,13 @@ namespace YARG.Input
             InvokeStateChanged(State);
         }
 
+        public override void ResetState()
+        {
+            RawState = default;
+            State = default;
+            InvokeStateChanged(State);
+        }
+
         private float CalculateState(float rawValue)
         {
             float max;
