@@ -121,7 +121,7 @@ namespace YARG.Settings.Metadata
         {
             // Since we don't wanna put attributes on each color within the color profile,
             // add a special case for that.
-            if (field.FieldType == typeof(SystemColor) && (typeof(T) == typeof(ColorProfile)))
+            if (field.FieldType == typeof(SystemColor) && typeof(T) == typeof(ColorProfile))
             {
                 list.Add(new FieldSettingInfo
                 {

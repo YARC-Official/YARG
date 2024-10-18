@@ -998,8 +998,7 @@
                         "FiveFretGuitar": "Five Fret Guitar",
                         "FiveLaneDrums": "Five Lane Drums",
                         "FourLaneDrums": "Four Lane Drums",
-                        "ProKeys": "Pro Keys",
-                        "Common" : "Common"
+                        "ProKeys": "Pro Keys"
                     }
                 },
                 "ActivationNote": {
@@ -1334,7 +1333,7 @@
                     "Name": "Background Base Color 2"
                 },
                 "BackgroundBaseColor3": {
-                    "Name": "Background UNKNOWN Color"
+                    "Name": "Background UNUSED Color"
                 },
                 "BackgroundPatternColor": {
                     "Name": "Background Pattern Color"
@@ -1346,7 +1345,7 @@
                     "Name": "Groove Base Color 2"
                 },
                 "BackgroundGrooveBaseColor3": {
-                    "Name": "Groove UNKNOWN Color"
+                    "Name": "Groove UNUSED Color"
                 },
                 "BackgroundGroovePatternColor": {
                     "Name": "Groove Pattern Color"
