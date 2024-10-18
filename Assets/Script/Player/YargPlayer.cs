@@ -98,12 +98,16 @@ namespace YARG.Player
                 ?? ColorProfile.Default;
             CameraPreset = CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
                 ?? CameraPreset.Default;
+            HighwayPreset = CustomContentManager.HighwayPresets.GetPresetById(Profile.HighwayPreset)
+                ?? HighwayPreset.Default;
         }
 
         public void EnableInputs()
         {
             if (InputsEnabled || Bindings == null)
+            {
                 return;
+            }
 
             Bindings.EnableInputs();
             Bindings.MenuInputProcessed += OnMenuInput;
@@ -115,7 +119,9 @@ namespace YARG.Player
         public void DisableInputs()
         {
             if (!InputsEnabled || Bindings == null)
+            {
                 return;
+            }
 
             Bindings.DisableInputs();
             Bindings.MenuInputProcessed -= OnMenuInput;

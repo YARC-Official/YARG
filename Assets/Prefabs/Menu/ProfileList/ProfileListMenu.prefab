@@ -5872,7 +5872,7 @@ PrefabInstance:
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d,
         type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: ChangeCameraPreset
+      value: ChangeHighwayPreset
       objectReference: {fileID: 0}
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d,
         type: 3}
