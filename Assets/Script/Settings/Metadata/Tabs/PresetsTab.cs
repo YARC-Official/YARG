@@ -47,6 +47,12 @@ namespace YARG.Settings.Metadata
                 CustomContentManager.EnginePresets,
                 new TrackPreviewBuilder(forceShowHitWindow: true),
                 true),
+
+            new PresetSubTab<HighwayPreset>(
+                CustomContentManager.HighwayPresets,
+                new TrackPreviewBuilder(false, true, true),
+                false)
+                
         };
 
         private static readonly Dictionary<Type, BasePreset> _lastSelectedPresetOfType = new();

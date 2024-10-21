@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using YARG.Core.Logging;
@@ -16,6 +16,7 @@ namespace YARG.Settings.Customization
         public static readonly CameraSettingsContainer CameraSettings;
         public static readonly ThemePresetContainer    ThemePresets;
         public static readonly EnginePresetContainer   EnginePresets;
+        public static readonly HighwayPresetContainer  HighwayPresets;
 
         private static readonly List<CustomContent> _customContentContainers;
         public static IReadOnlyList<CustomContent> CustomContentContainers => _customContentContainers;
@@ -26,13 +27,15 @@ namespace YARG.Settings.Customization
             ColorProfiles = new ColorProfileContainer();
             ThemePresets = new ThemePresetContainer();
             EnginePresets = new EnginePresetContainer();
+            HighwayPresets = new HighwayPresetContainer();
 
             _customContentContainers = new()
             {
                 CameraSettings,
                 ColorProfiles,
                 ThemePresets,
-                EnginePresets
+                EnginePresets,
+                HighwayPresets
             };
         }
 
