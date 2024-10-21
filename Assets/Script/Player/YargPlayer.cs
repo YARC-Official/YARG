@@ -59,8 +59,7 @@ namespace YARG.Player
                 ?? CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
                 ?? CameraPreset.Default;
 
-            HighwayPreset = replay.GetHighwayPreset(Profile.HighwayPreset)
-                ?? CustomContentManager.HighwayPresets.GetPresetById(Profile.HighwayPreset)
+            HighwayPreset = CustomContentManager.HighwayPresets.GetPresetById(Profile.HighwayPreset)
                 ?? HighwayPreset.Default;
         }
 
