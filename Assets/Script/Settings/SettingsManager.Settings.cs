@@ -81,7 +81,8 @@ namespace YARG.Settings
 
             public ToggleSetting VoiceActivatedVocalStarPower { get; } = new(true);
 
-            public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
+            public SliderSetting PracticeRestartDelay { get; } = new(2f, 0.5f, 5f);
+            public SliderSetting ShowCursorTimer      { get; } = new(2f, 0f, 5f);
 
             public ToggleSetting PauseOnDeviceDisconnect { get; } = new(true);
             public ToggleSetting PauseOnFocusLoss { get; } = new(true);
@@ -171,6 +172,8 @@ namespace YARG.Settings
             public ToggleSetting ClapsInStarpower { get; } = new(true);
 
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
+
+            public ToggleSetting AlwaysOnDrumSFX { get; } = new(false);
 
             public ToggleSetting UseWhammyFx { get; } = new(false, v => GlobalAudioHandler.UseWhammyFx = v);
 

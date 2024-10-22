@@ -187,6 +187,7 @@ namespace YARG.Gameplay
                 GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
             }
 
+            DisposeDebug();
             _pauseMenu.PopAllMenus();
             _mixer?.Dispose();
             _songRunner?.Dispose();
@@ -378,7 +379,10 @@ namespace YARG.Gameplay
         {
             bool resumed = _songRunner.OverrideResume();
             if (resumed)
+            {
                 ResumeCore();
+            }
+
             return resumed;
         }
 
@@ -433,15 +437,32 @@ namespace YARG.Gameplay
                 ReplayInfo = replayInfo,
             };
 
+            RecordScores(replayInfo);
+
+            // Go to the score screen
+            GlobalVariables.Instance.LoadScene(SceneIndex.Score);
+            return true;
+        }
+
+        private void RecordScores(ReplayInfo replayInfo)
+        {
+            if (!ScoreContainer.IsBandScoreValid(SongSpeed))
+            {
+                return;
+            }
 
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
+
             foreach (var player in _players)
             {
                 var profile = player.Player.Profile;
 
-                // Skip bots
-                if (player.Player.Profile.IsBot) continue;
+                // Skip bots and anyone that's obviously cheating.
+                if (!ScoreContainer.IsSoloScoreValid(SongSpeed, player.Player))
+                {
+                    continue;
+                }
 
                 playerEntries.Add(new PlayerScoreRecord
                 {
@@ -463,31 +484,24 @@ namespace YARG.Gameplay
                 });
             }
 
-            // Record the score into the database (if there's at least 1 non-bot player)
-            if (playerEntries.Count > 0)
+            // Record the score into the database (but only if there are no bots, and Song Speed is at least 100%)
+            ScoreContainer.RecordScore(new GameRecord
             {
-                ScoreContainer.RecordScore(new GameRecord
-                {
-                    Date = DateTime.Now,
+                Date = DateTime.Now,
 
-                    SongChecksum = Song.Hash.HashBytes,
-                    SongName = Song.Name,
-                    SongArtist = Song.Artist,
-                    SongCharter = Song.Charter,
+                SongChecksum = Song.Hash.HashBytes,
+                SongName = Song.Name,
+                SongArtist = Song.Artist,
+                SongCharter = Song.Charter,
 
-                    ReplayFileName = replayInfo?.ReplayName,
-                    ReplayChecksum = replayInfo?.ReplayChecksum.HashBytes,
+                ReplayFileName = replayInfo?.ReplayName,
+                ReplayChecksum = replayInfo?.ReplayChecksum.HashBytes,
 
-                    BandScore = BandScore,
-                    BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
+                BandScore = BandScore,
+                BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
 
-                    SongSpeed = SongSpeed
-                }, playerEntries);
-            }
-
-            // Go to the score screen
-            GlobalVariables.Instance.LoadScene(SceneIndex.Score);
-            return true;
+                SongSpeed = SongSpeed
+            }, playerEntries);
         }
 
         public void ForceQuitSong()

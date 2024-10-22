@@ -78,6 +78,32 @@ namespace YARG.Scores
             _db.CreateTable<PlayerInfoRecord>();
         }
 
+        public static bool IsBandScoreValid(float songSpeed)
+        {
+            if (!PlayerContainer.Players.Any())
+            {
+                return false;
+            }
+
+            // If any player is disqualified from a valid Solo Score, this should disqualify the Band Score as well.
+            if (PlayerContainer.Players.Any(e => !e.SittingOut && !IsSoloScoreValid(songSpeed, e)))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool IsSoloScoreValid(float songSpeed, YargPlayer player)
+        {
+            if (songSpeed < 1.0f || player.Profile.IsBot)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public static void RecordScore(GameRecord gameRecord, List<PlayerScoreRecord> playerEntries)
         {
             try

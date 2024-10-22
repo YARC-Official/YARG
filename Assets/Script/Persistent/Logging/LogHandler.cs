@@ -9,7 +9,7 @@ using YARG.Logging.Unity;
 namespace YARG.Logging
 {
     [DefaultExecutionOrder(-4000)]
-    public static class LogHandler
+    public static partial class LogHandler
     {
         private static bool _isInitialized;
 
@@ -51,6 +51,8 @@ namespace YARG.Logging
             // Add log listeners here
             YargLogger.AddLogListener(new UnityEditorLogListener());
             YargLogger.AddLogListener(_fileYargLogListener);
+
+            RegisterFormatters();
 
             UnityInternalLogWrapper.OverwriteUnityInternals();
 

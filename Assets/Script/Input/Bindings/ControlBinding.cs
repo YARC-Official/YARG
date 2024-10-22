@@ -193,6 +193,12 @@ namespace YARG.Input
             InvokeStateChanged(State);
         }
 
+        public virtual void ResetState()
+        {
+            State = default;
+            InvokeStateChanged(State);
+        }
+
         protected void InvokeStateChanged(TState state)
         {
             StateChanged?.Invoke(state);
@@ -434,6 +440,12 @@ namespace YARG.Input
                 if (selector(binding))
                 {
                     removed = true;
+
+                    // Reset binding state to prevent phantom inputs
+                    binding.ResetState();
+                    OnStateChanged(binding, InputManager.CurrentInputTime);
+                    FireStateChanged();
+
                     _bindings.RemoveAt(i);
                     FireBindingRemoved(binding.Control);
                     i--;
