@@ -100,6 +100,11 @@ namespace YARG.Player
             return _playersByProfile.ContainsKey(profile);
         }
 
+        public static bool HasBotsActive()
+        {
+            return _players.Exists(i => i.Profile.IsBot);
+        }
+
         public static YargPlayer CreatePlayerFromProfile(YargProfile profile, bool resolveDevices)
         {
             if (!_profiles.Contains(profile))

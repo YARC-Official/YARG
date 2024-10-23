@@ -288,7 +288,7 @@
             "Players" : "Players"
         },
         "ScoreScreen" : {
-            "BandScoreNotSaved" : "(Band score not saved)"
+            "BandScoreNotSaved" : "(Score not saved)"
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
