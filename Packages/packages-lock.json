@@ -36,13 +36,13 @@
       "url": "https://package.openupm.com"
     },
     "com.thenathannator.hidrogen": {
-      "version": "https://github.com/TheNathannator/HIDrogen.git?path=/Packages/com.thenathannator.hidrogen#dev",
+      "version": "0.4.2",
       "depth": 0,
-      "source": "git",
+      "source": "registry",
       "dependencies": {
         "com.unity.inputsystem": "1.4.4"
       },
-      "hash": "bd0c69666e925f5697ce7a3c505f405faf94dcac"
+      "url": "https://package.openupm.com"
     },
     "com.thenathannator.plasticband": {
       "version": "0.8.5",
@@ -295,7 +295,7 @@
         "jp.keijiro.rtmidi": "1.0.4",
         "com.unity.inputsystem": "1.0.1"
       },
-      "hash": "e547ce2da1b83d6f9410cb2eb6478095d053d00a"
+      "hash": "29dee9f786d99cfae145d1972a39fb79117c1b8f"
     },
     "jp.keijiro.rtmidi": {
       "version": "1.0.4",

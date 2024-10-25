@@ -324,7 +324,6 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateBeatlines(double time)
         {
-            YargLogger.LogFormatDebug("{0}, {1}", time, SpawnTimeOffset);
             while (BeatlineIndex < Beatlines.Count && Beatlines[BeatlineIndex].Time <= time + SpawnTimeOffset)
             {
                 if (BeatlineIndex + 1 < Beatlines.Count && Beatlines[BeatlineIndex + 1].Time <= time + SpawnTimeOffset)

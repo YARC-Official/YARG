@@ -184,7 +184,7 @@ namespace YARG.Gameplay
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
 
             // Debug info
-            InitializeDebugGUI();
+            InitializeDebug();
 #if UNITY_EDITOR
             SetDebugEnabled(true);
 #endif
@@ -342,9 +342,9 @@ namespace YARG.Gameplay
                         player.RefreshPresets();
                     }
 
-                    var lastHighScore = ScoreContainer
-                        .GetHighScoreByInstrument(Song.Hash, player.Profile.CurrentInstrument)?
-                        .Score;
+                    var lastHighScore = ScoreContainer.GetHighScore(Song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, false)?.Score;
+                    YargLogger.LogFormatInfo("Current high score for player {0} on {1}: {2}",
+                        player.Profile.Name, player.Profile.CurrentInstrument, lastHighScore ?? 0);
 
                     if (player.Profile.GameMode != GameMode.Vocals)
                     {
