@@ -88,6 +88,7 @@ namespace YARG.Menu.MusicLibrary
         private List<HoldContext> _heldInputs = new();
 
         private int _primaryHeaderIndex;
+        private bool _shouldDisplaySoloHighScores;
 
         protected override void Awake()
         {
@@ -147,6 +148,8 @@ namespace YARG.Menu.MusicLibrary
                 _currentSong = CurrentlyPlaying;
             }
 
+            _shouldDisplaySoloHighScores = PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 1;
+
             StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value;
             _previewDelay = 0;
             if (_reloadState == MusicLibraryReloadState.Full)
@@ -180,6 +183,7 @@ namespace YARG.Menu.MusicLibrary
 
             // Show no player warning
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
+
         }
 
         protected override void OnSelectedIndexChanged()
@@ -223,8 +227,6 @@ namespace YARG.Menu.MusicLibrary
 
             return viewList;
         }
-
-        private bool ShouldDisplaySoloHighScores => PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 1;
 
         private List<ViewType> CreateNormalViewList()
         {
@@ -325,7 +327,7 @@ namespace YARG.Menu.MusicLibrary
 
         private PlayerScoreRecord GetHighScoreForSong(SongEntry song)
         {
-            if (!ShouldDisplaySoloHighScores)
+            if (!_shouldDisplaySoloHighScores)
             {
                 return null;
             }
@@ -345,7 +347,7 @@ namespace YARG.Menu.MusicLibrary
 
         private GameRecord GetBandHighScoreForSong(SongEntry song)
         {
-            if (ShouldDisplaySoloHighScores)
+            if (_shouldDisplaySoloHighScores)
             {
                 return null;
             }
