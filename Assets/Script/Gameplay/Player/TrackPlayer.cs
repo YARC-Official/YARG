@@ -516,9 +516,9 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected virtual void OnCountdownChange(int measuresLeft, double countdownLength, double endTime)
+        protected virtual void OnCountdownChange(double countdownLength, double endTime)
         {
-            TrackView.UpdateCountdown(measuresLeft, countdownLength, endTime);
+            TrackView.UpdateCountdown(countdownLength, endTime);
         }
 
         protected virtual void OnStarPowerPhraseHit(TNote note)
