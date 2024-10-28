@@ -74,6 +74,8 @@ namespace YARG.Menu.MusicLibrary
 
         public bool HasSortHeaders { get; private set; }
 
+        public bool ShouldDisplaySoloHighScores { get; private set; }
+
         private SongCategory[] _sortedSongs;
 
         private CancellationTokenSource _previewCanceller;
@@ -88,7 +90,6 @@ namespace YARG.Menu.MusicLibrary
         private List<HoldContext> _heldInputs = new();
 
         private int _primaryHeaderIndex;
-        private bool _shouldDisplaySoloHighScores;
 
         protected override void Awake()
         {
@@ -148,7 +149,7 @@ namespace YARG.Menu.MusicLibrary
                 _currentSong = CurrentlyPlaying;
             }
 
-            _shouldDisplaySoloHighScores = PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 1;
+            ShouldDisplaySoloHighScores = PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 1;
 
             StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value;
             _previewDelay = 0;
@@ -252,8 +253,15 @@ namespace YARG.Menu.MusicLibrary
             }
             else
             {
-                list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.RandomSong"), "MusicLibraryIcons[Random]", SelectRandomSong, RANDOM_SONG_ID));
-                list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.Playlists"), "MusicLibraryIcons[Playlists]",
+                list.Add(new ButtonViewType(
+                    Localize.Key("Menu.MusicLibrary.RandomSong"),
+                    "MusicLibraryIcons[Random]",
+                    SelectRandomSong,
+                    RANDOM_SONG_ID));
+
+                list.Add(new ButtonViewType(
+                    Localize.Key("Menu.MusicLibrary.Playlists"),
+                    "MusicLibraryIcons[Playlists]",
                     () =>
                     {
                         // TODO: Proper playlist menu
@@ -266,10 +274,14 @@ namespace YARG.Menu.MusicLibrary
 
                 if (SettingsManager.Settings.LibrarySort < SortAttribute.Playable)
                 {
-                    list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.AllSongs"), SongContainer.Count, SongContainer.Songs));
+                    list.Add(new CategoryViewType(
+                        Localize.Key("Menu.MusicLibrary.AllSongs"), SongContainer.Count, SongContainer.Songs));
+
                     if (_recommendedSongs != null)
                     {
-                        string key = Localize.Key("Menu.MusicLibrary.RecommendedSongs", _recommendedSongs.Length == 1 ? "Singular" : "Plural");
+                        string key = Localize.Key("Menu.MusicLibrary.RecommendedSongs",
+                            _recommendedSongs.Length == 1 ? "Singular" : "Plural");
+
                         list.Add(new CategoryViewType(key, _recommendedSongs.Length, _recommendedSongs,
                             () =>
                             {
@@ -280,7 +292,7 @@ namespace YARG.Menu.MusicLibrary
 
                         foreach (var song in _recommendedSongs)
                         {
-                            list.Add(new SongViewType(this, song, GetHighScoreForSong(song), GetBandHighScoreForSong(song)));
+                            list.Add(new SongViewType(this, song));
                         }
                         _primaryHeaderIndex += _recommendedSongs.Length + 1;
                     }
@@ -318,63 +330,39 @@ namespace YARG.Menu.MusicLibrary
 
                 foreach (var song in section.Songs)
                 {
-                    list.Add(new SongViewType(this, song, GetHighScoreForSong(song), GetBandHighScoreForSong(song)));
+                    list.Add(new SongViewType(this, song));
                 }
             }
             CalculateCategoryHeaderIndices(list);
             return list;
         }
 
-        private PlayerScoreRecord GetHighScoreForSong(SongEntry song)
-        {
-            if (!_shouldDisplaySoloHighScores)
-            {
-                return null;
-            }
-
-            var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
-            var result = ScoreContainer.GetHighScore(song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, true);
-            var percResult = ScoreContainer.GetBestPercentageScore(song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, true);
-
-            if (result != null)
-            {
-                Debug.Assert(percResult != null, "Best Percentage score is missing!");
-                result.Percent = percResult?.GetPercent() ?? 0;
-            }
-       
-            return result;
-        }
-
-        private GameRecord GetBandHighScoreForSong(SongEntry song)
-        {
-            if (_shouldDisplaySoloHighScores)
-            {
-                return null;
-            }
-
-            return ScoreContainer.GetBandHighScore(song.Hash);
-        }
-
         private List<ViewType> CreatePlaylistViewList()
         {
             var list = new List<ViewType>
             {
-                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"), "MusicLibraryIcons[Back]", ExitPlaylistTab, BACK_ID)
+                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
+                    "MusicLibraryIcons[Back]", ExitPlaylistTab, BACK_ID)
             };
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
             // which means the song list hasn't been constructed yet.
-            if (_sortedSongs is null || SongContainer.Count <= 0 || !_sortedSongs.Any(section => section.Songs.Length > 0))
+            if (_sortedSongs is null || SongContainer.Count <= 0 ||
+                !_sortedSongs.Any(section => section.Songs.Length > 0))
             {
                 return list;
             }
 
             foreach (var section in _sortedSongs)
             {
-                list.Add(new SortHeaderViewType(section.Category.ToUpperInvariant(), section.Songs.Length, section.CategoryGroup));
+                list.Add(new SortHeaderViewType(
+                    section.Category.ToUpperInvariant(),
+                    section.Songs.Length,
+                    section.CategoryGroup));
+
                 foreach (var song in section.Songs)
                 {
-                    list.Add(new SongViewType(this, song, GetHighScoreForSong(song), GetBandHighScoreForSong(song)));
+                    list.Add(new SongViewType(this, song));
                 }
             }
 

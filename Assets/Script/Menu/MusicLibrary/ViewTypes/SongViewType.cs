@@ -1,4 +1,5 @@
-﻿using Cysharp.Text;
+﻿using System.Linq;
+using Cysharp.Text;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Song;
@@ -23,17 +24,18 @@ namespace YARG.Menu.MusicLibrary
 
         public override bool UseAsMadeFamousBy => !SongEntry.IsMaster;
 
-        private readonly MusicLibraryMenu _musicLibrary;
         public readonly SongEntry SongEntry;
-        public readonly PlayerScoreRecord PlayerScoreRecord;
-        public readonly GameRecord BandScoreRecord;
 
-        public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry, PlayerScoreRecord playerScoreRecord, GameRecord bandScoreRecord)
+        private readonly MusicLibraryMenu _musicLibrary;
+
+        private bool _fetchedScores;
+        private PlayerScoreRecord _playerScoreRecord;
+        private GameRecord _bandScoreRecord;
+
+        public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry)
         {
             _musicLibrary = musicLibrary;
             SongEntry = songEntry;
-            PlayerScoreRecord = playerScoreRecord;
-            BandScoreRecord = bandScoreRecord;
         }
 
         public override string GetPrimaryText(bool selected)
@@ -55,36 +57,39 @@ namespace YARG.Menu.MusicLibrary
 
         public override string GetSideText(bool selected)
         {
+            FetchHighScores();
+
             using var builder = ZString.CreateStringBuilder();
 
-            if (BandScoreRecord != null)
+            if (_bandScoreRecord is not null)
             {
                 // Append the band score if the setting is enabled
                 if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
                 {
-                    builder.AppendFormat("<space=2em> {0:N0}", BandScoreRecord.BandScore);
+                    builder.AppendFormat("<space=2em> {0:N0}", _bandScoreRecord.BandScore);
                 }
 
                 return builder.ToString();
             }
 
             // Never played!
-            if (PlayerScoreRecord is null)
+            if (_playerScoreRecord is null)
             {
                 return string.Empty;
             }
 
-            var difficultySprite = PlayerScoreRecord.Difficulty.ToString();
-            var percent = Mathf.Floor(PlayerScoreRecord.GetPercent() * 100f);
-            var percentColor = PlayerScoreRecord.IsFc ? "#fcd13c" : "#ffffff";
+            var difficultySprite = _playerScoreRecord.Difficulty.ToString();
+            var percent = Mathf.Floor(_playerScoreRecord.GetPercent() * 100f);
+            var percentColor = _playerScoreRecord.IsFc ? "#fcd13c" : "#ffffff";
 
-            builder.AppendFormat( "<sprite name=\"{0}\"> <color={1}>{2:N0}%</color>", difficultySprite, percentColor, percent);
+            builder.AppendFormat("<sprite name=\"{0}\"> <color={1}>{2:N0}%</color>",
+                difficultySprite, percentColor, percent);
 
             // Append the score if the setting is enabled
             if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
             {
-                builder.AppendFormat("<space=2em> {0:N0}", PlayerScoreRecord.Score);
-            }      
+                builder.AppendFormat("<space=2em> {0:N0}", _playerScoreRecord.Score);
+            }
 
             return builder.ToString();
         }
@@ -97,12 +102,14 @@ namespace YARG.Menu.MusicLibrary
                 return null;
             }
 
-            if (BandScoreRecord != null)
+            FetchHighScores();
+
+            if (_bandScoreRecord is not null)
             {
-                return BandScoreRecord.BandStars;
+                return _bandScoreRecord.BandStars;
             }
 
-            return PlayerScoreRecord?.Stars;
+            return _playerScoreRecord?.Stars;
         }
 
         public override FavoriteInfo GetFavoriteInfo()
@@ -159,6 +166,53 @@ namespace YARG.Menu.MusicLibrary
                     _musicLibrary.RefreshAndReselect();
                 }
             }
+        }
+
+        private void FetchHighScores()
+        {
+            if (_fetchedScores)
+            {
+                return;
+            }
+
+            _fetchedScores = true;
+
+            _playerScoreRecord = GetHighScoreForSong(SongEntry);
+            _bandScoreRecord = GetBandHighScoreForSong(SongEntry);
+        }
+
+        private PlayerScoreRecord GetHighScoreForSong(SongEntry song)
+        {
+            if (!_musicLibrary.ShouldDisplaySoloHighScores)
+            {
+                return null;
+            }
+
+            var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+
+            var result = ScoreContainer.GetHighScore(
+                song.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
+
+            var percResult = ScoreContainer.GetBestPercentageScore(
+                song.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
+
+            if (result is not null)
+            {
+                Debug.Assert(percResult is not null, "Best Percentage score is missing!");
+                result.Percent = percResult.GetPercent();
+            }
+
+            return result;
+        }
+
+        private GameRecord GetBandHighScoreForSong(SongEntry song)
+        {
+            if (_musicLibrary.ShouldDisplaySoloHighScores)
+            {
+                return null;
+            }
+
+            return ScoreContainer.GetBandHighScore(song.Hash);
         }
     }
 }
