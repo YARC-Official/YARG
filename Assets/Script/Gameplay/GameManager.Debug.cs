@@ -235,7 +235,7 @@ namespace YARG.Gameplay
                 text.AppendFormat("- Activation end time: {0:0.000000}\n", engine.StarPowerEndTime);
                 text.AppendLine();
                 // text.AppendFormat("- Current drain rate: {0}\n", ); // TODO?
-                text.AppendFormat("- Last whammy tick: {0}\n", engine.LastStarPowerWhammyTick);
+                //text.AppendFormat("- Last whammy tick: {0}\n", engine.LastStarPowerWhammyTick);
                 text.AppendFormat("- Star Power whammy timer:\n     {0}\n", engine.GetStarPowerWhammyTimer());
                 text.AppendLine();
                 text.AppendLine("Miscellaneous:");
