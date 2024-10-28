@@ -283,14 +283,14 @@ namespace YARG.Gameplay.Player
             return percussionTrack;
         }
 
-        public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
+        public void UpdateCountdown(double countdownLength, double endTime)
         {
             if (_countdownDisplay == null)
             {
                 return;
             }
 
-            _countdownDisplay.UpdateCountdown(measuresLeft, countdownLength, endTime);
+            _countdownDisplay.UpdateCountdown(countdownLength, endTime);
         }
 
         private void Update()

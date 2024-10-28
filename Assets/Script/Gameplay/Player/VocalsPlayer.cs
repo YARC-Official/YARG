@@ -131,9 +131,9 @@ namespace YARG.Gameplay.Player
                     Engine.BuildCountdownsFromAllParts(multiTrack.Parts);
                 }
 
-                Engine.OnCountdownChange += (measuresLeft, countdownLength, endTime) =>
+                Engine.OnCountdownChange += (countdownLength, endTime) =>
                 {
-                    GameManager.VocalTrack.UpdateCountdown(measuresLeft, countdownLength, endTime);
+                    GameManager.VocalTrack.UpdateCountdown(countdownLength, endTime);
                 };
             }
 
