@@ -52,6 +52,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <TrackImage>k__BackingField: {fileID: 539163407594810661}
   _aspectRatioFitter: {fileID: 4901975570370130400}
+  _UIScaler: {fileID: 8179462097464755339}
   _topElementContainer: {fileID: 2784863481168182611}
   _soloBox: {fileID: 2390146520270845346}
   _textNotifications: {fileID: 4946571513074747625}
@@ -1012,12 +1013,12 @@ PrefabInstance:
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.4999999
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.4999999
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4,
         type: 3}
