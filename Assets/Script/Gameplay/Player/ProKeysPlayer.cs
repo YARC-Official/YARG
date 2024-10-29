@@ -399,8 +399,9 @@ namespace YARG.Gameplay.Player
 
             // Get the group index (two groups per octave)
             int group = octaveIndex * 2 + (ProKeysUtilities.IsLowerHalfKey(noteIndex) ? 0 : 1);
-
-            lane.SetAppearance(Player.Profile.CurrentInstrument, key, GetNoteX(key), Player.ColorProfile.ProKeys.GetOverlayColor(group).ToUnityColor());
+            
+            lane.SetAppearance(Player.Profile.CurrentInstrument, key, _keysArray.GetKeyX(key), Player.ColorProfile.ProKeys.GetOverlayColor(group).ToUnityColor());
+            lane.OffsetXPosition(_currentOffset);
         }
 
         protected override void ModifyLaneFromNote(LaneElement lane, ProKeysNote note)
