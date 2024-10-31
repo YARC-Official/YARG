@@ -2,6 +2,7 @@
 using Cysharp.Text;
 using UnityEngine;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Player;
 using YARG.Playlists;
@@ -198,7 +199,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (result is not null)
             {
-                Debug.Assert(percResult is not null, "Best Percentage score is missing!");
+                YargLogger.Assert(percResult is not null, "Best Percentage score is missing!");
                 result.Percent = percResult.GetPercent();
             }
 
