@@ -174,7 +174,7 @@ namespace YARG.Player
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
 
-            StatsManager.Instance.UpdateActivePlayers();
+            StatsManager.Instance?.UpdateActivePlayers();
         }
 
         public static YargPlayer GetPlayerFromProfile(YargProfile profile)

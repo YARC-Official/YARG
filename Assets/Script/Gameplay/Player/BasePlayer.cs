@@ -375,6 +375,16 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected void OnComboIncrement(int amount)
+        {
+            GameManager.AddBandCombo(amount);
+        }
+
+        protected void OnComboReset()
+        {
+            GameManager.ResetBandCombo();
+        }
+
         protected static int[] PopulateStarScoreThresholds(float[] multiplierThresh, int baseScore)
         {
             var starScoreThresh = new int[multiplierThresh.Length];

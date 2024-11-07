@@ -176,6 +176,8 @@ namespace YARG.Gameplay.Player
 
             Engine = CreateEngine();
 
+            Engine.OnComboIncrement += OnComboIncrement;
+            Engine.OnComboReset += OnComboReset;
             if (GameManager.IsPractice)
             {
                 Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);

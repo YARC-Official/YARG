@@ -120,6 +120,10 @@ namespace YARG.Gameplay.Player
             }
 
             Engine = CreateEngine();
+
+            Engine.OnComboIncrement += OnComboIncrement;
+            Engine.OnComboReset += OnComboReset;
+
             if (vocalIndex == 0)
             {
                 if (Player.Profile.CurrentInstrument == Instrument.Vocals)

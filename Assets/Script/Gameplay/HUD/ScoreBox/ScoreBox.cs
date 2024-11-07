@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Linq;
 using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Core;
+using YARG.Core.Chart;
+using YARG.Player;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
@@ -27,6 +31,11 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _scoreText;
         [SerializeField]
+        private GameObject _bandComboObject;
+
+        [SerializeField]
+        private TextMeshProUGUI _bandComboText;
+        [SerializeField]
         private StarScoreDisplay _starScoreDisplay;
 
         [Space]
@@ -50,19 +59,28 @@ namespace YARG.Gameplay.HUD
         private Sprite _brokenOverlaySprite;
 
         private int _bandScore;
-
+        private int _bandCombo;
+        
         private bool _songHasHours;
         private string _songLengthTime;
         private string _timeFormat;
 
         private bool _easterEggTriggered;
+        private bool _vocalsOnly;
 
         private void Start()
         {
             _scoreText.text = SCORE_PREFIX + "0";
+            _bandComboText.text = SCORE_PREFIX + "0";
             _songTimer.text = string.Empty;
 
             _songProgressBar.SetProgress(0f);
+        }
+
+        protected override void OnChartLoaded(SongChart chart)
+        {
+            _bandComboObject.SetActive(SettingsManager.Settings.BandComboType.Value != BandComboType.Off);
+            _vocalsOnly = PlayerContainer.Players.All(e => e.SittingOut || e.Profile.GameMode == GameMode.Vocals);
         }
 
         protected override void OnSongStarted()
@@ -103,6 +121,13 @@ namespace YARG.Gameplay.HUD
 
                     _easterEggTriggered = true;
                 }
+            }
+
+            if (GameManager.BandCombo != _bandCombo)
+            {
+                _bandCombo = GameManager.BandCombo;
+                var modifier = _vocalsOnly ? 10 : 1;
+                _bandComboText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandCombo / modifier);
             }
 
             // Update song progress
