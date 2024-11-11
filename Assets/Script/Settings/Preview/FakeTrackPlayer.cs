@@ -271,7 +271,6 @@ namespace YARG.Settings.Preview
             var enginePreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.EnginePresets);
             var highwayPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.HighwayPresets);
 
-            var currentColorProfile = CurrentGameModeInfo.FretColorProvider(colorProfile);
             // Update camera presets
             _trackMaterial.Initialize(3f, cameraPreset.FadeLength, highwayPreset);
             _cameraPositioner.Initialize(cameraPreset);

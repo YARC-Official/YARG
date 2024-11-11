@@ -524,7 +524,6 @@ namespace YARG.Gameplay
             var replayStats = new List<ReplayStats>(_players.Count);
             var colorProfiles = new Dictionary<Guid, ColorProfile>();
             var cameraPresets = new Dictionary<Guid, CameraPreset>();
-            var highwayPresets = new Dictionary<Guid, HighwayPreset>();
 
             int bandScore = 0;
             float bandStars = 0f;
@@ -550,11 +549,6 @@ namespace YARG.Gameplay
                 if (!player.Player.CameraPreset.DefaultPreset)
                 {
                     cameraPresets.TryAdd(player.Player.CameraPreset.Id, player.Player.CameraPreset);
-                }
-
-                if (!player.Player.HighwayPreset.DefaultPreset)
-                {
-                    highwayPresets.TryAdd(player.Player.HighwayPreset.Id, player.Player.HighwayPreset);
                 }
             }
 
