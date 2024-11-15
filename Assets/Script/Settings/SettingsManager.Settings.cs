@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Audio;
+using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Gameplay;
 using YARG.Gameplay.HUD;
@@ -396,11 +397,11 @@ namespace YARG.Settings
 
             #region Experimental
 
-            public DropdownSetting<BandComboType> BandComboType { get; } = new(Gameplay.BandComboType.Lenient)
-            {
-                Gameplay.BandComboType.Off,
-                Gameplay.BandComboType.Lenient,
-                Gameplay.BandComboType.Strict
+            public DropdownSetting<BandComboType> BandComboTypeSetting { get; } = new(BandComboType.Off)
+            {              
+                BandComboType.Off,
+                BandComboType.Lenient,
+                BandComboType.Strict
             };
 
             #endregion

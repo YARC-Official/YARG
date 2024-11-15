@@ -537,9 +537,9 @@
                 "Name": "Always-On Drum SFX",
                 "Description": "Enables Drum SFX at all times."
             },
-            "BandComboType": {
+            "BandComboTypeSetting": {
                 "Name": "Band Streak Type",
-                "Description": "Adjusts how Band Streak is calculated in multiplayer sessions.",
+                "Description": "Adjusts how Band Streak is calculated, especially in multiplayer sessions. Set this to 'Off' to hide the Band Streak counter.",
                 "Dropdown": {
                     "Off": "Off",
                     "Lenient": "Lenient",

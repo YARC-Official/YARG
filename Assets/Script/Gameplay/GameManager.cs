@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
@@ -141,7 +142,7 @@ namespace YARG.Gameplay
             Song = GlobalVariables.State.CurrentSong;
             ReplayInfo = GlobalVariables.State.CurrentReplay;
             IsPractice = GlobalVariables.State.IsPractice && ReplayInfo == null;
-            _bandComboType = SettingsManager.Settings.BandComboType.Value;
+            _bandComboType = SettingsManager.Settings.BandComboTypeSetting.Value;
 
             Navigator.Instance.PopAllSchemes();
             GameStateFetcher.SetSongEntry(Song);

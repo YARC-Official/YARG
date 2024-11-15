@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Player;
 using YARG.Settings;
 
@@ -79,7 +80,7 @@ namespace YARG.Gameplay.HUD
 
         protected override void OnChartLoaded(SongChart chart)
         {
-            _bandComboObject.SetActive(SettingsManager.Settings.BandComboType.Value != BandComboType.Off);
+            _bandComboObject.SetActive(SettingsManager.Settings.BandComboTypeSetting.Value != BandComboType.Off);
             _vocalsOnly = PlayerContainer.Players.All(e => e.SittingOut || e.Profile.GameMode == GameMode.Vocals);
         }
 

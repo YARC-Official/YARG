@@ -202,7 +202,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.UseWhammyFx),
                 nameof(Settings.WhammyPitchShiftAmount),
-                nameof(Settings.BandComboType)
+                nameof(Settings.BandComboTypeSetting)
 	            // nameof(Settings.WhammyOversampleFactor),
             }
         };
