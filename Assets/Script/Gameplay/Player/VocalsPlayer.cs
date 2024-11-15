@@ -112,6 +112,8 @@ namespace YARG.Gameplay.Player
             percussionTrack.Initialize(NoteTrack.Notes);
             _percussionTrack = percussionTrack;
 
+            _hud.ShowPlayerName(player, needleIndex);
+
             // Create and start an input context for the mic
             if (GameManager.ReplayInfo == null && player.Bindings.Microphone != null)
             {

@@ -18,23 +18,36 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private Image _needleIcon;
 
-        private readonly PerformanceTextScaler _scaler = new (3f);
+        private readonly PerformanceTextScaler _scaler = new(3f);
 
         public void ShowPlayer(YargPlayer player)
         {
             var profile = player.Profile;
             _playerName.text = profile.Name;
-            var instrumentName = profile.CurrentInstrument == Instrument.Harmony ? "harmVocals" + profile.HarmonyIndex : profile.CurrentInstrument.ToResourceName();
+
+            var spriteName = GetSpriteName(profile.CurrentInstrument, profile.HarmonyIndex);
             _instrumentIcon.sprite = Addressables
-                .LoadAssetAsync<Sprite>($"InstrumentIcons[{instrumentName}]")
+                .LoadAssetAsync<Sprite>(spriteName)
                 .WaitForCompletion();
 
-            if (_needleIcon != null)
+            StartCoroutine(AnimationCoroutine());
+        }
+
+        private string GetSpriteName(Instrument currentInstrument, byte harmonyIndex)
+        {
+            if (currentInstrument == Instrument.Harmony)
             {
-                // NeedleIcon.sprite = player.Needle.Icon;
+                return $"HarmonyVocalsIcons[{harmonyIndex + 1}]";
             }
 
-            StartCoroutine(AnimationCoroutine());
+            return $"InstrumentIcons[{currentInstrument.ToResourceName()}]";
+        }
+
+        public void ShowPlayer(YargPlayer player, int needleId)
+        {
+            var materialPath = $"VocalNeedle/{needleId}";
+            _needleIcon.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
+            ShowPlayer(player);
         }
 
         private IEnumerator AnimationCoroutine()
