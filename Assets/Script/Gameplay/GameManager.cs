@@ -603,7 +603,7 @@ namespace YARG.Gameplay
                     BandCombo = 0;
                 break;
                 case BandComboType.Lenient:
-                    BandCombo = Players.Sum(e => e.Combo);
+                    BandCombo = Players.Sum(e => e.Combo * e.BaseStats.BandComboUnits);
                 break;
             }
         }
