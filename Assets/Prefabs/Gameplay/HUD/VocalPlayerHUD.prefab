@@ -1005,10 +1005,35 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 948887509870295558, guid: c950f4332cd2fde4ca0568dd2b24be0f,
+        type: 3}
+      propertyPath: m_Maskable
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 948887509870295558, guid: c950f4332cd2fde4ca0568dd2b24be0f,
+        type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5356565587999463438, guid: c950f4332cd2fde4ca0568dd2b24be0f,
         type: 3}
       propertyPath: m_Name
       value: VocalsPlayerNameDisplay
+      objectReference: {fileID: 0}
+    - target: {fileID: 6424116249910258502, guid: c950f4332cd2fde4ca0568dd2b24be0f,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -105
+      objectReference: {fileID: 0}
+    - target: {fileID: 6731294974148575212, guid: c950f4332cd2fde4ca0568dd2b24be0f,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 310
+      objectReference: {fileID: 0}
+    - target: {fileID: 6731294974148575212, guid: c950f4332cd2fde4ca0568dd2b24be0f,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 95
       objectReference: {fileID: 0}
     - target: {fileID: 7257162965220430353, guid: c950f4332cd2fde4ca0568dd2b24be0f,
         type: 3}
@@ -1113,6 +1138,11 @@ PrefabInstance:
     - target: {fileID: 7257162965220430353, guid: c950f4332cd2fde4ca0568dd2b24be0f,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7870767996865929841, guid: c950f4332cd2fde4ca0568dd2b24be0f,
+        type: 3}
+      propertyPath: m_CullTransparentMesh
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
