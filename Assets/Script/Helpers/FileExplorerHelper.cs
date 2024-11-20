@@ -82,6 +82,8 @@ namespace YARG.Helpers
             Process.Start("explorer.exe", folderPath);
 #elif UNITY_STANDALONE_OSX
             Process.Start("open", $"\"{folderPath}\"");
+#elif  UNITY_STANDALONE_LINUX
+            Process.Start("xdg-open", folderPath);
 #else
             GUIUtility.systemCopyBuffer = folderPath;
             DialogManager.Instance.ShowMessage(
