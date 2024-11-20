@@ -186,6 +186,12 @@ namespace YARG.Settings
             // Add initial state
             chart.VenueTrack.Lighting.Add(new LightingEvent(latestLighting, 0, 0));
             chart.VenueTrack.PostProcessing.Add(new PostProcessingEvent(latestPostProc, 0, 0));
+            
+            if (chart.Sections.Count == 0)
+            {
+                YargLogger.LogWarning("No sections found in chart, using default lighting");
+                chart.VenueTrack.Lighting.Add(new LightingEvent(_defaultSectionPreset.AllowedLightPresets[0], 0, 0));
+            }
 
             foreach (var section in chart.Sections)
             {
