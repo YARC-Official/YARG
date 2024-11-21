@@ -2,18 +2,10 @@
 using SFB;
 using YARG.Core.Logging;
 
-#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
-
 using System.Diagnostics;
-
-#else
 
 using UnityEngine;
 using YARG.Menu.Persistent;
-
-#endif
-
-using Debug = UnityEngine.Debug;
 
 namespace YARG.Helpers
 {
