@@ -223,6 +223,9 @@ namespace YARG.Settings.Preview
         private FakeHitWindowDisplay _hitWindow;
 
         public bool ForceShowHitWindow { get; set; }
+        public bool ForceGroove { get; set; }
+        public bool ForceStarPower { get; set; }
+
         public GameMode SelectedGameMode { get; set; } = GameMode.FiveFretGuitar;
 
         public double PreviewTime { get; private set; }
@@ -252,6 +255,8 @@ namespace YARG.Settings.Preview
             // Show hit window if enabled
             _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Value || ForceShowHitWindow);
             _hitWindow.NoteSpeed = NOTE_SPEED;
+            _trackMaterial.StarpowerMode = ForceStarPower;
+            _trackMaterial.GrooveMode = ForceGroove;
 
             SettingsMenu.Instance.SettingChanged += OnSettingChanged;
 
@@ -264,9 +269,10 @@ namespace YARG.Settings.Preview
             var cameraPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
             var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
             var enginePreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.EnginePresets);
+            var highwayPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.HighwayPresets);
 
             // Update camera presets
-            _trackMaterial.Initialize(3f, cameraPreset.FadeLength);
+            _trackMaterial.Initialize(3f, cameraPreset.FadeLength, highwayPreset);
             _cameraPositioner.Initialize(cameraPreset);
 
             // Update color profiles
