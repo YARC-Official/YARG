@@ -6,7 +6,7 @@ namespace YARG.Input
 {
     public partial class BindingCollection
     {
-        private static ActuationSettings _tiltSettings = new() { ButtonPressThreshold = 1f };
+        private static ActuationSettings _tiltSettings = new() { ButtonPressThreshold = 0.7f };
 
         private bool SetDefaultGameplayBindings(FiveFretGuitar guitar)
         {
