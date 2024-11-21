@@ -6,7 +6,8 @@ namespace YARG.Input
 {
     public partial class BindingCollection
     {
-        private static ActuationSettings _tiltSettings = new() { ButtonPressThreshold = 1f };
+        private static ActuationSettings _tiltSettings = new() { ButtonPressThreshold = 1.0f };
+        private static readonly ActuationSettings _riffmasterTiltSettings = new() { ButtonPressThreshold = 0.7f };
 
         private bool SetDefaultGameplayBindings(FiveFretGuitar guitar)
         {
@@ -22,9 +23,6 @@ namespace YARG.Input
             AddBinding(GuitarAction.StrumUp, guitar.strumUp);
             AddBinding(GuitarAction.StrumDown, guitar.strumDown);
 
-            AddBinding(GuitarAction.StarPower, guitar.selectButton);
-            AddBinding(GuitarAction.StarPower, guitar.tilt, _tiltSettings);
-
             AddBinding(GuitarAction.Whammy, guitar.whammy);
 
             if (guitar is GuitarHeroGuitar gh)
@@ -39,6 +37,12 @@ namespace YARG.Input
                 AddBinding(GuitarAction.BlueFret, rb.soloBlue);
                 AddBinding(GuitarAction.OrangeFret, rb.soloOrange);
             }
+
+            // Different controllers require different defaults, so tilt binding needs to
+            // happen after any special cases for different controller types are handled
+            var tiltSettings = guitar is RiffmasterGuitar ? _riffmasterTiltSettings : _tiltSettings;
+            AddBinding(GuitarAction.StarPower, guitar.selectButton);
+            AddBinding(GuitarAction.StarPower, guitar.tilt, tiltSettings);
 
             return true;
         }
