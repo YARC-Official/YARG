@@ -416,7 +416,7 @@ namespace YARG.Gameplay
             try
             {
                 _isReplaySaved = false;
-                replayInfo = SaveReplay(Song.SongLengthSeconds, ScoreContainer.ScoreReplayDirectory);
+                replayInfo = SaveReplay(InputTime, ScoreContainer.ScoreReplayDirectory);
             }
             catch (Exception e)
             {
