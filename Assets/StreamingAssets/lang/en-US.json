@@ -382,7 +382,12 @@
             "Red": "Red Fret (Second)",
             "Yellow": "Yellow Fret (Third)",
             "Blue": "Blue Fret (Fourth)",
-            "Orange": "Orange Fret (Fifth)"
+            "Orange": "Orange Fret (Fifth)",
+            "SoloGreen": "Solo Green Fret",
+            "SoloRed": "Solo Red Fret",
+            "SoloYellow": "Solo Yellow Fret",
+            "SoloBlue": "Solo Blue Fret",
+            "SoloOrange": "Solo Orange Fret"
         },
         "Guitar": {
             "StrumUp": "Strum Up",
