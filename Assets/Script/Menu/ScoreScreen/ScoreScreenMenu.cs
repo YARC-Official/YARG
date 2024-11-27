@@ -197,7 +197,7 @@ namespace YARG.Menu.ScoreScreen
                 return true;
             }
 
-            var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, replayEntry, data);
             for(int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];

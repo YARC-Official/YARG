@@ -134,7 +134,7 @@ namespace YARG.Menu.History
                 return;
             }
 
-            var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, _entry, data);
             for (int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];
