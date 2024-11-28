@@ -176,14 +176,14 @@ namespace YARG.Scores
                 PlayerHighScores[songChecksum] = newScore;
 
                 // If there's a new best score on a different difficulty, the old best percentage entry is irrelevant. Use the new score as the new best percentage entry.
-                if (newScore.Difficulty != currentBest.Difficulty || newScore.GetPercent() > currentBest.GetPercent())
+                if (newScore.Difficulty != currentBest.Difficulty || newScore.GetPercent() > currentBestPct.GetPercent())
                 {
                     PlayerHighScoresByPct[songChecksum] = newScore;
                 }
             }
 
             // Update the best percentage entry if appropriate.
-            if (newScore.Difficulty == currentBestPct.Difficulty || newScore.GetPercent() > currentBest.GetPercent())
+            if (newScore.Difficulty == currentBestPct.Difficulty || newScore.GetPercent() > currentBestPct.GetPercent())
             {
                 PlayerHighScoresByPct[songChecksum] = newScore;
             }
