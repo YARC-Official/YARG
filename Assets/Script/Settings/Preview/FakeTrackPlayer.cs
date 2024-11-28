@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Gameplay;
 using YARG.Gameplay.Player;
@@ -53,6 +54,8 @@ namespace YARG.Settings.Preview
 
                     CreateFakeNote = (time) =>
                     {
+                        // Here we use 0 as open as it's easier to visualize.
+                        // We convert this into the correct value in the if below.
                         int fret = Random.Range(0, 6);
 
                         // Open notes have different models
@@ -62,7 +65,7 @@ namespace YARG.Settings.Preview
                             {
                                 Time = time,
 
-                                Fret = fret,
+                                Fret = (int) FiveFretGuitarFret.Open,
                                 CenterNote = true,
                                 NoteType = ThemeNoteType.Open
                             };
