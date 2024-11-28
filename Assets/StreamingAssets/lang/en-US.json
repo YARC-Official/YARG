@@ -1371,6 +1371,10 @@
                 "SustainDropLeniency": {
                     "Name": "Sustain Drop Leniency",
                     "Description": ""
+                },
+                "SoloTaps": {
+                    "Name": "Allow Taps During Solos",
+                    "Description": "Allows solo buttons to tap notes during solos"
                 }
             },
             "HighwayPreset" : {
