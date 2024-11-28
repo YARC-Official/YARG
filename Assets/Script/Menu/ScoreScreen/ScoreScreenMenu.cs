@@ -177,12 +177,14 @@ namespace YARG.Menu.ScoreScreen
                 _analyzingReplay = false;
                 return true;
             }
+
             if (GlobalVariables.State.ScoreScreenStats.Value.PlayerScores.All(e => e.Player.Profile.IsBot))
             {
                 YargLogger.LogInfo("No human players in ReplayEntry.");
                 _analyzingReplay = false;
                 return true;
             }
+
             if (replayEntry == null)
             {
                 YargLogger.LogError("ReplayEntry is null");
@@ -199,19 +201,34 @@ namespace YARG.Menu.ScoreScreen
             }
 
             var results = ReplayAnalyzer.AnalyzeReplay(chart, replayEntry, data);
-            for(int i = 0; i < results.Length; i++)
+            bool allPass = true;
+
+            for (int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];
 
+                // Always print the stats in debug mode
+#if UNITY_EDITOR || YARG_TEST_BUILD
+                YargLogger.LogFormatDebug("({0}, {1}/{2}) Verification Result: {3}. Stats:\n{4}",
+                    data.Frames[i].Profile.Name, data.Frames[i].Profile.CurrentInstrument,
+                    data.Frames[i].Profile.CurrentDifficulty, item4: analysisResult.Passed ? "Passed" : "Failed",
+                    item5: analysisResult.StatLog);
+#endif
+
                 if (!analysisResult.Passed)
                 {
+#if !(UNITY_EDITOR || YARG_TEST_BUILD)
+                    YargLogger.LogFormatWarning("({0}, {1}/{2}) FAILED verification. Stats:\n{3}",
+                        data.Frames[i].Profile.Name, data.Frames[i].Profile.CurrentInstrument,
+                        data.Frames[i].Profile.CurrentDifficulty, item4: analysisResult.StatLog);
+#endif
                     _analyzingReplay = false;
-                    return false;
+                    allPass = false;
                 }
             }
 
             _analyzingReplay = false;
-            return true;
+            return allPass;
         }
     }
 }
