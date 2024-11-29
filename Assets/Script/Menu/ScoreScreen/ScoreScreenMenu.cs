@@ -209,7 +209,7 @@ namespace YARG.Menu.ScoreScreen
 
                 // Always print the stats in debug mode
 #if UNITY_EDITOR || YARG_TEST_BUILD
-                YargLogger.LogFormatDebug("({0}, {1}/{2}) Verification Result: {3}. Stats:\n{4}",
+                YargLogger.LogFormatInfo("({0}, {1}/{2}) Verification Result: {3}. Stats:\n{4}",
                     data.Frames[i].Profile.Name, data.Frames[i].Profile.CurrentInstrument,
                     data.Frames[i].Profile.CurrentDifficulty, item4: analysisResult.Passed ? "Passed" : "Failed",
                     item5: analysisResult.StatLog);
