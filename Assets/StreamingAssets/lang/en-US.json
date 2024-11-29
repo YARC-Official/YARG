@@ -960,7 +960,8 @@
         "PresetType": {
             "CameraSettingsContainer": "Camera Presets",
             "ColorProfileContainer": "Color Profiles",
-            "EnginePresetContainer": "Engine Presets"
+            "EnginePresetContainer": "Engine Presets",
+            "HighwayPresetContainer" : "Highway Presets"
         },
         "PresetSetting": {
             "CameraPreset": {
@@ -1325,6 +1326,35 @@
                 "SustainDropLeniency": {
                     "Name": "Sustain Drop Leniency",
                     "Description": ""
+                }
+            },
+            "HighwayPreset" : {
+                "BackgroundBaseColor1": {
+                    "Name": "Background Base Color 1"
+                },
+                "BackgroundBaseColor2": {
+                    "Name": "Background Base Color 2"
+                },
+                "BackgroundBaseColor3": {
+                    "Name": "Background UNUSED Color"
+                },
+                "BackgroundPatternColor": {
+                    "Name": "Background Pattern Color"
+                },
+                "BackgroundGrooveBaseColor1": {
+                    "Name": "Groove Base Color 1"
+                },
+                "BackgroundGrooveBaseColor2": {
+                    "Name": "Groove Base Color 2"
+                },
+                "BackgroundGrooveBaseColor3": {
+                    "Name": "Groove UNUSED Color"
+                },
+                "BackgroundGroovePatternColor": {
+                    "Name": "Groove Pattern Color"
+                },
+                "StarPowerColor": {
+                    "Name": "Star Power Color"
                 }
             }
         }
