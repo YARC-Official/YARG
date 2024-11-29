@@ -146,8 +146,8 @@ namespace YARG.Menu.History
                 }
                 else
                 {
-                    YargLogger.LogFormatWarning("({0}, {1}/{2}) FAILED verification",
-                        profile.Name, profile.CurrentDifficulty, profile.CurrentDifficulty);
+                    YargLogger.LogFormatWarning("({0}, {1}/{2}) FAILED verification. Stats:\n{3}",
+                        profile.Name, profile.CurrentDifficulty, profile.CurrentDifficulty, item4: analysisResult.StatLog);
                 }
             }
         }
