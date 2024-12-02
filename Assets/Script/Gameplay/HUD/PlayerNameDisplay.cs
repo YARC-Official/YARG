@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DG.Tweening;
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -19,9 +20,17 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private Image _instrumentIcon;
         [SerializeField]
-        private Image _needleIcon;
+        private RawImage _needleIcon;
 
-        private readonly PerformanceTextScaler _scaler = new(3f);
+        private CanvasGroup _canvasGroup;
+
+        public float DisplayTime = 3.0f;
+        public float FadeDuration = 0.5f;
+
+        void Awake()
+        {
+            _canvasGroup = GetComponent<CanvasGroup>();
+        }
 
         public void ShowPlayer(YargPlayer player)
         {
@@ -33,7 +42,7 @@ namespace YARG.Gameplay.HUD
                 .LoadAssetAsync<Sprite>(spriteName)
                 .WaitForCompletion();
 
-            StartCoroutine(AnimationCoroutine());
+            StartCoroutine(FadeoutCoroutine());
         }
 
         private string GetSpriteName(Instrument currentInstrument, byte harmonyIndex)
@@ -48,8 +57,8 @@ namespace YARG.Gameplay.HUD
 
         public void ShowPlayer(YargPlayer player, int needleId)
         {
-            var materialPath = $"VocalNeedle/{needleId}";
-            _needleIcon.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
+            var textureNeedle = $"VocalNeedleTexture/{needleId}";
+            _needleIcon.texture = Addressables.LoadAssetAsync<Texture2D>(textureNeedle).WaitForCompletion();
             _instrumentIcon.color = GetHarmonyColor(player);
             ShowPlayer(player);
         }
@@ -78,19 +87,11 @@ namespace YARG.Gameplay.HUD
             return HarmonyColors[player.Profile.HarmonyIndex];
         }
 
-        private IEnumerator AnimationCoroutine()
+        private IEnumerator FadeoutCoroutine()
         {
-            gameObject.SetActive(true);
-            _scaler.ResetAnimationTime();
-
-            while (_scaler.AnimTimeRemaining > 0f)
-            {
-                _scaler.AnimTimeRemaining -= Time.deltaTime;
-                float scale = _scaler.PerformanceTextScale();
-
-                gameObject.transform.localScale = new Vector3(scale, scale, scale);
-                yield return null;
-            }
+            _canvasGroup.alpha = 1f;
+            yield return new WaitForSeconds(DisplayTime);
+            yield return _canvasGroup.DOFade(0f, FadeDuration).WaitForCompletion();
 
             gameObject.SetActive(false);
         }

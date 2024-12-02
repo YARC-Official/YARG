@@ -222,6 +222,41 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b68a573841c0df43b615b07a9fa8a80
+    m_Address: VocalNeedleTexture/3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6c4556492c4d6da49ac6ae4204f6d10a
+    m_Address: VocalNeedleTexture/4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 029be4c7f0bed9f4ea00ee2c26be53f2
+    m_Address: VocalNeedleTexture/5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 00be5b45e060bcc4ea7a4233ed157d47
+    m_Address: VocalNeedleTexture/1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5c946b527f23cbe438e258cadbf6542e
+    m_Address: VocalNeedleTexture/2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 60f34417203db20409cbad721139466b
+    m_Address: VocalNeedleTexture/6
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c75f7ae331c92ba4a96938e48ae7391c
+    m_Address: VocalNeedleTexture/7
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: e05274e5aee7ff54bb550557e8a635f2, type: 2}
   m_SchemaSet:

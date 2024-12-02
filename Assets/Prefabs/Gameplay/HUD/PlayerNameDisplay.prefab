@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8429420445829968483}
   - component: {fileID: 6917187834511046771}
+  - component: {fileID: 5797816197247195401}
   m_Layer: 5
   m_Name: PlayerNameDisplay
   m_TagString: Untagged
@@ -54,6 +55,18 @@ MonoBehaviour:
   _playerName: {fileID: 8451396422841220938}
   _instrumentIcon: {fileID: 2914619490922728656}
   _needleIcon: {fileID: 0}
+--- !u!225 &5797816197247195401
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6492948755221035132}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &7892867668368211152
 GameObject:
   m_ObjectHideFlags: 0
