@@ -59,7 +59,8 @@
             "NoKicks": "No Kicks",
             "TapsToHopos": "Taps to HOPOs",
             "UnpitchedOnly": "Unpitched Only",
-            "NoDynamics": "No Dynamics"
+            "NoDynamics": "No Dynamics",
+            "GamepadMode": "Gamepad Mode"
         },
         "SortAttribute": {
             "Album": "Album",
@@ -1326,6 +1327,14 @@
                 "SustainDropLeniency": {
                     "Name": "Sustain Drop Leniency",
                     "Description": ""
+                },
+                "GamepadModeStrumOnRelease": {
+                    "Name": "Gamepad Mode strums on release",
+                    "Description": "If enabled, both pressing and releasing a fret will strum (think Lift Notes). Disable this for the classic Gamepad Mode experience."
+                },
+                "GamepadModeChordLeniency": {
+                    "Name": "Gamepad Mode chord leniency",
+                    "Description": "For gamepad mode, the amount of time you have between hitting one fret of a chord and the other(s)."
                 }
             },
             "HighwayPreset" : {
