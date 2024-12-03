@@ -87,9 +87,7 @@ namespace YARG.Gameplay.Player
                 EngineParams = (GuitarEngineParameters) Player.EngineParameterOverride;
             }
 
-            var engine = Player.Profile.IsModifierActive(Modifier.GamepadMode) 
-                ? new YargFiveFretControllerEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot)
-                : new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot, Player.Profile.IsModifierActive(Modifier.GamepadMode));
 
             HitWindow = EngineParams.HitWindow;
 
