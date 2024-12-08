@@ -63,14 +63,6 @@ namespace YARG.Gameplay.HUD
             ShowPlayer(player);
         }
 
-        // TODO: Temporary until color profiles for vocals. Duplicated from VocalTrack class.
-        public readonly Color[] HarmonyColors =
-        {
-            new(0f, 0.800f, 1f, 1f),
-            new(1f, 0.522f, 0f, 1f),
-            new(1f, 0.859f, 0f, 1f)
-        };
-
         private Color GetHarmonyColor(YargPlayer player)
         {
             if (player.Profile.CurrentInstrument != Instrument.Harmony)
@@ -78,13 +70,13 @@ namespace YARG.Gameplay.HUD
                 return Color.white;
             }
 
-            if (player.Profile.HarmonyIndex >= HarmonyColors.Length)
+            if (player.Profile.HarmonyIndex >= VocalTrack.Colors.Length)
             {
                 YargLogger.LogWarning("PlayerNameDisplay", $"Harmony index {player.Profile.HarmonyIndex} is out of bounds.");
                 return Color.white;
             }
 
-            return HarmonyColors[player.Profile.HarmonyIndex];
+            return VocalTrack.Colors[player.Profile.HarmonyIndex];
         }
 
         private IEnumerator FadeoutCoroutine()

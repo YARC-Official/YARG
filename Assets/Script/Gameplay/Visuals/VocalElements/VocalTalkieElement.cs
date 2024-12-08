@@ -37,7 +37,7 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Set the color
-            var color = VocalTrack.Colors[NoteRef.HarmonyPart];
+            var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
             mesh.material.color = color.WithAlpha(ALPHA_VALUE);
 
             // Update the size of the talkie
