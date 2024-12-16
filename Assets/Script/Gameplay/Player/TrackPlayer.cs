@@ -57,6 +57,8 @@ namespace YARG.Gameplay.Player
         protected KeyedPool NotePool;
         [SerializeField]
         protected Pool BeatlinePool;
+        [SerializeField]
+        protected Pool SoloPool;
 
         public float ZeroFadePosition { get; private set; }
         public float FadeSize         { get; private set; }
@@ -70,6 +72,22 @@ namespace YARG.Gameplay.Player
         protected bool IsBass { get; private set; }
 
         private float _spawnAheadDelay;
+
+        public struct Solo
+        {
+            public Solo(double startTime, double endTime)
+            {
+                StartTime = startTime;
+                EndTime = endTime;
+                Started = false;
+                Finished = false;
+            }
+
+            public readonly double StartTime;
+            public readonly double EndTime;
+            public bool Started;
+            public bool Finished;
+        }
 
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
@@ -119,6 +137,7 @@ namespace YARG.Gameplay.Player
             base.UpdateVisualsWithTimes(time);
             UpdateNotes(time);
             UpdateBeatlines(time);
+            UpdateSolos(time);
         }
 
         protected override void ResetVisuals()
@@ -139,6 +158,8 @@ namespace YARG.Gameplay.Player
         protected abstract void UpdateNotes(double time);
 
         protected abstract void UpdateBeatlines(double time);
+
+        protected abstract void UpdateSolos(double time);
     }
 
     public abstract class TrackPlayer<TEngine, TNote> : TrackPlayer
@@ -165,6 +186,16 @@ namespace YARG.Gameplay.Player
         private bool _newHighScoreShown;
 
         private double _previousStarPowerAmount;
+
+        private Queue<Solo> _upcomingSolos = new();
+        private Stack<Solo> _previousSolos = new();
+        private Queue<Solo> _currentSolos = new();
+
+        private bool _isSoloActive = false;
+        private bool _isSoloStarting = false;
+        private bool _isSoloEnding = false;
+        private double _nextSoloStartTime = 0;
+        private double _nextSoloEndTime = 0;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
@@ -201,6 +232,16 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
+            foreach(var soloSection in Engine.GetSolos())
+            {
+                _upcomingSolos.Enqueue(new Solo(soloSection.StartTime, soloSection.EndTime));
+            }
+            if (_upcomingSolos.Any())
+            {
+                _nextSoloStartTime = _upcomingSolos.Peek().StartTime;
+                _nextSoloEndTime = _upcomingSolos.Peek().EndTime;
+            }
+
             ResetNoteCounters();
 
             FinishInitialization();
@@ -220,7 +261,7 @@ namespace YARG.Gameplay.Player
         {
             GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar);
 
-            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.HighwayPreset);
+            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.HighwayPreset, GameManager);
             CameraPositioner.Initialize(Player.CameraPreset);
         }
 
@@ -263,6 +304,7 @@ namespace YARG.Gameplay.Player
             TrackMaterial.SetTrackScroll(songTime, NoteSpeed);
             TrackMaterial.GrooveMode = groove;
             TrackMaterial.StarpowerMode = stats.IsStarPowerActive;
+            TrackMaterial.SoloMode = _isSoloActive;
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
             StarpowerBar.SetStarpower(currentStarPowerAmount, stats.IsStarPowerActive);
@@ -300,6 +342,8 @@ namespace YARG.Gameplay.Player
             {
                 haptics.SetStarPowerFill((float) currentStarPowerAmount);
             }
+
+            // UpdateSoloState();
         }
 
         protected override void UpdateNotes(double songTime)
@@ -369,6 +413,87 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected override void UpdateSolos(double time)
+        {
+            if (!_upcomingSolos.TryPeek(out var nextSolo))
+            {
+                return;
+            }
+
+            if (!(nextSolo.StartTime <= time + SpawnTimeOffset))
+            {
+                return;
+            }
+
+            var poolable = SoloPool.TakeWithoutEnabling();
+            if (poolable == null)
+            {
+                YargLogger.LogWarning("Attempted to spawn solo, but it's at its cap!");
+                return;
+            }
+
+            ((SoloElement) poolable).SoloRef = nextSolo;
+            poolable.EnableFromPool();
+            _currentSolos.Enqueue(nextSolo);
+            _upcomingSolos.Dequeue();
+        }
+
+        public float ZFromTime(double time)
+        {
+            float z = STRIKE_LINE_POS + (float) (time - GameManager.RealVisualTime) * NoteSpeed;
+            return z;
+        }
+
+        protected void UpdateSoloState()
+        {
+            // Check to see if any solo events are happening soon and update
+            // coordinates for the solo objects/shader/whatever
+
+            // There may be no solos in this song or no more solos
+            if (_nextSoloStartTime == 0 && _nextSoloEndTime == 0)
+            {
+                // This may be unnecessary, not sure yet
+                TrackMaterial.SetSoloProcessing(false);
+                return;
+            }
+
+            var lookAheadTime = (ZeroFadePosition + -STRIKE_LINE_POS) / NoteSpeed;
+
+            bool soloStartInWindow = (_nextSoloStartTime > 0) &&
+                _nextSoloStartTime <= GameManager.RealVisualTime + lookAheadTime;
+            bool soloEndInWindow =
+                (_nextSoloEndTime > 0) && _nextSoloEndTime <= GameManager.RealVisualTime + lookAheadTime;
+
+            // No need to keep doing work if there is no nearby solo and we're not in a solo.
+            if (!(soloStartInWindow || soloEndInWindow) && !_isSoloActive)
+            {
+                // TrackMaterial.SetSoloProcessing(false);
+                return;
+            }
+
+            if (soloStartInWindow)
+            {
+                // Next solo coming, better get prepared
+                var thisSolo = _upcomingSolos.Dequeue();
+                if (!thisSolo.Started)
+                {
+                    thisSolo.Started = true;
+                    _nextSoloEndTime = thisSolo.EndTime;
+                    if (_upcomingSolos.TryPeek(out Solo nextSolo))
+                    {
+                        _nextSoloStartTime = nextSolo.StartTime;
+                    }
+                    else
+                    {
+                        _nextSoloStartTime = 0;
+                    }
+                    _currentSolos.Enqueue(thisSolo);
+                    _isSoloStarting = true;
+                    TrackMaterial.PrepareForSoloStart(ZFromTime(thisSolo.StartTime), ZFromTime(thisSolo.EndTime));
+                }
+            }
+        }
+
         protected virtual void OnNoteSpawned(TNote parentNote)
         {
         }
@@ -413,17 +538,31 @@ namespace YARG.Gameplay.Player
             base.SetReplayTime(time);
         }
 
-        protected void SpawnNote(TNote note)
+        protected BaseElement SpawnSolo(SoloSection solo)
+        {
+            var poolable = SoloPool.TakeWithoutEnabling();
+
+            if (poolable == null)
+            {
+                YargLogger.LogWarning("Attempted to spawn Solo, but it's at its cap!");
+                return (BaseElement) null;
+            }
+
+            return (BaseElement) poolable;
+        }
+
+        protected BaseElement SpawnNote(TNote note)
         {
             var poolable = NotePool.KeyedTakeWithoutEnabling(note);
             if (poolable == null)
             {
                 YargLogger.LogWarning("Attempted to spawn note, but it's at its cap!");
-                return;
+                return (BaseElement) null;
             }
 
             InitializeSpawnedNote(poolable, note);
             poolable.EnableFromPool();
+            return (BaseElement) poolable;
         }
 
         protected abstract void InitializeSpawnedNote(IPoolable poolable, TNote note);
@@ -498,7 +637,10 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloStart(SoloSection solo)
         {
+            _isSoloActive = true;
+            _isSoloStarting = false;
             TrackView.StartSolo(solo);
+            TrackMaterial.SoloMode = true;
 
             foreach (var haptic in SantrollerHaptics)
             {
@@ -508,7 +650,11 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloEnd(SoloSection solo)
         {
+            _isSoloActive = false;
+            _isSoloEnding = false;
             TrackView.EndSolo(solo.SoloBonus);
+            TrackMaterial.OnSoloEnd();
+            _previousSolos.Push(_currentSolos.Dequeue());
 
             foreach (var haptic in SantrollerHaptics)
             {
