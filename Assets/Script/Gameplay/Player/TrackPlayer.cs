@@ -304,7 +304,6 @@ namespace YARG.Gameplay.Player
             TrackMaterial.SetTrackScroll(songTime, NoteSpeed);
             TrackMaterial.GrooveMode = groove;
             TrackMaterial.StarpowerMode = stats.IsStarPowerActive;
-            TrackMaterial.SoloMode = _isSoloActive;
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
             StarpowerBar.SetStarpower(currentStarPowerAmount, stats.IsStarPowerActive);
@@ -342,8 +341,6 @@ namespace YARG.Gameplay.Player
             {
                 haptics.SetStarPowerFill((float) currentStarPowerAmount);
             }
-
-            // UpdateSoloState();
         }
 
         protected override void UpdateNotes(double songTime)
@@ -444,56 +441,6 @@ namespace YARG.Gameplay.Player
             return z;
         }
 
-        protected void UpdateSoloState()
-        {
-            // Check to see if any solo events are happening soon and update
-            // coordinates for the solo objects/shader/whatever
-
-            // There may be no solos in this song or no more solos
-            if (_nextSoloStartTime == 0 && _nextSoloEndTime == 0)
-            {
-                // This may be unnecessary, not sure yet
-                TrackMaterial.SetSoloProcessing(false);
-                return;
-            }
-
-            var lookAheadTime = (ZeroFadePosition + -STRIKE_LINE_POS) / NoteSpeed;
-
-            bool soloStartInWindow = (_nextSoloStartTime > 0) &&
-                _nextSoloStartTime <= GameManager.RealVisualTime + lookAheadTime;
-            bool soloEndInWindow =
-                (_nextSoloEndTime > 0) && _nextSoloEndTime <= GameManager.RealVisualTime + lookAheadTime;
-
-            // No need to keep doing work if there is no nearby solo and we're not in a solo.
-            if (!(soloStartInWindow || soloEndInWindow) && !_isSoloActive)
-            {
-                // TrackMaterial.SetSoloProcessing(false);
-                return;
-            }
-
-            if (soloStartInWindow)
-            {
-                // Next solo coming, better get prepared
-                var thisSolo = _upcomingSolos.Dequeue();
-                if (!thisSolo.Started)
-                {
-                    thisSolo.Started = true;
-                    _nextSoloEndTime = thisSolo.EndTime;
-                    if (_upcomingSolos.TryPeek(out Solo nextSolo))
-                    {
-                        _nextSoloStartTime = nextSolo.StartTime;
-                    }
-                    else
-                    {
-                        _nextSoloStartTime = 0;
-                    }
-                    _currentSolos.Enqueue(thisSolo);
-                    _isSoloStarting = true;
-                    TrackMaterial.PrepareForSoloStart(ZFromTime(thisSolo.StartTime), ZFromTime(thisSolo.EndTime));
-                }
-            }
-        }
-
         protected virtual void OnNoteSpawned(TNote parentNote)
         {
         }
@@ -536,19 +483,6 @@ namespace YARG.Gameplay.Player
             ResetNoteCounters();
 
             base.SetReplayTime(time);
-        }
-
-        protected BaseElement SpawnSolo(SoloSection solo)
-        {
-            var poolable = SoloPool.TakeWithoutEnabling();
-
-            if (poolable == null)
-            {
-                YargLogger.LogWarning("Attempted to spawn Solo, but it's at its cap!");
-                return (BaseElement) null;
-            }
-
-            return (BaseElement) poolable;
         }
 
         protected BaseElement SpawnNote(TNote note)
@@ -637,10 +571,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloStart(SoloSection solo)
         {
-            _isSoloActive = true;
-            _isSoloStarting = false;
             TrackView.StartSolo(solo);
-            TrackMaterial.SoloMode = true;
 
             foreach (var haptic in SantrollerHaptics)
             {
@@ -650,10 +581,9 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloEnd(SoloSection solo)
         {
-            _isSoloActive = false;
-            _isSoloEnding = false;
             TrackView.EndSolo(solo.SoloBonus);
-            TrackMaterial.OnSoloEnd();
+            // TODO: This isn't being used yet, but needs to exist when
+            //  we're actually handling replays properly
             _previousSolos.Push(_currentSolos.Dequeue());
 
             foreach (var haptic in SantrollerHaptics)

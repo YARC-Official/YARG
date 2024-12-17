@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Game;
+using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 
@@ -19,8 +20,6 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _layer2ColorProperty = Shader.PropertyToID("_Layer_2_Color");
         private static readonly int _layer3ColorProperty = Shader.PropertyToID("_Layer_3_Color");
         private static readonly int _layer4ColorProperty = Shader.PropertyToID("_Layer_4_Color");
-
-        private static readonly int _soloStateProperty = Shader.PropertyToID("_Solo_State");
 
         private static readonly int _starPowerColorProperty = Shader.PropertyToID("_Starpower_Color");
 
@@ -82,24 +81,7 @@ namespace YARG.Gameplay.Visuals
         public bool GrooveMode;
         [HideInInspector]
         public bool StarpowerMode;
-
-        private float _soloState;
-
-        public float SoloState
-        {
-            get => _soloState;
-            set
-            {
-                _soloState = value;
-
-                foreach (var material in _trimMaterials)
-                {
-                    material.SetFloat(_soloStateProperty, value);
-                }
-
-                _material.SetFloat(_soloStateProperty, value);
-            }
-        }
+        private GameManager _gameManager;
 
         public float StarpowerState
         {
@@ -142,8 +124,10 @@ namespace YARG.Gameplay.Visuals
             };
         }
 
-        public void Initialize(float fadePos, float fadeSize, HighwayPreset highwayPreset)
+        public void Initialize(float fadePos, float fadeSize, HighwayPreset highwayPreset, GameManager gameManager = null)
         {
+            _gameManager = gameManager;
+
             // Set all fade values
             _material.SetFade(fadePos, fadeSize);
             foreach (var trimMat in _trimMaterials)
