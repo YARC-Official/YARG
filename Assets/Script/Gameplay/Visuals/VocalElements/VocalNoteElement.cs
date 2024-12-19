@@ -24,7 +24,7 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
-            var color = VocalTrack.Colors[NoteRef.HarmonyPart];
+            var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
 
             // Set line color
             foreach (var line in _lineRenderers)

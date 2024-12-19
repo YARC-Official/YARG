@@ -110,6 +110,8 @@ namespace YARG.Gameplay.Player
                 or Instrument.SixFretBass
                 or Instrument.ProBass_17Fret
                 or Instrument.ProBass_22Fret;
+
+            TrackView.ShowPlayerName(player);
         }
 
         protected override void UpdateVisualsWithTimes(double time)

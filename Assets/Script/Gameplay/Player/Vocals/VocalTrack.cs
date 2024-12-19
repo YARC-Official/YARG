@@ -45,7 +45,7 @@ namespace YARG.Gameplay.Player
         private static readonly int _alphaMultiplier = Shader.PropertyToID("AlphaMultiplier");
 
         // TODO: Temporary until color profiles for vocals
-        public readonly Color[] Colors =
+        public static readonly Color[] Colors =
         {
             new(0f, 0.800f, 1f, 1f),
             new(1f, 0.522f, 0f, 1f),

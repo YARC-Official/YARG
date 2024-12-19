@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Localization;
+using YARG.Player;
 
 namespace YARG.Gameplay.HUD
 {
@@ -24,6 +25,9 @@ namespace YARG.Gameplay.HUD
         private TextMeshProUGUI _multiplierText;
         [SerializeField]
         private TextMeshProUGUI _performanceText;
+
+        [SerializeField]
+        private PlayerNameDisplay _playerNameDisplay;
 
         private float _comboMeterFillTarget;
 
@@ -193,6 +197,11 @@ namespace YARG.Gameplay.HUD
             }
 
             _hudCoroutine = null;
+        }
+
+        public void ShowPlayerName(YargPlayer player, int needleId)
+        {
+            _playerNameDisplay.ShowPlayer(player, needleId);
         }
     }
 }

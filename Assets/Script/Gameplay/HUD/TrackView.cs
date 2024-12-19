@@ -1,8 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
+using YARG.Player;
 
 namespace YARG.Gameplay.HUD
 {
@@ -25,6 +26,8 @@ namespace YARG.Gameplay.HUD
         private TextNotifications _textNotifications;
         [SerializeField]
         private CountdownDisplay _countdownDisplay;
+        [SerializeField]
+        private PlayerNameDisplay _playerNameDisplay;
 
         private TrackPlayer _trackPlayer;
 
@@ -132,6 +135,11 @@ namespace YARG.Gameplay.HUD
         public void ShowStrongFinish()
         {
             _textNotifications.ShowStrongFinish();
+        }
+
+        public void ShowPlayerName(YargPlayer player)
+        {
+            _playerNameDisplay.ShowPlayer(player);
         }
 
         public void ForceReset()
