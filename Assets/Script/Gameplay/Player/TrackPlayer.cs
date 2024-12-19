@@ -188,8 +188,8 @@ namespace YARG.Gameplay.Player
         private double _previousStarPowerAmount;
 
         private Queue<Solo> _upcomingSolos = new();
-        private Stack<Solo> _previousSolos = new();
-        private Queue<Solo> _currentSolos = new();
+        private Stack<Solo> _previousSolos;
+        private Queue<Solo> _currentSolos;
 
         private bool _isSoloActive = false;
         private bool _isSoloStarting = false;
@@ -241,6 +241,12 @@ namespace YARG.Gameplay.Player
                 _nextSoloStartTime = _upcomingSolos.Peek().StartTime;
                 _nextSoloEndTime = _upcomingSolos.Peek().EndTime;
             }
+
+            var soloCount = _upcomingSolos.Count();
+
+            // Preallocate solo queue and stack
+            _currentSolos = new Queue<Solo>(soloCount);
+            _previousSolos = new Stack<Solo>(soloCount);
 
             ResetNoteCounters();
 
