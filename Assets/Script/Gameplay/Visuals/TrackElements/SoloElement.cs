@@ -18,11 +18,6 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
-            // TODO: Here we must take an element from the pool and set the
-            //  appropriate z scale for the given solosection
-            //  Since we're using a plane that has a base size of 10z, scale
-            //  values are a tenth of normal, I think.
-
             var zScale = (float) (SoloRef.EndTime - SoloRef.StartTime) * Player.NoteSpeed / 10;
 
             var cachedTransform = _meshRenderer.transform;
@@ -56,21 +51,9 @@ namespace YARG.Gameplay.Visuals
 
         }
 
-        // Start is called before the first frame update
-        // void Start()
-        // {
-        //
-        // }
-
         protected override void UpdateElement()
         {
 
         }
-
-        // Update is called once per frame
-        // protected override bool UpdateElementPosition()
-        // {
-        //
-        // }
     }
 }

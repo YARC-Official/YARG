@@ -428,6 +428,11 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            SpawnSolo(nextSolo, false);
+        }
+
+        private void SpawnSolo(Solo nextSolo, bool seeking)
+        {
             var poolable = SoloPool.TakeWithoutEnabling();
             if (poolable == null)
             {
@@ -437,8 +442,12 @@ namespace YARG.Gameplay.Player
 
             ((SoloElement) poolable).SoloRef = nextSolo;
             poolable.EnableFromPool();
-            _currentSolos.Enqueue(nextSolo);
-            _upcomingSolos.Dequeue();
+            // The seeking code handles this for us if we're seeking
+            if (!seeking)
+            {
+                _currentSolos.Enqueue(nextSolo);
+                _upcomingSolos.Dequeue();
+            }
         }
 
         public float ZFromTime(double time)
@@ -488,7 +497,39 @@ namespace YARG.Gameplay.Player
             BeatlineIndex = 0;
             ResetNoteCounters();
 
+            // Reset the solo overlay
+            ResetSoloOverlay(time);
+
             base.SetReplayTime(time);
+        }
+
+        private void ResetSoloOverlay(double time)
+        {
+            // despawn any existing solos, rebuild solo structures, spawn any that are now in current
+            _upcomingSolos.Clear();
+            _currentSolos.Clear();
+            // We can just get rid of previous solos then, we won't be using it (unless there are problems with the naive approach)
+            _previousSolos.Clear();
+            foreach (var soloSection in Engine.GetSolos())
+            {
+                if (soloSection.StartTime > time)
+                {
+                    // It hasn't happened yet, so queue for later
+                    _upcomingSolos.Enqueue(new Solo(soloSection.StartTime, soloSection.EndTime));
+                }
+                else if (soloSection.EndTime < time)
+                {
+                    // It has already happened, so push it on the completed stack
+                    _previousSolos.Push(new Solo(soloSection.StartTime, soloSection.EndTime));
+                }
+                else
+                {
+                    // It must be current, so we need to spawn it here
+                    var solo = new Solo(soloSection.StartTime, soloSection.EndTime);
+                    _currentSolos.Enqueue(solo);
+                    SpawnSolo(solo, true);
+                }
+            }
         }
 
         protected BaseElement SpawnNote(TNote note)
@@ -589,8 +630,13 @@ namespace YARG.Gameplay.Player
         {
             TrackView.EndSolo(solo.SoloBonus);
             // TODO: This isn't being used yet, but needs to exist when
-            //  we're actually handling replays properly
-            _previousSolos.Push(_currentSolos.Dequeue());
+            //  we're actually handling replays properly. I'm not sure
+            //  anything other than the upcoming queue actually needs to
+            //  exist
+            if (_currentSolos.TryPeek(out var lastSolo))
+            {
+                _previousSolos.Push(_currentSolos.Dequeue());
+            }
 
             foreach (var haptic in SantrollerHaptics)
             {
