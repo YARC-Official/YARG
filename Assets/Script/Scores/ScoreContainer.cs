@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using SQLite;
 using YARG.Core;
+using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
@@ -405,6 +406,34 @@ namespace YARG.Scores
             }
 
             return new List<SongEntry>();
+        }
+
+        // order true sorts descending, false ascending
+        // this is the same as GetMostPlayedSongs, but is limited to the one profile and returns the entire list
+        public static List<SongEntry> GetPlayedSongsForUserByPlaycount(YargProfile profile, bool order)
+        {
+            // This may actually need to return a list of structs like (SongEntry, playCount)
+            // For now we can try returning a list of songs in order of play count
+            var sortOrder = order ? "DESC" : "ASC";
+            var profileId = profile.Id;
+            var songList = new List<SongEntry>();
+            var query = "SELECT COUNT(GameRecords.Id), GameRecords.SongChecksum from GameRecords, PlayerScores " +
+                "WHERE PlayerScores.GameRecordId = GameRecords.Id " +
+                $"AND PlayerScores.PlayerId = '{profileId}' " +
+                $"GROUP BY GameRecords.SongChecksum ORDER BY COUNT(GameRecords.Id) {sortOrder}";
+
+            YargLogger.LogDebug($"SQL Query: {query}");
+
+            var playCounts = _db.Query<PlayCountRecord>(query);
+            foreach (var record in playCounts)
+            {
+                var hash = HashWrapper.Create(record.SongChecksum);
+                if (SongContainer.SongsByHash.TryGetValue(hash, out var list))
+                {
+                    songList.Add(list.Pick());
+                }
+            }
+            return songList;
         }
 
         public static void Destroy()

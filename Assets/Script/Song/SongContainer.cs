@@ -2,6 +2,7 @@
 using YARG.Core.Song.Cache;
 using YARG.Core.Song;
 using System;
+using System.Linq;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 using YARG.Helpers;
@@ -12,6 +13,7 @@ using YARG.Core;
 using YARG.Player;
 using YARG.Localization;
 using YARG.Core.Extensions;
+using YARG.Scores;
 
 namespace YARG.Song
 {
@@ -30,6 +32,7 @@ namespace YARG.Song
         SongLength,
         DateAdded,
         Playable,
+        Playcount,
 
         Instrument,
         FiveFretGuitar,
@@ -93,6 +96,8 @@ namespace YARG.Song
         private static SongCategory[] _sortSongLengths = Array.Empty<SongCategory>();
         private static SongCategory[] _sortDatesAdded = Array.Empty<SongCategory>();
         private static Dictionary<Instrument, SongCategory[]> _sortInstruments = new();
+
+        private static SongCategory[] _sortPlaycounts = Array.Empty<SongCategory>();
 
         private static SongCategory[] _playables = null;
 
@@ -168,6 +173,7 @@ namespace YARG.Song
                 SortAttribute.Artist_Album => _sortArtistAlbums,
                 SortAttribute.SongLength => _sortSongLengths,
                 SortAttribute.DateAdded => _sortDatesAdded,
+                SortAttribute.Playcount => GetPlaycounts(),
                 SortAttribute.Playable => GetPlayableSongs(),
 
                 SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
@@ -280,6 +286,23 @@ namespace YARG.Song
             return _songs.Pick();
         }
 
+        private static SongCategory[] GetPlaycounts()
+        {
+            var player = PlayerContainer.Players.First();
+            var counts = ScoreContainer.GetPlayedSongsForUserByPlaycount(player.Profile, true);
+            // Get all the unplayed songs and stuff them on the end of the list
+            var zeroPlaySongs = new List<SongEntry>();
+            foreach (var list in _songCache.Entries.Values)
+            {
+                var songs = list.Except(counts);
+                zeroPlaySongs.AddRange(songs);
+            }
+            counts.AddRange(zeroPlaySongs);
+            var countCategories = new SongCategory[1];
+            countCategories[0] = new SongCategory("Play Count", counts.ToArray(), "Play Count");
+            return countCategories;
+        }
+
         private static void UpdateSongUi(LoadingContext context)
         {
             var tracker = CacheHandler.Progress;
@@ -322,7 +345,7 @@ namespace YARG.Song
         private static void FillContainers()
         {
             _songs = SetAllSongs(_songCache.Entries);
-        
+
             _sortArtists   = Convert(_songCache.Artists, SongAttribute.Artist, true);
             _sortAlbums    = Convert(_songCache.Albums, SongAttribute.Album, true);
             _sortGenres    = Convert(_songCache.Genres, SongAttribute.Genre, false);
@@ -388,7 +411,7 @@ namespace YARG.Song
             static SongCategory[] Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute, bool createCategoryGroups)
             {
                 var sections = new SongCategory[list.Count];
-                
+
                 int index = 0;
                 foreach (var node in list)
                 {
