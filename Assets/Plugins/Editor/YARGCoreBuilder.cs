@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -85,7 +85,7 @@ namespace Editor
         {
             // Check for submodule
             string projectRoot = ProjectRoot;
-            string submodule = Path.Combine(projectRoot, "YARG.Core2.0");
+            string submodule = Path.Combine(projectRoot, "YARG.Core");
             if (!Directory.Exists(submodule))
             {
                 Debug.LogError("YARG.Core submodule does not exist!");
@@ -193,7 +193,7 @@ namespace Editor
 
                 // Get directories
                 string projectRoot = ProjectRoot;
-                string submodulePath = Path.Join(projectRoot, "YARG.Core2.0", "YARG.Core");
+                string submodulePath = Path.Join(projectRoot, "YARG.Core", "YARG.Core");
                 string projectPath = Path.Join(submodulePath, "YARG.Core.csproj");
 
                 // Ensure all package references are resolved in Unity

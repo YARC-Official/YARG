@@ -1,5 +1,0 @@
-Detect unison phrases
-Venue [verse] and [chorus] events need to have corresponding [lighting ()] events ignored
-Venue post-procesing note conversions may need to be tweaked
-CON song updates/upgrades
-CON MILO event parsing
