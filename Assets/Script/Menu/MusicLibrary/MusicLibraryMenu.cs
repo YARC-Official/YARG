@@ -630,6 +630,12 @@ namespace YARG.Menu.MusicLibrary
 
         public void ChangeSort(SortAttribute sort)
         {
+            // Keep the previous sort attribute, too, so it can be used to
+            // sort the list of unplayed songs and possibly for other things
+            if (sort != SortAttribute.Playcount)
+            {
+                SettingsManager.Settings.PreviousLibrarySort = sort;
+            }
             SettingsManager.Settings.LibrarySort = sort;
             UpdateSearch(true);
         }

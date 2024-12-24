@@ -39,6 +39,7 @@ namespace YARG.Settings
             public bool ShowExperimentalWarningDialog = true;
 
             public SortAttribute LibrarySort = SortAttribute.Name;
+            public SortAttribute PreviousLibrarySort = SortAttribute.Name;
 
             public Dictionary<string, HUDPositionProfile> HUDPositionProfiles = new();
 

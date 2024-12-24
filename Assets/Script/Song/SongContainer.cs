@@ -292,14 +292,23 @@ namespace YARG.Song
             var counts = ScoreContainer.GetPlayedSongsForUserByPlaycount(player.Profile, true);
             // Get all the unplayed songs and stuff them on the end of the list
             var zeroPlaySongs = new List<SongEntry>();
-            foreach (var list in _songCache.Entries.Values)
+            var previousSort = SettingsManager.Settings.PreviousLibrarySort;
+
+            if (previousSort == SortAttribute.Unspecified)
             {
-                var songs = list.Except(counts);
+                // I don't think this should ever happen, but I'm not certain,
+                // so belt and suspenders wins.
+                previousSort = SortAttribute.Name;
+            }
+
+            foreach (var category in GetSortedCategory(previousSort))
+            {
+                var songs = category.Songs.Except(counts);
                 zeroPlaySongs.AddRange(songs);
             }
-            counts.AddRange(zeroPlaySongs);
-            var countCategories = new SongCategory[1];
-            countCategories[0] = new SongCategory("Play Count", counts.ToArray(), "Play Count");
+            var countCategories = new SongCategory[2];
+            countCategories[0] = new SongCategory("PLAYED SONGS", counts.ToArray(), "Played Songs");
+            countCategories[1] = new SongCategory("UNPLAYED SONGS", zeroPlaySongs.ToArray(), "Unplayed Songs");
             return countCategories;
         }
 
