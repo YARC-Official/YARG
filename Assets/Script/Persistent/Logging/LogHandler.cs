@@ -9,7 +9,7 @@ using YARG.Logging.Unity;
 namespace YARG.Logging
 {
     [DefaultExecutionOrder(-4000)]
-    public static class LogHandler
+    public static partial class LogHandler
     {
         private static bool _isInitialized;
 
@@ -30,9 +30,18 @@ namespace YARG.Logging
 
 #if UNITY_EDITOR || YARG_TEST_BUILD
             persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "dev"));
+#elif YARG_NIGHTLY_BUILD
+            persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "nightly"));
 #else
             persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "release"));
 #endif
+
+            // Persistent Data Path override passed in from CLI
+            if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
+            {
+                persistentPath = PathHelper.SanitizePath(CommandLineArgs.PersistentDataPath);
+                Directory.CreateDirectory(persistentPath);
+            }
 
             _logsDirectory = Path.Combine(persistentPath, "logs");
             Directory.CreateDirectory(_logsDirectory);
@@ -43,12 +52,13 @@ namespace YARG.Logging
             YargLogger.AddLogListener(new UnityEditorLogListener());
             YargLogger.AddLogListener(_fileYargLogListener);
 
+            RegisterFormatters();
+
             UnityInternalLogWrapper.OverwriteUnityInternals();
 
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
 
 #if UNITY_EDITOR
-            YargLogger.MinimumLogLevel = LogLevel.Debug;
             AppDomain.CurrentDomain.DomainUnload += ShutdownLogHandler;
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 #else

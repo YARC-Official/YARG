@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XInput;
@@ -124,6 +124,7 @@ namespace YARG.Input
             if (Mode != GameMode.Vocals)
                 return false;
 
+            AddBinding(VocalsAction.Hit, gamepad.aButton);
             AddBinding(VocalsAction.StarPower, gamepad.selectButton);
 
             return true;

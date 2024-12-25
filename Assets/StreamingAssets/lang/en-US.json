@@ -58,7 +58,8 @@
             "NoteShuffle": "Note Shuffle",
             "NoKicks": "No Kicks",
             "TapsToHopos": "Taps to HOPOs",
-            "UnpitchedOnly": "Unpitched Only"
+            "UnpitchedOnly": "Unpitched Only",
+            "NoDynamics": "No Dynamics"
         },
         "SortAttribute": {
             "Album": "Album",
@@ -155,14 +156,30 @@
                 "LeadArtist": "Lead Artist",
                 "Maintainers": "Maintainers",
                 "SpecialThanks": "Special Thanks",
-                "SetlistManager": "Setlist Manager"
+                "SetlistManager": "Setlist Manager",
+                "Songs": "Songs"
+            },
+            "Song": {
+                "Name": "\"{0}\" By {1}",
+                "WrittenBy": "Written By: {0}",
+                "PerformedBy": "Performed By: {0}",
+                "WrittenAndPerformedBy": "Written and Performed By: {0}",
+                "CourtesyOf": "Courtesy Of: {0}",
+                "AlbumCover": "Album Cover By: {0}",
+                "License": "Song License: {0}"
             }
         },
         "Dialog": {
+            "DontShowAgain": "Don't Show Again",
+
             "AntiPiracy": {
                 "Title": "YARG Anti-Piracy Statement",
                 "Description": "<b>YARG stands firmly against all forms of piracy.</b> We neither support nor endorse piracy, as it is a violation of copyright law with serious legal consequences. Our platform's importable content—designed for creators to share their work and for educational purposes—does not justify or excuse piracy.\n\nYARG itself <b>does not</b> use any ripped/pirated assets or music and never will. By using YARG, users agree not to promote or endorse piracy in any way through our platform. Upholding these principles ensures a community that respects copyright, creativity, and legal standards.\n\nYARG stands for \"Yet Another Rhythm Game\" and NOT for pirates.",
                 "Confirm": "I Understand"
+            },
+            "BadSongs": {
+                "Title": "Some Songs Could Not Be Scanned",
+                "Description": "One or more of the songs you scanned were corrupted, formatted incorrectly, or encrypted, and <b>could not be loaded into the game.</b>\n\nFor more info, please check the file located at \"{0}\"."
             },
             "ColorPicker": {
                 "Title": "Color Picker"
@@ -174,17 +191,14 @@
             },
             "EngineInconsistency": {
                 "Title": "Replays Are In Beta",
-                "Description": "Currently, the replay system is in beta, <b>and <i>may</i> provide inconsistent scores/stats</b>, especially for guitar.\n\nThe end goal is for replays to be reliable and accurate, and we're working on fixing these problems!"
+                "Description": "Currently, the replay system is in beta, <b>and <i>may</i> provide inconsistent scores/stats</b>, especially for guitar.\n\nThe end goal is for replays to be reliable and accurate, and we're working on fixing these problems!",
+                "Confirm": "I Understand"
             },
             "Experimental": {
                 "Title": "Experimental Features Notice",
-                "Description": "The options about to be displayed represent a work in progress. These features are subject to change, may contain bugs, and <b>could even cause major problems if enabled</b>."
-            },
-            "BadSongs": {
-                "Title": "Some Songs Could Not Be Scanned",
-                "Description": "One or more of the songs you scanned were corrupted, formatted incorrectly, or encrypted, and <b>could not be loaded into the game.</b>\n\nFor more info, please check the file located at \"{0}\"."
-            },
-            "DontShowAgain": "Don't Show Again"
+                "Description": "The options about to be displayed represent a work in progress. These features are subject to change, may contain bugs, and <b>could even cause major problems if enabled</b>.",
+                "Confirm": "I Understand"
+            }
         },
         "DifficultySelect": {
             "Instrument": "Instrument",
@@ -205,10 +219,12 @@
                 "LastThreeMonths": "Last 3 Months",
                 "ThisYear": "This Year",
                 "MoreThanYear": "More Than A Year"
-            }
+            },
+
+            "Analyze": "Analyze"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.12!</b></size></align>\n\nv0.12 is a <i>massive</i> update that completely revamps the backend code for the engine, which adds profiles, practice mode, replays, modifiers, customization presets, and much more!\n\n<b>If you find any bugs, please let us know on Discord or GitHub.</b>\n\n<b>Replays are currently in preview.</b> Replays do not produce 1:1 results to what was actually played and can be inconsistent. This is known and we are working on fixing this for the future.\n\nHave fun!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to the v0.13 Nightly!</b></size></align>\n\nv0.13 adds Pro Keys to the game, as well as reintroducing Pro Guitar/Bass after it was removed in v0.12 due to time constraints. Please let us know how these instruments feel, as well as any bugs you find and missing features.\n\nInstrument engine code has once again gone through major changes to facilitate producing replays with 1:1 results to the original gameplay. <b>If you encounter any inconsistent replay results, report it to the YARG team on Discord or GitHub.</b>\n\nIf you previously played on the v0.12 nightly, all of your settings will be reset. This is due to nightly builds now using a separate location for data storage. Your nightly settings/scores will not persist to stable versions of YARG, and vice versa.\n\nAs we previously announced, <b>we do not recommend playing nightly full time, instead only for testing.</b> Nightly is now going to be much more unstable with many more bugs and unfinished systems.\n\n<b>If you have any feedback, please let us know on Discord or GitHub.</b>\n\nHave fun!",
             "Options": {
                 "Quickplay": "Quickplay",
                 "Practice": "Practice",
@@ -265,8 +281,14 @@
         },
         "ProfileList": {
             "Name": "Profiles",
+            "ActiveProfiles" : "Active Profiles",
             "AddBot": "Add Bot",
-            "AddProfile": "Add Profile"
+            "AddProfile": "Add Profile",
+            "Bots" : "Bots",
+            "Players" : "Players"
+        },
+        "ScoreScreen" : {
+            "BandScoreNotSaved" : "(Score not saved)"
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
@@ -385,6 +407,35 @@
             "BluePad": "Blue Pad (Third)",
             "OrangeCymbal": "Orange Cymbal (Fourth)",
             "GreenPad": "Green Pad (Fifth)"
+        },
+        "ProKeys": {
+            "Key1": "Key 1 (C2)",
+            "Key2": "Key 2 (C#2)",
+            "Key3": "Key 3 (D2)",
+            "Key4": "Key 4 (D#2)",
+            "Key5": "Key 5 (E2)",
+            "Key6": "Key 6 (F2)",
+            "Key7": "Key 7 (F#2)",
+            "Key8": "Key 8 (G2)",
+            "Key9": "Key 9 (G#2)",
+            "Key10": "Key 10 (A2)",
+            "Key11": "Key 11 (A#2)",
+            "Key12": "Key 12 (B2)",
+            "Key13": "Key 13 (C3)",
+            "Key14": "Key 14 (C#3)",
+            "Key15": "Key 15 (D3)",
+            "Key16": "Key 16 (D#3)",
+            "Key17": "Key 17 (E3)",
+            "Key18": "Key 18 (F3)",
+            "Key19": "Key 19 (F#3)",
+            "Key20": "Key 20 (G3)",
+            "Key21": "Key 21 (G#3)",
+            "Key22": "Key 22 (A3)",
+            "Key23": "Key 23 (A#3)",
+            "Key24": "Key 24 (B3)",
+            "Key25": "Key 25 (C4)",
+            "StarPower": "Star Power Activate",
+            "TouchEffects": "Touch Effects"
         }
     },
     "Settings": {
@@ -469,9 +520,22 @@
                 "Name": "Star Power Claps",
                 "Description": "Enables claps to the beat while Star Power is active."
             },
+            "CountdownDisplay": {
+                "Name": "Countdown Display",
+                "Description": "Choose how countdowns should be displayed during long breaks in a song.",
+                "Dropdown": {
+                    "Measures": "In Measures",
+                    "Seconds": "In Seconds",
+                    "Disabled": "Disabled"
+                }
+            },
             "OverstrumAndOverhitSoundEffects": {
                 "Name": "Overstrum/Overhit Sound Effects",
                 "Description": "Enables the overstrum/overhit sound effect."
+            },
+            "AlwaysOnDrumSFX": {
+                "Name": "Always-On Drum SFX",
+                "Description": "Enables Drum SFX at all times."
             },
             "CrowdVolume": {
                 "Name": "Crowd Volume",
@@ -534,6 +598,10 @@
                 "Name": "Drums Volume",
                 "PauseName": "Drums",
                 "Description": "Adjusts the song's drum track volume. Only does something if the song is multi-track."
+            },
+            "DrumSfxVolume": {
+                "Name": "Drum SFX Volume",
+                "Description": "Adjusts the drum hit sound effect volume, which can be triggered before the first note, after the last note, or during drum fills/BREs."
             },
             "EnablePracticeSP": {
                 "Name": "Star Power in Practice",
@@ -612,6 +680,17 @@
                 "PauseName": "Master",
                 "Description": "Adjusts the song's volume as a whole."
             },
+            "MinimumLogLevel": {
+                "Name": "Minimum Log Level",
+                "Description": "Controls how much information is written to log files.",
+                "Dropdown": {
+                    "Trace": "Trace",
+                    "Debug": "Debug",
+                    "Info": "Info",
+                    "Warning": "Warning",
+                    "Error": "Error"
+                }
+            },
             "MicrophoneSensitivity": {
                 "Name": "Microphone Sensitivity (Db)",
                 "Description": "Adjusts your microphone's sensitivity in decibels. Lower values are more sensitive."
@@ -641,6 +720,10 @@
                     "Frequent": "50, 100, 200, 300, ...",
                     "Sparse": "50, 100, 250, 500, ..."
                 }
+            },
+            "PracticeRestartDelay": {
+                "Name": "Practice Restart Delay",
+                "Description": "The amount of time (in seconds) to delay the beginning of a section in Practice Mode."
             },
             "PreviewVolume": {
                 "Name": "Preview Volume",
@@ -706,6 +789,10 @@
                     "Reduced": "Reduced"
                 }
             },
+			"SongBackgroundOpacity": {
+				"Name": "Song Background Opacity",
+				"Description": "Adjusts the opacity of background during gameplay."
+			},
             "UseChipmunkSpeed": {
                 "Name": "Chipmunk Speed",
                 "Description": "Disables pitch correction when playing songs at a fast or slow speed which may lead to some... interesting results."
@@ -727,6 +814,14 @@
                     "On": "On"
                 }
             },
+            "UseWhammyFx": {
+                "Name": "Use Whammy SFX",
+                "Description": "If enabled, it will add pitch bending to guitar stems when the player presses the whammy bar.\nWARNING: This setting is known to cause audio desync issues on some machines."
+            },
+            "WhammyPitchShiftAmount": {
+                "Name": "Whammy Pitch Shift Amount",
+                "Description": "Number of semitones the pitch is changed when the whammy bar is fully pressed. Larger amounts result in lower pitches; default is 1."
+            },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",
                 "Description": "Video calibration in milliseconds. Use the calibrator to automatically calibrate. This accounts for delays between the game's processing and the actual frame being displayed."
@@ -741,6 +836,10 @@
                 "PauseName": "Vocals",
                 "Description": "Adjusts the song's vocal track volume. Only does something if the song is multi-track."
             },
+            "VoiceActivatedVocalStarPower" : {
+				"Name": "Voice Activated Star Power (Vocals)",
+				"Description": "If enabled, vocalists can activate their Star Power by making a noise. Keybinds can be used instead, regardless of this setting."
+			},
             "VSync": {
                 "Name": "Enable VSync",
                 "Description": "Enables VSync. VSync caps the framerate at your monitor's maximum framerate, and prevents tearing."
@@ -821,6 +920,14 @@
                 "Name": "Show Memory Stats",
                 "Description": "Show memory usage stats on the Status Bar"
             },
+            "ShowActivePlayers": {
+                "Name": "Show Active Players",
+                "Description": "Show the active players on the Status Bar, excluding bots. For bands consisting of more than 3 players, this will show the number of players instead."
+            },
+            "ShowActiveBots": {
+                "Name": "Show Active Bots",
+                "Description": "Show the number of active bot profiles on the Status Bar (if any)"
+            },
             "DMXUniverseChannel": {
                 "Name": "DMX Broadcast Universe",
                 "Description": "This is the universe that YARG will send the sACN packet to. Default is 1. Maximum is 65535"
@@ -833,15 +940,28 @@
                 "Name": "DMX Master Dimmer Values",
                 "Description": "These are the respective values that the Master Dimmer channels will be set to when YARG starts."
             },
+            "UpcomingLyricsTime": {
+                "Name": "Upcoming Lyrics Lead Time",
+                "Description": "The time in seconds prior to an upcoming lyric that it will appear on screen. Upcoming lyrics will always appear if the time between the current and upcoming lyrics is smaller than this value."
+            },
+            "WaitForSongVideo": {
+                "Name": "Wait For Song Videos When Seeking",
+                "Description": "Waits for a song-specific video background to finish seeking when restarting/changing sections in practice or seeking a replay."
+            },
             "WrapAroundNavigation": {
                 "Name": "Wrap-Around Navigation",
                 "Description": "Allow menus to jump to the bottom of a list when scrolling past the top, or jump to the top of a list when scrolling past the bottom."
+            },
+            "ReduceNoteSpeedByDifficulty": {
+                "Name": "Reduce Note Speed by Difficulty",
+                "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The specified note speed is applied to Expert, and lower difficulties receive a reduction in speed. This setting does not affect vocal tracks."
             }
         },
         "PresetType": {
             "CameraSettingsContainer": "Camera Presets",
             "ColorProfileContainer": "Color Profiles",
-            "EnginePresetContainer": "Engine Presets"
+            "EnginePresetContainer": "Engine Presets",
+            "HighwayPresetContainer" : "Highway Presets"
         },
         "PresetSetting": {
             "CameraPreset": {
@@ -875,12 +995,13 @@
                 }
             },
             "ColorProfile": {
-                "Instrument": {
+                "SubSection": {
                     "Name": "Instrument",
                     "Dropdown": {
                         "FiveFretGuitar": "Five Fret Guitar",
                         "FiveLaneDrums": "Five Lane Drums",
-                        "FourLaneDrums": "Four Lane Drums"
+                        "FourLaneDrums": "Four Lane Drums",
+                        "ProKeys": "Pro Keys"
                     }
                 },
                 "ActivationNote": {
@@ -1053,15 +1174,61 @@
                 },
                 "YellowStarpower": {
                     "Name": "Yellow Star Power"
+                },
+                "WhiteKey": {
+                    "Name": "White Key"
+                },
+                "RedKey": {
+                    "Name": "Red Key"
+                },
+                "YellowKey": {
+                    "Name": "Yellow Key"
+                },
+                "BlueKey": {
+                    "Name": "Blue Key"
+                },
+                "GreenKey": {
+                    "Name": "Green Key"
+                },
+                "OrangeKey": {
+                    "Name": "Orange Key"
+                },
+                "RedOverlay": {
+                    "Name": "Red Overlay"
+                },
+                "YellowOverlay": {
+                    "Name": "Yellow Overlay"
+                },
+                "BlueOverlay": {
+                    "Name": "Blue Overlay"
+                },
+                "GreenOverlay": {
+                    "Name": "Green Overlay"
+                },
+                "OrangeOverlay": {
+                    "Name": "Orange Overlay"
+                },
+                "WhiteNote": {
+                    "Name": "White Note"
+                },
+                "BlackNote": {
+                    "Name": "Black Note"
+                },
+                "WhiteNoteStarPower": {
+                    "Name": "White Note Star Power"
+                },
+                "BlackNoteStarPower": {
+                    "Name": "Black Note Star Power"
                 }
             },
             "EnginePreset": {
-                "GameMode": {
+                "SubSection": {
                     "Name": "Game Mode",
                     "Dropdown": {
-                        "DrumsPreset": "Drums (4 and 5 lane)",
-                        "FiveFretGuitarPreset": "Five Fret Guitar",
-                        "VocalsPreset": "Vocals"
+                        "Drums": "Drums (4 and 5 lane)",
+                        "FiveFretGuitar": "Five Fret Guitar",
+                        "Vocals": "Vocals",
+                        "ProKeys": "Pro Keys"
                     }
                 },
                 "AntiGhosting": {
@@ -1112,21 +1279,82 @@
                     "Name": "Strum Leniency (No Notes)",
                     "Description": "The amount of time a note can be strummed before it enters the hit window and it still receive the strum. Strumming earlier than this will cause an overstrum."
                 },
-                "WindowSizeE": {
+                "PitchWindowE": {
                     "Name": "Window Size (Easy)",
                     "Description": "Size of the pitch leniency window (in semitones); in other words, how off-pitch the player can sing, and the game will still detect as a correct note, in the Easy difficulty."
                 },
-                "WindowSizeH": {
+                "PitchWindowH": {
                     "Name": "Window Size (Hard)",
                     "Description": "Size of the pitch leniency window (in semitones); in other words, how off-pitch the player can sing, and the game will still detect as a correct note, in the Hard difficulty."
                 },
-                "WindowSizeM": {
+                "PitchWindowM": {
                     "Name": "Window Size (Medium)",
                     "Description": "Size of the pitch leniency window (in semitones); in other words, how off-pitch the player can sing, and the game will still detect as a correct note, in the Medium difficulty."
                 },
-                "WindowSizeX": {
+                "PitchWindowX": {
                     "Name": "Window Size (Expert)",
                     "Description": "Size of the pitch leniency window (in semitones); in other words, how off-pitch the player can sing, and the game will still detect as a correct note, in the Expert difficulty."
+                },
+                "PercussionHitWindow": {
+                    "Name": "Percussion Hit Window",
+                    "Description": ""
+                },
+                "ChordStaggerWindow": {
+                    "Name": "Chord Stagger Window",
+                    "Description": ""
+                },
+                "FatFingerWindow": {
+                    "Name": "Fat Finger Window",
+                    "Description": ""
+                },
+                "DynamicScale": {
+                    "Name": "Dynamic Window Scale",
+                    "Description": "The factor used to scale the distance between the notes before the dynamic hit window size is calculated."
+                },
+                "DynamicSlope": {
+                    "Name": "Dynamic Window Slope",
+                    "Description": "Affects how fast the dynamic hit window itself shrinks."
+                },
+                "DynamicGamma": {
+                    "Name": "Dynamic Window Gamma",
+                    "Description": "Biases the dynamic hit window one way or another. Values below 1 gives, on average, a looser window."
+                },
+                "PerfectPitchPercent": {
+                    "Name": "Perfect Pitch Percent",
+                    "Description": ""
+                },
+                "SustainDropLeniency": {
+                    "Name": "Sustain Drop Leniency",
+                    "Description": ""
+                }
+            },
+            "HighwayPreset" : {
+                "BackgroundBaseColor1": {
+                    "Name": "Background Base Color 1"
+                },
+                "BackgroundBaseColor2": {
+                    "Name": "Background Base Color 2"
+                },
+                "BackgroundBaseColor3": {
+                    "Name": "Background UNUSED Color"
+                },
+                "BackgroundPatternColor": {
+                    "Name": "Background Pattern Color"
+                },
+                "BackgroundGrooveBaseColor1": {
+                    "Name": "Groove Base Color 1"
+                },
+                "BackgroundGrooveBaseColor2": {
+                    "Name": "Groove Base Color 2"
+                },
+                "BackgroundGrooveBaseColor3": {
+                    "Name": "Groove UNUSED Color"
+                },
+                "BackgroundGroovePatternColor": {
+                    "Name": "Groove Pattern Color"
+                },
+                "StarPowerColor": {
+                    "Name": "Star Power Color"
                 }
             }
         }

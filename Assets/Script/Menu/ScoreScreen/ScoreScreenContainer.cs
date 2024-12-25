@@ -1,5 +1,7 @@
 ﻿using YARG.Core.Engine;
+using YARG.Core.Replays;
 using YARG.Player;
+using YARG.Replays;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -17,5 +19,9 @@ namespace YARG.Menu.ScoreScreen
 
         public int BandStars;
         public int BandScore;
+
+#nullable enable
+        public ReplayInfo? ReplayInfo;
+#nullable disable
     }
 }

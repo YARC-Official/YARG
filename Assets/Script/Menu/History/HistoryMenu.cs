@@ -17,7 +17,7 @@ namespace YARG.Menu.History
 {
     public class HistoryMenu : ListMenu<ViewType, HistoryView>
     {
-        private const string HISTORY_TAB = "History";
+        private const string HISTORY_TAB          = "History";
         private const string IMPORTED_REPLAYS_TAB = "Import";
 
         private static readonly (string UnlocalizedName, DateTime MinTime)[] _categoryTimes =
@@ -59,8 +59,10 @@ namespace YARG.Menu.History
                     }),
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                     () => CurrentSelection?.ViewClick()),
-
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back",
+                    Back),
+                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.History.Analyze",
+                    () => CurrentSelection?.Shortcut1()),
             }, false));
 
             _headerTabs.TabChanged += OnTabChanged;
@@ -104,7 +106,7 @@ namespace YARG.Menu.History
                     list.Add(new CategoryViewType(text));
                 }
 
-                list.Add(new GameRecordViewType(record));
+                list.Add(new ReplayViewType(record));
             }
 
             return list;
@@ -142,27 +144,10 @@ namespace YARG.Menu.History
 
         public void ExportReplayButton()
         {
-            if (CurrentSelection is not GameRecordViewType gameRecordViewType) return;
-
-            var name = gameRecordViewType.GameRecord.ReplayFileName;
-            var startPath = Path.Combine(ScoreContainer.ScoreReplayDirectory, name);
-
-            // Check to see if the replay exists
-            if (!File.Exists(startPath))
+            if (CurrentSelection is ReplayViewType replayViewType)
             {
-                DialogManager.Instance.ShowMessage("Cannot Export Replay",
-                    "The replay for this song does not exist. It has probably been deleted.");
-                return;
+                replayViewType.ExportReplay();
             }
-
-            // Ask the user for an ending location
-            FileExplorerHelper.OpenSaveFile(null, Path.GetFileNameWithoutExtension(name), "replay", path => {
-                // Delete the file if it already exists
-                if (File.Exists(path)) File.Delete(path);
-
-                // Move the file
-                File.Copy(startPath, path);
-            });
         }
 
         public void ImportReplayButton()
@@ -171,47 +156,14 @@ namespace YARG.Menu.History
             FileExplorerHelper.OpenChooseFile(null, "replay", path =>
             {
                 // We need to check if the replay is valid before importing it
-                ReplayFile replayFile;
-                try
+                var (result, info) = ReplayIO.TryReadMetadata(path);
+                if (result != ReplayReadResult.Valid)
                 {
-                    var result = ReplayIO.ReadReplay(path, out replayFile);
-
-                    if (result != ReplayReadResult.Valid)
-                    {
-                        throw new Exception($"Replay read result is {result}.");
-                    }
-
-                    if (replayFile is null)
-                    {
-                        throw new Exception("Replay file is null.");
-                    }
-                }
-                catch (Exception e)
-                {
-                    DialogManager.Instance.ShowMessage("Cannot Import Replay",
-                        "The selected replay is most likely corrupted, or is not a valid replay file.");
-
-                    YargLogger.LogException(e, "Failed to import replay");
+                    DialogManager.Instance.ShowMessage("Cannot Import Replay", $"Replay read result is {result}.");
                     return;
                 }
 
-                // Get the destination path and see if the replay already exists
-                var name = Path.GetFileName(path);
-                var dest = Path.Combine(ReplayContainer.ReplayDirectory, name);
-                if (File.Exists(dest))
-                {
-                    DialogManager.Instance.ShowMessage("Cannot Import Replay",
-                        "A replay with the same name already exists in the imported replays folder.");
-                    return;
-                }
-
-                // If it's all good, copy it in!
-                File.Copy(path, dest);
-
-                // Add it to the replay container...
-                var entry = ReplayContainer.CreateEntryFromReplayFile(replayFile);
-                ReplayContainer.AddReplay(entry);
-
+                ReplayContainer.AddEntry(info);
                 // then refresh list (to show the replay)
                 RequestViewListUpdate();
             });

@@ -10,15 +10,23 @@ namespace YARG.Themes
 
     public enum ThemeNoteType
     {
-        Normal,
+        Normal = 0,
 
-        HOPO,
-        Tap,
-        Open,
-        OpenHOPO,
+        HOPO     = 1,
+        Tap      = 2,
+        Open     = 3,
+        OpenHOPO = 4,
 
-        Cymbal,
-        Kick
+        Cymbal       = 5,
+        Kick         = 6,
+        Accent       = 7,
+        Ghost        = 8,
+        CymbalAccent = 9,
+        CymbalGhost  = 10,
+
+        White     = 11,
+        Black     = 12,
+        Glissando = 13,
     }
 
     public class ThemeNote : MonoBehaviour

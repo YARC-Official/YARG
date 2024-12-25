@@ -39,7 +39,16 @@ namespace YARG.Input
                 // frame.VoiceDetected will ALWAYS be true here, as it wouldn't be queued otherwise
 
                 // Queue it up!
-                var gameInput = GameInput.Create(frame.Time, VocalsAction.Pitch, frame.PitchAsMidiNote);
+                GameInput gameInput;
+                if (!frame.IsHit)
+                {
+                    gameInput = GameInput.Create(frame.Time, VocalsAction.Pitch, frame.PitchAsMidiNote);
+                }
+                else
+                {
+                    gameInput = GameInput.Create(frame.Time, VocalsAction.Hit, true);
+                }
+
                 yield return gameInput;
             }
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -29,7 +29,8 @@ namespace YARG.Menu.ProfileList
             GameMode.FiveFretGuitar,
             GameMode.FourLaneDrums,
             GameMode.FiveLaneDrums,
-            GameMode.Vocals
+            GameMode.Vocals,
+            GameMode.ProKeys
         };
 
         [SerializeField]
@@ -62,6 +63,8 @@ namespace YARG.Menu.ProfileList
         private TMP_Dropdown _colorProfileDropdown;
         [SerializeField]
         private TMP_Dropdown _cameraPresetDropdown;
+        [SerializeField]
+        private TMP_Dropdown _highwayPresetDropdown;
 
         [Space]
         [SerializeField]
@@ -88,6 +91,7 @@ namespace YARG.Menu.ProfileList
         private List<Guid> _colorProfilesByIndex;
         private List<Guid> _cameraPresetsByIndex;
         private List<Guid> _themesByIndex;
+        private List<Guid> _highwayPresetsByIndex;
 
         private void Awake()
         {
@@ -118,6 +122,9 @@ namespace YARG.Menu.ProfileList
                     .Select(i => i.Id).ToList();
             _cameraPresetsByIndex =
                 CustomContentManager.CameraSettings.AddOptionsToDropdown(_cameraPresetDropdown)
+                    .Select(i => i.Id).ToList();
+            _highwayPresetsByIndex =
+                CustomContentManager.HighwayPresets.AddOptionsToDropdown(_highwayPresetDropdown)
                     .Select(i => i.Id).ToList();
         }
 
@@ -151,6 +158,8 @@ namespace YARG.Menu.ProfileList
                 _colorProfilesByIndex.IndexOf(profile.ColorProfile));
             _cameraPresetDropdown.SetValueWithoutNotify(
                 _cameraPresetsByIndex.IndexOf(profile.CameraPreset));
+            _highwayPresetDropdown.SetValueWithoutNotify(
+                _highwayPresetsByIndex.IndexOf(profile.HighwayPreset));
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
@@ -326,6 +335,11 @@ namespace YARG.Menu.ProfileList
         public void ChangeCameraPreset()
         {
             _profile.CameraPreset = _cameraPresetsByIndex[_cameraPresetDropdown.value];
+        }
+
+        public void ChangeHighwayPreset()
+        {
+            _profile.HighwayPreset = _highwayPresetsByIndex[_highwayPresetDropdown.value];
         }
     }
 }

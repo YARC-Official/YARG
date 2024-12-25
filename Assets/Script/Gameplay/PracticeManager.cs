@@ -152,7 +152,7 @@ namespace YARG.Gameplay
             GameManager.VocalTrack.AllowStarPower = allowPracticeSP;
             GameManager.VocalTrack.SetPracticeSection(tickStart, tickEnd);
 
-            GameManager.SetSongTime(timeStart);
+            GameManager.SetSongTime(timeStart, SettingsManager.Settings.PracticeRestartDelay.Value);
 
             _practiceHud.SetSections(GetSectionsInPractice(_sectionStartTick, _sectionEndTick));
             HasSelectedSection = true;
@@ -212,7 +212,7 @@ namespace YARG.Gameplay
             if (HasUpdatedAbPositions)
             {
                 SetPracticeSection(_tickStart, _tickEnd, TimeStart, TimeEnd);
-                GameManager.Resume(inputCompensation: false);
+                GameManager.Resume();
                 HasUpdatedAbPositions = false;
                 return;
             }
@@ -223,8 +223,8 @@ namespace YARG.Gameplay
             }
             GameManager.VocalTrack.ResetPracticeSection();
 
-            GameManager.SetSongTime(TimeStart);
-            GameManager.Resume(inputCompensation: false);
+            GameManager.SetSongTime(TimeStart, SettingsManager.Settings.PracticeRestartDelay.Value);
+            GameManager.Resume();
         }
 
         private Section[] GetSectionsInPractice(uint start, uint end)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using YARG.Core;
 using YARG.Core.Input;
 
@@ -58,29 +58,27 @@ namespace YARG.Input
 
         public static BindingCollection CreateFourLaneDrumsBindings() => new(GameMode.FourLaneDrums)
         {
-            // TODO: Velocity support
-            new IndividualButtonBinding("FourDrums.RedPad",    (int) DrumsAction.RedDrum),
-            new IndividualButtonBinding("FourDrums.YellowPad", (int) DrumsAction.YellowDrum),
-            new IndividualButtonBinding("FourDrums.BluePad",   (int) DrumsAction.BlueDrum),
-            new IndividualButtonBinding("FourDrums.GreenPad",  (int) DrumsAction.GreenDrum),
+            new DrumPadButtonBinding("FourDrums.RedPad",    (int) DrumsAction.RedDrum),
+            new DrumPadButtonBinding("FourDrums.YellowPad", (int) DrumsAction.YellowDrum),
+            new DrumPadButtonBinding("FourDrums.BluePad",   (int) DrumsAction.BlueDrum),
+            new DrumPadButtonBinding("FourDrums.GreenPad",  (int) DrumsAction.GreenDrum),
 
-            new IndividualButtonBinding("FourDrums.YellowCymbal", (int) DrumsAction.YellowCymbal),
-            new IndividualButtonBinding("FourDrums.BlueCymbal",   (int) DrumsAction.BlueCymbal),
-            new IndividualButtonBinding("FourDrums.GreenCymbal", "FourDrums.RedCymbal", (int) DrumsAction.GreenCymbal),
+            new DrumPadButtonBinding("FourDrums.YellowCymbal", (int) DrumsAction.YellowCymbal),
+            new DrumPadButtonBinding("FourDrums.BlueCymbal",   (int) DrumsAction.BlueCymbal),
+            new DrumPadButtonBinding("FourDrums.GreenCymbal", "FourDrums.RedCymbal", (int) DrumsAction.GreenCymbal),
 
-            new IndividualButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
+            new DrumPadButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };
 
         public static BindingCollection CreateFiveLaneDrumsBindings() => new(GameMode.FiveLaneDrums)
         {
-            // TODO: Velocity support
-            new IndividualButtonBinding("FiveDrums.RedPad",       (int) DrumsAction.RedDrum),
-            new IndividualButtonBinding("FiveDrums.YellowCymbal", (int) DrumsAction.YellowCymbal),
-            new IndividualButtonBinding("FiveDrums.BluePad",      (int) DrumsAction.BlueDrum),
-            new IndividualButtonBinding("FiveDrums.OrangeCymbal", (int) DrumsAction.OrangeCymbal),
-            new IndividualButtonBinding("FiveDrums.GreenPad",     (int) DrumsAction.GreenDrum),
+            new DrumPadButtonBinding("FiveDrums.RedPad",       (int) DrumsAction.RedDrum),
+            new DrumPadButtonBinding("FiveDrums.YellowCymbal", (int) DrumsAction.YellowCymbal),
+            new DrumPadButtonBinding("FiveDrums.BluePad",      (int) DrumsAction.BlueDrum),
+            new DrumPadButtonBinding("FiveDrums.OrangeCymbal", (int) DrumsAction.OrangeCymbal),
+            new DrumPadButtonBinding("FiveDrums.GreenPad",     (int) DrumsAction.GreenDrum),
 
-            new IndividualButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
+            new DrumPadButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };
 
         public static BindingCollection CreateProGuitarBindings() => new(GameMode.ProGuitar)
@@ -104,39 +102,39 @@ namespace YARG.Input
 
         public static BindingCollection CreateProKeysBindings() => new(GameMode.ProKeys)
         {
-            // new ButtonBinding("ProKeys.Key1",  (int) ProKeysAction.Key1),
-            // new ButtonBinding("ProKeys.Key2",  (int) ProKeysAction.Key2),
-            // new ButtonBinding("ProKeys.Key3",  (int) ProKeysAction.Key3),
-            // new ButtonBinding("ProKeys.Key4",  (int) ProKeysAction.Key4),
-            // new ButtonBinding("ProKeys.Key5",  (int) ProKeysAction.Key5),
+            new ButtonBinding("ProKeys.Key1",  (int) ProKeysAction.Key1),
+            new ButtonBinding("ProKeys.Key2",  (int) ProKeysAction.Key2),
+            new ButtonBinding("ProKeys.Key3",  (int) ProKeysAction.Key3),
+            new ButtonBinding("ProKeys.Key4",  (int) ProKeysAction.Key4),
+            new ButtonBinding("ProKeys.Key5",  (int) ProKeysAction.Key5),
 
-            // new ButtonBinding("ProKeys.Key6",  (int) ProKeysAction.Key6),
-            // new ButtonBinding("ProKeys.Key7",  (int) ProKeysAction.Key7),
-            // new ButtonBinding("ProKeys.Key8",  (int) ProKeysAction.Key8),
-            // new ButtonBinding("ProKeys.Key9",  (int) ProKeysAction.Key9),
-            // new ButtonBinding("ProKeys.Key10", (int) ProKeysAction.Key10),
-            // new ButtonBinding("ProKeys.Key11", (int) ProKeysAction.Key11),
-            // new ButtonBinding("ProKeys.Key12", (int) ProKeysAction.Key12),
+            new ButtonBinding("ProKeys.Key6",  (int) ProKeysAction.Key6),
+            new ButtonBinding("ProKeys.Key7",  (int) ProKeysAction.Key7),
+            new ButtonBinding("ProKeys.Key8",  (int) ProKeysAction.Key8),
+            new ButtonBinding("ProKeys.Key9",  (int) ProKeysAction.Key9),
+            new ButtonBinding("ProKeys.Key10", (int) ProKeysAction.Key10),
+            new ButtonBinding("ProKeys.Key11", (int) ProKeysAction.Key11),
+            new ButtonBinding("ProKeys.Key12", (int) ProKeysAction.Key12),
 
-            // new ButtonBinding("ProKeys.Key13", (int) ProKeysAction.Key13),
-            // new ButtonBinding("ProKeys.Key14", (int) ProKeysAction.Key14),
-            // new ButtonBinding("ProKeys.Key15", (int) ProKeysAction.Key15),
-            // new ButtonBinding("ProKeys.Key16", (int) ProKeysAction.Key16),
-            // new ButtonBinding("ProKeys.Key17", (int) ProKeysAction.Key17),
+            new ButtonBinding("ProKeys.Key13", (int) ProKeysAction.Key13),
+            new ButtonBinding("ProKeys.Key14", (int) ProKeysAction.Key14),
+            new ButtonBinding("ProKeys.Key15", (int) ProKeysAction.Key15),
+            new ButtonBinding("ProKeys.Key16", (int) ProKeysAction.Key16),
+            new ButtonBinding("ProKeys.Key17", (int) ProKeysAction.Key17),
 
-            // new ButtonBinding("ProKeys.Key18", (int) ProKeysAction.Key18),
-            // new ButtonBinding("ProKeys.Key19", (int) ProKeysAction.Key19),
-            // new ButtonBinding("ProKeys.Key20", (int) ProKeysAction.Key20),
-            // new ButtonBinding("ProKeys.Key21", (int) ProKeysAction.Key21),
-            // new ButtonBinding("ProKeys.Key22", (int) ProKeysAction.Key22),
-            // new ButtonBinding("ProKeys.Key23", (int) ProKeysAction.Key23),
-            // new ButtonBinding("ProKeys.Key24", (int) ProKeysAction.Key24),
+            new ButtonBinding("ProKeys.Key18", (int) ProKeysAction.Key18),
+            new ButtonBinding("ProKeys.Key19", (int) ProKeysAction.Key19),
+            new ButtonBinding("ProKeys.Key20", (int) ProKeysAction.Key20),
+            new ButtonBinding("ProKeys.Key21", (int) ProKeysAction.Key21),
+            new ButtonBinding("ProKeys.Key22", (int) ProKeysAction.Key22),
+            new ButtonBinding("ProKeys.Key23", (int) ProKeysAction.Key23),
+            new ButtonBinding("ProKeys.Key24", (int) ProKeysAction.Key24),
 
-            // new ButtonBinding("ProKeys.Key25", (int) ProKeysAction.Key25),
+            new ButtonBinding("ProKeys.Key25", (int) ProKeysAction.Key25),
 
-            // new IndividualButtonBinding("ProKeys.StarPower", (int) ProKeysAction.StarPower),
+            new IndividualButtonBinding("ProKeys.StarPower", (int) ProKeysAction.StarPower),
 
-            // new AxisBinding("ProKeys.TouchEffects", (int) ProKeysAction.TouchEffects),
+            new AxisBinding("ProKeys.TouchEffects", (int) ProKeysAction.TouchEffects),
         };
 
         public static BindingCollection CreateVocalsBindings() => new(GameMode.Vocals)
@@ -145,7 +143,8 @@ namespace YARG.Input
             // through the Unity input system (which actually wouldn't be that hard lol)
             // new AxisBinding("Vocals.Pitch", (int) VocalsAction.Pitch),
 
-            new IndividualButtonBinding("Vocals.StarPower", (int) VocalsAction.StarPower),
+            new IndividualButtonBinding("Vocals.Hit", (int) VocalsAction.Hit),
+            new IndividualButtonBinding("Vocals.StarPower", (int) VocalsAction.StarPower)
         };
 
         public static BindingCollection CreateGameplayBindings(GameMode mode)

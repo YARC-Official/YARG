@@ -147,7 +147,7 @@ namespace YARG.Input
             FireInputEvent(ref input);
         }
 
-        protected void FireInputEvent(double time, bool value)
+        protected virtual void FireInputEvent(double time, bool value)
         {
             var input = new GameInput(time, Action, value);
             FireInputEvent(ref input);
@@ -190,6 +190,12 @@ namespace YARG.Input
         public virtual void UpdateState(double time)
         {
             State = Control.value;
+            InvokeStateChanged(State);
+        }
+
+        public virtual void ResetState()
+        {
+            State = default;
             InvokeStateChanged(State);
         }
 
@@ -434,6 +440,12 @@ namespace YARG.Input
                 if (selector(binding))
                 {
                     removed = true;
+
+                    // Reset binding state to prevent phantom inputs
+                    binding.ResetState();
+                    OnStateChanged(binding, InputManager.CurrentInputTime);
+                    FireStateChanged();
+
                     _bindings.RemoveAt(i);
                     FireBindingRemoved(binding.Control);
                     i--;

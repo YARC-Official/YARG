@@ -7,10 +7,13 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Settings;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Player
@@ -23,7 +26,7 @@ namespace YARG.Gameplay.Player
 
         public const float TRACK_WIDTH = 2f;
 
-        public double SpawnTimeOffset => (ZeroFadePosition + 2 + -STRIKE_LINE_POS) / NoteSpeed;
+        public double SpawnTimeOffset => (ZeroFadePosition + _spawnAheadDelay + -STRIKE_LINE_POS) / NoteSpeed;
 
         protected TrackView TrackView { get; private set; }
 
@@ -61,14 +64,20 @@ namespace YARG.Gameplay.Player
         public Vector2 HUDViewportPosition => TrackCamera.WorldToViewportPoint(_hudLocation.position);
 
         protected List<Beatline> Beatlines;
+
         protected int BeatlineIndex;
 
         protected bool IsBass { get; private set; }
 
+        private float _spawnAheadDelay;
+
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
         {
-            if (IsInitialized) return;
+            if (IsInitialized)
+            {
+                return;
+            }
 
             Initialize(index, player, chart, lastHighScore);
 
@@ -84,6 +93,8 @@ namespace YARG.Gameplay.Player
             // Set fade information and highway length
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
             FadeSize = Player.CameraPreset.FadeLength;
+
+            _spawnAheadDelay = GameManager.IsPractice ? SettingsManager.Settings.PracticeRestartDelay.Value : 2;
             if (player.Profile.HighwayLength > 1)
             {
                 FadeSize *= player.Profile.HighwayLength;
@@ -99,6 +110,8 @@ namespace YARG.Gameplay.Player
                 or Instrument.SixFretBass
                 or Instrument.ProBass_17Fret
                 or Instrument.ProBass_22Fret;
+
+            TrackView.ShowPlayerName(player);
         }
 
         protected override void UpdateVisualsWithTimes(double time)
@@ -125,31 +138,7 @@ namespace YARG.Gameplay.Player
 
         protected abstract void UpdateNotes(double time);
 
-        private void UpdateBeatlines(double time)
-        {
-            while (BeatlineIndex < Beatlines.Count && Beatlines[BeatlineIndex].Time <= time + SpawnTimeOffset)
-            {
-                var beatline = Beatlines[BeatlineIndex];
-
-                // Skip this frame if the pool is full
-                if (!BeatlinePool.CanSpawnAmount(1))
-                {
-                    break;
-                }
-
-                var poolable = BeatlinePool.TakeWithoutEnabling();
-                if (poolable == null)
-                {
-                    YargLogger.LogWarning("Attempted to spawn beatline, but it's at its cap!");
-                    break;
-                }
-
-                ((BeatlineElement) poolable).BeatlineRef = beatline;
-                poolable.EnableFromPool();
-
-                BeatlineIndex++;
-            }
-        }
+        protected abstract void UpdateBeatlines(double time);
     }
 
     public abstract class TrackPlayer<TEngine, TNote> : TrackPlayer
@@ -157,6 +146,7 @@ namespace YARG.Gameplay.Player
         where TNote : Note<TNote>
     {
         public TEngine Engine { get; private set; }
+
         public override BaseEngine BaseEngine => Engine;
 
         protected List<TNote> Notes { get; private set; }
@@ -172,13 +162,17 @@ namespace YARG.Gameplay.Player
 
         private bool _isHotStartChecked;
         private bool _previousBassGrooveState;
-        private double _previousStarPowerAmount;
-
         private bool _newHighScoreShown;
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
+        private double _previousStarPowerAmount;
+
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
+            StemMixer mixer, int? currentHighScore)
         {
-            if (IsInitialized) return;
+            if (IsInitialized)
+            {
+                return;
+            }
 
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
@@ -196,7 +190,7 @@ namespace YARG.Gameplay.Player
             {
                 Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
             }
-            else if (GameManager.IsReplay)
+            else if (GameManager.ReplayInfo != null)
             {
                 // If it's a replay, the "SongSpeed" parameter should be set properly
                 // when it gets deserialized. Transfer this over to the engine.
@@ -226,7 +220,7 @@ namespace YARG.Gameplay.Player
         {
             GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar);
 
-            TrackMaterial.Initialize(ZeroFadePosition, FadeSize);
+            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.HighwayPreset);
             CameraPositioner.Initialize(Player.CameraPreset);
         }
 
@@ -260,6 +254,8 @@ namespace YARG.Gameplay.Player
                 maxMultiplier *= 2;
             }
 
+            double currentStarPowerAmount = Engine.GetStarPowerBarAmount();
+
             bool groove = stats.ScoreMultiplier == maxMultiplier;
 
             _currentMultiplier = stats.ScoreMultiplier;
@@ -269,7 +265,7 @@ namespace YARG.Gameplay.Player
             TrackMaterial.StarpowerMode = stats.IsStarPowerActive;
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
-            StarpowerBar.SetStarpower(stats.StarPowerAmount, stats.IsStarPowerActive);
+            StarpowerBar.SetStarpower(currentStarPowerAmount, stats.IsStarPowerActive);
             SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
 
             TrackView.UpdateNoteStreak(stats.Combo);
@@ -293,8 +289,6 @@ namespace YARG.Gameplay.Player
 
             _previousBassGrooveState = currentBassGrooveState;
 
-            double currentStarPowerAmount = stats.StarPowerAmount;
-
             if (!stats.IsStarPowerActive && _previousStarPowerAmount < 0.5 && currentStarPowerAmount >= 0.5)
             {
                 TrackView.ShowStarPowerReady();
@@ -304,7 +298,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var haptics in SantrollerHaptics)
             {
-                haptics.SetStarPowerFill((float) BaseStats.StarPowerAmount);
+                haptics.SetStarPowerFill((float) currentStarPowerAmount);
             }
         }
 
@@ -322,6 +316,8 @@ namespace YARG.Gameplay.Player
 
                 NoteIndex++;
 
+                OnNoteSpawned(note);
+
                 // Don't spawn hit or missed notes
                 if (note.WasHit || note.WasMissed)
                 {
@@ -329,11 +325,52 @@ namespace YARG.Gameplay.Player
                 }
 
                 // Spawn all of the notes and child notes
-                foreach (var child in note.ChordEnumerator())
+                foreach (var child in note.AllNotes)
                 {
                     SpawnNote(child);
                 }
             }
+        }
+
+        protected override void UpdateBeatlines(double time)
+        {
+            while (BeatlineIndex < Beatlines.Count && Beatlines[BeatlineIndex].Time <= time + SpawnTimeOffset)
+            {
+                if (BeatlineIndex + 1 < Beatlines.Count && Beatlines[BeatlineIndex + 1].Time <= time + SpawnTimeOffset)
+                {
+                    BeatlineIndex++;
+                    continue;
+                }
+
+                var beatline = Beatlines[BeatlineIndex];
+
+                if (Notes.Count > 0 && beatline.Time > Notes[^1].TimeEnd)
+                {
+                    return;
+                }
+
+                // Skip this frame if the pool is full
+                if (!BeatlinePool.CanSpawnAmount(1))
+                {
+                    break;
+                }
+
+                var poolable = BeatlinePool.TakeWithoutEnabling();
+                if (poolable == null)
+                {
+                    YargLogger.LogWarning("Attempted to spawn beatline, but it's at its cap!");
+                    break;
+                }
+
+                ((BeatlineElement) poolable).BeatlineRef = beatline;
+                poolable.EnableFromPool();
+
+                BeatlineIndex++;
+            }
+        }
+
+        protected virtual void OnNoteSpawned(TNote parentNote)
+        {
         }
 
         public override void SetPracticeSection(uint start, uint end)
@@ -352,7 +389,6 @@ namespace YARG.Gameplay.Player
 
             ResetNoteCounters();
 
-            Beatlines = SyncTrack.Beatlines.Where(b => b.Tick >= start && b.Tick <= end).ToList();
             BeatlineIndex = 0;
 
             Engine = CreateEngine();
@@ -394,26 +430,29 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
-            SetStemMuteState(false);
-            if (_currentMultiplier != _previousMultiplier)
+            if (!GameManager.IsSeekingReplay)
             {
-                _previousMultiplier = _currentMultiplier;
+                SetStemMuteState(false);
+                if (_currentMultiplier != _previousMultiplier)
+                {
+                    _previousMultiplier = _currentMultiplier;
 
-                foreach (var haptics in SantrollerHaptics)
-                {
-                    haptics.SetMultiplier((uint)_currentMultiplier);
+                    foreach (var haptics in SantrollerHaptics)
+                    {
+                        haptics.SetMultiplier((uint) _currentMultiplier);
+                    }
                 }
-            }
 
-            if (index >= Notes.Count - 1 && note.ParentOrSelf.WasFullyHit())
-            {
-                if (IsFc)
+                if (index >= Notes.Count - 1 && note.ParentOrSelf.WasFullyHit())
                 {
-                    TrackView.ShowFullCombo();
-                }
-                else if (Combo >= 30) // 30 to coincide with 4x multiplier (including on bass)
-                {
-                    TrackView.ShowStrongFinish();
+                    if (IsFc)
+                    {
+                        TrackView.ShowFullCombo();
+                    }
+                    else if (Combo >= 30) // 30 to coincide with 4x multiplier (including on bass)
+                    {
+                        TrackView.ShowStrongFinish();
+                    }
                 }
             }
 
@@ -428,19 +467,22 @@ namespace YARG.Gameplay.Player
                 IsFc = false;
             }
 
-            SetStemMuteState(true);
-
-            if (LastCombo >= 10)
+            if (!GameManager.IsSeekingReplay)
             {
-                GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
+                SetStemMuteState(true);
+
+                if (LastCombo >= 10)
+                {
+                    GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
+                }
+
+                foreach (var haptics in SantrollerHaptics)
+                {
+                    haptics.SetMultiplier(0);
+                }
             }
 
             LastCombo = Combo;
-
-            foreach (var haptics in SantrollerHaptics)
-            {
-                haptics.SetMultiplier(0);
-            }
         }
 
         protected virtual void OnOverhit()
@@ -472,6 +514,11 @@ namespace YARG.Gameplay.Player
             {
                 haptic.SetSolo(false);
             }
+        }
+
+        protected virtual void OnCountdownChange(int measuresLeft, double countdownLength, double endTime)
+        {
+            TrackView.UpdateCountdown(measuresLeft, countdownLength, endTime);
         }
 
         protected virtual void OnStarPowerPhraseHit(TNote note)

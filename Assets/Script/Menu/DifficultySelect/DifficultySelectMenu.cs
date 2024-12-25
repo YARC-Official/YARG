@@ -87,7 +87,7 @@ namespace YARG.Menu.DifficultySelect
         private void OnEnable()
         {
             string subHeaderKey = GlobalVariables.State.IsPractice ? "Practice" : "Quickplay";
-            _subHeader.text = Localize.Key("Main.Options", subHeaderKey);
+            _subHeader.text = Localize.Key("Menu.Main.Options", subHeaderKey);
 
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -278,6 +278,9 @@ namespace YARG.Menu.DifficultySelect
 
                     _menuState = State.Main;
                     UpdateForPlayer();
+
+                    // Update the instrument icons on the Status Bar (if enabled)
+                    StatsManager.Instance.UpdateActivePlayers();
                 });
             }
         }

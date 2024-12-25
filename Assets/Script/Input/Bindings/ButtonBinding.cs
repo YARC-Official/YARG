@@ -164,6 +164,14 @@ namespace YARG.Input
             InvokeStateChanged(State);
         }
 
+        public override void ResetState()
+        {
+            PreviousState = default;
+            State = default;
+            _debounceTimer.Stop();
+            InvokeStateChanged(State);
+        }
+
         private float CalculateState(float rawValue)
         {
             return rawValue * _invertSign;

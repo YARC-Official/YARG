@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Chart;
+using YARG.Core.Engine.ProKeys;
 using YARG.Core.Game;
 using YARG.Gameplay;
 using YARG.Gameplay.Player;
@@ -26,6 +28,7 @@ namespace YARG.Settings.Preview
 
             public int FretCount;
             public bool UseKickFrets;
+            public bool UseProKeys;
 
             public FretColorProviderFunc FretColorProvider;
             public NoteColorProviderFunc NoteColorProvider;
@@ -42,7 +45,6 @@ namespace YARG.Settings.Preview
                 new Info
                 {
                     FretCount = 5,
-                    UseKickFrets = false,
 
                     FretColorProvider = (colorProfile) => colorProfile.FiveFretGuitar,
                     NoteColorProvider = (colorProfile, note) => colorProfile.FiveFretGuitar
@@ -53,6 +55,8 @@ namespace YARG.Settings.Preview
 
                     CreateFakeNote = (time) =>
                     {
+                        // Here we use 0 as open as it's easier to visualize.
+                        // We convert this into the correct value in the if below.
                         int fret = Random.Range(0, 6);
 
                         // Open notes have different models
@@ -62,7 +66,7 @@ namespace YARG.Settings.Preview
                             {
                                 Time = time,
 
-                                Fret = fret,
+                                Fret = (int) FiveFretGuitarFret.Open,
                                 CenterNote = true,
                                 NoteType = ThemeNoteType.Open
                             };
@@ -203,6 +207,41 @@ namespace YARG.Settings.Preview
                         };
                     }
                 }
+            },
+            {
+                GameMode.ProKeys,
+                new Info
+                {
+                    UseProKeys = true,
+
+                    FretColorProvider = null,
+                    NoteColorProvider = (colorProfile, note) => (ProKeysUtilities.IsWhiteKey(note.Fret % 12)
+                        ? colorProfile.ProKeys.WhiteNote
+                        : colorProfile.ProKeys.BlackNote).ToUnityColor(),
+
+                    HitWindowProvider = (enginePreset) => enginePreset.ProKeys.HitWindow,
+
+                    CreateFakeNote = (time) =>
+                    {
+                        int fret = Random.Range(0, 17);
+
+                        // Otherwise, select the correct note type
+                        var noteType = ThemeNoteType.White;
+                        if (ProKeysUtilities.IsBlackKey(fret % 12))
+                        {
+                            noteType = ThemeNoteType.Black;
+                        }
+
+                        return new FakeNoteData
+                        {
+                            Time = time,
+
+                            Fret = fret,
+                            CenterNote = true,
+                            NoteType = noteType
+                        };
+                    }
+                }
             }
         };
 
@@ -223,6 +262,9 @@ namespace YARG.Settings.Preview
         private FakeHitWindowDisplay _hitWindow;
 
         public bool ForceShowHitWindow { get; set; }
+        public bool ForceGroove { get; set; }
+        public bool ForceStarPower { get; set; }
+
         public GameMode SelectedGameMode { get; set; } = GameMode.FiveFretGuitar;
 
         public double PreviewTime { get; private set; }
@@ -236,11 +278,14 @@ namespace YARG.Settings.Preview
             var theme = ThemePreset.Default;
 
             // Create frets and put then on the right layer
-            _fretArray.FretCount = CurrentGameModeInfo.FretCount;
-            _fretArray.UseKickFrets = CurrentGameModeInfo.UseKickFrets;
-            _fretArray.Initialize(theme, SelectedGameMode,
-                CurrentGameModeInfo.FretColorProvider(ColorProfile.Default), false);
-            _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
+            if (!CurrentGameModeInfo.UseProKeys)
+            {
+                _fretArray.FretCount = CurrentGameModeInfo.FretCount;
+                _fretArray.UseKickFrets = CurrentGameModeInfo.UseKickFrets;
+                _fretArray.Initialize(theme, SelectedGameMode,
+                    CurrentGameModeInfo.FretColorProvider(ColorProfile.Default), false);
+                _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
+            }
 
             // Create the note prefab (this has to be specially done, because
             // TrackElements need references to the GameManager)
@@ -252,6 +297,8 @@ namespace YARG.Settings.Preview
             // Show hit window if enabled
             _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Value || ForceShowHitWindow);
             _hitWindow.NoteSpeed = NOTE_SPEED;
+            _trackMaterial.StarpowerMode = ForceStarPower;
+            _trackMaterial.GrooveMode = ForceGroove;
 
             SettingsMenu.Instance.SettingChanged += OnSettingChanged;
 
@@ -264,13 +311,17 @@ namespace YARG.Settings.Preview
             var cameraPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
             var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
             var enginePreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.EnginePresets);
+            var highwayPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.HighwayPresets);
 
             // Update camera presets
-            _trackMaterial.Initialize(3f, cameraPreset.FadeLength);
+            _trackMaterial.Initialize(3f, cameraPreset.FadeLength, highwayPreset);
             _cameraPositioner.Initialize(cameraPreset);
 
             // Update color profiles
-            _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile), false);
+            if (!CurrentGameModeInfo.UseProKeys)
+            {
+                _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile), false);
+            }
 
             // Update hit window
             _hitWindow.HitWindow = CurrentGameModeInfo.HitWindowProvider(enginePreset).Create();

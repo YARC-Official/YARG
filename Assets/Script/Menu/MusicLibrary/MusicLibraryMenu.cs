@@ -12,6 +12,7 @@ using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Playlists;
+using YARG.Scores;
 using YARG.Settings;
 using YARG.Song;
 using static YARG.Menu.Navigation.Navigator;
@@ -72,6 +73,8 @@ namespace YARG.Menu.MusicLibrary
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
         public bool HasSortHeaders { get; private set; }
+
+        public bool ShouldDisplaySoloHighScores { get; private set; }
 
         private SongCategory[] _sortedSongs;
 
@@ -146,6 +149,8 @@ namespace YARG.Menu.MusicLibrary
                 _currentSong = CurrentlyPlaying;
             }
 
+            ShouldDisplaySoloHighScores = PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 1;
+
             StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value;
             _previewDelay = 0;
             if (_reloadState == MusicLibraryReloadState.Full)
@@ -175,9 +180,11 @@ namespace YARG.Menu.MusicLibrary
 
             // Set IsPractice as well
             GlobalVariables.State.IsPractice = LibraryMode == MusicLibraryMode.Practice;
+            GlobalVariables.State.CurrentReplay = null;
 
             // Show no player warning
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
+
         }
 
         protected override void OnSelectedIndexChanged()
@@ -246,8 +253,15 @@ namespace YARG.Menu.MusicLibrary
             }
             else
             {
-                list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.RandomSong"), "MusicLibraryIcons[Random]", SelectRandomSong, RANDOM_SONG_ID));
-                list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.Playlists"), "MusicLibraryIcons[Playlists]",
+                list.Add(new ButtonViewType(
+                    Localize.Key("Menu.MusicLibrary.RandomSong"),
+                    "MusicLibraryIcons[Random]",
+                    SelectRandomSong,
+                    RANDOM_SONG_ID));
+
+                list.Add(new ButtonViewType(
+                    Localize.Key("Menu.MusicLibrary.Playlists"),
+                    "MusicLibraryIcons[Playlists]",
                     () =>
                     {
                         // TODO: Proper playlist menu
@@ -260,10 +274,14 @@ namespace YARG.Menu.MusicLibrary
 
                 if (SettingsManager.Settings.LibrarySort < SortAttribute.Playable)
                 {
-                    list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.AllSongs"), SongContainer.Count, SongContainer.Songs));
+                    list.Add(new CategoryViewType(
+                        Localize.Key("Menu.MusicLibrary.AllSongs"), SongContainer.Count, SongContainer.Songs));
+
                     if (_recommendedSongs != null)
                     {
-                        string key = Localize.Key("Menu.MusicLibrary.RecommendedSongs", _recommendedSongs.Length == 1 ? "Singular" : "Plural");
+                        string key = Localize.Key("Menu.MusicLibrary.RecommendedSongs",
+                            _recommendedSongs.Length == 1 ? "Singular" : "Plural");
+
                         list.Add(new CategoryViewType(key, _recommendedSongs.Length, _recommendedSongs,
                             () =>
                             {
@@ -323,19 +341,25 @@ namespace YARG.Menu.MusicLibrary
         {
             var list = new List<ViewType>
             {
-                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"), "MusicLibraryIcons[Back]", ExitPlaylistTab, BACK_ID)
+                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
+                    "MusicLibraryIcons[Back]", ExitPlaylistTab, BACK_ID)
             };
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
             // which means the song list hasn't been constructed yet.
-            if (_sortedSongs is null || SongContainer.Count <= 0 || !_sortedSongs.Any(section => section.Songs.Length > 0))
+            if (_sortedSongs is null || SongContainer.Count <= 0 ||
+                !_sortedSongs.Any(section => section.Songs.Length > 0))
             {
                 return list;
             }
 
             foreach (var section in _sortedSongs)
             {
-                list.Add(new SortHeaderViewType(section.Category.ToUpperInvariant(), section.Songs.Length, section.CategoryGroup));
+                list.Add(new SortHeaderViewType(
+                    section.Category.ToUpperInvariant(),
+                    section.Songs.Length,
+                    section.CategoryGroup));
+
                 foreach (var song in section.Songs)
                 {
                     list.Add(new SongViewType(this, song));
@@ -370,13 +394,13 @@ namespace YARG.Menu.MusicLibrary
                 else if (entry is SortHeaderViewType header)
                 {
                     _sectionHeaderIndices.Add(i);
-                    
+
                     string curShortcut = header.ShortcutName;
 
                     // Assume that any header with a ShortcutName of null is not meant to be included
                     // Add this shortcut if it does not match the one at end of the list
-                    if (curShortcut != null && 
-                        (Shortcuts.Count == 0 || curShortcut != Shortcuts[^1].Item1)) 
+                    if (curShortcut != null &&
+                        (Shortcuts.Count == 0 || curShortcut != Shortcuts[^1].Item1))
                     {
                         Shortcuts.Add((curShortcut, i));
                     }
@@ -386,7 +410,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void SetRecommendedSongs()
         {
-            if (SongContainer.Count > 5)
+            if (SongContainer.Count > RecommendedSongs.RECOMMEND_SONGS_COUNT)
             {
                 _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
             }
@@ -449,7 +473,7 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 if (_searchField.IsUpdatedSearchLonger || _currentSong == null ||
-                    !SetIndexTo(i => i is SongViewType view && view.SongEntry.Directory == _currentSong.Directory, newPositionStartIndex))
+                    !SetIndexTo(i => i is SongViewType view && view.SongEntry.Location == _currentSong.Location, newPositionStartIndex))
                 {
                     // Note: it may look like this is expensive, but the whole loop should only last for 4-5 iterations
                     var list = ViewList;

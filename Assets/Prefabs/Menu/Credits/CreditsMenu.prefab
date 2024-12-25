@@ -87,7 +87,9 @@ MonoBehaviour:
   _scrollRateIncreaseMultiplier: 0.25
   _headerPrefab: {fileID: 8182768269547947474, guid: faeb10e311b8fe54698c1d157c3463af,
     type: 3}
-  _cardPrefab: {fileID: 8329285916534272843, guid: 5725fac5ba0c79342a1b6c8ef9540763,
+  _cardPrefab: {fileID: 8329285916534272885, guid: 5725fac5ba0c79342a1b6c8ef9540763,
+    type: 3}
+  _songCreditPrefab: {fileID: 4624944316608650653, guid: 2ef4ee231d8aeac46bd5e585bc21500e,
     type: 3}
 --- !u!1 &3693620849051783740
 GameObject:
@@ -316,6 +318,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 0
   m_SortingOrder: 1

@@ -19,7 +19,7 @@ namespace YARG.Menu.ScoreScreen
 
         [Space]
         [SerializeField]
-        protected TextMeshProUGUI AccuracyPercent;
+        private TextMeshProUGUI _accuracyPercent;
 
         [Space]
         [SerializeField]
@@ -83,15 +83,7 @@ namespace YARG.Menu.ScoreScreen
             _difficulty.text = Player.Profile.CurrentDifficulty.ToDisplayName();
 
             // Set percent
-            var totalNotes = Stats.NotesHit + Stats.NotesMissed;
-            if (totalNotes == 0)
-            {
-                AccuracyPercent.text = "0%";
-            }
-            else
-            {
-                AccuracyPercent.text = $"{Mathf.FloorToInt((float) Stats.NotesHit / totalNotes * 100f)}%";
-            }
+            _accuracyPercent.text = $"{Mathf.FloorToInt(Stats.Percent * 100f)}%";
 
 
             // Set background and foreground colors
@@ -100,7 +92,7 @@ namespace YARG.Menu.ScoreScreen
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Gray);
                 ShowTag("Bot");
             }
-            else if (Stats.MaxCombo == totalNotes)
+            else if (Stats.MaxCombo == Stats.TotalNotes)
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Gold);
                 ShowTag("Full Combo");
@@ -119,7 +111,7 @@ namespace YARG.Menu.ScoreScreen
             _score.text = Stats.TotalScore.ToString("N0");
             _starView.SetStars((int) Stats.Stars);
 
-            _notesHit.text = $"{WrapWithColor(Stats.NotesHit)} / {totalNotes}";
+            _notesHit.text = $"{WrapWithColor(Stats.NotesHit)} / {Stats.TotalNotes}";
             _maxStreak.text = WrapWithColor(Stats.MaxCombo);
             _notesMissed.text = WrapWithColor(Stats.NotesMissed);
             _starpowerPhrases.text = $"{WrapWithColor(Stats.StarPowerPhrasesHit)} / {Stats.TotalStarPowerPhrases}";

@@ -1,8 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
+using YARG.Player;
 
 namespace YARG.Gameplay.HUD
 {
@@ -23,6 +24,10 @@ namespace YARG.Gameplay.HUD
         private SoloBox _soloBox;
         [SerializeField]
         private TextNotifications _textNotifications;
+        [SerializeField]
+        private CountdownDisplay _countdownDisplay;
+        [SerializeField]
+        private PlayerNameDisplay _playerNameDisplay;
 
         private TrackPlayer _trackPlayer;
 
@@ -73,6 +78,11 @@ namespace YARG.Gameplay.HUD
                 (RectTransform) _topElementContainer.parent,
                 screenPos, null, out var localPoint);
             _topElementContainer.localPosition = localPoint;
+        }
+
+        public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
+        {
+            _countdownDisplay.UpdateCountdown(measuresLeft, countdownLength, endTime);
         }
 
         public void StartSolo(SoloSection solo)
@@ -127,12 +137,18 @@ namespace YARG.Gameplay.HUD
             _textNotifications.ShowStrongFinish();
         }
 
+        public void ShowPlayerName(YargPlayer player)
+        {
+            _playerNameDisplay.ShowPlayer(player);
+        }
+
         public void ForceReset()
         {
             _textNotifications.gameObject.SetActive(true);
 
             _soloBox.ForceReset();
             _textNotifications.ForceReset();
+            _countdownDisplay.ForceReset();
         }
     }
 }
