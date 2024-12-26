@@ -97,8 +97,6 @@ namespace YARG.Song
         private static SongCategory[] _sortDatesAdded = Array.Empty<SongCategory>();
         private static Dictionary<Instrument, SongCategory[]> _sortInstruments = new();
 
-        private static SongCategory[] _sortPlaycounts = Array.Empty<SongCategory>();
-
         private static SongCategory[] _playables = null;
 
         public static IReadOnlyDictionary<string, List<SongEntry>> Titles => _songCache.Titles;
@@ -286,9 +284,19 @@ namespace YARG.Song
             return _songs.Pick();
         }
 
+        // Play count sorting is intentionally not cached, as it must be regenerated after
+        // every play, when profiles change, and probably a bunch of other stuff
         private static SongCategory[] GetPlaycounts()
         {
-            var player = PlayerContainer.Players.First();
+            // This should never happen since play count shouldn't be selectable without
+            // a non-bot profile and MusicLibraryMenu already checks for this, but let's double check
+            if (PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 0)
+            {
+                // Titles seems like a reasonable fallback
+                return _sortTitles;
+            }
+            var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+
             var counts = ScoreContainer.GetPlayedSongsForUserByPlaycount(player.Profile, true);
             // Get all the unplayed songs and stuff them on the end of the list
             var zeroPlaySongs = new List<SongEntry>();
@@ -303,8 +311,13 @@ namespace YARG.Song
 
             foreach (var category in GetSortedCategory(previousSort))
             {
-                var songs = category.Songs.Except(counts);
-                zeroPlaySongs.AddRange(songs);
+                foreach (var song in category.Songs)
+                {
+                    if (!counts.Contains(song))
+                    {
+                        zeroPlaySongs.Add(song);
+                    }
+                }
             }
             var countCategories = new SongCategory[2];
             countCategories[0] = new SongCategory("PLAYED SONGS", counts.ToArray(), "Played Songs");

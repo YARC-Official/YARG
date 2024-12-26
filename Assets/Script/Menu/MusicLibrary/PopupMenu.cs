@@ -125,7 +125,7 @@ namespace YARG.Menu.MusicLibrary
                     UpdateForState();
                 });
             }
-            
+
             var viewType = _musicLibrary.CurrentSelection;
 
             // Add/remove to favorites
@@ -184,6 +184,12 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Skip theses because they don't make sense
                 if (sort == SortAttribute.Unspecified)
+                {
+                    continue;
+                }
+
+                // Skip Play count if there are no real players
+                if (sort == SortAttribute.Playcount && PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 0)
                 {
                     continue;
                 }
