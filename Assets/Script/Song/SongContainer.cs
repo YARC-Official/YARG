@@ -195,7 +195,14 @@ namespace YARG.Song
                 SortAttribute.Vocals         => _sortInstruments[Instrument.Vocals],
                 SortAttribute.Harmony        => _sortInstruments[Instrument.Harmony],
                 SortAttribute.Band           => _sortInstruments[Instrument.Band],
-                _ => throw new Exception("stoopid"),
+                // Make life better when people go back a version and we
+                // encounter sorts we don't understand by providing a
+                // default rather than a blank song library
+                _ => new Func<SongCategory[]>( () =>
+                {
+                    YargLogger.LogInfo("Invalid Sort Attribute. Defaulting to Name sort.");
+                    return _sortTitles;
+                })(),
             };
         }
 

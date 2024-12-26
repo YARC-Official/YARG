@@ -414,13 +414,19 @@ namespace YARG.Scores
         {
             var sortOrder = order ? "DESC" : "ASC";
             var profileId = profile.Id;
+            var profileInstrument = (int) profile.CurrentInstrument;
             var songList = new List<SongEntry>();
             var query = "SELECT COUNT(GameRecords.Id), GameRecords.SongChecksum from GameRecords, PlayerScores " +
                 "WHERE PlayerScores.GameRecordId = GameRecords.Id " +
-                $"AND PlayerScores.PlayerId = '{profileId}' " +
-                $"GROUP BY GameRecords.SongChecksum ORDER BY COUNT(GameRecords.Id) {sortOrder}";
+                $"AND PlayerScores.PlayerId = '{profileId}' ";
 
-            YargLogger.LogDebug($"SQL Query: {query}");
+            // If the profile instrument is bad, we can still return all scores for the profile
+            if (profile.HasValidInstrument)
+            {
+                query += $"AND PlayerScores.Instrument = {profileInstrument} ";
+            }
+
+            query += $"GROUP BY GameRecords.SongChecksum ORDER BY COUNT(GameRecords.Id) {sortOrder}";
 
             var playCounts = _db.Query<PlayCountRecord>(query);
             foreach (var record in playCounts)
@@ -428,6 +434,7 @@ namespace YARG.Scores
                 var hash = HashWrapper.Create(record.SongChecksum);
                 if (SongContainer.SongsByHash.TryGetValue(hash, out var list))
                 {
+                    // If there are songs with a duplicate hash, one will be chosen randomly
                     songList.Add(list.Pick());
                 }
             }
