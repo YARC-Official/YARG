@@ -487,7 +487,11 @@ namespace YARG.Gameplay.Player
         {
             // despawn any existing solos, rebuild solo structures, spawn any that are now in current
             _upcomingSolos.Clear();
-            // We can just get rid of previous solos then, we won't be using it (unless there are problems with the naive approach)
+            for(var i = 0; i < SoloPool.AllSpawned.Count; i++)
+            {
+                var poolable = SoloPool.AllSpawned[i];
+                poolable.ParentPool.Return(poolable);
+            }
             foreach (var soloSection in Engine.GetSolos())
             {
                 if (soloSection.StartTime > time)
