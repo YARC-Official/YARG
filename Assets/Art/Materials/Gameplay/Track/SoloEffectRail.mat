@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SoloEffects
+  m_Name: SoloEffectRail
   m_Shader: {fileID: -6465566751694194690, guid: 2d0cf1e9084960a4b97aa8946af15b27,
     type: 3}
   m_ValidKeywords:
@@ -23,7 +23,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: b342e4b572842a74ba1a7191e94c1a62, type: 3}
+        m_Texture: {fileID: 2800000, guid: 6d7c1e706a18a8841a8e543eb8534194, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:

@@ -10,6 +10,11 @@ namespace YARG.Gameplay.Visuals
     {
         [SerializeField]
         private MeshRenderer _meshRenderer;
+        [SerializeField]
+        private bool DisableStartTransition;
+        [SerializeField]
+        private bool DisableEndTransition;
+
         public TrackPlayer.Solo SoloRef { get; set; }
         public override double ElementTime => SoloRef.StartTime;
         public double MiddleTime => SoloRef.StartTime + ((SoloRef.EndTime - SoloRef.StartTime) / 2);
@@ -19,41 +24,33 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
-            // More correctly, this would get the unscaled size of the object
-            // Since we currently use Unity's plane, this works
-            const float zSize = 10.0f;
-            float childZBasePosition = zSize / 2;
-            var zScale = (float) (SoloRef.EndTime - SoloRef.StartTime) * Player.NoteSpeed / zSize;
+            RescaleForZ();
+            SetTransitionEnabled();
+        }
 
+        private void SetTransitionEnabled()
+        {
             var cachedTransform = _meshRenderer.transform;
 
-            // A bit of hackery is necessary to avoid the rescaling of the
-            // parent from messing up the scaling of the children
             var children = cachedTransform.GetComponentsInChildren<Transform>();
-            var scaleFactor = zScale / zSize;
+
             foreach (var child in children)
             {
                 if (child == cachedTransform)
                 {
                     continue;
                 }
-                // Change the child's scale such that their world size remains the same after the parent scales
-                var originalScale = 0.005f; // this should be child.localScale.z, but that causes issues if the object gets reused
-                var newScale = originalScale / scaleFactor;
-                child.localScale = child.localScale.WithZ(newScale);
-                // Adjust the child's position to reflect the new scale
-                var signFactor = Math.Sign(child.localPosition.z);
-                var newZ = (childZBasePosition + newScale * childZBasePosition) * signFactor;
-                // This fudge shouldn't be necessary, but without it there is sometimes
-                // a visible gap in the rail between the transition and main section
-                // I assume this is because of rounding errors with small float values
-                newZ += 0.001f * -signFactor;
 
-                child.localPosition = child.localPosition.WithZ(newZ);
+                if (child.gameObject.name is "SoloEffectStart" && DisableStartTransition)
+                {
+                    child.gameObject.SetActive(false);
+                }
+
+                if (child.gameObject.name is "SoloEffectEnd" && DisableEndTransition)
+                {
+                    child.gameObject.SetActive(false);
+                }
             }
-            // With the adjustments to the children made, we can scale the
-            // parent and have everything end up in the right place
-            cachedTransform.localScale = cachedTransform.localScale.WithZ(zScale);
         }
 
         protected override bool UpdateElementPosition()
@@ -77,6 +74,54 @@ namespace YARG.Gameplay.Visuals
             return true;
         }
 
+        protected void RescaleForZ()
+        {
+            // More correctly, this would get the unscaled size of the object
+            // Since we currently use Unity's plane, this works
+            const float zSize = 10.0f;
+            float childZBasePosition = zSize / 2;
+            var zScale = (float) (SoloRef.EndTime - SoloRef.StartTime) * Player.NoteSpeed / zSize;
+
+            var cachedTransform = _meshRenderer.transform;
+
+            // A bit of hackery is necessary to avoid the rescaling of the
+            // parent from messing up the scaling of the children
+            var children = cachedTransform.GetComponentsInChildren<Transform>();
+            var scaleFactor = zScale / zSize;
+            foreach (var child in children)
+            {
+                if (child == cachedTransform)
+                {
+                    continue;
+                }
+
+                if (child.gameObject.name is "SoloEffectRailRight" or "SoloEffectRailLeft")
+                {
+                    continue;
+                }
+
+                if (child.gameObject.name is "SoloEffectTransitionRailLeft" or "SoloEffectTransitionRailRight")
+                {
+                    continue;
+                }
+                // Change the child's scale such that their world size remains the same after the parent scales
+                var originalScale = 0.005f; // this should be child.localScale.z, but that causes issues if the object gets reused
+                var newScale = originalScale / scaleFactor;
+                child.localScale = child.localScale.WithZ(newScale);
+                // Adjust the child's position to reflect the new scale
+                var signFactor = Math.Sign(child.localPosition.z);
+                var newZ = (childZBasePosition + newScale * childZBasePosition) * signFactor;
+                // This fudge shouldn't be necessary, but without it there is sometimes
+                // a visible gap in the rail between the transition and main section
+                // I assume this is because of rounding errors with small float values
+                newZ += 0.001f * -signFactor;
+
+                child.localPosition = child.localPosition.WithZ(newZ);
+            }
+            // With the adjustments to the children made, we can scale the
+            // parent and have everything end up in the right place
+            cachedTransform.localScale = cachedTransform.localScale.WithZ(zScale);
+        }
 
         protected override void HideElement()
         {
