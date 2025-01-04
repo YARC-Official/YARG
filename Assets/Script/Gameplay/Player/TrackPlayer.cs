@@ -174,7 +174,7 @@ namespace YARG.Gameplay.Player
 
         protected int NoteIndex { get; private set; }
 
-        protected InstrumentDifficulty<TNote> NoteTrack { get; private set; }
+        public InstrumentDifficulty<TNote> NoteTrack { get; private set; }
 
         private InstrumentDifficulty<TNote> OriginalNoteTrack { get; set; }
 
@@ -228,6 +228,8 @@ namespace YARG.Gameplay.Player
             {
                 _upcomingSolos.Enqueue(new Solo(soloSection.StartTime, soloSection.EndTime));
             }
+
+            GameManager.AddStarPowerSections(NoteTrack.Phrases, this);
 
             ResetNoteCounters();
 
@@ -623,6 +625,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnStarPowerPhraseHit(TNote note)
         {
+            GameManager.StarPowerPhraseHit(this, note.Time);
             OnStarPowerPhraseHit();
         }
 
