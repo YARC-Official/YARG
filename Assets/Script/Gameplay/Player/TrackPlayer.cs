@@ -73,6 +73,30 @@ namespace YARG.Gameplay.Player
 
         private float _spawnAheadDelay;
 
+        public enum TrackEffectType
+        {
+            Solo,
+            Unison,
+            SoloAndUnison,
+        }
+        public struct TrackEffect
+        {
+            public TrackEffect(double startTime, double endTime, TrackEffectType effectType,
+                bool startTransitionEnable = true, bool endTransitionEnable = true)
+            {
+                StartTime = startTime;
+                EndTime = endTime;
+                EffectType = effectType;
+                StartTransitionEnable = startTransitionEnable;
+                EndTransitionEnable = endTransitionEnable;
+            }
+            public readonly double StartTime;
+            public readonly double EndTime;
+            public readonly TrackEffectType EffectType;
+            public readonly bool StartTransitionEnable;
+            public readonly bool EndTransitionEnable;
+        }
+
         public struct Solo
         {
             public Solo(double startTime, double endTime)
@@ -137,7 +161,7 @@ namespace YARG.Gameplay.Player
             base.UpdateVisualsWithTimes(time);
             UpdateNotes(time);
             UpdateBeatlines(time);
-            UpdateSolos(time);
+            UpdateTrackEffects(time);
         }
 
         protected override void ResetVisuals()
@@ -159,7 +183,7 @@ namespace YARG.Gameplay.Player
 
         protected abstract void UpdateBeatlines(double time);
 
-        protected abstract void UpdateSolos(double time);
+        protected abstract void UpdateTrackEffects(double time);
     }
 
     public abstract class TrackPlayer<TEngine, TNote> : TrackPlayer
@@ -188,6 +212,8 @@ namespace YARG.Gameplay.Player
         private double _previousStarPowerAmount;
 
         private Queue<Solo> _upcomingSolos = new();
+        private List<TrackEffect> _trackEffectList = new();
+        private Queue<TrackEffect> _upcomingEffects = new();
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
@@ -224,11 +250,19 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
+            // We have to get the solos here in case there aren't other
+            // players and we never receive the OnUnisonPhrasesReady event
             foreach(var soloSection in Engine.GetSolos())
             {
                 _upcomingSolos.Enqueue(new Solo(soloSection.StartTime, soloSection.EndTime));
+                _upcomingEffects.Enqueue(new TrackEffect(soloSection.StartTime, soloSection.EndTime,
+                    TrackEffectType.Solo));
             }
 
+            // We have to subscribe to the event before calling
+            // AddStarPowerSections or we will miss the event if we
+            // happen to be the last player to initialize
+            GameManager.OnUnisonPhrasesReady += OnUnisonPhrasesReady;
             GameManager.AddStarPowerSections(NoteTrack.Phrases, this);
 
             ResetNoteCounters();
@@ -399,37 +433,38 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected override void UpdateSolos(double time)
+        protected override void UpdateTrackEffects(double time)
         {
-            if (!_upcomingSolos.TryPeek(out var nextSolo))
+            if (!_upcomingEffects.TryPeek(out var nextEffect))
             {
                 return;
             }
 
-            if (!(nextSolo.StartTime <= time + SpawnTimeOffset))
+            if (!(nextEffect.StartTime <= time + SpawnTimeOffset))
             {
                 return;
             }
 
-            SpawnSolo(nextSolo, false);
+            SpawnEffect(nextEffect, false);
         }
 
-        private void SpawnSolo(Solo nextSolo, bool seeking)
+        private void SpawnEffect(TrackEffect nextEffect, bool seeking)
         {
             var poolable = SoloPool.TakeWithoutEnabling();
             if (poolable == null)
             {
-                YargLogger.LogWarning("Attempted to spawn solo, but it's at its cap!");
+                YargLogger.LogWarning("Attempted to spawn track effect, but it's at its cap!");
                 return;
             }
 
-            ((SoloElement) poolable).SoloRef = nextSolo;
-            poolable.EnableFromPool();
             // The seeking code handles this for us if we're seeking
             if (!seeking)
             {
-                _upcomingSolos.Dequeue();
+                _upcomingEffects.Dequeue();
             }
+
+            ((TrackEffectElement) poolable).EffectRef = nextEffect;
+            poolable.EnableFromPool();
         }
 
         public float ZFromTime(double time)
@@ -480,26 +515,29 @@ namespace YARG.Gameplay.Player
             ResetNoteCounters();
 
             // Reset the solo overlay
-            ResetSoloOverlay(time);
+            ResetTrackEffectOverlay(time);
 
             base.SetReplayTime(time);
         }
 
-        private void ResetSoloOverlay(double time)
+        private void ResetTrackEffectOverlay(double time)
         {
+            // TODO: Make this handle unisons, probably by keeping a list of effects
+            //  that doesn't change instead of using a queue
             // despawn any existing solos, rebuild solo structures, spawn any that are now in current
-            _upcomingSolos.Clear();
+            _upcomingEffects.Clear();
             for(var i = 0; i < SoloPool.AllSpawned.Count; i++)
             {
                 var poolable = SoloPool.AllSpawned[i];
                 poolable.ParentPool.Return(poolable);
             }
+
             foreach (var soloSection in Engine.GetSolos())
             {
                 if (soloSection.StartTime > time)
                 {
                     // It hasn't happened yet, so queue for later
-                    _upcomingSolos.Enqueue(new Solo(soloSection.StartTime, soloSection.EndTime));
+                    _upcomingEffects.Enqueue(new TrackEffect(soloSection.StartTime, soloSection.EndTime, TrackEffectType.Solo));
                 }
                 else if (soloSection.EndTime < time)
                 {
@@ -508,8 +546,8 @@ namespace YARG.Gameplay.Player
                 else
                 {
                     // It must be current, so we need to spawn it here
-                    var solo = new Solo(soloSection.StartTime, soloSection.EndTime);
-                    SpawnSolo(solo, true);
+                    var effect = new TrackEffect(soloSection.StartTime, soloSection.EndTime, TrackEffectType.Solo);
+                    SpawnEffect(effect, true);
                 }
             }
         }
@@ -618,6 +656,23 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected virtual void OnUnisonPhrasesReady(List<GameManager.UnisonEvent> unisonEvents)
+        {
+            MergeTrackEffects(unisonEvents);
+
+            // We subscribe here since there would be no point if there
+            // aren't any unison phrases in the song
+            GameManager.OnUnisonPhraseSuccess += OnUnisonPhraseSuccess;
+            // May as well unsubscribe now that the work is done
+            GameManager.OnUnisonPhrasesReady -= OnUnisonPhrasesReady;
+        }
+
+        protected virtual void OnUnisonPhraseSuccess()
+        {
+            // TODO: Signal the engine to award an extra unit of SP
+            YargLogger.LogDebug("TrackPlayer would award unison bonus if it knew how!");
+        }
+
         protected virtual void OnCountdownChange(int measuresLeft, double countdownLength, double endTime)
         {
             TrackView.UpdateCountdown(measuresLeft, countdownLength, endTime);
@@ -645,6 +700,168 @@ namespace YARG.Gameplay.Player
                 _newHighScoreShown = true;
                 TrackView.ShowNewHighScore();
             }
+        }
+
+        private void MergeTrackEffects(List<GameManager.UnisonEvent> unisonEvents)
+        {
+            // TODO: There is definitely a better algorithm to deal with this
+            //  also it doesn't handle the case where multiple unisons exist
+            //  within a single solo. I think it should work enough of the time
+            //  to be testable, though.
+            var soloIdx = 0;
+            var unisonIdx = 0;
+            var soloEvents = _upcomingSolos.ToList();
+
+            while (soloIdx < soloEvents.Count || unisonIdx < unisonEvents.Count)
+            {
+                if (soloIdx >= _upcomingSolos.Count)
+                {
+                    // We ran out of solos, so stuff the unisons on the end
+                    var lastSoloEndTime = 0.0;
+                    if (soloEvents.Count > 0)
+                    {
+                        // There were solos, so we are safe to do this
+                        lastSoloEndTime = soloEvents[^1].EndTime;
+                    }
+                    if (unisonEvents[unisonIdx].Time > lastSoloEndTime)
+                    {
+                        _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].Time,
+                            unisonEvents[unisonIdx].TimeEnd, TrackEffectType.Unison));
+                    }
+                    else
+                    {
+                        // TODO: Deal with overlaps
+                    }
+
+                    unisonIdx++;
+                    continue;
+                }
+
+                if (unisonIdx >= unisonEvents.Count)
+                {
+                    // We ran out of unisons, so stuff the solos on the end
+                    var lastUnisonEndTime = 0.0;
+                    if (unisonEvents.Count > 0)
+                    {
+                        // There were unisons, so we're safe to do this
+                        lastUnisonEndTime = unisonEvents[^1].TimeEnd;
+                    }
+                    if (soloEvents[soloIdx].StartTime > lastUnisonEndTime)
+                    {
+                        _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].StartTime,
+                            soloEvents[soloIdx].EndTime, TrackEffectType.Solo));
+                    }
+                    else
+                    {
+                        // TODO: Deal with overlaps
+                    }
+
+                    soloIdx++;
+                    continue;
+                }
+
+                // TODO: Handle the case where start times are equal
+                if (soloEvents[soloIdx].StartTime < unisonEvents[unisonIdx].Time)
+                {
+                    // A solo event is first, now we have to see if there is overlap
+                    if (soloEvents[soloIdx].EndTime > unisonEvents[unisonIdx].Time)
+                    {
+                        // Bad day, we have to split the events
+
+                        // Basically, clamp soloEvent's EndTime to unisonEvent's Time,
+                        // Then create a SoloAndUnison event until the lesser of
+                        // the EndTime or TimeEnd. If unisonEvent's TimeEnd extends past
+                        // soloEvent's EndTime, create a new Unison event starting
+                        // at soloEvent's EndTime.
+
+                        // Create a solo effect lasting until the unison starts
+                        var newSoloEndTime = unisonEvents[unisonIdx].Time;
+                        _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].StartTime,
+                            newSoloEndTime, TrackEffectType.Solo, true, false));
+                        // Check if the unison ends before the solo ends
+                        if (unisonEvents[unisonIdx].TimeEnd < soloEvents[soloIdx].EndTime)
+                        {
+                            // unison is fully contained within the solo section
+                            // create a soloandunison effect lasting until the unison ends
+                            _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].Time,
+                                unisonEvents[unisonIdx].TimeEnd, TrackEffectType.SoloAndUnison, false, false));
+                            // now create a solo effect lasting until the end of the original solo section
+                            _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].TimeEnd,
+                                soloEvents[soloIdx].EndTime, TrackEffectType.Solo, false, true));
+                        }
+                        else
+                        {
+                            // Solo ends before unison
+                            _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].Time,
+                                soloEvents[soloIdx].EndTime, TrackEffectType.SoloAndUnison, true, false));
+                            // Finish unison event without solo
+                            _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].EndTime,
+                                unisonEvents[unisonIdx].TimeEnd, TrackEffectType.Unison, false, true));
+                        }
+                        // We ate a solo and a unison and are done with this round
+                        // TODO: Deal with the possibility of more than one unison in a single solo
+                        soloIdx++;
+                        unisonIdx++;
+                        continue;
+                    }
+
+                    _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].StartTime,
+                        soloEvents[soloIdx].EndTime, TrackEffectType.Solo, true, true));
+
+                    soloIdx++;
+                    continue;
+                }
+
+                if (unisonEvents[unisonIdx].Time < soloEvents[soloIdx].StartTime)
+                {
+                    if (unisonEvents[unisonIdx].TimeEnd > soloEvents[soloIdx].StartTime)
+                    {
+                        // TODO: Deal with overlap
+                        var newUnisonEndTime = soloEvents[soloIdx].StartTime;
+                        // Create the effect for the part of the unison without a solo
+                        _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].Time,
+                            newUnisonEndTime, TrackEffectType.Unison, true, false));
+                        // Check if the solo is completely contained within the unison
+                        if (soloEvents[soloIdx].EndTime < unisonEvents[unisonIdx].TimeEnd)
+                        {
+                            // create soloandunison until the solo ends
+                            _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].StartTime,
+                                soloEvents[soloIdx].EndTime, TrackEffectType.SoloAndUnison, false, false));
+                            // finish off with the rest of the unison
+                            _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].EndTime,
+                                unisonEvents[unisonIdx].TimeEnd, TrackEffectType.Unison, false, true));
+                        }
+                        else
+                        {
+                            // unison ends before solo
+                            // create soloandunison until the unison ends
+                            _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].StartTime,
+                                unisonEvents[unisonIdx].TimeEnd, TrackEffectType.SoloAndUnison, true, false));
+                            // finish off with the rest of the solo
+                            _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].TimeEnd,
+                                soloEvents[soloIdx].EndTime, TrackEffectType.Solo, false, true));
+                        }
+                        // We ate both a solo and a unison here
+                        unisonIdx++;
+                        soloIdx++;
+                        continue;
+                    }
+
+                    _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].Time,
+                        unisonEvents[unisonIdx].TimeEnd, TrackEffectType.Unison, true, true));
+
+                    unisonIdx++;
+                    continue;
+                }
+            }
+            // Clear the effects queue that right now contains only solos
+            _upcomingEffects.Clear();
+            // Add the merged effects to the queue
+            foreach (var t in _trackEffectList)
+            {
+                _upcomingEffects.Enqueue(t);
+            }
+            YargLogger.LogFormatDebug("Created {1} track effects in MergeTrackEffects", _upcomingEffects.Count);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -9,7 +10,8 @@ namespace YARG.Gameplay
 {
     public partial class GameManager
     {
-        class UnisonEvent : IEquatable<UnisonEvent>
+        // TODO: Move this class definition somewhere more appropriate
+        public class UnisonEvent : IEquatable<UnisonEvent>
         {
 
             public double Time { get; }
@@ -20,7 +22,7 @@ namespace YARG.Gameplay
 
             public bool Equals(UnisonEvent other) => Time.Equals(other.Time) && TimeEnd.Equals(other.TimeEnd);
             // public bool Equals(double startTime, double endTime) => Time.Equals(startTime) && TimeEnd.Equals(endTime);
-            public override bool Equals(object obj) => Equals(obj as UnisonEvent);
+            // public override bool Equals(object obj) => Equals(obj as UnisonEvent);
             public override int GetHashCode() => HashCode.Combine(Time, TimeEnd);
 
             public UnisonEvent(double time, double timeEnd)
@@ -42,7 +44,8 @@ namespace YARG.Gameplay
                 PartCount++;
             }
 
-            public void Success(TrackPlayer trackPlayer)
+            // Returns true if all players succesfully completed the unison
+            public bool Success(TrackPlayer trackPlayer)
             {
                 if (_trackPlayers.Contains(trackPlayer))
                 {
@@ -53,9 +56,11 @@ namespace YARG.Gameplay
                 {
                     // TODO: Do something other than log the successful unison
                     YargLogger.LogDebug("Unison phrase successfully completed");
+                    return true;
                 }
                 // If SuccessCount is ever greater than the number of players, something has gone seriously wrong
                 YargLogger.Assert(SuccessCount <= _trackPlayers.Count);
+                return false;
             }
         }
 
@@ -83,8 +88,15 @@ namespace YARG.Gameplay
             public override int GetHashCode() => HashCode.Combine(Time, TimeEnd);
         }
 
+        public delegate void UnisonPhrasesReadyEvent(List<UnisonEvent> unisonEvents);
+
+        public delegate void UnisonPhraseSuccessEvent();
+        public UnisonPhrasesReadyEvent? OnUnisonPhrasesReady;
+        public UnisonPhraseSuccessEvent? OnUnisonPhraseSuccess;
+
         private Dictionary<TrackPlayer, List<StarPowerSection>> _starPowerSections = new();
         private List<TrackPlayer> _reportedPlayers = new();
+        private bool _unisonsReady = false;
 
         private int _trackPlayerCount = 0;
 
@@ -172,7 +184,6 @@ namespace YARG.Gameplay
                 }
             }
 
-            // TODO: Make this do something useful, not just log stats
             var unisonCount = 0;
             foreach (var unison in _unisonEvents)
             {
@@ -181,7 +192,9 @@ namespace YARG.Gameplay
                     unisonCount++;
                 }
             }
-
+            // If we reach this point, all players are accounted for
+            _unisonsReady = true;
+            OnUnisonPhrasesReady?.Invoke(_unisonEvents);
             YargLogger.LogFormatDebug("Created {0} unison events for {1} players", unisonCount, _trackPlayerCount);
         }
 
@@ -194,9 +207,23 @@ namespace YARG.Gameplay
                 // so an exact match is impossible
                 if (unison.Time < time && time < unison.TimeEnd)
                 {
-                    unison.Success(trackPlayer);
+                    if (unison.Success(trackPlayer))
+                    {
+                        // Success returned true, so all the other players
+                        // were also successful
+                        OnUnisonPhraseSuccess?.Invoke();
+                    }
                 }
             }
+        }
+
+        public List<UnisonEvent>? GetUnisonEvents()
+        {
+            if (_unisonsReady)
+            {
+                return _unisonEvents;
+            }
+            return null;
         }
     }
 }

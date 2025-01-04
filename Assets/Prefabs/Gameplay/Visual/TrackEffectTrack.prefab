@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7604505687553014439}
   - component: {fileID: 9105941284662136766}
   m_Layer: 0
-  m_Name: SoloEffectStart
+  m_Name: TrackEffectStart
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 4018982869718083727}
   - component: {fileID: 2698964352877834537}
   m_Layer: 0
-  m_Name: SoloEffectTransitionRailRight
+  m_Name: TrackEffectTransitionRailRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -180,7 +180,7 @@ GameObject:
   - component: {fileID: 135573488908630170}
   - component: {fileID: 2997176853811937633}
   m_Layer: 0
-  m_Name: SoloEffectTransitionRailRight
+  m_Name: TrackEffectTransitionRailRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -264,7 +264,7 @@ GameObject:
   - component: {fileID: 6945456873720195046}
   - component: {fileID: 4448761339987731087}
   m_Layer: 0
-  m_Name: SoloEffectTrack
+  m_Name: TrackEffectTrack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -352,8 +352,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _meshRenderer: {fileID: 6945456873720195046}
-  DisableStartTransition: 0
-  DisableEndTransition: 0
+  EnableStartTransition: 1
+  EnableEndTransition: 1
+  _soloTrackMaterial: {fileID: 2100000, guid: 9426b3a5962fe2247aac758b3f950064, type: 2}
+  _soloRailMaterial: {fileID: 2100000, guid: 9c29272d5b2b0344aa1824583b9f5276, type: 2}
+  _soloTransitionMaterial: {fileID: 2100000, guid: 0a4747cce0105ed47adba86029a5ce88,
+    type: 2}
+  _soloRailLeftTransitionMaterial: {fileID: 2100000, guid: bdebfa46e42b16244853c6744b3e7514,
+    type: 2}
+  _soloRailRightTransitionMaterial: {fileID: 2100000, guid: 0bf01d83fce424a429f31d8cf7de2abd,
+    type: 2}
+  _unisonTrackMaterial: {fileID: 2100000, guid: 0b64a7611185b364e920816aab94e8bf,
+    type: 2}
+  _unisonRailMaterial: {fileID: 2100000, guid: 464dc34320e116149a02b720a6142535, type: 2}
+  _unisonTransitionMaterial: {fileID: 2100000, guid: 36def363f29094741b7e922d1ab63743,
+    type: 2}
+  _unisonRailLeftTransitionMaterial: {fileID: 2100000, guid: f4d5c71571b093644a2c08e343c450c1,
+    type: 2}
+  _unisonRailRightTransitionMaterial: {fileID: 2100000, guid: 825fde9df03325747a5287f7be273f10,
+    type: 2}
 --- !u!1 &7554591210382149586
 GameObject:
   m_ObjectHideFlags: 0
@@ -366,7 +383,7 @@ GameObject:
   - component: {fileID: 9043732685138338243}
   - component: {fileID: 4262996036708032307}
   m_Layer: 0
-  m_Name: SoloEffectEnd
+  m_Name: TrackEffectEnd
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -451,7 +468,7 @@ GameObject:
   - component: {fileID: 5921332435566734774}
   - component: {fileID: 8699088875317435818}
   m_Layer: 0
-  m_Name: SoloEffectTransitionRailLeft
+  m_Name: TrackEffectTransitionRailLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -534,7 +551,7 @@ GameObject:
   - component: {fileID: 7786602620339654914}
   - component: {fileID: 4071454265422387650}
   m_Layer: 0
-  m_Name: SoloEffectRailLeft
+  m_Name: TrackEffectRailLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -617,7 +634,7 @@ GameObject:
   - component: {fileID: 7590878863546141646}
   - component: {fileID: 3991463921629293000}
   m_Layer: 0
-  m_Name: SoloEffectRailRight
+  m_Name: TrackEffectRailRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -700,7 +717,7 @@ GameObject:
   - component: {fileID: 5178075320867645743}
   - component: {fileID: 4461958896777882734}
   m_Layer: 0
-  m_Name: SoloEffectTransitionRailLeft
+  m_Name: TrackEffectTransitionRailLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
