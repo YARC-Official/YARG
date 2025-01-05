@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 
@@ -18,7 +19,7 @@ namespace YARG.Gameplay
             public double TimeEnd { get; }
             public int PartCount { get; private set; }
             public int SuccessCount { get; private set; }
-            private List<TrackPlayer> _trackPlayers;
+            public List<TrackPlayer> Players { get; private set; }
 
             public bool Equals(UnisonEvent other) => Time.Equals(other.Time) && TimeEnd.Equals(other.TimeEnd);
             // public bool Equals(double startTime, double endTime) => Time.Equals(startTime) && TimeEnd.Equals(endTime);
@@ -31,35 +32,35 @@ namespace YARG.Gameplay
                 TimeEnd = timeEnd;
                 PartCount = 0;
                 SuccessCount = 0;
-                _trackPlayers = new List<TrackPlayer>();
+                Players = new List<TrackPlayer>();
             }
 
             public void AddPlayer(TrackPlayer trackPlayer)
             {
-                if (_trackPlayers.Contains(trackPlayer))
+                if (Players.Contains(trackPlayer))
                 {
                     return;
                 }
-                _trackPlayers.Add(trackPlayer);
+                Players.Add(trackPlayer);
                 PartCount++;
             }
 
             // Returns true if all players succesfully completed the unison
             public bool Success(TrackPlayer trackPlayer)
             {
-                if (_trackPlayers.Contains(trackPlayer))
+                if (Players.Contains(trackPlayer))
                 {
                     SuccessCount++;
                 }
 
-                if (SuccessCount == _trackPlayers.Count)
+                if (SuccessCount == Players.Count)
                 {
                     // TODO: Do something other than log the successful unison
                     YargLogger.LogDebug("Unison phrase successfully completed");
                     return true;
                 }
                 // If SuccessCount is ever greater than the number of players, something has gone seriously wrong
-                YargLogger.Assert(SuccessCount <= _trackPlayers.Count);
+                YargLogger.Assert(SuccessCount <= Players.Count);
                 return false;
             }
         }
@@ -212,8 +213,17 @@ namespace YARG.Gameplay
                         // Success returned true, so all the other players
                         // were also successful
                         OnUnisonPhraseSuccess?.Invoke();
+                        AwardStarPowerBonus(unison);
                     }
                 }
+            }
+        }
+
+        private void AwardStarPowerBonus(UnisonEvent unison)
+        {
+            foreach (var player in unison.Players)
+            {
+                player.BaseEngine.GainStarPower(player.BaseEngine.TicksPerQuarterSpBar);
             }
         }
 

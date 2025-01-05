@@ -766,28 +766,42 @@ namespace YARG.Gameplay.Player
                     // A solo event is first, now we have to see if there is overlap
                     if (soloEvents[soloIdx].EndTime > unisonEvents[unisonIdx].Time)
                     {
-                        // Bad day, we have to split the events
-
-                        // Basically, clamp soloEvent's EndTime to unisonEvent's Time,
-                        // Then create a SoloAndUnison event until the lesser of
-                        // the EndTime or TimeEnd. If unisonEvent's TimeEnd extends past
-                        // soloEvent's EndTime, create a new Unison event starting
-                        // at soloEvent's EndTime.
-
                         // Create a solo effect lasting until the unison starts
                         var newSoloEndTime = unisonEvents[unisonIdx].Time;
                         _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].StartTime,
                             newSoloEndTime, TrackEffectType.Solo, true, false));
                         // Check if the unison ends before the solo ends
-                        if (unisonEvents[unisonIdx].TimeEnd < soloEvents[soloIdx].EndTime)
+                        if (unisonEvents[unisonIdx].TimeEnd <= soloEvents[soloIdx].EndTime)
                         {
                             // unison is fully contained within the solo section
-                            // create a soloandunison effect lasting until the unison ends
-                            _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].Time,
-                                unisonEvents[unisonIdx].TimeEnd, TrackEffectType.SoloAndUnison, false, false));
-                            // now create a solo effect lasting until the end of the original solo section
-                            _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].TimeEnd,
-                                soloEvents[soloIdx].EndTime, TrackEffectType.Solo, false, true));
+                            // TODO: This will not work right if the last unison in a solo extends past the end of the solo
+                            while (unisonEvents[unisonIdx].TimeEnd < soloEvents[soloIdx].EndTime)
+                            {
+                                // We're looping to handle the case where there is more than one unison in a single solo
+
+                                // create a soloandunison effect lasting until the unison ends
+                                _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].Time,
+                                    unisonEvents[unisonIdx].TimeEnd, TrackEffectType.SoloAndUnison, false, false));
+                                // now create a solo effect lasting until the end of the original solo section
+                                // or the start of the next unison section, if the next one is still within this solo
+                                if (unisonIdx + 1 < unisonEvents.Count && unisonEvents[unisonIdx + 1].Time <= soloEvents[soloIdx].EndTime)
+                                {
+                                    _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].TimeEnd,
+                                        unisonEvents[unisonIdx + 1].Time, TrackEffectType.Solo, false, false));
+                                }
+                                else
+                                {
+                                    _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].TimeEnd,
+                                        soloEvents[soloIdx].EndTime, TrackEffectType.Solo, false, true));
+                                }
+
+                                unisonIdx++;
+                                // If we ate the last unison, bad things will happen, so check for that
+                                if (unisonIdx >= unisonEvents.Count)
+                                {
+                                    break;
+                                }
+                            }
                         }
                         else
                         {
@@ -797,11 +811,10 @@ namespace YARG.Gameplay.Player
                             // Finish unison event without solo
                             _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].EndTime,
                                 unisonEvents[unisonIdx].TimeEnd, TrackEffectType.Unison, false, true));
+                            unisonIdx++;
                         }
                         // We ate a solo and a unison and are done with this round
-                        // TODO: Deal with the possibility of more than one unison in a single solo
                         soloIdx++;
-                        unisonIdx++;
                         continue;
                     }
 
@@ -812,11 +825,10 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                if (unisonEvents[unisonIdx].Time < soloEvents[soloIdx].StartTime)
+                if (unisonEvents[unisonIdx].Time <= soloEvents[soloIdx].StartTime)
                 {
                     if (unisonEvents[unisonIdx].TimeEnd > soloEvents[soloIdx].StartTime)
                     {
-                        // TODO: Deal with overlap
                         var newUnisonEndTime = soloEvents[soloIdx].StartTime;
                         // Create the effect for the part of the unison without a solo
                         _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].Time,
@@ -824,12 +836,32 @@ namespace YARG.Gameplay.Player
                         // Check if the solo is completely contained within the unison
                         if (soloEvents[soloIdx].EndTime < unisonEvents[unisonIdx].TimeEnd)
                         {
-                            // create soloandunison until the solo ends
-                            _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].StartTime,
-                                soloEvents[soloIdx].EndTime, TrackEffectType.SoloAndUnison, false, false));
-                            // finish off with the rest of the unison
-                            _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].EndTime,
-                                unisonEvents[unisonIdx].TimeEnd, TrackEffectType.Unison, false, true));
+                            while (soloEvents[soloIdx].EndTime < unisonEvents[unisonIdx].TimeEnd)
+                            {
+                                // I seriously doubt this will ever happen, but we loop just in case there does
+                                // ever exist a situation where there are multiple solos within a unison
+
+                                // create soloandunison until the solo ends
+                                _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].StartTime,
+                                    soloEvents[soloIdx].EndTime, TrackEffectType.SoloAndUnison, false, false));
+                                // finish off with the rest of the unison unless the unison contains another solo
+                                if (soloIdx + 1 < soloEvents.Count && soloEvents[soloIdx + 1].StartTime <= unisonEvents[unisonIdx].TimeEnd)
+                                {
+                                    _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].EndTime,
+                                        soloEvents[soloIdx + 1].StartTime, TrackEffectType.Unison, false, false));
+                                }
+                                else
+                                {
+                                    _trackEffectList.Add(new TrackEffect(soloEvents[soloIdx].EndTime,
+                                        unisonEvents[unisonIdx].TimeEnd, TrackEffectType.Unison, false, true));
+                                }
+
+                                soloIdx++;
+                                if (soloIdx >= soloEvents.Count)
+                                {
+                                    break;
+                                }
+                            }
                         }
                         else
                         {
@@ -840,10 +872,10 @@ namespace YARG.Gameplay.Player
                             // finish off with the rest of the solo
                             _trackEffectList.Add(new TrackEffect(unisonEvents[unisonIdx].TimeEnd,
                                 soloEvents[soloIdx].EndTime, TrackEffectType.Solo, false, true));
+                            soloIdx++;
                         }
                         // We ate both a solo and a unison here
                         unisonIdx++;
-                        soloIdx++;
                         continue;
                     }
 
@@ -861,7 +893,7 @@ namespace YARG.Gameplay.Player
             {
                 _upcomingEffects.Enqueue(t);
             }
-            YargLogger.LogFormatDebug("Created {1} track effects in MergeTrackEffects", _upcomingEffects.Count);
+            YargLogger.LogFormatDebug("Created {0} track effects in MergeTrackEffects", _upcomingEffects.Count);
         }
     }
 }
