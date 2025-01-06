@@ -480,7 +480,9 @@
             "AdvancedDMXChannels": "Advanced DMX Channels",
             "StatusBar": "Status Bar",
             "AdvancedDMXSettings": "Advanced sACN and DMX settings",
-			"Experimental": "Experimental"
+            "Experimental": "Experimental",
+            "HUD": "HUD",
+            "Gameplay": "Gameplay"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
