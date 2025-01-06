@@ -265,6 +265,8 @@ namespace YARG.Settings
                     CountdownDisplayMode.Disabled
                 };
 
+            public ToggleSetting ShowPlayerNameWhenStartingSong { get; } = new(true);
+
             #endregion
 
             #region File Management

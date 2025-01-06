@@ -955,6 +955,10 @@
             "ReduceNoteSpeedByDifficulty": {
                 "Name": "Reduce Note Speed by Difficulty",
                 "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The specified note speed is applied to Expert, and lower difficulties receive a reduction in speed. This setting does not affect vocal tracks."
+            },
+            "ShowPlayerNameWhenStartingSong": {
+                "Name": "Show Player Name When Starting Song",
+                "Description": "If enabled, the player name and instrument icon will appear when the song starts."
             }
         },
         "PresetType": {

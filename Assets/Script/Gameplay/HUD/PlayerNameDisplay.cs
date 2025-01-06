@@ -10,10 +10,11 @@ using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
-    public class PlayerNameDisplay : MonoBehaviour
+    public class PlayerNameDisplay : GameplayBehaviour
     {
         [SerializeField]
         private TextMeshProUGUI _playerName;
@@ -27,13 +28,19 @@ namespace YARG.Gameplay.HUD
         public float DisplayTime = 3.0f;
         public float FadeDuration = 0.5f;
 
-        void Awake()
+        protected override void GameplayAwake()
         {
             _canvasGroup = GetComponent<CanvasGroup>();
+            _canvasGroup.alpha = 0f;
         }
 
         public void ShowPlayer(YargPlayer player)
         {
+            if (!ShouldShowPlayer())
+            {
+                return;
+            }
+
             var profile = player.Profile;
             _playerName.text = profile.Name;
 
@@ -45,6 +52,24 @@ namespace YARG.Gameplay.HUD
             StartCoroutine(FadeoutCoroutine());
         }
 
+        public void ShowPlayer(YargPlayer player, int needleId)
+        {
+            if (!ShouldShowPlayer())
+            {
+                return;
+            }
+
+            var textureNeedle = $"VocalNeedleTexture/{needleId}";
+            _needleIcon.texture = Addressables.LoadAssetAsync<Texture2D>(textureNeedle).WaitForCompletion();
+            _instrumentIcon.color = GetHarmonyColor(player);
+            ShowPlayer(player);
+        }
+
+        private bool ShouldShowPlayer()
+        {
+            return !GameManager.IsPractice && SettingsManager.Settings.ShowPlayerNameWhenStartingSong.Value;
+        }
+
         private string GetSpriteName(Instrument currentInstrument, byte harmonyIndex)
         {
             if (currentInstrument == Instrument.Harmony)
@@ -53,14 +78,6 @@ namespace YARG.Gameplay.HUD
             }
 
             return $"InstrumentIcons[{currentInstrument.ToResourceName()}]";
-        }
-
-        public void ShowPlayer(YargPlayer player, int needleId)
-        {
-            var textureNeedle = $"VocalNeedleTexture/{needleId}";
-            _needleIcon.texture = Addressables.LoadAssetAsync<Texture2D>(textureNeedle).WaitForCompletion();
-            _instrumentIcon.color = GetHarmonyColor(player);
-            ShowPlayer(player);
         }
 
         private Color GetHarmonyColor(YargPlayer player)
