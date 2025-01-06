@@ -4,6 +4,7 @@ using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Game;
@@ -87,7 +88,10 @@ namespace YARG.Gameplay.Player
                 EngineParams = (GuitarEngineParameters) Player.EngineParameterOverride;
             }
 
-            var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            // var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            var engine = (YargFiveFretEngine) GameManager.EngineManager.InstantiateEngine(EngineManager.EngineKind.YargFiveFretEngine,
+                NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+
 
             HitWindow = EngineParams.HitWindow;
 

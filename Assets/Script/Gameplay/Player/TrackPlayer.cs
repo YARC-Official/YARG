@@ -8,6 +8,7 @@ using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Game;
+using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
@@ -262,8 +263,8 @@ namespace YARG.Gameplay.Player
             // We have to subscribe to the event before calling
             // AddStarPowerSections or we will miss the event if we
             // happen to be the last player to initialize
-            GameManager.OnUnisonPhrasesReady += OnUnisonPhrasesReady;
-            GameManager.AddStarPowerSections(NoteTrack.Phrases, this);
+            GameManager.EngineManager.OnUnisonPhrasesReady += OnUnisonPhrasesReady;
+            GameManager.EngineManager.AddStarPowerSections(NoteTrack.Phrases, Engine.EngineId);
 
             ResetNoteCounters();
 
@@ -656,21 +657,23 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected virtual void OnUnisonPhrasesReady(List<GameManager.UnisonEvent> unisonEvents)
+        protected virtual void OnUnisonPhrasesReady(List<EngineManager.UnisonEvent> unisonEvents)
         {
             MergeTrackEffects(unisonEvents);
 
             // We subscribe here since there would be no point if there
             // aren't any unison phrases in the song
-            GameManager.OnUnisonPhraseSuccess += OnUnisonPhraseSuccess;
+            GameManager.EngineManager.OnUnisonPhraseSuccess += OnUnisonPhraseSuccess;
             // May as well unsubscribe now that the work is done
-            GameManager.OnUnisonPhrasesReady -= OnUnisonPhrasesReady;
+            GameManager.EngineManager.OnUnisonPhrasesReady -= OnUnisonPhrasesReady;
         }
 
         protected virtual void OnUnisonPhraseSuccess()
         {
-            // TODO: Signal the engine to award an extra unit of SP
-            YargLogger.LogDebug("TrackPlayer would award unison bonus if it knew how!");
+            // TODO: Improve the replay code so we don't award bonus SP using an input event
+            var unisonInput = new GameInput(Engine.CurrentTime, (int) BandAction.CreditBonusStarPower, true);
+            OnGameInput(ref unisonInput);
+            YargLogger.LogFormatDebug("TrackPlayer awarded unison bonus at engine time {0}", unisonInput.Time);
         }
 
         protected virtual void OnCountdownChange(int measuresLeft, double countdownLength, double endTime)
@@ -680,7 +683,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnStarPowerPhraseHit(TNote note)
         {
-            GameManager.StarPowerPhraseHit(this, note.Time);
+            GameManager.EngineManager.StarPowerPhraseHit(this.Engine, note.Time);
             OnStarPowerPhraseHit();
         }
 
@@ -702,12 +705,9 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void MergeTrackEffects(List<GameManager.UnisonEvent> unisonEvents)
+        private void MergeTrackEffects(List<EngineManager.UnisonEvent> unisonEvents)
         {
             // TODO: There is definitely a better algorithm to deal with this
-            //  also it doesn't handle the case where multiple unisons exist
-            //  within a single solo. I think it should work enough of the time
-            //  to be testable, though.
             var soloIdx = 0;
             var unisonIdx = 0;
             var soloEvents = _upcomingSolos.ToList();
@@ -760,7 +760,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                // TODO: Handle the case where start times are equal
+                // TODO: Handle the case where start times are equal (seems to be rare in practice)
                 if (soloEvents[soloIdx].StartTime < unisonEvents[unisonIdx].Time)
                 {
                     // A solo event is first, now we have to see if there is overlap

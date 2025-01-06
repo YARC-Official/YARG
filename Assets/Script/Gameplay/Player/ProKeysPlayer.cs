@@ -5,6 +5,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.ProKeys;
 using YARG.Core.Engine.ProKeys.Engines;
 using YARG.Core.Input;
@@ -95,7 +96,9 @@ namespace YARG.Gameplay.Player
                 EngineParams = (ProKeysEngineParameters) Player.EngineParameterOverride;
             }
 
-            var engine = new YargProKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            // var engine = new YargProKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            var engine = (YargProKeysEngine) GameManager.EngineManager.InstantiateEngine(EngineManager.EngineKind.YargProKeysEngine,
+                NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
 
             HitWindow = EngineParams.HitWindow;
 

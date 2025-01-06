@@ -175,7 +175,9 @@ namespace YARG.Gameplay.Player
             // The hit window can just be taken from the params
             HitWindow = EngineParams.HitWindow;
 
-            var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            // var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            var engine = (YargVocalsEngine) GameManager.EngineManager.InstantiateEngine(EngineManager.EngineKind.YargVocalsEngine,
+                NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
 
             engine.OnStarPowerPhraseHit += _ => OnStarPowerPhraseHit();
             engine.OnStarPowerStatus += OnStarPowerStatus;
