@@ -158,7 +158,7 @@ namespace YARG.Song
 
         public static SongCategory[] GetSortedCategory(SortAttribute sort)
         {
-            return sort switch
+            var proposedSort = sort switch
             {
                 SortAttribute.Name => _sortTitles,
                 SortAttribute.Artist => _sortArtists,
@@ -195,15 +195,19 @@ namespace YARG.Song
                 SortAttribute.Vocals         => _sortInstruments[Instrument.Vocals],
                 SortAttribute.Harmony        => _sortInstruments[Instrument.Harmony],
                 SortAttribute.Band           => _sortInstruments[Instrument.Band],
-                // Make life better when people go back a version and we
-                // encounter sorts we don't understand by providing a
-                // default rather than a blank song library
-                _ => new Func<SongCategory[]>( () =>
-                {
-                    YargLogger.LogInfo("Invalid Sort Attribute. Defaulting to Name sort.");
-                    return _sortTitles;
-                })(),
+                _  => null
             };
+
+            // Make life better when people go back a version and we
+            // encounter sorts we don't understand by providing a
+            // default rather than a blank song library
+            if (proposedSort != null)
+            {
+                return proposedSort;
+            }
+
+            YargLogger.LogInfo("Invalid Sort Attribute. Defaulting to Name sort.");
+            return _sortTitles;
         }
 
         public static bool HasInstrument(Instrument instrument)
@@ -297,7 +301,7 @@ namespace YARG.Song
         {
             // This should never happen since play count shouldn't be selectable without
             // a non-bot profile and MusicLibraryMenu already checks for this, but let's double check
-            if (PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 0)
+            if (PlayerContainer.OnlyHasBots())
             {
                 // Titles seems like a reasonable fallback
                 return _sortTitles;

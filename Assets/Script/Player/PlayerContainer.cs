@@ -300,5 +300,17 @@ namespace YARG.Player
 
             }
         }
+
+        public static bool OnlyHasBots()
+        {
+            for (int i = 0; i < _players.Count; i++)
+            {
+                if (!_players[i].Profile.IsBot)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }

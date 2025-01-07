@@ -189,7 +189,7 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 // Skip Play count if there are no real players
-                if (sort == SortAttribute.Playcount && PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 0)
+                if (sort == SortAttribute.Playcount && PlayerContainer.OnlyHasBots())
                 {
                     continue;
                 }
