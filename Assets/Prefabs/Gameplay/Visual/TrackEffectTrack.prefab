@@ -371,6 +371,16 @@ MonoBehaviour:
     type: 2}
   _unisonRailRightTransitionMaterial: {fileID: 2100000, guid: 825fde9df03325747a5287f7be273f10,
     type: 2}
+  _drumFillTrackMaterial: {fileID: 2100000, guid: 9ea07200d5963f24cbc0a0dd81733d5c,
+    type: 2}
+  _drumFillRailMaterial: {fileID: 2100000, guid: dbe25822df08bcf45909811beabb8a76,
+    type: 2}
+  _drumFillTransitionMaterial: {fileID: 2100000, guid: d732190644b67604bb021119c2a46662,
+    type: 2}
+  _drumFillRailLeftTransitionMaterial: {fileID: 2100000, guid: f655515021e61b446b024a7b346fa1e2,
+    type: 2}
+  _drumFillRailRightTransitionMaterial: {fileID: 2100000, guid: 7c6b7c80e4234864eb992d096f716c5e,
+    type: 2}
 --- !u!1 &7554591210382149586
 GameObject:
   m_ObjectHideFlags: 0

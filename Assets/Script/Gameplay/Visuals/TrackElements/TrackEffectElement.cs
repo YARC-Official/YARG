@@ -39,6 +39,16 @@ namespace YARG.Gameplay.Visuals
         private Material _unisonRailLeftTransitionMaterial;
         [SerializeField]
         private Material _unisonRailRightTransitionMaterial;
+        [SerializeField]
+        private Material _drumFillTrackMaterial;
+        [SerializeField]
+        private Material _drumFillRailMaterial;
+        [SerializeField]
+        private Material _drumFillTransitionMaterial;
+        [SerializeField]
+        private Material _drumFillRailLeftTransitionMaterial;
+        [SerializeField]
+        private Material _drumFillRailRightTransitionMaterial;
 
         public TrackPlayer.TrackEffect EffectRef { get; set; }
 
@@ -61,7 +71,7 @@ namespace YARG.Gameplay.Visuals
 
         private void InitializeMaterialDict()
         {
-            // This is absurd
+            // This is absurd, but less absurd than hard coding values
             _materials = new Dictionary<string, Dictionary<TrackPlayer.TrackEffectType, Material>>
             {
                 {"TrackEffectTrack",
@@ -69,7 +79,8 @@ namespace YARG.Gameplay.Visuals
                     {
                         {TrackPlayer.TrackEffectType.Solo, _soloTrackMaterial},
                         {TrackPlayer.TrackEffectType.Unison, _unisonTrackMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTrackMaterial}
+                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTrackMaterial},
+                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillTrackMaterial}
                     }
                 },
                 {"TrackEffectTrack(Clone)",
@@ -77,7 +88,8 @@ namespace YARG.Gameplay.Visuals
                     {
                         {TrackPlayer.TrackEffectType.Solo, _soloTrackMaterial},
                         {TrackPlayer.TrackEffectType.Unison, _unisonTrackMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTrackMaterial}
+                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTrackMaterial},
+                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillTrackMaterial}
                     }
                 },
                 {"TrackEffectStart",
@@ -85,7 +97,8 @@ namespace YARG.Gameplay.Visuals
                     {
                         {TrackPlayer.TrackEffectType.Solo, _soloTransitionMaterial},
                         {TrackPlayer.TrackEffectType.Unison, _unisonTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTransitionMaterial}
+                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTransitionMaterial},
+                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillTransitionMaterial}
                     }
                 },
                 {"TrackEffectEnd",
@@ -93,7 +106,8 @@ namespace YARG.Gameplay.Visuals
                     {
                         {TrackPlayer.TrackEffectType.Solo, _soloTransitionMaterial},
                         {TrackPlayer.TrackEffectType.Unison, _unisonTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTransitionMaterial}
+                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTransitionMaterial},
+                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillTransitionMaterial}
                     }
                 },
                 {"TrackEffectTransitionRailRight",
@@ -101,7 +115,8 @@ namespace YARG.Gameplay.Visuals
                     {
                         {TrackPlayer.TrackEffectType.Solo, _soloRailRightTransitionMaterial},
                         {TrackPlayer.TrackEffectType.Unison, _unisonRailRightTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailRightTransitionMaterial}
+                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailRightTransitionMaterial},
+                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillRailRightTransitionMaterial}
                     }
                 },
                 {"TrackEffectTransitionRailLeft",
@@ -109,7 +124,8 @@ namespace YARG.Gameplay.Visuals
                     {
                         {TrackPlayer.TrackEffectType.Solo, _soloRailLeftTransitionMaterial},
                         {TrackPlayer.TrackEffectType.Unison, _unisonRailLeftTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailLeftTransitionMaterial}
+                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailLeftTransitionMaterial},
+                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillRailLeftTransitionMaterial}
                     }
                 },
                 {"TrackEffectRailRight",
@@ -117,7 +133,8 @@ namespace YARG.Gameplay.Visuals
                     {
                         {TrackPlayer.TrackEffectType.Solo, _soloRailMaterial},
                         {TrackPlayer.TrackEffectType.Unison, _unisonRailMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailMaterial}
+                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailMaterial},
+                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillRailMaterial}
                     }
                 },
                 {"TrackEffectRailLeft",
@@ -125,7 +142,8 @@ namespace YARG.Gameplay.Visuals
                     {
                         {TrackPlayer.TrackEffectType.Solo, _soloRailMaterial},
                         {TrackPlayer.TrackEffectType.Unison, _unisonRailMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailMaterial}
+                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailMaterial},
+                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillRailMaterial}
                     }
                 },
             };

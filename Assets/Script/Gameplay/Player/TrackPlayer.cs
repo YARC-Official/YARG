@@ -79,6 +79,7 @@ namespace YARG.Gameplay.Player
             Solo,
             Unison,
             SoloAndUnison,
+            DrumSpActivation,
         }
         public struct TrackEffect
         {
@@ -215,6 +216,7 @@ namespace YARG.Gameplay.Player
         private Queue<Solo> _upcomingSolos = new();
         private List<TrackEffect> _trackEffectList = new();
         private Queue<TrackEffect> _upcomingEffects = new();
+        private List<Phrase> _drumFillPhrases = new();
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
@@ -259,6 +261,16 @@ namespace YARG.Gameplay.Player
                 _upcomingEffects.Enqueue(new TrackEffect(soloSection.StartTime, soloSection.EndTime,
                     TrackEffectType.Solo));
             }
+
+            foreach (var phrase in NoteTrack.Phrases)
+            {
+                if (phrase.Type == PhraseType.DrumFill)
+                {
+                    _drumFillPhrases.Add(phrase);
+                }
+            }
+
+            AddDrumSpActivationEffects(_drumFillPhrases);
 
             // We have to subscribe to the event before calling
             // AddStarPowerSections or we will miss the event if we
@@ -660,6 +672,8 @@ namespace YARG.Gameplay.Player
         protected virtual void OnUnisonPhrasesReady(List<EngineManager.UnisonEvent> unisonEvents)
         {
             MergeTrackEffects(unisonEvents);
+            // Since we called MergeTrackEffects, we need to regenerate the drum fill effects
+            AddDrumSpActivationEffects(_drumFillPhrases);
 
             // We subscribe here since there would be no point if there
             // aren't any unison phrases in the song
@@ -703,6 +717,58 @@ namespace YARG.Gameplay.Player
                 _newHighScoreShown = true;
                 TrackView.ShowNewHighScore();
             }
+        }
+
+        // This is not part of MergeTrackEffects to make life much simpler
+        // in the (probably mistaken) belief that unisons and solos don't
+        // overlap with SP activation phrases
+
+        // THIS MUST BE CALLED AFTER MergeTrackEffects! (or called again if it is called)
+
+        // TODO: replace dynamic with the actual type
+        private void AddDrumSpActivationEffects(List<Phrase> drumSpEvents)
+        {
+            var effectIdx = 0;
+            var drumIdx = 0;
+            var effectList = _upcomingEffects.ToList();
+            var newEffectQueue = new Queue<TrackEffect>();
+
+            while (effectIdx < effectList.Count || drumIdx < drumSpEvents.Count)
+            {
+                if (effectIdx >= effectList.Count)
+                {
+                    // No more preexisting effects
+                    newEffectQueue.Enqueue(new TrackEffect(drumSpEvents[drumIdx].Time, drumSpEvents[drumIdx].TimeEnd,
+                        TrackEffectType.DrumSpActivation, true, true));
+                    drumIdx++;
+                    continue;
+                }
+
+                if (drumIdx >= drumSpEvents.Count)
+                {
+                    // No more drum SP activation events
+                    newEffectQueue.Enqueue(effectList[effectIdx]);
+                    effectIdx++;
+                    continue;
+                }
+
+                // If we made it this far, we have both, so we need to sort
+                if (effectList[effectIdx].StartTime < drumSpEvents[drumIdx].Time)
+                {
+                    newEffectQueue.Enqueue(effectList[effectIdx]);
+                    effectIdx++;
+                    continue;
+                }
+                else
+                {
+                    newEffectQueue.Enqueue(new TrackEffect(drumSpEvents[drumIdx].Time, drumSpEvents[drumIdx].TimeEnd,
+                        TrackEffectType.DrumSpActivation, true, true));
+                    drumIdx++;
+                    continue;
+                }
+            }
+            // Replace the existing effects queue
+            _upcomingEffects = newEffectQueue;
         }
 
         private void MergeTrackEffects(List<EngineManager.UnisonEvent> unisonEvents)
