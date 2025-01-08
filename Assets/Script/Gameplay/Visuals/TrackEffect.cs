@@ -29,11 +29,16 @@ namespace YARG.Gameplay.Visuals
             EndTransitionEnable = endTransitionEnable;
         }
 
-        public readonly double Time;
-        public readonly double TimeEnd;
+        // This is the scale of the transition object (currently 0.005) * 100
+        // If the scale is changed or the object is changed from a plane this
+        // will have to change
+        private const float TRANSITION_SCALE = 0.5f;
+
+        public double Time { get; private set; }
+        public double TimeEnd { get; private set; }
         public readonly TrackEffectType EffectType;
-        public bool StartTransitionEnable {get; private set;}
-        public bool EndTransitionEnable {get; private set;}
+        public bool StartTransitionEnable { get; private set; }
+        public bool EndTransitionEnable { get; private set; }
 
         public bool Equals(TrackEffect other) => Time.Equals(other.Time) && TimeEnd.Equals(other.TimeEnd);
         public override bool Equals(object obj) => obj is TrackEffect && Equals((TrackEffect)obj);
@@ -53,16 +58,11 @@ namespace YARG.Gameplay.Visuals
         // Takes a list of track effects, sorts, slices, and dices, chops,
         // and blends in order to create just the right combination
         // of non-overlapping effects to delight and surprise users
-
-        // TODO: Handle edge overlap, too. The most common case of a drum
-        //  fill end and unison start having equal times is handled, but
-        //  we would ideally also look for cases where the times are not
-        //  equal, but fall within the space of the transition and adjust
-        //  the start and end times of the visuals to actually abut and
-        //  disable the end/start transition effect for the corresponding
-        //  effects.
-        public static List<TrackEffect> SliceEffects(params List<TrackEffect>[] trackEffects)
+        public static List<TrackEffect> SliceEffects(float noteSpeed, params List<TrackEffect>[] trackEffects)
         {
+            // NOTE: This breaks if the size of the effect transition is changed
+            // Multiplied by two since both effect objects have a transition
+            var minTime = TRANSITION_SCALE * 2 / noteSpeed;
             // Combine all the lists we were given, then sort
             var fullEffectsList = new List<TrackEffect>();
             foreach (var effectList in trackEffects)
@@ -90,6 +90,16 @@ namespace YARG.Gameplay.Visuals
                     {
                         // There is adjacency, so disable the transitions
                         // TODO: Make this handle the case where only the transitions overlap
+                        effect.EndTransitionEnable = false;
+                        nextEffect.StartTransitionEnable = false;
+                    }
+
+                    if (nextEffect.Time - effect.TimeEnd < minTime)
+                    {
+                        // Too close, adjust them to be adjacent
+                        var adjustedTime = ((nextEffect.Time - effect.TimeEnd) / 2) + effect.TimeEnd;
+                        nextEffect.Time = adjustedTime;
+                        effect.TimeEnd = adjustedTime;
                         effect.EndTransitionEnable = false;
                         nextEffect.StartTransitionEnable = false;
                     }

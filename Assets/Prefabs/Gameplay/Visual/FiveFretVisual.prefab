@@ -128,6 +128,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 861361446070616044, guid: 03b0fdd0f2d131d4682ccf3aaf6ee2a7,
         type: 3}
+    - target: {fileID: 1322894404919002691, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: m_Name
+      value: Effect Pool
+      objectReference: {fileID: 0}
     - target: {fileID: 2166581194060232035, guid: 5800c42510b55c549be95ec3ecd75e1c,
         type: 3}
       propertyPath: m_IsActive
@@ -324,7 +329,7 @@ MonoBehaviour:
   _hudLocation: {fileID: 3807369616701639989}
   NotePool: {fileID: 5534384060604769120}
   BeatlinePool: {fileID: 155632028176750329}
-  SoloPool: {fileID: 1486725686970304910}
+  EffectPool: {fileID: 1486725686970304910}
   _fretArray: {fileID: 1060069523843335645}
 --- !u!114 &7617442645122152992 stripped
 MonoBehaviour:

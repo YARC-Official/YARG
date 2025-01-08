@@ -135,7 +135,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   GrooveMode: 0
   StarpowerMode: 0
-  SoloMode: 0
   _trackMesh: {fileID: 6705658293223943274}
   _trackTrims:
   - {fileID: 7065054903530189613}
@@ -151,7 +150,7 @@ GameObject:
   - component: {fileID: 5384437269169380421}
   - component: {fileID: 8327152841679539214}
   m_Layer: 0
-  m_Name: Solo Pool
+  m_Name: Effect Pool
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
