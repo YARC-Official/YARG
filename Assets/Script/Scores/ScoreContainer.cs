@@ -434,8 +434,7 @@ namespace YARG.Scores
                 var hash = HashWrapper.Create(record.SongChecksum);
                 if (SongContainer.SongsByHash.TryGetValue(hash, out var list))
                 {
-                    // If there are songs with a duplicate hash, one will be chosen randomly
-                    songList.Add(list.Pick());
+                    songList.AddRange(list);
                 }
             }
             return songList;
