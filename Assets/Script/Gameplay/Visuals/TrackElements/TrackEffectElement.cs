@@ -53,8 +53,6 @@ namespace YARG.Gameplay.Visuals
 
         public TrackEffect EffectRef { get; set; }
 
-        private Dictionary<string, Dictionary<TrackEffectType, Material>> _materials;
-
         public override double ElementTime => EffectRef.Time;
         public double MiddleTime => EffectRef.Time + ((EffectRef.TimeEnd - EffectRef.Time) / 2);
         private float ZLength => (float) (EffectRef.TimeEnd - EffectRef.Time * Player.NoteSpeed);
@@ -67,6 +65,154 @@ namespace YARG.Gameplay.Visuals
             RescaleForZ();
             InitializeFade();
             SetTransitionState();
+        }
+
+        private void InitializeFade()
+        {
+            // This has to be done because it gets messed up when objects
+            // get recycled. The effect is visually interesting, but not what is desired.
+
+            // Get fade info
+            float fadePos = Player.ZeroFadePosition;
+            float fadeSize = Player.FadeSize;
+
+            // Set all fade values for meshes
+            var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
+            foreach (var meshRenderer in meshRenderers)
+            {
+                foreach (var material in meshRenderer.materials)
+                {
+                    material.SetFade(fadePos, fadeSize);
+                }
+            }
+        }
+
+        private void SetMaterials()
+        {
+            var children = GetComponentsInChildren<Renderer>();
+
+            foreach (var child in children)
+            {
+                if (!child.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+                var newMaterial = GetMaterial(child.gameObject.name, EffectRef.EffectType);
+                if (newMaterial is null)
+                {
+                    // Games are being played, just disable the object
+                    child.gameObject.SetActive(false);
+                }
+
+                child.material = newMaterial;
+            }
+        }
+
+        private void SetTransitionState()
+        {
+            EnableStartTransition = EffectRef.StartTransitionEnable;
+            EnableEndTransition = EffectRef.EndTransitionEnable;
+
+            var cachedTransform = _meshRenderer.transform;
+
+            var children = cachedTransform.GetComponentsInChildren<Transform>(true);
+
+            foreach (var child in children)
+            {
+                if (child == cachedTransform)
+                {
+                    continue;
+                }
+
+                if (child.gameObject.name != "TrackEffectStart" && child.gameObject.name != "TrackEffectEnd")
+                {
+                    continue;
+                }
+
+                if (child.gameObject.name is "TrackEffectStart" && !EnableStartTransition)
+                {
+                    child.gameObject.SetActive(false);
+                    continue;
+                }
+
+                if (child.gameObject.name is "TrackEffectEnd" && !EnableEndTransition)
+                {
+                    child.gameObject.SetActive(false);
+                    continue;
+                }
+
+                child.gameObject.SetActive(true);
+            }
+        }
+
+        protected override bool UpdateElementPosition()
+        {
+            // Calibration is not taken into consideration here, as that is instead handled in more
+            // critical areas such as the game manager and players
+            float z =
+                TrackPlayer.STRIKE_LINE_POS                          // Shift origin to the strike line
+                + (float) (MiddleTime - GameManager.RealVisualTime)  // Get time of center of effect object relative to now
+                * Player.NoteSpeed;                                  // Adjust speed (units/s)
+
+            var cacheTransform = transform;
+            cacheTransform.localPosition = cacheTransform.localPosition.WithZ(z);
+
+            if (z < REMOVE_POINT - RemovePointOffset)
+            {
+                ParentPool.Return(this);
+                return false;
+            }
+
+            return true;
+        }
+
+        protected void RescaleForZ()
+        {
+            // More correctly, this would get the unscaled size of the object
+            // Since we currently use Unity's plane, this works
+            const float zSize = 10.0f;
+            float childZBasePosition = zSize / 2;
+            var zScale = (float) (EffectRef.TimeEnd - EffectRef.Time) * Player.NoteSpeed / zSize;
+
+            var cachedTransform = _meshRenderer.transform;
+
+            // This is necessary to avoid the rescaling of the
+            // parent from messing up the scaling of the children
+            var children = cachedTransform.GetComponentsInChildren<Transform>();
+            var scaleFactor = zScale / zSize;
+            foreach (var child in children)
+            {
+                if (child == cachedTransform)
+                {
+                    continue;
+                }
+
+                if (child.gameObject.name is "TrackEffectRailRight" or "TrackEffectRailLeft")
+                {
+                    continue;
+                }
+
+                if (child.gameObject.name is "TrackEffectTransitionRailLeft" or "TrackEffectTransitionRailRight")
+                {
+                    continue;
+                }
+                // Change the child's scale such that their world size remains the same after the parent scales
+                var originalScale = 0.005f; // this would be child.localScale.z, but that causes issues when the object gets reused
+                var newScale = originalScale / scaleFactor;
+                child.localScale = child.localScale.WithZ(newScale);
+                // Adjust the child's position to reflect the new scale
+                var signFactor = Math.Sign(child.localPosition.z);
+                var newZ = (childZBasePosition + newScale * childZBasePosition) * signFactor;
+                // This fudge shouldn't be necessary, but without it there is sometimes
+                // a visible gap in the rail between the transition and main section
+                // I assume this is because of rounding errors with small float values
+                newZ += 0.001f * -signFactor;
+
+                child.localPosition = child.localPosition.WithZ(newZ);
+            }
+            // With the adjustments to the children made, we can scale the
+            // parent and have everything end up in the right place
+            cachedTransform.localScale = cachedTransform.localScale.WithZ(zScale);
         }
 
         // Returns the material corresponding to a specific effect object and effect type
@@ -164,240 +310,6 @@ namespace YARG.Gameplay.Visuals
                     objectName, effectType);
             }
             return material;
-        }
-
-        private void InitializeMaterialDict()
-        {
-            // This is absurd, but less absurd than hard coding values
-            // TODO: Do something about this. It should be stored elsewhere or
-            //  should be getting materials by name or something, whatever prevents
-            //  allocating every time a track effect is taken from the pool/
-            //  -
-            //  Maybe store it on TrackEffect and get materials by name? IHNFIRN
-            //  Or maybe switch expressions? FML
-            _materials = new Dictionary<string, Dictionary<TrackEffectType, Material>>
-            {
-                {"TrackEffectTrack",
-                    new Dictionary<TrackEffectType, Material>
-                    {
-                        {TrackEffectType.Solo, _soloTrackMaterial},
-                        {TrackEffectType.Unison, _unisonTrackMaterial},
-                        {TrackEffectType.SoloAndUnison, _unisonTrackMaterial},
-                        {TrackEffectType.DrumFill, _drumFillTrackMaterial}
-                    }
-                },
-                {"TrackEffectTrack(Clone)",
-                    new Dictionary<TrackEffectType, Material>
-                    {
-                        {TrackEffectType.Solo, _soloTrackMaterial},
-                        {TrackEffectType.Unison, _unisonTrackMaterial},
-                        {TrackEffectType.SoloAndUnison, _unisonTrackMaterial},
-                        {TrackEffectType.DrumFill, _drumFillTrackMaterial}
-                    }
-                },
-                {"TrackEffectStart",
-                    new Dictionary<TrackEffectType, Material>
-                    {
-                        {TrackEffectType.Solo, _soloTransitionMaterial},
-                        {TrackEffectType.Unison, _unisonTransitionMaterial},
-                        {TrackEffectType.SoloAndUnison, _unisonTransitionMaterial},
-                        {TrackEffectType.DrumFill, _drumFillTransitionMaterial}
-                    }
-                },
-                {"TrackEffectEnd",
-                    new Dictionary<TrackEffectType, Material>
-                    {
-                        {TrackEffectType.Solo, _soloTransitionMaterial},
-                        {TrackEffectType.Unison, _unisonTransitionMaterial},
-                        {TrackEffectType.SoloAndUnison, _unisonTransitionMaterial},
-                        {TrackEffectType.DrumFill, _drumFillTransitionMaterial}
-                    }
-                },
-                {"TrackEffectTransitionRailRight",
-                    new Dictionary<TrackEffectType, Material>
-                    {
-                        {TrackEffectType.Solo, _soloRailRightTransitionMaterial},
-                        {TrackEffectType.Unison, _unisonRailRightTransitionMaterial},
-                        {TrackEffectType.SoloAndUnison, _soloRailRightTransitionMaterial},
-                        {TrackEffectType.DrumFill, _drumFillRailRightTransitionMaterial}
-                    }
-                },
-                {"TrackEffectTransitionRailLeft",
-                    new Dictionary<TrackEffectType, Material>
-                    {
-                        {TrackEffectType.Solo, _soloRailLeftTransitionMaterial},
-                        {TrackEffectType.Unison, _unisonRailLeftTransitionMaterial},
-                        {TrackEffectType.SoloAndUnison, _soloRailLeftTransitionMaterial},
-                        {TrackEffectType.DrumFill, _drumFillRailLeftTransitionMaterial}
-                    }
-                },
-                {"TrackEffectRailRight",
-                    new Dictionary<TrackEffectType, Material>
-                    {
-                        {TrackEffectType.Solo, _soloRailMaterial},
-                        {TrackEffectType.Unison, _unisonRailMaterial},
-                        {TrackEffectType.SoloAndUnison, _soloRailMaterial},
-                        {TrackEffectType.DrumFill, _drumFillRailMaterial}
-                    }
-                },
-                {"TrackEffectRailLeft",
-                    new Dictionary<TrackEffectType, Material>
-                    {
-                        {TrackEffectType.Solo, _soloRailMaterial},
-                        {TrackEffectType.Unison, _unisonRailMaterial},
-                        {TrackEffectType.SoloAndUnison, _soloRailMaterial},
-                        {TrackEffectType.DrumFill, _drumFillRailMaterial}
-                    }
-                },
-            };
-        }
-
-        private void InitializeFade()
-        {
-            // This has to be done because it gets messed up when objects
-            // get recycled. The effect is visually interesting, but not what is desired.
-
-            // Get fade info
-            float fadePos = Player.ZeroFadePosition;
-            float fadeSize = Player.FadeSize;
-
-            // Set all fade values for meshes
-            var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
-            foreach (var meshRenderer in meshRenderers)
-            {
-                foreach (var material in meshRenderer.materials)
-                {
-                    material.SetFade(fadePos, fadeSize);
-                }
-            }
-        }
-
-        private void SetMaterials()
-        {
-            var children = GetComponentsInChildren<Renderer>();
-
-            foreach (var child in children)
-            {
-                // if (!child.gameObject.activeInHierarchy)
-                // {
-                //     continue;
-                // }
-                var newMaterial = GetMaterial(child.gameObject.name, EffectRef.EffectType);
-                if (newMaterial is null)
-                {
-                    // Games are being played, just disable the object
-                    child.gameObject.SetActive(false);
-                }
-
-                child.material = newMaterial;
-            }
-        }
-
-        private void SetTransitionState()
-        {
-            EnableStartTransition = EffectRef.StartTransitionEnable;
-            EnableEndTransition = EffectRef.EndTransitionEnable;
-
-            var cachedTransform = _meshRenderer.transform;
-
-            var children = cachedTransform.GetComponentsInChildren<Transform>(true);
-
-            foreach (var child in children)
-            {
-                if (child == cachedTransform)
-                {
-                    continue;
-                }
-
-                if (child.gameObject.name != "TrackEffectStart" && child.gameObject.name != "TrackEffectEnd")
-                {
-                    continue;
-                }
-
-                if (child.gameObject.name is "TrackEffectStart" && !EnableStartTransition)
-                {
-                    child.gameObject.SetActive(false);
-                    continue;
-                }
-
-                if (child.gameObject.name is "TrackEffectEnd" && !EnableEndTransition)
-                {
-                    child.gameObject.SetActive(false);
-                    continue;
-                }
-
-                child.gameObject.SetActive(true);
-            }
-        }
-
-        protected override bool UpdateElementPosition()
-        {
-            // Calibration is not taken into consideration here, as that is instead handled in more
-            // critical areas such as the game manager and players
-            float z =
-                TrackPlayer.STRIKE_LINE_POS                          // Shift origin to the strike line
-                + (float) (MiddleTime - GameManager.RealVisualTime) // Get time of note relative to now
-                * Player.NoteSpeed;                                  // Adjust speed (units/s)
-
-            var cacheTransform = transform;
-            cacheTransform.localPosition = cacheTransform.localPosition.WithZ(z);
-
-            if (z < REMOVE_POINT - RemovePointOffset)
-            {
-                ParentPool.Return(this);
-                return false;
-            }
-
-            return true;
-        }
-
-        protected void RescaleForZ()
-        {
-            // More correctly, this would get the unscaled size of the object
-            // Since we currently use Unity's plane, this works
-            const float zSize = 10.0f;
-            float childZBasePosition = zSize / 2;
-            var zScale = (float) (EffectRef.TimeEnd - EffectRef.Time) * Player.NoteSpeed / zSize;
-
-            var cachedTransform = _meshRenderer.transform;
-
-            // A bit of hackery is necessary to avoid the rescaling of the
-            // parent from messing up the scaling of the children
-            var children = cachedTransform.GetComponentsInChildren<Transform>();
-            var scaleFactor = zScale / zSize;
-            foreach (var child in children)
-            {
-                if (child == cachedTransform)
-                {
-                    continue;
-                }
-
-                if (child.gameObject.name is "TrackEffectRailRight" or "TrackEffectRailLeft")
-                {
-                    continue;
-                }
-
-                if (child.gameObject.name is "TrackEffectTransitionRailLeft" or "TrackEffectTransitionRailRight")
-                {
-                    continue;
-                }
-                // Change the child's scale such that their world size remains the same after the parent scales
-                var originalScale = 0.005f; // this should be child.localScale.z, but that causes issues if the object gets reused
-                var newScale = originalScale / scaleFactor;
-                child.localScale = child.localScale.WithZ(newScale);
-                // Adjust the child's position to reflect the new scale
-                var signFactor = Math.Sign(child.localPosition.z);
-                var newZ = (childZBasePosition + newScale * childZBasePosition) * signFactor;
-                // This fudge shouldn't be necessary, but without it there is sometimes
-                // a visible gap in the rail between the transition and main section
-                // I assume this is because of rounding errors with small float values
-                newZ += 0.001f * -signFactor;
-
-                child.localPosition = child.localPosition.WithZ(newZ);
-            }
-            // With the adjustments to the children made, we can scale the
-            // parent and have everything end up in the right place
-            cachedTransform.localScale = cachedTransform.localScale.WithZ(zScale);
         }
 
         protected override void HideElement()

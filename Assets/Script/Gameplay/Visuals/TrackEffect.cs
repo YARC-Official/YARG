@@ -89,7 +89,6 @@ namespace YARG.Gameplay.Visuals
                     if (effect.TimeEnd == nextEffect.Time)
                     {
                         // There is adjacency, so disable the transitions
-                        // TODO: Make this handle the case where only the transitions overlap
                         effect.EndTransitionEnable = false;
                         nextEffect.StartTransitionEnable = false;
                     }
@@ -126,11 +125,6 @@ namespace YARG.Gameplay.Visuals
                     }
 
                     // There are more inner effects, so process them until we run out
-
-                    // A double ended queue would avoid the nested loop
-                    // we have to take because of the possibility of
-                    // multiple effects within the outer effect
-                    // TODO: Maybe do this with a list instead even though it will have to have a bunch of bounds checks?
                     while (q.TryPeek(out nextNextEffect) && effect.Contains(nextNextEffect))
                     {
                         if (newEffect.TimeEnd < nextNextEffect.Time)
@@ -151,7 +145,6 @@ namespace YARG.Gameplay.Visuals
                 }
                 // There is overlap, but next is not contained in current
                 // Create three sections, current alone, combination, next alone
-                // TODO: Deal with the case where next next is contained within or overlaps next
                 slicedEffects.Add(new TrackEffect(effect.Time, nextEffect.Time, effect.EffectType,
                     effect.StartTransitionEnable, false));
                 slicedEffects.Add(new TrackEffect(nextEffect.Time, effect.TimeEnd,
