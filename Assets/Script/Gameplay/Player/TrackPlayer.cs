@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -58,8 +59,9 @@ namespace YARG.Gameplay.Player
         protected KeyedPool NotePool;
         [SerializeField]
         protected Pool BeatlinePool;
+        [FormerlySerializedAs("SoloPool")]
         [SerializeField]
-        protected Pool SoloPool;
+        protected Pool EffectPool;
 
         public float ZeroFadePosition { get; private set; }
         public float FadeSize         { get; private set; }
@@ -73,22 +75,6 @@ namespace YARG.Gameplay.Player
         protected bool IsBass { get; private set; }
 
         private float _spawnAheadDelay;
-
-        public struct Solo
-        {
-            public Solo(double time, double timeEnd)
-            {
-                Time = time;
-                TimeEnd = timeEnd;
-                Started = false;
-                Finished = false;
-            }
-
-            public readonly double Time;
-            public readonly double TimeEnd;
-            public bool Started;
-            public bool Finished;
-        }
 
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
@@ -188,10 +174,9 @@ namespace YARG.Gameplay.Player
 
         private double _previousStarPowerAmount;
 
-        private Queue<Solo> _upcomingSolos = new();
-        private List<TrackEffect> _trackEffectList = new();
         private Queue<TrackEffect> _upcomingEffects = new();
         private List<Phrase> _drumFillPhrases = new();
+        private List<Phrase> _soloPhrases = new();
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
@@ -228,16 +213,10 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
-            // We have to get the solos here in case there aren't other
-            // players and we never receive the OnUnisonPhrasesReady event
             // TODO: This track effect stuff should probably live in a separate function
-            var soloEvents = new List<TrackEffect>();
-            foreach(var soloSection in Engine.GetSolos())
-            {
-                _upcomingSolos.Enqueue(new Solo(soloSection.StartTime, soloSection.EndTime));
-                soloEvents.Add(new TrackEffect(soloSection.StartTime, soloSection.EndTime,
-                    TrackEffectType.Solo));
-            }
+
+            // We end up doing this twice if we eventually get unison phrases,
+            // but that isn't guaranteed, so we have to
 
             foreach (var phrase in NoteTrack.Phrases)
             {
@@ -245,8 +224,14 @@ namespace YARG.Gameplay.Player
                 {
                     _drumFillPhrases.Add(phrase);
                 }
+
+                if (phrase.Type == PhraseType.Solo)
+                {
+                    _soloPhrases.Add(phrase);
+                }
             }
             var drumFillEvents = TrackEffect.PhrasesToEffects(_drumFillPhrases);
+            var soloEvents = TrackEffect.PhrasesToEffects(_soloPhrases);
             foreach (var effect in TrackEffect.SliceEffects(soloEvents, drumFillEvents))
             {
                 _upcomingEffects.Enqueue(effect);
@@ -445,7 +430,7 @@ namespace YARG.Gameplay.Player
 
         private void SpawnEffect(TrackEffect nextEffect, bool seeking)
         {
-            var poolable = SoloPool.TakeWithoutEnabling();
+            var poolable = EffectPool.TakeWithoutEnabling();
             if (poolable == null)
             {
                 YargLogger.LogWarning("Attempted to spawn track effect, but it's at its cap!");
@@ -521,9 +506,9 @@ namespace YARG.Gameplay.Player
             //  that doesn't change instead of using a queue
             // despawn any existing solos, rebuild solo structures, spawn any that are now in current
             _upcomingEffects.Clear();
-            for(var i = 0; i < SoloPool.AllSpawned.Count; i++)
+            for(var i = 0; i < EffectPool.AllSpawned.Count; i++)
             {
-                var poolable = SoloPool.AllSpawned[i];
+                var poolable = EffectPool.AllSpawned[i];
                 poolable.ParentPool.Return(poolable);
             }
 
@@ -662,11 +647,8 @@ namespace YARG.Gameplay.Player
                 unisonEffects.Add(new TrackEffect(unisonEvents[i].Time, unisonEvents[i].TimeEnd, TrackEffectType.Unison));
             }
             var drumFillEffects = TrackEffect.PhrasesToEffects(_drumFillPhrases);
-            var soloEffects = new List<TrackEffect>();
-            foreach (var solo in _upcomingSolos)
-            {
-                soloEffects.Add(new TrackEffect(solo.Time, solo.TimeEnd, TrackEffectType.Solo));
-            }
+            var soloEffects = TrackEffect.PhrasesToEffects(_soloPhrases);
+
             var slicedEffects= TrackEffect.SliceEffects(soloEffects, unisonEffects, drumFillEffects);
             // TODO: At some point we really need to just make this a list instead of a queue
             _upcomingEffects.Clear();
