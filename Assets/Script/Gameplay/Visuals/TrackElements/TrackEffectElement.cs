@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Serialization;
+using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 
@@ -50,100 +51,202 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Material _drumFillRailRightTransitionMaterial;
 
-        public TrackPlayer.TrackEffect EffectRef { get; set; }
+        public TrackEffect EffectRef { get; set; }
 
-        private Dictionary<string, Dictionary<TrackPlayer.TrackEffectType, Material>> _materials;
+        private Dictionary<string, Dictionary<TrackEffectType, Material>> _materials;
 
-        public override double ElementTime => EffectRef.StartTime;
-        public double MiddleTime => EffectRef.StartTime + ((EffectRef.EndTime - EffectRef.StartTime) / 2);
-        private float ZLength => (float) (EffectRef.EndTime - EffectRef.StartTime * Player.NoteSpeed);
+        public override double ElementTime => EffectRef.Time;
+        public double MiddleTime => EffectRef.Time + ((EffectRef.TimeEnd - EffectRef.Time) / 2);
+        private float ZLength => (float) (EffectRef.TimeEnd - EffectRef.Time * Player.NoteSpeed);
         // not sure that we really need the +3.5
-        protected new float RemovePointOffset => (float) ((EffectRef.EndTime - EffectRef.StartTime) * Player.NoteSpeed + 3.5);
+        protected new float RemovePointOffset => (float) ((EffectRef.TimeEnd - EffectRef.Time) * Player.NoteSpeed + 3.5);
 
         protected override void InitializeElement()
         {
-            InitializeMaterialDict();
-            SetTransitionState();
             SetMaterials();
             RescaleForZ();
             InitializeFade();
+            SetTransitionState();
+        }
+
+        // Returns the material corresponding to a specific effect object and effect type
+        private Material GetMaterial(string objectName, TrackEffectType effectType)
+        {
+            var material = objectName switch
+            {
+                // This first one is not strictly necessary since it should
+                // always be a pooled clone, but let's specify just in case
+                "TrackEffectTrack" => effectType switch
+                {
+                    TrackEffectType.Solo              => _soloTrackMaterial,
+                    TrackEffectType.Unison            => _unisonTrackMaterial,
+                    TrackEffectType.DrumFill          => _drumFillTrackMaterial,
+                    TrackEffectType.SoloAndUnison     => _unisonTrackMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _drumFillTrackMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillTrackMaterial,
+                    _                                 => null,
+                },
+                "TrackEffectTrack(Clone)" => effectType switch
+                {
+                    TrackEffectType.Solo              => _soloTrackMaterial,
+                    TrackEffectType.Unison            => _unisonTrackMaterial,
+                    TrackEffectType.DrumFill          => _drumFillTrackMaterial,
+                    TrackEffectType.SoloAndUnison     => _unisonTrackMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _drumFillTrackMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillTrackMaterial,
+                    _                                 => null,
+                },
+                "TrackEffectRailLeft" => effectType switch
+                {
+                    TrackEffectType.Solo              => _soloRailMaterial,
+                    TrackEffectType.Unison            => _unisonRailMaterial,
+                    TrackEffectType.DrumFill          => _drumFillRailMaterial,
+                    TrackEffectType.SoloAndUnison     => _soloRailMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _soloRailMaterial,
+                    TrackEffectType.DrumFillAndUnison => _unisonRailMaterial,
+                    _                                 => null,
+                },
+                "TrackEffectRailRight" => effectType switch
+                {
+                    TrackEffectType.Solo              => _soloRailMaterial,
+                    TrackEffectType.Unison            => _unisonRailMaterial,
+                    TrackEffectType.DrumFill          => _drumFillRailMaterial,
+                    TrackEffectType.SoloAndUnison     => _soloRailMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _soloRailMaterial,
+                    TrackEffectType.DrumFillAndUnison => _unisonRailMaterial,
+                    _                                 => null
+                },
+                "TrackEffectTransitionRailLeft" => effectType switch
+                {
+                    TrackEffectType.Solo              => _soloRailLeftTransitionMaterial,
+                    TrackEffectType.Unison            => _unisonRailLeftTransitionMaterial,
+                    TrackEffectType.DrumFill          => _drumFillRailLeftTransitionMaterial,
+                    TrackEffectType.SoloAndUnison     => _soloRailLeftTransitionMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _soloRailLeftTransitionMaterial,
+                    TrackEffectType.DrumFillAndUnison => _unisonRailLeftTransitionMaterial,
+                    _                                 => null
+                },
+                "TrackEffectTransitionRailRight" => effectType switch
+                {
+                    TrackEffectType.Solo              => _soloRailRightTransitionMaterial,
+                    TrackEffectType.Unison            => _unisonRailRightTransitionMaterial,
+                    TrackEffectType.DrumFill          => _drumFillRailRightTransitionMaterial,
+                    TrackEffectType.SoloAndUnison     => _soloRailRightTransitionMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _soloRailRightTransitionMaterial,
+                    TrackEffectType.DrumFillAndUnison => _unisonRailRightTransitionMaterial,
+                    _                                 => null
+                },
+                "TrackEffectStart" => effectType switch
+                {
+                    TrackEffectType.Solo              => _soloTransitionMaterial,
+                    TrackEffectType.Unison            => _unisonTransitionMaterial,
+                    TrackEffectType.DrumFill          => _drumFillTransitionMaterial,
+                    TrackEffectType.SoloAndUnison     => _unisonTransitionMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _drumFillTransitionMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillTransitionMaterial,
+                    _                                 => null
+                },
+                "TrackEffectEnd" => effectType switch
+                {
+                    TrackEffectType.Solo              => _soloTransitionMaterial,
+                    TrackEffectType.Unison            => _unisonTransitionMaterial,
+                    TrackEffectType.DrumFill          => _drumFillTransitionMaterial,
+                    TrackEffectType.SoloAndUnison     => _unisonTransitionMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _drumFillTransitionMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillTransitionMaterial,
+                    _                                 => null
+                },
+                _ => null,
+            };
+            if (material is null)
+            {
+                YargLogger.LogFormatWarning("TrackEffectElement has no material for an object named {0} with effect type {1}",
+                    objectName, effectType);
+            }
+            return material;
         }
 
         private void InitializeMaterialDict()
         {
             // This is absurd, but less absurd than hard coding values
-            _materials = new Dictionary<string, Dictionary<TrackPlayer.TrackEffectType, Material>>
+            // TODO: Do something about this. It should be stored elsewhere or
+            //  should be getting materials by name or something, whatever prevents
+            //  allocating every time a track effect is taken from the pool/
+            //  -
+            //  Maybe store it on TrackEffect and get materials by name? IHNFIRN
+            //  Or maybe switch expressions? FML
+            _materials = new Dictionary<string, Dictionary<TrackEffectType, Material>>
             {
                 {"TrackEffectTrack",
-                    new Dictionary<TrackPlayer.TrackEffectType, Material>
+                    new Dictionary<TrackEffectType, Material>
                     {
-                        {TrackPlayer.TrackEffectType.Solo, _soloTrackMaterial},
-                        {TrackPlayer.TrackEffectType.Unison, _unisonTrackMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTrackMaterial},
-                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillTrackMaterial}
+                        {TrackEffectType.Solo, _soloTrackMaterial},
+                        {TrackEffectType.Unison, _unisonTrackMaterial},
+                        {TrackEffectType.SoloAndUnison, _unisonTrackMaterial},
+                        {TrackEffectType.DrumFill, _drumFillTrackMaterial}
                     }
                 },
                 {"TrackEffectTrack(Clone)",
-                    new Dictionary<TrackPlayer.TrackEffectType, Material>
+                    new Dictionary<TrackEffectType, Material>
                     {
-                        {TrackPlayer.TrackEffectType.Solo, _soloTrackMaterial},
-                        {TrackPlayer.TrackEffectType.Unison, _unisonTrackMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTrackMaterial},
-                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillTrackMaterial}
+                        {TrackEffectType.Solo, _soloTrackMaterial},
+                        {TrackEffectType.Unison, _unisonTrackMaterial},
+                        {TrackEffectType.SoloAndUnison, _unisonTrackMaterial},
+                        {TrackEffectType.DrumFill, _drumFillTrackMaterial}
                     }
                 },
                 {"TrackEffectStart",
-                    new Dictionary<TrackPlayer.TrackEffectType, Material>
+                    new Dictionary<TrackEffectType, Material>
                     {
-                        {TrackPlayer.TrackEffectType.Solo, _soloTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.Unison, _unisonTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillTransitionMaterial}
+                        {TrackEffectType.Solo, _soloTransitionMaterial},
+                        {TrackEffectType.Unison, _unisonTransitionMaterial},
+                        {TrackEffectType.SoloAndUnison, _unisonTransitionMaterial},
+                        {TrackEffectType.DrumFill, _drumFillTransitionMaterial}
                     }
                 },
                 {"TrackEffectEnd",
-                    new Dictionary<TrackPlayer.TrackEffectType, Material>
+                    new Dictionary<TrackEffectType, Material>
                     {
-                        {TrackPlayer.TrackEffectType.Solo, _soloTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.Unison, _unisonTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _unisonTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillTransitionMaterial}
+                        {TrackEffectType.Solo, _soloTransitionMaterial},
+                        {TrackEffectType.Unison, _unisonTransitionMaterial},
+                        {TrackEffectType.SoloAndUnison, _unisonTransitionMaterial},
+                        {TrackEffectType.DrumFill, _drumFillTransitionMaterial}
                     }
                 },
                 {"TrackEffectTransitionRailRight",
-                    new Dictionary<TrackPlayer.TrackEffectType, Material>
+                    new Dictionary<TrackEffectType, Material>
                     {
-                        {TrackPlayer.TrackEffectType.Solo, _soloRailRightTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.Unison, _unisonRailRightTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailRightTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillRailRightTransitionMaterial}
+                        {TrackEffectType.Solo, _soloRailRightTransitionMaterial},
+                        {TrackEffectType.Unison, _unisonRailRightTransitionMaterial},
+                        {TrackEffectType.SoloAndUnison, _soloRailRightTransitionMaterial},
+                        {TrackEffectType.DrumFill, _drumFillRailRightTransitionMaterial}
                     }
                 },
                 {"TrackEffectTransitionRailLeft",
-                    new Dictionary<TrackPlayer.TrackEffectType, Material>
+                    new Dictionary<TrackEffectType, Material>
                     {
-                        {TrackPlayer.TrackEffectType.Solo, _soloRailLeftTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.Unison, _unisonRailLeftTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailLeftTransitionMaterial},
-                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillRailLeftTransitionMaterial}
+                        {TrackEffectType.Solo, _soloRailLeftTransitionMaterial},
+                        {TrackEffectType.Unison, _unisonRailLeftTransitionMaterial},
+                        {TrackEffectType.SoloAndUnison, _soloRailLeftTransitionMaterial},
+                        {TrackEffectType.DrumFill, _drumFillRailLeftTransitionMaterial}
                     }
                 },
                 {"TrackEffectRailRight",
-                    new Dictionary<TrackPlayer.TrackEffectType, Material>
+                    new Dictionary<TrackEffectType, Material>
                     {
-                        {TrackPlayer.TrackEffectType.Solo, _soloRailMaterial},
-                        {TrackPlayer.TrackEffectType.Unison, _unisonRailMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailMaterial},
-                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillRailMaterial}
+                        {TrackEffectType.Solo, _soloRailMaterial},
+                        {TrackEffectType.Unison, _unisonRailMaterial},
+                        {TrackEffectType.SoloAndUnison, _soloRailMaterial},
+                        {TrackEffectType.DrumFill, _drumFillRailMaterial}
                     }
                 },
                 {"TrackEffectRailLeft",
-                    new Dictionary<TrackPlayer.TrackEffectType, Material>
+                    new Dictionary<TrackEffectType, Material>
                     {
-                        {TrackPlayer.TrackEffectType.Solo, _soloRailMaterial},
-                        {TrackPlayer.TrackEffectType.Unison, _unisonRailMaterial},
-                        {TrackPlayer.TrackEffectType.SoloAndUnison, _soloRailMaterial},
-                        {TrackPlayer.TrackEffectType.DrumSpActivation, _drumFillRailMaterial}
+                        {TrackEffectType.Solo, _soloRailMaterial},
+                        {TrackEffectType.Unison, _unisonRailMaterial},
+                        {TrackEffectType.SoloAndUnison, _soloRailMaterial},
+                        {TrackEffectType.DrumFill, _drumFillRailMaterial}
                     }
                 },
             };
@@ -151,6 +254,9 @@ namespace YARG.Gameplay.Visuals
 
         private void InitializeFade()
         {
+            // This has to be done because it gets messed up when objects
+            // get recycled. The effect is visually interesting, but not what is desired.
+
             // Get fade info
             float fadePos = Player.ZeroFadePosition;
             float fadeSize = Player.FadeSize;
@@ -172,11 +278,18 @@ namespace YARG.Gameplay.Visuals
 
             foreach (var child in children)
             {
-                if (!child.gameObject.activeInHierarchy)
+                // if (!child.gameObject.activeInHierarchy)
+                // {
+                //     continue;
+                // }
+                var newMaterial = GetMaterial(child.gameObject.name, EffectRef.EffectType);
+                if (newMaterial is null)
                 {
-                    continue;
+                    // Games are being played, just disable the object
+                    child.gameObject.SetActive(false);
                 }
-                child.material = _materials[child.gameObject.name][EffectRef.EffectType];
+
+                child.material = newMaterial;
             }
         }
 
@@ -187,7 +300,7 @@ namespace YARG.Gameplay.Visuals
 
             var cachedTransform = _meshRenderer.transform;
 
-            var children = cachedTransform.GetComponentsInChildren<Transform>();
+            var children = cachedTransform.GetComponentsInChildren<Transform>(true);
 
             foreach (var child in children)
             {
@@ -196,15 +309,24 @@ namespace YARG.Gameplay.Visuals
                     continue;
                 }
 
+                if (child.gameObject.name != "TrackEffectStart" && child.gameObject.name != "TrackEffectEnd")
+                {
+                    continue;
+                }
+
                 if (child.gameObject.name is "TrackEffectStart" && !EnableStartTransition)
                 {
                     child.gameObject.SetActive(false);
+                    continue;
                 }
 
                 if (child.gameObject.name is "TrackEffectEnd" && !EnableEndTransition)
                 {
                     child.gameObject.SetActive(false);
+                    continue;
                 }
+
+                child.gameObject.SetActive(true);
             }
         }
 
@@ -235,7 +357,7 @@ namespace YARG.Gameplay.Visuals
             // Since we currently use Unity's plane, this works
             const float zSize = 10.0f;
             float childZBasePosition = zSize / 2;
-            var zScale = (float) (EffectRef.EndTime - EffectRef.StartTime) * Player.NoteSpeed / zSize;
+            var zScale = (float) (EffectRef.TimeEnd - EffectRef.Time) * Player.NoteSpeed / zSize;
 
             var cachedTransform = _meshRenderer.transform;
 
