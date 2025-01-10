@@ -178,6 +178,8 @@ namespace YARG.Gameplay.Player
         private List<Phrase> _drumFillPhrases = new();
         private List<Phrase> _soloPhrases = new();
 
+        protected SongChart Chart;
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
         {
@@ -189,6 +191,8 @@ namespace YARG.Gameplay.Player
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
             SetupTheme(player.Profile.GameMode);
+
+            Chart = chart;
 
             OriginalNoteTrack = GetNotes(chart);
             player.Profile.ApplyModifiers(OriginalNoteTrack);
@@ -213,7 +217,15 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
-            // TODO: This track effect stuff should probably live in a separate function
+            InitializeTrackEffects(chart);
+
+            ResetNoteCounters();
+
+            FinishInitialization();
+        }
+
+        private void InitializeTrackEffects(SongChart chart)
+        {
             foreach (var phrase in NoteTrack.Phrases)
             {
                 if (phrase.Type == PhraseType.DrumFill)
@@ -234,17 +246,10 @@ namespace YARG.Gameplay.Player
                 _upcomingEffects.Enqueue(effect);
             }
 
-            // TODO: Whether we still need this is TBD
-            GameManager.EngineManager.AddStarPowerSections(NoteTrack.Phrases, Engine.EngineId);
-
             if (unisonEvents.Any())
             {
                 GameManager.EngineManager.OnUnisonPhraseSuccess += OnUnisonPhraseSuccess;
             }
-
-            ResetNoteCounters();
-
-            FinishInitialization();
         }
 
         private void SetupTheme(GameMode gameMode)
@@ -636,10 +641,9 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnUnisonPhraseSuccess()
         {
-            // TODO: Improve the replay code so we don't award bonus SP using an input event
-            var unisonInput = new GameInput(Engine.CurrentTime, (int) BandAction.CreditBonusStarPower, true);
-            OnGameInput(ref unisonInput);
-            YargLogger.LogFormatDebug("TrackPlayer awarded unison bonus at engine time {0}", unisonInput.Time);
+            // This is here because it seemed like awarding from TrackPlayer would work best for replays
+            // since all the replay data is saved here
+            YargLogger.LogFormatDebug("TrackPlayer would have awarded unison bonus at engine time {0}", Engine.CurrentTime);
         }
 
         protected virtual void OnCountdownChange(int measuresLeft, double countdownLength, double endTime)
