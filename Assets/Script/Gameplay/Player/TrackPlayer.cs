@@ -214,10 +214,6 @@ namespace YARG.Gameplay.Player
             }
 
             // TODO: This track effect stuff should probably live in a separate function
-
-            // We end up doing this twice if we eventually get unison phrases,
-            // but that isn't guaranteed, so we have to
-
             foreach (var phrase in NoteTrack.Phrases)
             {
                 if (phrase.Type == PhraseType.DrumFill)
@@ -232,18 +228,19 @@ namespace YARG.Gameplay.Player
             }
             var drumFillEvents = TrackEffect.PhrasesToEffects(_drumFillPhrases);
             var soloEvents = TrackEffect.PhrasesToEffects(_soloPhrases);
-            foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, soloEvents, drumFillEvents))
+            var unisonEvents = TrackEffect.PhrasesToEffects(TrackEffect.GetUnisonPhrases(NoteTrack.Instrument, chart));
+            foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, soloEvents, drumFillEvents, unisonEvents))
             {
                 _upcomingEffects.Enqueue(effect);
             }
 
-            // AddDrumSpActivationEffects(_drumFillPhrases);
-
-            // We have to subscribe to the event before calling
-            // AddStarPowerSections or we will miss the event if we
-            // happen to be the last player to initialize
-            GameManager.EngineManager.OnUnisonPhrasesReady += OnUnisonPhrasesReady;
+            // TODO: Whether we still need this is TBD
             GameManager.EngineManager.AddStarPowerSections(NoteTrack.Phrases, Engine.EngineId);
+
+            if (unisonEvents.Any())
+            {
+                GameManager.EngineManager.OnUnisonPhraseSuccess += OnUnisonPhraseSuccess;
+            }
 
             ResetNoteCounters();
 
@@ -635,32 +632,6 @@ namespace YARG.Gameplay.Player
             {
                 haptic.SetSolo(false);
             }
-        }
-
-        protected virtual void OnUnisonPhrasesReady(List<EngineManager.UnisonEvent> unisonEvents)
-        {
-            // Turn list of unison events into list of track effects
-            // TODO: This really needs to be a utility function somewhere
-            var unisonEffects = new List<TrackEffect>();
-            for (var i = 0; i < unisonEvents.Count; i++)
-            {
-                unisonEffects.Add(new TrackEffect(unisonEvents[i].Time, unisonEvents[i].TimeEnd, TrackEffectType.Unison));
-            }
-            var drumFillEffects = TrackEffect.PhrasesToEffects(_drumFillPhrases);
-            var soloEffects = TrackEffect.PhrasesToEffects(_soloPhrases);
-
-            var slicedEffects= TrackEffect.SliceEffects(NoteSpeed, soloEffects, unisonEffects, drumFillEffects);
-            // TODO: At some point we really need to just make this a list instead of a queue
-            _upcomingEffects.Clear();
-            foreach (var effect in slicedEffects)
-            {
-                _upcomingEffects.Enqueue(effect);
-            }
-            // We subscribe here since there would be no point if there
-            // aren't any unison phrases in the song
-            GameManager.EngineManager.OnUnisonPhraseSuccess += OnUnisonPhraseSuccess;
-            // May as well unsubscribe now that the work is done
-            GameManager.EngineManager.OnUnisonPhrasesReady -= OnUnisonPhrasesReady;
         }
 
         protected virtual void OnUnisonPhraseSuccess()

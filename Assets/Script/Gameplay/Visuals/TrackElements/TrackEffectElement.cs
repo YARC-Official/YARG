@@ -197,7 +197,7 @@ namespace YARG.Gameplay.Visuals
                     continue;
                 }
                 // Change the child's scale such that their world size remains the same after the parent scales
-                var originalScale = 0.005f; // this would be child.localScale.z, but that causes issues when the object gets reused
+                var originalScale = 0.005f;
                 var newScale = originalScale / scaleFactor;
                 child.localScale = child.localScale.WithZ(newScale);
                 // Adjust the child's position to reflect the new scale
