@@ -175,8 +175,7 @@ namespace YARG.Gameplay.Player
         private double _previousStarPowerAmount;
 
         private Queue<TrackEffect> _upcomingEffects = new();
-        private List<Phrase> _drumFillPhrases = new();
-        private List<Phrase> _soloPhrases = new();
+        private List<TrackEffect> _trackEffects = new();
 
         protected SongChart Chart;
 
@@ -217,36 +216,37 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
-            InitializeTrackEffects(chart);
+            InitializeTrackEffects();
 
             ResetNoteCounters();
 
             FinishInitialization();
         }
 
-        private void InitializeTrackEffects(SongChart chart)
+        private void InitializeTrackEffects()
         {
+            var phrases = new List<Phrase>();
+
             foreach (var phrase in NoteTrack.Phrases)
             {
-                if (phrase.Type == PhraseType.DrumFill)
+                // We only want solo and drum fill here. Unisons are added later
+                // and there are no track effects for the other phrase types
+                if (phrase.Type is PhraseType.Solo or PhraseType.DrumFill)
                 {
-                    _drumFillPhrases.Add(phrase);
-                }
-
-                if (phrase.Type == PhraseType.Solo)
-                {
-                    _soloPhrases.Add(phrase);
+                    phrases.Add(phrase);
                 }
             }
-            var drumFillEvents = TrackEffect.PhrasesToEffects(_drumFillPhrases);
-            var soloEvents = TrackEffect.PhrasesToEffects(_soloPhrases);
-            var unisonEvents = TrackEffect.PhrasesToEffects(TrackEffect.GetUnisonPhrases(NoteTrack.Instrument, chart));
-            foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, soloEvents, drumFillEvents, unisonEvents))
+
+            phrases.AddRange(EngineContainer.UnisonPhrases);
+
+            var effects = TrackEffect.PhrasesToEffects(phrases);
+            _trackEffects.AddRange(effects);
+            foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, _trackEffects))
             {
                 _upcomingEffects.Enqueue(effect);
             }
 
-            if (unisonEvents.Any())
+            if (EngineContainer.UnisonPhrases.Any())
             {
                 GameManager.EngineManager.OnUnisonPhraseSuccess += OnUnisonPhraseSuccess;
             }
@@ -266,7 +266,7 @@ namespace YARG.Gameplay.Player
         {
             GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar);
 
-            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.HighwayPreset, GameManager);
+            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.HighwayPreset);
             CameraPositioner.Initialize(Player.CameraPreset);
         }
 
@@ -514,10 +514,7 @@ namespace YARG.Gameplay.Player
                 poolable.ParentPool.Return(poolable);
             }
 
-            var drumFillEvents = TrackEffect.PhrasesToEffects(_drumFillPhrases);
-            var soloEvents = TrackEffect.PhrasesToEffects(_soloPhrases);
-            var unisonEvents = TrackEffect.PhrasesToEffects(TrackEffect.GetUnisonPhrases(NoteTrack.Instrument, Chart));
-            foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, soloEvents, drumFillEvents, unisonEvents))
+            foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, _trackEffects))
             {
                 if (effect.Time >= time)
                 {
@@ -530,18 +527,16 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected BaseElement SpawnNote(TNote note)
+        protected void SpawnNote(TNote note)
         {
             var poolable = NotePool.KeyedTakeWithoutEnabling(note);
             if (poolable == null)
             {
                 YargLogger.LogWarning("Attempted to spawn note, but it's at its cap!");
-                return (BaseElement) null;
             }
 
             InitializeSpawnedNote(poolable, note);
             poolable.EnableFromPool();
-            return (BaseElement) poolable;
         }
 
         protected abstract void InitializeSpawnedNote(IPoolable poolable, TNote note);

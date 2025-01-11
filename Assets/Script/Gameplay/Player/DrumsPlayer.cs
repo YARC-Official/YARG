@@ -78,7 +78,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart);
 
             HitWindow = EngineParams.HitWindow;
 

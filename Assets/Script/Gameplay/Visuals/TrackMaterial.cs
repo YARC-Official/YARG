@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Game;
-using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 
@@ -106,7 +105,7 @@ namespace YARG.Gameplay.Visuals
             {
                 _trimMaterials.Add(trim.material);
             }
-            
+
             _normalPreset = new()
             {
                 Layer1 = FromHex("0F0F0F", 1f),
@@ -124,10 +123,8 @@ namespace YARG.Gameplay.Visuals
             };
         }
 
-        public void Initialize(float fadePos, float fadeSize, HighwayPreset highwayPreset, GameManager gameManager = null)
+        public void Initialize(float fadePos, float fadeSize, HighwayPreset highwayPreset)
         {
-            _gameManager = gameManager;
-
             // Set all fade values
             _material.SetFade(fadePos, fadeSize);
             foreach (var trimMat in _trimMaterials)

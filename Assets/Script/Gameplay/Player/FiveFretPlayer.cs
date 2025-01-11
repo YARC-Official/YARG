@@ -89,10 +89,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart);
-            // var engine = (YargFiveFretEngine) GameManager.EngineManager.InstantiateEngine(EngineManager.EngineKind.YargFiveFretEngine,
-            //     NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart);
 
             HitWindow = EngineParams.HitWindow;
 

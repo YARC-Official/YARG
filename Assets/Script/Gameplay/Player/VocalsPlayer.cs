@@ -178,7 +178,7 @@ namespace YARG.Gameplay.Player
             HitWindow = EngineParams.HitWindow;
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            GameManager.EngineManager.Register(engine, NoteTrack.Instrument, _chart);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, _chart);
 
             engine.OnStarPowerPhraseHit += _ => OnStarPowerPhraseHit();
             engine.OnStarPowerStatus += OnStarPowerStatus;
