@@ -514,22 +514,17 @@ namespace YARG.Gameplay.Player
                 poolable.ParentPool.Return(poolable);
             }
 
-            // TODO: Really, really do something with this since it nerfs everything that isn't a straight solo
-            foreach (var soloSection in Engine.GetSolos())
+            var drumFillEvents = TrackEffect.PhrasesToEffects(_drumFillPhrases);
+            var soloEvents = TrackEffect.PhrasesToEffects(_soloPhrases);
+            var unisonEvents = TrackEffect.PhrasesToEffects(TrackEffect.GetUnisonPhrases(NoteTrack.Instrument, Chart));
+            foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, soloEvents, drumFillEvents, unisonEvents))
             {
-                if (soloSection.StartTime > time)
+                if (effect.Time >= time)
                 {
-                    // It hasn't happened yet, so queue for later
-                    _upcomingEffects.Enqueue(new TrackEffect(soloSection.StartTime, soloSection.EndTime, TrackEffectType.Solo));
-                }
-                else if (soloSection.EndTime < time)
+                    _upcomingEffects.Enqueue(effect);
+                } else if (effect.Time < time && time < effect.TimeEnd)
                 {
-                    // We don't need to do anything here
-                }
-                else
-                {
-                    // It must be current, so we need to spawn it here
-                    var effect = new TrackEffect(soloSection.StartTime, soloSection.EndTime, TrackEffectType.Solo);
+                    // current effect, spawn it
                     SpawnEffect(effect, true);
                 }
             }
