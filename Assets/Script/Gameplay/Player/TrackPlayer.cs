@@ -643,7 +643,6 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnStarPowerPhraseHit(TNote note)
         {
-            GameManager.EngineManager.StarPowerPhraseHit(this.Engine, note.Time);
             OnStarPowerPhraseHit();
         }
 
