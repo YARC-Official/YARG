@@ -442,11 +442,44 @@ namespace YARG.Gameplay.Player
                     // Since we never change visibility on anything but drum fills, there's no need to check
                     // the effect type.
                     // TODO: We also need to change effects that were originally a UnisonAndDrumFill or SoloAndDrumFill
-                    //  back from Unison or Solo
-                    // TODO: Plus we need to switch off the transition materials
-                    if (_currentEffects[i].Visibility < 1.0f && Engine.CanStarPowerActivate)
+                    //  back from Unison or Solo, although I'm not even sure those exist. Maybe SoloAndDrumFill does..
+                    if ((_currentEffects[i].Visibility < 1.0f && Engine.CanStarPowerActivate) && !Engine.BaseStats.IsStarPowerActive)
                     {
                         _currentEffects[i].MakeVisible();
+                        // If start transition is disabled, previous should be disabled
+                        if (!_currentEffects[i].EffectRef.StartTransitionEnable)
+                        {
+                            _currentEffects[i - 1].SetEndTransitionVisible(false);
+                        }
+
+                        // If end transition is disabled, next should be disabled if it is spawned
+                        if (_currentEffects.Count > i + 1 && !_currentEffects[i].EffectRef.EndTransitionEnable)
+                        {
+                            _currentEffects[i + 1].SetStartTransitionVisible(false);
+                        }
+                    }
+                    // We also need to make already spawned drum fills disappear if the player activated SP
+                    // And we do need to check effect type here
+                    if (_currentEffects[i].EffectRef.EffectType == TrackEffectType.DrumFill &&
+                        (_currentEffects[i].Visibility == 1.0f && Engine.BaseStats.IsStarPowerActive))
+                    {
+                        _currentEffects[i].MakeVisible(false);
+
+                        if (!_currentEffects[i].EffectRef.StartTransitionEnable)
+                        {
+                            // Previous needs end transition enabled since we're disappearing
+                            _currentEffects[i - 1].SetEndTransitionVisible(true);
+                        }
+
+                        if (!_currentEffects[i].EffectRef.EndTransitionEnable)
+                        {
+                            // next needs start transition enabled, if it is spawned
+                            // if it isn't yet spawned, it should already be set correctly
+                            if (_currentEffects.Count > i + 1)
+                            {
+                                _currentEffects[i + 1].SetStartTransitionVisible(true);
+                            }
+                        }
                     }
                 }
             }
@@ -469,7 +502,6 @@ namespace YARG.Gameplay.Player
 
             // Do some magic to vanish drum fills if the player doesn't have enough SP to activate
             // or if SP is already active.
-            // TODO: Do the right thing with start and end transitions
 
             if (Engine.BaseStats.IsStarPowerActive || !Engine.CanStarPowerActivate)
             {
@@ -478,10 +510,8 @@ namespace YARG.Gameplay.Player
                     nextEffect.Visibility = 0.0f;
                     if (!nextEffect.StartTransitionEnable)
                     {
-                        // This could get stickier, but we'll try this for now
                         if (_currentEffects.Count > 0)
                         {
-                            _currentEffects[^1].EffectRef.EndTransitionEnable = true;
                             _currentEffects[^1].SetEndTransitionVisible(true);
                             _currentEffects[^1].SetTransitionState();
                         }
@@ -489,10 +519,23 @@ namespace YARG.Gameplay.Player
                     if (!nextEffect.EndTransitionEnable)
                     {
                         // Get next next and turn on its start transition
-                        // TODO: What if it is already spawned?
+                        // Since we are only spawning now, it shouldn't be possible
+                        // for next next to be spawned yet.
                         if (_upcomingEffects.TryPeek(out var nextNextEffect))
                         {
                             nextNextEffect.StartTransitionEnable = true;
+                        }
+                    }
+
+                    if (!nextEffect.StartTransitionEnable)
+                    {
+                        // Turn on end transition for previous effect
+
+                        // Previous effect is by definition already spawned,
+                        // but we'll check that _currentEffects isn't length zero
+                        if (_currentEffects.Count > 0)
+                        {
+                            _currentEffects[^1].SetEndTransitionVisible(true);
                         }
                     }
                 }

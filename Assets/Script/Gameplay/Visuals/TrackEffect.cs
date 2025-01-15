@@ -28,7 +28,9 @@ namespace YARG.Gameplay.Visuals
             EffectType = effectType;
             OriginalEffectType = effectType;
             StartTransitionEnable = startTransitionEnable;
+            OriginalStartTransitionEnable = startTransitionEnable;
             EndTransitionEnable = endTransitionEnable;
+            OriginalEndTransitionEnable = endTransitionEnable;
         }
 
         // This is the scale of the transition object (currently 0.005) * 100
@@ -42,6 +44,9 @@ namespace YARG.Gameplay.Visuals
         public readonly TrackEffectType OriginalEffectType;
         public bool StartTransitionEnable { get; set; }
         public bool EndTransitionEnable { get; set; }
+        public bool OriginalEndTransitionEnable { get; private set; }
+
+        public bool OriginalStartTransitionEnable { get; private set; }
         public float Visibility { get; set; } = 1.0f;
 
         public bool Equals(TrackEffect other) => Time.Equals(other.Time) && TimeEnd.Equals(other.TimeEnd);

@@ -119,6 +119,19 @@ namespace YARG.Gameplay.Visuals
                     material.SetFade(fadePos, fadeSize);
                     material.SetFloat(_visibility, Visibility);
                 }
+
+                if (Visibility == 1.0f)
+                {
+                    // Enable the renderer in case it was disabled
+                    // last time this poolable was used.
+                    meshRenderer.enabled = true;
+                }
+
+                if (Visibility == 0.0f)
+                {
+                    // Disable the renderer, leaving the gameObject active
+                    meshRenderer.enabled = false;
+                }
             }
         }
 
@@ -146,12 +159,14 @@ namespace YARG.Gameplay.Visuals
         public void SetStartTransitionVisible(bool enable)
         {
             EnableStartTransition = enable;
+            StartVisibility = enable ? 1.0f : 0.0f;
             SetTransitionState();
         }
 
         public void SetEndTransitionVisible(bool enable)
         {
             EnableEndTransition = enable;
+            EndVisibility = enable ? 1.0f : 0.0f;
             SetTransitionState();
         }
 
@@ -161,8 +176,6 @@ namespace YARG.Gameplay.Visuals
 
             var children = cachedTransform.GetComponentsInChildren<Transform>(true);
 
-            // TODO: Don't actually disable the gameobject, just set visibility to 0.0f
-            //  turns out that doesn't work because of z fighting
             foreach (var child in children)
             {
                 if (child == cachedTransform)
@@ -181,7 +194,6 @@ namespace YARG.Gameplay.Visuals
                     if (!EnableStartTransition)
                     {
                         child.gameObject.SetActive(false);
-                        var foo = child.GetComponent<Renderer>();
                         continue;
                     }
                 }
@@ -211,19 +223,16 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        // TODO: Make the visibility spread up the track so it doesn't just pop in
-        //  also fade in the visibility as it does so
-
         // TODO: Color.Lerp between effect types if they are changing
 
         // I think what we're looking for here is for it to fade in at the bottom
         // and spread up the track with decreasing transparency
 
         // For now maybe just spread up the track at full transparency
-        public void MakeVisible()
+        public void MakeVisible(bool enable = true)
         {
             _visibilityInTransition = true;
-            Visibility = 1.0f;
+            Visibility = enable ? 1.0f : 0.0f;
         }
 
         private void SetAllVisibility(float visibility)
@@ -240,6 +249,9 @@ namespace YARG.Gameplay.Visuals
                 {
                     material.SetFloat(_visibility, visibility);
                 }
+                // Enable the renderer if it isn't already. Hopefully resetting it to the same value
+                // if it happens to already be enabled isn't expensive.
+                meshRenderer.enabled = true;
             }
             _currentVisibility = visibility;
         }
