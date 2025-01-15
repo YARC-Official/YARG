@@ -1,18 +1,23 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Core.Audio;
+using YARG.Core.Engine.Guitar;
 using YARG.Core.Extensions;
 using YARG.Gameplay.Player;
 using YARG.Integration;
+using YARG.Core.Chart;
+using System.Diagnostics;
 
 namespace YARG.Gameplay
 {
     public partial class GameManager
     {
+
         private ref struct DebugScrollView
         {
             public static DebugScrollView Begin(string title, GUIStyle verticalStyle,
@@ -300,32 +305,89 @@ namespace YARG.Gameplay
                 switch (player)
                 {
                     case FiveFretPlayer fiveFretPlayer:
-                    {
-                        using var text = ZString.CreateStringBuilder(true);
+                        {
+                            using var text = ZString.CreateStringBuilder(true);
 
-                        var engine = fiveFretPlayer.Engine;
-                        text.AppendLine("State:");
-                        text.AppendFormat("- Button mask: 0x{0:X2}\n", engine.ButtonMask);
-                        text.AppendFormat("- Last button mask: 0x{0:X2}\n", engine.LastButtonMask);
-                        text.AppendFormat("- Note was ghosted: {0}\n", engine.WasNoteGhosted);
-                        text.AppendLine();
-                        text.AppendFormat("- Strum leniency timer: {0}\n", engine.GetHopoLeniencyTimer());
-                        text.AppendFormat("- HOPO leniency timer: {0}\n", engine.GetStrumLeniencyTimer());
-                        double frontEndExpire = engine.GetFrontEndExpireTime();
-                        if (frontEndExpire != double.MaxValue)
-                            text.AppendFormat("- Front-end expire time: {0:0.000000}\n", frontEndExpire);
-                        else
-                            text.Append("- Front-end expire time: Not set\n");
+                            var engine = fiveFretPlayer.Engine;
+                            text.AppendLine("State:");
+                            text.AppendFormat("- Button mask: 0x{0:X2}\n", engine.ButtonMask);
+                            text.AppendFormat("- Last button mask: 0x{0:X2}\n", engine.LastButtonMask);
+                            text.AppendFormat("- Note was ghosted: {0}\n", engine.WasNoteGhosted);
+                            text.AppendLine();
+                            text.AppendFormat("- Strum leniency timer: {0}\n", engine.GetHopoLeniencyTimer());
+                            text.AppendFormat("- HOPO leniency timer: {0}\n", engine.GetStrumLeniencyTimer());
+                            double frontEndExpire = engine.GetFrontEndExpireTime();
+                            if (frontEndExpire != double.MaxValue)
+                                text.AppendFormat("- Front-end expire time: {0:0.000000}\n", frontEndExpire);
+                            else
+                                text.Append("- Front-end expire time: Not set\n");
 
-                        var stats = fiveFretPlayer.Engine.EngineStats;
-                        text.AppendLine("\nStats:");
-                        text.AppendFormat("- Overstrums: {0}\n", stats.Overstrums);
-                        text.AppendFormat("- Ghost inputs: {0}\n", stats.GhostInputs);
-                        text.AppendFormat("- HOPOs strummed: {0}\n", stats.HoposStrummed);
-                        text.AppendFormat("- Sustain score: {0}\n", stats.SustainScore);
+                            var stats = fiveFretPlayer.Engine.EngineStats;
+                            text.AppendLine("\nStats:");
+                            text.AppendFormat("- Overstrums: {0}\n", stats.Overstrums);
+                            text.AppendFormat("- Ghost inputs: {0}\n", stats.GhostInputs);
+                            text.AppendFormat("- HOPOs strummed: {0}\n", stats.HoposStrummed);
+                            text.AppendFormat("- Sustain score: {0}\n", stats.SustainScore);
+                            text.AppendLine("\nEnhanced Stats");
+                            var enhancedStats = fiveFretPlayer.Engine.EngineStats.EnhancedFiveFretStats;
+                            text.AppendFormat(" - Total Notes In Song: {0} ", enhancedStats.TotalNotesStats.AllNoteCount);
+                            text.AppendFormat(" - Total Notes Hit In Song: {0}/{1}\n", enhancedStats.TotalHitStats.AllNoteCount, enhancedStats.TotalNotesStats.AllNoteCount);
+                            text.AppendFormat(" - Total Notes Missed In Song: {0}/{1}\n", enhancedStats.TotalMissesdStats.AllNoteCount, enhancedStats.TotalNotesStats.AllNoteCount);
+                            int RealSectionCount = Chart.Sections.Count;
+                            text.AppendFormat("Number of Sections: {0}\n", RealSectionCount);
 
-                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
-                        break;
+                            foreach (var section in Chart.Sections)
+                            {
+                                
+                                int RealCurrentSectionIndex = Chart.Sections.GetIndexOfPrevious(_songRunner.SongTime);
+                                int RealNextSectionIndex = Chart.Sections.GetIndexOfNext(_songRunner.SongTime);
+                                int RealLastSectionIndex = RealCurrentSectionIndex - 1;
+                                var enhancedSectionStatsNext = engine.EngineStats.SectionStatsTracker.SectionStatsArray[RealNextSectionIndex];
+                                var enhancedSectionStatsPrv = engine.EngineStats.SectionStatsTracker.SectionStatsArray[RealLastSectionIndex];
+                                if (RealLastSectionIndex <= 0) {
+                                   RealLastSectionIndex++; 
+                                }
+
+
+
+                                text.AppendLine("\n Previous Section Stats:\n");
+
+                                    
+
+                                text.AppendLine("Only Chuck Norris Can Divide By Zero\n");
+                                   
+
+                                     if (RealLastSectionIndex >= 0) {
+
+                                    var enhancedSectionStatsCurrent = engine.EngineStats.SectionStatsTracker.SectionStatsArray[RealCurrentSectionIndex];
+
+
+                                    text.AppendFormat("- Section Index: {0}\n", enhancedSectionStatsPrv.SectionIndex);
+                                         text.AppendFormat("- Next Section Index: {0}\n", enhancedSectionStatsPrv.nextSectionIndex);
+                                         text.AppendFormat("- Total Notes Hit in Section: {0}/{1}\n", enhancedSectionStatsPrv.TotalSectionHitStats.AllNoteCount, enhancedSectionStatsPrv.TotalSectionNotesStats.AllNoteCount);
+                                         text.AppendFormat("- Total Notes Missed In Section: {0}/{1}\n", enhancedSectionStatsPrv.TotalSectionMissedStats.AllNoteCount, enhancedSectionStatsPrv.TotalSectionNotesStats.AllNoteCount);
+
+
+
+
+
+                                    text.AppendLine("\n Current Section Stats:\n");
+                                    text.AppendFormat("- Section Name: {0}\n", enhancedSectionStatsCurrent.sectionName);
+                                    text.AppendFormat("- Section Index: {0}\n", enhancedSectionStatsCurrent.SectionIndex);
+                                    text.AppendFormat("- Next Section Index: {0}\n", enhancedSectionStatsCurrent.nextSectionIndex);
+                                    text.AppendFormat("- Total Notes Hit in Section: {0}/{1}\n", enhancedSectionStatsCurrent.TotalSectionHitStats.AllNoteCount, enhancedSectionStatsCurrent.TotalSectionNotesStats.AllNoteCount);
+                                    text.AppendFormat("- Total Notes Missed In Section: {0}/{1}\n", enhancedSectionStatsCurrent.TotalSectionMissedStats.AllNoteCount, enhancedSectionStatsCurrent.TotalSectionNotesStats.AllNoteCount);
+                                }
+                                
+
+
+
+
+                                  
+                                
+                            }
+                            GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                            break;
                     }
 
                     case DrumsPlayer drumsPlayer:

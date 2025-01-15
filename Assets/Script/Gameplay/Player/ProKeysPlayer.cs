@@ -95,7 +95,7 @@ namespace YARG.Gameplay.Player
                 EngineParams = (ProKeysEngineParameters) Player.EngineParameterOverride;
             }
 
-            var engine = new YargProKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            var engine = new YargProKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot, GameManager.Chart);
 
             HitWindow = EngineParams.HitWindow;
 
