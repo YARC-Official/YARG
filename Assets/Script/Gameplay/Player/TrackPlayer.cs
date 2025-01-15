@@ -175,6 +175,7 @@ namespace YARG.Gameplay.Player
         private double _previousStarPowerAmount;
 
         private Queue<TrackEffect> _upcomingEffects = new();
+        private List<TrackEffectElement> _currentEffects = new();
         private List<TrackEffect> _trackEffects = new();
 
         protected SongChart Chart;
@@ -417,17 +418,38 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateTrackEffects(double time)
         {
-            if (!_upcomingEffects.TryPeek(out var nextEffect))
+            if (_upcomingEffects.TryPeek(out var nextEffect) && nextEffect.Time <= time + SpawnTimeOffset)
             {
-                return;
+                SpawnEffect(nextEffect, false);
             }
 
-            if (!(nextEffect.Time <= time + SpawnTimeOffset))
-            {
-                return;
-            }
+            // If any of the current effects are drum fill, we need to react
+            // when starpower goes from unavailable to available
 
-            SpawnEffect(nextEffect, false);
+            // Remove past effects from current list
+            // This may actually fail if an effect is reused from the pool
+            // too quickly, but as long as it is only being used for setting
+            // drum fill visibility, it shouldn't break.
+            for (var i = 0; i < _currentEffects.Count; i++)
+            {
+                if (!_currentEffects[i].Active)
+                {
+                    _currentEffects.RemoveAt(i);
+                }
+                else
+                {
+                    // See if it's an invisible drum fill and if starpower has become available
+                    // Since we never change visibility on anything but drum fills, there's no need to check
+                    // the effect type.
+                    // TODO: We also need to change effects that were originally a UnisonAndDrumFill or SoloAndDrumFill
+                    //  back from Unison or Solo
+                    // TODO: Plus we need to switch off the transition materials
+                    if (_currentEffects[i].Visibility < 1.0f && Engine.CanStarPowerActivate)
+                    {
+                        _currentEffects[i].MakeVisible();
+                    }
+                }
+            }
         }
 
         private void SpawnEffect(TrackEffect nextEffect, bool seeking)
@@ -445,7 +467,49 @@ namespace YARG.Gameplay.Player
                 _upcomingEffects.Dequeue();
             }
 
+            // Do some magic to vanish drum fills if the player doesn't have enough SP to activate
+            // or if SP is already active.
+            // TODO: Do the right thing with start and end transitions
+
+            if (Engine.BaseStats.IsStarPowerActive || !Engine.CanStarPowerActivate)
+            {
+                if (nextEffect.EffectType is TrackEffectType.DrumFill)
+                {
+                    nextEffect.Visibility = 0.0f;
+                    if (!nextEffect.StartTransitionEnable)
+                    {
+                        // This could get stickier, but we'll try this for now
+                        if (_currentEffects.Count > 0)
+                        {
+                            _currentEffects[^1].EffectRef.EndTransitionEnable = true;
+                            _currentEffects[^1].SetEndTransitionVisible(true);
+                            _currentEffects[^1].SetTransitionState();
+                        }
+                    }
+                    if (!nextEffect.EndTransitionEnable)
+                    {
+                        // Get next next and turn on its start transition
+                        // TODO: What if it is already spawned?
+                        if (_upcomingEffects.TryPeek(out var nextNextEffect))
+                        {
+                            nextNextEffect.StartTransitionEnable = true;
+                        }
+                    }
+                }
+
+                if (nextEffect.EffectType is TrackEffectType.DrumFillAndUnison)
+                {
+                    nextEffect.EffectType = TrackEffectType.Unison;
+                }
+
+                if (nextEffect.EffectType is TrackEffectType.SoloAndDrumFill)
+                {
+                    nextEffect.EffectType = TrackEffectType.Solo;
+                }
+            }
+
             ((TrackEffectElement) poolable).EffectRef = nextEffect;
+            _currentEffects.Add((TrackEffectElement) poolable);
             poolable.EnableFromPool();
         }
 
@@ -504,8 +568,6 @@ namespace YARG.Gameplay.Player
 
         private void ResetTrackEffectOverlay(double time)
         {
-            // TODO: Make this handle unisons, probably by keeping a list of effects
-            //  that doesn't change instead of using a queue
             // despawn any existing solos, rebuild solo structures, spawn any that are now in current
             _upcomingEffects.Clear();
             for(var i = 0; i < EffectPool.AllSpawned.Count; i++)

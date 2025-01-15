@@ -113,12 +113,13 @@ Material:
     - _SpecularHighlights: 0
     - _SrcBlend: 5
     - _Surface: 1
+    - _Visibility: 1
     - _WorkflowMode: 1
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.19607845, g: 0.19607845, b: 0.19607845, a: 1}
-    - _Color: {r: 0, g: 0.2980392, b: 0.47450978, a: 1}
-    - _EmissionColor: {r: 0, g: 0.07227186, b: 0.1878208, a: 1}
+    - _Color: {r: 0, g: 0.29803923, b: 0.47450978, a: 1}
+    - _EmissionColor: {r: 0, g: 0.11372549, b: 0.4392157, a: 1}
     - _Solo_Color: {r: 0, g: 1, b: 1, a: 1}
     - _Solo_End: {r: 0, g: 0, b: 0, a: 0}
     - _Solo_Start: {r: 0, g: 0, b: 0, a: 0}

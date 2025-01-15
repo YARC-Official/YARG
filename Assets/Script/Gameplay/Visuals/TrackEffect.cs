@@ -26,6 +26,7 @@ namespace YARG.Gameplay.Visuals
             Time = time;
             TimeEnd = timeEnd;
             EffectType = effectType;
+            OriginalEffectType = effectType;
             StartTransitionEnable = startTransitionEnable;
             EndTransitionEnable = endTransitionEnable;
         }
@@ -37,9 +38,11 @@ namespace YARG.Gameplay.Visuals
 
         public double Time { get; private set; }
         public double TimeEnd { get; private set; }
-        public readonly TrackEffectType EffectType;
-        public bool StartTransitionEnable { get; private set; }
-        public bool EndTransitionEnable { get; private set; }
+        public TrackEffectType EffectType { get; set; }
+        public readonly TrackEffectType OriginalEffectType;
+        public bool StartTransitionEnable { get; set; }
+        public bool EndTransitionEnable { get; set; }
+        public float Visibility { get; set; } = 1.0f;
 
         public bool Equals(TrackEffect other) => Time.Equals(other.Time) && TimeEnd.Equals(other.TimeEnd);
         public override bool Equals(object obj) => obj is TrackEffect && Equals((TrackEffect)obj);

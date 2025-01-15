@@ -353,6 +353,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _meshRenderer: {fileID: 6945456873720195046}
   EnableStartTransition: 1
+  Visibility: 1
   EnableEndTransition: 1
   _soloTrackMaterial: {fileID: 2100000, guid: 9426b3a5962fe2247aac758b3f950064, type: 2}
   _soloRailMaterial: {fileID: 2100000, guid: 9c29272d5b2b0344aa1824583b9f5276, type: 2}

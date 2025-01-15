@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Serialization;
 using YARG.Core.Logging;
@@ -51,7 +52,25 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Material _drumFillRailRightTransitionMaterial;
 
+        [SerializeField]
+        public float Visibility;
+
+        public float StartVisibility;
+        public float EndVisibility;
+
+        private bool _visibilityInTransition = false;
+        private float _currentVisibility = 1.0f;
+        private bool _startVisibilityInTransition = false;
+        private bool _endVisibilityInTransition = false;
+        private float _currentStartVisibility = 1.0f;
+        private float _currentEndVisibility = 1.0f;
+
+
+        private bool _previousStartTransitionEnable;
+        private bool _previousEndTransitionEnable;
         public TrackEffect EffectRef { get; set; }
+
+        private static readonly int _visibility = Shader.PropertyToID("_Visibility");
 
         public override double ElementTime => EffectRef.Time;
         public double MiddleTime => EffectRef.Time + ((EffectRef.TimeEnd - EffectRef.Time) / 2);
@@ -59,15 +78,30 @@ namespace YARG.Gameplay.Visuals
         // not sure that we really need the +3.5
         protected new float RemovePointOffset => (float) ((EffectRef.TimeEnd - EffectRef.Time) * Player.NoteSpeed + 3.5);
 
+        public bool Active { get; private set; }
+
         protected override void InitializeElement()
         {
+            EnableStartTransition = EffectRef.StartTransitionEnable;
+            EnableEndTransition = EffectRef.EndTransitionEnable;
+            _previousStartTransitionEnable = EffectRef.StartTransitionEnable;
+            _previousEndTransitionEnable = EffectRef.EndTransitionEnable;
+            Visibility = EffectRef.Visibility;
+            StartVisibility = EnableStartTransition ? Visibility : 0.0f;
+            EndVisibility = EnableEndTransition ? Visibility : 0.0f;
+            _currentVisibility = Visibility;
+            _currentStartVisibility = StartVisibility;
+            _currentEndVisibility = EndVisibility;
+            _visibilityInTransition = false;
+
             SetMaterials();
             RescaleForZ();
-            InitializeFade();
+            InitializeMaterials();
             SetTransitionState();
+            Active = true;
         }
 
-        private void InitializeFade()
+        private void InitializeMaterials()
         {
             // This has to be done because it gets messed up when objects
             // get recycled. The effect is visually interesting, but not what is desired.
@@ -83,6 +117,7 @@ namespace YARG.Gameplay.Visuals
                 foreach (var material in meshRenderer.materials)
                 {
                     material.SetFade(fadePos, fadeSize);
+                    material.SetFloat(_visibility, Visibility);
                 }
             }
         }
@@ -108,15 +143,26 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        private void SetTransitionState()
+        public void SetStartTransitionVisible(bool enable)
         {
-            EnableStartTransition = EffectRef.StartTransitionEnable;
-            EnableEndTransition = EffectRef.EndTransitionEnable;
+            EnableStartTransition = enable;
+            SetTransitionState();
+        }
 
+        public void SetEndTransitionVisible(bool enable)
+        {
+            EnableEndTransition = enable;
+            SetTransitionState();
+        }
+
+        public void SetTransitionState()
+        {
             var cachedTransform = _meshRenderer.transform;
 
             var children = cachedTransform.GetComponentsInChildren<Transform>(true);
 
+            // TODO: Don't actually disable the gameobject, just set visibility to 0.0f
+            //  turns out that doesn't work because of z fighting
             foreach (var child in children)
             {
                 if (child == cachedTransform)
@@ -129,20 +175,73 @@ namespace YARG.Gameplay.Visuals
                     continue;
                 }
 
-                if (child.gameObject.name is "TrackEffectStart" && !EnableStartTransition)
+                if (child.gameObject.name is "TrackEffectStart")
                 {
-                    child.gameObject.SetActive(false);
-                    continue;
+                    SetMaterialVisibility(child, StartVisibility);
+                    if (!EnableStartTransition)
+                    {
+                        child.gameObject.SetActive(false);
+                        var foo = child.GetComponent<Renderer>();
+                        continue;
+                    }
                 }
 
-                if (child.gameObject.name is "TrackEffectEnd" && !EnableEndTransition)
+                if (child.gameObject.name is "TrackEffectEnd")
                 {
-                    child.gameObject.SetActive(false);
-                    continue;
+                    SetMaterialVisibility(child, EndVisibility);
+                    if (!EnableEndTransition)
+                    {
+                        child.gameObject.SetActive(false);
+                        continue;
+                    }
                 }
 
                 child.gameObject.SetActive(true);
             }
+        }
+
+        // We're taking a Transform because SetTransitionState uses them
+        // and that's who we're expecting to call
+        void SetMaterialVisibility(Transform target, float visibility)
+        {
+            var children = target.GetComponentsInChildren<Renderer>(true);
+            foreach (var child in children)
+            {
+                child.material.SetFloat(_visibility, visibility);
+            }
+        }
+
+        // TODO: Make the visibility spread up the track so it doesn't just pop in
+        //  also fade in the visibility as it does so
+
+        // TODO: Color.Lerp between effect types if they are changing
+
+        // I think what we're looking for here is for it to fade in at the bottom
+        // and spread up the track with decreasing transparency
+
+        // For now maybe just spread up the track at full transparency
+        public void MakeVisible()
+        {
+            _visibilityInTransition = true;
+            Visibility = 1.0f;
+        }
+
+        private void SetAllVisibility(float visibility)
+        {
+            if (Visibility == visibility)
+            {
+                _visibilityInTransition = false;
+            }
+
+            var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
+            foreach (var meshRenderer in meshRenderers)
+            {
+                foreach (var material in meshRenderer.materials)
+                {
+                    material.SetFloat(_visibility, visibility);
+                }
+            }
+            _currentVisibility = visibility;
         }
 
         protected override bool UpdateElementPosition()
@@ -160,6 +259,7 @@ namespace YARG.Gameplay.Visuals
             if (z < REMOVE_POINT - RemovePointOffset)
             {
                 ParentPool.Return(this);
+                Active = false;
                 return false;
             }
 
@@ -319,7 +419,10 @@ namespace YARG.Gameplay.Visuals
 
         protected override void UpdateElement()
         {
-
+            if (_visibilityInTransition)
+            {
+                SetAllVisibility(Mathf.Lerp(_currentVisibility, Visibility, Time.deltaTime * 5f));
+            }
         }
     }
 }
