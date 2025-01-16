@@ -1,7 +1,5 @@
-﻿using JetBrains.Annotations;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 using YARG.Venue;
 
@@ -11,6 +9,7 @@ namespace Editor
     public class BundleBackgroundInspector : UnityEditor.Editor
     {
         private SerializedProperty _mainCameraProperty;
+
 
         private void OnEnable()
         {
@@ -37,12 +36,14 @@ namespace Editor
 
             myInspector.Add(new Label("\n\n<b><size=1.25em>Actions</size></b>\n"));
 
+            var exportType = new EnumField(BundleBackgroundManager.ExportType.CurrentPlatform);
+            myInspector.Add(exportType);
             // "Export Background" button
             var exportButton = new Button(() =>
             {
                 if (target is BundleBackgroundManager manager)
                 {
-                    manager.ExportBackground();
+                    manager.ExportBackground((BundleBackgroundManager.ExportType)exportType.value);
                 }
             });
             exportButton.Add(new Label("Export Background"));

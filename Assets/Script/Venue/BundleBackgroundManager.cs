@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using UnityEngine;
+using System.Collections.Generic;
+
 #if UNITY_EDITOR
 using UnityEditor;
 using YARG.Core.Logging;
@@ -47,16 +49,16 @@ namespace YARG.Venue
         //
 
         private GameObject _backgroundReference;
+        public enum ExportType {
+            CurrentPlatform,
+            AllPlatforms
+        }
 
         [ContextMenu("Export Background")]
-        public void ExportBackground()
+        public void ExportBackground(ExportType type)
         {
             _backgroundReference = gameObject;
             string path = EditorUtility.SaveFilePanel("Save Background", string.Empty, "bg", "yarground");
-
-            var selectedBuildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
-
             GameObject clonedBackground = null;
 
             try
@@ -68,7 +70,8 @@ namespace YARG.Venue
 
                 clonedBackground = Instantiate(_backgroundReference.gameObject);
 
-                string fileName = Path.GetFileName(path);
+                string fileName = Path.GetFileNameWithoutExtension(path);
+                string extension = Path.GetExtension(path);
                 string folderPath = Path.GetDirectoryName(path);
 
                 var assetPaths = new[]
@@ -81,30 +84,43 @@ namespace YARG.Venue
                 assetBundleBuild.assetBundleName = fileName;
                 assetBundleBuild.assetNames = assetPaths;
 
-                BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
-                    new[]
+                List<BuildTarget> platforms = type == ExportType.AllPlatforms ? new() {BuildTarget.StandaloneLinux64, BuildTarget.StandaloneWindows, BuildTarget.StandaloneOSX} : new() {EditorUserBuildSettings.activeBuildTarget};
+
+                foreach (var target in platforms) {
+                    YargLogger.LogInfo("Exporting for :" + target);
+
+                    try {
+                        string outputPath = Path.Join(folderPath, fileName + "_" + target + extension);
+
+                        BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
+                            new[]
+                            {
+                                assetBundleBuild
+                            }, BuildAssetBundleOptions.ForceRebuildAssetBundle,
+                            target);
+
+                        // If the file exists, delete it (to replace it)
+                        if (File.Exists(outputPath))
+                        {
+                            File.Delete(outputPath);
+                        }
+
+
+                        // Unity seems to save the file in lower case, which is a problem on Linux, as file systems are case sensitive there
+                        File.Move(Path.Combine(Application.temporaryCachePath, fileName.ToLowerInvariant()), outputPath);
+                    }  catch (Exception e)
                     {
-                        assetBundleBuild
-                    }, BuildAssetBundleOptions.ForceRebuildAssetBundle,
-                    EditorUserBuildSettings.activeBuildTarget);
-                EditorPrefs.SetString("currentBuildingAssetBundlePath", folderPath);
-                EditorUserBuildSettings.SwitchActiveBuildTarget(selectedBuildTargetGroup, activeBuildTarget);
+                        YargLogger.LogException(e, "Failed to bundle background/venue for " + target);
+                    }
+                }
 
                 foreach (var asset in assetPaths)
                 {
                     AssetDatabase.DeleteAsset(asset);
                 }
 
-                // If the file exists, delete it (to replace it)
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-
-                // Unity seems to save the file in lower case, which is a problem on Linux, as file systems are case sensitive there
-                File.Move(Path.Combine(Application.temporaryCachePath, fileName.ToLowerInvariant()), path);
-
                 AssetDatabase.Refresh();
+
 
                 EditorUtility.DisplayDialog("Export Successful!", "Export Successful!", "OK");
             }
