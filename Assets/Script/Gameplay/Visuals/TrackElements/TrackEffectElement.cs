@@ -26,6 +26,8 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Material _soloRailMaterial;
         [SerializeField]
+        private Material _soloTrimMaterial;
+        [SerializeField]
         private Material _soloTransitionMaterial;
         [SerializeField]
         private Material _soloRailLeftTransitionMaterial;
@@ -36,6 +38,8 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Material _unisonRailMaterial;
         [SerializeField]
+        private Material _unisonTrimMaterial;
+        [SerializeField]
         private Material _unisonTransitionMaterial;
         [SerializeField]
         private Material _unisonRailLeftTransitionMaterial;
@@ -45,6 +49,8 @@ namespace YARG.Gameplay.Visuals
         private Material _drumFillTrackMaterial;
         [SerializeField]
         private Material _drumFillRailMaterial;
+        [SerializeField]
+        private Material _drumFillTrimMaterial;
         [SerializeField]
         private Material _drumFillTransitionMaterial;
         [SerializeField]
@@ -137,21 +143,20 @@ namespace YARG.Gameplay.Visuals
 
         private void SetMaterials()
         {
-            var children = GetComponentsInChildren<Renderer>();
+            var children = GetComponentsInChildren<Renderer>(true);
 
             foreach (var child in children)
             {
-                if (!child.gameObject.activeInHierarchy)
+                var newMaterial = GetMaterial(child.gameObject.name, EffectRef.EffectType);
+                if (newMaterial == null)
                 {
+                    // Object should be disabled, so do that
+                    child.gameObject.SetActive(false);
                     continue;
                 }
-                var newMaterial = GetMaterial(child.gameObject.name, EffectRef.EffectType);
-                if (newMaterial is null)
-                {
-                    // Games are being played, just disable the object
-                    child.gameObject.SetActive(false);
-                }
 
+                // This could have been disabled in a previous use of the element
+                child.gameObject.SetActive(true);
                 child.material = newMaterial;
             }
         }
@@ -219,6 +224,10 @@ namespace YARG.Gameplay.Visuals
             var children = target.GetComponentsInChildren<Renderer>(true);
             foreach (var child in children)
             {
+                if (child.material == null)
+                {
+                    continue;
+                }
                 child.material.SetFloat(_visibility, visibility);
             }
         }
@@ -245,6 +254,10 @@ namespace YARG.Gameplay.Visuals
             var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
             foreach (var meshRenderer in meshRenderers)
             {
+                if (meshRenderer.material == null)
+                {
+                    continue;
+                }
                 foreach (var material in meshRenderer.materials)
                 {
                     material.SetFloat(_visibility, visibility);
@@ -299,6 +312,17 @@ namespace YARG.Gameplay.Visuals
                     continue;
                 }
 
+                // I'd combine these, but I think it would make it less readable
+
+                // The point of all this is that only the transition parts need
+                // special handling to remain correctly scaled since they are
+                // supposed to remain fixed in size regardless of the length of
+                // the track effect.
+                if (child.gameObject.name is "TrackEffectTrimLeft" or "TrackEffectTrimRight")
+                {
+                    continue;
+                }
+
                 if (child.gameObject.name is "TrackEffectRailRight" or "TrackEffectRailLeft")
                 {
                     continue;
@@ -328,6 +352,8 @@ namespace YARG.Gameplay.Visuals
         }
 
         // Returns the material corresponding to a specific effect object and effect type
+        // NOTE: It is correct that DrumFillAndUnison uses the _drumFillX material for all
+        //  parts. This is by request of the artists. (It shouldn't exist, but sometimes happens anyway)
         private Material GetMaterial(string objectName, TrackEffectType effectType)
         {
             var material = objectName switch
@@ -361,7 +387,7 @@ namespace YARG.Gameplay.Visuals
                     TrackEffectType.DrumFill          => _drumFillRailMaterial,
                     TrackEffectType.SoloAndUnison     => _soloRailMaterial,
                     TrackEffectType.SoloAndDrumFill   => _soloRailMaterial,
-                    TrackEffectType.DrumFillAndUnison => _unisonRailMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillRailMaterial,
                     _                                 => null,
                 },
                 "TrackEffectRailRight" => effectType switch
@@ -381,7 +407,7 @@ namespace YARG.Gameplay.Visuals
                     TrackEffectType.DrumFill          => _drumFillRailLeftTransitionMaterial,
                     TrackEffectType.SoloAndUnison     => _soloRailLeftTransitionMaterial,
                     TrackEffectType.SoloAndDrumFill   => _soloRailLeftTransitionMaterial,
-                    TrackEffectType.DrumFillAndUnison => _unisonRailLeftTransitionMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillRailLeftTransitionMaterial,
                     _                                 => null
                 },
                 "TrackEffectTransitionRailRight" => effectType switch
@@ -391,8 +417,26 @@ namespace YARG.Gameplay.Visuals
                     TrackEffectType.DrumFill          => _drumFillRailRightTransitionMaterial,
                     TrackEffectType.SoloAndUnison     => _soloRailRightTransitionMaterial,
                     TrackEffectType.SoloAndDrumFill   => _soloRailRightTransitionMaterial,
-                    TrackEffectType.DrumFillAndUnison => _unisonRailRightTransitionMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillRailRightTransitionMaterial,
                     _                                 => null
+                },
+                "TrackEffectTrimLeft" => effectType switch {
+                    TrackEffectType.Solo              => _soloTrimMaterial,
+                    TrackEffectType.Unison            => _unisonTrimMaterial,
+                    TrackEffectType.DrumFill          => _drumFillTrimMaterial,
+                    TrackEffectType.SoloAndUnison     => _unisonTrimMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _drumFillTrimMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillTrimMaterial,
+                    _                                 => null,
+                },
+                "TrackEffectTrimRight" => effectType switch {
+                    TrackEffectType.Solo              => _soloTrimMaterial,
+                    TrackEffectType.Unison            => _unisonTrimMaterial,
+                    TrackEffectType.DrumFill          => _drumFillTrimMaterial,
+                    TrackEffectType.SoloAndUnison     => _unisonTrimMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _drumFillTrimMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillTrimMaterial,
+                    _                                 => null,
                 },
                 "TrackEffectStart" => effectType switch
                 {
@@ -416,11 +460,10 @@ namespace YARG.Gameplay.Visuals
                 },
                 _ => null,
             };
-            if (material is null)
-            {
-                YargLogger.LogFormatWarning("TrackEffectElement has no material for an object named {0} with effect type {1}",
-                    objectName, effectType);
-            }
+
+            // null is expected if the material has been set to None
+            // in the editor, so we don't check for that here
+
             return material;
         }
 

@@ -251,6 +251,89 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &3665193357091947035
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 603216540922646673}
+  - component: {fileID: 2728807587034739760}
+  - component: {fileID: 1533036189605935979}
+  m_Layer: 0
+  m_Name: TrackEffectTrimLeft
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &603216540922646673
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3665193357091947035}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: -5.055, y: -0.001, z: 0}
+  m_LocalScale: {x: 0.03, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 9211262000089636072}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!33 &2728807587034739760
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3665193357091947035}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1533036189605935979
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3665193357091947035}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 47f298b4d4e34bf418a8710adaaa2811, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &3893804635776200699
 GameObject:
   m_ObjectHideFlags: 0
@@ -286,6 +369,8 @@ Transform:
   - {fileID: 3986288199103234456}
   - {fileID: 6884696900910482856}
   - {fileID: 2502946518341552574}
+  - {fileID: 603216540922646673}
+  - {fileID: 828350457860434765}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -353,10 +438,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _meshRenderer: {fileID: 6945456873720195046}
   EnableStartTransition: 1
-  Visibility: 1
   EnableEndTransition: 1
   _soloTrackMaterial: {fileID: 2100000, guid: 9426b3a5962fe2247aac758b3f950064, type: 2}
   _soloRailMaterial: {fileID: 2100000, guid: 9c29272d5b2b0344aa1824583b9f5276, type: 2}
+  _soloTrimMaterial: {fileID: 2100000, guid: 2e9bd08232d02544cb830798997ac1a5, type: 2}
   _soloTransitionMaterial: {fileID: 2100000, guid: 0a4747cce0105ed47adba86029a5ce88,
     type: 2}
   _soloRailLeftTransitionMaterial: {fileID: 2100000, guid: bdebfa46e42b16244853c6744b3e7514,
@@ -365,23 +450,22 @@ MonoBehaviour:
     type: 2}
   _unisonTrackMaterial: {fileID: 2100000, guid: 0b64a7611185b364e920816aab94e8bf,
     type: 2}
-  _unisonRailMaterial: {fileID: 2100000, guid: 464dc34320e116149a02b720a6142535, type: 2}
-  _unisonTransitionMaterial: {fileID: 2100000, guid: 36def363f29094741b7e922d1ab63743,
-    type: 2}
-  _unisonRailLeftTransitionMaterial: {fileID: 2100000, guid: f4d5c71571b093644a2c08e343c450c1,
-    type: 2}
-  _unisonRailRightTransitionMaterial: {fileID: 2100000, guid: 825fde9df03325747a5287f7be273f10,
-    type: 2}
+  _unisonRailMaterial: {fileID: 0}
+  _unisonTrimMaterial: {fileID: 2100000, guid: 47f298b4d4e34bf418a8710adaaa2811, type: 2}
+  _unisonTransitionMaterial: {fileID: 0}
+  _unisonRailLeftTransitionMaterial: {fileID: 0}
+  _unisonRailRightTransitionMaterial: {fileID: 0}
   _drumFillTrackMaterial: {fileID: 2100000, guid: 9ea07200d5963f24cbc0a0dd81733d5c,
     type: 2}
-  _drumFillRailMaterial: {fileID: 2100000, guid: dbe25822df08bcf45909811beabb8a76,
+  _drumFillRailMaterial: {fileID: 0}
+  _drumFillTrimMaterial: {fileID: 2100000, guid: 639ae420a6566374884bd260f6834d91,
     type: 2}
-  _drumFillTransitionMaterial: {fileID: 2100000, guid: d732190644b67604bb021119c2a46662,
-    type: 2}
-  _drumFillRailLeftTransitionMaterial: {fileID: 2100000, guid: f655515021e61b446b024a7b346fa1e2,
-    type: 2}
-  _drumFillRailRightTransitionMaterial: {fileID: 2100000, guid: 7c6b7c80e4234864eb992d096f716c5e,
-    type: 2}
+  _drumFillTransitionMaterial: {fileID: 0}
+  _drumFillRailLeftTransitionMaterial: {fileID: 0}
+  _drumFillRailRightTransitionMaterial: {fileID: 0}
+  Visibility: 1
+  StartVisibility: 0
+  EndVisibility: 0
 --- !u!1 &7554591210382149586
 GameObject:
   m_ObjectHideFlags: 0
@@ -612,6 +696,89 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 9c29272d5b2b0344aa1824583b9f5276, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &8011904990466621097
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 828350457860434765}
+  - component: {fileID: 2962106033910379586}
+  - component: {fileID: 1073143572197824310}
+  m_Layer: 0
+  m_Name: TrackEffectTrimRight
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &828350457860434765
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8011904990466621097}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 5.055, y: -0.001, z: 0}
+  m_LocalScale: {x: 0.03, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 9211262000089636072}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &2962106033910379586
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8011904990466621097}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1073143572197824310
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8011904990466621097}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 47f298b4d4e34bf418a8710adaaa2811, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

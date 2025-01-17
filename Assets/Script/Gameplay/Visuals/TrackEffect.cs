@@ -69,9 +69,6 @@ namespace YARG.Gameplay.Visuals
         // of non-overlapping effects to delight and surprise users
         public static List<TrackEffect> SliceEffects(float noteSpeed, params List<TrackEffect>[] trackEffects)
         {
-            // NOTE: This breaks if the size of the effect transition is changed
-            // Multiplied by two since both effect objects have a transition
-            var minTime = TRANSITION_SCALE * 2 / noteSpeed;
             // Combine all the lists we were given, then sort
             var fullEffectsList = new List<TrackEffect>();
             foreach (var effectList in trackEffects)
@@ -91,6 +88,14 @@ namespace YARG.Gameplay.Visuals
                     continue;
                 }
 
+                // The number of transitions enabled in this comparison set
+                var numEnabled = effect.EndTransitionEnable ? 1 + (nextEffect.StartTransitionEnable ? 1 : 0) : 0 + (nextEffect.StartTransitionEnable ? 1 : 0);
+
+                // The minimum time allowed between effects, taking
+                // into account their transition section, if one or more
+                // is enabled. This is to avoid transition section overlap
+                var minTime = numEnabled > 0 ? TRANSITION_SCALE * numEnabled / noteSpeed : 0f;
+
                 if (!effect.Overlaps(nextEffect))
                 {
                     // There is no overlap, so no need to slice
@@ -104,7 +109,7 @@ namespace YARG.Gameplay.Visuals
 
                     if (nextEffect.Time - effect.TimeEnd < minTime)
                     {
-                        // Too close, adjust them to be adjacent
+                        // Too close, so adjust them to be adjacent
                         var adjustedTime = ((nextEffect.Time - effect.TimeEnd) / 2) + effect.TimeEnd;
                         nextEffect.Time = adjustedTime;
                         effect.TimeEnd = adjustedTime;
@@ -123,7 +128,7 @@ namespace YARG.Gameplay.Visuals
                     slicedEffects.Add(new TrackEffect(effect.Time, nextEffect.Time,
                         effect.EffectType, effect.StartTransitionEnable, false));
                     var newEffect = new TrackEffect(nextEffect.Time, nextEffect.TimeEnd,
-                        GetEffectCombination(effect, nextEffect), false, nextEffect.EndTransitionEnable);
+                        GetEffectCombination(effect, nextEffect), false, false);
                     if (!(q.TryPeek(out var nextNextEffect) && newEffect.Contains(nextNextEffect)))
                     {
                         // Remainder of outer effect contains no more inner effects
@@ -184,7 +189,9 @@ namespace YARG.Gameplay.Visuals
             {
                 combo = inner.EffectType switch
                 {
-                    TrackEffectType.Unison => TrackEffectType.DrumFillAndUnison,
+                    // By request of the art department, unison phrases in drum fills are
+                    // rendered as if there was no unison
+                    TrackEffectType.Unison => TrackEffectType.DrumFill,
                     _                      => null
                 };
             }
@@ -222,8 +229,11 @@ namespace YARG.Gameplay.Visuals
                         continue;
                     }
 
+                    // Unison and DrumFill no longer use transitions
+                    var transitionState = kind == TrackEffectType.Solo;
+
                     effects.Add(
-                        new TrackEffect(phrases[i].Time, phrases[i].TimeEnd, (TrackEffectType) kind, true, true));
+                        new TrackEffect(phrases[i].Time, phrases[i].TimeEnd, (TrackEffectType) kind, transitionState, transitionState));
                 }
             }
             return effects;
