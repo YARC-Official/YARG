@@ -88,7 +88,8 @@ namespace YARG.Menu.ScoreScreen
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-            _bandScoreNotSavedMessage.gameObject.SetActive(!ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
+            _bandScoreNotSavedMessage.gameObject.SetActive(
+                !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
 
             // Set speed text (if not at 100% speed)
             if (!Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f))
@@ -198,7 +199,7 @@ namespace YARG.Menu.ScoreScreen
             }
 
             var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
-            for(int i = 0; i < results.Length; i++)
+            for (int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];
 

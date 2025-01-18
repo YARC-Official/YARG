@@ -100,11 +100,6 @@ namespace YARG.Player
             return _playersByProfile.ContainsKey(profile);
         }
 
-        public static bool HasBotsActive()
-        {
-            return _players.Exists(i => i.Profile.IsBot);
-        }
-
         public static YargPlayer CreatePlayerFromProfile(YargProfile profile, bool resolveDevices)
         {
             if (!_profiles.Contains(profile))
@@ -297,20 +292,25 @@ namespace YARG.Player
             foreach (var profile in _profiles)
             {
                 profile.EnsureValidInstrument();
-
             }
         }
 
-        public static bool OnlyHasBots()
+        public static bool OnlyHasBotsActive()
         {
-            for (int i = 0; i < _players.Count; i++)
+            foreach (var player in _players)
             {
-                if (!_players[i].Profile.IsBot)
+                if (!player.Profile.IsBot)
                 {
                     return false;
                 }
             }
+
             return true;
+        }
+
+        public static bool HasAnyBotsActive()
+        {
+            return _players.Exists(i => i.Profile.IsBot);
         }
     }
 }

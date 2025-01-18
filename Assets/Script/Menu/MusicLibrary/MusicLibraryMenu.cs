@@ -186,7 +186,7 @@ namespace YARG.Menu.MusicLibrary
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
 
             // Make sure sort is not by play count if there are only bots
-            if (PlayerContainer.OnlyHasBots() &&
+            if (PlayerContainer.OnlyHasBotsActive() &&
                 SettingsManager.Settings.LibrarySort == SortAttribute.Playcount)
             {
                 // Name makes a good fallback?

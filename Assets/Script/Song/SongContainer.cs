@@ -301,7 +301,7 @@ namespace YARG.Song
         {
             // This should never happen since play count shouldn't be selectable without
             // a non-bot profile and MusicLibraryMenu already checks for this, but let's double check
-            if (PlayerContainer.OnlyHasBots())
+            if (PlayerContainer.OnlyHasBotsActive())
             {
                 // Titles seems like a reasonable fallback
                 return _sortTitles;
