@@ -465,9 +465,11 @@ namespace YARG.Gameplay.Player
                     {
                         _currentEffects[i].MakeVisible(false);
 
-                        if (!_currentEffects[i].EffectRef.StartTransitionEnable)
+                        if (!_currentEffects[i].EffectRef.StartTransitionEnable && i > 0)
                         {
-                            // Previous needs end transition enabled since we're disappearing
+                            // Previous maybe needs end transition enabled since we're disappearing
+                            // (if the effect type doesn't have an end transition set, it won't
+                            //  be active regardless of what we do here, so a hard enable is ok)
                             _currentEffects[i - 1].SetEndTransitionVisible(true);
                         }
 

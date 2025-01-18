@@ -62,7 +62,7 @@ namespace YARG.Gameplay.Visuals
         public static bool operator >=(TrackEffect left, TrackEffect right) => left.CompareTo(right) >= 0;
 
         public bool Overlaps(TrackEffect other) => !(Time < other.TimeEnd && other.Time >= TimeEnd);
-        public bool Contains(TrackEffect other) => Time < other.Time && other.TimeEnd < TimeEnd;
+        public bool Contains(TrackEffect other) => Time <= other.Time && other.TimeEnd <= TimeEnd;
 
         // Takes a list of track effects, sorts, slices, and dices, chops,
         // and blends in order to create just the right combination
@@ -125,18 +125,22 @@ namespace YARG.Gameplay.Visuals
                 {
                     // Add segment of outer effect lasting until beginning of inner effect
                     // Disabled end transition is required
+                    // Zero length effect doesn't hurt anything, so we're not wasting the branch
                     slicedEffects.Add(new TrackEffect(effect.Time, nextEffect.Time,
                         effect.EffectType, effect.StartTransitionEnable, false));
                     var newEffect = new TrackEffect(nextEffect.Time, nextEffect.TimeEnd,
                         GetEffectCombination(effect, nextEffect), false, false);
-                    if (!(q.TryPeek(out var nextNextEffect) && newEffect.Contains(nextNextEffect)))
+                    if (!(q.TryPeek(out var nextNextEffect) && effect.Contains(nextNextEffect)))
                     {
                         // Remainder of outer effect contains no more inner effects
                         slicedEffects.Add(newEffect);
                         slicedEffects.Add(new TrackEffect(newEffect.TimeEnd, effect.TimeEnd, effect.EffectType, false, effect.EndTransitionEnable));
-                        q.Dequeue();
                         continue;
                     }
+
+                    // Now add inner effect
+                    slicedEffects.Add(newEffect);
+                    q.Dequeue();
 
                     // There are more inner effects, so process them until we run out
                     while (q.TryPeek(out nextNextEffect) && effect.Contains(nextNextEffect))
@@ -148,13 +152,14 @@ namespace YARG.Gameplay.Visuals
                                 effect.EffectType, false, false));
                         }
 
-                        // now the inner effect
+                        // now the next inner effect
                         newEffect = new TrackEffect(nextNextEffect.Time, nextNextEffect.TimeEnd,
                             GetEffectCombination(effect, nextNextEffect), false, false);
                         slicedEffects.Add(newEffect);
                         q.Dequeue();
                     }
-
+                    // We have exhausted all the inner effects, so add the remainder of the outer effect
+                    slicedEffects.Add(new TrackEffect(newEffect.TimeEnd, effect.TimeEnd, effect.EffectType, false, effect.EndTransitionEnable));
                     continue;
                 }
                 // There is overlap, but next is not contained in current
