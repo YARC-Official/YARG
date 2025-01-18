@@ -2,6 +2,7 @@
 using YARG.Core.Song.Cache;
 using YARG.Core.Song;
 using System;
+using System.Linq;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 using YARG.Helpers;
@@ -12,6 +13,7 @@ using YARG.Core;
 using YARG.Player;
 using YARG.Localization;
 using YARG.Core.Extensions;
+using YARG.Scores;
 
 namespace YARG.Song
 {
@@ -30,6 +32,7 @@ namespace YARG.Song
         SongLength,
         DateAdded,
         Playable,
+        Playcount,
 
         Instrument,
         FiveFretGuitar,
@@ -155,7 +158,7 @@ namespace YARG.Song
 
         public static SongCategory[] GetSortedCategory(SortAttribute sort)
         {
-            return sort switch
+            var proposedSort = sort switch
             {
                 SortAttribute.Name => _sortTitles,
                 SortAttribute.Artist => _sortArtists,
@@ -168,6 +171,7 @@ namespace YARG.Song
                 SortAttribute.Artist_Album => _sortArtistAlbums,
                 SortAttribute.SongLength => _sortSongLengths,
                 SortAttribute.DateAdded => _sortDatesAdded,
+                SortAttribute.Playcount => GetPlaycounts(),
                 SortAttribute.Playable => GetPlayableSongs(),
 
                 SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
@@ -191,8 +195,19 @@ namespace YARG.Song
                 SortAttribute.Vocals         => _sortInstruments[Instrument.Vocals],
                 SortAttribute.Harmony        => _sortInstruments[Instrument.Harmony],
                 SortAttribute.Band           => _sortInstruments[Instrument.Band],
-                _ => throw new Exception("stoopid"),
+                _  => null
             };
+
+            // Make life better when people go back a version and we
+            // encounter sorts we don't understand by providing a
+            // default rather than a blank song library
+            if (proposedSort != null)
+            {
+                return proposedSort;
+            }
+
+            YargLogger.LogInfo("Invalid Sort Attribute. Defaulting to Name sort.");
+            return _sortTitles;
         }
 
         public static bool HasInstrument(Instrument instrument)
@@ -280,6 +295,47 @@ namespace YARG.Song
             return _songs.Pick();
         }
 
+        // Play count sorting is intentionally not cached, as it must be regenerated after
+        // every play, when profiles change, and probably a bunch of other stuff
+        private static SongCategory[] GetPlaycounts()
+        {
+            // This should never happen since play count shouldn't be selectable without
+            // a non-bot profile and MusicLibraryMenu already checks for this, but let's double check
+            if (PlayerContainer.OnlyHasBots())
+            {
+                // Titles seems like a reasonable fallback
+                return _sortTitles;
+            }
+            var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+
+            var counts = ScoreContainer.GetPlayedSongsForUserByPlaycount(player.Profile, true);
+            // Get all the unplayed songs and stuff them on the end of the list
+            var zeroPlaySongs = new List<SongEntry>();
+            var previousSort = SettingsManager.Settings.PreviousLibrarySort;
+
+            if (previousSort == SortAttribute.Unspecified)
+            {
+                // I don't think this should ever happen, but I'm not certain,
+                // so belt and suspenders wins.
+                previousSort = SortAttribute.Name;
+            }
+
+            foreach (var category in GetSortedCategory(previousSort))
+            {
+                foreach (var song in category.Songs)
+                {
+                    if (!counts.Contains(song))
+                    {
+                        zeroPlaySongs.Add(song);
+                    }
+                }
+            }
+            var countCategories = new SongCategory[2];
+            countCategories[0] = new SongCategory("PLAYED SONGS", counts.ToArray(), "Played Songs");
+            countCategories[1] = new SongCategory("UNPLAYED SONGS", zeroPlaySongs.ToArray(), "Unplayed Songs");
+            return countCategories;
+        }
+
         private static void UpdateSongUi(LoadingContext context)
         {
             var tracker = CacheHandler.Progress;
@@ -322,7 +378,7 @@ namespace YARG.Song
         private static void FillContainers()
         {
             _songs = SetAllSongs(_songCache.Entries);
-        
+
             _sortArtists   = Convert(_songCache.Artists, SongAttribute.Artist, true);
             _sortAlbums    = Convert(_songCache.Albums, SongAttribute.Album, true);
             _sortGenres    = Convert(_songCache.Genres, SongAttribute.Genre, false);
@@ -388,7 +444,7 @@ namespace YARG.Song
             static SongCategory[] Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute, bool createCategoryGroups)
             {
                 var sections = new SongCategory[list.Count];
-                
+
                 int index = 0;
                 foreach (var node in list)
                 {

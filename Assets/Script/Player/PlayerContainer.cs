@@ -169,7 +169,8 @@ namespace YARG.Player
 
         private static void ActiveProfilesChanged()
         {
-            if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
+            if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable ||
+                SettingsManager.Settings.LibrarySort == SortAttribute.Playcount)
             {
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
@@ -298,6 +299,18 @@ namespace YARG.Player
                 profile.EnsureValidInstrument();
 
             }
+        }
+
+        public static bool OnlyHasBots()
+        {
+            for (int i = 0; i < _players.Count; i++)
+            {
+                if (!_players[i].Profile.IsBot)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

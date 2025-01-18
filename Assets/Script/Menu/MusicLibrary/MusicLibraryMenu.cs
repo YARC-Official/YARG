@@ -185,6 +185,13 @@ namespace YARG.Menu.MusicLibrary
             // Show no player warning
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
 
+            // Make sure sort is not by play count if there are only bots
+            if (PlayerContainer.OnlyHasBots() &&
+                SettingsManager.Settings.LibrarySort == SortAttribute.Playcount)
+            {
+                // Name makes a good fallback?
+                ChangeSort(SortAttribute.Name);
+            }
         }
 
         protected override void OnSelectedIndexChanged()
@@ -630,6 +637,12 @@ namespace YARG.Menu.MusicLibrary
 
         public void ChangeSort(SortAttribute sort)
         {
+            // Keep the previous sort attribute, too, so it can be used to
+            // sort the list of unplayed songs and possibly for other things
+            if (sort != SortAttribute.Playcount)
+            {
+                SettingsManager.Settings.PreviousLibrarySort = sort;
+            }
             SettingsManager.Settings.LibrarySort = sort;
             UpdateSearch(true);
         }
