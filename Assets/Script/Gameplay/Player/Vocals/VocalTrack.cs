@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Serialization;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay.HUD;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
@@ -59,18 +61,27 @@ namespace YARG.Gameplay.Player
 
         public float SpawnTimeOffset => SPAWN_TIME_OFFSET / TrackSpeed;
 
-        /// <summary>
-        /// The top edge of the vocal highway track when playing without harmonies (excluding the lyric track)
-        /// </summary>
-        private const float TRACK_TOP = 1.25f;
+        // NOTE: all of these top and bottom edge variables are relative to the note spawners
+        // which are off by 0.07 units. I'm not entirely sure where this offset originated from,
+        // however it should eventually be fixed.
 
         /// <summary>
-        /// The top edge of the vocal highway track when harmonies are enabled (excluding the lyric tracks)
+        /// The top edge of the vocal highway track when playing with 1 lyric lane
         /// </summary>
-        private const float TRACK_TOP_HARMONY = 0.64f;
+        private const float TRACK_TOP_ONE_LANE = 1.25f;
 
         /// <summary>
-        /// The bottom edge of the vocal highway track (excluding the lyric track)
+        /// The top edge of the vocal highway track when playing with 2 lyric lanes
+        /// </summary>
+        private const float TRACK_TOP_TWO_LANE = 0.93f;
+
+        /// <summary>
+        /// The top edge of the vocal highway track when playing with 3 lyric lanes
+        /// </summary>
+        private const float TRACK_TOP_THREE_LANE = 0.64f;
+
+        /// <summary>
+        /// The bottom edge of the vocal highway track
         /// </summary>
         private const float TRACK_BOTTOM = -0.63f;
 
@@ -100,19 +111,23 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private MeshRenderer _trackRenderer;
         [SerializeField]
-        private Material _twoLaneHarmonyTrackMaterial;
-        [SerializeField]
-        private Material _threeLaneHarmonyTrackMaterial;
-        [SerializeField]
-        private MeshRenderer _soloGuidelineRenderer;
-        [SerializeField]
-        private MeshRenderer _harmonyGuidelineRenderer;
+        private Material[] _trackMaterials;
 
         [Space]
         [SerializeField]
-        private MeshRenderer _soloStarpowerOverlay;
+        private MeshRenderer _oneLaneGuidelineRenderer;
         [SerializeField]
-        private MeshRenderer _harmonyStarpowerOverlay;
+        private MeshRenderer _twoLaneGuidelineRenderer;
+        [SerializeField]
+        private MeshRenderer _threeLaneGuidelineRenderer;
+
+        [Space]
+        [SerializeField]
+        private MeshRenderer _oneLaneStarpowerOverlay;
+        [SerializeField]
+        private MeshRenderer _twoLaneStarpowerOverlay;
+        [SerializeField]
+        private MeshRenderer _threeLaneStarpowerOverlay;
 
         [Space]
         [SerializeField]
@@ -138,7 +153,7 @@ namespace YARG.Gameplay.Player
 
         private readonly List<VocalsPlayer> _vocalPlayers = new();
 
-        private float _currentTrackTop = TRACK_TOP;
+        private float _currentTrackTop;
         private Material _starpowerMaterial;
 
         private VocalsTrack _originalVocalsTrack;
@@ -157,8 +172,9 @@ namespace YARG.Gameplay.Player
 
         public float TrackSpeed { get; private set; }
 
-        public bool HarmonyShowing => _vocalsTrack.Instrument == Instrument.Harmony;
+        public int LyricLaneCount { get; private set; }
 
+        [HideInInspector]
         public bool AllowStarPower;
 
         public float CurrentNoteWidth =>
@@ -216,32 +232,48 @@ namespace YARG.Gameplay.Player
                 _lyricTrackers[i] = new PhraseNoteTracker(parts[i], true);
             }
 
+            // Choose the correct amount of lanes
+            LyricLaneCount = 1;
             if (vocalsTrack.Instrument == Instrument.Harmony)
             {
-                // Set the track material to harmony, if it's harmony (it's solo by default)
-                _trackRenderer.material = _threeLaneHarmonyTrackMaterial;
-                _currentTrackTop = TRACK_TOP_HARMONY;
-
-                // Show the correct starpower overlay
-                _soloStarpowerOverlay.gameObject.SetActive(false);
-                _harmonyStarpowerOverlay.gameObject.SetActive(true);
-                _starpowerMaterial = _harmonyStarpowerOverlay.material;
-
-                _soloGuidelineRenderer.gameObject.SetActive(false);
-                _harmonyGuidelineRenderer.gameObject.SetActive(true);
-                _guidelineMaterial = _harmonyGuidelineRenderer.material;
+                LyricLaneCount = SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value
+                    ? 3
+                    : 2;
             }
-            else
+
+            // Set the correct track material and track top constant
+            _trackRenderer.material = _trackMaterials[LyricLaneCount - 1];
+            _currentTrackTop = LyricLaneCount switch
             {
-                // Show the correct starpower overlay
-                _harmonyStarpowerOverlay.gameObject.SetActive(false);
-                _soloStarpowerOverlay.gameObject.SetActive(true);
-                _starpowerMaterial = _soloStarpowerOverlay.material;
+                1 => TRACK_TOP_ONE_LANE,
+                2 => TRACK_TOP_TWO_LANE,
+                3 => TRACK_TOP_THREE_LANE,
+                _ => throw new Exception("Unreachable.")
+            };
 
-                _harmonyGuidelineRenderer.gameObject.SetActive(false);
-                _soloGuidelineRenderer.gameObject.SetActive(true);
-                _guidelineMaterial = _soloGuidelineRenderer.material;
-            }
+            // Initialize the starpower overlays
+            _oneLaneStarpowerOverlay.gameObject.SetActive(LyricLaneCount == 1);
+            _twoLaneStarpowerOverlay.gameObject.SetActive(LyricLaneCount == 2);
+            _threeLaneStarpowerOverlay.gameObject.SetActive(LyricLaneCount == 3);
+            _starpowerMaterial = LyricLaneCount switch
+            {
+                1 => _oneLaneStarpowerOverlay.material,
+                2 => _twoLaneStarpowerOverlay.material,
+                3 => _threeLaneStarpowerOverlay.material,
+                _ => throw new Exception("Unreachable.")
+            };
+
+            // Initialize the guideline renderers
+            _oneLaneGuidelineRenderer.gameObject.SetActive(LyricLaneCount == 1);
+            _twoLaneGuidelineRenderer.gameObject.SetActive(LyricLaneCount == 2);
+            _threeLaneGuidelineRenderer.gameObject.SetActive(LyricLaneCount == 3);
+            _guidelineMaterial = LyricLaneCount switch
+            {
+                1 => _oneLaneGuidelineRenderer.material,
+                2 => _twoLaneGuidelineRenderer.material,
+                3 => _threeLaneGuidelineRenderer.material,
+                _ => throw new Exception("Unreachable.")
+            };
 
             // this should never happen, yell in the logs if it does
             if (_vocalsTrack.RangeShifts.Count < 1)
@@ -272,12 +304,12 @@ namespace YARG.Gameplay.Player
             var percussionTrack = Instantiate(_percussionTrackPrefab, _percussionTrackContainer);
 
             // Space out the percussion tracks evenly
-            const float FULL_HEIGHT = TRACK_TOP - TRACK_BOTTOM;
+            const float FULL_HEIGHT = TRACK_TOP_ONE_LANE - TRACK_BOTTOM;
             var offset = FULL_HEIGHT / (_percussionTrackContainer.childCount + 1);
             for (int i = 0; i < _percussionTrackContainer.childCount; i++)
             {
                 var child = _percussionTrackContainer.GetChild(i);
-                child.localPosition = child.localPosition.WithZ(TRACK_TOP - offset * (i + 1));
+                child.localPosition = child.localPosition.WithZ(TRACK_TOP_ONE_LANE - offset * (i + 1));
             }
 
             return percussionTrack;
@@ -373,7 +405,6 @@ namespace YARG.Gameplay.Player
 
         private void SetRange(VocalsRangeShift range)
         {
-
             _previousRange = _viewRange;
             _targetRange = new Range(range);
             _viewRange = _targetRange;
@@ -440,7 +471,10 @@ namespace YARG.Gameplay.Player
         public void SetPracticeSection(uint start, uint end)
         {
             // Skip if no vocals
-            if (!gameObject.activeSelf) return;
+            if (!gameObject.activeSelf)
+            {
+                return;
+            }
 
             _vocalsTrack = _originalVocalsTrack.Clone();
 

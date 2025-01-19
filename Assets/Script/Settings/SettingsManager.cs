@@ -130,6 +130,7 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.UseCymbalModelsInFiveLane),
+                nameof(Settings.UseThreeLaneLyricsInHarmony),
                 nameof(Settings.KickBounceMultiplier),
 
                 new HeaderMetadata("HUD"),

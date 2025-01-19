@@ -37,9 +37,13 @@ namespace YARG.Gameplay.Visuals
         protected override void InitializeElement()
         {
             if (_lyricRef.HarmonyHidden && _harmonyIndex != 0)
+            {
                 _lyricText.text = string.Empty;
+            }
             else
+            {
                 _lyricText.text = _lyricRef.Text;
+            }
 
             // If it's a talkie, italicize it
             _lyricText.fontStyle = _lyricRef.NonPitched ? FontStyles.Italic : FontStyles.Normal;
