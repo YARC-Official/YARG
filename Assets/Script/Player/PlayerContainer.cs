@@ -312,5 +312,36 @@ namespace YARG.Player
         {
             return _players.Exists(i => i.Profile.IsBot);
         }
+
+        public static void MoveUp(YargPlayer player)
+        {
+            int index = _players.IndexOf(player);
+            if (index == -1)
+            {
+                throw new ArgumentException("Player not found in the active player list");
+            }
+
+            if (index == 0)
+            {
+                return;
+            }
+            _players.RemoveAt(index);
+            _players.Insert(index - 1, player);
+        }
+
+        public static void MoveDown(YargPlayer player)
+        {
+            int index = _players.IndexOf(player);
+            if (index == -1)
+            {
+                throw new ArgumentException("Player not found in the active player list");
+            }
+            if (index == _players.Count - 1)
+            {
+                return;
+            }
+            _players.RemoveAt(index);
+            _players.Insert(index + 1, player);
+        }
     }
 }

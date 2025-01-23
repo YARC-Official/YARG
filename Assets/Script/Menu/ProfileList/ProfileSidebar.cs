@@ -135,7 +135,7 @@ namespace YARG.Menu.ProfileList
 
             if (!PlayerContainer.IsProfileTaken(_profile))
             {
-                _contents.SetActive(false);
+                HideContents();
                 return;
             }
 
