@@ -37,7 +37,7 @@ namespace YARG.Gameplay.HUD
                 return;
 
             _goldMeterBeatCount++;
-            if (_goldMeterBeatCount % 2 == 0 && _currentStar == 5)
+            if (_goldMeterBeatCount % 2 == 0 && _currentStar == 5 && !_isGoldAchieved)
             {
                 foreach (var star in _starObjects)
                 {
