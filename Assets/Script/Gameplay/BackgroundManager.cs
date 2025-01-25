@@ -71,6 +71,10 @@ namespace YARG.Gameplay
                     var bgInstance = Instantiate(bg);
 
                     bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
+
+                    // Destroy the default camera (venue has its own)
+                    Destroy(_videoPlayer.targetCamera.gameObject);
+
                     break;
                 case BackgroundType.Video:
                     switch (result.Stream)

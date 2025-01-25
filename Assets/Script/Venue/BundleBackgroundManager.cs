@@ -26,10 +26,6 @@ namespace YARG.Venue
         {
             // Move object out of the way, so its effects don't collide with the tracks
             transform.position += Vector3.forward * 10_000f;
-
-            // TODO: FIX
-            // Destroy the default camera (venue has its own)
-            // Destroy(GameManager.Instance.DefaultCamera.gameObject);
         }
 
         private void OnDestroy()
