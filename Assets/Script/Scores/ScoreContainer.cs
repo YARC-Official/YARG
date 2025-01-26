@@ -303,30 +303,30 @@ namespace YARG.Scores
                 PlayerHighScores.Clear();
                 PlayerHighScoresByPct.Clear();
 
-                var songResults = _db.QueryAllScores();
+                var checksums = _db.QuerySongChecksums();
 
                 var highScores = _db.QueryPlayerHighScores(playerId, instrument);
                 foreach (var score in highScores)
                 {
-                    var song = songResults.FirstOrDefault(x => x.Id == score.GameRecordId);
-                    if (song is null)
+                    var (_, checksum) = checksums.FirstOrDefault(x => x.RecordId == score.GameRecordId);
+                    if (checksum is null)
                     {
                         continue;
                     }
 
-                    PlayerHighScores.Add(HashWrapper.Create(song.SongChecksum), score);
+                    PlayerHighScores.Add(HashWrapper.Create(checksum), score);
                 }
 
                 var highPercentages = _db.QueryPlayerHighScoresByPercent(playerId, instrument);
                 foreach (var score in highPercentages)
                 {
-                    var song = songResults.FirstOrDefault(x => x.Id == score.GameRecordId);
-                    if (song is null)
+                    var (_, checksum) = checksums.FirstOrDefault(x => x.RecordId == score.GameRecordId);
+                    if (checksum is null)
                     {
                         continue;
                     }
 
-                    PlayerHighScoresByPct.Add(HashWrapper.Create(song.SongChecksum), score);
+                    PlayerHighScoresByPct.Add(HashWrapper.Create(checksum), score);
                 }
 
                 _currentInstrument = instrument;

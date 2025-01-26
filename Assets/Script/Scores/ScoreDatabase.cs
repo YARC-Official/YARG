@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using SQLite;
 using YARG.Core;
 using YARG.Core.Game;
@@ -13,6 +14,38 @@ namespace YARG.Scores
     {
         Ascending,
         Descending,
+    }
+
+    /// <summary>
+    /// Record for queries that return only checksum information.
+    /// </summary>
+    /// <remarks>
+    /// Note that this is not an actual database record type, it is only used as the result of queries.
+    /// </remarks>
+    public struct SongRecord
+    {
+        /// <summary>
+        /// The ID of the original <see cref="GameRecord"/>.
+        /// </summary>
+        public int RecordId;
+
+        /// <summary>
+        /// The checksum of the song this record is for.
+        /// </summary>
+        public byte[] SongChecksum;
+
+        public SongRecord(int id, byte[] checksum)
+        {
+            RecordId = id;
+            SongChecksum = checksum;
+        }
+
+        // For tuple deconstruction
+        public readonly void Deconstruct(out int id, out byte[] checksum)
+        {
+            id = RecordId;
+            checksum = SongChecksum;
+        }
     }
 
     /// <summary>
@@ -79,6 +112,13 @@ namespace YARG.Scores
             return _db.Query<T>(query, args);
         }
 
+        private IEnumerable<T> DeferredQuery<T>(string query, params object[] args)
+            where T : new()
+        {
+            YargLogger.LogFormatTrace("Query text:\n{0}", query);
+            return _db.DeferredQuery<T>(query, args);
+        }
+
         private T FindWithQuery<T>(string query, params object[] args)
             where T : new()
         {
@@ -129,9 +169,14 @@ namespace YARG.Scores
 
         public List<GameRecord> QueryAllScores()
         {
-            return Query<GameRecord>(
-                "SELECT Id, SongChecksum FROM GameRecords"
-            );
+            return Query<GameRecord>("SELECT * FROM GameRecords");
+        }
+
+        public List<SongRecord> QuerySongChecksums()
+        {
+            return DeferredQuery<GameRecord>("SELECT Id, SongChecksum FROM GameRecords")
+                .Select((record) => new SongRecord(record.Id, record.SongChecksum))
+                .ToList();
         }
 
         public List<GameRecord> QueryAllScoresByDate()
@@ -236,14 +281,17 @@ namespace YARG.Scores
             );
         }
 
-        public List<GameRecord> QueryMostPlayedSongs(int maxCount)
+        public List<SongRecord> QueryMostPlayedSongs(int maxCount)
         {
-            return Query<GameRecord>(
-                $@"SELECT SongChecksum, COUNT(SongChecksum) AS `Count` FROM GameRecords
-                GROUP BY SongChecksum
-                ORDER BY `Count` DESC
-                LIMIT {maxCount}"
-            );
+            return
+                DeferredQuery<GameRecord>(
+                    $@"SELECT Id, SongChecksum, COUNT(SongChecksum) AS `Count` FROM GameRecords
+                    GROUP BY SongChecksum
+                    ORDER BY `Count` DESC
+                    LIMIT {maxCount}"
+                )
+                .Select((record) => new SongRecord(record.Id, record.SongChecksum))
+                .ToList();
         }
 
         public List<PlayCountRecord> QueryPlayerMostPlayedSongs(YargProfile profile, SortOrdering ordering)
