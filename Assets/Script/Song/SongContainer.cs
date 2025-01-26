@@ -308,7 +308,7 @@ namespace YARG.Song
             }
             var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
 
-            var counts = ScoreContainer.GetPlayedSongsForUserByPlaycount(player.Profile, true);
+            var counts = ScoreContainer.GetPlayedSongsForUserByPlaycount(player.Profile, SortOrdering.Descending);
             // Get all the unplayed songs and stuff them on the end of the list
             var zeroPlaySongs = new List<SongEntry>();
             var previousSort = SettingsManager.Settings.PreviousLibrarySort;
