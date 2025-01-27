@@ -9,10 +9,17 @@ using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Scores
 {
+    public enum HighScoreHistoryMode
+    {
+        HighestOverall,
+        HighestDifficulty,
+    }
+
     public static partial class ScoreContainer
     {
         public static string ScoreDirectory { get; private set; }
@@ -28,6 +35,9 @@ namespace YARG.Scores
 
         private static Instrument _currentInstrument = Instrument.Band;
         private static Guid _currentPlayerId;
+
+        private static bool HighestDifficultyOnly
+            => SettingsManager.Settings.HighScoreHistory.Value == HighScoreHistoryMode.HighestDifficulty;
 
         public static void Init()
         {
@@ -254,7 +264,7 @@ namespace YARG.Scores
         {
             try
             {
-                return _db.QueryPlayerSongHighScore(songChecksum, playerId, instrument, true);
+                return _db.QueryPlayerSongHighScore(songChecksum, playerId, instrument, HighestDifficultyOnly);
             }
             catch (Exception e)
             {
@@ -293,7 +303,7 @@ namespace YARG.Scores
         {
             try
             {
-                return _db.QueryPlayerSongHighestPercentage(songChecksum, playerId, instrument, true);
+                return _db.QueryPlayerSongHighestPercentage(songChecksum, playerId, instrument, HighestDifficultyOnly);
             }
             catch (Exception e)
             {
@@ -317,7 +327,7 @@ namespace YARG.Scores
 
                 var checksums = _db.QuerySongChecksums();
 
-                var highScores = _db.QueryPlayerHighScores(playerId, instrument, true);
+                var highScores = _db.QueryPlayerHighScores(playerId, instrument, HighestDifficultyOnly);
                 foreach (var score in highScores)
                 {
                     var (_, checksum) = checksums.FirstOrDefault(x => x.RecordId == score.GameRecordId);
@@ -329,7 +339,7 @@ namespace YARG.Scores
                     PlayerHighScores.Add(HashWrapper.Create(checksum), score);
                 }
 
-                var highPercentages = _db.QueryPlayerHighestPercentages(playerId, instrument, true);
+                var highPercentages = _db.QueryPlayerHighestPercentages(playerId, instrument, HighestDifficultyOnly);
                 foreach (var score in highPercentages)
                 {
                     var (_, checksum) = checksums.FirstOrDefault(x => x.RecordId == score.GameRecordId);

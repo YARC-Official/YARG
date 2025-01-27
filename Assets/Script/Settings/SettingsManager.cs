@@ -71,7 +71,8 @@ namespace YARG.Settings
                 nameof(Settings.UseFullDirectoryForPlaylists),
                 new HeaderMetadata("MusicLibrary"),
                 nameof(Settings.ShowFavoriteButton),
-                nameof(Settings.HighScoreInfo)
+                nameof(Settings.HighScoreInfo),
+                nameof(Settings.HighScoreHistory),
             },
             new MetadataTab("Sound", icon: "Sound")
             {

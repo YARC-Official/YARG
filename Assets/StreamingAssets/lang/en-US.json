@@ -646,6 +646,14 @@
                     "Stars": "Stars"
                 }
             },
+            "HighScoreHistory": {
+                "Name": "High Score History",
+                "Description": "Changes how score history gets used for high score information displayed in the Music Library.",
+                "Dropdown": {
+                    "HighestOverall": "Highest across all difficulties",
+                    "HighestDifficulty": "Highest-played difficulty only"
+                }
+            },
             "InputDeviceLogging": {
                 "Name": "Input Device Logging",
                 "Description": "Prints information about connected input devices to the game's log. Do not enable this unless you are having issues with specific devices, as it can print a very large amount of text for some devices!"
