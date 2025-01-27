@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -204,78 +204,121 @@ namespace YARG.Scores
             );
         }
 
-        public List<PlayerScoreRecord> QueryPlayerHighScores(Guid playerId, Instrument instrument)
+        public List<PlayerScoreRecord> QueryPlayerHighScores(
+            Guid playerId,
+            Instrument instrument,
+            bool highestDifficultyOnly
+        )
         {
-            return Query<PlayerScoreRecord>(
+            string query =
                 @"SELECT *, MAX(Score) FROM PlayerScores
                 INNER JOIN GameRecords
                     ON PlayerScores.GameRecordId = GameRecords.Id
                 WHERE PlayerId = ?
                     AND Instrument = ?
-                GROUP BY GameRecords.SongChecksum",
-                playerId,
-                (int) instrument
-            );
-        }
+                GROUP BY GameRecords.SongChecksum";
 
-        public List<PlayerScoreRecord> QueryPlayerHighScoresByPercent(Guid playerId, Instrument instrument)
-        {
+            if (highestDifficultyOnly)
+            {
+                query += " HAVING Difficulty = MAX(Difficulty)";
+            }
+
             return Query<PlayerScoreRecord>(
-                @"
-                WITH
-                    /* For each song, this retrieves the records with the best score */
-                    BestScore as (
-                        SELECT *, max(Score) FROM PlayerScores
-                        INNER JOIN GameRecords
-                            ON PlayerScores.GameRecordId = GameRecords.Id
-                        GROUP BY
-                            GameRecords.SongChecksum,
-                            PlayerScores.Instrument,
-                            PlayerScores.PlayerId
-                    ),
-
-                    /* For each song, instrument, and difficulty, this retrieves the records with the best score by percent */
-                    BestPercents as (
-                        SELECT *, max(Percent) FROM PlayerScores
-                        INNER JOIN GameRecords
-                            ON PlayerScores.GameRecordId = GameRecords.Id
-                        GROUP BY
-                            GameRecords.SongChecksum,
-                            PlayerScores.Instrument,
-                            PlayerScores.PlayerId,
-                            PlayerScores.Difficulty
-                    )
-
-                /*
-                    Filter the lines from the BestPercents temporary table above where the instrument and difficulty match
-                    the instrument and difficulty when the highest score was recorded
-                */
-                SELECT BestPercents.* FROM BestPercents
-                INNER JOIN BestScore
-                    ON BestScore.Instrument = BestPercents.Instrument
-                    AND BestScore.Difficulty = BestPercents.Difficulty
-                    AND BestScore.SongChecksum = BestPercents.SongChecksum
-                    AND BestScore.PlayerId = BestPercents.PlayerId
-                WHERE BestScore.PlayerId = ?
-                    AND BestScore.Instrument = ?;
-                ",
+                query,
                 playerId,
                 (int) instrument
             );
         }
 
-        public PlayerScoreRecord QueryPlayerHighestScore(HashWrapper songChecksum, Guid playerId, Instrument instrument)
+        public List<PlayerScoreRecord> QueryPlayerHighestPercentages(
+            Guid playerId,
+            Instrument instrument,
+            bool highestDifficultyOnly
+        )
         {
-            return FindWithQuery<PlayerScoreRecord>(
+            string query =
+                @"SELECT *, MAX(Percent) FROM PlayerScores
+                INNER JOIN GameRecords
+                    ON PlayerScores.GameRecordId = GameRecords.Id
+                WHERE PlayerId = ?
+                    AND Instrument = ?
+                GROUP BY GameRecords.SongChecksum";
+
+            if (highestDifficultyOnly)
+            {
+                query += " HAVING Difficulty = MAX(Difficulty)";
+            }
+
+            return Query<PlayerScoreRecord>(
+                query,
+                playerId,
+                (int) instrument
+            );
+        }
+
+        public PlayerScoreRecord QueryPlayerSongHighScore(
+            HashWrapper songChecksum,
+            Guid playerId,
+            Instrument instrument,
+            bool highestDifficultyOnly
+        )
+        {
+            string query =
                 @"SELECT * FROM PlayerScores
                 INNER JOIN GameRecords
                     ON PlayerScores.GameRecordId = GameRecords.Id
                 WHERE GameRecords.SongChecksum = ?
                     AND PlayerScores.PlayerId = ?
-                    AND PlayerScores.Instrument = ?
-                ORDER BY Score DESC
-                LIMIT 1",
-                songChecksum.ToString(),
+                    AND PlayerScores.Instrument = ?";
+
+            if (highestDifficultyOnly)
+            {
+                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Score DESC";
+            }
+            else
+            {
+                query += " ORDER BY PlayerScores.Score DESC";
+            }
+
+            query += " LIMIT 1";
+
+            return FindWithQuery<PlayerScoreRecord>(
+                query,
+                songChecksum.HashBytes,
+                playerId,
+                (int) instrument
+            );
+        }
+
+        public PlayerScoreRecord QueryPlayerSongHighestPercentage(
+            HashWrapper songChecksum,
+            Guid playerId,
+            Instrument instrument,
+            bool highestDifficultyOnly
+        )
+        {
+            string query =
+                @"SELECT * FROM PlayerScores
+                INNER JOIN GameRecords
+                    ON PlayerScores.GameRecordId = GameRecords.Id
+                WHERE GameRecords.SongChecksum = ?
+                    AND PlayerScores.PlayerId = ?
+                    AND PlayerScores.Instrument = ?";
+
+            if (highestDifficultyOnly)
+            {
+                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Percent DESC";
+            }
+            else
+            {
+                query += " ORDER BY PlayerScores.Percent DESC";
+            }
+
+            query += " LIMIT 1";
+
+            return FindWithQuery<PlayerScoreRecord>(
+                query,
+                songChecksum.HashBytes,
                 playerId,
                 (int) instrument
             );
