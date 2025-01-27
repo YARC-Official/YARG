@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -132,7 +132,7 @@ namespace YARG.Scores
 
                 // Update cached high scores
                 var songChecksum = HashWrapper.Create(gameRecord.SongChecksum);
-                UpdateBandHighScore(songChecksum, gameRecord);
+                UpdateBandHighScore(songChecksum);
 
                 if (playerEntries.Count == 1)
                 {
@@ -148,48 +148,17 @@ namespace YARG.Scores
             }
         }
 
-        private static void UpdateBandHighScore(HashWrapper songChecksum, GameRecord currentBandScore)
+        private static void UpdateBandHighScore(HashWrapper songChecksum)
         {
-            if (!BandHighScores.TryGetValue(songChecksum, out var currentBest))
-            {
-                BandHighScores.Add(songChecksum, currentBandScore);
-                return;
-            }
-
-            if (currentBest.BandScore >= currentBandScore.BandScore)
-            {
-                return;
-            }
-
-            BandHighScores[songChecksum] = currentBandScore;
+            BandHighScores[songChecksum] = _db.QueryBandSongHighScore(songChecksum);
         }
 
         private static void UpdatePlayerHighScores(HashWrapper songChecksum, PlayerScoreRecord newScore)
         {
-            if (newScore.PlayerId != _currentPlayerId)
-            {
-                return;
-            }
-
-            PlayerHighPercentages.TryGetValue(songChecksum, out var currentBestPct);
-            if (!PlayerHighScores.TryGetValue(songChecksum, out var currentBest))
-            {
-                PlayerHighScores.Add(songChecksum, newScore);
-                PlayerHighPercentages.Add(songChecksum, newScore);
-                return;
-            }
-
-            // Update the best score entry if appropriate.
-            if (newScore.Difficulty > currentBest.Difficulty || newScore.Score > currentBest.Score)
-            {
-                PlayerHighScores[songChecksum] = newScore;
-            }
-
-            // Update the best percentage entry if appropriate.
-            if (newScore.Difficulty > currentBestPct.Difficulty || newScore.GetPercent() > currentBestPct.GetPercent())
-            {
-                PlayerHighPercentages[songChecksum] = newScore;
-            }
+            PlayerHighScores[songChecksum] = _db.QueryPlayerSongHighScore(
+                songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly);
+            PlayerHighPercentages[songChecksum] = _db.QueryPlayerSongHighestPercentage(
+                songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly);
         }
 
         public static void RecordPlayerInfo(Guid id, string name)
@@ -252,12 +221,7 @@ namespace YARG.Scores
 
         public static GameRecord GetBandHighScore(HashWrapper songChecksum)
         {
-            if (BandHighScores.TryGetValue(songChecksum, out var record))
-            {
-                return record;
-            }
-
-            return null;
+            return BandHighScores.GetValueOrDefault(songChecksum);
         }
 
         private static PlayerScoreRecord GetHighScoreFromDatabase(HashWrapper songChecksum, Guid playerId, Instrument instrument)

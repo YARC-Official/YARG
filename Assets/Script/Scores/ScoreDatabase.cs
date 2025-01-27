@@ -195,6 +195,15 @@ namespace YARG.Scores
             );
         }
 
+        public GameRecord QueryBandSongHighScore(HashWrapper songChecksum)
+        {
+            return FindWithQuery<GameRecord>(
+                @"SELECT *, MAX(BandScore) FROM GameRecords
+                WHERE SongChecksum = ?",
+                songChecksum.HashBytes
+            );
+        }
+
         public List<PlayerScoreRecord> QueryPlayerScores(Guid playerId)
         {
             return Query<PlayerScoreRecord>(
