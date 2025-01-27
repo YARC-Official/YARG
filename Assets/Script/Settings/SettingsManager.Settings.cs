@@ -109,7 +109,7 @@ namespace YARG.Settings
                 };
 
             public DropdownSetting<HighScoreHistoryMode> HighScoreHistory { get; }
-                = new(HighScoreHistoryMode.HighestDifficulty)
+                = new(HighScoreHistoryMode.HighestDifficulty, _ => ScoreContainer.InvalidateScoreCache())
                 {
                     HighScoreHistoryMode.HighestOverall,
                     HighScoreHistoryMode.HighestDifficulty,

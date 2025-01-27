@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -322,6 +322,12 @@ namespace YARG.Scores
             {
                 YargLogger.LogException(e, "Failed to load high score from database.");
             }
+        }
+
+        public static void InvalidateScoreCache()
+        {
+            _currentPlayerId = Guid.Empty;
+            _currentInstrument = Instrument.Band;
         }
 
         public static List<SongEntry> GetMostPlayedSongs(int maxCount)
