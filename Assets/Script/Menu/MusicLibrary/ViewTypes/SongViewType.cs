@@ -93,14 +93,16 @@ namespace YARG.Menu.MusicLibrary
             builder.AppendFormat("<sprite name=\"{0}\"> <color={1}>{2:N0}%</color><space=0.5em>",
                 percentDifficulty, percentColor, percent);
 
+            var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
+
             // Percent and score could potentially come from separate difficulties depending on settings
-            if (_playerScoreRecord.Difficulty != _playerPercentRecord.Difficulty)
+            if (scoreInfoMode != HighScoreInfoMode.Off && _playerScoreRecord.Difficulty != _playerPercentRecord.Difficulty)
             {
                 builder.AppendFormat("|<space=0.5em><sprite name=\"{0}\"> ", _playerScoreRecord.Difficulty);
             }
 
             // Append the score if the setting is enabled
-            if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
+            if (scoreInfoMode == HighScoreInfoMode.Score)
             {
                 builder.AppendFormat("{0:N0}", _playerScoreRecord.Score);
             }
