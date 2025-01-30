@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Cysharp.Threading.Tasks;
@@ -62,15 +63,58 @@ namespace YARG.Gameplay
             {
                 case BackgroundType.Yarground:
                     var bundle = AssetBundle.LoadFromStream(result.Stream);
+                    AssetBundle shaderBundle = null;
 
                     // KEEP THIS PATH LOWERCASE
                     // Breaks things for other platforms, because Unity
                     var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
                         BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
 
-                    var bgInstance = Instantiate(bg);
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+                    var metalShaders = new Dictionary<string, Shader>();
 
-                    bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
+                    var shaderBundleData = (TextAsset)await bundle.LoadAssetAsync<TextAsset>(
+                        "Assets/" + BundleBackgroundManager.BACKGROUND_SHADER_BUNDLE_NAME
+                    );
+
+                    if (shaderBundleData != null && shaderBundleData.bytes.Length > 0)
+                    {
+                        shaderBundle = await AssetBundle.LoadFromMemoryAsync(shaderBundleData.bytes);
+                        var allAssets = shaderBundle.LoadAllAssets<Shader>();
+                        foreach (var shader in allAssets)
+                        {
+                            metalShaders.Add(shader.name, shader);
+                        }
+
+                    }
+
+                    // Yarground comes with shaders for dx11/dx12/glcore/vulkan
+                    // Metal shaders used on OSX come in this separate bundle
+                    // Update our renderers to use them
+                    var renderers = bg.GetComponentsInChildren<Renderer>();
+
+                    foreach (var renderer in renderers)
+                    {
+                        foreach (var material in renderer.sharedMaterials)
+                        {
+                            var shaderName = material.shader.name;
+                            if (metalShaders.TryGetValue(shaderName, out var shader))
+                            {
+                                // We found shader from Yarground
+                                material.shader = shader;
+                            }
+                            else
+                            {
+                                // Fallback to try to find among builtin shaders
+                                material.shader = Shader.Find(shaderName);
+                            }
+                        }
+                    }
+#endif
+                    var bgInstance = Instantiate(bg);
+                    var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
+                    bundleBackgroundManager.Bundle = bundle;
+                    bundleBackgroundManager.ShaderBundle = shaderBundle;
 
                     // Destroy the default camera (venue has its own)
                     Destroy(_videoPlayer.targetCamera.gameObject);
