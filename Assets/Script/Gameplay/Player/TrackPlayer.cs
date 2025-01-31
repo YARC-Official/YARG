@@ -184,6 +184,8 @@ namespace YARG.Gameplay.Player
             NoteTrack = OriginalNoteTrack;
             Notes = NoteTrack.Notes;
 
+            var events = NoteTrack.TextEvents;
+
             Engine = CreateEngine();
 
             if (GameManager.IsPractice)

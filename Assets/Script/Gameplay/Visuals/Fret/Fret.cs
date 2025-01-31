@@ -21,18 +21,40 @@ namespace YARG.Gameplay.Visuals
         [field: HideInInspector]
         public ThemeFret ThemeBind { get; set; }
 
+        private readonly List<Material> _topMaterials   = new();
         private readonly List<Material> _innerMaterials = new();
 
         private bool _hasPressedParam;
         private bool _hasSustainParam;
 
+        // These need to be saved since the colors can now change during play
+        // They are saved as Unity colors to avoid having to repeatedly convert
+        // when transitioning between active and inactive states
+        private UnityEngine.Color _originalUnityTopColor;
+        private UnityEngine.Color _originalUnityInnerColor;
+
+        // TODO: Consider making this customizable or perhaps just a desaturated and dimmed version of the base color
+        private UnityEngine.Color _inactiveColor = new(0.321f, 0.321f, 0.321f, 1.0f);
+
+        private bool  _active            = true;
+        private bool  _colorPulseEnabled = false;
+        private bool  _pulseDirection    = true;
+        private float _pulseDuration;
+        private float _pulseStartTime;
+        private float _pulseEndTime;
+        private float _pulseAmount = 0.0f;
+
         public void Initialize(Color top, Color inner, Color particles)
         {
+            _originalUnityTopColor = top.ToUnityColor();
+            _originalUnityInnerColor = inner.ToUnityColor();
+
             // Set the top material color
             foreach (var material in ThemeBind.GetColoredMaterials())
             {
                 material.color = top.ToUnityColor();
                 material.SetColor(_emissionColor, top.ToUnityColor() * 11.5f);
+                _topMaterials.Add(material);
             }
 
             // Set the inner material color
@@ -50,6 +72,12 @@ namespace YARG.Gameplay.Visuals
             // See if certain parameters exist
             _hasPressedParam = ThemeBind.Animator.HasParameter(_pressed);
             _hasSustainParam = ThemeBind.Animator.HasParameter(_sustain);
+        }
+
+        // TODO: Maybe we don't want an Update function on the fret itself?
+        public void Update()
+        {
+            UpdateColor();
         }
 
         public void SetPressed(bool pressed)
@@ -99,6 +127,103 @@ namespace YARG.Gameplay.Visuals
             if (_hasSustainParam)
             {
                 ThemeBind.Animator.SetBool(_sustain, sustained);
+            }
+        }
+
+        // TODO: Lerp the color changes over time
+        public void DimColor()
+        {
+            _active = false;
+            _pulseDirection = true;
+            _colorPulseEnabled = false;
+            _pulseAmount = 0.0f;
+            foreach (var material in _topMaterials)
+            {
+                material.color = _inactiveColor;
+            }
+
+            foreach (var material in _innerMaterials)
+            {
+                material.color = _inactiveColor;
+            }
+        }
+
+        public void ResetColor()
+        {
+            _active = true;
+            _pulseDirection = true;
+            _colorPulseEnabled = false;
+            _pulseAmount = 0.0f;
+            foreach (var material in _topMaterials)
+            {
+                material.color = _originalUnityTopColor;
+            }
+
+            foreach (var material in _innerMaterials)
+            {
+                material.color = _originalUnityInnerColor;
+            }
+        }
+
+        public void PulseColor(float duration)
+        {
+            if (_active)
+            {
+                // Can't pulse if the fret is already active
+                return;
+            }
+            _pulseDuration = duration;
+            _pulseStartTime = Time.time;
+            _pulseEndTime = Time.time + (_pulseDuration / 2);
+            _colorPulseEnabled = true;
+            _pulseAmount = 0.0f;
+        }
+
+        public void UpdateColor()
+        {
+            if (!_colorPulseEnabled)
+            {
+                return;
+            }
+
+            if (Time.time - _pulseStartTime >= _pulseDuration / 2)
+            {
+                _pulseDirection = false;
+                _pulseAmount = 0.0f;
+            }
+
+            _pulseAmount += Time.deltaTime / (_pulseDuration / 2);
+
+            if (_pulseDirection)
+            {
+                // Fading in
+                foreach (var material in _topMaterials)
+                {
+                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, _pulseAmount);
+                }
+
+                foreach (var material in _innerMaterials)
+                {
+                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, _pulseAmount);
+                }
+            }
+            else
+            {
+                // Fading out
+                foreach (var material in _topMaterials)
+                {
+                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, _pulseAmount);
+                }
+
+                foreach (var material in _innerMaterials)
+                {
+                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, _pulseAmount);
+                }
+            }
+            if (Time.time - _pulseStartTime >= _pulseDuration)
+            {
+                _colorPulseEnabled = false;
+                _pulseAmount = 0.0f;
             }
         }
     }
