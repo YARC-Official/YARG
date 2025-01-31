@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Chart;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
@@ -26,6 +28,9 @@ namespace YARG.Gameplay.Visuals
 
         private readonly List<Fret> _frets = new();
         private readonly List<KickFret> _kickFrets = new();
+
+        private bool[] _activeFrets;
+        private bool[] _pulsingFrets;
 
         public void Initialize(ThemePreset themePreset, GameMode gameMode,
             ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
@@ -77,6 +82,13 @@ namespace YARG.Gameplay.Visuals
             }
 
             InitializeColor(fretColorProvider, leftyFlip);
+            _activeFrets = new bool[FretCount];
+            _pulsingFrets = new bool[FretCount];
+            // Start with all frets active, they will be set inactive once TrackPlayer figures itself out
+            for (int i = 0; i < FretCount; i++)
+            {
+                _activeFrets[i] = true;
+            }
         }
 
         public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
@@ -156,6 +168,54 @@ namespace YARG.Gameplay.Visuals
             foreach (var fret in _frets)
             {
                 fret.SetSustained(false);
+            }
+        }
+
+        public void SetFretColorPulse(int fretIndex, bool pulse)
+        {
+            _pulsingFrets[fretIndex] = pulse;
+        }
+
+        public void PulseFretColors(Beatline beat)
+        {
+            // if (beat.Type == BeatlineType.Weak)
+            // {
+            //     return;
+            // }
+
+            for (int i = 0; i < _pulsingFrets.Length; i++)
+            {
+                if (!_pulsingFrets[i] || _activeFrets[i])
+                {
+                    continue;
+                }
+
+                _frets[i].PulseColor(0.5f);
+            }
+        }
+
+        public void UpdateFretActiveState(bool[] frets)
+        {
+            // We should always receive the same number of frets that we actually have, but...
+            if (frets.Length != _frets.Count)
+            {
+                YargLogger.LogFormatDebug("Received inconsistent fret array. Got {0} flags, but we have {1} frets.", frets.Length, _frets.Count);
+                return;
+            }
+
+            // TODO: Implement a means of pulsing the color
+
+            for (int i = 0; i < _frets.Count; i++)
+            {
+                if (frets[i])
+                {
+                    _frets[i].ResetColor();
+                }
+                else
+                {
+                    _frets[i].DimColor();
+                }
+                _activeFrets[i] = frets[i];
             }
         }
     }
