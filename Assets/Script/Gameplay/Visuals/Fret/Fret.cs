@@ -36,12 +36,12 @@ namespace YARG.Gameplay.Visuals
         // TODO: Consider making this customizable or perhaps just a desaturated and dimmed version of the base color
         private UnityEngine.Color _inactiveColor = new(0.321f, 0.321f, 0.321f, 1.0f);
 
-        private bool  _active            = true;
-        private bool  _colorChangeEnabled = false;
-        private bool  _fadeDirection    = true;
+        private bool _active             = true;
+        private bool _colorChangeEnabled = false;
+        private bool _fadeDirection      = true;
         // True is pulsing, false is fading
-        private bool  _pulseOrFade       = true;
-        private float _fadeDuration;
+        private bool  _pulseOrFade  = true;
+        private float _fadeDuration = 0.25f;
         private float _fadeStartTime;
         private float _fadeEndTime;
         private float _fadeAmount = 0.0f;
@@ -131,40 +131,53 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        // TODO: May need to take a duration here..
-        public void DimColor()
+        public void DimColor(bool fade = true)
         {
             _active = false;
             _fadeDirection = false;
             _colorChangeEnabled = true;
             _fadeAmount = 0.0f;
 
-            FadeColor(0.25f, false, false);
-            // foreach (var material in _topMaterials)
-            // {
-            //     material.color = _inactiveColor;
-            // }
-            //
-            // foreach (var material in _innerMaterials)
-            // {
-            //     material.color = _inactiveColor;
-            // }
+            if (fade)
+            {
+                FadeColor(_fadeDuration, false, false);
+            }
+            else
+            {
+                foreach (var material in _topMaterials)
+                {
+                    material.color = _inactiveColor;
+                }
+
+                foreach (var material in _innerMaterials)
+                {
+                    material.color = _inactiveColor;
+                }
+            }
         }
 
-        public void ResetColor()
+        public void ResetColor(bool fade = false)
         {
             _active = true;
             _fadeDirection = true;
             _colorChangeEnabled = false;
             _fadeAmount = 0.0f;
-            foreach (var material in _topMaterials)
-            {
-                material.color = _originalUnityTopColor;
-            }
 
-            foreach (var material in _innerMaterials)
+            if (fade)
             {
-                material.color = _originalUnityInnerColor;
+                FadeColor(_fadeDuration, false, true);
+            }
+            else
+            {
+                foreach (var material in _topMaterials)
+                {
+                    material.color = _originalUnityTopColor;
+                }
+
+                foreach (var material in _innerMaterials)
+                {
+                    material.color = _originalUnityInnerColor;
+                }
             }
         }
 
@@ -202,28 +215,31 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            var rateAdjustment = _pulseOrFade ? 2 : 1;
+            var rateAdjustment = 1; //_pulseOrFade ? 2 : 1;
 
-            if (!_pulseOrFade && Time.time - _fadeStartTime >= _fadeDuration / rateAdjustment)
-            {
-                // Switch directions (
-                _fadeDirection = !_fadeDirection;
-                _fadeAmount = 0.0f;
-            }
+            // if (!_pulseOrFade && Time.time - _fadeStartTime >= _fadeDuration / rateAdjustment)
+            // {
+            //     // Switch directions
+            //     _fadeDirection = !_fadeDirection;
+            //     _fadeAmount = 0.0f;
+            //     _colorChangeEnabled = false;
+            //     return;
+            // }
 
             _fadeAmount += Time.deltaTime / (_fadeDuration / rateAdjustment);
+            var fadeIntensity = _pulseOrFade ? _fadeAmount : ((Mathf.Cos(Mathf.PI * _fadeAmount) / 2) * -1) + 1;
 
             if (_fadeDirection)
             {
                 // Fading in
                 foreach (var material in _topMaterials)
                 {
-                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, _fadeAmount);
+                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, fadeIntensity);
                 }
 
                 foreach (var material in _innerMaterials)
                 {
-                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, _fadeAmount);
+                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, fadeIntensity);
                 }
             }
             else
@@ -231,12 +247,12 @@ namespace YARG.Gameplay.Visuals
                 // Fading out
                 foreach (var material in _topMaterials)
                 {
-                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, _fadeAmount);
+                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, fadeIntensity);
                 }
 
                 foreach (var material in _innerMaterials)
                 {
-                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, _fadeAmount);
+                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, fadeIntensity);
                 }
             }
 

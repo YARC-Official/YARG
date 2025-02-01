@@ -31,6 +31,7 @@ namespace YARG.Gameplay.Visuals
 
         private bool[] _activeFrets;
         private bool[] _pulsingFrets;
+        private float  _pulseDuration;
 
         public void Initialize(ThemePreset themePreset, GameMode gameMode,
             ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
@@ -165,24 +166,19 @@ namespace YARG.Gameplay.Visuals
 
         public void SetFretColorPulse(int fretIndex, bool pulse, float duration)
         {
+            _pulseDuration = duration;
             _pulsingFrets[fretIndex] = pulse;
         }
 
         public void PulseFretColors(Beatline beat)
         {
-            // if (beat.Type == BeatlineType.Weak)
-            // {
-            //     return;
-            // }
-
             for (int i = 0; i < _pulsingFrets.Length; i++)
             {
                 if (!_pulsingFrets[i] || _activeFrets[i])
                 {
                     continue;
                 }
-
-                _frets[i].FadeColor(0.5f, true);
+                _frets[i].FadeColor(_pulseDuration, true);
             }
         }
 
@@ -199,11 +195,11 @@ namespace YARG.Gameplay.Visuals
             {
                 if (frets[i])
                 {
-                    _frets[i].ResetColor();
+                    _frets[i].ResetColor(true);
                 }
                 else
                 {
-                    _frets[i].DimColor();
+                    _frets[i].DimColor(true);
                 }
                 _activeFrets[i] = frets[i];
             }
