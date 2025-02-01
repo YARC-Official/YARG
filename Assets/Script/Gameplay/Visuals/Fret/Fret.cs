@@ -37,12 +37,14 @@ namespace YARG.Gameplay.Visuals
         private UnityEngine.Color _inactiveColor = new(0.321f, 0.321f, 0.321f, 1.0f);
 
         private bool  _active            = true;
-        private bool  _colorPulseEnabled = false;
-        private bool  _pulseDirection    = true;
-        private float _pulseDuration;
-        private float _pulseStartTime;
-        private float _pulseEndTime;
-        private float _pulseAmount = 0.0f;
+        private bool  _colorChangeEnabled = false;
+        private bool  _fadeDirection    = true;
+        // True is pulsing, false is fading
+        private bool  _pulseOrFade       = true;
+        private float _fadeDuration;
+        private float _fadeStartTime;
+        private float _fadeEndTime;
+        private float _fadeAmount = 0.0f;
 
         public void Initialize(Color top, Color inner, Color particles)
         {
@@ -74,7 +76,6 @@ namespace YARG.Gameplay.Visuals
             _hasSustainParam = ThemeBind.Animator.HasParameter(_sustain);
         }
 
-        // TODO: Maybe we don't want an Update function on the fret itself?
         public void Update()
         {
             UpdateColor();
@@ -130,30 +131,32 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        // TODO: Lerp the color changes over time
+        // TODO: May need to take a duration here..
         public void DimColor()
         {
             _active = false;
-            _pulseDirection = true;
-            _colorPulseEnabled = false;
-            _pulseAmount = 0.0f;
-            foreach (var material in _topMaterials)
-            {
-                material.color = _inactiveColor;
-            }
+            _fadeDirection = false;
+            _colorChangeEnabled = true;
+            _fadeAmount = 0.0f;
 
-            foreach (var material in _innerMaterials)
-            {
-                material.color = _inactiveColor;
-            }
+            FadeColor(0.25f, false, false);
+            // foreach (var material in _topMaterials)
+            // {
+            //     material.color = _inactiveColor;
+            // }
+            //
+            // foreach (var material in _innerMaterials)
+            // {
+            //     material.color = _inactiveColor;
+            // }
         }
 
         public void ResetColor()
         {
             _active = true;
-            _pulseDirection = true;
-            _colorPulseEnabled = false;
-            _pulseAmount = 0.0f;
+            _fadeDirection = true;
+            _colorChangeEnabled = false;
+            _fadeAmount = 0.0f;
             foreach (var material in _topMaterials)
             {
                 material.color = _originalUnityTopColor;
@@ -165,46 +168,62 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void PulseColor(float duration)
+        /// <summary>
+        /// Fades or pulses the fret color between the normal color and inactive color
+        ///
+        /// Note that the pulse happens only once per call, it does not continue indefinitely.
+        /// </summary>
+        /// <param name="duration">Length of time transition will take</param>
+        /// <param name="pulse">Whether to pulse or to fade once</param>
+        /// <param name="fadeDirection">True fades in, false fades out (default true)</param>
+        public void FadeColor(float duration, bool pulse, bool fadeDirection = true)
         {
-            if (_active)
+            if (_active && pulse)
             {
                 // Can't pulse if the fret is already active
                 return;
             }
-            _pulseDuration = duration;
-            _pulseStartTime = Time.time;
-            _pulseEndTime = Time.time + (_pulseDuration / 2);
-            _colorPulseEnabled = true;
-            _pulseAmount = 0.0f;
+
+            var rateAdjustment = pulse ? 2 : 1;
+
+            _pulseOrFade = pulse;
+            _fadeDuration = duration;
+            _fadeDirection = fadeDirection;
+            _fadeStartTime = Time.time;
+            _fadeEndTime = Time.time + (_fadeDuration / rateAdjustment);
+            _colorChangeEnabled = true;
+            _fadeAmount = 0.0f;
         }
 
         public void UpdateColor()
         {
-            if (!_colorPulseEnabled)
+            if (!_colorChangeEnabled)
             {
                 return;
             }
 
-            if (Time.time - _pulseStartTime >= _pulseDuration / 2)
+            var rateAdjustment = _pulseOrFade ? 2 : 1;
+
+            if (!_pulseOrFade && Time.time - _fadeStartTime >= _fadeDuration / rateAdjustment)
             {
-                _pulseDirection = false;
-                _pulseAmount = 0.0f;
+                // Switch directions (
+                _fadeDirection = !_fadeDirection;
+                _fadeAmount = 0.0f;
             }
 
-            _pulseAmount += Time.deltaTime / (_pulseDuration / 2);
+            _fadeAmount += Time.deltaTime / (_fadeDuration / rateAdjustment);
 
-            if (_pulseDirection)
+            if (_fadeDirection)
             {
                 // Fading in
                 foreach (var material in _topMaterials)
                 {
-                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, _pulseAmount);
+                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, _fadeAmount);
                 }
 
                 foreach (var material in _innerMaterials)
                 {
-                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, _pulseAmount);
+                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, _fadeAmount);
                 }
             }
             else
@@ -212,18 +231,42 @@ namespace YARG.Gameplay.Visuals
                 // Fading out
                 foreach (var material in _topMaterials)
                 {
-                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, _pulseAmount);
+                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, _fadeAmount);
                 }
 
                 foreach (var material in _innerMaterials)
                 {
-                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, _pulseAmount);
+                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, _fadeAmount);
                 }
             }
-            if (Time.time - _pulseStartTime >= _pulseDuration)
+
+            if (Time.time - _fadeStartTime >= _fadeDuration)
             {
-                _colorPulseEnabled = false;
-                _pulseAmount = 0.0f;
+                _colorChangeEnabled = false;
+                _fadeAmount = 0.0f;
+
+                if (_fadeAmount >= 1.0f)
+                {
+                    _colorChangeEnabled = false;
+                    _fadeAmount = 0.0f;
+                }
+
+                // This seems like it shouldn't be necessary, but even when _fadeAmount is 1.0f we still aren't quite
+                // all the way to the inactive color.
+                // if (_fadeDirection)
+                // {
+                //     return;
+                // }
+                //
+                // foreach (var material in _topMaterials)
+                // {
+                //     material.color = _inactiveColor;
+                // }
+                //
+                // foreach (var material in _innerMaterials)
+                // {
+                //     material.color = _inactiveColor;
+                // }
             }
         }
     }
