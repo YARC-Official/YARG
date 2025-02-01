@@ -67,6 +67,8 @@ MonoBehaviour:
   _ringWhiteColor: {r: 1, g: 1, b: 1, a: 1}
   _ringRedColor: {r: 0.9843137, g: 0.26666668, b: 0.24705882, a: 1}
   _ringPurpleColor: {r: 0.53333336, g: 0.26666668, b: 0.9843137, a: 1}
+  _ringRainbowMaterial: {fileID: 2100000, guid: 38b352628af319449b76ad71b1dea81a,
+    type: 2}
 --- !u!1 &431087603098892755
 GameObject:
   m_ObjectHideFlags: 0
@@ -98,7 +100,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7525821467028091687}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -237,8 +239,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 26
+  m_fontSizeBase: 26
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -310,7 +312,7 @@ RectTransform:
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 7525821467028091687}
-  m_RootOrder: 0
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -384,9 +386,9 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 6670584188681310990}
   - {fileID: 4484359267924640579}
   - {fileID: 5594939885326121917}
+  - {fileID: 6670584188681310990}
   - {fileID: 6682197850596711470}
   m_Father: {fileID: 397774209812536632}
   m_RootOrder: 0
@@ -441,7 +443,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7525821467028091687}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}

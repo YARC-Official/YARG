@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.EventSystems;
@@ -39,6 +39,8 @@ namespace YARG.Menu.MusicLibrary
         private Color _ringRedColor;
         [SerializeField]
         private Color _ringPurpleColor;
+        [SerializeField]
+        private Material _ringRainbowMaterial;
 
         private SongSearchingField _songSearchingField;
         private Instrument _instrument;
@@ -86,6 +88,7 @@ namespace YARG.Menu.MusicLibrary
             // Determine ring color and set intensity number text
             var ringColor = _ringWhiteColor;
             var ringBaseColor = _ringEmptyColor;
+            Material ringMaterial = null;
             switch (SettingsManager.Settings.DifficultyRings.Value)
             {
                 case DifficultyRingMode.Classic:
@@ -110,9 +113,9 @@ namespace YARG.Menu.MusicLibrary
 
                     switch (values.Intensity)
                     {
-                        // TODO: Rainbow effect
-                        // case > 15:
-                        //     break;
+                        case > 15:
+                            ringMaterial = _ringRainbowMaterial;
+                            break;
                         case > 10:
                             ringColor = _ringPurpleColor;
                             ringBaseColor = _ringRedColor;
@@ -136,6 +139,7 @@ namespace YARG.Menu.MusicLibrary
             _ringBase.fillAmount = 1 - fill;
             _ringSprite.color = ringColor;
             _ringBase.color = ringBaseColor;
+            _ringSprite.material = ringMaterial;
 
             // Set opacity
             const float ACTIVE_OPACITY = 1f;
