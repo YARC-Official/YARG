@@ -44,7 +44,6 @@ namespace YARG.Menu.ProfileList
         private void OnDisable()
         {
             PlayerContainer.EnsureValidInstruments();
-
             PlayerContainer.SaveProfiles();
 
             // Update player icons if a profile has changed its GameMode.
@@ -107,8 +106,7 @@ namespace YARG.Menu.ProfileList
                 Name = "New Profile",
                 NoteSpeed = 5,
                 HighwayLength = 1,
-                GameMode = GameMode.FiveFretGuitar,
-                AutoConnect = false,
+                GameMode = GameMode.FiveFretGuitar
             });
 
             RefreshList();

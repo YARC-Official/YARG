@@ -3,7 +3,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Logging;
@@ -239,9 +238,6 @@ namespace YARG.Menu.ProfileList
                 }
             }
 
-            // Set AutoConnect true to automatically reconnect at start.
-            _profile.AutoConnect = true;
-
             _profileListMenu.RefreshList(this._profile);
         }
 
@@ -249,9 +245,6 @@ namespace YARG.Menu.ProfileList
         {
             // Select item to prevent confusion (it has to be through the mouse in this case)
             SetSelected(true, SelectionOrigin.Mouse);
-
-            // Set AutoConnect false to not automatically reconnect at start.
-            _profile.AutoConnect = false;
 
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
             if (player is null)

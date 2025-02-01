@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine.InputSystem;
 using YARG.Core.Game;
@@ -262,7 +263,7 @@ namespace YARG.Player
             return _profiles.Count;
         }
 
-        public static int SaveProfiles()
+        public static int SaveProfiles(bool updateOrder = true)
         {
             if (!_isInitialized)
             {
@@ -270,6 +271,10 @@ namespace YARG.Player
                 return 0;
             }
 
+            if (updateOrder)
+            {
+                SaveProfileOrder();
+            }
             string profilesJson = JsonConvert.SerializeObject(_profiles, Formatting.Indented);
             File.WriteAllText(ProfilesPath, profilesJson);
 
@@ -342,6 +347,35 @@ namespace YARG.Player
             }
             _players.RemoveAt(index);
             _players.Insert(index + 1, player);
+        }
+
+        public static void SaveProfileOrder()
+        {
+            foreach (var profile in Profiles)
+            {
+                profile.AutoConnectOrder = null;
+            }
+
+            for (int x = 0; x < _players.Count; x++)
+            {
+                _players[x].Profile.AutoConnectOrder = x;
+            }
+        }
+
+        public static void AutoConnectProfiles()
+        {
+            foreach (var profile in Profiles.Where(e => e.AutoConnectOrder != null).OrderBy(e => e.AutoConnectOrder))
+            {
+                var result = CreatePlayerFromProfile(profile, true);
+            }
+        }
+
+        public static void ClearAutoConnectProfiles()
+        {
+            foreach (var profile in Profiles)
+            {
+                profile.AutoConnectOrder = null;
+            }
         }
     }
 }
