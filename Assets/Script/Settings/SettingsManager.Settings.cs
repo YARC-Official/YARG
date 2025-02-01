@@ -100,6 +100,13 @@ namespace YARG.Settings
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
 
+            public DropdownSetting<DifficultyRingMode> DifficultyRings { get; }
+                = new(DifficultyRingMode.Classic)
+                {
+                    DifficultyRingMode.Classic,
+                    DifficultyRingMode.Expanded,
+                };
+
             public DropdownSetting<HighScoreInfoMode> HighScoreInfo { get; }
                 = new(HighScoreInfoMode.Stars)
                 {

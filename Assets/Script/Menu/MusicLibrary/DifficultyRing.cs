@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using TMPro;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
@@ -6,24 +7,38 @@ using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Song;
 using YARG.Helpers.Extensions;
-using YARG.Song;
+using YARG.Settings;
 
 namespace YARG.Menu.MusicLibrary
 {
-    // TODO: This should probably be redone, but I'm waiting until we refactor how the icons work
+    public enum DifficultyRingMode
+    {
+        Classic,
+        Expanded,
+    }
+
     public class DifficultyRing : MonoBehaviour, IPointerClickHandler
     {
-        [FormerlySerializedAs("instrumentIcon")]
         [SerializeField]
         private Image _instrumentIcon;
 
-        [FormerlySerializedAs("ringSprite")]
         [SerializeField]
         private Image _ringSprite;
-
-        [FormerlySerializedAs("ringSprites")]
         [SerializeField]
-        private Sprite[] _ringSprites;
+        private Image _ringBase;
+
+        [SerializeField]
+        private TextMeshProUGUI _intensityNumber;
+
+        [Space]
+        [SerializeField]
+        private Color _ringEmptyColor;
+        [SerializeField]
+        private Color _ringWhiteColor;
+        [SerializeField]
+        private Color _ringRedColor;
+        [SerializeField]
+        private Color _ringPurpleColor;
 
         private SongSearchingField _songSearchingField;
         private Instrument _instrument;
@@ -43,31 +58,100 @@ namespace YARG.Menu.MusicLibrary
             _instrument = instrument;
             _intensity = values.Intensity;
 
+            // Determine how many rings to use
+            uint ringCount;
             if (values.SubTracks == 0)
             {
-                values.Intensity = -1;
+                // No part
                 _active = false;
+                ringCount = 0;
+                // Parts which copy their intensities from other instruments
+                // may have a greater-than-zero value here
+                values.Intensity = 0;
             }
             else
             {
+                // Part present
                 _active = true;
                 if (values.Intensity < 0)
                 {
-                    values.Intensity = 0;
+                    ringCount = 0;
                 }
-                else if (values.Intensity > 6)
+                else
                 {
-                    values.Intensity = 6;
+                    ringCount = (uint) (values.Intensity % 5);
                 }
             }
 
-            // Set ring sprite
-            _ringSprite.sprite = _ringSprites[values.Intensity + 1];
+            // Determine ring color and set intensity number text
+            var ringColor = _ringWhiteColor;
+            var ringBaseColor = _ringEmptyColor;
+            switch (SettingsManager.Settings.DifficultyRings.Value)
+            {
+                case DifficultyRingMode.Classic:
+                {
+                    if (values.Intensity > 5)
+                    {
+                        ringCount = 5;
+                        ringColor = _ringRedColor;
+                    }
 
-            // Set instrument opacity
-            var color = _instrumentIcon.color;
-            color.a = values.Intensity > -1 ? 1f : 0.2f;
-            _instrumentIcon.color = color;
+                    _intensityNumber.text = values.Intensity > 6
+                        ? values.Intensity.ToString()
+                        : string.Empty;
+                    break;
+                }
+                case DifficultyRingMode.Expanded:
+                {
+                    if (values.Intensity > 15)
+                    {
+                        ringCount = 5;
+                    }
+
+                    switch (values.Intensity)
+                    {
+                        // TODO: Rainbow effect
+                        // case > 15:
+                        //     break;
+                        case > 10:
+                            ringColor = _ringPurpleColor;
+                            ringBaseColor = _ringRedColor;
+                            break;
+                        case > 5:
+                            ringColor = _ringRedColor;
+                            ringBaseColor = _ringWhiteColor;
+                            break;
+                    }
+
+                    _intensityNumber.text = values.Intensity > 5
+                        ? values.Intensity.ToString()
+                        : string.Empty;
+                    break;
+                }
+            }
+
+            // Set ring sprite properties
+            float fill = ringCount / 5f;
+            _ringSprite.fillAmount = fill;
+            _ringBase.fillAmount = 1 - fill;
+            _ringSprite.color = ringColor;
+            _ringBase.color = ringBaseColor;
+
+            // Set opacity
+            const float ACTIVE_OPACITY = 1f;
+            const float INACTIVE_OPACITY = 0.2f;
+            if (_active)
+            {
+                _instrumentIcon.color = _instrumentIcon.color.WithAlpha(ACTIVE_OPACITY);
+                _ringSprite.color = _ringSprite.color.WithAlpha(ACTIVE_OPACITY);
+                _ringBase.color = _ringBase.color.WithAlpha(ACTIVE_OPACITY);
+            }
+            else
+            {
+                _instrumentIcon.color = _instrumentIcon.color.WithAlpha(INACTIVE_OPACITY);
+                _ringSprite.color = _ringSprite.color.WithAlpha(INACTIVE_OPACITY);
+                _ringBase.color = _ringBase.color.WithAlpha(INACTIVE_OPACITY);
+            }
         }
 
         public void OnPointerClick(PointerEventData eventData)
