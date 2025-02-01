@@ -15,6 +15,7 @@ using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
 using YARG.Player;
+using YARG.Scores;
 using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
@@ -105,6 +106,13 @@ namespace YARG.Settings
                     HighScoreInfoMode.Stars,
                     HighScoreInfoMode.Score,
                     HighScoreInfoMode.Off
+                };
+
+            public DropdownSetting<HighScoreHistoryMode> HighScoreHistory { get; }
+                = new(HighScoreHistoryMode.HighestDifficulty, _ => ScoreContainer.InvalidateScoreCache())
+                {
+                    HighScoreHistoryMode.HighestOverall,
+                    HighScoreHistoryMode.HighestDifficulty,
                 };
 
             #endregion

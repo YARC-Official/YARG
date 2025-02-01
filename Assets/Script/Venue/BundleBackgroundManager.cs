@@ -1,9 +1,11 @@
 using System;
 using System.IO;
 using UnityEngine;
+
+
 #if UNITY_EDITOR
+using System.Linq;
 using UnityEditor;
-using YARG.Core.Logging;
 #endif
 
 namespace YARG.Venue
@@ -12,6 +14,7 @@ namespace YARG.Venue
     {
         // DO NOT CHANGE THIS! It will break existing venues
         public const string BACKGROUND_PREFAB_PATH = "Assets/_Background.prefab";
+        public const string BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
 
         // DO NOT CHANGE the name of this! I *know* it doesn't follow naming conventions, but it will also break existing
         // venues if we do change it.
@@ -21,20 +24,21 @@ namespace YARG.Venue
         private Camera mainCamera;
 
         public AssetBundle Bundle { get; set; }
+        public AssetBundle ShaderBundle { get; set; }
 
         private void Awake()
         {
             // Move object out of the way, so its effects don't collide with the tracks
             transform.position += Vector3.forward * 10_000f;
-
-            // TODO: FIX
-            // Destroy the default camera (venue has its own)
-            // Destroy(GameManager.Instance.DefaultCamera.gameObject);
         }
 
         private void OnDestroy()
         {
             Bundle.Unload(true);
+            if (ShaderBundle != null)
+            {
+                ShaderBundle.Unload(true);
+            }
         }
 
 #if UNITY_EDITOR
@@ -59,11 +63,39 @@ namespace YARG.Venue
 
             GameObject clonedBackground = null;
 
+
             try
             {
                 if (string.IsNullOrEmpty(path))
                 {
                     return;
+                }
+
+                // First we'll collect all shaders and build a separate bundle out of them
+                // for Mac as no other build target will include Metal shaders
+                // And we want our background to work everywhere
+                var shaderAssets = EditorUtility.CollectDependencies(new[] { gameObject })
+                    .OfType<Shader>() // Only shader dependencices
+                    .Select(shader => AssetDatabase.GetAssetPath(shader)) // Get asset path
+                    .Where(assetPath => !assetPath.StartsWith("Packages/com.unity")) // Not builtins
+                    .ToArray();
+
+                if (shaderAssets.Length > 0)
+                {
+                    var metalAssetBundleBuild = default(AssetBundleBuild);
+                    metalAssetBundleBuild.assetBundleName = BACKGROUND_SHADER_BUNDLE_NAME;
+                    metalAssetBundleBuild.assetNames = shaderAssets;
+
+                    BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
+                        new[]
+                        {
+                            metalAssetBundleBuild
+                        }, BuildAssetBundleOptions.ForceRebuildAssetBundle,
+                        BuildTarget.StandaloneOSX);
+
+                    var filePath = Path.Combine(Application.temporaryCachePath, BACKGROUND_SHADER_BUNDLE_NAME);
+                    File.Move(filePath, Path.Combine(Application.dataPath, BACKGROUND_SHADER_BUNDLE_NAME));
+                    AssetDatabase.Refresh();
                 }
 
                 clonedBackground = Instantiate(_backgroundReference.gameObject);
@@ -73,22 +105,22 @@ namespace YARG.Venue
 
                 var assetPaths = new[]
                 {
+                    "Assets/" + BACKGROUND_SHADER_BUNDLE_NAME,
                     BACKGROUND_PREFAB_PATH
                 };
 
-                PrefabUtility.SaveAsPrefabAsset(clonedBackground.gameObject, BACKGROUND_PREFAB_PATH);
                 AssetBundleBuild assetBundleBuild = default;
                 assetBundleBuild.assetBundleName = fileName;
                 assetBundleBuild.assetNames = assetPaths;
+
+                PrefabUtility.SaveAsPrefabAsset(clonedBackground.gameObject, BACKGROUND_PREFAB_PATH);
 
                 BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
                     new[]
                     {
                         assetBundleBuild
                     }, BuildAssetBundleOptions.ForceRebuildAssetBundle,
-                    EditorUserBuildSettings.activeBuildTarget);
-                EditorPrefs.SetString("currentBuildingAssetBundlePath", folderPath);
-                EditorUserBuildSettings.SwitchActiveBuildTarget(selectedBuildTargetGroup, activeBuildTarget);
+                    BuildTarget.StandaloneWindows);
 
                 foreach (var asset in assetPaths)
                 {
@@ -104,13 +136,11 @@ namespace YARG.Venue
                 // Unity seems to save the file in lower case, which is a problem on Linux, as file systems are case sensitive there
                 File.Move(Path.Combine(Application.temporaryCachePath, fileName.ToLowerInvariant()), path);
 
-                AssetDatabase.Refresh();
-
                 EditorUtility.DisplayDialog("Export Successful!", "Export Successful!", "OK");
             }
             catch (Exception e)
             {
-                YargLogger.LogException(e, "Failed to bundle background/venue.");
+                Debug.LogException(e);
             }
             finally
             {

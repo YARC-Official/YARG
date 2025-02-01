@@ -1,34 +1,28 @@
-﻿[*.{cs,vb}]
+﻿[*]
+charset = utf-8-bom
+end_of_line = crlf
+trim_trailing_whitespace = true
+insert_final_newline = false
+indent_style = space
+indent_size = 4
 
+[*.{cs,vb}]
+# Diagnostics
 # IDE0044: Add readonly modifier (Not needed on Unity serialized fields)
 dotnet_diagnostic.ide0044.severity = none
 # IDE0031: Null check can be simplified (Unity is stupid)
 dotnet_diagnostic.ide0031.severity = silent
 
 # Microsoft .NET properties
+csharp_indent_case_contents_when_block = false
+csharp_new_line_before_members_in_object_initializers = false
+csharp_prefer_braces = true:suggestion
 csharp_preferred_modifier_order = public, private, protected, internal, file, new, static, abstract, virtual, sealed, readonly, override, extern, unsafe, volatile, async, required:suggestion
 csharp_space_after_cast = true
 csharp_style_prefer_utf8_string_literals = true:suggestion
-csharp_style_var_elsewhere = false:none
+csharp_style_var_elsewhere = true:suggestion
 csharp_style_var_for_built_in_types = false:none
-csharp_prefer_braces = true:suggestion
-csharp_indent_case_contents_when_block = false
-dotnet_naming_rule.constants_rule.import_to_resharper = as_predefined
-dotnet_naming_rule.constants_rule.severity = warning
-dotnet_naming_rule.constants_rule.style = all_upper_style
-dotnet_naming_rule.constants_rule.symbols = constants_symbols
-dotnet_naming_rule.private_constants_rule.import_to_resharper = as_predefined
-dotnet_naming_rule.private_constants_rule.severity = warning
-dotnet_naming_rule.private_constants_rule.style = all_upper_style
-dotnet_naming_rule.private_constants_rule.symbols = private_constants_symbols
-dotnet_naming_style.all_upper_style.capitalization = all_upper
-dotnet_naming_style.all_upper_style.word_separator = _
-dotnet_naming_symbols.constants_symbols.applicable_accessibilities = public,internal,protected,protected_internal,private_protected
-dotnet_naming_symbols.constants_symbols.applicable_kinds = field
-dotnet_naming_symbols.constants_symbols.required_modifiers = const
-dotnet_naming_symbols.private_constants_symbols.applicable_accessibilities = private
-dotnet_naming_symbols.private_constants_symbols.applicable_kinds = field
-dotnet_naming_symbols.private_constants_symbols.required_modifiers = const
+csharp_style_var_when_type_is_apparent = true:suggestion
 dotnet_style_parentheses_in_arithmetic_binary_operators = never_if_unnecessary:none
 dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
 dotnet_style_parentheses_in_relational_binary_operators = never_if_unnecessary:none
@@ -40,24 +34,50 @@ dotnet_style_qualification_for_method = false:suggestion
 dotnet_style_qualification_for_property = false:suggestion
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
 
+# Constants
+dotnet_naming_rule.constants_rule.import_to_resharper = as_predefined
+dotnet_naming_rule.constants_rule.severity = warning
+dotnet_naming_rule.constants_rule.style = constants_style
+dotnet_naming_rule.constants_rule.symbols = constants_symbols
+dotnet_naming_symbols.constants_symbols.applicable_accessibilities = public,internal,protected,protected_internal,private_protected,private
+dotnet_naming_symbols.constants_symbols.applicable_kinds = field
+dotnet_naming_symbols.constants_symbols.required_modifiers = const
+dotnet_naming_style.constants_style.capitalization = all_upper
+dotnet_naming_style.constants_style.word_separator = _
+
+# Unity serialized fields
+dotnet_naming_rule.unity_serialized_field_rule.import_to_resharper = True
+dotnet_naming_rule.unity_serialized_field_rule.resharper_description = Unity serialized field
+dotnet_naming_rule.unity_serialized_field_rule.resharper_guid = 5f0fdb63-c892-4d2c-9324-15c80b22a7ef
+dotnet_naming_rule.unity_serialized_field_rule.severity = warning
+dotnet_naming_rule.unity_serialized_field_rule.style = unity_serialized_field_style
+dotnet_naming_rule.unity_serialized_field_rule.symbols = unity_serialized_field_symbols
+dotnet_naming_symbols.unity_serialized_field_symbols.applicable_accessibilities = private
+dotnet_naming_symbols.unity_serialized_field_symbols.applicable_kinds =
+dotnet_naming_symbols.unity_serialized_field_symbols.resharper_applicable_kinds = unity_serialised_field
+dotnet_naming_symbols.unity_serialized_field_symbols.resharper_required_modifiers = instance
+dotnet_naming_style.unity_serialized_field_style.capitalization = camel_case
+dotnet_naming_style.unity_serialized_field_style.required_prefix = _
+
 # ReSharper properties
 resharper_align_multiline_binary_expressions_chain = false
 resharper_align_multiline_statement_conditions = false
 resharper_apply_auto_detected_rules = false
 resharper_autodetect_indent_settings = true
-resharper_braces_for_for = required_for_multiline_statement
-resharper_braces_for_foreach = required_for_multiline_statement
-resharper_braces_for_ifelse = required_for_multiline_statement
-resharper_braces_for_while = required_for_multiline_statement
+resharper_csharp_blank_lines_around_field = 0
 resharper_csharp_int_align_comments = true
 resharper_csharp_keep_blank_lines_in_code = 1
 resharper_csharp_keep_blank_lines_in_declarations = 1
+resharper_enforce_line_ending_style = true
 resharper_formatter_off_tag = @formatter:off
 resharper_formatter_on_tag = @formatter:on
 resharper_formatter_tags_enabled = true
-resharper_for_built_in_types = use_var_when_evident
+resharper_for_built_in_types = use_explicit_type
 resharper_indent_preprocessor_directives = normal
+resharper_int_align_fields = true
 resharper_int_align_nested_ternary = true
+resharper_int_align_parameters = false
+resharper_int_align_properties = true
 resharper_int_align_switch_expressions = true
 resharper_int_align_switch_sections = true
 resharper_keep_existing_embedded_arrangement = false
@@ -65,7 +85,9 @@ resharper_keep_existing_expr_member_arrangement = false
 resharper_keep_existing_initializer_arrangement = false
 resharper_keep_existing_switch_expression_arrangement = false
 resharper_max_enum_members_on_line = 1
+resharper_max_initializer_elements_on_line = 1
 resharper_method_or_operator_body = expression_body
+resharper_outdent_statement_labels = true
 resharper_place_accessorholder_attribute_on_same_line = false
 resharper_place_accessor_attribute_on_same_line = false
 resharper_place_field_attribute_on_same_line = false
@@ -74,6 +96,7 @@ resharper_place_simple_initializer_on_single_line = false
 resharper_show_autodetect_configure_formatting_tip = false
 resharper_trailing_comma_in_multiline_lists = true
 resharper_use_indent_from_vs = false
+resharper_wrap_array_initializer_style = chop_always
 
 # ReSharper inspection severities
 resharper_arrange_attributes_highlighting = hint
@@ -103,36 +126,13 @@ resharper_member_can_be_private_global_highlighting = hint
 resharper_member_hides_static_from_outer_class_highlighting = none
 resharper_parameter_hides_member_highlighting = hint
 resharper_redundant_base_qualifier_highlighting = warning
+resharper_suggest_var_or_type_built_in_types_highlighting = none
 resharper_suggest_var_or_type_elsewhere_highlighting = hint
 resharper_suggest_var_or_type_simple_types_highlighting = hint
 resharper_unity_incorrect_method_signature_highlighting = none
 resharper_web_config_module_not_resolved_highlighting = warning
 resharper_web_config_type_not_resolved_highlighting = warning
 resharper_web_config_wrong_module_highlighting = warning
-
-[*]
-charset = utf-8-bom
-end_of_line = crlf
-trim_trailing_whitespace = true
-insert_final_newline = false
-indent_style = space
-indent_size = 4
-
-# Microsoft .NET properties
-csharp_new_line_before_members_in_object_initializers = false
-csharp_style_var_elsewhere = true:suggestion
-csharp_style_var_for_built_in_types = false:none
-csharp_style_var_when_type_is_apparent = true:suggestion
-
-# ReSharper properties
-resharper_braces_for_ifelse = not_required_for_both
-resharper_csharp_blank_lines_around_field = 0
-resharper_max_initializer_elements_on_line = 1
-resharper_outdent_statement_labels = true
-resharper_wrap_array_initializer_style = chop_always
-
-# ReSharper inspection severities
-resharper_arrange_attributes_highlighting = none
 
 [{*.har,*.jsb2,*.jsb3,*.json,.babelrc,.eslintrc,.stylelintrc,bowerrc,jest.config}]
 indent_style = space

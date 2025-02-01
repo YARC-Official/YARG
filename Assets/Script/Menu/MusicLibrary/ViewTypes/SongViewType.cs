@@ -31,6 +31,7 @@ namespace YARG.Menu.MusicLibrary
 
         private bool _fetchedScores;
         private PlayerScoreRecord _playerScoreRecord;
+        private PlayerScoreRecord _playerPercentRecord;
         private GameRecord _bandScoreRecord;
 
         public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry)
@@ -67,7 +68,7 @@ namespace YARG.Menu.MusicLibrary
                 // Append the band score if the setting is enabled
                 if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
                 {
-                    builder.AppendFormat("<space=2em> {0:N0}", _bandScoreRecord.BandScore);
+                    builder.AppendFormat("{0:N0}", _bandScoreRecord.BandScore);
                 }
 
                 return builder.ToString();
@@ -79,17 +80,31 @@ namespace YARG.Menu.MusicLibrary
                 return string.Empty;
             }
 
-            var difficultySprite = _playerScoreRecord.Difficulty.ToString();
-            var percent = Mathf.Floor(_playerScoreRecord.GetPercent() * 100f);
-            var percentColor = _playerScoreRecord.IsFc ? "#fcd13c" : "#ffffff";
+            if (_playerPercentRecord is null)
+            {
+                YargLogger.Fail("Best Percentage score is missing!");
+                return "Score display error!";
+            }
 
-            builder.AppendFormat("<sprite name=\"{0}\"> <color={1}>{2:N0}%</color>",
-                difficultySprite, percentColor, percent);
+            var percentDifficulty = _playerPercentRecord.Difficulty;
+            var percent = Mathf.Floor(_playerPercentRecord.GetPercent() * 100f);
+            var percentColor = _playerPercentRecord.IsFc ? "#fcd13c" : "#ffffff";
+
+            builder.AppendFormat("<sprite name=\"{0}\"> <color={1}>{2:N0}%</color><space=0.5em>",
+                percentDifficulty, percentColor, percent);
+
+            var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
+
+            // Percent and score could potentially come from separate difficulties depending on settings
+            if (scoreInfoMode != HighScoreInfoMode.Off && _playerScoreRecord.Difficulty != _playerPercentRecord.Difficulty)
+            {
+                builder.AppendFormat("|<space=0.5em><sprite name=\"{0}\"> ", _playerScoreRecord.Difficulty);
+            }
 
             // Append the score if the setting is enabled
-            if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
+            if (scoreInfoMode == HighScoreInfoMode.Score)
             {
-                builder.AppendFormat("<space=2em> {0:N0}", _playerScoreRecord.Score);
+                builder.AppendFormat("{0:N0}", _playerScoreRecord.Score);
             }
 
             return builder.ToString();
@@ -178,42 +193,18 @@ namespace YARG.Menu.MusicLibrary
 
             _fetchedScores = true;
 
-            _playerScoreRecord = GetHighScoreForSong(SongEntry);
-            _bandScoreRecord = GetBandHighScoreForSong(SongEntry);
-        }
-
-        private PlayerScoreRecord GetHighScoreForSong(SongEntry song)
-        {
-            if (!_musicLibrary.ShouldDisplaySoloHighScores)
-            {
-                return null;
-            }
-
-            var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
-
-            var result = ScoreContainer.GetHighScore(
-                song.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
-
-            var percResult = ScoreContainer.GetBestPercentageScore(
-                song.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
-
-            if (result is not null)
-            {
-                YargLogger.Assert(percResult is not null, "Best Percentage score is missing!");
-                result.Percent = percResult.GetPercent();
-            }
-
-            return result;
-        }
-
-        private GameRecord GetBandHighScoreForSong(SongEntry song)
-        {
             if (_musicLibrary.ShouldDisplaySoloHighScores)
             {
-                return null;
+                var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+                _playerScoreRecord = ScoreContainer.GetHighScore(
+                    SongEntry.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
+                _playerPercentRecord = ScoreContainer.GetBestPercentageScore(
+                    SongEntry.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
             }
-
-            return ScoreContainer.GetBandHighScore(song.Hash);
+            else
+            {
+                _bandScoreRecord = ScoreContainer.GetBandHighScore(SongEntry.Hash);
+            }
         }
     }
 }
