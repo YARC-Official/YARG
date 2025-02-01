@@ -22,7 +22,7 @@ namespace YARG.Gameplay.Player
     public sealed class FiveFretPlayer : TrackPlayer<GuitarEngine, GuitarNote>
     {
         private const double SUSTAIN_END_MUTE_THRESHOLD      = 0.1;
-        private const int    SHIFT_INDICATOR_MEASURES_BEFORE = 4;
+        private const int    SHIFT_INDICATOR_MEASURES_BEFORE = 5;
 
         public override bool ShouldUpdateInputsOnResume => true;
 
@@ -51,7 +51,7 @@ namespace YARG.Gameplay.Player
         private Queue<RangeShiftIndicator> _shiftIndicators = new();
         private int                        _shiftIndicatorIndex;
         private bool                       _fretPulseStarting;
-        private double                     _fretPulseTime;
+        private double                     _fretPulseStartTime;
 
         private bool[] _activeFrets;
 
@@ -157,6 +157,7 @@ namespace YARG.Gameplay.Player
             _fretArray.ResetAll();
         }
 
+        // TODO: Figure out why this isn't a valid declaration so we can fix replay seeking
         // public override void SetReplayTime(float time)
         // {
         //     base.SetReplayTime(time);
@@ -166,7 +167,6 @@ namespace YARG.Gameplay.Player
         {
             UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
 
-            // TODO: Do whatever is necessary to update the fret range and show range shift indicators
             UpdateRangeShift(songTime);
 
             for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
@@ -188,7 +188,7 @@ namespace YARG.Gameplay.Player
                 nextShift.Shown = true;
             }
 
-            if (_fretPulseStarting && _fretPulseTime <= songTime)
+            if (_fretPulseStarting && _fretPulseStartTime <= songTime)
             {
                 for (var i = nextShift.Range - 1; i < nextShift.Range + nextShift.Size - 1; i++)
                 {
@@ -227,8 +227,9 @@ namespace YARG.Gameplay.Player
                     // It is supposed to start pulsing when the shift indicator hits the strike line
                     // Time - -STRIKE_LINE_POS / NoteSpeed is too early by something like 4 beats
                     // Time alone is too late by a couple of beats
-                    // This is slightly early, but I give up for now
-                    _fretPulseTime = shiftIndicator.Time - ((-STRIKE_LINE_POS / NoteSpeed) / 2);
+
+                    // This works, but the math is all wrong and just happens to produce the right answer
+                    _fretPulseStartTime = shiftIndicator.Time - ((-STRIKE_LINE_POS / NoteSpeed) / 2) + nextShift.BeatDuration * 1.25;
                 }
             }
 
@@ -456,7 +457,6 @@ namespace YARG.Gameplay.Player
             // Fewer than two range shifts makes no sense
             if (events.Count < 1)
             {
-                // TODO: Make sure there's nothing else to do before bailing
                 _rangeShiftEvents = new Queue<FiveFretRangeShift>();
                 return;
             }
@@ -465,7 +465,6 @@ namespace YARG.Gameplay.Player
             {
                 // There are no actual shifts, but we should dim unused frets
                 SetActiveFretsForShiftEvent(events[0]);
-                // TODO: Make sure there's nothing else to do before bailing
                 CurrentRange = events[0];
                 _rangeShiftEvents = new Queue<FiveFretRangeShift>();
                 return;
@@ -513,7 +512,7 @@ namespace YARG.Gameplay.Player
 
                 // Add the indicators before the range shift
                 // While we're doing this, figure out the time between beats
-                for (int i = SHIFT_INDICATOR_MEASURES_BEFORE; i >= 1; i--)
+                for (int i = SHIFT_INDICATOR_MEASURES_BEFORE; i > 1; i--)
                 {
                     var realIndex = beatlineIndex - i;
 
@@ -523,7 +522,7 @@ namespace YARG.Gameplay.Player
                         break;
                     }
 
-                    beatTimeDelta += beatlines[realIndex].Time - lastBeatTime;
+                    beatTimeDelta += lastBeatTime - beatlines[realIndex].Time;
                     lastBeatTime = beatlines[realIndex].Time;
                     beatTimeSamples++;
 
@@ -539,7 +538,7 @@ namespace YARG.Gameplay.Player
             }
 
             // TODO: Remove this test shit
-            _fretArray.UpdateFretActiveState(_activeFrets);
+            // _fretArray.UpdateFretActiveState(_activeFrets);
         }
 
         private void SetActiveFretsForShiftEvent(FiveFretRangeShift range)
