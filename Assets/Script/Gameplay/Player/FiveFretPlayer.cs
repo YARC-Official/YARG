@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Audio;
@@ -16,6 +17,7 @@ using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Player;
 using YARG.Settings;
+using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
 {
@@ -458,9 +460,8 @@ namespace YARG.Gameplay.Player
                 var shiftLeft = shift.Range > lastShiftRange;
                 lastShiftRange = shift.Range;
 
-                int beatTimeSamples = 0;
-                double beatTimeDelta = 0;
                 double lastBeatTime = 0;
+                double firstBeatTime = double.MaxValue;
 
                 // Find the first beatline index after the range shift
                 for (; beatlineIndex < beatlines.Count; beatlineIndex++)
@@ -484,9 +485,7 @@ namespace YARG.Gameplay.Player
                         break;
                     }
 
-                    beatTimeDelta += lastBeatTime - beatlines[realIndex].Time;
-                    lastBeatTime = beatlines[realIndex].Time;
-                    beatTimeSamples++;
+                    firstBeatTime = beatlines[realIndex].Time < firstBeatTime ? beatlines[realIndex].Time : firstBeatTime;
 
                     _shiftIndicators.Enqueue(new RangeShiftIndicator
                     {
@@ -496,7 +495,7 @@ namespace YARG.Gameplay.Player
                 }
 
                 // In case we have no samples for this shift event, 0.5 is a reasonable default
-                shift.BeatDuration = beatTimeSamples > 0 ? beatTimeDelta / beatTimeSamples : 0.5;
+                shift.BeatDuration = firstBeatTime < double.MaxValue ? (lastBeatTime - firstBeatTime) / SHIFT_INDICATOR_MEASURES_BEFORE : 0.5;
             }
 
             // TODO: Remove this test shit

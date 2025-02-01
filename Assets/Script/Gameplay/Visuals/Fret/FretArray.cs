@@ -178,7 +178,8 @@ namespace YARG.Gameplay.Visuals
                 {
                     continue;
                 }
-                _frets[i].FadeColor(_pulseDuration, true);
+                // TODO: Switch fade direction back to true
+                _frets[i].FadeColor(_pulseDuration, true, false);
             }
         }
 

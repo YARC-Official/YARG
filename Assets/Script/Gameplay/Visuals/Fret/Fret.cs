@@ -197,7 +197,7 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            var rateAdjustment = pulse ? 2 : 1;
+            var rateAdjustment = 1; // pulse ? 2 : 1;
 
             _pulseOrFade = pulse;
             _fadeDuration = duration;
