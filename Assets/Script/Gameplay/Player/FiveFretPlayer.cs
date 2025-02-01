@@ -38,6 +38,8 @@ namespace YARG.Gameplay.Player
 
         public GuitarEngineParameters EngineParams { get; private set; }
 
+        private double TimeFromSpawnToStrikeline => SpawnTimeOffset - (-STRIKE_LINE_POS / NoteSpeed);
+
         public struct RangeShiftIndicator
         {
             public double Time;
@@ -48,6 +50,8 @@ namespace YARG.Gameplay.Player
         private FiveFretRangeShift         CurrentRange { get; set; }
         private Queue<RangeShiftIndicator> _shiftIndicators = new();
         private int                        _shiftIndicatorIndex;
+        private bool                       _fretPulseStarting;
+        private double                     _fretPulseTime;
 
         private bool[] _activeFrets;
 
@@ -153,6 +157,11 @@ namespace YARG.Gameplay.Player
             _fretArray.ResetAll();
         }
 
+        // public override void SetReplayTime(float time)
+        // {
+        //     base.SetReplayTime(time);
+        // }
+
         protected override void UpdateVisuals(double songTime)
         {
             UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
@@ -179,6 +188,16 @@ namespace YARG.Gameplay.Player
                 nextShift.Shown = true;
             }
 
+            if (_fretPulseStarting && _fretPulseTime <= songTime)
+            {
+                for (var i = nextShift.Range - 1; i < nextShift.Range + nextShift.Size - 1; i++)
+                {
+                    _fretArray.SetFretColorPulse(i, true, (float) nextShift.BeatDuration);
+                }
+
+                _fretPulseStarting = false;
+            }
+
             if (_shiftIndicators.TryPeek(out var shiftIndicator) && shiftIndicator.Time <= songTime + SpawnTimeOffset)
             {
                 if (!_shiftIndicatorPool.CanSpawnAmount(1))
@@ -200,10 +219,16 @@ namespace YARG.Gameplay.Player
 
                 _shiftIndicators.Dequeue();
 
-                // TODO: We should start pulsing the shifted fret colors here (maybe here, that might be too soon)
-                for (var i = nextShift.Range - 1; i < nextShift.Range + nextShift.Size - 1; i++)
+                // TODO: Adjust this to start when the first shift indicator reaches the strike line
+                if (!_fretPulseStarting)
                 {
-                    _fretArray.SetFretColorPulse(i, true);
+                    _fretPulseStarting = true;
+                    // Why is this not producing the right time?
+                    // It is supposed to start pulsing when the shift indicator hits the strike line
+                    // Time - -STRIKE_LINE_POS / NoteSpeed is too early by something like 4 beats
+                    // Time alone is too late by a couple of beats
+                    // This is slightly early, but I give up for now
+                    _fretPulseTime = shiftIndicator.Time - ((-STRIKE_LINE_POS / NoteSpeed) / 2);
                 }
             }
 
@@ -213,7 +238,7 @@ namespace YARG.Gameplay.Player
                 _rangeShiftEvents.Dequeue();
                 for (var i = 0; i < _fretArray.FretCount; i++)
                 {
-                    _fretArray.SetFretColorPulse(i, false);
+                    _fretArray.SetFretColorPulse(i, false, (float) nextShift.BeatDuration);
                 }
 
                 CurrentRange = nextShift;
@@ -472,16 +497,22 @@ namespace YARG.Gameplay.Player
                 var shiftLeft = shift.Range > lastShiftRange;
                 lastShiftRange = shift.Range;
 
+                int beatTimeSamples = 0;
+                double beatTimeDelta = 0;
+                double lastBeatTime = 0;
+
                 // Find the first beatline index after the range shift
                 for (; beatlineIndex < beatlines.Count; beatlineIndex++)
                 {
                     if (beatlines[beatlineIndex].Time > shift.Time)
                     {
+                        lastBeatTime = beatlines[beatlineIndex].Time;
                         break;
                     }
                 }
 
                 // Add the indicators before the range shift
+                // While we're doing this, figure out the time between beats
                 for (int i = SHIFT_INDICATOR_MEASURES_BEFORE; i >= 1; i--)
                 {
                     var realIndex = beatlineIndex - i;
@@ -492,12 +523,19 @@ namespace YARG.Gameplay.Player
                         break;
                     }
 
+                    beatTimeDelta += beatlines[realIndex].Time - lastBeatTime;
+                    lastBeatTime = beatlines[realIndex].Time;
+                    beatTimeSamples++;
+
                     _shiftIndicators.Enqueue(new RangeShiftIndicator
                     {
                         Time = beatlines[realIndex].Time,
                         LeftSide = shiftLeft
                     });
                 }
+
+                // In case we have no samples for this shift event, 0.5 is a reasonable default
+                shift.BeatDuration = beatTimeSamples > 0 ? beatTimeDelta / beatTimeSamples : 0.5;
             }
 
             // TODO: Remove this test shit

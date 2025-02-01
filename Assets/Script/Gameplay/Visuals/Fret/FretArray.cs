@@ -171,7 +171,7 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void SetFretColorPulse(int fretIndex, bool pulse)
+        public void SetFretColorPulse(int fretIndex, bool pulse, float duration)
         {
             _pulsingFrets[fretIndex] = pulse;
         }
@@ -190,7 +190,7 @@ namespace YARG.Gameplay.Visuals
                     continue;
                 }
 
-                _frets[i].PulseColor(0.5f);
+                _frets[i].FadeColor(0.5f, true);
             }
         }
 
@@ -202,8 +202,6 @@ namespace YARG.Gameplay.Visuals
                 YargLogger.LogFormatDebug("Received inconsistent fret array. Got {0} flags, but we have {1} frets.", frets.Length, _frets.Count);
                 return;
             }
-
-            // TODO: Implement a means of pulsing the color
 
             for (int i = 0; i < _frets.Count; i++)
             {
