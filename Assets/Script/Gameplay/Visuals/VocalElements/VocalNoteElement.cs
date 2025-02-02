@@ -25,11 +25,13 @@ namespace YARG.Gameplay.Visuals
         protected override void InitializeElement()
         {
             var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
+            var matPropBlock = new MaterialPropertyBlock();
+            matPropBlock.SetColor("_BaseColor", color);
 
             // Set line color
             foreach (var line in _lineRenderers)
             {
-                line.material.color = color;
+                line.SetPropertyBlock(matPropBlock);
             }
 
             YargLogger.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length);
