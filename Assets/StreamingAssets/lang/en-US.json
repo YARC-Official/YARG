@@ -208,7 +208,8 @@
             "Modifiers": "Modifiers",
             "Ready": "Ready",
             "SitOut": "Sit Out",
-            "Done": "Done"
+            "Done": "Done",
+            "VocalistNoMicrophoneMessage" : "This vocalist has no microphone assigned! Assign one from the profiles menu."
         },
         "History": {
             "Name": "History",
