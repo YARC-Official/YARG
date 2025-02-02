@@ -545,6 +545,14 @@
                 "PauseName": "Crowd",
                 "Description": "Adjusts the song's crowd track volume. Only does something if the song is multi-track."
             },
+            "DifficultyRings": {
+                "Name": "Difficulty Ring Mode",
+                "Description": "How to display intensity values on the difficulty rings in the music library.",
+                "Dropdown": {
+                    "Classic": "Classic",
+                    "Expanded": "Expanded"
+                }
+            },
             "DisableBloom": {
                 "Name": "Disable Bloom",
                 "Description": "Disables post-processing bloom (the glowly effect). May increase performance."
