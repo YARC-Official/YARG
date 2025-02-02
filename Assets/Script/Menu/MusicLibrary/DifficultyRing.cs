@@ -75,13 +75,13 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Part present
                 _active = true;
-                if (values.Intensity < 0)
+                if (values.Intensity < 1)
                 {
                     ringCount = 0;
                 }
                 else
                 {
-                    ringCount = (uint) (values.Intensity % 5);
+                    ringCount = 1 + (uint) ((values.Intensity - 1) % 5);
                 }
             }
 
