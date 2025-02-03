@@ -48,7 +48,8 @@ namespace YARG.Gameplay.Player
             public bool   LeftSide;
         }
 
-        private Queue<FiveFretRangeShift>  _rangeShiftEvents;
+        private List<FiveFretRangeShift>  _allRangeShiftEvents = new();
+        private Queue<FiveFretRangeShift>  _rangeShiftEventQueue = new();
         private FiveFretRangeShift         CurrentRange { get; set; }
         private Queue<RangeShiftIndicator> _shiftIndicators = new();
         private int                        _shiftIndicatorIndex;
@@ -73,6 +74,7 @@ namespace YARG.Gameplay.Player
         private int _sustainCount;
 
         private SongStem _stem;
+        private double   _practiceSectionStartTime;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
@@ -155,15 +157,39 @@ namespace YARG.Gameplay.Player
         public override void ResetPracticeSection()
         {
             base.ResetPracticeSection();
+            ResetRangeShift(_practiceSectionStartTime);
 
             _fretArray.ResetAll();
         }
 
-        // TODO: Figure out why this isn't a valid declaration so we can fix replay seeking
-        // public override void SetReplayTime(float time)
-        // {
-        //     base.SetReplayTime(time);
-        // }
+        public override void SetPracticeSection(uint start, uint end)
+        {
+            base.SetPracticeSection(start, end);
+
+            // This will set the current range correctly
+            _practiceSectionStartTime = SyncTrack.TickToTime(start);
+            InitializeRangeShift(SyncTrack.TickToTime(start));
+        }
+
+        public override void SetReplayTime(double time)
+        {
+            ResetRangeShift(time);
+            base.SetReplayTime(time);
+        }
+
+        private void ResetRangeShift(double time)
+        {
+            // Despawn shift indicators and rebuild the shift queues based on the replay time
+            _rangeShiftEventQueue.Clear();
+            _shiftIndicators.Clear();
+            for (var i = 0; i < _shiftIndicatorPool.AllSpawned.Count; i++)
+            {
+                var poolable = _shiftIndicatorPool.AllSpawned[i];
+                _shiftIndicatorPool.Return(poolable);
+            }
+
+            InitializeRangeShift(time);
+        }
 
         protected override void UpdateVisuals(double songTime)
         {
@@ -179,15 +205,9 @@ namespace YARG.Gameplay.Player
 
         public void UpdateRangeShift(double songTime)
         {
-            if (!_rangeShiftEvents.TryPeek(out var nextShift))
+            if (!_rangeShiftEventQueue.TryPeek(out var nextShift))
             {
                 return;
-            }
-
-            if (!nextShift.Shown && nextShift.Time >= songTime - SpawnTimeOffset)
-            {
-                var shiftLeft = nextShift.Range > CurrentRange.Range;
-                nextShift.Shown = true;
             }
 
             if (_fretPulseStarting && _fretPulseStartTime <= songTime)
@@ -221,24 +241,19 @@ namespace YARG.Gameplay.Player
 
                 _shiftIndicators.Dequeue();
 
-                // TODO: Adjust this to start when the first shift indicator reaches the strike line
                 if (!_fretPulseStarting)
                 {
                     _fretPulseStarting = true;
-                    // Why is this not producing the right time?
-                    // It is supposed to start pulsing when the shift indicator hits the strike line
-                    // Time - -STRIKE_LINE_POS / NoteSpeed is too early by something like 4 beats
-                    // Time alone is too late by a couple of beats
 
-                    // This works, but the math is all wrong and just happens to produce the right answer
+                    // TODO: This works, but I'm sure there is more correct math
                     _fretPulseStartTime = shiftIndicator.Time - ((-STRIKE_LINE_POS / NoteSpeed) / 2) + nextShift.BeatDuration * 1.25;
                 }
             }
 
-            // TODO: Also need to deal with seeking in replays somewhere
+            // Turn off the pulsing and switch active frets now that we're in the new range
             if (nextShift.Time <= songTime)
             {
-                _rangeShiftEvents.Dequeue();
+                _rangeShiftEventQueue.Dequeue();
                 for (var i = 0; i < _fretArray.FretCount; i++)
                 {
                     _fretArray.SetFretColorPulse(i, false, (float) nextShift.BeatDuration);
@@ -446,8 +461,9 @@ namespace YARG.Gameplay.Player
         }
 
 
-        private void InitializeRangeShift()
+        private void InitializeRangeShift(double time = 0)
         {
+            _rangeShiftEventQueue.Clear();
             // Default to everything on
             _activeFrets = new bool[_fretArray.FretCount];
             for (int i = 0; i < _fretArray.FretCount; i++)
@@ -455,29 +471,60 @@ namespace YARG.Gameplay.Player
                 _activeFrets[i] = true;
             }
 
-            var events = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack.TextEvents, NoteTrack.Difficulty);
-            // Fewer than two range shifts makes no sense
-            if (events.Count < 1)
+            if (_allRangeShiftEvents.Count == 0)
             {
-                _rangeShiftEvents = new Queue<FiveFretRangeShift>();
+                // Since we don't have a list yet, get it
+                _allRangeShiftEvents =
+                    FiveFretRangeShift.GetRangeShiftEvents(NoteTrack.TextEvents, NoteTrack.Difficulty);
+            }
+
+            // Fewer than two range shifts makes no sense
+            if (_allRangeShiftEvents.Count < 1)
+            {
+                // _rangeShiftEventQueue = new Queue<FiveFretRangeShift>();
                 return;
             }
 
-            if (events.Count == 1)
+            if (_allRangeShiftEvents.Count == 1)
             {
                 // There are no actual shifts, but we should dim unused frets
-                SetActiveFretsForShiftEvent(events[0]);
-                CurrentRange = events[0];
-                _rangeShiftEvents = new Queue<FiveFretRangeShift>();
+                SetActiveFretsForShiftEvent(_allRangeShiftEvents[0]);
+                CurrentRange = _allRangeShiftEvents[0];
+                // _rangeShiftEventQueue = new Queue<FiveFretRangeShift>();
                 return;
             }
 
             // Turns out that we have range shifts that need indicators
-            var firstEvent = events[0];
-            CurrentRange = firstEvent;
+            var firstEvent = _allRangeShiftEvents[0];
+            _rangeShiftEventQueue = new Queue<FiveFretRangeShift>();
+
+            FiveFretRangeShift mostRecentEvent = firstEvent;
+
+            // Only queue range shifts that happen after time
+            foreach (var e in _allRangeShiftEvents)
+            {
+                // The first event just sets the starting range, so skip it
+                if (_allRangeShiftEvents.IndexOf(e) == 0)
+                {
+                    continue;
+                }
+                // These have no visible effect on the track, so we just
+                // want to make sure any that are current or in the future are queued
+                // and to figure out which was the most recent event
+                if (e.Time >= time)
+                {
+                    _rangeShiftEventQueue.Enqueue(e);
+                    continue;
+                }
+
+                if (e.Time > mostRecentEvent.Time)
+                {
+                    mostRecentEvent = e;
+                }
+            }
+
+            CurrentRange = mostRecentEvent;
             SetActiveFretsForShiftEvent(CurrentRange);
-            events.RemoveAt(0);
-            _rangeShiftEvents = new Queue<FiveFretRangeShift>(events);
 
             // Figure out where the indicators should go
             var beatlines = Beatlines
@@ -485,10 +532,10 @@ namespace YARG.Gameplay.Player
                 .ToList();
 
             _shiftIndicators.Clear();
-            int lastShiftRange = firstEvent.Range;
+            int lastShiftRange = mostRecentEvent.Range;
             int beatlineIndex = 0;
 
-            foreach (var shift in _rangeShiftEvents.ToList())
+            foreach (var shift in _rangeShiftEventQueue.ToList())
             {
                 if (shift.Range == lastShiftRange)
                 {
@@ -535,9 +582,6 @@ namespace YARG.Gameplay.Player
                 // In case we have no samples for this shift event, 0.5 is a reasonable default
                 shift.BeatDuration = firstBeatTime < double.MaxValue ? (lastBeatTime - firstBeatTime) / SHIFT_INDICATOR_MEASURES_BEFORE : 0.5;
             }
-
-            // TODO: Remove this test shit
-            // _fretArray.UpdateFretActiveState(_activeFrets);
         }
 
         private void SetActiveFretsForShiftEvent(FiveFretRangeShift range)

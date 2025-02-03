@@ -46,7 +46,6 @@ namespace YARG.Gameplay.Visuals
         private bool  _pulseOrFade  = true;
         private float _fadeDuration = 0.25f;
         private float _fadeStartTime;
-        private float _fadeEndTime;
         private float _fadeAmount = 0.0f;
 
         public void Initialize(Color top, Color inner, Color particles, Color openParticles)
@@ -234,17 +233,18 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            var rateAdjustment = 1; // pulse ? 2 : 1;
-
             _pulseOrFade = pulse;
             _fadeDuration = duration;
             _fadeDirection = fadeDirection;
             _fadeStartTime = Time.time;
-            _fadeEndTime = Time.time + (_fadeDuration / rateAdjustment);
             _colorChangeEnabled = true;
             _fadeAmount = 0.0f;
         }
 
+        // TODO: Investigate whether we should be using a MaterialPropertyBlock to set the color
+        //  instead of setting the color directly so that draw call batching is possible
+        //  (I think it doesn't actually matter much since there's only 10 of these materials active at a time,
+        //   but every bit helps, I guess?)
         public void UpdateColor()
         {
             if (!_colorChangeEnabled)
@@ -253,15 +253,6 @@ namespace YARG.Gameplay.Visuals
             }
 
             var rateAdjustment = 1; //_pulseOrFade ? 2 : 1;
-
-            // if (!_pulseOrFade && Time.time - _fadeStartTime >= _fadeDuration / rateAdjustment)
-            // {
-            //     // Switch directions
-            //     _fadeDirection = !_fadeDirection;
-            //     _fadeAmount = 0.0f;
-            //     _colorChangeEnabled = false;
-            //     return;
-            // }
 
             _fadeAmount += Time.deltaTime / (_fadeDuration / rateAdjustment);
             var fadeIntensity = _pulseOrFade ? _fadeAmount : ((Mathf.Cos(Mathf.PI * _fadeAmount) / 2) * -1) + 1;
@@ -303,23 +294,6 @@ namespace YARG.Gameplay.Visuals
                     _colorChangeEnabled = false;
                     _fadeAmount = 0.0f;
                 }
-
-                // This seems like it shouldn't be necessary, but even when _fadeAmount is 1.0f we still aren't quite
-                // all the way to the inactive color.
-                // if (_fadeDirection)
-                // {
-                //     return;
-                // }
-                //
-                // foreach (var material in _topMaterials)
-                // {
-                //     material.color = _inactiveColor;
-                // }
-                //
-                // foreach (var material in _innerMaterials)
-                // {
-                //     material.color = _inactiveColor;
-                // }
             }
         }
     }
