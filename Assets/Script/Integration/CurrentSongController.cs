@@ -85,7 +85,7 @@ namespace YARG.Integration
                 $"{song.Artist}\n" +
                 $"{song.Album}\n" +
                 $"{song.Genre}\n" +
-                $"{song.Year}\n" +
+                $"{song.ParsedYear}\n" +
                 $"{SongSources.SourceToGameName(song.Source)}\n" +
                 $"{song.Charter}";
 
