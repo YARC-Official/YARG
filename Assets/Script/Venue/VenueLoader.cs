@@ -84,7 +84,7 @@ namespace YARG.Venue
                     case ".jpg":
                     case ".jpeg":
                         var image = YARGImage.Load(info);
-                        if (image != null)
+                        if (image.IsAllocated)
                         {
                             return new BackgroundResult(image);
                         }

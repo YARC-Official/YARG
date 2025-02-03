@@ -91,7 +91,7 @@ namespace YARG.Song
                     if (info.Exists)
                     {
                         using var image = await UniTask.RunOnThreadPool(() => YARGImage.Load(info));
-                        if (image == null)
+                        if (!image.IsAllocated)
                         {
                             YargLogger.LogFormatWarning("Failed to load source icon `{0}`!", info.FullName);
                             return;
