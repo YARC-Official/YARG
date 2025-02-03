@@ -162,8 +162,17 @@ namespace YARG.Menu.MusicLibrary
 
                 CreateItem("ViewSongFolder", () =>
                 {
-                    FileExplorerHelper.OpenFolder(song.DirectoryActual);
-
+                    switch (song.SubType)
+                    {
+                        case EntryType.Ini:
+                        case EntryType.ExCON:
+                            FileExplorerHelper.OpenFolder(song.ActualLocation);
+                            break;
+                        case EntryType.Sng:
+                        case EntryType.CON:
+                            FileExplorerHelper.OpenToFile(song.ActualLocation);
+                            break;
+                    }
                     gameObject.SetActive(false);
                 });
 

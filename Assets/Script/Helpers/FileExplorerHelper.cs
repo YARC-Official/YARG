@@ -6,6 +6,7 @@ using System.Diagnostics;
 
 using UnityEngine;
 using YARG.Menu.Persistent;
+using System.IO;
 
 namespace YARG.Helpers
 {
@@ -78,6 +79,23 @@ namespace YARG.Helpers
             Process.Start("xdg-open", folderPath);
 #else
             GUIUtility.systemCopyBuffer = folderPath;
+            DialogManager.Instance.ShowMessage(
+                "Path Copied To Clipboard",
+                "Your system does not support the opening of the file explorer dialog, so the path of the folder has " +
+                "been copied to your clipboard.");
+#endif
+        }
+
+        public static void OpenToFile(string filePath)
+        {
+#if UNITY_STANDALONE_WIN
+            Process.Start("explorer.exe", $"/select, \"{filePath}\"");
+#elif UNITY_STANDALONE_OSX
+            Process.Start("open", $"-R \"{filePath}\"");
+#elif UNITY_STANDALONE_LINUX
+            Process.Start("xdg-open", Path.GetDirectoryName(filePath));
+#else
+            GUIUtility.systemCopyBuffer = filePath;
             DialogManager.Instance.ShowMessage(
                 "Path Copied To Clipboard",
                 "Your system does not support the opening of the file explorer dialog, so the path of the folder has " +
