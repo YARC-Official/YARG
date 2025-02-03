@@ -254,26 +254,27 @@ namespace YARG.Menu.MusicLibrary
             }
 
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
+            int songCount = 0;
+            foreach (var section in _sortedSongs)
+            {
+                if (allowdupes)
+                {
+                    songCount += section.Songs.Length;
+                    continue;
+                }
+
+                foreach (var song in section.Songs)
+                {
+                    if (!song.IsDuplicate)
+                    {
+                        ++songCount;
+                    }
+                }
+            }
+
             if (_searchField.IsSearching)
             {
-                int count = _sortedSongs.Sum(section =>
-                {
-                    if (allowdupes)
-                    {
-                        return section.Songs.Length;
-                    }
-
-                    int count = 0;
-                    foreach (var song in section.Songs)
-                    {
-                        if (!song.IsDuplicate)
-                        {
-                            count++;
-                        }
-                    }
-                    return count;
-                });
-                list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.SearchResults"), count, _sortedSongs));
+                list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.SearchResults"), songCount, _sortedSongs));
             }
             else
             {
@@ -299,7 +300,7 @@ namespace YARG.Menu.MusicLibrary
                 if (SettingsManager.Settings.LibrarySort < SortAttribute.Playable)
                 {
                     list.Add(new CategoryViewType(
-                        Localize.Key("Menu.MusicLibrary.AllSongs"), SongContainer.Count, SongContainer.Songs));
+                        Localize.Key("Menu.MusicLibrary.AllSongs"), songCount, SongContainer.Songs));
 
                     if (_recommendedSongs != null)
                     {
@@ -323,8 +324,7 @@ namespace YARG.Menu.MusicLibrary
                 }
                 else
                 {
-                    int count = _sortedSongs.Sum(section => section.Songs.Length);
-                    list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.PlayableSongs"), count, _sortedSongs));
+                    list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.PlayableSongs"), songCount, _sortedSongs));
                 }
             }
 
