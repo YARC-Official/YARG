@@ -22,16 +22,21 @@ namespace YARG.Gameplay.Visuals
 
         private readonly List<Vector3> _points = new();
 
+        private MaterialPropertyBlock _materialProperties = null;
+
         protected override void InitializeElement()
         {
+            if (_materialProperties == null)
+            {
+                _materialProperties = new();
+            }
             var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
-            var matPropBlock = new MaterialPropertyBlock();
-            matPropBlock.SetColor("_BaseColor", color);
+            _materialProperties.SetColor("_BaseColor", color);
 
             // Set line color
             foreach (var line in _lineRenderers)
             {
-                line.SetPropertyBlock(matPropBlock);
+                line.SetPropertyBlock(_materialProperties);
             }
 
             YargLogger.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length);
