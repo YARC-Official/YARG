@@ -1,4 +1,5 @@
 ﻿using System;
+using YARG.Core;
 using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Core.Input;
@@ -35,6 +36,9 @@ namespace YARG.Player
         /// This is only used when loading replays.
         /// </summary>
         public BaseEngineParameters EngineParameterOverride { get; set; }
+
+        public bool IsMissingMicrophone => Profile.GameMode == GameMode.Vocals && Bindings.Microphone == null && !Profile.IsBot;
+        public bool IsMissingInputDevice => Profile.GameMode != GameMode.Vocals && !Bindings.HasDeviceAssigned && !Profile.IsBot;
 
         public YargPlayer(YargProfile profile, ProfileBindings bindings)
         {

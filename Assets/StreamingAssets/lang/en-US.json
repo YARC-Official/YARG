@@ -209,7 +209,8 @@
             "Ready": "Ready",
             "SitOut": "Sit Out",
             "Done": "Done",
-            "VocalistNoMicrophoneMessage" : "This vocalist has no microphone assigned! Assign one from the profiles menu."
+            "WarningPlayerNoInputDevice" : "This player has no input device assigned! Assign one from the Profiles menu.",
+            "WarningVocalistNoMicrophone" : "This vocalist has no microphone assigned! Assign one from the Profiles menu."
         },
         "History": {
             "Name": "History",

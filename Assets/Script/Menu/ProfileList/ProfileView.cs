@@ -144,6 +144,8 @@ namespace YARG.Menu.ProfileList
             if (devicesAvailable)
             {
                 await dialog.WaitUntilClosed();
+                // Update active players to hide the "No input device" icons if appropriate.
+                StatsManager.Instance.UpdateActivePlayers();
             }
             else
             {
@@ -194,6 +196,8 @@ namespace YARG.Menu.ProfileList
             if (devicesAvailable)
             {
                 await dialog.WaitUntilClosed();
+                // Update active players to show the "No input device" icons if appropriate.
+                StatsManager.Instance.UpdateActivePlayers();
             }
             else
             {

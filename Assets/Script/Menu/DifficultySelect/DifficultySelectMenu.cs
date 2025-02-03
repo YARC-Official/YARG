@@ -173,11 +173,13 @@ namespace YARG.Menu.DifficultySelect
         {
             var player = CurrentPlayer;
 
-            var vocalistWithNoMic = player.Bindings.Microphone == null && player.Profile.GameMode == Core.GameMode.Vocals && ! player.Profile.IsBot;
-
-            if (vocalistWithNoMic)
+            if (player.IsMissingMicrophone)
             {
-                ShowWarning(Localize.Key("Menu.DifficultySelect.VocalistNoMicrophoneMessage"));
+                ShowWarning(Localize.Key("Menu.DifficultySelect.WarningVocalistNoMicrophone"));
+            }
+            else if (player.IsMissingInputDevice)
+            {
+                ShowWarning(Localize.Key("Menu.DifficultySelect.WarningPlayerNoInputDevice"));
             }
             else
             {
