@@ -24,12 +24,14 @@ namespace YARG.Gameplay.Visuals
 
         private MaterialPropertyBlock _materialProperties = null;
 
+        protected override void GameplayAwake()
+        {
+            base.GameplayAwake();
+            _materialProperties = new();
+        }
+
         protected override void InitializeElement()
         {
-            if (_materialProperties == null)
-            {
-                _materialProperties = new();
-            }
             var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
             _materialProperties.SetColor("_BaseColor", color);
 
