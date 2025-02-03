@@ -542,7 +542,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                var shiftLeft = shift.Range > lastShiftRange;
+                var shiftLeft = Player.Profile.LeftyFlip ? shift.Range < lastShiftRange : shift.Range > lastShiftRange;
                 lastShiftRange = shift.Range;
 
                 double lastBeatTime = 0;
