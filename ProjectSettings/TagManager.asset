@@ -41,3 +41,12 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Harm1
+    uniqueID: 2649008323
+    locked: 0
+  - name: Harm2
+    uniqueID: 626877311
+    locked: 0
+  - name: Harm3
+    uniqueID: 3317812413
+    locked: 0
