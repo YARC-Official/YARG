@@ -75,9 +75,6 @@ namespace YARG.Helpers
                     continue;
                 }
 
-                // TODO: Range probably needs to be adjusted since visual frets are zero indexed (I think)
-                //  and the chart fret is one indexed since zero is an open note
-
                 if (difficulty == eventDifficulty)
                 {
                     shiftEvents.Add(new FiveFretRangeShift(textEvent.Time, range, size));
