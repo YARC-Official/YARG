@@ -61,7 +61,7 @@ namespace YARG.Settings
 
             public void OpenVenueFolder()
             {
-                FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder.FullName);
+                FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
             public ToggleSetting DisableGlobalBackgrounds { get; } = new(false);
