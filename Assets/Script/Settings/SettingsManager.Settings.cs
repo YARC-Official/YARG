@@ -95,7 +95,7 @@ namespace YARG.Settings
 
             #region Songs
 
-            public ToggleSetting AllowDuplicateSongs { get; } = new(true);
+            public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);

@@ -253,9 +253,26 @@ namespace YARG.Menu.MusicLibrary
                 return list;
             }
 
+            bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
             if (_searchField.IsSearching)
             {
-                int count = _sortedSongs.Sum(section => section.Songs.Length);
+                int count = _sortedSongs.Sum(section =>
+                {
+                    if (allowdupes)
+                    {
+                        return section.Songs.Length;
+                    }
+
+                    int count = 0;
+                    foreach (var song in section.Songs)
+                    {
+                        if (!song.IsDuplicate)
+                        {
+                            count++;
+                        }
+                    }
+                    return count;
+                });
                 list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.SearchResults"), count, _sortedSongs));
             }
             else
@@ -337,7 +354,10 @@ namespace YARG.Menu.MusicLibrary
 
                 foreach (var song in section.Songs)
                 {
-                    list.Add(new SongViewType(this, song));
+                    if (allowdupes || !song.IsDuplicate)
+                    {
+                        list.Add(new SongViewType(this, song));
+                    }
                 }
             }
             CalculateCategoryHeaderIndices(list);
@@ -360,6 +380,7 @@ namespace YARG.Menu.MusicLibrary
                 return list;
             }
 
+            bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
             foreach (var section in _sortedSongs)
             {
                 list.Add(new SortHeaderViewType(
@@ -369,7 +390,10 @@ namespace YARG.Menu.MusicLibrary
 
                 foreach (var song in section.Songs)
                 {
-                    list.Add(new SongViewType(this, song));
+                    if (allowdupes || !song.IsDuplicate)
+                    {
+                        list.Add(new SongViewType(this, song));
+                    }
                 }
             }
 
