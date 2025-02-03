@@ -209,7 +209,7 @@ namespace YARG.Song
 
         public static bool HasInstrument(Instrument instrument)
         {
-            return _sortInstruments[instrument].Length > 0;
+            return _sortInstruments.ContainsKey(instrument);
         }
 
         private static HashSet<Instrument> _instruments = null;
