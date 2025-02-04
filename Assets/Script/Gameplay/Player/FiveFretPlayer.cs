@@ -24,7 +24,11 @@ namespace YARG.Gameplay.Player
     public sealed class FiveFretPlayer : TrackPlayer<GuitarEngine, GuitarNote>
     {
         private const double SUSTAIN_END_MUTE_THRESHOLD      = 0.1;
-        private const int    SHIFT_INDICATOR_MEASURES_BEFORE = 5;
+
+        private const int   SHIFT_INDICATOR_MEASURES_BEFORE  = 5;
+        private const float WIDTH_NUMERATOR                  = 2f;
+        private const float WIDTH_DENOMINATOR                = 5f;
+        private const float SHIFT_INDICATOR_DEFAULT_POSITION = 1f;
 
         public override bool ShouldUpdateInputsOnResume => true;
 
@@ -46,6 +50,7 @@ namespace YARG.Gameplay.Player
         {
             public double Time;
             public bool   LeftSide;
+            public int    Offset;
         }
 
         private List<FiveFretRangeShift>  _allRangeShiftEvents = new();
@@ -235,6 +240,9 @@ namespace YARG.Gameplay.Player
                 }
 
                 YargLogger.LogDebug("Shift indicator spawned!");
+
+                var indicatorXPosition = ((WIDTH_NUMERATOR / WIDTH_DENOMINATOR) * shiftIndicator.Offset) + SHIFT_INDICATOR_DEFAULT_POSITION;
+                ((GuitarShiftIndicatorElement) poolable).transform.localPosition.WithX(indicatorXPosition);
 
                 ((GuitarShiftIndicatorElement) poolable).RangeShiftIndicator = shiftIndicator;
                 poolable.EnableFromPool();
@@ -537,7 +545,8 @@ namespace YARG.Gameplay.Player
                     _shiftIndicators.Enqueue(new RangeShiftIndicator
                     {
                         Time = beatlines[realIndex].Time,
-                        LeftSide = shiftLeft
+                        LeftSide = shiftLeft,
+                        Offset = shiftLeft ? shift.Range - 1 : (shift.Range + shift.Size) - 6
                     });
                 }
 
