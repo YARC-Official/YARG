@@ -40,10 +40,7 @@ namespace YARG.Gameplay.Visuals
             var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
             foreach (var meshRenderer in meshRenderers)
             {
-                foreach (var material in meshRenderer.materials)
-                {
-                    material.SetFade(fadePos, fadeSize);
-                }
+                meshRenderer.SetFade(fadePos, fadeSize);
             }
 
             // Set all fade values for note flares

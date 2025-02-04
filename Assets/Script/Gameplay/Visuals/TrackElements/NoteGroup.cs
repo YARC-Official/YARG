@@ -6,26 +6,8 @@ namespace YARG.Gameplay.Visuals
 {
     public class NoteGroup : MonoBehaviour
     {
-        private struct MaterialInfo
-        {
-            public Material MaterialCache;
-
-            public float EmissionMultiplier;
-            public float EmissionAddition;
-
-            public static MaterialInfo From(MeshEmissionMaterialIndex a)
-            {
-                return new MaterialInfo
-                {
-                    MaterialCache      = a.Mesh.materials[a.MaterialIndex],
-                    EmissionMultiplier = a.EmissionMultiplier,
-                    EmissionAddition   = a.EmissionAddition,
-                };
-            }
-        }
-
+        private static readonly int _baseColor = Shader.PropertyToID("_Color");
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
-
         private static readonly int _randomFloat = Shader.PropertyToID("_RandomFloat");
         private static readonly int _randomVector = Shader.PropertyToID("_RandomVector");
 
@@ -34,14 +16,14 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private ThemeNote _themeNote;
 
-        private MaterialInfo[] _coloredMaterialCache;
-        private MaterialInfo[] _coloredMaterialNoStarPowerCache;
-        private MaterialInfo[] _allColoredCache;
+        private MeshEmissionMaterialIndex[] _coloredMaterialCache;
+        private MeshEmissionMaterialIndex[] _coloredMaterialNoStarPowerCache;
+        private MeshEmissionMaterialIndex[] _allColoredCache;
 
         public void Initialize()
         {
-            _coloredMaterialCache ??= _themeNote.ColoredMaterials.Select(MaterialInfo.From).ToArray();
-            _coloredMaterialNoStarPowerCache ??= _themeNote.ColoredMaterialsNoStarPower.Select(MaterialInfo.From).ToArray();
+            _coloredMaterialCache ??= _themeNote.ColoredMaterials.ToArray();
+            _coloredMaterialNoStarPowerCache ??= _themeNote.ColoredMaterialsNoStarPower.ToArray();
             _allColoredCache ??= _coloredMaterialCache.Concat(_coloredMaterialNoStarPowerCache).ToArray();
 
             // Set random values
@@ -49,17 +31,18 @@ namespace YARG.Gameplay.Visuals
             var randomVector = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
             foreach (var info in _allColoredCache)
             {
-                var material = info.MaterialCache;
+                info.Mesh.GetPropertyBlock(MaterialPropertyInstance.Instance, info.MaterialIndex);
 
-                if (material.HasFloat(_randomFloat))
+                if (info.Mesh.sharedMaterials[info.MaterialIndex].HasFloat(_randomFloat))
                 {
-                    material.SetFloat(_randomFloat, randomFloat);
+                    MaterialPropertyInstance.Instance.SetFloat(_randomFloat, randomFloat);
                 }
 
-                if (material.HasVector(_randomVector))
+                if (info.Mesh.sharedMaterials[info.MaterialIndex].HasVector(_randomVector))
                 {
-                    material.SetVector(_randomVector, randomVector);
+                    MaterialPropertyInstance.Instance.SetVector(_randomVector, randomVector);
                 }
+                info.Mesh.SetPropertyBlock(MaterialPropertyInstance.Instance, info.MaterialIndex);
             }
         }
 
@@ -72,8 +55,10 @@ namespace YARG.Gameplay.Visuals
                 float a = info.EmissionAddition;
                 var realColor = color + new Color(a, a, a);
 
-                info.MaterialCache.color = realColor;
-                info.MaterialCache.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+                info.Mesh.GetPropertyBlock(MaterialPropertyInstance.Instance, info.MaterialIndex);
+                MaterialPropertyInstance.Instance.SetColor(_baseColor, realColor);
+                MaterialPropertyInstance.Instance.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+                info.Mesh.SetPropertyBlock(MaterialPropertyInstance.Instance, info.MaterialIndex);
             }
 
             // Deal with color (no star power)
@@ -84,8 +69,10 @@ namespace YARG.Gameplay.Visuals
                 float a = info.EmissionAddition;
                 var realColor = colorNoStarPower + new Color(a, a, a);
 
-                info.MaterialCache.color = realColor;
-                info.MaterialCache.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+                info.Mesh.GetPropertyBlock(MaterialPropertyInstance.Instance, info.MaterialIndex);
+                MaterialPropertyInstance.Instance.SetColor(_baseColor, realColor);
+                MaterialPropertyInstance.Instance.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+                info.Mesh.SetPropertyBlock(MaterialPropertyInstance.Instance, info.MaterialIndex);
             }
         }
 
