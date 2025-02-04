@@ -64,7 +64,7 @@ namespace YARG
             }
             else
             {
-                PlayerContainer.ClearAutoConnectProfiles();
+                PlayerContainer.ClearProfileOrder();
             }
         }
     }

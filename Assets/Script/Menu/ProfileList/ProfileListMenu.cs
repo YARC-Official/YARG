@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -11,6 +10,7 @@ using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
+using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {
@@ -63,6 +63,7 @@ namespace YARG.Menu.ProfileList
 
             var activeProfiles = PlayerContainer.Players.Select(e => e.Profile).ToArray();
             var otherProfiles = PlayerContainer.Profiles.Except(activeProfiles).OrderBy(e => e.Name).ToArray();
+
             AddListGroup(Localize.Key("Menu.ProfileList.ActiveProfiles"), activeProfiles);
             AddListGroup(Localize.Key("Menu.ProfileList.Players"), otherProfiles.Where(e => !e.IsBot));
             AddListGroup(Localize.Key("Menu.ProfileList.Bots"), otherProfiles.Where(e => e.IsBot));
@@ -72,11 +73,7 @@ namespace YARG.Menu.ProfileList
                 return;
             }
 
-            var profileView = _profileList.GetComponentsInChildren<ProfileView>().FirstOrDefault(e => e.Profile == selectedProfile);
-            if (profileView != null)
-            {
-                _profileSidebar.UpdateSidebar(selectedProfile, profileView);
-            }
+            SetSelectedProfile(selectedProfile);
         }
 
         private void AddListGroup(string header, IEnumerable<YargProfile> profiles)
@@ -128,26 +125,25 @@ namespace YARG.Menu.ProfileList
 
         public void MoveProfileUp(YargProfile profile)
         {
-            PlayerContainer.MoveUp(GetPlayerFromProfile(profile));
+            PlayerContainer.MoveUp(PlayerContainer.GetPlayerFromProfile(profile));
             RefreshList(profile);
         }
 
         public void MoveProfileDown(YargProfile profile)
         {
-            PlayerContainer.MoveDown(GetPlayerFromProfile(profile));
+            PlayerContainer.MoveDown(PlayerContainer.GetPlayerFromProfile(profile));
             RefreshList(profile);
         }
 
-        private YargPlayer GetPlayerFromProfile(YargProfile profile)
+        public void SetSelectedProfile(YargProfile profile)
         {
-            var player = PlayerContainer.Players.SingleOrDefault(e => e.Profile == profile);
-
-            if (player == null)
+            // Have to use LastOrDefault() here as this GetComponentsInChildren() call may include recently Destroyed objects.
+            var profileView = _profileList.GetComponentsInChildren<ProfileView>()
+                .LastOrDefault(e => e.Profile == profile);
+            if (profileView != null)
             {
-                throw new ArgumentException($"Profile {profile.Name} is not currently active.");
+                profileView.SetSelected(true, SelectionOrigin.Programmatically);
             }
-            return player;
         }
-
     }
 }

@@ -273,8 +273,9 @@ namespace YARG.Player
 
             if (updateOrder)
             {
-                SaveProfileOrder();
+                UpdateProfileOrder();
             }
+
             string profilesJson = JsonConvert.SerializeObject(_profiles, Formatting.Indented);
             File.WriteAllText(ProfilesPath, profilesJson);
 
@@ -330,6 +331,7 @@ namespace YARG.Player
             {
                 return;
             }
+
             _players.RemoveAt(index);
             _players.Insert(index - 1, player);
         }
@@ -341,24 +343,31 @@ namespace YARG.Player
             {
                 throw new ArgumentException("Player not found in the active player list");
             }
+
             if (index == _players.Count - 1)
             {
                 return;
             }
+
             _players.RemoveAt(index);
             _players.Insert(index + 1, player);
         }
 
-        public static void SaveProfileOrder()
+        public static void UpdateProfileOrder()
+        {
+            ClearProfileOrder();
+
+            for (int i = 0; i < _players.Count; i++)
+            {
+                _players[i].Profile.AutoConnectOrder = i;
+            }
+        }
+    
+        public static void ClearProfileOrder()
         {
             foreach (var profile in Profiles)
             {
                 profile.AutoConnectOrder = null;
-            }
-
-            for (int x = 0; x < _players.Count; x++)
-            {
-                _players[x].Profile.AutoConnectOrder = x;
             }
         }
 
@@ -366,15 +375,7 @@ namespace YARG.Player
         {
             foreach (var profile in Profiles.Where(e => e.AutoConnectOrder != null).OrderBy(e => e.AutoConnectOrder))
             {
-                var result = CreatePlayerFromProfile(profile, true);
-            }
-        }
-
-        public static void ClearAutoConnectProfiles()
-        {
-            foreach (var profile in Profiles)
-            {
-                profile.AutoConnectOrder = null;
+                CreatePlayerFromProfile(profile, true);
             }
         }
     }

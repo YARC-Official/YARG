@@ -199,14 +199,17 @@ namespace YARG.Menu.ProfileList
 
                 // Update the UI
                 _profileName.text = _profile.Name;
-                _profileView.Init(_profileListMenu, _profile, this);
+                _profileView.UpdateDisplay(_profile);
             }
         }
 
         public void EditProfile()
         {
             // Only allow profile editing if it's taken
-            if (!PlayerContainer.IsProfileTaken(_profile)) return;
+            if (!PlayerContainer.IsProfileTaken(_profile))
+            {
+                return;
+            }
 
             var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.ProfileInfo, false);
 
@@ -227,6 +230,7 @@ namespace YARG.Menu.ProfileList
         public void ChangeGameMode()
         {
             _profile.GameMode = _gameModesByIndex[_gameModeDropdown.value];
+            _profileView.UpdateDisplay(_profile);
         }
 
         public void ChangeNoteSpeed()
