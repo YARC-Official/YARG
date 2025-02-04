@@ -257,11 +257,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3c96e6e374558394c916050a1657c058
-    m_Address: NoMicrophoneIcon
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 12e5f769dd812a2418ee2365934e5343
     m_Address: NoInstrumentIcons
     m_ReadOnly: 0
