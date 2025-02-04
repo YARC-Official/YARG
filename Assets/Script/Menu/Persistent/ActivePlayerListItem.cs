@@ -36,11 +36,10 @@ namespace YARG.Menu.Persistent
 
            _playerNameText.text = profile.Name;
 
-            var vocalistWithNoMic = player.Bindings.Microphone == null && profile.GameMode == Core.GameMode.Vocals && ! profile.IsBot;
+            var instrumentSprite =player.IsMissingInputDevice || player.IsMissingMicrophone
+                 ? $"NoInstrumentIcons[{profile.CurrentInstrument.ToResourceName()}]"
+                 : $"InstrumentIcons[{profile.CurrentInstrument.ToResourceName()}]";
 
-            var instrumentSprite = vocalistWithNoMic
-                ? "NoMicrophoneIcon"
-                : ($"InstrumentIcons[{profile.CurrentInstrument.ToResourceName()}]");
             _playerInstrumentIcon.sprite = Addressables
                 .LoadAssetAsync<Sprite>(instrumentSprite)
                 .WaitForCompletion();
