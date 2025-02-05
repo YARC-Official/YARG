@@ -10,7 +10,6 @@ using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
-using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {
