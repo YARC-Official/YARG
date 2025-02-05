@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
+using YARG.Rendering;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -22,23 +23,16 @@ namespace YARG.Gameplay.Visuals
 
         private readonly List<Vector3> _points = new();
 
-        private MaterialPropertyBlock _materialProperties = null;
-
-        protected override void GameplayAwake()
-        {
-            base.GameplayAwake();
-            _materialProperties = new();
-        }
-
         protected override void InitializeElement()
         {
             var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
-            _materialProperties.SetColor("_BaseColor", color);
+            MaterialPropertyInstance.Instance.Clear();
+            MaterialPropertyInstance.Instance.SetColor("_BaseColor", color);
 
             // Set line color
             foreach (var line in _lineRenderers)
             {
-                line.SetPropertyBlock(_materialProperties);
+                line.SetPropertyBlock(MaterialPropertyInstance.Instance);
             }
 
             YargLogger.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length);
