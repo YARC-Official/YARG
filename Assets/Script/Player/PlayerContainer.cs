@@ -319,7 +319,7 @@ namespace YARG.Player
             return _players.Exists(i => i.Profile.IsBot);
         }
 
-        public static void MoveUp(YargPlayer player)
+        public static int GetPlayerIndex(YargPlayer player)
         {
             int index = _players.IndexOf(player);
             if (index == -1)
@@ -327,6 +327,12 @@ namespace YARG.Player
                 throw new ArgumentException("Player not found in the active player list");
             }
 
+            return index;
+        }
+
+        public static void MoveUp(YargPlayer player)
+        {
+            int index = GetPlayerIndex(player);
             if (index == 0)
             {
                 return;
@@ -338,12 +344,7 @@ namespace YARG.Player
 
         public static void MoveDown(YargPlayer player)
         {
-            int index = _players.IndexOf(player);
-            if (index == -1)
-            {
-                throw new ArgumentException("Player not found in the active player list");
-            }
-
+            int index = GetPlayerIndex(player);
             if (index == _players.Count - 1)
             {
                 return;
@@ -362,7 +363,7 @@ namespace YARG.Player
                 _players[i].Profile.AutoConnectOrder = i;
             }
         }
-    
+
         public static void ClearProfileOrder()
         {
             foreach (var profile in Profiles)

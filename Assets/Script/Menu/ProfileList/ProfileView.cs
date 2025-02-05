@@ -28,6 +28,12 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
+        private Button _moveUpButton;
+        [SerializeField]
+        private Button _moveDownButton;
+
+        [Space]
+        [SerializeField]
         private Sprite _profileGenericSprite;
         [SerializeField]
         private Sprite _profileBotSprite;
@@ -45,19 +51,33 @@ namespace YARG.Menu.ProfileList
             UpdateDisplay(profile);
         }
 
-        private void Reinitialize()
-        {
-            Init(_profileListMenu, Profile, _profileSidebar);
-            _profileSidebar.UpdateSidebar(Profile, this);
-        }
-
         public void UpdateDisplay(YargProfile profile)
         {
             Profile = profile;
             _profileName.text = profile.Name;
+
             bool taken = PlayerContainer.IsProfileTaken(profile);
             _connectGroup.SetActive(!taken);
             _disconnectGroup.SetActive(taken);
+
+            if (taken)
+            {
+                var player = PlayerContainer.GetPlayerFromProfile(profile);
+                int index = PlayerContainer.GetPlayerIndex(player);
+
+                // Disable the transition when changing interactability to prevent weird fades
+                // when moving the profiles up and down.
+                var upOriginal = DisableButtonTransition(_moveUpButton);
+                var downOriginal = DisableButtonTransition(_moveDownButton);
+
+                _moveUpButton.interactable = index > 0;
+                _moveDownButton.interactable = index < PlayerContainer.Players.Count - 1;
+
+                // Make sure to set the transitions back to normal afterwards
+                _moveUpButton.colors = upOriginal;
+                _moveDownButton.colors = downOriginal;
+            }
+
             _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
         }
 
@@ -268,6 +288,17 @@ namespace YARG.Menu.ProfileList
         public void MoveDown()
         {
             _profileListMenu.MoveProfileDown(Profile);
+        }
+
+        private static ColorBlock DisableButtonTransition(Button button)
+        {
+            var original = button.colors;
+
+            var noFade = button.colors;
+            noFade.fadeDuration = 0f;
+            button.colors = noFade;
+
+            return original;
         }
     }
 }
