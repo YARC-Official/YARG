@@ -42,6 +42,11 @@ namespace YARG.Settings
                 nameof(Settings.DisablePerSongBackgrounds),
                 nameof(Settings.WaitForSongVideo),
 
+                new HeaderMetadata("Gameplay"),
+                nameof(Settings.VoiceActivatedVocalStarPower),
+                nameof(Settings.EnablePracticeSP),
+                nameof(Settings.PracticeRestartDelay),
+
                 new HeaderMetadata("StatusBar"),
                 nameof(Settings.ShowBattery),
                 nameof(Settings.ShowTime),
@@ -52,11 +57,7 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.ReconnectProfiles),
-                nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.ReduceNoteSpeedByDifficulty),
-                nameof(Settings.KickBounceMultiplier),
-                nameof(Settings.VoiceActivatedVocalStarPower),
-                nameof(Settings.PracticeRestartDelay),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),
@@ -70,7 +71,9 @@ namespace YARG.Settings
                 nameof(Settings.UseFullDirectoryForPlaylists),
                 new HeaderMetadata("MusicLibrary"),
                 nameof(Settings.ShowFavoriteButton),
-                nameof(Settings.HighScoreInfo)
+                nameof(Settings.DifficultyRings),
+                nameof(Settings.HighScoreInfo),
+                nameof(Settings.HighScoreHistory),
             },
             new MetadataTab("Sound", icon: "Sound")
             {
@@ -97,16 +100,18 @@ namespace YARG.Settings
                 new HeaderMetadata("Input"),
                 nameof(Settings.MicrophoneSensitivity),
 
-                new HeaderMetadata("Other"),
+                new HeaderMetadata("Gameplay"),
                 nameof(Settings.MuteOnMiss),
                 nameof(Settings.UseStarpowerFx),
-                // nameof(Settings.UseWhammyFx),
-                // nameof(Settings.WhammyPitchShiftAmount),
-                // nameof(Settings.WhammyOversampleFactor),
                 nameof(Settings.ClapsInStarpower),
                 nameof(Settings.OverstrumAndOverhitSoundEffects),
                 nameof(Settings.AlwaysOnDrumSFX),
+                // nameof(Settings.UseWhammyFx),
+                // nameof(Settings.WhammyPitchShiftAmount),
+                // nameof(Settings.WhammyOversampleFactor),
                 // nameof(Settings.ReverbInStarpower),
+
+                new HeaderMetadata("Other"),
                 nameof(Settings.UseChipmunkSpeed),
                 nameof(Settings.ApplyVolumesInMusicLibrary),
             },
@@ -125,17 +130,22 @@ namespace YARG.Settings
                 nameof(Settings.StarPowerHighwayFx),
                 nameof(Settings.SongBackgroundOpacity),
 
-                new HeaderMetadata("Other"),
+                new HeaderMetadata("Gameplay"),
+                nameof(Settings.UseCymbalModelsInFiveLane),
+                nameof(Settings.UseThreeLaneLyricsInHarmony),
+                nameof(Settings.KickBounceMultiplier),
+
+                new HeaderMetadata("HUD"),
                 nameof(Settings.ShowHitWindow),
                 nameof(Settings.DisableTextNotifications),
-                nameof(Settings.EnablePracticeSP),
                 nameof(Settings.NoteStreakFrequency),
+                nameof(Settings.CountdownDisplay),
+                nameof(Settings.ShowPlayerNameWhenStartingSong),
                 nameof(Settings.LyricDisplay),
                 nameof(Settings.UpcomingLyricsTime),
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox),
                 nameof(Settings.KeepSongInfoVisible),
-                nameof(Settings.CountdownDisplay)
             },
             new PresetsTab("Presets", icon: "Customization"),
             new AllSettingsTab(),

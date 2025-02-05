@@ -89,7 +89,7 @@ namespace YARG.Gameplay.Player
                 var startSpeed = main.startSpeed;
                 startSpeed.constant *= player.Profile.NoteSpeed;
                 main.startSpeed = startSpeed;
-                main.startColor = GameManager.VocalTrack.Colors[partIndex];
+                main.startColor = VocalTrack.Colors[partIndex];
             }
 
             // Get the notes from the specific harmony or solo part
@@ -111,6 +111,8 @@ namespace YARG.Gameplay.Player
 
             percussionTrack.Initialize(NoteTrack.Notes);
             _percussionTrack = percussionTrack;
+
+            _hud.ShowPlayerName(player, needleIndex);
 
             // Create and start an input context for the mic
             if (GameManager.ReplayInfo == null && player.Bindings.Microphone != null)

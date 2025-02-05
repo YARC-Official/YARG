@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -63,6 +63,8 @@ namespace YARG.Menu.ProfileList
         private TMP_Dropdown _colorProfileDropdown;
         [SerializeField]
         private TMP_Dropdown _cameraPresetDropdown;
+        [SerializeField]
+        private TMP_Dropdown _highwayPresetDropdown;
 
         [Space]
         [SerializeField]
@@ -89,6 +91,7 @@ namespace YARG.Menu.ProfileList
         private List<Guid> _colorProfilesByIndex;
         private List<Guid> _cameraPresetsByIndex;
         private List<Guid> _themesByIndex;
+        private List<Guid> _highwayPresetsByIndex;
 
         private void Awake()
         {
@@ -120,6 +123,9 @@ namespace YARG.Menu.ProfileList
             _cameraPresetsByIndex =
                 CustomContentManager.CameraSettings.AddOptionsToDropdown(_cameraPresetDropdown)
                     .Select(i => i.Id).ToList();
+            _highwayPresetsByIndex =
+                CustomContentManager.HighwayPresets.AddOptionsToDropdown(_highwayPresetDropdown)
+                    .Select(i => i.Id).ToList();
         }
 
         public void UpdateSidebar(YargProfile profile, ProfileView profileView)
@@ -129,7 +135,7 @@ namespace YARG.Menu.ProfileList
 
             if (!PlayerContainer.IsProfileTaken(_profile))
             {
-                _contents.SetActive(false);
+                HideContents();
                 return;
             }
 
@@ -152,6 +158,8 @@ namespace YARG.Menu.ProfileList
                 _colorProfilesByIndex.IndexOf(profile.ColorProfile));
             _cameraPresetDropdown.SetValueWithoutNotify(
                 _cameraPresetsByIndex.IndexOf(profile.CameraPreset));
+            _highwayPresetDropdown.SetValueWithoutNotify(
+                _highwayPresetsByIndex.IndexOf(profile.HighwayPreset));
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
@@ -191,14 +199,17 @@ namespace YARG.Menu.ProfileList
 
                 // Update the UI
                 _profileName.text = _profile.Name;
-                _profileView.Init(_profileListMenu, _profile, this);
+                _profileView.UpdateDisplay(_profile);
             }
         }
 
         public void EditProfile()
         {
             // Only allow profile editing if it's taken
-            if (!PlayerContainer.IsProfileTaken(_profile)) return;
+            if (!PlayerContainer.IsProfileTaken(_profile))
+            {
+                return;
+            }
 
             var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.ProfileInfo, false);
 
@@ -219,6 +230,7 @@ namespace YARG.Menu.ProfileList
         public void ChangeGameMode()
         {
             _profile.GameMode = _gameModesByIndex[_gameModeDropdown.value];
+            _profileView.UpdateDisplay(_profile);
         }
 
         public void ChangeNoteSpeed()
@@ -327,6 +339,11 @@ namespace YARG.Menu.ProfileList
         public void ChangeCameraPreset()
         {
             _profile.CameraPreset = _cameraPresetsByIndex[_cameraPresetDropdown.value];
+        }
+
+        public void ChangeHighwayPreset()
+        {
+            _profile.HighwayPreset = _highwayPresetsByIndex[_highwayPresetDropdown.value];
         }
     }
 }

@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 
@@ -21,21 +22,40 @@ namespace YARG.Gameplay.Visuals
 
         private static readonly int _soloStateProperty = Shader.PropertyToID("_Solo_State");
 
+        private static readonly int _starPowerColorProperty = Shader.PropertyToID("_Starpower_Color");
+
         public struct Preset
         {
-            public struct Layer
-            {
-                public Color Color;
-            }
+            public Color Layer1;
+            public Color Layer2;
+            public Color Layer3;
+            public Color Layer4;
 
-            public Layer Layer1;
-            public Layer Layer2;
-            public Layer Layer3;
-            public Layer Layer4;
+            public static Preset FromHighwayPreset(HighwayPreset preset, bool groove)
+            {
+                if (groove)
+                {
+                    return new Preset
+                    {
+                        Layer1 = preset.BackgroundGrooveBaseColor1.ToUnityColor(),
+                        Layer2 = preset.BackgroundGrooveBaseColor2.ToUnityColor(),
+                        Layer3 = preset.BackgroundGrooveBaseColor3.ToUnityColor(),
+                        Layer4 = preset.BackgroundGroovePatternColor.ToUnityColor()
+                    };
+                }
+
+                return new Preset
+                {
+                    Layer1 = preset.BackgroundBaseColor1.ToUnityColor(),
+                    Layer2 = preset.BackgroundBaseColor2.ToUnityColor(),
+                    Layer3 = preset.BackgroundBaseColor3.ToUnityColor(),
+                    Layer4 = preset.BackgroundPatternColor.ToUnityColor()
+                };
+            }
         }
 
-        private static Preset _normalPreset;
-        private static Preset _groovePreset;
+        private Preset _normalPreset;
+        private Preset _groovePreset;
 
         private float _grooveState;
         private float GrooveState
@@ -46,13 +66,13 @@ namespace YARG.Gameplay.Visuals
                 _grooveState = value;
 
                 _material.SetColor(_layer1ColorProperty,
-                    Color.Lerp(_normalPreset.Layer1.Color, _groovePreset.Layer1.Color, value));
+                    Color.Lerp(_normalPreset.Layer1, _groovePreset.Layer1, value));
                 _material.SetColor(_layer2ColorProperty,
-                    Color.Lerp(_normalPreset.Layer2.Color, _groovePreset.Layer2.Color, value));
+                    Color.Lerp(_normalPreset.Layer2, _groovePreset.Layer2, value));
                 _material.SetColor(_layer3ColorProperty,
-                    Color.Lerp(_normalPreset.Layer3.Color, _groovePreset.Layer3.Color, value));
+                    Color.Lerp(_normalPreset.Layer3, _groovePreset.Layer3, value));
                 _material.SetColor(_layer4ColorProperty,
-                    Color.Lerp(_normalPreset.Layer4.Color, _groovePreset.Layer4.Color, value));
+                    Color.Lerp(_normalPreset.Layer4, _groovePreset.Layer4, value));
 
                 _material.SetFloat(_wavinessProperty, value);
             }
@@ -104,49 +124,25 @@ namespace YARG.Gameplay.Visuals
             {
                 _trimMaterials.Add(trim.material);
             }
-
+            
             _normalPreset = new()
             {
-                Layer1 = new()
-                {
-                    Color = FromHex("0F0F0F", 1f)
-                },
-                Layer2 = new()
-                {
-                    Color = FromHex("4B4B4B", 0.15f)
-                },
-                Layer3 = new()
-                {
-                    Color = FromHex("FFFFFF", 0f)
-                },
-                Layer4 = new()
-                {
-                    Color = FromHex("575757", 1f)
-                }
+                Layer1 = FromHex("0F0F0F", 1f),
+                Layer2 = FromHex("4B4B4B", 0.15f),
+                Layer3 = FromHex("FFFFFF", 0f),
+                Layer4 = FromHex("575757", 1f)
             };
 
             _groovePreset = new()
             {
-                Layer1 = new()
-                {
-                    Color = FromHex("000933", 1f)
-                },
-                Layer2 = new()
-                {
-                    Color = FromHex("23349C", 0.15f)
-                },
-                Layer3 = new()
-                {
-                    Color = FromHex("FFFFFF", 0f)
-                },
-                Layer4 = new()
-                {
-                    Color = FromHex("2C499E", 1f)
-                }
+                Layer1 = FromHex("000933", 1f),
+                Layer2 = FromHex("23349C", 0.15f),
+                Layer3 = FromHex("FFFFFF", 0f),
+                Layer4 = FromHex("2C499E", 1f)
             };
         }
 
-        public void Initialize(float fadePos, float fadeSize)
+        public void Initialize(float fadePos, float fadeSize, HighwayPreset highwayPreset)
         {
             // Set all fade values
             _material.SetFade(fadePos, fadeSize);
@@ -154,6 +150,10 @@ namespace YARG.Gameplay.Visuals
             {
                 trimMat.SetFade(fadePos, fadeSize);
             }
+
+            _material.SetColor(_starPowerColorProperty, highwayPreset.StarPowerColor.ToUnityColor() );
+            _normalPreset = Preset.FromHighwayPreset(highwayPreset, false);
+            _groovePreset = Preset.FromHighwayPreset(highwayPreset, true);
         }
 
         private void Update()

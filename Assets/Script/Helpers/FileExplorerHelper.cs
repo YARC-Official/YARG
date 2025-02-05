@@ -2,18 +2,10 @@
 using SFB;
 using YARG.Core.Logging;
 
-#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
-
 using System.Diagnostics;
-
-#else
 
 using UnityEngine;
 using YARG.Menu.Persistent;
-
-#endif
-
-using Debug = UnityEngine.Debug;
 
 namespace YARG.Helpers
 {
@@ -82,6 +74,8 @@ namespace YARG.Helpers
             Process.Start("explorer.exe", folderPath);
 #elif UNITY_STANDALONE_OSX
             Process.Start("open", $"\"{folderPath}\"");
+#elif UNITY_STANDALONE_LINUX
+            Process.Start("xdg-open", folderPath);
 #else
             GUIUtility.systemCopyBuffer = folderPath;
             DialogManager.Instance.ShowMessage(

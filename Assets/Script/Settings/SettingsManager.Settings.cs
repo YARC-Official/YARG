@@ -15,6 +15,7 @@ using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
 using YARG.Player;
+using YARG.Scores;
 using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
@@ -39,6 +40,7 @@ namespace YARG.Settings
             public bool ShowExperimentalWarningDialog = true;
 
             public SortAttribute LibrarySort = SortAttribute.Name;
+            public SortAttribute PreviousLibrarySort = SortAttribute.Name;
 
             public Dictionary<string, HUDPositionProfile> HUDPositionProfiles = new();
 
@@ -66,6 +68,11 @@ namespace YARG.Settings
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
             public ToggleSetting WaitForSongVideo { get; } = new(true);
 
+
+            public ToggleSetting VoiceActivatedVocalStarPower { get; } = new(true);
+            public ToggleSetting EnablePracticeSP { get; } = new(false);
+            public SliderSetting PracticeRestartDelay { get; } = new(2f, 0.5f, 5f);
+
             public ToggleSetting ShowBattery { get; } = new(false, ShowBatteryCallback);
             public ToggleSetting ShowTime { get; } = new(false, ShowTimeCallback);
             public ToggleSetting MemoryStats { get; } = new(false, MemoryStatsCallback);
@@ -74,14 +81,8 @@ namespace YARG.Settings
 
             public ToggleSetting ReconnectProfiles { get; } = new(true);
 
-            public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
-
             public ToggleSetting ReduceNoteSpeedByDifficulty { get; } = new(true);
-            public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
 
-            public ToggleSetting VoiceActivatedVocalStarPower { get; } = new(true);
-
-            public SliderSetting PracticeRestartDelay { get; } = new(2f, 0.5f, 5f);
             public SliderSetting ShowCursorTimer      { get; } = new(2f, 0f, 5f);
 
             public ToggleSetting PauseOnDeviceDisconnect { get; } = new(true);
@@ -99,12 +100,26 @@ namespace YARG.Settings
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
 
+            public DropdownSetting<DifficultyRingMode> DifficultyRings { get; }
+                = new(DifficultyRingMode.Classic)
+                {
+                    DifficultyRingMode.Classic,
+                    DifficultyRingMode.Expanded,
+                };
+
             public DropdownSetting<HighScoreInfoMode> HighScoreInfo { get; }
                 = new(HighScoreInfoMode.Stars)
                 {
                     HighScoreInfoMode.Stars,
                     HighScoreInfoMode.Score,
                     HighScoreInfoMode.Off
+                };
+
+            public DropdownSetting<HighScoreHistoryMode> HighScoreHistory { get; }
+                = new(HighScoreHistoryMode.HighestDifficulty, _ => ScoreContainer.InvalidateScoreCache())
+                {
+                    HighScoreHistoryMode.HighestOverall,
+                    HighScoreHistoryMode.HighestDifficulty,
                 };
 
             #endregion
@@ -219,9 +234,12 @@ namespace YARG.Settings
 
             public SliderSetting SongBackgroundOpacity { get; } = new(1f, 0f, 1f);
 
+            public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
+            public ToggleSetting UseThreeLaneLyricsInHarmony { get; } = new(true);
+            public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
+
             public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
-            public ToggleSetting EnablePracticeSP { get; } = new(false);
 
             public DropdownSetting<NoteStreakFrequencyMode> NoteStreakFrequency { get; }
                 = new(NoteStreakFrequencyMode.Frequent)
@@ -230,6 +248,27 @@ namespace YARG.Settings
                     NoteStreakFrequencyMode.Sparse,
                     NoteStreakFrequencyMode.Disabled
                 };
+
+            public DropdownSetting<CountdownDisplayMode> CountdownDisplay { get; }
+                = new(CountdownDisplayMode.Measures)
+                {
+                    CountdownDisplayMode.Measures,
+                    CountdownDisplayMode.Seconds,
+                    CountdownDisplayMode.Disabled
+                };
+
+            public ToggleSetting ShowPlayerNameWhenStartingSong { get; } = new(true);
+
+            public DropdownSetting<LyricDisplayMode> LyricDisplay { get; }
+                = new(LyricDisplayMode.Normal)
+                {
+                    LyricDisplayMode.Normal,
+                    LyricDisplayMode.Transparent,
+                    LyricDisplayMode.NoBackground,
+                    LyricDisplayMode.Disabled
+                };
+
+            public SliderSetting UpcomingLyricsTime { get; } = new(3f, 0f, 10f);
 
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; }
                 = new(SongProgressMode.CountUpOnly)
@@ -244,26 +283,7 @@ namespace YARG.Settings
 
             public ToggleSetting GraphicalProgressOnScoreBox { get; } = new(true);
 
-            public DropdownSetting<LyricDisplayMode> LyricDisplay { get; }
-                = new(LyricDisplayMode.Normal)
-                {
-                    LyricDisplayMode.Normal,
-                    LyricDisplayMode.Transparent,
-                    LyricDisplayMode.NoBackground,
-                    LyricDisplayMode.Disabled
-                };
-
-            public SliderSetting UpcomingLyricsTime { get; } = new(3f, 0f, 10f);
-
             public ToggleSetting KeepSongInfoVisible { get; } = new(false);
-
-            public DropdownSetting<CountdownDisplayMode> CountdownDisplay { get; }
-                = new(CountdownDisplayMode.Measures)
-                {
-                    CountdownDisplayMode.Measures,
-                    CountdownDisplayMode.Seconds,
-                    CountdownDisplayMode.Disabled
-                };
 
             #endregion
 

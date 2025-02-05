@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 3b63aeee98f00194d897a42695807211
+guid: 6c4584afbb696494d9a34d0961e6381a
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -67,8 +67,8 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 512
-    resizeAlgorithm: 1
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
     compressionQuality: 50
@@ -89,185 +89,173 @@ TextureImporter:
     overridden: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
-    buildTarget: Server
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: DifficultyRings_0
+      name: 0
       rect:
         serializedVersion: 2
         x: 0
-        y: 256
-        width: 128
-        height: 128
+        y: 512
+        width: 512
+        height: 512
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: aa4a89bf989953e419482e73aa857a28
-      internalID: 1693073548
+      spriteID: 11a6c94d4f4cf0a4bafe4d9107d730c9
+      internalID: 867688150
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DifficultyRings_1
+      name: 1
       rect:
         serializedVersion: 2
-        x: 128
-        y: 256
-        width: 128
-        height: 128
+        x: 512
+        y: 512
+        width: 512
+        height: 512
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a1a99c2314d12754cb732aa83189242f
-      internalID: -1483160100
+      spriteID: 3ab3bf812bafad943a1f3fda2cfce4f9
+      internalID: 758158184
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DifficultyRings_2
+      name: 2
       rect:
         serializedVersion: 2
-        x: 256
-        y: 256
-        width: 128
-        height: 128
+        x: 1024
+        y: 512
+        width: 512
+        height: 512
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: fcabb55b13014404485a966035d88ed4
-      internalID: 409083877
+      spriteID: 4984313c4fe19634f9f2fad3b9d4447a
+      internalID: -1110664584
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DifficultyRings_3
+      name: 3
       rect:
         serializedVersion: 2
-        x: 0
-        y: 128
-        width: 128
-        height: 128
+        x: 1536
+        y: 512
+        width: 512
+        height: 512
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e9ac6f7b02b549e4db96333842924688
-      internalID: -1483834733
+      spriteID: 66532f2c0236aaa4aaba661663df5b74
+      internalID: 2133237850
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DifficultyRings_4
-      rect:
-        serializedVersion: 2
-        x: 128
-        y: 128
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c3df3862e789fda44981a332ed48ecd0
-      internalID: 516395800
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: DifficultyRings_5
-      rect:
-        serializedVersion: 2
-        x: 256
-        y: 128
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c4fba45e1f50f664ab577031a11a41d9
-      internalID: 1263751245
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: DifficultyRings_6
+      name: 4
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 128
-        height: 128
+        width: 512
+        height: 512
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 69f6fca8b9c463841a742b146cacdf0b
-      internalID: 1378811686
+      spriteID: f4aef3fd243482d4a94f44af5e57ad00
+      internalID: -759956850
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DifficultyRings_7
+      name: 5
       rect:
         serializedVersion: 2
-        x: 128
+        x: 512
         y: 0
-        width: 128
-        height: 128
+        width: 512
+        height: 512
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9b8da637b02b9444296db69eced349c0
-      internalID: -1032094120
+      spriteID: 4b594381d2d70964385a06ba746af566
+      internalID: 2044580793
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 6
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 0
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ce307afcde8a2a5459c3e8759053093a
+      internalID: -1869333215
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 0
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0b0e5cb6e1ef01743b0f17877acc3a96
+      internalID: 1240540742
       vertices: []
       indices: 
       edges: []
@@ -275,7 +263,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: cc2ddf0acfcdeaa49bc98cbeda29dc68
     internalID: 0
     vertices: []
     indices: 
@@ -283,14 +271,14 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      DifficultyRings_0: 1693073548
-      DifficultyRings_1: -1483160100
-      DifficultyRings_2: 409083877
-      DifficultyRings_3: -1483834733
-      DifficultyRings_4: 516395800
-      DifficultyRings_5: 1263751245
-      DifficultyRings_6: 1378811686
-      DifficultyRings_7: -1032094120
+      0: 867688150
+      1: 758158184
+      2: -1110664584
+      3: 2133237850
+      4: -759956850
+      5: 2044580793
+      6: -1869333215
+      7: 1240540742
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0
