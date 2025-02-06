@@ -2,7 +2,6 @@
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
-using YARG.Rendering;
 
 namespace YARG.Gameplay.Visuals
 {

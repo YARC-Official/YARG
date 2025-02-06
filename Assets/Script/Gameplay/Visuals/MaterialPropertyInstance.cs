@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace YARG.Rendering
+namespace YARG.Gameplay.Visuals
 {
 
     public static class MaterialPropertyInstance
