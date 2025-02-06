@@ -57,7 +57,10 @@ namespace YARG.Gameplay.Visuals
 
                 info.Mesh.GetPropertyBlock(MaterialPropertyInstance.Instance, info.MaterialIndex);
                 MaterialPropertyInstance.Instance.SetColor(_baseColor, realColor);
-                MaterialPropertyInstance.Instance.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+                if (info.Mesh.sharedMaterials[info.MaterialIndex].HasColor(_emissionColor))
+                {
+                    MaterialPropertyInstance.Instance.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+                }
                 info.Mesh.SetPropertyBlock(MaterialPropertyInstance.Instance, info.MaterialIndex);
             }
 
@@ -71,7 +74,10 @@ namespace YARG.Gameplay.Visuals
 
                 info.Mesh.GetPropertyBlock(MaterialPropertyInstance.Instance, info.MaterialIndex);
                 MaterialPropertyInstance.Instance.SetColor(_baseColor, realColor);
-                MaterialPropertyInstance.Instance.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+                if (info.Mesh.sharedMaterials[info.MaterialIndex].HasColor(_emissionColor))
+                {
+                    MaterialPropertyInstance.Instance.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+                }
                 info.Mesh.SetPropertyBlock(MaterialPropertyInstance.Instance, info.MaterialIndex);
             }
         }
