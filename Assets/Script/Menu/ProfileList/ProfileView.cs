@@ -3,7 +3,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Logging;
@@ -29,33 +28,57 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
+        private Button _moveUpButton;
+        [SerializeField]
+        private Button _moveDownButton;
+
+        [Space]
+        [SerializeField]
         private Sprite _profileGenericSprite;
         [SerializeField]
         private Sprite _profileBotSprite;
 
+        public YargProfile Profile { get; private set; }
+
         private ProfileListMenu _profileListMenu;
         private ProfileSidebar _profileSidebar;
-        private YargProfile _profile;
+
 
         public void Init(ProfileListMenu menu, YargProfile profile, ProfileSidebar sidebar)
         {
             _profileListMenu = menu;
-            _profile = profile;
             _profileSidebar = sidebar;
+            UpdateDisplay(profile);
+        }
 
+        public void UpdateDisplay(YargProfile profile)
+        {
+            Profile = profile;
             _profileName.text = profile.Name;
 
             bool taken = PlayerContainer.IsProfileTaken(profile);
-            _connectGroup.gameObject.SetActive(!taken);
-            _disconnectGroup.gameObject.SetActive(taken);
+            _connectGroup.SetActive(!taken);
+            _disconnectGroup.SetActive(taken);
+
+            if (taken)
+            {
+                var player = PlayerContainer.GetPlayerFromProfile(profile);
+                int index = PlayerContainer.GetPlayerIndex(player);
+
+                // Disable the transition when changing interactability to prevent weird fades
+                // when moving the profiles up and down.
+                var upOriginal = DisableButtonTransition(_moveUpButton);
+                var downOriginal = DisableButtonTransition(_moveDownButton);
+
+                _moveUpButton.interactable = index > 0;
+                _moveDownButton.interactable = index < PlayerContainer.Players.Count - 1;
+
+                // Make sure to set the transitions back to normal afterwards
+                _moveUpButton.colors = upOriginal;
+                _moveDownButton.colors = downOriginal;
+            }
 
             _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
-        }
-
-        private void Reinitialize()
-        {
-            Init(_profileListMenu, _profile, _profileSidebar);
-            _profileSidebar.UpdateSidebar(_profile, this);
         }
 
         protected override void OnSelectionChanged(bool selected)
@@ -64,7 +87,7 @@ namespace YARG.Menu.ProfileList
 
             if (selected)
             {
-                _profileSidebar.UpdateSidebar(_profile, this);
+                _profileSidebar.UpdateSidebar(Profile, this);
             }
         }
 
@@ -73,14 +96,14 @@ namespace YARG.Menu.ProfileList
             bool remove = false;
 
             // Confirm that the user wants to delete the profile first, UNLESS it's a bot
-            if (!_profile.IsBot)
+            if (!Profile.IsBot)
             {
                 var dialog = DialogManager.Instance.ShowConfirmDeleteDialog(
                     "Deleting this profile is permanent and you will lose all stats and binds. Play history will " +
                     "remain and can be accessed in the <b>History</b> tab.", () =>
                     {
                         remove = true;
-                    }, _profile.Name);
+                    }, Profile.Name);
 
                 // Wait...
                 await dialog.WaitUntilClosed();
@@ -99,7 +122,7 @@ namespace YARG.Menu.ProfileList
                 _profileSidebar.HideContents();
             }
 
-            if (PlayerContainer.RemoveProfile(_profile))
+            if (PlayerContainer.RemoveProfile(Profile))
             {
                 Destroy(gameObject);
             }
@@ -110,7 +133,7 @@ namespace YARG.Menu.ProfileList
             var dialog = DialogManager.Instance.ShowList("Add Device\n" +
                 "<alpha=#44><size=65%><line-height=50%>\nIf your device does not show up, try hitting a button/pad on " +
                 "it first, and then retry.</size>");
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
 
             bool devicesAvailable = false;
             bool selectedDevice = false;
@@ -158,7 +181,7 @@ namespace YARG.Menu.ProfileList
         public async UniTask<bool> PromptRemoveDevice()
         {
             var dialog = DialogManager.Instance.ShowListWithSettings("Remove Device");
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
 
             bool devicesAvailable = false;
             bool selectedDevice = false;
@@ -217,21 +240,21 @@ namespace YARG.Menu.ProfileList
             // Select item to prevent confusion (it has to be through the mouse in this case)
             SetSelected(true, SelectionOrigin.Mouse);
 
-            if (PlayerContainer.IsProfileTaken(_profile))
+            if (PlayerContainer.IsProfileTaken(Profile))
             {
-                YargLogger.LogFormatError("Attempted to connect already-taken profile {0}!", _profile.Name);
+                YargLogger.LogFormatError("Attempted to connect already-taken profile {0}!", Profile.Name);
                 return;
             }
 
             // Create player from profile
-            var player = PlayerContainer.CreatePlayerFromProfile(_profile, resolveDevices);
+            var player = PlayerContainer.CreatePlayerFromProfile(Profile, resolveDevices);
             if (player is null)
             {
-                YargLogger.LogFormatError("Failed to connect profile {0}!", _profile.Name);
+                YargLogger.LogFormatError("Failed to connect profile {0}!", Profile.Name);
                 return;
             }
 
-            if (!_profile.IsBot && player.Bindings.Empty)
+            if (!Profile.IsBot && player.Bindings.Empty)
             {
                 // Prompt the user to select a device
                 if (!await PromptAddDevice())
@@ -242,10 +265,7 @@ namespace YARG.Menu.ProfileList
                 }
             }
 
-            // Set AutoConnect true to automatically reconnect at start.
-            _profile.AutoConnect = true;
-
-            Reinitialize();
+            _profileListMenu.RefreshList(Profile);
         }
 
         public void Disconnect()
@@ -253,18 +273,36 @@ namespace YARG.Menu.ProfileList
             // Select item to prevent confusion (it has to be through the mouse in this case)
             SetSelected(true, SelectionOrigin.Mouse);
 
-            // Set AutoConnect false to not automatically reconnect at start.
-            _profile.AutoConnect = false;
-
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
             if (player is null)
             {
-                YargLogger.LogFormatError("Could not get player for profile {0}!", _profile.Name);
+                YargLogger.LogFormatError("Could not get player for profile {0}!", Profile.Name);
                 return;
             }
 
             PlayerContainer.DisposePlayer(player);
-            Reinitialize();
+            _profileListMenu.RefreshList();
+        }
+
+        public void MoveUp()
+        {
+            _profileListMenu.MoveProfileUp(Profile);
+        }
+
+        public void MoveDown()
+        {
+            _profileListMenu.MoveProfileDown(Profile);
+        }
+
+        private static ColorBlock DisableButtonTransition(Button button)
+        {
+            var original = button.colors;
+
+            var noFade = button.colors;
+            noFade.fadeDuration = 0f;
+            button.colors = noFade;
+
+            return original;
         }
     }
 }
