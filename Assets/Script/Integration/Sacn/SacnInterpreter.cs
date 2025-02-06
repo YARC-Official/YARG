@@ -486,8 +486,8 @@ namespace YARG.Integration.Sacn
 
         private void SetCueChannel(LightingType? newType)
         {
-            if (newType != LightingType.Keyframe_Next && newType != LightingType.Keyframe_Previous &&
-                newType != LightingType.Keyframe_First)
+            if (newType != LightingType.KeyframeNext && newType != LightingType.KeyframePrevious &&
+                newType != LightingType.KeyframeFirst)
             {
                 _cueValue = newType switch
                 {
@@ -500,20 +500,20 @@ namespace YARG.Integration.Sacn
                     LightingType.Menu                  => (byte) CueEnum.Menu,
                     LightingType.Score                 => (byte) CueEnum.Score,
                     LightingType.Silhouettes           => (byte) CueEnum.Silhouettes,
-                    LightingType.Silhouettes_Spotlight => (byte) CueEnum.SilhouettesSpotlight,
+                    LightingType.SilhouettesSpotlight => (byte) CueEnum.SilhouettesSpotlight,
                     LightingType.Sweep                 => (byte) CueEnum.Sweep,
                     LightingType.Searchlights          => (byte) CueEnum.Searchlights,
                     LightingType.Stomp                 => (byte) CueEnum.Stomp,
                     LightingType.Verse                 => (byte) CueEnum.Verse,
-                    LightingType.Blackout_Fast         => (byte) CueEnum.BlackoutFast,
-                    LightingType.Blackout_Slow         => (byte) CueEnum.BlackoutSlow,
-                    LightingType.Blackout_Spotlight    => (byte) CueEnum.BlackoutSpotlight,
-                    LightingType.Cool_Automatic        => (byte) CueEnum.CoolLoop,
-                    LightingType.Cool_Manual           => (byte) CueEnum.CoolManual,
-                    LightingType.Flare_Fast            => (byte) CueEnum.FlareFast,
-                    LightingType.Flare_Slow            => (byte) CueEnum.FlareSlow,
-                    LightingType.Warm_Automatic        => (byte) CueEnum.WarmLoop,
-                    LightingType.Warm_Manual           => (byte) CueEnum.WarmManual,
+                    LightingType.BlackoutFast         => (byte) CueEnum.BlackoutFast,
+                    LightingType.BlackoutSlow         => (byte) CueEnum.BlackoutSlow,
+                    LightingType.BlackoutSpotlight    => (byte) CueEnum.BlackoutSpotlight,
+                    LightingType.CoolAutomatic        => (byte) CueEnum.CoolLoop,
+                    LightingType.CoolManual           => (byte) CueEnum.CoolManual,
+                    LightingType.FlareFast            => (byte) CueEnum.FlareFast,
+                    LightingType.FlareSlow            => (byte) CueEnum.FlareSlow,
+                    LightingType.WarmAutomatic        => (byte) CueEnum.WarmLoop,
+                    LightingType.WarmManual           => (byte) CueEnum.WarmManual,
                     LightingType.BigRockEnding         => (byte) CueEnum.BigRockEnding,
                     null                               => (byte) CueEnum.NoCue,
                     _                                  => (byte) CueEnum.NoCue,
@@ -525,13 +525,13 @@ namespace YARG.Integration.Sacn
             {
                 switch (newType)
                 {
-                    case LightingType.Keyframe_Next:
+                    case LightingType.KeyframeNext:
                         SetChannel(KeyframeChannel, (byte) KeyFrameCueEnum.KeyframeNext);
                         break;
-                    case LightingType.Keyframe_Previous:
+                    case LightingType.KeyframePrevious:
                         SetChannel(KeyframeChannel, (byte) KeyFrameCueEnum.KeyframePrevious);
                         break;
-                    case LightingType.Keyframe_First:
+                    case LightingType.KeyframeFirst:
                         SetChannel(KeyframeChannel, (byte) KeyFrameCueEnum.KeyframeFirst);
                         break;
                 }
