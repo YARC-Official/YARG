@@ -87,13 +87,13 @@ namespace YARG.Song
 #nullable disable
                 foreach (var root in SourceRoots)
                 {
-                    var info = new FileInfo(Path.Combine(root, $"{_icon}.png"));
-                    if (info.Exists)
+                    string file = Path.Combine(root, $"{_icon}.png");
+                    if (File.Exists(file))
                     {
-                        using var image = await UniTask.RunOnThreadPool(() => YARGImage.Load(info));
-                        if (image == null)
+                        using var image = await UniTask.RunOnThreadPool(() => YARGImage.Load(file));
+                        if (!image.IsAllocated)
                         {
-                            YargLogger.LogFormatWarning("Failed to load source icon `{0}`!", info.FullName);
+                            YargLogger.LogFormatWarning("Failed to load source icon `{0}`!", file);
                             return;
                         }
                         texture = image.LoadTexture(true);
@@ -142,7 +142,7 @@ namespace YARG.Song
 
         private const string DEFAULT_KEY = "$DEFAULT$";
 
-        private static readonly Dictionary<SortString, ParsedSource> _sources = new();
+        private static readonly Dictionary<string, ParsedSource> _sources = new(StringComparer.OrdinalIgnoreCase);
         private static ParsedSource _default;
         public static ParsedSource Default => _default;
 
@@ -335,21 +335,21 @@ namespace YARG.Song
             _sources.Add(DEFAULT_KEY, _default);
         }
 
-        public static bool TryGetSource(in SortString id, out ParsedSource parsedSource)
+        public static bool TryGetSource(string id, out ParsedSource parsedSource)
         {
             return _sources.TryGetValue(id, out parsedSource);
         }
 
-        public static ParsedSource GetSourceOrDefault(in SortString id)
+        public static ParsedSource GetSourceOrDefault(string id)
         {
-            if (!TryGetSource(in id, out var parsedSource))
+            if (!TryGetSource(id, out var parsedSource))
             {
                 parsedSource = _default;
             }
             return parsedSource;
         }
 
-        public static string SourceToGameName(in SortString id) => GetSourceOrDefault(in id).GetDisplayName();
+        public static string SourceToGameName(string id) => GetSourceOrDefault(id).GetDisplayName();
 
         public static Sprite SourceToIcon(string id) => GetSourceOrDefault(id).Sprite;
     }

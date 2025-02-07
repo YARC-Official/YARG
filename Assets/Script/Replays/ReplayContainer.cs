@@ -103,8 +103,8 @@ namespace YARG.Replays
 
             try
             {
-                using var data = FixedArray<byte>.Load(_replayCacheFile);
-                using var stream = data.ToStream();
+                using var data = FixedArray.LoadFile(_replayCacheFile);
+                var stream = data.ToValueStream();
 
                 int version = stream.Read<int>(Endianness.Little);
                 if (version != CACHE_VERSION)
@@ -117,7 +117,7 @@ namespace YARG.Replays
                 for (int i = 0; i < count; i++)
                 {
                     string path = stream.ReadString();
-                    var entry = new ReplayInfo(path, stream);
+                    var entry = new ReplayInfo(path, ref stream);
                     if (File.Exists(path))
                     {
                         AddEntry(entry);

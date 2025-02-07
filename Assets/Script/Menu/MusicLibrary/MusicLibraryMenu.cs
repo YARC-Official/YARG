@@ -253,10 +253,28 @@ namespace YARG.Menu.MusicLibrary
                 return list;
             }
 
+            bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
+            int songCount = 0;
+            foreach (var section in _sortedSongs)
+            {
+                if (allowdupes)
+                {
+                    songCount += section.Songs.Length;
+                    continue;
+                }
+
+                foreach (var song in section.Songs)
+                {
+                    if (!song.IsDuplicate)
+                    {
+                        ++songCount;
+                    }
+                }
+            }
+
             if (_searchField.IsSearching)
             {
-                int count = _sortedSongs.Sum(section => section.Songs.Length);
-                list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.SearchResults"), count, _sortedSongs));
+                list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.SearchResults"), songCount, _sortedSongs));
             }
             else
             {
@@ -282,7 +300,7 @@ namespace YARG.Menu.MusicLibrary
                 if (SettingsManager.Settings.LibrarySort < SortAttribute.Playable)
                 {
                     list.Add(new CategoryViewType(
-                        Localize.Key("Menu.MusicLibrary.AllSongs"), SongContainer.Count, SongContainer.Songs));
+                        Localize.Key("Menu.MusicLibrary.AllSongs"), songCount, SongContainer.Songs));
 
                     if (_recommendedSongs != null)
                     {
@@ -306,8 +324,7 @@ namespace YARG.Menu.MusicLibrary
                 }
                 else
                 {
-                    int count = _sortedSongs.Sum(section => section.Songs.Length);
-                    list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.PlayableSongs"), count, _sortedSongs));
+                    list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.PlayableSongs"), songCount, _sortedSongs));
                 }
             }
 
@@ -337,7 +354,10 @@ namespace YARG.Menu.MusicLibrary
 
                 foreach (var song in section.Songs)
                 {
-                    list.Add(new SongViewType(this, song));
+                    if (allowdupes || !song.IsDuplicate)
+                    {
+                        list.Add(new SongViewType(this, song));
+                    }
                 }
             }
             CalculateCategoryHeaderIndices(list);
@@ -360,6 +380,7 @@ namespace YARG.Menu.MusicLibrary
                 return list;
             }
 
+            bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
             foreach (var section in _sortedSongs)
             {
                 list.Add(new SortHeaderViewType(
@@ -369,7 +390,10 @@ namespace YARG.Menu.MusicLibrary
 
                 foreach (var song in section.Songs)
                 {
-                    list.Add(new SongViewType(this, song));
+                    if (allowdupes || !song.IsDuplicate)
+                    {
+                        list.Add(new SongViewType(this, song));
+                    }
                 }
             }
 
@@ -480,7 +504,7 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 if (_searchField.IsUpdatedSearchLonger || _currentSong == null ||
-                    !SetIndexTo(i => i is SongViewType view && view.SongEntry.Location == _currentSong.Location, newPositionStartIndex))
+                    !SetIndexTo(i => i is SongViewType view && view.SongEntry.SortBasedLocation == _currentSong.SortBasedLocation, newPositionStartIndex))
                 {
                     // Note: it may look like this is expensive, but the whole loop should only last for 4-5 iterations
                     var list = ViewList;
