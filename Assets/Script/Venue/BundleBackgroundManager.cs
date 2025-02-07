@@ -123,7 +123,7 @@ namespace YARG.Venue
                     var filePath = Path.Combine(Application.temporaryCachePath, BACKGROUND_SHADER_BUNDLE_NAME);
                     var assetPath = Path.Combine(Application.dataPath, BACKGROUND_SHADER_BUNDLE_NAME);
                     File.Move(filePath, assetPath);
-                    AssetDatabase.ImportAsset(assetPath);
+                    AssetDatabase.ImportAsset(Path.Combine("Assets", BACKGROUND_SHADER_BUNDLE_NAME));
                 }
                 // Now delete our material clones
                 foreach (var assetPath in materialAssets)
@@ -138,7 +138,7 @@ namespace YARG.Venue
 
                 var assetPaths = new[]
                 {
-                    "Assets/" + BACKGROUND_SHADER_BUNDLE_NAME,
+                    Path.Combine("Assets/", BACKGROUND_SHADER_BUNDLE_NAME),
                     BACKGROUND_PREFAB_PATH
                 };
 
