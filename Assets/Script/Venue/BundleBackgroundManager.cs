@@ -15,6 +15,7 @@ namespace YARG.Venue
         // DO NOT CHANGE THIS! It will break existing venues
         public const string BACKGROUND_PREFAB_PATH = "Assets/_Background.prefab";
         public const string BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
+        public const string BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
 
         // DO NOT CHANGE the name of this! I *know* it doesn't follow naming conventions, but it will also break existing
         // venues if we do change it.
@@ -58,11 +59,9 @@ namespace YARG.Venue
             _backgroundReference = gameObject;
             string path = EditorUtility.SaveFilePanel("Save Background", string.Empty, "bg", "yarground");
 
-            var selectedBuildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
-
             GameObject clonedBackground = null;
 
+            AssetDatabase.DisallowAutoRefresh();
 
             try
             {
@@ -74,17 +73,45 @@ namespace YARG.Venue
                 // First we'll collect all shaders and build a separate bundle out of them
                 // for Mac as no other build target will include Metal shaders
                 // And we want our background to work everywhere
-                var shaderAssets = EditorUtility.CollectDependencies(new[] { gameObject })
-                    .OfType<Shader>() // Only shader dependencices
-                    .Select(shader => AssetDatabase.GetAssetPath(shader)) // Get asset path
-                    .Where(assetPath => !assetPath.StartsWith("Packages/com.unity")) // Not builtins
+
+                // We use materials as "anchors" to make sure all required
+                // shader variants are included
+                // var materialAssets = EditorUtility.CollectDependencies(new[] { gameObject })
+                var materialAssets = EditorUtility.CollectDependencies(new[] { gameObject })
+                    .OfType<Material>() // Only material dependencices
+                    .Select((mat, i) =>
+                    {
+                        // Create a clone
+                        var matClone = new Material(mat);
+                        // Avoid name collision
+                        matClone.name = BACKGOUND_OSX_MATERIAL_PREFIX + mat.name;
+                        // Drop all textures to not double resulting yarground in size
+                        if (matClone.mainTexture != null)
+                        {
+                            matClone.mainTexture = Texture2D.whiteTexture;
+                        }
+                        foreach (var id in matClone.GetTexturePropertyNameIDs())
+                        {
+                            if (matClone.GetTexture(id) != null)
+                            {
+                                matClone.SetTexture(id, Texture2D.whiteTexture);
+                            }
+                        }
+                        var assetPath = Path.Combine("Assets", matClone.name + ".mat");
+                        AssetDatabase.CreateAsset(matClone, assetPath);
+
+                        return assetPath;
+                    })
                     .ToArray();
 
-                if (shaderAssets.Length > 0)
+                var shaderAssets = EditorUtility.CollectDependencies(new[] { gameObject })
+                    .OfType<Shader>().Select(AssetDatabase.GetAssetPath);
+
+                if (materialAssets.Length > 0)
                 {
                     var metalAssetBundleBuild = default(AssetBundleBuild);
                     metalAssetBundleBuild.assetBundleName = BACKGROUND_SHADER_BUNDLE_NAME;
-                    metalAssetBundleBuild.assetNames = shaderAssets;
+                    metalAssetBundleBuild.assetNames = materialAssets.Concat(shaderAssets).ToArray();
 
                     BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
                         new[]
@@ -94,8 +121,14 @@ namespace YARG.Venue
                         BuildTarget.StandaloneOSX);
 
                     var filePath = Path.Combine(Application.temporaryCachePath, BACKGROUND_SHADER_BUNDLE_NAME);
-                    File.Move(filePath, Path.Combine(Application.dataPath, BACKGROUND_SHADER_BUNDLE_NAME));
-                    AssetDatabase.Refresh();
+                    var assetPath = Path.Combine(Application.dataPath, BACKGROUND_SHADER_BUNDLE_NAME);
+                    File.Move(filePath, assetPath);
+                    AssetDatabase.ImportAsset(assetPath);
+                }
+                // Now delete our material clones
+                foreach (var assetPath in materialAssets)
+                {
+                    AssetDatabase.DeleteAsset(assetPath);
                 }
 
                 clonedBackground = Instantiate(_backgroundReference.gameObject);
@@ -144,6 +177,7 @@ namespace YARG.Venue
             }
             finally
             {
+                AssetDatabase.AllowAutoRefresh();
                 if (clonedBackground != null)
                 {
                     DestroyImmediate(clonedBackground);

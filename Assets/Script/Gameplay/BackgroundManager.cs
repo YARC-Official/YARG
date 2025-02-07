@@ -91,7 +91,7 @@ namespace YARG.Gameplay
                     // Yarground comes with shaders for dx11/dx12/glcore/vulkan
                     // Metal shaders used on OSX come in this separate bundle
                     // Update our renderers to use them
-                    var renderers = bg.GetComponentsInChildren<Renderer>();
+                    var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
                     foreach (var renderer in renderers)
                     {
