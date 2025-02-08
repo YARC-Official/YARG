@@ -58,7 +58,8 @@
             "NoteShuffle": "Note Shuffle",
             "NoKicks": "No Kicks",
             "TapsToHopos": "Taps to HOPOs",
-            "UnpitchedOnly": "Unpitched Only"
+            "UnpitchedOnly": "Unpitched Only",
+            "NoPercussion": "No Percussion"
         },
         "SortAttribute": {
             "Album": "Album",
