@@ -55,8 +55,8 @@ namespace YARG.Gameplay.Visuals
 
             // Update flare scale based on distance from camera and attempt to normalize for FOV, includes tangent/cotangent for accurate FOV scaling
 
-            float fovScale = (2.6f / Mathf.Tan(0.0126f * TrackPlayer.TrackCamera.fieldOfView - .046f)) + 1.223f;
-			_flare.scale = fovScale / Vector3.Distance(transform.position, TrackPlayer.TrackCamera.transform.position);
+            float fovScale = (2.5f / Mathf.Tan(0.0125f * TrackPlayer.TrackCamera.fieldOfView - .05f)) + 1.282f;
+            _flare.scale = fovScale / Vector3.Distance(transform.position, TrackPlayer.TrackCamera.transform.position);
 
         }
 
