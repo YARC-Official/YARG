@@ -43,6 +43,8 @@ namespace YARG.Gameplay.Visuals
                     MaterialPropertyInstance.Instance.SetVector(_randomVector, randomVector);
                 }
                 info.Mesh.SetPropertyBlock(MaterialPropertyInstance.Instance, info.MaterialIndex);
+
+                RenderingOrder.FixUpMaterialRenderingOrder(info.Mesh);
             }
         }
 
