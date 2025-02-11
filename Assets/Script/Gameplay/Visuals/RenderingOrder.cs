@@ -18,9 +18,12 @@ namespace YARG.Gameplay.Visuals
                 for (int i = 0; i < mesh.sharedMaterials.Length; ++i)
                 {
                     var material = mesh.sharedMaterials[i];
-                    material.renderQueue = material.shader.renderQueue + _currentOffset;
-                    material.SetFloat(_QueueOffset, _currentOffset);
-                    _currentOffset++;
+                    if (material.GetFloat(_QueueOffset) == 0.0)
+                    {
+                        material.renderQueue = material.shader.renderQueue + _currentOffset;
+                        material.SetFloat(_QueueOffset, _currentOffset);
+                        _currentOffset++;
+                    }
                 }
             }
         }
