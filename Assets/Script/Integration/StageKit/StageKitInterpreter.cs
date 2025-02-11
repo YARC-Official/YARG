@@ -18,25 +18,25 @@ namespace YARG.Integration.StageKit
         {
             { LightingType.Menu, new MenuLighting() },
             { LightingType.Score, new ScoreLighting() },
-            { LightingType.Warm_Manual, new ManualWarm() },
-            { LightingType.Cool_Manual, new ManualCool() },
+            { LightingType.WarmManual, new ManualWarm() },
+            { LightingType.CoolManual, new ManualCool() },
             { LightingType.Dischord, new Dischord() },
             { LightingType.Stomp, new Stomp() },
             { LightingType.Default, new Default() },
-            { LightingType.Warm_Automatic, new LoopWarm() },
-            { LightingType.Cool_Automatic, new LoopCool() },
+            { LightingType.WarmAutomatic, new LoopWarm() },
+            { LightingType.CoolAutomatic, new LoopCool() },
             { LightingType.BigRockEnding, new BigRockEnding() },
             { LightingType.Searchlights, new SearchLight() },
             { LightingType.Frenzy, new Frenzy() },
             { LightingType.Sweep, new Sweep() },
             { LightingType.Harmony, new Harmony() },
-            { LightingType.Flare_Slow, new FlareSlow() },
-            { LightingType.Flare_Fast, new FlareFast() },
-            { LightingType.Silhouettes_Spotlight, new SilhouetteSpot() },
+            { LightingType.FlareSlow, new FlareSlow() },
+            { LightingType.FlareFast, new FlareFast() },
+            { LightingType.SilhouettesSpotlight, new SilhouetteSpot() },
             { LightingType.Silhouettes, new Silhouettes() },
-            { LightingType.Blackout_Spotlight, new Blackout() },
-            { LightingType.Blackout_Slow, new Blackout() },
-            { LightingType.Blackout_Fast, new Blackout() },
+            { LightingType.BlackoutSpotlight, new Blackout() },
+            { LightingType.BlackoutSlow, new Blackout() },
+            { LightingType.BlackoutFast, new Blackout() },
             { LightingType.Intro, new Intro() }
         };
 
@@ -120,7 +120,7 @@ namespace YARG.Integration.StageKit
 
         protected virtual void OnLightingEvent(LightingEvent value)
         {
-            if (value != null && value.Type == LightingType.Keyframe_Next && _currentLightingCue != null)
+            if (value != null && value.Type == LightingType.KeyframeNext && _currentLightingCue != null)
             {
                 if (_currentLightingCue.DirectListenEnabled)
                 {
@@ -142,8 +142,8 @@ namespace YARG.Integration.StageKit
                     SetLed(StageKitLedColor.Yellow, NONE);
                     ChangeCues(null);
                 }
-                else if (value.Type is LightingType.Keyframe_Next or LightingType.Keyframe_Previous
-                    or LightingType.Keyframe_First or LightingType.Verse or LightingType.Chorus)
+                else if (value.Type is LightingType.KeyframeNext or LightingType.KeyframePrevious
+                    or LightingType.KeyframeFirst or LightingType.Verse or LightingType.Chorus)
                 {
                     // Next is handled in the cue classes via their primitive calls.
                     // No cue listens to Previous or First.

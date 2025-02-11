@@ -229,23 +229,23 @@ namespace YARG.Integration
             {
                 switch (Venue.Lighting[LightingIndex].Type)
                 {
-                    case LightingType.Strobe_Off:
+                    case LightingType.StrobeOff:
                         MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Off;
                         break;
 
-                    case LightingType.Strobe_Fast:
+                    case LightingType.StrobeFast:
                         MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Fast;
                         break;
 
-                    case LightingType.Strobe_Medium:
+                    case LightingType.StrobeMedium:
                         MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Medium;
                         break;
 
-                    case LightingType.Strobe_Slow:
+                    case LightingType.StrobeSlow:
                         MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Slow;
                         break;
 
-                    case LightingType.Strobe_Fastest:
+                    case LightingType.StrobeFastest:
                         MasterLightingController.CurrentStrobeState = StageKitStrobeSpeed.Fastest;
                         break;
 
