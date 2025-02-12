@@ -129,7 +129,7 @@ namespace YARG.Integration.StageKit
                 return;
             }
 
-            if ((_listenType & ListenTypes.Next) == 0 || eventName != LightingType.Keyframe_Next)
+            if ((_listenType & ListenTypes.Next) == 0 || eventName != LightingType.KeyframeNext)
             {
                 return;
             }

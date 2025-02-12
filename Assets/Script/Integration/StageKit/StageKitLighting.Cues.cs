@@ -776,7 +776,7 @@ namespace YARG.Integration.StageKit
 
         public override void HandleLightingEvent(LightingType eventName)
         {
-            if (eventName != LightingType.Keyframe_Next) return;
+            if (eventName != LightingType.KeyframeNext) return;
             if (_anythingOn)
             {
                 StageKitInterpreter.Instance.SetLed(RED, NONE);
@@ -881,7 +881,7 @@ namespace YARG.Integration.StageKit
 
         public override void HandleLightingEvent(LightingType eventName)
         {
-            if (eventName != LightingType.Keyframe_Next)
+            if (eventName != LightingType.KeyframeNext)
             {
                 return;
             }

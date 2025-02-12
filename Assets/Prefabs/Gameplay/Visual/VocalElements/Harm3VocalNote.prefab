@@ -77,5 +77,35 @@ PrefabInstance:
       propertyPath: m_Name
       value: Harm3VocalNote
       objectReference: {fileID: 0}
+    - target: {fileID: 4302007297606639045, guid: 8ad9b0a5a07d4c34b83af2d7327f1516,
+        type: 3}
+      propertyPath: m_SortingLayer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4302007297606639045, guid: 8ad9b0a5a07d4c34b83af2d7327f1516,
+        type: 3}
+      propertyPath: m_SortingLayerID
+      value: -977154883
+      objectReference: {fileID: 0}
+    - target: {fileID: 4302288126089979348, guid: 8ad9b0a5a07d4c34b83af2d7327f1516,
+        type: 3}
+      propertyPath: m_SortingLayer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4302288126089979348, guid: 8ad9b0a5a07d4c34b83af2d7327f1516,
+        type: 3}
+      propertyPath: m_SortingLayerID
+      value: -977154883
+      objectReference: {fileID: 0}
+    - target: {fileID: 4944235696632696688, guid: 8ad9b0a5a07d4c34b83af2d7327f1516,
+        type: 3}
+      propertyPath: m_SortingLayer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4944235696632696688, guid: 8ad9b0a5a07d4c34b83af2d7327f1516,
+        type: 3}
+      propertyPath: m_SortingLayerID
+      value: -977154883
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8ad9b0a5a07d4c34b83af2d7327f1516, type: 3}

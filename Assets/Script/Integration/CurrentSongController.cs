@@ -18,7 +18,7 @@ namespace YARG.Integration
 
             public override void WriteJson(JsonWriter writer, SortString value, JsonSerializer serializer)
             {
-                writer.WriteValue(value.Str);
+                writer.WriteValue(value.Original);
             }
 
             public override SortString ReadJson(JsonReader reader, Type objectType, SortString existingValue,
@@ -85,7 +85,7 @@ namespace YARG.Integration
                 $"{song.Artist}\n" +
                 $"{song.Album}\n" +
                 $"{song.Genre}\n" +
-                $"{song.Year}\n" +
+                $"{song.ParsedYear}\n" +
                 $"{SongSources.SourceToGameName(song.Source)}\n" +
                 $"{song.Charter}";
 

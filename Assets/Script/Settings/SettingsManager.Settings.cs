@@ -61,7 +61,7 @@ namespace YARG.Settings
 
             public void OpenVenueFolder()
             {
-                FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder.FullName);
+                FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
             public ToggleSetting DisableGlobalBackgrounds { get; } = new(false);
@@ -95,7 +95,7 @@ namespace YARG.Settings
 
             #region Songs
 
-            public ToggleSetting AllowDuplicateSongs { get; } = new(true);
+            public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
