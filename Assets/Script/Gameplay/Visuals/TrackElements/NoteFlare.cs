@@ -9,8 +9,6 @@ namespace YARG.Gameplay.Visuals
     {
         public TrackPlayer TrackPlayer { get; set; }
 
-        [SerializeField]
-        private float _scaleConstant = 4.25f;
         private LensFlareComponentSRP _flare;
 
         private float _fadeFullPosition;
