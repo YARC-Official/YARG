@@ -68,6 +68,11 @@ namespace YARG.Integration.StageKit
 
         private void ChangeCues(StageKitLightingCue cue)
         {
+            if (_currentLightingCue == cue)
+            {
+                return;
+            }
+
             if (_currentLightingCue != null)
             {
                 foreach (var primitive in _currentLightingCue.CuePrimitives)
