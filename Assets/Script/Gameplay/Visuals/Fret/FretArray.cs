@@ -202,6 +202,11 @@ namespace YARG.Gameplay.Visuals
 
             for (int i = 0; i < _frets.Count; i++)
             {
+                if (_activeFrets[i] == frets[i])
+                {
+                    continue;
+                }
+
                 if (frets[i])
                 {
                     _frets[i].ResetColor(true);
