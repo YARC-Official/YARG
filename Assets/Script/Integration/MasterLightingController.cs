@@ -278,6 +278,7 @@ namespace YARG.Integration
             CurrentLightingCue = null;
             CurrentFogState = FogState.Off;
             CurrentStrobeState = StageKitStrobeSpeed.Off;
+            CurrentPostProcessing = new PostProcessingEvent(PostProcessingType.Default, 0, 0);
         }
     }
 }
