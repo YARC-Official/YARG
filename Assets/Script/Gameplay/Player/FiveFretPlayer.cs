@@ -50,7 +50,7 @@ namespace YARG.Gameplay.Player
             public int    Offset;
         }
 
-        private List<FiveFretRangeShift>  _allRangeShiftEvents = new();
+        private List<FiveFretRangeShift>   _allRangeShiftEvents  = new();
         private Queue<FiveFretRangeShift>  _rangeShiftEventQueue = new();
         private FiveFretRangeShift         CurrentRange { get; set; }
         private Queue<RangeShiftIndicator> _shiftIndicators = new();
@@ -212,16 +212,6 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            if (_fretPulseStarting && _fretPulseStartTime <= songTime)
-            {
-                for (var i = nextShift.Range - 1; i < nextShift.Range + nextShift.Size - 1; i++)
-                {
-                    _fretArray.SetFretColorPulse(i, true, (float) nextShift.BeatDuration);
-                }
-
-                _fretPulseStarting = false;
-            }
-
             if (_shiftIndicators.TryPeek(out var shiftIndicator) && shiftIndicator.Time <= songTime + SpawnTimeOffset)
             {
                 if (!_shiftIndicatorPool.CanSpawnAmount(1))
@@ -246,13 +236,20 @@ namespace YARG.Gameplay.Player
                 if (!_fretPulseStarting)
                 {
                     _fretPulseStarting = true;
-
-                    // TODO: This works, but I'm sure there is more correct math
-                    //  This doesn't actually work for sufficiently slow bpm, it ends up being late by one beatline
-                    //  That may be because of the switch to starting the indicators 5 beatlines ahead?
-                    _fretPulseStartTime = shiftIndicator.Time - ((-STRIKE_LINE_POS / NoteSpeed) / 2) + nextShift.BeatDuration * 1.25;
+                    _fretPulseStartTime = nextShift.Time - (nextShift.BeatDuration * SHIFT_INDICATOR_MEASURES_BEFORE);
                 }
             }
+
+            if (_fretPulseStarting && _fretPulseStartTime <= songTime)
+            {
+                for (var i = nextShift.Range - 1; i < nextShift.Range + nextShift.Size - 1; i++)
+                {
+                    _fretArray.SetFretColorPulse(i, true, (float) nextShift.BeatDuration);
+                }
+
+                _fretPulseStarting = false;
+            }
+
 
             // Turn off the pulsing and switch active frets now that we're in the new range
             if (nextShift.Time <= songTime)
@@ -263,6 +260,7 @@ namespace YARG.Gameplay.Player
                     _fretArray.SetFretColorPulse(i, false, (float) nextShift.BeatDuration);
                 }
 
+                _fretPulseStarting = false;
                 CurrentRange = nextShift;
                 SetActiveFretsForShiftEvent(nextShift);
             }
