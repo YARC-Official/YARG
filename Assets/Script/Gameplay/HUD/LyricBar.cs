@@ -194,7 +194,7 @@ namespace YARG.Gameplay.HUD
 
         private void UpdateUpcomingPhrase()
         {
-            const double MIN_PHRASE_LENGTH = 0.1;
+            const double MIN_PHRASE_LENGTH = 0.25;
             if (_upcomingLineSet)
             {
                 return;
