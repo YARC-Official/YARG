@@ -93,6 +93,7 @@ Material:
     - _Blend: 0
     - _BlendOp: 0
     - _BumpScale: 1
+    - _CastShadows: 1
     - _ClearCoat: 0
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
@@ -127,7 +128,9 @@ Material:
     - _Surface: 0
     - _UVSec: 0
     - _WorkflowMode: 1
+    - _ZTest: 4
     - _ZWrite: 1
+    - _ZWriteControl: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 0.30320853, b: 0, a: 1}
     - _Color: {r: 1, g: 0.3032085, b: 0, a: 1}
