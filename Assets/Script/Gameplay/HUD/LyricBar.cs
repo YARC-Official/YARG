@@ -85,7 +85,6 @@ namespace YARG.Gameplay.HUD
             if (!GameManager.IsPractice && SettingsManager.Settings.LyricDisplay.Value != LyricDisplayMode.Disabled)
             {
                 _builder.Dispose();
-                return;
             }
         }
 
