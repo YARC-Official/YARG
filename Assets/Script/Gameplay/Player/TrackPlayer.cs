@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
-using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
-using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
@@ -92,6 +88,14 @@ namespace YARG.Gameplay.Player
             // Set fade information and highway length
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
             FadeSize = Player.CameraPreset.FadeLength;
+
+            // Clip everything that was set to not be visible anyway
+            var trackPosition = this.transform.position;
+            var trackZeroFadePosition = new Vector3(trackPosition.x, trackPosition.y, ZeroFadePosition);
+            Debug.Log(trackZeroFadePosition);
+            Plane farPlane = new Plane();
+            farPlane.SetNormalAndPosition(this.TrackCamera.transform.forward, trackZeroFadePosition);
+            this.TrackCamera.farClipPlane = Mathf.Abs(farPlane.GetDistanceToPoint(this.TrackCamera.transform.position));
 
             _spawnAheadDelay = GameManager.IsPractice ? SettingsManager.Settings.PracticeRestartDelay.Value : 2;
             if (player.Profile.HighwayLength > 1)
