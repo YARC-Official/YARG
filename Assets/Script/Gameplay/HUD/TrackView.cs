@@ -10,6 +10,8 @@ namespace YARG.Gameplay.HUD
     public class TrackView : MonoBehaviour
     {
         private static readonly int _curveFactor = Shader.PropertyToID("_CurveFactor");
+        private static readonly int _FadeStartPos = Shader.PropertyToID("_FadeStartPos");
+        private static readonly int _FadeEndPos = Shader.PropertyToID("_FadeEndPos");
 
         [field: SerializeField]
         public RawImage TrackImage { get; private set; }
@@ -46,6 +48,23 @@ namespace YARG.Gameplay.HUD
             TrackImage.material = newMaterial;
 
             _trackPlayer = trackPlayer;
+        }
+
+        public void SetFade(float zeroFadePosition, float fadeSize)
+        {
+            // Set fade params
+            var trackPosition = _trackPlayer.transform.position;
+            var trackZeroFadePosition = new Vector3(trackPosition.x, trackPosition.y, zeroFadePosition - fadeSize);
+            var trackFullFadePosition = new Vector3(trackPosition.x, trackPosition.y, zeroFadePosition);
+            var screenHeight = TrackImage.texture.height;
+            var fadeStart = _trackPlayer.TrackCamera.WorldToScreenPoint(trackZeroFadePosition).y / screenHeight;
+            var fadeEnd = _trackPlayer.TrackCamera.WorldToScreenPoint(trackFullFadePosition).y / screenHeight;
+            Debug.Log(fadeStart);
+            Debug.Log(fadeEnd);
+
+            TrackImage.material.SetFloat(_FadeStartPos, fadeStart);
+            TrackImage.material.SetFloat(_FadeEndPos, fadeEnd);
+ 
         }
 
         public void UpdateSizing(int trackCount)

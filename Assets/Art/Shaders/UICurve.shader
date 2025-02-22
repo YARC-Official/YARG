@@ -79,6 +79,8 @@ Shader "UI/Curve"
             sampler2D _MainTex;
             fixed4 _Color;
             float _CurveFactor;
+            float _FadeStartPos;
+            float _FadeEndPos;
             fixed4 _TextureSampleAdd;
             float4 _ClipRect;
             float4 _MainTex_ST;
@@ -100,9 +102,15 @@ Shader "UI/Curve"
             fixed4 frag(v2f IN) : SV_Target
             {
                 float2 coord = IN.texcoord;
+                float coord_y = coord.y;
+
                 coord.y += pow(abs(coord.x - 0.5), 2) * _CurveFactor;
 
                 half4 color = (tex2D(_MainTex, coord) + _TextureSampleAdd) * IN.color;
+
+                // fade
+                float rate = 1.0 / (_FadeEndPos - _FadeStartPos);
+                color.a = min(color.a, 1.0 - ((min(max(coord_y, _FadeStartPos), _FadeEndPos)) - _FadeStartPos) * rate);  
 
                 #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);

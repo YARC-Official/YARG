@@ -92,7 +92,6 @@ namespace YARG.Gameplay.Player
             // Clip everything that was set to not be visible anyway
             var trackPosition = this.transform.position;
             var trackZeroFadePosition = new Vector3(trackPosition.x, trackPosition.y, ZeroFadePosition);
-            Debug.Log(trackZeroFadePosition);
             Plane farPlane = new Plane();
             farPlane.SetNormalAndPosition(this.TrackCamera.transform.forward, trackZeroFadePosition);
             this.TrackCamera.farClipPlane = Mathf.Abs(farPlane.GetDistanceToPoint(this.TrackCamera.transform.position));
