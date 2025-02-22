@@ -17,9 +17,8 @@ Shader "Sprites-Default-Overlay"
     {
         Tags
         {
-            "Queue"="Transparent"
             "IgnoreProjector"="True"
-            "RenderType"="Transparent"
+            "RenderType"="Opaque"
             "PreviewType"="Plane"
             "CanUseSpriteAtlas"="True"
         }
