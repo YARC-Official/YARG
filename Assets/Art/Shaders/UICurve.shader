@@ -84,6 +84,7 @@ Shader "UI/Curve"
             fixed4 _TextureSampleAdd;
             float4 _ClipRect;
             float4 _MainTex_ST;
+            float _IsFading;
 
             v2f vert(appdata_t v)
             {
@@ -110,7 +111,7 @@ Shader "UI/Curve"
 
                 // fade
                 float rate = 1.0 / (_FadeEndPos - _FadeStartPos);
-                color.a = min(color.a, 1.0 - ((min(max(coord_y, _FadeStartPos), _FadeEndPos)) - _FadeStartPos) * rate);  
+                color.a = min(color.a, max(1.0 - _IsFading, 1.0 - ((min(max(coord_y, _FadeStartPos), _FadeEndPos)) - _FadeStartPos) * rate));  
 
                 #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
