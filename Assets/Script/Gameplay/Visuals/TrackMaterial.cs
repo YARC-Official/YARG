@@ -144,13 +144,6 @@ namespace YARG.Gameplay.Visuals
 
         public void Initialize(float fadePos, float fadeSize, HighwayPreset highwayPreset)
         {
-            // Set all fade values
-            _material.SetFade(fadePos, fadeSize);
-            foreach (var trimMat in _trimMaterials)
-            {
-                trimMat.SetFade(fadePos, fadeSize);
-            }
-
             _material.SetColor(_starPowerColorProperty, highwayPreset.StarPowerColor.ToUnityColor() );
             _normalPreset = Preset.FromHighwayPreset(highwayPreset, false);
             _groovePreset = Preset.FromHighwayPreset(highwayPreset, true);
