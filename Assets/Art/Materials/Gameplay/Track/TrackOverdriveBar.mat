@@ -12,14 +12,13 @@ Material:
     type: 3}
   m_ValidKeywords:
   - _EMISSION_DISABLED
+  m_InvalidKeywords:
   - _SURFACE_TYPE_TRANSPARENT
-  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3025
-  stringTagMap:
-    RenderType: Transparent
+  m_CustomRenderQueue: 2025
+  stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
