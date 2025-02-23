@@ -79,8 +79,7 @@ Shader "UI/Curve"
             sampler2D _MainTex;
             fixed4 _Color;
             float _CurveFactor;
-            float _FadeStartPos;
-            float _FadeEndPos;
+            float2 _FadeParams;
             fixed4 _TextureSampleAdd;
             float4 _ClipRect;
             float4 _MainTex_ST;
@@ -110,8 +109,8 @@ Shader "UI/Curve"
                 half4 color = (tex2D(_MainTex, coord) + _TextureSampleAdd) * IN.color;
 
                 // fade
-                float rate = 1.0 / (_FadeEndPos - _FadeStartPos);
-                color.a = min(color.a, max(1.0 - _IsFading, 1.0 - ((min(max(coord_y, _FadeStartPos), _FadeEndPos)) - _FadeStartPos) * rate));  
+                float rate = 1.0 / (_FadeParams.y - _FadeParams.x);
+                color.a = min(color.a, max(1.0 - _IsFading, 1.0 - ((min(max(coord_y, _FadeParams.x), _FadeParams.y)) - _FadeParams.x) * rate));  
 
                 #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);

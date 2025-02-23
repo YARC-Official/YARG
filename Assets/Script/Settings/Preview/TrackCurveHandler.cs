@@ -9,8 +9,11 @@ namespace YARG.Settings.Preview
     public class TrackCurveHandler : MonoBehaviour
     {
         private static readonly int _curveFactor = Shader.PropertyToID("_CurveFactor");
+        private static readonly int _fadeParams = Shader.PropertyToID("_FadeParams");
 
         private Material _material;
+
+        public Vector2 FadeParams = new Vector2(0.9f,0.95f);
 
         private void Start()
         {
@@ -25,6 +28,7 @@ namespace YARG.Settings.Preview
         {
             var preset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
             _material.SetFloat(_curveFactor, preset.CurveFactor);
+            _material.SetVector(_fadeParams, FadeParams);
         }
     }
 }

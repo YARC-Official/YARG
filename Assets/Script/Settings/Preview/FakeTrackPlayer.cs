@@ -314,8 +314,18 @@ namespace YARG.Settings.Preview
             var highwayPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.HighwayPresets);
 
             // Update camera presets
-            _trackMaterial.Initialize(3f, cameraPreset.FadeLength, highwayPreset);
-            _cameraPositioner.Initialize(cameraPreset);
+            _trackMaterial.Initialize(highwayPreset);
+            _cameraPositioner.Initialize(cameraPreset, 3f, cameraPreset.FadeLength);
+
+            // A bit ugly but this is only in settings.
+            var curveHandler = FindFirstObjectByType<TrackCurveHandler>();
+            var camera = _cameraPositioner.GetComponent<Camera>();
+            var fadeParams = YARG.Gameplay.Visuals.Utils.FadeSettingsToScreenParams(
+                                                this.transform.position,
+                                                camera.activeTexture.height,
+                                                camera,
+                                                3f, cameraPreset.FadeLength);
+            curveHandler.FadeParams = fadeParams;
 
             // Update color profiles
             if (!CurrentGameModeInfo.UseProKeys)
@@ -329,7 +339,7 @@ namespace YARG.Settings.Preview
             // Update all of the notes
             foreach (var note in _notePool.AllSpawned)
             {
-                ((FakeNote) note).OnSettingChanged();
+                ((FakeNote)note).OnSettingChanged();
             }
         }
 
@@ -347,7 +357,7 @@ namespace YARG.Settings.Preview
                 _nextSpawnTime = PreviewTime + SPAWN_FREQ;
 
                 // Spawn note
-                var noteObj = (FakeNote) _notePool.KeyedTakeWithoutEnabling(note);
+                var noteObj = (FakeNote)_notePool.KeyedTakeWithoutEnabling(note);
                 noteObj.NoteRef = note;
                 noteObj.FakeTrackPlayer = this;
                 noteObj.EnableFromPool();

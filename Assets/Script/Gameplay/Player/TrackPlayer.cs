@@ -226,8 +226,8 @@ namespace YARG.Gameplay.Player
         {
             GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar);
 
-            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.HighwayPreset);
-            CameraPositioner.Initialize(Player.CameraPreset);
+            TrackMaterial.Initialize(Player.HighwayPreset);
+            CameraPositioner.Initialize(Player.CameraPreset, ZeroFadePosition, FadeSize);
         }
 
         protected void ResetNoteCounters()

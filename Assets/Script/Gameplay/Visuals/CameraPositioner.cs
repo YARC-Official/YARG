@@ -27,10 +27,11 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void Initialize(CameraPreset preset)
+        public void Initialize(CameraPreset preset, float fadePos, float fadeSize)
         {
+            var camera = GetComponent<Camera>();
             // FOV
-            GetComponent<Camera>().fieldOfView = preset.FieldOfView;
+            camera.fieldOfView = preset.FieldOfView;
 
             // Position
             transform.localPosition = new Vector3(
@@ -40,6 +41,13 @@ namespace YARG.Gameplay.Visuals
 
             // Rotation
             transform.localRotation = Quaternion.Euler(preset.Rotation, 0f, 0f);
+
+            // Clip everything that was set to not be visible anyway
+            var trackPosition = transform.position; // Not quite but serves the purpose here
+            var trackZeroFadePosition = new Vector3(trackPosition.x, trackPosition.y, fadePos);
+            Plane farPlane = new Plane();
+            farPlane.SetNormalAndPosition(camera.transform.forward, trackZeroFadePosition);
+            camera.farClipPlane = Mathf.Abs(farPlane.GetDistanceToPoint(camera.transform.position));
         }
 
         private void Update()
