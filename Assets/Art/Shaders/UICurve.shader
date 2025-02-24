@@ -109,8 +109,8 @@ Shader "UI/Curve"
                 half4 color = (tex2D(_MainTex, coord) + _TextureSampleAdd) * IN.color;
 
                 // fade
-                float rate = 1.0 / (_FadeParams.y - _FadeParams.x);
-                color.a = min(color.a, max(1.0 - _IsFading, 1.0 - ((min(max(coord_y, _FadeParams.x), _FadeParams.y)) - _FadeParams.x) * rate));  
+                float rate = _FadeParams.y != _FadeParams.x ? 1.0 / (_FadeParams.y - _FadeParams.x) : 0.0;
+                color.a = color.a == 0.0 ? 0.0 : max(1.0 - _IsFading, 1.0 - ((min(max(coord_y, _FadeParams.x), _FadeParams.y)) - _FadeParams.x) * rate);
 
                 #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
