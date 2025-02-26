@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Visuals;
 using YARG.Settings;
@@ -51,8 +51,9 @@ namespace YARG.Gameplay.Player
             double length = probableNotePair?.TotalTimeLength ?? 0;
 
             // Spawn the vocal lyric
+            bool allowHiding = harmIndex != 0 && combineHarmonyLyrics;
             var obj = (VocalLyricElement) _pools[lane].TakeWithoutEnabling();
-            obj.Initialize(lyric, _lastLyricEdgeTime[lane], length, isStarpower, harmIndex);
+            obj.Initialize(lyric, _lastLyricEdgeTime[lane], length, isStarpower, harmIndex, allowHiding);
             obj.EnableFromPool();
 
             // Set the edge time
