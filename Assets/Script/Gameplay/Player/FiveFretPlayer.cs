@@ -48,6 +48,7 @@ namespace YARG.Gameplay.Player
             public double Time;
             public bool   LeftSide;
             public int    Offset;
+            public bool   RangeIndicator;
         }
 
         private List<FiveFretRangeShift>   _allRangeShiftEvents  = new();
@@ -65,6 +66,8 @@ namespace YARG.Gameplay.Player
         private FretArray _fretArray;
         [SerializeField]
         private Pool _shiftIndicatorPool;
+        [SerializeField]
+        private Pool _rangeIndicatorPool;
 
         public override float[] StarMultiplierThresholds { get; protected set; } =
             GuitarStarMultiplierThresholds;
@@ -190,6 +193,12 @@ namespace YARG.Gameplay.Player
                 _shiftIndicatorPool.Return(poolable);
             }
 
+            for (var i = 0; i < _rangeIndicatorPool.AllSpawned.Count; i++)
+            {
+                var poolable = _rangeIndicatorPool.AllSpawned[i];
+                _rangeIndicatorPool.Return(poolable);
+            }
+
             InitializeRangeShift(time);
         }
 
@@ -214,6 +223,12 @@ namespace YARG.Gameplay.Player
 
             if (_shiftIndicators.TryPeek(out var shiftIndicator) && shiftIndicator.Time <= songTime + SpawnTimeOffset)
             {
+                // The range indicator is dealt with in its own function
+                if (shiftIndicator.RangeIndicator)
+                {
+                    SpawnRangeIndicator(nextShift);
+                    return;
+                }
                 if (!_shiftIndicatorPool.CanSpawnAmount(1))
                 {
                     return;
@@ -264,6 +279,28 @@ namespace YARG.Gameplay.Player
                 CurrentRange = nextShift;
                 SetActiveFretsForShiftEvent(nextShift);
             }
+        }
+
+        private void SpawnRangeIndicator(FiveFretRangeShift nextShift)
+        {
+            if (!_rangeIndicatorPool.CanSpawnAmount(1))
+            {
+                return;
+            }
+
+            var poolable = _rangeIndicatorPool.TakeWithoutEnabling();
+            if (poolable == null)
+            {
+                YargLogger.LogWarning("Attempted to spawn range indicator, but it's at its cap!");
+                return;
+            }
+
+            YargLogger.LogDebug("Range indicator spawned!");
+
+            ((GuitarRangeIndicatorElement) poolable).RangeShift = nextShift;
+            poolable.EnableFromPool();
+
+            _shiftIndicators.Dequeue();
         }
 
         public override void SetStemMuteState(bool muted)
@@ -562,7 +599,7 @@ namespace YARG.Gameplay.Player
 
                 // Add the indicators before the range shift
                 // While we're doing this, figure out the time between beats
-                for (int i = SHIFT_INDICATOR_MEASURES_BEFORE; i > 1; i--)
+                for (int i = SHIFT_INDICATOR_MEASURES_BEFORE; i > 0; i--)
                 {
                     var realIndex = beatlineIndex - i;
 
@@ -579,6 +616,7 @@ namespace YARG.Gameplay.Player
                         Time = beatlines[realIndex].Time,
                         LeftSide = shiftLeft,
                         Offset = shiftLeft ? ((shift.Range + shift.Size) - 6) * -1 : shift.Range - 1,
+                        RangeIndicator = i == 1,
                     });
                 }
 
