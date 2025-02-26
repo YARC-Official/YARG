@@ -150,7 +150,7 @@ namespace YARG.Menu.Persistent
 
             // Get FPS
             // Averaged to smooth out brief lag frames
-            float fps = 1f / (_frameTimes / _frameCount);
+            float fps = _frameCount / _frameTimes;
             _frameTimes = 0.0f;
             _frameCount = 0;
 
