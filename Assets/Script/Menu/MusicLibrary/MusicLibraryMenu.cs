@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Audio;
@@ -12,7 +15,6 @@ using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Playlists;
-using YARG.Scores;
 using YARG.Settings;
 using YARG.Song;
 using static YARG.Menu.Navigation.Navigator;
@@ -91,12 +93,22 @@ namespace YARG.Menu.MusicLibrary
 
         private int _primaryHeaderIndex;
 
+        private HttpListener httpListener;
+        private Task<HttpListenerContext> httpListenerTask;
+
         protected override void Awake()
         {
             base.Awake();
 
             // Initialize sidebar
             _sidebar.Initialize(this, _searchField);
+
+            httpListener = new HttpListener();
+            httpListener.Prefixes.Add("http://*:9090/");
+            httpListener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
+            httpListener.Start();
+
+            httpListenerTask = httpListener.GetContextAsync();
         }
 
         private void OnEnable()
@@ -535,6 +547,35 @@ namespace YARG.Menu.MusicLibrary
                 heldInput.Timer -= Time.unscaledDeltaTime;
 
             base.Update();
+
+            if (httpListenerTask.IsCompleted)
+            {
+                var context = httpListenerTask.Result;
+                Debug.Log(context.Request.RawUrl);
+                var hash = context.Request.QueryString.Get("hash");
+                if (hash != null)
+                {
+                    if (SongContainer.SongsByHash.TryGetValue(HashWrapper.FromString(hash), out var song))
+                    {
+                        Debug.Log("Switching to a song requested from webserver: " + song[0].Name);
+                        _currentSong = song[0];
+                        UpdateSearch(true);
+                    }
+                }
+                // Give list of songs
+                HttpListenerResponse response = context.Response;
+                response.ContentType = "text/html";
+                var output = new StreamWriter(response.OutputStream, System.Text.Encoding.UTF8);
+                output.Write("<HTML><BODY><table>");
+                foreach (var song in SongContainer.Songs)
+                {
+                    output.Write("<tr><th><a href=\"?hash={0}\">{1} - {2}</a></th></tr>",
+                        song.Hash.ToString(), song.Artist, song.Name);
+                }
+                output.Write("</table></BODY></HTML>");
+                output.Close();
+                httpListenerTask = httpListener.GetContextAsync();
+            }
         }
 
         private async void StartPreview(double delay, CancellationTokenSource canceller)
@@ -579,6 +620,7 @@ namespace YARG.Menu.MusicLibrary
             _previewContext?.Dispose();
             _reloadState = MusicLibraryReloadState.Partial;
             StemSettings.ApplySettings = true;
+            httpListener.Abort();
         }
 
         private void Back()
