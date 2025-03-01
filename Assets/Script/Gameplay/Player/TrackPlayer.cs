@@ -7,9 +7,11 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
@@ -72,7 +74,10 @@ namespace YARG.Gameplay.Player
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
         {
-            if (IsInitialized) return;
+            if (IsInitialized)
+            {
+                return;
+            }
 
             Initialize(index, player, chart, lastHighScore);
 
@@ -83,7 +88,6 @@ namespace YARG.Gameplay.Player
 
             var preset = player.EnginePreset;
             IndicatorStripes.Initialize(preset);
-            ComboMeter.Initialize(preset);
 
             // Set fade information and highway length
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
@@ -105,6 +109,8 @@ namespace YARG.Gameplay.Player
                 or Instrument.SixFretBass
                 or Instrument.ProBass_17Fret
                 or Instrument.ProBass_22Fret;
+
+            TrackView.ShowPlayerName(player);
         }
 
         protected override void UpdateVisualsWithTimes(double time)
@@ -162,7 +168,10 @@ namespace YARG.Gameplay.Player
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
         {
-            if (IsInitialized) return;
+            if (IsInitialized)
+            {
+                return;
+            }
 
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
@@ -175,6 +184,8 @@ namespace YARG.Gameplay.Player
             Notes = NoteTrack.Notes;
 
             Engine = CreateEngine();
+
+            base.ComboMeter.Initialize(player.EnginePreset, Engine.BaseParameters.MaxMultiplier);
 
             Engine.OnComboIncrement += OnComboIncrement;
             Engine.OnComboReset += OnComboReset;
@@ -212,7 +223,7 @@ namespace YARG.Gameplay.Player
         {
             GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar);
 
-            TrackMaterial.Initialize(ZeroFadePosition, FadeSize);
+            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.HighwayPreset);
             CameraPositioner.Initialize(Player.CameraPreset);
         }
 

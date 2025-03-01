@@ -2,6 +2,7 @@
 using YARG.Core.Song.Cache;
 using YARG.Core.Song;
 using System;
+using System.Linq;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 using YARG.Helpers;
@@ -11,7 +12,8 @@ using YARG.Core.Logging;
 using YARG.Core;
 using YARG.Player;
 using YARG.Localization;
-using YARG.Core.Extensions;
+using YARG.Scores;
+using YARG.Core.Utility;
 
 namespace YARG.Song
 {
@@ -30,6 +32,7 @@ namespace YARG.Song
         SongLength,
         DateAdded,
         Playable,
+        Playcount,
 
         Instrument,
         FiveFretGuitar,
@@ -106,7 +109,7 @@ namespace YARG.Song
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Charters => _songCache.Charters;
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Playlists => _songCache.Playlists;
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Sources => _songCache.Sources;
-        public static IReadOnlyDictionary<SortString, List<SongEntry>> ArtistAlbums => _songCache.ArtistAlbums;
+        public static IReadOnlyDictionary<SortString, SortedDictionary<SortString, List<SongEntry>>> ArtistAlbums => _songCache.ArtistAlbums;
         public static IReadOnlyDictionary<Instrument, SortedDictionary<int, List<SongEntry>>> Instruments => _songCache.Instruments;
 
         public static int Count => _songs.Length;
@@ -127,12 +130,9 @@ namespace YARG.Song
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var task = UniTask.RunOnThreadPool(() =>
             {
-                const bool MULTITHREADING = true;
                 _songCache = CacheHandler.RunScan(quick,
                     PathHelper.SongCachePath,
                     PathHelper.BadSongsPath,
-                    MULTITHREADING,
-                    SettingsManager.Settings.AllowDuplicateSongs.Value,
                     SettingsManager.Settings.UseFullDirectoryForPlaylists.Value,
                     directories);
             });
@@ -155,7 +155,7 @@ namespace YARG.Song
 
         public static SongCategory[] GetSortedCategory(SortAttribute sort)
         {
-            return sort switch
+            var proposedSort = sort switch
             {
                 SortAttribute.Name => _sortTitles,
                 SortAttribute.Artist => _sortArtists,
@@ -168,6 +168,7 @@ namespace YARG.Song
                 SortAttribute.Artist_Album => _sortArtistAlbums,
                 SortAttribute.SongLength => _sortSongLengths,
                 SortAttribute.DateAdded => _sortDatesAdded,
+                SortAttribute.Playcount => GetPlaycounts(),
                 SortAttribute.Playable => GetPlayableSongs(),
 
                 SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
@@ -191,13 +192,24 @@ namespace YARG.Song
                 SortAttribute.Vocals         => _sortInstruments[Instrument.Vocals],
                 SortAttribute.Harmony        => _sortInstruments[Instrument.Harmony],
                 SortAttribute.Band           => _sortInstruments[Instrument.Band],
-                _ => throw new Exception("stoopid"),
+                _  => null
             };
+
+            // Make life better when people go back a version and we
+            // encounter sorts we don't understand by providing a
+            // default rather than a blank song library
+            if (proposedSort != null)
+            {
+                return proposedSort;
+            }
+
+            YargLogger.LogInfo("Invalid Sort Attribute. Defaulting to Name sort.");
+            return _sortTitles;
         }
 
         public static bool HasInstrument(Instrument instrument)
         {
-            return _sortInstruments[instrument].Length > 0;
+            return _sortInstruments.ContainsKey(instrument);
         }
 
         private static HashSet<Instrument> _instruments = null;
@@ -280,6 +292,47 @@ namespace YARG.Song
             return _songs.Pick();
         }
 
+        // Play count sorting is intentionally not cached, as it must be regenerated after
+        // every play, when profiles change, and probably a bunch of other stuff
+        private static SongCategory[] GetPlaycounts()
+        {
+            // This should never happen since play count shouldn't be selectable without
+            // a non-bot profile and MusicLibraryMenu already checks for this, but let's double check
+            if (PlayerContainer.OnlyHasBotsActive())
+            {
+                // Titles seems like a reasonable fallback
+                return _sortTitles;
+            }
+            var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+
+            var counts = ScoreContainer.GetPlayedSongsForUserByPlaycount(player.Profile, SortOrdering.Descending);
+            // Get all the unplayed songs and stuff them on the end of the list
+            var zeroPlaySongs = new List<SongEntry>();
+            var previousSort = SettingsManager.Settings.PreviousLibrarySort;
+
+            if (previousSort == SortAttribute.Unspecified)
+            {
+                // I don't think this should ever happen, but I'm not certain,
+                // so belt and suspenders wins.
+                previousSort = SortAttribute.Name;
+            }
+
+            foreach (var category in GetSortedCategory(previousSort))
+            {
+                foreach (var song in category.Songs)
+                {
+                    if (!counts.Contains(song))
+                    {
+                        zeroPlaySongs.Add(song);
+                    }
+                }
+            }
+            var countCategories = new SongCategory[2];
+            countCategories[0] = new SongCategory("PLAYED SONGS", counts.ToArray(), "Played Songs");
+            countCategories[1] = new SongCategory("UNPLAYED SONGS", zeroPlaySongs.ToArray(), "Unplayed Songs");
+            return countCategories;
+        }
+
         private static void UpdateSongUi(LoadingContext context)
         {
             var tracker = CacheHandler.Progress;
@@ -293,9 +346,6 @@ namespace YARG.Song
                     break;
                 case ScanStage.LoadingSongs:
                     phrase = "Loading songs...";
-                    break;
-                case ScanStage.CleaningDuplicates:
-                    phrase = "Cleaning Duplicates...";
                     break;
                 case ScanStage.Sorting:
                     phrase = "Sorting songs...";
@@ -322,14 +372,14 @@ namespace YARG.Song
         private static void FillContainers()
         {
             _songs = SetAllSongs(_songCache.Entries);
-        
-            _sortArtists   = Convert(_songCache.Artists, SongAttribute.Artist, true);
-            _sortAlbums    = Convert(_songCache.Albums, SongAttribute.Album, true);
-            _sortGenres    = Convert(_songCache.Genres, SongAttribute.Genre, false);
-            _sortCharters  = Convert(_songCache.Charters, SongAttribute.Charter, true);
-            _sortPlaylists = Convert(_songCache.Playlists, SongAttribute.Playlist, false);
-            _sortSources   = Convert(_songCache.Sources, SongAttribute.Source, false);
-            _sortArtistAlbums = Convert(_songCache.ArtistAlbums, SongAttribute.Artist_Album, true);
+
+            _sortArtists      = Convert(_songCache.Artists, SongAttribute.Artist);
+            _sortAlbums       = Convert(_songCache.Albums, SongAttribute.Album);
+            _sortGenres       = Convert(_songCache.Genres, SongAttribute.Genre);
+            _sortCharters     = Convert(_songCache.Charters, SongAttribute.Charter);
+            _sortPlaylists    = Convert(_songCache.Playlists, SongAttribute.Playlist);
+            _sortSources      = Convert(_songCache.Sources, SongAttribute.Source);
+            _sortArtistAlbums = Combine(_songCache.ArtistAlbums);
 
             _sortTitles       = Cast(_songCache.Titles);
             _sortYears        = Cast(_songCache.Years);
@@ -385,37 +435,59 @@ namespace YARG.Song
                 return songs;
             }
 
-            static SongCategory[] Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute, bool createCategoryGroups)
+            static SongCategory[] Convert(SortedDictionary<SortString, List<SongEntry>> list, SongAttribute attribute)
             {
                 var sections = new SongCategory[list.Count];
-                
+
                 int index = 0;
                 foreach (var node in list)
                 {
-                    string key = node.Key;
-
-                    if (attribute == SongAttribute.Genre && key.Length > 0 && char.IsLower(key[0]))
+                    string key;
+                    switch (attribute)
                     {
-                        key = char.ToUpperInvariant(key[0]).ToString();
-                        if (node.Key.Length > 1)
-                            key += node.Key.Str[1..];
+                        case SongAttribute.Artist:
+                            key = node.Value[0].Artist;
+                            break;
+                        case SongAttribute.Album:
+                            key = node.Value[0].Album;
+                            break;
+                        case SongAttribute.Charter:
+                            key = node.Value[0].Charter;
+                            break;
+                        case SongAttribute.Genre:
+                            key = node.Value[0].Genre;
+                            if (key.Length > 0 && char.IsLower(key[0]))
+                            {
+                                key = char.ToUpperInvariant(key[0]).ToString();
+                                if (key.Length > 1)
+                                {
+                                    key += key[1..];
+                                }
+                            }
+                            break;
+                        case SongAttribute.Playlist:
+                            key = node.Value[0].Playlist;
+                            break;
+                        case SongAttribute.Source:
+                            key = node.Value[0].Source;
+                            break;
+                        default:
+                            throw new ArgumentException(nameof(attribute));
                     }
 
-                    string categoryGroupName;
-                    if (createCategoryGroups)
+                    string categoryGroupName = attribute switch
                     {
-                        categoryGroupName = node.Key.Group switch
+                        SongAttribute.Artist or
+                        SongAttribute.Album or
+                        SongAttribute.Charter => node.Key.Group switch
                         {
                             CharacterGroup.Empty or
                             CharacterGroup.AsciiSymbol => "*",
                             CharacterGroup.AsciiNumber => "0-9",
                             _ => char.ToUpperInvariant(node.Key.SortStr[0]).ToString(),
-                        };
-                    }
-                    else
-                    {
-                        categoryGroupName = key;
-                    }
+                        },
+                        _ => key,
+                    };
                     sections[index++] = new SongCategory(key, node.Value.ToArray(), categoryGroupName);
                 }
                 return sections;
@@ -430,6 +502,34 @@ namespace YARG.Song
                     sections[index++] = new SongCategory(key, section.ToArray(), key);
                 }
                 return sections;
+            }
+
+            static SongCategory[] Combine(SortedDictionary<SortString, SortedDictionary<SortString, List<SongEntry>>> artistAlbums)
+            {
+                int count = 0;
+                foreach (var artist in artistAlbums)
+                {
+                    count += artist.Value.Count;
+                }
+
+                var sort = new SongCategory[count];
+                int index = 0;
+                foreach (var artist in artistAlbums)
+                {
+                    string categoryGroupName = artist.Key.Group switch
+                    {
+                        CharacterGroup.Empty or
+                        CharacterGroup.AsciiSymbol => "*",
+                        CharacterGroup.AsciiNumber => "0-9",
+                        _ => char.ToUpperInvariant(artist.Key.SortStr[0]).ToString(),
+                    };
+
+                    foreach (var album in artist.Value)
+                    {
+                        sort[index++] = new SongCategory($"{album.Value[0].Artist} - {album.Value[0].Album}", album.Value.ToArray(), categoryGroupName);
+                    }
+                }
+                return sort;
             }
         }
     }

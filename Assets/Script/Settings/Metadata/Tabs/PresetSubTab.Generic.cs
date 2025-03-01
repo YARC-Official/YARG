@@ -14,7 +14,6 @@ using YARG.Settings.Customization;
 using YARG.Settings.Types;
 
 using SystemColor = System.Drawing.Color;
-using UnityColor = UnityEngine.Color;
 
 namespace YARG.Settings.Metadata
 {

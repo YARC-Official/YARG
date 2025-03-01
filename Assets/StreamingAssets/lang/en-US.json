@@ -95,7 +95,8 @@
             "ProKeys": "Pro Keys",
             "Vocals": "Vocals",
             "Harmony": "Harmony",
-            "Band": "Band"
+            "Band": "Band",
+            "Playcount": "Play Count"
         }
     },
     "Menu": {
@@ -207,7 +208,9 @@
             "Modifiers": "Modifiers",
             "Ready": "Ready",
             "SitOut": "Sit Out",
-            "Done": "Done"
+            "Done": "Done",
+            "WarningPlayerNoInputDevice" : "This player has no input device assigned! Assign one from the Profiles menu.",
+            "WarningVocalistNoMicrophone" : "This vocalist has no microphone assigned! Assign one from the Profiles menu."
         },
         "History": {
             "Name": "History",
@@ -480,7 +483,9 @@
             "AdvancedDMXChannels": "Advanced DMX Channels",
             "StatusBar": "Status Bar",
             "AdvancedDMXSettings": "Advanced sACN and DMX settings",
-			"Experimental": "Experimental"
+            "Experimental": "Experimental",
+            "HUD": "HUD",
+            "Gameplay": "Gameplay"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
@@ -551,9 +556,21 @@
                 "PauseName": "Crowd",
                 "Description": "Adjusts the song's crowd track volume. Only does something if the song is multi-track."
             },
+            "DifficultyRings": {
+                "Name": "Difficulty Ring Mode",
+                "Description": "How to display intensity values on the difficulty rings in the music library.",
+                "Dropdown": {
+                    "Classic": "Classic",
+                    "Expanded": "Expanded"
+                }
+            },
             "DisableBloom": {
                 "Name": "Disable Bloom",
                 "Description": "Disables post-processing bloom (the glowly effect). May increase performance."
+            },
+            "DisableFilmGrain": {
+                "Name": "Disable Film Grain",
+                "Description": "Disables post-processing film grain effect. May increase performance."
             },
             "DisableGlobalBackgrounds": {
                 "Name": "Disable Global Backgrounds",
@@ -650,6 +667,14 @@
                     "Off": "Off",
                     "Score": "Score",
                     "Stars": "Stars"
+                }
+            },
+            "HighScoreHistory": {
+                "Name": "High Score History",
+                "Description": "Changes how score history gets used for high score information displayed in the Music Library.",
+                "Dropdown": {
+                    "HighestOverall": "Highest across all difficulties",
+                    "HighestDifficulty": "Highest-played difficulty only"
                 }
             },
             "InputDeviceLogging": {
@@ -964,12 +989,21 @@
             "ReduceNoteSpeedByDifficulty": {
                 "Name": "Reduce Note Speed by Difficulty",
                 "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The specified note speed is applied to Expert, and lower difficulties receive a reduction in speed. This setting does not affect vocal tracks."
+            },
+            "ShowPlayerNameWhenStartingSong": {
+                "Name": "Show Player Name When Starting Song",
+                "Description": "If enabled, the player name and instrument icon will appear when the song starts."
+            },
+            "UseThreeLaneLyricsInHarmony": {
+                "Name": "Use Three Lyric Lanes In Harmony",
+                "Description": "If enabled, the game will display three lyric lanes in harmony mode (one for each harmony). When disabled, the game will combine the lyrics of harmonies 2 and 3 into one lane at the top."
             }
         },
         "PresetType": {
             "CameraSettingsContainer": "Camera Presets",
             "ColorProfileContainer": "Color Profiles",
-            "EnginePresetContainer": "Engine Presets"
+            "EnginePresetContainer": "Engine Presets",
+            "HighwayPresetContainer" : "Highway Presets"
         },
         "PresetSetting": {
             "CameraPreset": {
@@ -1334,6 +1368,35 @@
                 "SustainDropLeniency": {
                     "Name": "Sustain Drop Leniency",
                     "Description": ""
+                }
+            },
+            "HighwayPreset" : {
+                "BackgroundBaseColor1": {
+                    "Name": "Background Base Color 1"
+                },
+                "BackgroundBaseColor2": {
+                    "Name": "Background Base Color 2"
+                },
+                "BackgroundBaseColor3": {
+                    "Name": "Background UNUSED Color"
+                },
+                "BackgroundPatternColor": {
+                    "Name": "Background Pattern Color"
+                },
+                "BackgroundGrooveBaseColor1": {
+                    "Name": "Groove Base Color 1"
+                },
+                "BackgroundGrooveBaseColor2": {
+                    "Name": "Groove Base Color 2"
+                },
+                "BackgroundGrooveBaseColor3": {
+                    "Name": "Groove UNUSED Color"
+                },
+                "BackgroundGroovePatternColor": {
+                    "Name": "Groove Pattern Color"
+                },
+                "StarPowerColor": {
+                    "Name": "Star Power Color"
                 }
             }
         }

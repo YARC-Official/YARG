@@ -38,7 +38,7 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private static readonly SortString _YARGSOURCE = "yarg";
+        private static readonly SortString _YARGSOURCE = new SortString("yarg");
         private static void AddRandomSongs(SongEntry[] songs, ref int index)
         {
             const float STARTING_RNG = .75f;

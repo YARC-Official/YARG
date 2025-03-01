@@ -186,6 +186,12 @@ namespace YARG.Settings
             // Add initial state
             chart.VenueTrack.Lighting.Add(new LightingEvent(latestLighting, 0, 0));
             chart.VenueTrack.PostProcessing.Add(new PostProcessingEvent(latestPostProc, 0, 0));
+            
+            if (chart.Sections.Count == 0)
+            {
+                YargLogger.LogWarning("No sections found in chart, using default lighting");
+                chart.VenueTrack.Lighting.Add(new LightingEvent(_defaultSectionPreset.AllowedLightPresets[0], 0, 0));
+            }
 
             foreach (var section in chart.Sections)
             {
@@ -259,7 +265,7 @@ namespace YARG.Settings
                 {
                     // Add next keyframe if staying on the same (manual) lighting
                     chart.VenueTrack.Lighting.Add(new LightingEvent(
-                        LightingType.Keyframe_Next,
+                        LightingType.KeyframeNext,
                         section.Time,
                         section.Tick));
                 }
@@ -271,7 +277,7 @@ namespace YARG.Settings
                     while (nextTick < lastTick && nextTick < section.TickEnd)
                     {
                         chart.VenueTrack.Lighting.Add(new LightingEvent(
-                            LightingType.Keyframe_Next,
+                            LightingType.KeyframeNext,
                             chart.SyncTrack.TickToTime(nextTick),
                             nextTick));
                         nextTick += resolution * sectionPreset.KeyframeRate;
@@ -377,10 +383,10 @@ namespace YARG.Settings
                 LightingType.Default or
                 LightingType.Dischord or
                 LightingType.Chorus or
-                LightingType.Cool_Manual or
+                LightingType.CoolManual or
                 LightingType.Stomp or
                 LightingType.Verse or
-                LightingType.Warm_Manual;
+                LightingType.WarmManual;
         }
 
         private CameraPacingPreset StringToCameraPacing(string cameraPacing)

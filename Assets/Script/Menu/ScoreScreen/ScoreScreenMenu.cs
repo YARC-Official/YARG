@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -77,18 +78,30 @@ namespace YARG.Menu.ScoreScreen
             // Do analysis of replay before showing any score data
             // This will make it so that if the analysis takes a while the screen is blank
             // (kinda like a loading screen)
-            if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
+            try
             {
-                DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
-                    "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
+                if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
+                {
+                    DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
+                        "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
+                        "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
+                        $"Chart Hash: {song.Hash}");
+                }
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, $"Failed to analyze replay! Song hash: {song.Hash}");
+                DialogManager.Instance.ShowMessage("Failed To Analyze Replay!",
+                    "The replay analysis for this run resulted in an unexpected error.\n" +
                     "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
-                    $"Chart Hash: {song.Hash.ToString()}");
+                    $"Chart Hash: {song.Hash}");
             }
 
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-            _bandScoreNotSavedMessage.gameObject.SetActive(!ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
+            _bandScoreNotSavedMessage.gameObject.SetActive(
+                !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
 
             // Set speed text (if not at 100% speed)
             if (!Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f))
@@ -198,7 +211,7 @@ namespace YARG.Menu.ScoreScreen
             }
 
             var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
-            for(int i = 0; i < results.Length; i++)
+            for (int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];
 

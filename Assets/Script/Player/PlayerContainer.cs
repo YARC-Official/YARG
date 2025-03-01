@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine.InputSystem;
 using YARG.Core.Game;
@@ -100,11 +101,6 @@ namespace YARG.Player
             return _playersByProfile.ContainsKey(profile);
         }
 
-        public static bool HasBotsActive()
-        {
-            return _players.Exists(i => i.Profile.IsBot);
-        }
-
         public static YargPlayer CreatePlayerFromProfile(YargProfile profile, bool resolveDevices)
         {
             if (!_profiles.Contains(profile))
@@ -169,7 +165,8 @@ namespace YARG.Player
 
         private static void ActiveProfilesChanged()
         {
-            if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
+            if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable ||
+                SettingsManager.Settings.LibrarySort == SortAttribute.Playcount)
             {
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
@@ -266,12 +263,17 @@ namespace YARG.Player
             return _profiles.Count;
         }
 
-        public static int SaveProfiles()
+        public static int SaveProfiles(bool updateOrder = true)
         {
             if (!_isInitialized)
             {
                 YargLogger.LogWarning("Profiles could not be saved as they were not loaded");
                 return 0;
+            }
+
+            if (updateOrder)
+            {
+                UpdateProfileOrder();
             }
 
             string profilesJson = JsonConvert.SerializeObject(_profiles, Formatting.Indented);
@@ -296,7 +298,85 @@ namespace YARG.Player
             foreach (var profile in _profiles)
             {
                 profile.EnsureValidInstrument();
+            }
+        }
 
+        public static bool OnlyHasBotsActive()
+        {
+            foreach (var player in _players)
+            {
+                if (!player.Profile.IsBot)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static bool HasAnyBotsActive()
+        {
+            return _players.Exists(i => i.Profile.IsBot);
+        }
+
+        public static int GetPlayerIndex(YargPlayer player)
+        {
+            int index = _players.IndexOf(player);
+            if (index == -1)
+            {
+                throw new ArgumentException("Player not found in the active player list");
+            }
+
+            return index;
+        }
+
+        public static void MoveUp(YargPlayer player)
+        {
+            int index = GetPlayerIndex(player);
+            if (index == 0)
+            {
+                return;
+            }
+
+            _players.RemoveAt(index);
+            _players.Insert(index - 1, player);
+        }
+
+        public static void MoveDown(YargPlayer player)
+        {
+            int index = GetPlayerIndex(player);
+            if (index == _players.Count - 1)
+            {
+                return;
+            }
+
+            _players.RemoveAt(index);
+            _players.Insert(index + 1, player);
+        }
+
+        public static void UpdateProfileOrder()
+        {
+            ClearProfileOrder();
+
+            for (int i = 0; i < _players.Count; i++)
+            {
+                _players[i].Profile.AutoConnectOrder = i;
+            }
+        }
+
+        public static void ClearProfileOrder()
+        {
+            foreach (var profile in Profiles)
+            {
+                profile.AutoConnectOrder = null;
+            }
+        }
+
+        public static void AutoConnectProfiles()
+        {
+            foreach (var profile in Profiles.Where(e => e.AutoConnectOrder != null).OrderBy(e => e.AutoConnectOrder))
+            {
+                CreatePlayerFromProfile(profile, true);
             }
         }
     }

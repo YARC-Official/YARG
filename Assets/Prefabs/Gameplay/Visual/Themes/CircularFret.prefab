@@ -19556,7 +19556,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9053863999735742897}
   - component: {fileID: 6744950466115896747}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Pressed Effects
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24736,6 +24736,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: CircularFretBase
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: dbd13bcf0e5187844aa7c63701afa7c2,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dbd13bcf0e5187844aa7c63701afa7c2, type: 3}
 --- !u!4 &7915672790141737488 stripped
@@ -24851,6 +24856,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: CircularFretTop
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 23fc124df29b2e8438b7f5854593e9fe,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 23fc124df29b2e8438b7f5854593e9fe, type: 3}

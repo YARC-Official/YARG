@@ -1,4 +1,5 @@
 ﻿using System;
+using YARG.Core;
 using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Core.Input;
@@ -24,16 +25,20 @@ namespace YARG.Player
         public bool InputsEnabled { get; private set; }
         public ProfileBindings Bindings { get; private set; }
 
-        public EnginePreset EnginePreset { get; private set; }
-        public ThemePreset  ThemePreset  { get; private set; }
-        public ColorProfile ColorProfile { get; private set; }
-        public CameraPreset CameraPreset { get; private set; }
+        public EnginePreset  EnginePreset  { get; private set; }
+        public ThemePreset   ThemePreset   { get; private set; }
+        public ColorProfile  ColorProfile  { get; private set; }
+        public CameraPreset  CameraPreset  { get; private set; }
+        public HighwayPreset HighwayPreset { get; private set; }
 
         /// <summary>
         /// Overrides the engine parameters in the gameplay player.
         /// This is only used when loading replays.
         /// </summary>
         public BaseEngineParameters EngineParameterOverride { get; set; }
+
+        public bool IsMissingMicrophone => Profile.GameMode == GameMode.Vocals && Bindings.Microphone == null && !Profile.IsBot;
+        public bool IsMissingInputDevice => Profile.GameMode != GameMode.Vocals && !Bindings.HasDeviceAssigned && !Profile.IsBot;
 
         public YargPlayer(YargProfile profile, ProfileBindings bindings)
         {
@@ -57,6 +62,9 @@ namespace YARG.Player
             CameraPreset = replay.GetCameraPreset(Profile.CameraPreset)
                 ?? CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
                 ?? CameraPreset.Default;
+
+            HighwayPreset = CustomContentManager.HighwayPresets.GetPresetById(Profile.HighwayPreset)
+                ?? HighwayPreset.Default;
         }
 
         public void SwapToProfile(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
@@ -93,12 +101,16 @@ namespace YARG.Player
                 ?? ColorProfile.Default;
             CameraPreset = CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
                 ?? CameraPreset.Default;
+            HighwayPreset = CustomContentManager.HighwayPresets.GetPresetById(Profile.HighwayPreset)
+                ?? HighwayPreset.Default;
         }
 
         public void EnableInputs()
         {
             if (InputsEnabled || Bindings == null)
+            {
                 return;
+            }
 
             Bindings.EnableInputs();
             Bindings.MenuInputProcessed += OnMenuInput;
@@ -110,7 +122,9 @@ namespace YARG.Player
         public void DisableInputs()
         {
             if (!InputsEnabled || Bindings == null)
+            {
                 return;
+            }
 
             Bindings.DisableInputs();
             Bindings.MenuInputProcessed -= OnMenuInput;
