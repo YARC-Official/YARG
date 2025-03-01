@@ -124,7 +124,7 @@ namespace YARG.Gameplay.HUD
                 return Localize.KeyFormat(
                     ("Gameplay", "Practice", "SectionFormats" , "WithNumber"),
                     letterBasedName,
-                    sectionName[1..]
+                    sectionName[1..].TrimStart('_')
                 );
             }
 
@@ -161,7 +161,7 @@ namespace YARG.Gameplay.HUD
                 return text[0].IsAsciiLetterLower();
             }
 
-            return text[0].IsAsciiLetterLower() && text[1].IsAsciiDigit() && IsSectionNumber(text[1..]);
+            return text[0].IsAsciiLetterLower() && (text[1].IsAsciiDigit() || text[1] == '_') && IsSectionNumber(text[1..]);
         }
 
         private (string name, string number) DeriveNameAndNumber(string section)
