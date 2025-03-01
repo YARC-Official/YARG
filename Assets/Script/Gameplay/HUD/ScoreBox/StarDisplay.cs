@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -43,7 +42,7 @@ namespace YARG.Gameplay.HUD
 
         public void PopNew()
         {
-            gameObject.SetActive(true);
+            GetComponent<Image>().fillAmount = 1;
             _starAnimator.Play(ANIMATION_POP_NEW);
         }
 
