@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Switch;
 using UnityEngine.InputSystem.XInput;
 using YARG.Core;
 using YARG.Core.Input;
 using YARG.Menu.Persistent;
+
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX || UNITY_WSA
+using UnityEngine.InputSystem.Switch;
+#endif
 
 namespace YARG.Input
 {
@@ -136,6 +139,7 @@ namespace YARG.Input
             AddBinding(MenuAction.Start, gamepad.startButton);
             AddBinding(MenuAction.Select, gamepad.selectButton);
 
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX || UNITY_WSA
             if (gamepad is SwitchProControllerHID switchPad)
             {
                 // Swap A<->B and X<->Y for Switch controllers
@@ -146,6 +150,7 @@ namespace YARG.Input
                 AddBinding(MenuAction.Orange, switchPad.leftShoulder);
             }
             else
+#endif
             {
                 AddBinding(MenuAction.Green, gamepad.buttonSouth);
                 AddBinding(MenuAction.Red, gamepad.buttonEast);
