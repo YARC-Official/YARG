@@ -22,7 +22,7 @@ namespace YARG.Gameplay
         public GameObject Prefab { get; private set; }
 
         [SerializeField]
-        private int _prewarmAmount = 15;
+        private int _prewarmAmount = 300;
         [SerializeField]
         private int _objectCap = 500;
 
