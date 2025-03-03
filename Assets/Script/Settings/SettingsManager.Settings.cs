@@ -69,6 +69,7 @@ namespace YARG.Settings
             public ToggleSetting WaitForSongVideo { get; } = new(true);
 
 
+            public SliderSetting InputPollingFrequency { get; } = new(250f, 60f, 1000f);
             public ToggleSetting VoiceActivatedVocalStarPower { get; } = new(true);
             public ToggleSetting EnablePracticeSP { get; } = new(false);
             public SliderSetting PracticeRestartDelay { get; } = new(2f, 0.5f, 5f);

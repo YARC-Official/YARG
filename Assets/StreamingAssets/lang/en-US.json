@@ -672,6 +672,10 @@
                 "Name": "Input Device Logging",
                 "Description": "Prints information about connected input devices to the game's log. Do not enable this unless you are having issues with specific devices, as it can print a very large amount of text for some devices!"
             },
+            "InputPollingFrequency": {
+                "Name": "Input Polling Frequency",
+                "Description": "The frequency at which input devices that require polling get queried. This only applies to devices that require polling, such as XInput devices on Windows."
+            },
             "KeepSongInfoVisible": {
                 "Name": "Keep Song Info Visible",
                 "Description": "If enabled, it keeps the song info visible throughout the entire song. Otherwise, it will fade out after 10 seconds."

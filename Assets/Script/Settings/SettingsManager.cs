@@ -43,6 +43,7 @@ namespace YARG.Settings
                 nameof(Settings.WaitForSongVideo),
 
                 new HeaderMetadata("Gameplay"),
+                nameof(Settings.InputPollingFrequency),
                 nameof(Settings.VoiceActivatedVocalStarPower),
                 nameof(Settings.EnablePracticeSP),
                 nameof(Settings.PracticeRestartDelay),
