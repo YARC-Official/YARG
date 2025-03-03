@@ -714,6 +714,10 @@
                 "Name": "No Kicks",
                 "Description": "Removes all kick notes (drums only)."
             },
+            "NoFailMode": {
+                "Name": "No Fail Mode",
+                "Description": "Disables ending a song early when crowd happiness is too low."
+            },
             "NoteStreakFrequency": {
                 "Name": "Note Streak Frequency",
                 "Description": "Sets the frequency of note streak notifications.",

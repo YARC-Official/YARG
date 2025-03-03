@@ -110,6 +110,11 @@ namespace YARG.Gameplay.Player
 
             engine.OnCountdownChange += OnCountdownChange;
 
+            if (!SettingsManager.Settings.NoFailMode.Value)
+            {
+                EngineContainer.OnSongFailed += OnSongFailed;
+            }
+
             return engine;
         }
 

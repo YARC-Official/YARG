@@ -367,6 +367,11 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected virtual void OnSongFailed()
+        {
+
+        }
+
         protected abstract bool InterceptInput(ref GameInput input);
 
         protected virtual void OnInputQueued(GameInput input)
