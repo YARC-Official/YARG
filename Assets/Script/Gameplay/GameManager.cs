@@ -180,7 +180,7 @@ namespace YARG.Gameplay
 
             _failMeter.Initialize(EngineManager);
 
-            if (SettingsManager.Settings.NoFailMode.Value)
+            if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
             {
                 _failMeter.gameObject.SetActive(false);
             }
@@ -315,6 +315,10 @@ namespace YARG.Gameplay
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
                 }
+                else if (PlayerHasFailed)
+                {
+                    _pauseMenu.PushMenu(PauseMenuManager.Menu.FailPause);
+                }
                 else if (IsPractice)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
@@ -333,6 +337,8 @@ namespace YARG.Gameplay
             // Allow sleeping
             Screen.sleepTimeout = _originalSleepTimeout;
         }
+
+        public bool PlayerHasFailed { get; set; } = false;
 
         public void Resume()
         {

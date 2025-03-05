@@ -21,7 +21,8 @@ namespace YARG.Gameplay.HUD
             SelectSections,
             ReplayPause,
             QuickSettings,
-            SettingsMenu
+            SettingsMenu,
+            FailPause
         }
 
         private Dictionary<Menu, PauseMenuObject> _menus;

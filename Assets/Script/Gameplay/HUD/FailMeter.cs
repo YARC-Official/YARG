@@ -37,7 +37,7 @@ namespace YARG.Gameplay.HUD
             }
 
             var happiness = _manager.Happiness;
-            if (happiness < 0.2f)
+            if (happiness < 0.33f)
             {
                 FillImage.color = Color.red;
             }

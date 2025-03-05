@@ -369,7 +369,9 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSongFailed()
         {
-
+            GameManager.PlayerHasFailed = true;
+            GlobalAudioHandler.PlaySoundEffect(SfxSample.FailSound);
+            GameManager.Pause(true);
         }
 
         protected abstract bool InterceptInput(ref GameInput input);
