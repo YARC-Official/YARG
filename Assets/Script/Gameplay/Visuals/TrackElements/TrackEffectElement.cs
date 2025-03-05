@@ -61,19 +61,29 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         public float Visibility;
 
+        private static readonly int _MaskDisabled = Shader.PropertyToID("_Mask_Disabled");
+        private static readonly int _MaskMinZ = Shader.PropertyToID("_Mask_Min_Z");
+        private static readonly int _MaskMaxZ = Shader.PropertyToID("_Mask_Max_Z");
+        private static readonly int _MaskFadeDistance = Shader.PropertyToID("_Mask_Fade_Distance");
+
         public float StartVisibility;
         public float EndVisibility;
 
+        // These are here to reflect the defaults set in the shader in case we need them in the future
+        private float MaskDisabled = 1.0f;
+        private float MaskFadeDistance = 0.2f;
+
         private bool _visibilityInTransition = false;
+        private bool _maskEnabled = false;
         private float _currentVisibility = 1.0f;
-        private bool _startVisibilityInTransition = false;
-        private bool _endVisibilityInTransition = false;
+        private float _currentEndZ = 0.0f;
         private float _currentStartVisibility = 1.0f;
         private float _currentEndVisibility = 1.0f;
 
 
         private bool _previousStartTransitionEnable;
         private bool _previousEndTransitionEnable;
+        private double _visibilityStartTime;
         public TrackEffect EffectRef { get; set; }
 
         private static readonly int _visibility = Shader.PropertyToID("_Visibility");
@@ -82,7 +92,10 @@ namespace YARG.Gameplay.Visuals
         public double MiddleTime => EffectRef.Time + ((EffectRef.TimeEnd - EffectRef.Time) / 2);
         private float ZLength => (float) (EffectRef.TimeEnd - EffectRef.Time * Player.NoteSpeed);
         // not sure that we really need the +3.5
-        protected new float RemovePointOffset => (float) ((EffectRef.TimeEnd - EffectRef.Time) * Player.NoteSpeed + 3.5);
+        private new float RemovePointOffset => (float) ((EffectRef.TimeEnd - EffectRef.Time) * Player.NoteSpeed + 3.5);
+
+        private float StartZ => ZFromTime(EffectRef.Time);
+        private float EndZ => ZFromTime(EffectRef.TimeEnd);
 
         public bool Active { get; private set; }
 
@@ -232,16 +245,39 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        // TODO: Color.Lerp between effect types if they are changing
-
-        // I think what we're looking for here is for it to fade in at the bottom
-        // and spread up the track with decreasing transparency
-
-        // For now maybe just spread up the track at full transparency
         public void MakeVisible(bool enable = true)
         {
             _visibilityInTransition = true;
+            _visibilityStartTime = GameManager.RealVisualTime;
+            _maskEnabled = enable;
+            _currentEndZ = StartZ;
             Visibility = enable ? 1.0f : 0.0f;
+        }
+
+        private void SetEffectMask(float endZ)
+        {
+            if (endZ >= EndZ)
+            {
+                _maskEnabled = false;
+            }
+
+            var disableMask = _maskEnabled ? 0.0f : 1.0f;
+            var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
+            foreach (var meshRenderer in meshRenderers)
+            {
+                if (meshRenderer.material == null)
+                {
+                    continue;
+                }
+
+                foreach (var material in meshRenderer.materials)
+                {
+                    material.SetFloat(_MaskDisabled, disableMask);
+                    material.SetFloat(_MaskMinZ, StartZ);
+                    material.SetFloat(_MaskMaxZ, endZ);
+                }
+            }
+            _currentEndZ = endZ;
         }
 
         private void SetAllVisibility(float visibility)
@@ -273,10 +309,7 @@ namespace YARG.Gameplay.Visuals
         {
             // Calibration is not taken into consideration here, as that is instead handled in more
             // critical areas such as the game manager and players
-            float z =
-                TrackPlayer.STRIKE_LINE_POS                          // Shift origin to the strike line
-                + (float) (MiddleTime - GameManager.RealVisualTime)  // Get time of center of effect object relative to now
-                * Player.NoteSpeed;                                  // Adjust speed (units/s)
+            float z = ZFromTime(MiddleTime);
 
             var cacheTransform = transform;
             cacheTransform.localPosition = cacheTransform.localPosition.WithZ(z);
@@ -476,8 +509,24 @@ namespace YARG.Gameplay.Visuals
         {
             if (_visibilityInTransition)
             {
-                SetAllVisibility(Mathf.Lerp(_currentVisibility, Visibility, Time.deltaTime * 5f));
+                // SetAllVisibility(Mathf.Lerp(_currentVisibility, Visibility, Time.deltaTime * 5f));
+                SetAllVisibility(Visibility);
             }
+
+            if (_maskEnabled)
+            {
+                var timeSinceStart = GameManager.RealVisualTime - _visibilityStartTime;
+                // Go up the track at twice the notespeed (extra parentheses for clarity)
+                var maskEndZ = (float) (StartZ + ((timeSinceStart * Player.NoteSpeed) * 2));
+                // SetEffectMask(Mathf.Lerp(_currentEndZ, EndZ, Time.deltaTime * 5f));
+                SetEffectMask(maskEndZ);
+            }
+        }
+
+        private float ZFromTime(double time)
+        {
+            float z = TrackPlayer.STRIKE_LINE_POS + (float) (time - GameManager.RealVisualTime) * Player.NoteSpeed;
+            return z;
         }
     }
 }
