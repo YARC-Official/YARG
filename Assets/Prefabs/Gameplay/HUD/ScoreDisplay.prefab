@@ -394,7 +394,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1682100933276730677}
   - component: {fileID: 3580836438431718176}
-  - component: {fileID: 1427118048}
   m_Layer: 5
   m_Name: ScoreDisplay
   m_TagString: Untagged
@@ -447,26 +446,6 @@ MonoBehaviour:
   _brokenBackgroundSprite: {fileID: -648612281, guid: 9a19cea8578114f42bec348c310a8891,
     type: 3}
   _brokenOverlaySprite: {fileID: 2128003, guid: 9a19cea8578114f42bec348c310a8891,
-    type: 3}
---- !u!114 &1427118048
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1682100933276730678}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26c69184c4c94e07a1c1a5403823ba9a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _draggableElementName: scoreDisplay
-  _horizontal: 1
-  _vertical: 1
-  _onEditModeChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  _draggingDisplayPrefab: {fileID: 5730308542642054521, guid: 2a82983eb1a960843bd5603736f9b042,
     type: 3}
 --- !u!1 &2302898695580999361
 GameObject:
