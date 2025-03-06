@@ -214,27 +214,34 @@ namespace YARG.Gameplay
             const double endTimeThreshold = 0;
             const double dontLoopThreshold = 0.85;
 
-            if (_source == VenueSource.Song)
+            if (_source == VenueSource.Song && !GameManager.Song.VideoLoop)
             {
                 _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
                 _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
-                if (_videoEndTime <= 0)
-                    _videoEndTime = double.NaN;
+
+                if (_videoStartTime < 0)
+                {
+                    _videoStartTime = 0;
+                }
 
                 player.time = _videoStartTime;
                 player.playbackSpeed = GameManager.SongSpeed;
 
-                // Determine whether or not to loop the video
-                if (Math.Abs(_videoStartTime) <= startTimeThreshold && _videoEndTime <= endTimeThreshold)
+                // Only loop the video if it's not around the same length as the song
+                if (Math.Abs(_videoStartTime) < startTimeThreshold &&
+                    _videoEndTime <= endTimeThreshold &&
+                    player.length < GameManager.SongLength * dontLoopThreshold)
                 {
-                    // Only loop the video if it's not around the same length as the song
-                    double lengthRatio = player.length / GameManager.SongLength;
-                    player.isLooping = lengthRatio < dontLoopThreshold;
+                    player.isLooping = true;
+                    _videoEndTime = double.NaN;
                 }
                 else
                 {
-                    // Never loop the video if start/end times are specified
                     player.isLooping = false;
+                    if (_videoEndTime <= 0)
+                    {
+                        _videoEndTime = player.length;
+                    }
                 }
             }
             else
