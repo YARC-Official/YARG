@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
+using DG.Tweening.Core;
+using DG.Tweening.Plugins.Options;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -67,6 +70,7 @@ namespace YARG.Gameplay
         private readonly Dictionary<SongStem, StemState> _stemStates = new();
         private SongStem _backgroundStem;
         private int _starPowerActivations = 0;
+        private TweenerCore<double, double, NoOptions> _volumeTween;
 
         private void LoadAudio()
         {
@@ -125,7 +129,7 @@ namespace YARG.Gameplay
                 _starPowerActivations = 0;
         }
 
-        public void ChangeStemMuteState(SongStem stem, bool muted)
+        public void ChangeStemMuteState(SongStem stem, bool muted, float duration = 0.0f)
         {
             var setting = SettingsManager.Settings.MuteOnMiss.Value;
             if (setting == AudioFxMode.Off
@@ -136,7 +140,22 @@ namespace YARG.Gameplay
             }
 
             double volume = state.SetMute(muted);
-            GlobalAudioHandler.SetVolumeSetting(stem, volume);
+
+            if (duration <= 0.0f)
+            {
+                GlobalAudioHandler.SetVolumeSetting(stem, volume);
+                return;
+            }
+
+            if (_volumeTween == null || !_volumeTween.IsPlaying())
+            {
+                _volumeTween = DOTween.To(() => GlobalAudioHandler.GetVolumeSetting(stem),
+                    x => GlobalAudioHandler.SetVolumeSetting(stem, x), volume, duration);
+            }
+            else
+            {
+                _volumeTween.ChangeEndValue(volume);
+            }
         }
 
         public void ChangeStemReverbState(SongStem stem, bool reverb)
@@ -174,7 +193,7 @@ namespace YARG.Gameplay
                 return;
             }
 
-            // If the specified stem is the same as the background stem, 
+            // If the specified stem is the same as the background stem,
             // ignore the request. This may be a chart without separate
             // stems for each instrument. In that scenario we don't want
             // to pitch bend because we'd be bending the entire track.
