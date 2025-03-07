@@ -219,11 +219,6 @@ namespace YARG.Gameplay
                 _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
                 _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
 
-                if (_videoStartTime < 0)
-                {
-                    _videoStartTime = 0;
-                }
-
                 player.time = _videoStartTime;
                 player.playbackSpeed = GameManager.SongSpeed;
 
