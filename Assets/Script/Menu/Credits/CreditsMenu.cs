@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -151,7 +151,7 @@ namespace YARG.Menu.Credits
                 if (!string.IsNullOrEmpty(song.CreditWrittenBy) ||
                     !string.IsNullOrEmpty(song.CreditPerformedBy) ||
                     !string.IsNullOrEmpty(song.CreditCourtesyOf) ||
-                    !string.IsNullOrEmpty(song.CreditAlbumCover) ||
+                    !string.IsNullOrEmpty(song.CreditAlbumArtBy) ||
                     !string.IsNullOrEmpty(song.CreditLicense))
                 {
                     var card = Instantiate(_songCreditPrefab, _creditsContainer);
