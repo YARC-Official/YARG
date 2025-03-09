@@ -234,7 +234,23 @@ namespace YARG.Gameplay.Player
                 // and there are no track effects for the other phrase types
                 if (phrase.Type is PhraseType.Solo or PhraseType.DrumFill)
                 {
-                    phrases.Add(phrase);
+                    // It turns out that some charts have drum fill phrases that aren't SP activation
+                    // (they have no notes), so we need to ignore those
+                    if (phrase.Type is PhraseType.DrumFill)
+                    {
+                        foreach (var note in Notes)
+                        {
+                            if (note.Time >= phrase.Time && note.Time <= phrase.TimeEnd)
+                            {
+                                phrases.Add(phrase);
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        phrases.Add(phrase);
+                    }
                 }
             }
 
