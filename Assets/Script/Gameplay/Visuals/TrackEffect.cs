@@ -176,7 +176,7 @@ namespace YARG.Gameplay.Visuals
             return slicedEffects;
         }
 
-        static TrackEffectType GetEffectCombination(TrackEffect outer, TrackEffect inner)
+        private static TrackEffectType GetEffectCombination(TrackEffect outer, TrackEffect inner)
         {
             TrackEffectType? combo = null;
             if (outer.EffectType == TrackEffectType.Solo)
@@ -242,26 +242,6 @@ namespace YARG.Gameplay.Visuals
                 }
             }
             return effects;
-        }
-        // A struct to make phrase comparison more readable
-        public struct StarPowerSection : IEquatable<StarPowerSection>
-        {
-            public double Time;
-            public double TimeEnd;
-            public Phrase PhraseRef;
-
-            public StarPowerSection(double time, double timeEnd, Phrase phrase)
-            {
-                Time = time;
-                TimeEnd = timeEnd;
-                PhraseRef = phrase;
-            }
-
-            public bool Equals(StarPowerSection other) => Time.Equals(other.Time) && TimeEnd.Equals(other.TimeEnd);
-
-            public override bool Equals(object obj) => obj is StarPowerSection other && Equals(other);
-
-            public override int GetHashCode() => HashCode.Combine(Time, TimeEnd);
         }
     }
 }
