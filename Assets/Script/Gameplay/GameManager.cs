@@ -139,6 +139,9 @@ namespace YARG.Gameplay
 
         private StemMixer _mixer;
 
+        // Default to SONG_END_DELAY, but this may get reset given certain conditions
+        private double _realEndDelay = SONG_END_DELAY;
+
         private void Awake()
         {
             // Set references
@@ -335,7 +338,7 @@ namespace YARG.Gameplay
             }
 
             _pauseMenu.PopAllMenus();
-            if (_songRunner.SongTime >= SongLength + SONG_END_DELAY)
+            if (_songRunner.SongTime >= SongLength + _realEndDelay)
             {
                 return;
             }
@@ -400,9 +403,15 @@ namespace YARG.Gameplay
                 return false;
             }
 
-            if (_songRunner.SongTime < SongLength + SONG_END_DELAY)
+            if (_songRunner.SongTime < SongLength + _realEndDelay)
             {
                 return false;
+            }
+
+            // If we're ending before the end of the audio, fade out the audio
+            if (_songRunner.SongTime < _mixer.Length)
+            {
+                _mixer.FadeOut(0.5);
             }
 
             if (ReplayInfo != null)

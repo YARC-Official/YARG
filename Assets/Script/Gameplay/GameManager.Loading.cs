@@ -288,23 +288,32 @@ namespace YARG.Gameplay
             double audioLength = _mixer.Length;
             double chartLength = Chart.GetEndTime();
             double endTime = Chart.GetEndEvent()?.Time ?? -1;
+            double lastNoteEndTime = Chart.GetLastNoteEndTime();
 
-            // - Chart < Audio < [end] -> Audio
-            // - Chart < [end] < Audio -> [end]
-            // - [end] < Chart < Audio -> Audio
-            // - Audio < Chart         -> Chart
-            if (audioLength <= chartLength)
+            // The time we want to end the song depends on whether or not there is an end event.
+            // If there is, then Max(lostNoteEndTime, endTime) (in case the end event is bogus)
+            // If not, Max(chartLength, audioLength)
+            // Then we add a delay to ensure that we don't go to the score screen until
+            // SongLength plus SONG_END_DELAY
+            if (endTime > -1)
             {
-                SongLength = chartLength;
-            }
-            else if (endTime <= chartLength || audioLength <= endTime)
-            {
-                SongLength = audioLength;
+                SongLength = Math.Max(lastNoteEndTime, endTime);
+                _realEndDelay = Math.Max(lastNoteEndTime + SONG_END_DELAY, endTime) - SongLength;
             }
             else
             {
-                SongLength = endTime;
+                SongLength = Math.Max(chartLength, audioLength);
+                _realEndDelay = Math.Max(lastNoteEndTime + SONG_END_DELAY, SongLength) - SongLength;
             }
+
+            // If the end_events ini flag is set and the end event actually exists, ignore all previous instructions,
+            // respect the charter's intention, and do exactly what they say even if it results in stupid
+            if (Song.EndEvents && endTime > -1)
+            {
+                SongLength = endTime;
+                _realEndDelay = 0;
+            }
+
             _songLoaded?.Invoke();
         }
 
