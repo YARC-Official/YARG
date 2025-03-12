@@ -286,32 +286,33 @@ namespace YARG.Gameplay
             _chartLoaded?.Invoke(Chart);
 
             double audioLength = _mixer.Length;
-            double chartLength = Chart.GetEndTime();
             double endTime = Chart.GetEndEvent()?.Time ?? -1;
-            double lastNoteEndTime = Chart.GetLastNoteEndTime();
+            _lastNoteEndTime = Chart.GetLastNoteEndTime();
 
             // The time we want to end the song depends on whether or not there is an end event.
-            // If there is, then Max(lostNoteEndTime, endTime) (in case the end event is bogus)
-            // If not, Max(chartLength, audioLength)
+            // If there is, then Max(lastNoteEndTime, endTime) (in case the end event is bogus)
+            // If not, Max(lastNoteEndTime, audioLength)
             // Then we add a delay to ensure that we don't go to the score screen until
             // SongLength plus SONG_END_DELAY
-            if (endTime > -1)
+
+            // Disregard the end event if it comes after the end of the audio track
+            if (endTime > -1 && endTime <= audioLength)
             {
-                SongLength = Math.Max(lastNoteEndTime, endTime);
-                _realEndDelay = Math.Max(lastNoteEndTime + SONG_END_DELAY, endTime) - SongLength;
+                SongLength = Math.Max(_lastNoteEndTime, endTime);
+                SongLength += Math.Max(_lastNoteEndTime + SONG_END_DELAY, endTime) - SongLength;
             }
             else
             {
-                SongLength = Math.Max(chartLength, audioLength);
-                _realEndDelay = Math.Max(lastNoteEndTime + SONG_END_DELAY, SongLength) - SongLength;
-            }
-
-            // If the end_events ini flag is set and the end event actually exists, ignore all previous instructions,
-            // respect the charter's intention, and do exactly what they say even if it results in stupid
-            if (Song.EndEvents && endTime > -1)
-            {
-                SongLength = endTime;
-                _realEndDelay = 0;
+                if (audioLength > _lastNoteEndTime)
+                {
+                    SongLength = audioLength;
+                    _endIsAudioEnd = true;
+                }
+                else
+                {
+                    SongLength = _lastNoteEndTime;
+                }
+                SongLength += Math.Max(_lastNoteEndTime + SONG_END_DELAY, SongLength) - SongLength;
             }
 
             _songLoaded?.Invoke();

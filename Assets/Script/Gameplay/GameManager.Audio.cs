@@ -9,7 +9,16 @@ namespace YARG.Gameplay
 {
     public partial class GameManager
     {
-        private const double DEFAULT_VOLUME = 1.0;
+        private const double DEFAULT_VOLUME    = 1.0;
+        private const double MAX_END_SILENCE   = 0.333;
+        // The silence threshold value is just a guess. An empirically tested guess, but still a guess.
+        private const float  SILENCE_THRESHOLD = 0.1f;
+
+        private double _lastAudioCheck;
+        private double _silenceLength;
+        // Apparently we need half the fft size in bins
+        private float[] _fftData = new float[128];
+
         public class StemState
         {
             public readonly double Volume;
@@ -174,7 +183,7 @@ namespace YARG.Gameplay
                 return;
             }
 
-            // If the specified stem is the same as the background stem, 
+            // If the specified stem is the same as the background stem,
             // ignore the request. This may be a chart without separate
             // stems for each instrument. In that scenario we don't want
             // to pitch bend because we'd be bending the entire track.
@@ -192,6 +201,43 @@ namespace YARG.Gameplay
             // Set the pitch
             float percentActive = state.SetWhammyPitch(percent);
             GlobalAudioHandler.SetWhammyPitchSetting(stem, percentActive);
+        }
+
+        private bool CheckForSilence(double silenceTime = MAX_END_SILENCE)
+        {
+            var ret = _mixer.GetData(_fftData);
+            var hasSound = false;
+            if (ret == -1)
+            {
+                // There was an error, so do the safe thing and don't indicate silence
+                return false;
+            }
+
+            // See if any of the FFT bins have any significant energy
+            for (var i = 0; i < _fftData.Length; i++)
+            {
+                if (_fftData[i] > SILENCE_THRESHOLD)
+                {
+                    hasSound = true;
+                    _silenceLength = 0;
+                    break;
+                }
+            }
+
+            if (hasSound)
+            {
+                return false;
+            }
+
+            _silenceLength += _songRunner.AudioTime - _lastAudioCheck;
+            _lastAudioCheck = _songRunner.AudioTime;
+
+            if (_silenceLength > silenceTime)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
