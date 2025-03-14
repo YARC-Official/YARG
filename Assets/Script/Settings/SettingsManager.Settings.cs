@@ -514,41 +514,8 @@ namespace YARG.Settings
                     return;
                 }
 
-                Resolution resolution;
-
-                // If set to null, just get the "default" resolution.
-                if (value == null)
-                {
-                    // Since we actually can't get the highest resolution,
-                    // we need to find it in the supported resolutions
-                    var highest = new Resolution
-                    {
-                        width = 0, height = 0, refreshRate = 0
-                    };
-
-                    foreach (var r in Screen.resolutions)
-                    {
-                        if (r.refreshRate >= highest.refreshRate ||
-                            r.width >= highest.width ||
-                            r.height >= highest.height)
-                        {
-                            highest = r;
-                        }
-                    }
-
-                    resolution = highest;
-                }
-                else
-                {
-                    resolution = value.Value;
-                }
-
-                var fullscreenMode = FullScreenMode.FullScreenWindow;
-                if (Settings != null)
-                {
-                    fullscreenMode = Settings.FullscreenMode.Value;
-                }
-
+                var resolution = value ?? ScreenHelper.GetDefaultResolution();
+                var fullscreenMode = Settings?.FullscreenMode.Value ?? FullScreenMode.FullScreenWindow;
                 Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
 
                 // Make sure to refresh the preview since it'll look stretched if we don't

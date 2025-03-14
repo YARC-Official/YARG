@@ -760,7 +760,8 @@
             },
             "Resolution": {
                 "Name": "Resolution",
-                "Description": "Choose the resolution of your screen. \"Highest\" is recommended."
+                "Description": "Choose the resolution of your screen. \"Default\" is recommended.",
+                "Default": "<i>Default ({0})</i>"
             },
             "RhythmVolume": {
                 "Name": "Rhythm Volume",
