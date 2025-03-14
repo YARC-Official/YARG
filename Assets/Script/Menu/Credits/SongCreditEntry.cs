@@ -40,7 +40,7 @@ namespace YARG.Menu.Credits
             }
 
             ShowOrHideCredit(_courtesyOf, "Menu.Credits.Song.CourtesyOf", song.CreditCourtesyOf);
-            ShowOrHideCredit(_albumCover, "Menu.Credits.Song.AlbumCover", song.CreditAlbumArtBy);
+            ShowOrHideCredit(_albumCover, "Menu.Credits.Song.AlbumCover", song.CreditAlbumArtDesignedBy);
             ShowOrHideCredit(_license, "Menu.Credits.Song.License", song.CreditLicense);
         }
 

@@ -151,7 +151,7 @@ namespace YARG.Menu.Credits
                 if (!string.IsNullOrEmpty(song.CreditWrittenBy) ||
                     !string.IsNullOrEmpty(song.CreditPerformedBy) ||
                     !string.IsNullOrEmpty(song.CreditCourtesyOf) ||
-                    !string.IsNullOrEmpty(song.CreditAlbumArtBy) ||
+                    !string.IsNullOrEmpty(song.CreditAlbumArtDesignedBy) ||
                     !string.IsNullOrEmpty(song.CreditLicense))
                 {
                     var card = Instantiate(_songCreditPrefab, _creditsContainer);
