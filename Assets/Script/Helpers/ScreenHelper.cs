@@ -20,15 +20,6 @@ namespace YARG.Helpers
                     return;
                 }
 
-                // Don't do anything if a specific resolution is set, or we're not in fullscreen
-                if (SettingsManager.Settings.Resolution.Value != null ||
-                    SettingsManager.Settings.FullscreenMode.Value is not
-                        (FullScreenMode.FullScreenWindow or FullScreenMode.ExclusiveFullScreen)
-                )
-                {
-                    return;
-                }
-
                 // Update screen resolution when the screen changes
                 var screenResolution = GetScreenResolution();
                 if (screenResolution.width != _lastScreenResolution.width ||
@@ -37,8 +28,16 @@ namespace YARG.Helpers
                 {
                     _lastScreenResolution = screenResolution;
 
-                    YargLogger.LogFormatDebug("Updating screen resolution to {0}", screenResolution);
-                    SetResolution(screenResolution);
+                    YargLogger.LogFormatDebug("Updating default screen resolution to {0}", screenResolution);
+
+                    // Don't change resolution if one is already set, or we're not in fullscreen
+                    if (SettingsManager.Settings.Resolution.Value == null ||
+                        SettingsManager.Settings.FullscreenMode.Value is FullScreenMode.FullScreenWindow
+                            or FullScreenMode.ExclusiveFullScreen
+                    )
+                    {
+                        SetResolution(screenResolution);
+                    }
 
                     // Refresh settings display
                     if (SettingsMenu.Instance)
