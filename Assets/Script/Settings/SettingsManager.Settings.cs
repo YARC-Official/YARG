@@ -514,9 +514,8 @@ namespace YARG.Settings
                     return;
                 }
 
-                var resolution = value ?? ScreenHelper.GetDefaultResolution();
-                var fullscreenMode = Settings?.FullscreenMode.Value ?? FullScreenMode.FullScreenWindow;
-                Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
+                var resolution = value ?? ScreenHelper.GetScreenResolution();
+                ScreenHelper.SetResolution(resolution);
 
                 // Make sure to refresh the preview since it'll look stretched if we don't
                 SettingsMenu.Instance.RefreshPreview(true);

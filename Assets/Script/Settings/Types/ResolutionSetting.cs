@@ -54,7 +54,7 @@ namespace YARG.Settings.Types
         public override string ValueToString(Resolution? value)
         {
             return value?.ToString() ?? Localize.KeyFormat(
-                "Settings.Setting.Resolution.Default", ScreenHelper.GetDefaultResolution()
+                "Settings.Setting.Resolution.Default", ScreenHelper.GetScreenResolution()
             );
         }
     }

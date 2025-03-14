@@ -1,78 +1,75 @@
+using System;
 using UnityEngine;
+using YARG.Core.Logging;
+using YARG.Menu.Settings;
+using YARG.Settings;
 
 namespace YARG.Helpers
 {
     public static class ScreenHelper
     {
-        private static Resolution _bestResolution;
-        private static Vector2Int _lastScreenPosition;
+        private static Resolution _lastScreenResolution;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
-            UnityEngine.InputSystem.InputSystem.onBeforeUpdate += RefreshResolutions;
-        }
-
-        private static void RefreshResolutions()
-        {
-            if (Screen.mainWindowPosition == _lastScreenPosition)
+            UnityEngine.InputSystem.InputSystem.onBeforeUpdate += () =>
             {
-                return;
-            }
-
-            _lastScreenPosition = Screen.mainWindowPosition;
-
-            var screenInfo = Screen.mainWindowDisplayInfo;
-            float screenAspect = screenInfo.width / screenInfo.height;
-
-            var resolutions = Screen.resolutions;
-
-            // Search for the highest resolution that matches the screen's aspect ratio
-            var highest = new Resolution();
-            int highestArea = 0;
-            foreach (var r in resolutions)
-            {
-                int area = r.width * r.height;
-                float aspect = (float) r.width / r.height;
-
-                if (Mathf.Approximately(aspect, screenAspect) &&
-                    (area > highestArea || (area == highestArea && r.refreshRate > highest.refreshRate)))
+                if (SettingsManager.Settings == null)
                 {
-                    highest = r;
-                    highestArea = area;
+                    return;
                 }
-            }
 
-            if (highest.width > 0 && highest.height > 0 && highest.refreshRate > 0)
-            {
-                _bestResolution = highest;
-                return;
-            }
-
-            // No matching resolutions, fall back to just the highest one instead
-            highest = new Resolution();
-            highestArea = 0;
-            foreach (var r in resolutions)
-            {
-                int area = r.width * r.height;
-
-                if (area > highestArea || (area == highestArea && r.refreshRate > highest.refreshRate))
+                // Don't do anything if a specific resolution is set, or we're not in fullscreen
+                if (SettingsManager.Settings.Resolution.Value != null ||
+                    SettingsManager.Settings.FullscreenMode.Value is not
+                        (FullScreenMode.FullScreenWindow or FullScreenMode.ExclusiveFullScreen)
+                )
                 {
-                    highest = r;
-                    highestArea = area;
+                    return;
                 }
-            }
 
-            _bestResolution = highest;
+                // Update screen resolution when the screen changes
+                var screenResolution = GetScreenResolution();
+                if (screenResolution.width != _lastScreenResolution.width ||
+                    screenResolution.height != _lastScreenResolution.height ||
+                    screenResolution.refreshRate != _lastScreenResolution.refreshRate)
+                {
+                    _lastScreenResolution = screenResolution;
+
+                    YargLogger.LogFormatDebug("Updating screen resolution to {0}", screenResolution);
+                    SetResolution(screenResolution);
+
+                    // Refresh settings display
+                    if (SettingsMenu.Instance)
+                    {
+                        SettingsMenu.Instance.RefreshAndKeepPosition();
+                    }
+                }
+            };
         }
 
         /// <summary>
-        /// Determines the best-fit/"default" resolution to use for the display
+        /// Retrieves the resolution of the screen currently being used for the game.
         /// </summary>
-        public static Resolution GetDefaultResolution()
+        public static Resolution GetScreenResolution()
         {
-            RefreshResolutions();
-            return _bestResolution;
+            var screenInfo = Screen.mainWindowDisplayInfo;
+            return new Resolution()
+            {
+                width = screenInfo.width,
+                height = screenInfo.height,
+                refreshRate = (int) Math.Round(screenInfo.refreshRate.value),
+            };
+        }
+
+        /// <summary>
+        /// Sets the fullscreen resolution to that of the current screen.
+        /// </summary>
+        public static void SetResolution(Resolution resolution)
+        {
+            var fullscreenMode = SettingsManager.Settings?.FullscreenMode.Value ?? FullScreenMode.FullScreenWindow;
+            Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
         }
     }
 }
