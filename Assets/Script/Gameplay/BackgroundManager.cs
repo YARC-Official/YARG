@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.IO;
@@ -69,7 +70,7 @@ namespace YARG.Gameplay
                     // Breaks things for other platforms, because Unity
                     var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
                         BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
-
+                    var renderers = bg.GetComponentsInChildren<Renderer>(true);
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
                     var metalShaders = new Dictionary<string, Shader>();
 
@@ -95,7 +96,6 @@ namespace YARG.Gameplay
                     // Yarground comes with shaders for dx11/dx12/glcore/vulkan
                     // Metal shaders used on OSX come in this separate bundle
                     // Update our renderers to use them
-                    var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
                     foreach (var renderer in renderers)
                     {
@@ -117,6 +117,16 @@ namespace YARG.Gameplay
                         }
                     }
 #endif
+                    // Hookup song-specific textures
+                    var textureManager = GetComponent<TextureManager>();
+                    foreach (var renderer in renderers)
+                    {
+                        foreach (var material in renderer.sharedMaterials)
+                        {
+                            textureManager.processMaterial(material);
+                        }
+                    }
+
                     var bgInstance = Instantiate(bg);
                     var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
                     bundleBackgroundManager.Bundle = bundle;

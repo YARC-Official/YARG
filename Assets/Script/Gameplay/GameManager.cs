@@ -270,6 +270,16 @@ namespace YARG.Gameplay
             BackgroundManager.SetSpeed(_songRunner.SongSpeed);
         }
 
+        public int GetMixerFFTData(float[] buffer, int fftSize, bool complex)
+        {
+            return _mixer.GetFFTData(buffer, fftSize, complex);
+        }
+
+        public int GetMixerSampleData(float[] buffer)
+        {
+            return _mixer.GetSampleData(buffer);
+        }
+
         public void AdjustSongSpeed(float deltaSpeed)
         {
             _songRunner.AdjustSongSpeed(deltaSpeed);
