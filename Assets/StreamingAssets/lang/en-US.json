@@ -59,7 +59,8 @@
             "NoKicks": "No Kicks",
             "TapsToHopos": "Taps to HOPOs",
             "UnpitchedOnly": "Unpitched Only",
-            "NoDynamics": "No Dynamics"
+            "NoDynamics": "No Dynamics",
+            "NoVocalPercussion" : "No Percussion"
         },
         "SortAttribute": {
             "Album": "Album",
