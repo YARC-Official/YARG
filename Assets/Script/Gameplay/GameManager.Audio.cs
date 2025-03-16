@@ -11,8 +11,8 @@ namespace YARG.Gameplay
     {
         private const double DEFAULT_VOLUME    = 1.0;
         private const double MAX_END_SILENCE   = 0.333;
-        // The silence threshold value is just a guess. An empirically tested guess, but still a guess.
-        private const float  SILENCE_THRESHOLD = 0.1f;
+        // This should equate to -65.22dBFS.
+        private const float  SILENCE_THRESHOLD = 16;
 
         private double _lastAudioCheck;
         private double _silenceLength;
@@ -205,26 +205,16 @@ namespace YARG.Gameplay
 
         private bool CheckForSilence(double silenceTime = MAX_END_SILENCE)
         {
-            var ret = _mixer.GetData(_fftData);
-            var hasSound = false;
-            if (ret == -1)
+            var audioLevel = new float[1];
+            var status = _mixer.GetLevel(audioLevel);
+
+            if (status == -1)
             {
                 // There was an error, so do the safe thing and don't indicate silence
                 return false;
             }
 
-            // See if any of the FFT bins have any significant energy
-            for (var i = 0; i < _fftData.Length; i++)
-            {
-                if (_fftData[i] > SILENCE_THRESHOLD)
-                {
-                    hasSound = true;
-                    _silenceLength = 0;
-                    break;
-                }
-            }
-
-            if (hasSound)
+            if (audioLevel[0] > SILENCE_THRESHOLD)
             {
                 return false;
             }
