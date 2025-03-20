@@ -81,6 +81,9 @@ namespace YARG.Gameplay.Player
         private SongStem _stem;
         private double   _practiceSectionStartTime;
 
+        private bool LeftyFlip => Player.Profile.LeftyFlip;
+        private bool RangeEnabled => Player.Profile.RangeEnabled;
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
             _stem = player.Profile.CurrentInstrument.ToSongStem();
@@ -153,7 +156,7 @@ namespace YARG.Gameplay.Player
                 Player.ThemePreset,
                 Player.Profile.GameMode,
                 Player.ColorProfile.FiveFretGuitar,
-                Player.Profile.LeftyFlip);
+                LeftyFlip);
 
             InitializeRangeShift();
             GameManager.BeatEventHandler.Subscribe(_fretArray.PulseFretColors);
@@ -510,26 +513,28 @@ namespace YARG.Gameplay.Player
                 _activeFrets[i] = true;
             }
 
+            if (!RangeEnabled)
+            {
+                return;
+            }
+
             if (_allRangeShiftEvents.Count == 0)
             {
                 // Since we don't have a list yet, get it
-                _allRangeShiftEvents =
-                    FiveFretRangeShift.GetRangeShiftEvents(NoteTrack.TextEvents, NoteTrack.Difficulty);
+                _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
             }
 
             // Fewer than two range shifts makes no sense
             if (_allRangeShiftEvents.Count < 1)
             {
-                // _rangeShiftEventQueue = new Queue<FiveFretRangeShift>();
                 return;
             }
 
-            if (_allRangeShiftEvents.Count == 1)
+            if (_allRangeShiftEvents.Count == 1 || Player.Profile.IsModifierActive(Modifier.RangeCompress))
             {
-                // There are no actual shifts, but we should dim unused frets
-                SetActiveFretsForShiftEvent(_allRangeShiftEvents[0]);
+                // There are no actual shifts (or we aren't shifting because of range compression), but we should dim unused frets
                 CurrentRange = _allRangeShiftEvents[0];
-                // _rangeShiftEventQueue = new Queue<FiveFretRangeShift>();
+                SetActiveFretsForShiftEvent(CurrentRange);
                 return;
             }
 
@@ -581,7 +586,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                var shiftLeft = Player.Profile.LeftyFlip ? shift.Range < lastShiftRange : shift.Range > lastShiftRange;
+                var shiftLeft = LeftyFlip ? shift.Range < lastShiftRange : shift.Range > lastShiftRange;
                 lastShiftRange = shift.Range;
 
                 double lastBeatTime = 0;

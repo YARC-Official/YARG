@@ -56,6 +56,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private Toggle _leftyFlipToggle;
         [SerializeField]
+        private Toggle _rangeDisabledToggle;
+        [SerializeField]
         private TMP_Dropdown _engineDropdown;
         [SerializeField]
         private TMP_Dropdown _themeDropdown;
@@ -148,6 +150,7 @@ namespace YARG.Menu.ProfileList
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
             _leftyFlipToggle.isOn = profile.LeftyFlip;
+            _rangeDisabledToggle.isOn = profile.RangeEnabled;
 
             // Update preset dropdowns
             _engineDropdown.SetValueWithoutNotify(
@@ -269,6 +272,11 @@ namespace YARG.Menu.ProfileList
         public void ChangeLeftyFlip()
         {
             _profile.LeftyFlip = _leftyFlipToggle.isOn;
+        }
+
+        public void ChangeRangeDisabled()
+        {
+            _profile.RangeEnabled = _rangeDisabledToggle.isOn;
         }
 
         public void ChangeEngine()

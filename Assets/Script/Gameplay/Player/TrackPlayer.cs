@@ -386,8 +386,9 @@ namespace YARG.Gameplay.Player
             var difficulty = OriginalNoteTrack.Difficulty;
             var phrases = OriginalNoteTrack.Phrases;
             var textEvents = OriginalNoteTrack.TextEvents;
+            var shiftEvents = OriginalNoteTrack.RangeShiftEvents;
 
-            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents);
+            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents, shiftEvents);
             Notes = NoteTrack.Notes;
 
             ResetNoteCounters();
