@@ -30,8 +30,8 @@ namespace YARG.Helpers
 
                     YargLogger.LogFormatDebug("Updating default screen resolution to {0}", screenResolution);
 
-                    // Don't change resolution if one is already set, or we're not in fullscreen
-                    if (SettingsManager.Settings.Resolution.Value == null ||
+                    // Automatically update resolution if set to default and we're in fullscreen
+                    if (SettingsManager.Settings.Resolution.Value == null &&
                         SettingsManager.Settings.FullscreenMode.Value is FullScreenMode.FullScreenWindow
                             or FullScreenMode.ExclusiveFullScreen
                     )
@@ -67,6 +67,7 @@ namespace YARG.Helpers
         /// </summary>
         public static void SetResolution(Resolution resolution)
         {
+            YargLogger.LogFormatDebug("Changing screen resolution to {0}", resolution);
             var fullscreenMode = SettingsManager.Settings?.FullscreenMode.Value ?? FullScreenMode.FullScreenWindow;
             Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
         }
