@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Persistent;
@@ -45,6 +46,8 @@ namespace YARG.Menu.ProfileList
         private Button[] _profileActionButtons;
 
         [Space]
+        [SerializeField]
+        private GameObject _sidebarContent;
         [SerializeField]
         private TMP_Dropdown _gameModeDropdown;
         [SerializeField]
@@ -177,6 +180,26 @@ namespace YARG.Menu.ProfileList
             {
                 button.interactable = interactable;
             }
+
+            EnableSettingsForGameMode();
+        }
+
+        private void EnableSettingsForGameMode()
+        {
+            var possibleSettings = _profile.GameMode.PossibleProfileSettings();
+            for (var i = 0; i < _sidebarContent.transform.childCount; i++)
+            {
+                // Disable if the child's gameObject.name is not found in possibleSettings
+                var child = _sidebarContent.transform.GetChild(i);
+                if (possibleSettings.Contains(child.gameObject.name))
+                {
+                    child.gameObject.SetActive(true);
+                }
+                else
+                {
+                    child.gameObject.SetActive(false);
+                }
+            }
         }
 
         public void HideContents()
@@ -234,6 +257,8 @@ namespace YARG.Menu.ProfileList
         {
             _profile.GameMode = _gameModesByIndex[_gameModeDropdown.value];
             _profileView.UpdateDisplay(_profile);
+            // Update sidebar when game mode changes so the correct settings are displayed
+            UpdateSidebar(_profile, _profileView);
         }
 
         public void ChangeNoteSpeed()

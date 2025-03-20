@@ -2513,6 +2513,7 @@ MonoBehaviour:
   - {fileID: 6762046227833716996}
   - {fileID: 5195353766297190381}
   - {fileID: 8310750777457472825}
+  _sidebarContent: {fileID: 7752893529202704783}
   _gameModeDropdown: {fileID: 3079297505774109153}
   _noteSpeedField: {fileID: 130507743044141034}
   _highwayLengthField: {fileID: 2016696336961956848}
