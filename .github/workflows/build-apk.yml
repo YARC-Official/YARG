@@ -1,4 +1,4 @@
-name: Yarg Android
+name: Build and Create PR
 
 on:
   push:
