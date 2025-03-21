@@ -27,4 +27,7 @@ jobs:
         with:
           name: YARG-Android-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
+          - name: Grant Execute Permission to Gradlew
+  run: chmod +x gradlew
           
