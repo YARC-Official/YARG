@@ -1,66 +1,31 @@
-name: Build and Create PR
+name: Build APK
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build APK
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up JDK
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Grant execute permission to Gradle
-        run: chmod +x gradlew
-
       - name: Build APK
-        run: ./gradlew assembleDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
-      - name: Upload APK Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
           name: YARG-Android-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-
-  create-pr:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-
-      - name: Create new branch
-        run: |
-          git checkout -b apk-build
-          git add app/build/outputs/apk/debug/app-debug.apk
-          git commit -m "Built APK added"
-          git push origin apk-build
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
-        with:
-          title: "Automated APK Build"
-          body: "This PR includes the latest APK build from the workflow."
-          branch: apk-build
-          base: main
