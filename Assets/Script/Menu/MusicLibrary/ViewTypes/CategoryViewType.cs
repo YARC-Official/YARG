@@ -19,6 +19,9 @@ namespace YARG.Menu.MusicLibrary
         private readonly int _songCount;
         private readonly Action _clickAction;
 
+        private static readonly HashSet<string> SourceCounter  = new();
+        private static readonly HashSet<string> CharterCounter = new();
+        private static readonly HashSet<string> GenreCounter   = new();
         public CategoryViewType(string primary, int songCount, SongEntry[] songsUnderCategory,
             Action clickAction = null)
         {
@@ -26,9 +29,19 @@ namespace YARG.Menu.MusicLibrary
             _songCount = songCount;
             _clickAction = clickAction;
 
-            SourceCountText = $"{CountOf(songsUnderCategory, i => i.Source.SortStr)} sources";
-            CharterCountText = $"{CountOf(songsUnderCategory, i => i.Charter.SortStr)} charters";
-            GenreCountText = $"{CountOf(songsUnderCategory, i => i.Genre.SortStr)} genres";
+            foreach (var song in songsUnderCategory)
+            {
+                SourceCounter.Add(song.Source);
+                CharterCounter.Add(song.Charter);
+                GenreCounter.Add(song.Genre);
+            }
+
+            SourceCountText = $"{SourceCounter.Count} sources";
+            CharterCountText = $"{CharterCounter.Count} charters";
+            GenreCountText = $"{GenreCounter.Count} genres";
+            SourceCounter.Clear();
+            CharterCounter.Clear();
+            GenreCounter.Clear();
         }
 
         public CategoryViewType(string primary, int songCount, SongCategory[] songsUnderCategory)
@@ -36,20 +49,22 @@ namespace YARG.Menu.MusicLibrary
             _primary = primary;
             _songCount = songCount;
 
-            int sources = 0;
-            int charters = 0;
-            int genres = 0;
-
-            foreach (var n in songsUnderCategory)
+            foreach (var category in songsUnderCategory)
             {
-                sources += CountOf(n.Songs, i => i.Source);
-                charters += CountOf(n.Songs, i => i.Charter);
-                genres += CountOf(n.Songs, i => i.Genre);
+                foreach (var song in category.Songs)
+                {
+                    SourceCounter.Add(song.Source);
+                    CharterCounter.Add(song.Charter);
+                    GenreCounter.Add(song.Genre);
+                }
             }
 
-            SourceCountText = $"{sources} sources";
-            CharterCountText = $"{charters} charters";
-            GenreCountText = $"{genres} genres";
+            SourceCountText = $"{SourceCounter.Count} sources";
+            CharterCountText = $"{CharterCounter.Count} charters";
+            GenreCountText = $"{GenreCounter.Count} genres";
+            SourceCounter.Clear();
+            CharterCounter.Clear();
+            GenreCounter.Clear();
         }
 
         public override string GetPrimaryText(bool selected)
@@ -65,16 +80,6 @@ namespace YARG.Menu.MusicLibrary
         public override void PrimaryButtonClick()
         {
             _clickAction?.Invoke();
-        }
-
-        private static int CountOf(SongEntry[] songs, Func<SongEntry, string> selector)
-        {
-            var set = new HashSet<string>();
-            foreach (var song in songs)
-            {
-                set.Add(selector(song));
-            }
-            return set.Count;
         }
     }
 }
