@@ -38,11 +38,7 @@ namespace YARG.Venue
             source = VenueSource.Song;
             if (!SettingsManager.Settings.DisablePerSongBackgrounds.Value)
             {
-                result = song.LoadBackground(
-                    BackgroundType.Image |
-                    BackgroundType.Video |
-                    BackgroundType.Yarground
-                );
+                result = song.LoadBackground();
             }
 
             if (!SettingsManager.Settings.DisableGlobalBackgrounds.Value && result == null)
