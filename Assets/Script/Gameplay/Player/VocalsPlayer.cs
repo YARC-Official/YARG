@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
@@ -460,7 +460,7 @@ namespace YARG.Gameplay.Player
                     totalTime += note.TotalTickLength;
                 }
 
-                _hud.SetHUDShowing(totalTime != 0);
+                _hud.SetHUDShowing(!hasPercussion);
                 _percussionTrack.ShowPercussionFret(hasPercussion);
                 _shouldHideNeedle = hasPercussion;
             }

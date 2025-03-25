@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Text;
@@ -360,6 +360,7 @@ namespace YARG.Gameplay
                         text.AppendFormat("- Ticks hit: {0}\n", stats.TicksHit);
                         text.AppendFormat("- Ticks missed: {0}\n", stats.TicksMissed);
                         text.AppendFormat("- Total ticks so far: {0}\n", stats.TotalTicks);
+                        text.AppendFormat("- Has Note Carry: {0}\n", stats.HasCarryNote);
 
                         GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
                         break;
