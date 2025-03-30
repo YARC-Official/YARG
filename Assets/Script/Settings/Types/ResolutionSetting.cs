@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using UnityEngine;
+using YARG.Helpers;
+using YARG.Localization;
 
 namespace YARG.Settings.Types
 {
@@ -49,6 +51,11 @@ namespace YARG.Settings.Types
             return obj is null && !Value.HasValue;
         }
 
-        public override string ValueToString(Resolution? value) => value?.ToString() ?? "<i>Highest</i>";
+        public override string ValueToString(Resolution? value)
+        {
+            return value?.ToString() ?? Localize.KeyFormat(
+                "Settings.Setting.Resolution.Default", ScreenHelper.GetScreenResolution()
+            );
+        }
     }
 }

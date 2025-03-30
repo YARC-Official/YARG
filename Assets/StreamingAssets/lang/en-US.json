@@ -59,7 +59,8 @@
             "NoKicks": "No Kicks",
             "TapsToHopos": "Taps to HOPOs",
             "UnpitchedOnly": "Unpitched Only",
-            "NoDynamics": "No Dynamics"
+            "NoDynamics": "No Dynamics",
+            "NoVocalPercussion" : "No Percussion"
         },
         "SortAttribute": {
             "Album": "Album",
@@ -208,7 +209,9 @@
             "Modifiers": "Modifiers",
             "Ready": "Ready",
             "SitOut": "Sit Out",
-            "Done": "Done"
+            "Done": "Done",
+            "WarningPlayerNoInputDevice" : "This player has no input device assigned! Assign one from the Profiles menu.",
+            "WarningVocalistNoMicrophone" : "This vocalist has no microphone assigned! Assign one from the Profiles menu."
         },
         "History": {
             "Name": "History",
@@ -557,6 +560,10 @@
                 "Name": "Disable Bloom",
                 "Description": "Disables post-processing bloom (the glowly effect). May increase performance."
             },
+            "DisableFilmGrain": {
+                "Name": "Disable Film Grain",
+                "Description": "Disables post-processing film grain effect. May increase performance."
+            },
             "DisableGlobalBackgrounds": {
                 "Name": "Disable Global Backgrounds",
                 "Description": "Disables custom backgrounds from your venue folder and shows the ones in songs instead."
@@ -666,6 +673,10 @@
                 "Name": "Input Device Logging",
                 "Description": "Prints information about connected input devices to the game's log. Do not enable this unless you are having issues with specific devices, as it can print a very large amount of text for some devices!"
             },
+            "InputPollingFrequency": {
+                "Name": "Input Polling Frequency",
+                "Description": "The frequency at which input devices that require polling get queried. This only applies to devices that require polling, such as XInput devices on Windows."
+            },
             "KeepSongInfoVisible": {
                 "Name": "Keep Song Info Visible",
                 "Description": "If enabled, it keeps the song info visible throughout the entire song. Otherwise, it will fade out after 10 seconds."
@@ -750,7 +761,8 @@
             },
             "Resolution": {
                 "Name": "Resolution",
-                "Description": "Choose the resolution of your screen. \"Highest\" is recommended."
+                "Description": "Choose the resolution of your screen. \"Default\" is recommended.",
+                "Default": "<i>Default ({0})</i>"
             },
             "RhythmVolume": {
                 "Name": "Rhythm Volume",

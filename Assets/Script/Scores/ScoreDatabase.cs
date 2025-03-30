@@ -219,18 +219,21 @@ namespace YARG.Scores
             bool highestDifficultyOnly
         )
         {
-            string query =
-                @"SELECT *, MAX(Score) FROM PlayerScores
-                INNER JOIN GameRecords
-                    ON PlayerScores.GameRecordId = GameRecords.Id
-                WHERE PlayerId = ?
-                    AND Instrument = ?
-                GROUP BY GameRecords.SongChecksum";
-
+            string difficultyClause = "";
             if (highestDifficultyOnly)
             {
-                query += " HAVING Difficulty = MAX(Difficulty)";
+                difficultyClause = "Difficulty DESC,";
             }
+
+            string query = $@"SELECT * FROM (
+                SELECT * FROM PlayerScores
+                    INNER JOIN GameRecords
+                ON PlayerScores.GameRecordId = GameRecords.Id
+                WHERE PlayerId = ?
+                    AND Instrument = ?
+                ORDER BY {difficultyClause} Score DESC
+              )
+              GROUP BY SongChecksum";
 
             return Query<PlayerScoreRecord>(
                 query,
@@ -245,24 +248,28 @@ namespace YARG.Scores
             bool highestDifficultyOnly
         )
         {
-            string query =
-                @"SELECT *, MAX(Percent) FROM PlayerScores
-                INNER JOIN GameRecords
-                    ON PlayerScores.GameRecordId = GameRecords.Id
-                WHERE PlayerId = ?
-                    AND Instrument = ?
-                GROUP BY GameRecords.SongChecksum";
-
+            string difficultyClause = "";
             if (highestDifficultyOnly)
             {
-                query += " HAVING Difficulty = MAX(Difficulty)";
+                difficultyClause = "Difficulty DESC,";
             }
 
-            return Query<PlayerScoreRecord>(
+            string query = $@"SELECT * FROM (
+                SELECT * FROM PlayerScores
+                    INNER JOIN GameRecords
+                ON PlayerScores.GameRecordId = GameRecords.Id
+                WHERE PlayerId = ?
+                    AND Instrument = ?
+                ORDER BY {difficultyClause} Percent DESC, IsFc DESC
+              )
+              GROUP BY SongChecksum";
+
+            var result = Query<PlayerScoreRecord>(
                 query,
                 playerId,
                 (int) instrument
             );
+            return result;
         }
 
         public PlayerScoreRecord QueryPlayerSongHighScore(
@@ -316,11 +323,11 @@ namespace YARG.Scores
 
             if (highestDifficultyOnly)
             {
-                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Percent DESC";
+                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Percent DESC, IsFc DESC";
             }
             else
             {
-                query += " ORDER BY PlayerScores.Percent DESC";
+                query += " ORDER BY PlayerScores.Percent DESC, IsFc DESC";
             }
 
             query += " LIMIT 1";

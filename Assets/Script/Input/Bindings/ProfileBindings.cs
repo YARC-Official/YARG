@@ -26,7 +26,8 @@ namespace YARG.Input
         private readonly Dictionary<GameMode, BindingCollection> _bindsByGameMode = new();
         public readonly BindingCollection MenuBindings;
 
-        public bool Empty => _devices.Count < 1 && Microphone is null;
+        public bool HasDeviceAssigned => _devices.Count > 0;
+        public bool Empty => !HasDeviceAssigned && Microphone is null;  
 
         public BindingCollection this[GameMode mode] => _bindsByGameMode[mode];
 

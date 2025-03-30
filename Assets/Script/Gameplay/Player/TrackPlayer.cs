@@ -88,7 +88,6 @@ namespace YARG.Gameplay.Player
 
             var preset = player.EnginePreset;
             IndicatorStripes.Initialize(preset);
-            ComboMeter.Initialize(preset);
 
             // Set fade information and highway length
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
@@ -185,6 +184,8 @@ namespace YARG.Gameplay.Player
             Notes = NoteTrack.Notes;
 
             Engine = CreateEngine();
+
+            base.ComboMeter.Initialize(player.EnginePreset, Engine.BaseParameters.MaxMultiplier);
 
             if (GameManager.IsPractice)
             {

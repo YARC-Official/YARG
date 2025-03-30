@@ -6,6 +6,10 @@ using YARG.Core;
 using YARG.Core.Input;
 using YARG.Menu.Persistent;
 
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX || UNITY_WSA
+using UnityEngine.InputSystem.Switch;
+#endif
+
 namespace YARG.Input
 {
     public partial class BindingCollection
@@ -135,11 +139,25 @@ namespace YARG.Input
             AddBinding(MenuAction.Start, gamepad.startButton);
             AddBinding(MenuAction.Select, gamepad.selectButton);
 
-            AddBinding(MenuAction.Green, gamepad.buttonSouth);
-            AddBinding(MenuAction.Red, gamepad.buttonEast);
-            AddBinding(MenuAction.Yellow, gamepad.buttonNorth);
-            AddBinding(MenuAction.Blue, gamepad.buttonWest);
-            AddBinding(MenuAction.Orange, gamepad.leftShoulder);
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX || UNITY_WSA
+            if (gamepad is SwitchProControllerHID switchPad)
+            {
+                // Swap A<->B and X<->Y for Switch controllers
+                AddBinding(MenuAction.Green, switchPad.buttonEast);
+                AddBinding(MenuAction.Red, switchPad.buttonSouth);
+                AddBinding(MenuAction.Yellow, switchPad.buttonWest);
+                AddBinding(MenuAction.Blue, switchPad.buttonNorth);
+                AddBinding(MenuAction.Orange, switchPad.leftShoulder);
+            }
+            else
+#endif
+            {
+                AddBinding(MenuAction.Green, gamepad.buttonSouth);
+                AddBinding(MenuAction.Red, gamepad.buttonEast);
+                AddBinding(MenuAction.Yellow, gamepad.buttonNorth);
+                AddBinding(MenuAction.Blue, gamepad.buttonWest);
+                AddBinding(MenuAction.Orange, gamepad.leftShoulder);
+            }
 
             AddBinding(MenuAction.Up, gamepad.leftStick.up);
             AddBinding(MenuAction.Down, gamepad.leftStick.down);

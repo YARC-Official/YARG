@@ -69,6 +69,9 @@ namespace YARG.Settings
             public ToggleSetting WaitForSongVideo { get; } = new(true);
 
 
+            public SliderSetting InputPollingFrequency { get; } = new(250f, 60f, 1000f,
+                (value) => InputSystem.pollingFrequency = value
+            );
             public ToggleSetting VoiceActivatedVocalStarPower { get; } = new(true);
             public ToggleSetting EnablePracticeSP { get; } = new(false);
             public SliderSetting PracticeRestartDelay { get; } = new(2f, 0.5f, 5f);
@@ -223,6 +226,7 @@ namespace YARG.Settings
 
             public ToggleSetting LowQuality { get; } = new(false, LowQualityCallback);
             public ToggleSetting DisableBloom { get; } = new(false, DisableBloomCallback);
+            public ToggleSetting DisableFilmGrain { get; } = new(false, DisableFilmGrainCallback);
 
             public DropdownSetting<StarPowerHighwayFxMode> StarPowerHighwayFx { get; }
                 = new(StarPowerHighwayFxMode.On)
@@ -267,8 +271,6 @@ namespace YARG.Settings
                     LyricDisplayMode.NoBackground,
                     LyricDisplayMode.Disabled
                 };
-
-            public SliderSetting UpcomingLyricsTime { get; } = new(3f, 0f, 10f);
 
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; }
                 = new(SongProgressMode.CountUpOnly)
@@ -512,42 +514,8 @@ namespace YARG.Settings
                     return;
                 }
 
-                Resolution resolution;
-
-                // If set to null, just get the "default" resolution.
-                if (value == null)
-                {
-                    // Since we actually can't get the highest resolution,
-                    // we need to find it in the supported resolutions
-                    var highest = new Resolution
-                    {
-                        width = 0, height = 0, refreshRate = 0
-                    };
-
-                    foreach (var r in Screen.resolutions)
-                    {
-                        if (r.refreshRate >= highest.refreshRate ||
-                            r.width >= highest.width ||
-                            r.height >= highest.height)
-                        {
-                            highest = r;
-                        }
-                    }
-
-                    resolution = highest;
-                }
-                else
-                {
-                    resolution = value.Value;
-                }
-
-                var fullscreenMode = FullScreenMode.FullScreenWindow;
-                if (Settings != null)
-                {
-                    fullscreenMode = Settings.FullscreenMode.Value;
-                }
-
-                Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
+                var resolution = value ?? ScreenHelper.GetScreenResolution();
+                ScreenHelper.SetResolution(resolution);
 
                 // Make sure to refresh the preview since it'll look stretched if we don't
                 SettingsMenu.Instance.RefreshPreview(true);
@@ -561,6 +529,11 @@ namespace YARG.Settings
             private static void DisableBloomCallback(bool value)
             {
                 GraphicsManager.Instance.BloomEnabled = !value;
+            }
+
+            private static void DisableFilmGrainCallback(bool value)
+            {
+                GraphicsManager.Instance.FilmGrainEnabled = !value;
             }
 
             private static void ShowHitWindowCallback(bool value)

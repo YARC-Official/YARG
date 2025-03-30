@@ -60,15 +60,14 @@ namespace YARG.Song
 
     public readonly struct SongCategory
     {
-        public readonly string Category;
-        public readonly string CategoryGroup;
-        public readonly SongEntry[] Songs;
+        public string      Category      { get; }
+        public string      CategoryGroup { get; }
+        public SongEntry[] Songs         { get; }
 
         public SongCategory(string category, SongEntry[] songs, string categoryGroupName)
         {
             Category = category;
             Songs = songs;
-
             CategoryGroup = categoryGroupName;
         }
 

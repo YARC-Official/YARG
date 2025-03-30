@@ -1,12 +1,12 @@
 fileFormatVersion: 2
-guid: f1d5ea5074a016f47ba8046a3bfc86cb
+guid: 12e5f769dd812a2418ee2365934e5343
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
   serializedVersion: 12
   mipmaps:
     mipMapMode: 0
-    enableMipMap: 1
+    enableMipMap: 0
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0
@@ -89,23 +89,11 @@ TextureImporter:
     overridden: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
-    buildTarget: Server
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Ghosting
+      name: bass
       rect:
         serializedVersion: 2
         x: 0
@@ -113,20 +101,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 994eb96e0de3f1440a00e7b0bcc018b4
-      internalID: 960618387
+      spriteID: 7f3e65fc265a38c4cb42bee4a8b2a765
+      internalID: 19505247
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: InfiniteFrontEnd
+      name: guitar
       rect:
         serializedVersion: 2
         x: 512
@@ -134,20 +122,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 40735d26ef3ebe34598fefee52b14ad7
-      internalID: -1660463282
+      spriteID: 5f2df48cce0061f43ba5bc834d4ac333
+      internalID: -685803242
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DynamicHitWindow
+      name: drums
       rect:
         serializedVersion: 2
         x: 1024
@@ -155,20 +143,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: eabf68fdf751bf8468d311f6f65dcf11
-      internalID: -1908706152
+      spriteID: 035a2a1b9067c88478ce1ab8028488b8
+      internalID: 331359386
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ModifierIcons_3
+      name: keys
       rect:
         serializedVersion: 2
         x: 1536
@@ -176,20 +164,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: efbd2ed95037d5d40a5917827f971bae
-      internalID: -1638818548
+      spriteID: 0ac4f15439ae5ac4fa6ab0e53f560592
+      internalID: -104748501
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ModifierIcons_4
+      name: realBass
       rect:
         serializedVersion: 2
         x: 0
@@ -197,20 +185,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 180175bb55d8a8349b6b55af4759dcb9
-      internalID: 1692867385
+      spriteID: b9d468bd66ae6f74eb91961d1440fa84
+      internalID: 1062589918
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ModifierIcons_5
+      name: realGuitar
       rect:
         serializedVersion: 2
         x: 512
@@ -218,20 +206,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c065dd9af4ce22b4ca2d4934b1d577a7
-      internalID: -1436843964
+      spriteID: 158588c47b07b72418e36756d244c30f
+      internalID: -1922052886
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ModifierIcons_6
+      name: realDrums
       rect:
         serializedVersion: 2
         x: 1024
@@ -239,41 +227,41 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 79e8831b35e859f4b81798628ca58915
-      internalID: 1497401919
+      spriteID: 6306f4b1e7a6bd04ca1d5ef9fbd9b4d1
+      internalID: 628918211
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ModifierIcons_7
+      name: realKeys
       rect:
         serializedVersion: 2
-        x: 1536
+        x: 1533
         y: 1024
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 911de98664cbfad4cbb632fdc973b8f5
-      internalID: -1355680061
+      spriteID: 8bcecc1038305044890bb9304fe88a03
+      internalID: 888935727
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: NoKicks
+      name: vocals
       rect:
         serializedVersion: 2
         x: 0
@@ -281,20 +269,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 14c9daaaea7b7374d90bef72bee721e7
-      internalID: -1200274759
+      spriteID: fe26686d2550b8940b88ba283cad3bd1
+      internalID: -595053334
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: AllHopos
+      name: harmVocals
       rect:
         serializedVersion: 2
         x: 512
@@ -302,20 +290,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 45c2484cfcbddb949b0905a42862941a
-      internalID: 1133985084
+      spriteID: fea942ca64c14544da96ec7f94c3c577
+      internalID: -1948000427
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: AllTaps
+      name: ghDrums
       rect:
         serializedVersion: 2
         x: 1024
@@ -323,20 +311,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7fd381b4957d02e4fbfe218f098994ed
-      internalID: 2121361537
+      spriteID: 698823073afd0b442948eae4f3fd37ec
+      internalID: -1231246032
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: AllStrums
+      name: guitarCoop
       rect:
         serializedVersion: 2
         x: 1536
@@ -344,20 +332,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f2b3bb852d1f6e94f9f284efae33c5b0
-      internalID: 1402975760
+      spriteID: 4d353bf58400a2d4abddc66c6d8a1a9f
+      internalID: 649230008
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HoposToTaps
+      name: rhythm
       rect:
         serializedVersion: 2
         x: 0
@@ -365,20 +353,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8259d99118581714a82961c989c7ac5e
-      internalID: 1309754347
+      spriteID: 917ed18ca3045284aac5beec41988c50
+      internalID: -2134676079
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TapsToHopos
+      name: band
       rect:
         serializedVersion: 2
         x: 512
@@ -386,20 +374,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 356293e8b2f82f3408c772600615ee34
-      internalID: 1609936924
+      spriteID: 5c969935874e22f4eb7c9187d9beba06
+      internalID: -334723902
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UnpitchedOnly
+      name: trueDrums
       rect:
         serializedVersion: 2
         x: 1024
@@ -407,20 +395,20 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 45f87b9727745494095a1ce61d2d9506
-      internalID: -2147107449
+      spriteID: 183b077e16da1ed42b3b24b4fbd07b27
+      internalID: 1373672649
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: NoVocalPercussion
+      name: twoVocals
       rect:
         serializedVersion: 2
         x: 1536
@@ -428,14 +416,14 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 128cb35c267d4f74cac520e940c56397
-      internalID: 1841026791
+      spriteID: 7b08b0ce1d3e40a4a8e675654ff71fe6
+      internalID: -189867252
       vertices: []
       indices: 
       edges: []
@@ -443,7 +431,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 1a649a4ce19f35d4a9625c3fe0593b6c
     internalID: 0
     vertices: []
     indices: 
@@ -451,22 +439,22 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      AllHopos: 1133985084
-      AllStrums: 1402975760
-      AllTaps: 2121361537
-      DynamicHitWindow: -1908706152
-      Ghosting: 960618387
-      HoposToTaps: 1309754347
-      InfiniteFrontEnd: -1660463282
-      ModifierIcons_3: -1638818548
-      ModifierIcons_4: 1692867385
-      ModifierIcons_5: -1436843964
-      ModifierIcons_6: 1497401919
-      ModifierIcons_7: -1355680061
-      NoKicks: -1200274759
-      NoVocalPercussion: 1841026791
-      TapsToHopos: 1609936924
-      UnpitchedOnly: -2147107449
+      band: -334723902
+      bass: 19505247
+      drums: 331359386
+      ghDrums: -1231246032
+      guitar: -685803242
+      guitarCoop: 649230008
+      harmVocals: -1948000427
+      keys: -104748501
+      realBass: 1062589918
+      realDrums: 628918211
+      realGuitar: -1922052886
+      realKeys: 888935727
+      rhythm: -2134676079
+      trueDrums: 1373672649
+      twoVocals: -189867252
+      vocals: -595053334
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0
