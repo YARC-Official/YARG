@@ -260,7 +260,7 @@ namespace YARG.Scores
                 ON PlayerScores.GameRecordId = GameRecords.Id
                 WHERE PlayerId = ?
                     AND Instrument = ?
-                ORDER BY {difficultyClause} Percent DESC
+                ORDER BY {difficultyClause} Percent DESC, IsFc DESC
               )
               GROUP BY SongChecksum";
 
@@ -323,11 +323,11 @@ namespace YARG.Scores
 
             if (highestDifficultyOnly)
             {
-                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Percent DESC";
+                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Percent DESC, IsFc DESC";
             }
             else
             {
-                query += " ORDER BY PlayerScores.Percent DESC";
+                query += " ORDER BY PlayerScores.Percent DESC, IsFc DESC";
             }
 
             query += " LIMIT 1";
