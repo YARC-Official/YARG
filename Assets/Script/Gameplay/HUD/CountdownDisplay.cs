@@ -63,7 +63,7 @@ namespace YARG.Gameplay.HUD
             }
 
             ToggleDisplay(shouldDisplay);
-            
+
             if (!gameObject.activeSelf)
             {
                 return;
@@ -77,7 +77,7 @@ namespace YARG.Gameplay.HUD
             };
 
             _countdownText.text = displayNumber;
-            
+
             _progressBar.fillAmount = (float) (timeRemaining / countdownLength);
         }
 
@@ -116,7 +116,7 @@ namespace YARG.Gameplay.HUD
                     gameObject.SetActive(false);
                     return;
                 }
-                
+
                 _currentCoroutine = StartCoroutine(HideCoroutine());
             }
         }
@@ -157,7 +157,7 @@ namespace YARG.Gameplay.HUD
                 // Measure count has not changed
                 return _countdownText.text;
             }
-            
+
             var syncTrack = GameManager.Chart.SyncTrack;
 
             int newMeasuresLeft = 0;
@@ -165,17 +165,17 @@ namespace YARG.Gameplay.HUD
             double timeRef = currentTime;
             while (timeRef < endTime)
             {
-                var currentTimeSig = syncTrack.TimeSignatures.GetPrevious(timeRef);
+                var currentTimeSig = syncTrack.TimeSignatures.LowerBoundElement(timeRef);
                 if (currentTimeSig == null)
                 {
                     YargLogger.LogFormatDebug("Cannot calculate WaitCountdown measures at time {0}. No time signatures available.", timeRef);
                     break;
                 }
 
-                var currentTempo = syncTrack.Tempos.GetPrevious(timeRef);
+                var currentTempo = syncTrack.Tempos.LowerBoundElement(timeRef);
 
                 timeRef += currentTimeSig.GetSecondsPerMeasure(currentTempo);
-                
+
                 if (++newMeasuresLeft == 1)
                 {
                     _nextMeasureTime = timeRef;
