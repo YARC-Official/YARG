@@ -235,7 +235,8 @@ namespace YARG.Gameplay.Visuals
                     }
 
                     // Unison and DrumFill no longer use transitions
-                    var transitionState = kind == TrackEffectType.Solo;
+                    // var transitionState = kind == TrackEffectType.Solo;
+                    var transitionState = true;
 
                     effects.Add(
                         new TrackEffect(phrases[i].Time, phrases[i].TimeEnd, (TrackEffectType) kind, transitionState, transitionState));
