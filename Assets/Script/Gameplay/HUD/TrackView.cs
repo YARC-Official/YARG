@@ -90,7 +90,7 @@ namespace YARG.Gameplay.HUD
             _soloBox.StartSolo(solo);
 
             // No text notifications during the solo
-            _textNotifications.gameObject.SetActive(false);
+            _textNotifications.SetActive(false);
         }
 
         public void EndSolo(int soloBonus)
@@ -98,7 +98,7 @@ namespace YARG.Gameplay.HUD
             _soloBox.EndSolo(soloBonus, () =>
             {
                 // Show text notifications again
-                _textNotifications.gameObject.SetActive(true);
+                _textNotifications.SetActive(true);
             });
         }
 
@@ -144,7 +144,7 @@ namespace YARG.Gameplay.HUD
 
         public void ForceReset()
         {
-            _textNotifications.gameObject.SetActive(true);
+            _textNotifications.SetActive(true);
 
             _soloBox.ForceReset();
             _textNotifications.ForceReset();

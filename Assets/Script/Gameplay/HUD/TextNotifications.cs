@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
@@ -16,6 +17,10 @@ namespace YARG.Gameplay.HUD
     {
         [SerializeField]
         private TextMeshProUGUI _text;
+        [SerializeField]
+        private RectTransform _containerRect;
+        [SerializeField]
+        private Image _notificationBackground;
 
         private int _streak;
         private int _nextStreakCount;
@@ -30,6 +35,7 @@ namespace YARG.Gameplay.HUD
         {
             _text.text = string.Empty;
             _coroutine = null;
+            _containerRect.localScale = Vector3.zero;
         }
 
         private void OnDisable()
@@ -120,6 +126,10 @@ namespace YARG.Gameplay.HUD
             if (_coroutine == null && _notificationQueue.Count > 0)
             {
                 var textNotification = _notificationQueue.Dequeue();
+
+                // Set the color of the text background image based on the notifcation type
+                _notificationBackground.color = GetBackgroundColor(textNotification.Type);
+
                 _coroutine = StartCoroutine(ShowNextNotification(textNotification.Text));
             }
         }
@@ -135,7 +145,7 @@ namespace YARG.Gameplay.HUD
                 _scaler.AnimTimeRemaining -= Time.deltaTime;
                 float scale = _scaler.PerformanceTextScale();
 
-                _text.transform.localScale = new Vector3(scale, scale, scale);
+                _containerRect.localScale = new Vector3(scale, scale, scale);
                 yield return null;
             }
 
@@ -176,6 +186,22 @@ namespace YARG.Gameplay.HUD
             _notificationQueue.Clear();
             _nextStreakCount = 0;
             _streak = 0;
+        }
+
+        public void SetActive(bool active)
+        {
+            _containerRect.gameObject.SetActive(active);
+        }
+
+        private static Color GetBackgroundColor(TextNotificationType type)
+        {
+            return type switch
+            {
+                TextNotificationType.FullCombo      => new Color(0.9882353f, 0.8352941f, 0.282353f, 0.25f),
+                TextNotificationType.BassGroove     => new Color(0.0f, 0.4f, 1.0f, 0.25f),
+                TextNotificationType.StarPowerReady => new Color(0.9882353f, 0.8352941f, 0.282353f, 0.25f),
+                _                                   => new Color(0.1411765f, 0.1411765f, 0.1411765f, 1.0f),
+            };
         }
     }
 }
