@@ -18,9 +18,10 @@ namespace YARG
         {
             camera = GetComponent<Camera>();
             UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            originalFactor = UniversalRenderPipelineAsset.renderScale;
 
-            RenderPipelineManager.beginCameraRendering += OnPreRender;
-            RenderPipelineManager.endCameraRendering += OnPostRender;
+            RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
+            RenderPipelineManager.endCameraRendering += OnPostCameraRender;
         }
 
         void OnDestroy()
@@ -28,19 +29,18 @@ namespace YARG
             UniversalRenderPipelineAsset.renderScale = originalFactor;
         }
 
-        void OnPreRender(ScriptableRenderContext ctx, Camera cam)
+        void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
         {
             if (cam == camera)
             {
                 if (UniversalRenderPipelineAsset != null)
                 {
-                    originalFactor = UniversalRenderPipelineAsset.renderScale;
                     UniversalRenderPipelineAsset.renderScale = renderScale;
                 }
             }
         }
 
-        void OnPostRender(ScriptableRenderContext ctx, Camera cam)
+        void OnPostCameraRender(ScriptableRenderContext ctx, Camera cam)
         {
             if (cam == camera)
             {
