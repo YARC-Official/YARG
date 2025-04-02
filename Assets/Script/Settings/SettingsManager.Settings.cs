@@ -19,6 +19,7 @@ using YARG.Scores;
 using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
+using static FidelityFX.FSR3.Fsr3Upscaler;
 
 namespace YARG.Settings
 {
@@ -220,6 +221,17 @@ namespace YARG.Settings
                     FullScreenMode.FullScreenWindow,
                     FullScreenMode.Windowed,
                 };
+
+            public DropdownSetting<QualityMode> VenueRenderingQuality { get; }
+                 = new(QualityMode.NativeAA, VenueQualityModeCallback)
+                 {
+                     QualityMode.NativeAA,
+                     QualityMode.UltraQuality,
+                     QualityMode.Quality,
+                     QualityMode.Balanced,
+                     QualityMode.Performance,
+                     QualityMode.UltraPerformance
+                 };
 
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting FpsStats { get; } = new(false, FpsCounterCallback);
@@ -504,6 +516,17 @@ namespace YARG.Settings
                 }
 
                 Screen.fullScreenMode = value;
+            }
+
+            private static void VenueQualityModeCallback(QualityMode value)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                GraphicsManager.Instance.VenueRenderScale = 1.0f / GetUpscaleRatioFromQualityMode(value);
             }
 
             private static void ResolutionCallback(Resolution? value)

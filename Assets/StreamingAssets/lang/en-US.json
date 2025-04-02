@@ -564,6 +564,10 @@
                 "Name": "Disable Film Grain",
                 "Description": "Disables post-processing film grain effect. May increase performance."
             },
+            "DisableFilmGrain": {
+                "Name": "Disable Film Grain",
+                "Description": "Disables post-processing film grain effect. May increase performance."
+            },
             "DisableGlobalBackgrounds": {
                 "Name": "Disable Global Backgrounds",
                 "Description": "Disables custom backgrounds from your venue folder and shows the ones in songs instead."
@@ -641,6 +645,18 @@
                     "FullScreenWindow": "Borderless Fullscreen",
                     "MaximizedWindow": "Maximized Window",
                     "Windowed": "Windowed"
+                }
+            },
+            "VenueRenderingQuality": {
+                "Name": "Venue rendering quality",
+                "Description": "Changes rendering resolution for venues",
+                "Dropdown": {
+                    "NativeAA": "Native",
+                    "UltraQuality": "Ultra Quality",
+                    "Quality": "Quality",
+                    "Balanced": "Balanced",
+                    "Performance": "Performance",
+                    "UltraPerformance": "UltraPerformance"
                 }
             },
             "GraphicalProgressOnScoreBox": {

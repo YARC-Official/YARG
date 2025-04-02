@@ -121,7 +121,8 @@ namespace YARG.Gameplay
                     var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
                     bundleBackgroundManager.Bundle = bundle;
                     bundleBackgroundManager.ShaderBundle = shaderBundle;
-                    bgInstance.GetComponentInChildren<Camera>().gameObject.AddComponent<VenueCameraManager>();
+                    var camManager = bgInstance.GetComponentInChildren<Camera>().gameObject.AddComponent<VenueCameraManager>();
+                    camManager.renderScale = GraphicsManager.Instance.VenueRenderScale;
 
                     // Destroy the default camera (venue has its own)
                     Destroy(_videoPlayer.targetCamera.gameObject);

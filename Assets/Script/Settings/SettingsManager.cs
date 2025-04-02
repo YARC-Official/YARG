@@ -131,6 +131,7 @@ namespace YARG.Settings
                 nameof(Settings.DisableFilmGrain),
                 nameof(Settings.StarPowerHighwayFx),
                 nameof(Settings.SongBackgroundOpacity),
+                nameof(Settings.VenueRenderingQuality),
 
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.UseCymbalModelsInFiveLane),

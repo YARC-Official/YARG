@@ -20,6 +20,8 @@ namespace YARG
         private Bloom bloom = null;
         private FilmGrain filmGrain = null;
 
+        public float VenueRenderScale = 1.0f;
+
         public bool BloomEnabled
         {
             set => bloom.active = value;
