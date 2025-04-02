@@ -383,6 +383,9 @@ MonoBehaviour:
   _text: {fileID: 8078771021002508975}
   _containerRect: {fileID: 8448967496905679418}
   _notificationBackground: {fileID: 1849009881569265160}
+  _defaultColor: {r: 0.14117648, g: 0.14117648, b: 0.14117648, a: 1}
+  _starpowerColor: {r: 0.9882353, g: 0.8352941, b: 0.282353, a: 0.2509804}
+  _grooveColor: {r: 0, g: 0.4, b: 1, a: 0.2509804}
 --- !u!1 &2238794423646391257
 GameObject:
   m_ObjectHideFlags: 0

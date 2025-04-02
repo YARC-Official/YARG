@@ -21,6 +21,12 @@ namespace YARG.Gameplay.HUD
         private RectTransform _containerRect;
         [SerializeField]
         private Image _notificationBackground;
+        [SerializeField]
+        private Color _defaultColor;
+        [SerializeField]
+        private Color _starpowerColor;
+        [SerializeField]
+        private Color _grooveColor;
 
         private int _streak;
         private int _nextStreakCount;
@@ -193,14 +199,14 @@ namespace YARG.Gameplay.HUD
             _containerRect.gameObject.SetActive(active);
         }
 
-        private static Color GetBackgroundColor(TextNotificationType type)
+        private Color GetBackgroundColor(TextNotificationType type)
         {
             return type switch
             {
-                TextNotificationType.FullCombo      => new Color(0.9882353f, 0.8352941f, 0.282353f, 0.25f),
-                TextNotificationType.BassGroove     => new Color(0.0f, 0.4f, 1.0f, 0.25f),
-                TextNotificationType.StarPowerReady => new Color(0.9882353f, 0.8352941f, 0.282353f, 0.25f),
-                _                                   => new Color(0.1411765f, 0.1411765f, 0.1411765f, 1.0f),
+                TextNotificationType.FullCombo      => _starpowerColor,
+                TextNotificationType.BassGroove     => _grooveColor,
+                TextNotificationType.StarPowerReady => _starpowerColor,
+                _                                   => _defaultColor,
             };
         }
     }
