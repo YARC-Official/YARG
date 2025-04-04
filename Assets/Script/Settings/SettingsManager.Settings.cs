@@ -232,6 +232,7 @@ namespace YARG.Settings
                      QualityMode.Performance,
                      QualityMode.UltraPerformance
                  };
+            public ToggleSetting VenueFSR { get; } = new(false, VenueFsrCallback);
 
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting FpsStats { get; } = new(false, FpsCounterCallback);
@@ -500,6 +501,11 @@ namespace YARG.Settings
 #endif
 
                 StatsManager.Instance.SetShowing(StatsManager.Stat.FPS, value);
+            }
+
+            private static void VenueFsrCallback(bool value)
+            {
+                GraphicsManager.Instance.VenueFSR = value;
             }
 
             private static void FpsCapCallback(int value)

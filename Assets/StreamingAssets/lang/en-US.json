@@ -647,18 +647,6 @@
                     "Windowed": "Windowed"
                 }
             },
-            "VenueRenderingQuality": {
-                "Name": "Venue rendering quality",
-                "Description": "Changes rendering resolution for venues",
-                "Dropdown": {
-                    "NativeAA": "Native",
-                    "UltraQuality": "Ultra Quality",
-                    "Quality": "Quality",
-                    "Balanced": "Balanced",
-                    "Performance": "Performance",
-                    "UltraPerformance": "UltraPerformance"
-                }
-            },
             "GraphicalProgressOnScoreBox": {
                 "Name": "Graphical Progress On Score Box",
                 "Description": "Enables and disables the graphical blue outline on the score box that displays the song's progress."
@@ -868,6 +856,22 @@
             "WhammyPitchShiftAmount": {
                 "Name": "Whammy Pitch Shift Amount",
                 "Description": "Number of semitones the pitch is changed when the whammy bar is fully pressed. Larger amounts result in lower pitches; default is 1."
+            },
+            "VenueFSR": {
+                "Name": "Use FSR on venue rendering",
+                "Description": "Use AMD FSR upscaling for venue rendering"
+            },
+            "VenueRenderingQuality": {
+                "Name": "Venue rendering quality",
+                "Description": "Changes rendering resolution for venues",
+                "Dropdown": {
+                    "NativeAA": "Native",
+                    "UltraQuality": "Ultra Quality",
+                    "Quality": "Quality",
+                    "Balanced": "Balanced",
+                    "Performance": "Performance",
+                    "UltraPerformance": "UltraPerformance"
+                }
             },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",

@@ -21,6 +21,7 @@ namespace YARG
         private FilmGrain filmGrain = null;
 
         public float VenueRenderScale = 1.0f;
+        public bool VenueFSR = false;
 
         public bool BloomEnabled
         {
