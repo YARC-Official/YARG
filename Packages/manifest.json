@@ -45,6 +45,7 @@
     "com.unity.toolchain.macos-x86_64-linux-x86_64": "2.0.6",
     "com.unity.toolchain.win-x86_64-linux-x86_64": "2.0.6",
     "com.unity.ugui": "1.0.0",
+    "fidelityfx.fsr": "file:../FSR3Unity/Packages/fidelityfx.fsr",
     "jp.keijiro.minis": "https://github.com/TheNathannator/Minis.git?path=/Packages/jp.keijiro.minis#yarg",
     "unity-dependencies-hunter": "https://github.com/AlexeyPerov/Unity-Dependencies-Hunter.git#upm",
     "com.unity.modules.ai": "1.0.0",
