@@ -42,6 +42,8 @@ namespace YARG.Gameplay.HUD
             _text.text = string.Empty;
             _coroutine = null;
             _containerRect.localScale = Vector3.zero;
+            _containerRect.gameObject.SetActive(true);
+            _notificationBackground.gameObject.SetActive(true);
         }
 
         private void OnDisable()
@@ -50,6 +52,9 @@ namespace YARG.Gameplay.HUD
             {
                 StopCoroutine(_coroutine);
             }
+
+            _notificationBackground.gameObject.SetActive(false);
+            _containerRect.gameObject.SetActive(false);
         }
 
         public void ShowNewHighScore()
@@ -74,7 +79,7 @@ namespace YARG.Gameplay.HUD
         public void ShowHotStart()
         {
             // Don't build up notifications during a solo
-            if (!gameObject.activeSelf) return;
+            if (!isActiveAndEnabled) return;
 
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.HotStart));
         }
@@ -82,7 +87,7 @@ namespace YARG.Gameplay.HUD
         public void ShowBassGroove()
         {
             // Don't build up notifications during a solo
-            if (!gameObject.activeSelf) return;
+            if (!isActiveAndEnabled) return;
 
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.BassGroove));
         }
@@ -90,7 +95,8 @@ namespace YARG.Gameplay.HUD
         public void ShowStarPowerReady()
         {
             // Don't build up notifications during a solo
-            if (!gameObject.activeSelf) return;
+            if (!isActiveAndEnabled) return;
+
 
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StarPowerReady));
         }
@@ -98,7 +104,7 @@ namespace YARG.Gameplay.HUD
         public void UpdateNoteStreak(int streak)
         {
             // Don't build up notifications during a solo
-            if (!gameObject.activeSelf) return;
+            if (!isActiveAndEnabled) return;
 
             // Only push to the queue if there is a change to the streak
             if (streak == _streak) return;
