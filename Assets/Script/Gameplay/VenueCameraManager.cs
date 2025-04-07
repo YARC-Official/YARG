@@ -10,41 +10,41 @@ namespace YARG
         [Range(0.01F, 1.0F)]
         public float renderScale = 1.0F;
 
-        private new Camera camera;
-        private float originalFactor;
+        private Camera _renderCamera;
+        private float _originalFactor;
         private UniversalRenderPipelineAsset UniversalRenderPipelineAsset;
 
         private void Awake()
         {
-            camera = GetComponent<Camera>();
-            UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-            originalFactor = UniversalRenderPipelineAsset.renderScale;
-
+            _renderCamera = GetComponent<Camera>();
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
+            if (GraphicsManager.Instance.VenueFSR)
+            {
+                _renderCamera.gameObject.AddComponent<FSRCameraManager>();
+            }
             RenderPipelineManager.endCameraRendering += OnPostCameraRender;
+            UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            _originalFactor = UniversalRenderPipelineAsset.renderScale;
         }
 
         void OnDestroy()
         {
-            UniversalRenderPipelineAsset.renderScale = originalFactor;
+            UniversalRenderPipelineAsset.renderScale = _originalFactor;
         }
 
         void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
         {
-            if (cam == camera)
+            if (cam == _renderCamera)
             {
-                if (UniversalRenderPipelineAsset != null)
-                {
-                    UniversalRenderPipelineAsset.renderScale = renderScale;
-                }
+                UniversalRenderPipelineAsset.renderScale = renderScale;
             }
         }
 
         void OnPostCameraRender(ScriptableRenderContext ctx, Camera cam)
         {
-            if (cam == camera)
+            if (cam == _renderCamera)
             {
-                UniversalRenderPipelineAsset.renderScale = originalFactor;
+                UniversalRenderPipelineAsset.renderScale = _originalFactor;
             }
         }
     }
