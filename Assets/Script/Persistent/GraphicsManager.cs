@@ -12,6 +12,14 @@ namespace YARG
         Off
     }
 
+    public enum VenueAA
+    {
+        None,
+        FXAA,
+        MSAA,
+        FSR3,
+    }
+
     public class GraphicsManager : MonoSingleton<GraphicsManager>
     {
         [SerializeField]
@@ -21,7 +29,7 @@ namespace YARG
         private FilmGrain filmGrain = null;
 
         public float VenueRenderScale = 1.0f;
-        public bool VenueFSR = false;
+        public VenueAA VenueAA = VenueAA.None;
 
         public bool BloomEnabled
         {

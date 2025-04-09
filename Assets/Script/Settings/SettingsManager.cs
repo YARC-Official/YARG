@@ -132,7 +132,7 @@ namespace YARG.Settings
                 nameof(Settings.StarPowerHighwayFx),
                 nameof(Settings.SongBackgroundOpacity),
                 nameof(Settings.VenueRenderingQuality),
-                nameof(Settings.VenueFSR),
+                nameof(Settings.VenueAA),
 
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.UseCymbalModelsInFiveLane),

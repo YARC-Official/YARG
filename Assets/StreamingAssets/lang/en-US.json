@@ -857,9 +857,15 @@
                 "Name": "Whammy Pitch Shift Amount",
                 "Description": "Number of semitones the pitch is changed when the whammy bar is fully pressed. Larger amounts result in lower pitches; default is 1."
             },
-            "VenueFSR": {
-                "Name": "Use FSR on venue rendering",
-                "Description": "Use AMD FSR upscaling for venue rendering"
+            "VenueAA": {
+                "Name": "Venue anti aliasing",
+                "Description": "Changes anti aliasing setting for venue rendering",
+                "Dropdown": {
+                    "None": "None",
+                    "FXAA": "FXAA",
+                    "MSAA": "MSAA",
+                    "FSR3": "FSR3"
+                }
             },
             "VenueRenderingQuality": {
                 "Name": "Venue rendering quality",

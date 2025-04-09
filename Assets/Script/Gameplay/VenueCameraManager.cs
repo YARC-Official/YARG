@@ -18,9 +18,21 @@ namespace YARG
         {
             _renderCamera = GetComponent<Camera>();
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
-            if (GraphicsManager.Instance.VenueFSR)
+            var cameraData = _renderCamera.GetUniversalAdditionalCameraData();
+            cameraData.antialiasing = AntialiasingMode.None;
+            switch (GraphicsManager.Instance.VenueAA)
             {
-                _renderCamera.gameObject.AddComponent<FSRCameraManager>();
+                case VenueAA.None:
+                    break;
+                case VenueAA.FXAA:
+                    cameraData.antialiasing = AntialiasingMode.FastApproximateAntialiasing;
+                    break;
+                case VenueAA.MSAA:
+                    cameraData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+                    break;
+                case VenueAA.FSR3:
+                    _renderCamera.gameObject.AddComponent<FSRCameraManager>();
+                    break;
             }
             RenderPipelineManager.endCameraRendering += OnPostCameraRender;
             UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;

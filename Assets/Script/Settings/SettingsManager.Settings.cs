@@ -232,7 +232,17 @@ namespace YARG.Settings
                      QualityMode.Performance,
                      QualityMode.UltraPerformance
                  };
-            public ToggleSetting VenueFSR { get; } = new(false, VenueFsrCallback);
+
+            public DropdownSetting<VenueAA> VenueAA { get; }
+                 = new(YARG.VenueAA.None, VenueAACallback)
+                 {
+                     YARG.VenueAA.None,
+                     YARG.VenueAA.FXAA,
+                     YARG.VenueAA.MSAA,
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                     YARG.VenueAA.FSR3,
+#endif
+                 };
 
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting FpsStats { get; } = new(false, FpsCounterCallback);
@@ -503,9 +513,9 @@ namespace YARG.Settings
                 StatsManager.Instance.SetShowing(StatsManager.Stat.FPS, value);
             }
 
-            private static void VenueFsrCallback(bool value)
+            private static void VenueAACallback(VenueAA value)
             {
-                GraphicsManager.Instance.VenueFSR = value;
+                GraphicsManager.Instance.VenueAA = value;
             }
 
             private static void FpsCapCallback(int value)
