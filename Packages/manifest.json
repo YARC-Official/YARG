@@ -42,6 +42,7 @@
     "com.unity.render-pipelines.universal": "12.1.14",
     "com.unity.textmeshpro": "3.0.8",
     "com.unity.timeline": "1.7.3",
+    "com.unity.toolchain.linux-x86_64": "2.0.10",
     "com.unity.toolchain.macos-x86_64-linux-x86_64": "2.0.6",
     "com.unity.toolchain.win-x86_64-linux-x86_64": "2.0.6",
     "com.unity.ugui": "1.0.0",
