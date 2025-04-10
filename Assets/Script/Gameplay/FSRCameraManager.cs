@@ -17,10 +17,8 @@ namespace YARG
         // * mipmap bias
         // * reset history on camera cuts
         // * reactive mask
-        // * exposure?
         // * antighosting?
         // * fp16 mode? should improve perf but they also say almost nothing on unity
-        // * debug view?
 
         [Tooltip("Apply RCAS sharpening to the image after upscaling.")]
         public bool performSharpenPass = true;
