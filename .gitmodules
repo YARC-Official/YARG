@@ -1,6 +1,3 @@
 [submodule "Assets/Plugins/YARG.Core"]
 	path = YARG.Core
 	url = https://github.com/YARC-Official/YARG.Core
-[submodule "FSR3Unity"]
-	path = FSR3Unity
-	url = https://github.com/ndepoel/FSR3Unity.git
