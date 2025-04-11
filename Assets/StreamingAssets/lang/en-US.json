@@ -564,10 +564,6 @@
                 "Name": "Disable Film Grain",
                 "Description": "Disables post-processing film grain effect. May increase performance."
             },
-            "DisableFilmGrain": {
-                "Name": "Disable Film Grain",
-                "Description": "Disables post-processing film grain effect. May increase performance."
-            },
             "DisableGlobalBackgrounds": {
                 "Name": "Disable Global Backgrounds",
                 "Description": "Disables custom backgrounds from your venue folder and shows the ones in songs instead."
@@ -857,9 +853,9 @@
                 "Name": "Whammy Pitch Shift Amount",
                 "Description": "Number of semitones the pitch is changed when the whammy bar is fully pressed. Larger amounts result in lower pitches; default is 1."
             },
-            "VenueAA": {
-                "Name": "Venue anti aliasing",
-                "Description": "Changes anti aliasing setting for venue rendering",
+            "VenueAntiAliasing": {
+                "Name": "Venue Anti Aliasing",
+                "Description": "The anti-aliasing method to use for venue backgrounds.",
                 "Dropdown": {
                     "None": "None",
                     "FXAA": "FXAA",
@@ -868,8 +864,8 @@
                 }
             },
             "VenueRenderingQuality": {
-                "Name": "Venue rendering quality",
-                "Description": "Changes rendering resolution for venues",
+                "Name": "Venue Rendering Quality",
+                "Description": "The quality/resolution to use for venue backgrounds.",
                 "Dropdown": {
                     "NativeAA": "Native",
                     "UltraQuality": "Ultra Quality",

@@ -12,7 +12,7 @@ namespace YARG
         Off
     }
 
-    public enum VenueAA
+    public enum VenueAntiAliasingMethod
     {
         None,
         FXAA,
@@ -29,7 +29,7 @@ namespace YARG
         private FilmGrain filmGrain = null;
 
         public float VenueRenderScale = 1.0f;
-        public VenueAA VenueAA = VenueAA.None;
+        public VenueAntiAliasingMethod VenueAntiAliasing = VenueAntiAliasingMethod.None;
 
         public bool BloomEnabled
         {

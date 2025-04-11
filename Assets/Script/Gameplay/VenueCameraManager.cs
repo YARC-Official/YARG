@@ -2,9 +2,10 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace YARG
+namespace YARG.Gameplay
 {
     [ExecuteInEditMode]
+    [RequireComponent(typeof(Camera))]
     public class VenueCameraManager : MonoBehaviour
     {
         [Range(0.01F, 1.0F)]
@@ -16,21 +17,22 @@ namespace YARG
 
         private void Awake()
         {
+            renderScale = GraphicsManager.Instance.VenueRenderScale;
             _renderCamera = GetComponent<Camera>();
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             var cameraData = _renderCamera.GetUniversalAdditionalCameraData();
             cameraData.antialiasing = AntialiasingMode.None;
-            switch (GraphicsManager.Instance.VenueAA)
+            switch (GraphicsManager.Instance.VenueAntiAliasing)
             {
-                case VenueAA.None:
+                case VenueAntiAliasingMethod.None:
                     break;
-                case VenueAA.FXAA:
+                case VenueAntiAliasingMethod.FXAA:
                     cameraData.antialiasing = AntialiasingMode.FastApproximateAntialiasing;
                     break;
-                case VenueAA.MSAA:
+                case VenueAntiAliasingMethod.MSAA:
                     cameraData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
                     break;
-                case VenueAA.FSR3:
+                case VenueAntiAliasingMethod.FSR3:
                     _renderCamera.gameObject.AddComponent<FSRCameraManager>();
                     break;
             }
@@ -39,12 +41,12 @@ namespace YARG
             _originalFactor = UniversalRenderPipelineAsset.renderScale;
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
             UniversalRenderPipelineAsset.renderScale = _originalFactor;
         }
 
-        void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
+        private void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
         {
             if (cam == _renderCamera)
             {
@@ -52,7 +54,7 @@ namespace YARG
             }
         }
 
-        void OnPostCameraRender(ScriptableRenderContext ctx, Camera cam)
+        private void OnPostCameraRender(ScriptableRenderContext ctx, Camera cam)
         {
             if (cam == _renderCamera)
             {

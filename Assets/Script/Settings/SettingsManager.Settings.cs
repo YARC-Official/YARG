@@ -2,7 +2,6 @@
 using System.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
@@ -233,14 +232,14 @@ namespace YARG.Settings
                      QualityMode.UltraPerformance
                  };
 
-            public DropdownSetting<VenueAA> VenueAA { get; }
-                 = new(YARG.VenueAA.None, VenueAACallback)
+            public DropdownSetting<VenueAntiAliasingMethod> VenueAntiAliasing { get; }
+                 = new(YARG.VenueAntiAliasingMethod.None, VenueAACallback)
                  {
-                     YARG.VenueAA.None,
-                     YARG.VenueAA.FXAA,
-                     YARG.VenueAA.MSAA,
+                     YARG.VenueAntiAliasingMethod.None,
+                     YARG.VenueAntiAliasingMethod.FXAA,
+                     YARG.VenueAntiAliasingMethod.MSAA,
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-                     YARG.VenueAA.FSR3,
+                     YARG.VenueAntiAliasingMethod.FSR3,
 #endif
                  };
 
@@ -513,9 +512,9 @@ namespace YARG.Settings
                 StatsManager.Instance.SetShowing(StatsManager.Stat.FPS, value);
             }
 
-            private static void VenueAACallback(VenueAA value)
+            private static void VenueAACallback(VenueAntiAliasingMethod value)
             {
-                GraphicsManager.Instance.VenueAA = value;
+                GraphicsManager.Instance.VenueAntiAliasing = value;
             }
 
             private static void FpsCapCallback(int value)

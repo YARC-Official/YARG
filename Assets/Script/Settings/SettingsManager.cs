@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
@@ -132,7 +131,7 @@ namespace YARG.Settings
                 nameof(Settings.StarPowerHighwayFx),
                 nameof(Settings.SongBackgroundOpacity),
                 nameof(Settings.VenueRenderingQuality),
-                nameof(Settings.VenueAA),
+                nameof(Settings.VenueAntiAliasing),
 
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.UseCymbalModelsInFiveLane),
