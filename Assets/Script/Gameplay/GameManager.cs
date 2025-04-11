@@ -177,13 +177,6 @@ namespace YARG.Gameplay
 
             // Update countdown display style from global settings
             CountdownDisplay.DisplayStyle = SettingsManager.Settings.CountdownDisplay.Value;
-
-            _failMeter.Initialize(EngineManager);
-
-            if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
-            {
-                _failMeter.gameObject.SetActive(false);
-            }
         }
 
         private void OnDestroy()
