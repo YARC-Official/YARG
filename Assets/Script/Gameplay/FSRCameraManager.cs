@@ -80,12 +80,16 @@ namespace YARG.Gameplay
 
         private FSRPass _fsrPass;
         private BlitPass _blitPass;
+        private float _renderScale;
 
         private const GraphicsFormat _graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
         private UniversalRenderPipelineAsset UniversalRenderPipelineAsset;
 
         private void Awake()
         {
+            UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            _renderScale = UniversalRenderPipelineAsset.renderScale;
+
             var descriptor = new RenderTextureDescriptor(
                 Screen.width, Screen.height, RenderTextureFormat.ARGBFloat);
             descriptor.mipCount = 0;
@@ -96,25 +100,29 @@ namespace YARG.Gameplay
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             RenderPipelineManager.endCameraRendering += OnPostCameraRender;
 
-
-            Fsr3Upscaler.InitializationFlags flags = Fsr3Upscaler.InitializationFlags.EnableMotionVectorsJitterCancellation;
-
-            if (_renderCamera.allowHDR) flags |= Fsr3Upscaler.InitializationFlags.EnableHighDynamicRange;
-            if (enableAutoExposure) flags |= Fsr3Upscaler.InitializationFlags.EnableAutoExposure;
-
             _displaySize = new Vector2Int(_renderCamera.pixelWidth, _renderCamera.pixelHeight);
-            _context = Fsr3Upscaler.CreateContext(_displaySize, _displaySize, _assets.shaders, flags);
-
-            UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
 
             _fsrPass = new FSRPass(this);
             _blitPass = new BlitPass(this);
         }
 
+        private void CreateFSRContext()
+        {
+            if (_context != null)
+            {
+                DestroyFsrContext();
+            }
+            Fsr3Upscaler.InitializationFlags flags = Fsr3Upscaler.InitializationFlags.EnableMotionVectorsJitterCancellation;
+
+            if (_renderCamera.allowHDR) flags |= Fsr3Upscaler.InitializationFlags.EnableHighDynamicRange;
+            if (enableAutoExposure) flags |= Fsr3Upscaler.InitializationFlags.EnableAutoExposure;
+
+            _context = Fsr3Upscaler.CreateContext(_displaySize, GetScaledRenderSize(), _assets.shaders, flags);
+        }
+
         private Vector2Int GetScaledRenderSize()
         {
-            var scale = UniversalRenderPipelineAsset.renderScale;
-            return new Vector2Int((int)(_renderCamera.pixelWidth * scale), (int)(_renderCamera.pixelHeight * scale));
+            return new Vector2Int((int)(_renderCamera.pixelWidth * _renderScale), (int)(_renderCamera.pixelHeight * _renderScale));
         }
 
         private void SetupDispatchDescription()
@@ -148,7 +156,7 @@ namespace YARG.Gameplay
             _dispatchDescription.ViewSpaceToMetersFactor = 1.0f; // 1 unit is 1 meter in Unity
             _dispatchDescription.VelocityFactor = velocityFactor;
             _dispatchDescription.Reset = false;
-            _dispatchDescription.Flags = enableDebugView ? Fsr3Upscaler.DispatchFlags.DrawDebugView : 0;;
+            _dispatchDescription.Flags = enableDebugView ? Fsr3Upscaler.DispatchFlags.DrawDebugView : 0;
 
 
             if (SystemInfo.usesReversedZBuffer)
@@ -192,7 +200,11 @@ namespace YARG.Gameplay
             {
                 return;
             }
-
+            if (_renderScale != UniversalRenderPipelineAsset.renderScale)
+            {
+                _renderScale = UniversalRenderPipelineAsset.renderScale;
+                CreateFSRContext();
+            }
             SetupDispatchDescription();
             ApplyJitter();
             var renderer = cam.GetUniversalAdditionalCameraData().scriptableRenderer;
