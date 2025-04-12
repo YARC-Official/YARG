@@ -33,9 +33,9 @@ namespace YARG.Gameplay.HUD
         private Tweener _bandFillTweener;
         private float[] _previousPlayerHappiness;
         private float _previousBandHappiness;
-        private Vector2 _offsetVector = new Vector2(0, 0);
 
         private Vector2[] _playerPositions;
+        private Vector2[] _xPosVectors;
 
         private float _containerHeight;
 
@@ -46,9 +46,9 @@ namespace YARG.Gameplay.HUD
 
         private List<EngineManager.EngineContainer> _players = new();
 
-        private const int SPRITE_OFFSET = -35;
         private const float SPRITE_SIZE = 35;
-
+        // Allows some overlap
+        private const float SPRITE_OFFSET = SPRITE_SIZE * 0.8f;
 
         // GameManager will have to initialize us
         public void Initialize(EngineManager engineManager, GameManager gameManager)
@@ -62,34 +62,19 @@ namespace YARG.Gameplay.HUD
             _happinessTweeners = new Tweener[_players.Count];
             _previousPlayerHappiness = new float[_players.Count];
             _playerPositions = new Vector2[_players.Count];
+            _xPosVectors = new Vector2[_players.Count];
             _containerHeight = _sliderContainer.rect.height;
 
             // attach the slider instances to the scene and apply the correct icon
             for (int i = 0; i < _players.Count; i++)
             {
-                float offset = (float) (SPRITE_OFFSET * (Math.Floor(i / (float) 2) + 1));
+                // float offset = SPRITE_OFFSET * (i + 1);
                 _playerSliders[i] = Instantiate(_sliderPrefab, _sliderContainer);
+                // y value is ignored, so it is ok that it is zero here
+                _xPosVectors[i] = new Vector2(SPRITE_OFFSET * (i + 1) + SPRITE_OFFSET * 0.2f, 0);
 
-                // TODO: Fix this, it reads like shit
-                if (i % 2 == 0)
-                {
-                    // _playerSliders[i].handleRect.offsetMin =
-                    //     new Vector2(offset, _playerSliders[i].handleRect.offsetMin.y);
-                    // _playerSliders[i].handleRect.anchoredPosition =
-                    //     new Vector2(offset, _playerSliders[i].handleRect.anchoredPosition.y);
-                    _xposTweeners[i] = _playerSliders[i].handleRect.DOAnchorPosX(offset, 0.125f).SetAutoKill(false);
-                }
-                else
-                {
-                    // _playerSliders[i].handleRect.offsetMax =
-                    //     new Vector2(offset * -1, _playerSliders[i].handleRect.offsetMax.y);
-                    // _playerSliders[i].handleRect.anchoredPosition =
-                    //     new Vector2(offset * -1, _playerSliders[i].handleRect.anchoredPosition.y);
-                    _xposTweeners[i] = _playerSliders[i].handleRect.DOAnchorPosX(offset * -1, 0.125f).SetAutoKill(true);
-                }
-
+                _xposTweeners[i] = _playerSliders[i].handleRect.DOAnchorPosX(_xPosVectors[i].x, 0.125f).SetAutoKill(false);
                 _playerPositions[i] = _playerSliders[i].handleRect.transform.position;
-                // _playerPositions[i] = _playerSliders[i].handleRect.anchoredPosition;
 
                 var handleImage = _playerSliders[i].handleRect.GetComponentInChildren<Image>();
                 var spriteName = $"InstrumentIcons[{_players[i].Instrument.ToResourceName()}]";
@@ -163,74 +148,56 @@ namespace YARG.Gameplay.HUD
             //  (left for even numbered, right for odd numbered or vv, I forget)
             for (var i = 0; i < _players.Count; i++)
             {
-                // if (_previousPlayerHappiness[i] != _players[i].Happiness)
-                // {
-                    // Convert happiness to a new y value
-                    float newY = (_containerHeight * _players[i].Happiness) + (_sliderContainer.position.y - (_containerHeight / 2));
-                    int overlap = 0;
-                    // Check if we will overlap another icon
-                    for (var j = i; j < _players.Count; j += 2)
+                // Convert happiness to a new y value
+                float newY = (_containerHeight * _players[i].Happiness) + (_sliderContainer.position.y - (_containerHeight / 2));
+                int overlap = 0;
+                // Check if we will overlap another icon
+                for (var j = i; j < _players.Count; j++)
+                {
+                    if (j == i)
                     {
-                        if (j == i)
-                        {
-                            // Ignore self
-                            continue;
-                        }
-
-                        if (newY >= _playerPositions[j].y - (SPRITE_SIZE / 1.25) &&
-                            newY <= _playerPositions[j].y + (SPRITE_SIZE / 1.25))
-                        {
-                            overlap++;
-                        }
+                        // Ignore self
+                        continue;
                     }
 
-                    // Move the icon SPRITE_OFFSET * overlap in the appropriate direction
-
-                    float offset = SPRITE_OFFSET * Math.Max(1, overlap + 1);
-                    // TODO: This won't actually work once there are more than two players on a side
-                    offset *= Math.Max(1, (int) Math.Floor((float) i / 2));
-                    // float offset = (float) (SPRITE_OFFSET * (Math.Floor(i / (float) 2) + 1));
-                    // TODO: Figure out how to tween this move
-                    if (i % 2 == 0)
+                    if (newY >= _playerPositions[j].y - SPRITE_OFFSET &&
+                        newY <= _playerPositions[j].y + SPRITE_OFFSET)
                     {
-                        // _playerSliders[i].handleRect.offsetMin =
-                        //     new Vector2(offset, _playerSliders[i].handleRect.offsetMin.y);
-                        _xposTweeners[i] = _playerSliders[i].handleRect.DOAnchorPosX(offset, 0.125f);
-                        _offsetVector.x = offset;
-                        _offsetVector.y = _playerSliders[i].handleRect.anchoredPosition.y;
-                        // _xposTweeners[i].ChangeEndValue(_offsetVector).Play();
+                        overlap++;
+                    }
+                }
+
+                // Move the icon SPRITE_OFFSET * overlap in the appropriate direction
+
+                // float offset = SPRITE_OFFSET * Math.Max(1, overlap + 1);
+                // TODO: This won't actually work once there are more than two players on a side
+                // offset *= Math.Max(1, (int) Math.Floor((float) i / 2));
+
+                // The extra SPRITE_OFFSET * 0.2f is to get the whole group a bit farther from the meter itself
+                _xPosVectors[i].x = SPRITE_OFFSET * (overlap + 1) + SPRITE_OFFSET * 0.2f;
+
+                _xposTweeners[i].ChangeEndValue(_xPosVectors[i], 0.125f, true).Play();
+
+                // We only need the x, y so it's fine that we're converting Vector3 to Vector2 here
+                _playerPositions[i] = _playerSliders[i].handleRect.transform.position;
+
+                // This we can not do if the current player's happiness hasn't changed
+                if (_previousPlayerHappiness[i] != _players[i].Happiness)
+                {
+                    _happinessTweeners[i].ChangeValues(_playerSliders[i].value, _players[i].Happiness, 0.1f);
+                    // Not sure if strictly necessary, but it seems like good practice to not try to play a playing tween
+                    if (_happinessTweeners[i].IsComplete())
+                    {
+                        _happinessTweeners[i].Play();
                     }
                     else
                     {
-                        // _playerSliders[i].handleRect.offsetMax =
-                        //     new Vector2(offset * -1, _playerSliders[i].handleRect.offsetMax.y);
-                        _xposTweeners[i] = _playerSliders[i].handleRect.DOAnchorPosX(offset * -1, 0.125f);
-                        _offsetVector.x = offset * -1;
-                        _offsetVector.y = _playerSliders[i].handleRect.anchoredPosition.y;
-                        // _xposTweeners[i].ChangeEndValue(_offsetVector).Play();
+                        _happinessTweeners[i].Restart();
                     }
+                }
 
-                    // We only need the x, y so it's fine that we're converting Vector3 to Vector2 here
-                    _playerPositions[i] = _playerSliders[i].handleRect.transform.position;
-                    // _playerPositions[i] = _playerSliders[i].handleRect.anchoredPosition;
+                _previousPlayerHappiness[i] = _players[i].Happiness;
 
-                    // This we can not do if the current player's happiness hasn't changed
-                    if (_previousPlayerHappiness[i] != _players[i].Happiness)
-                    {
-                        _happinessTweeners[i].ChangeValues(_playerSliders[i].value, _players[i].Happiness, 0.1f);
-                        // Not sure if strictly necessary, but it seems like good practice to not try to play a playing tween
-                        if (_happinessTweeners[i].IsComplete())
-                        {
-                            _happinessTweeners[i].Play();
-                        }
-                        else
-                        {
-                            _happinessTweeners[i].Restart();
-                        }
-                    }
-
-                    _previousPlayerHappiness[i] = _players[i].Happiness;
-                // }
             }
         }
 
