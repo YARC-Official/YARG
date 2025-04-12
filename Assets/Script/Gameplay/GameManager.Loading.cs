@@ -211,7 +211,7 @@ namespace YARG.Gameplay
             // Must be offset by audio calibration to account for playback delay
             BeatEventHandler.Subscribe(StarPowerClap, -0.02 + _songRunner.AudioCalibration);
 
-            _failMeter.Initialize(EngineManager);
+            _failMeter.Initialize(EngineManager, this);
 
             if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
             {
