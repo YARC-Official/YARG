@@ -97,8 +97,6 @@ namespace YARG.Gameplay
             _renderCamera = GetComponent<Camera>();
             _assets = Resources.Load<Fsr3UpscalerAssets>("FSR3 Upscaler Assets");
             _renderCamera.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors;
-            RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
-            RenderPipelineManager.endCameraRendering += OnPostCameraRender;
 
             _displaySize = new Vector2Int(_renderCamera.pixelWidth, _renderCamera.pixelHeight);
 
@@ -130,6 +128,7 @@ namespace YARG.Gameplay
             if (_output != null)
             {
                 _output.Release();
+                _output = null;
             }
 
             _output = RTHandles.Alloc(_renderCamera.pixelWidth, _renderCamera.pixelHeight, enableRandomWrite: true, colorFormat: _graphicsFormat, msaaSamples: MSAASamples.None, name: "fsr.output");
@@ -171,6 +170,7 @@ namespace YARG.Gameplay
 
         private void ApplyJitter()
         {
+
             var scaledRenderSize = GetScaledRenderSize();
 
             // Perform custom jittering of the camera's projection matrix according to FSR3's recipe
@@ -183,8 +183,7 @@ namespace YARG.Gameplay
             jitterY = 2.0f * jitterY / scaledRenderSize.y;
 
             var jitterTranslationMatrix = Matrix4x4.Translate(new Vector3(jitterX, jitterY, 0));
-            var m_projectionMatrix = _renderCamera.projectionMatrix;
-            _renderCamera.nonJitteredProjectionMatrix = m_projectionMatrix;
+            _renderCamera.nonJitteredProjectionMatrix = _renderCamera.projectionMatrix;
             _renderCamera.projectionMatrix = jitterTranslationMatrix * _renderCamera.nonJitteredProjectionMatrix;
             _renderCamera.useJitteredProjectionMatrixForTransparentRendering = true;
         }
@@ -193,6 +192,7 @@ namespace YARG.Gameplay
         {
             return _renderCamera.allowHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
         }
+
 
         private void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
         {
@@ -203,7 +203,8 @@ namespace YARG.Gameplay
             if (_renderScale != UniversalRenderPipelineAsset.renderScale)
             {
                 _renderScale = UniversalRenderPipelineAsset.renderScale;
-                CreateFSRContext();
+                OnDisable();
+                OnEnable();
             }
             SetupDispatchDescription();
             ApplyJitter();
@@ -226,6 +227,20 @@ namespace YARG.Gameplay
         private void OnDisable()
         {
             DestroyFsrContext();
+            if (_output != null)
+            {
+                _output.Release();
+                _output = null;
+            }
+            RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
+            RenderPipelineManager.endCameraRendering -= OnPostCameraRender;
+        }
+
+        private void OnEnable()
+        {
+            RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
+            RenderPipelineManager.endCameraRendering += OnPostCameraRender;
+            CreateFSRContext();
         }
 
         private void DestroyFsrContext()
@@ -236,12 +251,7 @@ namespace YARG.Gameplay
                 _context.Destroy();
                 _context = null;
             }
-            if (_output != null)
-            {
-                _output.Release();
-            }
-            RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
-            RenderPipelineManager.endCameraRendering -= OnPostCameraRender;
+
         }
     }
 
@@ -270,6 +280,7 @@ namespace YARG.Gameplay
 
             _fsr._dispatchDescription.Color = new FidelityFX.ResourceView(renderingData.cameraData.renderer.cameraColorTarget, RenderTextureSubElement.Color);
             _fsr._dispatchDescription.Depth = new FidelityFX.ResourceView(Shader.GetGlobalTexture(depthTexturePropertyID), RenderTextureSubElement.Depth);
+            // _fsr._dispatchDescription.Depth = new FidelityFX.ResourceView(renderingData.cameraData.renderer.cameraDepthTarget, RenderTextureSubElement.Depth);
             _fsr._dispatchDescription.MotionVectors = new FidelityFX.ResourceView(Shader.GetGlobalTexture(motionTexturePropertyID));
 
             _fsr._context.Dispatch(_fsr._dispatchDescription, cmd);
