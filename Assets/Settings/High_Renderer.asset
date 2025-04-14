@@ -41,7 +41,7 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: -7153464507104564842}
   m_RendererFeatureMap: 96e9aa74eec9b99c
-  m_UseNativeRenderPass: 0
+  m_UseNativeRenderPass: 1
   postProcessData: {fileID: 11400000, guid: 66f375f5df7dfc84ca908273b0038a93, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:
