@@ -101,6 +101,13 @@ namespace YARG.Gameplay.Player
 
             engine.OnCountdownChange += OnCountdownChange;
 
+            if (!SettingsManager.Settings.NoFailMode.Value && !GlobalVariables.State.IsPractice)
+            {
+                EngineContainer.OnSongFailed += OnSongFailed;
+                EngineContainer.OnHappinessOverThreshold += OnHappinessOverThreshold;
+                EngineContainer.OnHappinessUnderThreshold += OnHappinessUnderThreshold;
+            }
+
             engine.OnPadHit += (action, wasNoteHit, velocity) =>
             {
                 // Skip if a note was hit, because we have different logic for that below
