@@ -92,7 +92,9 @@ namespace YARG.Gameplay.Visuals
                 _frets[i].Initialize(
                     fretColorProvider.GetFretColor(index),
                     fretColorProvider.GetFretInnerColor(index),
-                    fretColorProvider.GetParticleColor(index));
+                    fretColorProvider.GetParticleColor(index),
+                    fretColorProvider.GetParticleColor(0 /* open note */)
+                );
             }
 
             foreach (var kick in _kickFrets)
@@ -122,6 +124,7 @@ namespace YARG.Gameplay.Visuals
             foreach (var fret in _frets)
             {
                 fret.PlayHitAnimation();
+                fret.PlayOpenHitParticles();
             }
         }
 

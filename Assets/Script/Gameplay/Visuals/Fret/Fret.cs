@@ -26,7 +26,7 @@ namespace YARG.Gameplay.Visuals
         private bool _hasPressedParam;
         private bool _hasSustainParam;
 
-        public void Initialize(Color top, Color inner, Color particles)
+        public void Initialize(Color top, Color inner, Color particles, Color openParticles)
         {
             // Set the top material color
             foreach (var material in ThemeBind.GetColoredMaterials())
@@ -44,6 +44,7 @@ namespace YARG.Gameplay.Visuals
 
             // Set the particle colors
             ThemeBind.HitEffect.SetColor(particles.ToUnityColor());
+            ThemeBind.OpenHitEffect.SetColor(openParticles.ToUnityColor());
             ThemeBind.SustainEffect.SetColor(particles.ToUnityColor());
             ThemeBind.PressedEffect.SetColor(particles.ToUnityColor());
 
@@ -83,6 +84,11 @@ namespace YARG.Gameplay.Visuals
         public void PlayHitParticles()
         {
             ThemeBind.HitEffect.Play();
+        }
+
+        public void PlayOpenHitParticles()
+        {
+            ThemeBind.OpenHitEffect.Play();
         }
 
         public void SetSustained(bool sustained)
