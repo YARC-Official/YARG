@@ -10236,7 +10236,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7333986326961295454}
-  - {fileID: 2662970444288877046}
+  - {fileID: 2303511171927322256}
   - {fileID: 7375886396472056995}
   - {fileID: 35485019984671037}
   - {fileID: 3684563651138824871}
@@ -10260,7 +10260,9 @@ MonoBehaviour:
   - Mesh: {fileID: 188795039369860854}
     MaterialIndex: 0
   <HitEffect>k__BackingField: {fileID: 6043989426977555428}
-  <OpenHitEffect>k__BackingField: {fileID: 9149706477389755136}
+  <OpenHitEffect>k__BackingField: {fileID: 6043989426977555428}
+  <MissEffect>k__BackingField: {fileID: 2170108449027819816}
+  <OpenMissEffect>k__BackingField: {fileID: 2170108449027819816}
   <SustainEffect>k__BackingField: {fileID: 4176454696460499326}
   <PressedEffect>k__BackingField: {fileID: 6422925741720054375}
   <Animator>k__BackingField: {fileID: 4389061828185598559}
@@ -10365,7 +10367,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: faddd484b7894e0788b12f145d49f469, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &1830134575456267687
+--- !u!1 &1885553132478600074
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -10373,37 +10375,37 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2145587467717334854}
-  - component: {fileID: 2957973693058159605}
+  - component: {fileID: 2303511171927322256}
+  - component: {fileID: 2170108449027819816}
   m_Layer: 6
-  m_Name: Open Hit Effects
+  m_Name: Miss Effects
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &2145587467717334854
+--- !u!4 &2303511171927322256
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1830134575456267687}
+  m_GameObject: {fileID: 1885553132478600074}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8267363298203021472}
+  m_Father: {fileID: 402095313306837402}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2957973693058159605
+--- !u!114 &2170108449027819816
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1830134575456267687}
+  m_GameObject: {fileID: 1885553132478600074}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: faddd484b7894e0788b12f145d49f469, type: 3}
@@ -40828,7 +40830,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4315321781202770607}
-  - {fileID: 2145587467717334854}
+  - {fileID: 4003279922651373022}
   - {fileID: 4652904485842588413}
   - {fileID: 5076894411703677369}
   - {fileID: 5403917125361326628}
@@ -40852,7 +40854,9 @@ MonoBehaviour:
   - Mesh: {fileID: 3018587288898389075}
     MaterialIndex: 0
   <HitEffect>k__BackingField: {fileID: 9083206943880670325}
-  <OpenHitEffect>k__BackingField: {fileID: 2957973693058159605}
+  <OpenHitEffect>k__BackingField: {fileID: 9083206943880670325}
+  <MissEffect>k__BackingField: {fileID: 8435760825588445350}
+  <OpenMissEffect>k__BackingField: {fileID: 8435760825588445350}
   <SustainEffect>k__BackingField: {fileID: 8606361308894237597}
   <PressedEffect>k__BackingField: {fileID: 7487306377969153328}
   <Animator>k__BackingField: {fileID: 1246482901644105934}
@@ -51052,50 +51056,6 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
---- !u!1 &7948974968153509385
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2662970444288877046}
-  - component: {fileID: 9149706477389755136}
-  m_Layer: 6
-  m_Name: Open Hit Effects
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2662970444288877046
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7948974968153509385}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 402095313306837402}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &9149706477389755136
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7948974968153509385}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: faddd484b7894e0788b12f145d49f469, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &8072907275037494799
 GameObject:
   m_ObjectHideFlags: 0
@@ -55983,6 +55943,50 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!1 &8467855815840554094
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4003279922651373022}
+  - component: {fileID: 8435760825588445350}
+  m_Layer: 6
+  m_Name: Miss Effects
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4003279922651373022
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8467855815840554094}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8267363298203021472}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8435760825588445350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8467855815840554094}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faddd484b7894e0788b12f145d49f469, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &9073114715686665207
 GameObject:
   m_ObjectHideFlags: 0

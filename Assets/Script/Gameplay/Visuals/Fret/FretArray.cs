@@ -128,13 +128,18 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void PlayDrumAnimation(int index, bool particles)
+        public void PlayMissAnimation(int index)
         {
-            _frets[index].PlayHitAnimation();
+            _frets[index].PlayMissAnimation();
+            _frets[index].PlayMissParticles();
+        }
 
-            if (particles)
+        public void PlayOpenMissAnimation()
+        {
+            foreach (var fret in _frets)
             {
-                _frets[index].PlayHitParticles();
+                fret.PlayOpenMissAnimation();
+                fret.PlayOpenMissParticles();
             }
         }
 

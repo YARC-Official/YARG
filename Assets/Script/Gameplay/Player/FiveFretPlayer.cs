@@ -216,6 +216,44 @@ namespace YARG.Gameplay.Player
                 var randomOverstrum = (SfxSample) Random.Range(MIN, MAX + 1);
                 GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
             }
+
+            // To check if held frets are valid
+            GuitarNote currentNote = null;
+            if (Engine.NoteIndex < Notes.Count)
+            {
+                var note = Notes[Engine.NoteIndex];
+
+                // Don't take the note if it's not within the hit window
+                // TODO: Make BaseEngine.IsNoteInWindow public and use that instead
+                var (frontEnd, backEnd) = Engine.CalculateHitWindow();
+                if (Engine.CurrentTime >= (note.Time + frontEnd) && Engine.CurrentTime <= (note.Time + backEnd))
+                {
+                    currentNote = note;
+                }
+            }
+
+            // Play miss animation for every held fret that does not match the current note
+            bool anyHeld = false;
+            for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
+            {
+                if (!Engine.IsFretHeld(fret))
+                {
+                    continue;
+                }
+
+                anyHeld = true;
+
+                if (currentNote == null || (currentNote.NoteMask & (1 << (int) fret)) == 0)
+                {
+                    _fretArray.PlayMissAnimation((int) fret);
+                }
+            }
+
+            // Play open-strum miss if no frets are held
+            if (!anyHeld)
+            {
+                _fretArray.PlayOpenMissAnimation();
+            }
         }
 
         private void OnSustainStart(GuitarNote parent)

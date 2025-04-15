@@ -12,6 +12,8 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
 
         private static readonly int _hit = Animator.StringToHash("Hit");
+        private static readonly int _miss = Animator.StringToHash("Miss");
+        private static readonly int _openMiss = Animator.StringToHash("OpenMiss");
         private static readonly int _pressed = Animator.StringToHash("Pressed");
         private static readonly int _sustain = Animator.StringToHash("Sustain");
 
@@ -25,6 +27,7 @@ namespace YARG.Gameplay.Visuals
 
         private bool _hasPressedParam;
         private bool _hasSustainParam;
+        private bool _hasOpenMissTrigger;
 
         public void Initialize(Color top, Color inner, Color particles, Color openParticles)
         {
@@ -51,6 +54,7 @@ namespace YARG.Gameplay.Visuals
             // See if certain parameters exist
             _hasPressedParam = ThemeBind.Animator.HasParameter(_pressed);
             _hasSustainParam = ThemeBind.Animator.HasParameter(_sustain);
+            _hasOpenMissTrigger = ThemeBind.Animator.HasParameter(_openMiss);
         }
 
         public void SetPressed(bool pressed)
@@ -89,6 +93,33 @@ namespace YARG.Gameplay.Visuals
         public void PlayOpenHitParticles()
         {
             ThemeBind.OpenHitEffect.Play();
+        }
+
+        public void PlayMissAnimation()
+        {
+            ThemeBind.Animator.SetTrigger(_miss);
+        }
+
+        public void PlayMissParticles()
+        {
+            ThemeBind.MissEffect.Play();
+        }
+
+        public void PlayOpenMissAnimation()
+        {
+            if (_hasOpenMissTrigger)
+            {
+                ThemeBind.Animator.SetTrigger(_openMiss);
+            }
+            else
+            {
+                PlayMissAnimation();
+            }
+        }
+
+        public void PlayOpenMissParticles()
+        {
+            ThemeBind.OpenMissEffect.Play();
         }
 
         public void SetSustained(bool sustained)

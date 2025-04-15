@@ -228,9 +228,9 @@ namespace YARG.Gameplay.Player
 
         private void OnOverhit(int key)
         {
-            OnOverhit();
+            base.OnOverhit();
 
-            // do overhit visuals
+            _keysArray.PlayMissAnimation(key);
         }
 
         private void OnSustainStart(ProKeysNote parent)

@@ -113,5 +113,11 @@ namespace YARG.Gameplay.Visuals
             _keys[index].PlayHitAnimation();
             _keys[index].PlayHitParticles();
         }
+
+        public void PlayMissAnimation(int index)
+        {
+            _keys[index].PlayMissAnimation();
+            _keys[index].PlayMissParticles();
+        }
     }
 }

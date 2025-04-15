@@ -26,6 +26,10 @@ namespace YARG.Themes
         [field: SerializeField]
         public EffectGroup OpenHitEffect { get; private set; }
         [field: SerializeField]
+        public EffectGroup MissEffect { get; private set; }
+        [field: SerializeField]
+        public EffectGroup OpenMissEffect { get; private set; }
+        [field: SerializeField]
         public EffectGroup SustainEffect { get; private set; }
         [field: SerializeField]
         public EffectGroup PressedEffect { get; private set; }
