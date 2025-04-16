@@ -19,6 +19,7 @@ namespace YARG.Gameplay
         {
             renderScale = GraphicsManager.Instance.VenueRenderScale;
             _renderCamera = GetComponent<Camera>();
+            _renderCamera.allowMSAA = false;
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             var cameraData = _renderCamera.GetUniversalAdditionalCameraData();
             cameraData.antialiasing = AntialiasingMode.None;
@@ -30,6 +31,7 @@ namespace YARG.Gameplay
                     cameraData.antialiasing = AntialiasingMode.FastApproximateAntialiasing;
                     break;
                 case VenueAntiAliasingMethod.MSAA:
+                    _renderCamera.allowMSAA = true;
                     cameraData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
                     break;
                 case VenueAntiAliasingMethod.FSR3:

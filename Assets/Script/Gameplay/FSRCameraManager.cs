@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace YARG.Gameplay
 {
@@ -35,7 +36,7 @@ namespace YARG.Gameplay
 
         [Header("Debug")]
         [Tooltip("Enable a debug view to analyze the upscaling process.")]
-        public bool enableDebugView = false;
+        public bool enableDebugView = true;
 
 
         // [Header("Reactivity, Transparency & Composition")] 
@@ -64,6 +65,7 @@ namespace YARG.Gameplay
 
 
         protected internal RTHandle _output;
+        protected internal RTHandle _depthCopy;
         protected internal RTHandle _opaqueOnlyColorBuffer;
         protected internal RTHandle _afterOpaqueOnlyColorBuffer;
         protected internal RTHandle _reactiveMaskOutput;
@@ -90,13 +92,11 @@ namespace YARG.Gameplay
             UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             _renderScale = UniversalRenderPipelineAsset.renderScale;
 
-            var descriptor = new RenderTextureDescriptor(
-                Screen.width, Screen.height, RenderTextureFormat.ARGBFloat);
-            descriptor.mipCount = 0;
-
             _renderCamera = GetComponent<Camera>();
             _assets = Resources.Load<Fsr3UpscalerAssets>("FSR3 Upscaler Assets");
             _renderCamera.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors;
+            _renderCamera.clearFlags |= CameraClearFlags.Depth;
+            _renderCamera.GetUniversalAdditionalCameraData().requiresDepthTexture = true;
 
             _displaySize = new Vector2Int(_renderCamera.pixelWidth, _renderCamera.pixelHeight);
 
@@ -120,7 +120,7 @@ namespace YARG.Gameplay
 
         private Vector2Int GetScaledRenderSize()
         {
-            return new Vector2Int((int)(_renderCamera.pixelWidth * _renderScale), (int)(_renderCamera.pixelHeight * _renderScale));
+            return new Vector2Int((int) (_renderCamera.pixelWidth * _renderScale), (int) (_renderCamera.pixelHeight * _renderScale));
         }
 
         private void SetupDispatchDescription()
@@ -187,12 +187,6 @@ namespace YARG.Gameplay
             _renderCamera.projectionMatrix = jitterTranslationMatrix * _renderCamera.nonJitteredProjectionMatrix;
             _renderCamera.useJitteredProjectionMatrixForTransparentRendering = true;
         }
-
-        private RenderTextureFormat GetDefaultFormat()
-        {
-            return _renderCamera.allowHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
-        }
-
 
         private void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
         {
@@ -271,7 +265,11 @@ namespace YARG.Gameplay
 
             // After things are all rendered before final blit
             renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
-            ConfigureInput(ScriptableRenderPassInput.Color | ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Motion);
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            ConfigureInput(ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Motion);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -279,8 +277,7 @@ namespace YARG.Gameplay
             cmd = CommandBufferPool.Get("fsr3_execute");
 
             _fsr._dispatchDescription.Color = new FidelityFX.ResourceView(renderingData.cameraData.renderer.cameraColorTarget, RenderTextureSubElement.Color);
-            _fsr._dispatchDescription.Depth = new FidelityFX.ResourceView(Shader.GetGlobalTexture(depthTexturePropertyID), RenderTextureSubElement.Depth);
-            // _fsr._dispatchDescription.Depth = new FidelityFX.ResourceView(renderingData.cameraData.renderer.cameraDepthTarget, RenderTextureSubElement.Depth);
+            _fsr._dispatchDescription.Depth = new FidelityFX.ResourceView(Shader.GetGlobalTexture(motionTexturePropertyID), RenderTextureSubElement.Depth);
             _fsr._dispatchDescription.MotionVectors = new FidelityFX.ResourceView(Shader.GetGlobalTexture(motionTexturePropertyID));
 
             _fsr._context.Dispatch(_fsr._dispatchDescription, cmd);
@@ -301,25 +298,16 @@ namespace YARG.Gameplay
     {
         private CommandBuffer cmd;
         private FSRCameraManager _fsr;
-
-        private readonly Vector4 flipVector = new Vector4(1, -1, 0, 1);
-        private Vector4 _scaleBias;
-
         public BlitPass(FSRCameraManager fsr)
         {
             _fsr = fsr;
-            renderPassEvent = RenderPassEvent.AfterRendering + 2;
-            _scaleBias = SystemInfo.graphicsUVStartsAtTop ? flipVector : Vector4.one;
+            renderPassEvent = RenderPassEvent.AfterRendering + 5;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             cmd = CommandBufferPool.Get("FSR Blit");
-
-            CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
-            cmd.SetViewport(renderingData.cameraData.camera.pixelRect);
-            Blitter.BlitTexture(cmd, _fsr._output, _scaleBias, 0, false);
-
+            Blit(cmd, _fsr._output, BuiltinRenderTextureType.CameraTarget);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
