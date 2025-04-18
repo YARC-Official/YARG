@@ -12,11 +12,10 @@ namespace YARG.Gameplay
         // technically this is supported only when SystemInfo.supportsComputeShaders however
         // that seems to be all platforms yarg currently supports anyway
         // This is mostly based on image effect example in
-        // fsr3unity repo
+        // fsr3unity repo + reading unity's URP code to understand how default passes work
         // TODO?:
         // * mipmap bias
         // * reset history on camera cuts
-        // * reactive mask
         // * antighosting?
         // * fp16 mode? should improve perf but they also say almost nothing on unity
 
@@ -38,29 +37,25 @@ namespace YARG.Gameplay
         public bool enableDebugView = false;
 
 
-        // [Header("Reactivity, Transparency & Composition")] 
-        // [Tooltip("Optional texture to control the influence of the current frame on the reconstructed output. If unset, either an auto-generated or a default cleared reactive mask will be used.")]
-        // public Texture reactiveMask = null;
-        // [Tooltip("Optional texture for marking areas of specialist rendering which should be accounted for during the upscaling process. If unset, a default cleared mask will be used.")]
-        // public Texture transparencyAndCompositionMask = null;
-        // [Tooltip("Automatically generate a reactive mask based on the difference between opaque-only render output and the final render output including alpha transparencies.")]
-        // public bool autoGenerateReactiveMask = true;
-        // [Tooltip("Parameters to control the process of auto-generating a reactive mask.")]
-        // [SerializeField] private GenerateReactiveParameters generateReactiveParameters = new GenerateReactiveParameters();
-        // public GenerateReactiveParameters GenerateReactiveParams => generateReactiveParameters;
+        [Header("Reactivity, Transparency & Composition")]
+        [Tooltip("Automatically generate a reactive mask based on the difference between opaque-only render output and the final render output including alpha transparencies.")]
+        public bool autoGenerateReactiveMask = true;
+        [Tooltip("Parameters to control the process of auto-generating a reactive mask.")]
+        [SerializeField] private GenerateReactiveParameters generateReactiveParameters = new GenerateReactiveParameters();
+        public GenerateReactiveParameters GenerateReactiveParams => generateReactiveParameters;
 
-        // [System.Serializable]
-        // public class GenerateReactiveParameters
-        // {
-        //     [Tooltip("A value to scale the output")]
-        //     [Range(0, 2)] public float scale = 0.5f;
-        //     [Tooltip("A threshold value to generate a binary reactive mask")]
-        //     [Range(0, 1)] public float cutoffThreshold = 0.2f;
-        //     [Tooltip("A value to set for the binary reactive mask")]
-        //     [Range(0, 1)] public float binaryValue = 0.9f;
-        //     [Tooltip("Flags to determine how to generate the reactive mask")]
-        //     public Fsr3Upscaler.GenerateReactiveFlags flags = Fsr3Upscaler.GenerateReactiveFlags.ApplyTonemap | Fsr3Upscaler.GenerateReactiveFlags.ApplyThreshold | Fsr3Upscaler.GenerateReactiveFlags.UseComponentsMax;
-        // }
+        [System.Serializable]
+        public class GenerateReactiveParameters
+        {
+            [Tooltip("A value to scale the output")]
+            [Range(0, 2)] public float scale = 0.5f;
+            [Tooltip("A threshold value to generate a binary reactive mask")]
+            [Range(0, 1)] public float cutoffThreshold = 0.2f;
+            [Tooltip("A value to set for the binary reactive mask")]
+            [Range(0, 1)] public float binaryValue = 0.9f;
+            [Tooltip("Flags to determine how to generate the reactive mask")]
+            public Fsr3Upscaler.GenerateReactiveFlags flags = Fsr3Upscaler.GenerateReactiveFlags.ApplyTonemap | Fsr3Upscaler.GenerateReactiveFlags.ApplyThreshold | Fsr3Upscaler.GenerateReactiveFlags.UseComponentsMax;
+        }
 
 
         protected internal RTHandle _output;
@@ -86,6 +81,8 @@ namespace YARG.Gameplay
         private RestoreProjectionMatrixPass _unJitterOpaquesPass;
         private JitterProjectionMatrixPass _jitterTransparentsPass;
         private RestoreProjectionMatrixPass _unJitterTransparentsPass;
+        private CopyColorOpaquePass _copyColorOpaquePass;
+        private CopyColorTransparentsPass _copyColorTransparentsPass;
 
         // Saved renderscale to re-init if it changes
         private float _renderScale;
@@ -112,6 +109,8 @@ namespace YARG.Gameplay
             _unJitterOpaquesPass = new RestoreProjectionMatrixPass(RenderPassEvent.AfterRenderingOpaques - 1);
             _jitterTransparentsPass = new JitterProjectionMatrixPass(this, RenderPassEvent.BeforeRenderingTransparents);
             _unJitterTransparentsPass = new RestoreProjectionMatrixPass(RenderPassEvent.AfterRenderingTransparents - 1);
+            _copyColorOpaquePass = new CopyColorOpaquePass(this);
+            _copyColorTransparentsPass = new CopyColorTransparentsPass(this);
         }
 
         private void CreateFSRContext()
@@ -133,6 +132,35 @@ namespace YARG.Gameplay
             return new Vector2Int((int)(_renderCamera.pixelWidth * _renderScale), (int)(_renderCamera.pixelHeight * _renderScale));
         }
 
+        private void SetupAutoReactiveDescription()
+        {
+            // Set up the parameters to auto-generate a reactive mask
+            _genReactiveDescription.RenderSize = GetScaledRenderSize();
+            _genReactiveDescription.Scale = generateReactiveParameters.scale;
+            _genReactiveDescription.CutoffThreshold = generateReactiveParameters.cutoffThreshold;
+            _genReactiveDescription.BinaryValue = generateReactiveParameters.binaryValue;
+            _genReactiveDescription.Flags = generateReactiveParameters.flags;
+
+            if (_opaqueOnlyColorBuffer != null)
+            {
+                _opaqueOnlyColorBuffer.Release();
+                _opaqueOnlyColorBuffer = null;
+            }
+            _opaqueOnlyColorBuffer = RTHandles.Alloc(_genReactiveDescription.RenderSize.x, _genReactiveDescription.RenderSize.y, enableRandomWrite: true, colorFormat: _graphicsFormat, msaaSamples: MSAASamples.None, name: "fsr.opaque.only");
+            if (_afterOpaqueOnlyColorBuffer != null)
+            {
+                _afterOpaqueOnlyColorBuffer.Release();
+                _afterOpaqueOnlyColorBuffer = null;
+            }
+            _afterOpaqueOnlyColorBuffer = RTHandles.Alloc(_genReactiveDescription.RenderSize.x, _genReactiveDescription.RenderSize.y, enableRandomWrite: true, colorFormat: _graphicsFormat, msaaSamples: MSAASamples.None, name: "fsr.after.opaque");
+            if (_reactiveMaskOutput != null)
+            {
+                _reactiveMaskOutput.Release();
+                _reactiveMaskOutput = null;
+            }
+            _reactiveMaskOutput = RTHandles.Alloc(_genReactiveDescription.RenderSize.x, _genReactiveDescription.RenderSize.y, enableRandomWrite: true, colorFormat: _graphicsFormat, msaaSamples: MSAASamples.None, name: "fsr.reactivemask");
+        }
+
         private void SetupDispatchDescription()
         {
             if (_output != null)
@@ -140,7 +168,6 @@ namespace YARG.Gameplay
                 _output.Release();
                 _output = null;
             }
-
             _output = RTHandles.Alloc(_renderCamera.pixelWidth, _renderCamera.pixelHeight, enableRandomWrite: true, colorFormat: _graphicsFormat, msaaSamples: MSAASamples.None, name: "fsr.output");
 
             // Set up the main FSR3 Upscaler dispatch parameters
@@ -167,7 +194,6 @@ namespace YARG.Gameplay
             _dispatchDescription.Reset = false;
             _dispatchDescription.Flags = enableDebugView ? Fsr3Upscaler.DispatchFlags.DrawDebugView : 0;
 
-
             if (SystemInfo.usesReversedZBuffer)
             {
                 (_dispatchDescription.CameraNear, _dispatchDescription.CameraFar) = (_dispatchDescription.CameraFar, _dispatchDescription.CameraNear);
@@ -175,7 +201,6 @@ namespace YARG.Gameplay
 
             // Set up the parameters for the optional experimental auto-TCR feature
             _dispatchDescription.EnableAutoReactive = false;
-
         }
 
         private void ApplyJitter()
@@ -210,12 +235,18 @@ namespace YARG.Gameplay
             SetupDispatchDescription();
             ApplyJitter();
             var renderer = cam.GetUniversalAdditionalCameraData().scriptableRenderer;
-            renderer.EnqueuePass(_fsrPass);
-            renderer.EnqueuePass(_blitPass);
             renderer.EnqueuePass(_jitterOpaquesPass);
             renderer.EnqueuePass(_unJitterOpaquesPass);
             renderer.EnqueuePass(_jitterTransparentsPass);
             renderer.EnqueuePass(_unJitterTransparentsPass);
+            renderer.EnqueuePass(_fsrPass);
+            renderer.EnqueuePass(_blitPass);
+            if (autoGenerateReactiveMask)
+            {
+                SetupAutoReactiveDescription();
+                renderer.EnqueuePass(_copyColorOpaquePass);
+                renderer.EnqueuePass(_copyColorTransparentsPass);
+            }
         }
 
         private void OnDisable()
@@ -225,6 +256,21 @@ namespace YARG.Gameplay
             {
                 _output.Release();
                 _output = null;
+            }
+            if (_opaqueOnlyColorBuffer != null)
+            {
+                _opaqueOnlyColorBuffer.Release();
+                _opaqueOnlyColorBuffer = null;
+            }
+            if (_afterOpaqueOnlyColorBuffer != null)
+            {
+                _afterOpaqueOnlyColorBuffer.Release();
+                _afterOpaqueOnlyColorBuffer = null;
+            }
+            if (_reactiveMaskOutput != null)
+            {
+                _reactiveMaskOutput.Release();
+                _reactiveMaskOutput = null;
             }
             RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
         }
@@ -237,21 +283,19 @@ namespace YARG.Gameplay
 
         private void DestroyFsrContext()
         {
-
             if (_context != null)
             {
                 _context.Destroy();
                 _context = null;
             }
-
         }
     }
 
+    // Render pass to apply camera projection matrix jitter
     class JitterProjectionMatrixPass : ScriptableRenderPass
     {
         private FSRCameraManager _fsr;
         private CommandBuffer cmd;
-
 
         public JitterProjectionMatrixPass(FSRCameraManager fsr, RenderPassEvent evt)
         {
@@ -269,10 +313,10 @@ namespace YARG.Gameplay
 
     }
 
+    // Render pass to restore camera projection matrix
     class RestoreProjectionMatrixPass : ScriptableRenderPass
     {
         private CommandBuffer cmd;
-
 
         public RestoreProjectionMatrixPass(RenderPassEvent evt)
         {
@@ -320,6 +364,15 @@ namespace YARG.Gameplay
             _fsr._dispatchDescription.Depth = new FidelityFX.ResourceView(Shader.GetGlobalTexture(motionTexturePropertyID), RenderTextureSubElement.Depth);
             _fsr._dispatchDescription.MotionVectors = new FidelityFX.ResourceView(Shader.GetGlobalTexture(motionTexturePropertyID));
 
+            if (_fsr.autoGenerateReactiveMask)
+            {
+                _fsr._genReactiveDescription.ColorOpaqueOnly = new ResourceView(_fsr._opaqueOnlyColorBuffer);
+                _fsr._genReactiveDescription.ColorPreUpscale = new ResourceView(_fsr._afterOpaqueOnlyColorBuffer);
+                _fsr._genReactiveDescription.OutReactive = new ResourceView(_fsr._reactiveMaskOutput);
+                _fsr._context.GenerateReactiveMask(_fsr._genReactiveDescription, cmd);
+                _fsr._dispatchDescription.Reactive = new ResourceView(_fsr._reactiveMaskOutput);
+            }
+
             _fsr._context.Dispatch(_fsr._dispatchDescription, cmd);
 
             context.ExecuteCommandBuffer(cmd);
@@ -348,6 +401,46 @@ namespace YARG.Gameplay
         {
             cmd = CommandBufferPool.Get("FSR Blit");
             Blit(cmd, _fsr._output, BuiltinRenderTextureType.CameraTarget);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+    }
+
+    // Pass to store copy of color buffer after rendering only opaques
+    class CopyColorOpaquePass : ScriptableRenderPass
+    {
+        private CommandBuffer cmd;
+        private FSRCameraManager _fsr;
+        public CopyColorOpaquePass(FSRCameraManager fsr)
+        {
+            _fsr = fsr;
+            renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            cmd = CommandBufferPool.Get("FSR CopyColorOpaque");
+            Blit(cmd, renderingData.cameraData.renderer.cameraColorTarget, _fsr._opaqueOnlyColorBuffer);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+    }
+
+    // Pass to store copy of color buffer after rendering only opaques
+    class CopyColorTransparentsPass : ScriptableRenderPass
+    {
+        private CommandBuffer cmd;
+        private FSRCameraManager _fsr;
+        public CopyColorTransparentsPass(FSRCameraManager fsr)
+        {
+            _fsr = fsr;
+            renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            cmd = CommandBufferPool.Get("FSR CopyColorTrans");
+            Blit(cmd, renderingData.cameraData.renderer.cameraColorTarget, _fsr._afterOpaqueOnlyColorBuffer);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
