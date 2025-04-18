@@ -35,7 +35,7 @@ namespace YARG.Gameplay
 
         [Header("Debug")]
         [Tooltip("Enable a debug view to analyze the upscaling process.")]
-        public bool enableDebugView = true;
+        public bool enableDebugView = false;
 
 
         // [Header("Reactivity, Transparency & Composition")] 
