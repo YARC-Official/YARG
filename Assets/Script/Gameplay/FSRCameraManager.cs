@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Rendering.Universal.Internal;
 
 namespace YARG.Gameplay
 {
@@ -65,7 +64,6 @@ namespace YARG.Gameplay
 
 
         protected internal RTHandle _output;
-        protected internal RTHandle _depthCopy;
         protected internal RTHandle _opaqueOnlyColorBuffer;
         protected internal RTHandle _afterOpaqueOnlyColorBuffer;
         protected internal RTHandle _reactiveMaskOutput;
@@ -79,9 +77,17 @@ namespace YARG.Gameplay
         public Camera _renderCamera;
 
         private Vector2Int _displaySize;
+        protected internal Matrix4x4 _jitterTranslationMatrix;
 
+        // Passes
         private FSRPass _fsrPass;
         private BlitPass _blitPass;
+        private JitterProjectionMatrixPass _jitterOpaquesPass;
+        private RestoreProjectionMatrixPass _unJitterOpaquesPass;
+        private JitterProjectionMatrixPass _jitterTransparentsPass;
+        private RestoreProjectionMatrixPass _unJitterTransparentsPass;
+
+        // Saved renderscale to re-init if it changes
         private float _renderScale;
 
         private const GraphicsFormat _graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
@@ -102,6 +108,10 @@ namespace YARG.Gameplay
 
             _fsrPass = new FSRPass(this);
             _blitPass = new BlitPass(this);
+            _jitterOpaquesPass = new JitterProjectionMatrixPass(this, RenderPassEvent.BeforeRenderingOpaques);
+            _unJitterOpaquesPass = new RestoreProjectionMatrixPass(RenderPassEvent.AfterRenderingOpaques - 1);
+            _jitterTransparentsPass = new JitterProjectionMatrixPass(this, RenderPassEvent.BeforeRenderingTransparents);
+            _unJitterTransparentsPass = new RestoreProjectionMatrixPass(RenderPassEvent.AfterRenderingTransparents - 1);
         }
 
         private void CreateFSRContext()
@@ -120,7 +130,7 @@ namespace YARG.Gameplay
 
         private Vector2Int GetScaledRenderSize()
         {
-            return new Vector2Int((int) (_renderCamera.pixelWidth * _renderScale), (int) (_renderCamera.pixelHeight * _renderScale));
+            return new Vector2Int((int)(_renderCamera.pixelWidth * _renderScale), (int)(_renderCamera.pixelHeight * _renderScale));
         }
 
         private void SetupDispatchDescription()
@@ -180,12 +190,9 @@ namespace YARG.Gameplay
             _dispatchDescription.JitterOffset = new Vector2(jitterX, jitterY);
 
             jitterX = 2.0f * jitterX / scaledRenderSize.x;
-            jitterY = 2.0f * jitterY / scaledRenderSize.y;
+            jitterY = -2.0f * jitterY / scaledRenderSize.y;
 
-            var jitterTranslationMatrix = Matrix4x4.Translate(new Vector3(jitterX, jitterY, 0));
-            _renderCamera.nonJitteredProjectionMatrix = _renderCamera.projectionMatrix;
-            _renderCamera.projectionMatrix = jitterTranslationMatrix * _renderCamera.nonJitteredProjectionMatrix;
-            _renderCamera.useJitteredProjectionMatrixForTransparentRendering = true;
+            _jitterTranslationMatrix = Matrix4x4.Translate(new Vector3(jitterX, jitterY, 0));
         }
 
         private void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
@@ -205,18 +212,11 @@ namespace YARG.Gameplay
             var renderer = cam.GetUniversalAdditionalCameraData().scriptableRenderer;
             renderer.EnqueuePass(_fsrPass);
             renderer.EnqueuePass(_blitPass);
+            renderer.EnqueuePass(_jitterOpaquesPass);
+            renderer.EnqueuePass(_unJitterOpaquesPass);
+            renderer.EnqueuePass(_jitterTransparentsPass);
+            renderer.EnqueuePass(_unJitterTransparentsPass);
         }
-
-        private void OnPostCameraRender(ScriptableRenderContext ctx, Camera cam)
-        {
-            if (cam != _renderCamera)
-            {
-                return;
-            }
-
-            _renderCamera.ResetProjectionMatrix();
-        }
-
 
         private void OnDisable()
         {
@@ -227,13 +227,11 @@ namespace YARG.Gameplay
                 _output = null;
             }
             RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
-            RenderPipelineManager.endCameraRendering -= OnPostCameraRender;
         }
 
         private void OnEnable()
         {
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
-            RenderPipelineManager.endCameraRendering += OnPostCameraRender;
             CreateFSRContext();
         }
 
@@ -247,6 +245,48 @@ namespace YARG.Gameplay
             }
 
         }
+    }
+
+    class JitterProjectionMatrixPass : ScriptableRenderPass
+    {
+        private FSRCameraManager _fsr;
+        private CommandBuffer cmd;
+
+
+        public JitterProjectionMatrixPass(FSRCameraManager fsr, RenderPassEvent evt)
+        {
+            _fsr = fsr;
+            renderPassEvent = evt;
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            cmd = CommandBufferPool.Get("JitterProjectionMatrix");
+            RenderingUtils.SetViewAndProjectionMatrices(cmd, renderingData.cameraData.GetViewMatrix(), _fsr._jitterTranslationMatrix * renderingData.cameraData.GetGPUProjectionMatrix(), false);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+    }
+
+    class RestoreProjectionMatrixPass : ScriptableRenderPass
+    {
+        private CommandBuffer cmd;
+
+
+        public RestoreProjectionMatrixPass(RenderPassEvent evt)
+        {
+            renderPassEvent = evt;
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            cmd = CommandBufferPool.Get("RestoreProjectionMatrix");
+            RenderingUtils.SetViewAndProjectionMatrices(cmd, renderingData.cameraData.GetViewMatrix(), renderingData.cameraData.GetGPUProjectionMatrix(), false);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
     }
 
     // Render pass to take unscaled rendered picture and FSR it into a render texture
