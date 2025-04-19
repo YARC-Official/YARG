@@ -73,7 +73,9 @@ namespace YARG.Gameplay
         private async void UpdateFFT()
         {
             if (_soundTexture == null)
-            { return; }
+            { 
+                return; 
+            }
             var pd = _soundTexture.GetPixelData<Byte>(0);
 
             await UniTask.RunOnThreadPool(() =>
