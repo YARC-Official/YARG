@@ -1,3 +1,4 @@
+using System.Linq;
 using FidelityFX;
 using FidelityFX.FSR3;
 using UnityEngine;
@@ -69,9 +70,11 @@ namespace YARG.Gameplay
         protected internal readonly Fsr3Upscaler.DispatchDescription _dispatchDescription = new Fsr3Upscaler.DispatchDescription();
         protected internal readonly Fsr3Upscaler.GenerateReactiveDescription _genReactiveDescription = new Fsr3Upscaler.GenerateReactiveDescription();
 
-        public Camera _renderCamera;
+        public Camera renderCamera;
+        public GameObject textureParentObject;
 
         private Vector2Int _displaySize;
+        private float _mipmapBiasOffset = 0f;
         protected internal Matrix4x4 _jitterTranslationMatrix;
 
         // Passes
@@ -95,13 +98,13 @@ namespace YARG.Gameplay
             UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             _renderScale = UniversalRenderPipelineAsset.renderScale;
 
-            _renderCamera = GetComponent<Camera>();
+            renderCamera = GetComponent<Camera>();
             _assets = Resources.Load<Fsr3UpscalerAssets>("FSR3 Upscaler Assets");
-            _renderCamera.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors;
-            _renderCamera.clearFlags |= CameraClearFlags.Depth;
-            _renderCamera.GetUniversalAdditionalCameraData().requiresDepthTexture = true;
+            renderCamera.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors;
+            renderCamera.clearFlags |= CameraClearFlags.Depth;
+            renderCamera.GetUniversalAdditionalCameraData().requiresDepthTexture = true;
 
-            _displaySize = new Vector2Int(_renderCamera.pixelWidth, _renderCamera.pixelHeight);
+            _displaySize = new Vector2Int(renderCamera.pixelWidth, renderCamera.pixelHeight);
 
             _fsrPass = new FSRPass(this);
             _blitPass = new BlitPass(this);
@@ -121,7 +124,7 @@ namespace YARG.Gameplay
             }
             Fsr3Upscaler.InitializationFlags flags = Fsr3Upscaler.InitializationFlags.EnableMotionVectorsJitterCancellation;
 
-            if (_renderCamera.allowHDR) flags |= Fsr3Upscaler.InitializationFlags.EnableHighDynamicRange;
+            if (renderCamera.allowHDR) flags |= Fsr3Upscaler.InitializationFlags.EnableHighDynamicRange;
             if (enableAutoExposure) flags |= Fsr3Upscaler.InitializationFlags.EnableAutoExposure;
 
             _context = Fsr3Upscaler.CreateContext(_displaySize, GetScaledRenderSize(), _assets.shaders, flags);
@@ -129,7 +132,7 @@ namespace YARG.Gameplay
 
         private Vector2Int GetScaledRenderSize()
         {
-            return new Vector2Int((int)(_renderCamera.pixelWidth * _renderScale), (int)(_renderCamera.pixelHeight * _renderScale));
+            return new Vector2Int((int)(renderCamera.pixelWidth * _renderScale), (int)(renderCamera.pixelHeight * _renderScale));
         }
 
         private void SetupAutoReactiveDescription()
@@ -168,7 +171,7 @@ namespace YARG.Gameplay
                 _output.Release();
                 _output = null;
             }
-            _output = RTHandles.Alloc(_renderCamera.pixelWidth, _renderCamera.pixelHeight, enableRandomWrite: true, colorFormat: _graphicsFormat, msaaSamples: MSAASamples.None, name: "fsr.output");
+            _output = RTHandles.Alloc(renderCamera.pixelWidth, renderCamera.pixelHeight, enableRandomWrite: true, colorFormat: _graphicsFormat, msaaSamples: MSAASamples.None, name: "fsr.output");
 
             // Set up the main FSR3 Upscaler dispatch parameters
             _dispatchDescription.Exposure = ResourceView.Unassigned;
@@ -186,9 +189,9 @@ namespace YARG.Gameplay
             _dispatchDescription.RenderSize = scaledRenderSize;
             _dispatchDescription.UpscaleSize = _displaySize;
             _dispatchDescription.FrameTimeDelta = Time.unscaledDeltaTime;
-            _dispatchDescription.CameraNear = _renderCamera.nearClipPlane;
-            _dispatchDescription.CameraFar = _renderCamera.farClipPlane;
-            _dispatchDescription.CameraFovAngleVertical = _renderCamera.fieldOfView * Mathf.Deg2Rad;
+            _dispatchDescription.CameraNear = renderCamera.nearClipPlane;
+            _dispatchDescription.CameraFar = renderCamera.farClipPlane;
+            _dispatchDescription.CameraFovAngleVertical = renderCamera.fieldOfView * Mathf.Deg2Rad;
             _dispatchDescription.ViewSpaceToMetersFactor = 1.0f; // 1 unit is 1 meter in Unity
             _dispatchDescription.VelocityFactor = velocityFactor;
             _dispatchDescription.Reset = false;
@@ -201,6 +204,32 @@ namespace YARG.Gameplay
 
             // Set up the parameters for the optional experimental auto-TCR feature
             _dispatchDescription.EnableAutoReactive = false;
+        }
+
+        private void ApplyMipmapBias(float biasOffset)
+        {
+            // Apply a mipmap bias so that textures retain their sharpness
+            if (!float.IsNaN(_mipmapBiasOffset) && !float.IsInfinity(biasOffset))
+            {
+                if (textureParentObject != null)
+                {
+                    foreach (var tex in UnityEditor.EditorUtility.CollectDependencies(new []{ textureParentObject }).OfType<Texture>())
+                    {
+                        tex.mipMapBias += _mipmapBiasOffset;
+                    }
+                }
+            }
+        }
+
+        private void ApplyMipmapBias()
+        {
+            _mipmapBiasOffset = Fsr3Upscaler.GetMipmapBiasOffset(GetScaledRenderSize().x, _displaySize.x);
+            ApplyMipmapBias(_mipmapBiasOffset);
+        }
+
+        private void UndoMipmapBias()
+        {
+            ApplyMipmapBias(-_mipmapBiasOffset);
         }
 
         private void ApplyJitter()
@@ -222,7 +251,7 @@ namespace YARG.Gameplay
 
         private void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
         {
-            if (cam != _renderCamera)
+            if (cam != renderCamera)
             {
                 return;
             }
@@ -273,12 +302,14 @@ namespace YARG.Gameplay
                 _reactiveMaskOutput = null;
             }
             RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
+            UndoMipmapBias();
         }
 
         private void OnEnable()
         {
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             CreateFSRContext();
+            ApplyMipmapBias();
         }
 
         private void DestroyFsrContext()
