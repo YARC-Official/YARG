@@ -122,7 +122,7 @@ namespace YARG.Gameplay
             {
                 DestroyFsrContext();
             }
-            Fsr3Upscaler.InitializationFlags flags = Fsr3Upscaler.InitializationFlags.EnableMotionVectorsJitterCancellation;
+            Fsr3Upscaler.InitializationFlags flags = 0;
 
             if (renderCamera.allowHDR) flags |= Fsr3Upscaler.InitializationFlags.EnableHighDynamicRange;
             if (enableAutoExposure) flags |= Fsr3Upscaler.InitializationFlags.EnableAutoExposure;
