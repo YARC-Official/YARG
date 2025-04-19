@@ -41,7 +41,9 @@ namespace YARG.Venue
             var fsrManager = mainCamera.GetComponent<FSRCameraManager>();
             if (fsrManager != null)
             {
+                fsrManager.enabled = false;
                 fsrManager.textureParentObject = bgInstance;
+                fsrManager.enabled = true;
             }
         }
 

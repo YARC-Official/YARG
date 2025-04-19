@@ -209,7 +209,7 @@ namespace YARG.Gameplay
         private void ApplyMipmapBias(float biasOffset)
         {
             // Apply a mipmap bias so that textures retain their sharpness
-            if (!float.IsNaN(_mipmapBiasOffset) && !float.IsInfinity(biasOffset))
+            if (!float.IsNaN(biasOffset) && !float.IsInfinity(biasOffset))
             {
                 if (textureParentObject != null)
                 {
@@ -219,7 +219,7 @@ namespace YARG.Gameplay
                     {
                         if (tex != null)
                         {
-                            tex.mipMapBias += _mipmapBiasOffset;
+                            tex.mipMapBias += biasOffset;
                         }
                     }
                 }
