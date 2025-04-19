@@ -163,6 +163,7 @@ namespace YARG
             {
                 LoadSceneAdditive(scene);
             }
+            GC.Collect();
         }
 
         // Due to the preprocessor, it doesn't know that an instance variable is being used
