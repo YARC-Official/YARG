@@ -132,7 +132,7 @@ namespace YARG.Gameplay
 
         private Vector2Int GetScaledRenderSize()
         {
-            return new Vector2Int((int)(renderCamera.pixelWidth * _renderScale), (int)(renderCamera.pixelHeight * _renderScale));
+            return new Vector2Int((int) (renderCamera.pixelWidth * _renderScale), (int) (renderCamera.pixelHeight * _renderScale));
         }
 
         private void SetupAutoReactiveDescription()
@@ -213,9 +213,14 @@ namespace YARG.Gameplay
             {
                 if (textureParentObject != null)
                 {
-                    foreach (var tex in UnityEditor.EditorUtility.CollectDependencies(new []{ textureParentObject }).OfType<Texture>())
+                    foreach (var tex in textureParentObject.GetComponentsInChildren<Renderer>(true).SelectMany(r =>
+                        r.sharedMaterial.GetTexturePropertyNameIDs().Select(name => r.sharedMaterial.GetTexture(name))
+                    ).Distinct())
                     {
-                        tex.mipMapBias += _mipmapBiasOffset;
+                        if (tex != null)
+                        {
+                            tex.mipMapBias += _mipmapBiasOffset;
+                        }
                     }
                 }
             }
