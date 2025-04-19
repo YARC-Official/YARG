@@ -12,11 +12,20 @@ namespace YARG.Gameplay
     /// </summary>
     public class TextureManager : GameplayBehaviour
     {
+
+        // Smoothing factor (adjust to taste)
+        [Range(0.0f, 0.95f)]
+        public float fftSmoothingFactor = 0.8f;
+        [Range(0.0f, 0.95f)]
+        public float waveSmoothingFactor = 0.5f;
+
         private Texture2D _sourceIcon;
         private Texture2D _albumCover = null;
         private Texture2D _soundTexture = null;
-        private float[] fft = new float[FFT_SIZE * 2];
-        private float[] wave = new float[FFT_SIZE * 2];
+        private float[] _fft = new float[FFT_SIZE * 2];
+        private float[] _wave = new float[FFT_SIZE * 2];
+        private float[] _prevFft = new float[FFT_SIZE * 2];
+        private float[] _prevWave = new float[FFT_SIZE * 2];
 
         private static int _soundTexId = Shader.PropertyToID("_Yarg_SoundTex");
         private static int _sourceIconId = Shader.PropertyToID("_Yarg_SourceIcon");
@@ -80,12 +89,13 @@ namespace YARG.Gameplay
 
             await UniTask.RunOnThreadPool(() =>
             {
-                GameManager.GetMixerFFTData(fft, FFT_SIZE_LOG, false);
-                GameManager.GetMixerSampleData(wave);
+                GameManager.GetMixerFFTData(_fft, FFT_SIZE_LOG, false);
+                GameManager.GetMixerSampleData(_wave);
 
                 for (int i = 0; i < FFT_SIZE; ++i)
                 {
-                    var fft_value = fft[i];
+                    var fft_value = _fft[i] * (1.0f - fftSmoothingFactor) + _prevFft[i] * fftSmoothingFactor;
+                    _prevFft[i] = _fft[i];
                     // Avoid 0
                     double magnitude = fft_value + 1e-20;
                     // logarithmic scale
@@ -98,7 +108,9 @@ namespace YARG.Gameplay
                     // set spectrum data in the first row
                     pd[i] = (byte)Math.Round(normalized);
                     // waveform data in the second row
-                    pd[FFT_SIZE + i] = (byte)(255.0f * (1.0f + wave[i]) / 2.0f);
+                    var wave = _wave[i] * (1.0f - waveSmoothingFactor) + _prevWave[i] * waveSmoothingFactor;
+                    _prevWave[i] = _wave[i];
+                    pd[FFT_SIZE + i] = (byte)(255.0f * (1.0f + wave) / 2.0f);
                 }
             });
 
