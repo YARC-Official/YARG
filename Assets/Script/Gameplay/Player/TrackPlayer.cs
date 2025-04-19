@@ -267,7 +267,7 @@ namespace YARG.Gameplay.Player
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
             StarpowerBar.SetStarpower(currentStarPowerAmount, stats.IsStarPowerActive);
-            SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
+            SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive, _currentMultiplier);
 
             TrackView.UpdateNoteStreak(stats.Combo);
 
