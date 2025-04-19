@@ -271,7 +271,11 @@ namespace YARG.Gameplay.Player
 
             TrackView.UpdateNoteStreak(stats.Combo);
 
-            if (!_isHotStartChecked && stats.ScoreMultiplier == 4)
+
+            // Could be if (!_isHotStartChecked && groove), but that would make it so hot start doesn't show
+            // for bass until 6x.
+            if (!_isHotStartChecked &&
+                ((stats.ScoreMultiplier == 4 && !stats.IsStarPowerActive) || stats.ScoreMultiplier == 8))
             {
                 _isHotStartChecked = true;
 
