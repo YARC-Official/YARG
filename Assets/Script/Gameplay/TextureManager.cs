@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using Unity.Collections;
 using UnityEngine;
 using YARG.Helpers.Extensions;
 using YARG.Song;
@@ -22,10 +23,10 @@ namespace YARG.Gameplay
         private Texture2D _sourceIcon;
         private Texture2D _albumCover = null;
         private Texture2D _soundTexture = null;
-        private float[] _fft = new float[FFT_SIZE * 2];
-        private float[] _wave = new float[FFT_SIZE * 2];
-        private float[] _prevFft = new float[FFT_SIZE * 2];
-        private float[] _prevWave = new float[FFT_SIZE * 2];
+        private float[] _fft = new float[FFT_SIZE / 2];
+        private float[] _wave = new float[FFT_TEXTURE_WIDTH];
+        private float[] _prevFft = new float[FFT_SIZE / 2];
+        private float[] _prevWave = new float[FFT_TEXTURE_WIDTH];
 
         private static int _soundTexId = Shader.PropertyToID("_Yarg_SoundTex");
         private static int _sourceIconId = Shader.PropertyToID("_Yarg_SourceIcon");
@@ -34,8 +35,9 @@ namespace YARG.Gameplay
         private const double MIN_DB = -100.0;
         private const double MAX_DB = -30.0;
         private const double DB_RANGE = MAX_DB - MIN_DB;
-        private const int FFT_SIZE_LOG = 9 /* aka log2(512) */;
+        private const int FFT_SIZE_LOG = 10 /* aka log2(1024) */;
         private const int FFT_SIZE = 1 << FFT_SIZE_LOG;
+        private const int FFT_TEXTURE_WIDTH = 512;
 
         private void Start()
         {
@@ -58,7 +60,7 @@ namespace YARG.Gameplay
             {
                 // first row is FFT data
                 // second is waveform data
-                _soundTexture = new Texture2D(FFT_SIZE, 2, TextureFormat.R8, false);
+                _soundTexture = new Texture2D(FFT_TEXTURE_WIDTH, 2, TextureFormat.R8, false);
             }
             return _soundTexture;
         }
@@ -79,47 +81,44 @@ namespace YARG.Gameplay
             }
         }
 
-        private async void UpdateFFT()
+        private void UpdateFFT(NativeArray<byte> pixelData)
         {
-            if (_soundTexture == null)
-            { 
-                return; 
-            }
-            var pd = _soundTexture.GetPixelData<Byte>(0);
+            GameManager.GetMixerFFTData(_fft, FFT_SIZE_LOG, false);
+            GameManager.GetMixerSampleData(_wave);
 
-            await UniTask.RunOnThreadPool(() =>
+            for (int i = 0; i < FFT_TEXTURE_WIDTH; ++i)
             {
-                GameManager.GetMixerFFTData(_fft, FFT_SIZE_LOG, false);
-                GameManager.GetMixerSampleData(_wave);
+                var fft_value = _fft[i] * (1.0f - fftSmoothingFactor) + _prevFft[i] * fftSmoothingFactor;
+                _prevFft[i] = _fft[i];
+                // Avoid 0
+                double magnitude = fft_value + 1e-20;
+                // logarithmic scale
+                double db = 20.0 * Math.Log10(magnitude);
+                // clamp to range
+                db = Math.Max(MIN_DB, Math.Min(db, MAX_DB));
+                // normalize
+                double normalized = ((db - MIN_DB) / DB_RANGE) * 255;
 
-                for (int i = 0; i < FFT_SIZE; ++i)
-                {
-                    var fft_value = _fft[i] * (1.0f - fftSmoothingFactor) + _prevFft[i] * fftSmoothingFactor;
-                    _prevFft[i] = _fft[i];
-                    // Avoid 0
-                    double magnitude = fft_value + 1e-20;
-                    // logarithmic scale
-                    double db = 20.0 * Math.Log10(magnitude);
-                    // clamp to range
-                    db = Math.Max(MIN_DB, Math.Min(db, MAX_DB));
-                    // normalize
-                    double normalized = ((db - MIN_DB) / DB_RANGE) * 255;
-
-                    // set spectrum data in the first row
-                    pd[i] = (byte)Math.Round(normalized);
-                    // waveform data in the second row
-                    var wave = _wave[i] * (1.0f - waveSmoothingFactor) + _prevWave[i] * waveSmoothingFactor;
-                    _prevWave[i] = _wave[i];
-                    pd[FFT_SIZE + i] = (byte)(255.0f * (1.0f + wave) / 2.0f);
-                }
-            });
-
-            _soundTexture.Apply(false, false);
+                // set spectrum data in the first row
+                pixelData[i] = (byte) Math.Round(normalized);
+                // waveform data in the second row
+                var wave = _wave[i] * (1.0f - waveSmoothingFactor) + _prevWave[i] * waveSmoothingFactor;
+                _prevWave[i] = _wave[i];
+                pixelData[FFT_TEXTURE_WIDTH + i] = (byte) (255.0f * (1.0f + wave) / 2.0f);
+            }
         }
 
-        public void FixedUpdate()
+        public async void FixedUpdate()
         {
-            UpdateFFT();
+            if (_soundTexture != null)
+            {
+                var pixelData = _soundTexture.GetPixelData<Byte>(0);
+                await UniTask.RunOnThreadPool(() =>
+                {
+                    UpdateFFT(pixelData);
+                });
+                _soundTexture.Apply(false, false);
+            }
         }
     }
 }
