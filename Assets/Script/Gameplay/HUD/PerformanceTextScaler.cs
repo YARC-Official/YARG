@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace YARG.Gameplay.HUD
 {
+    [Obsolete("Uses hardcoded easings; please use DG.Tweening instead")]
     public class PerformanceTextScaler
     {
         public float AnimTimeRemaining { get; set; }
