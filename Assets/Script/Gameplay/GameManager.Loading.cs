@@ -312,6 +312,9 @@ namespace YARG.Gameplay
         {
             try
             {
+                // Make sure to set up all of the HUD positions
+                _trackViewManager.SetAllHUDPositions();
+
                 _players = new List<BasePlayer>();
 
                 bool vocalTrackInitialized = false;
@@ -422,9 +425,6 @@ namespace YARG.Gameplay
                         state.Audible += 2;
                     }
                 }
-
-                // Make sure to set up all of the HUD positions
-                _trackViewManager.SetAllHUDPositions();
             }
             catch (Exception ex)
             {
