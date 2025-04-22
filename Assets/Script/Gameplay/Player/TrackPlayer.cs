@@ -183,6 +183,9 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            // Consolidate tracks into a parent object for animation purposes
+            transform.SetParent(GameObject.Find("Visuals").transform);
+
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
             SetupTheme(player.Profile.GameMode);
