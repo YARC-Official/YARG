@@ -28,8 +28,6 @@ namespace YARG.Gameplay.Visuals
         private CameraPreset _preset;
         private Coroutine _coroutine;
 
-        private bool _isHighwayRisen;
-
         private void Start()
         {
             // Set anti-aliasing
@@ -61,18 +59,13 @@ namespace YARG.Gameplay.Visuals
 
             // Set camera preset
             _preset = preset;
+
+            // Animate the highway raise
+            _coroutine = StartCoroutine(RaiseHighway(_preset, true));
         }
 
         private void Update()
         {
-            // Hacky animation fix; breaks text notifications if put into Initialize()
-            if (!_isHighwayRisen)
-            {
-                // Animate the highway raise
-                _coroutine = StartCoroutine(RaiseHighway(_preset, true));
-                _isHighwayRisen = true;
-            }
-
             if (_currentBounce <= 0f) return;
 
             float speed = Time.deltaTime * SPEED;
