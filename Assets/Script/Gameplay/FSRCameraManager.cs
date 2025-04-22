@@ -149,13 +149,13 @@ namespace YARG.Gameplay
                 _opaqueOnlyColorBuffer.Release();
                 _opaqueOnlyColorBuffer = null;
             }
-            _opaqueOnlyColorBuffer = RTHandles.Alloc(_genReactiveDescription.RenderSize.x, _genReactiveDescription.RenderSize.y, enableRandomWrite: true, colorFormat: _graphicsFormat, msaaSamples: MSAASamples.None, name: "fsr.opaque.only");
+            _opaqueOnlyColorBuffer = RTHandles.Alloc(_genReactiveDescription.RenderSize.x, _genReactiveDescription.RenderSize.y, enableRandomWrite: false, colorFormat: _graphicsFormat, msaaSamples: MSAASamples.None, name: "fsr.opaque.only");
             if (_afterOpaqueOnlyColorBuffer != null)
             {
                 _afterOpaqueOnlyColorBuffer.Release();
                 _afterOpaqueOnlyColorBuffer = null;
             }
-            _afterOpaqueOnlyColorBuffer = RTHandles.Alloc(_genReactiveDescription.RenderSize.x, _genReactiveDescription.RenderSize.y, enableRandomWrite: true, colorFormat: _graphicsFormat, msaaSamples: MSAASamples.None, name: "fsr.after.opaque");
+            _afterOpaqueOnlyColorBuffer = RTHandles.Alloc(_genReactiveDescription.RenderSize.x, _genReactiveDescription.RenderSize.y, enableRandomWrite: false, colorFormat: _graphicsFormat, msaaSamples: MSAASamples.None, name: "fsr.after.opaque");
             if (_reactiveMaskOutput != null)
             {
                 _reactiveMaskOutput.Release();
