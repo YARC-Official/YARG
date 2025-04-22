@@ -132,10 +132,10 @@ namespace YARG.Gameplay
 
             for (int i = 0; i < FFT_TEXTURE_WIDTH; ++i)
             {
-                var fft_value = _fft[i] * (1.0f - fftSmoothingFactor) + _prevFft[i] * fftSmoothingFactor;
+                // var fft_value = _fft[i] * (1.0f - fftSmoothingFactor) + _prevFft[i] * fftSmoothingFactor;
                 _prevFft[i] = _fft[i];
                 // Avoid 0
-                double magnitude = fft_value + 1e-20;
+                double magnitude = _fft[i] + 1e-20;
                 // logarithmic scale
                 double db = 20.0 * Math.Log10(magnitude);
                 // clamp to range
