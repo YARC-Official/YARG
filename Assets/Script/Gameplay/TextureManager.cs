@@ -33,6 +33,8 @@ namespace YARG.Gameplay
         private static int _soundTexId = Shader.PropertyToID("_Yarg_SoundTex");
         private static int _sourceIconId = Shader.PropertyToID("_Yarg_SourceIcon");
         private static int _albumCoverId = Shader.PropertyToID("_Yarg_AlbumCover");
+        private static int _fftSmoothingFactorId = Shader.PropertyToID("_FFTSmoothing");
+        private static int _waveSmoothingFactorId = Shader.PropertyToID("_WaveSmoothing");
 
         private const double MIN_DB = -100.0;
         private const double MAX_DB = -30.0;
@@ -88,6 +90,19 @@ namespace YARG.Gameplay
             if (m.HasTexture(_albumCoverId))
             {
                 m.SetTexture(_albumCoverId, getAlbumArt());
+            }
+
+            // Allow the smoothing factor to be set via material properties in the yarground
+            // Obviously, this only works correctly if there is only one material with a shader
+            // that has the relevant property in the yarground. Otherwise, whichever one happens
+            // to be set last will have its value used.
+            if (m.HasProperty(_fftSmoothingFactorId))
+            {
+                fftSmoothingFactor = m.GetFloat(_fftSmoothingFactorId);
+            }
+            if (m.HasProperty(_waveSmoothingFactorId))
+            {
+                waveSmoothingFactor = m.GetFloat(_waveSmoothingFactorId);
             }
         }
 
