@@ -32,8 +32,6 @@ namespace YARG.Gameplay
         private static int _soundTexId = Shader.PropertyToID("_Yarg_SoundTex");
         private static int _sourceIconId = Shader.PropertyToID("_Yarg_SourceIcon");
         private static int _albumCoverId = Shader.PropertyToID("_Yarg_AlbumCover");
-        private static int _fftSmoothingFactorId = Shader.PropertyToID("_FFTSmoothing");
-        private static int _waveSmoothingFactorId = Shader.PropertyToID("_WaveSmoothing");
 
         private const double MIN_DB = -100.0;
         private const double MAX_DB = -30.0;
