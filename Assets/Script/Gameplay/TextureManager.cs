@@ -26,7 +26,6 @@ namespace YARG.Gameplay
         private float[] _fft = new float[FFT_SIZE / 2];
         private float[] _wave = new float[FFT_TEXTURE_WIDTH];
         private float[] _prevFft = new float[FFT_SIZE / 2];
-        private float[] _prevWave = new float[FFT_TEXTURE_WIDTH];
         private float[]   _rawFft       = new float[FFT_SIZE * 2];
         private float[]   _rawWave      = new float[FFT_SIZE];
 
@@ -43,8 +42,13 @@ namespace YARG.Gameplay
         private const int FFT_SIZE = 1 << FFT_SIZE_LOG;
         private const int FFT_TEXTURE_WIDTH = 512;
 
-        // This isn't used because it produces much too small magnitudes
-        private const double MAGNITUDE_SCALE = 1.0 / (FFT_SIZE_LOG - 2);
+        // TODO: Get the number of active channels from the mixer instead of assuming
+        //  Note that this won't _break_ if there are more channels, it will just make
+        //  wave shader output look weird on songs that have multichannel audio (or mono, for that matter)
+        private const int   AUDIO_CHANNELS           = 2;
+        // You would expect this to be 1 / AUDIO_CHANNELS, but we need a little bump for some as yet
+        // to be understood reason
+        private const float PER_CHANNEL_MULTIPLIER   = 0.6f;
 
         private void Start()
         {
@@ -91,19 +95,6 @@ namespace YARG.Gameplay
             {
                 m.SetTexture(_albumCoverId, getAlbumArt());
             }
-
-            // Allow the smoothing factor to be set via material properties in the yarground
-            // Obviously, this only works correctly if there is only one material with a shader
-            // that has the relevant property in the yarground. Otherwise, whichever one happens
-            // to be set last will have its value used.
-            if (m.HasProperty(_fftSmoothingFactorId))
-            {
-                fftSmoothingFactor = m.GetFloat(_fftSmoothingFactorId);
-            }
-            if (m.HasProperty(_waveSmoothingFactorId))
-            {
-                waveSmoothingFactor = m.GetFloat(_waveSmoothingFactorId);
-            }
         }
 
         private void UpdateFFT(NativeArray<byte> pixelData)
@@ -113,41 +104,21 @@ namespace YARG.Gameplay
 
             // Massage complex FFT data into real magnitudes
             // We go by twos because the real and complex components are interleaved
-            // TODO: Integrate this into the loop below rather than doing it separately
-            for (int i = 0; i < FFT_SIZE; i = i + 2)
+            for (int i = 0; i < _fft.Length * 2; i += 2)
             {
-                // Just stop if we exceed the output buffer
-                if (i / 2 >= _fft.Length)
-                {
-                    break;
-                }
+                _rawFft[i] *= 0.5f;
+                _rawFft[i + 1] *= 0.5f;
 
-                _rawFft[i] /= 2;
-                _rawFft[i + 1] /= 2;
-
-                // This is a bad way to calculate a hypotenuse, but whatever
-                var magnitude = Math.Sqrt(_rawFft[i] * _rawFft[i] + _rawFft[i + 1] * _rawFft[i + 1]); // * MAGNITUDE_SCALE;
-                _fft[i / 2] = (float) _prevFft[i / 2] * fftSmoothingFactor + (float) magnitude * (1.0f - fftSmoothingFactor);
+                // This is an inaccurate way of calculating a hypotenuse, but it doesn't seem to matter for this purpose
+                var magnitude = MathF.Sqrt(_rawFft[i] * _rawFft[i] + _rawFft[i + 1] * _rawFft[i + 1]);
+                _fft[i / 2] = _prevFft[i / 2] * fftSmoothingFactor + magnitude * (1.0f - fftSmoothingFactor);
             }
 
-            // This is getting stupid now
-            for (int i = 0; i < _wave.Length; i++)
-            {
-                // How do we tell how many channels there actually are?
-                // I guess we'll just assume it's stereo for now
-                // Normally one would halve the value of each channel and add them together, but we're peaking
-                // at only 0.35, so...
-
-                // The multiplier is just an empirical fudge factor, I need to understand why it is necessary :(
-                _wave[i] = _rawWave[i*2] * 0.6f;
-                _wave[i] += _rawWave[(i*2)+1] * 0.6f;
-            }
-
-            // TODO: Understand why the frequency rolloff seems to be different between BASS and Chrome
+            // TODO: Understand why the frequency rolloff seems to be different between BASS and Chrome/Firefox
 
             for (int i = 0; i < FFT_TEXTURE_WIDTH; ++i)
             {
-                // var fft_value = _fft[i] * (1.0f - fftSmoothingFactor) + _prevFft[i] * fftSmoothingFactor;
+                // Save the old data
                 _prevFft[i] = _fft[i];
                 // Avoid 0
                 double magnitude = _fft[i] + 1e-20;
@@ -158,13 +129,12 @@ namespace YARG.Gameplay
                 // normalize
                 double normalized = ((db - MIN_DB) / DB_RANGE) * 255;
 
+                // Process the wave data
+                _wave[i] = (_rawWave[i * AUDIO_CHANNELS] + _rawWave[(i * AUDIO_CHANNELS) + 1]) * PER_CHANNEL_MULTIPLIER;
+
                 // set spectrum data in the first row
                 pixelData[i] = (byte) Math.Round(normalized);
                 // waveform data in the second row
-                // I can't find any wave smoothing in the FF or ShaderToy code, so this is commented out
-                // var wave = _wave[i] * (1.0f - waveSmoothingFactor) + _prevWave[i] * waveSmoothingFactor;
-                _prevWave[i] = _wave[i];
-                // pixelData[FFT_TEXTURE_WIDTH + i] = (byte) (255.0f * (1.0f + wave) / 2.0f);
                 pixelData[FFT_TEXTURE_WIDTH + i] = (byte) Math.Max(0, Math.Min(255, 128 * (_wave[i] + 1)));
             }
         }
