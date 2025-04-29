@@ -61,7 +61,7 @@ namespace YARG.Gameplay.Visuals
         public static bool operator <=(TrackEffect left, TrackEffect right) => left.CompareTo(right) <= 0;
         public static bool operator >=(TrackEffect left, TrackEffect right) => left.CompareTo(right) >= 0;
 
-        public bool Overlaps(TrackEffect other) => !(Time < other.TimeEnd && other.Time >= TimeEnd);
+        public bool Overlaps(TrackEffect other) => Time < other.TimeEnd && other.Time < TimeEnd;
         public bool Contains(TrackEffect other) => Time <= other.Time && other.TimeEnd <= TimeEnd;
 
         // Takes a list of track effects, sorts, slices, and dices, chops,
@@ -69,111 +69,150 @@ namespace YARG.Gameplay.Visuals
         // of non-overlapping effects to delight and surprise users
         public static List<TrackEffect> SliceEffects(float noteSpeed, params List<TrackEffect>[] trackEffects)
         {
-            // Combine all the lists we were given, then sort
             var fullEffectsList = new List<TrackEffect>();
             foreach (var effectList in trackEffects)
             {
                 fullEffectsList.AddRange(effectList);
             }
             fullEffectsList.Sort();
+
             var slicedEffects = new List<TrackEffect>();
-            var q = new Queue<TrackEffect>(fullEffectsList);
+            var effectsToProcess = new List<TrackEffect>(fullEffectsList);
 
-            while (q.TryDequeue(out var effect))
+            while (effectsToProcess.Count > 0)
             {
-                if (!q.TryPeek(out var nextEffect))
+                var currentEffect = effectsToProcess[0];
+                effectsToProcess.RemoveAt(0);
+
+                if (effectsToProcess.Count == 0)
                 {
-                    // There is no next effect, so overlap is impossible
-                    slicedEffects.Add(effect);
+                    // We're at the end of the list, so just add the current effect and break
+                    slicedEffects.Add(currentEffect);
+                    break;
+                }
+
+                // This is down here to avoid triggering an out of range exception at the end of the list
+                var nextEffect = effectsToProcess[0];
+
+                // Handle adjacency and transition overlap that doesn't involve overlap of the actual effects
+                HandleTransitions(currentEffect, nextEffect, noteSpeed);
+
+
+                if (!currentEffect.Overlaps(nextEffect))
+                {
+                    // No overlap, so no need for further processing
+                    slicedEffects.Add(currentEffect);
                     continue;
                 }
 
-                // The number of transitions enabled in this comparison set
-                var numEnabled = effect.EndTransitionEnable ? 1 + (nextEffect.StartTransitionEnable ? 1 : 0) : 0 + (nextEffect.StartTransitionEnable ? 1 : 0);
-
-                // The minimum time allowed between effects, taking
-                // into account their transition section, if one or more
-                // is enabled. This is to avoid transition section overlap
-                var minTime = numEnabled > 0 ? TRANSITION_SCALE * numEnabled / noteSpeed : 0f;
-
-                if (!effect.Overlaps(nextEffect))
+                if (currentEffect.Contains(nextEffect))
                 {
-                    // There is no overlap, so no need to slice
-                    // We do need to check for adjacency, though!
-                    if (effect.TimeEnd == nextEffect.Time)
-                    {
-                        // There is adjacency, so disable the transitions
-                        effect.EndTransitionEnable = false;
-                        nextEffect.StartTransitionEnable = false;
-                    }
-
-                    if (nextEffect.Time - effect.TimeEnd < minTime)
-                    {
-                        // Too close, so adjust them to be adjacent
-                        var adjustedTime = ((nextEffect.Time - effect.TimeEnd) / 2) + effect.TimeEnd;
-                        nextEffect.Time = adjustedTime;
-                        effect.TimeEnd = adjustedTime;
-                        effect.EndTransitionEnable = false;
-                        nextEffect.StartTransitionEnable = false;
-                    }
-                    slicedEffects.Add(effect);
-                    continue;
+                    // The current effect contains the next effect, so process it
+                    ProcessContainedEffect(currentEffect, nextEffect, slicedEffects, effectsToProcess);
                 }
-
-                // We reached this point, so there is overlap
-                if (effect.Contains(nextEffect))
+                else
                 {
-                    // Add segment of outer effect lasting until beginning of inner effect
-                    // Disabled end transition is required
-                    // Zero length effect doesn't hurt anything, so we're not wasting the branch
-                    slicedEffects.Add(new TrackEffect(effect.Time, nextEffect.Time,
-                        effect.EffectType, effect.StartTransitionEnable, false));
-                    var newEffect = new TrackEffect(nextEffect.Time, nextEffect.TimeEnd,
-                        GetEffectCombination(effect, nextEffect), false, false);
-                    if (!(q.TryPeek(out var nextNextEffect) && effect.Contains(nextNextEffect)))
-                    {
-                        // Remainder of outer effect contains no more inner effects
-                        slicedEffects.Add(newEffect);
-                        slicedEffects.Add(new TrackEffect(newEffect.TimeEnd, effect.TimeEnd, effect.EffectType, false, effect.EndTransitionEnable));
-                        continue;
-                    }
+                    // We wouldn't be here if there weren't some kind of overlap and next isn't contained in current,
+                    // so it must be a partial overlap
+                    ProcessPartialOverlap(currentEffect, nextEffect, slicedEffects);
+                    // Next has been processed, so remove it
+                    effectsToProcess.RemoveAt(0);
 
-                    // Now add inner effect
-                    slicedEffects.Add(newEffect);
-                    q.Dequeue();
+                    // This isn't super obvious, but the remaining part of outer needs to be processed in full
+                    // as it does occasionally happen that it will contain or overlap with another effect
+                    var remainingEffect = new TrackEffect(nextEffect.TimeEnd, currentEffect.TimeEnd,
+                        currentEffect.EffectType, false, nextEffect.EndTransitionEnable);
+                    effectsToProcess.Insert(0, remainingEffect);
 
-                    // There are more inner effects, so process them until we run out
-                    while (q.TryPeek(out nextNextEffect) && effect.Contains(nextNextEffect))
-                    {
-                        if (newEffect.TimeEnd < nextNextEffect.Time)
-                        {
-                            // There is a gap, so fill it with outer effect
-                            slicedEffects.Add(new TrackEffect(newEffect.TimeEnd, nextNextEffect.Time,
-                                effect.EffectType, false, false));
-                        }
-
-                        // now the next inner effect
-                        newEffect = new TrackEffect(nextNextEffect.Time, nextNextEffect.TimeEnd,
-                            GetEffectCombination(effect, nextNextEffect), false, false);
-                        slicedEffects.Add(newEffect);
-                        q.Dequeue();
-                    }
-                    // We have exhausted all the inner effects, so add the remainder of the outer effect
-                    slicedEffects.Add(new TrackEffect(newEffect.TimeEnd, effect.TimeEnd, effect.EffectType, false, effect.EndTransitionEnable));
-                    continue;
                 }
-                // There is overlap, but next is not contained in current
-                // Create three sections, current alone, combination, next alone
-                slicedEffects.Add(new TrackEffect(effect.Time, nextEffect.Time, effect.EffectType,
-                    effect.StartTransitionEnable, false));
-                slicedEffects.Add(new TrackEffect(nextEffect.Time, effect.TimeEnd,
-                    GetEffectCombination(effect, nextEffect), false, false));
-                slicedEffects.Add(new TrackEffect(effect.TimeEnd, nextEffect.TimeEnd, nextEffect.EffectType, false,
-                    nextEffect.EndTransitionEnable));
-                q.Dequeue();
             }
 
             return slicedEffects;
+        }
+
+        public static void HandleTransitions(TrackEffect current, TrackEffect next, float noteSpeed)
+        {
+            // If current contains next, we don't actually want to do anything
+            if (current.Contains(next))
+            {
+                return;
+            }
+
+            // The number of transitions enabled in this comparison set
+            var numEnabled = current.EndTransitionEnable ? 1 + (next.StartTransitionEnable ? 1 : 0) : 0 + (next.StartTransitionEnable ? 1 : 0);
+            var minTime = numEnabled > 0 ? TRANSITION_SCALE * numEnabled / noteSpeed : 0f;
+
+            if (current.TimeEnd == next.Time)
+            {
+                // There is adjacency, so disable the transitions
+                current.EndTransitionEnable = false;
+                next.StartTransitionEnable = false;
+            }
+            else if (next.Time - current.TimeEnd < minTime)
+            {
+                // Too close, so adjust them to be adjacent
+                var adjustedTime = ((next.Time - current.TimeEnd) / 2) + current.TimeEnd;
+                next.Time = adjustedTime;
+                current.TimeEnd = adjustedTime;
+                current.EndTransitionEnable = false;
+                next.StartTransitionEnable = false;
+            }
+        }
+
+        private static void ProcessContainedEffect(TrackEffect outer, TrackEffect inner,
+            List<TrackEffect> slicedEffects,
+            List<TrackEffect> remainingEffects)
+        {
+            // Add segment of outer effect lasting until the beginning of the overlap
+            slicedEffects.Add(new TrackEffect(outer.Time, inner.Time, outer.EffectType, outer.StartTransitionEnable,
+                false));
+
+            // Add inner effect
+            var innerEnd = ProcessInnerEffects(outer, inner, slicedEffects, remainingEffects);
+
+            // Add any remaining outer effect
+            if (innerEnd < outer.TimeEnd)
+            {
+                slicedEffects.Add(new TrackEffect(innerEnd, outer.TimeEnd, outer.EffectType, false,
+                    outer.EndTransitionEnable));
+            }
+        }
+
+        private static double ProcessInnerEffects(TrackEffect outer, TrackEffect inner, List<TrackEffect> slicedEffects,
+            List<TrackEffect> remainingEffects)
+        {
+            var currentEnd = inner.TimeEnd;
+            slicedEffects.Add(new TrackEffect(inner.Time, inner.TimeEnd, GetEffectCombination(outer, inner),
+                false, false));
+            remainingEffects.RemoveAt(0);
+
+            while (remainingEffects.Count > 0 && outer.Contains(remainingEffects[0]))
+            {
+                if (currentEnd < remainingEffects[0].Time)
+                {
+                    // Fill the gap between inner effects with outer effect
+                    slicedEffects.Add(new TrackEffect(slicedEffects[^1].TimeEnd, remainingEffects[0].Time,
+                        outer.EffectType, false, false));;
+                }
+                // Add the combination of inner+outer
+                slicedEffects.Add(new TrackEffect(remainingEffects[0].Time, remainingEffects[0].TimeEnd,
+                    GetEffectCombination(outer, remainingEffects[0]), false, false));
+                currentEnd = remainingEffects[0].TimeEnd;
+                remainingEffects.RemoveAt(0);
+            }
+
+            return currentEnd;
+        }
+
+        private static void ProcessPartialOverlap(TrackEffect current, TrackEffect next,
+            List<TrackEffect> slicedEffects)
+        {
+            // Add non-overlapping part
+            slicedEffects.Add(new TrackEffect(current.Time, next.Time, current.EffectType, current.StartTransitionEnable,
+                false));
+            // Add the overlapping part
+            slicedEffects.Add(new TrackEffect(next.Time, next.TimeEnd, GetEffectCombination(current, next),
+                false, next.EndTransitionEnable));
         }
 
         private static TrackEffectType GetEffectCombination(TrackEffect outer, TrackEffect inner)
