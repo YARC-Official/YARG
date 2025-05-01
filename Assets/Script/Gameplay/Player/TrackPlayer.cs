@@ -33,6 +33,8 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         protected CameraPositioner CameraPositioner;
         [SerializeField]
+        protected HighwayCameraRendering HighwayCameraRendering;
+        [SerializeField]
         protected TrackMaterial TrackMaterial;
         [SerializeField]
         protected ComboMeter ComboMeter;
@@ -67,6 +69,17 @@ namespace YARG.Gameplay.Player
 
         private float _spawnAheadDelay;
 
+        public void SetFade(float zeroFadePosition, float fadeSize)
+        {
+            HighwayCameraRendering.fadeSize = fadeSize;
+            HighwayCameraRendering.zeroFadePosition = zeroFadePosition;
+        }
+
+        public void SetCurveFactor(float curveFactor)
+        {
+            HighwayCameraRendering.curveFactor = curveFactor;
+        }
+
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
         {
@@ -90,8 +103,8 @@ namespace YARG.Gameplay.Player
             FadeSize = Player.CameraPreset.FadeLength;
 
             // Clip everything that was set to not be visible anyway
-            var trackPosition = this.transform.position;
-            var trackZeroFadePosition = new Vector3(trackPosition.x, trackPosition.y, ZeroFadePosition);
+            var camPosition = this.transform.position;
+            var trackZeroFadePosition = new Vector3(camPosition.x, camPosition.y, ZeroFadePosition + 3f);
             Plane farPlane = new Plane();
             farPlane.SetNormalAndPosition(this.TrackCamera.transform.forward, trackZeroFadePosition);
             this.TrackCamera.farClipPlane = Mathf.Abs(farPlane.GetDistanceToPoint(this.TrackCamera.transform.position));

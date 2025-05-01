@@ -29,6 +29,11 @@ PrefabInstance:
       propertyPath: HitWindowDisplay
       value: 
       objectReference: {fileID: 8022842290628306130}
+    - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
+        type: 3}
+      propertyPath: HighwayCameraRendering
+      value: 
+      objectReference: {fileID: 540727894895594875}
     - target: {fileID: 7353099902729507025, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
         type: 3}
       propertyPath: FretCount
@@ -96,6 +101,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+--- !u!114 &540727894895594875 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 179156339612725326, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
+    type: 3}
+  m_PrefabInstance: {fileID: 431624946335464757}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19b73f8c1d10b1f5ca0912eeefcc50b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &8022842290628306130 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7686426392671820263, guid: 14dfc37fcbd6e0c4ba41507437a52fea,

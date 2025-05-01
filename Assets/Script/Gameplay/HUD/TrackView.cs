@@ -9,9 +9,6 @@ namespace YARG.Gameplay.HUD
 {
     public class TrackView : MonoBehaviour
     {
-        private static readonly int _curveFactor = Shader.PropertyToID("_CurveFactor");
-        private static readonly int _FadeParams = Shader.PropertyToID("_FadeParams");
-
         [field: SerializeField]
         public RawImage TrackImage { get; private set; }
 
@@ -40,19 +37,7 @@ namespace YARG.Gameplay.HUD
         public void Initialize(RenderTexture rt, CameraPreset cameraPreset, TrackPlayer trackPlayer)
         {
             TrackImage.texture = rt;
-
-            // Clone the material since RawImages don't use instanced materials
-            var newMaterial = new Material(TrackImage.material);
-            newMaterial.SetFloat(_curveFactor, cameraPreset.CurveFactor);
-            TrackImage.material = newMaterial;
-
             _trackPlayer = trackPlayer;
-        }
-
-        public void SetFade(float zeroFadePosition, float fadeSize)
-        {
-            var fadeParams = YARG.Gameplay.Visuals.Utils.FadeSettingsToScreenParams(_trackPlayer.transform.position, TrackImage.texture.height, _trackPlayer.TrackCamera, zeroFadePosition, fadeSize);
-            TrackImage.material.SetVector(_FadeParams, fadeParams);
         }
 
         public void UpdateSizing(int trackCount)

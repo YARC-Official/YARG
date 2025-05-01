@@ -369,7 +369,9 @@ namespace YARG.Gameplay
                         var trackPlayer = playerObject.GetComponent<TrackPlayer>();
                         var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
                         trackPlayer.Initialize(index, player, Chart, trackView, _mixer, lastHighScore);
-                        trackView.SetFade(trackPlayer.ZeroFadePosition, trackPlayer.FadeSize);
+                        trackPlayer.SetFade(trackPlayer.ZeroFadePosition, trackPlayer.FadeSize);
+                        trackPlayer.SetCurveFactor(player.CameraPreset.CurveFactor);
+
                         _players.Add(trackPlayer);
                     }
                     else

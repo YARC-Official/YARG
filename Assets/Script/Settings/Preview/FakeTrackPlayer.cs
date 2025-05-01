@@ -317,15 +317,11 @@ namespace YARG.Settings.Preview
             _trackMaterial.Initialize(highwayPreset);
             _cameraPositioner.Initialize(cameraPreset, 3f, cameraPreset.FadeLength);
 
-            // A bit ugly but this is only in settings.
-            var curveHandler = FindFirstObjectByType<TrackCurveHandler>();
             var camera = _cameraPositioner.GetComponent<Camera>();
-            var fadeParams = YARG.Gameplay.Visuals.Utils.FadeSettingsToScreenParams(
-                                                this.transform.position,
-                                                camera.activeTexture.height,
-                                                camera,
-                                                3f, cameraPreset.FadeLength);
-            curveHandler.FadeParams = fadeParams;
+            var highwayRenderer = camera.GetComponent<HighwayCameraRendering>();
+            highwayRenderer.fadeSize = cameraPreset.FadeLength;
+            highwayRenderer.zeroFadePosition = 3f;
+            highwayRenderer.curveFactor = cameraPreset.CurveFactor;
 
             // Update color profiles
             if (!CurrentGameModeInfo.UseProKeys)
