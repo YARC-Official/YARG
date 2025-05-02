@@ -1,3 +1,4 @@
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -95,6 +96,7 @@ namespace YARG.Gameplay.Visuals
             private ProfilingSampler _ProfilingSampler = new ProfilingSampler("HighwayBlit");
             private CommandBuffer _cmd;
             private HighwayCameraRendering _highwayCameraRendering;
+            MethodInfo SwapColorBuffer = null;
 
             public CurveFadePass(HighwayCameraRendering highCamRend)
             {
@@ -109,14 +111,23 @@ namespace YARG.Gameplay.Visuals
                 {
                     return;
                 }
+
                 ScriptableRenderer renderer = renderingData.cameraData.renderer;
                 CommandBuffer cmd = CommandBufferPool.Get("HighwayBlit");
+
+                if (SwapColorBuffer == null)
+                {
+                    SwapColorBuffer = renderer.GetType().GetMethod("SwapColorBuffer", BindingFlags.NonPublic | BindingFlags.Instance);
+                }
 
                 using (new ProfilingScope(cmd, _ProfilingSampler))
                 {
                     cmd.SetGlobalTexture(_MainTex, renderer.cameraColorTarget);
+
                     // Force color buffer swap
-                    Blit(cmd, ref renderingData, null);
+                    SwapColorBuffer.Invoke(renderer, new object[] { cmd });
+                    cmd.SetRenderTarget(renderer.cameraColorTarget);
+
                     //The RenderingUtils.fullscreenMesh argument specifies that the mesh to draw is a quad.
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, _highwayCameraRendering._Material);
                 }
