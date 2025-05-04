@@ -8,17 +8,15 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: TrackOverdriveBar
-  m_Shader: {fileID: -6465566751694194690, guid: 0c474304b74472f4a8b212da29713486,
-    type: 3}
-  m_ValidKeywords:
-  - _EMISSION_DISABLED
-  m_InvalidKeywords:
-  - _SURFACE_TYPE_TRANSPARENT
+  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2025
-  stringTagMap: {}
+  stringTagMap:
+    RenderType: Opaque
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
@@ -95,7 +93,7 @@ Material:
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
-    - _DstBlend: 10
+    - _DstBlend: 0
     - _EMISSION: 0
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
@@ -112,8 +110,8 @@ Material:
     - _Smoothness: 0.657
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _SrcBlend: 5
-    - _Surface: 1
+    - _SrcBlend: 1
+    - _Surface: 0
     - _WorkflowMode: 1
     - _ZTest: 8
     - _ZWrite: 1

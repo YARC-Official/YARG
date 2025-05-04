@@ -8,16 +8,15 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Ring
-  m_Shader: {fileID: -6465566751694194690, guid: 0c474304b74472f4a8b212da29713486,
-    type: 3}
-  m_ValidKeywords:
-  - _EMISSION_DISABLED
+  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3025
-  stringTagMap: {}
+  m_CustomRenderQueue: 2025
+  stringTagMap:
+    RenderType: Opaque
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
