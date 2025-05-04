@@ -68,7 +68,7 @@ Shader "HighwayBlit"
                     real depth = SampleSceneDepth(IN.uv);
                 #else
                     // Adjust Z to match NDC for OpenGL ([-1, 1])
-                    real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(in.UV));
+                    real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(IN.uv));
                 #endif
 
                 float sceneEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
