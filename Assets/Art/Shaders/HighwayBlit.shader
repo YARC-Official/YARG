@@ -56,31 +56,46 @@ Shader "HighwayBlit"
             float2 _FadeParams;
             float _CurveFactor;
             float _IsFading;
-
+ 
             float4 frag (Varyings IN) : SV_Target
             {
+                float uv_x;
+                if (_CurveFactor >= 0)
+                    uv_x = IN.uv.x;
+                else
+                    uv_x = 0.5;
+                    
                 // Sample the depth from the Camera depth texture.
                 #if UNITY_REVERSED_Z
-                    real mid_depth = SampleSceneDepth(float2(0.5, IN.uv.y));
+                    real original_depth = SampleSceneDepth(float2(uv_x, IN.uv.y));
                 #else
                     // Adjust Z to match NDC for OpenGL ([-1, 1])
-                    real mid_depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(float2(0.5, IN.uv.y)));
+                    real original_depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(float2(uv_x, IN.uv.y)));
                 #endif
-                float mid_sceneEyeDepth = LinearEyeDepth(mid_depth, _ZBufferParams);
-                
-                // Apply curving
-                IN.uv.y += pow(abs(IN.uv.x - 0.5) * mid_sceneEyeDepth / unity_CameraProjection._11, 2) * _CurveFactor * 0.025;
+
+                // Reconstruct the world space positions.
+                float3 originalWorldPos = ComputeWorldSpacePosition(IN.uv, original_depth, UNITY_MATRIX_I_VP);
+
+                float delta_x = abs(_WorldSpaceCameraPos.x - originalWorldPos.x);
+                originalWorldPos.y += pow(delta_x, 2) * _CurveFactor * 0.1;
+
+                float4 clipPos = mul(UNITY_MATRIX_VP, float4(originalWorldPos, 1.0));
+                float2 UV = (clipPos.xy / clipPos.w) * 0.5 + 0.5;
+
+                {
+                    UV.y = 1 - UV.y;
+                }
                 
                 // Sample the depth from the Camera depth texture.
                 #if UNITY_REVERSED_Z
-                    real depth = SampleSceneDepth(IN.uv);
+                    real depth = SampleSceneDepth(UV);
                 #else
                     // Adjust Z to match NDC for OpenGL ([-1, 1])
-                    real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(IN.uv));
+                    real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(UV));
                 #endif
                 float sceneEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
                 
-                float4 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_MainTex, IN.uv);
+                float4 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_MainTex, UV);
                 
 
                 float rate = _FadeParams.y != _FadeParams.x ? 1.0 / (_FadeParams.y - _FadeParams.x) : 0.0;
