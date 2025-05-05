@@ -59,10 +59,18 @@ Shader "HighwayBlit"
 
             float4 frag (Varyings IN) : SV_Target
             {
-                // Apply curving
-                IN.uv.y += pow(abs(IN.uv.x - 0.5), 2) * _CurveFactor;
+                // Sample the depth from the Camera depth texture.
+                #if UNITY_REVERSED_Z
+                    real mid_depth = SampleSceneDepth(float2(0.5, IN.uv.y));
+                #else
+                    // Adjust Z to match NDC for OpenGL ([-1, 1])
+                    real mid_depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(float2(0.5, IN.uv.y)));
+                #endif
+                float mid_sceneEyeDepth = LinearEyeDepth(mid_depth, _ZBufferParams);
                 
-                float4 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_MainTex, IN.uv);
+                // Apply curving
+                IN.uv.y += pow(abs(IN.uv.x - 0.5) * mid_sceneEyeDepth / unity_CameraProjection._11, 2) * _CurveFactor * 0.025;
+                
                 // Sample the depth from the Camera depth texture.
                 #if UNITY_REVERSED_Z
                     real depth = SampleSceneDepth(IN.uv);
@@ -70,8 +78,10 @@ Shader "HighwayBlit"
                     // Adjust Z to match NDC for OpenGL ([-1, 1])
                     real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(IN.uv));
                 #endif
-
                 float sceneEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
+                
+                float4 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_MainTex, IN.uv);
+                
 
                 float rate = _FadeParams.y != _FadeParams.x ? 1.0 / (_FadeParams.y - _FadeParams.x) : 0.0;
                 float alpha = smoothstep(0.0, 1.0, ((min(max(sceneEyeDepth, _FadeParams.x), _FadeParams.y)) - _FadeParams.x) * rate);
