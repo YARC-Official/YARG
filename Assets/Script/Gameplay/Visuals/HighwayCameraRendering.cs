@@ -18,34 +18,35 @@ namespace YARG.Gameplay.Visuals
 
         private Camera _renderCamera;
         private CurveFadePass _curveFadePass;
+        private ResetParams _resetPass;
         private Shader _Shader;
 
         private float _prevZeroFade;
         private float _prevFadeSize;
         private float _prevCurveFactor;
 
-        private static readonly int _curveFactor = Shader.PropertyToID("_CurveFactor");
-        private static readonly int _FadeParams = Shader.PropertyToID("_FadeParams");
+        public static readonly int CurveFactorID = Shader.PropertyToID("_CurveFactor");
+        public static readonly int FadeParamsID = Shader.PropertyToID("_FadeParams");
+        public static readonly int YARGinverseViewAndProjectionMatrix = Shader.PropertyToID("yarg_MatrixInvVP");
+        public static readonly int YARGViewAndProjectionMatrix = Shader.PropertyToID("yarg_MatrixVP");
 
-        protected internal Material _Material;
+        protected internal Vector2 FadeParams;
 
         private void Awake()
         {
             _renderCamera = GetComponent<Camera>();
             _curveFadePass = new CurveFadePass(this);
-            _Shader = Shader.Find("HighwayBlit");
+            _resetPass = new ResetParams();
         }
 
         private void OnEnable()
         {
-            _Material = CoreUtils.CreateEngineMaterial(_Shader);
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             UpdateParams();
         }
 
         private void OnDisable()
         {
-            CoreUtils.Destroy(_Material);
             RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
         }
 
@@ -63,6 +64,7 @@ namespace YARG.Gameplay.Visuals
 
             var renderer = _renderCamera.GetUniversalAdditionalCameraData().scriptableRenderer;
             renderer.EnqueuePass(_curveFadePass);
+            renderer.EnqueuePass(_resetPass);
         }
 
         private void UpdateParams()
@@ -77,11 +79,9 @@ namespace YARG.Gameplay.Visuals
             farPlane.SetNormalAndPosition(_renderCamera.transform.forward, worldFullFadePosition);
             var fadeStart = Mathf.Abs(farPlane.GetDistanceToPoint(_renderCamera.transform.position));
 
-            _Material.SetVector(_FadeParams, new Vector2(fadeStart, fadeEnd));
+            FadeParams = new Vector2(fadeStart, fadeEnd);
 
-            _Material.SetFloat(_curveFactor, curveFactor);
-
-            _prevCurveFactor = _curveFactor;
+            _prevCurveFactor = CurveFactorID;
             _prevZeroFade = zeroFadePosition;
             _prevFadeSize = fadeSize;
         }
@@ -92,48 +92,54 @@ namespace YARG.Gameplay.Visuals
         // use them separately from each other
         private sealed class CurveFadePass : ScriptableRenderPass
         {
-            private static readonly int _MainTex = Shader.PropertyToID("_MainTex");
-            private ProfilingSampler _ProfilingSampler = new ProfilingSampler("HighwayBlit");
             private CommandBuffer _cmd;
             private HighwayCameraRendering _highwayCameraRendering;
-            MethodInfo SwapColorBuffer = null;
 
             public CurveFadePass(HighwayCameraRendering highCamRend)
             {
                 _highwayCameraRendering = highCamRend;
-                renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
+                renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
                 ConfigureInput(ScriptableRenderPassInput.Depth);
             }
 
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
-                if (_highwayCameraRendering._Material == null)
-                {
-                    return;
-                }
+                CommandBuffer cmd = CommandBufferPool.Get("HighwayParams");
 
-                ScriptableRenderer renderer = renderingData.cameraData.renderer;
-                CommandBuffer cmd = CommandBufferPool.Get("HighwayBlit");
+                Matrix4x4 viewMatrix = renderingData.cameraData.GetViewMatrix();
+                Matrix4x4 gpuProjectionMatrix = renderingData.cameraData.GetGPUProjectionMatrix();
+                Matrix4x4 viewAndProjectionMatrix = gpuProjectionMatrix * viewMatrix;
+                Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
+                Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
+                Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
+                cmd.SetGlobalMatrix(YARGinverseViewAndProjectionMatrix, inverseViewProjection);
+                cmd.SetGlobalMatrix(YARGViewAndProjectionMatrix, viewAndProjectionMatrix);
 
-                if (SwapColorBuffer == null)
-                {
-                    SwapColorBuffer = renderer.GetType().GetMethod("SwapColorBuffer", BindingFlags.NonPublic | BindingFlags.Instance);
-                }
+                cmd.SetGlobalFloat(CurveFactorID, _highwayCameraRendering.curveFactor);
+                cmd.SetGlobalVector(FadeParamsID, _highwayCameraRendering.FadeParams);
 
-                using (new ProfilingScope(cmd, _ProfilingSampler))
-                {
-                    cmd.SetGlobalTexture(_MainTex, renderer.cameraColorTarget);
-
-                    // Force color buffer swap
-                    SwapColorBuffer.Invoke(renderer, new object[] { cmd });
-                    cmd.SetRenderTarget(renderer.cameraColorTarget);
-
-                    //The RenderingUtils.fullscreenMesh argument specifies that the mesh to draw is a quad.
-                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, _highwayCameraRendering._Material);
-                }
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                CommandBufferPool.Release(cmd);
+            }
+        }
+
+        private sealed class ResetParams : ScriptableRenderPass
+        {
+
+            public ResetParams()
+            {
+                renderPassEvent = RenderPassEvent.AfterRendering;
+            }
+
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+            {
+                CommandBuffer cmd = CommandBufferPool.Get("ResetParams");
+                cmd.SetGlobalFloat(CurveFactorID, 0);
+                cmd.SetGlobalVector(FadeParamsID, Vector2.zero);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
                 CommandBufferPool.Release(cmd);
             }
         }
