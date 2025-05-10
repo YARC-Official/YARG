@@ -138,6 +138,9 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
                 // Reconstruct the world space positions.
                 float3 originalWorldPos = ComputeWorldSpacePosition(uv, original_depth, yarg_MatrixInvVP);
 
+                if (originalWorldPos.z >= _FadeParams.y)
+                    return uv;
+
                 float delta_x = abs(_WorldSpaceCameraPos.x - originalWorldPos.x);
                 originalWorldPos.y += pow(delta_x, 2) * _CurveFactor * 0.05;
 
