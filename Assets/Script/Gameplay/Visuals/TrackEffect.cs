@@ -163,9 +163,12 @@ namespace YARG.Gameplay.Visuals
             List<TrackEffect> slicedEffects,
             List<TrackEffect> remainingEffects)
         {
-            // Add segment of outer effect lasting until the beginning of the overlap
-            slicedEffects.Add(new TrackEffect(outer.Time, inner.Time, outer.EffectType, outer.StartTransitionEnable,
-                false));
+            // Add segment of outer effect lasting until the beginning of the overlap, assuming there is a gap
+            if (outer.Time < inner.Time)
+            {
+                slicedEffects.Add(new TrackEffect(outer.Time, inner.Time, outer.EffectType, outer.StartTransitionEnable,
+                    false));
+            }
 
             // Add inner effect
             var innerEnd = ProcessInnerEffects(outer, inner, slicedEffects, remainingEffects);
@@ -186,7 +189,7 @@ namespace YARG.Gameplay.Visuals
                 false, false));
             remainingEffects.RemoveAt(0);
 
-            while (remainingEffects.Count > 0 && outer.Contains(remainingEffects[0]))
+            while (remainingEffects.Count > 0 && (outer.Contains(remainingEffects[0]) || outer.Overlaps(remainingEffects[0])))
             {
                 if (currentEnd < remainingEffects[0].Time)
                 {
@@ -194,6 +197,20 @@ namespace YARG.Gameplay.Visuals
                     slicedEffects.Add(new TrackEffect(slicedEffects[^1].TimeEnd, remainingEffects[0].Time,
                         outer.EffectType, false, false));;
                 }
+
+                // If outer does not contain inner, split outer at the end of the previous contained effect
+                // (one will definitely exist because this code path can't be reached without at least one
+                // inner being fully contained) and add it to the head of the list of effects so SliceEffect
+                // will handle it as an overlap on its next iteration
+                if (!outer.Contains(remainingEffects[0]))
+                {
+                    var remainderOfOuter = new TrackEffect(slicedEffects[^1].TimeEnd, outer.TimeEnd,
+                        outer.EffectType, false, outer.EndTransitionEnable);
+                    remainingEffects.Insert(0, remainderOfOuter);
+                    // This is a little white lie, but it keeps ProcessContainedEffect from adding more outer
+                    return outer.TimeEnd;
+                }
+
                 // Add the combination of inner+outer
                 slicedEffects.Add(new TrackEffect(remainingEffects[0].Time, remainingEffects[0].TimeEnd,
                     GetEffectCombination(outer, remainingEffects[0]), false, false));
@@ -211,6 +228,7 @@ namespace YARG.Gameplay.Visuals
             slicedEffects.Add(new TrackEffect(current.Time, next.Time, current.EffectType, current.StartTransitionEnable,
                 false));
             // Add the overlapping part
+            // next.TimeEnd may actually need to be Math.Min(current.TimeEnd, next.TimeEnd)
             slicedEffects.Add(new TrackEffect(next.Time, next.TimeEnd, GetEffectCombination(current, next),
                 false, next.EndTransitionEnable));
         }
