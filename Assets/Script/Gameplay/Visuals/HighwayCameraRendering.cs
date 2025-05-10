@@ -79,7 +79,7 @@ namespace YARG.Gameplay.Visuals
             farPlane.SetNormalAndPosition(_renderCamera.transform.forward, worldFullFadePosition);
             var fadeStart = Mathf.Abs(farPlane.GetDistanceToPoint(_renderCamera.transform.position));
 
-            FadeParams = new Vector2(fadeStart, fadeEnd);
+            FadeParams = new Vector2(fadeStart, fadeEnd == fadeStart ? fadeStart + 0.001f : fadeEnd);
 
             _prevCurveFactor = CurveFactorID;
             _prevZeroFade = zeroFadePosition;
