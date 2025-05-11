@@ -9,9 +9,6 @@ namespace YARG.Gameplay.HUD
 {
     public class TrackView : MonoBehaviour
     {
-        [field: SerializeField]
-        public RawImage TrackImage { get; private set; }
-
         [SerializeField]
         private AspectRatioFitter _aspectRatioFitter;
         [SerializeField]
@@ -36,7 +33,6 @@ namespace YARG.Gameplay.HUD
 
         public void Initialize(RenderTexture rt, CameraPreset cameraPreset, TrackPlayer trackPlayer)
         {
-            TrackImage.texture = rt;
             _trackPlayer = trackPlayer;
         }
 
@@ -47,12 +43,11 @@ namespace YARG.Gameplay.HUD
             float scale = Mathf.Max(0.7f * Mathf.Log10(trackCount - 1), 0f);
             scale = 1f - scale;
 
-            TrackImage.transform.localScale = new Vector3(scale, scale, scale);
         }
 
         public void UpdateHUDPosition()
         {
-            var rect = TrackImage.GetComponent<RectTransform>();
+            var rect = GetComponent<RectTransform>();
             var viewportPos = _trackPlayer.HUDViewportPosition;
 
             // Caching this is faster
