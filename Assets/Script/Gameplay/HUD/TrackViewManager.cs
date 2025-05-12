@@ -19,6 +19,8 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private RawImage _vocalImage;
         [SerializeField]
+        private RawImage _highwaysOutput;
+        [SerializeField]
         private Transform _vocalHudParent;
         [SerializeField]
         private CountdownDisplay _vocalsCountdownDisplay;
@@ -29,13 +31,24 @@ namespace YARG.Gameplay.HUD
         {
             // Create a track view
             var trackView = Instantiate(_trackViewPrefab, transform).GetComponent<TrackView>();
+            RenderTexture renderTexture;
+            if (!_highwaysOutput.IsActive())
+            {
+                _highwaysOutput.gameObject.SetActive(true);
+                
+                // Set up render texture
+                var descriptor = new RenderTextureDescriptor(
+                    Screen.width, Screen.height,
+                    RenderTextureFormat.ARGBHalf);
+                descriptor.mipCount = 0;
+                renderTexture = new RenderTexture(descriptor);
+                _highwaysOutput.texture = renderTexture;
 
-            // Set up render texture
-            var descriptor = new RenderTextureDescriptor(
-                Screen.width, Screen.height,
-                RenderTextureFormat.ARGBHalf);
-            descriptor.mipCount = 0;
-            var renderTexture = new RenderTexture(descriptor);
+            }
+            else
+            {
+                renderTexture = (RenderTexture)_highwaysOutput.texture;
+            }
 
             // Make the camera render on to the texture instead of the screen
             trackPlayer.TrackCamera.targetTexture = renderTexture;
@@ -71,8 +84,10 @@ namespace YARG.Gameplay.HUD
         private void UpdateAllSizing()
         {
             int count = _trackViews.Count;
-            foreach (var view in _trackViews)
-                view.UpdateSizing(count);
+            for (int i = 0; i < count; ++i)
+            {
+                _trackViews[i].UpdateSizing(count, i);
+            }
         }
 
         public void SetAllHUDPositions()

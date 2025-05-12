@@ -36,13 +36,16 @@ namespace YARG.Gameplay.HUD
             _trackPlayer = trackPlayer;
         }
 
-        public void UpdateSizing(int trackCount)
+        public void UpdateSizing(int trackCount, int trackPosition)
         {
             // This equation calculates a good scale for all of the tracks.
             // It was made with experimentation; there's probably a "real" formula for this.
             float scale = Mathf.Max(0.7f * Mathf.Log10(trackCount - 1), 0f);
             scale = 1f - scale;
 
+            var cam = _trackPlayer.TrackCamera;
+            float width = 1.0f / trackCount;
+            cam.rect = new Rect(width * trackPosition, 0.0f, width, 1.0f * scale);
         }
 
         public void UpdateHUDPosition()
