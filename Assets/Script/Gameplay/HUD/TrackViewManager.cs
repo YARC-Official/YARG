@@ -17,37 +17,40 @@ namespace YARG.Gameplay.HUD
 
         [Header("References")]
         [SerializeField]
-        private RawImage _vocalImage;
+        private RectTransform _vocalImage;
         [SerializeField]
-        private RawImage _highwaysOutput;
+        private RawImage _highwaysOutput = null;
         [SerializeField]
         private Transform _vocalHudParent;
         [SerializeField]
         private CountdownDisplay _vocalsCountdownDisplay;
 
+        private RenderTexture _highwaysOutputTexture;
         private readonly List<TrackView> _trackViews = new();
 
-        public TrackView CreateTrackView(TrackPlayer trackPlayer, YargPlayer player)
+        private RenderTexture outputRenderTexture()
         {
-            // Create a track view
-            var trackView = Instantiate(_trackViewPrefab, transform).GetComponent<TrackView>();
-            RenderTexture renderTexture;
-            if (!_highwaysOutput.IsActive())
+            if (_highwaysOutputTexture == null)
             {
-                _highwaysOutput.gameObject.SetActive(true);
-                
                 // Set up render texture
                 var descriptor = new RenderTextureDescriptor(
                     Screen.width, Screen.height,
                     RenderTextureFormat.ARGBHalf);
                 descriptor.mipCount = 0;
-                renderTexture = new RenderTexture(descriptor);
-                _highwaysOutput.texture = renderTexture;
-
+                _highwaysOutputTexture = new RenderTexture(descriptor);
             }
-            else
+            return _highwaysOutputTexture;
+        }
+
+        public TrackView CreateTrackView(TrackPlayer trackPlayer, YargPlayer player)
+        {
+            // Create a track view
+            var trackView = Instantiate(_trackViewPrefab, transform).GetComponent<TrackView>();
+            var renderTexture = outputRenderTexture();
+            if (!_highwaysOutput.IsActive())
             {
-                renderTexture = (RenderTexture)_highwaysOutput.texture;
+                _highwaysOutput.gameObject.SetActive(true);
+                _highwaysOutput.texture = renderTexture;
             }
 
             // Make the camera render on to the texture instead of the screen
@@ -67,12 +70,11 @@ namespace YARG.Gameplay.HUD
             _vocalImage.gameObject.SetActive(true);
 
             // Get the aspect ratio of the vocal image
-            var rect = _vocalImage.rectTransform.ToScreenSpace();
+            var rect = _vocalImage.ToScreenSpace();
             float ratio = rect.width / rect.height;
 
             // Apply the vocal track texture
-            var rt = GameManager.VocalTrack.InitializeRenderTexture(ratio);
-            _vocalImage.texture = rt;
+            GameManager.VocalTrack.InitializeRenderTexture(ratio, outputRenderTexture());
         }
 
         public VocalsPlayerHUD CreateVocalsPlayerHUD()

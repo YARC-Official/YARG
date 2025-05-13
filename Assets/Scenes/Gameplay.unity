@@ -3604,7 +3604,6 @@ GameObject:
   m_Component:
   - component: {fileID: 626807278}
   - component: {fileID: 626807281}
-  - component: {fileID: 626807280}
   - component: {fileID: 626807279}
   m_Layer: 5
   m_Name: Vocal Track
@@ -3655,33 +3654,6 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
---- !u!114 &626807280
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 626807277}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Texture: {fileID: 0}
-  m_UVRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
 --- !u!222 &626807281
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5842,7 +5814,7 @@ MonoBehaviour:
     type: 3}
   _vocalHudPrefab: {fileID: 3517124488286897926, guid: 6447755fd93bf6b4dbcb391c82737397,
     type: 3}
-  _vocalImage: {fileID: 626807280}
+  _vocalImage: {fileID: 626807278}
   _highwaysOutput: {fileID: 1731155431}
   _vocalHudParent: {fileID: 1338572397}
   _vocalsCountdownDisplay: {fileID: 0}
