@@ -38,6 +38,11 @@ namespace YARG.Gameplay.HUD
                     RenderTextureFormat.ARGBHalf);
                 descriptor.mipCount = 0;
                 _highwaysOutputTexture = new RenderTexture(descriptor);
+                if (!_highwaysOutput.IsActive())
+                {
+                    _highwaysOutput.gameObject.SetActive(true);
+                    _highwaysOutput.texture = _highwaysOutputTexture;
+                }
             }
             return _highwaysOutputTexture;
         }
@@ -47,11 +52,6 @@ namespace YARG.Gameplay.HUD
             // Create a track view
             var trackView = Instantiate(_trackViewPrefab, transform).GetComponent<TrackView>();
             var renderTexture = outputRenderTexture();
-            if (!_highwaysOutput.IsActive())
-            {
-                _highwaysOutput.gameObject.SetActive(true);
-                _highwaysOutput.texture = renderTexture;
-            }
 
             // Make the camera render on to the texture instead of the screen
             trackPlayer.TrackCamera.targetTexture = renderTexture;
