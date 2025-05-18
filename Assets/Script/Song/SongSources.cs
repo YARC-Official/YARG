@@ -14,6 +14,7 @@ using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Settings.Customization;
 
 namespace YARG.Song
 {
@@ -50,7 +51,7 @@ namespace YARG.Song
 
         public class ParsedSource
         {
-            private readonly string _icon;
+            public string _icon;
             private readonly Dictionary<string, string> _names;
 #nullable enable
             private Sprite? _sprite;
@@ -122,6 +123,7 @@ namespace YARG.Song
 #else
         public static readonly string SourcesFolder = Path.Combine(PathHelper.StreamingAssetsPath, "sources");
 #endif
+        public static readonly string CustomSourcesFolder = Path.Combine(CustomContentManager.CustomizationDirectory, "icons");
 
         private static readonly string[] SourceTypes =
         {
@@ -130,6 +132,7 @@ namespace YARG.Song
 
         private static readonly string[] SourceRoots =
         {
+            CustomSourcesFolder, // Prioritize user-supplied sources
             Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER, "base", "icons"),
             Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER, "extra", "icons"),
         };
@@ -282,32 +285,25 @@ namespace YARG.Song
 
         private static void ReadSources()
         {
+            // Read custom sources - they are read first so user replacements are prioritized
+            // Create the folder if it doesn't exist
+            Directory.CreateDirectory(CustomSourcesFolder);
+            // Read index.json if it exists; otherwise fallback to reading PNGs individually later on
+            string customIndexPath = Path.Combine(CustomSourcesFolder, "index.json");
+            var customSourcesRead = false;
+            if (File.Exists(customIndexPath))
+            {
+                ReadIndexPath(customIndexPath);
+                customSourcesRead = true;
+            }
+
+            // Read regular sources
             foreach (var index in SourceTypes)
             {
                 try
                 {
                     var indexPath = Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER, index, "index.json");
-                    var sources = JsonConvert.DeserializeObject<SourceIndex>(File.ReadAllText(indexPath));
-
-                    foreach (var source in sources.sources)
-                    {
-                        var parsed = new ParsedSource(source.icon, source.names, source.type switch
-                        {
-                            "game"    => SourceType.Game,
-                            "charter" => SourceType.Charter,
-                            "rb"      => SourceType.RB,
-                            "gh"      => SourceType.GH,
-                            _         => SourceType.Custom
-                        });
-
-                        foreach (var id in source.ids)
-                        {
-                            if (_sources.TryAdd(id, parsed) && id == DEFAULT_KEY)
-                            {
-                                _default = parsed;
-                            }
-                        }
-                    }
+                    ReadIndexPath(indexPath);
                 }
                 catch (Exception e)
                 {
@@ -319,6 +315,56 @@ namespace YARG.Song
                         YargLogger.LogError("Skipping and creating a backup source.");
                         CreateBackupSource();
                         return;
+                    }
+                }
+            }
+
+            // Read individual PNGs (this is done after reading regular sources, so their icons can be replaced if needed)
+            if (!customSourcesRead) {
+                PathHelper.SafeEnumerateFiles(CustomSourcesFolder, "*.png", true, (path) =>
+                {
+                    // Filename will be used for all values (id, name, icon path).
+                    var icon = Path.GetFileNameWithoutExtension(path);
+                    var names = new Dictionary<string, string> {
+                        { "en-US", icon }
+                    };
+                    var parsed = new ParsedSource(icon, names, SourceType.Custom);
+                    if (_sources.TryAdd(icon, parsed))
+                    {
+                        if (icon == DEFAULT_KEY)
+                        {
+                            _default = parsed;
+                        }
+                    }
+                    else // Source already exists; override its icon
+                    {
+                        _sources[icon]._icon = icon;
+                    }
+                    return true;
+                });
+            }
+        }
+
+        private static void ReadIndexPath(String indexPath)
+        {
+            var sources = JsonConvert.DeserializeObject<SourceIndex>(File.ReadAllText(indexPath));
+
+            foreach (var source in sources.sources)
+            {
+                var parsed = new ParsedSource(source.icon, source.names, source.type switch
+                {
+                    "game"    => SourceType.Game,
+                    "charter" => SourceType.Charter,
+                    "rb"      => SourceType.RB,
+                    "gh"      => SourceType.GH,
+                    _         => SourceType.Custom
+                });
+
+                foreach (var id in source.ids)
+                {
+                    if (_sources.TryAdd(id, parsed) && id == DEFAULT_KEY)
+                    {
+                        _default = parsed;
                     }
                 }
             }
