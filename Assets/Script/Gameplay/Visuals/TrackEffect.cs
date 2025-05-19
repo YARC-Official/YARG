@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 
@@ -49,12 +48,12 @@ namespace YARG.Gameplay.Visuals
         public bool OriginalStartTransitionEnable { get; private set; }
         public float Visibility { get; set; } = 1.0f;
 
-        public bool Equals(TrackEffect other) => Time.Equals(other.Time) && TimeEnd.Equals(other.TimeEnd);
+        public bool Equals(TrackEffect other) => other is not null && Time.Equals(other.Time) && TimeEnd.Equals(other.TimeEnd);
         public override bool Equals(object obj) => obj is TrackEffect && Equals((TrackEffect)obj);
         public override int GetHashCode() => HashCode.Combine(Time, TimeEnd);
         public int CompareTo(TrackEffect other) => Time.CompareTo(other.Time);
 
-        public static bool operator ==(TrackEffect left, TrackEffect right) => left.Equals(right);
+        public static bool operator ==(TrackEffect left, TrackEffect right) => left is not null && left.Equals(right);
         public static bool operator !=(TrackEffect left, TrackEffect right) => !(left == right);
         public static bool operator <(TrackEffect left, TrackEffect right) => left.CompareTo(right) < 0;
         public static bool operator >(TrackEffect left, TrackEffect right) => left.CompareTo(right) > 0;
@@ -130,7 +129,7 @@ namespace YARG.Gameplay.Visuals
             return slicedEffects;
         }
 
-        public static void HandleTransitions(TrackEffect current, TrackEffect next, float noteSpeed)
+        private static void HandleTransitions(TrackEffect current, TrackEffect next, float noteSpeed)
         {
             // If current contains next, we don't actually want to do anything
             if (current.Contains(next))
@@ -163,14 +162,14 @@ namespace YARG.Gameplay.Visuals
             List<TrackEffect> slicedEffects,
             List<TrackEffect> remainingEffects)
         {
-            // Add segment of outer effect lasting until the beginning of the overlap, assuming there is a gap
+            // Add segment of outer effect lasting until the beginning of the overlap
             if (outer.Time < inner.Time)
             {
                 slicedEffects.Add(new TrackEffect(outer.Time, inner.Time, outer.EffectType, outer.StartTransitionEnable,
                     false));
             }
 
-            // Add inner effect
+            // Add inner effect(s)
             var innerEnd = ProcessInnerEffects(outer, inner, slicedEffects, remainingEffects);
 
             // Add any remaining outer effect
@@ -200,8 +199,8 @@ namespace YARG.Gameplay.Visuals
 
                 // If outer does not contain inner, split outer at the end of the previous contained effect
                 // (one will definitely exist because this code path can't be reached without at least one
-                // inner being fully contained) and add it to the head of the list of effects so SliceEffect
-                // will handle it as an overlap on its next iteration
+                // inner being fully contained), add it to the head of the list of effects so SliceEffect
+                // will handle it as an overlap on its next iteration, and return
                 if (!outer.Contains(remainingEffects[0]))
                 {
                     var remainderOfOuter = new TrackEffect(slicedEffects[^1].TimeEnd, outer.TimeEnd,
@@ -228,7 +227,6 @@ namespace YARG.Gameplay.Visuals
             slicedEffects.Add(new TrackEffect(current.Time, next.Time, current.EffectType, current.StartTransitionEnable,
                 false));
             // Add the overlapping part
-            // next.TimeEnd may actually need to be Math.Min(current.TimeEnd, next.TimeEnd)
             slicedEffects.Add(new TrackEffect(next.Time, next.TimeEnd, GetEffectCombination(current, next),
                 false, next.EndTransitionEnable));
         }

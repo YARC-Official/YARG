@@ -1,11 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Serialization;
-using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 
@@ -541,7 +536,6 @@ namespace YARG.Gameplay.Visuals
         {
             if (_visibilityInTransition)
             {
-                // SetAllVisibility(Mathf.Lerp(_currentVisibility, Visibility, Time.deltaTime * 5f));
                 SetAllVisibility(Visibility);
             }
 
@@ -550,10 +544,6 @@ namespace YARG.Gameplay.Visuals
                 var timeSinceStart = GameManager.RealVisualTime - _visibilityStartTime;
                 // Go up the track at twice the notespeed (extra parentheses for clarity)
                 SetEffectMask((float) (StartZ + (timeSinceStart * Math.Max(10f, Player.NoteSpeed * 3))));
-
-                // var maskEndZ = (float) (StartZ + ((timeSinceStart * Player.NoteSpeed) * 2));
-                // SetEffectMask(Mathf.Lerp(_currentEndZ, EndZ, Time.deltaTime * 5f));
-                // SetEffectMask(maskEndZ);
             }
         }
 

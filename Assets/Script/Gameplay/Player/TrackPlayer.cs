@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
-using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
-using YARG.Core.Game;
-using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
-using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
@@ -574,12 +569,6 @@ namespace YARG.Gameplay.Player
             poolable.EnableFromPool();
         }
 
-        public float ZFromTime(double time)
-        {
-            float z = STRIKE_LINE_POS + (float) (time - GameManager.RealVisualTime) * NoteSpeed;
-            return z;
-        }
-
         protected virtual void OnNoteSpawned(TNote parentNote)
         {
         }
@@ -621,7 +610,7 @@ namespace YARG.Gameplay.Player
             BeatlineIndex = 0;
             ResetNoteCounters();
 
-            // Reset the solo overlay
+            // Reset the track effect overlay
             ResetTrackEffectOverlay(time);
 
             base.SetReplayTime(time);
@@ -629,7 +618,7 @@ namespace YARG.Gameplay.Player
 
         private void ResetTrackEffectOverlay(double time)
         {
-            // despawn any existing solos, rebuild solo structures, spawn any that are now in current
+            // despawn any existing track effects, rebuild track effect structures, spawn any that are now in current
             _upcomingEffects.Clear();
             for(var i = 0; i < EffectPool.AllSpawned.Count; i++)
             {
@@ -656,6 +645,7 @@ namespace YARG.Gameplay.Player
             if (poolable == null)
             {
                 YargLogger.LogWarning("Attempted to spawn note, but it's at its cap!");
+                return;
             }
 
             InitializeSpawnedNote(poolable, note);
