@@ -290,7 +290,7 @@ namespace YARG.Song
             Directory.CreateDirectory(CustomSourcesFolder);
             // Read index.json if it exists; otherwise fallback to reading PNGs individually later on
             string customIndexPath = Path.Combine(CustomSourcesFolder, "index.json");
-            var customSourcesRead = false;
+            bool customSourcesRead = false;
             if (File.Exists(customIndexPath))
             {
                 ReadIndexPath(customIndexPath);
@@ -320,11 +320,12 @@ namespace YARG.Song
             }
 
             // Read individual PNGs (this is done after reading regular sources, so their icons can be replaced if needed)
-            if (!customSourcesRead) {
+            if (!customSourcesRead)
+            {
                 PathHelper.SafeEnumerateFiles(CustomSourcesFolder, "*.png", true, (path) =>
                 {
                     // Filename will be used for all values (id, name, icon path).
-                    var icon = Path.GetFileNameWithoutExtension(path);
+                    string icon = Path.GetFileNameWithoutExtension(path);
                     var names = new Dictionary<string, string> {
                         { "en-US", icon }
                     };
@@ -336,7 +337,7 @@ namespace YARG.Song
                             _default = parsed;
                         }
                     }
-                    else // Source already exists; override its icon
+                    else // Source already exists; override its icon only (preserving metadata)
                     {
                         _sources[icon]._icon = icon;
                     }
@@ -360,7 +361,7 @@ namespace YARG.Song
                     _         => SourceType.Custom
                 });
 
-                foreach (var id in source.ids)
+                foreach (string id in source.ids)
                 {
                     if (_sources.TryAdd(id, parsed) && id == DEFAULT_KEY)
                     {
