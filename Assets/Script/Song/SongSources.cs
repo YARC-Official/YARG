@@ -51,7 +51,7 @@ namespace YARG.Song
 
         public class ParsedSource
         {
-            public string _icon;
+            public string IconName { get; set; }
             private readonly Dictionary<string, string> _names;
 #nullable enable
             private Sprite? _sprite;
@@ -65,7 +65,7 @@ namespace YARG.Song
 
             public ParsedSource(string icon, Dictionary<string, string> names, SourceType type)
             {
-                _icon = icon;
+                IconName = icon;
                 _names = names;
                 Type = type;
             }
@@ -88,7 +88,7 @@ namespace YARG.Song
 #nullable disable
                 foreach (var root in SourceRoots)
                 {
-                    string file = Path.Combine(root, $"{_icon}.png");
+                    string file = Path.Combine(root, $"{IconName}.png");
                     if (File.Exists(file))
                     {
                         using var image = await UniTask.RunOnThreadPool(() => YARGImage.Load(file));
@@ -105,7 +105,7 @@ namespace YARG.Song
 
                 if (texture == null)
                 {
-                    YargLogger.LogFormatWarning("Failed to find source icon `{0}`! Does it exist?", _icon);
+                    YargLogger.LogFormatWarning("Failed to find source icon `{0}`! Does it exist?", IconName);
                     return;
                 }
 
@@ -339,7 +339,7 @@ namespace YARG.Song
                     }
                     else // Source already exists; override its icon only (preserving metadata)
                     {
-                        _sources[icon]._icon = icon;
+                        _sources[icon].IconName = icon;
                     }
                     return true;
                 });
