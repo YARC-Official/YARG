@@ -260,7 +260,7 @@ namespace YARG.Gameplay.Player
 
             if (_fretPulseStarting && _fretPulseStartTime <= songTime)
             {
-                for (var i = nextShift.Range - 1; i < nextShift.Range + nextShift.Size - 1; i++)
+                for (var i = nextShift.Position - 1; i < nextShift.Position + nextShift.Size - 1; i++)
                 {
                     _fretArray.SetFretColorPulse(i, true, (float) nextShift.BeatDuration);
                 }
@@ -576,18 +576,17 @@ namespace YARG.Gameplay.Player
                 .ToList();
 
             _shiftIndicators.Clear();
-            int lastShiftRange = mostRecentEvent.Range;
+            var lastShiftRange = mostRecentEvent;
             int beatlineIndex = 0;
 
             foreach (var shift in _rangeShiftEventQueue.ToList())
             {
-                if (shift.Range == lastShiftRange)
+                if (shift.Position == lastShiftRange.Position && shift.Size == lastShiftRange.Size)
                 {
                     continue;
                 }
 
-                var shiftLeft = LeftyFlip ? shift.Range < lastShiftRange : shift.Range > lastShiftRange;
-                lastShiftRange = shift.Range;
+                var shiftLeft = LeftyFlip ? shift.Position < lastShiftRange.Position : shift.Position > lastShiftRange.Position;
 
                 double lastBeatTime = 0;
                 double firstBeatTime = double.MaxValue;
@@ -620,10 +619,12 @@ namespace YARG.Gameplay.Player
                     {
                         Time = beatlines[realIndex].Time,
                         LeftSide = shiftLeft,
-                        Offset = shiftLeft ? ((shift.Range + shift.Size) - 6) * -1 : shift.Range - 1,
-                        RangeIndicator = i == 1,
+                        Offset = shiftLeft ? ((shift.Position + shift.Size) - 6) * -1 : shift.Position - 1,
+                        RangeIndicator = i == 1 && shift.Position != lastShiftRange.Position,
                     });
                 }
+
+                lastShiftRange = shift;
 
                 // In case we have no samples for this shift event, 0.5 is a reasonable default
                 shift.BeatDuration = firstBeatTime < double.MaxValue ? (lastBeatTime - firstBeatTime) / SHIFT_INDICATOR_MEASURES_BEFORE : 0.5;
@@ -634,7 +635,7 @@ namespace YARG.Gameplay.Player
         {
             bool[] newFrets = new bool[5];
 
-            int start = range.Range - 1;
+            int start = range.Position - 1;
             int end = start + range.Size;
             for (int i = start; i < end; i++)
             {

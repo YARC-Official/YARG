@@ -26,8 +26,8 @@ namespace YARG.Gameplay.Visuals
             var newXScale = (RangeShift.Size / SCALE_DENOMINATOR) * 2;
 
             // TODO: There has got to be a better way to calculate this
-            var sign = RangeShift.Range < 2 ? -1 : 1;
-            var xPos = ((2 - newXScale) / 2) * (RangeShift.Range == 2 && RangeShift.Size == 3 ? 0f : sign);
+            var sign = RangeShift.Position < 2 ? -1 : 1;
+            var xPos = ((2 - newXScale) / 2) * (RangeShift.Position == 2 && RangeShift.Size == 3 ? 0f : sign);
 
             cachedTransform.localScale = new Vector3(newXScale, RANGE_Y_SCALE, transform.localScale.z);
             cachedTransform.localPosition = new Vector3(xPos, 0.002f, cachedTransform.localPosition.z);
