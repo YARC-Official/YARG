@@ -202,7 +202,7 @@ namespace YARG.Gameplay.Visuals
 
             for (int i = 0; i < _frets.Count; i++)
             {
-                if (_activeFrets[i] == frets[i])
+                if (_activeFrets[i] != frets[i])
                 {
                     if (frets[i])
                     {

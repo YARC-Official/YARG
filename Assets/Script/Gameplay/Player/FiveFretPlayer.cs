@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
-using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
@@ -51,15 +48,15 @@ namespace YARG.Gameplay.Player
             public bool   RangeIndicator;
         }
 
-        private List<FiveFretRangeShift>   _allRangeShiftEvents  = new();
-        private Queue<FiveFretRangeShift>  _rangeShiftEventQueue = new();
-        private FiveFretRangeShift         CurrentRange { get; set; }
-        private Queue<RangeShiftIndicator> _shiftIndicators = new();
-        private int                        _shiftIndicatorIndex;
-        private bool                       _fretPulseStarting;
-        private double                     _fretPulseStartTime;
+        private          FiveFretRangeShift[]       _allRangeShiftEvents;
+        private readonly Queue<FiveFretRangeShift>  _rangeShiftEventQueue = new();
+        private          FiveFretRangeShift         CurrentRange { get; set; }
+        private readonly Queue<RangeShiftIndicator> _shiftIndicators = new();
+        private          int                        _shiftIndicatorIndex;
+        private          bool                       _fretPulseStarting;
+        private          double                     _fretPulseStartTime;
 
-        private bool[] _activeFrets;
+        private bool[] _activeFrets = null;
 
         [Header("Five Fret Specific")]
         [SerializeField]
@@ -80,9 +77,6 @@ namespace YARG.Gameplay.Player
 
         private SongStem _stem;
         private double   _practiceSectionStartTime;
-
-        private bool LeftyFlip => Player.Profile.LeftyFlip;
-        private bool RangeEnabled => Player.Profile.RangeEnabled;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
@@ -156,7 +150,7 @@ namespace YARG.Gameplay.Player
                 Player.ThemePreset,
                 Player.Profile.GameMode,
                 Player.ColorProfile.FiveFretGuitar,
-                LeftyFlip);
+                Player.Profile.LeftyFlip);
 
             InitializeRangeShift();
             GameManager.BeatEventHandler.Subscribe(_fretArray.PulseFretColors);
@@ -176,7 +170,7 @@ namespace YARG.Gameplay.Player
 
             // This will set the current range correctly
             _practiceSectionStartTime = SyncTrack.TickToTime(start);
-            InitializeRangeShift(SyncTrack.TickToTime(start));
+            ResetRangeShift(_practiceSectionStartTime);
         }
 
         public override void SetReplayTime(double time)
@@ -190,17 +184,8 @@ namespace YARG.Gameplay.Player
             // Despawn shift indicators and rebuild the shift queues based on the replay time
             _rangeShiftEventQueue.Clear();
             _shiftIndicators.Clear();
-            for (var i = 0; i < _shiftIndicatorPool.AllSpawned.Count; i++)
-            {
-                var poolable = _shiftIndicatorPool.AllSpawned[i];
-                _shiftIndicatorPool.Return(poolable);
-            }
-
-            for (var i = 0; i < _rangeIndicatorPool.AllSpawned.Count; i++)
-            {
-                var poolable = _rangeIndicatorPool.AllSpawned[i];
-                _rangeIndicatorPool.Return(poolable);
-            }
+            _shiftIndicatorPool.ReturnAllObjects();
+            _rangeIndicatorPool.ReturnAllObjects();
 
             InitializeRangeShift(time);
         }
@@ -505,32 +490,36 @@ namespace YARG.Gameplay.Player
 
         private void InitializeRangeShift(double time = 0)
         {
+            if (!Player.Profile.RangeEnabled)
+            {
+                return;
+            }
+
             _rangeShiftEventQueue.Clear();
             // Default to everything on
-            _activeFrets = new bool[_fretArray.FretCount];
+            if (_activeFrets == null)
+            {
+                _activeFrets = new bool[_fretArray.FretCount];
+            }
+
             for (int i = 0; i < _fretArray.FretCount; i++)
             {
                 _activeFrets[i] = true;
             }
 
-            if (!RangeEnabled)
-            {
-                return;
-            }
-
-            if (_allRangeShiftEvents.Count == 0)
+            if (_allRangeShiftEvents == null)
             {
                 // Since we don't have a list yet, get it
                 _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
             }
 
             // Fewer than two range shifts makes no sense
-            if (_allRangeShiftEvents.Count < 1)
+            if (_allRangeShiftEvents.Length < 1)
             {
                 return;
             }
 
-            if (_allRangeShiftEvents.Count == 1 || Player.Profile.IsModifierActive(Modifier.RangeCompress))
+            if (_allRangeShiftEvents.Length == 1)
             {
                 // There are no actual shifts (or we aren't shifting because of range compression), but we should dim unused frets
                 CurrentRange = _allRangeShiftEvents[0];
@@ -540,18 +529,13 @@ namespace YARG.Gameplay.Player
 
             // Turns out that we have range shifts that need indicators
             var firstEvent = _allRangeShiftEvents[0];
-            _rangeShiftEventQueue = new Queue<FiveFretRangeShift>();
 
             FiveFretRangeShift mostRecentEvent = firstEvent;
 
             // Only queue range shifts that happen after time
-            foreach (var e in _allRangeShiftEvents)
+            for(int i = 1; i < _allRangeShiftEvents.Length; i++)
             {
-                // The first event just sets the starting range, so skip it
-                if (_allRangeShiftEvents.IndexOf(e) == 0)
-                {
-                    continue;
-                }
+                FiveFretRangeShift e = _allRangeShiftEvents[i];
                 // These have no visible effect on the track, so we just
                 // want to make sure any that are current or in the future are queued
                 // and to figure out which was the most recent event
@@ -586,7 +570,11 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                var shiftLeft = LeftyFlip ? shift.Position < lastShiftRange.Position : shift.Position > lastShiftRange.Position;
+                // When shift.Position and lastShiftRange.Position are the same, this result doesn't matter because
+                // the shift indicator won't be displayed, so it's OK that neither of these are <= or >=
+                var shiftLeft = Player.Profile.LeftyFlip
+                    ? shift.Position < lastShiftRange.Position
+                    : shift.Position > lastShiftRange.Position;
 
                 double lastBeatTime = 0;
                 double firstBeatTime = double.MaxValue;

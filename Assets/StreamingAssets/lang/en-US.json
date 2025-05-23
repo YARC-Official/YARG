@@ -61,7 +61,6 @@
             "UnpitchedOnly": "Unpitched Only",
             "NoDynamics": "No Dynamics",
             "NoVocalPercussion" : "No Percussion",
-            "NoDynamics": "No Dynamics",
             "RangeCompress": "No Range Shifts"
         },
         "SortAttribute": {
