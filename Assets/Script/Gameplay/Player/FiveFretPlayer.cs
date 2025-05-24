@@ -152,7 +152,13 @@ namespace YARG.Gameplay.Player
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip);
 
-            InitializeRangeShift();
+            if (Player.Profile.RangeEnabled)
+            {
+                _activeFrets = new bool[_fretArray.FretCount];
+                _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
+                InitializeRangeShift();
+            }
+
             GameManager.BeatEventHandler.Subscribe(_fretArray.PulseFretColors);
         }
 
@@ -187,7 +193,10 @@ namespace YARG.Gameplay.Player
             _shiftIndicatorPool.ReturnAllObjects();
             _rangeIndicatorPool.ReturnAllObjects();
 
-            InitializeRangeShift(time);
+            if (Player.Profile.RangeEnabled)
+            {
+                InitializeRangeShift(time);
+            }
         }
 
         protected override void UpdateVisuals(double songTime)
@@ -490,30 +499,14 @@ namespace YARG.Gameplay.Player
 
         private void InitializeRangeShift(double time = 0)
         {
-            if (!Player.Profile.RangeEnabled)
-            {
-                return;
-            }
-
             _rangeShiftEventQueue.Clear();
-            // Default to everything on
-            if (_activeFrets == null)
-            {
-                _activeFrets = new bool[_fretArray.FretCount];
-            }
-
+            // Default to all frets on
             for (int i = 0; i < _fretArray.FretCount; i++)
             {
                 _activeFrets[i] = true;
             }
 
-            if (_allRangeShiftEvents == null)
-            {
-                // Since we don't have a list yet, get it
-                _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
-            }
-
-            // Fewer than two range shifts makes no sense
+            // No range shifts, so just return
             if (_allRangeShiftEvents.Length < 1)
             {
                 return;
