@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using YARG.Core;
@@ -381,6 +382,27 @@ namespace YARG.Scores
             {
                 YargLogger.LogException(e, "Failed to load most played songs from database.");
                 return new List<SongEntry>();
+            }
+        }
+
+        public static StarAmount GetBestStarsForSong(HashWrapper songChecksum, Guid playerId)
+        {
+            try
+            {
+                var query =
+                    $"SELECT PlayerScores.Stars FROM PlayerScores " +
+                    $"INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id " +
+                    $"WHERE PlayerScores.PlayerId = '{playerId}' AND GameRecords.SongChecksum = x'{songChecksum}' " +
+                    $"ORDER BY PlayerScores.Percent DESC, PlayerScores.Stars DESC " +
+                    $"LIMIT 1";
+
+                var record = _db.QueryBestStars(songChecksum, playerId);
+                return record?.Stars ?? StarAmount.None;
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to fetch best star value from database.");
+                return StarAmount.None;
             }
         }
     }

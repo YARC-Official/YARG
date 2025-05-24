@@ -4,6 +4,8 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Logging;
+using YARG.Core.Song.Cache;
+using YARG.Helpers;
 using YARG.Integration;
 using YARG.Localization;
 using YARG.Menu.Navigation;
@@ -54,18 +56,20 @@ namespace YARG
                 YargLogger.LogException(ex);
             }
 
-            // Fast scan (cache read) on startup
-            await SongContainer.RunRefresh(true, context);
-
             // Auto connect profiles, using the same order that they were previously connected.
             if (SettingsManager.Settings.ReconnectProfiles.Value)
             {
                 PlayerContainer.AutoConnectProfiles();
+                CacheHandler.PlayerContext = new PlayerContext();
+                CacheHandler.StarProvider = new StarProvider();
             }
             else
             {
                 PlayerContainer.ClearProfileOrder();
             }
+
+            // Fast scan (cache read) on startup
+            await SongContainer.RunRefresh(true, context);
         }
     }
 

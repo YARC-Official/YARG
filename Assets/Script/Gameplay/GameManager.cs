@@ -15,6 +15,7 @@ using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Song;
+using YARG.Core.Song.Cache;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Integration;
@@ -138,6 +139,8 @@ namespace YARG.Gameplay
             YargPlayers = PlayerContainer.Players;
 
             Song = GlobalVariables.State.CurrentSong;
+            CacheHandler.PlayerContext = new PlayerContext();
+            CacheHandler.StarProvider = new StarProvider();
             ReplayInfo = GlobalVariables.State.CurrentReplay;
             IsPractice = GlobalVariables.State.IsPractice && ReplayInfo == null;
             _bandComboType = SettingsManager.Settings.BandComboTypeSetting.Value;

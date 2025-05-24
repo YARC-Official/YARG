@@ -407,6 +407,24 @@ namespace YARG.Scores
             );
         }
 
+        public PlayerScoreRecord QueryBestStars(HashWrapper songChecksum, Guid playerId)
+        {
+            string query = @"
+                SELECT PlayerScores.* FROM PlayerScores
+                INNER JOIN GameRecords
+                    ON PlayerScores.GameRecordId = GameRecords.Id
+                WHERE GameRecords.SongChecksum = ?
+                AND PlayerScores.PlayerId = ?
+                ORDER BY PlayerScores.Stars DESC
+                LIMIT 1";
+
+            return FindWithQuery<PlayerScoreRecord>(
+                query,
+                songChecksum.HashBytes,
+                playerId
+            );
+        }
+
         #endregion
     }
 

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -40,13 +41,23 @@ namespace YARG.Menu.MusicLibrary
         private GameObject _categoryNameContainer;
         [SerializeField]
         private TextMeshProUGUI _categoryText;
+        
+        [SerializeField]
+        private GameObject _starHeaderGroup;
+        [SerializeField]
+        private Image[] _starHeaderImages;
+
+        [SerializeField]
+        private Sprite _starGoldSprite;
+        [SerializeField]
+        private Sprite _starWhiteSprite;
 
         public override void Show(bool selected, ViewType viewType)
         {
             base.Show(selected, viewType);
 
             // use category header primary text (which supports wider text), when used as section header
-            if(viewType.UseWiderPrimaryText)
+            if (viewType.UseWiderPrimaryText)
             {
                 _songNameContainer.SetActive(false);
                 _categoryNameContainer.SetActive(true);
@@ -85,6 +96,48 @@ namespace YARG.Menu.MusicLibrary
             {
                 _favoriteButtonContainer.SetActive(false);
                 _favoriteButtonContainerSelected.SetActive(false);
+            }
+
+            string header = _categoryText.text;
+            string CleanHeaderText(string header)
+            {
+                return Regex.Replace(header, "<.*?>", string.Empty);
+            }
+
+            string rawHeader = CleanHeaderText(_categoryText.text);
+
+            int parsedStars = 0;
+            bool isGoldStars = rawHeader == "Gold Stars";
+            bool isNumericStars = false;
+
+            Match match = Regex.Match(rawHeader, @"^(\d+) Stars$");
+            if (match.Success)
+            {
+                isNumericStars = int.TryParse(match.Groups[1].Value, out parsedStars);
+            }
+
+            if (isGoldStars || isNumericStars)
+            {
+                int starCount = isGoldStars ? 5 : parsedStars;
+                Sprite starSprite = isGoldStars ? _starGoldSprite : _starWhiteSprite;
+
+                _categoryText.gameObject.SetActive(false);
+                _starHeaderGroup.SetActive(true);
+
+                for (int i = 0; i < _starHeaderImages.Length; i++)
+                {
+                    bool show = i < starCount;
+                    _starHeaderImages[i].gameObject.SetActive(show);
+                    if (show)
+                    {
+                        _starHeaderImages[i].sprite = starSprite;
+                    }
+                }
+            }
+            else
+            {
+                _categoryText.gameObject.SetActive(true);
+                _starHeaderGroup.SetActive(false);
             }
         }
 
