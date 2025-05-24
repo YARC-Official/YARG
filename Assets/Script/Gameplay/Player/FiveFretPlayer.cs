@@ -187,16 +187,18 @@ namespace YARG.Gameplay.Player
 
         private void ResetRangeShift(double time)
         {
+            if (!Player.Profile.RangeEnabled)
+            {
+                return;
+            }
+
             // Despawn shift indicators and rebuild the shift queues based on the replay time
             _rangeShiftEventQueue.Clear();
             _shiftIndicators.Clear();
             _shiftIndicatorPool.ReturnAllObjects();
             _rangeIndicatorPool.ReturnAllObjects();
+            InitializeRangeShift(time);
 
-            if (Player.Profile.RangeEnabled)
-            {
-                InitializeRangeShift(time);
-            }
         }
 
         protected override void UpdateVisuals(double songTime)
