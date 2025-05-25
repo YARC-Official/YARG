@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Haukcode.sACN;
 using UnityEngine;
 using YARG.Core.Logging;
+using YARG.Menu.Persistent;
 using YARG.Settings;
 
 namespace YARG.Integration.Sacn
@@ -30,6 +31,8 @@ namespace YARG.Integration.Sacn
         Queue<byte> _bassQueue = new Queue<byte>();
         Queue<byte> _drumsQueue = new Queue<byte>();
 
+        private bool _toastShown;
+
         public void HandleEnabledChanged(bool isEnabled)
         {
             if (isEnabled)
@@ -40,6 +43,12 @@ namespace YARG.Integration.Sacn
 
                 if (IPAddress == null)
                 {
+                    if (!_toastShown)
+                    {
+                        ToastManager.ToastWarning("No network found! sACN ouput disabled!");
+                        _toastShown = true;
+                    }
+
                     YargLogger.LogInfo("Failed to start sACN Hardware Controller (system has no IP address)");
                     return;
                 }
