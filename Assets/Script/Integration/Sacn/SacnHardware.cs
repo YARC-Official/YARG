@@ -36,14 +36,24 @@ namespace YARG.Integration.Sacn
             {
                 if (_sendClient != null) return;
 
+                var IPAddress = SACNCommon.GetFirstBindAddress().IPAddress;
+
+                if (IPAddress == null)
+                {
+                    YargLogger.LogInfo("Failed to start sACN Hardware Controller (system has no IP address)");
+                    return;
+                }
+
                 YargLogger.LogInfo("Starting sACN Hardware Controller...");
 
                 SacnInterpreter.OnChannelSet += HandleChannelEvent;
 
+
                 _sendClient = new SACNClient(senderId: _acnSourceId, senderName: ACN_SOURCE_NAME,
-                    localAddress: SACNCommon.GetFirstBindAddress().IPAddress);
+                    localAddress: IPAddress);
 
                 InvokeRepeating(nameof(Sender), 0, TIME_BETWEEN_CALLS);
+
             }
             else
             {
