@@ -183,6 +183,8 @@ namespace YARG.Gameplay.Player
             NoteTrack = OriginalNoteTrack;
             Notes = NoteTrack.Notes;
 
+            var events = NoteTrack.TextEvents;
+
             Engine = CreateEngine();
 
             base.ComboMeter.Initialize(player.EnginePreset, Engine.BaseParameters.MaxMultiplier);
@@ -387,8 +389,9 @@ namespace YARG.Gameplay.Player
             var difficulty = OriginalNoteTrack.Difficulty;
             var phrases = OriginalNoteTrack.Phrases;
             var textEvents = OriginalNoteTrack.TextEvents;
+            var shiftEvents = OriginalNoteTrack.RangeShiftEvents;
 
-            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents);
+            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents, shiftEvents);
             Notes = NoteTrack.Notes;
 
             ResetNoteCounters();
