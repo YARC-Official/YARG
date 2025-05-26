@@ -126,7 +126,35 @@ namespace YARG.Gameplay
                     global.LoadScene(SceneIndex.Menu);
                     return;
                 }
-                _replayController.gameObject.SetActive(true);
+
+                if (!GlobalVariables.State.PlayingWithReplay)
+                {
+                    _replayController.gameObject.SetActive(true);
+                }
+                else
+                {
+                    // var players = new YargPlayer[YargPlayers.Count + PlayerContainer.Players.Count];
+                    _replayController.gameObject.SetActive(false);
+                    var players = new List<YargPlayer>();
+                    players.AddRange(PlayerContainer.Players);
+                    for (int i = 0; i < YargPlayers.Count; i++)
+                    {
+                         // YargPlayers[i].ReplayIndex = i;
+                         players.Add(YargPlayers[i]);
+                    }
+
+                    YargPlayers = players.ToArray();
+                }
+
+                var replayIndex = 0;
+                foreach (var player in YargPlayers)
+                {
+                    if (player.IsReplay)
+                    {
+                        player.ReplayIndex = replayIndex;
+                        replayIndex++;
+                    }
+                }
             }
 
             context.Queue(UniTask.RunOnThreadPool(LoadChart), "Loading chart...");
@@ -322,7 +350,7 @@ namespace YARG.Gameplay
                 {
                     index++;
 
-                    if (ReplayInfo == null)
+                    if (!player.IsReplay)
                     {
                         // Reset microphone (resets channel buffers)
                         // We probably wanna do this no matter what, so put it up here
@@ -335,7 +363,7 @@ namespace YARG.Gameplay
                         continue;
                     }
 
-                    if (ReplayInfo == null)
+                    if (!player.IsReplay)
                     {
                         // Don't do this if it's a replay, because the replay
                         // would've already set its own presets at this point

@@ -298,7 +298,7 @@ namespace YARG.Gameplay
         {
             if (showMenu)
             {
-                if (ReplayInfo != null)
+                if (!GlobalVariables.State.PlayingWithReplay && ReplayInfo != null)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
                 }
@@ -405,7 +405,7 @@ namespace YARG.Gameplay
                 return false;
             }
 
-            if (ReplayInfo != null)
+            if (!GlobalVariables.State.PlayingWithReplay && ReplayInfo != null)
             {
                 Pause(false);
                 return true;
