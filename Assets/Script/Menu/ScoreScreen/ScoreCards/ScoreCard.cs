@@ -102,6 +102,11 @@ namespace YARG.Menu.ScoreScreen
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
                 ShowTag("High Score");
             }
+            else if (Player.IsReplay)
+            {
+                _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
+                ShowTag("Replay");
+            }
             else
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
