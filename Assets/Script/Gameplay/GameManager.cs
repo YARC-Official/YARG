@@ -479,6 +479,7 @@ namespace YARG.Gameplay
                     NotesHit = player.BaseStats.NotesHit,
                     NotesMissed = player.BaseStats.NotesMissed,
                     IsFc = player.IsFc,
+                    IsReplay = player.Player.IsReplay,
 
                     Percent = player.BaseStats.Percent
                 });
@@ -500,7 +501,8 @@ namespace YARG.Gameplay
                 BandScore = BandScore,
                 BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
 
-                SongSpeed = SongSpeed
+                SongSpeed = SongSpeed,
+                PlayedWithReplay = GlobalVariables.State.PlayingWithReplay,
             }, playerEntries);
         }
 
