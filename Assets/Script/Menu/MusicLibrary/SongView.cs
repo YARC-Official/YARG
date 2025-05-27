@@ -110,7 +110,7 @@ namespace YARG.Menu.MusicLibrary
             bool isGoldStars = rawHeader == "Gold Stars";
             bool isNumericStars = false;
 
-            Match match = Regex.Match(rawHeader, @"^(\d+) Stars$");
+            Match match = Regex.Match(rawHeader, @"^(\d+) Star[s]?$");
             if (match.Success)
             {
                 isNumericStars = int.TryParse(match.Groups[1].Value, out parsedStars);

@@ -425,6 +425,48 @@ namespace YARG.Scores
             );
         }
 
+        public PlayerScoreRecord QueryPlayerSongBestStars(
+            HashWrapper songChecksum,
+            Guid playerId,
+            Instrument instrument,
+            Difficulty difficulty,
+            bool highestDifficultyOnly
+        )
+        {
+            string query =
+                @"SELECT * FROM PlayerScores
+                INNER JOIN GameRecords
+                    ON PlayerScores.GameRecordId = GameRecords.Id
+                WHERE GameRecords.SongChecksum = ?
+                    AND PlayerScores.PlayerId = ?
+                    AND PlayerScores.Instrument = ?";
+
+            if (!highestDifficultyOnly)
+            {
+                query += @"
+                    AND PlayerScores.Difficulty = ?
+                    ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Stars DESC";
+            }
+            else
+            {
+                query += " ORDER BY PlayerScores.Stars DESC";
+            }
+            query += " LIMIT 1";
+
+            return highestDifficultyOnly
+                ? FindWithQuery<PlayerScoreRecord>(
+                    query,
+                    songChecksum.HashBytes,
+                    playerId,
+                    (int) instrument)
+                : FindWithQuery<PlayerScoreRecord>(
+                    query,
+                    songChecksum.HashBytes,
+                    playerId,
+                    (int) instrument,
+                    (int) difficulty);
+        }
+
         #endregion
     }
 

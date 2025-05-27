@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using YARG.Core;
@@ -385,18 +384,11 @@ namespace YARG.Scores
             }
         }
 
-        public static StarAmount GetBestStarsForSong(HashWrapper songChecksum, Guid playerId)
+        public static StarAmount GetBestStarsForSong(HashWrapper songChecksum, Guid playerId, Instrument instrument, Difficulty difficulty)
         {
             try
             {
-                var query =
-                    $"SELECT PlayerScores.Stars FROM PlayerScores " +
-                    $"INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id " +
-                    $"WHERE PlayerScores.PlayerId = '{playerId}' AND GameRecords.SongChecksum = x'{songChecksum}' " +
-                    $"ORDER BY PlayerScores.Percent DESC, PlayerScores.Stars DESC " +
-                    $"LIMIT 1";
-
-                var record = _db.QueryBestStars(songChecksum, playerId);
+                var record = _db.QueryPlayerSongBestStars(songChecksum, playerId, instrument, difficulty, false);
                 return record?.Stars ?? StarAmount.None;
             }
             catch (Exception e)
