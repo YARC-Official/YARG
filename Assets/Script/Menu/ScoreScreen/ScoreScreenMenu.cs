@@ -13,6 +13,7 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
+using YARG.Gameplay;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -61,7 +62,19 @@ namespace YARG.Menu.ScoreScreen
                 {
                     if (!_analyzingReplay)
                     {
-                        GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                        GlobalVariables.State.ShowIndex++;
+                        if (GlobalVariables.State.PlayingAShow && GlobalVariables.State.ShowIndex < GlobalVariables.State.ShowSongs.Count)
+                        {
+                            // Reset CurrentSong and launch back into the Gameplay scene
+                            GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex];
+                            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+
+                        }
+                        else
+                        {
+                            GlobalVariables.State.PlayingAShow = false;
+                            GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                        }
                     }
                 })
             }, true));
@@ -123,7 +136,10 @@ namespace YARG.Menu.ScoreScreen
 
         private void OnDisable()
         {
-            GlobalVariables.State = PersistentState.Default;
+            if (!GlobalVariables.State.PlayingAShow)
+            {
+                GlobalVariables.State = PersistentState.Default;
+            }
 
             Navigator.Instance.PopScheme();
         }

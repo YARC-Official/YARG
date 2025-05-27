@@ -272,6 +272,9 @@
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
             "Play": "Play Song",
             "Search": "Search",
+            "AddToShow": "Add To Show",
+            "AddedToShow": "Added To Show",
+            "StartShow": "Start The Show",
             "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>"
         },
         "ProfileInfo": {

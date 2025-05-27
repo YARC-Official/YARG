@@ -152,7 +152,23 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            GlobalVariables.State.CurrentSong = SongEntry;
+            if (_musicLibrary.ShowSongs.Count > 0)
+            {
+                GlobalVariables.State.PlayingAShow = true;
+                // _musicLibrary.ShowSongs.Add(SongEntry);
+                GlobalVariables.State.ShowSongs = _musicLibrary.ShowSongs;
+                GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs.First();
+                GlobalVariables.State.ShowIndex = 0;
+            }
+            else
+            {
+                GlobalVariables.State.CurrentSong = SongEntry;
+                // This just makes stuff in DifficultySelectMenu easier
+                GlobalVariables.State.ShowSongs.Clear();
+                GlobalVariables.State.ShowSongs.Add(SongEntry);
+                GlobalVariables.State.PlayingAShow = false;
+            }
+
             MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }
 

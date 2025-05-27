@@ -139,6 +139,9 @@ namespace YARG.Gameplay
 
         private StemMixer _mixer;
 
+        public bool PlayingAShow => GlobalVariables.State.PlayingAShow;
+        public int  ShowIndex = 0;
+
         private void Awake()
         {
             // Set references

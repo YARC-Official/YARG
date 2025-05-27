@@ -10,6 +10,7 @@ using YARG.Core.Song;
 using YARG.Localization;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
@@ -89,6 +90,8 @@ namespace YARG.Menu.MusicLibrary
 
         private List<HoldContext> _heldInputs = new();
 
+        public List<SongEntry> ShowSongs { get; set; } = new();
+
         private int _primaryHeaderIndex;
 
         protected override void Awake()
@@ -102,43 +105,7 @@ namespace YARG.Menu.MusicLibrary
         private void OnEnable()
         {
             // Set navigation scheme
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
-            {
-                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
-                    ctx =>
-                    {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
-                        {
-                            GoToPreviousSection();
-                        }
-                        else
-                        {
-                            SetWrapAroundState(!ctx.IsRepeat);
-                            SelectedIndex--;
-                        }
-                    }),
-                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
-                    ctx =>
-                    {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
-                        {
-                            GoToNextSection();
-                        }
-                        else
-                        {
-                            SetWrapAroundState(!ctx.IsRepeat);
-                            SelectedIndex++;
-                        }
-                    }),
-                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
-                    () => CurrentSelection?.PrimaryButtonClick()),
-
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
-                    () => _searchField.Focus()),
-                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                    OnButtonHit, OnButtonRelease),
-            }, false));
+            SetNavigationScheme();
 
             // Restore search
             _searchField.Restore();
@@ -194,6 +161,60 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
+        private void SetNavigationScheme(bool reset = false)
+        {
+            if (reset)
+            {
+                Navigator.Instance.PopScheme();
+            }
+
+            string greenKey = "Menu.Common.Confirm";
+            if (ShowSongs.Count > 0)
+            {
+                greenKey = "Menu.MusicLibrary.StartShow";
+            }
+
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
+                    ctx =>
+                    {
+                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        {
+                            GoToPreviousSection();
+                        }
+                        else
+                        {
+                            SetWrapAroundState(!ctx.IsRepeat);
+                            SelectedIndex--;
+                        }
+                    }),
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
+                    ctx =>
+                    {
+                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        {
+                            GoToNextSection();
+                        }
+                        else
+                        {
+                            SetWrapAroundState(!ctx.IsRepeat);
+                            SelectedIndex++;
+                        }
+                    }),
+                new NavigationScheme.Entry(MenuAction.Green, greenKey,
+                    () => CurrentSelection?.PrimaryButtonClick()),
+
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
+                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToShow",
+                    OnAddButtonHit),
+                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
+                    () => _searchField.Focus()),
+                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
+                    OnButtonHit, OnButtonRelease),
+            }, false));
+        }
+
         protected override void OnSelectedIndexChanged()
         {
             const double PREVIEW_SCROLL_DELAY = .6f;
@@ -222,6 +243,7 @@ namespace YARG.Menu.MusicLibrary
 
             _previewDelay = PREVIEW_SCROLL_DELAY;
         }
+
 
         protected override List<ViewType> CreateViewList()
         {
@@ -595,6 +617,7 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
+            ShowSongs.Clear();
             _previewCanceller?.Cancel();
             _previewContext?.Dispose();
             _previewContext = null;
@@ -620,6 +643,22 @@ namespace YARG.Menu.MusicLibrary
                 _popupMenu.gameObject.SetActive(true);
 
             _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
+        }
+
+        private void OnAddButtonHit(NavigationContext ctx)
+        {
+            if (CurrentSelection is not SongViewType selection)
+            {
+                return;
+            }
+
+            ShowSongs.Add(selection.SongEntry);
+            if (ShowSongs.Count == 1)
+            {
+                // We need to rebuild the navigation scheme after adding the first song
+                SetNavigationScheme(true);
+            }
+            ToastManager.ToastSuccess(Localize.Key("Menu.MusicLibrary.AddedToShow"));
         }
 
         private void GoToNextSection()
