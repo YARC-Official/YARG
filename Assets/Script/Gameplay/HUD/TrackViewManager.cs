@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Gameplay.Player;
+using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 
@@ -14,12 +15,12 @@ namespace YARG.Gameplay.HUD
         private GameObject _trackViewPrefab;
         [SerializeField]
         private GameObject _vocalHudPrefab;
+        [SerializeField]
+        private HighwayCameraRendering _highwayCameraRendering;
 
         [Header("References")]
         [SerializeField]
         private RectTransform _vocalImage;
-        [SerializeField]
-        private RawImage _highwaysOutput = null;
         [SerializeField]
         private Transform _vocalHudParent;
         [SerializeField]
@@ -28,36 +29,16 @@ namespace YARG.Gameplay.HUD
         private RenderTexture _highwaysOutputTexture;
         private readonly List<TrackView> _trackViews = new();
 
-        private RenderTexture outputRenderTexture()
-        {
-            if (_highwaysOutputTexture == null)
-            {
-                // Set up render texture
-                var descriptor = new RenderTextureDescriptor(
-                    Screen.width, Screen.height,
-                    RenderTextureFormat.ARGBHalf);
-                descriptor.mipCount = 0;
-                _highwaysOutputTexture = new RenderTexture(descriptor);
-                if (!_highwaysOutput.IsActive())
-                {
-                    _highwaysOutput.gameObject.SetActive(true);
-                    _highwaysOutput.texture = _highwaysOutputTexture;
-                }
-            }
-            return _highwaysOutputTexture;
-        }
-
         public TrackView CreateTrackView(TrackPlayer trackPlayer, YargPlayer player)
         {
             // Create a track view
             var trackView = Instantiate(_trackViewPrefab, transform).GetComponent<TrackView>();
-            var renderTexture = outputRenderTexture();
-
-            // Make the camera render on to the texture instead of the screen
-            trackPlayer.TrackCamera.targetTexture = renderTexture;
 
             // Setup track view to show the correct track
-            trackView.Initialize(renderTexture, player.CameraPreset, trackPlayer);
+            trackView.Initialize(trackPlayer);
+
+            trackPlayer.TrackCamera.targetTexture  = _highwayCameraRendering.GetHighwayOutputTexture();
+            _highwayCameraRendering.AddTrackPlayer(trackPlayer);
 
             _trackViews.Add(trackView);
             UpdateAllSizing();
@@ -74,7 +55,7 @@ namespace YARG.Gameplay.HUD
             float ratio = rect.width / rect.height;
 
             // Apply the vocal track texture
-            GameManager.VocalTrack.InitializeRenderTexture(ratio, outputRenderTexture());
+            GameManager.VocalTrack.InitializeRenderTexture(ratio, _highwayCameraRendering.GetHighwayOutputTexture());
         }
 
         public VocalsPlayerHUD CreateVocalsPlayerHUD()

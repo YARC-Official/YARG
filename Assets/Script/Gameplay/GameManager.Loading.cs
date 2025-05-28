@@ -11,6 +11,7 @@ using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
+using YARG.Gameplay.Visuals;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -369,8 +370,10 @@ namespace YARG.Gameplay
                         var trackPlayer = playerObject.GetComponent<TrackPlayer>();
                         var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
                         trackPlayer.Initialize(index, player, Chart, trackView, _mixer, lastHighScore);
-                        trackPlayer.SetFade(trackPlayer.ZeroFadePosition, trackPlayer.FadeSize);
-                        trackPlayer.SetCurveFactor(player.CameraPreset.CurveFactor);
+                        // TODO
+                        // FindObjectOfType<HighwayCameraRendering>().AddTrackPlayer(trackPlayer);
+                        //trackPlayer.SetFade(trackPlayer.ZeroFadePosition, trackPlayer.FadeSize);
+                        //trackPlayer.SetCurveFactor(player.CameraPreset.CurveFactor);
 
                         _players.Add(trackPlayer);
                     }

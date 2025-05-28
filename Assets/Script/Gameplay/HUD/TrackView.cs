@@ -31,13 +31,15 @@ namespace YARG.Gameplay.HUD
             _aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
         }
 
-        public void Initialize(RenderTexture rt, CameraPreset cameraPreset, TrackPlayer trackPlayer)
+        public void Initialize(TrackPlayer trackPlayer)
         {
             _trackPlayer = trackPlayer;
         }
 
         public void UpdateSizing(int trackCount, int trackPosition)
         {
+            // TODO, this is unnecessary now :-/, needs to move into vertex shader
+             
             // This equation calculates a good scale for all of the tracks.
             // It was made with experimentation; there's probably a "real" formula for this.
             float scale = Mathf.Max(0.7f * Mathf.Log10(trackCount - 1), 0f);

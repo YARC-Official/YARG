@@ -69,17 +69,6 @@ namespace YARG.Gameplay.Player
 
         private float _spawnAheadDelay;
 
-        public void SetFade(float zeroFadePosition, float fadeSize)
-        {
-            HighwayCameraRendering.fadeSize = fadeSize;
-            HighwayCameraRendering.zeroFadePosition = zeroFadePosition;
-        }
-
-        public void SetCurveFactor(float curveFactor)
-        {
-            HighwayCameraRendering.curveFactor = curveFactor;
-        }
-
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
         {

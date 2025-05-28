@@ -194,6 +194,18 @@ Varyings BuildVaryings(Attributes input)
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 
+    // // Example: move halfway right and scale down by factor X (e.g. 0.5)
+    // float2 offsetNDC = float2(0.5, -0.25); // move right by 0.5 in NDC
+    // float scale = 0.5; // scale down to 50%
+
+    // // Convert to clip space units
+    // float2 offsetClip = offsetNDC * output.positionCS.w;
+
+    // // Translate and scale in clip space
+    // float2 centered = output.positionCS.xy - float2(0.0, 0.0); // center if needed
+    // output.positionCS.xy = centered * scale + offsetClip;
+    
+
     return output;
 }
 

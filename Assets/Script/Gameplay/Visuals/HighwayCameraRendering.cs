@@ -1,7 +1,10 @@
-using System.Reflection;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
+using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -9,40 +12,97 @@ namespace YARG.Gameplay.Visuals
     [RequireComponent(typeof(Camera))]
     public class HighwayCameraRendering : MonoBehaviour
     {
-        [Range(-3.0F, 3.0F)]
-        public float curveFactor = 0.5F;
-        [Range(0.00F, 100.0F)]
-        public float zeroFadePosition = 3.0F;
-        [Range(0.00F, 5.0F)]
-        public float fadeSize = 1.25F;
+        [SerializeField]
+        private RawImage _highwaysOutput;
+
+        private List<TrackPlayer> _players = new();
 
         private Camera _renderCamera;
-        private CurveFadePass _curveFadePass;
-        private ResetParams _resetPass;
-        private Shader _Shader;
+        private RenderTexture _highwaysOutputTexture;
 
-        private float _prevZeroFade;
-        private float _prevFadeSize;
-        private float _prevCurveFactor;
+        private Texture2D _camMatrices = null;
+        // private CurveFadePass _curveFadePass;
+        // private ResetParams _resetPass;
 
-        public static readonly int CurveFactorID = Shader.PropertyToID("_CurveFactor");
-        public static readonly int FadeParamsID = Shader.PropertyToID("_FadeParams");
-        public static readonly int YARGinverseViewAndProjectionMatrix = Shader.PropertyToID("yarg_MatrixInvVP");
-        public static readonly int YARGViewAndProjectionMatrix = Shader.PropertyToID("yarg_MatrixVP");
 
-        protected internal Vector2 FadeParams;
+        // public static readonly int CurveFactorID = Shader.PropertyToID("_CurveFactor");
+        // public static readonly int FadeParamsID = Shader.PropertyToID("_FadeParams");
+        // public static readonly int YARGinverseViewAndProjectionMatrix = Shader.PropertyToID("yarg_MatrixInvVP");
+        // public static readonly int YARGViewAndProjectionMatrix = Shader.PropertyToID("yarg_MatrixVP");
+
+        // protected internal Vector2 FadeParams;
+
+        public static readonly int YargHighwaysNumberID = Shader.PropertyToID("_YargHighwaysN");
+        public static readonly int YargHighwayCamMatricesID = Shader.PropertyToID("_YargCamMatrices");
+
+        public RenderTexture GetHighwayOutputTexture()
+        {
+            if (_highwaysOutputTexture == null)
+            {
+                // Set up render texture
+                var descriptor = new RenderTextureDescriptor(
+                    Screen.width, Screen.height,
+                    RenderTextureFormat.ARGBHalf);
+                descriptor.mipCount = 0;
+                _highwaysOutputTexture = new RenderTexture(descriptor);
+            }
+            return _highwaysOutputTexture;
+        }
+
+        private void RecalculateCameraBounds()
+        {
+            float maxWorld = float.NaN;
+            float minWorld = float.NaN;
+            foreach (var player in _players)
+            {
+                // This doesn't matter too much as long
+                // as everything fits. This is just for frustrum culling.
+                var x = player.transform.position.x;
+                if (float.IsNaN(maxWorld) || maxWorld < x + 1)
+                {
+                    maxWorld = x + 1;
+                }
+                if (float.IsNaN(minWorld) || minWorld > x - 1)
+                {
+                    minWorld = x - 1;
+                }
+            }
+            _renderCamera.transform.position = _renderCamera.transform.position.WithX((minWorld + maxWorld) /  2);
+            _renderCamera.orthographicSize = Math.Max(25, (maxWorld - minWorld) / 2);
+
+            if (_camMatrices != null)
+            {
+                Destroy(_camMatrices);
+                _camMatrices = null;
+            }
+
+            _camMatrices = new Texture2D(_players.Count, 4, TextureFormat.RGBAFloat, false, true);
+        }
+
+        public void AddTrackPlayer(TrackPlayer trackPlayer)
+        {
+            var cameraData = trackPlayer.TrackCamera.GetUniversalAdditionalCameraData();
+            // This effectively disables rendering it but keeps components active
+            cameraData.renderType = CameraRenderType.Overlay;
+            _players.Add(trackPlayer);
+            RecalculateCameraBounds();
+            _highwaysOutput.texture = _highwaysOutputTexture;
+        }
+
 
         private void Awake()
         {
             _renderCamera = GetComponent<Camera>();
-            _curveFadePass = new CurveFadePass(this);
-            _resetPass = new ResetParams();
+            _renderCamera.targetTexture = GetHighwayOutputTexture();
+            
+            // _curveFadePass = new CurveFadePass(this);
+            // _resetPass = new ResetParams();
         }
 
         private void OnEnable()
         {
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
-            UpdateParams();
+            // UpdateParams();
         }
 
         private void OnDisable()
@@ -57,91 +117,91 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            if (_prevCurveFactor != curveFactor || _prevZeroFade != zeroFadePosition || _prevFadeSize != fadeSize)
-            {
-                UpdateParams();
-            }
+            // if (_prevCurveFactor != curveFactor || _prevZeroFade != zeroFadePosition || _prevFadeSize != fadeSize)
+            // {
+            //     UpdateParams();
+            // }
 
             var renderer = _renderCamera.GetUniversalAdditionalCameraData().scriptableRenderer;
-            renderer.EnqueuePass(_curveFadePass);
-            renderer.EnqueuePass(_resetPass);
+            // renderer.EnqueuePass(_curveFadePass);
+            // renderer.EnqueuePass(_resetPass);
         }
 
         private void UpdateParams()
         {
-            var worldZeroFadePosition = new Vector3(this.transform.position.x, this.transform.position.y, zeroFadePosition);
-            var worldFullFadePosition = new Vector3(this.transform.position.x, this.transform.position.y, zeroFadePosition - fadeSize);
-            Plane farPlane = new Plane();
+            // var worldZeroFadePosition = new Vector3(this.transform.position.x, this.transform.position.y, zeroFadePosition);
+            // var worldFullFadePosition = new Vector3(this.transform.position.x, this.transform.position.y, zeroFadePosition - fadeSize);
+            // Plane farPlane = new Plane();
 
-            farPlane.SetNormalAndPosition(_renderCamera.transform.forward, worldZeroFadePosition);
-            var fadeEnd = Mathf.Abs(farPlane.GetDistanceToPoint(_renderCamera.transform.position));
+            // farPlane.SetNormalAndPosition(_renderCamera.transform.forward, worldZeroFadePosition);
+            // var fadeEnd = Mathf.Abs(farPlane.GetDistanceToPoint(_renderCamera.transform.position));
 
-            farPlane.SetNormalAndPosition(_renderCamera.transform.forward, worldFullFadePosition);
-            var fadeStart = Mathf.Abs(farPlane.GetDistanceToPoint(_renderCamera.transform.position));
+            // farPlane.SetNormalAndPosition(_renderCamera.transform.forward, worldFullFadePosition);
+            // var fadeStart = Mathf.Abs(farPlane.GetDistanceToPoint(_renderCamera.transform.position));
 
-            FadeParams = new Vector2(fadeStart, fadeEnd == fadeStart ? fadeStart + 0.001f : fadeEnd);
+            // FadeParams = new Vector2(fadeStart, fadeEnd == fadeStart ? fadeStart + 0.001f : fadeEnd);
 
-            _prevCurveFactor = CurveFactorID;
-            _prevZeroFade = zeroFadePosition;
-            _prevFadeSize = fadeSize;
+            // _prevCurveFactor = CurveFactorID;
+            // _prevZeroFade = zeroFadePosition;
+            // _prevFadeSize = fadeSize;
         }
 
         // Curve and Fade could be separate render passes however
         // it seems natural to combine them to not go over
         // whole screen worth of data twice and we do not plan to
         // use them separately from each other
-        private sealed class CurveFadePass : ScriptableRenderPass
-        {
-            private CommandBuffer _cmd;
-            private HighwayCameraRendering _highwayCameraRendering;
+        // private sealed class CurveFadePass : ScriptableRenderPass
+        // {
+        //     private CommandBuffer _cmd;
+        //     private HighwayCameraRendering _highwayCameraRendering;
 
-            public CurveFadePass(HighwayCameraRendering highCamRend)
-            {
-                _highwayCameraRendering = highCamRend;
-                renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
-                ConfigureInput(ScriptableRenderPassInput.Depth);
-            }
+        //     public CurveFadePass(HighwayCameraRendering highCamRend)
+        //     {
+        //         _highwayCameraRendering = highCamRend;
+        //         renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+        //         ConfigureInput(ScriptableRenderPassInput.Depth);
+        //     }
 
-            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-            {
-                CommandBuffer cmd = CommandBufferPool.Get("HighwayParams");
+        //     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        //     {
+        //         CommandBuffer cmd = CommandBufferPool.Get("HighwayParams");
 
-                Matrix4x4 viewMatrix = renderingData.cameraData.GetViewMatrix();
-                Matrix4x4 gpuProjectionMatrix = renderingData.cameraData.GetGPUProjectionMatrix();
-                Matrix4x4 viewAndProjectionMatrix = gpuProjectionMatrix * viewMatrix;
-                Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
-                Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
-                Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
-                cmd.SetGlobalMatrix(YARGinverseViewAndProjectionMatrix, inverseViewProjection);
-                cmd.SetGlobalMatrix(YARGViewAndProjectionMatrix, viewAndProjectionMatrix);
+        //         Matrix4x4 viewMatrix = renderingData.cameraData.GetViewMatrix();
+        //         Matrix4x4 gpuProjectionMatrix = renderingData.cameraData.GetGPUProjectionMatrix();
+        //         Matrix4x4 viewAndProjectionMatrix = gpuProjectionMatrix * viewMatrix;
+        //         Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
+        //         Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
+        //         Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
+        //         cmd.SetGlobalMatrix(YARGinverseViewAndProjectionMatrix, inverseViewProjection);
+        //         cmd.SetGlobalMatrix(YARGViewAndProjectionMatrix, viewAndProjectionMatrix);
 
-                cmd.SetGlobalFloat(CurveFactorID, _highwayCameraRendering.curveFactor);
-                cmd.SetGlobalVector(FadeParamsID, _highwayCameraRendering.FadeParams);
+        //         cmd.SetGlobalFloat(CurveFactorID, _highwayCameraRendering.curveFactor);
+        //         cmd.SetGlobalVector(FadeParamsID, _highwayCameraRendering.FadeParams);
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+        //         context.ExecuteCommandBuffer(cmd);
+        //         cmd.Clear();
 
-                CommandBufferPool.Release(cmd);
-            }
-        }
+        //         CommandBufferPool.Release(cmd);
+        //     }
+        // }
 
-        private sealed class ResetParams : ScriptableRenderPass
-        {
+        // private sealed class ResetParams : ScriptableRenderPass
+        // {
 
-            public ResetParams()
-            {
-                renderPassEvent = RenderPassEvent.AfterRendering;
-            }
+        //     public ResetParams()
+        //     {
+        //         renderPassEvent = RenderPassEvent.AfterRendering;
+        //     }
 
-            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-            {
-                CommandBuffer cmd = CommandBufferPool.Get("ResetParams");
-                cmd.SetGlobalFloat(CurveFactorID, 0);
-                cmd.SetGlobalVector(FadeParamsID, Vector2.zero);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                CommandBufferPool.Release(cmd);
-            }
-        }
+        //     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        //     {
+        //         CommandBuffer cmd = CommandBufferPool.Get("ResetParams");
+        //         cmd.SetGlobalFloat(CurveFactorID, 0);
+        //         cmd.SetGlobalVector(FadeParamsID, Vector2.zero);
+        //         context.ExecuteCommandBuffer(cmd);
+        //         cmd.Clear();
+        //         CommandBufferPool.Release(cmd);
+        //     }
+        // }
     }
 }
