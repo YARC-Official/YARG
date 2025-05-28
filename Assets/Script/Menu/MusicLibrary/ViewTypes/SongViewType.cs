@@ -193,10 +193,25 @@ namespace YARG.Menu.MusicLibrary
 
                 // If we are in the favorites menu, then update the playlist
                 // to remove the song that was just removed.
-                if (MusicLibraryMenu.SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
+                if (_musicLibrary.SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
                 {
                     _musicLibrary.RefreshAndReselect();
                 }
+            }
+        }
+
+        public override void AddToPlaylist(Playlist playlist)
+        {
+            playlist.AddSong(SongEntry);
+        }
+
+        public override void RemoveFromPlaylist(Playlist playlist)
+        {
+            playlist.RemoveSong(SongEntry);
+
+            if (_musicLibrary.SelectedPlaylist == playlist)
+            {
+                _musicLibrary.RefreshAndReselect();
             }
         }
 

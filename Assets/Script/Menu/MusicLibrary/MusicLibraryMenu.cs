@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Windows.Forms;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Audio;
@@ -34,6 +35,13 @@ namespace YARG.Menu.MusicLibrary
         Full
     }
 
+    public enum MenuState
+    {
+        Library,
+        PlaylistSelect,
+        Playlist
+    }
+
     public class MusicLibraryMenu : ListMenu<ViewType, SongView>
     {
         private const int RANDOM_SONG_ID = 0;
@@ -43,7 +51,8 @@ namespace YARG.Menu.MusicLibrary
         public static MusicLibraryMode LibraryMode;
 
         public static SongEntry CurrentlyPlaying;
-        public static Playlist SelectedPlaylist;
+        public        MenuState MenuState;
+        public        Playlist  SelectedPlaylist;
 
 #nullable enable
         private static SongEntry[]? _recommendedSongs;
@@ -52,6 +61,8 @@ namespace YARG.Menu.MusicLibrary
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
         private static MusicLibraryReloadState _reloadState = MusicLibraryReloadState.Full;
+
+        public bool PlaylistMode => SelectedPlaylist != null;
 
         public static void SetReload(MusicLibraryReloadState state)
         {
@@ -159,6 +170,8 @@ namespace YARG.Menu.MusicLibrary
                 // Name makes a good fallback?
                 ChangeSort(SortAttribute.Name);
             }
+
+            MenuState = MenuState.Library;
         }
 
         private void SetNavigationScheme(bool reset = false)
@@ -171,7 +184,7 @@ namespace YARG.Menu.MusicLibrary
             string greenKey = "Menu.Common.Confirm";
             if (ShowSongs.Count > 0)
             {
-                greenKey = "Menu.MusicLibrary.StartShow";
+                greenKey = "Menu.MusicLibrary.StartSet";
             }
 
             Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -206,7 +219,7 @@ namespace YARG.Menu.MusicLibrary
                     () => CurrentSelection?.PrimaryButtonClick()),
 
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToShow",
+                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToSet",
                     OnAddButtonHit),
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
                     () => _searchField.Focus()),
@@ -250,12 +263,60 @@ namespace YARG.Menu.MusicLibrary
             // Shortcuts will be re-queried every time the list is refreshed
             _primaryHeaderIndex = 0;
 
-            var viewList = (SelectedPlaylist is not null) ? CreatePlaylistViewList() : CreateNormalViewList();
+            // var viewList = PlaylistMode ? CreatePlaylistViewList() : CreateNormalViewList();
+            // List<ViewType> viewList;
+            var viewList = MenuState switch
+            {
+                MenuState.Library        => CreateNormalViewList(),
+                MenuState.PlaylistSelect => CreatePlaylistSelectViewList(),
+                MenuState.Playlist       => CreatePlaylistViewList(),
+                _                        => throw new Exception("Unreachable.")
+            };
 
             // Disable shortcuts if there are less than 2 sort headers in the viewlist
             HasSortHeaders = _sortedSongs is not null && _sortedSongs.Length > 1;
 
             return viewList;
+        }
+
+        private List<ViewType> CreatePlaylistSelectViewList()
+        {
+            // TODO: If we're going to expand the playlists so that they all show on the same screen,
+            // we will also need to figure out how to update SelectedPlaylist when scrolling
+            var list = new List<ViewType>
+            {
+                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
+                    "MusicLibraryIcons[Back]", () =>
+                    {
+                        SelectedPlaylist = null;
+                        MenuState = MenuState.Library;
+                        Refresh();
+                    }, BACK_ID)
+            };
+
+            // Favorites is always on top
+            list.Add(new PlaylistViewType(
+                Localize.Key("Menu.MusicLibrary.Favorites"),
+                PlaylistContainer.FavoritesPlaylist,
+                () =>
+                {
+                    SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
+                    MenuState = MenuState.Playlist;
+                    Refresh();
+                }));
+
+            // Add any other user defined playlists
+            foreach (var playlist in PlaylistContainer.Playlists)
+            {
+                list.Add(new PlaylistViewType(playlist.Name, playlist, () =>
+                {
+                    SelectedPlaylist = playlist;
+                    MenuState = MenuState.Playlist;
+                    Refresh();
+                }));
+            }
+
+            return list;
         }
 
         private List<ViewType> CreateNormalViewList()
@@ -311,8 +372,7 @@ namespace YARG.Menu.MusicLibrary
                     "MusicLibraryIcons[Playlists]",
                     () =>
                     {
-                        // TODO: Proper playlist menu
-                        SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
+                        MenuState = MenuState.PlaylistSelect;
                         Refresh();
                     },
                     PLAYLIST_ID));
@@ -426,6 +486,7 @@ namespace YARG.Menu.MusicLibrary
         private void ExitPlaylistTab()
         {
             SelectedPlaylist = null;
+            MenuState = MenuState.PlaylistSelect;
             Refresh();
 
             // Select playlist button
@@ -487,7 +548,7 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            if (SelectedPlaylist is null)
+            if (!PlaylistMode)
             {
                 _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
                 _searchField.gameObject.SetActive(true);
@@ -605,7 +666,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void Back()
         {
-            if (SelectedPlaylist is not null)
+            if (PlaylistMode)
             {
                 ExitPlaylistTab();
                 return;
@@ -658,7 +719,7 @@ namespace YARG.Menu.MusicLibrary
                 // We need to rebuild the navigation scheme after adding the first song
                 SetNavigationScheme(true);
             }
-            ToastManager.ToastSuccess(Localize.Key("Menu.MusicLibrary.AddedToShow"));
+            ToastManager.ToastSuccess(Localize.Key("Menu.MusicLibrary.AddedToSet"));
         }
 
         private void GoToNextSection()

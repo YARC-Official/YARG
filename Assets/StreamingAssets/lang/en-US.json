@@ -252,6 +252,7 @@
             "PlayableSongs": "PLAYABLE SONGS",
             "RandomSong": "RANDOM SONG",
             "Playlists": "PLAYLISTS",
+            "Favorites": "FAVORITES",
             "Popup": {
                 "Header": {
                     "SortBy": "Sort By...",
@@ -264,6 +265,10 @@
                     "GoToSection": "Go To Section...",
                     "AddToFavorites": "Add To Favorites",
                     "RemoveFromFavorites": "Remove From Favorites",
+                    "AddToPlaylist": "Add To Playlist...",
+                    "RemoveFromPlaylist": "Remove From Playlist",
+                    "CreateNewPlaylist": "Create New...",
+                    "RemovePlaylist": "Remove Playlist",
                     "ViewSongFolder": "View Song Folder",
                     "CopySongChecksum": "Copy Song Checksum"
                 }
@@ -272,9 +277,9 @@
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
             "Play": "Play Song",
             "Search": "Search",
-            "AddToShow": "Add To Show",
-            "AddedToShow": "Added To Show",
-            "StartShow": "Start The Show",
+            "AddToSet": "Add To Setlist",
+            "AddedToSet": "Added To Setlist",
+            "StartSet": "Start The Set",
             "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>"
         },
         "ProfileInfo": {

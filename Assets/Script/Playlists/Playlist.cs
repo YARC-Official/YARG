@@ -32,12 +32,15 @@ namespace YARG.Playlists
             if (!ContainsSong(song))
             {
                 SongHashes.Add(song.Hash);
+                PlaylistContainer.SavePlaylist(this);
             }
+
         }
 
         public void RemoveSong(SongEntry song)
         {
             SongHashes.Remove(song.Hash);
+            PlaylistContainer.SavePlaylist(this);
         }
 
         public bool ContainsSong(SongEntry song)

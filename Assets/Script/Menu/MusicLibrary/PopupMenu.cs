@@ -10,7 +10,9 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Settings;
 using YARG.Song;
 
@@ -22,7 +24,8 @@ namespace YARG.Menu.MusicLibrary
         {
             Main,
             SortSelect,
-            GoToSection
+            GoToSection,
+            AddToPlaylist,
         }
 
         [SerializeField]
@@ -90,6 +93,9 @@ namespace YARG.Menu.MusicLibrary
                 case State.GoToSection:
                     CreateGoToSection();
                     break;
+                case State.AddToPlaylist:
+                    CreateAddToPlayList();
+                    break;
             }
 
             _navGroup.SelectFirst();
@@ -152,6 +158,35 @@ namespace YARG.Menu.MusicLibrary
                         gameObject.SetActive(false);
                     });
                 }
+
+                if (viewType is SongViewType && !_musicLibrary.PlaylistMode)
+                {
+                    CreateItem("AddToPlaylist", () =>
+                    {
+                        _menuState = State.AddToPlaylist;
+                        UpdateForState();
+                    });
+                }
+
+                if (_musicLibrary.PlaylistMode)
+                {
+                    CreateItem("RemoveFromPlaylist", () =>
+                    {
+                        _musicLibrary.CurrentSelection.RemoveFromPlaylist(_musicLibrary.SelectedPlaylist);
+                        gameObject.SetActive(false);
+                    });
+                }
+            }
+
+            if (viewType is PlaylistViewType playlistView &&
+                playlistView.Playlist != PlaylistContainer.FavoritesPlaylist)
+            {
+                CreateItem("RemovePlaylist", () =>
+                {
+                    PlaylistContainer.RemovePlaylist(playlistView.Playlist);
+                    _musicLibrary.RefreshAndReselect();
+                    gameObject.SetActive(false);
+                });
             }
 
             // Only show these options if we are selecting a song
@@ -241,6 +276,42 @@ namespace YARG.Menu.MusicLibrary
                     gameObject.SetActive(false);
                 });
             }
+        }
+
+        private void CreateAddToPlayList()
+        {
+            // Get the list of playlists from PlaylistContainer and create items for each
+            foreach (var playlist in PlaylistContainer.Playlists)
+            {
+                CreateItemUnlocalized(playlist.Name, () =>
+                {
+                    var selection = (SongViewType) _musicLibrary.CurrentSelection;
+                    var song = selection.SongEntry;
+                    var artist = song.Artist;
+                    var title = song.Name;
+                    // Add the song to the playlist
+                    _musicLibrary.CurrentSelection.AddToPlaylist(playlist);
+                    gameObject.SetActive(false);
+                    ToastManager.ToastSuccess($"Added {artist} - {title} to {playlist.Name}");
+                });
+            }
+
+            // Add option to create new playlist
+            CreateItem("CreateNewPlaylist", () =>
+            {
+                // Show text entry dialog
+                DialogManager.Instance.ShowRenameDialog("New Playlist Name", value =>
+                {
+                    // Create the playlist
+                    var playlist = PlaylistContainer.CreatePlaylist(value);
+                    // Add selected song to new playlist
+                    _musicLibrary.CurrentSelection.AddToPlaylist(playlist);
+                    // Close the popup
+                    gameObject.SetActive(false);
+                    _musicLibrary.RefreshViewsObjects();
+                    ToastManager.ToastSuccess("Playlist Created");
+                });
+            });
         }
 
         private void SetLocalizedHeader(string localizeKey)
