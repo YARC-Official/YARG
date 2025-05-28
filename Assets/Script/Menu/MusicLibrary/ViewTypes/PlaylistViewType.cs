@@ -10,6 +10,7 @@ namespace YARG.Menu.MusicLibrary
 {
     public class PlaylistViewType : CategoryViewType
     {
+        public override         BackgroundType          Background => BackgroundType.Normal;
         private static readonly Dictionary<int, Sprite> Sprites     = new();
         private const           string                  ICON_PATH   = "MusicLibraryIcons[Playlists]";
         private const           int                     PLAYLIST_ID = 1;
@@ -21,11 +22,6 @@ namespace YARG.Menu.MusicLibrary
             Action clickAction = null) : base(primary, songCount, songsUnderCategory, clickAction)
         {
             Playlist = playlist;
-
-            if (!Sprites.TryGetValue(PLAYLIST_ID, out _sprite))
-            {
-                Sprites.Add(PLAYLIST_ID, _sprite = Addressables.LoadAssetAsync<Sprite>(ICON_PATH).WaitForCompletion());
-            }
         }
 
         // I do not like that GetSongsFromPlaylist has to do the work twice, but songs can't be cached since
@@ -35,18 +31,6 @@ namespace YARG.Menu.MusicLibrary
             base(primary, GetSongsFromPlaylist(playlist).Length, GetSongsFromPlaylist(playlist), clickAction)
         {
             Playlist = playlist;
-
-            if (!Sprites.TryGetValue(PLAYLIST_ID, out _sprite))
-            {
-                Sprites.Add(PLAYLIST_ID, _sprite = Addressables.LoadAssetAsync<Sprite>(ICON_PATH).WaitForCompletion());
-            }
-        }
-
-#nullable enable
-        public override Sprite? GetIcon()
-#nullable disable
-        {
-            return _sprite;
         }
 
         public static SongEntry[] GetSongsFromPlaylist(Playlist playlist)
