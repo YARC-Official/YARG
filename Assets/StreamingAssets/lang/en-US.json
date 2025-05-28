@@ -252,7 +252,8 @@
             "PlayableSongs": "PLAYABLE SONGS",
             "RandomSong": "RANDOM SONG",
             "Playlists": "PLAYLISTS",
-            "Favorites": "FAVORITES",
+            "Favorites": "Favorites",
+            "YourPlaylists": "YOUR PLAYLISTS",
             "Popup": {
                 "Header": {
                     "SortBy": "Sort By...",
@@ -278,8 +279,11 @@
             "Play": "Play Song",
             "Search": "Search",
             "AddToSet": "Add To Setlist",
+            "AddToSetWithHold": "<align=left><size=80%>Add To Setlist<br>(Hold) Start The Set</size></align>",
             "AddedToSet": "Added To Setlist",
+            "PlaylistAddedToSet": "Added {0:N0} Songs From Playlist To Setlist",
             "StartSet": "Start The Set",
+            "NoSongsInPlaylist": "No Songs In Playlist",
             "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>"
         },
         "ProfileInfo": {
