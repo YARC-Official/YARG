@@ -19,18 +19,20 @@ namespace YARG.Menu.MusicLibrary
         private readonly        Sprite                  _sprite;
 
         public PlaylistViewType(string primary, int songCount, SongEntry[] songsUnderCategory, Playlist playlist,
-            Action clickAction = null) : base(primary, songCount, songsUnderCategory, clickAction)
+            Action clickAction = null, int id = -1) : base(primary, songCount, songsUnderCategory, clickAction)
         {
             Playlist = playlist;
+            ID = id;
         }
 
         // I do not like that GetSongsFromPlaylist has to do the work twice, but songs can't be cached since
         // it has to be static and I'm not sufficiently familiar with C# to figure out how to make CategoryViewType
         // use an initializer we can override.
-        public PlaylistViewType(string primary, Playlist playlist, Action clickAction = null) :
+        public PlaylistViewType(string primary, Playlist playlist, Action clickAction = null, int id = -1) :
             base(primary, GetSongsFromPlaylist(playlist).Length, GetSongsFromPlaylist(playlist), clickAction)
         {
             Playlist = playlist;
+            ID = id;
         }
 
         public static SongEntry[] GetSongsFromPlaylist(Playlist playlist)
