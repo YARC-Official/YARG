@@ -454,12 +454,24 @@ namespace YARG.Menu.DifficultySelect
             //  all songs and have them sit out songs that don't have that instrument
             _possibleInstruments.Clear();
             var allowedInstruments = profile.GameMode.PossibleInstruments();
+
+            List<SongEntry> songlist;
+
+            if (GlobalVariables.State.PlayingAShow)
+            {
+                songlist = GlobalVariables.State.ShowSongs;
+            }
+            else
+            {
+                songlist = new List<SongEntry> { GlobalVariables.State.CurrentSong };
+            }
+
             foreach (var instrument in allowedInstruments)
             {
                 bool invalidInstrument = false;
-                foreach (var showsong in GlobalVariables.State.ShowSongs)
+                foreach (var showSong in songlist)
                 {
-                    if (!HasPlayableInstrument(showsong, instrument))
+                    if (!HasPlayableInstrument(showSong, instrument))
                     {
                         invalidInstrument = true;
                         break;
