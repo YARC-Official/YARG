@@ -198,6 +198,12 @@ namespace YARG.Gameplay.Visuals
 
         private void ActivateGrooveSunburst(bool forceLight = false)
         {
+            // Ensure that the disable tween isn't still running
+            if (_sunburstDisableSequence.IsPlaying())
+            {
+                _sunburstDisableSequence.Complete(false);
+            }
+
             // If _starpower is set that means we are coming out of starpower, so we just want to run the sequence
             if (_starpower)
             {
@@ -231,6 +237,12 @@ namespace YARG.Gameplay.Visuals
                 // If we're in groove, we don't want to reset scale and such
                 _starpowerStartSequence.Restart();
                 return;
+            }
+
+            // Ensure that the disable tween isn't still running
+            if (_sunburstDisableSequence.IsPlaying())
+            {
+                _sunburstDisableSequence.Complete(false);
             }
 
             // We need to make sure that we're set up for starpower before we start the sequence
