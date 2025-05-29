@@ -99,7 +99,8 @@ namespace YARG.Menu.MusicLibrary
 
         private List<HoldContext> _heldInputs = new();
 
-        public List<SongEntry> ShowSongs { get; set; } = new();
+        // Doesn't go through PlaylistContainer because it is ephemeral
+        public Playlist        ShowPlaylist { get; set; } = new(true);
 
         private int _primaryHeaderIndex;
 
@@ -172,7 +173,8 @@ namespace YARG.Menu.MusicLibrary
             MenuState = MenuState.Library;
         }
 
-        private void SetNavigationScheme(bool reset = false)
+        // Public because PopupMenu may need to reset the navigation scheme
+        public void SetNavigationScheme(bool reset = false)
         {
             if (reset)
             {
@@ -180,7 +182,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             string yellowKey = "Menu.MusicLibrary.AddToSet";
-            if (ShowSongs.Count > 0)
+            if (ShowPlaylist.Count > 0)
             {
                 yellowKey = "Menu.MusicLibrary.AddToSetWithHold";
             }
@@ -261,8 +263,6 @@ namespace YARG.Menu.MusicLibrary
             // Shortcuts will be re-queried every time the list is refreshed
             _primaryHeaderIndex = 0;
 
-            // var viewList = PlaylistMode ? CreatePlaylistViewList() : CreateNormalViewList();
-            // List<ViewType> viewList;
             var viewList = MenuState switch
             {
                 MenuState.Library        => CreateNormalViewList(),
@@ -280,6 +280,7 @@ namespace YARG.Menu.MusicLibrary
         private List<ViewType> CreatePlaylistSelectViewList()
         {
             SongCategory[] emptyCategory = Array.Empty<SongCategory>();
+            int id = BACK_ID + 1;
             var list = new List<ViewType>
             {
                 new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
@@ -301,11 +302,25 @@ namespace YARG.Menu.MusicLibrary
                     SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
                     MenuState = MenuState.Playlist;
                     Refresh();
-                }));
+                }, PLAYLIST_ID));
 
 
             list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.YourPlaylists"),
                 "MusicLibraryIcons[Playlists]", () => { }));
+
+            // Add the setlist "playlist" if there are any songs currently in it
+            if (ShowPlaylist.Count > 0)
+            {
+                list.Add(new PlaylistViewType(Localize.Key("Menu.MusicLibrary.CurrentSetlist"), ShowPlaylist,
+                    () =>
+                    {
+                        SelectedPlaylist = ShowPlaylist;
+                        MenuState = MenuState.Playlist;
+                        Refresh();
+                    }, id));
+                id++;
+            }
+
             // Add any other user defined playlists
             foreach (var playlist in PlaylistContainer.Playlists)
             {
@@ -314,7 +329,8 @@ namespace YARG.Menu.MusicLibrary
                     SelectedPlaylist = playlist;
                     MenuState = MenuState.Playlist;
                     Refresh();
-                }));
+                }, id));
+                id++;
             }
 
             return list;
@@ -452,7 +468,7 @@ namespace YARG.Menu.MusicLibrary
             var list = new List<ViewType>
             {
                 new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
-                    "MusicLibraryIcons[Back]", ExitPlaylistTab, BACK_ID)
+                    "MusicLibraryIcons[Back]", ExitPlaylistView, BACK_ID)
             };
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
@@ -484,14 +500,33 @@ namespace YARG.Menu.MusicLibrary
             return list;
         }
 
-        private void ExitPlaylistTab()
+        private void ExitPlaylistView()
         {
             SelectedPlaylist = null;
             MenuState = MenuState.PlaylistSelect;
             Refresh();
 
             // Select playlist button
+            // TODO: Fix this to select the playlist we entered from, not favorites
             SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
+        }
+
+        private void ExitPlaylistSelect()
+        {
+            MenuState = MenuState.Library;
+            Refresh();
+
+            SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
+        }
+
+        private void ExitLibrary()
+        {
+            ShowPlaylist.Clear();
+            _previewCanceller?.Cancel();
+            _previewContext?.Dispose();
+            _previewContext = null;
+            StemSettings.ApplySettings = true;
+            MenuManager.Instance.PopMenu();
         }
 
         private void CalculateCategoryHeaderIndices(List<ViewType> list)
@@ -667,24 +702,24 @@ namespace YARG.Menu.MusicLibrary
 
         private void Back()
         {
-            if (PlaylistMode)
-            {
-                ExitPlaylistTab();
-                return;
-            }
-
             if (_searchField.IsSearching)
             {
                 _searchField.ClearFilterQueries();
                 return;
             }
 
-            ShowSongs.Clear();
-            _previewCanceller?.Cancel();
-            _previewContext?.Dispose();
-            _previewContext = null;
-            StemSettings.ApplySettings = true;
-            MenuManager.Instance.PopMenu();
+            switch(MenuState)
+            {
+                case MenuState.Playlist:
+                    ExitPlaylistView();
+                    break;
+                case MenuState.PlaylistSelect:
+                    ExitPlaylistSelect();
+                    break;
+                case MenuState.Library:
+                    ExitLibrary();
+                    break;
+            }
         }
 
         private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button)
@@ -726,19 +761,19 @@ namespace YARG.Menu.MusicLibrary
                         return;
                     }
 
-                    var i = 0;
-                    foreach (var songhash in playlist.Playlist.SongHashes)
+                    if (playlist.Playlist.Ephemeral)
                     {
-                        if (SongContainer.SongsByHash.TryGetValue(songhash, out var songs))
-                        {
-                            // Sometimes there are null entries, I presume because of song hashes that were once in the library
-                            // but have since gone missing
-                            if (songs[0] != null)
-                            {
-                                ShowSongs.Add(songs[0]);
-                                i++;
-                            }
-                        }
+                        // No, we won't add the setlist to itself, thanksgiving
+                        ToastManager.ToastError(Localize.Key("Menu.MusicLibrary.CannotAddToSelf"));
+                        return;
+                    }
+
+                    var i = 0;
+
+                    foreach (var song in playlist.Playlist.ToList())
+                    {
+                        ShowPlaylist.AddSong(song);
+                        i++;
                     }
 
                     if (i > 0)
@@ -751,10 +786,16 @@ namespace YARG.Menu.MusicLibrary
                         ;
                     }
 
-                    if (i > 0 && ShowSongs.Count == i)
+                    if (i > 0 && ShowPlaylist.Count == i)
                     {
                         // We need to rebuild the navigation scheme the first time we add song(s)
                         SetNavigationScheme(true);
+                    }
+
+                    // If we are in the playlist view, we need to refresh the view
+                    if (MenuState == MenuState.PlaylistSelect)
+                    {
+                        RefreshAndReselect();
                     }
 
                     return;
@@ -762,8 +803,8 @@ namespace YARG.Menu.MusicLibrary
 
                 if (CurrentSelection is SongViewType selection)
                 {
-                    ShowSongs.Add(selection.SongEntry);
-                    if (ShowSongs.Count == 1)
+                    ShowPlaylist.AddSong(selection.SongEntry);
+                    if (ShowPlaylist.Count == 1)
                     {
                         // We need to rebuild the navigation scheme after adding the first song
                         SetNavigationScheme(true);
@@ -775,10 +816,10 @@ namespace YARG.Menu.MusicLibrary
             else
             {
                 _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
-                if (ShowSongs.Count > 0)
+                if (ShowPlaylist.Count > 0)
                 {
                     GlobalVariables.State.PlayingAShow = true;
-                    GlobalVariables.State.ShowSongs = ShowSongs;
+                    GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
                     GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs.First();
                     GlobalVariables.State.ShowIndex = 0;
                     MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
