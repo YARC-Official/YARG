@@ -289,10 +289,32 @@ namespace YARG.Gameplay.Visuals
                 _colorChangeEnabled = false;
                 _fadeAmount = 0.0f;
 
-                if (_fadeAmount >= 1.0f)
+                if (_fadeDirection)
                 {
-                    _colorChangeEnabled = false;
-                    _fadeAmount = 0.0f;
+                    // Fading in
+                    foreach (var material in _topMaterials)
+                    {
+                        material.color = _originalUnityTopColor;
+                    }
+
+                    foreach (var material in _innerMaterials)
+                    {
+                        // Why was this _originalUnityTopColor?
+                        material.color = _originalUnityInnerColor;
+                    }
+                }
+                else
+                {
+                    // Fading out
+                    foreach (var material in _topMaterials)
+                    {
+                        material.color = _inactiveColor;
+                    }
+
+                    foreach (var material in _innerMaterials)
+                    {
+                        material.color = _inactiveColor;
+                    }
                 }
             }
         }
