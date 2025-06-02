@@ -120,7 +120,9 @@ namespace YARG.Gameplay.Player
                 Player.ThemePreset,
                 Player.Profile.GameMode,
                 colors,
-                Player.Profile.LeftyFlip);
+                Player.Profile.LeftyFlip,
+                Player.Profile.GameMode is GameMode.FiveLaneDrums && Player.Profile.SwapFiveLaneSnareAndHiHat
+            );
 
             // Particle 0 is always kick fret
             _kickFretFlash.Initialize(colors.GetParticleColor(0).ToUnityColor());

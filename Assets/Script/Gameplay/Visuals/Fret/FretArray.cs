@@ -34,7 +34,7 @@ namespace YARG.Gameplay.Visuals
         private float  _pulseDuration;
 
         public void Initialize(ThemePreset themePreset, GameMode gameMode,
-            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
+            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool swapFiveLaneSnareAndHiHat)
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
                 themePreset, gameMode);
@@ -43,12 +43,20 @@ namespace YARG.Gameplay.Visuals
             _frets.Clear();
             for (int i = 0; i < FretCount; i++)
             {
+                int effectivePosition = swapFiveLaneSnareAndHiHat ? i switch
+                { 
+                    0 => 1,
+                    1 => 0,
+                    _ => i
+                } : i;
+
+
                 // Spawn
                 var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);
 
                 // Position
-                float x = _trackWidth / FretCount * i - _trackWidth / 2f + 1f / FretCount;
+                float x = _trackWidth / FretCount * effectivePosition - _trackWidth / 2f + 1f / FretCount;
                 fret.transform.localPosition = new Vector3(leftyFlip ? -x : x, 0f, 0f);
 
                 // Scale
@@ -83,6 +91,7 @@ namespace YARG.Gameplay.Visuals
             }
 
             InitializeColor(fretColorProvider, leftyFlip);
+
             _activeFrets = new bool[FretCount];
             _pulsingFrets = new bool[FretCount];
             // Start with all frets active, they will be set inactive once TrackPlayer figures itself out
@@ -97,6 +106,7 @@ namespace YARG.Gameplay.Visuals
             for (int i = 0; i < _frets.Count; i++)
             {
                 int index = i + 1;
+
                 if (DontFlipColorsLeftyFlip && leftyFlip)
                 {
                     index = _frets.Count - index + 1;

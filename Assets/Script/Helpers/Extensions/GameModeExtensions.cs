@@ -57,6 +57,7 @@ namespace YARG.Helpers.Extensions
                 {
                     "Lefty Flip",
                     "Use Cymbal Models",
+                    "Swap Snare and Hi-Hat"
                 },
                 GameMode.SixFretGuitar => new List<string>
                 {
