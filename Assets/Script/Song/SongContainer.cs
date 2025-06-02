@@ -93,13 +93,14 @@ namespace YARG.Song
         private static SongCategory[] _sortCharters = Array.Empty<SongCategory>();
         private static SongCategory[] _sortPlaylists = Array.Empty<SongCategory>();
         private static SongCategory[] _sortSources = Array.Empty<SongCategory>();
-        private static SongCategory[] _sortStars = Array.Empty<SongCategory>();
         private static SongCategory[] _sortArtistAlbums = Array.Empty<SongCategory>();
         private static SongCategory[] _sortSongLengths = Array.Empty<SongCategory>();
         private static SongCategory[] _sortDatesAdded = Array.Empty<SongCategory>();
         private static Dictionary<Instrument, SongCategory[]> _sortInstruments = new();
 
         private static SongCategory[] _playables = null;
+        private static SongCategory[] _sortStars = Array.Empty<SongCategory>();
+        private static readonly Dictionary<SongEntry, StarAmount> _runtimeStars = new();
 
         public static IReadOnlyDictionary<string, List<SongEntry>> Titles => _songCache.Titles;
         public static IReadOnlyDictionary<string, List<SongEntry>> Years => _songCache.Years;
@@ -132,9 +133,6 @@ namespace YARG.Song
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var task = UniTask.RunOnThreadPool(() =>
             {
-                CacheHandler.PlayerContext ??= new PlayerContext();
-                CacheHandler.StarProvider ??= new StarProvider();
-
                 _songCache = CacheHandler.RunScan(quick,
                     PathHelper.SongCachePath,
                     PathHelper.BadSongsPath,
@@ -170,12 +168,12 @@ namespace YARG.Song
                 SortAttribute.Charter => _sortCharters,
                 SortAttribute.Playlist => _sortPlaylists,
                 SortAttribute.Source => _sortSources,
-                SortAttribute.Stars => _sortStars,
                 SortAttribute.Artist_Album => _sortArtistAlbums,
                 SortAttribute.SongLength => _sortSongLengths,
                 SortAttribute.DateAdded => _sortDatesAdded,
                 SortAttribute.Playcount => GetPlaycounts(),
                 SortAttribute.Playable => GetPlayableSongs(),
+                SortAttribute.Stars => GetStars(),
 
                 SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
                 SortAttribute.FiveFretBass   => _sortInstruments[Instrument.FiveFretBass],
@@ -339,6 +337,25 @@ namespace YARG.Song
             return countCategories;
         }
 
+        private static SongCategory[] GetStars()
+        {
+            YargPlayer player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+            if (player == null)
+            {
+                return Array.Empty<SongCategory>();
+            }
+
+            Dictionary<HashWrapper, StarAmount> bestStars = ScoreContainer.GetBestStarsForSong(player.Profile);
+            foreach (SongEntry song in _songs)
+            {
+                _runtimeStars[song] = bestStars.TryGetValue(song.Hash, out StarAmount stars)
+                    ? stars
+                    : StarAmount.None;
+            }
+
+            return BuildStarCategories();
+        }
+
         private static void UpdateSongUi(LoadingContext context)
         {
             var tracker = CacheHandler.Progress;
@@ -421,26 +438,34 @@ namespace YARG.Song
                 }
             }
 
-            _sortStars = CastStars(_songCache.Stars);
-            RefreshStarCategories();
+            _sortStars = BuildStarCategories();
 
             static SongEntry[] SetAllSongs(Dictionary<HashWrapper, List<SongEntry>> entries)
             {
                 int songCount = 0;
-                foreach (var node in entries)
+                foreach (KeyValuePair<HashWrapper, List<SongEntry>> node in entries)
                 {
                     songCount += node.Value.Count;
                 }
 
-                var songs = new SongEntry[songCount];
+                SongEntry[] songs = new SongEntry[songCount];
                 int index = 0;
-                foreach (var node in entries)
+
+                YargPlayer player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+                if (player != null)
                 {
-                    for (int i = 0; i < node.Value.Count; i++)
+                    Dictionary<HashWrapper, StarAmount> bestStars = ScoreContainer.GetBestStarsForSong(player.Profile);
+
+                    foreach (KeyValuePair<HashWrapper, List<SongEntry>> node in entries)
                     {
-                        SongEntry entry = node.Value[i];
-                        entry.PopulateStars(CacheHandler.StarProvider, CacheHandler.PlayerContext);
-                        songs[index++] = entry;
+                        for (int i = 0; i < node.Value.Count; i++)
+                        {
+                            SongEntry entry = node.Value[i];
+                            _runtimeStars[entry] = bestStars.TryGetValue(node.Key, out StarAmount stars)
+                                ? stars
+                                : StarAmount.None;
+                            songs[index++] = entry;
+                        }
                     }
                 }
                 return songs;
@@ -550,81 +575,61 @@ namespace YARG.Song
             }
         }
 
-        private static SongCategory[] CastStars(SortedDictionary<string, List<SongEntry>> list)
+        private static SongCategory[] BuildStarCategories()
         {
-            // Build key+list pairs with sort weight from the key name
-            var sortedGroups = list
-                .Select(pair =>
-                {
-                    var sortWeight = StarSortHelper.GetSortWeightFromKey(pair.Key);
-                    var sortedEntries = pair.Value
-                        .OrderByDescending(song => StarSortHelper.GetSortWeight((StarAmount) song.StarsAsNumber))
-                        .ToArray();
+            YargPlayer player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+            Instrument instrument = player?.Profile.CurrentInstrument ?? Instrument.FiveFretGuitar; // fallback
 
-                    return (sortWeight, key: pair.Key, entries: sortedEntries);
-                })
-                .OrderByDescending(group => group.sortWeight) // highest stars first
-                .ToList();
-
-            var sections = new SongCategory[sortedGroups.Count];
-            for (int i = 0; i < sortedGroups.Count; i++)
+            // Group songs by StarAmount
+            Dictionary<StarAmount, List<SongEntry>> grouped = new Dictionary<StarAmount, List<SongEntry>>();
+            foreach (SongEntry song in _songs)
             {
-                sections[i] = new SongCategory(sortedGroups[i].key, sortedGroups[i].entries, sortedGroups[i].key);
+                StarAmount key;
+                if (!song[instrument].IsActive())
+                {
+                    key = StarAmount.NoPart;
+                }
+                else
+                {
+                    key = _runtimeStars.TryGetValue(song, out StarAmount s) ? s : StarAmount.None;
+                }
+
+                if (!grouped.ContainsKey(key))
+                {
+                    grouped[key] = new List<SongEntry>();
+                }
+                grouped[key].Add(song);
+            }
+
+            // Sort group keys by descending sort weight
+            List<StarAmount> sortedKeys = new List<StarAmount>(grouped.Keys);
+            sortedKeys.Sort((a, b) => b.GetSortWeight().CompareTo(a.GetSortWeight()));
+
+            // Build SongCategory array
+            SongCategory[] sections = new SongCategory[sortedKeys.Count];
+            int i = 0;
+
+            foreach (StarAmount key in sortedKeys)
+            {
+                List<SongEntry> songsInGroup = grouped[key];
+
+                // Sort songs inside group
+                songsInGroup.Sort((s1, s2) =>
+                {
+                    int intensity1 = s1[instrument].Intensity == -1 ? int.MaxValue : s1[instrument].Intensity;
+                    int intensity2 = s2[instrument].Intensity == -1 ? int.MaxValue : s2[instrument].Intensity;
+
+                    int cmp = intensity1.CompareTo(intensity2);
+                    if (cmp != 0)
+                        return cmp;
+
+                    return string.Compare(s1.Name.ToString(), s2.Name.ToString(), StringComparison.OrdinalIgnoreCase);
+                });
+
+                sections[i++] = new SongCategory(key.GetDisplayName(), songsInGroup.ToArray(), key.GetDisplayName());
             }
 
             return sections;
-        }
-
-        public static void RefreshStarCategories()
-        {
-            _songCache.Stars.Clear();
-            foreach (var (hash, entryList) in _songCache.Entries)
-            {
-                foreach (var entry in entryList)
-                {
-                    var key = entry.ParsedStars;
-                    if (!_songCache.Stars.TryGetValue(key, out var list))
-                    {
-                        list = new();
-                        _songCache.Stars[key] = list;
-                    }
-                    list.Add(entry);
-                }
-            }
-            
-            Instrument chosenInstrument = CacheHandler.PlayerContext.GetCurrentInstrument();
-            foreach (var starBucket in _songCache.Stars.Values)
-            {
-                starBucket.Sort((a, b) =>
-                {
-                    int aIntensity = a[chosenInstrument].Intensity;
-                    int bIntensity = b[chosenInstrument].Intensity;
-
-                    // Push -1 (no part) to the end
-                    if (aIntensity == -1 && bIntensity != -1) return 1;
-                    if (bIntensity == -1 && aIntensity != -1) return -1;
-
-                    // Otherwise, sort 0–6 ascending
-                    int intensityCompare = aIntensity.CompareTo(bIntensity);
-                    if (intensityCompare != 0) return intensityCompare;
-
-                    // Tie-breaker: song name ascending
-                    return string.Compare(a.Name.ToString(), b.Name.ToString(), StringComparison.Ordinal);
-                });
-            }
-        }
-
-        public static void RefreshStarsForCurrentContext()
-        {
-            foreach (var entry in _songs)
-            {
-                entry.PopulateStars(CacheHandler.StarProvider, CacheHandler.PlayerContext);
-            }
-
-            MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
-
-            RefreshStarCategories();
-            _sortStars = CastStars(_songCache.Stars);
         }
     }
 }

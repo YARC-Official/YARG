@@ -60,8 +60,6 @@ namespace YARG
             if (SettingsManager.Settings.ReconnectProfiles.Value)
             {
                 PlayerContainer.AutoConnectProfiles();
-                CacheHandler.PlayerContext = new PlayerContext();
-                CacheHandler.StarProvider = new StarProvider();
             }
             else
             {

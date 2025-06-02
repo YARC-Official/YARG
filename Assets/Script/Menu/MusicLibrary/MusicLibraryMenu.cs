@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -6,6 +7,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Core.Song.Cache;
@@ -105,7 +107,7 @@ namespace YARG.Menu.MusicLibrary
         private static Instrument _lastInstrument;
         private static Difficulty _lastDifficulty;
         private static bool _needsReload = false;
-        
+
         public static void NeedsReload()
         {
             _needsReload = true;
@@ -280,18 +282,28 @@ namespace YARG.Menu.MusicLibrary
                 }, false));
             }
 
-
-            Instrument currentInstrument = CacheHandler.PlayerContext.GetCurrentInstrument();
-            Difficulty currentDifficulty = CacheHandler.PlayerContext.GetCurrentDifficulty();
-
+            // Check if instrument or difficulty has changed, triggering a library refresh
+            YargProfile profile = null;
+            foreach (YargPlayer p in PlayerContainer.Players)
+            {
+                if (!p.Profile.IsBot)
+                {
+                    profile = p.Profile;
+                    break;
+                }
+            }
+            Instrument currentInstrument = profile?.CurrentInstrument ?? Instrument.FiveFretGuitar;
+            Difficulty currentDifficulty = profile?.CurrentDifficulty ?? Difficulty.Expert;
             if (_needsReload ||
                 currentInstrument != _lastInstrument ||
                 currentDifficulty != _lastDifficulty)
             {
-                SongContainer.RefreshStarsForCurrentContext();
                 _lastInstrument = currentInstrument;
                 _lastDifficulty = currentDifficulty;
                 _needsReload = false;
+
+                _searchField.Reset();
+                UpdateSearch(true);
             }
 
             // Restore search

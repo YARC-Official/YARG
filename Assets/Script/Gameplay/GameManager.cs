@@ -139,8 +139,6 @@ namespace YARG.Gameplay
             YargPlayers = PlayerContainer.Players;
 
             Song = GlobalVariables.State.CurrentSong;
-            CacheHandler.PlayerContext = new PlayerContext();
-            CacheHandler.StarProvider = new StarProvider();
             ReplayInfo = GlobalVariables.State.CurrentReplay;
             IsPractice = GlobalVariables.State.IsPractice && ReplayInfo == null;
             _bandComboType = SettingsManager.Settings.BandComboTypeSetting.Value;

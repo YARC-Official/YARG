@@ -49,6 +49,14 @@ namespace YARG.Scores
     }
 
     /// <summary>
+    /// Extended player score record that includes the joined SongChecksum.
+    /// </summary>
+    public class PlayerScoreWithChecksum : PlayerScoreRecord
+    {
+        public byte[] SongChecksum { get; set; }
+    }
+
+    /// <summary>
     /// The score database.
     /// </summary>
     /// <remarks>
@@ -407,64 +415,35 @@ namespace YARG.Scores
             );
         }
 
-        public PlayerScoreRecord QueryBestStars(HashWrapper songChecksum, Guid playerId)
+        public List<PlayerScoreWithChecksum> QueryPlayerBestStars(YargProfile profile, bool highestDifficultyOnly)
         {
-            string query = @"
-                SELECT PlayerScores.* FROM PlayerScores
-                INNER JOIN GameRecords
-                    ON PlayerScores.GameRecordId = GameRecords.Id
-                WHERE GameRecords.SongChecksum = ?
-                AND PlayerScores.PlayerId = ?
-                ORDER BY PlayerScores.Stars DESC
-                LIMIT 1";
-
-            return FindWithQuery<PlayerScoreRecord>(
-                query,
-                songChecksum.HashBytes,
-                playerId
-            );
-        }
-
-        public PlayerScoreRecord QueryPlayerSongBestStars(
-            HashWrapper songChecksum,
-            Guid playerId,
-            Instrument instrument,
-            Difficulty difficulty,
-            bool highestDifficultyOnly
-        )
-        {
-            string query =
-                @"SELECT * FROM PlayerScores
-                INNER JOIN GameRecords
-                    ON PlayerScores.GameRecordId = GameRecords.Id
-                WHERE GameRecords.SongChecksum = ?
-                    AND PlayerScores.PlayerId = ?
-                    AND PlayerScores.Instrument = ?";
+            string query = $@"SELECT * FROM (
+                SELECT * FROM PlayerScores
+                    INNER JOIN GameRecords
+                ON PlayerScores.GameRecordId = GameRecords.Id
+                WHERE PlayerId = ?
+                    AND Instrument = ?";
 
             if (!highestDifficultyOnly)
             {
                 query += @"
-                    AND PlayerScores.Difficulty = ?
-                    ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Stars DESC";
+                    AND PlayerScores.Difficulty = ?";
             }
-            else
-            {
-                query += " ORDER BY PlayerScores.Stars DESC";
-            }
-            query += " LIMIT 1";
+            query += @"
+                ORDER BY PlayerScores.Stars DESC
+                )
+                GROUP BY SongChecksum";
 
             return highestDifficultyOnly
-                ? FindWithQuery<PlayerScoreRecord>(
+                ? Query<PlayerScoreWithChecksum>(
                     query,
-                    songChecksum.HashBytes,
-                    playerId,
-                    (int) instrument)
-                : FindWithQuery<PlayerScoreRecord>(
+                    profile.Id,
+                    (int) profile.CurrentInstrument)
+                : Query<PlayerScoreWithChecksum>(
                     query,
-                    songChecksum.HashBytes,
-                    playerId,
-                    (int) instrument,
-                    (int) difficulty);
+                    profile.Id,
+                    (int) profile.CurrentInstrument,
+                    (int) profile.CurrentDifficulty);
         }
 
         #endregion

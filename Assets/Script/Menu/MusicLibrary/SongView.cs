@@ -1,7 +1,9 @@
+using System;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Core.Game;
 using YARG.Menu.ListMenu;
 using YARG.Settings;
 
@@ -98,28 +100,26 @@ namespace YARG.Menu.MusicLibrary
                 _favoriteButtonContainerSelected.SetActive(false);
             }
 
-            string header = _categoryText.text;
-            string CleanHeaderText(string header)
+            StarAmount starHeaderAmount = StarAmount.None;
+
+            foreach (StarAmount amount in Enum.GetValues(typeof(StarAmount)))
             {
-                return Regex.Replace(header, "<.*?>", string.Empty);
+                if (amount == StarAmount.None || amount == StarAmount.NoPart)
+                    continue; // skip irrelevant entries
+
+                string displayName = amount.GetDisplayName();
+
+                if (_categoryText.text.Contains(">" + displayName + "<"))
+                {
+                    starHeaderAmount = amount;
+                    break;
+                }
             }
 
-            string rawHeader = CleanHeaderText(_categoryText.text);
-
-            int parsedStars = 0;
-            bool isGoldStars = rawHeader == "Gold Stars";
-            bool isNumericStars = false;
-
-            Match match = Regex.Match(rawHeader, @"^(\d+) Star[s]?$");
-            if (match.Success)
+            if (starHeaderAmount != StarAmount.None)
             {
-                isNumericStars = int.TryParse(match.Groups[1].Value, out parsedStars);
-            }
-
-            if (isGoldStars || isNumericStars)
-            {
-                int starCount = isGoldStars ? 5 : parsedStars;
-                Sprite starSprite = isGoldStars ? _starGoldSprite : _starWhiteSprite;
+                int starCount = starHeaderAmount.GetStarCount();
+                Sprite starSprite = starHeaderAmount == StarAmount.StarGold ? _starGoldSprite : _starWhiteSprite;
 
                 _categoryText.gameObject.SetActive(false);
                 _starHeaderGroup.SetActive(true);

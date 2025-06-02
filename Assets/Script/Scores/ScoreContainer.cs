@@ -384,18 +384,18 @@ namespace YARG.Scores
             }
         }
 
-        public static StarAmount GetBestStarsForSong(HashWrapper songChecksum, Guid playerId, Instrument instrument, Difficulty difficulty)
+        public static Dictionary<HashWrapper, StarAmount> GetBestStarsForSong(YargProfile profile)
         {
-            try
+            List<PlayerScoreWithChecksum> records = _db.QueryPlayerBestStars(profile, false);
+            Dictionary<HashWrapper, StarAmount> result = new Dictionary<HashWrapper, StarAmount>();
+
+            foreach (PlayerScoreWithChecksum record in records)
             {
-                var record = _db.QueryPlayerSongBestStars(songChecksum, playerId, instrument, difficulty, false);
-                return record?.Stars ?? StarAmount.None;
+                HashWrapper hash = HashWrapper.Create(record.SongChecksum);
+                result[hash] = record.Stars;
             }
-            catch (Exception e)
-            {
-                YargLogger.LogException(e, "Failed to fetch best star value from database.");
-                return StarAmount.None;
-            }
+
+            return result;
         }
     }
 }

@@ -188,7 +188,10 @@ namespace YARG.Menu.ScoreScreen
             }
 
             // Mark that the music library should refresh when next opened
-            MusicLibraryMenu.NeedsReload();
+            if (GlobalVariables.State.ScoreScreenStats.Value.PlayerScores.Any(e => !e.Player.Profile.IsBot))
+            {
+                MusicLibraryMenu.NeedsReload();
+            }
             
             // Make sure to update the canvases since we *just* added the score cards
             Canvas.ForceUpdateCanvases();
