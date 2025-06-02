@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using YARG.Core.Input;
-using YARG.Core.Song;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -14,14 +13,7 @@ namespace YARG.Menu.MusicLibrary
 {
     public partial class MusicLibraryMenu
     {
-        public struct ShowCategory
-        {
-            public ShowCategoryType Category;
-            public SongEntry        Song;
-        }
-
         public Playlist       ShowPlaylist   { get; set; }         = new(true);
-        public ShowCategory[] ShowCategories { get; private set; } = new ShowCategory[5];
 
         private List<ViewType> CreatePlaylistSelectViewList()
         {
@@ -173,55 +165,8 @@ namespace YARG.Menu.MusicLibrary
                     }),
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                     () => CurrentSelection?.PrimaryButtonClick()),
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                new NavigationScheme.Entry(MenuAction.Yellow, "Play Me Show, Mateys!",
-                    OnPlayShowHit),
-                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
-                    () => _searchField.Focus()),
-                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                    OnButtonHit, OnButtonRelease),
-            }, false));
-        }
-
-        private void SetShowSelectNavigationScheme(bool reset = false)
-        {
-            if (reset)
-            {
-                Navigator.Instance.PopScheme();
-            }
-
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
-            {
-                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
-                    ctx =>
-                    {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
-                        {
-                            GoToPreviousSection();
-                        }
-                        else
-                        {
-                            SetWrapAroundState(!ctx.IsRepeat);
-                            SelectedIndex--;
-                        }
-                    }),
-                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
-                    ctx =>
-                    {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
-                        {
-                            GoToNextSection();
-                        }
-                        else
-                        {
-                            SetWrapAroundState(!ctx.IsRepeat);
-                            SelectedIndex++;
-                        }
-                    }),
-                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
-                    () => CurrentSelection?.PrimaryButtonClick()),
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                new NavigationScheme.Entry(MenuAction.Yellow, "Play Me Show, Mateys!",
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", LeaveShowMode),
+                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.StartShow",
                     OnPlayShowHit),
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
                     () => _searchField.Focus()),
@@ -239,16 +184,6 @@ namespace YARG.Menu.MusicLibrary
             // Select playlist button
             // TODO: Fix this to select the playlist we entered from, not favorites
             SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
-        }
-
-        private void ExitShowView()
-        {
-            SelectedPlaylist = null;
-            MenuState = MenuState.Library;
-            Refresh();
-
-            // An arbitrary choice
-            SetIndexTo(i => i is ButtonViewType { ID: RANDOM_SONG_ID });
         }
 
         private void ExitPlaylistSelect()
@@ -302,10 +237,14 @@ namespace YARG.Menu.MusicLibrary
 
         private void LeaveShowMode()
         {
+            SelectedPlaylist = null;
+
             // Pop the navigation scheme
             Navigator.Instance.PopScheme();
+            // We have to reset the navigation scheme so the help bar has the correct yellow button text
+            // in the case that we are leaving show mode with a playlist that has entries
+            SetNavigationScheme(true);
 
-            SelectedPlaylist = null;
 
             // Back to library
             MenuState = MenuState.Library;
@@ -364,7 +303,6 @@ namespace YARG.Menu.MusicLibrary
                 else
                 {
                     ToastManager.ToastWarning(Localize.Key("Menu.MusicLibrary.NoSongsInPlaylist"));
-                    ;
                 }
 
                 if (i > 0 && ShowPlaylist.Count == i)
