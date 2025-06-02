@@ -61,6 +61,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private Toggle _rangeDisabledToggle;
         [SerializeField]
+        private Toggle _useCymbalModelsToggle;
+        [SerializeField]
         private TMP_Dropdown _engineDropdown;
         [SerializeField]
         private TMP_Dropdown _themeDropdown;
@@ -154,6 +156,7 @@ namespace YARG.Menu.ProfileList
             _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
             _leftyFlipToggle.isOn = profile.LeftyFlip;
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
+            _useCymbalModelsToggle.isOn = profile.UseCymbalModels;
 
             // Update preset dropdowns
             _engineDropdown.SetValueWithoutNotify(
@@ -302,6 +305,11 @@ namespace YARG.Menu.ProfileList
         public void ChangeRangeDisabled()
         {
             _profile.RangeEnabled = _rangeDisabledToggle.isOn;
+        }
+
+        public void ChangeUseCymbalModels()
+        {
+            _profile.UseCymbalModels = _useCymbalModelsToggle.isOn;
         }
 
         public void ChangeEngine()

@@ -56,6 +56,7 @@ namespace YARG.Helpers.Extensions
                 GameMode.FiveLaneDrums => new List<string>
                 {
                     "Lefty Flip",
+                    "Use Cymbal Models",
                 },
                 GameMode.SixFretGuitar => new List<string>
                 {

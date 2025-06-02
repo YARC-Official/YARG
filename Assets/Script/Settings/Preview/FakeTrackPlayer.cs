@@ -192,7 +192,7 @@ namespace YARG.Settings.Preview
 
                         // Otherwise, select the correct note type
                         var noteType = ThemeNoteType.Normal;
-                        if (SettingsManager.Settings.UseCymbalModelsInFiveLane.Value && fret is 2 or 4)
+                        if (fret is 2 or 4)
                         {
                             noteType = ThemeNoteType.Cymbal;
                         }

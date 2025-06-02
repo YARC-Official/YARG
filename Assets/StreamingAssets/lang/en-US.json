@@ -829,10 +829,6 @@
                 "Name": "Chipmunk Speed",
                 "Description": "Disables pitch correction when playing songs at a fast or slow speed which may lead to some... interesting results."
             },
-            "UseCymbalModelsInFiveLane": {
-                "Name": "Use Cymbal Models In Five Lane",
-                "Description": "If enabled, cymbal models will be used in the second and fourth lanes instead of the standard note model (five-lane drums only)."
-            },
             "UseFullDirectoryForPlaylists": {
                 "Name": "Use Full Directory For Playlists",
                 "Description": "Use full directory for the playlist sort option in the music library. <color=white>Rescan required if changed!</color>"
