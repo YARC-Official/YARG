@@ -35,6 +35,8 @@ VertexDescription BuildVertexDescription(Attributes input)
 #endif
 #endif
 
+#include "Assets/Art/Shaders/highways.hlsl"
+
 Varyings BuildVaryings(Attributes input)
 {
     Varyings output = (Varyings)0;
@@ -85,6 +87,7 @@ Varyings BuildVaryings(Attributes input)
     // Returns the camera relative position (if enabled)
     float3 positionWS = TransformObjectToWorld(input.positionOS);
 
+
 #ifdef ATTRIBUTES_NEED_NORMAL
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 #else
@@ -121,7 +124,7 @@ Varyings BuildVaryings(Attributes input)
     #else
         float3 lightDirectionWS = _LightDirection;
     #endif
-    output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
+    output.positionCS = YargTransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
     #if UNITY_REVERSED_Z
         output.positionCS.z = min(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
     #else
@@ -130,7 +133,7 @@ Varyings BuildVaryings(Attributes input)
 #elif (SHADERPASS == SHADERPASS_META)
     output.positionCS = UnityMetaVertexPosition(input.positionOS, input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
 #else
-    output.positionCS = TransformWorldToHClip(positionWS);
+    output.positionCS = YargTransformWorldToHClip(positionWS);
 #endif
 
 #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)

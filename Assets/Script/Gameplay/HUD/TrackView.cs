@@ -47,7 +47,7 @@ namespace YARG.Gameplay.HUD
 
             var cam = _trackPlayer.TrackCamera;
             float width = 1.0f / trackCount;
-            cam.rect = new Rect(width * trackPosition, 0.0f, width, 1.0f * scale);
+            // cam.rect = new Rect(width * trackPosition, 0.0f, width, 1.0f * scale);
         }
 
         public void UpdateHUDPosition()
