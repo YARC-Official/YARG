@@ -271,7 +271,7 @@
                     "CreateNewPlaylist": "Create New...",
                     "RemovePlaylist": "Remove Playlist",
                     "ViewSongFolder": "View Song Folder",
-                    "CopySongChecksum": "Copy Song Checksum",
+                    "CopySongChecksum": "Copy Song Checksum"
                 }
             },
             "Back": "BACK",

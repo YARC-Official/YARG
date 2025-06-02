@@ -309,6 +309,10 @@ namespace YARG.Gameplay
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
                 }
+                else if (GlobalVariables.State.PlayingAShow)
+                {
+                    _pauseMenu.PushMenu(PauseMenuManager.Menu.SetlistPause);
+                }
                 else
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.QuickPlayPause);
