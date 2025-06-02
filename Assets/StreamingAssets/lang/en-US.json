@@ -202,6 +202,10 @@
                 "Title": "Experimental Features Notice",
                 "Description": "The options about to be displayed represent a work in progress. These features are subject to change, may contain bugs, and <b>could even cause major problems if enabled</b>.",
                 "Confirm": "I Understand"
+            },
+            "ShowDialog": {
+                "Title": "Choose Your Fate",
+                "Select": "That's Plenty"
             }
         },
         "DifficultySelect": {

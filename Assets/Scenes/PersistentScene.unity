@@ -235,6 +235,8 @@ MonoBehaviour:
     type: 3}
   _colorPickerDialog: {fileID: 6710161102796530923, guid: 5b1c5ee7b42f2b04bad86eaac460548a,
     type: 3}
+  _playAShowDialog: {fileID: 6162491671344219383, guid: 0a237e5e84df70342aba8aab3b3e5d6b,
+    type: 3}
 --- !u!1 &227771748
 GameObject:
   m_ObjectHideFlags: 0
