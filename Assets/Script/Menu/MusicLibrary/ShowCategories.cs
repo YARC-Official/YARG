@@ -44,6 +44,9 @@ namespace YARG.Menu.MusicLibrary
         private          List<YargPlayer>                         _players     = new();
         private readonly MusicLibraryMenu                         _library;
 
+        private static readonly int MAX_TRIES = 10;
+        private static readonly int MIN_SONGS_PER_CATEGORY = 4;
+
         public ShowCategories(MusicLibraryMenu library)
         {
             _library = library;
@@ -70,7 +73,6 @@ namespace YARG.Menu.MusicLibrary
                 new ShowCategoryType {Chance = 12, CategoryAction = RandomArtist},
                 new ShowCategoryType {Chance = 15, CategoryAction = RandomGenre},
                 new ShowCategoryType {Chance = 10, CategoryAction = RandomDecade},
-                // Random will get called if SongFromPlaylist or SongFromFavorites fail, so its chance is higher than it appears
                 new ShowCategoryType {Chance = 1, CategoryAction = RandomSong},
                 new ShowCategoryType {Chance = 15, CategoryAction = ShortSong},
                 new ShowCategoryType {Chance = 10, CategoryAction = LongSong},
@@ -110,7 +112,7 @@ namespace YARG.Menu.MusicLibrary
                         tries++;
                     } while (!IsSongPlayable(Categories[i].Song) && tries < 5);
 
-                    if (tries == 5)
+                    if (tries == MAX_TRIES)
                     {
                         // We exhausted tries for this category, so move on to the next category
                         continue;
@@ -231,10 +233,40 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
+        private static bool TryChooseSubcategory(IReadOnlyDictionary<SortString, List<SongEntry>> container,
+            out SortString subcategory, string[] invalidKeys = null)
+        {
+            invalidKeys ??= Array.Empty<string>();
+
+            List<SortString> validKeys = new();
+            // We need to pick a key that has at least MIN_SONGS_PER_CATEGORY songs in it
+            foreach (var key in container.Keys)
+            {
+                if (!invalidKeys.Contains(key) && container[key].Count >= MIN_SONGS_PER_CATEGORY)
+                {
+                    validKeys.Add(key);
+                }
+            }
+
+            if (validKeys.Count == 0)
+            {
+                subcategory = SortString.Empty;
+                return false;
+            }
+
+            // We now know we have at least one valid key, so pick one
+            subcategory = validKeys[Rng.Next(0, validKeys.Count)];
+            return true;
+        }
+
         private static ShowCategory RandomSource()
         {
             // Pick a random source from the available sources
-            var source = SongContainer.Sources.Keys.ElementAt(Rng.Next(0, SongContainer.Sources.Count));
+            if (!TryChooseSubcategory(SongContainer.Sources, out var source))
+            {
+                return RandomSong();
+            }
+
             var song = SongContainer.Sources[source].ElementAt(Rng.Next(0, SongContainer.Sources[source].Count));
             var sourceDisplay = SongSources.SourceToGameName(source);
 
@@ -244,7 +276,11 @@ namespace YARG.Menu.MusicLibrary
         private static ShowCategory RandomArtist()
         {
             // Pick a random artist from the available artists
-            var artist = SongContainer.Artists.Keys.ElementAt(Rng.Next(0, SongContainer.Artists.Count));
+            if (!TryChooseSubcategory(SongContainer.Artists, out var artist))
+            {
+                return RandomSong();
+            }
+
             var song = SongContainer.Artists[artist].ElementAt(Rng.Next(0, SongContainer.Artists[artist].Count));
 
             return new ShowCategory($"A Song By {artist}", song);
@@ -253,7 +289,10 @@ namespace YARG.Menu.MusicLibrary
         private static ShowCategory RandomGenre()
         {
             // Pick a random genre from the available genres
-            var genre = SongContainer.Genres.Keys.ElementAt(Rng.Next(0, SongContainer.Genres.Count));
+            if (!TryChooseSubcategory(SongContainer.Genres, out var genre))
+            {
+                return RandomSong();
+            }
 
             // Pick a random song from the genre
             var song = SongContainer.Genres[genre].ElementAt(Rng.Next(0, SongContainer.Genres[genre].Count));
@@ -279,10 +318,20 @@ namespace YARG.Menu.MusicLibrary
 
             // Pick a random decade (that is actually a number) from the list
             string decade;
+            int tries = 0;
+            int categoryCount;
             do
             {
                 decade = SongContainer.Years.Keys.ElementAt(Rng.Next(0, SongContainer.Years.Count));
-            } while (decade.Contains("####"));
+                categoryCount = SongContainer.Years[decade].Count;
+                tries++;
+            } while ((decade == "####" || categoryCount < MIN_SONGS_PER_CATEGORY) && tries < MAX_TRIES);
+
+            // We can accept lower than ideal category count if we've tried repeatedly, but I'm not returning "####" as a decade
+            if (decade == "####")
+            {
+                return RandomSong();
+            }
 
             var outsong = SongContainer.Years[decade].ElementAt(Rng.Next(0, SongContainer.Years[decade].Count));
 
@@ -325,7 +374,9 @@ namespace YARG.Menu.MusicLibrary
         private static ShowCategory SongStartsWith()
         {
             // Pick a random letter, check if we have any songs starting with it
-            var key = SongContainer.Titles.Keys.ElementAt(Rng.Next(0, SongContainer.Titles.Count));
+
+            string key = SongContainer.Titles.Keys.ElementAt(Rng.Next(0, SongContainer.Titles.Count));
+
             var songs = SongContainer.Titles[key];
             var song = songs.ElementAt(Rng.Next(0, songs.Count));
 
@@ -334,12 +385,17 @@ namespace YARG.Menu.MusicLibrary
                 return new ShowCategory("A Song Starting With A Number", song);
             }
 
+            if (key == "*")
+            {
+                return new ShowCategory("A Song Starting With Something Non-Alphanumeric", song);
+            }
+
             return new ShowCategory($"A Song Starting With \"{key}\"", song);
         }
 
         private static ShowCategory SongFromPlaylist()
         {
-            var playlists = PlaylistContainer.Playlists.Where(e => e.Count > 4).ToList();
+            var playlists = PlaylistContainer.Playlists.Where(e => e.Count > MIN_SONGS_PER_CATEGORY).ToList();
 
             for (int i = 0; i < playlists.Count; i++)
             {
@@ -376,7 +432,7 @@ namespace YARG.Menu.MusicLibrary
         {
             var playlist = PlaylistContainer.FavoritesPlaylist;
 
-            if (playlist == null || playlist.SongHashes.Count < 4)
+            if (playlist == null || playlist.SongHashes.Count < MIN_SONGS_PER_CATEGORY)
             {
                 return RandomSong();
             }
