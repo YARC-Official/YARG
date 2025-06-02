@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using YARG.Core;
 using YARG.Core.Song;
+using YARG.Localization;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Song;
@@ -270,7 +271,7 @@ namespace YARG.Menu.MusicLibrary
             var song = SongContainer.Sources[source].ElementAt(Rng.Next(0, SongContainer.Sources[source].Count));
             var sourceDisplay = SongSources.SourceToGameName(source);
 
-            return new ShowCategory($"A Song From {sourceDisplay}", song);
+            return new ShowCategory(Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.SongFromSource", sourceDisplay), song);
         }
 
         private static ShowCategory RandomArtist()
@@ -283,7 +284,7 @@ namespace YARG.Menu.MusicLibrary
 
             var song = SongContainer.Artists[artist].ElementAt(Rng.Next(0, SongContainer.Artists[artist].Count));
 
-            return new ShowCategory($"A Song By {artist}", song);
+            return new ShowCategory(Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.SongFromArtist", artist), song);
         }
 
         private static ShowCategory RandomGenre()
@@ -302,11 +303,11 @@ namespace YARG.Menu.MusicLibrary
             List<string> vowels = new List<string> {"a", "e", "i", "o", "u"};
             if (vowels.Contains(genreString.ToLower()[..1]))
             {
-                outString = $"An {genre} Song";
+                outString = Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.SongFromAnGenre", genre);
             }
             else
             {
-                outString = $"A {genre} Song";
+                outString = Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.SongFromGenre", genre);
             }
 
             return new ShowCategory(outString, song);
@@ -335,7 +336,7 @@ namespace YARG.Menu.MusicLibrary
 
             var outsong = SongContainer.Years[decade].ElementAt(Rng.Next(0, SongContainer.Years[decade].Count));
 
-            return new ShowCategory($"A Song From The {decade}", outsong);
+            return new ShowCategory(Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.SongFromDecade", decade), outsong);
         }
 
         private static ShowCategory ShortSong()
@@ -343,7 +344,7 @@ namespace YARG.Menu.MusicLibrary
             // Get all the songs less than 2 minutes long (because that's what SongCache already knows)
             var songs = SongContainer.SongLengths["00:00 - 02:00"];
             var outsong = songs.ElementAt(Rng.Next(0, songs.Count));
-            return new ShowCategory("A Short Song", outsong);
+            return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.ShortSong"), outsong);
         }
 
         private static ShowCategory LongSong()
@@ -368,7 +369,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             var outsong = songs.ElementAt(Rng.Next(0, songs.Count));
-            return new ShowCategory("A Long Song", outsong);
+            return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.LongSong"), outsong);
         }
 
         private static ShowCategory SongStartsWith()
@@ -382,15 +383,15 @@ namespace YARG.Menu.MusicLibrary
 
             if (key == "0-9")
             {
-                return new ShowCategory("A Song Starting With A Number", song);
+                return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.StartsWithNumber"), song);
             }
 
             if (key == "*")
             {
-                return new ShowCategory("A Song Starting With Something Non-Alphanumeric", song);
+                return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.StartsWithOther"), song);
             }
 
-            return new ShowCategory($"A Song Starting With \"{key}\"", song);
+            return new ShowCategory(Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.StartsWithLetter", key), song);
         }
 
         private static ShowCategory SongFromPlaylist()
@@ -425,7 +426,8 @@ namespace YARG.Menu.MusicLibrary
                 return RandomSong();
             }
 
-            return new ShowCategory($"A Song From Your Playlist {playlist.Name}", SongContainer.SongsByHash[hash][0]);
+            return new ShowCategory(Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.SongFromPlaylist", playlist.Name),
+                SongContainer.SongsByHash[hash][0]);
         }
 
         private static ShowCategory SongFromFavorites()
@@ -446,14 +448,14 @@ namespace YARG.Menu.MusicLibrary
                 return RandomSong();
             }
 
-            return new ShowCategory("One Of Your Favorite Songs", SongContainer.SongsByHash[hash][0]);
+            return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.SongFromFavorites"), SongContainer.SongsByHash[hash][0]);
         }
 
         private static ShowCategory RandomSong()
         {
             // Get a random song
             var outsong = SongContainer.GetRandomSong();
-            return new ShowCategory("A Random Song", outsong);
+            return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.RandomSong"), outsong);
         }
     }
 }
