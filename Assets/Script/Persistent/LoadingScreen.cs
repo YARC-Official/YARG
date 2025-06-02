@@ -4,8 +4,6 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Logging;
-using YARG.Core.Song.Cache;
-using YARG.Helpers;
 using YARG.Integration;
 using YARG.Localization;
 using YARG.Menu.Navigation;
