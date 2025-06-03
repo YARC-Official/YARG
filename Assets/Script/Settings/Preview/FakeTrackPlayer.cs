@@ -283,7 +283,7 @@ namespace YARG.Settings.Preview
                 _fretArray.FretCount = CurrentGameModeInfo.FretCount;
                 _fretArray.UseKickFrets = CurrentGameModeInfo.UseKickFrets;
                 _fretArray.Initialize(theme, SelectedGameMode,
-                    CurrentGameModeInfo.FretColorProvider(ColorProfile.Default), false, false);
+                    CurrentGameModeInfo.FretColorProvider(ColorProfile.Default), false, false, false);
                 _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
             }
 
@@ -320,7 +320,7 @@ namespace YARG.Settings.Preview
             // Update color profiles
             if (!CurrentGameModeInfo.UseProKeys)
             {
-                _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile), false);
+                _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile), false, false);
             }
 
             // Update hit window

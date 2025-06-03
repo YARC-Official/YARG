@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -34,7 +35,7 @@ namespace YARG.Gameplay.Visuals
         private float  _pulseDuration;
 
         public void Initialize(ThemePreset themePreset, GameMode gameMode,
-            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool swapFiveLaneSnareAndHiHat)
+            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool swapFiveLaneSnareAndHiHat, bool splitProTomsAndCymbals)
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
                 themePreset, gameMode);
@@ -90,7 +91,7 @@ namespace YARG.Gameplay.Visuals
                 _kickFrets.Add(rightKick.GetComponent<KickFret>());
             }
 
-            InitializeColor(fretColorProvider, leftyFlip);
+            InitializeColor(fretColorProvider, leftyFlip, splitProTomsAndCymbals);
 
             _activeFrets = new bool[FretCount];
             _pulsingFrets = new bool[FretCount];
@@ -101,11 +102,20 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
+        public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool splitProTomsAndCymbals)
         {
             for (int i = 0; i < _frets.Count; i++)
             {
-                int index = i + 1;
+                int index = (splitProTomsAndCymbals) ? i switch {
+                    0 => 1,
+                    1 => 6,
+                    2 => 2,
+                    3 => 7,
+                    4 => 3,
+                    5 => 8,
+                    6 => 4,
+                    _ => throw new Exception("Unreachable.")
+                } : i + 1;
 
                 if (DontFlipColorsLeftyFlip && leftyFlip)
                 {

@@ -208,7 +208,6 @@ namespace YARG.Gameplay.Player
 
             FinishInitialization();
         }
-
         private void SetupTheme(GameMode gameMode)
         {
             var themePrefab = ThemeManager.Instance.CreateNotePrefabFromTheme(

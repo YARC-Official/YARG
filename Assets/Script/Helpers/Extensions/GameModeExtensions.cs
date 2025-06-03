@@ -52,6 +52,7 @@ namespace YARG.Helpers.Extensions
                 GameMode.FourLaneDrums => new List<string>
                 {
                     "Lefty Flip",
+                    "Split Tom and Cymbal Lanes in Pro Drums",
                 },
                 GameMode.FiveLaneDrums => new List<string>
                 {

@@ -65,6 +65,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private Toggle _swapFiveLaneSnareAndHiHat;
         [SerializeField]
+        private Toggle _splitProTomsAndCymbals;
+        [SerializeField]
         private TMP_Dropdown _engineDropdown;
         [SerializeField]
         private TMP_Dropdown _themeDropdown;
@@ -160,6 +162,7 @@ namespace YARG.Menu.ProfileList
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
             _useCymbalModelsToggle.isOn = profile.UseCymbalModels;
             _swapFiveLaneSnareAndHiHat.isOn = profile.SwapFiveLaneSnareAndHiHat;
+            _splitProTomsAndCymbals.isOn = profile.SplitProTomsAndCymbals;
 
             // Update preset dropdowns
             _engineDropdown.SetValueWithoutNotify(
@@ -318,6 +321,11 @@ namespace YARG.Menu.ProfileList
         public void ChangeSwapFiveLaneSnareAndHiHat()
         {
             _profile.SwapFiveLaneSnareAndHiHat = _swapFiveLaneSnareAndHiHat.isOn;
+        }
+
+        public void ChangeSplitProTomsAndCymbals()
+        {
+            _profile.SplitProTomsAndCymbals = _splitProTomsAndCymbals.isOn;
         }
 
         public void ChangeEngine()
