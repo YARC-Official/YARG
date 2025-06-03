@@ -107,18 +107,21 @@ namespace YARG.Gameplay.Visuals
         {
             for (int i = 0; i < _frets.Count; i++)
             {
+                /* This needs unique lefty flip logic because it's the one case where
+                 * the fret order is different from the color profile order
+                 */
                 int index = (splitProTomsAndCymbals) ? i switch {
-                    0 => 1,
-                    1 => 6,
-                    2 => 2,
-                    3 => 7,
-                    4 => 3,
-                    5 => 8,
-                    6 => 4,
+                    0 => leftyFlip ? 4 : 1,
+                    1 => leftyFlip ? 7 : 6,
+                    2 => leftyFlip ? 3 : 2,
+                    3 => leftyFlip ? 6 : 7,
+                    4 => leftyFlip ? 2 : 3,
+                    5 => leftyFlip ? 5 : 8,
+                    6 => leftyFlip ? 1 : 4,
                     _ => throw new Exception("Unreachable.")
                 } : i + 1;
 
-                if (DontFlipColorsLeftyFlip && leftyFlip)
+                if (DontFlipColorsLeftyFlip && leftyFlip && !splitProTomsAndCymbals)
                 {
                     index = _frets.Count - index + 1;
                 }
