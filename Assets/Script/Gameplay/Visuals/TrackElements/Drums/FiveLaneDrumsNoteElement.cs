@@ -19,7 +19,7 @@ namespace YARG.Gameplay.Visuals
                 // Deal with non-kick notes
 
                 // Set the position
-                var position = Player.Player.Profile.SwapFiveLaneSnareAndHiHat ?
+                var position = Player.Player.Profile.SwapSnareAndHiHat ?
                     NoteRef.Pad switch
                     {
                         1 => 2,

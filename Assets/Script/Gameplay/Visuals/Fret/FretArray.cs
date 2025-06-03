@@ -51,7 +51,6 @@ namespace YARG.Gameplay.Visuals
                     _ => i
                 } : i;
 
-
                 // Spawn
                 var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);

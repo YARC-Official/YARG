@@ -63,9 +63,9 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private Toggle _useCymbalModelsToggle;
         [SerializeField]
-        private Toggle _swapFiveLaneSnareAndHiHat;
-        [SerializeField]
         private Toggle _splitProTomsAndCymbals;
+        [SerializeField]
+        private Toggle _swapSnareAndHiHat;
         [SerializeField]
         private TMP_Dropdown _engineDropdown;
         [SerializeField]
@@ -161,7 +161,7 @@ namespace YARG.Menu.ProfileList
             _leftyFlipToggle.isOn = profile.LeftyFlip;
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
             _useCymbalModelsToggle.isOn = profile.UseCymbalModels;
-            _swapFiveLaneSnareAndHiHat.isOn = profile.SwapFiveLaneSnareAndHiHat;
+            _swapSnareAndHiHat.isOn = profile.SwapSnareAndHiHat;
             _splitProTomsAndCymbals.isOn = profile.SplitProTomsAndCymbals;
 
             // Update preset dropdowns
@@ -195,7 +195,12 @@ namespace YARG.Menu.ProfileList
 
         private void EnableSettingsForGameMode()
         {
-            var possibleSettings = _profile.GameMode.PossibleProfileSettings();
+            var possibleSettings = _profile.GameMode.PossibleProfileSettings(
+                new()
+                {
+                    { "Split Tom and Cymbal Lanes in Pro Drums", _profile.SplitProTomsAndCymbals }
+                });
+
             for (var i = 0; i < _sidebarContent.transform.childCount; i++)
             {
                 // Disable if the child's gameObject.name is not found in possibleSettings
@@ -204,6 +209,7 @@ namespace YARG.Menu.ProfileList
                 {
                     child.gameObject.SetActive(true);
                 }
+
                 else
                 {
                     child.gameObject.SetActive(false);
@@ -318,14 +324,18 @@ namespace YARG.Menu.ProfileList
             _profile.UseCymbalModels = _useCymbalModelsToggle.isOn;
         }
 
-        public void ChangeSwapFiveLaneSnareAndHiHat()
+        public void ChangeSwapSnareAndHiHat()
         {
-            _profile.SwapFiveLaneSnareAndHiHat = _swapFiveLaneSnareAndHiHat.isOn;
+            _profile.SwapSnareAndHiHat = _swapSnareAndHiHat.isOn;
         }
 
         public void ChangeSplitProTomsAndCymbals()
         {
             _profile.SplitProTomsAndCymbals = _splitProTomsAndCymbals.isOn;
+            if (_profile.GameMode == GameMode.FourLaneDrums)
+            {
+                _sidebarContent.transform.Find("Swap Snare and Hi-Hat").gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+            }
         }
 
         public void ChangeEngine()

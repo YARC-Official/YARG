@@ -1632,7 +1632,7 @@ RectTransform:
   - {fileID: 4539011733267009583}
   - {fileID: 8093933673469096826}
   m_Father: {fileID: 6874413157356700756}
-  m_RootOrder: 11
+  m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2852,7 +2852,7 @@ RectTransform:
   - {fileID: 2477577458138897107}
   - {fileID: 7133539936053465204}
   m_Father: {fileID: 6874413157356700756}
-  m_RootOrder: 12
+  m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2926,8 +2926,8 @@ MonoBehaviour:
   _leftyFlipToggle: {fileID: 506496582370905451}
   _rangeDisabledToggle: {fileID: 6002511037411835828}
   _useCymbalModelsToggle: {fileID: 4436803752884059520}
-  _swapFiveLaneSnareAndHiHat: {fileID: 5950672140946337968}
   _splitProTomsAndCymbals: {fileID: 2392205893566787452}
+  _swapSnareAndHiHat: {fileID: 5950672140946337968}
   _engineDropdown: {fileID: 3309179628695891860}
   _themeDropdown: {fileID: 4805044007390359996}
   _colorProfileDropdown: {fileID: 5317595837428790396}
@@ -6324,7 +6324,7 @@ PrefabInstance:
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848,
         type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: ChangeSwapFiveLaneSnareAndHiHat
+      value: ChangeSwapSnareAndHiHat
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848,
         type: 3}

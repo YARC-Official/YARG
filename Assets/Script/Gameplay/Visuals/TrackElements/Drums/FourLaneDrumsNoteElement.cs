@@ -28,11 +28,11 @@ namespace YARG.Gameplay.Visuals
                     laneCount = 7;
                     lane = NoteRef.Pad switch
                     {
-                        1 => 1,
+                        1 => Player.Player.Profile.SwapSnareAndHiHat ? 2 : 1,
                         2 => 3,
                         3 => 5,
                         4 => 7,
-                        5 => 2,
+                        5 => Player.Player.Profile.SwapSnareAndHiHat ? 1 : 2,
                         6 => 4,
                         7 => 6,
                         _ => throw new Exception("Unreachable.")

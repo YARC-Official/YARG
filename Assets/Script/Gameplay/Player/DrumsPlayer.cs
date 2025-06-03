@@ -60,10 +60,10 @@ namespace YARG.Gameplay.Player
         {
             var mode = Player.Profile.CurrentInstrument switch
             {
-                Instrument.ProDrums      => DrumsEngineParameters.DrumMode.ProFourLane,
+                Instrument.ProDrums => DrumsEngineParameters.DrumMode.ProFourLane,
                 Instrument.FourLaneDrums => DrumsEngineParameters.DrumMode.NonProFourLane,
                 Instrument.FiveLaneDrums => DrumsEngineParameters.DrumMode.FiveLane,
-                _                        => throw new Exception("Unreachable.")
+                _ => throw new Exception("Unreachable.")
             };
 
             if (GameManager.ReplayInfo == null)
@@ -123,7 +123,8 @@ namespace YARG.Gameplay.Player
             else if (Player.Profile.SplitProTomsAndCymbals && EngineParams.Mode == DrumsEngineParameters.DrumMode.ProFourLane)
             {
                 _fretArray.FretCount = 7;
-            } else
+            }
+            else
             {
                 _fretArray.FretCount = 4;
             }
@@ -133,7 +134,7 @@ namespace YARG.Gameplay.Player
                 Player.Profile.GameMode,
                 colors,
                 Player.Profile.LeftyFlip,
-                Player.Profile.GameMode is GameMode.FiveLaneDrums && Player.Profile.SwapFiveLaneSnareAndHiHat,
+                ShouldSwapSnareAndHiHat(),
                 Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals
             );
 
@@ -216,12 +217,12 @@ namespace YARG.Gameplay.Player
                 {
                     fret = (FiveLaneDrumPad) note.Pad switch
                     {
-                        FiveLaneDrumPad.Red    => 0,
+                        FiveLaneDrumPad.Red => 0,
                         FiveLaneDrumPad.Yellow => 1,
-                        FiveLaneDrumPad.Blue   => 2,
+                        FiveLaneDrumPad.Blue => 2,
                         FiveLaneDrumPad.Orange => 3,
-                        FiveLaneDrumPad.Green  => 4,
-                        _                      => -1
+                        FiveLaneDrumPad.Green => 4,
+                        _ => -1
                     };
                 }
 
@@ -283,7 +284,8 @@ namespace YARG.Gameplay.Player
             {
                 if (Player.Profile.SplitProTomsAndCymbals && Player.Profile.CurrentInstrument == Instrument.ProDrums)
                 {
-                    fret = action switch {
+                    fret = action switch
+                    {
                         DrumsAction.Kick => 0,
                         DrumsAction.RedDrum => 1,
                         DrumsAction.YellowCymbal => 2,
@@ -312,13 +314,13 @@ namespace YARG.Gameplay.Player
             {
                 fret = action switch
                 {
-                    DrumsAction.Kick         => 0,
-                    DrumsAction.RedDrum      => 1,
+                    DrumsAction.Kick => 0,
+                    DrumsAction.RedDrum => 1,
                     DrumsAction.YellowCymbal => 2,
-                    DrumsAction.BlueDrum     => 3,
+                    DrumsAction.BlueDrum => 3,
                     DrumsAction.OrangeCymbal => 4,
-                    DrumsAction.GreenDrum    => 5,
-                    _                        => -1
+                    DrumsAction.GreenDrum => 5,
+                    _ => -1
                 };
             }
 
@@ -412,6 +414,19 @@ namespace YARG.Gameplay.Player
         {
             var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
             return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
+        }
+
+        private bool ShouldSwapSnareAndHiHat()
+        {
+            if (
+                (Player.Profile.GameMode is GameMode.FiveLaneDrums) ||
+                (Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals)
+            )
+            {
+                return Player.Profile.SwapSnareAndHiHat;
+            }
+
+            return false;
         }
     }
 }
