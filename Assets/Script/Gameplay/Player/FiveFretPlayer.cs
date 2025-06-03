@@ -151,7 +151,7 @@ namespace YARG.Gameplay.Player
                 Player.Profile.GameMode,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip,
-                Player.Profile.GameMode is GameMode.FiveLaneDrums && Player.Profile.SwapFiveLaneSnareAndHiHat
+                false  // Not applicable to five fret
                 );
 
             if (Player.Profile.RangeEnabled)
