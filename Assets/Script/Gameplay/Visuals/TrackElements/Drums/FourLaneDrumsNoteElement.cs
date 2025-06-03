@@ -33,8 +33,8 @@ namespace YARG.Gameplay.Visuals
                         3 => 5,
                         4 => 7,
                         5 => Player.Player.Profile.SwapSnareAndHiHat ? 1 : 2,
-                        6 => 4,
-                        7 => 6,
+                        6 => Player.Player.Profile.SwapCrashAndRide ? 6 : 4,
+                        7 => Player.Player.Profile.SwapCrashAndRide ? 4 : 6,
                         _ => throw new Exception("Unreachable.")
                     };
                 }

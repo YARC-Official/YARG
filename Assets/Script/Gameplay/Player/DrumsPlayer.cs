@@ -134,8 +134,9 @@ namespace YARG.Gameplay.Player
                 Player.Profile.GameMode,
                 colors,
                 Player.Profile.LeftyFlip,
+                Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals,
                 ShouldSwapSnareAndHiHat(),
-                Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals
+                ShouldSwapCrashAndRide()
             );
 
             // Particle 0 is always kick fret
@@ -428,5 +429,10 @@ namespace YARG.Gameplay.Player
 
             return false;
         }
+
+        private bool ShouldSwapCrashAndRide() =>
+            Player.Profile.CurrentInstrument is Instrument.ProDrums &&
+            Player.Profile.SplitProTomsAndCymbals &&
+            Player.Profile.SwapCrashAndRide;
     }
 }

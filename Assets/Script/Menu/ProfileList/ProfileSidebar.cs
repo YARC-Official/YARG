@@ -67,6 +67,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private Toggle _swapSnareAndHiHat;
         [SerializeField]
+        private Toggle _swapCrashAndRide;
+        [SerializeField]
         private TMP_Dropdown _engineDropdown;
         [SerializeField]
         private TMP_Dropdown _themeDropdown;
@@ -161,8 +163,9 @@ namespace YARG.Menu.ProfileList
             _leftyFlipToggle.isOn = profile.LeftyFlip;
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
             _useCymbalModelsToggle.isOn = profile.UseCymbalModels;
-            _swapSnareAndHiHat.isOn = profile.SwapSnareAndHiHat;
             _splitProTomsAndCymbals.isOn = profile.SplitProTomsAndCymbals;
+            _swapSnareAndHiHat.isOn = profile.SwapSnareAndHiHat;
+            _swapCrashAndRide.isOn = profile.SwapCrashAndRide;
 
             // Update preset dropdowns
             _engineDropdown.SetValueWithoutNotify(
@@ -324,18 +327,24 @@ namespace YARG.Menu.ProfileList
             _profile.UseCymbalModels = _useCymbalModelsToggle.isOn;
         }
 
-        public void ChangeSwapSnareAndHiHat()
-        {
-            _profile.SwapSnareAndHiHat = _swapSnareAndHiHat.isOn;
-        }
-
         public void ChangeSplitProTomsAndCymbals()
         {
             _profile.SplitProTomsAndCymbals = _splitProTomsAndCymbals.isOn;
             if (_profile.GameMode == GameMode.FourLaneDrums)
             {
                 _sidebarContent.transform.Find("Swap Snare and Hi-Hat").gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+                _sidebarContent.transform.Find("Swap Crash and Ride").gameObject.SetActive(_profile.SplitProTomsAndCymbals);
             }
+        }
+
+        public void ChangeSwapSnareAndHiHat()
+        {
+            _profile.SwapSnareAndHiHat = _swapSnareAndHiHat.isOn;
+        }
+
+        public void ChangeSwapCrashAndRide()
+        {
+            _profile.SwapCrashAndRide = _swapCrashAndRide.isOn;
         }
 
         public void ChangeEngine()

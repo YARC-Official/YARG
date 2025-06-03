@@ -35,7 +35,7 @@ namespace YARG.Gameplay.Visuals
         private float  _pulseDuration;
 
         public void Initialize(ThemePreset themePreset, GameMode gameMode,
-            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool swapFiveLaneSnareAndHiHat, bool splitProTomsAndCymbals)
+            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool splitProTomsAndCymbals, bool swapSnareAndHiHat, bool swapCrashAndRide)
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
                 themePreset, gameMode);
@@ -44,12 +44,14 @@ namespace YARG.Gameplay.Visuals
             _frets.Clear();
             for (int i = 0; i < FretCount; i++)
             {
-                int effectivePosition = swapFiveLaneSnareAndHiHat ? i switch
+                int effectivePosition = i switch
                 { 
-                    0 => 1,
-                    1 => 0,
+                    0 => swapSnareAndHiHat ? 1 : 0,
+                    1 => swapSnareAndHiHat ? 0 : 1,
+                    3 => swapCrashAndRide ? 5 : 3,
+                    5 => swapCrashAndRide ? 3 : 5,
                     _ => i
-                } : i;
+                };
 
                 // Spawn
                 var fret = Instantiate(fretPrefab, transform);

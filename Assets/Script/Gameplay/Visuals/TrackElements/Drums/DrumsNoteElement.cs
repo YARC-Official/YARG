@@ -82,7 +82,7 @@ namespace YARG.Gameplay.Visuals
         {
             base.GameplayAwake();
 
-            if (Player.Player.Profile.SplitProTomsAndCymbals && Player.Player.Profile.CurrentInstrument == Core.Instrument.ProDrums)
+            if (Player.Player.Profile.CurrentInstrument == Core.Instrument.ProDrums && Player.Player.Profile.SplitProTomsAndCymbals)
             {
                 normalScale = transform.localScale;
                 var newScale = transform.localScale;
@@ -95,7 +95,7 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
-            if (Player.Player.Profile.SplitProTomsAndCymbals && Player.Player.Profile.CurrentInstrument == Core.Instrument.ProDrums)
+            if (Player.Player.Profile.CurrentInstrument == Core.Instrument.ProDrums && Player.Player.Profile.SplitProTomsAndCymbals)
             {
                 gameObject.transform.localScale = NoteRef.Pad switch
                 {

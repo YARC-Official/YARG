@@ -73,11 +73,22 @@ namespace YARG.Helpers.Extensions
             var possibleOptions = unconditionallyValidInAllModes;
             possibleOptions.AddRange(unconditionalGameModeOptions);
 
+            // Split into a private method for readability
+            possibleOptions.AddRange(ConditionalGameModeSettings(gameMode, dependencyNamesAndValues));
+            
+            return possibleOptions;
+        }
+
+        private static List<string> ConditionalGameModeSettings(GameMode gameMode, Dictionary<string, object> dependencyNamesAndValues)
+        {
+            var conditionalSettings = new List<string>();
+
             Dictionary<string, (string dependencyName, Func<object, bool> dependencyCondition)> conditionalGameModeOptions = gameMode switch
             {
                 GameMode.FourLaneDrums => new()
                 {
-                    { "Swap Snare and Hi-Hat", ("Split Tom and Cymbal Lanes in Pro Drums", (object value)=>(bool)value) }
+                    { "Swap Snare and Hi-Hat", ("Split Tom and Cymbal Lanes in Pro Drums", (object value)=>(bool)value) },
+                    { "Swap Crash and Ride", ("Split Tom and Cymbal Lanes in Pro Drums", (object value)=>(bool)value) }
                 },
                 _ => new()
             };
@@ -95,12 +106,12 @@ namespace YARG.Helpers.Extensions
                     if (dependencyCondition(dependencyValue))
                     {
                         // ...then add the dependent setting as a possible option!
-                        possibleOptions.Add(dependentSetting);
+                        conditionalSettings.Add(dependentSetting);
                     }
                 }
             }
 
-            return possibleOptions;
+            return conditionalSettings;
         }
     }
 }
