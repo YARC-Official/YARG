@@ -773,7 +773,7 @@
             "SfxVolume": {
                 "Name": "SFX Volume",
                 "PauseName": "SFX",
-                "Description": "Adjusts the game's sound effect volume, such as when gaining a star, or activating starpower."
+                "Description": "Adjusts the game's sound effect volume, such as when gaining a star, or activating Star Power."
             },
             "ShowAdvancedMusicLibraryOptions": {
                 "Name": "Show Advanced Music Library Options",
@@ -838,8 +838,8 @@
                 "Description": "Use full directory for the playlist sort option in the music library. <color=white>Rescan required if changed!</color>"
             },
             "UseStarpowerFx": {
-                "Name": "Use Starpower SFX",
-                "Description": "If enabled, it will add reverb to stems where the player has starpower enabled.",
+                "Name": "Use Star Power SFX",
+                "Description": "If enabled, it will add reverb to stems where the player has Star Power enabled.",
                 "Dropdown": {
                     "MultitrackOnly": "Multitrack Only",
                     "Off": "Off",
