@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 
 namespace YARG.Helpers.Extensions
@@ -34,38 +35,38 @@ namespace YARG.Helpers.Extensions
         {
             List<string> unconditionallyValidInAllModes = new List<string>
             {
-                "Instrument Select",
-                "Engine Preset",
-                "Theme Select",
-                "Color Profile Select",
-                "Camera Preset",
-                "Highway Preset",
-                "Input Calibration",
-                "Note Speed and Highway Length",
+                ProfileSettingStrings.INSTRUMENT_SELECT,
+                ProfileSettingStrings.ENGINE_PRESET,
+                ProfileSettingStrings.THEME_SELECT,
+                ProfileSettingStrings.COLOR_PROFILE_SELECT,
+                ProfileSettingStrings.CAMERA_PRESET,
+                ProfileSettingStrings.HIGHWAY_PRESET,
+                ProfileSettingStrings.INPUT_CALIBRATION,
+                ProfileSettingStrings.NOTE_SPEED_AND_HIGHWAY_LENGTH,
             };
 
             List<string> unconditionalGameModeOptions = gameMode switch
             {
                 GameMode.FiveFretGuitar => new List<string>
                 {
-                    "Lefty Flip",
-                    "Range Disable",
+                    ProfileSettingStrings.LEFTY_FLIP,
+                    ProfileSettingStrings.RANGE_DISABLE,
                 },
                 GameMode.FourLaneDrums => new List<string>
                 {
-                    "Lefty Flip",
-                    "Split Tom and Cymbal Lanes in Pro Drums"
+                    ProfileSettingStrings.LEFTY_FLIP,
+                    ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS,
                 },
                 GameMode.FiveLaneDrums => new List<string>
                 {
-                    "Lefty Flip",
-                    "Use Cymbal Models",
-                    "Swap Snare and Hi-Hat"
+                    ProfileSettingStrings.LEFTY_FLIP,
+                    ProfileSettingStrings.USE_CYMBAL_MODELS,
+                    ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT,
                 },
                 GameMode.SixFretGuitar => new List<string>
                 {
-                    "Lefty Flip",
-                    "Range Disable",
+                    ProfileSettingStrings.LEFTY_FLIP,
+                    ProfileSettingStrings.RANGE_DISABLE,
                 },
                 _ => new List<string>()
             };
@@ -87,8 +88,8 @@ namespace YARG.Helpers.Extensions
             {
                 GameMode.FourLaneDrums => new()
                 {
-                    { "Swap Snare and Hi-Hat", ("Split Tom and Cymbal Lanes in Pro Drums", (object value)=>(bool)value) },
-                    { "Swap Crash and Ride", ("Split Tom and Cymbal Lanes in Pro Drums", (object value)=>(bool)value) }
+                    { ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT, (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, (object value)=>(bool)value) },
+                    { ProfileSettingStrings.SWAP_CRASH_AND_RIDE, (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, (object value)=>(bool)value) }
                 },
                 _ => new()
             };

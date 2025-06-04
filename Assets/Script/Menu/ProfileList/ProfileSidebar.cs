@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
@@ -201,7 +202,7 @@ namespace YARG.Menu.ProfileList
             var possibleSettings = _profile.GameMode.PossibleProfileSettings(
                 new()
                 {
-                    { "Split Tom and Cymbal Lanes in Pro Drums", _profile.SplitProTomsAndCymbals }
+                    { ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, _profile.SplitProTomsAndCymbals }
                 });
 
             for (var i = 0; i < _sidebarContent.transform.childCount; i++)
@@ -332,8 +333,8 @@ namespace YARG.Menu.ProfileList
             _profile.SplitProTomsAndCymbals = _splitProTomsAndCymbals.isOn;
             if (_profile.GameMode == GameMode.FourLaneDrums)
             {
-                _sidebarContent.transform.Find("Swap Snare and Hi-Hat").gameObject.SetActive(_profile.SplitProTomsAndCymbals);
-                _sidebarContent.transform.Find("Swap Crash and Ride").gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+                _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+                _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_CRASH_AND_RIDE).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
             }
         }
 
