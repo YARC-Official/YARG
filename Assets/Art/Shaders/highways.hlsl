@@ -4,6 +4,7 @@ uniform float _YargHighwaysScale;
 uniform float4x4 _YargCamViewMatrices[MAX_MATRICES];
 uniform float4x4 _YargCamProjMatrices[MAX_MATRICES];
 
+// World position to highway index
 int WorldPosToIndex(float3 positionWS)
 {
     float index = (positionWS.x + 10) / 100;
@@ -11,10 +12,17 @@ int WorldPosToIndex(float3 positionWS)
     return index;
 }
 
+// Default transform
+float4 DefTransformWorldToHClip(float3 positionWS)
+{
+    return mul(UNITY_MATRIX_VP, float4(positionWS, 1.0));
+}
+
+// Tranforms position from world to homogenous space
 float4 YargTransformWorldToHClip(float3 positionWS)
 {
     if (_YargHighwaysN == 0)
-        return TransformWorldToHClip(positionWS);
+        return DefTransformWorldToHClip(positionWS);
 
     int index = WorldPosToIndex(positionWS);
         
@@ -38,4 +46,8 @@ float4 YargTransformWorldToHClip(float3 positionWS)
     return clipPOS;
 }
 
-
+// Tranforms position from object to homogenous space
+inline float4 YargObjectToClipPos( in float3 pos )
+{
+    return YargTransformWorldToHClip(mul(unity_ObjectToWorld, float4(pos, 1.0)));
+}

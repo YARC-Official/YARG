@@ -32,13 +32,35 @@ Shader "Sprites-Default-Overlay"
         Pass
         {
         CGPROGRAM
-            #pragma vertex SpriteVert
+            #pragma vertex YargSpriteVert
             #pragma fragment SpriteFrag
             #pragma target 2.0
             #pragma multi_compile_instancing
             #pragma multi_compile_local _ PIXELSNAP_ON
             #pragma multi_compile _ ETC1_EXTERNAL_ALPHA
             #include "UnitySprites.cginc"
+            #include "Assets/Art/Shaders/highways.hlsl"
+
+            // Standard sprive vert shader but using our clip transform
+            v2f YargSpriteVert(appdata_t IN)
+            {
+                v2f OUT;
+
+                UNITY_SETUP_INSTANCE_ID (IN);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
+
+                OUT.vertex = UnityFlipSprite(IN.vertex, _Flip);
+                OUT.vertex = YargObjectToClipPos(OUT.vertex);
+                OUT.texcoord = IN.texcoord;
+                OUT.color = IN.color * _Color * _RendererColor;
+
+                #ifdef PIXELSNAP_ON
+                OUT.vertex = UnityPixelSnap (OUT.vertex);
+                #endif
+
+                return OUT;
+            }
+
         ENDCG
         }
     }
