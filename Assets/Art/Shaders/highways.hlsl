@@ -55,6 +55,29 @@ inline float3 YargWorldSpaceViewDir(float4 localPos)
 }
 #endif
 
+#ifdef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
+// Computes the world space view direction (pointing towards the viewer).
+float3 YargGetWorldSpaceViewDir(float3 positionWS)
+{
+    if (_YargHighwaysN > 0)
+    {
+        return YargWorldSpaceCameraPos(positionWS).xyz - positionWS;
+    } else {
+        return GetWorldSpaceViewDir(positionWS);
+    }
+    // if (IsPerspectiveProjection())
+    // {
+    //     // Perspective
+    //     return GetCurrentViewPosition() - positionWS;
+    // }
+    // else
+    // {
+    //     // Orthographic
+    //     return -GetViewForwardDir();
+    // }
+}
+#endif
+
 // Tranforms position from world to homogenous space
 float4 YargTransformWorldToHClip(float3 positionWS)
 {

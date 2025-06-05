@@ -169,7 +169,7 @@ Varyings BuildVaryings(Attributes input)
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
     // Need the unnormalized direction here as otherwise interpolation is incorrect.
     // It is normalized after interpolation in the fragment shader.
-    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
+    output.viewDirectionWS = YargGetWorldSpaceViewDir(positionWS);
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION
