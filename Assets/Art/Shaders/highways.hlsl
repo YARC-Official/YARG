@@ -2,10 +2,11 @@
 uniform int _YargHighwaysN;
 uniform float _YargHighwaysScale;
 uniform float4x4 _YargCamViewMatrices[MAX_MATRICES];
+uniform float4x4 _YargCamInvViewMatrices[MAX_MATRICES];
 uniform float4x4 _YargCamProjMatrices[MAX_MATRICES];
 
 // World position to highway index
-int WorldPosToIndex(float3 positionWS)
+inline int WorldPosToIndex(float3 positionWS)
 {
     float index = (positionWS.x + 10) / 100;
     index = clamp(index, 0, _YargHighwaysN - 1);
@@ -13,15 +14,51 @@ int WorldPosToIndex(float3 positionWS)
 }
 
 // Default transform
-float4 DefTransformWorldToHClip(float3 positionWS)
+inline float4 DefTransformWorldToHClip(float3 positionWS)
 {
     return mul(UNITY_MATRIX_VP, float4(positionWS, 1.0));
 }
 
+inline float3 YargWorldSpaceCameraPos(float3 positionWS) {
+    if (_YargHighwaysN < 1)
+        return _WorldSpaceCameraPos;
+    else {
+        int index = WorldPosToIndex(positionWS);
+        // Camera world position is the translation column of inverse view matrix
+        return _YargCamInvViewMatrices[index]._m03_m13_m23;
+    }
+}
+
+inline float4x4 YargCamProjMatrix(float3 positionWS)
+{
+    if (_YargHighwaysN > 0)
+    {
+        int index = WorldPosToIndex(positionWS);
+        return _YargCamProjMatrices[index];
+    } else {
+        return UNITY_MATRIX_P;
+    }
+}
+
+#ifdef UNITY_CG_INCLUDED
+// Computes world space view direction, from object space position
+inline float3 YargWorldSpaceViewDir(float4 localPos)
+{
+    if (_YargHighwaysN > 0)
+    {
+        float3 worldPos = mul(unity_ObjectToWorld, localPos).xyz;
+        return YargWorldSpaceCameraPos(worldPos).xyz - worldPos;
+            
+    } else {
+        return WorldSpaceViewDir(localPos);
+    }
+}
+#endif
+
 // Tranforms position from world to homogenous space
 float4 YargTransformWorldToHClip(float3 positionWS)
 {
-    if (_YargHighwaysN == 0)
+    if (_YargHighwaysN < 1)
         return DefTransformWorldToHClip(positionWS);
 
     int index = WorldPosToIndex(positionWS);

@@ -21,6 +21,7 @@ namespace YARG.Gameplay.Visuals
         private RenderTexture _highwaysOutputTexture;
 
         private Matrix4x4[] _camViewMatrices = null;
+        private Matrix4x4[] _camInvViewMatrices = null;
         private Matrix4x4[] _camProjMatrices = null;
         // private CurveFadePass _curveFadePass;
         // private ResetParams _resetPass;
@@ -36,6 +37,7 @@ namespace YARG.Gameplay.Visuals
         public static readonly int YargHighwaysNumberID = Shader.PropertyToID("_YargHighwaysN");
         public static readonly int YargHighwaysScaleID = Shader.PropertyToID("_YargHighwaysScale");
         public static readonly int YargHighwayCamViewMatricesID = Shader.PropertyToID("_YargCamViewMatrices");
+        public static readonly int YargHighwayCamInvViewMatricesID = Shader.PropertyToID("_YargCamInvViewMatrices");
         public static readonly int YargHighwayCamProjMatricesID = Shader.PropertyToID("_YargCamProjMatrices");
 
         public const int MAX_MATRICES = 128;
@@ -104,6 +106,7 @@ namespace YARG.Gameplay.Visuals
 
         private void OnEnable()
         {
+            Shader.SetGlobalInteger(YargHighwaysNumberID, 0);
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             RenderPipelineManager.endCameraRendering += OnEndCameraRender;
             // UpdateParams();
@@ -121,7 +124,7 @@ namespace YARG.Gameplay.Visuals
             {
                 return;
             }
-            Shader.SetGlobalFloat(YargHighwaysNumberID, 0);
+            Shader.SetGlobalInteger(YargHighwaysNumberID, 0);
         }
 
         private void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
@@ -138,21 +141,27 @@ namespace YARG.Gameplay.Visuals
 
             if (_camProjMatrices == null)
             {
-                _camProjMatrices = new Matrix4x4[128];
+                _camProjMatrices = new Matrix4x4[MAX_MATRICES];
             }
             if (_camViewMatrices == null)
             {
-                _camViewMatrices = new Matrix4x4[128];
+                _camViewMatrices = new Matrix4x4[MAX_MATRICES];
+            }
+            if (_camInvViewMatrices == null)
+            {
+                _camInvViewMatrices = new Matrix4x4[MAX_MATRICES];
             }
 
             for (int i = 0; i < _players.Count; ++i)
             {
                 var camera = _players[i].TrackCamera;
                 _camViewMatrices[i] = camera.worldToCameraMatrix;
+                _camInvViewMatrices[i] = camera.cameraToWorldMatrix;
                 var projMatrix = camera.projectionMatrix;
                 _camProjMatrices[i] = GL.GetGPUProjectionMatrix(projMatrix, SystemInfo.graphicsUVStartsAtTop /* if we're not rendering to render texture this has to be changed to always false */);
             }
             Shader.SetGlobalMatrixArray(YargHighwayCamViewMatricesID, _camViewMatrices);
+            Shader.SetGlobalMatrixArray(YargHighwayCamInvViewMatricesID, _camInvViewMatrices);
             Shader.SetGlobalMatrixArray(YargHighwayCamProjMatricesID, _camProjMatrices);
             Shader.SetGlobalInteger(YargHighwaysNumberID, _players.Count);
 
