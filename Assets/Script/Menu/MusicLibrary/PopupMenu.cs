@@ -340,9 +340,20 @@ namespace YARG.Menu.MusicLibrary
             // Add option to create new playlist
             CreateItem("CreateNewPlaylist", () =>
             {
+
+                // TODO: Localize all these strings
+
                 // Show text entry dialog
                 DialogManager.Instance.ShowRenameDialog("New Playlist Name", value =>
                 {
+                    // Make sure we aren't being Jadened
+                    if (value == Localize.Key("Menu.MusicLibrary.CurrentSetlist"))
+                    {
+                        ToastManager.ToastError("You can't create a playlist with that name");
+                        gameObject.SetActive(false);
+                        return;
+                    }
+
                     // Create the playlist
                     var playlist = PlaylistContainer.CreatePlaylist(value);
                     // Add selected song to new playlist
