@@ -97,15 +97,15 @@ namespace YARG.Gameplay.Visuals
 
         private void Awake()
         {
-            _renderCamera = GetComponent<Camera>();
-            _renderCamera.targetTexture = GetHighwayOutputTexture();
-            
             // _curveFadePass = new CurveFadePass(this);
             // _resetPass = new ResetParams();
         }
 
         private void OnEnable()
         {
+            _renderCamera = GetComponent<Camera>();
+            _renderCamera.targetTexture = GetHighwayOutputTexture();
+
             Shader.SetGlobalInteger(YargHighwaysNumberID, 0);
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             RenderPipelineManager.endCameraRendering += OnEndCameraRender;
