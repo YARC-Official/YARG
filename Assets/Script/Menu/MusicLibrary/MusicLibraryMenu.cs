@@ -56,9 +56,10 @@ namespace YARG.Menu.MusicLibrary
         private static SongEntry[]? _recommendedSongs;
 #nullable disable
 
-        private static string _currentSearch = string.Empty;
-        private static int _savedIndex;
+        private static string                  _currentSearch = string.Empty;
+        private static int                     _savedIndex;
         private static MusicLibraryReloadState _reloadState = MusicLibraryReloadState.Full;
+        private static Playlist                _savedPlaylist;
 
         public bool PlaylistMode => SelectedPlaylist != null;
 
@@ -136,6 +137,14 @@ namespace YARG.Menu.MusicLibrary
             }
             else if (_reloadState == MusicLibraryReloadState.Partial)
             {
+                // Note that the order matters here: SelectedPlaylist must be set before calling UpdateSearch,
+                // but SelectedIndex must be set _after_ calling UpdateSearch
+                SelectedPlaylist = _savedPlaylist;
+                if (SelectedPlaylist != null)
+                {
+                    MenuState = MenuState.Playlist;
+                }
+
                 UpdateSearch(true);
                 SelectedIndex = _savedIndex;
             }
@@ -169,8 +178,6 @@ namespace YARG.Menu.MusicLibrary
                 // Name makes a good fallback?
                 ChangeSort(SortAttribute.Name);
             }
-
-            MenuState = MenuState.Library;
         }
 
         // Public because PopupMenu may need to reset the navigation scheme
@@ -682,8 +689,9 @@ namespace YARG.Menu.MusicLibrary
         {
             if (Navigator.Instance == null) return;
 
-            // Save index
+            // Save state
             _savedIndex = SelectedIndex;
+            _savedPlaylist = SelectedPlaylist;
 
             Navigator.Instance.PopScheme();
 
