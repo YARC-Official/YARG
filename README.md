@@ -135,7 +135,11 @@ There are some dependencies that will be needed in order for HID devices (such a
 
 ### Linux
 
-On certain distributions of Linux, Unity 2021.3.36f1 editor is broken and the YARG project (or any other project for that matter) cannot be imported. To fix this issue, follow the steps below:
+On certain distributions of Linux, Unity 2021.3.36f1 editor is broken and the YARG project (or any other project for that matter) cannot be imported. When trying to open the project, Unity will freeze during the import process.
+
+   ![](Images/Contributing/Unity_Project_Import_Hang.png)
+
+To fix this issue, follow the steps below:
 
 1. Locate the Editor installation directory. By default, it is `${HOME}/Unity/Hub/Editor`, but it can be reconfigured in Unity Hub.
 2. Enter the `2021.3.36f1/Editor/Data` directory.
