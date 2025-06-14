@@ -40,6 +40,23 @@ inline float4x4 YargCamProjMatrix(float3 positionWS)
     }
 }
 
+inline float4x4 YargViewMatrix(float3 positionWS)
+{
+    if (_YargHighwaysN > 0)
+    {
+        int index = WorldPosToIndex(positionWS);
+        return _YargCamViewMatrices[index];
+    } else {
+        return UNITY_MATRIX_V;
+    }
+}
+
+float3 YargTransformWorldToView(float3 positionWS)
+{
+    return mul(YargViewMatrix(positionWS), float4(positionWS, 1.0)).xyz;
+}
+
+
 #ifdef UNITY_CG_INCLUDED
 // Computes world space view direction, from object space position
 inline float3 YargWorldSpaceViewDir(float4 localPos)
@@ -109,5 +126,5 @@ float4 YargTransformWorldToHClip(float3 positionWS)
 // Tranforms position from object to homogenous space
 inline float4 YargObjectToClipPos( in float3 pos )
 {
-    return YargTransformWorldToHClip(mul(unity_ObjectToWorld, float4(pos, 1.0)));
+    return YargTransformWorldToHClip(mul(unity_ObjectToWorld, float4(pos, 1.0)).xyz);
 }
