@@ -37,6 +37,20 @@ VertexDescription BuildVertexDescription(Attributes input)
 
 #include "Assets/Art/Shaders/highways.hlsl"
 
+VertexPositionInputs YargGetVertexPositionInputs(float3 positionOS)
+{
+    VertexPositionInputs input;
+    input.positionWS = TransformObjectToWorld(positionOS);
+    input.positionVS = YargTransformWorldToView(input.positionWS);
+    input.positionCS = YargTransformWorldToHClip(input.positionWS);
+
+    float4 ndc = input.positionCS * 0.5f;
+    input.positionNDC.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;
+    input.positionNDC.zw = input.positionCS.zw;
+
+    return input;
+}
+ 
 Varyings BuildVaryings(Attributes input)
 {
     Varyings output = (Varyings)0;
@@ -82,7 +96,7 @@ Varyings BuildVaryings(Attributes input)
 #endif //FEATURES_GRAPH_VERTEX
 
     // TODO: Avoid path via VertexPositionInputs (Universal)
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+    VertexPositionInputs vertexInput = YargGetVertexPositionInputs(input.positionOS.xyz);
 
     // Returns the camera relative position (if enabled)
     float3 positionWS = TransformObjectToWorld(input.positionOS);
@@ -196,18 +210,6 @@ Varyings BuildVaryings(Attributes input)
 #if defined(VARYINGS_NEED_SHADOW_COORD) && defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
-
-    // // Example: move halfway right and scale down by factor X (e.g. 0.5)
-    // float2 offsetNDC = float2(0.5, -0.25); // move right by 0.5 in NDC
-    // float scale = 0.5; // scale down to 50%
-
-    // // Convert to clip space units
-    // float2 offsetClip = offsetNDC * output.positionCS.w;
-
-    // // Translate and scale in clip space
-    // float2 centered = output.positionCS.xy - float2(0.0, 0.0); // center if needed
-    // output.positionCS.xy = centered * scale + offsetClip;
-    
 
     return output;
 }
