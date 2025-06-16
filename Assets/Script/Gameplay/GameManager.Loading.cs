@@ -286,25 +286,35 @@ namespace YARG.Gameplay
             _chartLoaded?.Invoke(Chart);
 
             double audioLength = _mixer.Length;
-            double chartLength = Chart.GetEndTime();
             double endTime = Chart.GetEndEvent()?.Time ?? -1;
+            _lastNoteEndTime = Chart.GetLastNoteEndTime();
 
-            // - Chart < Audio < [end] -> Audio
-            // - Chart < [end] < Audio -> [end]
-            // - [end] < Chart < Audio -> Audio
-            // - Audio < Chart         -> Chart
-            if (audioLength <= chartLength)
+            // The time we want to end the song depends on whether or not there is an end event.
+            // If there is, then Max(lastNoteEndTime, endTime) (in case the end event is bogus)
+            // If not, Max(lastNoteEndTime, audioLength)
+            // Then we add a delay to ensure that we don't go to the score screen until
+            // SongLength plus SONG_END_DELAY
+
+            // Disregard the end event if it comes after the end of the audio track
+            if (endTime > -1 && endTime <= audioLength)
             {
-                SongLength = chartLength;
-            }
-            else if (endTime <= chartLength || audioLength <= endTime)
-            {
-                SongLength = audioLength;
+                SongLength = Math.Max(_lastNoteEndTime, endTime);
+                SongLength += Math.Max(_lastNoteEndTime + SONG_END_DELAY, endTime) - SongLength;
             }
             else
             {
-                SongLength = endTime;
+                if (audioLength > _lastNoteEndTime)
+                {
+                    SongLength = audioLength;
+                    _endIsAudioEnd = true;
+                }
+                else
+                {
+                    SongLength = _lastNoteEndTime;
+                }
+                SongLength += Math.Max(_lastNoteEndTime + SONG_END_DELAY, SongLength) - SongLength;
             }
+
             _songLoaded?.Invoke();
         }
 

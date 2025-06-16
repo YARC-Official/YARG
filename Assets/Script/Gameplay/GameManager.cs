@@ -139,6 +139,11 @@ namespace YARG.Gameplay
 
         private StemMixer _mixer;
 
+        // Default to SONG_END_DELAY, but this may get reset given certain conditions
+        // private double _realEndDelay = SONG_END_DELAY;
+        private double  _lastNoteEndTime;
+        private bool    _endIsAudioEnd = false;
+
         private void Awake()
         {
             // Set references
@@ -253,6 +258,16 @@ namespace YARG.Gameplay
                     return;
                 }
             }
+
+            // End early for silence after the last note
+            if (_endIsAudioEnd && _songRunner.SongTime >= _lastNoteEndTime + SONG_END_DELAY && CheckForSilence())
+            {
+                YargLogger.LogFormatDebug("Ending song early at {0} due to silence.", _songRunner.SongTime);
+                if (EndSong(true))
+                {
+                    return;
+                }
+            }
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
@@ -335,7 +350,7 @@ namespace YARG.Gameplay
             }
 
             _pauseMenu.PopAllMenus();
-            if (_songRunner.SongTime >= SongLength + SONG_END_DELAY)
+            if (_songRunner.SongTime >= SongLength)
             {
                 return;
             }
@@ -392,7 +407,7 @@ namespace YARG.Gameplay
         public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
             => _songRunner.GetCalibratedRelativeInputTime(timeFromInputSystem);
 
-        private bool EndSong()
+        private bool EndSong(bool earlyEnd = false)
         {
             if (IsPractice)
             {
@@ -400,9 +415,15 @@ namespace YARG.Gameplay
                 return false;
             }
 
-            if (_songRunner.SongTime < SongLength + SONG_END_DELAY)
+            if (_songRunner.SongTime < SongLength && !earlyEnd)
             {
                 return false;
+            }
+
+            // If we're ending before the end of the audio, fade out the audio (unless we're ending due to silence)
+            if (_songRunner.SongTime < _mixer.Length && !earlyEnd)
+            {
+                _mixer.FadeOut(0.5);
             }
 
             if (ReplayInfo != null)
