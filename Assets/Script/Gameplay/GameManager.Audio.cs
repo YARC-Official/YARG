@@ -3,16 +3,17 @@ using System.Linq;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Settings;
 
 namespace YARG.Gameplay
 {
     public partial class GameManager
     {
-        private const double DEFAULT_VOLUME    = 1.0;
-        private const double MAX_END_SILENCE   = 0.333;
-        // This should equate to -65.22dBFS.
-        private const float  SILENCE_THRESHOLD = 16;
+        private const    double DEFAULT_VOLUME         = 1.0;
+        private const    double MAX_END_SILENCE        = 0.333;
+        private const    float  SILENCE_THRESHOLD_DBFS = -65.22f;
+        private readonly float  _silenceThreshold      = Mathf.Pow(10, SILENCE_THRESHOLD_DBFS / 20);
 
         private double _lastAudioCheck;
         private double _silenceLength;
@@ -214,7 +215,7 @@ namespace YARG.Gameplay
                 return false;
             }
 
-            if (audioLevel[0] > SILENCE_THRESHOLD)
+            if (audioLevel[0] > _silenceThreshold)
             {
                 return false;
             }
