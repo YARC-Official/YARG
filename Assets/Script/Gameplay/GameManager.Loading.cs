@@ -321,8 +321,6 @@ namespace YARG.Gameplay
                 int vocalIndex = -1;
                 foreach (var player in YargPlayers)
                 {
-                    index++;
-
                     if (ReplayInfo == null)
                     {
                         // Reset microphone (resets channel buffers)
@@ -335,6 +333,7 @@ namespace YARG.Gameplay
                     {
                         continue;
                     }
+                    index++;
 
                     if (ReplayInfo == null)
                     {
@@ -370,10 +369,6 @@ namespace YARG.Gameplay
                         var trackPlayer = playerObject.GetComponent<TrackPlayer>();
                         var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
                         trackPlayer.Initialize(index, player, Chart, trackView, _mixer, lastHighScore);
-                        // TODO
-                        // FindObjectOfType<HighwayCameraRendering>().AddTrackPlayer(trackPlayer);
-                        //trackPlayer.SetFade(trackPlayer.ZeroFadePosition, trackPlayer.FadeSize);
-                        //trackPlayer.SetCurveFactor(player.CameraPreset.CurveFactor);
 
                         _players.Add(trackPlayer);
                     }
