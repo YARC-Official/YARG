@@ -12,10 +12,14 @@ namespace YARG.Gameplay.Visuals
     [RequireComponent(typeof(Camera))]
     public class HighwayCameraRendering : MonoBehaviour
     {
+        public const int MAX_MATRICES = 128;
+
         [SerializeField]
         private RawImage _highwaysOutput;
 
         private List<TrackPlayer> _players = new();
+        private List<Vector2> _fadeParams = new();
+        private List<float> _curveFactors = new();
 
         private Camera _renderCamera;
         private RenderTexture _highwaysOutputTexture;
@@ -23,24 +27,14 @@ namespace YARG.Gameplay.Visuals
         private Matrix4x4[] _camViewMatrices = null;
         private Matrix4x4[] _camInvViewMatrices = null;
         private Matrix4x4[] _camProjMatrices = null;
-        // private CurveFadePass _curveFadePass;
-        // private ResetParams _resetPass;
-
-
-        // public static readonly int CurveFactorID = Shader.PropertyToID("_CurveFactor");
-        // public static readonly int FadeParamsID = Shader.PropertyToID("_FadeParams");
-        // public static readonly int YARGinverseViewAndProjectionMatrix = Shader.PropertyToID("yarg_MatrixInvVP");
-        // public static readonly int YARGViewAndProjectionMatrix = Shader.PropertyToID("yarg_MatrixVP");
-
-        // protected internal Vector2 FadeParams;
+        private float _scale = 1.0f;
 
         public static readonly int YargHighwaysNumberID = Shader.PropertyToID("_YargHighwaysN");
-        public static readonly int YargHighwaysScaleID = Shader.PropertyToID("_YargHighwaysScale");
         public static readonly int YargHighwayCamViewMatricesID = Shader.PropertyToID("_YargCamViewMatrices");
         public static readonly int YargHighwayCamInvViewMatricesID = Shader.PropertyToID("_YargCamInvViewMatrices");
         public static readonly int YargHighwayCamProjMatricesID = Shader.PropertyToID("_YargCamProjMatrices");
-
-        public const int MAX_MATRICES = 128;
+        public static readonly int YargCurveFactorsID = Shader.PropertyToID("_YargCurveFactors");
+        public static readonly int YargFadeParamsID = Shader.PropertyToID("_YargFadeParams");
 
         public RenderTexture GetHighwayOutputTexture()
         {
@@ -52,6 +46,7 @@ namespace YARG.Gameplay.Visuals
                     RenderTextureFormat.ARGBHalf);
                 descriptor.mipCount = 0;
                 _highwaysOutputTexture = new RenderTexture(descriptor);
+                _highwaysOutput.texture = _highwaysOutputTexture;
             }
             return _highwaysOutputTexture;
         }
@@ -74,7 +69,7 @@ namespace YARG.Gameplay.Visuals
                     minWorld = x - 1;
                 }
             }
-            _renderCamera.transform.position = _renderCamera.transform.position.WithX((minWorld + maxWorld) /  2);
+            _renderCamera.transform.position = _renderCamera.transform.position.WithX((minWorld + maxWorld) / 2);
             _renderCamera.orthographicSize = Math.Max(25, (maxWorld - minWorld) / 2);
         }
 
@@ -85,20 +80,16 @@ namespace YARG.Gameplay.Visuals
             cameraData.renderType = CameraRenderType.Overlay;
             _players.Add(trackPlayer);
             RecalculateCameraBounds();
-            _highwaysOutput.texture = _highwaysOutputTexture;
 
             // This equation calculates a good scale for all of the tracks.
             // It was made with experimentation; there's probably a "real" formula for this.
-            float scale = Mathf.Max(0.7f * Mathf.Log10(_players.Count - 1), 0f);
-            scale = 1f - scale;
-            Shader.SetGlobalFloat(YargHighwaysScaleID, scale);
+            _scale = Mathf.Max(0.7f * Mathf.Log10(_players.Count - 1), 0f);
+            _scale = 1f - _scale;
         }
 
 
         private void Awake()
         {
-            // _curveFadePass = new CurveFadePass(this);
-            // _resetPass = new ResetParams();
         }
 
         private void OnEnable()
@@ -109,7 +100,6 @@ namespace YARG.Gameplay.Visuals
             Shader.SetGlobalInteger(YargHighwaysNumberID, 0);
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             RenderPipelineManager.endCameraRendering += OnEndCameraRender;
-            // UpdateParams();
         }
 
         private void OnDisable()
@@ -157,95 +147,53 @@ namespace YARG.Gameplay.Visuals
                 var camera = _players[i].TrackCamera;
                 _camViewMatrices[i] = camera.worldToCameraMatrix;
                 _camInvViewMatrices[i] = camera.cameraToWorldMatrix;
-                var projMatrix = camera.projectionMatrix;
+                var projMatrix = GetModifiedProjectionMatrix(camera.projectionMatrix,
+                                                             i, _players.Count, _scale);
                 _camProjMatrices[i] = GL.GetGPUProjectionMatrix(projMatrix, SystemInfo.graphicsUVStartsAtTop /* if we're not rendering to render texture this has to be changed to always false */);
             }
             Shader.SetGlobalMatrixArray(YargHighwayCamViewMatricesID, _camViewMatrices);
             Shader.SetGlobalMatrixArray(YargHighwayCamInvViewMatricesID, _camInvViewMatrices);
             Shader.SetGlobalMatrixArray(YargHighwayCamProjMatricesID, _camProjMatrices);
             Shader.SetGlobalInteger(YargHighwaysNumberID, _players.Count);
-
-
-            // var renderer = _renderCamera.GetUniversalAdditionalCameraData().scriptableRenderer;
-            // renderer.EnqueuePass(_curveFadePass);
-            // renderer.EnqueuePass(_resetPass);
         }
 
-        private void UpdateParams()
+        /// <summary>
+        /// Builds a post-projection matrix that applies NDC-space scaling and offset,
+        /// used to tile multiple viewports side-by-side in clip space.
+        /// </summary>
+        /// <param name="index">The index of the highway [0, N-1]</param>
+        /// <param name="highwayCount">Total number of highways (N)</param>
+        /// <param name="highwayScale">Scale of each highway in NDC (e.g. 1.0 means full size)</param>
+        public static Matrix4x4 GetPostProjectionMatrix(int index, int highwayCount, float highwayScale)
         {
-            // var worldZeroFadePosition = new Vector3(this.transform.position.x, this.transform.position.y, zeroFadePosition);
-            // var worldFullFadePosition = new Vector3(this.transform.position.x, this.transform.position.y, zeroFadePosition - fadeSize);
-            // Plane farPlane = new Plane();
+            if (highwayCount < 1)
+                return Matrix4x4.identity;
 
-            // farPlane.SetNormalAndPosition(_renderCamera.transform.forward, worldZeroFadePosition);
-            // var fadeEnd = Mathf.Abs(farPlane.GetDistanceToPoint(_renderCamera.transform.position));
+            // Divide screen into N equal regions: [-1, 1] => 2.0 width
+            float laneWidth = 2.0f / highwayCount; // NDC horizontal span is [-1, 1] → 2.0
+            float centerX = -1.0f + laneWidth * (index + 0.5f);
+            float offsetX = centerX;
+            float offsetY = - 1.0f + highwayScale; // Offset down if scaled vertically
 
-            // farPlane.SetNormalAndPosition(_renderCamera.transform.forward, worldFullFadePosition);
-            // var fadeStart = Mathf.Abs(farPlane.GetDistanceToPoint(_renderCamera.transform.position));
+            // This matrix modifies the output of clip space before perspective divide
+            // Performs: clip.xy = clip.xy * scale + offset * clip.w
+            Matrix4x4 postProj = Matrix4x4.identity;
 
-            // FadeParams = new Vector2(fadeStart, fadeEnd == fadeStart ? fadeStart + 0.001f : fadeEnd);
+            postProj.m00 = highwayScale;
+            postProj.m11 = highwayScale;
+            postProj.m03 = offsetX;
+            postProj.m13 = offsetY;
 
-            // _prevCurveFactor = CurveFactorID;
-            // _prevZeroFade = zeroFadePosition;
-            // _prevFadeSize = fadeSize;
+            return postProj;
         }
 
-        // Curve and Fade could be separate render passes however
-        // it seems natural to combine them to not go over
-        // whole screen worth of data twice and we do not plan to
-        // use them separately from each other
-        // private sealed class CurveFadePass : ScriptableRenderPass
-        // {
-        //     private CommandBuffer _cmd;
-        //     private HighwayCameraRendering _highwayCameraRendering;
-
-        //     public CurveFadePass(HighwayCameraRendering highCamRend)
-        //     {
-        //         _highwayCameraRendering = highCamRend;
-        //         renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
-        //         ConfigureInput(ScriptableRenderPassInput.Depth);
-        //     }
-
-        //     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        //     {
-        //         CommandBuffer cmd = CommandBufferPool.Get("HighwayParams");
-
-        //         Matrix4x4 viewMatrix = renderingData.cameraData.GetViewMatrix();
-        //         Matrix4x4 gpuProjectionMatrix = renderingData.cameraData.GetGPUProjectionMatrix();
-        //         Matrix4x4 viewAndProjectionMatrix = gpuProjectionMatrix * viewMatrix;
-        //         Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
-        //         Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
-        //         Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
-        //         cmd.SetGlobalMatrix(YARGinverseViewAndProjectionMatrix, inverseViewProjection);
-        //         cmd.SetGlobalMatrix(YARGViewAndProjectionMatrix, viewAndProjectionMatrix);
-
-        //         cmd.SetGlobalFloat(CurveFactorID, _highwayCameraRendering.curveFactor);
-        //         cmd.SetGlobalVector(FadeParamsID, _highwayCameraRendering.FadeParams);
-
-        //         context.ExecuteCommandBuffer(cmd);
-        //         cmd.Clear();
-
-        //         CommandBufferPool.Release(cmd);
-        //     }
-        // }
-
-        // private sealed class ResetParams : ScriptableRenderPass
-        // {
-
-        //     public ResetParams()
-        //     {
-        //         renderPassEvent = RenderPassEvent.AfterRendering;
-        //     }
-
-        //     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        //     {
-        //         CommandBuffer cmd = CommandBufferPool.Get("ResetParams");
-        //         cmd.SetGlobalFloat(CurveFactorID, 0);
-        //         cmd.SetGlobalVector(FadeParamsID, Vector2.zero);
-        //         context.ExecuteCommandBuffer(cmd);
-        //         cmd.Clear();
-        //         CommandBufferPool.Release(cmd);
-        //     }
-        // }
+        /// <summary>
+        /// Generates the modified projection matrix (postProj * camProj).
+        /// </summary>
+        public static Matrix4x4 GetModifiedProjectionMatrix(Matrix4x4 camProj, int index, int highwayCount, float highwayScale)
+        {
+            Matrix4x4 postProj = GetPostProjectionMatrix(index, highwayCount, highwayScale);
+            return postProj * camProj; // HLSL-style: mul(postProj, proj)
+        }
     }
 }

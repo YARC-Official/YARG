@@ -1,6 +1,5 @@
 #define MAX_MATRICES 128
 uniform int _YargHighwaysN;
-uniform float _YargHighwaysScale;
 uniform float4x4 _YargCamViewMatrices[MAX_MATRICES];
 uniform float4x4 _YargCamInvViewMatrices[MAX_MATRICES];
 uniform float4x4 _YargCamProjMatrices[MAX_MATRICES];
@@ -51,7 +50,7 @@ inline float4x4 YargViewMatrix(float3 positionWS)
     }
 }
 
-float3 YargTransformWorldToView(float3 positionWS)
+inline float3 YargTransformWorldToView(float3 positionWS)
 {
     return mul(YargViewMatrix(positionWS), float4(positionWS, 1.0)).xyz;
 }
@@ -74,7 +73,7 @@ inline float3 YargWorldSpaceViewDir(float4 localPos)
 
 #ifdef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 // Computes the world space view direction (pointing towards the viewer).
-float3 YargGetWorldSpaceViewDir(float3 positionWS)
+inline float3 YargGetWorldSpaceViewDir(float3 positionWS)
 {
     if (_YargHighwaysN > 0)
     {
@@ -82,21 +81,11 @@ float3 YargGetWorldSpaceViewDir(float3 positionWS)
     } else {
         return GetWorldSpaceViewDir(positionWS);
     }
-    // if (IsPerspectiveProjection())
-    // {
-    //     // Perspective
-    //     return GetCurrentViewPosition() - positionWS;
-    // }
-    // else
-    // {
-    //     // Orthographic
-    //     return -GetViewForwardDir();
-    // }
 }
 #endif
 
 // Tranforms position from world to homogenous space
-float4 YargTransformWorldToHClip(float3 positionWS)
+inline float4 YargTransformWorldToHClip(float3 positionWS)
 {
     if (_YargHighwaysN < 1)
         return DefTransformWorldToHClip(positionWS);
@@ -106,19 +95,6 @@ float4 YargTransformWorldToHClip(float3 positionWS)
     // Present as if its a single highway, using corresponding
     // camera's matrices
     float4 clipPOS = mul(mul(_YargCamProjMatrices[index], _YargCamViewMatrices[index]), float4(positionWS, 1.0));
-
-    // Divide screen into N equal regions: [-1, 1] => 2.0 width
-    float laneWidth = 2.0 / _YargHighwaysN;
-
-    // Center of this highway’s lane in NDC:
-    float centerX = -1.0 + laneWidth * (index + 0.5);
-    float2 offsetNDC = float2(centerX, 1.0 - _YargHighwaysScale);
-    // float2 offsetNDC = float2(centerX, 0.0);
-
-    // Move horizontally to place according to index
-    float2 offsetClip = offsetNDC * clipPOS.w;
-    clipPOS.xy = clipPOS.xy * _YargHighwaysScale + offsetClip;
-
 
     return clipPOS;
 }
