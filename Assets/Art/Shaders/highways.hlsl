@@ -92,6 +92,10 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
 
     int index = WorldPosToIndex(positionWS);
         
+    // Curving test, doesn't really work without tesselation
+    // float delta_x = abs(index * 100 - positionWS.x);
+    // positionWS.y += pow(delta_x, 2) * -5 * 0.05;
+
     // Present as if its a single highway, using corresponding
     // camera's matrices
     float4 clipPOS = mul(mul(_YargCamProjMatrices[index], _YargCamViewMatrices[index]), float4(positionWS, 1.0));
