@@ -5,6 +5,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using YARG.Gameplay.Player;
+using YARG.Player;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -19,14 +20,14 @@ namespace YARG.Gameplay.Visuals
 
         private List<TrackPlayer> _players = new();
         private List<Vector2> _fadeParams = new();
-        private List<float> _curveFactors = new();
 
         private Camera _renderCamera;
         private RenderTexture _highwaysOutputTexture;
 
-        private Matrix4x4[] _camViewMatrices = null;
-        private Matrix4x4[] _camInvViewMatrices = null;
-        private Matrix4x4[] _camProjMatrices = null;
+        private float[] _curveFactors = new float[MAX_MATRICES];
+        private Matrix4x4[] _camViewMatrices = new Matrix4x4[MAX_MATRICES];
+        private Matrix4x4[] _camInvViewMatrices = new Matrix4x4[MAX_MATRICES];
+        private Matrix4x4[] _camProjMatrices = new Matrix4x4[MAX_MATRICES];
         private float _scale = 1.0f;
 
         public static readonly int YargHighwaysNumberID = Shader.PropertyToID("_YargHighwaysN");
@@ -73,11 +74,12 @@ namespace YARG.Gameplay.Visuals
             _renderCamera.orthographicSize = Math.Max(25, (maxWorld - minWorld) / 2);
         }
 
-        public void AddTrackPlayer(TrackPlayer trackPlayer)
+        public void AddTrackPlayer(TrackPlayer trackPlayer, YargPlayer player)
         {
             var cameraData = trackPlayer.TrackCamera.GetUniversalAdditionalCameraData();
             // This effectively disables rendering it but keeps components active
             cameraData.renderType = CameraRenderType.Overlay;
+            _curveFactors[_players.Count] = player.CameraPreset.CurveFactor;
             _players.Add(trackPlayer);
             RecalculateCameraBounds();
 
@@ -129,19 +131,6 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            if (_camProjMatrices == null)
-            {
-                _camProjMatrices = new Matrix4x4[MAX_MATRICES];
-            }
-            if (_camViewMatrices == null)
-            {
-                _camViewMatrices = new Matrix4x4[MAX_MATRICES];
-            }
-            if (_camInvViewMatrices == null)
-            {
-                _camInvViewMatrices = new Matrix4x4[MAX_MATRICES];
-            }
-
             for (int i = 0; i < _players.Count; ++i)
             {
                 var camera = _players[i].TrackCamera;
@@ -155,6 +144,7 @@ namespace YARG.Gameplay.Visuals
             Shader.SetGlobalMatrixArray(YargHighwayCamInvViewMatricesID, _camInvViewMatrices);
             Shader.SetGlobalMatrixArray(YargHighwayCamProjMatricesID, _camProjMatrices);
             Shader.SetGlobalInteger(YargHighwaysNumberID, _players.Count);
+            Shader.SetGlobalFloatArray(YargCurveFactorsID, _curveFactors);
         }
 
         /// <summary>

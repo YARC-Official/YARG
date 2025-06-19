@@ -37,7 +37,7 @@ namespace YARG.Gameplay.HUD
             trackView.Initialize(trackPlayer);
 
             trackPlayer.TrackCamera.targetTexture  = _highwayCameraRendering.GetHighwayOutputTexture();
-            _highwayCameraRendering.AddTrackPlayer(trackPlayer);
+            _highwayCameraRendering.AddTrackPlayer(trackPlayer, player);
 
             _trackViews.Add(trackView);
             UpdateAllSizing();
