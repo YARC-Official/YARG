@@ -4,11 +4,21 @@ uniform float4x4 _YargCamViewMatrices[MAX_MATRICES];
 uniform float4x4 _YargCamInvViewMatrices[MAX_MATRICES];
 uniform float4x4 _YargCamProjMatrices[MAX_MATRICES];
 uniform float _YargCurveFactors[MAX_MATRICES];
+uniform float _YargFadeParams[MAX_MATRICES * 2];
 
 // World position to highway index
 inline int WorldPosToIndex(float3 positionWS)
 {
     float index = (positionWS.x + 10) / 100;
+    index = clamp(index, 0, _YargHighwaysN - 1);
+    return index;
+}
+
+// UV to highway index
+inline int UVToIndex(float2 uv)
+{
+    float laneWidth = 1.0 / _YargHighwaysN;
+    float index = uv.x / laneWidth;
     index = clamp(index, 0, _YargHighwaysN - 1);
     return index;
 }

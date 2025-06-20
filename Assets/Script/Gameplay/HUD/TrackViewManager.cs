@@ -15,7 +15,7 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private GameObject _vocalHudPrefab;
         [SerializeField]
-        private HighwayCameraRendering _highwayCameraRendering;
+        public HighwayCameraRendering _highwayCameraRendering;
 
         [Header("References")]
         [SerializeField]
@@ -37,10 +37,8 @@ namespace YARG.Gameplay.HUD
             trackView.Initialize(trackPlayer);
 
             trackPlayer.TrackCamera.targetTexture  = _highwayCameraRendering.GetHighwayOutputTexture();
-            _highwayCameraRendering.AddTrackPlayer(trackPlayer, player);
 
             _trackViews.Add(trackView);
-            UpdateAllSizing();
 
             return trackView;
         }
@@ -61,15 +59,6 @@ namespace YARG.Gameplay.HUD
         {
             var go = Instantiate(_vocalHudPrefab, _vocalHudParent);
             return go.GetComponent<VocalsPlayerHUD>();
-        }
-
-        private void UpdateAllSizing()
-        {
-            int count = _trackViews.Count;
-            for (int i = 0; i < count; ++i)
-            {
-                _trackViews[i].UpdateSizing(count, i);
-            }
         }
 
         public void SetAllHUDPositions()

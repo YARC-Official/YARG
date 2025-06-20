@@ -371,6 +371,7 @@ namespace YARG.Gameplay
                         trackPlayer.Initialize(index, player, Chart, trackView, _mixer, lastHighScore);
 
                         _players.Add(trackPlayer);
+                        _trackViewManager._highwayCameraRendering.AddTrackPlayer(trackPlayer);
                     }
                     else
                     {

@@ -148,6 +148,11 @@ Varyings BuildVaryings(Attributes input)
     output.positionCS = UnityMetaVertexPosition(input.positionOS, input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
 #else
     output.positionCS = YargTransformWorldToHClip(positionWS);
+    #if UNITY_REVERSED_Z
+        output.positionCS.z = min(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
+    #else
+        output.positionCS.z = max(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
+    #endif
 #endif
 
 #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)

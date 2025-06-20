@@ -18,7 +18,7 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
-        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+        #include "Assets/Art/Shaders/highways.hlsl"
  
         // Hardcoded dependencies to reduce the number of variants
         #if _BLOOM_LQ || _BLOOM_HQ || _BLOOM_LQ_DIRT || _BLOOM_HQ_DIRT
@@ -52,12 +52,8 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
         float4 _Bloom_Texture_TexelSize;
         float4 _Dithering_Params;
         // YARG
-        float2 _FadeParams;
-        float _CurveFactor;
         float _IsFading;
-        float4x4 yarg_MatrixInvVP;
-        float4x4 yarg_MatrixVP;
- 
+
         #define DistCenter              _Distortion_Params1.xy
         #define DistAxis                _Distortion_Params1.zw
         #define DistTheta               _Distortion_Params2.x
@@ -117,38 +113,6 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
             }
             #endif
 
-            // YARG curving
-            if (_CurveFactor != 0)
-            {
-                // uv.y += pow(abs(uv.x - 0.5), 2) * _CurveFactor;
-                float uv_x;
-                if (_CurveFactor >= 0)
-                    uv_x = uv.x;
-                else
-                    uv_x = 0.5;
-                    
-                // Sample the depth from the Camera depth texture.
-                #if UNITY_REVERSED_Z
-                    real original_depth = SampleSceneDepth(float2(uv_x, uv.y));
-                #else
-                    // Adjust Z to match NDC for OpenGL ([-1, 1])
-                    real original_depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(float2(uv_x, uv.y)));
-                #endif
-
-                // Reconstruct the world space positions.
-                float3 originalWorldPos = ComputeWorldSpacePosition(uv, original_depth, yarg_MatrixInvVP);
-
-                if (originalWorldPos.z >= _FadeParams.y)
-                    return uv;
-
-                float delta_x = abs(_WorldSpaceCameraPos.x - originalWorldPos.x);
-                originalWorldPos.y += pow(delta_x, 2) * _CurveFactor * 0.05;
-
-                float4 clipPos = mul(yarg_MatrixVP, float4(originalWorldPos, 1.0));
-                uv = (clipPos.xy / clipPos.w) * 0.5 + 0.5;
-                uv.y = 1 - uv.y;
-            }
- 
             return uv;
         }
  
@@ -277,20 +241,16 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
             half alpha = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uvDistorted).w;
 
             // YARG highway fading
-            if (_FadeParams.y != 0 && _FadeParams.x != 0)
+            if (_YargHighwaysN > 0 && _IsFading > 0)
             {
-                // Sample the depth from the Camera depth texture.
-                #if UNITY_REVERSED_Z
-                    real depth = SampleSceneDepth(uvDistorted);
-                #else
-                    // Adjust Z to match NDC for OpenGL ([-1, 1])
-                    real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(uvDistorted));
-                #endif
-                float sceneEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
-            
-                float rate = _FadeParams.y != _FadeParams.x ? 1.0 / (_FadeParams.y - _FadeParams.x) : 0.0;
-                float newalpha = smoothstep(0.0, 1.0, ((min(max(sceneEyeDepth, _FadeParams.x), _FadeParams.y)) - _FadeParams.x) * rate);
-                alpha = alpha == 0.0 ? 0.0 : max(1.0 - _IsFading, min(alpha, 1.0 - newalpha));        
+                float coord_y = uvDistorted.y;
+                int index = UVToIndex(uvDistorted);
+                float fadeStartPos = 1.0 - _YargFadeParams[index * 2];
+                float fadeEndPos   = 1.0 - _YargFadeParams[index * 2 + 1];
+                
+                float rate = 1.0 / (fadeEndPos - fadeStartPos);
+                alpha = min(alpha, 1.0 - ((min(max(coord_y, fadeStartPos), fadeEndPos)) - fadeStartPos) * rate);  
+                alpha = smoothstep(0.0, 1.0, alpha);
             }
             
             return half4(color, alpha);

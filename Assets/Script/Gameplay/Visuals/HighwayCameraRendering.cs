@@ -19,12 +19,12 @@ namespace YARG.Gameplay.Visuals
         private RawImage _highwaysOutput;
 
         private List<TrackPlayer> _players = new();
-        private List<Vector2> _fadeParams = new();
 
         private Camera _renderCamera;
         private RenderTexture _highwaysOutputTexture;
 
         private float[] _curveFactors = new float[MAX_MATRICES];
+        private float[] _fadeParams = new float[MAX_MATRICES * 2];
         private Matrix4x4[] _camViewMatrices = new Matrix4x4[MAX_MATRICES];
         private Matrix4x4[] _camInvViewMatrices = new Matrix4x4[MAX_MATRICES];
         private Matrix4x4[] _camProjMatrices = new Matrix4x4[MAX_MATRICES];
@@ -52,6 +52,34 @@ namespace YARG.Gameplay.Visuals
             return _highwaysOutputTexture;
         }
 
+
+        private Vector2 WorldToViewport(Vector3 positionWS, int index)
+        {
+            Vector4 clipSpacePos = (_camProjMatrices[index] * _camViewMatrices[index]) * new Vector4(positionWS.x, positionWS.y, positionWS.z, 1.0f);
+            // Perspective divide to get NDC
+            float ndcX = clipSpacePos.x / clipSpacePos.w;
+            float ndcY = clipSpacePos.y / clipSpacePos.w;
+
+            // NDC [-1, 1] → Viewport [0, 1]
+            float viewportX = (ndcX + 1.0f) * 0.5f;
+            float viewportY = (ndcY + 1.0f) * 0.5f;
+
+            Vector2 viewportPos = new Vector2(viewportX, viewportY);
+            return viewportPos;
+        }
+
+        private Vector2 CalculateFadeParams(int index)
+        {
+            var player = _players[index];
+
+            var trackPosition = player.transform.position;
+            var trackZeroFadePosition = new Vector3(trackPosition.x, trackPosition.y, player.ZeroFadePosition - player.FadeSize);
+            var trackFullFadePosition = new Vector3(trackPosition.x, trackPosition.y, player.ZeroFadePosition);
+            var fadeStart = WorldToViewport(trackZeroFadePosition, index).y;
+            var fadeEnd = WorldToViewport(trackFullFadePosition, index).y;
+            return new Vector2(fadeStart, fadeEnd);
+        }
+
         private void RecalculateCameraBounds()
         {
             float maxWorld = float.NaN;
@@ -74,12 +102,14 @@ namespace YARG.Gameplay.Visuals
             _renderCamera.orthographicSize = Math.Max(25, (maxWorld - minWorld) / 2);
         }
 
-        public void AddTrackPlayer(TrackPlayer trackPlayer, YargPlayer player)
+        public void AddTrackPlayer(TrackPlayer trackPlayer)
         {
-            var cameraData = trackPlayer.TrackCamera.GetUniversalAdditionalCameraData();
             // This effectively disables rendering it but keeps components active
+            var cameraData = trackPlayer.TrackCamera.GetUniversalAdditionalCameraData();
             cameraData.renderType = CameraRenderType.Overlay;
-            _curveFactors[_players.Count] = player.CameraPreset.CurveFactor;
+
+            _curveFactors[_players.Count] = trackPlayer.Player.CameraPreset.CurveFactor;
+
             _players.Add(trackPlayer);
             RecalculateCameraBounds();
 
@@ -139,12 +169,17 @@ namespace YARG.Gameplay.Visuals
                 var projMatrix = GetModifiedProjectionMatrix(camera.projectionMatrix,
                                                              i, _players.Count, _scale);
                 _camProjMatrices[i] = GL.GetGPUProjectionMatrix(projMatrix, SystemInfo.graphicsUVStartsAtTop /* if we're not rendering to render texture this has to be changed to always false */);
+
+                Vector2 fadeParams = CalculateFadeParams(i);
+                _fadeParams[i * 2] = fadeParams.x;
+                _fadeParams[i * 2 + 1] = fadeParams.y;
             }
             Shader.SetGlobalMatrixArray(YargHighwayCamViewMatricesID, _camViewMatrices);
             Shader.SetGlobalMatrixArray(YargHighwayCamInvViewMatricesID, _camInvViewMatrices);
             Shader.SetGlobalMatrixArray(YargHighwayCamProjMatricesID, _camProjMatrices);
             Shader.SetGlobalInteger(YargHighwaysNumberID, _players.Count);
             Shader.SetGlobalFloatArray(YargCurveFactorsID, _curveFactors);
+            Shader.SetGlobalFloatArray(YargFadeParamsID, _fadeParams);
         }
 
         /// <summary>
@@ -163,7 +198,7 @@ namespace YARG.Gameplay.Visuals
             float laneWidth = 2.0f / highwayCount; // NDC horizontal span is [-1, 1] → 2.0
             float centerX = -1.0f + laneWidth * (index + 0.5f);
             float offsetX = centerX;
-            float offsetY = - 1.0f + highwayScale; // Offset down if scaled vertically
+            float offsetY = -1.0f + highwayScale; // Offset down if scaled vertically
 
             // This matrix modifies the output of clip space before perspective divide
             // Performs: clip.xy = clip.xy * scale + offset * clip.w
