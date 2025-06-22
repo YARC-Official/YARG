@@ -25,41 +25,48 @@ public static class ShaderGraphIncludePatcher
                 return;
             }
 
-            var field = targetType.GetField("CorePostgraph", BindingFlags.Public | BindingFlags.Static);
-            if (field == null)
-            {
-                Debug.LogError("CorePostgraph field not found");
-                return;
-            }
+            var guid = AssetDatabase.AssetPathToGUID("Assets/Art/Shaders/ShaderGraph/Includes/Varyings.hlsl");
 
-            // Get the IncludeCollection instance
-            var includeCollection = field.GetValue(null);
-
-            // Get the internal list
-            var listField = includeCollection.GetType().GetField("includes", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (listField == null)
+            foreach (var f in targetType.GetFields(BindingFlags.Public | BindingFlags.Static))
             {
-                Debug.LogError("IncludeCollection.includes field not found");
-                return;
-            }
-
-            var includes = listField.GetValue(includeCollection) as System.Collections.IList;
-            if (includes == null)
-            {
-                Debug.LogError("Includes list is null");
-                return;
-            }
-
-            // Modify the second entry (kVaryings)
-            if (includes.Count > 1)
-            {
-                var includeType = includes[1].GetType();
-                var guid = AssetDatabase.AssetPathToGUID("Assets/Art/Shaders/ShaderGraph/Includes/Varyings.hlsl");
-                var guidField = includeType.GetField("_guid", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (guidField != null)
+                if (f.FieldType.Name != "IncludeCollection")
                 {
-                    guidField.SetValue(includes[1], guid);
-                    Debug.Log("✅ Patched CorePostgraph to use custom Varyings.hlsl");
+                    continue;
+                }
+                var value = f.GetValue(null);
+
+                if (value != null)
+                {
+                    // Get the internal list
+                    var listField = value.GetType().GetField("includes", BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (listField == null)
+                    {
+                        Debug.LogError("IncludeCollection.includes field not found");
+                        continue;
+                    }
+
+                    var includes = listField.GetValue(value) as System.Collections.IList;
+                    if (includes == null)
+                    {
+                        Debug.LogError("Includes list is null");
+                        continue;
+                    }
+
+                    foreach (var include in includes)
+                    {
+                        var includeType = include.GetType();
+                        var guidField = includeType.GetField("_guid", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var pathField = includeType.GetField("_path", BindingFlags.NonPublic | BindingFlags.Instance);
+                        Debug.Assert(guidField != null && pathField != null);
+                        Debug.Log(pathField.GetValue(include) as string);
+                        if (pathField.GetValue(include) as string == "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl")
+                        {
+                            guidField.SetValue(include, guid);
+                            Debug.LogFormat("✅ Patched {0} to use custom Varyings.hlsl", f.Name);
+                        }
+
+                    }
+
                 }
             }
         }
