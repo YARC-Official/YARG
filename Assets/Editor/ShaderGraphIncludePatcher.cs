@@ -58,7 +58,6 @@ public static class ShaderGraphIncludePatcher
                         var guidField = includeType.GetField("_guid", BindingFlags.NonPublic | BindingFlags.Instance);
                         var pathField = includeType.GetField("_path", BindingFlags.NonPublic | BindingFlags.Instance);
                         Debug.Assert(guidField != null && pathField != null);
-                        Debug.Log(pathField.GetValue(include) as string);
                         if (pathField.GetValue(include) as string == "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl")
                         {
                             guidField.SetValue(include, guid);
