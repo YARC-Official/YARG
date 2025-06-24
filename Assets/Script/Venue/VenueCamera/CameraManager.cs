@@ -17,7 +17,8 @@ namespace YARG.Venue.VenueCamera
             Guitar,
             Bass,
             Drums,
-            Keys
+            Keys,
+            Vocals
         }
 
         [SerializeField]
