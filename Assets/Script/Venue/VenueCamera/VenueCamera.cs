@@ -30,7 +30,13 @@ namespace YARG.Venue.VenueCamera
         private TextureCurveParameter _invertCurveParam;
         private TextureCurveParameter _defaultCurveParam;
 
+        private ClampedFloatParameter _defaultGrainIntensity;
+        private ClampedFloatParameter _defaultGrainResponse;
+        private ClampedFloatParameter _activeGrainIntensity = new(1.0f, 1.0f, 0.0f);
+        private ClampedFloatParameter _activeGrainResponse = new(0.0f, 1.0f, 0.0f);
 
+        private Color _greenTint = new(0.0f, 1.0f, 0.0f, 1.0f);
+        private Color _blueTint  = new(0.0f, 0.0f, 1.0f, 1.0f);
 
 
         private void Awake()
@@ -39,6 +45,12 @@ namespace YARG.Venue.VenueCamera
             if (_profile.TryGet<Bloom>(out var bloom))
             {
                 _originalBloom = bloom.intensity.value;
+            }
+
+            if (_profile.TryGet<FilmGrain>(out var grain))
+            {
+                _defaultGrainIntensity = grain.intensity;
+                _defaultGrainResponse = grain.response;
             }
 
             var bounds = new Vector2(0, 1);
@@ -108,6 +120,15 @@ namespace YARG.Venue.VenueCamera
                 case PostProcessingType.SilverTone:
                     SetSilverTone(true);
                     break;
+                case PostProcessingType.Scanlines_Blue:
+                    SetBlueTint(true);
+                    break;
+                case PostProcessingType.Scanlines_Security:
+                    SetGreenTint(true);
+                    break;
+                case PostProcessingType.Grainy_Film:
+                    SetGrainy(true);
+                    break;
             }
         }
 
@@ -145,6 +166,15 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.SilverTone:
                     SetSilverTone(false);
+                    break;
+                case PostProcessingType.Scanlines_Blue:
+                    SetBlueTint(false);
+                    break;
+                case PostProcessingType.Scanlines_Security:
+                    SetGreenTint(false);
+                    break;
+                case PostProcessingType.Grainy_Film:
+                    SetGrainy(false);
                     break;
             }
         }
@@ -261,6 +291,45 @@ namespace YARG.Venue.VenueCamera
             }
 
             bloom.intensity.value = enabled ? 1.0f : _originalBloom;
+        }
+
+        private void SetGreenTint(bool enabled)
+        {
+            if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
+            {
+                return;
+            }
+
+            colorAdjustments.colorFilter.value = enabled ? _greenTint : Color.white;
+            colorAdjustments.colorFilter.overrideState = enabled;
+        }
+
+        private void SetBlueTint(bool enabled)
+        {
+            if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
+            {
+                return;
+            }
+
+            colorAdjustments.colorFilter.value = enabled ? _blueTint : Color.white;
+            colorAdjustments.colorFilter.overrideState = enabled;
+        }
+
+        private void SetGrainy(bool enabled)
+        {
+            if (!_profile.TryGet<FilmGrain>(out var grain))
+            {
+                return;
+            }
+
+            if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
+            {
+                return;
+            }
+
+            colorAdjustments.contrast.value = enabled ? 20.0f : 0.0f;
+            grain.intensity = enabled ? _activeGrainIntensity : _defaultGrainIntensity;
+            grain.response = enabled ? _activeGrainResponse : _defaultGrainResponse;
         }
     }
 }
