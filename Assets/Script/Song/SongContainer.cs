@@ -349,9 +349,11 @@ namespace YARG.Song
             Dictionary<HashWrapper, StarAmount> bestStars = ScoreContainer.GetBestStarsForSong(player.Profile);
             foreach (var song in _songs)
             {
-                _runtimeStars[song] = bestStars.TryGetValue(song.Hash, out StarAmount stars)
-                    ? stars
-                    : StarAmount.None;
+                if (!bestStars.TryGetValue(song.Hash, out StarAmount stars))
+                {
+                    stars = StarAmount.None;
+                }
+                _runtimeStars[song] = stars;
             }
 
             Instrument instrument = player.Profile.CurrentInstrument;
