@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
@@ -84,59 +85,15 @@ namespace YARG.Venue.Characters
 
         public void OnNote<T>(Note<T> note) where T : Note<T>
         {
-            if (Type != CharacterType.Guitar && Type != CharacterType.Bass)
-            {
-                return;
-            }
-
-            var nextNote = note.NextNote as GuitarNote;
-
-            double delta = Double.MaxValue;
-            if (nextNote != null && nextNote.IsStrum)
-            {
-                delta = note.NextNote.Time - note.Time;
-            }
-            else
-            {
-                _animator.SetFloat(_animationParamHash, 1);
-            }
-
-            // Do we need to change the speed to fit within the time to the next note?
-            // if (delta < _animationLength)
-            // {
-            double speed;
-                // Divide by 14 for guitar, since that's how many strums the animation has
-                if (Type == CharacterType.Guitar)
-                {
-                    speed = (_animationLength / 14) / delta;
-                }
-                else
-                {
-                    speed = _animationLength / delta;
-                }
-                speed += 0.001;
-                _animator.SetFloat(_animationParamHash, (float) speed);
-                // _animator.speed = (float) speed;
-            // }
-            // else
-            // {
-            //     _animator.speed = 1;
-            // }
-
             if (note is Note<GuitarNote>)
             {
-                // _animator.Play(_animationStates[AnimationStates.Playing]);
-                if (Type == CharacterType.Bass)
-                {
-                    // _animator.SetTrigger("BassOneCycle");
-                    _animator.Play("Base Layer.BassOneCycle");
-                    return;
-                }
+
             }
 
-            if (note is Note<DrumNote>)
+            // TODO: Make this MFer work with both four and five lane
+            if (note is DrumNote { Pad: (int) FourLaneDrumPad.Kick })
             {
-
+                _animator.Play("Base Layer.Kick");
             }
 
             if (note is Note<VocalNote>)
@@ -160,7 +117,9 @@ namespace YARG.Venue.Characters
             // _animationSpeed = 0;
             // _animator.SetFloat(_animationParamHash, 0);
             // _animator.Play("Base Layer.Idle");
-            _animator.Play(_idleAnimationHash);
+            // _animator.Play(_idleAnimationHash);
+            DOVirtual.DelayedCall(TimeToFirstHit, () => _animator.CrossFadeInFixedTime(_idleAnimationHash, 0.1f));
+            // _animator.CrossFadeInFixedTime(_idleAnimationHash, 0.1f);
             YargLogger.LogDebug("Starting Idle animation");
 
             _isAnimating = false;
@@ -178,7 +137,8 @@ namespace YARG.Venue.Characters
             UpdateTempo(secondsPerBeat);
 
             // _animator.Play("91e81ab3-0a89-48c2-b8ce-a23f28bdf736 Skeleton_Merged_mixamo_com_001,BaseLayer_91e81ab3-0a89-48c2-b8ce-a23f28b");
-            _animator.Play(_playingAnimationHash);
+            // _animator.Play(_playingAnimationHash);
+            _animator.CrossFadeInFixedTime(_playingAnimationHash, 0.1f);
             YargLogger.LogDebug("Starting Strum animation");
         }
 
@@ -204,6 +164,16 @@ namespace YARG.Venue.Characters
             //
             // var desiredAnimationLength = secondsPerBeat * _actionsPerAnimationCycle;
             // var speed = _animationLength / desiredAnimationLength;
+
+            // Not sure if this will work, but it's worth a try...
+            if (speed >= 1.5)
+            {
+                speed /= 2;
+            } else if (speed <= 0.6)
+            {
+                speed *= 2;
+            }
+
             _animationSpeed = speed;
             _animator.SetFloat(_animationParamHash, speed);
 

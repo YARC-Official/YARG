@@ -109,6 +109,9 @@ namespace YARG.Venue.Characters
             }
         }
 
+        // TODO: Fix it so the lookahead for moving to the playing animation doesn't also cause us to switch
+        // into the idle animation early
+
         private void ProcessGuitar(VenueCharacter character)
         {
             while (_guitarNotes.Count > 0 && _guitarNoteIndex < _guitarNotes.Count && _guitarNotes[_guitarNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime + character.TimeToFirstHit)
@@ -128,8 +131,9 @@ namespace YARG.Venue.Characters
                 }
 
                 // If next note is more than secondsPerBeat away, stop animating
-                if (note.NextNote == null || note.NextNote.Time > GameManager.SongTime + (_currentTempo.SecondsPerBeat * 2))
+                if (note.NextNote == null || note.NextNote.Time - character.TimeToFirstHit > GameManager.SongTime + (_currentTempo.SecondsPerBeat * 2))
                 {
+                    // TODO: This actually needs to happen character.TimeToFirstHit after this point
                     character.StopAnimation();
                 }
 
@@ -174,6 +178,7 @@ namespace YARG.Venue.Characters
             }
         }
 
+        // TODO: Figure out something reasonable to do for the vocalist
         private void ProcessVocals(VenueCharacter character)
         {
 
@@ -202,6 +207,8 @@ namespace YARG.Venue.Characters
                 {
                     character.StopAnimation();
                 }
+
+                // character.OnNote(note);
             }
         }
     }
