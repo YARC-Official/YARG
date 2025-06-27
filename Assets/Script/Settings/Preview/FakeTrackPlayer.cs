@@ -302,6 +302,10 @@ namespace YARG.Settings.Preview
 
             SettingsMenu.Instance.SettingChanged += OnSettingChanged;
 
+            var highwayRenderer = _cameraPositioner.GetComponent<HighwayCameraRendering>();
+            var camera = _cameraPositioner.GetComponent<Camera>();
+            highwayRenderer.AddPlayerParams(transform.position, camera, 0, 0, 0);
+
             // Force update it as well to make sure it's right before any settings are changed
             OnSettingChanged();
         }
@@ -319,9 +323,8 @@ namespace YARG.Settings.Preview
 
             var camera = _cameraPositioner.GetComponent<Camera>();
             var highwayRenderer = camera.GetComponent<HighwayCameraRendering>();
-            //highwayRenderer.fadeSize = cameraPreset.FadeLength;
-            //highwayRenderer.zeroFadePosition = 3f;
-            //highwayRenderer.curveFactor = cameraPreset.CurveFactor;
+            highwayRenderer.UpdateCurveFactor(cameraPreset.CurveFactor, 0);
+            highwayRenderer.UpdateFadeParams(0, 3f, cameraPreset.FadeLength);
 
             // Update color profiles
             if (!CurrentGameModeInfo.UseProKeys)
