@@ -345,15 +345,52 @@ namespace YARG.Song
                 return Array.Empty<SongCategory>();
             }
 
+            _runtimeStars.Clear();
             Dictionary<HashWrapper, StarAmount> bestStars = ScoreContainer.GetBestStarsForSong(player.Profile);
-            foreach (SongEntry song in _songs)
+            foreach (var song in _songs)
             {
                 _runtimeStars[song] = bestStars.TryGetValue(song.Hash, out StarAmount stars)
                     ? stars
                     : StarAmount.None;
             }
 
-            return BuildStarCategories();
+            Instrument instrument = player.Profile.CurrentInstrument;
+            IntensityComparer comparer = new IntensityComparer(instrument);
+
+            // Use Dictionary instead of array due to complex enum values
+            Dictionary<StarAmount, List<SongEntry>> grouped = new Dictionary<StarAmount, List<SongEntry>>();
+
+            foreach (var song in _songs)
+            {
+                StarAmount key = StarAmount.NoPart;
+                if (song[instrument].IsActive() && !_runtimeStars.TryGetValue(song, out key))
+                {
+                    key = StarAmount.None;
+                }
+
+                if (!grouped.TryGetValue(key, out List<SongEntry> list))
+                {
+                    list = new List<SongEntry>();
+                    grouped[key] = list;
+                }
+
+                int index = list.BinarySearch(song, comparer);
+                list.Insert(~index, song);
+            }
+
+            List<StarAmount> sortedKeys = grouped.Keys.ToList();
+            sortedKeys.Sort((a, b) => b.GetSortWeight().CompareTo(a.GetSortWeight()));
+
+            SongCategory[] starCategories = new SongCategory[sortedKeys.Count];
+            int i = 0;
+            foreach (var key in sortedKeys)
+            {
+                List<SongEntry> list = grouped[key];
+                string label = key.GetDisplayName();
+                starCategories[i++] = new SongCategory(label, list.ToArray(), label);
+            }
+
+            return starCategories;
         }
 
         private static void UpdateSongUi(LoadingContext context)
@@ -438,12 +475,10 @@ namespace YARG.Song
                 }
             }
 
-            _sortStars = BuildStarCategories();
-
             static SongEntry[] SetAllSongs(Dictionary<HashWrapper, List<SongEntry>> entries)
             {
                 int songCount = 0;
-                foreach (KeyValuePair<HashWrapper, List<SongEntry>> node in entries)
+                foreach (var node in entries)
                 {
                     songCount += node.Value.Count;
                 }
@@ -452,20 +487,11 @@ namespace YARG.Song
                 int index = 0;
 
                 YargPlayer player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
-                if (player != null)
+                foreach (var node in entries)
                 {
-                    Dictionary<HashWrapper, StarAmount> bestStars = ScoreContainer.GetBestStarsForSong(player.Profile);
-
-                    foreach (KeyValuePair<HashWrapper, List<SongEntry>> node in entries)
+                    for (int i = 0; i < node.Value.Count; i++)
                     {
-                        for (int i = 0; i < node.Value.Count; i++)
-                        {
-                            SongEntry entry = node.Value[i];
-                            _runtimeStars[entry] = bestStars.TryGetValue(node.Key, out StarAmount stars)
-                                ? stars
-                                : StarAmount.None;
-                            songs[index++] = entry;
-                        }
+                        songs[index++] = node.Value[i];
                     }
                 }
                 return songs;
@@ -575,61 +601,35 @@ namespace YARG.Song
             }
         }
 
-        private static SongCategory[] BuildStarCategories()
+        readonly struct IntensityComparer : IComparer<SongEntry>
         {
-            YargPlayer player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
-            Instrument instrument = player?.Profile.CurrentInstrument ?? Instrument.FiveFretGuitar; // fallback
+            private readonly Instrument _instrument;
 
-            // Group songs by StarAmount
-            Dictionary<StarAmount, List<SongEntry>> grouped = new Dictionary<StarAmount, List<SongEntry>>();
-            foreach (SongEntry song in _songs)
+            public IntensityComparer(Instrument instrument)
             {
-                StarAmount key;
-                if (!song[instrument].IsActive())
-                {
-                    key = StarAmount.NoPart;
-                }
-                else
-                {
-                    key = _runtimeStars.TryGetValue(song, out StarAmount s) ? s : StarAmount.None;
-                }
-
-                if (!grouped.ContainsKey(key))
-                {
-                    grouped[key] = new List<SongEntry>();
-                }
-                grouped[key].Add(song);
+                _instrument = instrument;
             }
 
-            // Sort group keys by descending sort weight
-            List<StarAmount> sortedKeys = new List<StarAmount>(grouped.Keys);
-            sortedKeys.Sort((a, b) => b.GetSortWeight().CompareTo(a.GetSortWeight()));
-
-            // Build SongCategory array
-            SongCategory[] sections = new SongCategory[sortedKeys.Count];
-            int i = 0;
-
-            foreach (StarAmount key in sortedKeys)
+            public int Compare(SongEntry x, SongEntry y)
             {
-                List<SongEntry> songsInGroup = grouped[key];
+                int intensityX = x[_instrument].Intensity;
+                int intensityY = y[_instrument].Intensity;
 
-                // Sort songs inside group
-                songsInGroup.Sort((s1, s2) =>
+                if (intensityX == intensityY)
                 {
-                    int intensity1 = s1[instrument].Intensity == -1 ? int.MaxValue : s1[instrument].Intensity;
-                    int intensity2 = s2[instrument].Intensity == -1 ? int.MaxValue : s2[instrument].Intensity;
+                    return SongEntrySorting.MetadataComparer.Instance.Compare(x, y);
+                }
+                else if (intensityX == -1)
+                {
+                    return 1;
+                }
+                else if (intensityY == -1)
+                {
+                    return -1;
+                }
 
-                    int cmp = intensity1.CompareTo(intensity2);
-                    if (cmp != 0)
-                        return cmp;
-
-                    return string.Compare(s1.Name.ToString(), s2.Name.ToString(), StringComparison.OrdinalIgnoreCase);
-                });
-
-                sections[i++] = new SongCategory(key.GetDisplayName(), songsInGroup.ToArray(), key.GetDisplayName());
+                return intensityX.CompareTo(intensityY);
             }
-
-            return sections;
         }
     }
 }
