@@ -103,8 +103,38 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
 
     int index = WorldPosToIndex(positionWS);
         
+#if 1
+    // d = sqrt((x - t_x) * (x - t_x) + (z - t_z) * (z - t_z))
+    // (x', y', z') = sin(d / R) * (R + y - t_y) / d * (x - t_x, 0, z - t_z) + (t_x, cos(d / R) * (R + y - t_y) - R + t_y, t_z)
+    // Where (x', y', z') is the transformation of (x, y, z) when curving the world around a sphere with radius R whose top is at (t_x, t_y, t_z).
+    //
+    // Adjusting for the circle (removing Z) we get
+    // d = sqrt((x - t_x) * (x - t_x))
+    // (x', y') = sin(d / R) * (R + y - t_y) / d * (x - t_x, 0) + (t_x, cos(d / R) * (R + y - t_y) - R + t_y)
+
+
+    // We're not doing the sphere so from the above formula removing z components
+    // TOP of the circle
+    float t_x = index * 100;
+    float t_y = 100;
+
+    float R = _YargCurveFactors[index];
+    if (R != 0)
+    {
+        if (R > 0)
+            R = 7 - R;
+        else
+            R = -7 - R;
+        // We do not want sphere, we're omiting Z component of distance
+        float d = sqrt((positionWS.x - t_x) * (positionWS.x - t_x));
+        positionWS.xy = sin(d / R) * (R + positionWS.y - t_y) / d * float2(positionWS.x - t_x, 0) + float2(t_x, cos(d / R) * (R + positionWS.y - t_y) - R + t_y);
+    }
+
+#else
+    // Old basic y-only parabolic shift
     float delta_x = abs(index * 100 - positionWS.x);
     positionWS.y += pow(delta_x, 2) * -_YargCurveFactors[index] * 0.05;
+#endif
 
     // Present as if its a single highway, using corresponding
     // camera's matrices
