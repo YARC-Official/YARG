@@ -43,6 +43,13 @@ namespace YARG.Venue
         [field: SerializeField]
         public VenueSpotLightLocation SpotlightLocation { get; private set; }
 
+        [field: Header("Spotlight only")]
+        [SerializeField]
+        private bool _followCharacter;
+
+        [SerializeField]
+        private Transform _characterToFollow;
+
         private LightManager _lightManager;
         private Light _light;
 
@@ -92,6 +99,11 @@ namespace YARG.Venue
             {
                 YargLogger.LogDebug($"Spotlight {SpotlightLocation} is {lightState}");
                 _previousSpotlightState = lightState;
+            }
+
+            if (lightState && _followCharacter && _characterToFollow != null)
+            {
+                transform.LookAt(_characterToFollow);
             }
         }
     }

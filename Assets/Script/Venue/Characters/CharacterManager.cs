@@ -4,6 +4,7 @@ using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.IO;
 using YARG.Gameplay;
+using AnimationEvent = YARG.Core.Chart.AnimationEvent;
 
 namespace YARG.Venue.Characters
 {
@@ -23,6 +24,10 @@ namespace YARG.Venue.Characters
         private List<GuitarNote> _keysNotes;
         private List<ProKeysNote> _proKeysNotes;
 
+        private List<AnimationEvent> _guitarAnimationEvents;
+        private List<AnimationEvent> _bassAnimationEvents;
+        private List<AnimationEvent> _drumAnimationEvents;
+
         private int _guitarNoteIndex;
         private int _bassNoteIndex;
         private int _keysNoteIndex;
@@ -30,10 +35,16 @@ namespace YARG.Venue.Characters
         private int _drumNoteIndex;
         private int _vocalNoteIndex;
 
+        private int _guitarAnimationIndex;
+        private int _bassAnimationIndex;
+        private int _drumAnimationIndex;
+
         private List<TempoChange> _tempoList;
         private int               _tempoIndex;
         private int               _previousTempoIndex;
         private TempoChange       _currentTempo;
+
+        private double _hatTimer;
 
         protected override void OnChartLoaded(SongChart chart)
         {
@@ -54,12 +65,20 @@ namespace YARG.Venue.Characters
             var vocalsId = chart.Vocals.Parts[0];
             var drumsId = chart.ProDrums.GetDifficulty(Difficulty.Expert);
 
+            InstrumentTrack<GuitarNote> guitarTrack = chart.GetFiveFretTrack(Instrument.FiveFretGuitar);
+            InstrumentTrack<GuitarNote> bassTrack = chart.GetFiveFretTrack(Instrument.FiveFretBass);;
+            InstrumentTrack<DrumNote> drumsTrack = chart.GetDrumsTrack(Instrument.FourLaneDrums);
+
             _guitarNotes = guitarId.Notes;
             _bassNotes = bassId.Notes;
             _keysNotes = keysId.Notes;
             _proKeysNotes = proKeysId.Notes;
             _vocalNotes = vocalsId.NotePhrases;
             _drumNotes = drumsId.Notes;
+
+            _guitarAnimationEvents = guitarTrack.AnimationEvents;
+            _bassAnimationEvents = bassTrack.AnimationEvents;
+            _drumAnimationEvents = drumsTrack.AnimationEvents;
 
             _tempoList = chart.SyncTrack.Tempos;
 
@@ -137,6 +156,15 @@ namespace YARG.Venue.Characters
                     character.StopAnimation();
                 }
 
+                while (_guitarAnimationEvents.Count > 0 && _guitarAnimationIndex < _guitarAnimationEvents.Count &&
+                    _guitarAnimationEvents[_guitarAnimationIndex].Time - 0.1f <= GameManager.SongTime)
+                {
+                    var animEvent = _guitarAnimationEvents[_guitarAnimationIndex];
+                    _guitarAnimationIndex++;
+
+                    character.OnGuitarAnimation(animEvent.Type);
+                }
+
                 // Trigger the strum animation
                 // if (note.IsStrum)
                 // {
@@ -176,6 +204,15 @@ namespace YARG.Venue.Characters
                 //     character.OnNote(note);
                 // }
             }
+
+            while (_bassAnimationEvents.Count > 0 && _bassAnimationIndex < _bassAnimationEvents.Count &&
+                _bassAnimationEvents[_bassAnimationIndex].Time - 0.1f <= GameManager.SongTime) // The -0.1f is on the assumption that the action is supposed to complete at the note on time
+            {
+                var animEvent = _bassAnimationEvents[_bassAnimationIndex];
+                _bassAnimationIndex++;
+
+                character.OnGuitarAnimation(animEvent.Type);
+            }
         }
 
         // TODO: Figure out something reasonable to do for the vocalist
@@ -186,6 +223,17 @@ namespace YARG.Venue.Characters
 
         private void ProcessDrums(VenueCharacter character)
         {
+            // Deal with the fact that we have to close the hat when the open hat note ends
+            if (_hatTimer > 0)
+            {
+                _hatTimer -= Time.deltaTime;
+                if (_hatTimer <= 0)
+                {
+                    _hatTimer = 0;
+                    character.OnDrumAnimation(AnimationEvent.AnimationType.CloseHiHat);
+                }
+            }
+
             while (_drumNotes.Count > 0 && _drumNoteIndex < _drumNotes.Count &&
                 _drumNotes[_drumNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
             {
@@ -206,6 +254,20 @@ namespace YARG.Venue.Characters
                 if (note.NextNote == null || note.NextNote.Time > GameManager.SongTime + _currentTempo.SecondsPerBeat * 2)
                 {
                     character.StopAnimation();
+                }
+
+                while (_drumAnimationEvents.Count > 0 && _drumAnimationIndex < _drumAnimationEvents.Count &&
+                    _drumAnimationEvents[_drumAnimationIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
+                {
+                    var animEvent = _drumAnimationEvents[_drumAnimationIndex];
+                    _drumAnimationIndex++;
+
+                    character.OnDrumAnimation(animEvent.Type);
+
+                    if (animEvent.Type == AnimationEvent.AnimationType.OpenHiHat)
+                    {
+                        _hatTimer = animEvent.TimeLength;
+                    }
                 }
 
                 // character.OnNote(note);

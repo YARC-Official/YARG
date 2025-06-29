@@ -4,9 +4,11 @@ using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
+using AnimationEvent = YARG.Core.Chart.AnimationEvent;
 
 namespace YARG.Venue.Characters
 {
+    [RequireComponent(typeof(Animator))]
     public class VenueCharacter : MonoBehaviour
     {
         public enum CharacterType
@@ -47,8 +49,12 @@ namespace YARG.Venue.Characters
         [SerializeField]
         private int _framesToFirstHit;
 
+        private bool _ikActive;
+        private Transform _leftHandObject;
+
         private int _idleAnimationHash;
         private int _playingAnimationHash;
+        private int _kickAnimationHash;
 
         private RuntimeAnimatorController _animatorController;
         private Animator _animator;
@@ -58,6 +64,17 @@ namespace YARG.Venue.Characters
         private int   _animationParamHash;
 
         private bool _isAnimating;
+
+        private int _kickLayerIndex;
+        private int _hatLayerIndex;
+        private int _leftHandLayerIndex;
+
+        private string _currentLeftHandPosition;
+
+        private Dictionary<string, int> _leftHandPositionHashes = new();
+        #nullable enable
+        private Dictionary<string, Transform?> _leftHandIKTargets = new();
+        #nullable disable
 
         [NonSerialized]
         public float TimeToFirstHit = 0.0f;
@@ -81,6 +98,145 @@ namespace YARG.Venue.Characters
                 _idleAnimationHash = Animator.StringToHash(_idleAnimationName);
                 _playingAnimationHash = Animator.StringToHash(_playingAnimationName);
             }
+
+            if (Type == CharacterType.Drums)
+            {
+                // TODO: WTFBBQ, this doesn't work either
+                // _kickLayerIndex = _animator.GetLayerIndex("Kick Layer");
+                // _hatLayerIndex = _animator.GetLayerIndex("Hat Layer");
+
+                _kickLayerIndex = 1;
+                _hatLayerIndex = 2;
+            }
+
+            if (Type == CharacterType.Guitar || Type == CharacterType.Bass)
+            {
+                // TODO: Figure out why this returns -1 for Guitar
+                // _leftHandLayerIndex = _animator.GetLayerIndex("Left Hand");
+
+                // Getting the index is broke, but we know it's 1, so we'll hardcode it for now
+                _leftHandLayerIndex = 1;
+            }
+
+            GetPositionHashes();
+            GetIKTargets();
+
+        }
+
+        private void GetIKTargets()
+        {
+            string[] positions =
+            {
+                "HandPositionOne",
+                "HandPositionTwo",
+                "HandPositionThree",
+                "HandPositionFour",
+                "HandPositionFive",
+                "HandPositionSix",
+                "HandPositionSeven",
+                "HandPositionEight"
+            };
+
+            foreach (var transform in GetComponentsInChildren<Transform>())
+            {
+                if (transform.name.Contains("HandPosition"))
+                {
+                    _leftHandIKTargets.Add(transform.name, transform);
+                }
+            }
+
+            if (_leftHandIKTargets.Count > 0)
+            {
+                _ikActive = true;
+            }
+        }
+
+        private void GetPositionHashes()
+        {
+            string[] positions =
+            {
+                "HandPositionOne",
+                "HandPositionTwo",
+                "HandPositionThree",
+                "HandPositionFour",
+                "HandPositionFive",
+                "HandPositionSix",
+                "HandPositionSeven",
+                "HandPositionEight"
+            };
+
+            foreach (var position in positions)
+            {
+                _leftHandPositionHashes.Add(position, Animator.StringToHash(position));
+            }
+        }
+
+        public void OnGuitarAnimation(AnimationEvent.AnimationType animation)
+        {
+            var animName = animation switch
+            {
+                AnimationEvent.AnimationType.LeftHandPosition1 => "HandPositionOne",
+                AnimationEvent.AnimationType.LeftHandPosition2 => "HandPositionOne",
+                AnimationEvent.AnimationType.LeftHandPosition3 => "HandPositionTwo",
+                AnimationEvent.AnimationType.LeftHandPosition4 => "HandPositionTwo",
+                AnimationEvent.AnimationType.LeftHandPosition5 => "HandPositionThree",
+                AnimationEvent.AnimationType.LeftHandPosition6 => "HandPositionThree",
+                AnimationEvent.AnimationType.LeftHandPosition7 => "HandPositionFour",
+                AnimationEvent.AnimationType.LeftHandPosition8 => "HandPositionFour",
+                AnimationEvent.AnimationType.LeftHandPosition9 => "HandPositionFive",
+                AnimationEvent.AnimationType.LeftHandPosition10 => "HandPositionFive",
+                AnimationEvent.AnimationType.LeftHandPosition11 => "HandPositionSix",
+                AnimationEvent.AnimationType.LeftHandPosition12 => "HandPositionSix",
+                AnimationEvent.AnimationType.LeftHandPosition13 => "HandPositionSeven",
+                AnimationEvent.AnimationType.LeftHandPosition14 => "HandPositionSeven",
+                AnimationEvent.AnimationType.LeftHandPosition15 => "HandPositionEight",
+                AnimationEvent.AnimationType.LeftHandPosition16 => "HandPositionEight",
+                _ => "HandPositionEight" // We haven't gotten any farther yet
+            };
+
+            YargLogger.LogDebug($"Animation {animName} triggered");
+
+            _currentLeftHandPosition = animName;
+            // _animator.CrossFadeInFixedTime(animName, 0.1f, _leftHandLayerIndex);
+            _animator.CrossFadeInFixedTime(animName, 0.1f);
+            // _animator.Play(animName, _leftHandLayerIndex);
+            // _animator.SetTrigger(animName);
+        }
+
+        public void OnDrumAnimation(AnimationEvent.AnimationType animation)
+        {
+            var animName = animation switch
+            {
+                AnimationEvent.AnimationType.Kick => "Kick",
+                AnimationEvent.AnimationType.OpenHiHat => "OpenHat", // TODO: This actually needs to trigger CloseHat when the note ends
+                AnimationEvent.AnimationType.CloseHiHat => "CloseHat",
+                _ => null
+            };
+
+            int? layerIndex = animation switch
+            {
+                AnimationEvent.AnimationType.Kick       => _kickLayerIndex,
+                AnimationEvent.AnimationType.OpenHiHat  => _hatLayerIndex,
+                AnimationEvent.AnimationType.CloseHiHat => _hatLayerIndex,
+                _                                       => null
+            };
+
+            if (animName == null || layerIndex == null)
+            {
+                return;
+            }
+
+            if (animName == "OpenHat")
+            {
+                YargLogger.LogDebug("OpenHat animation triggered");
+            } else if (animName == "CloseHat")
+            {
+                YargLogger.LogDebug("CloseHat animation triggered");
+            }
+
+            // _animator.CrossFadeInFixedTime(animName, 0.1f, layerIndex.Value);
+            _animator.CrossFadeInFixedTime(animName, 0.1f);
+
         }
 
         public void OnNote<T>(Note<T> note) where T : Note<T>
@@ -90,10 +246,23 @@ namespace YARG.Venue.Characters
 
             }
 
-            // TODO: Make this MFer work with both four and five lane
-            if (note is DrumNote { Pad: (int) FourLaneDrumPad.Kick })
+            if (note is DrumNote)
             {
-                _animator.Play("Base Layer.Kick");
+                bool hasKick = false;
+                foreach (var child in note.AllNotes)
+                {
+                    if (child is DrumNote { Pad: (int) FourLaneDrumPad.Kick })
+                    {
+                        hasKick = true;
+                        break;
+                    }
+                }
+
+                if (hasKick)
+                {
+                    _animator.Play("Kick", _kickLayerIndex);
+                    YargLogger.LogDebug("Kick drum animation started");
+                }
             }
 
             if (note is Note<VocalNote>)
@@ -118,7 +287,7 @@ namespace YARG.Venue.Characters
             // _animator.SetFloat(_animationParamHash, 0);
             // _animator.Play("Base Layer.Idle");
             // _animator.Play(_idleAnimationHash);
-            DOVirtual.DelayedCall(TimeToFirstHit, () => _animator.CrossFadeInFixedTime(_idleAnimationHash, 0.1f));
+            DOVirtual.DelayedCall(TimeToFirstHit, () => _animator.CrossFadeInFixedTime(_idleAnimationHash, 0.25f));
             // _animator.CrossFadeInFixedTime(_idleAnimationHash, 0.1f);
             YargLogger.LogDebug("Starting Idle animation");
 
@@ -178,6 +347,26 @@ namespace YARG.Venue.Characters
             _animator.SetFloat(_animationParamHash, speed);
 
             YargLogger.LogFormatDebug("Adjusting speed of {0} to {1}", Type, speed);
+        }
+
+        private void OnAnimatorIK()
+        {
+            if (!_animator)
+            {
+                return;
+            }
+
+            _leftHandObject = _leftHandIKTargets[_currentLeftHandPosition];
+
+            if (_ikActive && _leftHandObject != null)
+            {
+                _animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1);
+                _animator.SetIKPosition(AvatarIKGoal.LeftHand, _leftHandObject.position);
+            }
+            else
+            {
+                _animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
+            }
         }
     }
 }

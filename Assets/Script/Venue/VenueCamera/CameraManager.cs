@@ -17,16 +17,19 @@ namespace YARG.Venue.VenueCamera
         {
             Stage,
             Guitar,
+            GuitarCloseup,
             Bass,
+            BassCloseup,
             Drums,
+            DrumsKick,
             Keys,
             Vocals,
             Random
         }
 
-        private HashSet<CameraLocation> _validLocations = new();
+        private readonly HashSet<CameraLocation> _validLocations = new();
 
-        private Dictionary<CameraCutEvent.CameraCutSubject, CameraLocation> _cameraLocationLookup = new()
+        private readonly Dictionary<CameraCutEvent.CameraCutSubject, CameraLocation> _cameraLocationLookup = new()
         {
             {
                 CameraCutEvent.CameraCutSubject.Stage, CameraLocation.Stage
@@ -35,10 +38,19 @@ namespace YARG.Venue.VenueCamera
                 CameraCutEvent.CameraCutSubject.Guitar, CameraLocation.Guitar
             },
             {
+                CameraCutEvent.CameraCutSubject.GuitarCloseup, CameraLocation.GuitarCloseup
+            },
+            {
                 CameraCutEvent.CameraCutSubject.Bass, CameraLocation.Bass
             },
             {
+                CameraCutEvent.CameraCutSubject.BassCloseup, CameraLocation.BassCloseup
+            },
+            {
                 CameraCutEvent.CameraCutSubject.Drums, CameraLocation.Drums
+            },
+            {
+                CameraCutEvent.CameraCutSubject.DrumsKick, CameraLocation.DrumsKick
             },
             {
                 CameraCutEvent.CameraCutSubject.Keys, CameraLocation.Keys
