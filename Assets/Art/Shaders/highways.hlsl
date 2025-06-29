@@ -119,12 +119,12 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
     float t_y = 100;
 
     float R = _YargCurveFactors[index];
+#define MAX_R 15.0
+#define MIN_R 2.0
+    
     if (R != 0)
     {
-        if (R > 0)
-            R = 7 - R;
-        else
-            R = -7 - R;
+        R = sign(R) * MAX_R - R * ((MAX_R - MIN_R) / 3.0);
         // We do not want sphere, we're omiting Z component of distance
         float d = sqrt((positionWS.x - t_x) * (positionWS.x - t_x));
         positionWS.xy = sin(d / R) * (R + positionWS.y - t_y) / d * float2(positionWS.x - t_x, 0) + float2(t_x, cos(d / R) * (R + positionWS.y - t_y) - R + t_y);
