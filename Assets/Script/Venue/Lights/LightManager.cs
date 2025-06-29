@@ -31,6 +31,12 @@ namespace YARG.Venue
 
         private LightState[] _lightStates;
         public LightState GenericLightState => _lightStates[(int) VenueLightLocation.Generic];
+		public LightState LeftLightState => _lightStates[(int) VenueLightLocation.Left];
+		public LightState RightLightState => _lightStates[(int) VenueLightLocation.Right];
+		public LightState FrontLightState => _lightStates[(int) VenueLightLocation.Front];
+		public LightState BackLightState => _lightStates[(int) VenueLightLocation.Center];
+		public LightState CenterLightState => _lightStates[(int) VenueLightLocation.Back];
+		public LightState CrowdLightState => _lightStates[(int) VenueLightLocation.Crowd];
 
         [SerializeField]
         private float _gradientLightingSpeed = 0.125f;
