@@ -24,6 +24,7 @@ namespace YARG.Venue.VenueCamera
             DrumsKick,
             Keys,
             Vocals,
+            Behind,
             Random
         }
 
@@ -31,36 +32,34 @@ namespace YARG.Venue.VenueCamera
 
         private readonly Dictionary<CameraCutEvent.CameraCutSubject, CameraLocation> _cameraLocationLookup = new()
         {
-            {
-                CameraCutEvent.CameraCutSubject.Stage, CameraLocation.Stage
-            },
-            {
-                CameraCutEvent.CameraCutSubject.Guitar, CameraLocation.Guitar
-            },
-            {
-                CameraCutEvent.CameraCutSubject.GuitarCloseup, CameraLocation.GuitarCloseup
-            },
-            {
-                CameraCutEvent.CameraCutSubject.Bass, CameraLocation.Bass
-            },
-            {
-                CameraCutEvent.CameraCutSubject.BassCloseup, CameraLocation.BassCloseup
-            },
-            {
-                CameraCutEvent.CameraCutSubject.Drums, CameraLocation.Drums
-            },
-            {
-                CameraCutEvent.CameraCutSubject.DrumsKick, CameraLocation.DrumsKick
-            },
-            {
-                CameraCutEvent.CameraCutSubject.Keys, CameraLocation.Keys
-            },
-            {
-                CameraCutEvent.CameraCutSubject.Vocals, CameraLocation.Vocals
-            },
-            {
-                CameraCutEvent.CameraCutSubject.Random, CameraLocation.Random
-            }
+            { CameraCutEvent.CameraCutSubject.Stage, CameraLocation.Stage },
+            { CameraCutEvent.CameraCutSubject.Guitar, CameraLocation.Guitar },
+            { CameraCutEvent.CameraCutSubject.GuitarCloseup, CameraLocation.GuitarCloseup },
+            { CameraCutEvent.CameraCutSubject.Bass, CameraLocation.Bass },
+            { CameraCutEvent.CameraCutSubject.BassCloseup, CameraLocation.BassCloseup },
+            { CameraCutEvent.CameraCutSubject.Drums, CameraLocation.Drums },
+            { CameraCutEvent.CameraCutSubject.DrumsKick, CameraLocation.DrumsKick },
+            { CameraCutEvent.CameraCutSubject.Keys, CameraLocation.Keys },
+            { CameraCutEvent.CameraCutSubject.Vocals, CameraLocation.Vocals },
+            { CameraCutEvent.CameraCutSubject.AllBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.BehindNoDrum, CameraLocation.Behind },
+            // For testing
+            { CameraCutEvent.CameraCutSubject.BassBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.GuitarBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.DrumsBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.KeysBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.VocalsBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.BassGuitarBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.BassVocalsBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.GuitarVocalsBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.KeysVocalsBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.BassKeysBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.GuitarKeysBehind, CameraLocation.Behind },
+
+            { CameraCutEvent.CameraCutSubject.AllFar, CameraLocation.Stage },
+            { CameraCutEvent.CameraCutSubject.AllNear, CameraLocation.Stage },
+            // Back to your regularly scheduled list already in progress
+            { CameraCutEvent.CameraCutSubject.Random, CameraLocation.Random }
         };
 
         [SerializeField]
@@ -77,7 +76,8 @@ namespace YARG.Venue.VenueCamera
         private List<CameraCutEvent> _cameraCuts;
         private int                  _currentCutIndex;
 
-        private readonly Dictionary<CameraLocation, Camera> _cameraLocations = new();
+        private readonly Dictionary<CameraLocation, Camera>                        _cameraLocations    = new();
+        private          Dictionary<CameraCutEvent.CameraCutSubject, List<Camera>> _subjectToCameraMap = new();
 
         private float _cameraTimer;
         private int   _cameraIndex;
@@ -99,6 +99,17 @@ namespace YARG.Venue.VenueCamera
                 if (vc == null)
                 {
                     continue;
+                }
+
+                foreach (var subject in vc.CameraCutSubjects)
+                {
+                    // Check that the list for this subject has been initialized
+                    if (!_subjectToCameraMap.ContainsKey(subject))
+                    {
+                        _subjectToCameraMap.Add(subject, new List<Camera> {camera} );
+                    }
+
+                    _subjectToCameraMap[subject].Add(camera);
                 }
 
                 if (vc.CameraLocation == CameraLocation.Stage)
@@ -146,9 +157,12 @@ namespace YARG.Venue.VenueCamera
             // Check for cut events
             if (_currentCutIndex < _cameraCuts.Count && _cameraCuts[_currentCutIndex].Time <= GameManager.VisualTime)
             {
+                // Check for more events on the same tick (there is supposed to be a priority system, but we'll choose randomly for now)
                 _currentCamera.enabled = false;
                 // _currentCamera = _cameraLocations[_cameraLocationLookup[_cameraCuts[_currentCutIndex].Subject]];
-                _currentCamera = _cameraLocations[GetCameraLocation(_cameraCuts[_currentCutIndex])];
+
+                // _currentCamera = _cameraLocations[GetCameraLocation(_cameraCuts[_currentCutIndex])];
+                _currentCamera = MapSubjectToValidCamera(_cameraCuts[_currentCutIndex]);
                 _cameraIndex = _cameras.IndexOf(_currentCamera);
                 // _cameraTimer = 11.0f;
                 _cameraTimer = Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength);
@@ -188,20 +202,83 @@ namespace YARG.Venue.VenueCamera
 
         private CameraLocation GetCameraLocation(CameraCutEvent cut)
         {
-            if (cut.Subject != CameraCutEvent.CameraCutSubject.Random)
+
+            // TODO: Make this check that the location is actually valid for the current venue before returning it
+
+            // TODO: Add fallbacks to map camera cuts we don't have to something appropriate rather than giving up and
+            // using a random camera without even checking that there are other reasonable options
+
+            // TODO: Maybe see if that fallback map can be specified by the venue author (at least in part, and we
+            //  just pick randomly if they didn't specify a fallback for a given cut subject that doesn't have a camera)
+
+            if (cut.Subject != CameraCutEvent.CameraCutSubject.Random && _cameraLocationLookup.TryGetValue(cut.Subject, out var location))
             {
-                return _cameraLocationLookup[cut.Subject];
+                return location;
             }
 
             if (cut.RandomChoices.Count > 0)
             {
-                var locationIndex = Random.Range(0, cut.RandomChoices.Count - 1);
-                return _cameraLocationLookup[cut.RandomChoices[locationIndex]];
+                var choices = cut.RandomChoices.ToList();
+                // Remove choices that aren't in _cameraLocationLookup
+                // for (var i = choices.Count - 1; i >= 0; i--)
+                // {
+                //     if (!_cameraLocationLookup.ContainsKey(choices[i]))
+                //     {
+                //         choices.RemoveAt(i);
+                //     }
+                // }
+                var locationIndex = Random.Range(0, choices.Count - 1);
+                return _cameraLocationLookup[choices[locationIndex]];
             }
 
             YargLogger.LogDebug("Random camera cut has no location options");
 
             return PickOne(_validLocations.ToArray());
+        }
+
+        private Camera MapSubjectToValidCamera(CameraCutEvent cut)
+        {
+            var subject = cut.Subject;
+
+            // TODO: Handle constraints
+
+            // The map doesn't have a key for this, so just pick a random camera
+            if (!_subjectToCameraMap.TryGetValue(subject, out var locations))
+            {
+                return _cameraLocations[PickOne(_validLocations.ToArray())];
+            }
+
+            if (subject == CameraCutEvent.CameraCutSubject.Random)
+            {
+                // Choose from the cut event's options list, assuming it exists (otherwise completely random)
+                if (cut.RandomChoices.Count > 0)
+                {
+                    var choices = cut.RandomChoices.ToList();
+                    // Remove choices that aren't in _subjectToCameraMap without using LINQ
+                    for (var i = choices.Count - 1; i >= 0; i--)
+                    {
+                        if (!_subjectToCameraMap.ContainsKey(choices[i]))
+                        {
+                            choices.RemoveAt(i);
+                        }
+                    }
+
+                    // Now pick from the remaining choices
+                    var selected = choices[Random.Range(0, choices.Count - 1)];
+                    var cameras = _subjectToCameraMap[selected];
+                    return cameras[Random.Range(0, cameras.Count - 1)];
+                }
+
+                // If there are no choices, just pick a random camera
+                return _cameraLocations[PickOne(_validLocations.ToArray())];
+            }
+
+            if (locations.Count > 1)
+            {
+                return locations[Random.Range(0, locations.Count - 1)];
+            }
+
+            return locations.First();
         }
 
         private static CameraLocation PickOne(CameraLocation[] locations)

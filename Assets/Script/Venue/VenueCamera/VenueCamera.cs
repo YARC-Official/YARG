@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -16,6 +17,11 @@ namespace YARG.Venue.VenueCamera
         private VolumeProfile _volume;
         [SerializeField]
         public CameraManager.CameraLocation CameraLocation;
+
+        [Space]
+        [SerializeField]
+        [Header("Camera Cut Subjects For This Camera")]
+        public List<CameraCutEvent.CameraCutSubject> CameraCutSubjects;
 
         private PostProcessingType _currentEffect = PostProcessingType.Default;
         private VolumeProfile _profile;
