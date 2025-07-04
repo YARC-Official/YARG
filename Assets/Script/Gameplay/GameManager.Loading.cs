@@ -282,9 +282,6 @@ namespace YARG.Gameplay
 
         private void FinalizeChart()
         {
-            BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
-            _chartLoaded?.Invoke(Chart);
-
             double audioLength = _mixer.Length;
             double chartLength = Chart.GetEndTime();
             double endTime = Chart.GetEndEvent()?.Time ?? -1;
@@ -305,6 +302,13 @@ namespace YARG.Gameplay
             {
                 SongLength = endTime;
             }
+
+            // Make sure enough beatlines have been generated to cover the song end delay
+            Chart.SyncTrack.GenerateBeatlines(SongLength + SONG_END_DELAY, true);
+
+            BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
+            _chartLoaded?.Invoke(Chart);
+
             _songLoaded?.Invoke();
         }
 
