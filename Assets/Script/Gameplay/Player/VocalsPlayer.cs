@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
@@ -76,10 +76,6 @@ namespace YARG.Gameplay.Player
             var materialPath = $"VocalNeedle/{needleIndex}";
             _needleRenderer.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
 
-            var partIndex = Player.Profile.CurrentInstrument == Instrument.Harmony
-                ? Player.Profile.HarmonyIndex
-                : 0;
-
             // Update speed of particles
             var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
             foreach (var system in particles)
@@ -91,14 +87,14 @@ namespace YARG.Gameplay.Player
                 var startSpeed = main.startSpeed;
                 startSpeed.constant *= player.Profile.NoteSpeed;
                 main.startSpeed = startSpeed;
-                main.startColor = VocalTrack.Colors[partIndex];
+                main.startColor = VocalTrack.Colors[Player.Profile.HarmonyIndex];
             }
 
             // Get the notes from the specific harmony or solo part
 
             var multiTrack = chart.GetVocalsTrack(Player.Profile.CurrentInstrument);
 
-            var track = multiTrack.Parts[partIndex];
+            var track = multiTrack.Parts[Player.Profile.HarmonyIndex];
             player.Profile.ApplyVocalModifiers(track);
 
             OriginalNoteTrack = track.CloneAsInstrumentDifficulty();
@@ -135,9 +131,9 @@ namespace YARG.Gameplay.Player
                     Engine.BuildCountdownsFromAllParts(multiTrack.Parts);
                 }
 
-                Engine.OnCountdownChange += (measuresLeft, countdownLength, endTime) =>
+                Engine.OnCountdownChange += (countdownLength, endTime) =>
                 {
-                    GameManager.VocalTrack.UpdateCountdown(measuresLeft, countdownLength, endTime);
+                    GameManager.VocalTrack.UpdateCountdown(countdownLength, endTime);
                 };
             }
 

@@ -88,7 +88,6 @@ namespace YARG.Gameplay.Player
 
             var preset = player.EnginePreset;
             IndicatorStripes.Initialize(preset);
-            ComboMeter.Initialize(preset);
 
             // Set fade information and highway length
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
@@ -195,7 +194,11 @@ namespace YARG.Gameplay.Player
             NoteTrack = OriginalNoteTrack;
             Notes = NoteTrack.Notes;
 
+            var events = NoteTrack.TextEvents;
+
             Engine = CreateEngine();
+
+            base.ComboMeter.Initialize(player.EnginePreset, Engine.BaseParameters.MaxMultiplier);
 
             if (GameManager.IsPractice)
             {
@@ -328,7 +331,10 @@ namespace YARG.Gameplay.Player
 
             TrackView.UpdateNoteStreak(stats.Combo);
 
-            if (!_isHotStartChecked && stats.ScoreMultiplier == 4)
+
+            // Could be if (!_isHotStartChecked && groove), but that would make it so hot start doesn't show
+            // for bass until 6x.
+            if (!_isHotStartChecked && stats.ScoreMultiplier == (!stats.IsStarPowerActive ? 4 : 8))
             {
                 _isHotStartChecked = true;
 
@@ -583,8 +589,9 @@ namespace YARG.Gameplay.Player
             var difficulty = OriginalNoteTrack.Difficulty;
             var phrases = OriginalNoteTrack.Phrases;
             var textEvents = OriginalNoteTrack.TextEvents;
+            var shiftEvents = OriginalNoteTrack.RangeShiftEvents;
 
-            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents);
+            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents, shiftEvents);
             Notes = NoteTrack.Notes;
 
             ResetNoteCounters();
@@ -746,12 +753,12 @@ namespace YARG.Gameplay.Player
         {
             // This is here because it seemed like awarding from TrackPlayer would work best for replays
             // since all the replay data is saved here
-            YargLogger.LogFormatDebug("TrackPlayer would have awarded unison bonus at engine time {0}", Engine.CurrentTime);
+            YargLogger.LogFormatTrace("TrackPlayer would have awarded unison bonus at engine time {0}", Engine.CurrentTime);
         }
-
-        protected virtual void OnCountdownChange(int measuresLeft, double countdownLength, double endTime)
+        
+        protected virtual void OnCountdownChange(double countdownLength, double endTime)
         {
-            TrackView.UpdateCountdown(measuresLeft, countdownLength, endTime);
+            TrackView.UpdateCountdown(countdownLength, endTime);
         }
 
         protected virtual void OnStarPowerPhraseHit(TNote note)

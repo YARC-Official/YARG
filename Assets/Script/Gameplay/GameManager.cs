@@ -141,6 +141,8 @@ namespace YARG.Gameplay
 
         private StemMixer _mixer;
 
+        private List<double> _frameTimes;
+
         private void Awake()
         {
             // Set references
@@ -174,6 +176,8 @@ namespace YARG.Gameplay
 
             // Update countdown display style from global settings
             CountdownDisplay.DisplayStyle = SettingsManager.Settings.CountdownDisplay.Value;
+
+            _frameTimes = new List<double>();
         }
 
         private void OnDestroy()
@@ -243,6 +247,10 @@ namespace YARG.Gameplay
                 totalCombo += player.Combo;
                 totalStars += player.Stars;
             }
+
+            #if UNITY_EDITOR || YARG_TEST_BUILD
+            _frameTimes.Add(_songRunner.InputTime);
+            #endif
 
             BandScore = totalScore;
             BandCombo = totalCombo;
@@ -419,7 +427,7 @@ namespace YARG.Gameplay
             try
             {
                 _isReplaySaved = false;
-                replayInfo = SaveReplay(Song.SongLengthSeconds, ScoreContainer.ScoreReplayDirectory);
+                replayInfo = SaveReplay(InputTime, ScoreContainer.ScoreReplayDirectory);
             }
             catch (Exception e)
             {
@@ -574,7 +582,8 @@ namespace YARG.Gameplay
             }
 
             var stars = StarAmountHelper.GetStarsFromInt((int) (bandStars / frames.Count));
-            var data = new ReplayData(colorProfiles, cameraPresets, frames.ToArray());
+            var data = new ReplayData(colorProfiles, cameraPresets, frames.ToArray(), _frameTimes.ToArray());
+
             var (success, replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, replayStats.ToArray(), data);
             if (!success)
             {

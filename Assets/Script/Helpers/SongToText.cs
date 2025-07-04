@@ -65,7 +65,7 @@ namespace YARG.Helpers
                 "artist", x => x.Artist
             },
             {
-                "year", x => x.Year
+                "year", x => x.ParsedYear
             },
             {
                 "album", x => x.Album
@@ -95,7 +95,7 @@ namespace YARG.Helpers
                 "artist", x => !string.IsNullOrEmpty(x.Artist)
             },
             {
-                "year", x => !string.IsNullOrEmpty(x.Year)
+                "year", x => !string.IsNullOrEmpty(x.ParsedYear)
             },
             {
                 "album", x => !string.IsNullOrEmpty(x.Album)

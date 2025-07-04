@@ -39,7 +39,7 @@ namespace YARG.Menu.Settings
                 int songCount = 0;
                 foreach (var song in SongContainer.Songs)
                 {
-                    if (song.Location.StartsWith(SongFolders[_index]))
+                    if (song.SortBasedLocation.StartsWith(SongFolders[_index]))
                     {
                         songCount++;
                     }

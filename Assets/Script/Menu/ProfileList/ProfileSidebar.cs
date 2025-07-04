@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Persistent;
@@ -46,6 +47,8 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
+        private GameObject _sidebarContent;
+        [SerializeField]
         private TMP_Dropdown _gameModeDropdown;
         [SerializeField]
         private TMP_InputField _noteSpeedField;
@@ -55,6 +58,8 @@ namespace YARG.Menu.ProfileList
         private TMP_InputField _inputCalibrationField;
         [SerializeField]
         private Toggle _leftyFlipToggle;
+        [SerializeField]
+        private Toggle _rangeDisabledToggle;
         [SerializeField]
         private TMP_Dropdown _engineDropdown;
         [SerializeField]
@@ -135,7 +140,7 @@ namespace YARG.Menu.ProfileList
 
             if (!PlayerContainer.IsProfileTaken(_profile))
             {
-                _contents.SetActive(false);
+                HideContents();
                 return;
             }
 
@@ -148,6 +153,7 @@ namespace YARG.Menu.ProfileList
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
             _leftyFlipToggle.isOn = profile.LeftyFlip;
+            _rangeDisabledToggle.isOn = profile.RangeEnabled;
 
             // Update preset dropdowns
             _engineDropdown.SetValueWithoutNotify(
@@ -174,6 +180,26 @@ namespace YARG.Menu.ProfileList
             {
                 button.interactable = interactable;
             }
+
+            EnableSettingsForGameMode();
+        }
+
+        private void EnableSettingsForGameMode()
+        {
+            var possibleSettings = _profile.GameMode.PossibleProfileSettings();
+            for (var i = 0; i < _sidebarContent.transform.childCount; i++)
+            {
+                // Disable if the child's gameObject.name is not found in possibleSettings
+                var child = _sidebarContent.transform.GetChild(i);
+                if (possibleSettings.Contains(child.gameObject.name))
+                {
+                    child.gameObject.SetActive(true);
+                }
+                else
+                {
+                    child.gameObject.SetActive(false);
+                }
+            }
         }
 
         public void HideContents()
@@ -199,14 +225,17 @@ namespace YARG.Menu.ProfileList
 
                 // Update the UI
                 _profileName.text = _profile.Name;
-                _profileView.Init(_profileListMenu, _profile, this);
+                _profileView.UpdateDisplay(_profile);
             }
         }
 
         public void EditProfile()
         {
             // Only allow profile editing if it's taken
-            if (!PlayerContainer.IsProfileTaken(_profile)) return;
+            if (!PlayerContainer.IsProfileTaken(_profile))
+            {
+                return;
+            }
 
             var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.ProfileInfo, false);
 
@@ -227,6 +256,9 @@ namespace YARG.Menu.ProfileList
         public void ChangeGameMode()
         {
             _profile.GameMode = _gameModesByIndex[_gameModeDropdown.value];
+            _profileView.UpdateDisplay(_profile);
+            // Update sidebar when game mode changes so the correct settings are displayed
+            UpdateSidebar(_profile, _profileView);
         }
 
         public void ChangeNoteSpeed()
@@ -265,6 +297,11 @@ namespace YARG.Menu.ProfileList
         public void ChangeLeftyFlip()
         {
             _profile.LeftyFlip = _leftyFlipToggle.isOn;
+        }
+
+        public void ChangeRangeDisabled()
+        {
+            _profile.RangeEnabled = _rangeDisabledToggle.isOn;
         }
 
         public void ChangeEngine()

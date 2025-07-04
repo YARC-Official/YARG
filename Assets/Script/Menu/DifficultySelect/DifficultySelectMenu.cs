@@ -49,6 +49,10 @@ namespace YARG.Menu.DifficultySelect
         private TMP_InputField _speedInput;
         [SerializeField]
         private TextMeshProUGUI _loadingPhrase;
+        [SerializeField]
+        private TextMeshProUGUI _warningMessage;
+        [SerializeField]
+        private GameObject _warningMessageContainer;
 
         [Space]
         [SerializeField]
@@ -169,6 +173,19 @@ namespace YARG.Menu.DifficultySelect
         {
             var player = CurrentPlayer;
 
+            if (player.IsMissingMicrophone)
+            {
+                ShowWarning(Localize.Key("Menu.DifficultySelect.WarningVocalistNoMicrophone"));
+            }
+            else if (player.IsMissingInputDevice)
+            {
+                ShowWarning(Localize.Key("Menu.DifficultySelect.WarningPlayerNoInputDevice"));
+            }
+            else
+            {
+                ShowWarning(null);
+            }
+
             // Only show all these options if there are instruments available
             if (_possibleInstruments.Count > 0)
             {
@@ -263,6 +280,20 @@ namespace YARG.Menu.DifficultySelect
                     player.SittingOut = true;
                     ChangePlayer(1);
                 });
+            }
+        }
+
+        private void ShowWarning(string message)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                _warningMessageContainer.SetActive(false);
+                _warningMessage.text = "";
+            }
+            else
+            {
+                _warningMessageContainer.SetActive(true);
+                _warningMessage.text = message;
             }
         }
 

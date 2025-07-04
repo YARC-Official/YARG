@@ -531,6 +531,10 @@
                 "Name": "Disable Bloom",
                 "Description": "Disables post-processing bloom (the glowly effect). May increase performance."
             },
+            "DisableFilmGrain": {
+                "Name": "Disable Film Grain",
+                "Description": "Disables post-processing film grain effect. May increase performance."
+            },
             "DisableGlobalBackgrounds": {
                 "Name": "Disable Global Backgrounds",
                 "Description": "Disables custom backgrounds from your venue folder and shows the ones in songs instead."

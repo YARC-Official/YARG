@@ -164,7 +164,11 @@ namespace YARG.Audio.BASS
 #nullable enable
         protected override StemMixer? CreateMixer(string name, float speed, double mixerVolume, bool clampStemVolume)
         {
-            YargLogger.LogDebug("Loading song");
+            if (GlobalAudioHandler.LogMixerStatus)
+            {
+                YargLogger.LogDebug("Loading song");
+            }
+
             if (!CreateMixerHandle(out int handle))
             {
                 return null;
@@ -174,7 +178,11 @@ namespace YARG.Audio.BASS
 
         protected override StemMixer? CreateMixer(string name, Stream stream, float speed, double mixerVolume, bool clampStemVolume)
         {
-            YargLogger.LogDebug("Loading song");
+            if (GlobalAudioHandler.LogMixerStatus)
+            {
+                YargLogger.LogDebug("Loading song");
+            }
+
             if (!CreateMixerHandle(out int handle))
             {
                 return null;
@@ -302,7 +310,7 @@ namespace YARG.Audio.BASS
                             DrumSfxSamples[(int) sfxSample] = sfx;
                         }
                         break;
-                    }  
+                    }
                 }
             }
 

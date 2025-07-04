@@ -8,9 +8,10 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Beatline
-  m_Shader: {fileID: -6465566751694194690, guid: dd746f90db99cb145abded5cced0c12e,
+  m_Shader: {fileID: -6465566751694194690, guid: 0c474304b74472f4a8b212da29713486,
     type: 3}
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _EMISSION_DISABLED
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0

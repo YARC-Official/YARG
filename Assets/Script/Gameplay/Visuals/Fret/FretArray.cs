@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Chart;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
@@ -26,6 +28,10 @@ namespace YARG.Gameplay.Visuals
 
         private readonly List<Fret> _frets = new();
         private readonly List<KickFret> _kickFrets = new();
+
+        private bool[] _activeFrets;
+        private bool[] _pulsingFrets;
+        private float  _pulseDuration;
 
         public void Initialize(ThemePreset themePreset, GameMode gameMode,
             ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
@@ -77,6 +83,13 @@ namespace YARG.Gameplay.Visuals
             }
 
             InitializeColor(fretColorProvider, leftyFlip);
+            _activeFrets = new bool[FretCount];
+            _pulsingFrets = new bool[FretCount];
+            // Start with all frets active, they will be set inactive once TrackPlayer figures itself out
+            for (int i = 0; i < FretCount; i++)
+            {
+                _activeFrets[i] = true;
+            }
         }
 
         public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
@@ -92,7 +105,9 @@ namespace YARG.Gameplay.Visuals
                 _frets[i].Initialize(
                     fretColorProvider.GetFretColor(index),
                     fretColorProvider.GetFretInnerColor(index),
-                    fretColorProvider.GetParticleColor(index));
+                    fretColorProvider.GetParticleColor(index),
+                    fretColorProvider.GetParticleColor(0 /* open note */)
+                );
             }
 
             foreach (var kick in _kickFrets)
@@ -122,16 +137,22 @@ namespace YARG.Gameplay.Visuals
             foreach (var fret in _frets)
             {
                 fret.PlayHitAnimation();
+                fret.PlayOpenHitParticles();
             }
         }
 
-        public void PlayDrumAnimation(int index, bool particles)
+        public void PlayMissAnimation(int index)
         {
-            _frets[index].PlayHitAnimation();
+            _frets[index].PlayMissAnimation();
+            _frets[index].PlayMissParticles();
+        }
 
-            if (particles)
+        public void PlayOpenMissAnimation()
+        {
+            foreach (var fret in _frets)
             {
-                _frets[index].PlayHitParticles();
+                fret.PlayOpenMissAnimation();
+                fret.PlayOpenMissParticles();
             }
         }
 
@@ -148,6 +169,52 @@ namespace YARG.Gameplay.Visuals
             foreach (var fret in _frets)
             {
                 fret.SetSustained(false);
+            }
+        }
+
+        public void SetFretColorPulse(int fretIndex, bool pulse, float duration)
+        {
+            _pulseDuration = duration;
+            _pulsingFrets[fretIndex] = pulse;
+        }
+
+        public void PulseFretColors(Beatline beat)
+        {
+            for (int i = 0; i < _pulsingFrets.Length; i++)
+            {
+                if (!_pulsingFrets[i] || _activeFrets[i])
+                {
+                    continue;
+                }
+
+                _frets[i].FadeColor(_pulseDuration, true, false);
+            }
+        }
+
+        public void UpdateFretActiveState(bool[] frets)
+        {
+            // We should always receive the same number of frets that we actually have, but...
+            if (frets.Length != _frets.Count)
+            {
+                YargLogger.LogFormatDebug("Received inconsistent fret array. Got {0} flags, but we have {1} frets.", frets.Length, _frets.Count);
+                return;
+            }
+
+            for (int i = 0; i < _frets.Count; i++)
+            {
+                if (_activeFrets[i] != frets[i])
+                {
+                    if (frets[i])
+                    {
+                        _frets[i].ResetColor(true);
+                    }
+                    else
+                    {
+                        _frets[i].DimColor(true);
+                    }
+                }
+
+                _activeFrets[i] = frets[i];
             }
         }
     }

@@ -4,6 +4,7 @@ using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
 using YARG.Player;
+using YARG.Helpers.UI;
 
 namespace YARG.Gameplay.HUD
 {
@@ -16,6 +17,8 @@ namespace YARG.Gameplay.HUD
 
         [SerializeField]
         private AspectRatioFitter _aspectRatioFitter;
+        [SerializeField]
+        private ScaleByParentSize _UIScaler;
         [SerializeField]
         private RectTransform _topElementContainer;
 
@@ -34,6 +37,7 @@ namespace YARG.Gameplay.HUD
         private void Start()
         {
             _aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
+            _UIScaler.Initialize();
         }
 
         public void Initialize(RenderTexture rt, CameraPreset cameraPreset, TrackPlayer trackPlayer)
@@ -80,9 +84,9 @@ namespace YARG.Gameplay.HUD
             _topElementContainer.localPosition = localPoint;
         }
 
-        public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
+        public void UpdateCountdown(double countdownLength, double endTime)
         {
-            _countdownDisplay.UpdateCountdown(measuresLeft, countdownLength, endTime);
+            _countdownDisplay.UpdateCountdown(countdownLength, endTime);
         }
 
         public void StartSolo(SoloSection solo)

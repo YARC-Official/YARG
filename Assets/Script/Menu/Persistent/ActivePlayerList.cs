@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 using YARG.Helpers.Extensions;
+using YARG.Input;
 using YARG.Player;
 
 namespace YARG.Menu.Persistent
@@ -17,6 +18,13 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private int _maxShownPlayerNames = 3;
 
+        private void Start()
+        {
+            // Refresh player list to display "No controller" instrument icon correctly.
+            InputManager.DeviceAdded += (device) => UpdatePlayerList();
+            InputManager.DeviceRemoved += (device) => UpdatePlayerList();
+        }
+
         public void UpdatePlayerList()
         {
             var players  = PlayerContainer.Players;
@@ -32,7 +40,7 @@ namespace YARG.Menu.Persistent
             {
                 var newObj = Instantiate(_playerNamesPrefab, _playerNamesContainer.transform);
                 var itemComponent = newObj.GetComponent<ActivePlayerListItem>();
-                itemComponent.Initialize(player.Profile);
+                itemComponent.Initialize(player);
                 itemComponent.ShowName = showPlayerNames;
             }
         }

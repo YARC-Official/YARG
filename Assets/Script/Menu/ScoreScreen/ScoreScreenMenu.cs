@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -77,18 +78,30 @@ namespace YARG.Menu.ScoreScreen
             // Do analysis of replay before showing any score data
             // This will make it so that if the analysis takes a while the screen is blank
             // (kinda like a loading screen)
-            if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
+            try
             {
-                DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
-                    "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
+                if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
+                {
+                    DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
+                        "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
+                        "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
+                        $"Chart Hash: {song.Hash}");
+                }
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, $"Failed to analyze replay! Song hash: {song.Hash}");
+                DialogManager.Instance.ShowMessage("Failed To Analyze Replay!",
+                    "The replay analysis for this run resulted in an unexpected error.\n" +
                     "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
-                    $"Chart Hash: {song.Hash.ToString()}");
+                    $"Chart Hash: {song.Hash}");
             }
 
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-            _bandScoreNotSavedMessage.gameObject.SetActive(!ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
+            _bandScoreNotSavedMessage.gameObject.SetActive(
+                !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
 
             // Set speed text (if not at 100% speed)
             if (!Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f))
@@ -176,12 +189,14 @@ namespace YARG.Menu.ScoreScreen
                 _analyzingReplay = false;
                 return true;
             }
+
             if (GlobalVariables.State.ScoreScreenStats.Value.PlayerScores.All(e => e.Player.Profile.IsBot))
             {
                 YargLogger.LogInfo("No human players in ReplayEntry.");
                 _analyzingReplay = false;
                 return true;
             }
+
             if (replayEntry == null)
             {
                 YargLogger.LogError("ReplayEntry is null");
@@ -197,20 +212,35 @@ namespace YARG.Menu.ScoreScreen
                 return true;
             }
 
-            var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
-            for(int i = 0; i < results.Length; i++)
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, replayEntry, data);
+            bool allPass = true;
+
+            for (int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];
 
+                // Always print the stats in debug mode
+#if UNITY_EDITOR || YARG_TEST_BUILD
+                YargLogger.LogFormatInfo("({0}, {1}/{2}) Verification Result: {3}. Stats:\n{4}",
+                    data.Frames[i].Profile.Name, data.Frames[i].Profile.CurrentInstrument,
+                    data.Frames[i].Profile.CurrentDifficulty, item4: analysisResult.Passed ? "Passed" : "Failed",
+                    item5: analysisResult.StatLog);
+#endif
+
                 if (!analysisResult.Passed)
                 {
+#if !(UNITY_EDITOR || YARG_TEST_BUILD)
+                    YargLogger.LogFormatWarning("({0}, {1}/{2}) FAILED verification. Stats:\n{3}",
+                        data.Frames[i].Profile.Name, data.Frames[i].Profile.CurrentInstrument,
+                        data.Frames[i].Profile.CurrentDifficulty, item4: analysisResult.StatLog);
+#endif
                     _analyzingReplay = false;
-                    return false;
+                    allPass = false;
                 }
             }
 
             _analyzingReplay = false;
-            return true;
+            return allPass;
         }
     }
 }
