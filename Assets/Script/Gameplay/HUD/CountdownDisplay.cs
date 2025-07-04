@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Chart;
 using System;
-using YARG.Core.Logging;
+using Cysharp.Text;
 
 namespace YARG.Gameplay.HUD
 {
@@ -37,8 +37,6 @@ namespace YARG.Gameplay.HUD
 
         private bool _displayActive;
 
-        private double _nextMeasureTime = -1;
-
         public void UpdateCountdown(double countdownLength, double endTime)
         {
             if (DisplayStyle == CountdownDisplayMode.Disabled)
@@ -63,21 +61,30 @@ namespace YARG.Gameplay.HUD
             }
 
             ToggleDisplay(shouldDisplay);
-            
+
             if (!gameObject.activeSelf)
             {
                 return;
             }
 
-            string displayNumber = DisplayStyle switch
+            switch (DisplayStyle)
             {
-                CountdownDisplayMode.Measures => GetMeasuresLeft(endTime),
-                CountdownDisplayMode.Seconds => Math.Ceiling(timeRemaining).ToString(),
-                _ => throw new Exception("Unreachable")
-            };
+                case CountdownDisplayMode.Seconds:
+                {
+                    _countdownText.SetText((int) Math.Ceiling(timeRemaining));
+                    break;
+                }
+                case CountdownDisplayMode.Measures:
+                {
+                    var syncTrack = GameManager.Chart.SyncTrack;
+                    uint measureTick = syncTrack.TimeToMeasureTick(currentTime);
+                    uint endMeasureTick = syncTrack.TimeToMeasureTick(endTime);
+                    uint remainingMeasures = (endMeasureTick - measureTick) / syncTrack.MeasureResolution;
+                    _countdownText.SetText(remainingMeasures);
+                    break;
+                }
+            }
 
-            _countdownText.text = displayNumber;
-            
             _progressBar.fillAmount = (float) (timeRemaining / countdownLength);
         }
 
@@ -116,7 +123,7 @@ namespace YARG.Gameplay.HUD
                     gameObject.SetActive(false);
                     return;
                 }
-                
+
                 _currentCoroutine = StartCoroutine(HideCoroutine());
             }
         }
@@ -147,42 +154,6 @@ namespace YARG.Gameplay.HUD
                 StopCoroutine(_currentCoroutine);
                 _currentCoroutine = null;
             }
-        }
-
-        private string GetMeasuresLeft(double endTime)
-        {
-            double currentTime = GameManager.SongTime;
-            if (currentTime < _nextMeasureTime)
-            {
-                // Measure count has not changed
-                return _countdownText.text;
-            }
-            
-            var syncTrack = GameManager.Chart.SyncTrack;
-
-            int newMeasuresLeft = 0;
-
-            double timeRef = currentTime;
-            while (timeRef < endTime)
-            {
-                var currentTimeSig = syncTrack.TimeSignatures.GetPrevious(timeRef);
-                if (currentTimeSig == null)
-                {
-                    YargLogger.LogFormatDebug("Cannot calculate WaitCountdown measures at time {0}. No time signatures available.", timeRef);
-                    break;
-                }
-
-                var currentTempo = syncTrack.Tempos.GetPrevious(timeRef);
-
-                timeRef += currentTimeSig.GetSecondsPerMeasure(currentTempo);
-                
-                if (++newMeasuresLeft == 1)
-                {
-                    _nextMeasureTime = timeRef;
-                }
-            }
-
-            return newMeasuresLeft.ToString();
         }
     }
 }
