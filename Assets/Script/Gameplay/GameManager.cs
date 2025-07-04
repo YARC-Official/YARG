@@ -12,6 +12,7 @@ using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Vocals;
@@ -81,6 +82,7 @@ namespace YARG.Gameplay
 
         public PracticeManager  PracticeManager  { get; private set; }
         public BackgroundManager BackgroundManager { get; private set; }
+        public EngineManager EngineManager { get; private set; }
 
         public SongEntry Song  { get; private set; }
         public SongChart    Chart { get; private set; }
@@ -146,6 +148,7 @@ namespace YARG.Gameplay
             // Set references
             PracticeManager = GetComponent<PracticeManager>();
             BackgroundManager = GetComponent<BackgroundManager>();
+            EngineManager = new EngineManager();
 
             YargPlayers = PlayerContainer.Players;
 

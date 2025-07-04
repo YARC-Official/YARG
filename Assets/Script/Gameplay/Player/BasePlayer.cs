@@ -100,6 +100,8 @@ namespace YARG.Gameplay.Player
 
         private float _noteSpeedDifficultyScale;
 
+        protected EngineManager.EngineContainer EngineContainer;
+
         protected override void GameplayAwake()
         {
             _replayInputs = new List<GameInput>();
