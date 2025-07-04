@@ -108,6 +108,11 @@ namespace YARG.Venue.Characters
         private bool _isBend;
         private bool _handDown;
 
+        private string _delayedTriggerName;
+        private float  _delayedTriggerTime;
+
+        private bool _alwaysBend => _handMap == HandMap.HandMapAllBend;
+
         private void Awake()
         {
             _animator = GetComponent<Animator>();
@@ -192,6 +197,20 @@ namespace YARG.Venue.Characters
             GetPositionHashes();
             GetIKTargets();
 
+        }
+
+        private void Update()
+        {
+            if (_delayedTriggerTime > 0)
+            {
+                _delayedTriggerTime -= Time.deltaTime;
+                if (_delayedTriggerTime <= 0 && _delayedTriggerName != null)
+                {
+                    _animator.SetTrigger(_delayedTriggerName);
+                    _delayedTriggerTime = 0f;
+                    _delayedTriggerName = null;
+                }
+            }
         }
 
         private void GetIKTargets()
@@ -326,9 +345,11 @@ namespace YARG.Venue.Characters
                     case HandMap.HandMapDropD:
                         _animator.SetTrigger("DropD");
                         _inhibitHandShape = true;
+                        YargLogger.LogDebug("Drop D triggered");
                         break;
                     case HandMap.HandMapDropD2:
-                        _animator.SetTrigger("DropD2");
+                        _animator.SetTrigger("DropD");
+                        YargLogger.LogDebug("Drop D triggered");
                         _inhibitHandShape = true;
                         break;
                 }
@@ -505,8 +526,6 @@ namespace YARG.Venue.Characters
                     }
                 }
 
-                // TODO: Deal with bends
-
                 SetHandAnimationForNote(gNote);
 
             }
@@ -549,71 +568,184 @@ namespace YARG.Venue.Characters
             bool useChordShape =
                 (gNote.IsChord && (!_inhibitHandShape || Type != CharacterType.Guitar) &&
                     _handMap != HandMap.HandMapNoChords) || _handMap == HandMap.HandMapAllChords;
+            bool isSustain = gNote.IsSustain;
+            float sustainLength = (float) gNote.TimeLength;
 
-            if (_inhibitHandShape && Type == CharacterType.Guitar)
+            if (_inhibitHandShape && Type == CharacterType.Guitar && (_handMap != HandMap.HandMapDropD && _handMap != HandMap.HandMapDropD2))
             {
                 return;
             }
 
+            // TODO: Get the length of each animation rather than hardcoding the sustainLength value
+            if (_alwaysBend)
+            {
+                sustainLength = 0.333f;
+            }
+
+            // Just for testing
+            if (Type != CharacterType.Guitar)
+            {
+                return;
+            }
+
+            // Cancel any delayed trigger since we're either changing hand shapes or just received a new note
+            CancelDelayedTrigger();
+
             // Shift hand positions based on whether the note is a chord or not and the position of the lowest note
             if (useChordShape)
             {
-                // Find the note with the lowest fret
+                // Find the note with the lowest fret, and if any are sustains, consider this a sustain chord
                 foreach (var child in gNote.AllNotes)
                 {
+                    if (child.IsSustain)
+                    {
+                        isSustain = true;
+                        sustainLength = Math.Max(sustainLength, (float) child.TimeLength);
+                    }
                     if (child.Fret < lowestFret)
                     {
                         lowestFret = child.Fret;
                     }
                 }
 
+                if (HandleDropD(isSustain, sustainLength))
+                {
+                    return;
+                }
+
                 if (lowestFret < 3)
                 {
-                    if (_currentChordShape == "DefaultChordLow")
+                    if (isSustain || _alwaysBend)
                     {
-                        return;
+                        if (_currentChordShape == "DefaultChordLowVibrato")
+                        {
+                            return;
+                        }
+
+                        // Trigger chord low vibrato hand shape
+                        _animator.SetTrigger("DefaultChordLowVibrato");
+                        SetDelayedTrigger("DefaultChordLow", sustainLength);
                     }
-                    // Trigger chord low hand shape
-                    _animator.SetTrigger("DefaultChordLow");
-                    _currentChordShape = "DefaultChordLow";
+                    else
+                    {
+                        if (_currentChordShape == "DefaultChordLow")
+                        {
+                            return;
+                        }
+
+                        // Trigger chord low hand shape
+                        _animator.SetTrigger("DefaultChordLow");
+                        _currentChordShape = "DefaultChordLow";
+                    }
                 }
                 else
                 {
-                    if (_currentChordShape == "DefaultChordHigh")
+                    if (isSustain || _alwaysBend)
                     {
-                        return;
+                        if (_currentChordShape == "DefaultChordHighVibrato")
+                        {
+                            return;
+                        }
+
+                        // Trigger chord high vibrato hand shape
+                        _animator.SetTrigger("DefaultChordHighVibrato");
+                        _currentChordShape = "DefaultChordHighVibrato";
+                        SetDelayedTrigger("DefaultChordHigh", sustainLength);
                     }
-                    // Trigger chord high hand shape
-                    _animator.SetTrigger("DefaultChordHigh");
-                    _currentChordShape = "DefaultChordHigh";
+                    else
+                    {
+                        if (_currentChordShape == "DefaultChordHigh")
+                        {
+                            return;
+                        }
+
+                        // Trigger chord high hand shape
+                        _animator.SetTrigger("DefaultChordHigh");
+                        _currentChordShape = "DefaultChordHigh";
+                    }
                 }
             }
             else if (gNote.Fret != (int)FiveFretGuitarFret.Open && !(openGreen && gNote.Fret == (int)FiveFretGuitarFret.Green))
             {
+                if (HandleDropD(isSustain, sustainLength))
+                {
+                    return;
+                }
+
                 if (gNote.Fret < 3)
                 {
-                    if (_currentChordShape == "DefaultSingleLow")
+                    if (isSustain || _alwaysBend)
                     {
-                        return;
+                        if (_currentChordShape == "DefaultSingleLowVibrato")
+                        {
+                            return;
+                        }
+
+                        // Trigger single note low vibrato hand shape
+                        _animator.SetTrigger("DefaultSingleLowVibrato");
+                        _currentChordShape = "DefaultSingleLowVibrato";
+                        SetDelayedTrigger("DefaultSingleLow", sustainLength);
                     }
-                    // Trigger single note low hand shape
-                    _animator.SetTrigger("DefaultSingleLow");
-                    _currentChordShape = "DefaultSingleLow";
+                    else
+                    {
+                        if (_currentChordShape == "DefaultSingleLow")
+                        {
+                            return;
+                        }
+
+                        // Trigger single note low hand shape
+                        _animator.SetTrigger("DefaultSingleLow");
+                        _currentChordShape = "DefaultSingleLow";
+                    }
                 }
                 else
                 {
-                    if (_currentChordShape == "DefaultSingleHigh")
+                    if (isSustain || _alwaysBend)
                     {
-                        return;
+                        if (_currentChordShape == "DefaultSingleHighVibrato")
+                        {
+                            return;
+                        }
+
+                        // Trigger single note high vibrato hand shape
+                        _animator.SetTrigger("DefaultSingleHighVibrato");
+                        _currentChordShape = "DefaultSingleHighVibrato";
+                        SetDelayedTrigger("DefaultSingleHigh", sustainLength);
                     }
-                    // Trigger single note high hand shape
-                    _animator.SetTrigger("DefaultSingleHigh");
-                    _currentChordShape = "DefaultSingleHigh";
+                    else
+                    {
+
+
+                        if (_currentChordShape == "DefaultSingleHigh")
+                        {
+                            return;
+                        }
+
+                        // Trigger single note high hand shape
+                        _animator.SetTrigger("DefaultSingleHigh");
+                        _currentChordShape = "DefaultSingleHigh";
+                    }
                 }
             }
             else
             {
                 // We either have an open note or we have green and are using a map that uses open fingering for green
+                // HandleDropD(isSustain, sustainLength);
+
+                if (_handMap == HandMap.HandMapDropD || _handMap == HandMap.HandMapDropD2)
+                {
+                    if (_currentChordShape == "DropDOpen")
+                    {
+                        return;
+                    }
+
+                    _animator.SetTrigger("DropDOpen");
+                    _currentChordShape = "DropDOpen";
+                    // YargLogger.LogDebug("Drop D open hand shape triggered");
+
+                    return;
+                }
+
                 if (_currentChordShape == "DefaultOpen")
                 {
                     return;
@@ -622,6 +754,40 @@ namespace YARG.Venue.Characters
                 _animator.SetTrigger("DefaultOpen");
                 _currentChordShape = "DefaultOpen";
             }
+        }
+
+        private bool HandleDropD(bool isSustain, float sustainLength)
+        {
+            // YargLogger.LogDebug("HandleDropD called");
+            if (_handMap == HandMap.HandMapDropD || _handMap == HandMap.HandMapDropD2)
+            {
+                // YargLogger.LogDebug("Drop D hand shape");
+                if (isSustain)
+                {
+                    if (_currentChordShape == "DropDVibrato")
+                    {
+                        return true;
+                    }
+                    _animator.SetTrigger("DropDVibrato");
+                    _currentChordShape = "DropDVibrato";
+                    SetDelayedTrigger("DropD", sustainLength);
+                    // YargLogger.LogDebug("Drop D vibrato hand shape triggered");
+                    return true;
+                }
+
+                if (_currentChordShape == "DropD")
+                {
+                    return true;
+                }
+
+                // Trigger drop D hand shape
+                _animator.SetTrigger("DropD");
+                _currentChordShape = "DropD";
+                // YargLogger.LogDebug("Returned to DropD hand shape");
+                return true;
+            }
+
+            return false;
         }
 
         public void StopAnimation()
@@ -723,6 +889,18 @@ namespace YARG.Venue.Characters
             {
                 _animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
             }
+        }
+
+        private void SetDelayedTrigger(string triggerName, float delay)
+        {
+            _delayedTriggerName = triggerName;
+            _delayedTriggerTime = delay;
+        }
+
+        private void CancelDelayedTrigger()
+        {
+            _delayedTriggerName = null;
+            _delayedTriggerTime = 0;
         }
 
         /// <summary>
