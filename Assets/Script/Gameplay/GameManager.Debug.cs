@@ -307,7 +307,7 @@ namespace YARG.Gameplay
 
                         var engine = fiveFretPlayer.Engine;
                         text.AppendLine("State:");
-                        text.AppendFormat("- Button mask: 0x{0:X2}\n", engine.ButtonMask);
+                        text.AppendFormat("- Button mask: 0x{0:X2}\n", engine.EffectiveButtonMask);
                         text.AppendFormat("- Last button mask: 0x{0:X2}\n", engine.LastButtonMask);
                         text.AppendFormat("- Note was ghosted: {0}\n", engine.WasNoteGhosted);
                         text.AppendLine();
