@@ -207,7 +207,7 @@ namespace YARG.Settings
             #region Graphics
 
             public ToggleSetting VSync { get; } = new(true, VSyncCallback);
-            public IntSetting FpsCap { get; } = new(60, 1, onChange: FpsCapCallback);
+            public IntSetting FpsCap { get; } = new(60, 0, onChange: FpsCapCallback);
 
             public DropdownSetting<FullScreenMode> FullscreenMode { get; }
                 = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)
