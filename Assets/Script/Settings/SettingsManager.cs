@@ -43,6 +43,7 @@ namespace YARG.Settings
                 nameof(Settings.WaitForSongVideo),
 
                 new HeaderMetadata("Gameplay"),
+                nameof(Settings.InputPollingFrequency),
                 nameof(Settings.VoiceActivatedVocalStarPower),
                 nameof(Settings.EnablePracticeSP),
                 nameof(Settings.PracticeRestartDelay),
@@ -127,6 +128,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Graphics"),
                 nameof(Settings.LowQuality),
                 nameof(Settings.DisableBloom),
+                nameof(Settings.DisableFilmGrain),
                 nameof(Settings.StarPowerHighwayFx),
                 nameof(Settings.SongBackgroundOpacity),
 
@@ -142,7 +144,6 @@ namespace YARG.Settings
                 nameof(Settings.CountdownDisplay),
                 nameof(Settings.ShowPlayerNameWhenStartingSong),
                 nameof(Settings.LyricDisplay),
-                nameof(Settings.UpcomingLyricsTime),
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox),
                 nameof(Settings.KeepSongInfoVisible),

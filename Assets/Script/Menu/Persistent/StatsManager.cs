@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Text;
 using TMPro;
@@ -88,7 +87,8 @@ namespace YARG.Menu.Persistent
 
         private float _screenRefreshRate;
 
-        private List<float> _frameTimes = new();
+        private float _frameTimes = 0.0f;
+        private int   _frameCount = 0;
 
         private float _nextUpdateTime;
 
@@ -123,7 +123,8 @@ namespace YARG.Menu.Persistent
 
         private void Update()
         {
-            _frameTimes.Add(Time.unscaledDeltaTime);
+            _frameTimes += Time.unscaledDeltaTime;
+            _frameCount ++;
 
             // Wait for next update period
             if (Time.unscaledTime < _nextUpdateTime)
@@ -149,8 +150,9 @@ namespace YARG.Menu.Persistent
 
             // Get FPS
             // Averaged to smooth out brief lag frames
-            float fps = 1f / _frameTimes.Average();
-            _frameTimes.Clear();
+            float fps = _frameCount / _frameTimes;
+            _frameTimes = 0.0f;
+            _frameCount = 0;
 
             // Color the circle sprite based on the FPS
             if (fps < (_screenRefreshRate * 0.5f))

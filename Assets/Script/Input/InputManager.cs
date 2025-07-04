@@ -66,9 +66,7 @@ namespace YARG.Input
 
         public static void Initialize()
         {
-            // High polling rate
-            // TODO: Allow configuring this?
-            InputSystem.pollingFrequency = 500f;
+            InputSystem.pollingFrequency = SettingsManager.Settings.InputPollingFrequency.Value;
 
             InputSystem.onEvent += OnEvent;
 

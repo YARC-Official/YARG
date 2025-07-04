@@ -12,6 +12,8 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
 
         private static readonly int _hit = Animator.StringToHash("Hit");
+        private static readonly int _miss = Animator.StringToHash("Miss");
+        private static readonly int _openMiss = Animator.StringToHash("OpenMiss");
         private static readonly int _pressed = Animator.StringToHash("Pressed");
         private static readonly int _sustain = Animator.StringToHash("Sustain");
 
@@ -21,18 +23,42 @@ namespace YARG.Gameplay.Visuals
         [field: HideInInspector]
         public ThemeFret ThemeBind { get; set; }
 
+        private readonly List<Material> _topMaterials   = new();
         private readonly List<Material> _innerMaterials = new();
 
         private bool _hasPressedParam;
         private bool _hasSustainParam;
+        private bool _hasOpenMissTrigger;
 
-        public void Initialize(Color top, Color inner, Color particles)
+        // These need to be saved since the colors can now change during play
+        // They are saved as Unity colors to avoid having to repeatedly convert
+        // when transitioning between active and inactive states
+        private UnityEngine.Color _originalUnityTopColor;
+        private UnityEngine.Color _originalUnityInnerColor;
+
+        // TODO: Consider making this customizable or perhaps just a desaturated and dimmed version of the base color
+        private UnityEngine.Color _inactiveColor = new(0.321f, 0.321f, 0.321f, 1.0f);
+
+        private bool _active             = true;
+        private bool _colorChangeEnabled = false;
+        private bool _fadeDirection      = true;
+        // True is pulsing, false is fading
+        private bool  _pulseOrFade  = true;
+        private float _fadeDuration = 0.25f;
+        private float _fadeStartTime;
+        private float _fadeAmount = 0.0f;
+
+        public void Initialize(Color top, Color inner, Color particles, Color openParticles)
         {
+            _originalUnityTopColor = top.ToUnityColor();
+            _originalUnityInnerColor = inner.ToUnityColor();
+
             // Set the top material color
             foreach (var material in ThemeBind.GetColoredMaterials())
             {
                 material.color = top.ToUnityColor();
                 material.SetColor(_emissionColor, top.ToUnityColor() * 11.5f);
+                _topMaterials.Add(material);
             }
 
             // Set the inner material color
@@ -44,12 +70,19 @@ namespace YARG.Gameplay.Visuals
 
             // Set the particle colors
             ThemeBind.HitEffect.SetColor(particles.ToUnityColor());
+            ThemeBind.OpenHitEffect.SetColor(openParticles.ToUnityColor());
             ThemeBind.SustainEffect.SetColor(particles.ToUnityColor());
             ThemeBind.PressedEffect.SetColor(particles.ToUnityColor());
 
             // See if certain parameters exist
             _hasPressedParam = ThemeBind.Animator.HasParameter(_pressed);
             _hasSustainParam = ThemeBind.Animator.HasParameter(_sustain);
+            _hasOpenMissTrigger = ThemeBind.Animator.HasParameter(_openMiss);
+        }
+
+        public void Update()
+        {
+            UpdateColor();
         }
 
         public void SetPressed(bool pressed)
@@ -85,6 +118,38 @@ namespace YARG.Gameplay.Visuals
             ThemeBind.HitEffect.Play();
         }
 
+        public void PlayOpenHitParticles()
+        {
+            ThemeBind.OpenHitEffect.Play();
+        }
+
+        public void PlayMissAnimation()
+        {
+            ThemeBind.Animator.SetTrigger(_miss);
+        }
+
+        public void PlayMissParticles()
+        {
+            ThemeBind.MissEffect.Play();
+        }
+
+        public void PlayOpenMissAnimation()
+        {
+            if (_hasOpenMissTrigger)
+            {
+                ThemeBind.Animator.SetTrigger(_openMiss);
+            }
+            else
+            {
+                PlayMissAnimation();
+            }
+        }
+
+        public void PlayOpenMissParticles()
+        {
+            ThemeBind.OpenMissEffect.Play();
+        }
+
         public void SetSustained(bool sustained)
         {
             if (sustained)
@@ -99,6 +164,136 @@ namespace YARG.Gameplay.Visuals
             if (_hasSustainParam)
             {
                 ThemeBind.Animator.SetBool(_sustain, sustained);
+            }
+        }
+
+        public void DimColor(bool fade = true)
+        {
+            _active = false;
+            _fadeDirection = false;
+            _colorChangeEnabled = true;
+            _fadeAmount = 0.0f;
+
+            if (fade)
+            {
+                FadeColor(_fadeDuration, false, false);
+            }
+            else
+            {
+                foreach (var material in _topMaterials)
+                {
+                    material.color = _inactiveColor;
+                }
+
+                foreach (var material in _innerMaterials)
+                {
+                    material.color = _inactiveColor;
+                }
+            }
+        }
+
+        public void ResetColor(bool fade = false)
+        {
+            _active = true;
+            _fadeDirection = true;
+            _colorChangeEnabled = false;
+            _fadeAmount = 0.0f;
+
+            if (fade)
+            {
+                FadeColor(_fadeDuration, false, true);
+            }
+            else
+            {
+                foreach (var material in _topMaterials)
+                {
+                    material.color = _originalUnityTopColor;
+                }
+
+                foreach (var material in _innerMaterials)
+                {
+                    material.color = _originalUnityInnerColor;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Fades or pulses the fret color between the normal color and inactive color
+        ///
+        /// Note that the pulse happens only once per call, it does not continue indefinitely.
+        /// </summary>
+        /// <param name="duration">Length of time transition will take</param>
+        /// <param name="pulse">Whether to pulse or to fade once</param>
+        /// <param name="fadeDirection">True fades in, false fades out (default true)</param>
+        public void FadeColor(float duration, bool pulse, bool fadeDirection = true)
+        {
+            if (_active && pulse)
+            {
+                // Can't pulse if the fret is already active
+                return;
+            }
+
+            _pulseOrFade = pulse;
+            _fadeDuration = duration;
+            _fadeDirection = fadeDirection;
+            _fadeStartTime = Time.time;
+            _colorChangeEnabled = true;
+            _fadeAmount = 0.0f;
+        }
+
+        // TODO: Investigate whether we should be using a MaterialPropertyBlock to set the color
+        //  instead of setting the color directly so that draw call batching is possible
+        //  (I think it doesn't actually matter much since there's only 10 of these materials active at a time,
+        //   but every bit helps, I guess?)
+        public void UpdateColor()
+        {
+            if (!_colorChangeEnabled)
+            {
+                return;
+            }
+
+            var rateAdjustment = 1; //_pulseOrFade ? 2 : 1;
+
+            _fadeAmount += Time.deltaTime / (_fadeDuration / rateAdjustment);
+            var fadeIntensity = _pulseOrFade ? _fadeAmount : ((Mathf.Cos(Mathf.PI * _fadeAmount) / 2) * -1) + 1;
+
+            if (_fadeDirection)
+            {
+                // Fading in
+                foreach (var material in _topMaterials)
+                {
+                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, fadeIntensity);
+                }
+
+                foreach (var material in _innerMaterials)
+                {
+                    material.color = UnityEngine.Color.Lerp(_inactiveColor, _originalUnityTopColor, fadeIntensity);
+                }
+            }
+            else
+            {
+                // Fading out
+                foreach (var material in _topMaterials)
+                {
+                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, fadeIntensity);
+                }
+
+                foreach (var material in _innerMaterials)
+                {
+                    material.color = UnityEngine.Color.Lerp(_originalUnityTopColor, _inactiveColor, fadeIntensity);
+                }
+            }
+
+            if (Time.time - _fadeStartTime >= _fadeDuration)
+            {
+                _colorChangeEnabled = false;
+                _fadeAmount = 0.0f;
+
+                if (_fadeAmount >= 1.0f)
+                {
+                    _colorChangeEnabled = false;
+                    _fadeAmount = 0.0f;
+                }
             }
         }
     }

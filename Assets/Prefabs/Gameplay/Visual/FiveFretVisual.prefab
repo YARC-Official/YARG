@@ -45,10 +45,107 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FretCount: 5
+  DontFlipColorsLeftyFlip: 0
   UseKickFrets: 0
   _trackWidth: 2
   _leftKickFretPosition: {fileID: 1059056642713352937}
   _rightKickFretPosition: {fileID: 5240670873078094218}
+--- !u!1 &7276030750432966965
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2340138966499918158}
+  - component: {fileID: 1740989957536135886}
+  m_Layer: 0
+  m_Name: Range Indicator Pool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2340138966499918158
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7276030750432966965}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3199692730525133945}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1740989957536135886
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7276030750432966965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <Prefab>k__BackingField: {fileID: 6252920090088018630, guid: 742bbf327b6e5644ab4d1c6e3b417c1f,
+    type: 3}
+  _prewarmAmount: 2
+  _objectCap: 5
+--- !u!1 &7521437454948058467
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2813829336632564173}
+  - component: {fileID: 8077044597088283256}
+  m_Layer: 0
+  m_Name: Shift Indicator Pool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2813829336632564173
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7521437454948058467}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3199692730525133945}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8077044597088283256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7521437454948058467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <Prefab>k__BackingField: {fileID: 8633516561021093830, guid: d29c09ffc7e0eab4fba5cd025695b6b9,
+    type: 3}
+  _prewarmAmount: 4
+  _objectCap: 12
 --- !u!1001 &7434902305530561920
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -198,6 +295,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 031a2b07fd65f864d9c4ded2d545c9e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &3199692730525133945 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5425012175883758073, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &3700759359327549745 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6085956593584340145, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -312,6 +415,8 @@ MonoBehaviour:
   NotePool: {fileID: 5534384060604769120}
   BeatlinePool: {fileID: 155632028176750329}
   _fretArray: {fileID: 1060069523843335645}
+  _shiftIndicatorPool: {fileID: 8077044597088283256}
+  _rangeIndicatorPool: {fileID: 1740989957536135886}
 --- !u!114 &7617442645122152992 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1051735628184240032, guid: 5800c42510b55c549be95ec3ecd75e1c,

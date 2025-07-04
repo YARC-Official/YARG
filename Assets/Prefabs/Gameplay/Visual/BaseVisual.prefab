@@ -84,7 +84,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Prefab>k__BackingField: {fileID: 6252920090088018630, guid: b19c1dd36da7bd24593970f089eee836,
     type: 3}
-  _prewarmAmount: 10
+  _prewarmAmount: 100
   _objectCap: 100
 --- !u!1 &539331920876373676
 GameObject:
@@ -996,7 +996,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <Prefab>k__BackingField: {fileID: 0}
-  _prewarmAmount: 15
+  _prewarmAmount: 150
   _objectCap: 500
 --- !u!1 &3797275969015020249
 GameObject:

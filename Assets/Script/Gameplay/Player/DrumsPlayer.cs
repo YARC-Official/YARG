@@ -99,72 +99,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnCountdownChange += OnCountdownChange;
 
-            engine.OnPadHit += (action, wasNoteHit, velocity) =>
-            {
-                // Skip if a note was hit, because we have different logic for that below
-                if (wasNoteHit)
-                {
-                    // If AODSFX is turned on and a note was hit, Play the drum sfx. Without this, drum sfx will only play on misses.
-                    if (SettingsManager.Settings.AlwaysOnDrumSFX.Value)
-                    {
-                        PlayDrumSoundEffect(action, velocity);
-                    }
-                    return;
-                }
-
-                // Choose the correct fret
-                int fret;
-                if (!_fiveLaneMode)
-                {
-                    fret = action switch
-                    {
-                        DrumsAction.Kick                                   => 0,
-                        DrumsAction.RedDrum                                => 1,
-                        DrumsAction.YellowDrum or DrumsAction.YellowCymbal => 2,
-                        DrumsAction.BlueDrum or DrumsAction.BlueCymbal     => 3,
-                        DrumsAction.GreenDrum or DrumsAction.GreenCymbal   => 4,
-                        _                                                  => -1
-                    };
-                }
-                else
-                {
-                    fret = action switch
-                    {
-                        DrumsAction.Kick         => 0,
-                        DrumsAction.RedDrum      => 1,
-                        DrumsAction.YellowCymbal => 2,
-                        DrumsAction.BlueDrum     => 3,
-                        DrumsAction.OrangeCymbal => 4,
-                        DrumsAction.GreenDrum    => 5,
-                        _                        => -1
-                    };
-                }
-
-                bool isDrumFreestyle = IsDrumFreestyle();
-
-                // Figure out wether its a drum freestyle or if AODSFX is enabled
-                if (SettingsManager.Settings.AlwaysOnDrumSFX.Value || isDrumFreestyle)
-                {
-                    // Play drum sound effect
-                    PlayDrumSoundEffect(action, velocity);
-                }
-                // Skip if no animation
-                if (fret == -1) return;
-
-                if (fret != 0)
-                {
-                    _fretArray.PlayDrumAnimation(fret - 1, isDrumFreestyle);
-                }
-                else
-                {
-                    _fretArray.PlayKickFretAnimation();
-                    if (isDrumFreestyle)
-                    {
-                        _kickFretFlash.PlayHitAnimation();
-                        CameraPositioner.Bounce();
-                    }
-                }
-            };
+            engine.OnPadHit += OnPadHit;
 
             return engine;
         }
@@ -258,7 +193,7 @@ namespace YARG.Gameplay.Player
                     };
                 }
 
-                _fretArray.PlayDrumAnimation(fret, true);
+                _fretArray.PlayHitAnimation(fret);
             }
             else
             {
@@ -294,6 +229,84 @@ namespace YARG.Gameplay.Player
             foreach (var note in NotePool.AllSpawned)
             {
                 (note as DrumsNoteElement)?.OnStarPowerUpdated();
+            }
+        }
+
+        private void OnPadHit(DrumsAction action, bool wasNoteHit, float velocity)
+        {
+            // Skip if a note was hit, because we have different logic for that below
+            if (wasNoteHit)
+            {
+                // If AODSFX is turned on and a note was hit, Play the drum sfx. Without this, drum sfx will only play on misses.
+                if (SettingsManager.Settings.AlwaysOnDrumSFX.Value)
+                {
+                    PlayDrumSoundEffect(action, velocity);
+                }
+                return;
+            }
+
+            // Choose the correct fret
+            int fret;
+            if (!_fiveLaneMode)
+            {
+                fret = action switch
+                {
+                    DrumsAction.Kick                                   => 0,
+                    DrumsAction.RedDrum                                => 1,
+                    DrumsAction.YellowDrum or DrumsAction.YellowCymbal => 2,
+                    DrumsAction.BlueDrum or DrumsAction.BlueCymbal     => 3,
+                    DrumsAction.GreenDrum or DrumsAction.GreenCymbal   => 4,
+                    _                                                  => -1
+                };
+            }
+            else
+            {
+                fret = action switch
+                {
+                    DrumsAction.Kick         => 0,
+                    DrumsAction.RedDrum      => 1,
+                    DrumsAction.YellowCymbal => 2,
+                    DrumsAction.BlueDrum     => 3,
+                    DrumsAction.OrangeCymbal => 4,
+                    DrumsAction.GreenDrum    => 5,
+                    _                        => -1
+                };
+            }
+
+            bool isDrumFreestyle = IsDrumFreestyle();
+
+            // Figure out wether its a drum freestyle or if AODSFX is enabled
+            if (SettingsManager.Settings.AlwaysOnDrumSFX.Value || isDrumFreestyle)
+            {
+                // Play drum sound effect
+                PlayDrumSoundEffect(action, velocity);
+            }
+
+            // Skip if no animation
+            if (fret == -1)
+            {
+                return;
+            }
+
+            if (fret != 0)
+            {
+                if (isDrumFreestyle)
+                {
+                    _fretArray.PlayHitAnimation(fret - 1);
+                }
+                else
+                {
+                    _fretArray.PlayMissAnimation(fret - 1);
+                }
+            }
+            else
+            {
+                _fretArray.PlayKickFretAnimation();
+                if (isDrumFreestyle)
+                {
+                    _kickFretFlash.PlayHitAnimation();
+                    CameraPositioner.Bounce();
+                }
             }
         }
 

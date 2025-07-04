@@ -18,11 +18,18 @@ namespace YARG
         private VolumeProfile postProcessingProfile = null;
 
         private Bloom bloom = null;
+        private FilmGrain filmGrain = null;
 
         public bool BloomEnabled
         {
             set => bloom.active = value;
             get => bloom.active;
+        }
+
+        public bool FilmGrainEnabled
+        {
+            set => filmGrain.active = value;
+            get => filmGrain.active;
         }
 
         public bool LowQuality
@@ -37,6 +44,10 @@ namespace YARG
             {
                 YargLogger.LogError("Could not find bloom component in the post process volume.");
             }
+            if (!postProcessingProfile.TryGet(out filmGrain))
+            {
+                YargLogger.LogError("Could not find film grain component in the post process volume.");
+            }
         }
 
         private void OnApplicationQuit()
@@ -45,6 +56,7 @@ namespace YARG
 
             // For some reason, UNITY EDITOR SAVES THIS IN THE VOLUME PROFILE!!!!
             BloomEnabled = true;
+            FilmGrainEnabled = true;
             LowQuality = false;
 
 #endif

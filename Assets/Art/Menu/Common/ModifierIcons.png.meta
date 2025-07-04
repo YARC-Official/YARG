@@ -252,7 +252,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ModifierIcons_7
+      name: RangeCompress
       rect:
         serializedVersion: 2
         x: 1536
@@ -420,7 +420,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ModifierIcons_15
+      name: NoVocalPercussion
       rect:
         serializedVersion: 2
         x: 1536
@@ -458,13 +458,13 @@ TextureImporter:
       Ghosting: 960618387
       HoposToTaps: 1309754347
       InfiniteFrontEnd: -1660463282
-      ModifierIcons_15: 1841026791
       ModifierIcons_3: -1638818548
       ModifierIcons_4: 1692867385
       ModifierIcons_5: -1436843964
       ModifierIcons_6: 1497401919
-      ModifierIcons_7: -1355680061
       NoKicks: -1200274759
+      NoVocalPercussion: 1841026791
+      RangeCompress: -1355680061
       TapsToHopos: 1609936924
       UnpitchedOnly: -2147107449
   spritePackingTag: 

@@ -580,18 +580,14 @@ namespace YARG.Integration.StageKit
         private bool _blueOn = true;
         private bool _enableBlueLedVocals;
 
-        public SilhouetteSpot()
+        public override void Enable()
         {
             if (StageKitInterpreter.PreviousLightingCue is Intro)
             {
                 CuePrimitives.Add(new ListenPattern(new (StageKitLedColor, byte)[] { (BLUE, ALL) },
                     ListenTypes.RedFretDrums, true));
             }
-        }
-
-        public override void Enable()
-        {
-            if (StageKitInterpreter.PreviousLightingCue is Dischord)
+            else if (StageKitInterpreter.PreviousLightingCue is Dischord)
             {
                 StageKitInterpreter.Instance.SetLed(RED, NONE);
                 StageKitInterpreter.Instance.SetLed(YELLOW, NONE);
@@ -776,7 +772,7 @@ namespace YARG.Integration.StageKit
 
         public override void HandleLightingEvent(LightingType eventName)
         {
-            if (eventName != LightingType.Keyframe_Next) return;
+            if (eventName != LightingType.KeyframeNext) return;
             if (_anythingOn)
             {
                 StageKitInterpreter.Instance.SetLed(RED, NONE);
@@ -881,7 +877,7 @@ namespace YARG.Integration.StageKit
 
         public override void HandleLightingEvent(LightingType eventName)
         {
-            if (eventName != LightingType.Keyframe_Next)
+            if (eventName != LightingType.KeyframeNext)
             {
                 return;
             }
