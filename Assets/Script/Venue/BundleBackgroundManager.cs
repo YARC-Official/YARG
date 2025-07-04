@@ -76,7 +76,6 @@ namespace YARG.Venue
 
                 // We use materials as "anchors" to make sure all required
                 // shader variants are included
-                // var materialAssets = EditorUtility.CollectDependencies(new[] { gameObject })
                 var materialAssets = EditorUtility.CollectDependencies(new[] { gameObject })
                     .OfType<Material>() // Only material dependencices
                     .Select((mat, i) =>
@@ -84,7 +83,7 @@ namespace YARG.Venue
                         // Create a clone
                         var matClone = new Material(mat);
                         // Avoid name collision
-                        matClone.name = BACKGOUND_OSX_MATERIAL_PREFIX + mat.name;
+                        matClone.name = BACKGOUND_OSX_MATERIAL_PREFIX + i.ToString() + mat.name;
                         // Drop all textures to not double resulting yarground in size
                         if (matClone.mainTexture != null)
                         {
