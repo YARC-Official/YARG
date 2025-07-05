@@ -681,6 +681,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CategoryText: {fileID: 1441989783758997294}
   _pickerButton: {fileID: 1553656265950647833}
+  _unselectedVisual: {fileID: 844474878944335737}
+  _selectedVisual: {fileID: 1197906609552337957}
 --- !u!1 &9194467094468163488
 GameObject:
   m_ObjectHideFlags: 0

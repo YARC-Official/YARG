@@ -189,7 +189,14 @@ namespace YARG.Menu.Dialogs
             _votedPlayers.Clear();
             Array.Clear(_votes, 0, _votes.Length);
             MusicLibrary.ShowPlaylist.AddSong(_categories[selectedIndex].Song);
-            Refresh();
+            HighlightSelectedSong(selectedIndex);
+            DOVirtual.DelayedCall(0.5f, Refresh);
+        }
+
+        private void HighlightSelectedSong(int selectedIndex)
+        {
+            // Highlight the background of the selected category
+            _showCategoryViews[selectedIndex].SetSelected(true);
         }
 
         private void CloseDialog(NavigationContext ctx)
@@ -217,6 +224,7 @@ namespace YARG.Menu.Dialogs
             _categories = _showCategoriesProvider.GetCategories();
             for (int i = 0; i < _showCategoryViews.Length; i++)
             {
+                _showCategoryViews[i].SetSelected(false);
                 _showCategoryViews[i].CategoryText.text = _categories[i].CategoryText;
             }
 
