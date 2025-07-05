@@ -319,7 +319,7 @@ namespace YARG.Settings.Preview
 
             // Update camera presets
             _trackMaterial.Initialize(highwayPreset);
-            _cameraPositioner.Initialize(cameraPreset, 3f, cameraPreset.FadeLength);
+            _cameraPositioner.Initialize(cameraPreset);
 
             var camera = _cameraPositioner.GetComponent<Camera>();
             var highwayRenderer = camera.GetComponent<HighwayCameraRendering>();

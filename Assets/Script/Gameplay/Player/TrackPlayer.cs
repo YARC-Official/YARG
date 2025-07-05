@@ -96,7 +96,7 @@ namespace YARG.Gameplay.Player
             var trackZeroFadePosition = new Vector3(camPosition.x, camPosition.y, ZeroFadePosition + 3f);
             Plane farPlane = new Plane();
             farPlane.SetNormalAndPosition(this.TrackCamera.transform.forward, trackZeroFadePosition);
-            this.TrackCamera.farClipPlane = Mathf.Abs(farPlane.GetDistanceToPoint(this.TrackCamera.transform.position));
+            TrackCamera.farClipPlane = Mathf.Abs(farPlane.GetDistanceToPoint(this.TrackCamera.transform.position));
 
             _spawnAheadDelay = GameManager.IsPractice ? SettingsManager.Settings.PracticeRestartDelay.Value : 2;
             if (player.Profile.HighwayLength > 1)
@@ -229,7 +229,7 @@ namespace YARG.Gameplay.Player
             GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar);
 
             TrackMaterial.Initialize(Player.HighwayPreset);
-            CameraPositioner.Initialize(Player.CameraPreset, ZeroFadePosition, FadeSize);
+            CameraPositioner.Initialize(Player.CameraPreset);
         }
 
         protected void ResetNoteCounters()

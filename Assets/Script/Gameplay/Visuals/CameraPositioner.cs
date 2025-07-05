@@ -27,7 +27,7 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void Initialize(CameraPreset preset, float fadePos, float fadeSize)
+        public void Initialize(CameraPreset preset)
         {
             var camera = GetComponent<Camera>();
             // FOV
