@@ -12,6 +12,7 @@ using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Menu.Dialogs
 {
@@ -27,6 +28,15 @@ namespace YARG.Menu.Dialogs
         private ShowPickerButton _selectButton;
         [SerializeField]
         private Slider _countdownSlider;
+        [Space]
+        [SerializeField]
+        private GameObject _dotContainer;
+        [SerializeField]
+        private GameObject _dotImage;
+        [SerializeField]
+        private Sprite _emptyDot;
+        [SerializeField]
+        private Sprite _filledDot;
 
         private ShowCategories.ShowCategory[] _categories;
         private ShowCategories                _showCategoriesProvider;
@@ -34,7 +44,10 @@ namespace YARG.Menu.Dialogs
         private List<YargPlayer>              _votedPlayers;
         private int                           _voteCount;
         private int[]                         _votes;
+        [NonSerialized]
         public  MusicLibraryMenu              MusicLibrary;
+
+        private Image[] _dotImages;
 
         private Sequence _timerSequence;
 
@@ -55,16 +68,26 @@ namespace YARG.Menu.Dialogs
                 _showCategoryViews[i].CategoryText.text = _categories[i].CategoryText;
             }
 
-            // _timeoutTween = DOVirtual.DelayedCall(10.0f, TallyVotes, true);
+            // Set up the dots
+            _dotImages = new Image[_players.Count];
+
+            for (int i = 0; i < _players.Count; i++)
+            {
+                var dot = Instantiate(_dotImage, _dotContainer.transform);
+                dot.SetActive(true);
+                _dotImages[i] = dot.GetComponent<Image>();
+                _dotImages[i].sprite = _emptyDot;
+
+            }
+
             _timerSequence = DOTween.Sequence(_countdownSlider).SetAutoKill(false);
             _timerSequence.Append(_countdownSlider.DOValue(1.0f, 0.01f)).
-                Join(_countdownSlider.DOValue(0.0f, 10.0f)).
+                Join(_countdownSlider.DOValue(0.0f, SettingsManager.Settings.PlayAShowTimeout.Value)).
                 AppendCallback(TallyVotes);
         }
 
         protected override NavigationScheme GetNavigationScheme()
         {
-            // Need an empty scheme here, because we don't want the navigation logic
             return new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Select, "That's Enough!", OnSelectButton),
@@ -111,6 +134,9 @@ namespace YARG.Menu.Dialogs
 
             _votedPlayers.Add(player);
             _votes[vote]++;
+
+            // Update the dots
+            _dotImages[_players.IndexOf(player)].sprite = _filledDot;
 
             if (_votedPlayers.Count == _players.Count)
             {
@@ -174,6 +200,12 @@ namespace YARG.Menu.Dialogs
 
         private void Refresh()
         {
+            // Reset the dots
+            foreach (var image in _dotImages)
+            {
+                image.sprite = _emptyDot;
+            }
+
             // Minimize the chance of a race condition
             if (_timerSequence.IsPlaying())
             {
