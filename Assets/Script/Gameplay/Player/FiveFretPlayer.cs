@@ -622,7 +622,7 @@ namespace YARG.Gameplay.Player
                         Time = beatlines[realIndex].Time,
                         LeftSide = shiftLeft,
                         Offset = shiftLeft ? ((shift.Position + shift.Size) - 6) * -1 : shift.Position - 1,
-                        RangeIndicator = i == 1 && shift.Position != lastShiftRange.Position,
+                        RangeIndicator = i == 1 && !(shift.Position == lastShiftRange.Position && shift.Size == lastShiftRange.Size),
                     });
                 }
 
