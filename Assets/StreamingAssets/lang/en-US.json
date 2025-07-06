@@ -960,6 +960,10 @@
                 "Name": "Show Selection Timeout",
                 "Description": "The amount of time to wait for votes before picking a song or refreshing the categories."
             },
+            "RequireAllDifficulties": {
+                "Name": "Require All Difficulties",
+                "Description": "Require show songs to have at least Easy, Medium, Hard, and Expert difficulties"
+            },
             "PracticeRestartDelay": {
                 "Name": "Practice Restart Delay",
                 "Description": "The amount of time (in seconds) to delay the beginning of a section in Practice Mode."

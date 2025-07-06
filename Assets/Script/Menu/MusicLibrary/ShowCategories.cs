@@ -6,6 +6,7 @@ using YARG.Core.Song;
 using YARG.Localization;
 using YARG.Player;
 using YARG.Playlists;
+using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -157,15 +158,18 @@ namespace YARG.Menu.MusicLibrary
 
         // Song is playable only if all players can play and there is playable instrument commonality with the
         // rest of the show playlist.
+        // When RequireAllDifficulties is set, also checks that full difficulty is available for at least one
+        // of each player's possible instruments
         private bool IsSongPlayable(SongEntry song)
         {
             List<Instrument> candidateInstruments = new();
+            bool fdOnly = SettingsManager.Settings.RequireAllDifficulties.Value;
             foreach (var player in _players)
             {
                 bool playable = false;
                 foreach(var instrument in _instruments[player])
                 {
-                    if (song.HasInstrument(instrument))
+                    if (song.HasInstrument(instrument) && (!fdOnly || song.HasEmhxDifficultiesForInstrument(instrument)))
                     {
                         playable = true;
                         break;
