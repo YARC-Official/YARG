@@ -16,61 +16,27 @@ namespace YARG.Venue
 
         [SerializeField]
         private Material[] _neonMaterials;
+		
+		[System.Serializable]
+		public class NeonFullColor {
+			public Material Material;
+			public VenueLightLocation Location;
+			[System.NonSerialized] 
+			public Color InitialColor;
+		}
+		
 		[SerializeField]
-		private Material[] _neonLeftMaterials;
-		[SerializeField]
-		private Material[] _neonRightMaterials;
-		[SerializeField]
-		private Material[] _neonFrontMaterials;
-		[SerializeField]
-		private Material[] _neonBackMaterials;
-		[SerializeField]
-		private Material[] _neonCenterMaterials;
-		[SerializeField]
-		private Material[] _neonCrowdMaterials;
+		private NeonFullColor[] _neonMaterialsFullColor;
 
         private LightManager _lightManager;
-		private Color _defaultColorLeft;
-		private Color _defaultColorRight;
-		private Color _defaultColorFront;
-		private Color _defaultColorBack;
-		private Color _defaultColorCenter;
-		private Color _defaultColorCrowd;
 
         private void Awake()
         {
             _lightManager = FindObjectOfType<LightManager>();
 			
-			foreach (var material in _neonLeftMaterials)
-			{
-				_defaultColorLeft = material.GetColor(_emissionColor);
+			for (int i = 0; i < _neonMaterialsFullColor.Length; i++) {
+				_neonMaterialsFullColor[i].InitialColor = (_neonMaterialsFullColor[i].Material.GetColor(_emissionColor));
 			}
-			
-			foreach (var material in _neonRightMaterials)
-			{
-				_defaultColorRight = material.GetColor(_emissionColor);
-			}
-			
-			foreach (var material in _neonFrontMaterials)
-			{
-				_defaultColorFront = material.GetColor(_emissionColor);
-			}
-			
-			foreach (var material in _neonBackMaterials)
-			{
-				_defaultColorBack = material.GetColor(_emissionColor);
-			}
-			
-			foreach (var material in _neonCenterMaterials)
-			{
-				_defaultColorCenter = material.GetColor(_emissionColor);
-			}
-			
-			foreach (var material in _neonCrowdMaterials)
-			{
-				_defaultColorCrowd = material.GetColor(_emissionColor);
-			}
-			
         }
 
         private void Update()
@@ -91,106 +57,55 @@ namespace YARG.Venue
                 {
 					material.SetColor(_emissionSecondaryColor, lightState.Color.Value);
                 }
-            }
+            } 
 			
-			
-
-            foreach (var material in _neonLeftMaterials)
-            {
-                var lightState = _lightManager.LeftLightState;
-				material.SetFloat(_emissionMultiplier, lightState.Intensity);
+            for (int i = 0; i < _neonMaterialsFullColor.Length; i++) {
+				var lightState = _lightManager.GenericLightState;
+                var lightStateLeft = _lightManager.LeftLightState;
+				var lightStateRight = _lightManager.RightLightState;
+				var lightStateFront = _lightManager.FrontLightState;
+				var lightStateBack = _lightManager.BackLightState;
+				var lightStateCenter = _lightManager.CenterLightState;
+				var lightStateCrowd = _lightManager.CrowdLightState;
 
                 if (lightState.Color == null)
                 {
-                    material.SetColor(_emissionColor, _defaultColorLeft);
+                    _neonMaterialsFullColor[i].Material.SetColor(_emissionColor, _neonMaterialsFullColor[i].InitialColor);
                 }
-                else
+                else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Generic)
                 {
-					material.SetColor(_emissionColor, lightState.Color.Value);
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightState.Color.Value);
+					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightState.Intensity);
                 }
-            }
-			
-			
-
-            foreach (var material in _neonRightMaterials)
-            {
-                var lightState = _lightManager.RightLightState;
-				material.SetFloat(_emissionMultiplier, lightState.Intensity);
-
-                if (lightState.Color == null)
+				else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Left)
                 {
-                    material.SetColor(_emissionColor, _defaultColorRight);
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateLeft.Color.Value);
+					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateLeft.Intensity);
                 }
-                else
+                else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Right)
                 {
-					material.SetColor(_emissionColor, lightState.Color.Value);
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateRight.Color.Value);
+					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateRight.Intensity);
                 }
-            }
-			
-
-            foreach (var material in _neonFrontMaterials)
-            {
-				var lightState = _lightManager.FrontLightState;
-				material.SetFloat(_emissionMultiplier, lightState.Intensity);
-
-                if (lightState.Color == null)
+                else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Front)
                 {
-                    material.SetColor(_emissionColor, _defaultColorFront);
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateFront.Color.Value);
+					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateFront.Intensity);
                 }
-                else
+                else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Back)
                 {
-					material.SetColor(_emissionColor, lightState.Color.Value);
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateBack.Color.Value);
+					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateBack.Intensity);
                 }
-            }
-			
-			
-
-            foreach (var material in _neonBackMaterials)
-            {
-                var lightState = _lightManager.BackLightState;
-				material.SetFloat(_emissionMultiplier, lightState.Intensity);
-
-                if (lightState.Color == null)
+                else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Center)
                 {
-                    material.SetColor(_emissionColor, _defaultColorBack);
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateCenter.Color.Value);
+					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateCenter.Intensity);
                 }
-                else
+                else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Crowd)
                 {
-					material.SetColor(_emissionColor, lightState.Color.Value);
-                }
-            }
-			
-			
-
-            foreach (var material in _neonCenterMaterials)
-            {
-                var lightState = _lightManager.CenterLightState;
-				material.SetFloat(_emissionMultiplier, lightState.Intensity);
-
-                if (lightState.Color == null)
-                {
-                    material.SetColor(_emissionColor, _defaultColorCenter);
-                }
-                else
-                {
-					material.SetColor(_emissionColor, lightState.Color.Value);
-                }
-			}
-			
-			
-
-            foreach (var material in _neonCrowdMaterials)
-            {
-                var lightState = _lightManager.CrowdLightState;
-				material.SetFloat(_emissionMultiplier, lightState.Intensity);
-
-                if (lightState.Color == null)
-                {
-                    material.SetColor(_emissionColor, _defaultColorCrowd);
-                }
-                else
-                {
-					material.SetColor(_emissionColor, lightState.Color.Value);
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateCrowd.Color.Value);
+					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateCrowd.Intensity);
                 }
             }
         }
