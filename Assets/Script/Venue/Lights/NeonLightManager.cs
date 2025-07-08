@@ -68,86 +68,37 @@ namespace YARG.Venue
                 {
                 if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Generic)
                 {
-					if (lightState.Color == null)
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, _neonMaterialsFullColor[i].InitialColor);
-					}
-					else
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightState.Color.Value);
-					}
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightState.Color ?? _neonMaterialsFullColor[i].InitialColor);
 					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightState.Intensity);
                 }
 				else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Left)
                 {
-					if (lightStateLeft.Color == null)
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, _neonMaterialsFullColor[i].InitialColor);
-					}
-					else
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateLeft.Color.Value);
-					}
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateLeft.Color ?? _neonMaterialsFullColor[i].InitialColor);
 					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateLeft.Intensity);
                 }
                 else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Right)
                 {
-					if (lightStateRight.Color == null)
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, _neonMaterialsFullColor[i].InitialColor);
-					}
-					else
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateRight.Color.Value);
-					}
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateRight.Color ?? _neonMaterialsFullColor[i].InitialColor);
 					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateRight.Intensity);
                 }
                 else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Front)
                 {
-					if (lightStateFront.Color == null)
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, _neonMaterialsFullColor[i].InitialColor);
-					}
-					else
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateFront.Color.Value);
-					}
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateFront.Color ?? _neonMaterialsFullColor[i].InitialColor);
 					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateFront.Intensity);
                 }
                 else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Back)
                 {
-					if (lightStateBack.Color == null)
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, _neonMaterialsFullColor[i].InitialColor);
-					}
-					else
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateBack.Color.Value);
-					}
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateBack.Color ?? _neonMaterialsFullColor[i].InitialColor);
 					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateBack.Intensity);
                 }
                 else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Center)
                 {
-					if (lightStateCenter.Color == null)
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, _neonMaterialsFullColor[i].InitialColor);
-					}
-					else
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateCenter.Color.Value);
-					}
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateCenter.Color ?? _neonMaterialsFullColor[i].InitialColor);
 					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateCenter.Intensity);
                 }
                 else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Crowd)
                 {
-					if (lightStateCrowd.Color == null)
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, _neonMaterialsFullColor[i].InitialColor);
-					}
-					else
-					{
-						_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateCrowd.Color.Value);
-					}
+					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateCrowd.Color ?? _neonMaterialsFullColor[i].InitialColor);
 					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateCrowd.Intensity);
                 }
             }
