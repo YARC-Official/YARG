@@ -183,6 +183,8 @@ namespace YARG.Gameplay.Player
             NoteTrack = OriginalNoteTrack;
             Notes = NoteTrack.Notes;
 
+            var events = NoteTrack.TextEvents;
+
             Engine = CreateEngine();
 
             base.ComboMeter.Initialize(player.EnginePreset, Engine.BaseParameters.MaxMultiplier);
@@ -271,7 +273,10 @@ namespace YARG.Gameplay.Player
 
             TrackView.UpdateNoteStreak(stats.Combo);
 
-            if (!_isHotStartChecked && stats.ScoreMultiplier == 4)
+
+            // Could be if (!_isHotStartChecked && groove), but that would make it so hot start doesn't show
+            // for bass until 6x.
+            if (!_isHotStartChecked && stats.ScoreMultiplier == (!stats.IsStarPowerActive ? 4 : 8))
             {
                 _isHotStartChecked = true;
 
@@ -384,8 +389,9 @@ namespace YARG.Gameplay.Player
             var difficulty = OriginalNoteTrack.Difficulty;
             var phrases = OriginalNoteTrack.Phrases;
             var textEvents = OriginalNoteTrack.TextEvents;
+            var shiftEvents = OriginalNoteTrack.RangeShiftEvents;
 
-            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents);
+            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents, shiftEvents);
             Notes = NoteTrack.Notes;
 
             ResetNoteCounters();

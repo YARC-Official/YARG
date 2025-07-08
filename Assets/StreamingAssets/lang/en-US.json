@@ -60,7 +60,8 @@
             "TapsToHopos": "Taps to HOPOs",
             "UnpitchedOnly": "Unpitched Only",
             "NoDynamics": "No Dynamics",
-            "NoVocalPercussion" : "No Percussion"
+            "NoVocalPercussion" : "No Percussion",
+            "RangeCompress": "No Range Shifts"
         },
         "SortAttribute": {
             "Album": "Album",

@@ -183,10 +183,9 @@ namespace YARG.Menu.History
                 return null;
             }
 
-            // Get the replay path
-            var path = Path.Combine(ScoreContainer.ScoreReplayDirectory, _record.ReplayFileName);
-            // Accounts the change to ReplayName to remove the ".replay"
-            path = Path.ChangeExtension(path, ".replay");
+            // Get the replay path, mirroring the serialization code
+            var path = Path.Combine(ScoreContainer.ScoreReplayDirectory, _record.ReplayFileName + ".replay");
+
             if (!File.Exists(path))
             {
                 DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay for this song does not exist! It has probably been deleted!");

@@ -490,7 +490,7 @@ namespace YARG.Gameplay.Player
             }
 
             // The most recent range shift before the start tick should still be preserved
-            uint rangesStart = _vocalsTrack.RangeShifts.GetPrevious(start).Tick;
+            uint rangesStart = _vocalsTrack.RangeShifts.LowerBoundElement(start).Tick;
             _vocalsTrack.RangeShifts.RemoveAll(n => n.Tick < rangesStart || n.Tick >= end);
 
             ResetPracticeSection();
