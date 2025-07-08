@@ -280,7 +280,6 @@
             "Search": "Search",
             "CurrentSetlist": "Current Setlist",
             "AddToSet": "Add To Setlist",
-            "AddToSetWithHold": "<align=left><size=80%>Add To Setlist<br>(Hold) Start The Set</size></align>",
             "AddedToSet": "Added To Setlist",
             "PlaylistAddedToSet": "Added {0:N0} Songs From Playlist To Setlist",
             "StartSet": "Start The Set",

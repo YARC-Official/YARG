@@ -188,51 +188,88 @@ namespace YARG.Menu.MusicLibrary
                 Navigator.Instance.PopScheme();
             }
 
-            string yellowKey = "Menu.MusicLibrary.AddToSet";
-            if (ShowPlaylist.Count > 0)
+            if (ShowPlaylist.Count == 0)
             {
-                yellowKey = "Menu.MusicLibrary.AddToSetWithHold";
+                Navigator.Instance.PushScheme(new NavigationScheme(new()
+                {
+                    new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
+                        ctx =>
+                        {
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            {
+                                GoToPreviousSection();
+                            }
+                            else
+                            {
+                                SetWrapAroundState(!ctx.IsRepeat);
+                                SelectedIndex--;
+                            }
+                        }),
+                    new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
+                        ctx =>
+                        {
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            {
+                                GoToNextSection();
+                            }
+                            else
+                            {
+                                SetWrapAroundState(!ctx.IsRepeat);
+                                SelectedIndex++;
+                            }
+                        }),
+                    new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
+                        () => CurrentSelection?.PrimaryButtonClick()),
+                    new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
+                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToSet",
+                        AddToSetlist),
+                    new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
+                        () => _searchField.Focus()),
+                    new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
+                        OnButtonHit, OnButtonRelease),
+                }, false));
             }
-
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            else
             {
-                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
-                    ctx =>
-                    {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                Navigator.Instance.PushScheme(new NavigationScheme(new()
+                {
+                    new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
+                        ctx =>
                         {
-                            GoToPreviousSection();
-                        }
-                        else
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            {
+                                GoToPreviousSection();
+                            }
+                            else
+                            {
+                                SetWrapAroundState(!ctx.IsRepeat);
+                                SelectedIndex--;
+                            }
+                        }),
+                    new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
+                        ctx =>
                         {
-                            SetWrapAroundState(!ctx.IsRepeat);
-                            SelectedIndex--;
-                        }
-                    }),
-                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
-                    ctx =>
-                    {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
-                        {
-                            GoToNextSection();
-                        }
-                        else
-                        {
-                            SetWrapAroundState(!ctx.IsRepeat);
-                            SelectedIndex++;
-                        }
-                    }),
-                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
-                    () => CurrentSelection?.PrimaryButtonClick()),
-
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                new NavigationScheme.Entry(MenuAction.Yellow, yellowKey,
-                    OnAddButtonHit, OnAddButtonRelease),
-                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
-                    () => _searchField.Focus()),
-                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                    OnButtonHit, OnButtonRelease),
-            }, false));
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            {
+                                GoToNextSection();
+                            }
+                            else
+                            {
+                                SetWrapAroundState(!ctx.IsRepeat);
+                                SelectedIndex++;
+                            }
+                        }),
+                    new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
+                        () => CurrentSelection?.PrimaryButtonClick()),
+                    new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
+                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToSet",
+                        AddToSetlist),
+                    new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.StartSet",
+                        StartSetlist),
+                    new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
+                        OnButtonHit, OnButtonRelease),
+                }, false));
+            }
         }
 
         protected override void OnSelectedIndexChanged()
@@ -750,12 +787,69 @@ namespace YARG.Menu.MusicLibrary
             _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
         }
 
-        private void OnAddButtonHit(NavigationContext ctx)
+        private void AddToSetlist(NavigationContext ctx)
         {
-            _heldInputs.Add(new HoldContext(ctx));
+            if (CurrentSelection is PlaylistViewType playlist)
+            {
+                if (playlist.Playlist.SongHashes.Count == 0)
+                {
+                    ToastManager.ToastError(Localize.Key("Menu.MusicLibrary.EmptyPlaylist"));
+                    return;
+                }
+
+                if (playlist.Playlist.Ephemeral)
+                {
+                    // No, we won't add the setlist to itself, thanks
+                    ToastManager.ToastError(Localize.Key("Menu.MusicLibrary.CannotAddToSelf"));
+                    return;
+                }
+
+                var i = 0;
+
+                foreach (var song in playlist.Playlist.ToList())
+                {
+                    ShowPlaylist.AddSong(song);
+                    i++;
+                }
+
+                if (i > 0)
+                {
+                    ToastManager.ToastSuccess(Localize.KeyFormat("Menu.MusicLibrary.PlaylistAddedToSet", i));
+                }
+                else
+                {
+                    ToastManager.ToastWarning(Localize.Key("Menu.MusicLibrary.NoSongsInPlaylist"));
+                }
+
+                if (i > 0 && ShowPlaylist.Count == i)
+                {
+                    // We need to rebuild the navigation scheme the first time we add song(s)
+                    SetNavigationScheme(true);
+                }
+
+                // If we are in the playlist view, we need to refresh the view
+                if (MenuState == MenuState.PlaylistSelect)
+                {
+                    RefreshAndReselect();
+                }
+
+                return;
+            }
+
+            if (CurrentSelection is SongViewType selection)
+            {
+                ShowPlaylist.AddSong(selection.SongEntry);
+                if (ShowPlaylist.Count == 1)
+                {
+                    // We need to rebuild the navigation scheme after adding the first song
+                    SetNavigationScheme(true);
+                }
+
+                ToastManager.ToastSuccess(Localize.Key("Menu.MusicLibrary.AddedToSet"));
+            }
         }
 
-        private void OnAddButtonRelease(NavigationContext ctx) {
+        private void OnSetlistStartButton(NavigationContext ctx) {
             var holdContext = _heldInputs.FirstOrDefault(i => i.Context.IsSameAs(ctx));
 
             if (ctx.Action == MenuAction.Yellow && (holdContext?.Timer > 0 || ctx.Player is null))
@@ -771,7 +865,7 @@ namespace YARG.Menu.MusicLibrary
 
                     if (playlist.Playlist.Ephemeral)
                     {
-                        // No, we won't add the setlist to itself, thanksgiving
+                        // No, we won't add the setlist to itself, thanks
                         ToastManager.ToastError(Localize.Key("Menu.MusicLibrary.CannotAddToSelf"));
                         return;
                     }
@@ -791,7 +885,6 @@ namespace YARG.Menu.MusicLibrary
                     else
                     {
                         ToastManager.ToastWarning(Localize.Key("Menu.MusicLibrary.NoSongsInPlaylist"));
-                        ;
                     }
 
                     if (i > 0 && ShowPlaylist.Count == i)
@@ -832,6 +925,22 @@ namespace YARG.Menu.MusicLibrary
                     GlobalVariables.State.ShowIndex = 0;
                     MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
                 }
+            }
+        }
+
+        private void StartSetlist()
+        {
+            if (ShowPlaylist.Count > 0)
+            {
+                GlobalVariables.State.PlayingAShow = true;
+                GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
+                GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs.First();
+                GlobalVariables.State.ShowIndex = 0;
+                MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
+            }
+            else
+            {
+                ToastManager.ToastError(Localize.Key("Menu.MusicLibrary.EmptyPlaylist"));
             }
         }
 
