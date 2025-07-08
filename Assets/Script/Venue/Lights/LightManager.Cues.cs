@@ -7,6 +7,7 @@ namespace YARG.Venue
         private LightState AutoGradient(LightState current, Gradient gradient)
         {
             current.Color = gradient.Evaluate(current.Delta);
+			current.Intensity = 1f;
 
             current.Delta += Time.deltaTime * _gradientLightingSpeed;
             if (current.Delta > 1f)
