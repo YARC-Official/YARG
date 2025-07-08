@@ -21,7 +21,7 @@ namespace YARG.Venue
 		public class NeonFullColor {
 			public Material Material;
 			public VenueLightLocation Location;
-			// [System.NonSerialized] 
+			[System.NonSerialized] 
 			public Color InitialColor;
 		}
 		
