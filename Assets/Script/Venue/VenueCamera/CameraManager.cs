@@ -116,7 +116,7 @@ namespace YARG.Venue.VenueCamera
                 {
                     camera.enabled = true;
                     _currentCamera = camera;
-                    _cameraTimer = 11.0f;
+                    _cameraTimer = GetRandomCameraTimer();
                     _cameraIndex = _cameras.IndexOf(camera);
                 }
                 else
@@ -177,14 +177,15 @@ namespace YARG.Venue.VenueCamera
                 YargLogger.LogDebug("Changing camera due to timer expiry");
                 // _currentProfile = _currentCamera.GetComponent<VenueCamera>().GetProfile();
                 _currentCamera.enabled = false;
-                _cameraTimer = 11.0f;
+                _cameraTimer = GetRandomCameraTimer();
                 _cameraIndex++;
                 if (_cameraIndex >= _cameras.Count)
                 {
                     _cameraIndex = 0;
                 }
 
-                _currentCamera = _cameras[_cameraIndex];
+                // _currentCamera = _cameras[_cameraIndex];
+                _currentCamera = GetRandomCamera();
                 _currentCamera.enabled = true;
                 // _currentCamera.GetComponent<VenueCamera>().SetCameraPostProcessing(CurrentEffect);
             }
@@ -199,6 +200,17 @@ namespace YARG.Venue.VenueCamera
         // {
         //     throw new System.NotImplementedException();
         // }
+
+        private float GetRandomCameraTimer()
+        {
+            return Random.Range(3f, 8f);
+        }
+
+        private Camera GetRandomCamera()
+        {
+            var index = Random.Range(0, _cameras.Count - 1);
+            return _cameras[index];
+        }
 
         private CameraLocation GetCameraLocation(CameraCutEvent cut)
         {

@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Rendering;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using AnimationEvent = YARG.Core.Chart.AnimationEvent;
 using AnimationTrigger = YARG.Venue.Characters.CharacterManager.AnimationTrigger;
 using AnimationState = YARG.Venue.Characters.CharacterManager.AnimationState;
+using AnimationType = YARG.Core.Chart.AnimationEvent.AnimationType;
 using HandMap = YARG.Venue.Characters.CharacterManager.HandMap;
 using StrumMap = YARG.Venue.Characters.CharacterManager.StrumMap;
 
@@ -18,7 +21,7 @@ using UnityEditor.Animations;
 namespace YARG.Venue.Characters
 {
     [RequireComponent(typeof(Animator))]
-    public class VenueCharacter : MonoBehaviour
+    public partial class VenueCharacter : MonoBehaviour
     {
         public enum CharacterType
         {
@@ -42,9 +45,6 @@ namespace YARG.Venue.Characters
         public CharacterType Type;
 
         [SerializeField]
-        private Dictionary<AnimationStates, string> _animationStates;
-
-        [SerializeField]
         private int _actionsPerAnimationCycle;
 
         [Space]
@@ -57,13 +57,17 @@ namespace YARG.Venue.Characters
         private string _playingAnimationName;
         [SerializeField]
         private int _framesToFirstHit;
+        [Space]
+        [SerializeField]
+        private List<string> _strumUpStates = new();
+        [SerializeField]
+        [HideInInspector]
+        public AnimationDictionary LayerStates;
+
+        private Dictionary<string, List<string>> _layerStates;
 
         private bool _ikActive;
         private Transform _leftHandObject;
-
-        private HashSet<string>                                              _availableAnimations      = new();
-        private Dictionary<int, string>                                      _animationHashToAnimation = new();
-        private Dictionary<AnimationEvent.AnimationType, AnimationEventInfo> _animationLookup          = new();
 
         private HashSet<string> _availableLayers     = new();
         private HashSet<string> _availableParameters = new();
@@ -90,15 +94,14 @@ namespace YARG.Venue.Characters
 
         private string _strumTrigger = "Strum";
 
-        private Dictionary<string, int> _leftHandPositionHashes = new();
+        private List<int> _strumUpHashes = new();
+
         #nullable enable
         private Dictionary<string, Transform?> _ikTargets = new();
         #nullable disable
 
         [NonSerialized]
         public float TimeToFirstHit = 0.0f;
-
-        private string   _currentChordShape;
 
         private AnimationState _animationState;
         private HandMap        _handMap;
@@ -112,49 +115,34 @@ namespace YARG.Venue.Characters
         private float  _delayedTriggerTime;
 
         private bool _alwaysBend => _handMap == HandMap.HandMapAllBend;
+        [NonSerialized]
+        public  bool ChartHasAnimations;
+
+        private bool _hasAdvancedAnimations;
+        private bool _hasSlap;
+        private bool _hasPick;
 
         private void Awake()
         {
             _animator = GetComponent<Animator>();
             _animatorController = _animator.runtimeAnimatorController;
 
+            _layerStates = LayerStates.ToDictionary();
+
+            PopulateAnimationData();
+            CheckAdvancedAnimations();
+
             // Get the available animations so we don't try to call ones the venue author didn't implement
             foreach (var animation in _animatorController.animationClips)
             {
                 _availableAnimations.Add(animation.name);
             }
-#if false
-            var realController = _animatorController as AnimatorController;
-            // Thankfully we know we want layer 0 for this debugging task
-            if (realController != null && Type == CharacterType.Bass)
+
+            foreach (var state in _strumUpStates)
             {
-                var layer = realController.layers[0];
-                foreach (var state in layer.stateMachine.states)
-                {
-                    _animationHashToAnimation.Add(state.state.name.GetHashCode(), state.state.name);
-                }
+                _strumUpHashes.Add(Animator.StringToHash(state));
             }
-#endif
-            // Get the available layers so we don't try to call ones the venue author didn't implement
-            // if (_animatorController is AnimatorController controller)
-            // {
-            //     foreach (var layer in controller.layers)
-            //     {
-            //         _availableLayers.Add(layer.name);
-            //     }
-            //
-            //     foreach (var parameter in controller.parameters)
-            //     {
-            //         _availableParameters.Add(parameter.name);
-            //     }
-            // }
 
-            // _animationLookup = BuildAnimationLookup();
-
-            // Start in the idle state
-            // _animator.Play(_animationStates[AnimationStates.Idle]);
-
-            // Figure out how long the animation is
             var clip = _animatorController.animationClips[0];
             _animationLength = clip.length;
             TimeToFirstHit = _framesToFirstHit / clip.frameRate;
@@ -197,6 +185,76 @@ namespace YARG.Venue.Characters
             GetPositionHashes();
             GetIKTargets();
 
+        }
+
+        private void CheckAdvancedAnimations()
+        {
+            bool allFound = true;
+
+            string[] requiredGuitar =
+            {
+                "StrumUp",
+                "StrumDown",
+                "HandPositionOne",
+                "HandPositionTwo",
+                "HandPositionThree",
+                "HandPositionFour",
+                "HandPositionFive",
+                "HandPositionSix",
+                "HandPositionSeven",
+                "HandPositionEight"
+            };
+
+            // For guitar/bass, we require strumup/strumdown and some hand positions
+            // TODO: Make this check for animations and not just states
+            if (Type == CharacterType.Guitar || Type == CharacterType.Bass)
+            {
+                foreach (var name in requiredGuitar)
+                {
+                    if (!_animationEvents.TryGet(name, out var info))
+                    {
+                        allFound = false;
+                        break;
+                    }
+                }
+
+                _hasAdvancedAnimations = allFound;
+                return;
+            }
+
+            string[] requiredDrums =
+            {
+                "Kick",
+                "HihatLeft",
+                "HihatRight",
+                "Tom1Left",
+                "Tom1Right",
+                "Tom2Left",
+                "Tom2Right",
+                "FloorTomLeft",
+                "FloorTomRight",
+                "RideLeft",
+                "RideRight",
+            };
+
+            // For drums, we require the full suite, minus soft/hard variants (but we don't actually check the ones with variants)
+            if (Type == CharacterType.Drums)
+            {
+                foreach (var name in requiredDrums)
+                {
+                    if (!_animationEvents.TryGet(name, out var info))
+                    {
+                        allFound = false;
+                        break;
+                    }
+                }
+                _hasAdvancedAnimations = allFound;
+                return;
+            }
+
+            // TODO: Add check for vocals/keys when we actually support those
+
+            _hasAdvancedAnimations = false;
         }
 
         private void Update()
@@ -279,7 +337,7 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private void HandleStrumMap(CharacterManager.StrumMap strumMap)
+        private void HandleStrumMap(StrumMap strumMap)
         {
             // Strum map is only valid for bass
             if (Type != CharacterType.Bass)
@@ -289,10 +347,13 @@ namespace YARG.Venue.Characters
 
             _strumTrigger = strumMap switch
             {
-                CharacterManager.StrumMap.StrumMapPick => "StrumPick",
-                CharacterManager.StrumMap.StrumMapSlapBass => "StrumSlap",
+                StrumMap.StrumMapDefault => "Strum",
+                StrumMap.StrumMapPick => "Pick",
+                StrumMap.StrumMapSlapBass => "Slap",
                 _ => "Strum"
             };
+
+            YargLogger.LogDebug($"Strum map {strumMap} set");
         }
 
         private void HandleAnimationState(AnimationState animationState)
@@ -328,27 +389,27 @@ namespace YARG.Venue.Characters
                 switch (handMap)
                 {
                     case HandMap.HandMapChordA:
-                        _animator.SetTrigger("ChordA");
+                        SetTrigger("ChordA");
                         _inhibitHandShape = true;
                         YargLogger.LogDebug("Chord A triggered");
                         break;
                     case HandMap.HandMapChordC:
-                        _animator.SetTrigger("ChordC");
+                        SetTrigger("ChordC");
                         _inhibitHandShape = true;
                         YargLogger.LogDebug("Chord C triggered");
                         break;
                     case HandMap.HandMapChordD:
-                        _animator.SetTrigger("ChordD");
+                        SetTrigger("ChordD");
                         _inhibitHandShape = true;
                         YargLogger.LogDebug("Chord D triggered");
                         break;
                     case HandMap.HandMapDropD:
-                        _animator.SetTrigger("DropD");
+                        SetTrigger("DropD");
                         _inhibitHandShape = true;
                         YargLogger.LogDebug("Drop D triggered");
                         break;
                     case HandMap.HandMapDropD2:
-                        _animator.SetTrigger("DropD");
+                        SetTrigger("DropD");
                         YargLogger.LogDebug("Drop D triggered");
                         _inhibitHandShape = true;
                         break;
@@ -372,102 +433,106 @@ namespace YARG.Venue.Characters
                     HandleHandMap(animation.HandMap);
                     break;
                 case CharacterManager.TriggerType.StrumMap:
+                    HandleStrumMap(animation.StrumMap);
+                    YargLogger.LogDebug($"Strum map {animation.StrumMap} triggered");
                     _strumMap = animation.StrumMap;
                     break;
             }
         }
 
-        public void OnGuitarAnimation(AnimationEvent.AnimationType animation)
+        public void OnGuitarAnimation(AnimationType animation)
         {
             var animName = animation switch
             {
-                AnimationEvent.AnimationType.LeftHandPosition1 => "HandPositionOne",
-                AnimationEvent.AnimationType.LeftHandPosition2 => "HandPositionOne",
-                AnimationEvent.AnimationType.LeftHandPosition3 => "HandPositionTwo",
-                AnimationEvent.AnimationType.LeftHandPosition4 => "HandPositionTwo",
-                AnimationEvent.AnimationType.LeftHandPosition5 => "HandPositionThree",
-                AnimationEvent.AnimationType.LeftHandPosition6 => "HandPositionThree",
-                AnimationEvent.AnimationType.LeftHandPosition7 => "HandPositionFour",
-                AnimationEvent.AnimationType.LeftHandPosition8 => "HandPositionFour",
-                AnimationEvent.AnimationType.LeftHandPosition9 => "HandPositionFive",
-                AnimationEvent.AnimationType.LeftHandPosition10 => "HandPositionFive",
-                AnimationEvent.AnimationType.LeftHandPosition11 => "HandPositionSix",
-                AnimationEvent.AnimationType.LeftHandPosition12 => "HandPositionSix",
-                AnimationEvent.AnimationType.LeftHandPosition13 => "HandPositionSeven",
-                AnimationEvent.AnimationType.LeftHandPosition14 => "HandPositionSeven",
-                AnimationEvent.AnimationType.LeftHandPosition15 => "HandPositionEight",
-                AnimationEvent.AnimationType.LeftHandPosition16 => "HandPositionEight",
+                AnimationType.LeftHandPosition1 => "HandPositionOne",
+                AnimationType.LeftHandPosition2 => "HandPositionOne",
+                AnimationType.LeftHandPosition3 => "HandPositionTwo",
+                AnimationType.LeftHandPosition4 => "HandPositionTwo",
+                AnimationType.LeftHandPosition5 => "HandPositionThree",
+                AnimationType.LeftHandPosition6 => "HandPositionThree",
+                AnimationType.LeftHandPosition7 => "HandPositionFour",
+                AnimationType.LeftHandPosition8 => "HandPositionFour",
+                AnimationType.LeftHandPosition9 => "HandPositionFive",
+                AnimationType.LeftHandPosition10 => "HandPositionFive",
+                AnimationType.LeftHandPosition11 => "HandPositionSix",
+                AnimationType.LeftHandPosition12 => "HandPositionSix",
+                AnimationType.LeftHandPosition13 => "HandPositionSeven",
+                AnimationType.LeftHandPosition14 => "HandPositionSeven",
+                AnimationType.LeftHandPosition15 => "HandPositionEight",
+                AnimationType.LeftHandPosition16 => "HandPositionEight",
                 _ => "HandPositionEight" // We haven't gotten any farther yet
             };
 
             // YargLogger.LogDebug($"Animation {animName} triggered");
 
             _currentLeftHandPosition = animName;
+            SetTrigger(animName);
+
             // _animator.CrossFadeInFixedTime(animName, 0.1f, _leftHandLayerIndex);
-            _animator.CrossFadeInFixedTime(animName, 0.1f);
+            // _animator.CrossFadeInFixedTime(animName, 0.1f);
             // _animator.Play(animName, _leftHandLayerIndex);
             // _animator.SetTrigger(animName);
         }
 
-        public void OnDrumAnimation(AnimationEvent.AnimationType animation)
+        public void OnDrumAnimation(AnimationType animation)
         {
             var animName = animation switch
             {
-                AnimationEvent.AnimationType.Kick => "Kick",
-                AnimationEvent.AnimationType.OpenHiHat => "OpenHat",
-                AnimationEvent.AnimationType.CloseHiHat => "CloseHat",
-                AnimationEvent.AnimationType.HihatLeftHand => "HihatLeft",
-                AnimationEvent.AnimationType.HihatRightHand => "HihatRight",
-                AnimationEvent.AnimationType.SnareLhHard => "SnareLeft",
-                AnimationEvent.AnimationType.SnareRhHard => "SnareRight",
-                AnimationEvent.AnimationType.SnareLhSoft => "SnareLeft",
-                AnimationEvent.AnimationType.SnareRhSoft => "SnareRight",
-                AnimationEvent.AnimationType.Crash1LhHard => "Crash1Left",
-                AnimationEvent.AnimationType.Crash1LhSoft => "Crash1Left",
-                AnimationEvent.AnimationType.Crash1RhHard => "Crash1Right",
-                AnimationEvent.AnimationType.Crash1RhSoft => "Crash1Left",
-                AnimationEvent.AnimationType.Crash2LhHard => "Crash2Left",
-                AnimationEvent.AnimationType.Crash2LhSoft => "Crash2Left",
-                AnimationEvent.AnimationType.Crash2RhHard => "Crash2Right",
-                AnimationEvent.AnimationType.Crash2RhSoft => "Crash2Right",
-                AnimationEvent.AnimationType.RideLh => "RideLeft",
-                AnimationEvent.AnimationType.RideRh => "RideRight",
-                AnimationEvent.AnimationType.Tom1LeftHand => "Tom1Left",
-                AnimationEvent.AnimationType.Tom1RightHand => "Tom1Right",
-                AnimationEvent.AnimationType.Tom2LeftHand => "Tom2Left",
-                AnimationEvent.AnimationType.Tom2RightHand => "Tom2Right",
-                AnimationEvent.AnimationType.FloorTomLeftHand => "FloorTomLeft",
-                AnimationEvent.AnimationType.FloorTomRightHand => "FloorTomRight",
+                AnimationType.Kick => "Kick",
+                AnimationType.OpenHiHat => "OpenHat",
+                AnimationType.CloseHiHat => "CloseHat",
+                AnimationType.HihatLeftHand => "HihatLeft",
+                AnimationType.HihatRightHand => "HihatRight",
+                AnimationType.SnareLhHard => "SnareLeft",
+                AnimationType.SnareRhHard => "SnareRight",
+                AnimationType.SnareLhSoft => "SnareLeft",
+                AnimationType.SnareRhSoft => "SnareRight",
+                AnimationType.Crash1LhHard => "Crash1Left",
+                AnimationType.Crash1LhSoft => "Crash1Left",
+                AnimationType.Crash1RhHard => "Crash1Right",
+                AnimationType.Crash1RhSoft => "Crash1Left",
+                AnimationType.Crash2LhHard => "Crash2Left",
+                AnimationType.Crash2LhSoft => "Crash2Left",
+                AnimationType.Crash2RhHard => "Crash2Right",
+                AnimationType.Crash2RhSoft => "Crash2Right",
+                AnimationType.RideLh => "RideLeft",
+                AnimationType.RideRh => "RideRight",
+                AnimationType.Tom1LeftHand => "Tom1Left",
+                AnimationType.Tom1RightHand => "Tom1Right",
+                AnimationType.Tom2LeftHand => "Tom2Left",
+                AnimationType.Tom2RightHand => "Tom2Right",
+                AnimationType.FloorTomLeftHand => "FloorTomLeft",
+                AnimationType.FloorTomRightHand => "FloorTomRight",
                 _ => null
             };
 
             int? layerIndex = animation switch
             {
-                AnimationEvent.AnimationType.Kick           => _kickLayerIndex,
-                AnimationEvent.AnimationType.OpenHiHat      => _hatLayerIndex,
-                AnimationEvent.AnimationType.CloseHiHat     => _hatLayerIndex,
-                AnimationEvent.AnimationType.HihatLeftHand  => _leftHandLayerIndex,
-                AnimationEvent.AnimationType.HihatRightHand => _rightHandLayerIndex,
-                AnimationEvent.AnimationType.SnareLhHard    => _leftHandLayerIndex,
-                AnimationEvent.AnimationType.SnareRhSoft    => _rightHandLayerIndex,
-                AnimationEvent.AnimationType.SnareLhSoft    => _leftHandLayerIndex,
-                AnimationEvent.AnimationType.SnareRhHard    => _rightHandLayerIndex,
-                AnimationEvent.AnimationType.Crash1LhHard   => _leftHandLayerIndex,
-                AnimationEvent.AnimationType.Crash1LhSoft   => _leftHandLayerIndex,
-                AnimationEvent.AnimationType.Crash1RhHard   => _rightHandLayerIndex,
-                AnimationEvent.AnimationType.Crash1RhSoft   => _rightHandLayerIndex,
-                AnimationEvent.AnimationType.Crash2LhHard   => _leftHandLayerIndex,
-                AnimationEvent.AnimationType.Crash2LhSoft   => _leftHandLayerIndex,
-                AnimationEvent.AnimationType.Crash2RhHard   => _rightHandLayerIndex,
-                AnimationEvent.AnimationType.Crash2RhSoft   => _rightHandLayerIndex,
-                AnimationEvent.AnimationType.RideLh         => _leftHandLayerIndex,
-                AnimationEvent.AnimationType.RideRh         => _rightHandLayerIndex,
-                AnimationEvent.AnimationType.Tom1LeftHand   => _leftHandLayerIndex,
-                AnimationEvent.AnimationType.Tom1RightHand  => _rightHandLayerIndex,
-                AnimationEvent.AnimationType.Tom2LeftHand   => _leftHandLayerIndex,
-                AnimationEvent.AnimationType.Tom2RightHand  => _rightHandLayerIndex,
-                AnimationEvent.AnimationType.FloorTomLeftHand => _leftHandLayerIndex,
-                AnimationEvent.AnimationType.FloorTomRightHand => _rightHandLayerIndex,
+                AnimationType.Kick           => _kickLayerIndex,
+                AnimationType.OpenHiHat      => _hatLayerIndex,
+                AnimationType.CloseHiHat     => _hatLayerIndex,
+                AnimationType.HihatLeftHand  => _leftHandLayerIndex,
+                AnimationType.HihatRightHand => _rightHandLayerIndex,
+                AnimationType.SnareLhHard    => _leftHandLayerIndex,
+                AnimationType.SnareRhSoft    => _rightHandLayerIndex,
+                AnimationType.SnareLhSoft    => _leftHandLayerIndex,
+                AnimationType.SnareRhHard    => _rightHandLayerIndex,
+                AnimationType.Crash1LhHard   => _leftHandLayerIndex,
+                AnimationType.Crash1LhSoft   => _leftHandLayerIndex,
+                AnimationType.Crash1RhHard   => _rightHandLayerIndex,
+                AnimationType.Crash1RhSoft   => _rightHandLayerIndex,
+                AnimationType.Crash2LhHard   => _leftHandLayerIndex,
+                AnimationType.Crash2LhSoft   => _leftHandLayerIndex,
+                AnimationType.Crash2RhHard   => _rightHandLayerIndex,
+                AnimationType.Crash2RhSoft   => _rightHandLayerIndex,
+                AnimationType.RideLh         => _leftHandLayerIndex,
+                AnimationType.RideRh         => _rightHandLayerIndex,
+                AnimationType.Tom1LeftHand   => _leftHandLayerIndex,
+                AnimationType.Tom1RightHand  => _rightHandLayerIndex,
+                AnimationType.Tom2LeftHand   => _leftHandLayerIndex,
+                AnimationType.Tom2RightHand  => _rightHandLayerIndex,
+                AnimationType.FloorTomLeftHand => _leftHandLayerIndex,
+                AnimationType.FloorTomRightHand => _rightHandLayerIndex,
                 _                                       => null
             };
 
@@ -489,7 +554,7 @@ namespace YARG.Venue.Characters
             // _animator.CrossFadeInFixedTime(animName, 0.1f, layerIndex.Value);
             // _animator.CrossFadeInFixedTime(animName, 0.067f);
             // _animator.CrossFade(animName, 0.1f);
-            _animator.SetTrigger(animName);
+            SetTrigger(animName);
 
         }
 
@@ -498,56 +563,68 @@ namespace YARG.Venue.Characters
 
             if (note is GuitarNote gNote)
             {
-                // Strum animations are only for bass rn
-                if (Type == CharacterType.Bass && gNote.IsStrum)
+                if (gNote.IsStrum)
                 {
+                    // Handle alternate strums for bass
+                    if (Type == CharacterType.Bass && _hasSlap && _strumMap == StrumMap.StrumMapSlapBass)
+                    {
+                        // Just trigger slap and return
+                        SetTrigger(AnimationStateType.Slap);
+                        YargLogger.LogDebug("Slap animation triggered");
+                        return;
+                    }
+
+                    // Which layer has strum down?
+                    if (!_animationEvents.TryGet(AnimationStateType.StrumDown, out var strumDownEvent))
+                    {
+                        // TODO: Fall back to basic animations in this case
+                        return;
+                    }
                     // Figure out which way to strum...I guess by looking at which state we're currently in?
-                    // TODO: Don't hardcode the layer index
-                    var currentState = _animator.GetCurrentAnimatorStateInfo(0);
-                    var nextState = _animator.GetNextAnimatorStateInfo(0);
+                    // TODO: Handle the case where the state exists in more than one layer
+                    var currentState = _animator.GetCurrentAnimatorStateInfo(strumDownEvent[0].Layer);
+                    var nextState = _animator.GetNextAnimatorStateInfo(strumDownEvent[0].Layer);
                     var currentClip = _animator.GetCurrentAnimatorClipInfo(0)[0].clip.name;
 
-                    // YargLogger.LogDebug($"Current clip is {currentClip}");
 
-                    // Hand is down, so strum up
-                    // if (currentClip == "BassStrumDown" || currentClip == "BassIdleDown")
-                    if (_handDown)
+                    bool strumUp = false;
+                    if (!_animationEvents.TryGet(currentState.shortNameHash, out var currentStateInfo))
                     {
-                        // YargLogger.LogDebug("Strum up animation triggered");
-                        _animator.SetTrigger("StrumUp");
-                        _handDown = false;
+                        foreach (var hash in _strumUpHashes)
+                        {
+                            if (currentState.shortNameHash == hash)
+                            {
+                                strumUp = true;
+                                break;
+                            }
+                        }
+                    }
+                    else if (currentStateInfo.Type == AnimationStateType.StrumDown)
+                    {
+                        strumUp = true;
+                    }
+
+                    if (strumUp)
+                    {
+                        SetTrigger("StrumUp");
                     }
                     else
                     {
-                        // Hand isn't down, so strum down
-                        // YargLogger.LogDebug("Strum down animation triggered");
-                        _animator.SetTrigger("StrumDown");
-                        _handDown = true;
+                        SetTrigger("StrumDown");
                     }
                 }
-
                 SetHandAnimationForNote(gNote);
-
             }
 
-            // if (note is DrumNote)
-            // {
-            //     bool hasKick = false;
-            //     foreach (var child in note.AllNotes)
-            //     {
-            //         if (child is DrumNote { Pad: (int) FourLaneDrumPad.Kick })
-            //         {
-            //             hasKick = true;
-            //             break;
-            //         }
-            //     }
-            //
-            //     if (hasKick)
-            //     {
-            //         _animator.Play("Kick", _kickLayerIndex);
-            //         YargLogger.LogDebug("Kick drum animation started");
-            //     }
-            // }
+            // Fake some animations if the chart doesn't have any to begin with
+            if (!ChartHasAnimations && note is DrumNote dNote)
+            {
+                foreach (var child in dNote.AllNotes)
+                {
+                    var anim = GetDrumAnimationForNote(child);
+                    SetTrigger(anim);
+                }
+            }
 
             if (note is Note<VocalNote>)
             {
@@ -623,7 +700,7 @@ namespace YARG.Venue.Characters
                         }
 
                         // Trigger chord low vibrato hand shape
-                        _animator.SetTrigger("DefaultChordLowVibrato");
+                        SetTrigger("DefaultChordLowVibrato");
                         SetDelayedTrigger("DefaultChordLow", sustainLength);
                     }
                     else
@@ -634,7 +711,7 @@ namespace YARG.Venue.Characters
                         }
 
                         // Trigger chord low hand shape
-                        _animator.SetTrigger("DefaultChordLow");
+                        SetTrigger("DefaultChordLow");
                         _currentChordShape = "DefaultChordLow";
                     }
                 }
@@ -648,7 +725,7 @@ namespace YARG.Venue.Characters
                         }
 
                         // Trigger chord high vibrato hand shape
-                        _animator.SetTrigger("DefaultChordHighVibrato");
+                        SetTrigger("DefaultChordHighVibrato");
                         _currentChordShape = "DefaultChordHighVibrato";
                         SetDelayedTrigger("DefaultChordHigh", sustainLength);
                     }
@@ -660,7 +737,7 @@ namespace YARG.Venue.Characters
                         }
 
                         // Trigger chord high hand shape
-                        _animator.SetTrigger("DefaultChordHigh");
+                        SetTrigger("DefaultChordHigh");
                         _currentChordShape = "DefaultChordHigh";
                     }
                 }
@@ -682,7 +759,7 @@ namespace YARG.Venue.Characters
                         }
 
                         // Trigger single note low vibrato hand shape
-                        _animator.SetTrigger("DefaultSingleLowVibrato");
+                        SetTrigger("DefaultSingleLowVibrato");
                         _currentChordShape = "DefaultSingleLowVibrato";
                         SetDelayedTrigger("DefaultSingleLow", sustainLength);
                     }
@@ -694,7 +771,7 @@ namespace YARG.Venue.Characters
                         }
 
                         // Trigger single note low hand shape
-                        _animator.SetTrigger("DefaultSingleLow");
+                        SetTrigger("DefaultSingleLow");
                         _currentChordShape = "DefaultSingleLow";
                     }
                 }
@@ -708,7 +785,7 @@ namespace YARG.Venue.Characters
                         }
 
                         // Trigger single note high vibrato hand shape
-                        _animator.SetTrigger("DefaultSingleHighVibrato");
+                        SetTrigger("DefaultSingleHighVibrato");
                         _currentChordShape = "DefaultSingleHighVibrato";
                         SetDelayedTrigger("DefaultSingleHigh", sustainLength);
                     }
@@ -722,7 +799,7 @@ namespace YARG.Venue.Characters
                         }
 
                         // Trigger single note high hand shape
-                        _animator.SetTrigger("DefaultSingleHigh");
+                        SetTrigger("DefaultSingleHigh");
                         _currentChordShape = "DefaultSingleHigh";
                     }
                 }
@@ -739,7 +816,7 @@ namespace YARG.Venue.Characters
                         return;
                     }
 
-                    _animator.SetTrigger("DropDOpen");
+                    SetTrigger("DropDOpen");
                     _currentChordShape = "DropDOpen";
                     // YargLogger.LogDebug("Drop D open hand shape triggered");
 
@@ -751,7 +828,7 @@ namespace YARG.Venue.Characters
                     return;
                 }
                 // Trigger open hand shape
-                _animator.SetTrigger("DefaultOpen");
+                SetTrigger("DefaultOpen");
                 _currentChordShape = "DefaultOpen";
             }
         }
@@ -768,7 +845,7 @@ namespace YARG.Venue.Characters
                     {
                         return true;
                     }
-                    _animator.SetTrigger("DropDVibrato");
+                    SetTrigger("DropDVibrato");
                     _currentChordShape = "DropDVibrato";
                     SetDelayedTrigger("DropD", sustainLength);
                     // YargLogger.LogDebug("Drop D vibrato hand shape triggered");
@@ -781,7 +858,7 @@ namespace YARG.Venue.Characters
                 }
 
                 // Trigger drop D hand shape
-                _animator.SetTrigger("DropD");
+                SetTrigger("DropD");
                 _currentChordShape = "DropD";
                 // YargLogger.LogDebug("Returned to DropD hand shape");
                 return true;
@@ -803,12 +880,17 @@ namespace YARG.Venue.Characters
             // _animator.Play(_idleAnimationHash);
 
             // We have to delay by TimeToFirstHit because we get called that amount early
-            if (Type != CharacterType.Bass)
-            {
-                DOVirtual.DelayedCall(TimeToFirstHit, () => _animator.CrossFadeInFixedTime(_idleAnimationHash, 0.25f));
-            }
+            // if (Type != CharacterType.Bass)
+            // {
+            //     DOVirtual.DelayedCall(TimeToFirstHit, () => _animator.CrossFadeInFixedTime(_idleAnimationHash, 0.25f));
+            // }
             // _animator.CrossFadeInFixedTime(_idleAnimationHash, 0.1f);
             // YargLogger.LogDebug("Starting Idle animation");
+
+            if (!ChartHasAnimations)
+            {
+                SetTrigger(_idleAnimationName);
+            }
 
             _isAnimating = false;
         }
@@ -824,12 +906,19 @@ namespace YARG.Venue.Characters
 
             UpdateTempo(secondsPerBeat);
 
+            // TODO: We actually need to check whether this character has advanced animations or not
+            // If it does, and it is not a drums chart with no animations, we need to set playing/idle
+            if (!ChartHasAnimations && Type == CharacterType.Drums)
+            {
+                SetTrigger(_playingAnimationName);
+            }
+
             // _animator.Play("91e81ab3-0a89-48c2-b8ce-a23f28bdf736 Skeleton_Merged_mixamo_com_001,BaseLayer_91e81ab3-0a89-48c2-b8ce-a23f28b");
             // _animator.Play(_playingAnimationHash);
-            if (Type != CharacterType.Bass)
-            {
-                _animator.CrossFadeInFixedTime(_playingAnimationHash, 0.1f);
-            }
+            // if (Type != CharacterType.Bass)
+            // {
+            //     _animator.CrossFadeInFixedTime(_playingAnimationHash, 0.1f);
+            // }
             // YargLogger.LogDebug("Starting Strum animation");
         }
 
@@ -903,112 +992,11 @@ namespace YARG.Venue.Characters
             _delayedTriggerTime = 0;
         }
 
-        /// <summary>
-        /// Builds a lookup dictionary for AnimationTypes that only includes the animations
-        /// available in the current venue
-        /// </summary>
-        /// <returns></returns>
-        private Dictionary<AnimationEvent.AnimationType, AnimationEventInfo> BuildAnimationLookup()
+        public enum BassStrumTypes
         {
-            var lookup = new Dictionary<AnimationEvent.AnimationType, AnimationEventInfo>();
-
-            // Nothing we can do if we don't actually have an animatorcontroller
-            // if (_animatorController is not AnimatorController c)
-            // {
-            //     return lookup;
-            // }
-            //
-            // // Loop through all the layers in the controller, getting their state machine and states for each layer.
-            // foreach (var layer in c.layers)
-            // {
-            //     foreach (var state in layer.stateMachine.states)
-            //     {
-            //         // Create the AnimationEventInfo for this state
-            //         if (!TryGetAnimationTypeForName(state.state.name, out var animType))
-            //         {
-            //             continue;
-            //         }
-            //
-            //         lookup.Add(animType, new AnimationEventInfo(animType, state.state.name, Animator.StringToHash(state.state.name), _animator.GetLayerIndex(layer.name)));
-            //     }
-            // }
-
-
-            return lookup;
-        }
-
-        private bool TryGetAnimationTypeForName(string name, out AnimationEvent.AnimationType outVar)
-        {
-            // Deal with venues that don't have separate hard/soft animations
-            var adjustedName = name switch
-            {
-                "SnareLeft" => "SnareLeftHard",
-                "SnareRight" => "SnareRightHard",
-                "Crash1Left" => "Crash1LeftHard",
-                "Crash1Right" => "Crash1RightHard",
-                "Crash2Left" => "Crash2LeftHard",
-                "Crash2Right" => "Crash2RightHard",
-                _ => name
-            };
-
-            AnimationEvent.AnimationType? animType = adjustedName switch
-            {
-                "Kick"            => AnimationEvent.AnimationType.Kick,
-                "OpenHat"         => AnimationEvent.AnimationType.OpenHiHat,
-                "CloseHat"        => AnimationEvent.AnimationType.CloseHiHat,
-                "HihatLeft"       => AnimationEvent.AnimationType.HihatLeftHand,
-                "HihatRight"      => AnimationEvent.AnimationType.HihatRightHand,
-                "SnareLeft"       => AnimationEvent.AnimationType.SnareLhHard,
-                "SnareLeftHard"   => AnimationEvent.AnimationType.SnareLhHard,
-                "SnareLeftSoft"   => AnimationEvent.AnimationType.SnareLhSoft,
-                "SnareRightHard"  => AnimationEvent.AnimationType.SnareRhHard,
-                "SnareRightSoft"  => AnimationEvent.AnimationType.SnareRhSoft,
-                "Crash1LeftHard"  => AnimationEvent.AnimationType.Crash1LhHard,
-                "Crash1LeftSoft"  => AnimationEvent.AnimationType.Crash1LhSoft,
-                "Crash1RightHard" => AnimationEvent.AnimationType.Crash1RhHard,
-                "Crash1RightSoft" => AnimationEvent.AnimationType.Crash1RhSoft,
-                "Crash1Choke"     => AnimationEvent.AnimationType.Crash1Choke,
-                "Crash2LeftHard"  => AnimationEvent.AnimationType.Crash2LhHard,
-                "Crash2LeftSoft"  => AnimationEvent.AnimationType.Crash2LhSoft,
-                "Crash2RightHard" => AnimationEvent.AnimationType.Crash2RhHard,
-                "Crash2RightSoft" => AnimationEvent.AnimationType.Crash2RhSoft,
-                "Crash2Choke"     => AnimationEvent.AnimationType.Crash2Choke,
-                "RideLeft"        => AnimationEvent.AnimationType.RideLh,
-                "RideRight"       => AnimationEvent.AnimationType.RideRh,
-                "Tom1Left"        => AnimationEvent.AnimationType.Tom1LeftHand,
-                "Tom1Right"       => AnimationEvent.AnimationType.Tom1RightHand,
-                "Tom2Left"        => AnimationEvent.AnimationType.Tom2LeftHand,
-                "Tom2Right"       => AnimationEvent.AnimationType.Tom2RightHand,
-                "FloorTomLeft"    => AnimationEvent.AnimationType.FloorTomLeftHand,
-                "FloorTomRight"   => AnimationEvent.AnimationType.FloorTomRightHand,
-                _                 => null
-            };
-
-            if (animType.HasValue)
-            {
-                outVar = animType.Value;
-                return true;
-            }
-
-            outVar = default;
-            return false;
-        }
-
-        private class AnimationEventInfo
-        {
-            public AnimationEventInfo(AnimationEvent.AnimationType animationType, string animationName, int hash, int layer)
-            {
-                AnimationType = animationType;
-                AnimationName = animationName;
-                Hash = hash;
-                Layer = layer;
-            }
-
-            public readonly AnimationEvent.AnimationType AnimationType;
-            public readonly string                       AnimationName;
-            public readonly int                          Hash;
-            public readonly int                          Layer;
-
+            Strum,
+            Slap,
+            Pick
         }
     }
 }

@@ -68,6 +68,8 @@ namespace YARG.Venue.Characters
         private List<AnimationTrigger> _vocalMaps;
         private List<AnimationTrigger> _keysMaps;
 
+        private bool _songHasDrumAnimations;
+
         protected override void OnChartLoaded(SongChart chart)
         {
             // Find all the VenueCharacters in the venue
@@ -89,7 +91,7 @@ namespace YARG.Venue.Characters
 
             InstrumentTrack<GuitarNote> guitarTrack = chart.GetFiveFretTrack(Instrument.FiveFretGuitar);
             InstrumentTrack<GuitarNote> bassTrack = chart.GetFiveFretTrack(Instrument.FiveFretBass);;
-            InstrumentTrack<DrumNote> drumsTrack = chart.GetDrumsTrack(Instrument.FourLaneDrums);
+            InstrumentTrack<DrumNote> drumsTrack = chart.GetDrumsTrack(Instrument.ProDrums);
 
             _guitarNotes = guitarId.Notes;
             _bassNotes = bassId.Notes;
@@ -116,6 +118,19 @@ namespace YARG.Venue.Characters
             foreach (var character in _characters.Values)
             {
                 character.StopAnimation();
+            }
+
+            if (_drumAnimationEvents.Count > 0)
+            {
+                _songHasDrumAnimations = true;
+                // Find the drummer and tell it that there are animations
+                foreach (var key in _characters.Keys)
+                {
+                    if (_characters[key].Type == VenueCharacter.CharacterType.Drums)
+                    {
+                        _characters[key].ChartHasAnimations = true;
+                    }
+                }
             }
         }
 
@@ -212,6 +227,15 @@ namespace YARG.Venue.Characters
 
         private void ProcessBass(VenueCharacter character)
         {
+            while (_bassMaps.Count > 0 && _bassTriggerIndex < _bassMaps.Count &&
+                _bassMaps[_bassTriggerIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
+            {
+                var mapEvent = _bassMaps[_bassTriggerIndex];
+                _bassTriggerIndex++;
+
+                character.OnGuitarAnimation(mapEvent);
+            }
+
             while (_bassNotes.Count > 0 && _bassNoteIndex < _bassNotes.Count && _bassNotes[_bassNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
             {
                 if (_bassNoteIndex >= _bassNotes.Count)
@@ -290,6 +314,12 @@ namespace YARG.Venue.Characters
                     character.StopAnimation();
                 }
 
+                if (!_songHasDrumAnimations)
+                {
+                    character.OnNote(note);
+                    return;
+                }
+
                 while (_drumAnimationEvents.Count > 0 && _drumAnimationIndex < _drumAnimationEvents.Count &&
                     _drumAnimationEvents[_drumAnimationIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
                 {
@@ -303,8 +333,6 @@ namespace YARG.Venue.Characters
                         _hatTimer = animEvent.TimeLength;
                     }
                 }
-
-                // character.OnNote(note);
             }
         }
 
@@ -405,7 +433,7 @@ namespace YARG.Venue.Characters
                                 break;
                         }
                     }
-                    else if (parts[0] == "StrumMap")
+                    else if (mapParts[0] == "StrumMap")
                     {
                         switch (mapType)
                         {
