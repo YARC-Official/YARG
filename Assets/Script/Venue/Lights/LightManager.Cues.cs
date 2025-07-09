@@ -4,9 +4,22 @@ namespace YARG.Venue
 {
     public partial class LightManager
     {
-        private LightState AutoGradient(LightState current, Gradient gradient)
+        private LightState AutoGradient(LightState current, VenueLightLocation location, Gradient gradient)
         {
-            current.Color = gradient.Evaluate(current.Delta);
+			if (AnimationFrame < 1)
+			{
+				current.Color = gradient.Evaluate(current.Delta);
+			}
+			else
+			{
+				current.Color = location switch
+				{
+					VenueLightLocation.Right or
+					VenueLightLocation.Left or
+					VenueLightLocation.Crowd 	=> gradient.Evaluate(Mathf.Repeat(AnimationFrame+1,2)/2f),
+					_							=> gradient.Evaluate(Mathf.Repeat(AnimationFrame,2)/2f)
+				};
+			}
 			current.Intensity = 1f;
 
             current.Delta += Time.deltaTime * _gradientLightingSpeed;
@@ -29,7 +42,7 @@ namespace YARG.Venue
                 _                        => innerGradient,
             };
 
-            return AutoGradient(current, gradient);
+            return AutoGradient(current, location, gradient);
         }
 
         private LightState BlackOut(LightState current, float speed)
@@ -65,6 +78,26 @@ namespace YARG.Venue
                     VenueLightLocation.Center => Color.white,
                     _                         => _silhouetteColor
                 };
+            }
+
+            return current;
+        }
+
+        private LightState Searchlights(LightState current, VenueLightLocation location,
+            Gradient gradient)
+        {
+            current.Intensity = 1f;
+            current.Color = location switch
+            {
+                VenueLightLocation.Right or
+                VenueLightLocation.Left  => Color.white,
+                _                        => gradient.Evaluate(current.Delta),
+            };
+			
+			current.Delta += Time.deltaTime * _gradientLightingSpeed;
+            if (current.Delta > 1f)
+            {
+                current.Delta = 0f;
             }
 
             return current;
