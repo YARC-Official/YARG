@@ -30,7 +30,7 @@ namespace YARG.Venue
 
         private LightManager _lightManager;
 
-        private void Awake()
+        private void Start()
         {
             _lightManager = FindObjectOfType<LightManager>();
 			
