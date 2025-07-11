@@ -108,26 +108,46 @@ namespace YARG.Venue.Characters
                 "RideLeft"        => AnimationStateType.RideLh,
                 "RideRight"       => AnimationStateType.RideRh,
                 // Five fret
-                "LeftHandPosition1"        => AnimationStateType.LeftHandPosition1,
-                "LeftHandPosition2"        => AnimationStateType.LeftHandPosition2,
-                "LeftHandPosition3"        => AnimationStateType.LeftHandPosition3,
-                "LeftHandPosition4"        => AnimationStateType.LeftHandPosition4,
-                "LeftHandPosition5"        => AnimationStateType.LeftHandPosition5,
-                "LeftHandPosition6"        => AnimationStateType.LeftHandPosition6,
-                "LeftHandPosition7"        => AnimationStateType.LeftHandPosition7,
-                "LeftHandPosition8"        => AnimationStateType.LeftHandPosition8,
-                "LeftHandPosition9"        => AnimationStateType.LeftHandPosition9,
-                "LeftHandPosition10"       => AnimationStateType.LeftHandPosition10,
-                "LeftHandPosition11"       => AnimationStateType.LeftHandPosition11,
-                "LeftHandPosition12"       => AnimationStateType.LeftHandPosition12,
-                "LeftHandPosition13"       => AnimationStateType.LeftHandPosition13,
-                "LeftHandPosition14"       => AnimationStateType.LeftHandPosition14,
-                "LeftHandPosition15"       => AnimationStateType.LeftHandPosition15,
-                "LeftHandPosition16"       => AnimationStateType.LeftHandPosition16,
-                "LeftHandPosition17"       => AnimationStateType.LeftHandPosition17,
-                "LeftHandPosition18"       => AnimationStateType.LeftHandPosition18,
-                "LeftHandPosition19"       => AnimationStateType.LeftHandPosition19,
-                "LeftHandPosition20"       => AnimationStateType.LeftHandPosition20,
+                "HandPosition1"        => AnimationStateType.LeftHandPosition1,
+                "HandPosition2"        => AnimationStateType.LeftHandPosition2,
+                "HandPosition3"        => AnimationStateType.LeftHandPosition3,
+                "HandPosition4"        => AnimationStateType.LeftHandPosition4,
+                "HandPosition5"        => AnimationStateType.LeftHandPosition5,
+                "HandPosition6"        => AnimationStateType.LeftHandPosition6,
+                "HandPosition7"        => AnimationStateType.LeftHandPosition7,
+                "HandPosition8"        => AnimationStateType.LeftHandPosition8,
+                "HandPosition9"        => AnimationStateType.LeftHandPosition9,
+                "HandPosition10"       => AnimationStateType.LeftHandPosition10,
+                "HandPosition11"       => AnimationStateType.LeftHandPosition11,
+                "HandPosition12"       => AnimationStateType.LeftHandPosition12,
+                "HandPosition13"       => AnimationStateType.LeftHandPosition13,
+                "HandPosition14"       => AnimationStateType.LeftHandPosition14,
+                "HandPosition15"       => AnimationStateType.LeftHandPosition15,
+                "HandPosition16"       => AnimationStateType.LeftHandPosition16,
+                "HandPosition17"       => AnimationStateType.LeftHandPosition17,
+                "HandPosition18"       => AnimationStateType.LeftHandPosition18,
+                "HandPosition19"       => AnimationStateType.LeftHandPosition19,
+                "HandPosition20"       => AnimationStateType.LeftHandPosition20,
+                "HandPositionOne" => AnimationStateType.LeftHandPosition1,
+                "HandPositionTwo" => AnimationStateType.LeftHandPosition2,
+                "HandPositionThree" => AnimationStateType.LeftHandPosition3,
+                "HandPositionFour" => AnimationStateType.LeftHandPosition4,
+                "HandPositionFive" => AnimationStateType.LeftHandPosition5,
+                "HandPositionSix" => AnimationStateType.LeftHandPosition6,
+                "HandPositionSeven" => AnimationStateType.LeftHandPosition7,
+                "HandPositionEight" => AnimationStateType.LeftHandPosition8,
+                "HandPositionNine" => AnimationStateType.LeftHandPosition9,
+                "HandPositionTen" => AnimationStateType.LeftHandPosition10,
+                "HandPositionEleven" => AnimationStateType.LeftHandPosition11,
+                "HandPositionTwelve" => AnimationStateType.LeftHandPosition12,
+                "HandPositionThirteen" => AnimationStateType.LeftHandPosition13,
+                "HandPositionFourteen" => AnimationStateType.LeftHandPosition14,
+                "HandPositionFifteen" => AnimationStateType.LeftHandPosition15,
+                "HandPositionSixteen" => AnimationStateType.LeftHandPosition16,
+                "HandPositionSeventeen" => AnimationStateType.LeftHandPosition17,
+                "HandPositionEighteen" => AnimationStateType.LeftHandPosition18,
+                "HandPositionNineteen" => AnimationStateType.LeftHandPosition19,
+                "HandPositionTwenty" => AnimationStateType.LeftHandPosition20,
                 "StrumUp"                  => AnimationStateType.StrumUp,
                 "StrumDown"                => AnimationStateType.StrumDown,
                 "DefaultSingleLow"         => AnimationStateType.LhSingleLow,
@@ -221,6 +241,10 @@ namespace YARG.Venue.Characters
                 "HandPositionTen"    => AnimationType.LeftHandPosition10,
                 "HandPositionEleven" => AnimationType.LeftHandPosition11,
                 "HandPositionTwelve" => AnimationType.LeftHandPosition12,
+                "HandPositionThirteen" => AnimationType.LeftHandPosition13,
+                "HandPositionFourteen" => AnimationType.LeftHandPosition14,
+                "HandPositionFifteen" => AnimationType.LeftHandPosition15,
+                "HandPositionSixteen" => AnimationType.LeftHandPosition16,
                 // TODO: Need to add the hand shapes and strums to AnimationType so they can be used here
                 // rather than special cased as they were initially for testing
                 _ => null
@@ -650,6 +674,14 @@ namespace YARG.Venue.Characters
             else
             {
                 YargLogger.LogFormatDebug("Animation State '{0}' not found", triggerName);
+            }
+        }
+
+        private void SetTrigger(List<AnimationEventInfo> animations)
+        {
+            foreach (var animation in animations)
+            {
+                SetTrigger(animation.Type);
             }
         }
 

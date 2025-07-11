@@ -25,6 +25,22 @@ MonoBehaviour:
   texture:
     m_OverrideState: 0
     m_Value: {fileID: 0}
+--- !u!114 &-8053512828986670601
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd8bfb7e8840474ab6d9dc0b57f30be5, type: 3}
+  m_Name: MirrorComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  enabled:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &-7567232084050207424
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -66,6 +82,22 @@ MonoBehaviour:
   dirtIntensity:
     m_OverrideState: 0
     m_Value: 0
+--- !u!114 &-6923786053771193734
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07310bc8d8814c35a7ee2f0c0261441a, type: 3}
+  m_Name: TrailsComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  enabled:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &-3268948081679323258
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -101,6 +133,9 @@ MonoBehaviour:
   - {fileID: -8201876109855894492}
   - {fileID: 7766579603084563493}
   - {fileID: 219214101893045267}
+  - {fileID: 4615704651314425003}
+  - {fileID: -8053512828986670601}
+  - {fileID: -6923786053771193734}
 --- !u!114 &219214101893045267
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -141,6 +176,25 @@ MonoBehaviour:
   blueOutBlueIn:
     m_OverrideState: 0
     m_Value: 100
+--- !u!114 &4615704651314425003
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3289a0ccc8054c71b8f0411d573ed049, type: 3}
+  m_Name: ScanlineComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  intensity:
+    m_OverrideState: 0
+    m_Value: 1
+  scanlineCount:
+    m_OverrideState: 0
+    m_Value: 270
 --- !u!114 &7297094782891180569
 MonoBehaviour:
   m_ObjectHideFlags: 3

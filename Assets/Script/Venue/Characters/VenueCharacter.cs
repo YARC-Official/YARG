@@ -442,25 +442,39 @@ namespace YARG.Venue.Characters
 
         public void OnGuitarAnimation(AnimationType animation)
         {
+            // For testing
+            if (Type == CharacterType.Bass)
+            {
+                return;
+            }
+
+            if (_animationEvents.TryGet(animation, out var animInfo))
+            {
+                SetTrigger(animInfo);
+                return;
+            }
+
+            // TODO: Remove the old cruft below when it is determined that the above works correctly
+
             var animName = animation switch
             {
                 AnimationType.LeftHandPosition1 => "HandPositionOne",
-                AnimationType.LeftHandPosition2 => "HandPositionOne",
-                AnimationType.LeftHandPosition3 => "HandPositionTwo",
-                AnimationType.LeftHandPosition4 => "HandPositionTwo",
-                AnimationType.LeftHandPosition5 => "HandPositionThree",
-                AnimationType.LeftHandPosition6 => "HandPositionThree",
-                AnimationType.LeftHandPosition7 => "HandPositionFour",
-                AnimationType.LeftHandPosition8 => "HandPositionFour",
-                AnimationType.LeftHandPosition9 => "HandPositionFive",
-                AnimationType.LeftHandPosition10 => "HandPositionFive",
-                AnimationType.LeftHandPosition11 => "HandPositionSix",
-                AnimationType.LeftHandPosition12 => "HandPositionSix",
-                AnimationType.LeftHandPosition13 => "HandPositionSeven",
-                AnimationType.LeftHandPosition14 => "HandPositionSeven",
-                AnimationType.LeftHandPosition15 => "HandPositionEight",
-                AnimationType.LeftHandPosition16 => "HandPositionEight",
-                _ => "HandPositionEight" // We haven't gotten any farther yet
+                AnimationType.LeftHandPosition2 => "HandPositionTwo",
+                AnimationType.LeftHandPosition3 => "HandPositionThree",
+                AnimationType.LeftHandPosition4 => "HandPositionFour",
+                AnimationType.LeftHandPosition5 => "HandPositionFive",
+                AnimationType.LeftHandPosition6 => "HandPositionSix",
+                AnimationType.LeftHandPosition7 => "HandPositionSeven",
+                AnimationType.LeftHandPosition8 => "HandPositionEight",
+                AnimationType.LeftHandPosition9 => "HandPositionNine",
+                AnimationType.LeftHandPosition10 => "HandPositionTen",
+                AnimationType.LeftHandPosition11 => "HandPositionEleven",
+                AnimationType.LeftHandPosition12 => "HandPositionTwelve",
+                AnimationType.LeftHandPosition13 => "HandPositionThirteen",
+                AnimationType.LeftHandPosition14 => "HandPositionFourteen",
+                AnimationType.LeftHandPosition15 => "HandPositionFifteen",
+                AnimationType.LeftHandPosition16 => "HandPositionSixteen",
+                _ => "HandPositionSixteen" // We haven't gotten any farther yet
             };
 
             // YargLogger.LogDebug($"Animation {animName} triggered");

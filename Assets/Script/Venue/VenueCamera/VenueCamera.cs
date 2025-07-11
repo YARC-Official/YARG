@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -9,6 +10,7 @@ using YARG.Venue.VenueCamera;
 
 namespace YARG.Venue.VenueCamera
 {
+    [RequireComponent(typeof(Camera))]
     public class VenueCamera : MonoBehaviour
     {
         [SerializeField]
@@ -44,9 +46,12 @@ namespace YARG.Venue.VenueCamera
         private Color _greenTint = new(0.0f, 1.0f, 0.0f, 1.0f);
         private Color _blueTint  = new(0.0f, 0.0f, 1.0f, 1.0f);
 
+        private Camera         _camera;
+        private ScanlineEffect _scanline;
 
         private void Awake()
         {
+            _camera = GetComponent<Camera>();
             _profile = _volume;
             if (_profile.TryGet<Bloom>(out var bloom))
             {
@@ -64,6 +69,9 @@ namespace YARG.Venue.VenueCamera
             _invertCurve = new TextureCurve(new AnimationCurve(new Keyframe(1,1), new Keyframe(0,0)), 0.5f, false, in bounds);
             _defaultCurveParam = new TextureCurveParameter(_defaultCurve);
             _invertCurveParam = new TextureCurveParameter(_invertCurve, true);
+
+            // Attach a scanline effect
+            // _scanline = new ScanlineEffect(_camera);
         }
 
         private void Update()
@@ -116,9 +124,12 @@ namespace YARG.Venue.VenueCamera
                     SetMirror(true);
                     break;
                 case PostProcessingType.BlackAndWhite:
+                    SetBlackAndWhite(true);
+                    break;
                 case PostProcessingType.Scanlines_BlackAndWhite:
                     // TODO: Actually implement the scanlines part
                     SetBlackAndWhite(true);
+                    SetScanline(true);
                     break;
                 case PostProcessingType.SepiaTone:
                     SetSepiaTone(true);
@@ -128,12 +139,24 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.Scanlines_Blue:
                     SetBlueTint(true);
+                    SetScanline(true);
                     break;
                 case PostProcessingType.Scanlines_Security:
                     SetGreenTint(true);
+                    SetScanline(true);
                     break;
                 case PostProcessingType.Grainy_Film:
                     SetGrainy(true);
+                    break;
+                case PostProcessingType.Trails:
+                    SetTrail(true, 0.55f);
+                    break;
+                case PostProcessingType.Trails_Desaturated:
+                    SetTrail(true, 0.55f);
+                    SetDesaturation(true);
+                    break;
+                case PostProcessingType.Trails_Long:
+                    SetTrail(true, 0.67f);
                     break;
             }
         }
@@ -163,9 +186,11 @@ namespace YARG.Venue.VenueCamera
                     SetMirror(false);
                     break;
                 case PostProcessingType.BlackAndWhite:
-                case PostProcessingType.Scanlines_BlackAndWhite:
-                    // TODO: Actually implement a scan line shader
                     SetBlackAndWhite(false);
+                    break;
+                case PostProcessingType.Scanlines_BlackAndWhite:
+                    SetBlackAndWhite(false);
+                    SetScanline(false);
                     break;
                 case PostProcessingType.SepiaTone:
                     SetSepiaTone(false);
@@ -175,12 +200,23 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.Scanlines_Blue:
                     SetBlueTint(false);
+                    SetScanline(false);
                     break;
                 case PostProcessingType.Scanlines_Security:
                     SetGreenTint(false);
+                    SetScanline(false);
                     break;
                 case PostProcessingType.Grainy_Film:
                     SetGrainy(false);
+                    break;
+                case PostProcessingType.Trails_Desaturated:
+                    SetDesaturation(false);
+                    SetTrail(false);
+                    break;
+                case PostProcessingType.Trails:
+                case PostProcessingType.Trails_Long:
+                case PostProcessingType.Trails_Spacey:
+                    SetTrail(false);
                     break;
             }
         }
@@ -223,9 +259,23 @@ namespace YARG.Venue.VenueCamera
 
         private void SetMirror(bool enabled)
         {
-            // Mirror the camera horizontally
-            // TODO: Actually implement screen mirroring
-            YargLogger.LogDebug("Mirror PostProcessingType is not yet supported!");
+            if (!_profile.TryGet<MirrorComponent>(out var mirror))
+            {
+                return;
+            }
+
+            mirror.enabled.value = enabled;
+        }
+
+        private void SetDesaturation(bool enabled)
+        {
+            if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
+            {
+                return;
+            }
+
+            colorAdjustments.saturation.value = enabled ? -50.0f : 0.0f;
+            colorAdjustments.saturation.overrideState = enabled;
         }
 
         private void SetBlackAndWhite(bool enabled)
@@ -319,6 +369,31 @@ namespace YARG.Venue.VenueCamera
 
             colorAdjustments.colorFilter.value = enabled ? _blueTint : Color.white;
             colorAdjustments.colorFilter.overrideState = enabled;
+        }
+
+        private void SetScanline(bool enabled)
+        {
+            if (!_profile.TryGet<ScanlineComponent>(out var scanline))
+            {
+                return;
+            }
+            // _scanline.SetEnabled(enabled);
+            scanline.intensity.value = enabled ? 0.9f : 0.0f;
+            scanline.intensity.overrideState = enabled;
+            // This should really be ~1/4 of the screen resolution
+            scanline.scanlineCount.value = 360;
+            scanline.scanlineCount.overrideState = enabled;
+        }
+
+        private void SetTrail(bool enabled, float intensity = 0.6f)
+        {
+            if (!_profile.TryGet<TrailsComponent>(out var trail))
+            {
+                return;
+            }
+
+            trail.length.value = enabled ? intensity : 0.0f;
+            trail.length.overrideState = enabled;
         }
 
         private void SetGrainy(bool enabled)
