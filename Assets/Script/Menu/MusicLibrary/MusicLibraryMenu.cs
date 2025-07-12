@@ -266,7 +266,7 @@ namespace YARG.Menu.MusicLibrary
                     new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToSet",
                         AddToSetlist),
                     new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
-                        () => _searchField.Focus()),
+                        EnterShowMode),
                     new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                         OnButtonHit, OnButtonRelease),
                 }, false));
