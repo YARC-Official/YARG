@@ -4,7 +4,44 @@ namespace YARG.Venue
 {
     public partial class LightManager
     {
-        private LightState AutoGradient(LightState current, VenueLightLocation location, Gradient gradient)
+		private LightState Default(LightState current, VenueLightLocation location, Gradient gradient)
+        {
+			if (AnimationFrame < 1)
+			{
+				current.Color = null;
+			}
+			else if (AnimationFrame % 2 == 0)
+			{
+				current.Color = location switch
+				{
+					VenueLightLocation.Right or
+					VenueLightLocation.Left or
+					VenueLightLocation.Crowd 	=> gradient.Evaluate(Mathf.Repeat(AnimationFrame+1,2)/2f),
+					_							=> null
+				};
+			}
+			else
+			{
+				current.Color = location switch
+				{
+					VenueLightLocation.Right or
+					VenueLightLocation.Left or
+					VenueLightLocation.Crowd 	=> null,
+					_							=> gradient.Evaluate(Mathf.Repeat(AnimationFrame+1,2)/2f)
+				};
+			}
+			current.Intensity = 1f;
+
+            current.Delta += Time.deltaTime * _gradientLightingSpeed;
+            if (current.Delta > 1f)
+            {
+                current.Delta = 0f;
+            }
+
+            return current;
+        }
+		
+		private LightState AutoGradient(LightState current, VenueLightLocation location, Gradient gradient)
         {
 			if (AnimationFrame < 1)
 			{
@@ -53,7 +90,7 @@ namespace YARG.Venue
 
         private LightState Flare(LightState current, float speed)
         {
-            current.Intensity = Mathf.Lerp(current.Intensity, 1f, Time.deltaTime * speed);
+            current.Intensity = Mathf.Lerp(current.Intensity, 2f, Time.deltaTime * speed);
             current.Color = Color.Lerp(current.Color ?? Color.white, Color.white, Time.deltaTime * speed);
             return current;
         }
@@ -66,7 +103,7 @@ namespace YARG.Venue
 
         private LightState Silhouette(LightState current, VenueLightLocation location)
         {
-            if (location == VenueLightLocation.Crowd)
+            if (location == VenueLightLocation.Crowd || location == VenueLightLocation.Front)
             {
                 current.Intensity = 0f;
             }
