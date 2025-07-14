@@ -204,8 +204,11 @@ namespace YARG.Venue
 
                 switch (Animation)
                 {
+					case LightingType.Default:
+						_lightStates[i] = Default(_lightStates[i], location, _harmoniousGradient);
+						break;
                     case LightingType.Verse:
-                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _coolGradient, _warmGradient);
+                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _harmoniousGradient, _dissonantGradient);
 						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.Chorus:
@@ -213,10 +216,10 @@ namespace YARG.Venue
 						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.BlackoutFast:
-                        _lightStates[i] = BlackOut(_lightStates[i], 15f);
+                        _lightStates[i] = BlackOut(_lightStates[i], 40f);
                         break;
                     case LightingType.BlackoutSlow:
-                        _lightStates[i] = BlackOut(_lightStates[i], 10f);
+                        _lightStates[i] = BlackOut(_lightStates[i], 8f);
                         break;
                     case LightingType.Dischord:
 						_lightStates[i] = AutoGradient(_lightStates[i], location, _dissonantGradient);
@@ -224,11 +227,11 @@ namespace YARG.Venue
 						break;
                     case LightingType.BigRockEnding:
                         _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _dissonantGradient, _harmoniousGradient);
-						_gradientLightingSpeed = _initialGradientSpeed*8f;
+						_gradientLightingSpeed = _initialGradientSpeed*16f;
                         break;
                     case LightingType.Frenzy:
                         _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _dissonantGradient, _harmoniousGradient);
-						_gradientLightingSpeed = _initialGradientSpeed*4f;
+						_gradientLightingSpeed = _initialGradientSpeed*8f;
                         break;
                     case LightingType.CoolAutomatic:
                     case LightingType.CoolManual:
@@ -237,10 +240,10 @@ namespace YARG.Venue
 						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.FlareFast:
-                        _lightStates[i] = Flare(_lightStates[i], 15f);
+                        _lightStates[i] = Flare(_lightStates[i], 40f);
                         break;
                     case LightingType.FlareSlow:
-                        _lightStates[i] = Flare(_lightStates[i], 10f);
+                        _lightStates[i] = Flare(_lightStates[i], 8f);
                         break;
                     case LightingType.Harmony:
                         _lightStates[i] = AutoGradient(_lightStates[i], location, _harmoniousGradient);
@@ -249,9 +252,11 @@ namespace YARG.Venue
                     case LightingType.Silhouettes:
                     case LightingType.SilhouettesSpotlight:
                         _lightStates[i] = Silhouette(_lightStates[i], location);
+						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
 					case LightingType.Searchlights:
 						_lightStates[i] = Searchlights(_lightStates[i], location, _warmGradient);
+						_gradientLightingSpeed = _initialGradientSpeed;
 						break;
                     case LightingType.StrobeFast:
                     case LightingType.StrobeSlow:
