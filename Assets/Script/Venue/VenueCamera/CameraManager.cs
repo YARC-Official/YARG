@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cinemachine;
 using UnityEngine;
 using UnityEngine.Rendering;
 using YARG.Core.Chart;
@@ -83,6 +84,7 @@ namespace YARG.Venue.VenueCamera
         private int   _cameraIndex;
 
         public PostProcessingType CurrentEffect { get; private set; }
+        public bool EffectSet { get; set; }
 
         protected override void OnChartLoaded(SongChart chart)
         {
@@ -146,6 +148,7 @@ namespace YARG.Venue.VenueCamera
                 _postProcessingEvents[_currentEventIndex].Time <= GameManager.VisualTime)
             {
                 CurrentEffect = _postProcessingEvents[_currentEventIndex].Type;
+                EffectSet = false;
                 _currentEventIndex++;
             }
 

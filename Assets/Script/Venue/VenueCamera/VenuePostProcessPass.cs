@@ -24,7 +24,8 @@ namespace YARG.Venue.VenueCamera
         private readonly int _scanlineSize = Shader.PropertyToID("_ScanlineSize");
 
         private readonly int _trailsLength = Shader.PropertyToID("_Length");
-        private readonly int _trailsTexture = Shader.PropertyToID("_PrevFrame");
+
+        private readonly int _posterizeSteps = Shader.PropertyToID("_Steps");
 
         private Shader   _trailsShader;
         private Material _trailsMaterial;
@@ -32,6 +33,8 @@ namespace YARG.Venue.VenueCamera
         private Material _scanlineMaterial;
         private Shader   _mirrorShader;
         private Material _mirrorMaterial;
+        private Shader   _posterizeShader;
+        private Material _posterizeMaterial;
 
         public VenuePostProcessPass()
         {
@@ -59,7 +62,10 @@ namespace YARG.Venue.VenueCamera
             }
             else
             {
-                _trailsMaterial = CoreUtils.CreateEngineMaterial(_trailsShader);
+                if (_trailsMaterial == null)
+                {
+                    _trailsMaterial = CoreUtils.CreateEngineMaterial(_trailsShader);
+                }
             }
 
             _scanlineShader = Shader.Find("Scanlines");
@@ -69,7 +75,10 @@ namespace YARG.Venue.VenueCamera
             }
             else
             {
-                _scanlineMaterial = CoreUtils.CreateEngineMaterial(_scanlineShader);
+                if (_scanlineMaterial == null)
+                {
+                    _scanlineMaterial = CoreUtils.CreateEngineMaterial(_scanlineShader);
+                }
             }
 
             _mirrorShader = Shader.Find("Mirror");
@@ -79,7 +88,23 @@ namespace YARG.Venue.VenueCamera
             }
             else
             {
-                _mirrorMaterial = CoreUtils.CreateEngineMaterial(_mirrorShader);
+                if (_mirrorMaterial == null)
+                {
+                    _mirrorMaterial = CoreUtils.CreateEngineMaterial(_mirrorShader);
+                }
+            }
+
+            _posterizeShader = Shader.Find("Posterize");
+            if (_posterizeShader == null)
+            {
+                Debug.LogError("Posterize shader not found!");
+            }
+            else
+            {
+                if (_posterizeMaterial == null)
+                {
+                    _posterizeMaterial = CoreUtils.CreateEngineMaterial(_posterizeShader);
+                }
             }
         }
 
@@ -101,8 +126,17 @@ namespace YARG.Venue.VenueCamera
 
             _latestDest = _source;
 
+            var posterizeEffect = stack.GetComponent<PosterizeComponent>();
+            var material = _posterizeMaterial;
+
+            if (posterizeEffect.IsActive() && material != null)
+            {
+                material.SetInteger(_posterizeSteps, posterizeEffect.Steps.value);
+                BlitTo(material);
+            }
+
             var trailsEffect = stack.GetComponent<TrailsComponent>();
-            var material = _trailsMaterial;
+            material = _trailsMaterial;
 
             if (trailsEffect.IsActive() && material != null)
             {

@@ -34,9 +34,11 @@ namespace YARG.Venue.VenueCamera
 
         private TextureCurve _invertCurve;
         private TextureCurve _defaultCurve;
+        private TextureCurve _copierCurve;
 
         private TextureCurveParameter _invertCurveParam;
         private TextureCurveParameter _defaultCurveParam;
+        private TextureCurveParameter _copierCurveParam;
 
         private ClampedFloatParameter _defaultGrainIntensity;
         private ClampedFloatParameter _defaultGrainResponse;
@@ -47,7 +49,6 @@ namespace YARG.Venue.VenueCamera
         private Color _blueTint  = new(0.0f, 0.0f, 1.0f, 1.0f);
 
         private Camera         _camera;
-        private ScanlineEffect _scanline;
 
         private void Awake()
         {
@@ -66,12 +67,14 @@ namespace YARG.Venue.VenueCamera
 
             var bounds = new Vector2(0, 1);
             _defaultCurve = new TextureCurve(new AnimationCurve(new Keyframe(0,0), new Keyframe(1,1)), 0.5f, false, in bounds);
-            _invertCurve = new TextureCurve(new AnimationCurve(new Keyframe(1,1), new Keyframe(0,0)), 0.5f, false, in bounds);
+            _invertCurve = new TextureCurve(new AnimationCurve(new Keyframe(0,1), new Keyframe(1,0)), 0.5f, false, in bounds);
+            _copierCurve = new TextureCurve(new AnimationCurve(new Keyframe(0,0), new Keyframe(0.089f,0.078f),
+                new Keyframe(0.227f, 0), new Keyframe(0.356f, 0.993f), new Keyframe(1, 1)), 0.5f, false, in bounds);
+
+
             _defaultCurveParam = new TextureCurveParameter(_defaultCurve);
             _invertCurveParam = new TextureCurveParameter(_invertCurve, true);
-
-            // Attach a scanline effect
-            // _scanline = new ScanlineEffect(_camera);
+            _copierCurveParam = new TextureCurveParameter(_copierCurve, true);
         }
 
         private void Update()
@@ -80,7 +83,12 @@ namespace YARG.Venue.VenueCamera
 
             if (newEffect != _currentEffect)
             {
-                SetCameraPostProcessing(newEffect);
+                if (!_cameraManager.EffectSet)
+                {
+                    SetCameraPostProcessing(newEffect);
+                    _cameraManager.EffectSet = true;
+                }
+
                 _currentEffect = newEffect;
             }
         }
@@ -97,6 +105,8 @@ namespace YARG.Venue.VenueCamera
 
         public void SetCameraPostProcessing(PostProcessingType newEffect)
         {
+            var found = true;
+
             // First reset any existing effects, because they aren't supposed to stack
             ResetCameraEffect();
 
@@ -121,21 +131,35 @@ namespace YARG.Venue.VenueCamera
                     SetInvertedColors(true);
                     break;
                 case PostProcessingType.Mirror:
+                    // TODO: This is supposed to also have a "psychadelic coloring" effect
+                    // "Polarizes everything to green/orange with some blue and purple here and there"
                     SetMirror(true);
                     break;
                 case PostProcessingType.BlackAndWhite:
                     SetBlackAndWhite(true);
                     break;
+                case PostProcessingType.Choppy_BlackAndWhite:
+                    // TODO: This is supposed to be even more contrasty and maybe even reduce the apparent frame rate
+                    // of the camera
+                    SetBlackAndWhite(true);
+                    SetBadCopier(true);
+                    break;
                 case PostProcessingType.Scanlines_BlackAndWhite:
-                    // TODO: Actually implement the scanlines part
                     SetBlackAndWhite(true);
                     SetScanline(true);
+                    break;
+                case PostProcessingType.Polarized_BlackAndWhite:
+                    SetBlackAndWhite(true);
+                    SetPosterize(true);
                     break;
                 case PostProcessingType.SepiaTone:
                     SetSepiaTone(true);
                     break;
                 case PostProcessingType.SilverTone:
                     SetSilverTone(true);
+                    break;
+                case PostProcessingType.Scanlines:
+                    SetScanline(true);
                     break;
                 case PostProcessingType.Scanlines_Blue:
                     SetBlueTint(true);
@@ -152,12 +176,31 @@ namespace YARG.Venue.VenueCamera
                     SetTrail(true, 0.55f);
                     break;
                 case PostProcessingType.Trails_Desaturated:
+                    SetPosterize(true);
                     SetTrail(true, 0.55f);
                     SetDesaturation(true);
                     break;
                 case PostProcessingType.Trails_Long:
                     SetTrail(true, 0.67f);
                     break;
+                case PostProcessingType.Desaturated_Red:
+                    SetDesaturatedRed(true);
+                    break;
+                case PostProcessingType.PhotoNegative_RedAndBlack:
+                    SetPhotoNegativeRedAndBlack(true);
+                    break;
+                default:
+                    found = false;
+                    break;
+            }
+
+            if (!found)
+            {
+                YargLogger.LogFormatDebug("Unsupported post processing effect: {0}", newEffect.ToString());
+            }
+            else
+            {
+                YargLogger.LogFormatDebug("Set post processing effect to: {0}", newEffect.ToString());
             }
         }
 
@@ -192,11 +235,22 @@ namespace YARG.Venue.VenueCamera
                     SetBlackAndWhite(false);
                     SetScanline(false);
                     break;
+                case PostProcessingType.Choppy_BlackAndWhite:
+                    SetBlackAndWhite(false);
+                    SetBadCopier(false);
+                    break;
+                case PostProcessingType.Polarized_BlackAndWhite:
+                    SetBlackAndWhite(false);
+                    SetPosterize(false);
+                    break;
                 case PostProcessingType.SepiaTone:
                     SetSepiaTone(false);
                     break;
                 case PostProcessingType.SilverTone:
                     SetSilverTone(false);
+                    break;
+                case PostProcessingType.Scanlines:
+                    SetScanline(false);
                     break;
                 case PostProcessingType.Scanlines_Blue:
                     SetBlueTint(false);
@@ -210,6 +264,7 @@ namespace YARG.Venue.VenueCamera
                     SetGrainy(false);
                     break;
                 case PostProcessingType.Trails_Desaturated:
+                    SetPosterize(false);
                     SetDesaturation(false);
                     SetTrail(false);
                     break;
@@ -218,7 +273,82 @@ namespace YARG.Venue.VenueCamera
                 case PostProcessingType.Trails_Spacey:
                     SetTrail(false);
                     break;
+                case PostProcessingType.Desaturated_Red:
+                    SetDesaturatedRed(false);
+                    break;
+                case PostProcessingType.PhotoNegative_RedAndBlack:
+                    SetPhotoNegativeRedAndBlack(false);
+                    break;
             }
+        }
+
+        private void SetDesaturatedRed(bool enabled)
+        {
+            if (!_profile.TryGet<ColorCurves>(out var colorCurves))
+            {
+                return;
+            }
+
+            var bounds = new Vector2(0, 1);
+
+            // We need to define this during setup, but it's too ugly to put up top for now
+            var lumVSatCurve =
+                new TextureCurve(new AnimationCurve(new Keyframe(0, 0.525f), new Keyframe(0.639f, 0.085f)), 0.5f, false,
+                    in bounds);
+            // TODO: Properly set the tangents on the keyframes
+            var greenCurve =
+                new TextureCurve(
+                    new AnimationCurve(new Keyframe(0, 0.0f), new Keyframe(0.5f, 0.0f), new Keyframe(1, 1)), 0.5f,
+                    false, in bounds);
+            var blueCurve =
+                new TextureCurve(
+                    new AnimationCurve(new Keyframe(0, 0.0f), new Keyframe(0.437f, 0.0f), new Keyframe(0.659f, 0.174f),
+                        new Keyframe(1, 1)), 0.5f, false, in bounds);
+
+            var lumVSatCurveParam = new TextureCurveParameter(lumVSatCurve, true);
+            var greenCurveParam = new TextureCurveParameter(greenCurve, true);
+            var blueCurveParam = new TextureCurveParameter(blueCurve, true);
+
+            colorCurves.lumVsSat.value = enabled ? lumVSatCurve : _defaultCurve;
+            colorCurves.green.value = enabled ? greenCurve : _defaultCurve;
+            colorCurves.blue.value = enabled ? blueCurve : _defaultCurve;
+            colorCurves.active = enabled;
+        }
+
+        private void SetPhotoNegativeRedAndBlack(bool enabled)
+        {
+            if (!_profile.TryGet<ColorCurves>(out var colorCurves))
+            {
+                return;
+            }
+
+            var bounds = new Vector2(0, 1);
+
+            var flatZeroCurve = new TextureCurve(new AnimationCurve(new Keyframe(0, 0), new Keyframe(1, 0)), 0.5f,
+                false, in bounds);
+            var redCurve =
+                new TextureCurve(
+                    new AnimationCurve(new Keyframe(0, 0), new Keyframe(0.069f, 0.734f), new Keyframe(0.5f, 0.0f),
+                        new Keyframe(1, 1)), 0.5f, false, in bounds);
+            var masterCurve = new TextureCurve(
+                new AnimationCurve(new Keyframe(0, 0), new Keyframe(0.297f, 0), new Keyframe(0.519f, 0.519f), new Keyframe(1, 0)),
+                0.5f, false, in bounds);;
+
+            var flatZeroCurveParam = new TextureCurveParameter(flatZeroCurve, true);
+            var redCurveParam = new TextureCurveParameter(redCurve, true);
+            var masterCurveParam = new TextureCurveParameter(masterCurve, true);
+
+            colorCurves.hueVsHue.value = enabled ? _invertCurve : _defaultCurve;
+            colorCurves.green.value = enabled ? flatZeroCurve : _defaultCurve;
+            colorCurves.blue.value = enabled ? flatZeroCurve : _defaultCurve;
+            colorCurves.red.value = enabled ? redCurve : _defaultCurve;
+            colorCurves.master.value = enabled ? masterCurve : _defaultCurve;
+            colorCurves.hueVsHue.overrideState = enabled;
+            colorCurves.green.overrideState = enabled;
+            colorCurves.blue.overrideState = enabled;
+            colorCurves.red.overrideState = enabled;
+            colorCurves.master.overrideState = enabled;
+            colorCurves.active = enabled;
         }
 
         private void SetInvertedColors(bool enabled)
@@ -228,14 +358,19 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            colorCurves.master = enabled ? _invertCurveParam : _defaultCurveParam;
             colorCurves.active = enabled;
+            colorCurves.master.value = enabled ? _invertCurve : _defaultCurve;
+            colorCurves.master.overrideState = enabled;
         }
 
         private void SetPosterize(bool enabled)
         {
-            // TODO: Implement a shader to do this
-            YargLogger.LogDebug("Posterize PostProcessingType is not yet supported!");
+            if (!_profile.TryGet<PosterizeComponent>(out var posterize))
+            {
+                return;
+            }
+            posterize.Steps.value = enabled ? 4 : 0;
+            posterize.Steps.overrideState = enabled;
         }
 
         private void SetContrast(bool enabled)
@@ -245,6 +380,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
             colorAdjustments.contrast.value = enabled ? 25.0f : 1.0f;
+            colorAdjustments.contrast.overrideState = enabled;
         }
 
         private void SetBrightness(bool enabled)
@@ -293,6 +429,18 @@ namespace YARG.Venue.VenueCamera
             colorAdjustments.postExposure.overrideState = enabled;
         }
 
+        private void SetBadCopier(bool enabled)
+        {
+            if (!_profile.TryGet<ColorCurves>(out var colorCurves))
+            {
+                return;
+            }
+
+            colorCurves.master.value = enabled ? _copierCurve : _defaultCurve;
+            colorCurves.master.overrideState = enabled;
+            colorCurves.active = enabled;
+        }
+
         private void SetSilverTone(bool enabled)
         {
             if(!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
@@ -309,8 +457,6 @@ namespace YARG.Venue.VenueCamera
             {
                 return;
             }
-
-            YargLogger.LogFormatDebug("Sepia Tone: {0}", enabled ? "Enabled" : "Disabled");
 
             mixer.redOutRedIn.value = enabled ? 39.3f : 100.0f;
             mixer.greenOutRedIn.value = enabled ? 34.9f : 0.0f;
@@ -347,6 +493,7 @@ namespace YARG.Venue.VenueCamera
             }
 
             bloom.intensity.value = enabled ? 1.0f : _originalBloom;
+            bloom.intensity.overrideState = enabled;
         }
 
         private void SetGreenTint(bool enabled)
@@ -409,8 +556,10 @@ namespace YARG.Venue.VenueCamera
             }
 
             colorAdjustments.contrast.value = enabled ? 20.0f : 0.0f;
-            grain.intensity = enabled ? _activeGrainIntensity : _defaultGrainIntensity;
-            grain.response = enabled ? _activeGrainResponse : _defaultGrainResponse;
+            grain.intensity.value = enabled ? 1.0f : 0.25f;
+            grain.intensity.overrideState = enabled;
+            grain.response.value = enabled ? 0.0f : 0.8f;
+            grain.response.overrideState = enabled;
         }
     }
 }
