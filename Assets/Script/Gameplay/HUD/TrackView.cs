@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Engine;
-using YARG.Core.Game;
 using YARG.Gameplay.Player;
 using YARG.Player;
 
@@ -45,17 +44,8 @@ namespace YARG.Gameplay.HUD
             var rectRect = rect.rect;
 
             // Adjust the screen's viewport position to the rect's viewport position
-            // TODO: I have no idea where this "- 0.5f" comes from. Are these calculations correct?
-            var local = new Vector2(
-                (viewportPos.x - 0.5f) * rectRect.width,
-                viewportPos.y * rectRect.height);
-            var screenPos = rect.TransformPoint(local);
-
-            // Now, move the MoveContainer based on this
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                (RectTransform) _topElementContainer.parent,
-                screenPos, null, out var localPoint);
-            _topElementContainer.localPosition = localPoint;
+            // -0.5f as our position is relative to center, not the corner
+            _topElementContainer.localPosition = _topElementContainer.localPosition.WithY(rect.rect.height * (viewportPos.y - 0.5f));
         }
 
         public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
