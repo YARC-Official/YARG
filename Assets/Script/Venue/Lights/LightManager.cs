@@ -224,6 +224,9 @@ namespace YARG.Venue
                     case LightingType.BlackoutSpotlight:
                         _lightStates[i] = BlackOutSpot(_lightStates[i], 30f, location);
                         break;
+                    case LightingType.BlackoutSpotlight:
+                        _lightStates[i] = BlackOutSpot(_lightStates[i], 40f, location);
+                        break;
                     case LightingType.Dischord:
 						_lightStates[i] = AutoGradient(_lightStates[i], location, _dissonantGradient);
 						_gradientLightingSpeed = _initialGradientSpeed;
