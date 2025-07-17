@@ -1,315 +1,185 @@
-using System.Collections.Generic;
-using UnityEngine;
-using YARG.Core.Chart;
-using YARG.Core.Extensions;
-using YARG.Gameplay;
-using YARG.Playback;
-using Random = UnityEngine.Random;
+﻿using UnityEngine;
 
 namespace YARG.Venue
 {
-    public partial class LightManager : GameplayBehaviour
+    public partial class LightManager
     {
-        public struct LightState
+		private LightState Default(LightState current, VenueLightLocation location, Gradient gradient)
         {
-            /// <summary>
-            /// The intensity of the light between <c>0</c> and <c>1</c>. <c>1</c> is the default value.
-            /// </summary>
-            public float Intensity;
+			if (AnimationFrame < 1)
+			{
+				current.Color = null;
+			}
+			else if (AnimationFrame % 2 == 0)
+			{
+				current.Color = location switch
+				{
+					VenueLightLocation.Right or
+					VenueLightLocation.Left or
+					VenueLightLocation.Crowd 	=> gradient.Evaluate(Mathf.Repeat(AnimationFrame+1,2)/2f),
+					_							=> null
+				};
+			}
+			else
+			{
+				current.Color = location switch
+				{
+					VenueLightLocation.Right or
+					VenueLightLocation.Left or
+					VenueLightLocation.Crowd 	=> null,
+					_							=> gradient.Evaluate(Mathf.Repeat(AnimationFrame+1,2)/2f)
+				};
+			}
+			current.Intensity = 1f;
 
-            /// <summary>
-            /// The color of the light. <see cref="Intensity"/> should be taken into consideration.
-            /// <c>null</c> indicates default.
-            /// </summary>
-            public Color? Color;
+            current.Delta += Time.deltaTime * _gradientLightingSpeed;
+            if (current.Delta > 1f)
+            {
+                current.Delta = 0f;
+            }
 
-            public float Delta;
+            return current;
         }
-
-        public LightingType Animation { get; private set; }
-        public int AnimationFrame { get; private set; }
-
-        private LightState[] _lightStates;
-        public LightState GenericLightState => _lightStates[(int) VenueLightLocation.Generic];
-		public LightState LeftLightState => _lightStates[(int) VenueLightLocation.Left];
-		public LightState RightLightState => _lightStates[(int) VenueLightLocation.Right];
-		public LightState FrontLightState => _lightStates[(int) VenueLightLocation.Front];
-		public LightState BackLightState => _lightStates[(int) VenueLightLocation.Back];
-		public LightState CenterLightState => _lightStates[(int) VenueLightLocation.Center];
-		public LightState CrowdLightState => _lightStates[(int) VenueLightLocation.Crowd];
-
-        [SerializeField]
-        private float _gradientLightingSpeed = 0.125f;
 		
-		private float _initialGradientSpeed;
+		private LightState AutoGradient(LightState current, VenueLightLocation location, Gradient gradient)
+        {
+			if (AnimationFrame < 1)
+			{
+				current.Color = gradient.Evaluate(current.Delta);
+			}
+			else
+			{
+				current.Color = location switch
+				{
+					VenueLightLocation.Right or
+					VenueLightLocation.Left or
+					VenueLightLocation.Crowd 	=> gradient.Evaluate(Mathf.Repeat(AnimationFrame+1,2)/2f),
+					_							=> gradient.Evaluate(Mathf.Repeat(AnimationFrame,2)/2f)
+				};
+			}
+			current.Intensity = 1f;
+
+            current.Delta += Time.deltaTime * _gradientLightingSpeed;
+            if (current.Delta > 1f)
+            {
+                current.Delta = 0f;
+            }
+
+            return current;
+        }
+
+        private LightState AutoGradientSplit(LightState current, VenueLightLocation location,
+            Gradient innerGradient, Gradient outerGradient)
+        {
+            var gradient = location switch
+            {
+                VenueLightLocation.Right or
+                VenueLightLocation.Left or
+                VenueLightLocation.Crowd => outerGradient,
+                _                        => innerGradient,
+            };
+
+            return AutoGradient(current, location, gradient);
+        }
+
+        private LightState BlackOut(LightState current, float speed)
+        {
+            current.Intensity = Mathf.Lerp(current.Intensity, 0f, Time.deltaTime * speed);
+            return current;
+        }
 		
-        [SerializeField]
-        private float _gradientRandomness = 0.5f;
-
-        [Space]
-        [SerializeField]
-        private Color[] _warmColors;
-        [SerializeField]
-        private Color[] _coolColors;
-        [SerializeField]
-        private Color[] _dissonantColors;
-        [SerializeField]
-        private Color[] _harmoniousColors;
-        [SerializeField]
-        private Color _silhouetteColor;
-
-        private List<LightingEvent> _lightingEvents;
-
-        private Gradient _warmGradient;
-        private Gradient _coolGradient;
-        private Gradient _dissonantGradient;
-        private Gradient _harmoniousGradient;
-
-        private int _lightingEventIndex;
-        private int _beatIndex;
-
-        protected override void OnChartLoaded(SongChart chart)
+		private LightState BlackOutSpot(LightState current, float speed, VenueLightLocation location)
         {
-            _lightStates = new LightState[EnumExtensions<VenueLightLocation>.Count];
+			if (location == VenueLightLocation.Front)
+			{
+				current.Color = _silhouetteColor;
+				current.Intensity = 1f;
+			}
+			else if (location == VenueLightLocation.Center)
+			{
+				current.Color = Color.white;
+				current.Intensity = 0.5f;
+			}
+			else
+			{
+				current.Intensity = Mathf.Lerp(current.Intensity, 0f, Time.deltaTime * speed);
+			}
+			return current;
+        }
 
-            _lightingEvents = chart.VenueTrack.Lighting;
+        private LightState Flare(LightState current, float speed)
+        {
+            current.Intensity = Mathf.Lerp(current.Intensity, 1.5f, Time.deltaTime * speed);
+            current.Color = Color.Lerp(current.Color ?? Color.white, Color.white, Time.deltaTime * speed);
+            return current;
+        }
 
-            // If the color arrays are empty, add basic ones for safety
-
-            if (_warmColors is not { Length: > 0 })
-            {
-                _warmColors = new[]
-                {
-                    Color.red,
-                    Color.yellow
-                };
-            }
-
-            if (_coolColors is not { Length: > 0 })
-            {
-                _coolColors = new[]
-                {
-                    Color.blue,
-                    Color.green
-                };
-            }
-
-            if (_dissonantColors is not { Length: > 0 })
-            {
-                _dissonantColors = new[]
-                {
-                    Color.red,
-                    Color.green,
-                    Color.blue,
-                };
-            }
-
-            if (_harmoniousColors is not { Length: > 0 })
-            {
-                _harmoniousColors = new[]
-                {
-                    Color.yellow,
-                    Color.red,
-                    Color.blue,
-                };
-            }			
+        private LightState Strobe(LightState current)
+        {
+			current.Color = Color.white;
+            current.Intensity = AnimationFrame % 2 == 0 ? 1f : 0f;
+            return current;
+        }
 		
-			// Store gradient speed for temporary Frenzy/BRE speedup
-			_initialGradientSpeed = _gradientLightingSpeed;
-
-            // Setup gradients
-            _warmGradient = CreateGradient(_warmColors);
-            _coolGradient = CreateGradient(_coolColors);
-            _dissonantGradient = CreateGradient(_dissonantColors);
-            _harmoniousGradient = CreateGradient(_harmoniousColors);
-
-            // 1/8th of a beat is a 32nd note
-            GameManager.BeatEventHandler.Subscribe(UpdateLightAnimation, 1f / 8f, mode: TempoMapEventMode.Quarter);
-        }
-
-        protected override void GameplayDestroy()
+        private LightState Stomp(LightState current, Gradient gradient)
         {
-            GameManager.BeatEventHandler.Unsubscribe(UpdateLightAnimation);
+			current.Color = ((gradient.Evaluate(current.Delta) + Color.white) * 0.5f);
+            current.Intensity = AnimationFrame % 2 == 0 ? 1f : 0f;
+            return current;
         }
-
-        private void Update()
+		
+        private LightState Silhouette(LightState current, VenueLightLocation location)
         {
-            // Look for new lighting events
-            while (_lightingEventIndex < _lightingEvents.Count &&
-                _lightingEvents[_lightingEventIndex].Time <= GameManager.VisualTime)
+            if (location == VenueLightLocation.Back)
             {
-                var current = _lightingEvents[_lightingEventIndex];
+                current.Intensity = 1f;
+                current.Color = _silhouetteColor;
+            }
+            else
+            {
+                current.Intensity = 0f;
+            }
 
-                switch (current.Type)
+            return current;
+        }
+
+        private LightState SilhouetteSpot(LightState current, VenueLightLocation location)
+        {
+            if (location == VenueLightLocation.Crowd || location == VenueLightLocation.Front || location == VenueLightLocation.Center)
+            {
+                current.Intensity = 0f;
+            }
+            else
+            {
+                current.Intensity = 1f;
+                current.Color = location switch
                 {
-                    case LightingType.KeyframeNext:
-                        AnimationFrame++;
-                        break;
-                    case LightingType.KeyframePrevious:
-                        AnimationFrame--;
-                        break;
-                    case LightingType.KeyframeFirst:
-                        AnimationFrame = 0;
-                        break;
-                    case LightingType.WarmAutomatic:
-                    case LightingType.WarmManual:
-                    case LightingType.CoolAutomatic:
-                    case LightingType.CoolManual:
-                    case LightingType.Verse:
-                    case LightingType.Chorus:
-					case LightingType.Searchlights:
-                        // Add a slight randomness to colored cues
-                        for (int i = 0; i < _lightStates.Length; i++)
-                        {
-                            _lightStates[i].Delta = Random.Range(0f, _gradientRandomness);
-                        }
-
-                        goto default;
-                    default:
-                        Animation = current.Type;
-                        AnimationFrame = 0;
-                        break;
-                }
-
-                _lightingEventIndex++;
+                    VenueLightLocation.Back => Color.white,
+                    _                         => _silhouetteColor
+                };
             }
 
-            UpdateLightStates();
+            return current;
         }
 
-        private void UpdateLightAnimation()
+        private LightState Searchlights(LightState current, VenueLightLocation location,
+            Gradient gradient)
         {
-            _beatIndex++;
-
-            switch (Animation)
+            current.Intensity = 1f;
+            current.Color = location switch
             {
-                case LightingType.StrobeFast:
-                    AnimationFrame++;
-                    break;
-                case LightingType.StrobeSlow:
-                    if (_beatIndex % 2 == 1)
-                    {
-                        AnimationFrame++;
-                    }
-
-                    break;
-            }
-        }
-
-        private void UpdateLightStates()
-        {
-            for (int i = 0; i < _lightStates.Length; i++)
+                VenueLightLocation.Right or
+                VenueLightLocation.Left  => Color.white,
+                _                        => gradient.Evaluate(current.Delta),
+            };
+			
+			current.Delta += Time.deltaTime * _gradientLightingSpeed;
+            if (current.Delta > 1f)
             {
-                var location = (VenueLightLocation) i;
-
-                switch (Animation)
-                {
-					case LightingType.Default:
-						_lightStates[i] = Default(_lightStates[i], location, _harmoniousGradient);
-						break;
-                    case LightingType.Verse:
-                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _harmoniousGradient, _dissonantGradient);
-						_gradientLightingSpeed = _initialGradientSpeed;
-                        break;
-                    case LightingType.Chorus:
-                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _warmGradient, _coolGradient);
-						_gradientLightingSpeed = _initialGradientSpeed;
-                        break;
-                    case LightingType.BlackoutFast:
-                        _lightStates[i] = BlackOut(_lightStates[i], 40f);
-                        break;
-                    case LightingType.BlackoutSlow:
-                        _lightStates[i] = BlackOut(_lightStates[i], 8f);
-                        break;
-                    case LightingType.BlackoutSpotlight:
-                        _lightStates[i] = BlackOutSpot(_lightStates[i], 40f, location);
-                        break;
-                    case LightingType.Dischord:
-						_lightStates[i] = AutoGradient(_lightStates[i], location, _dissonantGradient);
-						_gradientLightingSpeed = _initialGradientSpeed;
-						break;
-                    case LightingType.BigRockEnding:
-                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _dissonantGradient, _harmoniousGradient);
-						_gradientLightingSpeed = _initialGradientSpeed*16f;
-                        break;
-                    case LightingType.Frenzy:
-                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _dissonantGradient, _harmoniousGradient);
-						_gradientLightingSpeed = _initialGradientSpeed*8f;
-                        break;
-                    case LightingType.CoolAutomatic:
-                    case LightingType.CoolManual:
-					case LightingType.Sweep:
-                        _lightStates[i] = AutoGradient(_lightStates[i], location, _coolGradient);
-						_gradientLightingSpeed = _initialGradientSpeed;
-                        break;
-                    case LightingType.FlareFast:
-                        _lightStates[i] = Flare(_lightStates[i], 40f);
-                        break;
-                    case LightingType.FlareSlow:
-                        _lightStates[i] = Flare(_lightStates[i], 8f);
-                        break;
-                    case LightingType.Harmony:
-                        _lightStates[i] = AutoGradient(_lightStates[i], location, _harmoniousGradient);
-						_gradientLightingSpeed = _initialGradientSpeed;
-                        break;
-                    case LightingType.Silhouettes:
-                        _lightStates[i] = Silhouette(_lightStates[i], location);
-                        break;
-                    case LightingType.SilhouettesSpotlight:
-                        _lightStates[i] = SilhouetteSpot(_lightStates[i], location);
-                        break;
-					case LightingType.Searchlights:
-						_lightStates[i] = Searchlights(_lightStates[i], location, _warmGradient);
-						_gradientLightingSpeed = _initialGradientSpeed;
-						break;
-                    case LightingType.StrobeFast:
-                    case LightingType.StrobeSlow:
-                        _lightStates[i] = Strobe(_lightStates[i]);
-                        break;
-                    case LightingType.Stomp:
-						_lightStates[i] = Stomp(_lightStates[i], _warmGradient);
-						break;
-                    case LightingType.WarmAutomatic:
-                    case LightingType.WarmManual:
-                        _lightStates[i] = AutoGradient(_lightStates[i], location, _warmGradient);
-						_gradientLightingSpeed = _initialGradientSpeed;
-                        break;
-                    default:
-                        _lightStates[i].Intensity = 1f;
-                        _lightStates[i].Color = null;
-                        _lightStates[i].Delta = 0f;
-                        break; 
-                }
-            }
-        }
-
-        public LightState GetLightStateFor(VenueLightLocation location)
-        {
-            return _lightStates[(int) location];
-        }
-
-        private static Gradient CreateGradient(Color[] colors)
-        {
-            var gradient = new Gradient();
-
-            var keys = new GradientColorKey[colors.Length + 1];
-
-            // Make the gradient loop nice without snapping
-            keys[0] = new GradientColorKey(colors[^1], 0f);
-
-            // Add the rest of the colors
-            for (int i = 1; i < keys.Length; i++)
-            {
-                keys[i] = new GradientColorKey(colors[i - 1], 1f / colors.Length * i);
+                current.Delta = 0f;
             }
 
-            // No alpha for gradient
-            gradient.SetKeys(keys, new[]
-            {
-                new GradientAlphaKey(1f, 0f)
-            });
-
-            return gradient;
+            return current;
         }
     }
 }
