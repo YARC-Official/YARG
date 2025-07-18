@@ -30,7 +30,7 @@ namespace YARG.Gameplay.Visuals
         private Matrix4x4[] _camViewMatrices = new Matrix4x4[MAX_MATRICES];
         private Matrix4x4[] _camInvViewMatrices = new Matrix4x4[MAX_MATRICES];
         private Matrix4x4[] _camProjMatrices = new Matrix4x4[MAX_MATRICES];
-        private float _scale = 1.0f;
+        public float Scale { get; private set; } = 1.0f ;
 
         public static readonly int YargHighwaysNumberID = Shader.PropertyToID("_YargHighwaysN");
         public static readonly int YargHighwayCamViewMatricesID = Shader.PropertyToID("_YargCamViewMatrices");
@@ -101,15 +101,19 @@ namespace YARG.Gameplay.Visuals
             _renderCamera.orthographicSize = Math.Max(25, (maxWorld - minWorld) / 2);
         }
 
+        static float CalculateScale(int count)
+        {
+            // This equation calculates a good scale for all of the tracks.
+            // It was made with experimentation; there's probably a "real" formula for this.
+            return 1f - Mathf.Max(0.7f * Mathf.Log10(count), 0f);
+        }
+
         // This is only directly used for fake track player really
         // Rest should go through AddPlayer
         public void AddPlayerParams(Vector3 position, Camera TrackCamera, float CurveFactor, float ZeroFadePosition, float FadeSize)
         {
             var index = _cameras.Count;
-            // This equation calculates a good scale for all of the tracks.
-            // It was made with experimentation; there's probably a "real" formula for this.
-            _scale = Mathf.Max(0.7f * Mathf.Log10(index), 0f);
-            _scale = 1f - _scale;
+            Scale = CalculateScale(index);
 
             _cameras.Add(TrackCamera);
             _highwayPositions.Add(position);
@@ -220,7 +224,7 @@ namespace YARG.Gameplay.Visuals
                 _camViewMatrices[i] = camera.worldToCameraMatrix;
                 _camInvViewMatrices[i] = camera.cameraToWorldMatrix;
                 var projMatrix = GetModifiedProjectionMatrix(camera.projectionMatrix,
-                                                             i, _cameras.Count, _scale);
+                                                             i, _cameras.Count, Scale);
                 _camProjMatrices[i] = GL.GetGPUProjectionMatrix(projMatrix, SystemInfo.graphicsUVStartsAtTop /* if we're not rendering to render texture this has to be changed to always false */);
                 Shader.SetGlobalMatrixArray(YargHighwayCamProjMatricesID, _camProjMatrices);
             }

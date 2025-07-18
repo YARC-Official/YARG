@@ -427,6 +427,7 @@ namespace YARG.Gameplay
 
                 // Make sure to set up all of the HUD positions
                 _trackViewManager.SetAllHUDPositions();
+                _trackViewManager.SetAllHUDScale();
             }
             catch (Exception ex)
             {

@@ -35,7 +35,7 @@ namespace YARG.Gameplay.HUD
             _trackPlayer = trackPlayer;
         }
 
-        public void UpdateHUDPosition()
+        public void UpdateHUDPosition(float scale)
         {
             var rect = GetComponent<RectTransform>();
             var viewportPos = _trackPlayer.HUDViewportPosition;
