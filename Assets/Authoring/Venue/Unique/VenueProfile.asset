@@ -16,6 +16,22 @@ MonoBehaviour:
   Steps:
     m_OverrideState: 0
     m_Value: 0
+--- !u!114 &-8639306260386040192
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a5a76be172c43bd98aa6b69c6dabbeb, type: 3}
+  m_Name: SlowFPSComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  Divisor:
+    m_OverrideState: 0
+    m_Value: 1
 --- !u!114 &-8201876109855894492
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -36,10 +52,10 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0.25
   response:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.8
   texture:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: {fileID: 0}
 --- !u!114 &-8053512828986670601
 MonoBehaviour:
@@ -357,6 +373,26 @@ MonoBehaviour:
   mode:
     m_OverrideState: 1
     m_Value: 2
+--- !u!114 &-92697382740459818
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e021b4c809a781e468c2988c016ebbea, type: 3}
+  m_Name: ColorLookup
+  m_EditorClassIdentifier: 
+  active: 1
+  texture:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+    dimension: 1
+  contribution:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -383,6 +419,8 @@ MonoBehaviour:
   - {fileID: -6896316964874578581}
   - {fileID: -7172459413072436801}
   - {fileID: -9023157280191997172}
+  - {fileID: -8639306260386040192}
+  - {fileID: -92697382740459818}
 --- !u!114 &219214101893045267
 MonoBehaviour:
   m_ObjectHideFlags: 3

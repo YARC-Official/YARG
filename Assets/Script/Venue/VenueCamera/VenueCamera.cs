@@ -1,12 +1,10 @@
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Serialization;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
-using YARG.Venue.VenueCamera;
 
 namespace YARG.Venue.VenueCamera
 {
@@ -15,8 +13,9 @@ namespace YARG.Venue.VenueCamera
     {
         [SerializeField]
         private CameraManager _cameraManager;
+        [FormerlySerializedAs("_volume")]
         [SerializeField]
-        private VolumeProfile _volume;
+        public VolumeProfile Volume;
         [SerializeField]
         public CameraManager.CameraLocation CameraLocation;
 
@@ -45,15 +44,15 @@ namespace YARG.Venue.VenueCamera
         private ClampedFloatParameter _activeGrainIntensity = new(1.0f, 1.0f, 0.0f);
         private ClampedFloatParameter _activeGrainResponse = new(0.0f, 1.0f, 0.0f);
 
-        private Color _greenTint = new(0.0f, 1.0f, 0.0f, 1.0f);
-        private Color _blueTint  = new(0.0f, 0.0f, 1.0f, 1.0f);
+        private Color _greenTint = new(0.0f, 1.0f, 0.65f, 1.0f);
+        private Color _blueTint  = new(0.4f, 1.0f, 1.0f, 1.0f);
 
         private Camera         _camera;
 
         private void Awake()
         {
             _camera = GetComponent<Camera>();
-            _profile = _volume;
+            _profile = Volume;
             if (_profile.TryGet<Bloom>(out var bloom))
             {
                 _originalBloom = bloom.intensity.value;
@@ -66,8 +65,8 @@ namespace YARG.Venue.VenueCamera
             }
 
             var bounds = new Vector2(0, 1);
-            _defaultCurve = new TextureCurve(new AnimationCurve(new Keyframe(0,0), new Keyframe(1,1)), 0.5f, false, in bounds);
-            _invertCurve = new TextureCurve(new AnimationCurve(new Keyframe(0,1), new Keyframe(1,0)), 0.5f, false, in bounds);
+            _defaultCurve = new TextureCurve(new AnimationCurve(new Keyframe(0f,0f,1f,1f), new Keyframe(1f,1f,1f,1f)), 0.5f, false, in bounds);
+            _invertCurve = new TextureCurve(new AnimationCurve(new Keyframe(0,0.550f,-1f,-6f), new Keyframe(0.25f,0f,0f,0f)), 0.5f, false, in bounds);
             _copierCurve = new TextureCurve(new AnimationCurve(new Keyframe(0,0), new Keyframe(0.089f,0.078f),
                 new Keyframe(0.227f, 0), new Keyframe(0.356f, 0.993f), new Keyframe(1, 1)), 0.5f, false, in bounds);
 
@@ -116,6 +115,7 @@ namespace YARG.Venue.VenueCamera
                 case PostProcessingType.Default:
                     break;
                 case PostProcessingType.Bloom:
+                    SetLowFrameRate(true);
                     SetBloom(true);
                     break;
                 case PostProcessingType.Bright: // I don't actually have any idea what this one is supposed to do
@@ -139,8 +139,7 @@ namespace YARG.Venue.VenueCamera
                     SetBlackAndWhite(true);
                     break;
                 case PostProcessingType.Choppy_BlackAndWhite:
-                    // TODO: This is supposed to be even more contrasty and maybe even reduce the apparent frame rate
-                    // of the camera
+                    SetLowFrameRate(true);
                     SetBlackAndWhite(true);
                     SetBadCopier(true);
                     break;
@@ -211,6 +210,7 @@ namespace YARG.Venue.VenueCamera
                 case PostProcessingType.Default:
                     break;
                 case PostProcessingType.Bloom:
+                    SetLowFrameRate(false);
                     SetBloom(false);
                     break;
                 case PostProcessingType.Bright: // I don't actually have any idea what this one is supposed to do
@@ -236,6 +236,7 @@ namespace YARG.Venue.VenueCamera
                     SetScanline(false);
                     break;
                 case PostProcessingType.Choppy_BlackAndWhite:
+                    SetLowFrameRate(false);
                     SetBlackAndWhite(false);
                     SetBadCopier(false);
                     break;
@@ -282,6 +283,18 @@ namespace YARG.Venue.VenueCamera
             }
         }
 
+        public void SetLowFrameRate(bool enabled, int divisor = 5)
+        {
+            if (!_profile.TryGet<SlowFPSComponent>(out var slowFPS))
+            {
+                return;
+            }
+
+            slowFPS.SkipFrames.value = enabled ? divisor : 1;
+            slowFPS.SkipFrames.overrideState = enabled;
+            slowFPS.active = enabled;
+        }
+
         private void SetDesaturatedRed(bool enabled)
         {
             if (!_profile.TryGet<ColorCurves>(out var colorCurves))
@@ -312,6 +325,9 @@ namespace YARG.Venue.VenueCamera
             colorCurves.lumVsSat.value = enabled ? lumVSatCurve : _defaultCurve;
             colorCurves.green.value = enabled ? greenCurve : _defaultCurve;
             colorCurves.blue.value = enabled ? blueCurve : _defaultCurve;
+            colorCurves.lumVsSat.overrideState = enabled;
+            colorCurves.green.overrideState = enabled;
+            colorCurves.blue.overrideState = enabled;
             colorCurves.active = enabled;
         }
 
@@ -401,6 +417,7 @@ namespace YARG.Venue.VenueCamera
             }
 
             mirror.enabled.value = enabled;
+            mirror.enabled.overrideState = enabled;
         }
 
         private void SetDesaturation(bool enabled)

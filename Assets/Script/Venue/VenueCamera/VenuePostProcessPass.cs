@@ -6,7 +6,6 @@ using UnityEngine.Rendering.Universal;
 
 namespace YARG.Venue.VenueCamera
 {
-    // TODO: Make this more generic so we can do more custom effects, not just scanline
 
     [System.Serializable]
     public class VenuePostProcessPass : ScriptableRenderPass
@@ -16,6 +15,8 @@ namespace YARG.Venue.VenueCamera
         private RenderTargetIdentifier _destinationB;
         private RenderTargetIdentifier _latestDest;
         private RenderTargetIdentifier _finalDest;
+        private RenderTargetIdentifier _lowFpsSrc;
+        private RenderTargetIdentifier _lowFpsDest;
 
         private readonly int _temporaryRtIdA = Shader.PropertyToID("_TempRT");
         private readonly int _temporaryRtIdB = Shader.PropertyToID("_TempRTB");
@@ -36,14 +37,17 @@ namespace YARG.Venue.VenueCamera
         private Shader   _posterizeShader;
         private Material _posterizeMaterial;
 
-        public VenuePostProcessPass()
+        private RenderTexture _lowFpsRenderTexture;
+        private RenderTexture _stashTex;
+
+        public VenuePostProcessPass(ref RenderTexture stashTex)
         {
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+            _stashTex = stashTex;
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-
             RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
             descriptor.depthBufferBits = 0;
 
@@ -111,20 +115,32 @@ namespace YARG.Venue.VenueCamera
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get("CustomPostProcessPass");
+            bool saveFrame = false;
             cmd.Clear();
 
             var stack = VolumeManager.instance.stack;
 
-            void BlitTo(Material mat, int pass = 0)
-            {
-                var first = _latestDest;
-                var last = first == _destinationA ? _destinationB : _destinationA;
-                Blit(cmd, first, last, mat, pass);
-
-                _latestDest = last;
-            }
-
             _latestDest = _source;
+
+            var fpsEffect = stack.GetComponent<SlowFPSComponent>();
+
+            if (fpsEffect.IsActive())
+            {
+                if (fpsEffect.LastFrame + fpsEffect.SkipFrames.value < Time.frameCount)
+                {
+                    // We want to display this frame, so just set a flag so we know to blit to
+                    // the intermediate texture once we're done
+                    fpsEffect.LastFrame = Time.frameCount;
+                    saveFrame = true;
+                }
+                else
+                {
+                    // We don't want to display this frame, so blit intermediate to _destinationA and carry on
+                    cmd.Blit(_stashTex, _destinationA);
+                    // Blitter.BlitTexture(cmd, rt, _destinationA);
+                    _latestDest = _destinationA;
+                }
+            }
 
             var posterizeEffect = stack.GetComponent<PosterizeComponent>();
             var material = _posterizeMaterial;
@@ -162,16 +178,45 @@ namespace YARG.Venue.VenueCamera
                 BlitTo(material);
             }
 
+            if (saveFrame)
+            {
+                // We want to save this frame, so blit to the intermediate texture
+                cmd.Blit(_latestDest, _stashTex);
+            }
+
             cmd.Blit(_latestDest, _source);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+            return;
+
+            void BlitTo(Material mat, int pass = 0)
+            {
+                var first = _latestDest;
+                var last = first == _destinationA ? _destinationB : _destinationA;
+                Blit(cmd, first, last, mat, pass);
+
+                _latestDest = last;
+            }
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(_temporaryRtIdA);
             cmd.ReleaseTemporaryRT(_temporaryRtIdB);
+
+            if (_lowFpsRenderTexture != null)
+            {
+                _lowFpsRenderTexture.Release();
+                _lowFpsRenderTexture = null;
+            }
+
+            // TODO: Determine if this is actually necessary to avoid leaking memory
+            // Sure would be nice to be able to destroy them when the venue gets unloaded instead
+            CoreUtils.Destroy(_trailsMaterial);
+            CoreUtils.Destroy(_scanlineMaterial);
+            CoreUtils.Destroy(_mirrorMaterial);
+            CoreUtils.Destroy(_posterizeMaterial);
         }
     }
 }

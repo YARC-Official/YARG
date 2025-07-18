@@ -1,13 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Cinemachine;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Gameplay;
-using YARG.Playback;
 using Random = UnityEngine.Random;
 
 namespace YARG.Venue.VenueCamera
@@ -147,7 +145,9 @@ namespace YARG.Venue.VenueCamera
             if (_currentEventIndex < _postProcessingEvents.Count &&
                 _postProcessingEvents[_currentEventIndex].Time <= GameManager.VisualTime)
             {
-                CurrentEffect = _postProcessingEvents[_currentEventIndex].Type;
+                var effect = _postProcessingEvents[_currentEventIndex].Type;
+
+                CurrentEffect = effect;
                 EffectSet = false;
                 _currentEventIndex++;
             }
@@ -161,15 +161,7 @@ namespace YARG.Venue.VenueCamera
             if (_currentCutIndex < _cameraCuts.Count && _cameraCuts[_currentCutIndex].Time <= GameManager.VisualTime)
             {
                 // Check for more events on the same tick (there is supposed to be a priority system, but we'll choose randomly for now)
-                _currentCamera.enabled = false;
-                // _currentCamera = _cameraLocations[_cameraLocationLookup[_cameraCuts[_currentCutIndex].Subject]];
-
-                // _currentCamera = _cameraLocations[GetCameraLocation(_cameraCuts[_currentCutIndex])];
-                _currentCamera = MapSubjectToValidCamera(_cameraCuts[_currentCutIndex]);
-                _cameraIndex = _cameras.IndexOf(_currentCamera);
-                // _cameraTimer = 11.0f;
-                _cameraTimer = Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength);
-                _currentCamera.enabled = true;
+                SwitchCamera(MapSubjectToValidCamera(_cameraCuts[_currentCutIndex]));
                 _currentCutIndex++;
             }
 
@@ -178,31 +170,31 @@ namespace YARG.Venue.VenueCamera
             if (_cameraTimer <= 0f)
             {
                 YargLogger.LogDebug("Changing camera due to timer expiry");
-                // _currentProfile = _currentCamera.GetComponent<VenueCamera>().GetProfile();
-                _currentCamera.enabled = false;
+                SwitchCamera(GetRandomCamera(), true);
+            }
+        }
+
+        private void SwitchCamera(Camera newCamera, bool random = false)
+        {
+            _currentCamera.enabled = false;
+            _currentCamera = newCamera;
+            _currentCamera.enabled = true;
+            _cameraIndex = _cameras.IndexOf(newCamera);
+
+            if (random)
+            {
                 _cameraTimer = GetRandomCameraTimer();
                 _cameraIndex++;
                 if (_cameraIndex >= _cameras.Count)
                 {
                     _cameraIndex = 0;
                 }
-
-                // _currentCamera = _cameras[_cameraIndex];
-                _currentCamera = GetRandomCamera();
-                _currentCamera.enabled = true;
-                // _currentCamera.GetComponent<VenueCamera>().SetCameraPostProcessing(CurrentEffect);
+            }
+            else
+            {
+                _cameraTimer = _cameraTimer = Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength);
             }
         }
-
-        // protected override void GameplayDestroy()
-        // {
-        //     // GameManager.BeatEventHandler.Unsubscribe(UpdateCameraEffect);
-        // }
-        //
-        // private void UpdateCameraEffect()
-        // {
-        //     throw new System.NotImplementedException();
-        // }
 
         private float GetRandomCameraTimer()
         {
@@ -294,6 +286,13 @@ namespace YARG.Venue.VenueCamera
             }
 
             return locations.First();
+        }
+
+        protected override void GameplayDestroy()
+        {
+            // Enable the camera in case it happens to be disabled
+            _currentCamera.enabled = true;
+            base.GameplayDestroy();
         }
 
         private static CameraLocation PickOne(CameraLocation[] locations)
