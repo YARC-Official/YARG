@@ -184,11 +184,9 @@ namespace YARG.Venue.VenueCamera
             if (random)
             {
                 _cameraTimer = GetRandomCameraTimer();
-                _cameraIndex++;
-                if (_cameraIndex >= _cameras.Count)
-                {
-                    _cameraIndex = 0;
-                }
+                _currentCamera = GetRandomCamera();
+                _cameraIndex = _cameras.IndexOf(_currentCamera);
+                _currentCamera.enabled = true;
             }
             else
             {
