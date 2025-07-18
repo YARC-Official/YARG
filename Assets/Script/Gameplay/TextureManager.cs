@@ -16,18 +16,18 @@ namespace YARG.Gameplay
 
         // Smoothing factor (adjust to taste)
         [Range(0.0f, 0.95f)]
-        public float fftSmoothingFactor = 0.8f;
+        public float FFTSmoothingFactor = 0.8f;
         [Range(0.0f, 0.95f)]
-        public float waveSmoothingFactor = 0.5f;
+        public float WaveSmoothingFactor = 0.5f;
 
-        private Texture2D _sourceIcon;
+        private Texture2D _sourceIcon = null;
         private Texture2D _albumCover = null;
         private Texture2D _soundTexture = null;
         private float[] _fft = new float[FFT_SIZE / 2];
         private float[] _wave = new float[FFT_TEXTURE_WIDTH];
         private float[] _prevFft = new float[FFT_SIZE / 2];
-        private float[]   _rawFft       = new float[FFT_SIZE * 2];
-        private float[]   _rawWave      = new float[FFT_SIZE];
+        private float[] _rawFft = new float[FFT_SIZE * 2];
+        private float[] _rawWave = new float[FFT_SIZE];
 
         private static int _soundTexId = Shader.PropertyToID("_Yarg_SoundTex");
         private static int _sourceIconId = Shader.PropertyToID("_Yarg_SourceIcon");
@@ -43,17 +43,21 @@ namespace YARG.Gameplay
         // TODO: Get the number of active channels from the mixer instead of assuming
         //  Note that this won't _break_ if there are more channels, it will just make
         //  wave shader output look weird on songs that have multichannel audio (or mono, for that matter)
-        private const int   AUDIO_CHANNELS           = 2;
+        private const int AUDIO_CHANNELS = 2;
         // You would expect this to be 1 / AUDIO_CHANNELS, but we need a little bump for some as yet
         // to be understood reason
-        private const float PER_CHANNEL_MULTIPLIER   = 0.6f;
+        private const float PER_CHANNEL_MULTIPLIER = 0.6f;
 
-        private void Start()
+        private Texture2D GetSourceIcon()
         {
-            _sourceIcon = SongSources.SourceToIcon(GameManager.Song.Source).texture;
+            if (_sourceIcon == null)
+            {
+                _sourceIcon = SongSources.SourceToIcon(GameManager.Song.Source).texture;
+            }
+            return _sourceIcon;
         }
 
-        protected Texture2D getAlbumArt()
+        protected Texture2D GetAlbumArt()
         {
             if (_albumCover == null)
             {
@@ -63,7 +67,7 @@ namespace YARG.Gameplay
             return _albumCover;
         }
 
-        protected Texture2D getSoundTexture()
+        protected Texture2D GetSoundTexture()
         {
             if (_soundTexture == null)
             {
@@ -79,19 +83,19 @@ namespace YARG.Gameplay
             return _soundTexture;
         }
 
-        public void processMaterial(Material m)
+        public void ProcessMaterial(Material m)
         {
             if (m.HasTexture(_sourceIconId))
             {
-                m.SetTexture(_sourceIconId, _sourceIcon);
+                m.SetTexture(_sourceIconId, GetSourceIcon());
             }
             if (m.HasTexture(_soundTexId))
             {
-                m.SetTexture(_soundTexId, getSoundTexture());
+                m.SetTexture(_soundTexId, GetSoundTexture());
             }
             if (m.HasTexture(_albumCoverId))
             {
-                m.SetTexture(_albumCoverId, getAlbumArt());
+                m.SetTexture(_albumCoverId, GetAlbumArt());
             }
         }
 
@@ -109,7 +113,7 @@ namespace YARG.Gameplay
 
                 // This is an inaccurate way of calculating a hypotenuse, but it doesn't seem to matter for this purpose
                 var magnitude = MathF.Sqrt(_rawFft[i] * _rawFft[i] + _rawFft[i + 1] * _rawFft[i + 1]);
-                _fft[i / 2] = _prevFft[i / 2] * fftSmoothingFactor + magnitude * (1.0f - fftSmoothingFactor);
+                _fft[i / 2] = _prevFft[i / 2] * FFTSmoothingFactor + magnitude * (1.0f - FFTSmoothingFactor);
             }
 
             // TODO: Understand why the frequency rolloff seems to be different between BASS and Chrome/Firefox
@@ -131,9 +135,9 @@ namespace YARG.Gameplay
                 _wave[i] = (_rawWave[i * AUDIO_CHANNELS] + _rawWave[(i * AUDIO_CHANNELS) + 1]) * PER_CHANNEL_MULTIPLIER;
 
                 // set spectrum data in the first row
-                pixelData[i] = (byte) Math.Round(normalized);
+                pixelData[i] = (byte)Math.Round(normalized);
                 // waveform data in the second row
-                pixelData[FFT_TEXTURE_WIDTH + i] = (byte) Math.Max(0, Math.Min(255, 128 * (_wave[i] + 1)));
+                pixelData[FFT_TEXTURE_WIDTH + i] = (byte)Math.Max(0, Math.Min(255, 128 * (_wave[i] + 1)));
             }
         }
 

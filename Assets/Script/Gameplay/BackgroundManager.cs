@@ -123,7 +123,7 @@ namespace YARG.Gameplay
                     {
                         foreach (var material in renderer.sharedMaterials)
                         {
-                            textureManager.processMaterial(material);
+                            textureManager.ProcessMaterial(material);
                         }
                     }
 
