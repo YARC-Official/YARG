@@ -216,13 +216,13 @@ namespace YARG.Venue
 						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.BlackoutFast:
-                        _lightStates[i] = BlackOut(_lightStates[i], 60f);
+                        _lightStates[i] = BlackOut(_lightStates[i], 30f);
                         break;
                     case LightingType.BlackoutSlow:
                         _lightStates[i] = BlackOut(_lightStates[i], 5f);
                         break;
                     case LightingType.BlackoutSpotlight:
-                        _lightStates[i] = BlackOutSpot(_lightStates[i], 60f, location);
+                        _lightStates[i] = BlackOutSpot(_lightStates[i], 30f, location);
                         break;
                     case LightingType.Dischord:
 						_lightStates[i] = AutoGradient(_lightStates[i], location, _dissonantGradient);
@@ -243,7 +243,7 @@ namespace YARG.Venue
 						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.FlareFast:
-                        _lightStates[i] = Flare(_lightStates[i], 60f);
+                        _lightStates[i] = Flare(_lightStates[i], 30f);
                         break;
                     case LightingType.FlareSlow:
                         _lightStates[i] = Flare(_lightStates[i], 5f);
