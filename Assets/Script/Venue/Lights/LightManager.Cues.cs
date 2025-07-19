@@ -34,7 +34,7 @@ namespace YARG.Venue
 				};
 			}
 			targetint = 1f;
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 60f);
+			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
 
             current.Delta += Time.deltaTime * _gradientLightingSpeed;
             if (current.Delta > 1f)
@@ -62,8 +62,8 @@ namespace YARG.Venue
 				};
 			}
 			targetint = 1f;
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 40f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 60f);
+			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
+			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
 
             current.Delta += Time.deltaTime * _gradientLightingSpeed;
             if (current.Delta > 1f)
@@ -110,8 +110,8 @@ namespace YARG.Venue
 			{
 				current.Intensity = Mathf.Lerp(current.Intensity, 0f, Time.deltaTime * speed);
 			}
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 40f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 60f);
+			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
+			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
 			return current;
         }
 
@@ -126,8 +126,8 @@ namespace YARG.Venue
         {
 			target = Color.white;
             targetint = AnimationFrame % 2 == 0 ? 1f : 0f;
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 80f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 80f);
+			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 50f);
+			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 50f);
             return current;
         }
 		
@@ -135,8 +135,8 @@ namespace YARG.Venue
         {
 			target = ((gradient.Evaluate(current.Delta) + Color.white) * 0.5f);
             targetint = AnimationFrame % 2 == 0 ? 1f : 0f;
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 40f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 60f);
+			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
+			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
             return current;
         }
 		
@@ -151,8 +151,8 @@ namespace YARG.Venue
             {
                 targetint = 0f;
             }
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 40f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 60f);
+			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
+			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
             return current;
         }
 
@@ -171,8 +171,8 @@ namespace YARG.Venue
                     _                         => _silhouetteColor
                 };
             }
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 40f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 60f);
+			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
+			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
             return current;
         }
 
@@ -187,8 +187,8 @@ namespace YARG.Venue
                 _                        => gradient.Evaluate(current.Delta),
             };
 			
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 40f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 60f);
+			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
+			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
 			
 			current.Delta += Time.deltaTime * _gradientLightingSpeed;
             if (current.Delta > 1f)
