@@ -28,12 +28,16 @@ namespace YARG.Venue.VenueCamera
         private VolumeProfile _profile;
 
         private float _originalBloom;
+		private bool _originalBloomState;
+		private float _originalBloomThreshold;
+		private bool _originalBloomTState;
 
         private ColorParameter _sepiaToneColor;
 
         private TextureCurve _invertCurve;
         private TextureCurve _defaultCurve;
         private TextureCurve _copierCurve;
+        private TextureCurve _brightCurve;
 
         private TextureCurveParameter _invertCurveParam;
         private TextureCurveParameter _defaultCurveParam;
@@ -45,7 +49,7 @@ namespace YARG.Venue.VenueCamera
         private ClampedFloatParameter _activeGrainResponse = new(0.0f, 1.0f, 0.0f);
 
         private Color _greenTint = new(0.0f, 1.0f, 0.65f, 1.0f);
-        private Color _blueTint  = new(0.4f, 1.0f, 1.0f, 1.0f);
+        private Color _blueTint  = new(0.2f, 0.7f, 1.0f, 1.0f);
 
         private Camera         _camera;
 
@@ -56,6 +60,9 @@ namespace YARG.Venue.VenueCamera
             if (_profile.TryGet<Bloom>(out var bloom))
             {
                 _originalBloom = bloom.intensity.value;
+				_originalBloomState = bloom.intensity.overrideState;
+				_originalBloomThreshold = bloom.threshold.value;
+				_originalBloomTState = bloom.threshold.overrideState;
             }
 
             if (_profile.TryGet<FilmGrain>(out var grain))
@@ -69,6 +76,7 @@ namespace YARG.Venue.VenueCamera
             _invertCurve = new TextureCurve(new AnimationCurve(new Keyframe(0,0.550f,-1f,-6f), new Keyframe(0.25f,0f,0f,0f)), 0.5f, false, in bounds);
             _copierCurve = new TextureCurve(new AnimationCurve(new Keyframe(0,0), new Keyframe(0.089f,0.078f),
                 new Keyframe(0.227f, 0), new Keyframe(0.356f, 0.993f), new Keyframe(1, 1)), 0.5f, false, in bounds);
+			_brightCurve = new TextureCurve(new AnimationCurve(new Keyframe(0f,0.07f), new Keyframe(0.25f,1f)), 0.5f, false, in bounds);
 
 
             _defaultCurveParam = new TextureCurveParameter(_defaultCurve);
@@ -120,6 +128,7 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.Bright: // I don't actually have any idea what this one is supposed to do
                     SetBrightness(true);
+					SetBloom(true);
                     break;
                 case PostProcessingType.Contrast: // This is just my best guess
                     SetContrast(true);
@@ -153,26 +162,43 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.SepiaTone:
                     SetSepiaTone(true);
+					SetBloom(true);
                     break;
                 case PostProcessingType.SilverTone:
                     SetSilverTone(true);
+					SetBloom(true);
                     break;
                 case PostProcessingType.Scanlines:
                     SetScanline(true);
+					SetBloom(true);
                     break;
                 case PostProcessingType.Scanlines_Blue:
                     SetBlueTint(true);
+					SetContrast(true);
+					SetBloom(true);
                     SetScanline(true);
                     break;
                 case PostProcessingType.Scanlines_Security:
+                    SetGrainy(true);
                     SetGreenTint(true);
+					SetContrast(true);
+					SetBloom(true);
                     SetScanline(true);
                     break;
                 case PostProcessingType.Grainy_Film:
                     SetGrainy(true);
+                    SetExposure(true, -0.75f);
+                    SetBloom(true);
                     break;
+                case PostProcessingType.Grainy_ChromaticAbberation:
+                    SetGrainy(true);
+                    SetChromaticAberration(true);
+                    SetDesaturation(true, -35f);
+                    break;
+                case PostProcessingType.Trails_Flickery: // TODO: Add a flicker effect for this
                 case PostProcessingType.Trails:
                     SetTrail(true, 0.55f);
+					SetBloom(true);
                     break;
                 case PostProcessingType.Trails_Desaturated:
                     SetPosterize(true);
@@ -181,6 +207,10 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.Trails_Long:
                     SetTrail(true, 0.67f);
+                    break;
+                case PostProcessingType.Trails_Spacey:
+                    SetTrail(true, 0.9f);
+                    SetDesaturation(true, 20f);
                     break;
                 case PostProcessingType.Desaturated_Red:
                     SetDesaturatedRed(true);
@@ -215,6 +245,7 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.Bright: // I don't actually have any idea what this one is supposed to do
                     SetBrightness(false);
+					SetBloom(false);
                     break;
                 case PostProcessingType.Contrast: // This is just my best guess
                     SetContrast(false);
@@ -231,10 +262,6 @@ namespace YARG.Venue.VenueCamera
                 case PostProcessingType.BlackAndWhite:
                     SetBlackAndWhite(false);
                     break;
-                case PostProcessingType.Scanlines_BlackAndWhite:
-                    SetBlackAndWhite(false);
-                    SetScanline(false);
-                    break;
                 case PostProcessingType.Choppy_BlackAndWhite:
                     SetLowFrameRate(false);
                     SetBlackAndWhite(false);
@@ -246,23 +273,42 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.SepiaTone:
                     SetSepiaTone(false);
+					SetBloom(false);
                     break;
                 case PostProcessingType.SilverTone:
                     SetSilverTone(false);
+					SetBloom(false);
                     break;
                 case PostProcessingType.Scanlines:
+                    SetScanline(false);
+                    SetBloom(false);
+                    break;
+                case PostProcessingType.Scanlines_BlackAndWhite:
+                    SetBlackAndWhite(false);
                     SetScanline(false);
                     break;
                 case PostProcessingType.Scanlines_Blue:
                     SetBlueTint(false);
+					SetContrast(false);
+					SetBloom(false);
                     SetScanline(false);
                     break;
                 case PostProcessingType.Scanlines_Security:
+                    SetGrainy(false);
                     SetGreenTint(false);
+					SetContrast(false);
+					SetBloom(false);
                     SetScanline(false);
                     break;
                 case PostProcessingType.Grainy_Film:
                     SetGrainy(false);
+                    SetExposure(false);
+                    SetBloom(false);
+                    break;
+                case PostProcessingType.Grainy_ChromaticAbberation:
+                    SetGrainy(false);
+                    SetChromaticAberration(false);
+                    SetDesaturation(false);
                     break;
                 case PostProcessingType.Trails_Desaturated:
                     SetPosterize(false);
@@ -271,8 +317,13 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.Trails:
                 case PostProcessingType.Trails_Long:
+                case PostProcessingType.Trails_Flickery:
+                    SetTrail(false);
+                    break;
                 case PostProcessingType.Trails_Spacey:
                     SetTrail(false);
+                    SetDesaturation(false);
+                    SetBloom(false);
                     break;
                 case PostProcessingType.Desaturated_Red:
                     SetDesaturatedRed(false);
@@ -281,6 +332,28 @@ namespace YARG.Venue.VenueCamera
                     SetPhotoNegativeRedAndBlack(false);
                     break;
             }
+        }
+
+        private void SetExposure(bool enabled, float strength = 0f)
+        {
+            if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
+            {
+                return;
+            }
+
+            colorAdjustments.postExposure.value = enabled ? strength : 0f;
+            colorAdjustments.postExposure.overrideState = enabled;
+        }
+
+        private void SetChromaticAberration(bool enabled, float strength = 0.35f)
+        {
+            if (!_profile.TryGet<ChromaticAberration>(out var chromaticAberration))
+            {
+                return;
+            }
+
+            chromaticAberration.intensity.value = enabled ? strength : 0;
+            chromaticAberration.intensity.overrideState = enabled;
         }
 
         public void SetLowFrameRate(bool enabled, int divisor = 5)
@@ -395,18 +468,27 @@ namespace YARG.Venue.VenueCamera
             {
                 return;
             }
-            colorAdjustments.contrast.value = enabled ? 25.0f : 1.0f;
+            colorAdjustments.contrast.value = enabled ? 50.0f : 1.0f;
             colorAdjustments.contrast.overrideState = enabled;
         }
 
         private void SetBrightness(bool enabled)
         {
-            if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
+            if (!_profile.TryGet<ColorCurves>(out var colorCurves))
             {
                 return;
             }
 
-            // maybe we set postexposure here?
+            colorCurves.master.value = enabled ? _brightCurve : _defaultCurve;
+            colorCurves.master.overrideState = enabled;
+            colorCurves.active = enabled;
+
+			if(!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
+            {
+                return;
+            }
+            colorAdjustments.saturation.value = enabled ? 50.0f : 0.0f;
+            colorAdjustments.saturation.overrideState = enabled;
         }
 
         private void SetMirror(bool enabled)
@@ -420,14 +502,14 @@ namespace YARG.Venue.VenueCamera
             mirror.enabled.overrideState = enabled;
         }
 
-        private void SetDesaturation(bool enabled)
+        private void SetDesaturation(bool enabled, float strength = -50.0f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            colorAdjustments.saturation.value = enabled ? -50.0f : 0.0f;
+            colorAdjustments.saturation.value = enabled ? strength : 0.0f;
             colorAdjustments.saturation.overrideState = enabled;
         }
 
@@ -510,7 +592,9 @@ namespace YARG.Venue.VenueCamera
             }
 
             bloom.intensity.value = enabled ? 1.0f : _originalBloom;
-            bloom.intensity.overrideState = enabled;
+            bloom.intensity.overrideState = enabled || _originalBloomState;
+			bloom.threshold.value = enabled ? 0.6f : _originalBloomThreshold;
+            bloom.threshold.overrideState = enabled || _originalBloomTState;
         }
 
         private void SetGreenTint(bool enabled)
@@ -542,10 +626,10 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
             // _scanline.SetEnabled(enabled);
-            scanline.intensity.value = enabled ? 0.9f : 0.0f;
+            scanline.intensity.value = enabled ? 0.6f : 0.0f;
             scanline.intensity.overrideState = enabled;
             // This should really be ~1/4 of the screen resolution
-            scanline.scanlineCount.value = 360;
+            scanline.scanlineCount.value = 190;
             scanline.scanlineCount.overrideState = enabled;
         }
 

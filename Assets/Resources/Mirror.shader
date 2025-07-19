@@ -44,7 +44,10 @@
             {
                 // mirror the input uv
                 float2 uv = input.uv;
-                uv.x = 1 - uv.x;
+                if (uv.x < 0.5)
+                {
+                    uv.x = 1 - uv.x;
+                }
 
                 // Sample the main texture
                 float4 col = tex2D(_MainTex, uv);

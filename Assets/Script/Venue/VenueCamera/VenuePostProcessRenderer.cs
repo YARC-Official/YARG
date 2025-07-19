@@ -17,8 +17,8 @@ namespace YARG.Venue.VenueCamera
             descriptor.mipCount = 0;
             _stashTex = new RenderTexture(descriptor);
             _stashTex.Create();
-
             _pass = new VenuePostProcessPass(ref _stashTex);
+            _pass.ConfigureInput(ScriptableRenderPassInput.Color);
         }
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
