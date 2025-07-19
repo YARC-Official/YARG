@@ -172,21 +172,22 @@ namespace YARG.Venue.VenueCamera
 
             using (new ProfilingScope(cmd, _ppProfiler))
             {
-                var posterizeEffect = stack.GetComponent<PosterizeComponent>();
-                var material = _posterizeMaterial;
-
-                if (posterizeEffect.IsActive() && material != null)
-                {
-                    material.SetInteger(_posterizeSteps, posterizeEffect.Steps.value);
-                    BlitTo(material);
-                }
 
                 var trailsEffect = stack.GetComponent<TrailsComponent>();
-                material = _trailsMaterial;
+                var material = _trailsMaterial;
 
                 if (trailsEffect.IsActive() && material != null)
                 {
                     material.SetFloat(_trailsLength, trailsEffect.Length);
+                    BlitTo(material);
+                }
+
+                var posterizeEffect = stack.GetComponent<PosterizeComponent>();
+                material = _posterizeMaterial;
+
+                if (posterizeEffect.IsActive() && material != null)
+                {
+                    material.SetInteger(_posterizeSteps, posterizeEffect.Steps.value);
                     BlitTo(material);
                 }
 

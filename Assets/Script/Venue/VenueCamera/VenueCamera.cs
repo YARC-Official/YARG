@@ -126,7 +126,7 @@ namespace YARG.Venue.VenueCamera
                     SetLowFrameRate(true);
                     SetBloom(true);
                     break;
-                case PostProcessingType.Bright: // I don't actually have any idea what this one is supposed to do
+                case PostProcessingType.Bright:
                     SetBrightness(true);
 					SetBloom(true);
                     break;
@@ -201,8 +201,8 @@ namespace YARG.Venue.VenueCamera
 					SetBloom(true);
                     break;
                 case PostProcessingType.Trails_Desaturated:
-                    SetPosterize(true);
-                    SetTrail(true, 0.55f);
+                    SetPosterize(true, 10);
+                    SetTrail(true, 0.67f);
                     SetDesaturation(true);
                     break;
                 case PostProcessingType.Trails_Long:
@@ -243,11 +243,11 @@ namespace YARG.Venue.VenueCamera
                     SetLowFrameRate(false);
                     SetBloom(false);
                     break;
-                case PostProcessingType.Bright: // I don't actually have any idea what this one is supposed to do
+                case PostProcessingType.Bright:
                     SetBrightness(false);
 					SetBloom(false);
                     break;
-                case PostProcessingType.Contrast: // This is just my best guess
+                case PostProcessingType.Contrast:
                     SetContrast(false);
                     break;
                 case PostProcessingType.Posterize:
@@ -423,10 +423,6 @@ namespace YARG.Venue.VenueCamera
                 new AnimationCurve(new Keyframe(0, 0), new Keyframe(0.297f, 0), new Keyframe(0.519f, 0.519f), new Keyframe(1, 0)),
                 0.5f, false, in bounds);;
 
-            var flatZeroCurveParam = new TextureCurveParameter(flatZeroCurve, true);
-            var redCurveParam = new TextureCurveParameter(redCurve, true);
-            var masterCurveParam = new TextureCurveParameter(masterCurve, true);
-
             colorCurves.hueVsHue.value = enabled ? _invertCurve : _defaultCurve;
             colorCurves.green.value = enabled ? flatZeroCurve : _defaultCurve;
             colorCurves.blue.value = enabled ? flatZeroCurve : _defaultCurve;
@@ -452,13 +448,13 @@ namespace YARG.Venue.VenueCamera
             colorCurves.master.overrideState = enabled;
         }
 
-        private void SetPosterize(bool enabled)
+        private void SetPosterize(bool enabled, int steps = 4)
         {
             if (!_profile.TryGet<PosterizeComponent>(out var posterize))
             {
                 return;
             }
-            posterize.Steps.value = enabled ? 4 : 0;
+            posterize.Steps.value = enabled ? steps : 0;
             posterize.Steps.overrideState = enabled;
         }
 
