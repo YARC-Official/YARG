@@ -29,7 +29,7 @@ MonoBehaviour:
   m_Name: SlowFPSComponent
   m_EditorClassIdentifier: 
   active: 1
-  Divisor:
+  SkipFrames:
     m_OverrideState: 0
     m_Value: 1
 --- !u!114 &-8201876109855894492
@@ -436,7 +436,7 @@ MonoBehaviour:
   active: 1
   redOutRedIn:
     m_OverrideState: 0
-    m_Value: 63
+    m_Value: 10
   redOutGreenIn:
     m_OverrideState: 0
     m_Value: 0
@@ -460,7 +460,7 @@ MonoBehaviour:
     m_Value: 0
   blueOutBlueIn:
     m_OverrideState: 0
-    m_Value: 100
+    m_Value: 10
 --- !u!114 &4615704651314425003
 MonoBehaviour:
   m_ObjectHideFlags: 3

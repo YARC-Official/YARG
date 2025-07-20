@@ -2,9 +2,7 @@
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Core.IO;
 using YARG.Gameplay;
-using YARG.Integration.StageKit;
 using AnimationEvent = YARG.Core.Chart.AnimationEvent;
 
 namespace YARG.Venue.Characters
@@ -114,12 +112,6 @@ namespace YARG.Venue.Characters
 
             _tempoList = chart.SyncTrack.Tempos;
 
-            // Don't animate until there are notes (at least until we have idle animations)
-            foreach (var character in _characters.Values)
-            {
-                character.StopAnimation();
-            }
-
             if (_drumAnimationEvents.Count > 0)
             {
                 _songHasDrumAnimations = true;
@@ -131,6 +123,35 @@ namespace YARG.Venue.Characters
                         _characters[key].ChartHasAnimations = true;
                     }
                 }
+            }
+
+            // If we have at least [idle] and [playing] set ChartHasAnimations for the character
+            if (_guitarMaps.FindLastIndex(e => e.State == AnimationState.Idle) > 0)
+            {
+                foreach (var key in _characters.Keys)
+                {
+                    if (_characters[key].Type == VenueCharacter.CharacterType.Guitar)
+                    {
+                        _characters[key].ChartHasAnimations = true;
+                    }
+                }
+            }
+
+            if (_bassMaps.FindLastIndex(e => e.State == AnimationState.Idle) > 0)
+            {
+                foreach (var key in _characters.Keys)
+                {
+                    if (_characters[key].Type == VenueCharacter.CharacterType.Bass)
+                    {
+                        _characters[key].ChartHasAnimations = true;
+                    }
+                }
+            }
+
+            // Don't animate until there are notes (at least until we have idle animations)
+            foreach (var character in _characters.Values)
+            {
+                character.StopAnimation();
             }
         }
 

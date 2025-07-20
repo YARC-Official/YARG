@@ -365,12 +365,26 @@ namespace YARG.Venue.Characters
                 AnimationState.IdleRealtime => "IdleRealtime",
                 AnimationState.Intense => "Intense",
                 AnimationState.Mellow => "Mellow",
-                AnimationState.Play => "Play",
+                AnimationState.Play => "Playing",
                 AnimationState.PlaySolo => "PlaySolo",
                 _ => "Idle"
             };
 
-            // _animator.SetTrigger(triggerText);
+            // We're not supporting all of these yet, so winnow them down to what we are supporting
+            triggerText = triggerText switch
+            {
+                "Idle"         => "Idle",
+                "IdleIntense"  => "Idle",
+                "IdleRealtime" => "Idle",
+                "Intense"      => "Playing",
+                "Mellow"       => "Playing",
+                "Playing"      => "Playing",
+                "PlaySolo"     => "Playing",
+                _              => "Idle"
+            };
+
+            YargLogger.LogDebug($"Animation state {animationState} triggered");
+            SetTrigger(triggerText);
         }
 
         private void HandleHandMap(HandMap handMap)
@@ -443,49 +457,47 @@ namespace YARG.Venue.Characters
         public void OnGuitarAnimation(AnimationType animation)
         {
             // For testing
-            if (Type == CharacterType.Bass)
-            {
-                return;
-            }
+            // if (Type == CharacterType.Bass)
+            // {
+            //     return;
+            // }
 
             if (_animationEvents.TryGet(animation, out var animInfo))
             {
+                // YargLogger.LogDebug($"Animation {animInfo} triggered");
                 SetTrigger(animInfo);
                 return;
             }
 
+            YargLogger.LogDebug($"Animation {animation} not found for character type {Type}");
+
             // TODO: Remove the old cruft below when it is determined that the above works correctly
 
-            var animName = animation switch
-            {
-                AnimationType.LeftHandPosition1 => "HandPositionOne",
-                AnimationType.LeftHandPosition2 => "HandPositionTwo",
-                AnimationType.LeftHandPosition3 => "HandPositionThree",
-                AnimationType.LeftHandPosition4 => "HandPositionFour",
-                AnimationType.LeftHandPosition5 => "HandPositionFive",
-                AnimationType.LeftHandPosition6 => "HandPositionSix",
-                AnimationType.LeftHandPosition7 => "HandPositionSeven",
-                AnimationType.LeftHandPosition8 => "HandPositionEight",
-                AnimationType.LeftHandPosition9 => "HandPositionNine",
-                AnimationType.LeftHandPosition10 => "HandPositionTen",
-                AnimationType.LeftHandPosition11 => "HandPositionEleven",
-                AnimationType.LeftHandPosition12 => "HandPositionTwelve",
-                AnimationType.LeftHandPosition13 => "HandPositionThirteen",
-                AnimationType.LeftHandPosition14 => "HandPositionFourteen",
-                AnimationType.LeftHandPosition15 => "HandPositionFifteen",
-                AnimationType.LeftHandPosition16 => "HandPositionSixteen",
-                _ => "HandPositionSixteen" // We haven't gotten any farther yet
-            };
+            // var animName = animation switch
+            // {
+            //     AnimationType.LeftHandPosition1 => "HandPositionOne",
+            //     AnimationType.LeftHandPosition2 => "HandPositionTwo",
+            //     AnimationType.LeftHandPosition3 => "HandPositionThree",
+            //     AnimationType.LeftHandPosition4 => "HandPositionFour",
+            //     AnimationType.LeftHandPosition5 => "HandPositionFive",
+            //     AnimationType.LeftHandPosition6 => "HandPositionSix",
+            //     AnimationType.LeftHandPosition7 => "HandPositionSeven",
+            //     AnimationType.LeftHandPosition8 => "HandPositionEight",
+            //     AnimationType.LeftHandPosition9 => "HandPositionNine",
+            //     AnimationType.LeftHandPosition10 => "HandPositionTen",
+            //     AnimationType.LeftHandPosition11 => "HandPositionEleven",
+            //     AnimationType.LeftHandPosition12 => "HandPositionTwelve",
+            //     AnimationType.LeftHandPosition13 => "HandPositionThirteen",
+            //     AnimationType.LeftHandPosition14 => "HandPositionFourteen",
+            //     AnimationType.LeftHandPosition15 => "HandPositionFifteen",
+            //     AnimationType.LeftHandPosition16 => "HandPositionSixteen",
+            //     _ => "HandPositionSixteen" // We haven't gotten any farther yet
+            // };
 
             // YargLogger.LogDebug($"Animation {animName} triggered");
 
-            _currentLeftHandPosition = animName;
-            SetTrigger(animName);
-
-            // _animator.CrossFadeInFixedTime(animName, 0.1f, _leftHandLayerIndex);
-            // _animator.CrossFadeInFixedTime(animName, 0.1f);
-            // _animator.Play(animName, _leftHandLayerIndex);
-            // _animator.SetTrigger(animName);
+            // _currentLeftHandPosition = animName;
+            // SetTrigger(animName);
         }
 
         public void OnDrumAnimation(AnimationType animation)
@@ -584,7 +596,6 @@ namespace YARG.Venue.Characters
                     {
                         // Just trigger slap and return
                         SetTrigger(AnimationStateType.Slap);
-                        YargLogger.LogDebug("Slap animation triggered");
                         return;
                     }
 
@@ -922,8 +933,9 @@ namespace YARG.Venue.Characters
 
             // TODO: We actually need to check whether this character has advanced animations or not
             // If it does, and it is not a drums chart with no animations, we need to set playing/idle
-            if (!ChartHasAnimations && Type == CharacterType.Drums)
+            if (!ChartHasAnimations)
             {
+                // If the chart has animations, this will get handled differently elsewhere
                 SetTrigger(_playingAnimationName);
             }
 

@@ -712,6 +712,28 @@ namespace YARG.Venue.Characters
 
                 if (hasTrigger)
                 {
+                    // We have to special case some of the generic animation states since they are layered with a bool
+                    if (IsGenericState(state))
+                    {
+                        // First, reset the bools to false (if they exist)
+                        _animator.SetBool("isMellow", false);
+                        _animator.SetBool("isIntense", false);
+
+                        // Now reset them if necessary so that transitions can use them to select the correct variety
+                        if (IsLayeredState(state))
+                        {
+                            switch (state)
+                            {
+                                case AnimationStateType.Mellow:
+                                    _animator.SetBool("isMellow", true);
+                                    break;
+                                case AnimationStateType.Intense:
+                                    _animator.SetBool("isIntense", true);
+                                    break;
+                            };
+                        }
+                    }
+
                     _animator.SetTrigger(hash);
                 }
             }
@@ -719,6 +741,17 @@ namespace YARG.Venue.Characters
             {
                 YargLogger.LogFormatDebug("Animation State '{0}' not found", state);
             }
+        }
+
+        private bool IsLayeredState(AnimationStateType state)
+        {
+            return state is AnimationStateType.Mellow or AnimationStateType.Intense;
+        }
+
+        private bool IsGenericState(AnimationStateType state)
+        {
+            return state is AnimationStateType.Idle or AnimationStateType.Playing or AnimationStateType.IdleRealtime
+                or AnimationStateType.Mellow or AnimationStateType.Intense;
         }
     }
 }
