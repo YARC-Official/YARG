@@ -1130,10 +1130,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42974416b948ada45a2fd1534af7341c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _grooveSunburstEffect: {fileID: 8360053433170138951}
-  _grooveLightEffect: {fileID: 1811260302183972900}
-  _starpowerSunburstEffect: {fileID: 3797275969015020249}
-  _starpowerLightEffect: {fileID: 2166581194060232035}
+  _sunburstEffect: {fileID: 8360053433170138951}
+  _lightEffect: {fileID: 1811260302183972900}
+  _grooveSunburstColor: {r: 0, g: 0.8509804, b: 1, a: 1}
+  _grooveLightColor: {r: 0, g: 0.5372549, b: 1, a: 1}
+  _starpowerSunburstColor: {r: 1, g: 0.9882353, b: 0.5647059, a: 1}
+  _starpowerLightColor: {r: 1, g: 0.8745098, b: 0, a: 1}
 --- !u!1 &4315058809814086876
 GameObject:
   m_ObjectHideFlags: 0
