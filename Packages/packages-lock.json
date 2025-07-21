@@ -288,11 +288,11 @@
       }
     },
     "fidelityfx.fsr": {
-      "version": "https://github.com/theli-ua/FSR3Unity.git?path=/Packages/fidelityfx.fsr",
+      "version": "https://github.com/ndepoel/FSR3Unity.git?path=/Packages/fidelityfx.fsr",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "2af2f7ec5b75b0a4102e26357802c9c597baec1f"
+      "hash": "71879e71aa72465a79bdf009d7d71f9f7ab83066"
     },
     "jp.keijiro.minis": {
       "version": "https://github.com/TheNathannator/Minis.git?path=/Packages/jp.keijiro.minis#yarg",
