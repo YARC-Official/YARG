@@ -755,7 +755,7 @@ namespace YARG.Gameplay.Player
             // since all the replay data is saved here
             YargLogger.LogFormatTrace("TrackPlayer would have awarded unison bonus at engine time {0}", Engine.CurrentTime);
         }
-        
+
         protected virtual void OnCountdownChange(double countdownLength, double endTime)
         {
             TrackView.UpdateCountdown(countdownLength, endTime);

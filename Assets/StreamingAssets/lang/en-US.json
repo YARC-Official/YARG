@@ -834,10 +834,6 @@
                 "Name": "Chipmunk Speed",
                 "Description": "Disables pitch correction when playing songs at a fast or slow speed which may lead to some... interesting results."
             },
-            "UseCymbalModelsInFiveLane": {
-                "Name": "Use Cymbal Models In Five Lane",
-                "Description": "If enabled, cymbal models will be used in the second and fourth lanes instead of the standard note model (five-lane drums only)."
-            },
             "UseFullDirectoryForPlaylists": {
                 "Name": "Use Full Directory For Playlists",
                 "Description": "Use full directory for the playlist sort option in the music library. <color=white>Rescan required if changed!</color>"
@@ -1055,6 +1051,15 @@
                 "BlueCymbal": {
                     "Name": "Blue Cymbal"
                 },
+				"BlueCymbalFret": {
+					"Name": "Blue Cymbal Fret\n(split view only)"
+				},
+				"BlueCymbalFretInner": {
+					"Name": "Blue Cymbal Fret Inner\n(split view only)"
+				},
+				"BlueCymbalParticles": {
+					"Name": "Blue Cymbal Particles\n(split view only)"
+				},
                 "BlueCymbalStarpower": {
                     "Name": "Blue Cymbal Star Power"
                 },
@@ -1085,6 +1090,15 @@
                 "GreenCymbal": {
                     "Name": "Green Cymbal"
                 },
+				"GreenCymbalFret": {
+					"Name": "Green Cymbal Fret\n(split view only)"
+				},
+				"GreenCymbalFretInner": {
+					"Name": "Green Cymbal Fret Inner\n(split view only)"
+				},
+				"GreenCymbalParticles": {
+					"Name": "Green Cymbal Particles\n(split view only)"
+				},
                 "GreenCymbalStarpower": {
                     "Name": "Green Cymbal Star Power"
                 },
@@ -1163,6 +1177,15 @@
                 "RedCymbal": {
                     "Name": "Red Cymbal"
                 },
+				"RedCymbalFret": {
+					"Name": "Red Cymbal Fret\n(split view only)"
+				},
+				"RedCymbalFretInner": {
+					"Name": "Red Cymbal Fret Inner\n(split view only)"
+				},
+				"RedCymbalParticles": {
+					"Name": "Red Cymbal Particles\n(split view only)"
+				},
                 "RedCymbalStarpower": {
                     "Name": "Red Cymbal Star Power"
                 },
@@ -1193,6 +1216,15 @@
                 "YellowCymbal": {
                     "Name": "Yellow Cymbal"
                 },
+				"YellowCymbalFret": {
+					"Name": "Yellow Cymbal Fret\n(split view only)"
+				},
+				"YellowCymbalFretInner": {
+					"Name": "Yellow Cymbal Fret Inner\n(split view only)"
+				},
+				"YellowCymbalParticles": {
+					"Name": "Yellow Cymbal Particles\n(split view only)"
+				},
                 "YellowCymbalStarpower": {
                     "Name": "Yellow Cymbal Star Power"
                 },

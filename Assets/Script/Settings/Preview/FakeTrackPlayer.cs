@@ -192,7 +192,7 @@ namespace YARG.Settings.Preview
 
                         // Otherwise, select the correct note type
                         var noteType = ThemeNoteType.Normal;
-                        if (SettingsManager.Settings.UseCymbalModelsInFiveLane.Value && fret is 2 or 4)
+                        if (fret is 2 or 4)
                         {
                             noteType = ThemeNoteType.Cymbal;
                         }
@@ -283,7 +283,7 @@ namespace YARG.Settings.Preview
                 _fretArray.FretCount = CurrentGameModeInfo.FretCount;
                 _fretArray.UseKickFrets = CurrentGameModeInfo.UseKickFrets;
                 _fretArray.Initialize(theme, SelectedGameMode,
-                    CurrentGameModeInfo.FretColorProvider(ColorProfile.Default), false);
+                    CurrentGameModeInfo.FretColorProvider(ColorProfile.Default), false, false, false, false);
                 _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
             }
 
@@ -320,7 +320,7 @@ namespace YARG.Settings.Preview
             // Update color profiles
             if (!CurrentGameModeInfo.UseProKeys)
             {
-                _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile), false);
+                _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile), false, false);
             }
 
             // Update hit window

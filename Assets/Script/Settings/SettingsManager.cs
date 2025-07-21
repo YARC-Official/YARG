@@ -133,7 +133,6 @@ namespace YARG.Settings
                 nameof(Settings.SongBackgroundOpacity),
 
                 new HeaderMetadata("Gameplay"),
-                nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.UseThreeLaneLyricsInHarmony),
                 nameof(Settings.KickBounceMultiplier),
 

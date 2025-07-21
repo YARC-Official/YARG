@@ -15,6 +15,7 @@ using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Settings;
+using YARG.Themes;
 
 namespace YARG.Gameplay.Player
 {
@@ -116,13 +117,29 @@ namespace YARG.Gameplay.Player
             ColorProfile.IFretColorProvider colors = !_fiveLaneMode
                 ? Player.ColorProfile.FourLaneDrums
                 : Player.ColorProfile.FiveLaneDrums;
-            _fretArray.FretCount = !_fiveLaneMode ? 4 : 5;
+
+            if (_fiveLaneMode)
+            {
+                _fretArray.FretCount = 5;
+            }
+            else if (Player.Profile.SplitProTomsAndCymbals && EngineParams.Mode == DrumsEngineParameters.DrumMode.ProFourLane)
+            {
+                _fretArray.FretCount = 7;
+            }
+            else
+            {
+                _fretArray.FretCount = 4;
+            }
 
             _fretArray.Initialize(
                 Player.ThemePreset,
                 Player.Profile.GameMode,
                 colors,
-                Player.Profile.LeftyFlip);
+                Player.Profile.LeftyFlip,
+                Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals,
+                ShouldSwapSnareAndHiHat(),
+                ShouldSwapCrashAndRide()
+            );
 
             // Particle 0 is always kick fret
             _kickFretFlash.Initialize(colors.GetParticleColor(0).ToUnityColor());
@@ -173,14 +190,31 @@ namespace YARG.Gameplay.Player
                 int fret;
                 if (!_fiveLaneMode)
                 {
-                    fret = (FourLaneDrumPad) note.Pad switch
+                    if (Player.Profile.SplitProTomsAndCymbals && EngineParams.Mode == DrumsEngineParameters.DrumMode.ProFourLane)
                     {
-                        FourLaneDrumPad.RedDrum                                    => 0,
-                        FourLaneDrumPad.YellowDrum or FourLaneDrumPad.YellowCymbal => 1,
-                        FourLaneDrumPad.BlueDrum or FourLaneDrumPad.BlueCymbal     => 2,
-                        FourLaneDrumPad.GreenDrum or FourLaneDrumPad.GreenCymbal   => 3,
-                        _                                                          => -1
-                    };
+                        fret = (FourLaneDrumPad) note.Pad switch
+                        {
+                            FourLaneDrumPad.RedDrum      => 0,
+                            FourLaneDrumPad.YellowCymbal => 1,
+                            FourLaneDrumPad.YellowDrum   => 2,
+                            FourLaneDrumPad.BlueCymbal   => 3,
+                            FourLaneDrumPad.BlueDrum     => 4,
+                            FourLaneDrumPad.GreenCymbal  => 5,
+                            FourLaneDrumPad.GreenDrum    => 6,
+                            _ => -1
+                        };
+                    }
+                    else
+                    {
+                        fret = (FourLaneDrumPad) note.Pad switch
+                        {
+                            FourLaneDrumPad.RedDrum                                    => 0,
+                            FourLaneDrumPad.YellowDrum or FourLaneDrumPad.YellowCymbal => 1,
+                            FourLaneDrumPad.BlueDrum or FourLaneDrumPad.BlueCymbal     => 2,
+                            FourLaneDrumPad.GreenDrum or FourLaneDrumPad.GreenCymbal   => 3,
+                            _                                                          => -1
+                        };
+                    }
                 }
                 else
                 {
@@ -251,15 +285,33 @@ namespace YARG.Gameplay.Player
             int fret;
             if (!_fiveLaneMode)
             {
-                fret = action switch
+                if (Player.Profile.SplitProTomsAndCymbals && Player.Profile.CurrentInstrument == Instrument.ProDrums)
                 {
-                    DrumsAction.Kick                                   => 0,
-                    DrumsAction.RedDrum                                => 1,
-                    DrumsAction.YellowDrum or DrumsAction.YellowCymbal => 2,
-                    DrumsAction.BlueDrum or DrumsAction.BlueCymbal     => 3,
-                    DrumsAction.GreenDrum or DrumsAction.GreenCymbal   => 4,
-                    _                                                  => -1
-                };
+                    fret = action switch
+                    {
+                        DrumsAction.Kick         => 0,
+                        DrumsAction.RedDrum      => 1,
+                        DrumsAction.YellowCymbal => 2,
+                        DrumsAction.YellowDrum   => 3,
+                        DrumsAction.BlueCymbal   => 4,
+                        DrumsAction.BlueDrum     => 5,
+                        DrumsAction.GreenCymbal  => 6,
+                        DrumsAction.GreenDrum    => 7,
+                        _                        => -1
+                    };
+                }
+                else
+                {
+                    fret = action switch
+                    {
+                        DrumsAction.Kick                                   => 0,
+                        DrumsAction.RedDrum                                => 1,
+                        DrumsAction.YellowDrum or DrumsAction.YellowCymbal => 2,
+                        DrumsAction.BlueDrum or DrumsAction.BlueCymbal     => 3,
+                        DrumsAction.GreenDrum or DrumsAction.GreenCymbal   => 4,
+                        _                                                  => -1
+                    };
+                }
             }
             else
             {
@@ -366,5 +418,23 @@ namespace YARG.Gameplay.Player
             var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
             return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
         }
+
+        private bool ShouldSwapSnareAndHiHat()
+        {
+            if (
+                (Player.Profile.GameMode is GameMode.FiveLaneDrums) ||
+                (Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals)
+            )
+            {
+                return Player.Profile.SwapSnareAndHiHat;
+            }
+
+            return false;
+        }
+
+        private bool ShouldSwapCrashAndRide() =>
+            Player.Profile.CurrentInstrument is Instrument.ProDrums &&
+            Player.Profile.SplitProTomsAndCymbals &&
+            Player.Profile.SwapCrashAndRide;
     }
 }
