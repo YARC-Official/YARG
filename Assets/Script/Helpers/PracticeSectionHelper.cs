@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using YARG.Core.Extensions;
 using YARG.Localization;
 
@@ -51,7 +51,7 @@ namespace YARG.Assets.Script.Helpers
             return localizedName;
         }
 
-        /** 
+        /**
          * Whether the string follows the convention for letter-based section names
          */
         private static bool IsLetterBasedSectionName(string text)
@@ -79,7 +79,17 @@ namespace YARG.Assets.Script.Helpers
                 return text.Length == 3 && text[2].IsAsciiLetterLower();
             }
 
-            if (text[1..^1].All(c => c.IsAsciiDigit())) // LINQ
+            bool allAsciiDigit = true;
+            foreach (var c in text.AsSpan()[1..^1])
+            {
+                if (!c.IsAsciiDigit())
+                {
+                    allAsciiDigit = false;
+                    break;
+                }
+            }
+
+            if (allAsciiDigit)
             {
                 if (text[^1].IsAsciiDigit())
                 {
@@ -129,7 +139,16 @@ namespace YARG.Assets.Script.Helpers
                 return text[0].IsAsciiLetterLower() || text[0].IsAsciiDigit();
             }
 
-            return text[..^2].All(c => c.IsAsciiDigit()) && (text[^1].IsAsciiLetterLower() || text[^1].IsAsciiDigit()); // LINQ
+            bool allAsciiDigit = true;
+            foreach (var c in text.AsSpan()[..^2])
+            {
+                if (!c.IsAsciiDigit())
+                {
+                    allAsciiDigit = false;
+                }
+            }
+
+            return allAsciiDigit && (text[^1].IsAsciiLetterLower() || text[^1].IsAsciiDigit());
         }
 
         private static Dictionary<string, string> _alternateSectionNames = new()
