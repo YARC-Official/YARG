@@ -122,10 +122,13 @@ namespace YARG.Scores
                 foreach (var playerEntry in playerEntries)
                 {
                     playerEntry.GameRecordId = gameRecord.Id;
-
                     // Record the player's info in the "Players" table
-                    string name = PlayerContainer.GetProfileById(playerEntry.PlayerId).Name;
-                    RecordPlayerInfo(playerEntry.PlayerId, name);
+
+                    if (!playerEntry.IsReplay)
+                    {
+                        string name = PlayerContainer.GetProfileById(playerEntry.PlayerId).Name;
+                        RecordPlayerInfo(playerEntry.PlayerId, name);
+                    }
                 }
 
                 _db.InsertSoloRecords(playerEntries);

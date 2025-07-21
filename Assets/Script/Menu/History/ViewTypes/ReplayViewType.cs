@@ -164,6 +164,17 @@ namespace YARG.Menu.History
             FileExplorerHelper.OpenSaveFile(null, _entry!.ReplayName, "replay", path => File.Copy(_entry.FilePath, path, true));
         }
 
+        public override void PlayWithReplayClick()
+        {
+            _entry ??= LoadReplay("Cannot Play Replay");
+            if (_entry == null)
+            {
+                return;
+            }
+
+            PlayWithReplay(_entry, _songEntry);
+        }
+
         public override GameInfo? GetGameInfo()
         {
             return _gameInfo;

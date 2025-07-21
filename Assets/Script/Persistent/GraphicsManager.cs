@@ -12,6 +12,14 @@ namespace YARG
         Off
     }
 
+    public enum VenueAntiAliasingMethod
+    {
+        None,
+        FXAA,
+        MSAA,
+        FSR3,
+    }
+
     public class GraphicsManager : MonoSingleton<GraphicsManager>
     {
         [SerializeField]
@@ -19,6 +27,9 @@ namespace YARG
 
         private Bloom bloom = null;
         private FilmGrain filmGrain = null;
+
+        public float VenueRenderScale = 1.0f;
+        public VenueAntiAliasingMethod VenueAntiAliasing = VenueAntiAliasingMethod.None;
 
         public bool BloomEnabled
         {

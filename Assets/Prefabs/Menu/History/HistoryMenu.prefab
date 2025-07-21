@@ -60,8 +60,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0.22745098, b: 0.41568628, a: 1}
   m_RaycastTarget: 1
@@ -90,8 +90,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_ShowMaskGraphic: 0
 --- !u!114 &8569649329610169560
 MonoBehaviour:
@@ -103,8 +103,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
@@ -123,8 +123,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea764c8f49ba4dfaba672be77de25f68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   SelectedView: {fileID: 0}
   _innerViewContainer: {fileID: 7242423078743798783}
 --- !u!1 &1328902297093170595
@@ -240,8 +240,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
@@ -263,8 +263,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_IgnoreReversedGraphics: 1
   m_BlockingObjects: 0
   m_BlockingMask:
@@ -280,8 +280,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d8ace06a29e24742a57e7063a7345cf9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   <Menu>k__BackingField: 7
   <HideBelow>k__BackingField: 1
 --- !u!114 &2297200881685797724
@@ -294,8 +294,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7989b6b69f34a19ba1dd8f2a53b202b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   _viewObjectPrefab: {fileID: 4753457024697432023, guid: 170621276b777a744bd6c46aededed3f,
     type: 3}
   _viewObjectParent: {fileID: 7242423078743798783}
@@ -303,6 +303,7 @@ MonoBehaviour:
   _viewAligner: {fileID: 619021696685137995}
   _exportReplayButton: {fileID: 8577329528064569814}
   _importReplayButton: {fileID: 7535555724622063350}
+  _playWithReplayButton: {fileID: 0}
   _headerTabs: {fileID: 4155919010694207238}
 --- !u!1 &3868076950096473284
 GameObject:
@@ -352,8 +353,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_Padding:
     m_Left: 0
     m_Right: 0
@@ -378,8 +379,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_HorizontalFit: 0
   m_VerticalFit: 2
 --- !u!1001 &2797418370732063021
@@ -537,7 +538,7 @@ PrefabInstance:
     - target: {fileID: 7797295169623578800, guid: 39d10333b1c21384fa99cee4bf5e6ddc,
         type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
+      value:
       objectReference: {fileID: 2297200881685797724}
     - target: {fileID: 7797295169623578800, guid: 39d10333b1c21384fa99cee4bf5e6ddc,
         type: 3}
@@ -577,8 +578,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2a4db7a114972834c8e4117be1d82ba3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1001 &5380931320726277251
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -599,7 +600,7 @@ PrefabInstance:
     - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
+      value:
       objectReference: {fileID: 2297200881685797724}
     - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
@@ -769,7 +770,7 @@ PrefabInstance:
     - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
+      value:
       objectReference: {fileID: 2297200881685797724}
     - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
@@ -939,7 +940,7 @@ PrefabInstance:
     - target: {fileID: 363344089001548003, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
+      value:
       objectReference: {fileID: 4004993937793846201}
     - target: {fileID: 363344089001548003, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7,
         type: 3}
@@ -1094,13 +1095,13 @@ PrefabInstance:
     - target: {fileID: 5245842211347915737, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7,
         type: 3}
       propertyPath: _tabs.Array.data[0].Icon
-      value: 
+      value:
       objectReference: {fileID: -1967022677, guid: 0a16c58d433eacb44a1354456c1c8abd,
         type: 3}
     - target: {fileID: 5245842211347915737, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7,
         type: 3}
       propertyPath: _tabs.Array.data[1].Icon
-      value: 
+      value:
       objectReference: {fileID: -345837708, guid: 0a16c58d433eacb44a1354456c1c8abd,
         type: 3}
     - target: {fileID: 5245842211347915737, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7,
@@ -1131,8 +1132,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   _localizationKey: Menu.History.Name
 --- !u!224 &3990723114228759297 stripped
 RectTransform:
@@ -1150,5 +1151,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e198e729a591458fbdaef6827418428d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:

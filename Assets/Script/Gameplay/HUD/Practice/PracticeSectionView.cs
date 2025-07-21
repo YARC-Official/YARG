@@ -1,6 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Assets.Script.Helpers;
 
 namespace YARG.Gameplay.HUD
 {
@@ -73,7 +74,7 @@ namespace YARG.Gameplay.HUD
             _button.interactable = true;
 
             // Set text
-            _sectionName.text = section.Name;
+            _sectionName.text = PracticeSectionHelper.ParseSectionName(section.Name);
             if (highlighted || between)
             {
                 _sectionName.color = _highlightedTextColor;

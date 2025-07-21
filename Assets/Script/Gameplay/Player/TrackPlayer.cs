@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
@@ -194,11 +195,13 @@ namespace YARG.Gameplay.Player
 
             base.ComboMeter.Initialize(player.EnginePreset, Engine.BaseParameters.MaxMultiplier);
 
+            Engine.OnComboIncrement += OnComboIncrement;
+            Engine.OnComboReset += OnComboReset;
             if (GameManager.IsPractice)
             {
                 Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
             }
-            else if (GameManager.ReplayInfo != null)
+            else if (Player.IsReplay)
             {
                 // If it's a replay, the "SongSpeed" parameter should be set properly
                 // when it gets deserialized. Transfer this over to the engine.
@@ -274,7 +277,7 @@ namespace YARG.Gameplay.Player
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
             StarpowerBar.SetStarpower(currentStarPowerAmount, stats.IsStarPowerActive);
-            SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
+            SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive, _currentMultiplier);
 
             TrackView.UpdateNoteStreak(stats.Combo);
 
@@ -451,7 +454,7 @@ namespace YARG.Gameplay.Player
 
                     foreach (var haptics in SantrollerHaptics)
                     {
-                        haptics.SetMultiplier((uint) _currentMultiplier);
+                        haptics.SetMultiplier((byte) Math.Clamp(_currentMultiplier, 1, byte.MaxValue));
                     }
                 }
 
@@ -514,7 +517,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var haptic in SantrollerHaptics)
             {
-                haptic.SetSolo(true);
+                haptic.SetSoloActive(true);
             }
         }
 
@@ -524,7 +527,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var haptic in SantrollerHaptics)
             {
-                haptic.SetSolo(false);
+                haptic.SetSoloActive(false);
             }
         }
 
