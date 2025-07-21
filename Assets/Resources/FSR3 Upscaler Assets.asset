@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dbcc608a4754d049a14a0bcce2eb40b, type: 3}
+  m_Name: FSR3 Upscaler Assets
+  m_EditorClassIdentifier: 
+  shaders:
+    prepareInputsPass: {fileID: 7200000, guid: 4f59e5b9179d74844ae06a30ae1e0629, type: 3}
+    lumaPyramidPass: {fileID: 7200000, guid: d253be05abcdc80428503d3e4cce3a36, type: 3}
+    shadingChangePyramidPass: {fileID: 7200000, guid: 251e663738905fa4d8817001682d802f, type: 3}
+    shadingChangePass: {fileID: 7200000, guid: 9a2bff2f97619ed4989d9b0577ba0641, type: 3}
+    prepareReactivityPass: {fileID: 7200000, guid: 20e44016ed34b0d4b8de499d1b566c69, type: 3}
+    lumaInstabilityPass: {fileID: 7200000, guid: a135306e6d1857e43a86ef20db2a47fe, type: 3}
+    accumulatePass: {fileID: 7200000, guid: c9b45f0ae7673694ba57a4aadfe212e9, type: 3}
+    sharpenPass: {fileID: 7200000, guid: 7aaf5cfff022de2499e9b0412f947f6c, type: 3}
+    autoGenReactivePass: {fileID: 7200000, guid: 5716b91fdaa4e9e439df6b96a796fe6e, type: 3}
+    tcrAutoGenPass: {fileID: 7200000, guid: 75cdc6ef23f08ed498d4da511923fcea, type: 3}
+    debugViewPass: {fileID: 7200000, guid: cb24a71d54164c54eb5e86839acd48c5, type: 3}

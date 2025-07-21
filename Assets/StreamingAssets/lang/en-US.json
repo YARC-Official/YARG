@@ -1015,6 +1015,28 @@
                 "Name": "Whammy Pitch Shift Amount",
                 "Description": "Number of semitones the pitch is changed when the whammy bar is fully pressed. Larger amounts result in lower pitches; default is 1."
             },
+            "VenueAntiAliasing": {
+                "Name": "Venue Anti Aliasing",
+                "Description": "The anti-aliasing method to use for venue backgrounds.",
+                "Dropdown": {
+                    "None": "None",
+                    "FXAA": "FXAA",
+                    "MSAA": "MSAA",
+                    "FSR3": "FSR3"
+                }
+            },
+            "VenueRenderingQuality": {
+                "Name": "Venue Rendering Quality",
+                "Description": "The quality/resolution to use for venue backgrounds.",
+                "Dropdown": {
+                    "NativeAA": "Native",
+                    "UltraQuality": "Ultra Quality",
+                    "Quality": "Quality",
+                    "Balanced": "Balanced",
+                    "Performance": "Performance",
+                    "UltraPerformance": "Ultra Performance"
+                }
+            },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",
                 "Description": "Video calibration in milliseconds. Use the calibrator to automatically calibrate. This accounts for delays between the game's processing and the actual frame being displayed."
