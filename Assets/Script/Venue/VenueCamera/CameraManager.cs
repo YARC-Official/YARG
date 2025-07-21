@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 
 namespace YARG.Venue.VenueCamera
 {
-    public class CameraManager : GameplayBehaviour
+    public partial class CameraManager : GameplayBehaviour
     {
         public enum CameraLocation
         {
@@ -66,11 +66,6 @@ namespace YARG.Venue.VenueCamera
 
         private List<Camera>  _cameras;
         private Camera        _currentCamera;
-        private VolumeProfile _currentProfile;
-        private Volume        _volume;
-
-        private List<PostProcessingEvent> _postProcessingEvents;
-        private int                       _currentEventIndex;
 
         private List<CameraCutEvent> _cameraCuts;
         private int                  _currentCutIndex;
@@ -80,17 +75,13 @@ namespace YARG.Venue.VenueCamera
 
         private float _cameraTimer;
         private int   _cameraIndex;
-
-        public PostProcessingType CurrentEffect { get; private set; }
-        public bool EffectSet { get; set; }
+        private bool  _volumeSet;
 
         protected override void OnChartLoaded(SongChart chart)
         {
             var cameras = _venue.GetComponentsInChildren<Camera>(true);
             _cameras = cameras.ToList();
 
-            Volume volume;
-            VolumeProfile profile = null;
             // Make sure the stage camera is the only one active to start..and put them in a dictionary
             foreach (var camera in cameras)
             {
@@ -133,7 +124,13 @@ namespace YARG.Venue.VenueCamera
             _postProcessingEvents = chart.VenueTrack.PostProcessing;
             _cameraCuts = chart.VenueTrack.CameraCuts;
 
-            CurrentEffect = PostProcessingType.Default;
+            _volumeSet = _profile != null;
+
+            // Make up a PostProcessingEvent of type default to start us off
+            var firstEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
+            CurrentEffect = firstEffect;
+
+            SetCurves();
 
             // 1/8th of a beat is a 32nd note
             // GameManager.BeatEventHandler.Subscribe(UpdateCameraEffect, 1f / 8f, mode: TempoMapEventMode.Quarter);
@@ -141,16 +138,7 @@ namespace YARG.Venue.VenueCamera
 
         private void Update()
         {
-            // Check for a change in post processing type
-            if (_currentEventIndex < _postProcessingEvents.Count &&
-                _postProcessingEvents[_currentEventIndex].Time <= GameManager.VisualTime)
-            {
-                var effect = _postProcessingEvents[_currentEventIndex].Type;
-
-                CurrentEffect = effect;
-                EffectSet = false;
-                _currentEventIndex++;
-            }
+            UpdatePostProcessing();
 
             if (_cameras.Count == 1)
             {
@@ -177,9 +165,6 @@ namespace YARG.Venue.VenueCamera
         private void SwitchCamera(Camera newCamera, bool random = false)
         {
             _currentCamera.enabled = false;
-            _currentCamera = newCamera;
-            _currentCamera.enabled = true;
-            _cameraIndex = _cameras.IndexOf(newCamera);
 
             if (random)
             {
@@ -190,6 +175,9 @@ namespace YARG.Venue.VenueCamera
             }
             else
             {
+                _currentCamera = newCamera;
+                _currentCamera.enabled = true;
+                _cameraIndex = _cameras.IndexOf(newCamera);
                 _cameraTimer = _cameraTimer = Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength);
             }
         }

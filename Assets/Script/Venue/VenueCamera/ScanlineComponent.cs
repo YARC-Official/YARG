@@ -9,8 +9,8 @@ namespace YARG.Venue.VenueCamera
     [VolumeComponentMenuForRenderPipeline("Venue/Scanline", typeof(UniversalRenderPipeline))]
     public class ScanlineComponent : VolumeComponent, IPostProcessComponent
     {
-        public NoInterpClampedFloatParameter intensity     = new(0f, 0f, 1f);
-        public NoInterpMaxIntParameter       scanlineCount = new(540, 1080);
+        public ClampedFloatParameter intensity     = new(0f, 0f, 1f);
+        public ClampedIntParameter   scanlineCount = new(270, 64, 540);
 
         public bool IsActive() => intensity.value > 0;
         public bool IsTileCompatible() => true;
