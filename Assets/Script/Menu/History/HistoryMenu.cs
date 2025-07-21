@@ -63,6 +63,8 @@ namespace YARG.Menu.History
                     Back),
                 new NavigationScheme.Entry(MenuAction.Yellow, "Menu.History.Analyze",
                     () => CurrentSelection?.Shortcut1()),
+                new NavigationScheme.Entry(MenuAction.Orange, "Menu.History.PlayWithReplay",
+                    () => CurrentSelection?.PlayWithReplayClick())
             }, false));
 
             _headerTabs.TabChanged += OnTabChanged;

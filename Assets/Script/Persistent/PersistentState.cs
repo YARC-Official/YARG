@@ -21,7 +21,8 @@ namespace YARG
 
         public float SongSpeed;
 
-        public bool IsPractice;
+        public          bool IsPractice;
         public readonly bool IsReplay => CurrentReplay is not null;
+        public          bool PlayingWithReplay;
     }
 }

@@ -32,6 +32,7 @@ namespace YARG.Scores
         public int        BandScore { get; set; }
         public StarAmount BandStars { get; set; }
 
-        public float SongSpeed { get; set; }
+        public float SongSpeed        { get; set; }
+        public bool  PlayedWithReplay { get; set; }
     }
 }
