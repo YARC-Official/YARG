@@ -448,7 +448,7 @@ namespace YARG.Gameplay.Player
 
                     foreach (var haptics in SantrollerHaptics)
                     {
-                        haptics.SetMultiplier((uint) _currentMultiplier);
+                        haptics.SetMultiplier((byte) Math.Clamp(_currentMultiplier, 1, byte.MaxValue));
                     }
                 }
 
@@ -511,7 +511,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var haptic in SantrollerHaptics)
             {
-                haptic.SetSolo(true);
+                haptic.SetSoloActive(true);
             }
         }
 
@@ -521,7 +521,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var haptic in SantrollerHaptics)
             {
-                haptic.SetSolo(false);
+                haptic.SetSoloActive(false);
             }
         }
 
