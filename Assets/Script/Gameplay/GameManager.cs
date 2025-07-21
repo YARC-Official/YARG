@@ -129,6 +129,10 @@ namespace YARG.Gameplay
 
         private StemMixer _mixer;
 
+
+        public bool PlayingAShow => GlobalVariables.State.PlayingAShow;
+        public int  ShowIndex = 0;
+
         private BandComboType _bandComboType;
 
         private void Awake()
@@ -305,6 +309,10 @@ namespace YARG.Gameplay
                 else if (IsPractice)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
+                }
+                else if (GlobalVariables.State.PlayingAShow)
+                {
+                    _pauseMenu.PushMenu(PauseMenuManager.Menu.SetlistPause);
                 }
                 else
                 {
