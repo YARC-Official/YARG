@@ -92,6 +92,19 @@ namespace YARG.Menu.ScoreScreen
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Gray);
                 ShowTag("Bot");
             }
+            else if (Player.IsReplay)
+            {
+                if (Stats.MaxCombo == Stats.TotalNotes)
+                {
+                    _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Gold);
+                }
+                else
+                {
+                    _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
+                }
+
+                ShowTag("Replay");
+            }
             else if (Stats.MaxCombo == Stats.TotalNotes)
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Gold);

@@ -60,7 +60,8 @@
             "TapsToHopos": "Taps to HOPOs",
             "UnpitchedOnly": "Unpitched Only",
             "NoDynamics": "No Dynamics",
-            "NoVocalPercussion" : "No Percussion"
+            "NoVocalPercussion" : "No Percussion",
+            "RangeCompress": "No Range Shifts"
         },
         "SortAttribute": {
             "Album": "Album",
@@ -225,7 +226,8 @@
                 "MoreThanYear": "More Than A Year"
             },
 
-            "Analyze": "Analyze"
+            "Analyze": "Analyze",
+            "PlayWithReplay": "Play With Replay"
         },
         "Main": {
             "MessageOfTheDay": "<align=center><size=32><b>Welcome to the v0.13 Nightly!</b></size></align>\n\nv0.13 adds Pro Keys to the game, as well as reintroducing Pro Guitar/Bass after it was removed in v0.12 due to time constraints. Please let us know how these instruments feel, as well as any bugs you find and missing features.\n\nInstrument engine code has once again gone through major changes to facilitate producing replays with 1:1 results to the original gameplay. <b>If you encounter any inconsistent replay results, report it to the YARG team on Discord or GitHub.</b>\n\nIf you previously played on the v0.12 nightly, all of your settings will be reset. This is due to nightly builds now using a separate location for data storage. Your nightly settings/scores will not persist to stable versions of YARG, and vice versa.\n\nAs we previously announced, <b>we do not recommend playing nightly full time, instead only for testing.</b> Nightly is now going to be much more unstable with many more bugs and unfinished systems.\n\n<b>If you have any feedback, please let us know on Discord or GitHub.</b>\n\nHave fun!",
@@ -555,6 +557,15 @@
             "AlwaysOnDrumSFX": {
                 "Name": "Always-On Drum SFX",
                 "Description": "Enables Drum SFX at all times."
+            },
+            "BandComboTypeSetting": {
+                "Name": "Band Streak Type",
+                "Description": "Adjusts how Band Streak is calculated, especially in multiplayer sessions. Set this to 'Off' to hide the Band Streak counter.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "Lenient": "Lenient",
+                    "Strict": "Strict"
+                }
             },
             "CrowdVolume": {
                 "Name": "Crowd Volume",

@@ -21,6 +21,11 @@ namespace YARG.Menu.History
 
         }
 
+        public virtual void PlayWithReplayClick()
+        {
+
+        }
+
         public virtual void Shortcut1()
         {
 
@@ -39,6 +44,18 @@ namespace YARG.Menu.History
         public virtual GameInfo? GetGameInfo()
         {
             return null;
+        }
+
+        protected static void PlayWithReplay(ReplayInfo replay, SongEntry song)
+        {
+            GlobalVariables.State = PersistentState.Default;
+
+            GlobalVariables.State.CurrentSong = song;
+            GlobalVariables.State.CurrentReplay = replay;
+            GlobalVariables.State.PlayingWithReplay = true;
+
+            // GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }
 
         protected static void LoadIntoReplay(ReplayInfo replay, SongEntry song)

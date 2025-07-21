@@ -167,6 +167,7 @@ namespace YARG.Menu.MusicLibrary
             // Set IsPractice as well
             GlobalVariables.State.IsPractice = LibraryMode == MusicLibraryMode.Practice;
             GlobalVariables.State.CurrentReplay = null;
+            GlobalVariables.State.PlayingWithReplay = false;
 
             // Show no player warning
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);

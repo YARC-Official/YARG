@@ -4,7 +4,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Audio;
+using YARG.Core.Engine;
 using YARG.Core.Logging;
+using YARG.Gameplay;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
@@ -411,6 +413,17 @@ namespace YARG.Settings
                 // they're very important to have in logs regardless
                 // LogLevel.Exception,
                 // LogLevel.Failure,
+            };
+
+            #endregion
+
+            #region Experimental
+
+            public DropdownSetting<BandComboType> BandComboTypeSetting { get; } = new(BandComboType.Off)
+            {              
+                BandComboType.Off,
+                BandComboType.Lenient,
+                BandComboType.Strict
             };
 
             #endregion

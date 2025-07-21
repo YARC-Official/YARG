@@ -34,7 +34,7 @@ namespace YARG.Gameplay.HUD
             float showCursorSetting = SettingsManager.Settings.ShowCursorTimer.Value;
 
             // Always show if paused, or if settings say so
-            if (GameManager.Paused || GameManager.ReplayInfo != null)
+            if (GameManager.Paused || (!GlobalVariables.State.PlayingWithReplay && GameManager.ReplayInfo != null))
             {
                 Cursor.visible = true;
                 return;

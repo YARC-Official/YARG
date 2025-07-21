@@ -183,15 +183,19 @@ namespace YARG.Gameplay.Player
             NoteTrack = OriginalNoteTrack;
             Notes = NoteTrack.Notes;
 
+            var events = NoteTrack.TextEvents;
+
             Engine = CreateEngine();
 
             base.ComboMeter.Initialize(player.EnginePreset, Engine.BaseParameters.MaxMultiplier);
 
+            Engine.OnComboIncrement += OnComboIncrement;
+            Engine.OnComboReset += OnComboReset;
             if (GameManager.IsPractice)
             {
                 Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
             }
-            else if (GameManager.ReplayInfo != null)
+            else if (Player.IsReplay)
             {
                 // If it's a replay, the "SongSpeed" parameter should be set properly
                 // when it gets deserialized. Transfer this over to the engine.
@@ -387,8 +391,9 @@ namespace YARG.Gameplay.Player
             var difficulty = OriginalNoteTrack.Difficulty;
             var phrases = OriginalNoteTrack.Phrases;
             var textEvents = OriginalNoteTrack.TextEvents;
+            var shiftEvents = OriginalNoteTrack.RangeShiftEvents;
 
-            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents);
+            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents, shiftEvents);
             Notes = NoteTrack.Notes;
 
             ResetNoteCounters();

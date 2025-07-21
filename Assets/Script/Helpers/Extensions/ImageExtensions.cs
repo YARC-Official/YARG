@@ -79,7 +79,7 @@ namespace YARG.Helpers.Extensions
                 // Dispose of the old texture (prevent memory leaks)
                 UnityEngine.Object.Destroy(rawImage.texture);
 
-                if (image.IsAllocated && !cancellationToken.IsCancellationRequested)
+                if (image != null && !cancellationToken.IsCancellationRequested)
                 {
                     rawImage.texture = image.LoadTexture(false);
                     rawImage.uvRect = new Rect(0f, 0f, 1f, -1f);

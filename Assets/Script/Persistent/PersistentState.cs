@@ -23,10 +23,13 @@ namespace YARG
 
         public float SongSpeed;
 
-        public          bool            IsPractice;
-        public readonly bool            IsReplay     => CurrentReplay is not null;
         public          bool            PlayingAShow { get; set; }
         public          List<SongEntry> ShowSongs    { get; set; }
         public          int             ShowIndex    { get; set; }
+
+        public          bool IsPractice;
+        public readonly bool IsReplay => CurrentReplay is not null;
+        public          bool PlayingWithReplay;
+
     }
 }

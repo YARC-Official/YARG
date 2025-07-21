@@ -65,7 +65,7 @@ namespace YARG.Gameplay.Player
                 _                        => throw new Exception("Unreachable.")
             };
 
-            if (GameManager.ReplayInfo == null)
+            if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.Drums.Create(StarMultiplierThresholds, mode);
