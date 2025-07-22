@@ -548,7 +548,7 @@ namespace YARG.Menu.DifficultySelect
             // Get the possible difficulties for the player's instrument in the song
             foreach (var difficulty in EnumExtensions<Difficulty>.Values)
             {
-                bool invalidDifficulty = false;
+                bool invalidDifficulty = !HasPlayableDifficulty(song, profile.CurrentInstrument, difficulty);
                 foreach (var showsong in GlobalVariables.State.ShowSongs)
                 {
                     if (!HasPlayableDifficulty(showsong, profile.CurrentInstrument, difficulty))
