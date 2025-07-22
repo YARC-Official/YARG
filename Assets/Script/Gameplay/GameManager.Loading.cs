@@ -344,6 +344,7 @@ namespace YARG.Gameplay
                 bool vocalTrackInitialized = false;
 
                 int index = -1;
+                int highwayIndex = -1;
                 int vocalIndex = -1;
                 foreach (var player in YargPlayers)
                 {
@@ -374,6 +375,7 @@ namespace YARG.Gameplay
 
                     if (player.Profile.GameMode != GameMode.Vocals)
                     {
+                        highwayIndex++;
                         var prefab = player.Profile.GameMode switch
                         {
                             GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
@@ -389,7 +391,7 @@ namespace YARG.Gameplay
                         if (prefab == null) continue;
 
                         var playerObject = Instantiate(prefab,
-                            new Vector3(index * TRACK_SPACING_X, 100f, 0f), prefab.transform.rotation);
+                            new Vector3(highwayIndex * TRACK_SPACING_X, 100f, 0f), prefab.transform.rotation);
 
                         // Setup player
                         var trackPlayer = playerObject.GetComponent<TrackPlayer>();
