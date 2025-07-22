@@ -78,7 +78,7 @@ namespace YARG.Playlists
                 }
 
                 var playlist = LoadPlaylist(file);
-                if (playlist is not null)
+                if (playlist is not null && playlist.Id != FavoritesPlaylist.Id)
                 {
                     _playlists.Add(playlist);
                 }
