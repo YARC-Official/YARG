@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using YARG.Gameplay;
 
 #if UNITY_EDITOR
 using System.Linq;

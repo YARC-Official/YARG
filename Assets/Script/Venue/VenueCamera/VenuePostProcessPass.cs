@@ -1,6 +1,4 @@
-﻿using Cysharp.Threading.Tasks.Triggers;
-using UnityEngine;
-using UnityEngine.ProBuilder;
+﻿using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -33,6 +31,9 @@ namespace YARG.Venue.VenueCamera
 
         private readonly int _posterizeSteps = Shader.PropertyToID("_Steps");
 
+        private readonly int _wipeTime = Shader.PropertyToID("_WipeTime");
+        private readonly int _startTime = Shader.PropertyToID("_StartTime");
+
         // Huge Unity 6 gotcha. We have to hardcode the PP pass input/output textures because
         // cameraColorTarget always points to _CameraColorAttachmentA even after the PP pass
         private readonly int _attachmentB = Shader.PropertyToID("_CameraColorAttachmentB");
@@ -53,6 +54,8 @@ namespace YARG.Venue.VenueCamera
         private ProfilingSampler _lowFpsSaveProfiler;
         private ProfilingSampler _lowFpsRestoreProfiler;
         private ProfilingSampler _finalWriteProfiler;
+
+        private string[] _mirrorKeywords = { "LEFT", "RIGHT", "CLOCK_CCW", "NONE" };
 
         public VenuePostProcessPass(ref RenderTexture stashTex)
         {
@@ -196,6 +199,9 @@ namespace YARG.Venue.VenueCamera
 
                 if (mirrorEffect.IsActive() && material != null)
                 {
+                    material.EnableKeyword(_mirrorKeywords[mirrorEffect.wipeIndex.value]);
+                    material.SetFloat(_wipeTime, mirrorEffect.wipeTime.value);
+                    material.SetFloat(_startTime, mirrorEffect.startTime.value);
                     BlitTo(material);
                 }
 

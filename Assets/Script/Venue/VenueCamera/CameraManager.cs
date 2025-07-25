@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Gameplay;
@@ -130,7 +128,7 @@ namespace YARG.Venue.VenueCamera
             var firstEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
             CurrentEffect = firstEffect;
 
-            SetCurves();
+            InitializePostProcessing();
 
             // 1/8th of a beat is a 32nd note
             // GameManager.BeatEventHandler.Subscribe(UpdateCameraEffect, 1f / 8f, mode: TempoMapEventMode.Quarter);

@@ -1,10 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Serialization;
 using YARG.Core.Chart;
-using YARG.Core.Logging;
 using YARG.Gameplay;
 
 namespace YARG.Venue.VenueCamera

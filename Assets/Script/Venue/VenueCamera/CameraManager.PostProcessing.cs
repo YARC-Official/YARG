@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Gameplay;
+using Random = UnityEngine.Random;
 
 namespace YARG.Venue.VenueCamera
 {
@@ -32,6 +32,7 @@ namespace YARG.Venue.VenueCamera
         private TextureCurve _defaultCurve;
         private TextureCurve _copierCurve;
         private TextureCurve _brightCurve;
+        private TextureCurve _flatHalfCurve;
 
         private TextureCurveParameter _invertCurveParam;
         private TextureCurveParameter _defaultCurveParam;
@@ -52,7 +53,7 @@ namespace YARG.Venue.VenueCamera
         private List<ColorAnimation>        _colorAnimations        = new();
         private List<ClampedIntAnimation>   _clampedIntAnimations   = new();
 
-        public void SetCurves()
+        public void InitializePostProcessing()
         {
             if (_profile.TryGet<Bloom>(out var bloom))
             {
@@ -79,19 +80,23 @@ namespace YARG.Venue.VenueCamera
                 new Keyframe(0.227f, 0), new Keyframe(0.356f, 0.993f), new Keyframe(1, 1)), 0.5f, false, in bounds);
             _brightCurve = new TextureCurve(new AnimationCurve(new Keyframe(0f, 0.07f), new Keyframe(0.25f, 1f)), 0.5f,
                 false, in bounds);
+            _flatHalfCurve = new TextureCurve(new AnimationCurve(new Keyframe(0f, 0.5f), new Keyframe(1.0f, 0.5f)),
+                0.5f, false, in bounds);
 
 
             _defaultCurveParam = new TextureCurveParameter(_defaultCurve);
             _invertCurveParam = new TextureCurveParameter(_invertCurve, true);
             _copierCurveParam = new TextureCurveParameter(_copierCurve, true);
             _brightCurveParam = new TextureCurveParameter(_brightCurve, true);
-
         }
 
         public void SetCameraPostProcessing(PostProcessingEvent newEffect)
         {
             var found = true;
             float duration = 0.0f;
+
+            // Reset any existing effects, because they aren't supposed to stack
+            ResetCameraEffect();
 
             if (newEffect.Type == PreviousEffect.Type && NextEffect != null)
             {
@@ -230,10 +235,6 @@ namespace YARG.Venue.VenueCamera
             {
                 YargLogger.LogFormatDebug("Set post processing effect to: {0}", newEffect.Type.ToString());
             }
-
-            // Reset any existing effects, because they aren't supposed to stack
-            // We do this after setting new effects so that we can avoid clobbering any new animations
-            ResetCameraEffect();
         }
 
         private void ResetCameraEffect()
@@ -365,8 +366,8 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.25f, enabled);
-            SetAnimation(channelMixer.greenOutGreenIn, enabled ? 10f : 100f, 0.25f, enabled);
+            SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.01f, enabled);
+            SetAnimation(channelMixer.greenOutGreenIn, enabled ? 10f : 100f, 0.01f, enabled);
 
             // colorAdjustments.postExposure.value = enabled ? 1f : 0f;
             // colorAdjustments.postExposure.overrideState = enabled;
@@ -387,8 +388,8 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.25f, enabled);
-            SetAnimation(channelMixer.blueOutBlueIn, enabled ? 10f : 100f, 0.25f, enabled);
+            SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.01f, enabled);
+            SetAnimation(channelMixer.blueOutBlueIn, enabled ? 10f : 100f, 0.01f, enabled);
 
             // colorAdjustments.postExposure.value = enabled ? 1f : 0f;
             // colorAdjustments.postExposure.overrideState = enabled;
@@ -409,8 +410,8 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.25f, enabled);
-            SetAnimation(channelMixer.redOutRedIn, enabled ? 10f : 100f, 0.25f, enabled);
+            SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.01f, enabled);
+            SetAnimation(channelMixer.redOutRedIn, enabled ? 10f : 100f, 0.01f, enabled);
 
             // colorAdjustments.postExposure.value = enabled ? 1f : 0f;
             // colorAdjustments.postExposure.overrideState = enabled;
@@ -426,7 +427,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.postExposure, enabled ? strength : 0f, 0.25f, enabled);
+            SetAnimation(colorAdjustments.postExposure, enabled ? strength : 0f, 0.01f, enabled);
 
             // colorAdjustments.postExposure.value = enabled ? strength : 0f;
             // colorAdjustments.postExposure.overrideState = enabled;
@@ -439,7 +440,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(chromaticAberration.intensity, enabled ? strength : 0, 0.25f, enabled);
+            SetAnimation(chromaticAberration.intensity, enabled ? strength : 0, 0.01f, enabled);
 
             // chromaticAberration.intensity.value = enabled ? strength : 0;
             // chromaticAberration.intensity.overrideState = enabled;
@@ -484,9 +485,9 @@ namespace YARG.Venue.VenueCamera
             var greenCurveParam = new TextureCurveParameter(greenCurve, true);
             var blueCurveParam = new TextureCurveParameter(blueCurve, true);
 
-            SetAnimation(colorCurves.lumVsSat, enabled ? lumVSatCurveParam : _defaultCurveParam, 0.25f, enabled);
-            SetAnimation(colorCurves.green, enabled ? greenCurveParam : _defaultCurveParam, 0.25f, enabled);
-            SetAnimation(colorCurves.blue, enabled ? blueCurveParam : _defaultCurveParam, 0.25f, enabled);
+            SetAnimation(colorCurves.lumVsSat, enabled ? lumVSatCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.green, enabled ? greenCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.blue, enabled ? blueCurve : _defaultCurve, 0.01f, enabled);
 
             // colorCurves.lumVsSat.value = enabled ? lumVSatCurve : _defaultCurve;
             // colorCurves.green.value = enabled ? greenCurve : _defaultCurve;
@@ -518,9 +519,9 @@ namespace YARG.Venue.VenueCamera
 
             var blueFilterColor = new Color(0.413f, 0.559f, 0.962f, 1f);
 
-            SetAnimation(colorCurves.hueVsSat, enabled ? hueVsSatCurveParam : _defaultCurveParam, 0.25f, enabled);
-            SetAnimation(colorAdjustments.postExposure, enabled ? 1.5f : 0f, 0.25f, enabled);
-            SetAnimation(colorAdjustments.colorFilter, enabled ? blueFilterColor : Color.white, 0.25f, enabled);
+            SetAnimation(colorCurves.hueVsSat, enabled ? hueVsSatCurve : _flatHalfCurve, 0.01f, enabled);
+            SetAnimation(colorAdjustments.postExposure, enabled ? 1.5f : 0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? blueFilterColor : Color.white, 0.01f, enabled);
 
             // colorAdjustments.postExposure.value = enabled ? 1.5f : 0f;
             // colorAdjustments.postExposure.overrideState = enabled;
@@ -554,11 +555,11 @@ namespace YARG.Venue.VenueCamera
             var redCurveParam = new TextureCurveParameter(redCurve, true);
             var masterCurveParam = new TextureCurveParameter(masterCurve, true);
 
-            SetAnimation(colorCurves.hueVsHue, enabled ? _invertCurveParam : _defaultCurveParam, 0.25f, enabled);
-            SetAnimation(colorCurves.green, enabled ? flatZeroCurveParam : _defaultCurveParam, 0.25f, enabled);
-            SetAnimation(colorCurves.blue, enabled ? flatZeroCurveParam : _defaultCurveParam, 0.25f, enabled);
-            SetAnimation(colorCurves.red, enabled ? redCurveParam : _defaultCurveParam, 0.25f, enabled);
-            SetAnimation(colorCurves.master, enabled ? masterCurveParam : _defaultCurveParam, 0.25f, enabled);
+            SetAnimation(colorCurves.hueVsHue, enabled ? _invertCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.green, enabled ? flatZeroCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.blue, enabled ? flatZeroCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.red, enabled ? redCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.master, enabled ? masterCurve : _defaultCurve, 0.01f, enabled);
 
             // colorCurves.hueVsHue.value = enabled ? _invertCurve : _defaultCurve;
             // colorCurves.green.value = enabled ? flatZeroCurve : _defaultCurve;
@@ -580,7 +581,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorCurves.master, enabled ? _invertCurveParam : _defaultCurveParam, 0.25f, enabled);
+            SetAnimation(colorCurves.master, enabled ? _invertCurve : _defaultCurve, 0.01f, enabled);
 
             // colorCurves.active = enabled;
             // colorCurves.master.value = enabled ? _invertCurve : _defaultCurve;
@@ -594,7 +595,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(posterize.Steps, enabled ? steps : posterize.Steps.max, 0.25f, enabled);
+            SetAnimation(posterize.Steps, enabled ? steps : posterize.Steps.max, 0.01f, enabled);
             // posterize.Steps.value = enabled ? steps : 0;
             // posterize.Steps.overrideState = enabled;
         }
@@ -606,7 +607,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.contrast, enabled ? 50.0f : 1.0f, 0.25f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 50.0f : 1.0f, 0.01f, enabled);
 
             // colorAdjustments.contrast.value = enabled ? 50.0f : 1.0f;
             // colorAdjustments.contrast.overrideState = enabled;
@@ -619,7 +620,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorCurves.master, enabled ? _brightCurveParam : _defaultCurveParam, 0.25f, enabled);
+            SetAnimation(colorCurves.master, enabled ? _brightCurve : _defaultCurve, 0.01f, enabled);
 
             // colorCurves.master.value = enabled ? _brightCurve : _defaultCurve;
             // colorCurves.master.overrideState = enabled;
@@ -630,7 +631,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.saturation, (float)(enabled ? 50.0f : 0.0f), (float)0.25, enabled);
+            SetAnimation(colorAdjustments.saturation, (float)(enabled ? 50.0f : 0.0f), 0.01f, enabled);
 
             // colorAdjustments.saturation.value = enabled ? 50.0f : 0.0f;
             // colorAdjustments.saturation.overrideState = enabled;
@@ -643,6 +644,26 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
+            // Randomize the wipe type
+            var max = mirror.wipeIndex.max;
+            mirror.wipeIndex.value = enabled ? Random.Range(0, max) : 3;
+            mirror.wipeIndex.overrideState = enabled;
+
+            // Make sure the wipe time doesn't exceed the time until the next effect
+            // For now we'll default to a max of 0.5 seconds
+            var wipeTime = 0.5f;
+            if (NextEffect != null)
+            {
+                wipeTime = Mathf.Min((float) (NextEffect.Time - CurrentEffect.Time), wipeTime);
+            }
+
+            mirror.wipeTime.value = enabled ? wipeTime : 0.5f;
+            mirror.wipeTime.overrideState = enabled;
+
+            // Set the start time to unity's conception of the current time
+            mirror.startTime.value = enabled ? Time.time : 0f;
+            mirror.startTime.overrideState = enabled;
+
             mirror.enabled.value = enabled;
             mirror.enabled.overrideState = enabled;
         }
@@ -654,7 +675,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.saturation, (float)(enabled ? strength : 0.0f), (float)0.25, enabled);
+            SetAnimation(colorAdjustments.saturation, (float)(enabled ? strength : 0.0f), 0.01f, enabled);
 
             // colorAdjustments.saturation.value = enabled ? strength : 0.0f;
             // colorAdjustments.saturation.overrideState = enabled;
@@ -667,9 +688,9 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.saturation, (float)(enabled ? -100.0f : 0.0f), (float)0.25, enabled);
-            SetAnimation(colorAdjustments.contrast, (float)(enabled ? 100f : 1.0f), (float)0.25, enabled);
-            SetAnimation(colorAdjustments.postExposure, (float)(enabled ? 1.5f : 1.0f), (float)0.25, enabled);
+            SetAnimation(colorAdjustments.saturation, (float)(enabled ? -100.0f : 0.0f), 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, (float)(enabled ? 100f : 1.0f), 0.01f, enabled);
+            SetAnimation(colorAdjustments.postExposure, (float)(enabled ? 1.5f : 1.0f), 0.01f, enabled);
 
             // colorAdjustments.saturation.value = enabled ? -100.0f : 0.0f;
             // colorAdjustments.saturation.overrideState = enabled;
@@ -686,7 +707,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorCurves.master, enabled ? _copierCurveParam : _defaultCurveParam, 0.25f, enabled);
+            SetAnimation(colorCurves.master, enabled ? _copierCurve : _defaultCurve, 0.01f, enabled);
 
             // colorCurves.master.value = enabled ? _copierCurve : _defaultCurve;
             // colorCurves.master.overrideState = enabled;
@@ -700,7 +721,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.saturation, (float)(enabled ? -100.0f : 0.0f), (float)0.25, enabled);
+            SetAnimation(colorAdjustments.saturation, (float)(enabled ? -100.0f : 0.0f), 0.01f, enabled);
 
             // colorAdjustments.saturation.value = enabled ? -100.0f : 0.0f;
             // colorAdjustments.saturation.overrideState = enabled;
@@ -713,17 +734,17 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(mixer.redOutRedIn, enabled ? 39.3f : 100f, 0.25f, enabled);
-            SetAnimation(mixer.greenOutRedIn, enabled ? 34.9f : 0f, 0.25f, enabled);
-            SetAnimation(mixer.blueOutRedIn, enabled ? 27.2f : 0f, 0.25f, enabled);
+            SetAnimation(mixer.redOutRedIn, enabled ? 39.3f : 100f, 0.01f, enabled);
+            SetAnimation(mixer.greenOutRedIn, enabled ? 34.9f : 0f, 0.01f, enabled);
+            SetAnimation(mixer.blueOutRedIn, enabled ? 27.2f : 0f, 0.01f, enabled);
 
-            SetAnimation(mixer.redOutGreenIn, enabled ? 76.9f : 0f, 0.25f, enabled);
-            SetAnimation(mixer.greenOutGreenIn, enabled ? 68.6f : 100f, 0.25f, enabled);
-            SetAnimation(mixer.blueOutGreenIn, enabled ? 53.4f : 0f, 0.25f, enabled);
+            SetAnimation(mixer.redOutGreenIn, enabled ? 76.9f : 0f, 0.01f, enabled);
+            SetAnimation(mixer.greenOutGreenIn, enabled ? 68.6f : 100f, 0.01f, enabled);
+            SetAnimation(mixer.blueOutGreenIn, enabled ? 53.4f : 0f, 0.01f, enabled);
 
-            SetAnimation(mixer.blueOutRedIn, enabled ? 18.9f : 0f, 0.25f, enabled);
-            SetAnimation(mixer.greenOutRedIn, enabled ? 16.8f : 0f, 0.25f, enabled);
-            SetAnimation(mixer.blueOutBlueIn, enabled ? 13.1f : 100f, 0.25f, enabled);
+            SetAnimation(mixer.blueOutRedIn, enabled ? 18.9f : 0f, 0.01f, enabled);
+            SetAnimation(mixer.greenOutRedIn, enabled ? 16.8f : 0f, 0.01f, enabled);
+            SetAnimation(mixer.blueOutBlueIn, enabled ? 13.1f : 100f, 0.01f, enabled);
 
             // mixer.redOutRedIn.value = enabled ? 39.3f : 100.0f;
             // mixer.greenOutRedIn.value = enabled ? 34.9f : 0.0f;
@@ -760,13 +781,13 @@ namespace YARG.Venue.VenueCamera
 
             if (enabled)
             {
-                SetAnimation(bloom.intensity, 1.0f, 0.25f, enabled);
-                SetAnimation(bloom.threshold, 0.6f, 0.25f, enabled);
+                SetAnimation(bloom.intensity, 1.0f, 0.01f, true);
+                SetAnimation(bloom.threshold, 0.6f, 0.01f, true);
             }
             else
             {
-                SetAnimation(bloom.intensity, _originalBloom, 0.25f, enabled);
-                SetAnimation(bloom.threshold, _originalBloomThreshold, 0.25f, enabled);
+                SetAnimation(bloom.intensity, _originalBloom, 0.01f, _originalBloomState);
+                SetAnimation(bloom.threshold, _originalBloomThreshold, 0.01f, _originalBloomTState);
             }
 
             // bloom.intensity.value = enabled ? 1.0f : _originalBloom;
@@ -782,7 +803,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.colorFilter, enabled ? _greenTint : Color.white, 0.25f, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? _greenTint : Color.white, 0.01f, enabled);
             //
             // colorAdjustments.colorFilter.value = enabled ? _greenTint : Color.white;
             // colorAdjustments.colorFilter.overrideState = enabled;
@@ -795,7 +816,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.colorFilter, enabled ? _blueTint : Color.white, 0.25f, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? _blueTint : Color.white, 0.01f, enabled);
             //
             // colorAdjustments.colorFilter.value = enabled ? _blueTint : Color.white;
             // colorAdjustments.colorFilter.overrideState = enabled;
@@ -809,14 +830,14 @@ namespace YARG.Venue.VenueCamera
             }
 
             // TODO: Not really sure that we should animate these, lol
-            SetAnimation(scanline.intensity, enabled ? 0.6f : 0.0f, 0.25f, enabled);
-            SetAnimation(scanline.scanlineCount, enabled ? 190 : 0, 0.0f, enabled);
+            SetAnimation(scanline.intensity, enabled ? 0.6f : 0.0f, 0.01f, enabled);
+            // SetAnimation(scanline.scanlineCount, enabled ? 190 : 0, 0.0f, enabled);
 
             // scanline.intensity.value = enabled ? 0.6f : 0.0f;
             // scanline.intensity.overrideState = enabled;
             // // This should really be ~1/4 of the screen resolution
-            // scanline.scanlineCount.value = 190;
-            // scanline.scanlineCount.overrideState = enabled;
+            scanline.scanlineCount.value = 190;
+            scanline.scanlineCount.overrideState = enabled;
         }
 
         private void SetTrail(bool enabled, float intensity = 0.6f)
@@ -825,7 +846,7 @@ namespace YARG.Venue.VenueCamera
             {
                 return;
             }
-            SetAnimation(trail.length, enabled ? intensity : 0.0f, 0.25f, enabled);;
+            SetAnimation(trail.length, enabled ? intensity : 0.0f, 0.01f, enabled);;
             // trail.length.value = enabled ? intensity : 0.0f;
             // trail.length.overrideState = enabled;
         }
@@ -842,9 +863,9 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.contrast, enabled ? 20.0f : 0.0f, 0.25f, enabled);
-            SetAnimation(grain.intensity, enabled ? 1.0f : 0.25f, 0.25f, enabled);
-            SetAnimation(grain.response, enabled ? 0.0f : 0.8f, 0.25f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 20.0f : 0.0f, 0.01f, enabled);
+            SetAnimation(grain.intensity, enabled ? 1.0f : 0.25f, 0.01f, enabled);
+            SetAnimation(grain.response, enabled ? 0.0f : 0.8f, 0.01f, enabled);
 
             // colorAdjustments.contrast.value = enabled ? 20.0f : 0.0f;
             // grain.intensity.value = enabled ? 1.0f : 0.25f;
@@ -853,21 +874,20 @@ namespace YARG.Venue.VenueCamera
             // grain.response.overrideState = enabled;
         }
 
-        // The SetAnimation calls will always animate, even if only for one frame because the new effect needs to be on
-        // the list of animations so we can avoid clobbering an enable animation on the same parameter
-        private void SetAnimation(ClampedFloatParameter target, float endValue, float duration, bool finalOverrideState)
+        public void SetAnimation(ClampedFloatParameter target, float endValue, float duration, bool finalOverrideState)
         {
-            // If the duration provided by the caller is tiny, use that. They have a reason for overriding the charter
-            if (CurrentEffect.Type == PreviousEffect.Type && duration > 0.001f)
+            if (CurrentEffect.Type == PreviousEffect.Type)
             {
                 // Duration is the time between current and next, unless next doesn't exist, in which case we do nothing
                 // because there is no change
-                if (NextEffect == null)
+                if (NextEffect == null  || CurrentEffect.Type == NextEffect.Type)
                 {
                     return;
                 }
 
-                duration = (float) (NextEffect.Time - CurrentEffect.Time);
+                // The - 0.02f is to make sure that this animation will complete before the disable call for the next
+                // effect
+                duration = (float) (NextEffect.Time - CurrentEffect.Time) - 0.02f;
             }
 
             var anim = new ClampedFloatAnimation(endValue, duration, target, finalOverrideState);
@@ -875,14 +895,20 @@ namespace YARG.Venue.VenueCamera
             // If we are disabling the override, but something else is attempting to animate it, let it happen
             // This Contains() check works because the animation types' Equals() method only considers reference
             // equality of the animation target
-            if (!finalOverrideState && _clampedFloatAnimations.Contains(anim))
+            // if (!finalOverrideState && _clampedFloatAnimations.Contains(anim))
+            // {
+            //     return;
+            // }
+
+            // Disable is happening before enable again, so if we find something is animating this target, kill it
+            if (!finalOverrideState)
             {
-                return;
+                _clampedFloatAnimations.RemoveAll(t => t.Equals(anim));
             }
 
             _clampedFloatAnimations.Add(anim);
 
-            if (NextEffect != null)
+            if (duration > 0.01f)
             {
                 YargLogger.LogDebug(
                     $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
@@ -891,92 +917,69 @@ namespace YARG.Venue.VenueCamera
             // target.overrideState = enabling;
         }
 
-        private void SetAnimation(FloatParameter target, float endValue, float duration, bool finalOverrideState)
+        public void SetAnimation(FloatParameter target, float endValue, float duration, bool finalOverrideState)
         {
-            // If the duration provided by the caller is tiny, use that. They have a reason for overriding the charter
-            if (duration < 0.001f)
-            {
-                target.value = endValue;
-                target.overrideState = finalOverrideState;
-                YargLogger.LogDebug("Hard switching post processing");
-                return;
-            }
-
             if (CurrentEffect.Type == PreviousEffect.Type)
             {
                 // Duration is the time between current and next, unless next doesn't exist, in which case we do nothing
                 // because there is no change
-                if (NextEffect == null)
+                if (NextEffect == null || CurrentEffect.Type == NextEffect.Type)
                 {
                     return;
                 }
 
-                duration = (float) (NextEffect.Time - CurrentEffect.Time);
-            }
-            else
-            {
-                target.value = endValue;
-                target.overrideState = finalOverrideState;
-                return;
+                duration = (float) (NextEffect.Time - CurrentEffect.Time) - 0.02f;
             }
 
             var anim = new FloatAnimation(endValue, duration, target, finalOverrideState);
 
-            if (!finalOverrideState && _floatAnimations.Contains(anim))
+            // if (!finalOverrideState && _floatAnimations.Contains(anim))
+            // {
+            //     return;
+            // }
+
+            if (!finalOverrideState)
             {
-                return;
+                _floatAnimations.RemoveAll(t => t.Equals(anim));
             }
 
             _floatAnimations.Add(anim);
-            if (NextEffect != null)
+            if (duration > 0.01f)
             {
                 YargLogger.LogDebug(
                     $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
             }
-            // target.value = endValue;
-            // target.overrideState = enabling;
         }
 
-        private void SetAnimation(TextureCurveParameter target, TextureCurveParameter endValue, float duration, bool finalOverrideState)
+        public void SetAnimation(TextureCurveParameter target, TextureCurve endValue, float duration, bool finalOverrideState)
         {
-            // If the duration provided by the caller is tiny, use that. They have a reason for overriding the charter
-            if (duration < 0.001f)
-            {
-                target = endValue;
-                target.value.SetDirty();
-                target.overrideState = finalOverrideState;
-                YargLogger.LogDebug("Hard switching post processing");
-                return;
-            }
-
             if (CurrentEffect.Type == PreviousEffect.Type)
             {
                 // Duration is the time between current and next, unless next doesn't exist, in which case we do nothing
                 // because there is no change
-                if (NextEffect == null)
+                if (NextEffect == null || CurrentEffect.Type == NextEffect.Type)
                 {
                     return;
                 }
 
-                duration = (float) (NextEffect.Time - CurrentEffect.Time);
-            }
-            else
-            {
-                target = endValue;
-                target.value.SetDirty();
-                target.overrideState = finalOverrideState;
-                return;
+                duration = (float) (NextEffect.Time - CurrentEffect.Time) - 0.02f;
             }
 
-            var anim = new CurveAnimation(endValue.value, duration, target, finalOverrideState);
+            var anim = new CurveAnimation(endValue, duration, target, finalOverrideState);
 
-            if (!finalOverrideState && _curveAnimations.Contains(anim))
+            // if (!finalOverrideState && _curveAnimations.Contains(anim))
+            // {
+            //     return;
+            // }
+
+            if (!finalOverrideState)
             {
-                return;
+                _curveAnimations.RemoveAll(t => t.Equals(anim));
             }
 
             _curveAnimations.Add(anim);
-            if (NextEffect != null)
+            YargLogger.LogDebug($"Adding new curve animation at frame {Time.frameCount}");
+            if (duration > 0.01f)
             {
                 YargLogger.LogDebug(
                     $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
@@ -986,44 +989,34 @@ namespace YARG.Venue.VenueCamera
             // target.value.SetDirty();
         }
 
-        private void SetAnimation(ColorParameter target, Color endValue, float duration, bool finalOverrideState)
+        public void SetAnimation(ColorParameter target, Color endValue, float duration, bool finalOverrideState)
         {
-            // If the duration provided by the caller is tiny, use that. They have a reason for overriding the charter
-            if (duration < 0.001f)
-            {
-                target.value = endValue;
-                target.overrideState = finalOverrideState;
-                YargLogger.LogDebug("Hard switching post processing");
-                return;
-            }
-
             if (CurrentEffect.Type == PreviousEffect.Type)
             {
                 // Duration is the time between current and next, unless next doesn't exist, in which case we do nothing
                 // because there is no change
-                if (NextEffect == null)
+                if (NextEffect == null || CurrentEffect.Type == NextEffect.Type)
                 {
                     return;
                 }
 
-                duration = (float) (NextEffect.Time - CurrentEffect.Time);
-            }
-            else
-            {
-                target.value = endValue;
-                target.overrideState = finalOverrideState;
-                return;
+                duration = (float) (NextEffect.Time - CurrentEffect.Time) - 0.02f;
             }
 
             var anim = new ColorAnimation(endValue, duration, target, finalOverrideState);
 
-            if (!finalOverrideState && _colorAnimations.Contains(anim))
+            // if (!finalOverrideState && _colorAnimations.Contains(anim))
+            // {
+            //     return;
+            // }
+
+            if (!finalOverrideState)
             {
-                return;
+                _colorAnimations.RemoveAll(t => t.Equals(anim));
             }
 
             _colorAnimations.Add(anim);
-            if (NextEffect != null)
+            if (duration > 0.01f)
             {
                 YargLogger.LogDebug(
                     $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
@@ -1032,43 +1025,33 @@ namespace YARG.Venue.VenueCamera
             // target.overrideState = enabling;
         }
 
-        private void SetAnimation(ClampedIntParameter target, int endValue, float duration, bool finalOverrideState)
+        public void SetAnimation(ClampedIntParameter target, int endValue, float duration, bool finalOverrideState)
         {
-            // If the duration provided by the caller is tiny, use that. They have a reason for overriding the charter
-            if (duration < 0.001f)
-            {
-                target.value = endValue;
-                target.overrideState = finalOverrideState;
-                YargLogger.LogDebug("Hard switching post processing");
-                return;
-            }
-
             if (CurrentEffect.Type == PreviousEffect.Type)
             {
                 // Duration is the time between current and next, unless next doesn't exist, in which case we do nothing
                 // because there is no change
-                if (NextEffect == null)
+                if (NextEffect == null || CurrentEffect.Type == NextEffect.Type)
                 {
                     return;
                 }
 
-                duration = (float) (NextEffect.Time - CurrentEffect.Time);
-            }
-            else
-            {
-                target.value = endValue;
-                target.overrideState = finalOverrideState;
-                return;
+                duration = (float) (NextEffect.Time - CurrentEffect.Time) - 0.02f;
             }
 
             var anim = new ClampedIntAnimation(endValue, duration, target, finalOverrideState);
-            if (!finalOverrideState && _clampedIntAnimations.Contains(anim))
+            // if (!finalOverrideState && _clampedIntAnimations.Contains(anim))
+            // {
+            //     return;
+            // }
+
+            if (!finalOverrideState)
             {
-                return;
+                _clampedIntAnimations.RemoveAll(t => t.Equals(anim));
             }
 
             _clampedIntAnimations.Add(anim);
-            if (NextEffect != null)
+            if (duration > 0.01f)
             {
                 YargLogger.LogDebug(
                     $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
@@ -1084,6 +1067,7 @@ namespace YARG.Venue.VenueCamera
                     var curveAnimation = _curveAnimations[i];
                     if (curveAnimation.Update())
                     {
+                        YargLogger.LogDebug($"Removing Expired Curve Animation at frame {Time.frameCount}");
                         _curveAnimations.RemoveAt(i);
                         i--;
                     }
