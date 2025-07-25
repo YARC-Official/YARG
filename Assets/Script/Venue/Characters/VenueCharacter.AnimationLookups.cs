@@ -715,6 +715,7 @@ namespace YARG.Venue.Characters
                     // We have to special case some of the generic animation states since they are layered with a bool
                     if (IsGenericState(state))
                     {
+                        YargLogger.LogFormatDebug("Setting trigger for generic state {0}", state);
                         // First, reset the bools to false (if they exist)
                         _animator.SetBool("isMellow", false);
                         _animator.SetBool("isIntense", false);
@@ -743,12 +744,12 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private bool IsLayeredState(AnimationStateType state)
+        private static bool IsLayeredState(AnimationStateType state)
         {
             return state is AnimationStateType.Mellow or AnimationStateType.Intense;
         }
 
-        private bool IsGenericState(AnimationStateType state)
+        private static bool IsGenericState(AnimationStateType state)
         {
             return state is AnimationStateType.Idle or AnimationStateType.Playing or AnimationStateType.IdleRealtime
                 or AnimationStateType.Mellow or AnimationStateType.Intense;

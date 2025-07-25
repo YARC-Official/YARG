@@ -148,6 +148,28 @@ namespace YARG.Venue.Characters
                 }
             }
 
+            if (_drumMaps.FindLastIndex(e => e.State == AnimationState.Idle) > 0)
+            {
+                foreach (var key in _characters.Keys)
+                {
+                    if (_characters[key].Type == VenueCharacter.CharacterType.Drums)
+                    {
+                        _characters[key].ChartHasAnimations = true;
+                    }
+                }
+            }
+
+            if (_vocalMaps.FindLastIndex(e => e.State == AnimationState.Idle) > 0)
+            {
+                foreach (var key in _characters.Keys)
+                {
+                    if (_characters[key].Type == VenueCharacter.CharacterType.Vocals)
+                    {
+                        _characters[key].ChartHasAnimations = true;
+                    }
+                }
+            }
+
             // Don't animate until there are notes (at least until we have idle animations)
             foreach (var character in _characters.Values)
             {
@@ -297,7 +319,14 @@ namespace YARG.Venue.Characters
         // TODO: Figure out something reasonable to do for the vocalist
         private void ProcessVocals(VenueCharacter character)
         {
+            while (_vocalMaps.Count > 0 && _vocalTriggerIndex < _vocalMaps.Count &&
+                _vocalMaps[_vocalTriggerIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
+            {
+                var mapEvent = _vocalMaps[_vocalTriggerIndex];
+                _vocalTriggerIndex++;
 
+                character.OnGuitarAnimation(mapEvent);
+            }
         }
 
         private void ProcessDrums(VenueCharacter character)

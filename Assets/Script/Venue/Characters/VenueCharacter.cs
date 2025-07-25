@@ -300,7 +300,15 @@ namespace YARG.Venue.Characters
                 "HandPositionFive",
                 "HandPositionSix",
                 "HandPositionSeven",
-                "HandPositionEight"
+                "HandPositionEight",
+                "HandPositionNine",
+                "HandPositionTen",
+                "HandPositionEleven",
+                "HandPositionTwelve",
+                "HandPositionThirteen",
+                "HandPositionFourteen",
+                "HandPositionFifteen",
+                "HandPositionSixteen"
             };
 
             foreach (var transform in GetComponentsInChildren<Transform>())
@@ -328,7 +336,15 @@ namespace YARG.Venue.Characters
                 "HandPositionFive",
                 "HandPositionSix",
                 "HandPositionSeven",
-                "HandPositionEight"
+                "HandPositionEight",
+                "HandPositionNine",
+                "HandPositionTen",
+                "HandPositionEleven",
+                "HandPositionTwelve",
+                "HandPositionThirteen",
+                "HandPositionFourteen",
+                "HandPositionFifteen",
+                "HandPositionSixteen"
             };
 
             foreach (var position in positions)
@@ -360,30 +376,45 @@ namespace YARG.Venue.Characters
         {
             var triggerText = animationState switch
             {
-                AnimationState.Idle => "Idle",
-                AnimationState.IdleIntense => "IdleIntense",
-                AnimationState.IdleRealtime => "IdleRealtime",
-                AnimationState.Intense => "Intense",
-                AnimationState.Mellow => "Mellow",
-                AnimationState.Play => "Playing",
-                AnimationState.PlaySolo => "PlaySolo",
-                _ => "Idle"
+                AnimationState.Idle => _idleAnimationName,
+                AnimationState.IdleIntense => _idleAnimationName,
+                AnimationState.IdleRealtime => _idleAnimationName,
+                AnimationState.Intense => _playingAnimationName,
+                AnimationState.Mellow => _playingAnimationName,
+                AnimationState.Play => _playingAnimationName,
+                AnimationState.PlaySolo => _playingAnimationName,
+                _ => _playingAnimationName
             };
 
             // We're not supporting all of these yet, so winnow them down to what we are supporting
-            triggerText = triggerText switch
-            {
-                "Idle"         => "Idle",
-                "IdleIntense"  => "Idle",
-                "IdleRealtime" => "Idle",
-                "Intense"      => "Playing",
-                "Mellow"       => "Playing",
-                "Playing"      => "Playing",
-                "PlaySolo"     => "Playing",
-                _              => "Idle"
-            };
+            // TODO: This needs to read the given character's animation settings to get the name of the idle and
+            // playing states
 
-            YargLogger.LogDebug($"Animation state {animationState} triggered");
+            // triggerText = triggerText switch
+            // {
+            //     "Idle"         => "Idle",
+            //     "IdleIntense"  => "Idle",
+            //     "IdleRealtime" => "Idle",
+            //     "Intense"      => "Playing",
+            //     "Mellow"       => "Playing",
+            //     "Playing"      => "Playing",
+            //     "PlaySolo"     => "Playing",
+            //     _              => "Idle"
+            // };
+
+            // triggerText = triggerText switch
+            // {
+            //     "Idle"         => _idleAnimationName,
+            //     "IdleIntense"  => _idleAnimationName,
+            //     "IdleRealtime" => _idleAnimationName,
+            //     "Intense"      => _playingAnimationName,
+            //     "Mellow"       => _playingAnimationName,
+            //     "Playing"      => _playingAnimationName,
+            //     "PlaySolo"     => _playingAnimationName,
+            //     _              => _idleAnimationName
+            // };
+
+            YargLogger.LogDebug($"Animation state {animationState} ({triggerText}) for {Type} triggered");
             SetTrigger(triggerText);
         }
 
@@ -471,7 +502,6 @@ namespace YARG.Venue.Characters
 
             YargLogger.LogDebug($"Animation {animation} not found for character type {Type}");
 
-            // TODO: Remove the old cruft below when it is determined that the above works correctly
 
             // var animName = animation switch
             // {
@@ -993,17 +1023,14 @@ namespace YARG.Venue.Characters
                 return;
             }
 
-            _leftHandObject = _ikTargets[_currentLeftHandPosition];
-
-            if (_ikActive && _leftHandObject != null)
-            {
-                _animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1);
-                _animator.SetIKPosition(AvatarIKGoal.LeftHand, _leftHandObject.position);
-            }
-            else
+            if (!_ikTargets.TryGetValue(_currentLeftHandPosition, out _leftHandObject) || !_ikActive)
             {
                 _animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
+                return;
             }
+
+            _animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1);
+            _animator.SetIKPosition(AvatarIKGoal.LeftHand, _leftHandObject.position);
         }
 
         private void SetDelayedTrigger(string triggerName, float delay)
