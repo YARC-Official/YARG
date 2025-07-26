@@ -20,8 +20,9 @@ namespace YARG.Gameplay.Visuals
         private List<Camera> _cameras = new();
         private List<Vector3> _highwayPositions = new();
 
-        private Camera _renderCamera;
-        private RenderTexture _highwaysOutputTexture;
+        private Camera _renderCamera = null;
+        private RenderTexture _highwaysOutputTexture = null;
+        private HighwayStencilPass _StencilPass = null;
 
         private float[] _curveFactors = new float[MAX_MATRICES];
         private float[] _zeroFadePositions = new float[MAX_MATRICES];
@@ -30,7 +31,7 @@ namespace YARG.Gameplay.Visuals
         private Matrix4x4[] _camViewMatrices = new Matrix4x4[MAX_MATRICES];
         private Matrix4x4[] _camInvViewMatrices = new Matrix4x4[MAX_MATRICES];
         private Matrix4x4[] _camProjMatrices = new Matrix4x4[MAX_MATRICES];
-        public float Scale { get; private set; } = 1.0f ;
+        public float Scale { get; private set; } = 1.0f;
 
         public static readonly int YargHighwaysNumberID = Shader.PropertyToID("_YargHighwaysN");
         public static readonly int YargHighwayCamViewMatricesID = Shader.PropertyToID("_YargCamViewMatrices");
@@ -166,11 +167,17 @@ namespace YARG.Gameplay.Visuals
         private void OnEnable()
         {
             _renderCamera = GetComponent<Camera>();
-
+            _renderCamera.clearFlags = CameraClearFlags.Depth;
             if (_highwaysOutput != null)
             {
                 _renderCamera.targetTexture = GetHighwayOutputTexture();
             }
+
+            if (_StencilPass == null)
+            {
+                _StencilPass = new HighwayStencilPass(GetHighwayOutputTexture());
+            }
+
 
             Shader.SetGlobalInteger(YargHighwaysNumberID, 0);
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
@@ -196,6 +203,12 @@ namespace YARG.Gameplay.Visuals
         {
             if (cam != _renderCamera)
             {
+                // Sir, this is venue
+                if (cam.cullingMask == 512)
+                {
+                    var renderer = cam.GetUniversalAdditionalCameraData().scriptableRenderer;
+                    renderer.EnqueuePass(_StencilPass);
+                }
                 return;
             }
 
@@ -276,6 +289,38 @@ namespace YARG.Gameplay.Visuals
         {
             Matrix4x4 postProj = GetPostProjectionMatrix(index, highwayCount, highwayScale);
             return postProj * camProj; // HLSL-style: mul(postProj, proj)
+        }
+    }
+
+    // Pass to store copy of color buffer after rendering only opaques
+    class HighwayStencilPass : ScriptableRenderPass
+    {
+        private static readonly int _MainTex = Shader.PropertyToID("_MainTex");
+        private CommandBuffer cmd;
+        private RenderTexture stencil;
+
+        public HighwayStencilPass(RenderTexture rt)
+        {
+            renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
+            stencil = rt;
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            ScriptableRenderer renderer = renderingData.cameraData.renderer;
+            cmd = CommandBufferPool.Get("Highway Stencil");
+
+
+            cmd.SetGlobalTexture(_MainTex, stencil);
+
+            var _Shader = Shader.Find("HighwayStencil");
+            var _Material = CoreUtils.CreateEngineMaterial(_Shader);
+
+            //The RenderingUtils.fullscreenMesh argument specifies that the mesh to draw is a quad.
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, _Material);
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
     }
 }
