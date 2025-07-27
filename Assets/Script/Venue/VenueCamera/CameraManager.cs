@@ -113,9 +113,12 @@ namespace YARG.Venue.VenueCamera
             _cameras = cameras.ToList();
 
             // Make sure the stage camera is the only one active to start..and put them in a dictionary
+            bool foundStage = false;
             foreach (var camera in cameras)
             {
                 var vc = camera.GetComponent<VenueCamera>();
+
+                camera.enabled = false;
 
                 if (vc == null)
                 {
@@ -151,16 +154,13 @@ namespace YARG.Venue.VenueCamera
                     _subjectToCameraMap[subject].Add(camera);
                 }
 
-                if (vc.CameraLocation == CameraLocation.Stage)
+                if (vc.CameraLocation == CameraLocation.Stage && !foundStage)
                 {
                     camera.enabled = true;
                     _currentCamera = camera;
                     _cameraTimer = GetRandomCameraTimer();
                     _cameraIndex = _cameras.IndexOf(camera);
-                }
-                else
-                {
-                    camera.enabled = false;
+                    foundStage = true;
                 }
 
                 _cameraLocations[vc.CameraLocation] = camera;
