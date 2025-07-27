@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -15,10 +16,22 @@ namespace YARG.Venue.VenueCamera
         private CameraManager _cameraManager;
         [SerializeField]
         public CameraManager.CameraLocation CameraLocation;
+        [SerializeField]
+        public CameraManager.CameraDistance CameraDistance;
+        [SerializeField]
+        public CameraManager.CameraOrientation CameraOrientation;
 
         [Space]
         [SerializeField]
         [Header("Camera Cut Subjects For This Camera")]
         public List<CameraCutEvent.CameraCutSubject> CameraCutSubjects;
+
+        [NonSerialized]
+        public Camera Camera;
+
+        protected override void GameplayAwake()
+        {
+            Camera = GetComponent<Camera>();
+        }
     }
 }

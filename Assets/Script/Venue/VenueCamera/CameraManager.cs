@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -22,7 +23,33 @@ namespace YARG.Venue.VenueCamera
             Keys,
             Vocals,
             Behind,
-            Random
+            Random,
+            GuitarVocals,
+            BassVocals,
+            Crowd,
+            VocalsBehind,
+            BassGuitarBehind,
+            BassVocalsBehind,
+            GuitarVocalsBehind,
+            KeysVocalsBehind,
+            BassKeysBehind,
+            GuitarKeysBehind,
+            KeysBehind,
+            DrumsBehind,
+            BassBehind,
+            GuitarBehind,
+        }
+
+        public enum CameraDistance
+        {
+            Near,
+            Far
+        }
+
+        public enum CameraOrientation
+        {
+            Front,
+            Behind
         }
 
         private readonly HashSet<CameraLocation> _validLocations = new();
@@ -71,6 +98,11 @@ namespace YARG.Venue.VenueCamera
         private readonly Dictionary<CameraLocation, Camera>                        _cameraLocations    = new();
         private          Dictionary<CameraCutEvent.CameraCutSubject, List<Camera>> _subjectToCameraMap = new();
 
+        private List<Camera> _nearCameras = new();
+        private List<Camera> _farCameras = new();
+        private List<Camera> _frontCameras = new();
+        private List<Camera> _behindCameras = new();
+
         private float _cameraTimer;
         private int   _cameraIndex;
         private bool  _volumeSet;
@@ -88,6 +120,24 @@ namespace YARG.Venue.VenueCamera
                 if (vc == null)
                 {
                     continue;
+                }
+
+                if (vc.CameraDistance == CameraDistance.Near)
+                {
+                    _nearCameras.Add(camera);
+                }
+                else
+                {
+                    _farCameras.Add(camera);
+                }
+
+                if (vc.CameraOrientation == CameraOrientation.Front)
+                {
+                    _frontCameras.Add(camera);
+                }
+                else
+                {
+                    _behindCameras.Add(camera);
                 }
 
                 foreach (var subject in vc.CameraCutSubjects)
@@ -146,7 +196,6 @@ namespace YARG.Venue.VenueCamera
             // Check for cut events
             if (_currentCutIndex < _cameraCuts.Count && _cameraCuts[_currentCutIndex].Time <= GameManager.VisualTime)
             {
-                // Check for more events on the same tick (there is supposed to be a priority system, but we'll choose randomly for now)
                 SwitchCamera(MapSubjectToValidCamera(_cameraCuts[_currentCutIndex]));
                 _currentCutIndex++;
             }
@@ -210,14 +259,6 @@ namespace YARG.Venue.VenueCamera
             if (cut.RandomChoices.Count > 0)
             {
                 var choices = cut.RandomChoices.ToList();
-                // Remove choices that aren't in _cameraLocationLookup
-                // for (var i = choices.Count - 1; i >= 0; i--)
-                // {
-                //     if (!_cameraLocationLookup.ContainsKey(choices[i]))
-                //     {
-                //         choices.RemoveAt(i);
-                //     }
-                // }
                 var locationIndex = Random.Range(0, choices.Count - 1);
                 return _cameraLocationLookup[choices[locationIndex]];
             }
@@ -230,13 +271,20 @@ namespace YARG.Venue.VenueCamera
         private Camera MapSubjectToValidCamera(CameraCutEvent cut)
         {
             var subject = cut.Subject;
+            var hasConstraint = cut.Constraint != CameraCutEvent.CameraCutConstraint.None;
 
-            // TODO: Handle constraints
-
-            // The map doesn't have a key for this, so just pick a random camera
-            if (!_subjectToCameraMap.TryGetValue(subject, out var locations))
+            if (cut.RandomChoices.Count > 0)
             {
-                return _cameraLocations[PickOne(_validLocations.ToArray())];
+                var choices = " ";
+                foreach (var choice in cut.RandomChoices)
+                {
+                    choices += choice + ", ";
+                }
+                YargLogger.LogDebug($"Camera cut has options: {choices}");
+            }
+            else
+            {
+                YargLogger.LogDebug($"New camera subject: {cut.Subject}");
             }
 
             if (subject == CameraCutEvent.CameraCutSubject.Random)
@@ -245,7 +293,7 @@ namespace YARG.Venue.VenueCamera
                 if (cut.RandomChoices.Count > 0)
                 {
                     var choices = cut.RandomChoices.ToList();
-                    // Remove choices that aren't in _subjectToCameraMap without using LINQ
+                    // Remove choices that aren't in _subjectToCameraMap
                     for (var i = choices.Count - 1; i >= 0; i--)
                     {
                         if (!_subjectToCameraMap.ContainsKey(choices[i]))
@@ -254,22 +302,128 @@ namespace YARG.Venue.VenueCamera
                         }
                     }
 
-                    // Now pick from the remaining choices
                     var selected = choices[Random.Range(0, choices.Count - 1)];
                     var cameras = _subjectToCameraMap[selected];
+                    var filteredCameras = FilterCamerasByConstraint(cut, cameras);
+
+                    if (filteredCameras.Count > 0)
+                    {
+                        return filteredCameras[Random.Range(0, filteredCameras.Count - 1)];
+                    }
+
                     return cameras[Random.Range(0, cameras.Count - 1)];
                 }
 
-                // If there are no choices, just pick a random camera
+                // If there are no choices and no constraints, just pick a random camera
+                if (!hasConstraint)
+                {
+                    return _cameraLocations[PickOne(_validLocations.ToArray())];
+                }
+
+                // Try to obey the constraints
+                var validCams = FilterCamerasByConstraint(cut, _cameras);
+                if (validCams.Count > 0)
+                {
+                    return validCams[Random.Range(0, validCams.Count - 1)];
+                }
+
+                // No luck, just pick anything
                 return _cameraLocations[PickOne(_validLocations.ToArray())];
             }
 
-            if (locations.Count > 1)
+            // The map doesn't have a key for this, so just pick a random camera
+            if (!_subjectToCameraMap.TryGetValue(subject, out var locations))
             {
-                return locations[Random.Range(0, locations.Count - 1)];
+                // It's possible we don't have the subject to camera map but we do have subject to location
+                // map, so we can use that to pick a camera
+
+                // TODO: Fix this so it doesn't break when subject is "random"
+                if (_cameraLocationLookup.TryGetValue(subject, out var location))
+                {
+                    return _cameraLocations[location];
+                }
+
+                if (hasConstraint)
+                {
+                    var validCams = GetCamerasForConstraint(cut.Constraint);
+
+                    if (validCams.Count > 0)
+                    {
+                        YargLogger.LogDebug($"Filtering (random) cameras by constraint {cut.Constraint}");
+                        return validCams[Random.Range(0, validCams.Count - 1)];
+                    }
+
+                    // fall through since the venue doesn't have near/far/front/behind set up
+                    YargLogger.LogDebug("No cameras found for constraint");
+                }
+                return _cameraLocations[PickOne(_validLocations.ToArray())];
             }
 
-            return locations.First();
+            // This is a cut to a single camera with a subject we know
+            var filteredLocations = FilterCamerasByConstraint(cut, locations);
+
+            if (filteredLocations.Count == 0)
+            {
+                // No other choice but to pick a random camera
+                return _cameraLocations[PickOne(_validLocations.ToArray())];
+            }
+
+            if (filteredLocations.Count > 1)
+            {
+                return filteredLocations[Random.Range(0, filteredLocations.Count - 1)];
+            }
+
+            return filteredLocations[0];
+        }
+
+        private List<Camera> FilterCamerasByConstraint(CameraCutEvent cut, List<Camera> cameras)
+        {
+            var hasConstraint = cut.Constraint != CameraCutEvent.CameraCutConstraint.None;
+            if (!hasConstraint)
+            {
+                return cameras;
+            }
+
+            YargLogger.LogDebug($"Filtering cameras by constraint {cut.Constraint}");
+
+            var constraint = (int) cut.Constraint;
+
+            var validCams = new List<Camera>(cameras);
+
+            foreach (var value in Enum.GetValues(typeof(CameraCutEvent.CameraCutConstraint)))
+            {
+                var flag = (int) value;
+                if ((constraint & flag) == flag)
+                {
+                    var filteredCams = GetCamerasForConstraint((CameraCutEvent.CameraCutConstraint) value);
+                    // Now remove anything from validCams that isn't in filteredCams
+                    for (var i = 0; i < validCams.Count; i++)
+                    {
+                        if (!filteredCams.Contains(validCams[i]))
+                        {
+                            validCams.RemoveAt(i);
+                            i--;
+                        }
+                    }
+                }
+            }
+
+            return validCams;
+        }
+
+        private List<Camera> GetCamerasForConstraint(CameraCutEvent.CameraCutConstraint constraint)
+        {
+            var validCams = constraint switch
+            {
+                CameraCutEvent.CameraCutConstraint.OnlyClose => _nearCameras,
+                CameraCutEvent.CameraCutConstraint.OnlyFar   => _farCameras,
+                CameraCutEvent.CameraCutConstraint.NoBehind  => _frontCameras,
+                // TODO: This is not correct, this should be all cameras that aren't closeup cams (like guitar head or whatever)
+                CameraCutEvent.CameraCutConstraint.NoClose => _farCameras,
+                _                                          => _cameras
+            };
+
+            return validCams;
         }
 
         protected override void GameplayDestroy()
