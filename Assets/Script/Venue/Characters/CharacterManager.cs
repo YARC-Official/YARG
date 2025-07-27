@@ -221,8 +221,6 @@ namespace YARG.Venue.Characters
 
         private void ProcessGuitar(VenueCharacter character)
         {
-
-
             while (_guitarMaps.Count > 0 && _guitarTriggerIndex < _guitarMaps.Count &&
                 _guitarMaps[_guitarTriggerIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
             {

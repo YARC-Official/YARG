@@ -167,8 +167,6 @@ namespace YARG.Venue.VenueCamera
                 _validLocations.Add(vc.CameraLocation);
             }
 
-            var foo = chart.VenueTrack.Stage;
-            var bar = chart.VenueTrack.Performer;
             _postProcessingEvents = chart.VenueTrack.PostProcessing;
             _cameraCuts = chart.VenueTrack.CameraCuts;
 

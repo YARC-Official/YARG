@@ -81,7 +81,8 @@ namespace YARG.Venue.Characters
 
         private float _animationLength;
         private float _animationSpeed;
-        private int   _animationParamHash;
+        private int   _speedAdjustmentHash;
+        private int   _unclampedSpeedAdjustmentHash;
 
         private bool _isAnimating;
 
@@ -147,7 +148,8 @@ namespace YARG.Venue.Characters
             _animationLength = clip.length;
             TimeToFirstHit = _framesToFirstHit / clip.frameRate;
 
-            _animationParamHash = Animator.StringToHash("SpeedAdjustment");
+            _speedAdjustmentHash = Animator.StringToHash("SpeedAdjustment");
+            _unclampedSpeedAdjustmentHash = Animator.StringToHash("UnclampedSpeedAdjustment");
 
             if (_enableAnimationStates) {
                 _idleAnimationHash = Animator.StringToHash(_idleAnimationName);
@@ -992,14 +994,11 @@ namespace YARG.Venue.Characters
             }
 
             // We want one animation cycle per beat (as a multiplier, so if there are 17 actions and 0.4 seconds per beat, we want the animation to complete in 6.8 seconds)
-            // var secondsPerAction = _animationLength / _actionsPerAnimationCycle;
-            // var speed = secondsPerBeat / secondsPerAction;
             var secondsPerAction = _animationLength / _actionsPerAnimationCycle;
             // We want secondsPerAction to match secondsPerBeat
             var speed = secondsPerAction / secondsPerBeat;
-            //
-            // var desiredAnimationLength = secondsPerBeat * _actionsPerAnimationCycle;
-            // var speed = _animationLength / desiredAnimationLength;
+
+            _animator.SetFloat(_unclampedSpeedAdjustmentHash, speed);
 
             // Not sure if this will work, but it's worth a try...
             if (speed >= 1.5)
@@ -1011,9 +1010,7 @@ namespace YARG.Venue.Characters
             }
 
             _animationSpeed = speed;
-            _animator.SetFloat(_animationParamHash, speed);
-
-            // YargLogger.LogFormatDebug("Adjusting speed of {0} to {1}", Type, speed);
+            _animator.SetFloat(_speedAdjustmentHash, speed);
         }
 
         private void OnAnimatorIK()
