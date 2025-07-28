@@ -1,11 +1,14 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XInput;
 using UnityEngine.UI;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Input;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -14,6 +17,9 @@ namespace YARG.Menu.ProfileList
 {
     public class ProfileView : NavigatableBehaviour
     {
+        // Cache for gamepads that have been prompted for this session
+        private static readonly Dictionary<XInputController, GamepadBindingMode> _xinputGamepads = new();
+
         [Space]
         [SerializeField]
         private TextMeshProUGUI _profileName;
@@ -145,9 +151,32 @@ namespace YARG.Menu.ProfileList
                 if (PlayerContainer.IsDeviceTaken(device)) continue;
 
                 devicesAvailable = true;
-                dialog.AddListButton(device.displayName, () =>
+                dialog.AddListButton(device.displayName, async () =>
                 {
                     player.Bindings.AddDevice(device);
+                    if (!player.Bindings.ContainsBindingsForDevice(device))
+                    {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+                        // Some remappers and non-gamepad devices show up as XInput gamepads
+                        if (device is XInputController xinput)
+                        {
+                            // Prompt user for what kind of device this is
+                            var mode = await PromptGamepadMode(xinput);
+                            // Skip if the gamepad is no longer present
+                            if (!mode.HasValue || !xinput.added)
+                            {
+                                return;
+                            }
+
+                            player.Bindings.SetDefaultBinds(xinput, mode.Value);
+                        }
+                        else
+#endif
+                        {
+                            player.Bindings.SetDefaultBinds(device);
+                        }
+                    }
+
                     selectedDevice = true;
                 });
             }
@@ -178,6 +207,36 @@ namespace YARG.Menu.ProfileList
             return selectedDevice;
         }
 
+        private static async UniTask<GamepadBindingMode?> PromptGamepadMode(XInputController xinput)
+        {
+            await DialogManager.Instance.WaitUntilCurrentClosed();
+
+            // Check if this gamepad has been prompted for already
+            if (_xinputGamepads.TryGetValue(xinput, out var existing))
+            {
+                return existing;
+            }
+
+            GamepadBindingMode? mode = null;
+
+            var dialog = DialogManager.Instance.ShowList("Which kind of controller is this?");
+            dialog.AddListButton("Gamepad", () => mode = GamepadBindingMode.Gamepad);
+            dialog.AddListButton("WiitarThing Guitar", () => mode = GamepadBindingMode.WiitarThing_Guitar);
+            dialog.AddListButton("WiitarThing Drumkit", () => mode = GamepadBindingMode.WiitarThing_Drums);
+            dialog.AddListButton("RB4InstrumentMapper Guitar", () => mode = GamepadBindingMode.RB4InstrumentMapper_Guitar);
+            dialog.AddListButton("RB4InstrumentMapper GHL Guitar", () => mode = GamepadBindingMode.RB4InstrumentMapper_GHLGuitar);
+            dialog.AddListButton("RB4InstrumentMapper Drumkit", () => mode = GamepadBindingMode.RB4InstrumentMapper_Drums);
+            await dialog.WaitUntilClosed();
+
+            if (mode.HasValue)
+            {
+                // Cache so we only prompt once
+                _xinputGamepads[xinput] = mode.Value;
+            }
+
+            return mode;
+        }
+
         public async UniTask<bool> PromptRemoveDevice()
         {
             var dialog = DialogManager.Instance.ShowListWithSettings("Remove Device");
@@ -198,7 +257,16 @@ namespace YARG.Menu.ProfileList
                 dialog.AddListButton(device.displayName, () =>
                 {
                     if (clearBinds)
+                    {
                         player.Bindings.ClearBindingsForDevice(device);
+
+                        // Remove cleared XInput devices from prompt cache
+                        if (device is XInputController xinput)
+                        {
+                            _xinputGamepads.Remove(xinput);
+                        }
+                    }
+
                     player.Bindings.RemoveDevice(device);
                     selectedDevice = true;
                 });
