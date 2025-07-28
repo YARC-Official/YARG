@@ -221,6 +221,7 @@ namespace YARG.Menu.ProfileList
 
             var dialog = DialogManager.Instance.ShowList("Which kind of controller is this?");
             dialog.AddListButton("Gamepad", () => mode = GamepadBindingMode.Gamepad);
+            dialog.AddListButton("CRKD Guitar (Mode 1)", () => mode = GamepadBindingMode.CrkdGuitar_Mode1);
             dialog.AddListButton("WiitarThing Guitar", () => mode = GamepadBindingMode.WiitarThing_Guitar);
             dialog.AddListButton("WiitarThing Drumkit", () => mode = GamepadBindingMode.WiitarThing_Drums);
             dialog.AddListButton("RB4InstrumentMapper Guitar", () => mode = GamepadBindingMode.RB4InstrumentMapper_Guitar);

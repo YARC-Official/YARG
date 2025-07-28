@@ -4,6 +4,8 @@ namespace YARG.Input
     {
         Gamepad,
 
+        CrkdGuitar_Mode1,
+
         WiitarThing_Guitar,
         WiitarThing_Drums,
 

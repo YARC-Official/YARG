@@ -16,6 +16,8 @@ namespace YARG.Input
             {
                 GamepadBindingMode.Gamepad => SetDefaultGameplayBindings_Gamepad(gamepad),
 
+                GamepadBindingMode.CrkdGuitar_Mode1 => SetDefaultGameplayBindings_CrkdGuitar(gamepad),
+
                 GamepadBindingMode.WiitarThing_Guitar => SetDefaultGameplayBindings_Guitar(gamepad),
                 GamepadBindingMode.WiitarThing_Drums => SetDefaultGameplayBindings_WiitarThing_Drums(gamepad),
 
@@ -35,6 +37,8 @@ namespace YARG.Input
             return mode switch
             {
                 GamepadBindingMode.Gamepad => SetDefaultMenuBindings_Gamepad(gamepad),
+
+                GamepadBindingMode.CrkdGuitar_Mode1 => SetDefaultMenuBindings_CrkdGuitar(gamepad),
 
                 GamepadBindingMode.WiitarThing_Guitar => SetDefaultMenuBindings_Guitar(gamepad),
                 GamepadBindingMode.WiitarThing_Drums => SetDefaultMenuBindings_WiitarThing_Drums(gamepad),
@@ -187,6 +191,29 @@ namespace YARG.Input
             return true;
         }
 
+        private bool SetDefaultGameplayBindings_CrkdGuitar(Gamepad gamepad)
+        {
+            if (Mode != GameMode.FiveFretGuitar)
+                return false;
+
+            AddBinding(GuitarAction.GreenFret, gamepad.aButton);
+            AddBinding(GuitarAction.RedFret, gamepad.bButton);
+            AddBinding(GuitarAction.YellowFret, gamepad.yButton);
+            AddBinding(GuitarAction.BlueFret, gamepad.xButton);
+            AddBinding(GuitarAction.OrangeFret, gamepad.leftShoulder);
+
+            AddBinding(GuitarAction.StrumUp, gamepad.dpad.up);
+            AddBinding(GuitarAction.StrumDown, gamepad.dpad.down);
+
+            AddBinding(GuitarAction.StarPower, gamepad.selectButton);
+            // CRKD mode 1 doesn't have a dedicated tilt axis
+            // AddBinding(GuitarAction.StarPower, gamepad.rightStick.y, _tiltSettings);
+
+            AddBinding(GuitarAction.Whammy, gamepad.leftTrigger);
+
+            return true;
+        }
+
         private bool SetDefaultGameplayBindings_GHLGuitar(Gamepad gamepad)
         {
             if (Mode != GameMode.FiveFretGuitar)
@@ -225,6 +252,30 @@ namespace YARG.Input
             AddBinding(MenuAction.Down, gamepad.dpad.down);
             AddBinding(MenuAction.Left, gamepad.dpad.left);
             AddBinding(MenuAction.Right, gamepad.dpad.right);
+
+            return true;
+        }
+
+        private bool SetDefaultMenuBindings_CrkdGuitar(Gamepad gamepad)
+        {
+            AddBinding(MenuAction.Start, gamepad.startButton);
+            AddBinding(MenuAction.Select, gamepad.selectButton);
+
+            AddBinding(MenuAction.Green, gamepad.aButton);
+            AddBinding(MenuAction.Red, gamepad.bButton);
+            AddBinding(MenuAction.Yellow, gamepad.yButton);
+            AddBinding(MenuAction.Blue, gamepad.xButton);
+            AddBinding(MenuAction.Orange, gamepad.leftShoulder);
+
+            AddBinding(MenuAction.Up, gamepad.dpad.up);
+            AddBinding(MenuAction.Down, gamepad.dpad.down);
+            AddBinding(MenuAction.Left, gamepad.dpad.left);
+            AddBinding(MenuAction.Right, gamepad.dpad.right);
+
+            AddBinding(MenuAction.Up, gamepad.leftStick.up);
+            AddBinding(MenuAction.Down, gamepad.leftStick.down);
+            AddBinding(MenuAction.Left, gamepad.leftStick.left);
+            AddBinding(MenuAction.Right, gamepad.leftStick.right);
 
             return true;
         }
