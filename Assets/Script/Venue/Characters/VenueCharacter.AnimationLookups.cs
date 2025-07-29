@@ -21,6 +21,7 @@ namespace YARG.Venue.Characters
 
         private readonly AnimationEvents _animationEvents = new();
         private readonly List<string>    _triggerNames = new();
+        private readonly HashSet<int>    _floatHashes = new();
 
 
         private void PopulateAnimationData()
@@ -30,6 +31,12 @@ namespace YARG.Venue.Characters
                 if (parm.type == AnimatorControllerParameterType.Trigger)
                 {
                     _triggerNames.Add(parm.name);
+                }
+
+                // TODO: The inconsistency here with the above is annoying
+                if (parm.type == AnimatorControllerParameterType.Float)
+                {
+                    _floatHashes.Add(parm.nameHash);
                 }
             }
 
@@ -741,6 +748,14 @@ namespace YARG.Venue.Characters
             else
             {
                 YargLogger.LogFormatDebug("Animation State '{0}' not found", state);
+            }
+        }
+
+        private void SetFloat(int hash, float value)
+        {
+            if (_floatHashes.Contains(hash))
+            {
+                _animator.SetFloat(hash, value);
             }
         }
 

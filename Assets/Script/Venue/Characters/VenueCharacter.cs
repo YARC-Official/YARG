@@ -998,7 +998,7 @@ namespace YARG.Venue.Characters
             // We want secondsPerAction to match secondsPerBeat
             var speed = secondsPerAction / secondsPerBeat;
 
-            _animator.SetFloat(_unclampedSpeedAdjustmentHash, speed);
+            SetFloat(_unclampedSpeedAdjustmentHash, speed);
 
             // Not sure if this will work, but it's worth a try...
             if (speed >= 1.5)
@@ -1010,7 +1010,7 @@ namespace YARG.Venue.Characters
             }
 
             _animationSpeed = speed;
-            _animator.SetFloat(_speedAdjustmentHash, speed);
+            SetFloat(_speedAdjustmentHash, speed);
         }
 
         private void OnAnimatorIK()
