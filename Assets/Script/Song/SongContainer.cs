@@ -95,6 +95,7 @@ namespace YARG.Song
         private static SongCategory[] _sortSongLengths = Array.Empty<SongCategory>();
         private static SongCategory[] _sortDatesAdded = Array.Empty<SongCategory>();
         private static Dictionary<Instrument, SongCategory[]> _sortInstruments = new();
+        private static HashSet<string> _collapsedHeaders = new();
 
         private static SongCategory[] _playables = null;
 
@@ -210,6 +211,45 @@ namespace YARG.Song
         {
             return _sortInstruments.ContainsKey(instrument);
         }
+
+        public static bool IsHeaderCollapsed(string headerText)
+        {
+            return _collapsedHeaders.Contains(headerText);
+        }
+
+        public static void ToggleCategoryCollapse(string headerText)
+        {
+            if (!_collapsedHeaders.Add(headerText))
+            {
+                _collapsedHeaders.Remove(headerText);
+            }
+        }
+
+        public static void CollapseHeader(string headerText)
+        {
+            _collapsedHeaders.Add(headerText);
+        }
+
+        public static void ExpandHeader(string headerText)
+        {
+            _collapsedHeaders.Remove(headerText);
+        }
+
+        public static void ClearCollapsedHeaders()
+        {
+            _collapsedHeaders.Clear();
+        }
+
+        public static bool AreAnyHeadersCollapsed()
+        {
+            return _collapsedHeaders.Count > 0;
+        }
+
+        public static bool AreAllHeaderCollapsed(IEnumerable<string> headers)
+        {
+            return headers.All(h => _collapsedHeaders.Contains(h));
+        }
+
 
         private static HashSet<Instrument> _instruments = null;
         private static SongCategory[] GetPlayableSongs()

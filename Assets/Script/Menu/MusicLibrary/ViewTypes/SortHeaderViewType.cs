@@ -1,6 +1,6 @@
-﻿using Cysharp.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AddressableAssets;
+using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -10,15 +10,19 @@ namespace YARG.Menu.MusicLibrary
 
         public override bool UseWiderPrimaryText => true;
 
+        private readonly MusicLibraryMenu _musicLibrary;
+
         public readonly string HeaderText;
         public readonly string ShortcutName;
         private readonly int _songCount;
 
-        public SortHeaderViewType(string headerText, int songCount, string shortcutName)
+        public SortHeaderViewType(string headerText, int songCount, string shortcutName, MusicLibraryMenu musicLibrary)
         {
+            _musicLibrary = musicLibrary;
+
             HeaderText = headerText;
             _songCount = songCount;
-            
+
             ShortcutName = shortcutName;
         }
 
@@ -32,11 +36,18 @@ namespace YARG.Menu.MusicLibrary
             return CreateSongCountString(_songCount);
         }
 
+        public override void PrimaryButtonClick()
+        {
+            _musicLibrary.ToggleCollapseOfSortHeader(this);
+        }
+
 #nullable enable
         public override Sprite? GetIcon()
 #nullable disable
         {
-            return Addressables.LoadAssetAsync<Sprite>("MusicLibraryIcons[Down]").WaitForCompletion();
+            bool collapsed = SongContainer.IsHeaderCollapsed(HeaderText);
+            var key = collapsed ? "MusicLibraryIcons[Right]" : "MusicLibraryIcons[Down]";
+            return Addressables.LoadAssetAsync<Sprite>(key).WaitForCompletion();
         }
     }
 }
