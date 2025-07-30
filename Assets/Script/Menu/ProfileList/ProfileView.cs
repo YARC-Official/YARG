@@ -143,6 +143,7 @@ namespace YARG.Menu.ProfileList
 
             bool devicesAvailable = false;
             bool selectedDevice = false;
+            bool xinputDialogShowing = false;
 
             // Add available devices
             foreach (var device in InputSystem.devices)
@@ -160,6 +161,7 @@ namespace YARG.Menu.ProfileList
                         // Some remappers and non-gamepad devices show up as XInput gamepads
                         if (device is XInputController xinput)
                         {
+                            xinputDialogShowing = true;
                             // Prompt user for what kind of device this is
                             var mode = await PromptGamepadMode(xinput);
                             // Skip if the gamepad is no longer present
@@ -196,6 +198,17 @@ namespace YARG.Menu.ProfileList
             if (devicesAvailable)
             {
                 await dialog.WaitUntilClosed();
+                // We may be showing the xinput selection dialog, in which case we need to wait for that, too
+
+                if (xinputDialogShowing)
+                {
+                    // The dialog isn't actually showing yet, so we yield for a frame
+                    await UniTask.Yield();
+                    await DialogManager.Instance.WaitUntilCurrentClosed();
+                    // And we have to wait one more frame after it closed so that selectedDevice will actually be set
+                    await UniTask.Yield();
+                }
+
                 // Update active players to hide the "No input device" icons if appropriate.
                 StatsManager.Instance.UpdateActivePlayers();
             }
