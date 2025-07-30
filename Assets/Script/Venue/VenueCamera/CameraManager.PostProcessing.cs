@@ -44,14 +44,14 @@ namespace YARG.Venue.VenueCamera
         private ClampedFloatParameter _activeGrainIntensity = new(1.0f, 1.0f, 0.0f);
         private ClampedFloatParameter _activeGrainResponse  = new(0.0f, 1.0f, 0.0f);
 
-        private Color _greenTint = new(0.0f, 1.0f, 0.65f, 1.0f);
-        private Color _blueTint  = new(0.2f, 0.7f, 1.0f, 1.0f);
+        private readonly Color _greenTint = new(0.0f, 1.0f, 0.65f, 1.0f);
+        private readonly Color _blueTint  = new(0.2f, 0.7f, 1.0f, 1.0f);
 
-        private List<CurveAnimation>        _curveAnimations        = new();
-        private List<FloatAnimation>        _floatAnimations        = new();
-        private List<ClampedFloatAnimation> _clampedFloatAnimations = new();
-        private List<ColorAnimation>        _colorAnimations        = new();
-        private List<ClampedIntAnimation>   _clampedIntAnimations   = new();
+        private readonly List<CurveAnimation>        _curveAnimations        = new();
+        private readonly List<FloatAnimation>        _floatAnimations        = new();
+        private readonly List<ClampedFloatAnimation> _clampedFloatAnimations = new();
+        private readonly List<ColorAnimation>        _colorAnimations        = new();
+        private readonly List<ClampedIntAnimation>   _clampedIntAnimations   = new();
 
         public void InitializePostProcessing()
         {
@@ -368,12 +368,6 @@ namespace YARG.Venue.VenueCamera
 
             SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.01f, enabled);
             SetAnimation(channelMixer.greenOutGreenIn, enabled ? 10f : 100f, 0.01f, enabled);
-
-            // colorAdjustments.postExposure.value = enabled ? 1f : 0f;
-            // colorAdjustments.postExposure.overrideState = enabled;
-            //
-            // channelMixer.greenOutGreenIn.value = enabled ? 10f : 100f;
-            // channelMixer.greenOutGreenIn.overrideState = enabled;
         }
 
         private void SetContrastBlue(bool enabled)
@@ -390,12 +384,6 @@ namespace YARG.Venue.VenueCamera
 
             SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.01f, enabled);
             SetAnimation(channelMixer.blueOutBlueIn, enabled ? 10f : 100f, 0.01f, enabled);
-
-            // colorAdjustments.postExposure.value = enabled ? 1f : 0f;
-            // colorAdjustments.postExposure.overrideState = enabled;
-            //
-            // channelMixer.blueOutBlueIn.value = enabled ? 10f : 100f;
-            // channelMixer.blueOutBlueIn.overrideState = enabled;
         }
 
         private void SetContrastRed(bool enabled)
@@ -412,12 +400,6 @@ namespace YARG.Venue.VenueCamera
 
             SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.01f, enabled);
             SetAnimation(channelMixer.redOutRedIn, enabled ? 10f : 100f, 0.01f, enabled);
-
-            // colorAdjustments.postExposure.value = enabled ? 1f : 0f;
-            // colorAdjustments.postExposure.overrideState = enabled;
-            //
-            // channelMixer.redOutRedIn.value = enabled ? 10f : 100f;
-            // channelMixer.redOutRedIn.overrideState = enabled;
         }
 
         private void SetExposure(bool enabled, float strength = 0f)
@@ -428,9 +410,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(colorAdjustments.postExposure, enabled ? strength : 0f, 0.01f, enabled);
-
-            // colorAdjustments.postExposure.value = enabled ? strength : 0f;
-            // colorAdjustments.postExposure.overrideState = enabled;
         }
 
         private void SetChromaticAberration(bool enabled, float strength = 0.35f)
@@ -441,9 +420,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(chromaticAberration.intensity, enabled ? strength : 0, 0.01f, enabled);
-
-            // chromaticAberration.intensity.value = enabled ? strength : 0;
-            // chromaticAberration.intensity.overrideState = enabled;
         }
 
         public void SetLowFrameRate(bool enabled, int divisor = 5)
@@ -481,21 +457,9 @@ namespace YARG.Venue.VenueCamera
                     new AnimationCurve(new Keyframe(0, 0.0f), new Keyframe(0.437f, 0.0f), new Keyframe(0.659f, 0.174f),
                         new Keyframe(1, 1)), 0.5f, false, in bounds);
 
-            var lumVSatCurveParam = new TextureCurveParameter(lumVSatCurve, true);
-            var greenCurveParam = new TextureCurveParameter(greenCurve, true);
-            var blueCurveParam = new TextureCurveParameter(blueCurve, true);
-
             SetAnimation(colorCurves.lumVsSat, enabled ? lumVSatCurve : _defaultCurve, 0.01f, enabled);
             SetAnimation(colorCurves.green, enabled ? greenCurve : _defaultCurve, 0.01f, enabled);
             SetAnimation(colorCurves.blue, enabled ? blueCurve : _defaultCurve, 0.01f, enabled);
-
-            // colorCurves.lumVsSat.value = enabled ? lumVSatCurve : _defaultCurve;
-            // colorCurves.green.value = enabled ? greenCurve : _defaultCurve;
-            // colorCurves.blue.value = enabled ? blueCurve : _defaultCurve;
-            // colorCurves.lumVsSat.overrideState = enabled;
-            // colorCurves.green.overrideState = enabled;
-            // colorCurves.blue.overrideState = enabled;
-            // colorCurves.active = enabled;
         }
 
         private void SetDesaturatedBlue(bool enabled)
@@ -515,21 +479,11 @@ namespace YARG.Venue.VenueCamera
                 new Keyframe(0.361f, 0.152f), new Keyframe(0.367f, 0.5f), new Keyframe(0.677f, 0.5f),
                 new Keyframe(0.683f, 0.152f), new Keyframe(1, 0.152f)), 0.5f, false, in bounds);
 
-            var hueVsSatCurveParam = new TextureCurveParameter(hueVsSatCurve, true);
-
             var blueFilterColor = new Color(0.413f, 0.559f, 0.962f, 1f);
 
             SetAnimation(colorCurves.hueVsSat, enabled ? hueVsSatCurve : _flatHalfCurve, 0.01f, enabled);
             SetAnimation(colorAdjustments.postExposure, enabled ? 1.5f : 0f, 0.01f, enabled);
             SetAnimation(colorAdjustments.colorFilter, enabled ? blueFilterColor : Color.white, 0.01f, enabled);
-
-            // colorAdjustments.postExposure.value = enabled ? 1.5f : 0f;
-            // colorAdjustments.postExposure.overrideState = enabled;
-            // colorAdjustments.colorFilter.value = enabled ? blueFilterColor : Color.white;
-            // colorAdjustments.colorFilter.overrideState = enabled;
-            //
-            // colorCurves.hueVsSat.value = enabled ? hueVsSatCurve : _defaultCurve;
-            // colorCurves.hueVsSat.overrideState = enabled;
         }
 
         private void SetPhotoNegativeRedAndBlack(bool enabled)
@@ -551,27 +505,11 @@ namespace YARG.Venue.VenueCamera
                 new AnimationCurve(new Keyframe(0, 0), new Keyframe(0.297f, 0), new Keyframe(0.519f, 0.519f), new Keyframe(1, 0)),
                 0.5f, false, in bounds);
 
-            var flatZeroCurveParam = new TextureCurveParameter(flatZeroCurve, true);
-            var redCurveParam = new TextureCurveParameter(redCurve, true);
-            var masterCurveParam = new TextureCurveParameter(masterCurve, true);
-
             SetAnimation(colorCurves.hueVsHue, enabled ? _invertCurve : _defaultCurve, 0.01f, enabled);
             SetAnimation(colorCurves.green, enabled ? flatZeroCurve : _defaultCurve, 0.01f, enabled);
             SetAnimation(colorCurves.blue, enabled ? flatZeroCurve : _defaultCurve, 0.01f, enabled);
             SetAnimation(colorCurves.red, enabled ? redCurve : _defaultCurve, 0.01f, enabled);
             SetAnimation(colorCurves.master, enabled ? masterCurve : _defaultCurve, 0.01f, enabled);
-
-            // colorCurves.hueVsHue.value = enabled ? _invertCurve : _defaultCurve;
-            // colorCurves.green.value = enabled ? flatZeroCurve : _defaultCurve;
-            // colorCurves.blue.value = enabled ? flatZeroCurve : _defaultCurve;
-            // colorCurves.red.value = enabled ? redCurve : _defaultCurve;
-            // colorCurves.master.value = enabled ? masterCurve : _defaultCurve;
-            // colorCurves.hueVsHue.overrideState = enabled;
-            // colorCurves.green.overrideState = enabled;
-            // colorCurves.blue.overrideState = enabled;
-            // colorCurves.red.overrideState = enabled;
-            // colorCurves.master.overrideState = enabled;
-            // colorCurves.active = enabled;
         }
 
         private void SetInvertedColors(bool enabled)
@@ -582,10 +520,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(colorCurves.master, enabled ? _invertCurve : _defaultCurve, 0.01f, enabled);
-
-            // colorCurves.active = enabled;
-            // colorCurves.master.value = enabled ? _invertCurve : _defaultCurve;
-            // colorCurves.master.overrideState = enabled;
         }
 
         private void SetPosterize(bool enabled, int steps = 4)
@@ -596,8 +530,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(posterize.Steps, enabled ? steps : posterize.Steps.max, 0.01f, enabled);
-            // posterize.Steps.value = enabled ? steps : 0;
-            // posterize.Steps.overrideState = enabled;
         }
 
         private void SetContrast(bool enabled)
@@ -608,9 +540,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(colorAdjustments.contrast, enabled ? 50.0f : 1.0f, 0.01f, enabled);
-
-            // colorAdjustments.contrast.value = enabled ? 50.0f : 1.0f;
-            // colorAdjustments.contrast.overrideState = enabled;
         }
 
         private void SetBrightness(bool enabled)
@@ -622,19 +551,12 @@ namespace YARG.Venue.VenueCamera
 
             SetAnimation(colorCurves.master, enabled ? _brightCurve : _defaultCurve, 0.01f, enabled);
 
-            // colorCurves.master.value = enabled ? _brightCurve : _defaultCurve;
-            // colorCurves.master.overrideState = enabled;
-            // colorCurves.active = enabled;
-
 			if(!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
             SetAnimation(colorAdjustments.saturation, (float)(enabled ? 50.0f : 0.0f), 0.01f, enabled);
-
-            // colorAdjustments.saturation.value = enabled ? 50.0f : 0.0f;
-            // colorAdjustments.saturation.overrideState = enabled;
         }
 
         private void SetMirror(bool enabled)
@@ -676,9 +598,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(colorAdjustments.saturation, (float)(enabled ? strength : 0.0f), 0.01f, enabled);
-
-            // colorAdjustments.saturation.value = enabled ? strength : 0.0f;
-            // colorAdjustments.saturation.overrideState = enabled;
         }
 
         private void SetBlackAndWhite(bool enabled)
@@ -691,13 +610,6 @@ namespace YARG.Venue.VenueCamera
             SetAnimation(colorAdjustments.saturation, (float)(enabled ? -100.0f : 0.0f), 0.01f, enabled);
             SetAnimation(colorAdjustments.contrast, (float)(enabled ? 100f : 1.0f), 0.01f, enabled);
             SetAnimation(colorAdjustments.postExposure, (float)(enabled ? 1.5f : 1.0f), 0.01f, enabled);
-
-            // colorAdjustments.saturation.value = enabled ? -100.0f : 0.0f;
-            // colorAdjustments.saturation.overrideState = enabled;
-            // colorAdjustments.contrast.value = enabled ? 100f : 1.0f;
-            // colorAdjustments.contrast.overrideState = enabled;
-            // colorAdjustments.postExposure.value = enabled ? 1.5f : 1.0f;
-            // colorAdjustments.postExposure.overrideState = enabled;
         }
 
         private void SetBadCopier(bool enabled)
@@ -708,10 +620,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(colorCurves.master, enabled ? _copierCurve : _defaultCurve, 0.01f, enabled);
-
-            // colorCurves.master.value = enabled ? _copierCurve : _defaultCurve;
-            // colorCurves.master.overrideState = enabled;
-            // colorCurves.active = enabled;
         }
 
         private void SetSilverTone(bool enabled)
@@ -722,9 +630,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(colorAdjustments.saturation, (float)(enabled ? -100.0f : 0.0f), 0.01f, enabled);
-
-            // colorAdjustments.saturation.value = enabled ? -100.0f : 0.0f;
-            // colorAdjustments.saturation.overrideState = enabled;
         }
 
         private void SetSepiaTone(bool enabled)
@@ -745,30 +650,6 @@ namespace YARG.Venue.VenueCamera
             SetAnimation(mixer.blueOutRedIn, enabled ? 18.9f : 0f, 0.01f, enabled);
             SetAnimation(mixer.greenOutRedIn, enabled ? 16.8f : 0f, 0.01f, enabled);
             SetAnimation(mixer.blueOutBlueIn, enabled ? 13.1f : 100f, 0.01f, enabled);
-
-            // mixer.redOutRedIn.value = enabled ? 39.3f : 100.0f;
-            // mixer.greenOutRedIn.value = enabled ? 34.9f : 0.0f;
-            // mixer.blueOutRedIn.value = enabled ? 27.2f : 0.0f;
-            //
-            // mixer.redOutGreenIn.value = enabled ? 76.9f : 0.0f;
-            // mixer.greenOutGreenIn.value = enabled ? 68.6f : 100.0f;
-            // mixer.blueOutGreenIn.value = enabled ? 53.4f : 0.0f;
-            //
-            // mixer.blueOutRedIn.value = enabled ? 18.9f : 0.0f;
-            // mixer.greenOutRedIn.value = enabled ? 16.8f : 0.0f;
-            // mixer.blueOutBlueIn.value = enabled ? 13.1f : 100.0f;
-            //
-            // mixer.redOutRedIn.overrideState = enabled;
-            // mixer.redOutGreenIn.overrideState = enabled;
-            // mixer.redOutBlueIn.overrideState = enabled;
-            // mixer.greenOutRedIn.overrideState = enabled;
-            // mixer.greenOutGreenIn.overrideState = enabled;
-            // mixer.greenOutBlueIn.overrideState = enabled;
-            // mixer.blueOutRedIn.overrideState = enabled;
-            // mixer.blueOutGreenIn.overrideState = enabled;
-            // mixer.blueOutBlueIn.overrideState = enabled;
-            //
-            // mixer.active = enabled;
         }
 
 
@@ -789,11 +670,6 @@ namespace YARG.Venue.VenueCamera
                 SetAnimation(bloom.intensity, _originalBloom, 0.01f, _originalBloomState);
                 SetAnimation(bloom.threshold, _originalBloomThreshold, 0.01f, _originalBloomTState);
             }
-
-            // bloom.intensity.value = enabled ? 1.0f : _originalBloom;
-            // bloom.intensity.overrideState = enabled || _originalBloomState;
-			// bloom.threshold.value = enabled ? 0.6f : _originalBloomThreshold;
-            // bloom.threshold.overrideState = enabled || _originalBloomTState;
         }
 
         private void SetGreenTint(bool enabled)
@@ -804,9 +680,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(colorAdjustments.colorFilter, enabled ? _greenTint : Color.white, 0.01f, enabled);
-            //
-            // colorAdjustments.colorFilter.value = enabled ? _greenTint : Color.white;
-            // colorAdjustments.colorFilter.overrideState = enabled;
         }
 
         private void SetBlueTint(bool enabled)
@@ -817,9 +690,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(colorAdjustments.colorFilter, enabled ? _blueTint : Color.white, 0.01f, enabled);
-            //
-            // colorAdjustments.colorFilter.value = enabled ? _blueTint : Color.white;
-            // colorAdjustments.colorFilter.overrideState = enabled;
         }
 
         private void SetScanline(bool enabled)
@@ -831,11 +701,8 @@ namespace YARG.Venue.VenueCamera
 
             // TODO: Not really sure that we should animate these, lol
             SetAnimation(scanline.intensity, enabled ? 0.6f : 0.0f, 0.01f, enabled);
-            // SetAnimation(scanline.scanlineCount, enabled ? 190 : 0, 0.0f, enabled);
 
-            // scanline.intensity.value = enabled ? 0.6f : 0.0f;
-            // scanline.intensity.overrideState = enabled;
-            // // This should really be ~1/4 of the screen resolution
+            // This should really be ~1/4 of the screen resolution
             scanline.scanlineCount.value = 190;
             scanline.scanlineCount.overrideState = enabled;
         }
@@ -847,8 +714,6 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
             SetAnimation(trail.length, enabled ? intensity : 0.0f, 0.01f, enabled);;
-            // trail.length.value = enabled ? intensity : 0.0f;
-            // trail.length.overrideState = enabled;
         }
 
         private void SetGrainy(bool enabled)
@@ -866,12 +731,6 @@ namespace YARG.Venue.VenueCamera
             SetAnimation(colorAdjustments.contrast, enabled ? 20.0f : 0.0f, 0.01f, enabled);
             SetAnimation(grain.intensity, enabled ? 1.0f : 0.25f, 0.01f, enabled);
             SetAnimation(grain.response, enabled ? 0.0f : 0.8f, 0.01f, enabled);
-
-            // colorAdjustments.contrast.value = enabled ? 20.0f : 0.0f;
-            // grain.intensity.value = enabled ? 1.0f : 0.25f;
-            // grain.intensity.overrideState = enabled;
-            // grain.response.value = enabled ? 0.0f : 0.8f;
-            // grain.response.overrideState = enabled;
         }
 
         public void SetAnimation(ClampedFloatParameter target, float endValue, float duration, bool finalOverrideState)
@@ -892,14 +751,6 @@ namespace YARG.Venue.VenueCamera
 
             var anim = new ClampedFloatAnimation(endValue, duration, target, finalOverrideState);
 
-            // If we are disabling the override, but something else is attempting to animate it, let it happen
-            // This Contains() check works because the animation types' Equals() method only considers reference
-            // equality of the animation target
-            // if (!finalOverrideState && _clampedFloatAnimations.Contains(anim))
-            // {
-            //     return;
-            // }
-
             // Disable is happening before enable again, so if we find something is animating this target, kill it
             if (!finalOverrideState)
             {
@@ -913,8 +764,6 @@ namespace YARG.Venue.VenueCamera
                 YargLogger.LogDebug(
                     $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
             }
-            // target.value = endValue;
-            // target.overrideState = enabling;
         }
 
         public void SetAnimation(FloatParameter target, float endValue, float duration, bool finalOverrideState)
@@ -932,11 +781,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             var anim = new FloatAnimation(endValue, duration, target, finalOverrideState);
-
-            // if (!finalOverrideState && _floatAnimations.Contains(anim))
-            // {
-            //     return;
-            // }
 
             if (!finalOverrideState)
             {
@@ -967,11 +811,6 @@ namespace YARG.Venue.VenueCamera
 
             var anim = new CurveAnimation(endValue, duration, target, finalOverrideState);
 
-            // if (!finalOverrideState && _curveAnimations.Contains(anim))
-            // {
-            //     return;
-            // }
-
             if (!finalOverrideState)
             {
                 _curveAnimations.RemoveAll(t => t.Equals(anim));
@@ -984,9 +823,6 @@ namespace YARG.Venue.VenueCamera
                 YargLogger.LogDebug(
                     $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
             }
-            // target.value = endValue.value;
-            // target.overrideState = enabling;
-            // target.value.SetDirty();
         }
 
         public void SetAnimation(ColorParameter target, Color endValue, float duration, bool finalOverrideState)
@@ -1005,11 +841,6 @@ namespace YARG.Venue.VenueCamera
 
             var anim = new ColorAnimation(endValue, duration, target, finalOverrideState);
 
-            // if (!finalOverrideState && _colorAnimations.Contains(anim))
-            // {
-            //     return;
-            // }
-
             if (!finalOverrideState)
             {
                 _colorAnimations.RemoveAll(t => t.Equals(anim));
@@ -1021,8 +852,6 @@ namespace YARG.Venue.VenueCamera
                 YargLogger.LogDebug(
                     $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
             }
-            // target.value = endValue;
-            // target.overrideState = enabling;
         }
 
         public void SetAnimation(ClampedIntParameter target, int endValue, float duration, bool finalOverrideState)
@@ -1040,10 +869,6 @@ namespace YARG.Venue.VenueCamera
             }
 
             var anim = new ClampedIntAnimation(endValue, duration, target, finalOverrideState);
-            // if (!finalOverrideState && _clampedIntAnimations.Contains(anim))
-            // {
-            //     return;
-            // }
 
             if (!finalOverrideState)
             {
@@ -1258,9 +1083,6 @@ namespace YARG.Venue.VenueCamera
             // Starts at (almost) 0 and increases to 1 at EndTime
             var normalizedTime = (float) (_elapsedTime / Duration);
 
-            // This is not actually interpolation, so....
-            // Target.Interp(StartCurve, EndCurve, normalizedTime);
-
             // Lerp all the keyframes in the curve
             // Annoyingly, we have to create an entire new curve every step
             var newCurve = new AnimationCurve();
@@ -1286,7 +1108,6 @@ namespace YARG.Venue.VenueCamera
         private readonly bool                _finalOverrideState;
         private          float               _elapsedTime;
         private          bool                _started;
-        // private int _currentValue;
 
         public bool Equals(ClampedIntAnimation other)
         {
@@ -1554,7 +1375,6 @@ namespace YARG.Venue.VenueCamera
             // Starts at (almost) 0 and increases to 1 at EndTime
             var normalizedTime = (float) (_elapsedTime / _duration);
             _param.Interp(_startValue.value, _endValue, normalizedTime);
-            // _param.value = Color.Lerp(_startValue.value, _endValue, (float) normalizedTime);
             return false;
         }
     }
