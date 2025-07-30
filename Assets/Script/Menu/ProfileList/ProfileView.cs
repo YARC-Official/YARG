@@ -46,10 +46,9 @@ namespace YARG.Menu.ProfileList
 
         public YargProfile Profile { get; private set; }
 
-        private        ProfileListMenu _profileListMenu;
-        private        ProfileSidebar  _profileSidebar;
+        private ProfileListMenu _profileListMenu;
+        private ProfileSidebar _profileSidebar;
 
-        private static bool            _xinputDialogShowing;
 
         public void Init(ProfileListMenu menu, YargProfile profile, ProfileSidebar sidebar)
         {
@@ -144,6 +143,7 @@ namespace YARG.Menu.ProfileList
 
             bool devicesAvailable = false;
             bool selectedDevice = false;
+            bool xinputDialogShowing = false;
 
             // Add available devices
             foreach (var device in InputSystem.devices)
@@ -161,6 +161,7 @@ namespace YARG.Menu.ProfileList
                         // Some remappers and non-gamepad devices show up as XInput gamepads
                         if (device is XInputController xinput)
                         {
+                            xinputDialogShowing = true;
                             // Prompt user for what kind of device this is
                             var mode = await PromptGamepadMode(xinput);
                             // Skip if the gamepad is no longer present
@@ -199,7 +200,7 @@ namespace YARG.Menu.ProfileList
                 await dialog.WaitUntilClosed();
                 // We may be showing the xinput selection dialog, in which case we need to wait for that, too
 
-                if (_xinputDialogShowing)
+                if (xinputDialogShowing)
                 {
                     // The dialog isn't actually showing yet, so we yield for a frame
                     await UniTask.Yield();
@@ -221,7 +222,6 @@ namespace YARG.Menu.ProfileList
 
         private static async UniTask<GamepadBindingMode?> PromptGamepadMode(XInputController xinput)
         {
-            _xinputDialogShowing = true;
             await DialogManager.Instance.WaitUntilCurrentClosed();
 
             // Check if this gamepad has been prompted for already
@@ -248,7 +248,6 @@ namespace YARG.Menu.ProfileList
                 _xinputGamepads[xinput] = mode.Value;
             }
 
-            _xinputDialogShowing = false;
             return mode;
         }
 
