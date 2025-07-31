@@ -17,7 +17,7 @@ namespace YARG.Assets.Script.Helpers
             }
 
             // Best-effort attempt to convert [section]-based practice sections to the expected format
-            sectionName = sectionName.ToLower().Replace(' ', '_').Replace("guitar", "gtr");
+            sectionName = sectionName.ToLower().Replace(' ', '_');
 
             // Handle letter-based sections like "A section" (prc_a) and "B section 3" (prc_b3)
             if (IsLetterBasedSectionName(sectionName))
@@ -169,7 +169,9 @@ namespace YARG.Assets.Script.Helpers
 
         private static Dictionary<string, string> _alternateSectionNames = new()
         {
+            { "aco_guitar_intro", "aco_gtr_intro" },
             { "acoustic_gtr_intro", "aco_gtr_intro" },
+            { "acoustic_guitar_intro", "aco_gtr_intro" },
             { "ah!", "ah" },
             { "big_rock_ending", "bre" },
             { "big_rock_ending!", "bre" },
@@ -180,6 +182,18 @@ namespace YARG.Assets.Script.Helpers
             { "fade-in", "fade_in" },
             { "fade-out", "fade_out" },
             { "fast_picking", "speed_picking" },
+            { "guitar_break", "gtr_break" },
+            { "guitar_enters", "gtr_enters" },
+            { "guitar_fill", "gtr_fill" },
+            { "guitar_hook", "gtr_hook" },
+            { "guitar_intro", "gtr_intro" },
+            { "guitar_lead", "gtr_lead" },
+            { "guitar_lick", "gtr_lick" },
+            { "guitar_line", "gtr_line" },
+            { "guitar_melody", "gtr_melody" },
+            { "guitar_ostinato", "gtr_ostinato" },
+            { "guitar_riff", "gtr_riff" },
+            { "guitar_solo", "gtr_solo" },
             { "high_melody", "hi_melody" },
             { "keyb_break", "keyboard_break" },
             { "keyb_enters", "keyboard_enters" },
@@ -206,6 +220,7 @@ namespace YARG.Assets.Script.Helpers
             { "pre-verse", "preverse" },
             { "rhy_gtr_enters", "rhy_enters" },
             { "rhythm_gtr_enters", "rhy_enters" },
+            { "rhythm_guitar_enters", "rhy_enters" },
             { "sctrach_break", "scratch_break"},
             { "spacey", "spacey_part" },
             { "speedup", "speed_up" },
