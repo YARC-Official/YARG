@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using YARG.Core.Extensions;
 using YARG.Localization;
 
@@ -9,6 +10,12 @@ namespace YARG.Assets.Script.Helpers
     {
         public static string ParseSectionName(string sectionName)
         {
+            var percentageMatch = Regex.Match(sectionName, "^ugc_section_(\\d\\d?)_(\\d\\d?)$");
+            if (percentageMatch.Success)
+            {
+                return CreatePercentageBasedPracticeSection(percentageMatch);
+            }
+
             // Best-effort attempt to convert [section]-based practice sections to the expected format
             sectionName = sectionName.ToLower().Replace(' ', '_').Replace("guitar", "gtr");
 
@@ -49,6 +56,14 @@ namespace YARG.Assets.Script.Helpers
             }
 
             return localizedName;
+        }
+
+        private static string CreatePercentageBasedPracticeSection(Match match)
+        {
+            var size = int.Parse(match.Groups[1].Value);
+            var start = int.Parse(match.Groups[2].Value);
+
+            return Localize.KeyFormat("Gameplay.Practice.SectionFormats.PercentageBased", start, start+size);
         }
 
         /**
@@ -140,11 +155,12 @@ namespace YARG.Assets.Script.Helpers
             }
 
             bool allAsciiDigit = true;
-            foreach (var c in text.AsSpan()[..^2])
+            foreach (var c in text.AsSpan()[..^1])
             {
                 if (!c.IsAsciiDigit())
                 {
                     allAsciiDigit = false;
+                    break;
                 }
             }
 
@@ -153,6 +169,7 @@ namespace YARG.Assets.Script.Helpers
 
         private static Dictionary<string, string> _alternateSectionNames = new()
         {
+            { "acoustic_gtr_intro", "aco_gtr_intro" },
             { "ah!", "ah" },
             { "big_rock_ending", "bre" },
             { "big_rock_ending!", "bre" },
@@ -162,17 +179,37 @@ namespace YARG.Assets.Script.Helpers
             { "fadeout", "fade_out" },
             { "fade-in", "fade_in" },
             { "fade-out", "fade_out" },
+            { "fast_picking", "speed_picking" },
             { "high_melody", "hi_melody" },
+            { "keyb_break", "keyboard_break" },
             { "keyb_enters", "keyboard_enters" },
+            { "keyb_intro", "keyboard_intro" },
+            { "keyb_solo", "keyboard_solo" },
             { "kick_it!", "kick it" },
+            { "kybd_break", "keyboard_break" },
+            { "kybd_enters", "keyboard_enters" },
+            { "kybd_intro", "keyboard_intro" },
+            { "kybd_solo", "keyboard_solo" },
             { "low_melody", "lo_melody" },
             { "oohs_and_ahs", "oohs" },
+            { "orchestra_intro", "orch_intro" },
+            { "orchestral_intro", "orch_intro" },
+            { "perc_break", "percussion_break" },
             { "perc_solo", "percussion_solo" },
+            { "post_chorus", "postchorus" },
+            { "post-chorus", "postchorus" },
+            { "post_verse", "postverse" },
+            { "post-verse", "postverse" },
             { "pre_chorus", "prechorus" },
             { "pre-chorus", "prechorus" },
             { "pre_verse", "preverse" },
             { "pre-verse", "preverse" },
+            { "rhy_gtr_enters", "rhy_enters" },
+            { "rhythm_gtr_enters", "rhy_enters" },
             { "sctrach_break", "scratch_break"},
+            { "spacey", "spacey_part" },
+            { "speedup", "speed_up" },
+            { "speed-up", "speed_up" },
             { "syth_enters", "synth_enters" },
             { "yeah!", "yeah" }
         };
