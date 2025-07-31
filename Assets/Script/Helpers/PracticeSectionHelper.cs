@@ -185,7 +185,7 @@ namespace YARG.Assets.Script.Helpers
             { "keyb_enters", "keyboard_enters" },
             { "keyb_intro", "keyboard_intro" },
             { "keyb_solo", "keyboard_solo" },
-            { "kick_it!", "kick it" },
+            { "kick_it!", "kick_it" },
             { "kybd_break", "keyboard_break" },
             { "kybd_enters", "keyboard_enters" },
             { "kybd_intro", "keyboard_intro" },
