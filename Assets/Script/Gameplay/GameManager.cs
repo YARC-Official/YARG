@@ -248,9 +248,10 @@ namespace YARG.Gameplay
                 totalStars += player.Stars;
             }
 
-            #if UNITY_EDITOR || YARG_TEST_BUILD
-            _frameTimes.Add(_songRunner.InputTime);
-            #endif
+            if (GlobalVariables.VerboseReplays)
+            {
+                _frameTimes.Add(_songRunner.InputTime);
+            }
 
             BandScore = totalScore;
             BandCombo = totalCombo;
@@ -590,7 +591,7 @@ namespace YARG.Gameplay
                 return null;
             }
 
-           ReplayContainer.AddEntry(replayInfo);
+            ReplayContainer.AddEntry(replayInfo);
             _isReplaySaved = true;
             return replayInfo;
         }

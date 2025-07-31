@@ -216,7 +216,7 @@ namespace YARG.Gameplay
 
         private bool LoadReplay()
         {
-            var (result, data) = ReplayIO.TryLoadData(ReplayInfo);
+            var (result, data) = ReplayIO.TryLoadData(ReplayInfo, GlobalVariables.VerboseReplays);
             if (result != ReplayReadResult.Valid)
             {
                 YargLogger.LogFormatError("Failed to load replay! Result: {0}", result);

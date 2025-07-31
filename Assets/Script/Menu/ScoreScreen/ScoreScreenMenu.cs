@@ -204,7 +204,7 @@ namespace YARG.Menu.ScoreScreen
                 return true;
             }
 
-            var (result, data) = ReplayIO.TryLoadData(replayEntry);
+            var (result, data) = ReplayIO.TryLoadData(replayEntry, GlobalVariables.VerboseReplays);
             if (result != ReplayReadResult.Valid)
             {
                 YargLogger.LogFormatError("Replay did not load. {0}", result);

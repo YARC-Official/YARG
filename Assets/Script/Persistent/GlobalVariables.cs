@@ -39,7 +39,8 @@ namespace YARG
     {
         public List<YargPlayer> Players { get; private set; }
 
-        public static bool OfflineMode { get; private set; }
+        public static bool OfflineMode    { get; private set; }
+        public static bool VerboseReplays { get; private set; }
 
         public static string PersistentDataPathOverride { get; private set; }
 
@@ -58,13 +59,22 @@ namespace YARG
 
             if (CommandLineArgs.Offline)
             {
+                OfflineMode = true;
                 YargLogger.LogInfo("Playing in offline mode");
+            }
+
+            if (CommandLineArgs.VerboseReplays)
+            {
+                VerboseReplays = true;
+                YargLogger.LogInfo("Verbose replays enabled");
             }
 
             if (!string.IsNullOrEmpty(CommandLineArgs.DownloadLocation))
             {
                 PathHelper.SetSetlistPathFromDownloadLocation(CommandLineArgs.DownloadLocation);
             }
+
+            // TODO: Actually respect the PersistentDataPath arg
 
             // Initialize important classes
 

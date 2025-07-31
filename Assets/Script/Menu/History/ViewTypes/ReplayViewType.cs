@@ -127,7 +127,7 @@ namespace YARG.Menu.History
                 return;
             }
 
-            var (result, data) = ReplayIO.TryLoadData(_entry);
+            var (result, data) = ReplayIO.TryLoadData(_entry, GlobalVariables.VerboseReplays);
             if (result != ReplayReadResult.Valid)
             {
                 YargLogger.LogFormatError("Failed to load replay. {0}", result);

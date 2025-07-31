@@ -12,12 +12,17 @@ namespace YARG
 
         /// <summary>
         /// Whether or not the game should be launched in offline mode. Offline mode disables
-        /// offline features such as fetching the OpenSource icons.
+        /// online features such as fetching the OpenSource icons.
         /// </summary>
         private const string OFFLINE_ARG = "-offline";
 
         /// <summary>
-        /// Used to select the language the game will be launcher in. The argument after should be
+        /// Defines whether we should save frame time data to replays
+        /// </summary>
+        private const string VERBOSE_REPLAYS = "-verbose-replays";
+
+        /// <summary>
+        /// Used to select the language the game will be launched in. The argument after should be
         /// the language code.
         /// </summary>
         private const string LANGUAGE_ARG = "-lang";
@@ -32,9 +37,12 @@ namespace YARG
 
         public static bool Offline { get; private set; }
 
-        public static string Language { get; private set; }
-        public static string DownloadLocation { get; private set; }
+        public static bool VerboseReplays { get; private set; }
+
+        public static string Language           { get; private set; }
+        public static string DownloadLocation   { get; private set; }
         public static string PersistentDataPath { get; private set; }
+
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         private static void InitCommandLineArgs()
@@ -48,6 +56,9 @@ namespace YARG
                 {
                     case OFFLINE_ARG:
                         Offline = true;
+                        break;
+                    case VERBOSE_REPLAYS:
+                        VerboseReplays = true;
                         break;
                     case LANGUAGE_ARG:
                         i++;
