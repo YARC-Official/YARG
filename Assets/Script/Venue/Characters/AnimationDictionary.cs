@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace YARG.Venue.Characters
 {
     /// <summary>
-    /// A stupid workaround for Unity's inability to serialize Dictionary&lt;&lt;T&gt;,List&lt;T&gt;
+    /// A stupid workaround for Unity's inability to serialize Dictionary&lt;&lt;T&gt;,List&lt;T&gt;&gt;
     /// </summary>
 
     // What we're doing here is using Unity's limited SerializedDictionary to store a layer name and a number

@@ -177,9 +177,6 @@ namespace YARG.Venue.VenueCamera
             CurrentEffect = firstEffect;
 
             InitializePostProcessing();
-
-            // 1/8th of a beat is a 32nd note
-            // GameManager.BeatEventHandler.Subscribe(UpdateCameraEffect, 1f / 8f, mode: TempoMapEventMode.Quarter);
         }
 
         private void Update()

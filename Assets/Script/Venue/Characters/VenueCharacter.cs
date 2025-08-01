@@ -389,34 +389,19 @@ namespace YARG.Venue.Characters
             };
 
             // We're not supporting all of these yet, so winnow them down to what we are supporting
-            // TODO: This needs to read the given character's animation settings to get the name of the idle and
-            // playing states
+            triggerText = triggerText switch
+            {
+                "Idle"         => "Idle",
+                "IdleIntense"  => "Idle",
+                "IdleRealtime" => "Idle",
+                "Intense"      => "Playing",
+                "Mellow"       => "Playing",
+                "Playing"      => "Playing",
+                "PlaySolo"     => "Playing",
+                _              => "Idle"
+            };
 
-            // triggerText = triggerText switch
-            // {
-            //     "Idle"         => "Idle",
-            //     "IdleIntense"  => "Idle",
-            //     "IdleRealtime" => "Idle",
-            //     "Intense"      => "Playing",
-            //     "Mellow"       => "Playing",
-            //     "Playing"      => "Playing",
-            //     "PlaySolo"     => "Playing",
-            //     _              => "Idle"
-            // };
-
-            // triggerText = triggerText switch
-            // {
-            //     "Idle"         => _idleAnimationName,
-            //     "IdleIntense"  => _idleAnimationName,
-            //     "IdleRealtime" => _idleAnimationName,
-            //     "Intense"      => _playingAnimationName,
-            //     "Mellow"       => _playingAnimationName,
-            //     "Playing"      => _playingAnimationName,
-            //     "PlaySolo"     => _playingAnimationName,
-            //     _              => _idleAnimationName
-            // };
-
-            YargLogger.LogDebug($"Animation state {animationState} ({triggerText}) for {Type} triggered");
+            YargLogger.LogDebug($"Animation state {animationState} triggered");
             SetTrigger(triggerText);
         }
 
@@ -489,12 +474,6 @@ namespace YARG.Venue.Characters
 
         public void OnGuitarAnimation(AnimationType animation)
         {
-            // For testing
-            // if (Type == CharacterType.Bass)
-            // {
-            //     return;
-            // }
-
             if (_animationEvents.TryGet(animation, out var animInfo))
             {
                 // YargLogger.LogDebug($"Animation {animInfo} triggered");
@@ -503,33 +482,6 @@ namespace YARG.Venue.Characters
             }
 
             YargLogger.LogDebug($"Animation {animation} not found for character type {Type}");
-
-
-            // var animName = animation switch
-            // {
-            //     AnimationType.LeftHandPosition1 => "HandPositionOne",
-            //     AnimationType.LeftHandPosition2 => "HandPositionTwo",
-            //     AnimationType.LeftHandPosition3 => "HandPositionThree",
-            //     AnimationType.LeftHandPosition4 => "HandPositionFour",
-            //     AnimationType.LeftHandPosition5 => "HandPositionFive",
-            //     AnimationType.LeftHandPosition6 => "HandPositionSix",
-            //     AnimationType.LeftHandPosition7 => "HandPositionSeven",
-            //     AnimationType.LeftHandPosition8 => "HandPositionEight",
-            //     AnimationType.LeftHandPosition9 => "HandPositionNine",
-            //     AnimationType.LeftHandPosition10 => "HandPositionTen",
-            //     AnimationType.LeftHandPosition11 => "HandPositionEleven",
-            //     AnimationType.LeftHandPosition12 => "HandPositionTwelve",
-            //     AnimationType.LeftHandPosition13 => "HandPositionThirteen",
-            //     AnimationType.LeftHandPosition14 => "HandPositionFourteen",
-            //     AnimationType.LeftHandPosition15 => "HandPositionFifteen",
-            //     AnimationType.LeftHandPosition16 => "HandPositionSixteen",
-            //     _ => "HandPositionSixteen" // We haven't gotten any farther yet
-            // };
-
-            // YargLogger.LogDebug($"Animation {animName} triggered");
-
-            // _currentLeftHandPosition = animName;
-            // SetTrigger(animName);
         }
 
         public void OnDrumAnimation(AnimationType animation)
@@ -598,20 +550,7 @@ namespace YARG.Venue.Characters
             {
                 return;
             }
-            //
-            // if (animName == "OpenHat")
-            // {
-            //     YargLogger.LogDebug("OpenHat animation triggered");
-            // } else if (animName == "CloseHat")
-            // {
-            //     YargLogger.LogDebug("CloseHat animation triggered");
-            // }
 
-            // YargLogger.LogDebug($"Animation {animName} triggered");
-
-            // _animator.CrossFadeInFixedTime(animName, 0.1f, layerIndex.Value);
-            // _animator.CrossFadeInFixedTime(animName, 0.067f);
-            // _animator.CrossFade(animName, 0.1f);
             SetTrigger(animName);
 
         }
@@ -698,7 +637,6 @@ namespace YARG.Venue.Characters
         {
             int lowestFret = 5;
             bool openGreen = _handMap is HandMap.HandMapDropD or HandMap.HandMapDropD2;
-            // bool inhibit = _inhibitHandShape && Type == CharacterType.Guitar;
             bool useChordShape =
                 (gNote.IsChord && (!_inhibitHandShape || Type != CharacterType.Guitar) &&
                     _handMap != HandMap.HandMapNoChords) || _handMap == HandMap.HandMapAllChords;
@@ -931,19 +869,6 @@ namespace YARG.Venue.Characters
                 return;
             }
 
-            // _animationSpeed = 0;
-            // _animator.SetFloat(_animationParamHash, 0);
-            // _animator.Play("Base Layer.Idle");
-            // _animator.Play(_idleAnimationHash);
-
-            // We have to delay by TimeToFirstHit because we get called that amount early
-            // if (Type != CharacterType.Bass)
-            // {
-            //     DOVirtual.DelayedCall(TimeToFirstHit, () => _animator.CrossFadeInFixedTime(_idleAnimationHash, 0.25f));
-            // }
-            // _animator.CrossFadeInFixedTime(_idleAnimationHash, 0.1f);
-            // YargLogger.LogDebug("Starting Idle animation");
-
             if (!ChartHasAnimations)
             {
                 SetTrigger(_idleAnimationName);
@@ -963,21 +888,11 @@ namespace YARG.Venue.Characters
 
             UpdateTempo(secondsPerBeat);
 
-            // TODO: We actually need to check whether this character has advanced animations or not
-            // If it does, and it is not a drums chart with no animations, we need to set playing/idle
             if (!ChartHasAnimations)
             {
                 // If the chart has animations, this will get handled differently elsewhere
                 SetTrigger(_playingAnimationName);
             }
-
-            // _animator.Play("91e81ab3-0a89-48c2-b8ce-a23f28bdf736 Skeleton_Merged_mixamo_com_001,BaseLayer_91e81ab3-0a89-48c2-b8ce-a23f28b");
-            // _animator.Play(_playingAnimationHash);
-            // if (Type != CharacterType.Bass)
-            // {
-            //     _animator.CrossFadeInFixedTime(_playingAnimationHash, 0.1f);
-            // }
-            // YargLogger.LogDebug("Starting Strum animation");
         }
 
         public bool IsAnimating()
