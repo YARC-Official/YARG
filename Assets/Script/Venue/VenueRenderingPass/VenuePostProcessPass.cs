@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using YARG.Venue.VolumeComponents;
 
-namespace YARG.Venue.VenueCamera
+namespace YARG.Venue.VenueRenderingPass
 {
 
     // Note for the future: This whole thing is probably a gotcha if/when we upgrade to Unity 6.

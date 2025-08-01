@@ -1,10 +1,8 @@
 ﻿using System;
-using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Serialization;
 
-namespace YARG.Venue.VenueCamera
+namespace YARG.Venue.VolumeComponents
 {
     [Serializable]
     [VolumeComponentMenuForRenderPipeline("Venue/Posterize", typeof(UniversalRenderPipeline))]

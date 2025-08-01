@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace YARG.Venue.VenueCamera
+namespace YARG.Venue.VenueRenderingPass
 {
     [System.Serializable]
     public class VenuePostProcessRenderer : ScriptableRendererFeature
@@ -24,11 +23,6 @@ namespace YARG.Venue.VenueCamera
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             renderer.EnqueuePass(_pass);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            _stashTex.Release();
         }
     }
 }

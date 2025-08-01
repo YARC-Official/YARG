@@ -6,6 +6,7 @@ using UnityEngine.Rendering.Universal;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Gameplay;
+using YARG.Venue.VolumeComponents;
 using Random = UnityEngine.Random;
 
 namespace YARG.Venue.VenueCamera

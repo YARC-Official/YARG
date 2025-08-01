@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace YARG.Venue.VenueCamera
+namespace YARG.Venue.VolumeComponents
 {
     [Serializable]
     [VolumeComponentMenuForRenderPipeline("Venue/Slow FPS", typeof(UniversalRenderPipeline))]
