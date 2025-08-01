@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using YARG.Core.Extensions;
 using YARG.Localization;
-using static UnityEngine.InputSystem.InputControlScheme.MatchResult;
 
 namespace YARG.Assets.Script.Helpers
 {
