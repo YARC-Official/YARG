@@ -497,14 +497,14 @@
 				"ending": "Ending",
 				"bre": "Big Rock Ending!",
 				"fade_out": "Fade out",
-				"speed_picking": "Fast picking",
+				"fast_picking": "Fast picking",
 				"foreplay_intro": "Foreplay intro",
-				"longtome_intro": "Long Time intro",
+				"longtome_intro": "Long Time intro"
 			},
 			"SectionFormats": {
 				"LetterSection": "{0} section",
 				"WithNumber": "{0} {1}",
-				"PercentageBased": "{0}% - {1}%",
+				"PercentageBased": "{0}% - {1}%"
 			}
 		}
     },

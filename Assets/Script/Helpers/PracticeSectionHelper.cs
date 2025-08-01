@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using YARG.Core.Extensions;
 using YARG.Localization;
+using static UnityEngine.InputSystem.InputControlScheme.MatchResult;
 
 namespace YARG.Assets.Script.Helpers
 {
@@ -13,7 +14,10 @@ namespace YARG.Assets.Script.Helpers
             var percentageMatch = Regex.Match(sectionName, "^ugc_section_(\\d\\d?)_(\\d\\d?)$");
             if (percentageMatch.Success)
             {
-                return CreatePercentageBasedPracticeSection(percentageMatch);
+                var size = int.Parse(percentageMatch.Groups[1].Value);
+                var start = int.Parse(percentageMatch.Groups[2].Value);
+
+                return Localize.KeyFormat("Gameplay.Practice.SectionFormats.PercentageBased", start, start + size);
             }
 
             // Best-effort attempt to convert [section]-based practice sections to the expected format
@@ -56,14 +60,6 @@ namespace YARG.Assets.Script.Helpers
             }
 
             return localizedName;
-        }
-
-        private static string CreatePercentageBasedPracticeSection(Match match)
-        {
-            var size = int.Parse(match.Groups[1].Value);
-            var start = int.Parse(match.Groups[2].Value);
-
-            return Localize.KeyFormat("Gameplay.Practice.SectionFormats.PercentageBased", start, start+size);
         }
 
         /**
@@ -181,7 +177,6 @@ namespace YARG.Assets.Script.Helpers
             { "fadeout", "fade_out" },
             { "fade-in", "fade_in" },
             { "fade-out", "fade_out" },
-            { "fast_picking", "speed_picking" },
             { "guitar_break", "gtr_break" },
             { "guitar_enters", "gtr_enters" },
             { "guitar_fill", "gtr_fill" },
@@ -219,10 +214,12 @@ namespace YARG.Assets.Script.Helpers
             { "pre_verse", "preverse" },
             { "pre-verse", "preverse" },
             { "rhy_gtr_enters", "rhy_enters" },
+            { "rhy_guitar_enters", "rhy_enters" },
             { "rhythm_gtr_enters", "rhy_enters" },
             { "rhythm_guitar_enters", "rhy_enters" },
             { "sctrach_break", "scratch_break"},
             { "spacey", "spacey_part" },
+            { "speed_picking", "fast_picking" },
             { "speedup", "speed_up" },
             { "speed-up", "speed_up" },
             { "syth_enters", "synth_enters" },
