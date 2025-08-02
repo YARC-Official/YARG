@@ -17,12 +17,17 @@ namespace YARG.Venue.VenueRenderingPass
             _stashTex = new RenderTexture(descriptor);
             _stashTex.Create();
             _pass = new VenuePostProcessPass(ref _stashTex);
-            _pass.ConfigureInput(ScriptableRenderPassInput.Color);
         }
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
+            _pass.ConfigureInput(ScriptableRenderPassInput.Color);
             renderer.EnqueuePass(_pass);
+        }
+
+        public void Release()
+        {
+            _stashTex.Release();
         }
     }
 }

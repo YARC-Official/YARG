@@ -15,6 +15,9 @@ namespace YARG.Venue.Characters
     [Serializable]
     public class AnimationDictionary
     {
+        // TODO: Make this actually work right or get rid of it, rn it's somehow trying to add the "Base Layer" key
+        // to _layerCounts repeatedly.
+
         // In case it isn't obvious, layerCounts and layerNames are separate because layerCounts is not ordered
         [SerializeField]
         private SerializedDictionary<string, int> _layerCounts = new();
@@ -30,12 +33,9 @@ namespace YARG.Venue.Characters
                 _layerNames.Add(layerName);
             }
 
-            if (!_layerCounts.ContainsKey(layerName))
-            {
-                _layerCounts.Add(layerName, 0);
-            }
-
+            _layerCounts.TryAdd(layerName, 0);
             _layerCounts[layerName]++;
+
             _animationNames.Add(animationName);
 
         }

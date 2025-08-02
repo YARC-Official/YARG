@@ -60,6 +60,8 @@ namespace YARG.Venue.VenueRenderingPass
 
         public VenuePostProcessPass(ref RenderTexture stashTex)
         {
+            profilingSampler = new ProfilingSampler("VenuePostProcessPass");
+
             renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
             _stashTex = stashTex;
             _ppProfiler = new ProfilingSampler("VenuePostProcess");
@@ -141,7 +143,10 @@ namespace YARG.Venue.VenueRenderingPass
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var cmd = CommandBufferPool.Get("CustomPostProcessPass");
+            var cmd = CommandBufferPool.Get("VenuePostProcessPass");
+            // Can't use a named buffer here if we want to use ProfilingScope
+            // But then if we don't use a named buffer, nothing shows up in frame debugger!
+            // var cmd = CommandBufferPool.Get();
             bool saveFrame = false;
             cmd.Clear();
 
@@ -162,28 +167,32 @@ namespace YARG.Venue.VenueRenderingPass
                 }
                 else
                 {
-                    using (new ProfilingScope(cmd, _lowFpsRestoreProfiler))
-                    {
+                    // using (new ProfilingScope(cmd, _lowFpsRestoreProfiler))
+                    // {
+                        cmd.BeginSample("LowFPSRestore");
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
                         // We don't want to display this frame, so blit intermediate to _destinationA and carry on
                         cmd.Blit(_stashTex, _destinationA);
                         // Blitter.BlitTexture(cmd, rt, _destinationA);
                         _latestDest = _destinationA;
-                    }
+                        cmd.EndSample("LowFPSRestore");
+                    // }
                 }
             }
 
-            using (new ProfilingScope(cmd, _ppProfiler))
-            {
-
+            // using (new ProfilingScope(cmd, _ppProfiler))
+            // {
+            cmd.BeginSample("VenuePP Chain");
                 var trailsEffect = stack.GetComponent<TrailsComponent>();
                 var material = _trailsMaterial;
 
                 if (trailsEffect.IsActive() && material != null)
                 {
+                    cmd.BeginSample("TrailsEffect");
                     material.SetFloat(_trailsLength, trailsEffect.Length);
                     BlitTo(material);
+                    cmd.EndSample("TrailsEffect");
                 }
 
                 var posterizeEffect = stack.GetComponent<PosterizeComponent>();
@@ -191,8 +200,10 @@ namespace YARG.Venue.VenueRenderingPass
 
                 if (posterizeEffect.IsActive() && material != null)
                 {
+                    cmd.BeginSample("PosterizeEffect");
                     material.SetInteger(_posterizeSteps, posterizeEffect.Steps.value);
                     BlitTo(material);
+                    cmd.EndSample("PosterizeEffect");
                 }
 
                 var mirrorEffect = stack.GetComponent<MirrorComponent>();
@@ -200,10 +211,12 @@ namespace YARG.Venue.VenueRenderingPass
 
                 if (mirrorEffect.IsActive() && material != null)
                 {
+                    cmd.BeginSample("MirrorEffect");
                     material.EnableKeyword(_mirrorKeywords[mirrorEffect.wipeIndex.value]);
                     material.SetFloat(_wipeTime, mirrorEffect.wipeTime.value);
                     material.SetFloat(_startTime, mirrorEffect.startTime.value);
                     BlitTo(material);
+                    cmd.EndSample("MirrorEffect");
                 }
 
                 var scanlineEffect = stack.GetComponent<ScanlineComponent>();
@@ -211,35 +224,42 @@ namespace YARG.Venue.VenueRenderingPass
 
                 if (scanlineEffect.IsActive() && material != null)
                 {
+                    cmd.BeginSample("ScanlineEffect");
                     material.SetFloat(_scanlineIntensity, scanlineEffect.intensity.value);
                     material.SetInt(_scanlineSize, scanlineEffect.scanlineCount.value);
                     BlitTo(material);
+                    cmd.EndSample("ScanlineEffect");
                 }
+            cmd.EndSample("VenuePP Chain");
 
                 ConfigureTarget(_source);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-            }
+            // }
 
-            using (new ProfilingScope(cmd, _lowFpsSaveProfiler))
-            {
+            // using (new ProfilingScope(cmd, _lowFpsSaveProfiler))
+            // {
                 if (saveFrame)
                 {
+                    cmd.BeginSample("LowFPSSave");
                     // We want to save this frame, so blit to the intermediate texture
                     cmd.Blit(_latestDest, _stashTex);
                     context.ExecuteCommandBuffer(cmd);
+                    cmd.EndSample("LowFPSSave");
                     cmd.Clear();
                 }
-            }
+            // }
 
-            using (new ProfilingScope(cmd, _finalWriteProfiler))
-            {
+            // using (new ProfilingScope(cmd, _finalWriteProfiler))
+            // {
+            cmd.BeginSample("VenueFinalWrite");
                 cmd.Blit(_latestDest, _source);
 
+                cmd.EndSample("VenueFinalWrite");
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-            }
+            // }
 
             // This seems unnecessary, but is somehow required to make the frame debugger work right
             context.ExecuteCommandBuffer(cmd);

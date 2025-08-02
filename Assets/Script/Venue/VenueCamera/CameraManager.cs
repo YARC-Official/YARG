@@ -297,8 +297,18 @@ namespace YARG.Venue.VenueCamera
                         }
                     }
 
-                    var selected = choices[Random.Range(0, choices.Count - 1)];
-                    var cameras = _subjectToCameraMap[selected];
+                    List<Camera> cameras;
+
+                    if (choices.Count > 0)
+                    {
+                        var selected = choices[Random.Range(0, choices.Count - 1)];
+                        cameras = _subjectToCameraMap[selected];
+                    }
+                    else
+                    {
+                        cameras = _cameras;
+                    }
+
                     var filteredCameras = FilterCamerasByConstraint(cut, cameras);
 
                     if (filteredCameras.Count > 0)
