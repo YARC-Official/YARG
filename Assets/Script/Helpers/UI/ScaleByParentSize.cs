@@ -36,9 +36,15 @@ namespace YARG.Helpers.UI
         private void UpdateScale()
         {
             var size = ParentRectTransform.rect.size;
-            float scale = _scaleMode == ScaleMode.ScaleByWidth ?
-                size.x / _initialSize.x :
-                size.y / _initialSize.y;
+            float scale;
+            if (_scaleMode == ScaleMode.ScaleByWidth)
+            {
+                scale = size.x / _initialSize.x;
+            }
+            else
+            {
+                scale = size.y / _initialSize.y;
+            }
 
             transform.localScale = new Vector3(scale, scale, 1f);
         }
