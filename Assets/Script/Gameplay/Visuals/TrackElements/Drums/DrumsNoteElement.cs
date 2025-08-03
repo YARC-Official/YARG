@@ -82,13 +82,10 @@ namespace YARG.Gameplay.Visuals
         {
             base.GameplayAwake();
 
-            if (Player.Player.Profile.CurrentInstrument == Core.Instrument.ProDrums && Player.Player.Profile.SplitProTomsAndCymbals)
-            {
-                normalScale = transform.localScale;
-                var newScale = transform.localScale;
-                newScale.Scale(new(SPLIT_LANE_SCALE_FACTOR, 1f, SPLIT_LANE_SCALE_FACTOR));
-                splitScale = newScale;
-            }
+            normalScale = transform.localScale;
+            var newScale = transform.localScale;
+            newScale.Scale(new(SPLIT_LANE_SCALE_FACTOR, 1f, SPLIT_LANE_SCALE_FACTOR));
+            splitScale = newScale;
         }
 
         protected override void InitializeElement()
