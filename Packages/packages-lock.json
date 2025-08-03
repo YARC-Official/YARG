@@ -45,7 +45,7 @@
       "url": "https://package.openupm.com"
     },
     "com.thenathannator.plasticband": {
-      "version": "0.8.5",
+      "version": "0.9.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -296,6 +296,13 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
       }
+    },
+    "fidelityfx.fsr": {
+      "version": "https://github.com/ndepoel/FSR3Unity.git?path=/Packages/fidelityfx.fsr",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "71879e71aa72465a79bdf009d7d71f9f7ab83066"
     },
     "jp.keijiro.minis": {
       "version": "https://github.com/TheNathannator/Minis.git?path=/Packages/jp.keijiro.minis#yarg",

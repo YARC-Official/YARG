@@ -21,7 +21,8 @@ namespace YARG.Gameplay.HUD
             SelectSections,
             ReplayPause,
             QuickSettings,
-            SettingsMenu
+            SettingsMenu,
+            SetlistPause,
         }
 
         private Dictionary<Menu, PauseMenuObject> _menus;
@@ -159,6 +160,27 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
+            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+        }
+
+        public void Skip()
+        {
+            if (!GlobalVariables.State.PlayingAShow)
+            {
+                // We should not be called in this case, so do nothing
+                return;
+            }
+
+            if (GlobalVariables.State.ShowIndex >= GlobalVariables.State.ShowSongs.Count - 1)
+            {
+                // There is no next song, so again we shouldn't have been called, but we
+                // can do something this time
+                Quit();
+            }
+
+            // Go to next song in setlist
+            GlobalVariables.State.ShowIndex++;
+            GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex];
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }
     }

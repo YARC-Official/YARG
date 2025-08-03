@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Utility;
 using YARG.Helpers;
@@ -131,6 +131,8 @@ namespace YARG.Settings
                 nameof(Settings.DisableFilmGrain),
                 nameof(Settings.StarPowerHighwayFx),
                 nameof(Settings.SongBackgroundOpacity),
+                nameof(Settings.VenueRenderingQuality),
+                nameof(Settings.VenueAntiAliasing),
 
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.UseThreeLaneLyricsInHarmony),
@@ -212,6 +214,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.UseWhammyFx),
                 nameof(Settings.WhammyPitchShiftAmount),
+                nameof(Settings.BandComboTypeSetting)
 	            // nameof(Settings.WhammyOversampleFactor),
             }
         };
@@ -238,6 +241,12 @@ namespace YARG.Settings
 
             // If null, recreate
             Settings ??= new SettingContainer();
+            if (!SettingContainer.IsInitialized && SystemInfo.supportsComputeShaders && SystemInfo.supportsMotionVectors)
+            {
+                Settings.VenueAntiAliasing.Add(
+                     YARG.VenueAntiAliasingMethod.FSR3
+                );
+            }
             SettingContainer.IsInitialized = true;
 
             // Now that we're done loading, call all of the callbacks
