@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
-using AnimationEvent = YARG.Core.Chart.AnimationEvent;
 using AnimationType = YARG.Core.Chart.AnimationEvent.AnimationType;
 
 namespace YARG.Venue.Characters
@@ -14,7 +13,7 @@ namespace YARG.Venue.Characters
         private HashSet<string>                                              _availableAnimations      = new();
         private Dictionary<int, string>                                      _animationHashToAnimation = new();
         private Dictionary<int, string>                                      _stateHashToFullName      = new();
-        private Dictionary<AnimationEvent.AnimationType, AnimationEventInfo> _animationLookup          = new();
+        private Dictionary<AnimationType, AnimationEventInfo>                _animationLookup          = new();
         private Dictionary<string, int>                                      _layerNameToIndex         = new();
         private Dictionary<string, int>                                      _leftHandPositionHashes   = new();
         private string                                                       _currentChordShape;

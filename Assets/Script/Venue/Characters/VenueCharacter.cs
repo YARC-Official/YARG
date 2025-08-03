@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using DG.Tweening;
 using UnityEngine;
-using UnityEngine.Rendering;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
-using YARG.Gameplay.Visuals;
-using AnimationEvent = YARG.Core.Chart.AnimationEvent;
 using AnimationTrigger = YARG.Venue.Characters.CharacterManager.AnimationTrigger;
-using AnimationState = YARG.Venue.Characters.CharacterManager.AnimationState;
+using CharacterStateType = YARG.Core.Chart.Events.CharacterState.CharacterStateType;
 using AnimationType = YARG.Core.Chart.AnimationEvent.AnimationType;
-using HandMap = YARG.Venue.Characters.CharacterManager.HandMap;
-using StrumMap = YARG.Venue.Characters.CharacterManager.StrumMap;
+using HandMapType = YARG.Core.Chart.Events.HandMap.HandMapType;
+using StrumMapType = YARG.Core.Chart.Events.StrumMap.StrumMapType;
 
 #if UNITY_EDITOR
 using UnityEditor.Animations;
@@ -105,8 +100,8 @@ namespace YARG.Venue.Characters
         public float TimeToFirstHit = 0.0f;
 
         private AnimationState _animationState;
-        private HandMap        _handMap;
-        private StrumMap       _strumMap;
+        private HandMapType    _handMap;
+        private StrumMapType   _strumMap;
 
         private bool _inhibitHandShape;
         private bool _isBend;
@@ -115,7 +110,7 @@ namespace YARG.Venue.Characters
         private string _delayedTriggerName;
         private float  _delayedTriggerTime;
 
-        private bool _alwaysBend => _handMap == HandMap.HandMapAllBend;
+        private bool _alwaysBend => _handMap == HandMapType.AllBend;
         [NonSerialized]
         public  bool ChartHasAnimations;
 
@@ -355,7 +350,7 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private void HandleStrumMap(StrumMap strumMap)
+        private void HandleStrumMap(StrumMapType strumMap)
         {
             // Strum map is only valid for bass
             if (Type != CharacterType.Bass)
@@ -365,26 +360,26 @@ namespace YARG.Venue.Characters
 
             _strumTrigger = strumMap switch
             {
-                StrumMap.StrumMapDefault => "Strum",
-                StrumMap.StrumMapPick => "Pick",
-                StrumMap.StrumMapSlapBass => "Slap",
+                StrumMapType.Default => "Strum",
+                StrumMapType.Pick => "Pick",
+                StrumMapType.SlapBass => "Slap",
                 _ => "Strum"
             };
 
             YargLogger.LogDebug($"Strum map {strumMap} set");
         }
 
-        private void HandleAnimationState(AnimationState animationState)
+        private void HandleCharacterState(CharacterStateType characterState)
         {
-            var triggerText = animationState switch
+            var triggerText = characterState switch
             {
-                AnimationState.Idle => _idleAnimationName,
-                AnimationState.IdleIntense => _idleAnimationName,
-                AnimationState.IdleRealtime => _idleAnimationName,
-                AnimationState.Intense => _playingAnimationName,
-                AnimationState.Mellow => _playingAnimationName,
-                AnimationState.Play => _playingAnimationName,
-                AnimationState.PlaySolo => _playingAnimationName,
+                CharacterStateType.Idle => _idleAnimationName,
+                CharacterStateType.IdleIntense => _idleAnimationName,
+                CharacterStateType.IdleRealtime => _idleAnimationName,
+                CharacterStateType.Intense => _playingAnimationName,
+                CharacterStateType.Mellow => _playingAnimationName,
+                CharacterStateType.Play => _playingAnimationName,
+                CharacterStateType.PlaySolo => _playingAnimationName,
                 _ => _playingAnimationName
             };
 
@@ -401,11 +396,11 @@ namespace YARG.Venue.Characters
                 _              => "Idle"
             };
 
-            YargLogger.LogDebug($"Animation state {animationState} triggered");
+            YargLogger.LogDebug($"Animation state {characterState} triggered");
             SetTrigger(triggerText);
         }
 
-        private void HandleHandMap(HandMap handMap)
+        private void HandleHandMap(HandMapType handMap)
         {
             // Hand map is only valid for guitar and bass
             if (Type != CharacterType.Guitar)
@@ -420,34 +415,34 @@ namespace YARG.Venue.Characters
                 // If this is a forced chord shape, we have to send an animation trigger and set the inhibit flag
                 switch (handMap)
                 {
-                    case HandMap.HandMapChordA:
+                    case HandMapType.ChordA:
                         SetTrigger("ChordA");
                         _inhibitHandShape = true;
                         YargLogger.LogDebug("Chord A triggered");
                         break;
-                    case HandMap.HandMapChordC:
+                    case HandMapType.ChordC:
                         SetTrigger("ChordC");
                         _inhibitHandShape = true;
                         YargLogger.LogDebug("Chord C triggered");
                         break;
-                    case HandMap.HandMapChordD:
+                    case HandMapType.ChordD:
                         SetTrigger("ChordD");
                         _inhibitHandShape = true;
                         YargLogger.LogDebug("Chord D triggered");
                         break;
-                    case HandMap.HandMapDropD:
+                    case HandMapType.DropD:
                         SetTrigger("DropD");
                         _inhibitHandShape = true;
                         YargLogger.LogDebug("Drop D triggered");
                         break;
-                    case HandMap.HandMapDropD2:
+                    case HandMapType.DropD2:
                         SetTrigger("DropD");
                         YargLogger.LogDebug("Drop D triggered");
                         _inhibitHandShape = true;
                         break;
                 }
 
-                if (handMap == HandMap.HandMapDefault)
+                if (handMap == HandMapType.Default)
                 {
                     YargLogger.LogDebug("Default hand shape triggered");
                 }
@@ -459,7 +454,7 @@ namespace YARG.Venue.Characters
             switch (animation.Type)
             {
                 case CharacterManager.TriggerType.AnimationState:
-                    HandleAnimationState(animation.State);
+                    HandleCharacterState(animation.State);
                     break;
                 case CharacterManager.TriggerType.HandMap:
                     HandleHandMap(animation.HandMap);
@@ -563,7 +558,7 @@ namespace YARG.Venue.Characters
                 if (gNote.IsStrum)
                 {
                     // Handle alternate strums for bass
-                    if (Type == CharacterType.Bass && _hasSlap && _strumMap == StrumMap.StrumMapSlapBass)
+                    if (Type == CharacterType.Bass && _hasSlap && _strumMap == StrumMapType.SlapBass)
                     {
                         // Just trigger slap and return
                         SetTrigger(AnimationStateType.Slap);
@@ -636,14 +631,14 @@ namespace YARG.Venue.Characters
         private void SetHandAnimationForNote(GuitarNote gNote)
         {
             int lowestFret = 5;
-            bool openGreen = _handMap is HandMap.HandMapDropD or HandMap.HandMapDropD2;
+            bool openGreen = _handMap is HandMapType.DropD or HandMapType.DropD2;
             bool useChordShape =
                 (gNote.IsChord && (!_inhibitHandShape || Type != CharacterType.Guitar) &&
-                    _handMap != HandMap.HandMapNoChords) || _handMap == HandMap.HandMapAllChords;
+                    _handMap != HandMapType.NoChords) || _handMap == HandMapType.AllChords;
             bool isSustain = gNote.IsSustain;
             float sustainLength = (float) gNote.TimeLength;
 
-            if (_inhibitHandShape && Type == CharacterType.Guitar && (_handMap != HandMap.HandMapDropD && _handMap != HandMap.HandMapDropD2))
+            if (_inhibitHandShape && Type == CharacterType.Guitar && (_handMap != HandMapType.DropD && _handMap != HandMapType.DropD2))
             {
                 return;
             }
@@ -804,7 +799,7 @@ namespace YARG.Venue.Characters
                 // We either have an open note or we have green and are using a map that uses open fingering for green
                 // HandleDropD(isSustain, sustainLength);
 
-                if (_handMap == HandMap.HandMapDropD || _handMap == HandMap.HandMapDropD2)
+                if (_handMap == HandMapType.DropD || _handMap == HandMapType.DropD2)
                 {
                     if (_currentChordShape == "DropDOpen")
                     {
@@ -831,7 +826,7 @@ namespace YARG.Venue.Characters
         private bool HandleDropD(bool isSustain, float sustainLength)
         {
             // YargLogger.LogDebug("HandleDropD called");
-            if (_handMap == HandMap.HandMapDropD || _handMap == HandMap.HandMapDropD2)
+            if (_handMap == HandMapType.DropD || _handMap == HandMapType.DropD2)
             {
                 // YargLogger.LogDebug("Drop D hand shape");
                 if (isSustain)

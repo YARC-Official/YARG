@@ -201,7 +201,7 @@ namespace YARG.Venue.VenueCamera
                     SetTrail(true, 0.9f);
                     SetDesaturation(true, 20f);
                     break;
-                case PostProcessingType.Desaturated_Red: // TODO: This almost certainly needs drastic adjustment
+                case PostProcessingType.Desaturated_Red:
                     SetDesaturatedRed(true);
                     break;
                 case PostProcessingType.Desaturated_Blue:
@@ -448,7 +448,6 @@ namespace YARG.Venue.VenueCamera
             var lumVSatCurve =
                 new TextureCurve(new AnimationCurve(new Keyframe(0, 0.525f), new Keyframe(0.639f, 0.085f)), 0.5f, false,
                     in bounds);
-            // TODO: Properly set the tangents on the keyframes
             var greenCurve =
                 new TextureCurve(
                     new AnimationCurve(new Keyframe(0, 0.0f), new Keyframe(0.5f, 0.0f), new Keyframe(1, 1)), 0.5f,
@@ -700,7 +699,6 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            // TODO: Not really sure that we should animate these, lol
             SetAnimation(scanline.intensity, enabled ? 0.6f : 0.0f, 0.01f, enabled);
 
             // This should really be ~1/4 of the screen resolution
@@ -1054,12 +1052,6 @@ namespace YARG.Venue.VenueCamera
         // Returns true once the animation has completed
         public bool Update()
         {
-            // if (GameManager.RealVisualTime < StartTime)
-            // {
-            //     // Nothing to do yet
-            //     return false;
-            // }
-
             if (_elapsedTime >= Duration)
             {
                 // We're done, so set EndCurve

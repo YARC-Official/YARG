@@ -3,7 +3,11 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay;
+using YARG.Core.Chart.Events;
 using AnimationEvent = YARG.Core.Chart.AnimationEvent;
+using CharacterStateType = YARG.Core.Chart.Events.CharacterState.CharacterStateType;
+using HandMapType = YARG.Core.Chart.Events.HandMap.HandMapType;
+using StrumMapType = YARG.Core.Chart.Events.StrumMap.StrumMapType;
 
 namespace YARG.Venue.Characters
 {
@@ -80,6 +84,7 @@ namespace YARG.Venue.Characters
             }
 
             // Get the expert notes for each track
+            // TODO: This should get the highest available difficulty, in case Expert doesn't exist
             var guitarId = chart.FiveFretGuitar.GetDifficulty(Difficulty.Expert);
             var bassId = chart.FiveFretBass.GetDifficulty(Difficulty.Expert);
             var keysId = chart.Keys.GetDifficulty(Difficulty.Expert);
@@ -126,7 +131,7 @@ namespace YARG.Venue.Characters
             }
 
             // If we have at least [idle] and [playing] set ChartHasAnimations for the character
-            if (_guitarMaps.FindLastIndex(e => e.State == AnimationState.Idle) > 0)
+            if (_guitarMaps.FindLastIndex(e => e.State == CharacterStateType.Idle) > 0)
             {
                 foreach (var key in _characters.Keys)
                 {
@@ -137,7 +142,7 @@ namespace YARG.Venue.Characters
                 }
             }
 
-            if (_bassMaps.FindLastIndex(e => e.State == AnimationState.Idle) > 0)
+            if (_bassMaps.FindLastIndex(e => e.State == CharacterStateType.Idle) > 0)
             {
                 foreach (var key in _characters.Keys)
                 {
@@ -148,7 +153,7 @@ namespace YARG.Venue.Characters
                 }
             }
 
-            if (_drumMaps.FindLastIndex(e => e.State == AnimationState.Idle) > 0)
+            if (_drumMaps.FindLastIndex(e => e.State == CharacterStateType.Idle) > 0)
             {
                 foreach (var key in _characters.Keys)
                 {
@@ -159,7 +164,7 @@ namespace YARG.Venue.Characters
                 }
             }
 
-            if (_vocalMaps.FindLastIndex(e => e.State == AnimationState.Idle) > 0)
+            if (_vocalMaps.FindLastIndex(e => e.State == CharacterStateType.Idle) > 0)
             {
                 foreach (var key in _characters.Keys)
                 {
@@ -395,31 +400,31 @@ namespace YARG.Venue.Characters
             {
                 if (textEvent.Text == "idle")
                 {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, AnimationState.Idle, default, default, textEvent.Time));
+                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default, default, textEvent.Time));
                 }
                 else if (textEvent.Text == "idle_realtime")
                 {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, AnimationState.IdleRealtime, default, default, textEvent.Time));
+                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.IdleRealtime, default, default, textEvent.Time));
                 }
                 else if (textEvent.Text == "idle_intense")
                 {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, AnimationState.IdleIntense, default, default, textEvent.Time));
+                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.IdleIntense, default, default, textEvent.Time));
                 }
                 else if (textEvent.Text == "play")
                 {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, AnimationState.Play, default, default, textEvent.Time));
+                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Play, default, default, textEvent.Time));
                 }
                 else if (textEvent.Text == "play_solo")
                 {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, AnimationState.PlaySolo, default, default, textEvent.Time));
+                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.PlaySolo, default, default, textEvent.Time));
                 }
                 else if (textEvent.Text == "mellow")
                 {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, AnimationState.Mellow, default, default, textEvent.Time));
+                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Mellow, default, default, textEvent.Time));
                 }
                 else if (textEvent.Text == "intense")
                 {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, AnimationState.Intense, default, default, textEvent.Time));
+                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Intense, default, default, textEvent.Time));
                 }
                 else if (textEvent.Text.StartsWith("map "))
                 {
@@ -441,43 +446,43 @@ namespace YARG.Venue.Characters
                         {
                             case "Default":
                                 animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMap.HandMapDefault, default, textEvent.Time));
+                                    HandMapType.Default, default, textEvent.Time));
                                 break;
                             case "NoChords":
                                 animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMap.HandMapNoChords, default, textEvent.Time));
+                                    HandMapType.NoChords, default, textEvent.Time));
                                 break;
                             case "AllChords":
                                 animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMap.HandMapAllChords, default, textEvent.Time));
+                                    HandMapType.AllChords, default, textEvent.Time));
                                 break;
                             case "AllBend":
                                 animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMap.HandMapAllBend, default, textEvent.Time));
+                                    HandMapType.AllBend, default, textEvent.Time));
                                 break;
                             case "Solo":
                                 animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMap.HandMapSolo, default, textEvent.Time));
+                                    HandMapType.Solo, default, textEvent.Time));
                                 break;
                             case "DropD":
                                 animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMap.HandMapDropD, default, textEvent.Time));
+                                    HandMapType.DropD, default, textEvent.Time));
                                 break;
                             case "DropD2":
                                 animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMap.HandMapDropD2, default, textEvent.Time));
+                                    HandMapType.DropD2, default, textEvent.Time));
                                 break;
                             case "Chord_C":
                                 animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMap.HandMapChordC, default, textEvent.Time));
+                                    HandMapType.ChordC, default, textEvent.Time));
                                 break;
                             case "Chord_D":
                                 animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMap.HandMapChordD, default, textEvent.Time));
+                                    HandMapType.ChordD, default, textEvent.Time));
                                 break;
                             case "Chord_A":
                                 animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMap.HandMapChordA, default, textEvent.Time));
+                                    HandMapType.ChordA, default, textEvent.Time));
                                 break;
                         }
                     }
@@ -486,13 +491,13 @@ namespace YARG.Venue.Characters
                         switch (mapType)
                         {
                             case "Default":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.StrumMap, default, default, StrumMap.StrumMapDefault, textEvent.Time));
+                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.StrumMap, default, default, StrumMapType.Default, textEvent.Time));
                                 break;
                             case "Pick":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.StrumMap, default, default, StrumMap.StrumMapPick, textEvent.Time));
+                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.StrumMap, default, default, StrumMapType.Pick, textEvent.Time));
                                 break;
                             case "SlapBass":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.StrumMap, default, default, StrumMap.StrumMapSlapBass, textEvent.Time));
+                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.StrumMap, default, default, StrumMapType.SlapBass, textEvent.Time));
                                 break;
                         }
                     }
@@ -502,37 +507,37 @@ namespace YARG.Venue.Characters
             return animationTriggerTrack;
         }
 
-        public enum AnimationState
-        {
-            Idle,
-            IdleRealtime,
-            IdleIntense,
-            Play,
-            PlaySolo,
-            Mellow,
-            Intense
-        }
-
-        public enum HandMap
-        {
-            HandMapDefault,
-            HandMapNoChords,
-            HandMapAllChords,
-            HandMapAllBend,
-            HandMapSolo,
-            HandMapDropD,
-            HandMapDropD2,
-            HandMapChordC,
-            HandMapChordD,
-            HandMapChordA,
-        }
-
-        public enum StrumMap {
-            StrumMapDefault,
-            StrumMapPick,
-            StrumMapSlapBass
-        }
-
+        // public enum AnimationState
+        // {
+        //     Idle,
+        //     IdleRealtime,
+        //     IdleIntense,
+        //     Play,
+        //     PlaySolo,
+        //     Mellow,
+        //     Intense
+        // }
+        //
+        // public enum HandMap
+        // {
+        //     HandMapDefault,
+        //     HandMapNoChords,
+        //     HandMapAllChords,
+        //     HandMapAllBend,
+        //     HandMapSolo,
+        //     HandMapDropD,
+        //     HandMapDropD2,
+        //     HandMapChordC,
+        //     HandMapChordD,
+        //     HandMapChordA,
+        // }
+        //
+        // public enum StrumMap {
+        //     StrumMapDefault,
+        //     StrumMapPick,
+        //     StrumMapSlapBass
+        // }
+        //
         public enum TriggerType
         {
             AnimationState,
@@ -543,12 +548,12 @@ namespace YARG.Venue.Characters
         public struct AnimationTrigger
         {
             public TriggerType Type;
-            public AnimationState State;
-            public HandMap HandMap;
-            public StrumMap StrumMap;
+            public CharacterStateType State;
+            public HandMapType HandMap;
+            public StrumMapType StrumMap;
             public double Time;
 
-            public AnimationTrigger(TriggerType type, AnimationState state, HandMap handMap, StrumMap strumMap, double time)
+            public AnimationTrigger(TriggerType type, CharacterStateType state, HandMapType handMap, StrumMapType strumMap, double time)
             {
                 Type = type;
                 State = state;
