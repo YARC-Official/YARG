@@ -208,7 +208,18 @@ namespace YARG.Menu.History
             var (result, entry) = ReplayIO.TryReadMetadata(path);
             if (result != ReplayReadResult.Valid)
             {
-                DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay for this song is most likely corrupted, or out of date!");
+                string message = result switch
+                {
+                    ReplayReadResult.MetadataOnly => "The replay for this song cannot be played with this version of YARG",
+                    ReplayReadResult.InvalidVersion => "The replay for this song has an invalid version and is most likely corrupted or *very* out of date",
+                    ReplayReadResult.DataMismatch => "The replay data for this song does not match the expected data.",
+                    ReplayReadResult.FileNotFound => "The replay for this song does not exist! It has probably been deleted!",
+                    ReplayReadResult.NotAReplay => "A file was found, but it is not a replay.",
+                    ReplayReadResult.Corrupted => "The replay for this song is corrupted (checksum does not match)",
+                    _ => "The replay for this song is most likely corrupted, or out of date!"
+                };
+
+                DialogManager.Instance.ShowMessage(messageBoxTitle, message);
                 return null;
             }
 
