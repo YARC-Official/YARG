@@ -135,7 +135,6 @@ namespace YARG.Settings
                 nameof(Settings.VenueAntiAliasing),
 
                 new HeaderMetadata("Gameplay"),
-                nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.UseThreeLaneLyricsInHarmony),
                 nameof(Settings.KickBounceMultiplier),
 

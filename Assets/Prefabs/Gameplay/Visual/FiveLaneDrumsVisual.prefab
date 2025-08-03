@@ -21,6 +21,11 @@ PrefabInstance:
         type: 3}
     - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
         type: 3}
+      propertyPath: SoloPool
+      value: 
+      objectReference: {fileID: 2233902140717003607}
+    - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
+        type: 3}
       propertyPath: _fiveLaneMode
       value: 1
       objectReference: {fileID: 0}
@@ -94,8 +99,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8874689014558573615, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
+        type: 3}
+      propertyPath: m_Name
+      value: Effect Pool
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+--- !u!114 &2233902140717003607 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1944739971720957538, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
+    type: 3}
+  m_PrefabInstance: {fileID: 431624946335464757}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &8022842290628306130 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7686426392671820263, guid: 14dfc37fcbd6e0c4ba41507437a52fea,

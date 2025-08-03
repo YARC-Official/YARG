@@ -112,10 +112,14 @@ namespace YARG.Gameplay.HUD
                 _bandScore = GameManager.BandScore;
                 _scoreText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandScore);
 
+                var scoreTextLength = _bandScore == 0 ? 1 : Math.Floor(Math.Log10(_bandScore) + 1);
+                scoreTextLength += Math.Floor((scoreTextLength - 1) / 3); // thousand coma separators
+
+
                 _starScoreDisplay.SetStars(GameManager.BandStars);
 
                 // Trigger easter egg
-                if (!_easterEggTriggered && _scoreText.text.Length - SCORE_PREFIX.Length > _characterCountForBreak)
+                if (!_easterEggTriggered && scoreTextLength > _characterCountForBreak)
                 {
                     _backgroundImage.sprite = _brokenBackgroundSprite;
                     _overlayImage.sprite = _brokenOverlaySprite;

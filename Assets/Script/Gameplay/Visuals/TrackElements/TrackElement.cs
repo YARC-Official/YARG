@@ -8,7 +8,7 @@ namespace YARG.Gameplay.Visuals
     public abstract class TrackElement<TPlayer> : BaseElement
         where TPlayer : TrackPlayer
     {
-        private const float REMOVE_POINT = -4f;
+        protected const float REMOVE_POINT = -4f;
 
         protected TPlayer Player { get; private set; }
 

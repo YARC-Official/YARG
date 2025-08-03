@@ -127,14 +127,15 @@ namespace YARG.Menu.History
                 return;
             }
 
-            var (result, data) = ReplayIO.TryLoadData(_entry);
+            var replayOptions = new ReplayReadOptions { KeepFrameTimes = GlobalVariables.VerboseReplays };
+            var (result, data) = ReplayIO.TryLoadData(_entry, replayOptions);
             if (result != ReplayReadResult.Valid)
             {
                 YargLogger.LogFormatError("Failed to load replay. {0}", result);
                 return;
             }
 
-            var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, _entry, data);
             for (int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];
@@ -146,8 +147,8 @@ namespace YARG.Menu.History
                 }
                 else
                 {
-                    YargLogger.LogFormatWarning("({0}, {1}/{2}) FAILED verification",
-                        profile.Name, profile.CurrentDifficulty, profile.CurrentDifficulty);
+                    YargLogger.LogFormatWarning("({0}, {1}/{2}) FAILED verification. Stats:\n{3}",
+                        profile.Name, profile.CurrentDifficulty, profile.CurrentDifficulty, item4: analysisResult.StatLog);
                 }
             }
         }

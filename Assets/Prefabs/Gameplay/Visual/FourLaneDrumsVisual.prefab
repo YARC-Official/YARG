@@ -117,6 +117,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: FourLaneDrumsVisual
       objectReference: {fileID: 0}
+    - target: {fileID: 1322894404919002691, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: m_Name
+      value: Effect Pool
+      objectReference: {fileID: 0}
     - target: {fileID: 2010217271745092097, guid: 5800c42510b55c549be95ec3ecd75e1c,
         type: 3}
       propertyPath: m_IsActive
@@ -174,6 +179,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42974416b948ada45a2fd1534af7341c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1944739971720957538 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8327152841679539214, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7598390404892836460}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &2787801384921991726 stripped
@@ -313,6 +330,7 @@ MonoBehaviour:
   _hudLocation: {fileID: 4218340060847917785}
   NotePool: {fileID: 4797150999688012940}
   BeatlinePool: {fileID: 897369785276829973}
+  EffectPool: {fileID: 1944739971720957538}
   _fiveLaneMode: 0
   _fretArray: {fileID: 7353099902729507025}
   _kickFretFlash: {fileID: 5135833070940009271}

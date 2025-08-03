@@ -242,7 +242,8 @@ namespace YARG.Gameplay
 
         private bool LoadReplay()
         {
-            var (result, data) = ReplayIO.TryLoadData(ReplayInfo);
+            var readOptions = new ReplayReadOptions { KeepFrameTimes = GlobalVariables.VerboseReplays };
+            var (result, data) = ReplayIO.TryLoadData(ReplayInfo, readOptions);
             if (result != ReplayReadResult.Valid)
             {
                 YargLogger.LogFormatError("Failed to load replay! Result: {0}", result);
@@ -308,9 +309,6 @@ namespace YARG.Gameplay
 
         private void FinalizeChart()
         {
-            BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
-            _chartLoaded?.Invoke(Chart);
-
             double audioLength = _mixer.Length;
             double chartLength = Chart.GetEndTime();
             double endTime = Chart.GetEndEvent()?.Time ?? -1;
@@ -331,6 +329,13 @@ namespace YARG.Gameplay
             {
                 SongLength = endTime;
             }
+
+            // Make sure enough beatlines have been generated to cover the song end delay
+            Chart.SyncTrack.GenerateBeatlines(SongLength + SONG_END_DELAY, true);
+
+            BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
+            _chartLoaded?.Invoke(Chart);
+
             _songLoaded?.Invoke();
         }
 

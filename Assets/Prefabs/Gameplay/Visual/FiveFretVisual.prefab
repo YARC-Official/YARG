@@ -224,6 +224,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 861361446070616044, guid: 03b0fdd0f2d131d4682ccf3aaf6ee2a7,
         type: 3}
+    - target: {fileID: 1322894404919002691, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: m_Name
+      value: Effect Pool
+      objectReference: {fileID: 0}
     - target: {fileID: 2166581194060232035, guid: 5800c42510b55c549be95ec3ecd75e1c,
         type: 3}
       propertyPath: m_IsActive
@@ -281,6 +286,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42974416b948ada45a2fd1534af7341c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1486725686970304910 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8327152841679539214, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &2948926500384017858 stripped
@@ -414,6 +431,7 @@ MonoBehaviour:
   _hudLocation: {fileID: 3807369616701639989}
   NotePool: {fileID: 5534384060604769120}
   BeatlinePool: {fileID: 155632028176750329}
+  EffectPool: {fileID: 1486725686970304910}
   _fretArray: {fileID: 1060069523843335645}
   _shiftIndicatorPool: {fileID: 8077044597088283256}
   _rangeIndicatorPool: {fileID: 1740989957536135886}

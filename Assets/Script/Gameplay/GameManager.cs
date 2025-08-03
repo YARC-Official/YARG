@@ -7,6 +7,9 @@ using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Engine.Drums;
+using YARG.Core.Engine.Guitar;
+using YARG.Core.Engine.Vocals;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
@@ -71,6 +74,7 @@ namespace YARG.Gameplay
 
         public PracticeManager  PracticeManager  { get; private set; }
         public BackgroundManager BackgroundManager { get; private set; }
+        public EngineManager EngineManager { get; private set; }
 
         public SongEntry Song  { get; private set; }
         public SongChart    Chart { get; private set; }
@@ -129,6 +133,7 @@ namespace YARG.Gameplay
 
         private StemMixer _mixer;
 
+        private List<double> _frameTimes;
 
         public bool PlayingAShow => GlobalVariables.State.PlayingAShow;
         public int  ShowIndex = 0;
@@ -140,6 +145,7 @@ namespace YARG.Gameplay
             // Set references
             PracticeManager = GetComponent<PracticeManager>();
             BackgroundManager = GetComponent<BackgroundManager>();
+            EngineManager = new EngineManager();
 
             YargPlayers = PlayerContainer.Players;
 
@@ -168,6 +174,8 @@ namespace YARG.Gameplay
 
             // Update countdown display style from global settings
             CountdownDisplay.DisplayStyle = SettingsManager.Settings.CountdownDisplay.Value;
+
+            _frameTimes = new List<double>();
         }
 
         private void OnDestroy()
@@ -234,6 +242,11 @@ namespace YARG.Gameplay
 
                 totalScore += player.Score;
                 totalStars += player.Stars;
+            }
+
+            if (GlobalVariables.VerboseReplays)
+            {
+                _frameTimes.Add(_songRunner.InputTime);
             }
 
             BandScore = totalScore;
@@ -424,7 +437,7 @@ namespace YARG.Gameplay
             try
             {
                 _isReplaySaved = false;
-                replayInfo = SaveReplay(Song.SongLengthSeconds, ScoreContainer.ScoreReplayDirectory);
+                replayInfo = SaveReplay(InputTime, ScoreContainer.ScoreReplayDirectory);
             }
             catch (Exception e)
             {
@@ -581,14 +594,15 @@ namespace YARG.Gameplay
             }
 
             var stars = StarAmountHelper.GetStarsFromInt((int) (bandStars / frames.Count));
-            var data = new ReplayData(colorProfiles, cameraPresets, frames.ToArray());
+            var data = new ReplayData(colorProfiles, cameraPresets, frames.ToArray(), _frameTimes.ToArray());
+
             var (success, replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, replayStats.ToArray(), data);
             if (!success)
             {
                 return null;
             }
 
-           ReplayContainer.AddEntry(replayInfo);
+            ReplayContainer.AddEntry(replayInfo);
             _isReplaySaved = true;
             return replayInfo;
         }
