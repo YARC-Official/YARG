@@ -51,7 +51,11 @@ namespace Editor
         public int callbackOrder => -10000;
         public void OnPreprocessBuild(BuildReport report)
         {
-            BuildYARGCoreDLL(force: true, debug: false);
+            // If we're in batch mode, we assume the build script built the core dll for us
+            if (!Application.isBatchMode)
+            {
+                BuildYARGCoreDLL(force: true, debug: false);
+            }
         }
 
         [MenuItem("YARG/Rebuild YARG.Core (Debug)", false, 0)]
