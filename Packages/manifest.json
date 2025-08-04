@@ -23,9 +23,11 @@
     }
   ],
   "dependencies": {
+    "in.yarg.core": "file:../YARG.Core/YARG.Core",
     "com.coffee.softmask-for-ugui": "1.0.2",
     "com.cysharp.unitask": "2.5.3",
-    "com.github-glitchenzo.nugetforunity": "3.1.3",
+    "com.cysharp.csprojmodifier": "https://github.com/Cysharp/CsprojModifier.git?path=src/CsprojModifier/Assets/CsprojModifier",
+    "com.github-glitchenzo.nugetforunity": "4.5.0",
     "com.marijnzwemmer.unity-toolbar-extender": "1.4.2",
     "com.starasgames.tmpro-dynamic-data-cleaner": "1.0.0",
     "com.thenathannator.hidrogen": "0.4.3",
