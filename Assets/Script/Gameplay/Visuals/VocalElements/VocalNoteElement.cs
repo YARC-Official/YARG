@@ -34,7 +34,7 @@ namespace YARG.Gameplay.Visuals
                 line.SetPropertyBlock(MaterialPropertyInstance.Instance);
             }
 
-            YargLogger.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length);
+            YargLogger.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length, "Line renderer count does not match width multiplier count!");
             UpdateLinePoints();
         }
 
