@@ -28,6 +28,8 @@ namespace YARG.Gameplay.Visuals
         private GameManager  _gameManager;
         private CameraPreset _preset;
         private Coroutine    _coroutine;
+        private CameraPreset _preset;
+        private Coroutine _coroutine;
 
         private void Start()
         {

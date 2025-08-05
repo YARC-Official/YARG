@@ -155,6 +155,7 @@ namespace YARG.Gameplay.HUD
         {
             _text.text = notificationText;
 
+
             const float animHoldInterval = ANIM_LENGTH
                 - 2f * (ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL);
 
@@ -164,6 +165,7 @@ namespace YARG.Gameplay.HUD
                         .DOScale(ANIM_PEAK_SCALE, ANIM_BASE_TO_PEAK_INTERVAL)
                         .SetEase(Ease.OutCirc))
                     .Append(_containerRect
+
                         .DOScale(ANIM_VALLEY_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
                         .SetEase(Ease.InOutSine))
                     .AppendInterval(animHoldInterval))
@@ -172,6 +174,7 @@ namespace YARG.Gameplay.HUD
                         .DOScale(ANIM_PEAK_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
                         .SetEase(Ease.InOutSine))
                     .Append(_containerRect
+
                         .DOScale(0f, ANIM_BASE_TO_PEAK_INTERVAL)
                         .SetEase(Ease.InCirc)))
                 .WaitForCompletion();

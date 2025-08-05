@@ -22,6 +22,8 @@ namespace YARG.Gameplay.Visuals
         private float       _zOffset;
         private Coroutine   _coroutine;
         private GameManager _gameManager;
+        private float     _zOffset;
+        private Coroutine _coroutine;
 
         private void Start()
         {
@@ -32,6 +34,7 @@ namespace YARG.Gameplay.Visuals
             {
                 _coroutine = StartCoroutine(RaiseStrikeline(true));
             }
+
         }
 
         private IEnumerator RaiseStrikeline(bool isGameplayStart)
