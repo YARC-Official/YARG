@@ -154,7 +154,6 @@ namespace YARG.Gameplay.HUD
         private IEnumerator ShowNextNotification(string notificationText)
         {
             _text.text = notificationText;
-            _text.transform.localScale = Vector3.zero;
 
             const float animHoldInterval = ANIM_LENGTH
                 - 2f * (ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL);

@@ -25,8 +25,9 @@ namespace YARG.Gameplay.Visuals
 
         private float _currentBounce;
 
+        private GameManager  _gameManager;
         private CameraPreset _preset;
-        private Coroutine _coroutine;
+        private Coroutine    _coroutine;
 
         private void Start()
         {
@@ -60,8 +61,12 @@ namespace YARG.Gameplay.Visuals
             // Set camera preset
             _preset = preset;
 
+            _gameManager = FindObjectOfType<GameManager>();
             // Animate the highway raise
-            _coroutine = StartCoroutine(RaiseHighway(_preset, true));
+            if (_gameManager != null && !_gameManager.IsPractice)
+            {
+                _coroutine = StartCoroutine(RaiseHighway(_preset, true));
+            }
         }
 
         private void Update()
