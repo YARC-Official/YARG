@@ -86,6 +86,8 @@ namespace YARG.Menu.DifficultySelect
 
         private readonly List<ModifierItem> _modifierItems = new();
 
+        private List<SongEntry> _songList;
+
         private YargPlayer CurrentPlayer => PlayerContainer.Players[_playerIndex];
 
         private void OnEnable()
@@ -123,6 +125,15 @@ namespace YARG.Menu.DifficultySelect
             _speedInput.text = $"{Mathf.RoundToInt(_songSpeed * 100f)}%";
             _songTitleText.text = GlobalVariables.State.CurrentSong.Name;
             _artistText.text = GlobalVariables.State.CurrentSong.Artist;
+
+            if (GlobalVariables.State.PlayingAShow)
+            {
+                _songList = GlobalVariables.State.ShowSongs;
+            }
+            else
+            {
+                _songList = new List<SongEntry> { GlobalVariables.State.CurrentSong };
+            }
 
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
@@ -455,21 +466,10 @@ namespace YARG.Menu.DifficultySelect
             _possibleInstruments.Clear();
             var allowedInstruments = profile.GameMode.PossibleInstruments();
 
-            List<SongEntry> songlist;
-
-            if (GlobalVariables.State.PlayingAShow)
-            {
-                songlist = GlobalVariables.State.ShowSongs;
-            }
-            else
-            {
-                songlist = new List<SongEntry> { GlobalVariables.State.CurrentSong };
-            }
-
             foreach (var instrument in allowedInstruments)
             {
                 bool invalidInstrument = false;
-                foreach (var showSong in songlist)
+                foreach (var showSong in _songList)
                 {
                     if (!HasPlayableInstrument(showSong, instrument))
                     {
@@ -543,13 +543,12 @@ namespace YARG.Menu.DifficultySelect
             _possibleDifficulties.Clear();
 
             var profile = CurrentPlayer.Profile;
-            var song = GlobalVariables.State.CurrentSong;
 
             // Get the possible difficulties for the player's instrument in the song
             foreach (var difficulty in EnumExtensions<Difficulty>.Values)
             {
                 bool invalidDifficulty = false;
-                foreach (var showsong in GlobalVariables.State.ShowSongs)
+                foreach (var showsong in _songList)
                 {
                     if (!HasPlayableDifficulty(showsong, profile.CurrentInstrument, difficulty))
                     {

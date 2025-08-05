@@ -4,8 +4,8 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Chart;
-using YARG.Settings;
 using System;
+using Cysharp.Text;
 
 namespace YARG.Gameplay.HUD
 {
@@ -18,6 +18,8 @@ namespace YARG.Gameplay.HUD
 
     public class CountdownDisplay : GameplayBehaviour
     {
+        private const float FADE_ANIM_LENGTH = 0.5f;
+
         public static CountdownDisplayMode DisplayStyle;
 
         [SerializeField]
@@ -35,7 +37,7 @@ namespace YARG.Gameplay.HUD
 
         private bool _displayActive;
 
-        public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
+        public void UpdateCountdown(double countdownLength, double endTime)
         {
             if (DisplayStyle == CountdownDisplayMode.Disabled)
             {
@@ -43,8 +45,10 @@ namespace YARG.Gameplay.HUD
             }
 
             double currentTime = GameManager.SongTime;
+            double timeRemaining = endTime - currentTime;
 
-            bool shouldDisplay = measuresLeft > WaitCountdown.END_COUNTDOWN_MEASURE;
+            bool shouldDisplay = timeRemaining > WaitCountdown.END_COUNTDOWN_SECOND + FADE_ANIM_LENGTH;
+
             if (GameManager.IsPractice)
             {
                 double sectionStartTime = GameManager.PracticeManager.TimeStart;
@@ -57,31 +61,40 @@ namespace YARG.Gameplay.HUD
             }
 
             ToggleDisplay(shouldDisplay);
-            
+
             if (!gameObject.activeSelf)
             {
                 return;
             }
 
-            int displayNumber = DisplayStyle switch
+            switch (DisplayStyle)
             {
-                CountdownDisplayMode.Measures => measuresLeft,
-                CountdownDisplayMode.Seconds => (int) Math.Ceiling(endTime - currentTime),
-                _ => throw new Exception("Unreachable")
-            };
+                case CountdownDisplayMode.Seconds:
+                {
+                    _countdownText.SetText((int) Math.Ceiling(timeRemaining));
+                    break;
+                }
+                case CountdownDisplayMode.Measures:
+                {
+                    var syncTrack = GameManager.Chart.SyncTrack;
+                    uint measureTick = syncTrack.TimeToMeasureTick(currentTime);
+                    uint endMeasureTick = syncTrack.TimeToMeasureTick(endTime);
+                    uint remainingMeasures = (endMeasureTick - measureTick) / syncTrack.MeasureResolution;
+                    _countdownText.SetText(remainingMeasures);
+                    break;
+                }
+            }
 
-            _countdownText.text = displayNumber.ToString();
-            
-            _progressBar.fillAmount = (float) ((endTime - currentTime) / countdownLength);
+            _progressBar.fillAmount = (float) (timeRemaining / countdownLength);
         }
 
         public void ForceReset()
         {
             StopCurrentCoroutine();
 
-            gameObject.SetActive(false);
-
-             _currentCoroutine = null;
+            _canvasGroup.alpha = 0f;
+            gameObject.SetActive(true);
+            _displayActive = false;
         }
 
         private void ToggleDisplay(bool isActive)
@@ -104,6 +117,13 @@ namespace YARG.Gameplay.HUD
             }
             else
             {
+                if (_canvasGroup.alpha == 0f)
+                {
+                    // Do not animate a fade out if this is already invisible
+                    gameObject.SetActive(false);
+                    return;
+                }
+
                 _currentCoroutine = StartCoroutine(HideCoroutine());
             }
         }
@@ -112,7 +132,7 @@ namespace YARG.Gameplay.HUD
         {
             // Fade in
             yield return _canvasGroup
-                .DOFade(1f, WaitCountdown.FADE_ANIM_LENGTH)
+                .DOFade(1f, FADE_ANIM_LENGTH)
                 .WaitForCompletion();
         }
 
@@ -120,7 +140,7 @@ namespace YARG.Gameplay.HUD
         {
             // Fade out
             yield return _canvasGroup
-                .DOFade(0f, WaitCountdown.FADE_ANIM_LENGTH)
+                .DOFade(0f, FADE_ANIM_LENGTH)
                 .WaitForCompletion();
 
             gameObject.SetActive(false);

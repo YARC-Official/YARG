@@ -21,6 +21,11 @@ PrefabInstance:
         type: 3}
     - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
         type: 3}
+      propertyPath: SoloPool
+      value: 
+      objectReference: {fileID: 2233902140717003607}
+    - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
+        type: 3}
       propertyPath: _fiveLaneMode
       value: 1
       objectReference: {fileID: 0}
@@ -98,6 +103,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8874689014558573615, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
+        type: 3}
+      propertyPath: m_Name
+      value: Effect Pool
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}

@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using YARG.Core.Engine;
 using YARG.Gameplay.Player;
 using YARG.Player;
+using YARG.Helpers.UI;
 
 namespace YARG.Gameplay.HUD
 {
@@ -10,6 +11,8 @@ namespace YARG.Gameplay.HUD
     {
         [SerializeField]
         private AspectRatioFitter _aspectRatioFitter;
+        [SerializeField]
+        private ScaleByParentSize _UIScaler;
         [SerializeField]
         private RectTransform _topElementContainer;
 
@@ -28,6 +31,7 @@ namespace YARG.Gameplay.HUD
         private void Start()
         {
             _aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
+            _UIScaler.Initialize();
         }
 
         public void Initialize(TrackPlayer trackPlayer)
@@ -48,9 +52,9 @@ namespace YARG.Gameplay.HUD
             _topElementContainer.localPosition = _topElementContainer.localPosition.WithY(rect.rect.height * (viewportPos.y - 0.5f));
         }
 
-        public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
+        public void UpdateCountdown(double countdownLength, double endTime)
         {
-            _countdownDisplay.UpdateCountdown(measuresLeft, countdownLength, endTime);
+            _countdownDisplay.UpdateCountdown(countdownLength, endTime);
         }
 
         public void StartSolo(SoloSection solo)
@@ -58,7 +62,7 @@ namespace YARG.Gameplay.HUD
             _soloBox.StartSolo(solo);
 
             // No text notifications during the solo
-            _textNotifications.gameObject.SetActive(false);
+            _textNotifications.SetActive(false);
         }
 
         public void EndSolo(int soloBonus)
@@ -66,7 +70,7 @@ namespace YARG.Gameplay.HUD
             _soloBox.EndSolo(soloBonus, () =>
             {
                 // Show text notifications again
-                _textNotifications.gameObject.SetActive(true);
+                _textNotifications.SetActive(true);
             });
         }
 
@@ -112,7 +116,7 @@ namespace YARG.Gameplay.HUD
 
         public void ForceReset()
         {
-            _textNotifications.gameObject.SetActive(true);
+            _textNotifications.SetActive(true);
 
             _soloBox.ForceReset();
             _textNotifications.ForceReset();

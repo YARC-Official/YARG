@@ -209,7 +209,7 @@ namespace YARG.Settings
             #region Graphics
 
             public ToggleSetting VSync { get; } = new(true, VSyncCallback);
-            public IntSetting FpsCap { get; } = new(60, 1, onChange: FpsCapCallback);
+            public IntSetting FpsCap { get; } = new(60, 0, onChange: FpsCapCallback);
 
             public DropdownSetting<FullScreenMode> FullscreenMode { get; }
                 = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)
@@ -258,8 +258,6 @@ namespace YARG.Settings
                 };
 
             public SliderSetting SongBackgroundOpacity { get; } = new(1f, 0f, 1f);
-
-            public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public ToggleSetting UseThreeLaneLyricsInHarmony { get; } = new(true);
             public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
 

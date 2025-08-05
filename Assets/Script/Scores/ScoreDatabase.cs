@@ -82,7 +82,7 @@ namespace YARG.Scores
             // Default missing IsReplay values to false
             int amountUpdated = _db.Execute(
                 @"UPDATE PlayerScores
-                SET IsReplay = FALSE WHERE IsReplay IS NULL"
+                SET IsReplay = 0 WHERE IsReplay IS NULL"
             );
             if (amountUpdated > 0)
             {
@@ -92,7 +92,7 @@ namespace YARG.Scores
             // Default missing PlayedWithReplay field to false
             amountUpdated = _db.Execute(
                 @"UPDATE GameRecords
-                SET PlayedWithReplay = FALSE WHERE PlayedWithReplay IS NULL"
+                SET PlayedWithReplay = 0 WHERE PlayedWithReplay IS NULL"
             );
 
             if (amountUpdated > 0)
@@ -213,7 +213,7 @@ namespace YARG.Scores
         {
             return Query<GameRecord>(
                 @"SELECT *, MAX(BandScore) FROM GameRecords
-                WHERE PlayedWithReplay = FALSE
+                WHERE PlayedWithReplay = 0
                 GROUP BY GameRecords.SongChecksum"
             );
         }
@@ -222,7 +222,7 @@ namespace YARG.Scores
         {
             return FindWithQuery<GameRecord>(
                 @"SELECT *, MAX(BandScore) FROM GameRecords
-                WHERE SongChecksum = ? AND PlayedWithReplay = FALSE",
+                WHERE SongChecksum = ? AND PlayedWithReplay = 0",
                 songChecksum.HashBytes
             );
         }
@@ -232,7 +232,7 @@ namespace YARG.Scores
             return Query<PlayerScoreRecord>(
                 @"SELECT * FROM PlayerScores
                 WHERE PlayerId = ?
-                AND IsReplay = FALSE",
+                AND IsReplay = 0",
                 playerId
             );
         }
@@ -255,7 +255,7 @@ namespace YARG.Scores
                 ON PlayerScores.GameRecordId = GameRecords.Id
                 WHERE PlayerId = ?
                     AND Instrument = ?
-                    AND IsReplay = FALSE
+                    AND IsReplay = 0
                 ORDER BY {difficultyClause} Score DESC
               )
               GROUP BY SongChecksum";
@@ -285,7 +285,7 @@ namespace YARG.Scores
                 ON PlayerScores.GameRecordId = GameRecords.Id
                 WHERE PlayerId = ?
                     AND Instrument = ?
-                    AND IsReplay = FALSE
+                    AND IsReplay = 0
                 ORDER BY {difficultyClause} Percent DESC, IsFc DESC
               )
               GROUP BY SongChecksum";
@@ -312,7 +312,7 @@ namespace YARG.Scores
                 WHERE GameRecords.SongChecksum = ?
                     AND PlayerScores.PlayerId = ?
                     AND PlayerScores.Instrument = ?
-                    AND PlayerScores.IsReplay = FALSE";
+                    AND PlayerScores.IsReplay = 0";
 
             if (highestDifficultyOnly)
             {
@@ -347,7 +347,7 @@ namespace YARG.Scores
                 WHERE GameRecords.SongChecksum = ?
                     AND PlayerScores.PlayerId = ?
                     AND PlayerScores.Instrument = ?
-                    AND PlayerScores.IsReplay = FALSE";
+                    AND PlayerScores.IsReplay = 0";
 
             if (highestDifficultyOnly)
             {
@@ -373,7 +373,7 @@ namespace YARG.Scores
             return
                 DeferredQuery<GameRecord>(
                     $@"SELECT Id, SongChecksum, COUNT(SongChecksum) AS `Count` FROM GameRecords
-                    WHERE PlayedWithReplay = FALSE
+                    WHERE PlayedWithReplay = 0
                     GROUP BY SongChecksum
                     ORDER BY `Count` DESC
                     LIMIT {maxCount}"
@@ -388,7 +388,7 @@ namespace YARG.Scores
                 @"SELECT COUNT(GameRecords.Id), GameRecords.SongChecksum from GameRecords, PlayerScores
                 WHERE PlayerScores.GameRecordId = GameRecords.Id
                     AND PlayerScores.PlayerId = ?
-                    AND PlayerScores.IsReplay = FALSE";
+                    AND PlayerScores.IsReplay = 0";
 
             // If the profile instrument is bad, we can still return all scores for the profile
             if (profile.HasValidInstrument)

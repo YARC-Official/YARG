@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
-using YARG.Integration;
 
 namespace YARG.Playback
 {
@@ -101,11 +99,16 @@ namespace YARG.Playback
                     return;
                 }
 
+                uint tick = sync.TimeToTick(songTime);
+
                 var tempos = sync.Tempos;
                 var timeSigs = sync.TimeSignatures;
 
                 // Progress tempo map
-                while (_tempoIndex + 1 < tempos.Count && tempos[_tempoIndex + 1].Time < songTime) _tempoIndex++;
+                while (_tempoIndex + 1 < tempos.Count && tempos[_tempoIndex + 1].Time < songTime)
+                {
+                    _tempoIndex++;
+                }
 
                 while (_timeSigIndex + 1 < timeSigs.Count && timeSigs[_timeSigIndex + 1].Time < songTime)
                 {
@@ -119,9 +122,9 @@ namespace YARG.Playback
                 var tempo = tempos[_tempoIndex];
                 double progress = _mode switch
                 {
-                    TempoMapEventMode.Beat => timeSig.GetBeatProgress(songTime, sync, tempo),
-                    TempoMapEventMode.Quarter => timeSig.GetQuarterNoteProgress(songTime, sync, tempo),
-                    TempoMapEventMode.Measure => timeSig.GetMeasureProgress(songTime, sync, tempo),
+                    TempoMapEventMode.Beat => timeSig.GetBeatProgress(tick, sync),
+                    TempoMapEventMode.Quarter => timeSig.GetQuarterNoteProgress(tick, sync),
+                    TempoMapEventMode.Measure => timeSig.GetMeasureProgress(tick, sync),
                     _ => throw new NotImplementedException($"Unhandled beat event mode {_mode}!")
                 };
 

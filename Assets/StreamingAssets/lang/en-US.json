@@ -1,4 +1,4 @@
-{
+﻿{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -534,7 +534,12 @@
             "Red": "Red Fret (Second)",
             "Yellow": "Yellow Fret (Third)",
             "Blue": "Blue Fret (Fourth)",
-            "Orange": "Orange Fret (Fifth)"
+            "Orange": "Orange Fret (Fifth)",
+            "SoloGreen": "Solo Green Fret",
+            "SoloRed": "Solo Red Fret",
+            "SoloYellow": "Solo Yellow Fret",
+            "SoloBlue": "Solo Blue Fret",
+            "SoloOrange": "Solo Orange Fret"
         },
         "Guitar": {
             "StrumUp": "Strum Up",
@@ -793,7 +798,7 @@
             },
             "FpsStats": {
                 "Name": "Show FPS Counter",
-                "Description": "Shows the framerate counter on the Status Bar"
+                "Description": "Shows the framerate counter on the Status Bar."
             },
             "FullscreenMode": {
                 "Name": "Fullscreen Mode",
@@ -850,7 +855,7 @@
             },
             "KickBounceMultiplier": {
                 "Name": "Drum Kick Bounce Multiplier",
-                "Description": "Controls the amount the track should bounce when you hit a kick note (drums only). Set to zero if you want to disable."
+                "Description": "Controls the amount the track should bounce when you hit a kick note (drums only). Set to \"0\" if you want to disable."
             },
             "LowQuality": {
                 "Name": "Low Quality Mode",
@@ -934,7 +939,7 @@
             "SfxVolume": {
                 "Name": "SFX Volume",
                 "PauseName": "SFX",
-                "Description": "Adjusts the game's sound effect volume, such as when gaining a star, or activating starpower."
+                "Description": "Adjusts the game's sound effect volume, such as when gaining a star, or activating Star Power."
             },
             "ShowAdvancedMusicLibraryOptions": {
                 "Name": "Show Advanced Music Library Options",
@@ -975,7 +980,7 @@
             },
             "StarPowerHighwayFx": {
                 "Name": "Star Power Highway FX Mode",
-                "Description": "Disables visual elements on the highway which appear when Star Power is active",
+                "Description": "Disables visual elements on the highway which appear when Star Power is active.",
                 "Dropdown": {
                     "Off": "Off",
                     "On": "On",
@@ -990,17 +995,13 @@
                 "Name": "Chipmunk Speed",
                 "Description": "Disables pitch correction when playing songs at a fast or slow speed which may lead to some... interesting results."
             },
-            "UseCymbalModelsInFiveLane": {
-                "Name": "Use Cymbal Models In Five Lane",
-                "Description": "If enabled, cymbal models will be used in the second and fourth lanes instead of the standard note model (five-lane drums only)."
-            },
             "UseFullDirectoryForPlaylists": {
                 "Name": "Use Full Directory For Playlists",
                 "Description": "Use full directory for the playlist sort option in the music library. <color=white>Rescan required if changed!</color>"
             },
             "UseStarpowerFx": {
-                "Name": "Use Starpower SFX",
-                "Description": "If enabled, it will add reverb to stems where the player has starpower enabled.",
+                "Name": "Use Star Power SFX",
+                "Description": "If enabled, it will add reverb to stems where the player has Star Power enabled.",
                 "Dropdown": {
                     "MultitrackOnly": "Multitrack Only",
                     "Off": "Off",
@@ -1013,7 +1014,7 @@
             },
             "WhammyPitchShiftAmount": {
                 "Name": "Whammy Pitch Shift Amount",
-                "Description": "Number of semitones the pitch is changed when the whammy bar is fully pressed. Larger amounts result in lower pitches; default is 1."
+                "Description": "Number of semitones the pitch is changed when the whammy bar is fully pressed. Larger amounts result in lower pitches; default is \"1\"."
             },
             "VenueAntiAliasing": {
                 "Name": "Venue Anti Aliasing",
@@ -1069,19 +1070,19 @@
             },
             "ApplyVolumesInMusicLibrary": {
                 "Name": "Apply Volume Settings to Music Library Previews",
-                "Description": "I think this one speaks for itself"
+                "Description": "Volume settings for specific instrumments will be applied in the Music Library as well."
             },
             "RB3EEnabled": {
                 "Name": "Enable RB3E Stage Kit data stream",
-                "Description": "Enables sending of RB3E style stage kit information packets over the network, for hardware such as StageKitPied"
+                "Description": "Enables sending of RB3E style stage kit information packets over the network, for hardware such as StageKitPied."
             },
             "RB3EBroadcastIP": {
                 "Name": "RB3E target IP",
-                "Description": "Sets the target IP for the RB3E data stream packets. 255.255.255.255 is the broadcast address for the current network"
+                "Description": "Sets the target IP for the RB3E data stream packets. 255.255.255.255 is the broadcast address for the current network."
             },
             "DMXKeyframeChannel": {
                 "Name": "DMX Keyframe",
-                "Description": "This channel receives the Next (3), Previous (13), and First(23) keyframe calls."
+                "Description": "This channel receives the Next (3), Previous (13), and First (23) keyframe calls."
             },
             "DMXBonusEffectChannel": {
                 "Name": "DMX Bonus Effect",
@@ -1089,11 +1090,11 @@
             },
             "DMXDrumsChannel": {
                 "Name": "DMX Drum",
-                "Description": "This channel gets additively set to the current drum notes:  Kick (1), Red (2), Yellow (4), Blue (8), Green (16),  Yellow Cymbal (32), Blue Cymbal (64), Green Cymbal (128)."
+                "Description": "This channel gets additively set to the current drum notes: Kick (1), Red (2), Yellow (4), Blue (8), Green (16),  Yellow Cymbal (32), Blue Cymbal (64), Green Cymbal (128)."
             },
             "DMXBeatlineChannel": {
                 "Name": "DMX Beatline",
-                "Description": "This channel gets set on every measure  beat (1) and Strong beat (11)."
+                "Description": "This channel gets set on every measure beat (1) and Strong beat (11)."
             },
             "DMXPostProcessingChannel": {
                 "Name": "DMX Post-Processsing",
@@ -1109,7 +1110,7 @@
             },
             "DMXPerformerChannel": {
                 "Name": "DMX Performer",
-                "Description": "This channel gets set to the current spotlight and sing-a-long"
+                "Description": "This channel gets set to the current spotlight and sing-a-long."
             },
             "DMXKeysChannel": {
                 "Name": "DMX Keys",
@@ -1125,15 +1126,15 @@
             },
             "ShowTime": {
                 "Name": "Show Time",
-                "Description": "Show current time on Status Bar"
+                "Description": "Show current time on Status Bar."
             },
             "ShowBattery": {
                 "Name": "Show Battery",
-                "Description": "Show battery level on Status Bar (if battery is currently discharging)"
+                "Description": "Show battery level on Status Bar (if battery is currently discharging)."
             },
             "MemoryStats": {
                 "Name": "Show Memory Stats",
-                "Description": "Show memory usage stats on the Status Bar"
+                "Description": "Show memory usage stats on the Status Bar."
             },
             "ShowActivePlayers": {
                 "Name": "Show Active Players",
@@ -1141,11 +1142,11 @@
             },
             "ShowActiveBots": {
                 "Name": "Show Active Bots",
-                "Description": "Show the number of active bot profiles on the Status Bar (if any)"
+                "Description": "Show the number of active bot profiles on the Status Bar (if any)."
             },
             "DMXUniverseChannel": {
                 "Name": "DMX Broadcast Universe",
-                "Description": "This is the universe that YARG will send the sACN packet to. Default is 1. Maximum is 65535"
+                "Description": "This is the universe that YARG will send the sACN packet to. Default is \"1\". Maximum is \"65535\"."
             },
             "ReconnectProfiles": {
                 "Name": "Reconnect Profiles",
@@ -1233,6 +1234,15 @@
                 "BlueCymbal": {
                     "Name": "Blue Cymbal"
                 },
+				"BlueCymbalFret": {
+					"Name": "Blue Cymbal Fret\n(split view only)"
+				},
+				"BlueCymbalFretInner": {
+					"Name": "Blue Cymbal Fret Inner\n(split view only)"
+				},
+				"BlueCymbalParticles": {
+					"Name": "Blue Cymbal Particles\n(split view only)"
+				},
                 "BlueCymbalStarpower": {
                     "Name": "Blue Cymbal Star Power"
                 },
@@ -1263,6 +1273,15 @@
                 "GreenCymbal": {
                     "Name": "Green Cymbal"
                 },
+				"GreenCymbalFret": {
+					"Name": "Green Cymbal Fret\n(split view only)"
+				},
+				"GreenCymbalFretInner": {
+					"Name": "Green Cymbal Fret Inner\n(split view only)"
+				},
+				"GreenCymbalParticles": {
+					"Name": "Green Cymbal Particles\n(split view only)"
+				},
                 "GreenCymbalStarpower": {
                     "Name": "Green Cymbal Star Power"
                 },
@@ -1341,6 +1360,15 @@
                 "RedCymbal": {
                     "Name": "Red Cymbal"
                 },
+				"RedCymbalFret": {
+					"Name": "Red Cymbal Fret\n(split view only)"
+				},
+				"RedCymbalFretInner": {
+					"Name": "Red Cymbal Fret Inner\n(split view only)"
+				},
+				"RedCymbalParticles": {
+					"Name": "Red Cymbal Particles\n(split view only)"
+				},
                 "RedCymbalStarpower": {
                     "Name": "Red Cymbal Star Power"
                 },
@@ -1371,6 +1399,15 @@
                 "YellowCymbal": {
                     "Name": "Yellow Cymbal"
                 },
+				"YellowCymbalFret": {
+					"Name": "Yellow Cymbal Fret\n(split view only)"
+				},
+				"YellowCymbalFretInner": {
+					"Name": "Yellow Cymbal Fret Inner\n(split view only)"
+				},
+				"YellowCymbalParticles": {
+					"Name": "Yellow Cymbal Particles\n(split view only)"
+				},
                 "YellowCymbalStarpower": {
                     "Name": "Yellow Cymbal Star Power"
                 },
@@ -1460,7 +1497,7 @@
                 },
                 "FrontToBackRatio": {
                     "Name": "Hit Window Ratio",
-                    "Description": "The hit window's front to back ratio. 0 will bring the hit window fully backwards, 1 will keep it in the center, and 2 will move it to the front."
+                    "Description": "The hit window's front to back ratio. \"0\" will bring the hit window fully backwards, \"1\" will keep it in the center, and \"2\" will move it to the front."
                 },
                 "HitPercentE": {
                     "Name": "Hit Percent (Easy)",
@@ -1549,6 +1586,10 @@
                 "SustainDropLeniency": {
                     "Name": "Sustain Drop Leniency",
                     "Description": ""
+                },
+                "SoloTaps": {
+                    "Name": "Allow Taps During Solos",
+                    "Description": "Allows solo buttons to tap notes during solos"
                 }
             },
             "HighwayPreset" : {

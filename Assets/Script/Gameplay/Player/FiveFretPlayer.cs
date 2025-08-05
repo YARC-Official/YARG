@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
@@ -116,6 +117,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -150,7 +152,11 @@ namespace YARG.Gameplay.Player
                 Player.ThemePreset,
                 Player.Profile.GameMode,
                 Player.ColorProfile.FiveFretGuitar,
-                Player.Profile.LeftyFlip);
+                Player.Profile.LeftyFlip,
+                false, // Not applicable to five fret
+                false, // Not applicable to five fret
+                false  // Not applicable to five fret
+                );
 
             if (Player.Profile.RangeEnabled)
             {
@@ -501,12 +507,10 @@ namespace YARG.Gameplay.Player
 
         private void InitializeRangeShift(double time = 0)
         {
+            var firstShiftAfterFirstNote = false;
             _rangeShiftEventQueue.Clear();
             // Default to all frets on
-            for (int i = 0; i < _fretArray.FretCount; i++)
-            {
-                _activeFrets[i] = true;
-            }
+            SetDefaultActiveFrets();
 
             // No range shifts, so just return
             if (_allRangeShiftEvents.Length < 1)
@@ -514,11 +518,22 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            // Now that we know there is at least one range shift, figure out if it is after the first note
+            if (_allRangeShiftEvents[0].Time > Notes[0].Time)
+            {
+                firstShiftAfterFirstNote = true;
+            }
+
             if (_allRangeShiftEvents.Length == 1)
             {
                 // There are no actual shifts (or we aren't shifting because of range compression), but we should dim unused frets
                 CurrentRange = _allRangeShiftEvents[0];
-                SetActiveFretsForShiftEvent(CurrentRange);
+                // If the range shift is after the first note, leave all the frets on because chart is broke
+                if (!firstShiftAfterFirstNote)
+                {
+                    SetActiveFretsForShiftEvent(CurrentRange);
+                }
+
                 return;
             }
 
@@ -547,7 +562,15 @@ namespace YARG.Gameplay.Player
             }
 
             CurrentRange = mostRecentEvent;
-            SetActiveFretsForShiftEvent(CurrentRange);
+            if (time < mostRecentEvent.Time)
+            {
+                // If we get here, the only range shifts are in the future
+                SetDefaultActiveFrets();
+            }
+            else
+            {
+                SetActiveFretsForShiftEvent(CurrentRange);
+            }
 
             // Figure out where the indicators should go
             var beatlines = Beatlines
@@ -603,7 +626,7 @@ namespace YARG.Gameplay.Player
                         Time = beatlines[realIndex].Time,
                         LeftSide = shiftLeft,
                         Offset = shiftLeft ? ((shift.Position + shift.Size) - 6) * -1 : shift.Position - 1,
-                        RangeIndicator = i == 1 && shift.Position != lastShiftRange.Position,
+                        RangeIndicator = i == 1 && !(shift.Position == lastShiftRange.Position && shift.Size == lastShiftRange.Size),
                     });
                 }
 
@@ -624,6 +647,17 @@ namespace YARG.Gameplay.Player
             {
                 newFrets[i] = true;
             }
+
+            if (!newFrets.SequenceEqual(_activeFrets))
+            {
+                _activeFrets = newFrets;
+                _fretArray.UpdateFretActiveState(_activeFrets);
+            }
+        }
+
+        private void SetDefaultActiveFrets()
+        {
+            bool[] newFrets = { true, true, true, true, true };
 
             if (!newFrets.SequenceEqual(_activeFrets))
             {
