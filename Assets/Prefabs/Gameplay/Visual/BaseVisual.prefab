@@ -139,6 +139,54 @@ MonoBehaviour:
   _trackTrims:
   - {fileID: 7065054903530189613}
   - {fileID: 1301285201047903269}
+--- !u!1 &1322894404919002691
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5384437269169380421}
+  - component: {fileID: 8327152841679539214}
+  m_Layer: 0
+  m_Name: Effect Pool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5384437269169380421
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1322894404919002691}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5425012175883758073}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8327152841679539214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1322894404919002691}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <Prefab>k__BackingField: {fileID: 3893804635776200699, guid: bc1750caae5bf13469644231283e330b,
+    type: 3}
+  _prewarmAmount: 10
+  _objectCap: 20
 --- !u!1 &1688248186929615921
 GameObject:
   m_ObjectHideFlags: 0
@@ -1130,10 +1178,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42974416b948ada45a2fd1534af7341c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _grooveSunburstEffect: {fileID: 8360053433170138951}
-  _grooveLightEffect: {fileID: 1811260302183972900}
-  _starpowerSunburstEffect: {fileID: 3797275969015020249}
-  _starpowerLightEffect: {fileID: 2166581194060232035}
+  _sunburstEffect: {fileID: 8360053433170138951}
+  _lightEffect: {fileID: 1811260302183972900}
+  _grooveSunburstColor: {r: 0, g: 0.8509804, b: 1, a: 1}
+  _grooveLightColor: {r: 0, g: 0.5372549, b: 1, a: 1}
+  _starpowerSunburstColor: {r: 1, g: 0.9882353, b: 0.5647059, a: 1}
+  _starpowerLightColor: {r: 1, g: 0.8745098, b: 0, a: 1}
 --- !u!1 &4315058809814086876
 GameObject:
   m_ObjectHideFlags: 0
@@ -1218,6 +1268,7 @@ Transform:
   m_Children:
   - {fileID: 5156534054691692974}
   - {fileID: 4990919120353829588}
+  - {fileID: 5384437269169380421}
   m_Father: {fileID: 90376540996421698}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Linq;
 using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Core;
+using YARG.Core.Chart;
+using YARG.Core.Engine;
+using YARG.Player;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
@@ -27,6 +32,11 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _scoreText;
         [SerializeField]
+        private GameObject _bandComboObject;
+
+        [SerializeField]
+        private TextMeshProUGUI _bandComboText;
+        [SerializeField]
         private StarScoreDisplay _starScoreDisplay;
 
         [Space]
@@ -50,19 +60,28 @@ namespace YARG.Gameplay.HUD
         private Sprite _brokenOverlaySprite;
 
         private int _bandScore;
-
+        private int _bandCombo;
+        
         private bool _songHasHours;
         private string _songLengthTime;
         private string _timeFormat;
 
         private bool _easterEggTriggered;
+        private bool _vocalsOnly;
 
         private void Start()
         {
             _scoreText.text = SCORE_PREFIX + "0";
+            _bandComboText.text = SCORE_PREFIX + "0";
             _songTimer.text = string.Empty;
 
             _songProgressBar.SetProgress(0f);
+        }
+
+        protected override void OnChartLoaded(SongChart chart)
+        {
+            _bandComboObject.SetActive(SettingsManager.Settings.BandComboTypeSetting.Value != BandComboType.Off);
+            _vocalsOnly = PlayerContainer.Players.All(e => e.SittingOut || e.Profile.GameMode == GameMode.Vocals);
         }
 
         protected override void OnSongStarted()
@@ -93,16 +112,27 @@ namespace YARG.Gameplay.HUD
                 _bandScore = GameManager.BandScore;
                 _scoreText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandScore);
 
+                var scoreTextLength = _bandScore == 0 ? 1 : Math.Floor(Math.Log10(_bandScore) + 1);
+                scoreTextLength += Math.Floor((scoreTextLength - 1) / 3); // thousand coma separators
+
+
                 _starScoreDisplay.SetStars(GameManager.BandStars);
 
                 // Trigger easter egg
-                if (!_easterEggTriggered && _scoreText.text.Length - SCORE_PREFIX.Length > _characterCountForBreak)
+                if (!_easterEggTriggered && scoreTextLength > _characterCountForBreak)
                 {
                     _backgroundImage.sprite = _brokenBackgroundSprite;
                     _overlayImage.sprite = _brokenOverlaySprite;
 
                     _easterEggTriggered = true;
                 }
+            }
+
+            if (GameManager.BandCombo != _bandCombo)
+            {
+                _bandCombo = GameManager.BandCombo;
+                var modifier = _vocalsOnly ? 10 : 1;
+                _bandComboText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandCombo / modifier);
             }
 
             // Update song progress

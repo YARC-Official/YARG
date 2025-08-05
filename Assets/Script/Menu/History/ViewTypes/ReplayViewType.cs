@@ -127,14 +127,15 @@ namespace YARG.Menu.History
                 return;
             }
 
-            var (result, data) = ReplayIO.TryLoadData(_entry);
+            var replayOptions = new ReplayReadOptions { KeepFrameTimes = GlobalVariables.VerboseReplays };
+            var (result, data) = ReplayIO.TryLoadData(_entry, replayOptions);
             if (result != ReplayReadResult.Valid)
             {
                 YargLogger.LogFormatError("Failed to load replay. {0}", result);
                 return;
             }
 
-            var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, _entry, data);
             for (int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];
@@ -146,8 +147,8 @@ namespace YARG.Menu.History
                 }
                 else
                 {
-                    YargLogger.LogFormatWarning("({0}, {1}/{2}) FAILED verification",
-                        profile.Name, profile.CurrentDifficulty, profile.CurrentDifficulty);
+                    YargLogger.LogFormatWarning("({0}, {1}/{2}) FAILED verification. Stats:\n{3}",
+                        profile.Name, profile.CurrentDifficulty, profile.CurrentDifficulty, item4: analysisResult.StatLog);
                 }
             }
         }
@@ -162,6 +163,17 @@ namespace YARG.Menu.History
 
             // Ask the user for an ending location
             FileExplorerHelper.OpenSaveFile(null, _entry!.ReplayName, "replay", path => File.Copy(_entry.FilePath, path, true));
+        }
+
+        public override void PlayWithReplayClick()
+        {
+            _entry ??= LoadReplay("Cannot Play Replay");
+            if (_entry == null)
+            {
+                return;
+            }
+
+            PlayWithReplay(_entry, _songEntry);
         }
 
         public override GameInfo? GetGameInfo()
@@ -196,7 +208,18 @@ namespace YARG.Menu.History
             var (result, entry) = ReplayIO.TryReadMetadata(path);
             if (result != ReplayReadResult.Valid)
             {
-                DialogManager.Instance.ShowMessage(messageBoxTitle, "The replay for this song is most likely corrupted, or out of date!");
+                string message = result switch
+                {
+                    ReplayReadResult.MetadataOnly => "The replay for this song cannot be played with this version of YARG",
+                    ReplayReadResult.InvalidVersion => "The replay for this song has an invalid version and is most likely corrupted or *very* out of date",
+                    ReplayReadResult.DataMismatch => "The replay data for this song does not match the expected data.",
+                    ReplayReadResult.FileNotFound => "The replay for this song does not exist! It has probably been deleted!",
+                    ReplayReadResult.NotAReplay => "A file was found, but it is not a replay.",
+                    ReplayReadResult.Corrupted => "The replay for this song is corrupted (checksum does not match)",
+                    _ => "The replay for this song is most likely corrupted, or out of date!"
+                };
+
+                DialogManager.Instance.ShowMessage(messageBoxTitle, message);
                 return null;
             }
 

@@ -31,11 +31,11 @@ namespace YARG.Input
             }
             else if (guitar is RockBandGuitar rb)
             {
-                AddBinding(GuitarAction.GreenFret, rb.soloGreen);
-                AddBinding(GuitarAction.RedFret, rb.soloRed);
-                AddBinding(GuitarAction.YellowFret, rb.soloYellow);
-                AddBinding(GuitarAction.BlueFret, rb.soloBlue);
-                AddBinding(GuitarAction.OrangeFret, rb.soloOrange);
+                AddBinding(GuitarAction.SoloGreenFret, rb.soloGreen);
+                AddBinding(GuitarAction.SoloRedFret, rb.soloRed);
+                AddBinding(GuitarAction.SoloYellowFret, rb.soloYellow);
+                AddBinding(GuitarAction.SoloBlueFret, rb.soloBlue);
+                AddBinding(GuitarAction.SoloOrangeFret, rb.soloOrange);
             }
 
             // Different controllers require different defaults, so tilt binding needs to

@@ -19,13 +19,22 @@ namespace YARG.Gameplay.Visuals
         private const float ANIM_INIT_Z_OFFSET           = -1.2f;
         private const float ANIM_PEAK_Z_OFFSET           = 0.1f;
 
+        private float       _zOffset;
+        private Coroutine   _coroutine;
+        private GameManager _gameManager;
         private float     _zOffset;
         private Coroutine _coroutine;
 
         private void Start()
         {
             _zOffset = transform.localPosition.z;
-            _coroutine = StartCoroutine(RaiseStrikeline(true));
+
+            _gameManager = FindObjectOfType<GameManager>();
+            if (_gameManager != null && _gameManager.IsPractice == false)
+            {
+                _coroutine = StartCoroutine(RaiseStrikeline(true));
+            }
+
         }
 
         private IEnumerator RaiseStrikeline(bool isGameplayStart)

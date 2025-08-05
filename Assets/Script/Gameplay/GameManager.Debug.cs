@@ -233,9 +233,11 @@ namespace YARG.Gameplay
                 text.AppendFormat("- Activation end tick: {0}\n", engine.StarPowerTickEndPosition);
                 text.AppendFormat("- Activation start time: {0:0.000000}\n", engine.StarPowerActivationTime);
                 text.AppendFormat("- Activation end time: {0:0.000000}\n", engine.StarPowerEndTime);
+                text.AppendFormat("- Time In Star Power: {0:0.000000}\n", engine.BaseStats.TimeInStarPower);
+                text.AppendFormat("- Base Time In Star Power: {0:0.000000}\n", engine.BaseTimeInStarPower);
                 text.AppendLine();
                 // text.AppendFormat("- Current drain rate: {0}\n", ); // TODO?
-                text.AppendFormat("- Last whammy tick: {0}\n", engine.LastStarPowerWhammyTick);
+                //text.AppendFormat("- Last whammy tick: {0}\n", engine.LastStarPowerWhammyTick);
                 text.AppendFormat("- Star Power whammy timer:\n     {0}\n", engine.GetStarPowerWhammyTimer());
                 text.AppendLine();
                 text.AppendLine("Miscellaneous:");
@@ -305,7 +307,7 @@ namespace YARG.Gameplay
 
                         var engine = fiveFretPlayer.Engine;
                         text.AppendLine("State:");
-                        text.AppendFormat("- Button mask: 0x{0:X2}\n", engine.ButtonMask);
+                        text.AppendFormat("- Button mask: 0x{0:X2}\n", engine.EffectiveButtonMask);
                         text.AppendFormat("- Last button mask: 0x{0:X2}\n", engine.LastButtonMask);
                         text.AppendFormat("- Note was ghosted: {0}\n", engine.WasNoteGhosted);
                         text.AppendLine();

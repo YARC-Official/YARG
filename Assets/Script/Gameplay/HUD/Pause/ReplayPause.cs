@@ -16,11 +16,14 @@ namespace YARG.Gameplay.HUD
         private GameObject _saveColorObject;
         private BasePlayer _thisPlayer;
         private ColorProfile _colorProfile;
+        private NavigationGroup _navigationGroup;
 
         // get _thisPlayer and _colorProfile before OnEnable
         protected override void GameplayAwake()
         {
             base.GameplayAwake();
+
+            _navigationGroup = GetComponentInChildren<NavigationGroup>();
 
             // get player info
             _thisPlayer = GameManager.Players[0];
@@ -31,6 +34,7 @@ namespace YARG.Gameplay.HUD
             {
                 _separatorObject.SetActive(false);
                 _saveColorObject.SetActive(false);
+                _navigationGroup.RemoveNavigatable(_saveColorObject.GetComponent<NavigatableBehaviour>());
             }
         }
 

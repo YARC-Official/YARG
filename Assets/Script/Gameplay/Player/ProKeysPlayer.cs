@@ -5,6 +5,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.ProKeys;
 using YARG.Core.Engine.ProKeys.Engines;
 using YARG.Core.Input;
@@ -84,7 +85,7 @@ namespace YARG.Gameplay.Player
 
         protected override ProKeysEngine CreateEngine()
         {
-            if (GameManager.ReplayInfo == null)
+            if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds);
@@ -96,6 +97,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = new YargProKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart);
 
             HitWindow = EngineParams.HitWindow;
 

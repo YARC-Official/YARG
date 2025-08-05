@@ -127,11 +127,38 @@ There are some dependencies that will be needed in order for HID devices (such a
 
    ![](Images/Contributing/unityignore.png)
 
-7. Ensure all dependencies have been built/restored:
-  - Both of these steps should be performed automatically when Unity starts up, but they can be performend manually if needed.
-  - Click on `YARG` on the top menu bar, then click on `Rebuild YARG.Core (Debug)`.
-  - Click on `NuGet` on the top menu bar, then click on `Restore Packages`.
+7. Click on `NuGet` on the top menu bar, then click on `Restore Packages`.
+   - This should be performed automatically when Unity starts up, but it can be performend manually if needed.
 8. You're ready to go!
+
+### Linux
+
+On certain distributions of Linux, Unity 2021.3.36f1 editor is broken and the YARG project (or any other project for that matter) cannot be imported. When trying to open the project, Unity will freeze during the import process.
+
+   ![](Images/Contributing/Unity_Project_Import_Hang.png)
+
+To fix this issue, follow the steps below:
+
+1. Locate the Editor installation directory. By default, it is `${HOME}/Unity/Hub/Editor`, but it can be reconfigured in Unity Hub.
+2. Enter the `2021.3.36f1/Editor/Data` directory.
+3. Rename the `bee_backend` executable file to `bee_backend_real`.
+4. Create a new text file named `bee_backend`.
+5. Paste the following script into the `bee_backend` file:
+  ```bash
+  #!/bin/bash
+
+  args=("$@")
+  for ((i=0; i<"${#args[@]}"; ++i))
+  do
+      case ${args[i]} in
+          --stdin-canary)
+              unset args[i];
+              break;;
+      esac
+  done
+  ${0}_real "${args[@]}"
+  ```
+6. Launching the project should now work properly.
 
 ### Unity YAML Merge Tool
 

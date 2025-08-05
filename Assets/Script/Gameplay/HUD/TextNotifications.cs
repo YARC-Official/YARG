@@ -2,6 +2,7 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
@@ -23,6 +24,16 @@ namespace YARG.Gameplay.HUD
 
         [SerializeField]
         private TextMeshProUGUI _text;
+        [SerializeField]
+        private RectTransform _containerRect;
+        [SerializeField]
+        private Image _notificationBackground;
+        [SerializeField]
+        private Color _defaultColor;
+        [SerializeField]
+        private Color _starpowerColor;
+        [SerializeField]
+        private Color _grooveColor;
 
         private int _streak;
         private int _nextStreakCount;
@@ -35,6 +46,9 @@ namespace YARG.Gameplay.HUD
         {
             _text.text = string.Empty;
             _coroutine = null;
+            _containerRect.localScale = Vector3.zero;
+            _containerRect.gameObject.SetActive(true);
+            _notificationBackground.gameObject.SetActive(true);
         }
 
         private void OnDisable()
@@ -43,6 +57,9 @@ namespace YARG.Gameplay.HUD
             {
                 StopCoroutine(_coroutine);
             }
+
+            _notificationBackground.gameObject.SetActive(false);
+            _containerRect.gameObject.SetActive(false);
         }
 
         public void ShowNewHighScore()
@@ -67,7 +84,7 @@ namespace YARG.Gameplay.HUD
         public void ShowHotStart()
         {
             // Don't build up notifications during a solo
-            if (!gameObject.activeSelf) return;
+            if (!isActiveAndEnabled) return;
 
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.HotStart));
         }
@@ -75,7 +92,7 @@ namespace YARG.Gameplay.HUD
         public void ShowBassGroove()
         {
             // Don't build up notifications during a solo
-            if (!gameObject.activeSelf) return;
+            if (!isActiveAndEnabled) return;
 
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.BassGroove));
         }
@@ -83,7 +100,8 @@ namespace YARG.Gameplay.HUD
         public void ShowStarPowerReady()
         {
             // Don't build up notifications during a solo
-            if (!gameObject.activeSelf) return;
+            if (!isActiveAndEnabled) return;
+
 
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.StarPowerReady));
         }
@@ -91,7 +109,7 @@ namespace YARG.Gameplay.HUD
         public void UpdateNoteStreak(int streak)
         {
             // Don't build up notifications during a solo
-            if (!gameObject.activeSelf) return;
+            if (!isActiveAndEnabled) return;
 
             // Only push to the queue if there is a change to the streak
             if (streak == _streak) return;
@@ -125,6 +143,10 @@ namespace YARG.Gameplay.HUD
             if (_coroutine == null && _notificationQueue.Count > 0)
             {
                 var textNotification = _notificationQueue.Dequeue();
+
+                // Set the color of the text background image based on the notifcation type
+                _notificationBackground.color = GetBackgroundColor(textNotification.Type);
+
                 _coroutine = StartCoroutine(ShowNextNotification(textNotification.Text));
             }
         }
@@ -132,25 +154,27 @@ namespace YARG.Gameplay.HUD
         private IEnumerator ShowNextNotification(string notificationText)
         {
             _text.text = notificationText;
-            _text.transform.localScale = Vector3.zero;
+
 
             const float animHoldInterval = ANIM_LENGTH
                 - 2f * (ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL);
 
             yield return DOTween.Sequence()
                 .Append(DOTween.Sequence()
-                    .Append(_text.transform
+                    .Append(_containerRect
                         .DOScale(ANIM_PEAK_SCALE, ANIM_BASE_TO_PEAK_INTERVAL)
                         .SetEase(Ease.OutCirc))
-                    .Append(_text.transform
+                    .Append(_containerRect
+
                         .DOScale(ANIM_VALLEY_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
                         .SetEase(Ease.InOutSine))
                     .AppendInterval(animHoldInterval))
                 .Append(DOTween.Sequence()
-                    .Append(_text.transform
+                    .Append(_containerRect
                         .DOScale(ANIM_PEAK_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
                         .SetEase(Ease.InOutSine))
-                    .Append(_text.transform
+                    .Append(_containerRect
+
                         .DOScale(0f, ANIM_BASE_TO_PEAK_INTERVAL)
                         .SetEase(Ease.InCirc)))
                 .WaitForCompletion();
@@ -192,6 +216,22 @@ namespace YARG.Gameplay.HUD
             _notificationQueue.Clear();
             _nextStreakCount = 0;
             _streak = 0;
+        }
+
+        public void SetActive(bool active)
+        {
+            _containerRect.gameObject.SetActive(active);
+        }
+
+        private Color GetBackgroundColor(TextNotificationType type)
+        {
+            return type switch
+            {
+                TextNotificationType.FullCombo      => _starpowerColor,
+                TextNotificationType.BassGroove     => _grooveColor,
+                TextNotificationType.StarPowerReady => _starpowerColor,
+                _                                   => _defaultColor,
+            };
         }
     }
 }

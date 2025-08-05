@@ -59,6 +59,8 @@ namespace YARG.Gameplay.Player
 
         private const int NEEDLES_COUNT = 7;
 
+        private SongChart _chart;
+
         public void Initialize(int index, int vocalIndex, YargPlayer player, SongChart chart,
             VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore)
         {
@@ -111,13 +113,17 @@ namespace YARG.Gameplay.Player
             _hud.ShowPlayerName(player, needleIndex);
 
             // Create and start an input context for the mic
-            if (GameManager.ReplayInfo == null && player.Bindings.Microphone != null)
+            if (!Player.IsReplay && player.Bindings.Microphone != null)
             {
                 _inputContext = new MicInputContext(player.Bindings.Microphone, GameManager);
                 _inputContext.Start();
             }
 
             Engine = CreateEngine();
+
+            Engine.OnComboIncrement += OnComboIncrement;
+            Engine.OnComboReset += OnComboReset;
+
             if (vocalIndex == 0)
             {
                 if (Player.Profile.CurrentInstrument == Instrument.Vocals)
@@ -129,9 +135,9 @@ namespace YARG.Gameplay.Player
                     Engine.BuildCountdownsFromAllParts(multiTrack.Parts);
                 }
 
-                Engine.OnCountdownChange += (measuresLeft, countdownLength, endTime) =>
+                Engine.OnCountdownChange += (countdownLength, endTime) =>
                 {
-                    GameManager.VocalTrack.UpdateCountdown(measuresLeft, countdownLength, endTime);
+                    GameManager.VocalTrack.UpdateCountdown(countdownLength, endTime);
                 };
             }
 
@@ -154,7 +160,7 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
-            if (GameManager.ReplayInfo == null)
+            if (!Player.IsReplay)
             {
                 var singToActivateStarPower = SettingsManager.Settings.VoiceActivatedVocalStarPower.Value;
 
@@ -172,6 +178,7 @@ namespace YARG.Gameplay.Player
             HitWindow = EngineParams.HitWindow;
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, _chart);
 
             engine.OnStarPowerPhraseHit += _ => OnStarPowerPhraseHit();
             engine.OnStarPowerStatus += OnStarPowerStatus;
@@ -251,7 +258,7 @@ namespace YARG.Gameplay.Player
         protected override void UpdateInputs(double time)
         {
             // Push all inputs from mic
-            if (GameManager.ReplayInfo == null && _inputContext != null)
+            if (!Player.IsReplay && _inputContext != null)
             {
                 foreach (var input in _inputContext.GetInputsFromMic())
                 {

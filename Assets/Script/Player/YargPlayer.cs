@@ -31,6 +31,9 @@ namespace YARG.Player
         public CameraPreset  CameraPreset  { get; private set; }
         public HighwayPreset HighwayPreset { get; private set; }
 
+        public bool IsReplay { get; private set; }
+        public int ReplayIndex = -1;
+
         /// <summary>
         /// Overrides the engine parameters in the gameplay player.
         /// This is only used when loading replays.
@@ -44,6 +47,7 @@ namespace YARG.Player
         {
             Profile = profile;
             Bindings = bindings;
+            IsReplay = false;
         }
 
         public YargPlayer(ReplayFrame frame, ReplayData replay)
@@ -51,6 +55,7 @@ namespace YARG.Player
             Profile = frame.Profile;
             Bindings = null;
             EngineParameterOverride = frame.EngineParameters;
+            IsReplay = true;
 
             EnginePreset = CustomContentManager.EnginePresets.GetPresetById(Profile.EnginePreset)
                 ?? EnginePreset.Default;
