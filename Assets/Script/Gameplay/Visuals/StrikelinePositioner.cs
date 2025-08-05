@@ -57,8 +57,12 @@ namespace YARG.Gameplay.Visuals
 
         private void OnDestroy()
         {
-            StopCoroutine(_coroutine);
+            if (_coroutine != null)
+            {
+                StopCoroutine(_coroutine);
+            }
         }
     }
 }
+
 
