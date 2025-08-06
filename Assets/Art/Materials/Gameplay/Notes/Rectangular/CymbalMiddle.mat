@@ -105,7 +105,7 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _Metallic: 0.2
+    - _Metallic: 0
     - _MinDarkness: 0.4
     - _NoiseScale: -1.02
     - _NoiseSpeed: 0.25
@@ -119,7 +119,7 @@ Material:
     - _SHINE: 1
     - _ShineAmount: 0.15
     - _Shine_Amount: 0.1
-    - _Smoothness: 0.5
+    - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
