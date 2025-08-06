@@ -71,7 +71,7 @@ namespace YARG.Gameplay.Visuals
             // Animate the highway raise
             if (_gameManager != null && !_gameManager.IsPractice)
             {
-                _coroutine = StartCoroutine(LowerHighway(_preset, true));
+                _coroutine = StartCoroutine(RaiseHighway(_preset, true));
             }
         }
 
