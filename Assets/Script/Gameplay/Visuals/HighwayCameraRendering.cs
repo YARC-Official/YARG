@@ -166,6 +166,7 @@ namespace YARG.Gameplay.Visuals
         private void OnEnable()
         {
             _renderCamera = GetComponent<Camera>();
+
             if (_highwaysOutput != null)
             {
                 _renderCamera.targetTexture = GetHighwayOutputTexture();
@@ -191,8 +192,6 @@ namespace YARG.Gameplay.Visuals
             Shader.SetGlobalInteger(YargHighwaysNumberID, 0);
         }
 
-
-
         private void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
         {
             if (cam != _renderCamera)
@@ -203,6 +202,13 @@ namespace YARG.Gameplay.Visuals
             if (_cameras.Count == 0)
             {
                 return;
+            }
+
+            if (Screen.width != _highwaysOutputTexture.width || Screen.height != _highwaysOutputTexture.height)
+            {
+                _highwaysOutputTexture.Release();
+                _highwaysOutputTexture.DiscardContents();
+                _renderCamera.targetTexture = GetHighwayOutputTexture();
             }
 
             for (int i = 0; i < _cameras.Count; ++i)
