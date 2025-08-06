@@ -872,7 +872,7 @@ namespace YARG.Venue.Characters
             _isAnimating = false;
         }
 
-        public void StartAnimation(float secondsPerBeat)
+        public void StartAnimation(double secondsPerBeat)
         {
             if (!_enableAnimationStates)
             {
@@ -895,7 +895,7 @@ namespace YARG.Venue.Characters
             return _isAnimating;
         }
 
-        public void UpdateTempo(float secondsPerBeat)
+        public void UpdateTempo(double secondsPerBeat)
         {
             // Adjust the speed of the animation based on the song tempo
             if (_actionsPerAnimationCycle == 0)
@@ -906,7 +906,7 @@ namespace YARG.Venue.Characters
             // We want one animation cycle per beat (as a multiplier, so if there are 17 actions and 0.4 seconds per beat, we want the animation to complete in 6.8 seconds)
             var secondsPerAction = _animationLength / _actionsPerAnimationCycle;
             // We want secondsPerAction to match secondsPerBeat
-            var speed = secondsPerAction / secondsPerBeat;
+            float speed = (float) (secondsPerAction / secondsPerBeat);
 
             SetFloat(_unclampedSpeedAdjustmentHash, speed);
 
