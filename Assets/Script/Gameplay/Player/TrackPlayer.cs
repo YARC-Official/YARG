@@ -72,6 +72,8 @@ namespace YARG.Gameplay.Player
 
         private float _spawnAheadDelay;
 
+        protected float SongLength;
+
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
         {
@@ -169,6 +171,8 @@ namespace YARG.Gameplay.Player
 
         private double _previousStarPowerAmount;
 
+        private bool _wasStarPowerActive;
+
         private Queue<TrackEffect> _upcomingEffects = new();
         private List<TrackEffectElement> _currentEffects = new();
         private List<TrackEffect> _trackEffects = new();
@@ -226,6 +230,8 @@ namespace YARG.Gameplay.Player
             ResetNoteCounters();
 
             FinishInitialization();
+
+            SongLength = (float) chart.GetEndTime();
         }
 
         private void InitializeTrackEffects()
@@ -364,11 +370,22 @@ namespace YARG.Gameplay.Player
                 TrackView.ShowStarPowerReady();
             }
 
+            if (stats.IsStarPowerActive && !_wasStarPowerActive)
+            {
+                CameraPositioner.Scoop();
+            }
+
             _previousStarPowerAmount = currentStarPowerAmount;
+            _wasStarPowerActive = stats.IsStarPowerActive;
 
             foreach (var haptics in SantrollerHaptics)
             {
                 haptics.SetStarPowerFill((float) currentStarPowerAmount);
+            }
+
+            if (songTime > SongLength)
+            {
+                CameraPositioner.Lower(false);
             }
         }
 
@@ -713,6 +730,7 @@ namespace YARG.Gameplay.Player
                 if (LastCombo >= 10)
                 {
                     GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
+                    CameraPositioner.Punch();
                 }
 
                 foreach (var haptics in SantrollerHaptics)
@@ -730,6 +748,11 @@ namespace YARG.Gameplay.Player
             {
                 ComboMeter.SetFullCombo(false);
                 IsFc = false;
+            }
+
+            if (LastCombo >= 10)
+            {
+                CameraPositioner.Punch();
             }
 
             LastCombo = Combo;

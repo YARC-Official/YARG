@@ -23,6 +23,12 @@ namespace YARG.Gameplay.Visuals
         private const float ANIM_INIT_ROTATION = -60f;
         private const float ANIM_PEAK_ROTATION = 2f;
 
+        private const float PUNCH_ANIM_DURATION = 0.25f;
+        private const float PUNCH_DISTANCE      = 0.03f;
+
+        private const float SCOOP_ANIM_DURATION = 0.125f;
+        private const float SCOOP_DISTANCE      = 2f;
+
         private float _currentBounce;
 
         private GameManager  _gameManager;
@@ -65,7 +71,7 @@ namespace YARG.Gameplay.Visuals
             // Animate the highway raise
             if (_gameManager != null && !_gameManager.IsPractice)
             {
-                _coroutine = StartCoroutine(RaiseHighway(_preset, true));
+                _coroutine = StartCoroutine(LowerHighway(_preset, true));
             }
         }
 
@@ -88,6 +94,21 @@ namespace YARG.Gameplay.Visuals
             // because we're moving the camera, not the track.
             _currentBounce = BOUNCE_UNITS * SettingsManager.Settings.KickBounceMultiplier.Value;
             transform.Translate(Vector3.down * _currentBounce, Space.World);
+        }
+
+        public void Lower(bool isGameplayEnd)
+        {
+            _coroutine = StartCoroutine(LowerHighway(_preset, isGameplayEnd));
+        }
+
+        public void Punch()
+        {
+            _coroutine = StartCoroutine(PunchHighway(_preset));
+        }
+
+        public void Scoop()
+        {
+            _coroutine = StartCoroutine(ScoopHighway(_preset));
         }
 
         private void OnDestroy()
@@ -115,6 +136,54 @@ namespace YARG.Gameplay.Visuals
                 .Append(transform
                     .DORotate(new Vector3().WithX(preset.Rotation), ANIM_PEAK_TO_VALLEY_INTERVAL)
                     .SetEase(Ease.InOutSine));
+        }
+
+        // NOTE: Requires SONG_END_DELAY; will not animate until https://github.com/YARC-Official/YARG/pull/993 is in.
+        private IEnumerator LowerHighway(CameraPreset preset, bool isGameplayEnd)
+        {
+            transform.localRotation = Quaternion.Euler(new Vector3().WithX(preset.Rotation));
+
+            var basePlayer = GetComponentInParent<BasePlayer>();
+            float delay = isGameplayEnd
+                ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET
+                : 0f;
+
+            yield return DOTween.Sequence()
+                .PrependInterval(delay)
+                .Append(transform
+                    .DORotate(new Vector3().WithX(preset.Rotation + ANIM_PEAK_ROTATION), ANIM_PEAK_TO_VALLEY_INTERVAL)
+                    .SetEase(Ease.InOutSine))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(preset.Rotation + ANIM_INIT_ROTATION), ANIM_BASE_TO_PEAK_INTERVAL)
+                    .SetEase(Ease.InCirc));
+        }
+
+        private IEnumerator PunchHighway(CameraPreset preset)
+        {
+            // 50% chance left or right to lessen visual fatigue
+            float xPosDelta = PUNCH_DISTANCE * (Random.Range(0f, 1f) > 0.5f ? -1 : 1);
+
+            yield return DOTween.Sequence()
+                .Append(transform
+                    .DOPunchPosition(new Vector3()
+                            .WithX(xPosDelta)
+                            .WithY(PUNCH_DISTANCE),
+                        PUNCH_ANIM_DURATION, 1, 1f, false));
+        }
+
+        private IEnumerator ScoopHighway(CameraPreset preset)
+        {
+            // Very quick blast down, up and back to origin for SP activation
+            yield return DOTween.Sequence()
+                .Append(transform
+                    .DORotate(new Vector3().WithX(preset.Rotation - SCOOP_DISTANCE), SCOOP_ANIM_DURATION / 4f)
+                    .SetEase(Ease.OutSine))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(preset.Rotation + SCOOP_DISTANCE), SCOOP_ANIM_DURATION / 2f)
+                    .SetEase(Ease.InOutSine))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(preset.Rotation), SCOOP_ANIM_DURATION / 4f)
+                    .SetEase(Ease.InSine));
         }
     }
 }
