@@ -103,9 +103,9 @@ namespace YARG.Venue.Characters
             _vocalNotes = vocalsId.NotePhrases;
             _drumNotes = drumsId.Notes;
 
-            _guitarAnimationEvents = guitarTrack.AnimationEvents;
-            _bassAnimationEvents = bassTrack.AnimationEvents;
-            _drumAnimationEvents = drumsTrack.AnimationEvents;
+            _guitarAnimationEvents = guitarTrack.Animations.AnimationEvents;
+            _bassAnimationEvents = bassTrack.Animations.AnimationEvents;
+            _drumAnimationEvents = drumsTrack.Animations.AnimationEvents;
 
             // This will eventually be combined into the animation events stuff, but for now the text events from the
             // individual instrument difficulties are separate
