@@ -139,7 +139,8 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
     // Present as if its a single highway, using corresponding
     // camera's matrices
     float4 clipPOS = mul(mul(_YargCamProjMatrices[index], _YargCamViewMatrices[index]), float4(positionWS, 1.0));
-    clipPOS.z -= index * 0.0001;
+    // separate highways to avoid clashes when there are a lot of them on at the same time
+    clipPOS.z -= index * 0.0002;
 
     return clipPOS;
 }
