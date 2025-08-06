@@ -27,7 +27,8 @@ namespace YARG.Gameplay.Visuals
         private const float PUNCH_DISTANCE      = 0.03f;
 
         private const float SCOOP_ANIM_DURATION = 0.125f;
-        private const float SCOOP_DISTANCE      = 2f;
+        private const float SCOOP_DOWN_DISTANCE = 2f;
+        private const float SCOOP_UP_DISTANCE   = 0.5f;
 
         private float _currentBounce;
 
@@ -176,14 +177,14 @@ namespace YARG.Gameplay.Visuals
             // Very quick blast down, up and back to origin for SP activation
             yield return DOTween.Sequence()
                 .Append(transform
-                    .DORotate(new Vector3().WithX(preset.Rotation - SCOOP_DISTANCE), SCOOP_ANIM_DURATION / 4f)
+                    .DORotate(new Vector3().WithX(preset.Rotation - SCOOP_DOWN_DISTANCE), SCOOP_ANIM_DURATION / 4f)
                     .SetEase(Ease.OutSine))
                 .Append(transform
-                    .DORotate(new Vector3().WithX(preset.Rotation + SCOOP_DISTANCE), SCOOP_ANIM_DURATION / 2f)
+                    .DORotate(new Vector3().WithX(preset.Rotation + SCOOP_UP_DISTANCE), SCOOP_ANIM_DURATION / 2f)
                     .SetEase(Ease.InOutSine))
                 .Append(transform
                     .DORotate(new Vector3().WithX(preset.Rotation), SCOOP_ANIM_DURATION / 4f)
-                    .SetEase(Ease.InSine));
+                    .SetEase(Ease.InOutSine));
         }
     }
 }
