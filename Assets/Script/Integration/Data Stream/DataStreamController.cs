@@ -17,11 +17,11 @@ namespace YARG.Integration
         {
             public uint Header;
 
-            public byte DatagramVersion;
-            public PlatformByte Platform;
+            public byte           DatagramVersion;
+            public PlatformByte   Platform;
             public SceneIndexByte CurrentScene;
             public PauseStateType Paused;
-            public VenueType Venue;
+            public VenueType      VenueSize;
 
             public float BeatsPerMinute;
             public LightingType CurrentSongSection;
@@ -34,14 +34,15 @@ namespace YARG.Integration
             public float CurrentHarmony1Note;
             public float CurrentHarmony2Note;
 
-            public LightingType LightingCue;
+            public LightingType       LightingCue;
             public PostProcessingType PostProcessing;
-            public bool FogState;
-            public LightingType StrobeState;
-            public byte Performer;
-            public byte Beat;
-            public LightingType Keyframe;
-            public bool BonusEffect;
+            public bool               FogState;
+            public LightingType       StrobeState;
+            public byte               Performer;
+            public byte               Beat;
+            public LightingType       Keyframe;
+            public bool               BonusEffect;
+            public bool               AutoGenVenueTrack;
         }
 
         public enum PlatformByte
@@ -87,9 +88,9 @@ namespace YARG.Integration
 
         // NYI - waiting for parser rewrite.
         // public static PerformerEvent CurrentPerformerEvent;
-        public static PlatformByte MLCPlatform;
+        public static PlatformByte   MLCPlatform;
         public static PauseStateType MLCPaused;
-        public static VenueType MLCVenue;
+        public static VenueType      MLCVenueSize;
         public static SceneIndexByte MLCSceneIndex;
 
         public static int MLCCurrentGuitarNotes;
@@ -102,15 +103,16 @@ namespace YARG.Integration
         public static float MLCCurrentHarmony1Note;
         public static float MLCCurrentHarmony2Note;
 
-        public static bool MLCBonusFX;
-        public static LightingType MLCCurrentSongSection;
-        public static bool MLCFogState;
-        public static LightingType MLCStrobeState;
-        public static float MLCCurrentBPM;
-        public static byte MLCCurrentBeat;
-        public static LightingType MLCKeyframe;
-        public static LightingType MLCCurrentLightingCue;
+        public static bool               MLCBonusFX;
+        public static LightingType       MLCCurrentSongSection;
+        public static bool               MLCFogState;
+        public static LightingType       MLCStrobeState;
+        public static float              MLCCurrentBPM;
+        public static byte               MLCCurrentBeat;
+        public static LightingType       MLCKeyframe;
+        public static LightingType       MLCCurrentLightingCue;
         public static PostProcessingType MLCPostProcessing;
+        public static bool               MLCAutoGenVenueTrack;
 
         public static ushort MLCudpPort = 36107; //hardcoded for now.
         public static string MLCudpIP = "255.255.255.255"; // "this" network's broadcast address
@@ -146,15 +148,18 @@ namespace YARG.Integration
             }
         }
 
+        // Datagram version history
+        // v0 - inital release
+        // v1 - added "HasVenueTrack?" byte. renamed 'venue' to 'venueSize'.
         public static void Sender(DataMessage message)
         {
             message.Header = 0x59415247; // Y A R G
 
-            message.DatagramVersion = 0;                          // version 0 currently
+            message.DatagramVersion = 1;                          // version 0 currently
             message.Platform = MLCPlatform;                       // Set by the Preprocessor Directive above.
             message.CurrentScene = MLCSceneIndex;                 // gets set by the initializer.
             message.Paused = MLCPaused;                           // gets set by the GameplayMonitor.
-            message.Venue = MLCVenue;                             // gets set on chart load by the GameplayMonitor.
+            message.VenueSize = MLCVenueSize;                     // gets set on chart load by the GameplayMonitor.
             message.BeatsPerMinute = MLCCurrentBPM;               // gets set by the GameplayMonitor.
             message.CurrentSongSection = MLCCurrentSongSection;   // gets set on lighting cue change.
 
@@ -176,6 +181,8 @@ namespace YARG.Integration
             message.Beat = MLCCurrentBeat;                      // gets set by the GameplayMonitor.
             message.Keyframe = MLCKeyframe;                     // gets set on lighting cue change.
             message.BonusEffect = MLCBonusFX;                   // gets set by the GameplayMonitor.
+
+            message.AutoGenVenueTrack = MLCAutoGenVenueTrack;   // gets set on chart load by the GameplayMonitor.
 
             SerializeAndSend(message);
 
@@ -219,7 +226,7 @@ namespace YARG.Integration
             if ((SceneIndex) scene.buildIndex == SceneIndex.Persistent) return;
 
             MLCPaused = PauseStateType.AtMenu;
-            MLCVenue = VenueType.None;
+            MLCVenueSize = VenueType.None;
             MLCCurrentBPM = 0;
             MLCCurrentSongSection = 0;
 
@@ -308,7 +315,7 @@ namespace YARG.Integration
                 _writer.Write((byte) message.Platform);
                 _writer.Write((byte) message.CurrentScene);
                 _writer.Write((byte)message.Paused);
-                _writer.Write((byte)message.Venue);
+                _writer.Write((byte)message.VenueSize);
                 _writer.Write(message.BeatsPerMinute);      //float - 4
 
                 _writer.Write((byte) message.CurrentSongSection);
