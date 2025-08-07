@@ -34,6 +34,9 @@
         },
         {
             "m_Id": "1bb7cf1542274317a427859e821a95ee"
+        },
+        {
+            "m_Id": "698ac95a4f1c47d48430fc6ab40981d5"
         }
     ],
     "m_Dropdowns": [],
@@ -1033,7 +1036,11 @@
     "m_Type": "UnityEditor.ShaderGraph.CategoryData",
     "m_ObjectId": "161d89f7895e4641be1a7d7761a4e78d",
     "m_Name": "",
-    "m_ChildObjectList": []
+    "m_ChildObjectList": [
+        {
+            "m_Id": "698ac95a4f1c47d48430fc6ab40981d5"
+        }
+    ]
 }
 
 {
@@ -2303,6 +2310,30 @@
         "m_SerializableColors": []
     },
     "m_HueMode": 0
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
+    "m_ObjectId": "698ac95a4f1c47d48430fc6ab40981d5",
+    "m_Guid": {
+        "m_GuidSerialized": "dcae91f0-46c9-4b67-9098-d72ec5eb995a"
+    },
+    "m_Name": "RAISE_Z",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "RAISE_Z",
+    "m_DefaultReferenceName": "_RAISE_Z",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_KeywordType": 0,
+    "m_KeywordDefinition": 0,
+    "m_KeywordScope": 0,
+    "m_KeywordStages": 1,
+    "m_Entries": [],
+    "m_Value": 0,
+    "m_IsEditable": true
 }
 
 {

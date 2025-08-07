@@ -142,6 +142,10 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
     // separate highways to avoid clashes when there are a lot of them on at the same time
     clipPOS.z -= index * 0.0002;
 
+#ifdef _RAISE_Z
+    clipPOS.z += 0.002;
+#endif
+
     return clipPOS;
 }
 
