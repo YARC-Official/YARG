@@ -204,11 +204,14 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            if (Screen.width != _highwaysOutputTexture.width || Screen.height != _highwaysOutputTexture.height)
+            if (_highwaysOutputTexture != null)
             {
-                _highwaysOutputTexture.Release();
-                _highwaysOutputTexture.DiscardContents();
-                _renderCamera.targetTexture = GetHighwayOutputTexture();
+                if (Screen.width != _highwaysOutputTexture.width || Screen.height != _highwaysOutputTexture.height)
+                {
+                    _highwaysOutputTexture.Release();
+                    _highwaysOutputTexture.DiscardContents();
+                    _renderCamera.targetTexture = GetHighwayOutputTexture();
+                }
             }
 
             for (int i = 0; i < _cameras.Count; ++i)
