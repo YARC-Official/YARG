@@ -337,6 +337,7 @@ namespace YARG.Integration
                 _writer.Write(message.Beat); //byte
                 _writer.Write((byte) message.Keyframe);
                 _writer.Write(message.BonusEffect); //bool
+                _writer.Write(message.AutoGenVenueTrack); //bool
 
                 _sendClient.Send(_ms.GetBuffer(), (int) _ms.Position);
             }
