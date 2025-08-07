@@ -35,6 +35,9 @@ namespace YARG.Gameplay.HUD
 
         private int _currentSectionIndex;
 
+        private bool _speedChanged = false;
+        private int  _offsetNotesHit = 0;
+
         protected override void GameplayAwake()
         {
             _sections = Array.Empty<Section>();
@@ -66,6 +69,11 @@ namespace YARG.Gameplay.HUD
                 totalNotes += player.TotalNotes;
             }
 
+            if (_speedChanged)
+            {
+                notesHit -= _offsetNotesHit;
+            }
+
             if (totalNotes == 0)
             {
                 _percentHit = 0f;
@@ -91,6 +99,8 @@ namespace YARG.Gameplay.HUD
 
         public void ResetPractice()
         {
+            _speedChanged = false;
+
             if (_percentHit > _bestPercentHit)
             {
                 _bestPercentHit = _percentHit;
@@ -108,6 +118,17 @@ namespace YARG.Gameplay.HUD
 
         public void ResetStats()
         {
+            if (GameManager.Players != null)
+            {
+                _offsetNotesHit = 0;
+                foreach (var player in GameManager.Players)
+                {
+                    _offsetNotesHit += player.NotesHit;
+                }
+            }
+
+            _speedChanged = true;
+            _percentHit = 0f;
             _bestPercentHit = 0f;
             _bestPercentText.text = "0%";
         }
