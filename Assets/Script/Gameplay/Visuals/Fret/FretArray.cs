@@ -210,7 +210,7 @@ namespace YARG.Gameplay.Visuals
             _pulsingFrets[fretIndex] = pulse;
         }
 
-        public void PulseFretColors(Beatline beat)
+        public void PulseFretColors()
         {
             for (int i = 0; i < _pulsingFrets.Length; i++)
             {

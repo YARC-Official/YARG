@@ -10,6 +10,7 @@ using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
@@ -282,7 +283,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void FinishInitialization()
         {
-            GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar);
+            GameManager.BeatEventHandler.Visual.Subscribe(StarpowerBar.PulseBar, BeatEventType.StrongBeat);
 
             TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.HighwayPreset);
             CameraPositioner.Initialize(Player.CameraPreset);
@@ -773,7 +774,7 @@ namespace YARG.Gameplay.Player
         {
             base.FinishDestruction();
 
-            GameManager.BeatEventHandler.Unsubscribe(StarpowerBar.PulseBar);
+            GameManager.BeatEventHandler.Visual.Unsubscribe(StarpowerBar.PulseBar);
         }
 
         public override void UpdateWithTimes(double inputTime)

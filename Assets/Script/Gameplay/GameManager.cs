@@ -121,7 +121,7 @@ namespace YARG.Gameplay
         public int   BandScore { get; private set; }
         public int   BandCombo { get; private set; }
         public float BandStars { get; private set; }
-        
+
         public ReplayInfo ReplayInfo { get; private set; }
         public ReplayData ReplayData { get; private set; }
 
@@ -196,7 +196,7 @@ namespace YARG.Gameplay
             _pauseMenu.PopAllMenus();
             _mixer?.Dispose();
             _songRunner?.Dispose();
-            BeatEventHandler?.Unsubscribe(StarPowerClap);
+            BeatEventHandler?.Audio.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
@@ -231,7 +231,7 @@ namespace YARG.Gameplay
 
             // Update handlers
             _songRunner.Update();
-            BeatEventHandler.Update(_songRunner.SongTime);
+            BeatEventHandler.Update(_songRunner.RealSongTime, _songRunner.RealVisualTime);
 
             // Update players
             int totalScore = 0;
@@ -266,7 +266,7 @@ namespace YARG.Gameplay
         {
             _songRunner.SetSongTime(time, delayTime);
 
-            BeatEventHandler.ResetTimers();
+            BeatEventHandler.Reset();
             BackgroundManager.SetTime(_songRunner.SongTime + Song.SongOffsetSeconds);
         }
 
