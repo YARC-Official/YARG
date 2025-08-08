@@ -106,6 +106,8 @@ Shader "YargParticlesUnlit"
             #pragma vertex vertParticleUnlit
             #pragma fragment fragParticleUnlit
 
+            #define _RAISE_Z
+
             #include "Assets/Art/Shaders/ShaderVariablesFunctions.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitForwardPass.hlsl"
