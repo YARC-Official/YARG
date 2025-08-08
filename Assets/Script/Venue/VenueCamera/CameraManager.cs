@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Extensions;
 using YARG.Core.Logging;
 using YARG.Gameplay;
+using YARG.Helpers.Extensions;
 using Random = UnityEngine.Random;
 
 namespace YARG.Venue.VenueCamera
@@ -235,34 +237,6 @@ namespace YARG.Venue.VenueCamera
             return _cameras[index];
         }
 
-        private CameraLocation GetCameraLocation(CameraCutEvent cut)
-        {
-
-            // TODO: Make this check that the location is actually valid for the current venue before returning it
-
-            // TODO: Add fallbacks to map camera cuts we don't have to something appropriate rather than giving up and
-            // using a random camera without even checking that there are other reasonable options
-
-            // TODO: Maybe see if that fallback map can be specified by the venue author (at least in part, and we
-            //  just pick randomly if they didn't specify a fallback for a given cut subject that doesn't have a camera)
-
-            if (cut.Subject != CameraCutEvent.CameraCutSubject.Random && _cameraLocationLookup.TryGetValue(cut.Subject, out var location))
-            {
-                return location;
-            }
-
-            if (cut.RandomChoices.Count > 0)
-            {
-                var choices = cut.RandomChoices.ToList();
-                var locationIndex = Random.Range(0, choices.Count - 1);
-                return _cameraLocationLookup[choices[locationIndex]];
-            }
-
-            YargLogger.LogDebug("Random camera cut has no location options");
-
-            return PickOne(_validLocations.ToArray());
-        }
-
         private Camera MapSubjectToValidCamera(CameraCutEvent cut)
         {
             var subject = cut.Subject;
@@ -287,6 +261,7 @@ namespace YARG.Venue.VenueCamera
                 // Choose from the cut event's options list, assuming it exists (otherwise completely random)
                 if (cut.RandomChoices.Count > 0)
                 {
+                    // Clone the list so we don't obliterate the original
                     var choices = cut.RandomChoices.ToList();
                     // Remove choices that aren't in _subjectToCameraMap
                     for (var i = choices.Count - 1; i >= 0; i--)
@@ -301,7 +276,7 @@ namespace YARG.Venue.VenueCamera
 
                     if (choices.Count > 0)
                     {
-                        var selected = choices[Random.Range(0, choices.Count - 1)];
+                        var selected = choices.Pick();
                         cameras = _subjectToCameraMap[selected];
                     }
                     else
@@ -313,10 +288,10 @@ namespace YARG.Venue.VenueCamera
 
                     if (filteredCameras.Count > 0)
                     {
-                        return filteredCameras[Random.Range(0, filteredCameras.Count - 1)];
+                        return filteredCameras.Pick();
                     }
 
-                    return cameras[Random.Range(0, cameras.Count - 1)];
+                    return cameras.Pick();
                 }
 
                 // If there are no choices and no constraints, just pick a random camera
@@ -329,7 +304,7 @@ namespace YARG.Venue.VenueCamera
                 var validCams = FilterCamerasByConstraint(cut, _cameras);
                 if (validCams.Count > 0)
                 {
-                    return validCams[Random.Range(0, validCams.Count - 1)];
+                    return validCams.Pick();
                 }
 
                 // No luck, just pick anything
@@ -441,44 +416,6 @@ namespace YARG.Venue.VenueCamera
         private static CameraLocation PickOne(CameraLocation[] locations)
         {
             return locations[Random.Range(0, locations.Length - 1)];
-        }
-
-        private static CameraLocation PickOne(CameraLocation a, CameraLocation b)
-        {
-            return Random.Range(0, 1) == 0 ? a : b;
-        }
-
-        private static CameraLocation PickOne(CameraLocation a, CameraLocation b, CameraLocation c)
-        {
-            return Random.Range(0, 2) switch {
-                0 => a,
-                1 => b,
-                _ => c
-            };
-        }
-
-        private static CameraLocation PickOne(CameraLocation a, CameraLocation b, CameraLocation c, CameraLocation d)
-        {
-            return Random.Range(0, 3) switch
-            {
-                0 => a,
-                1 => b,
-                2 => c,
-                _ => d
-            };
-        }
-
-        private static CameraLocation PickOne(CameraLocation a, CameraLocation b, CameraLocation c, CameraLocation d,
-            CameraLocation e)
-        {
-            return Random.Range(0, 4) switch
-            {
-                0 => a,
-                1 => b,
-                2 => c,
-                3 => d,
-                _ => e
-            };
         }
     }
 }

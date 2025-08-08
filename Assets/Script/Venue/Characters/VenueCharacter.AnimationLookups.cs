@@ -49,12 +49,7 @@ namespace YARG.Venue.Characters
                     var hash = Animator.StringToHash($"{state}");
                     bool hasTrigger = _triggerNames.Contains(state);
 
-                    // TODO: Why are we not just using AnimationState for everything?
-                    if (TryGetAnimationTypeForName(state, out var animType))
-                    {
-                        _animationEvents.Add(animType, state, hash, index, hasTrigger);
-                    }
-                    else if (TryGetAnimationStateForName(state, out var animState))
+                    if (TryGetAnimationStateForName(state, out var animState))
                     {
                         _animationEvents.Add(animState, state, hash, index, hasTrigger);
                     }
@@ -67,7 +62,7 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private bool TryGetAnimationStateForName(string name, out AnimationStateType outVar)
+        private static bool TryGetAnimationStateForName(string name, out AnimationStateType outVar)
         {
             // Deal with venues that don't have separate hard/soft animations
             var adjustedName = name switch
@@ -78,7 +73,6 @@ namespace YARG.Venue.Characters
                 "Crash1Right" => "Crash1RightHard",
                 "Crash2Left"  => "Crash2LeftHard",
                 "Crash2Right" => "Crash2RightHard",
-                "DropD2" => "DropD",
                 _             => name
             };
 
@@ -176,83 +170,6 @@ namespace YARG.Venue.Characters
                 "Pick"                     => AnimationStateType.Pick,
                 "Slap"                     => AnimationStateType.Slap,
                 "Finger"                   => AnimationStateType.Finger,
-                _ => null
-            };
-
-            if (animType.HasValue)
-            {
-                outVar = animType.Value;
-                return true;
-            }
-
-            outVar = default;
-            return false;
-        }
-
-        private bool TryGetAnimationTypeForName(string name, out AnimationType outVar)
-        {
-            // Deal with venues that don't have separate hard/soft animations
-            var adjustedName = name switch
-            {
-                "SnareLeft"   => "SnareLeftHard",
-                "SnareRight"  => "SnareRightHard",
-                "Crash1Left"  => "Crash1LeftHard",
-                "Crash1Right" => "Crash1RightHard",
-                "Crash2Left"  => "Crash2LeftHard",
-                "Crash2Right" => "Crash2RightHard",
-                _             => name
-            };
-
-            AnimationType? animType = adjustedName switch
-            {
-                // Drums
-                "Kick"            => AnimationType.Kick,
-                "OpenHat"         => AnimationType.OpenHiHat,
-                "CloseHat"        => AnimationType.CloseHiHat,
-                "HihatLeft"       => AnimationType.HihatLeftHand,
-                "HihatRight"      => AnimationType.HihatRightHand,
-                "SnareLeft"       => AnimationType.SnareLhHard,
-                "SnareLeftHard"   => AnimationType.SnareLhHard,
-                "SnareLeftSoft"   => AnimationType.SnareLhSoft,
-                "SnareRightHard"  => AnimationType.SnareRhHard,
-                "SnareRightSoft"  => AnimationType.SnareRhSoft,
-                "Crash1LeftHard"  => AnimationType.Crash1LhHard,
-                "Crash1LeftSoft"  => AnimationType.Crash1LhSoft,
-                "Crash1RightHard" => AnimationType.Crash1RhHard,
-                "Crash1RightSoft" => AnimationType.Crash1RhSoft,
-                "Crash1Choke"     => AnimationType.Crash1Choke,
-                "Crash2LeftHard"  => AnimationType.Crash2LhHard,
-                "Crash2LeftSoft"  => AnimationType.Crash2LhSoft,
-                "Crash2RightHard" => AnimationType.Crash2RhHard,
-                "Crash2RightSoft" => AnimationType.Crash2RhSoft,
-                "Crash2Choke"     => AnimationType.Crash2Choke,
-                "RideLeft"        => AnimationType.RideLh,
-                "RideRight"       => AnimationType.RideRh,
-                "Tom1Left"        => AnimationType.Tom1LeftHand,
-                "Tom1Right"       => AnimationType.Tom1RightHand,
-                "Tom2Left"        => AnimationType.Tom2LeftHand,
-                "Tom2Right"       => AnimationType.Tom2RightHand,
-                "FloorTomLeft"    => AnimationType.FloorTomLeftHand,
-                "FloorTomRight"   => AnimationType.FloorTomRightHand,
-                // Five Fret
-                "HandPositionOne"    => AnimationType.LeftHandPosition1,
-                "HandPositionTwo"    => AnimationType.LeftHandPosition2,
-                "HandPositionThree"  => AnimationType.LeftHandPosition3,
-                "HandPositionFour"   => AnimationType.LeftHandPosition4,
-                "HandPositionFive"   => AnimationType.LeftHandPosition5,
-                "HandPositionSix"    => AnimationType.LeftHandPosition6,
-                "HandPositionSeven"  => AnimationType.LeftHandPosition7,
-                "HandPositionEight"  => AnimationType.LeftHandPosition8,
-                "HandPositionNine"   => AnimationType.LeftHandPosition9,
-                "HandPositionTen"    => AnimationType.LeftHandPosition10,
-                "HandPositionEleven" => AnimationType.LeftHandPosition11,
-                "HandPositionTwelve" => AnimationType.LeftHandPosition12,
-                "HandPositionThirteen" => AnimationType.LeftHandPosition13,
-                "HandPositionFourteen" => AnimationType.LeftHandPosition14,
-                "HandPositionFifteen" => AnimationType.LeftHandPosition15,
-                "HandPositionSixteen" => AnimationType.LeftHandPosition16,
-                // TODO: Need to add the hand shapes and strums to AnimationType so they can be used here
-                // rather than special cased as they were initially for testing
                 _ => null
             };
 
@@ -388,59 +305,6 @@ namespace YARG.Venue.Characters
 
                 return result;
             }
-
-            private void AddHandMapStates()
-            {
-                string[] names =
-                {
-                    "ChordA",
-                    "ChordC",
-                    "ChordD",
-                    "DropD",
-                    "DropDOpen",
-                    "DropDVibrato",
-                    "DropD2",
-                    "DefaultSingleHigh",
-                    "DefaultSingleLow",
-                    "DefaultChordHigh",
-                    "DefaultChordHighVibrato",
-                    "DefaultChordLow",
-                    "DefaultChordLowVibrato",
-                    "DefaultOpen"
-                };
-            }
-
-            // private static bool TryGetStateForHandMap(string name, out AnimationStateType outVar)
-            // {
-            //     AnimationStateType? state = name switch
-            //     {
-            //         "ChordA" => AnimationStateType.LhChordA,
-            //         "ChordC" => AnimationStateType.LhChordC,
-            //         "ChordD" => AnimationStateType.LhChordD,
-            //         "DropD" => AnimationStateType.LhChordDropD,
-            //         "DropDOpen" => AnimationStateType.LhDropDOpen,
-            //         "DropDVibrato" => AnimationStateType.LhChordDropDVibrato,
-            //         "DropD2" => AnimationStateType.LhChordDropD2,
-            //         "DefaultSingleHigh" => AnimationStateType.LhSingleHigh,
-            //         "DefaultSingleHighVibrato" => AnimationStateType.LhSingleHighVibrato,
-            //         "DefaultSingleLow" => AnimationStateType.LhSingleLow,
-            //         "DefaultSingleLowVibrato" => AnimationStateType.LhSingleLowVibrato,
-            //         "DefaultChordHigh" => AnimationStateType.LhChordHigh,
-            //         "DefaultChordHighVibrato" => AnimationStateType.LhChordHighVibrato,
-            //         "DefaultChordLow" => AnimationStateType.LhChordLow,
-            //         "DefaultChordLowVibrato" => AnimationStateType.LhChordLowVibrato,
-            //         _ => null,
-            //     };
-            //
-            //     if (state.HasValue)
-            //     {
-            //         outVar = state.Value;
-            //         return true;
-            //     }
-            //
-            //     outVar = default;
-            //     return false;
-            // }
 
             private static AnimationStateType GetStateForAnimationType(AnimationType type)
             {
@@ -611,7 +475,6 @@ namespace YARG.Venue.Characters
             LeftHandPosition10,
             LeftHandPosition11,
             LeftHandPosition12,
-            // 13-20 are defined, but typically unused
             LeftHandPosition13,
             LeftHandPosition14,
             LeftHandPosition15,
@@ -743,6 +606,11 @@ namespace YARG.Venue.Characters
 
                     _animator.SetTrigger(hash);
                 }
+                else if (_animationStateFallbacks.TryGetValue(state, out var fallback))
+                {
+                    // ew, recursion (provably finite in the case that the fallbacks dict is finite, though)
+                    SetTrigger(fallback);
+                }
             }
             else
             {
@@ -768,5 +636,17 @@ namespace YARG.Venue.Characters
             return state is AnimationStateType.Idle or AnimationStateType.Playing or AnimationStateType.IdleRealtime
                 or AnimationStateType.Mellow or AnimationStateType.Intense;
         }
+
+        // TODO: Extend this to more than just what happens to be needed for the test venue
+        private static readonly Dictionary<AnimationStateType, AnimationStateType> _animationStateFallbacks = new()
+        {
+            // Generic states
+            { AnimationStateType.IdleRealtime, AnimationStateType.Idle },
+            { AnimationStateType.Mellow, AnimationStateType.Playing },
+            { AnimationStateType.Intense, AnimationStateType.Playing },
+
+            // Hand maps
+            { AnimationStateType.LhChordDropD2, AnimationStateType.LhChordDropD }
+        };
     }
 }

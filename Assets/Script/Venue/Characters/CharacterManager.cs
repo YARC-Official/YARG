@@ -2,8 +2,8 @@
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Gameplay;
 using YARG.Core.Chart.Events;
+using YARG.Gameplay;
 using AnimationEvent = YARG.Core.Chart.AnimationEvent;
 using CharacterStateType = YARG.Core.Chart.Events.CharacterState.CharacterStateType;
 using HandMapType = YARG.Core.Chart.Events.HandMap.HandMapType;
@@ -26,12 +26,6 @@ namespace YARG.Venue.Characters
         private List<GuitarNote>   _bassNotes;
         private List<GuitarNote>   _keysNotes;
         private List<ProKeysNote>  _proKeysNotes;
-        private List<TextEvent>    _guitarTextEvents;
-        private List<TextEvent>    _bassTextEvents;
-        private List<TextEvent>    _drumTextEvents;
-        private List<TextEvent>    _keysTextEvents;
-        private List<TextEvent>    _proKeysTextEvents;
-        private List<TextEvent>    _vocalTextEvents;
 
         private List<AnimationEvent> _guitarAnimationEvents;
         private List<AnimationEvent> _bassAnimationEvents;
@@ -69,6 +63,7 @@ namespace YARG.Venue.Characters
         private List<AnimationTrigger> _drumMaps;
         private List<AnimationTrigger> _vocalMaps;
         private List<AnimationTrigger> _keysMaps;
+        private List<AnimationTrigger> _proKeysMaps;
 
         private bool _songHasDrumAnimations;
 
@@ -95,6 +90,9 @@ namespace YARG.Venue.Characters
             InstrumentTrack<GuitarNote> guitarTrack = chart.GetFiveFretTrack(Instrument.FiveFretGuitar);
             InstrumentTrack<GuitarNote> bassTrack = chart.GetFiveFretTrack(Instrument.FiveFretBass);;
             InstrumentTrack<DrumNote> drumsTrack = chart.GetDrumsTrack(Instrument.ProDrums);
+            VocalsTrack vocalsTrack = chart.GetVocalsTrack(Instrument.Vocals);
+            InstrumentTrack<GuitarNote> keysTrack = chart.GetFiveFretTrack(Instrument.Keys);
+            InstrumentTrack<ProKeysNote> proKeysTrack = chart.ProKeys;
 
             _guitarNotes = guitarId.Notes;
             _bassNotes = bassId.Notes;
@@ -109,11 +107,12 @@ namespace YARG.Venue.Characters
 
             // This will eventually be combined into the animation events stuff, but for now the text events from the
             // individual instrument difficulties are separate
-            _guitarMaps = ParseTextEvents(guitarId.TextEvents);
-            _bassMaps = ParseTextEvents(bassId.TextEvents);
-            _drumMaps = ParseTextEvents(drumsId.TextEvents);
-            _vocalMaps = ParseTextEvents(vocalsId.TextEvents);
-            _keysMaps = ParseTextEvents(keysId.TextEvents);
+            _guitarMaps = ProcessAnimationEvents(guitarTrack);
+            _bassMaps = ProcessAnimationEvents(bassTrack);
+            _drumMaps = ProcessAnimationEvents(drumsTrack);
+            _vocalMaps = ProcessAnimationEvents(vocalsTrack);
+            _keysMaps = ProcessAnimationEvents(keysTrack);
+            _proKeysMaps = ProcessAnimationEvents(proKeysTrack);
 
             _tempoList = chart.SyncTrack.Tempos;
 
@@ -389,155 +388,55 @@ namespace YARG.Venue.Characters
             }
         }
 
-        // TODO: Move this into the chart parser, this is just an expediency for testing
-        private List<AnimationTrigger> ParseTextEvents(List<TextEvent> events)
+        // Translate chart events into animation triggers
+        private static List<AnimationTrigger> ProcessAnimationEvents<T>(InstrumentTrack<T> track) where T : Note<T>
         {
-            // Check that the trigger track is initialized
-            var animationTriggerTrack = new List<AnimationTrigger>();
+            var handMaps = track.Animations.HandMaps;
+            var strumMaps = track.Animations.StrumMaps;
+            var states = track.Animations.CharacterStates;
 
-            // This is ugly as shit, but see the note above
-            foreach (var textEvent in events)
-            {
-                if (textEvent.Text == "idle")
-                {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default, default, textEvent.Time));
-                }
-                else if (textEvent.Text == "idle_realtime")
-                {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.IdleRealtime, default, default, textEvent.Time));
-                }
-                else if (textEvent.Text == "idle_intense")
-                {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.IdleIntense, default, default, textEvent.Time));
-                }
-                else if (textEvent.Text == "play")
-                {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Play, default, default, textEvent.Time));
-                }
-                else if (textEvent.Text == "play_solo")
-                {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.PlaySolo, default, default, textEvent.Time));
-                }
-                else if (textEvent.Text == "mellow")
-                {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Mellow, default, default, textEvent.Time));
-                }
-                else if (textEvent.Text == "intense")
-                {
-                    animationTriggerTrack.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Intense, default, default, textEvent.Time));
-                }
-                else if (textEvent.Text.StartsWith("map "))
-                {
-                    var parts = textEvent.Text.Split(' ');
-                    if (parts.Length < 2)
-                    {
-                        continue;
-                    }
-
-                    // Throw everything after the _ into the mapType variable..we don't care about the HandMap_ part
-                    var mapString = parts[1];
-                    var mapParts = parts[1].Split("_");
-                    // Having an extra _ is annoying
-                    var mapType = string.Join("_", mapParts[1..]);
-
-                    if (mapParts[0] == "HandMap")
-                    {
-                        switch (mapType)
-                        {
-                            case "Default":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMapType.Default, default, textEvent.Time));
-                                break;
-                            case "NoChords":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMapType.NoChords, default, textEvent.Time));
-                                break;
-                            case "AllChords":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMapType.AllChords, default, textEvent.Time));
-                                break;
-                            case "AllBend":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMapType.AllBend, default, textEvent.Time));
-                                break;
-                            case "Solo":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMapType.Solo, default, textEvent.Time));
-                                break;
-                            case "DropD":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMapType.DropD, default, textEvent.Time));
-                                break;
-                            case "DropD2":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMapType.DropD2, default, textEvent.Time));
-                                break;
-                            case "Chord_C":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMapType.ChordC, default, textEvent.Time));
-                                break;
-                            case "Chord_D":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMapType.ChordD, default, textEvent.Time));
-                                break;
-                            case "Chord_A":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.HandMap, default,
-                                    HandMapType.ChordA, default, textEvent.Time));
-                                break;
-                        }
-                    }
-                    else if (mapParts[0] == "StrumMap")
-                    {
-                        switch (mapType)
-                        {
-                            case "Default":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.StrumMap, default, default, StrumMapType.Default, textEvent.Time));
-                                break;
-                            case "Pick":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.StrumMap, default, default, StrumMapType.Pick, textEvent.Time));
-                                break;
-                            case "SlapBass":
-                                animationTriggerTrack.Add(new AnimationTrigger(TriggerType.StrumMap, default, default, StrumMapType.SlapBass, textEvent.Time));
-                                break;
-                        }
-                    }
-                }
-            }
-
-            return animationTriggerTrack;
+            return ProcessAnimationEvents(handMaps, strumMaps, states);
         }
 
-        // public enum AnimationState
-        // {
-        //     Idle,
-        //     IdleRealtime,
-        //     IdleIntense,
-        //     Play,
-        //     PlaySolo,
-        //     Mellow,
-        //     Intense
-        // }
-        //
-        // public enum HandMap
-        // {
-        //     HandMapDefault,
-        //     HandMapNoChords,
-        //     HandMapAllChords,
-        //     HandMapAllBend,
-        //     HandMapSolo,
-        //     HandMapDropD,
-        //     HandMapDropD2,
-        //     HandMapChordC,
-        //     HandMapChordD,
-        //     HandMapChordA,
-        // }
-        //
-        // public enum StrumMap {
-        //     StrumMapDefault,
-        //     StrumMapPick,
-        //     StrumMapSlapBass
-        // }
-        //
+        // Vocals has to be different, of course
+        private static List<AnimationTrigger> ProcessAnimationEvents(VocalsTrack track)
+        {
+            // Yes, only states is actually valid here, but we may as well use the existing empty lists rather than
+            // making new ones
+            var handMaps = track.Animations.HandMaps;
+            var strumMaps = track.Animations.StrumMaps;
+            var states = track.Animations.CharacterStates;
+
+            return ProcessAnimationEvents(handMaps, strumMaps, states);
+        }
+
+        private static List<AnimationTrigger> ProcessAnimationEvents(List<HandMap> handMaps, List<StrumMap> strumMaps,
+            List<CharacterState> states)
+        {
+            var triggers = new List<AnimationTrigger>();
+
+            // Deal with the hand maps
+            foreach (var handMap in handMaps)
+            {
+                triggers.Add(new AnimationTrigger(TriggerType.HandMap, default, handMap.Type, default, handMap.Time));
+            }
+
+            foreach (var strumMap in strumMaps)
+            {
+                triggers.Add(new AnimationTrigger(TriggerType.StrumMap, default, default, strumMap.Type, strumMap.Time));
+            }
+
+            foreach (var state in states)
+            {
+                triggers.Add(new AnimationTrigger(TriggerType.AnimationState, state.Type, default, default, state.Time));
+            }
+
+            // Make sure they are in the correct time order since we just jammed together a bunch of different lists
+            triggers.Sort((a, b) => a.Time.CompareTo(b.Time));
+
+            return triggers;
+        }
+
         public enum TriggerType
         {
             AnimationState,
