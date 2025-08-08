@@ -225,7 +225,7 @@ namespace YARG.Gameplay.Visuals
             Shader.SetGlobalInteger(YargHighwaysNumberID, _cameras.Count);
         }
 
-        private void UpdateCameraProjectionMatrices()
+        public void UpdateCameraProjectionMatrices()
         {
             for (int i = 0; i < _cameras.Count; ++i)
             {

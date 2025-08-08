@@ -325,6 +325,7 @@ namespace YARG.Settings.Preview
             var highwayRenderer = camera.GetComponent<HighwayCameraRendering>();
             highwayRenderer.UpdateCurveFactor(cameraPreset.CurveFactor, 0);
             highwayRenderer.UpdateFadeParams(0, 3f, cameraPreset.FadeLength);
+            highwayRenderer.UpdateCameraProjectionMatrices();
 
             // Update color profiles
             if (!CurrentGameModeInfo.UseProKeys)
