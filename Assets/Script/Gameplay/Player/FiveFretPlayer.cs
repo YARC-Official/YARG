@@ -13,6 +13,7 @@ using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 using Random = UnityEngine.Random;
@@ -165,7 +166,7 @@ namespace YARG.Gameplay.Player
                 InitializeRangeShift();
             }
 
-            GameManager.BeatEventHandler.Subscribe(_fretArray.PulseFretColors);
+            GameManager.BeatEventHandler.Visual.Subscribe(_fretArray.PulseFretColors, BeatEventType.StrongBeat);
         }
 
         public override void ResetPracticeSection()

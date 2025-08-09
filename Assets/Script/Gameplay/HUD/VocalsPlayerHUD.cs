@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Localization;
+using YARG.Playback;
 using YARG.Player;
 
 namespace YARG.Gameplay.HUD
@@ -43,12 +44,12 @@ namespace YARG.Gameplay.HUD
         {
             _performanceText.text = string.Empty;
 
-            GameManager.BeatEventHandler.Subscribe(PulseBar);
+            GameManager.BeatEventHandler.Visual.Subscribe(PulseBar, BeatEventType.StrongBeat);
         }
 
         protected override void GameplayDestroy()
         {
-            GameManager.BeatEventHandler.Unsubscribe(PulseBar);
+            GameManager.BeatEventHandler.Visual.Unsubscribe(PulseBar);
         }
 
         public void Initialize(EnginePreset enginePreset)
@@ -95,13 +96,8 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private void PulseBar(Beatline beat)
+        private void PulseBar()
         {
-            if (!_shouldPulse || beat.Type == BeatlineType.Weak)
-            {
-                return;
-            }
-
             _starPowerPulse.color = Color.white;
         }
 

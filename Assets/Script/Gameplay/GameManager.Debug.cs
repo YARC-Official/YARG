@@ -465,6 +465,30 @@ namespace YARG.Gameplay
 
                 GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }
+
+            using (DebugScrollView.Begin("Beats", VerticalGroupStyle,
+                ref _debugSyncScroll, GUILayout.Height(100 * _debugGuiScale)))
+            {
+                using var text = ZString.CreateStringBuilder(true);
+
+                var sync = Chart.SyncTrack;
+
+                uint tick = sync.TimeToTick(_songRunner.SongTime);
+
+                double strongBeat = sync.GetStrongBeatPosition(tick);
+                double weakBeat = sync.GetWeakBeatPosition(tick);
+                double denomBeat = sync.GetDenominatorBeatPosition(tick);
+                double quarterNote = sync.GetQuarterNotePosition(tick);
+                double measure = sync.GetMeasurePosition(tick);
+
+                text.AppendFormat("Strong beat position: {0:0.000}\n", strongBeat);
+                text.AppendFormat("Weak beat position: {0:0.000}\n", weakBeat);
+                text.AppendFormat("Denominator beat position: {0:0.000}\n", denomBeat);
+                text.AppendFormat("Quarter note position: {0:0.000}\n", quarterNote);
+                text.AppendFormat("Measure position: {0:0.000}\n", measure);
+
+                GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+            }
         }
 
         private InputEventTrace _debugInputEventTrace = new();

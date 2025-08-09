@@ -5,6 +5,7 @@ using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
+using YARG.Playback;
 
 namespace YARG.Gameplay.HUD
 {
@@ -17,27 +18,22 @@ namespace YARG.Gameplay.HUD
         private bool _isGoldAchieved;
 
         private float _goldMeterHeight;
-        private int _goldMeterBeatCount;
 
         protected override void OnChartLoaded(SongChart chart)
         {
             _goldMeterHeight = GetComponent<RectTransform>().rect.height;
 
-            GameManager.BeatEventHandler.Subscribe(PulseGoldMeter);
+            GameManager.BeatEventHandler.Visual.Subscribe(PulseGoldMeter, BeatEventType.StrongBeat, division: 2);
         }
 
         protected override void GameplayDestroy()
         {
-            GameManager.BeatEventHandler.Unsubscribe(PulseGoldMeter);
+            GameManager.BeatEventHandler.Visual.Unsubscribe(PulseGoldMeter);
         }
 
-        private void PulseGoldMeter(Beatline beat)
+        private void PulseGoldMeter()
         {
-            if (beat.Type == BeatlineType.Weak)
-                return;
-
-            _goldMeterBeatCount++;
-            if (_goldMeterBeatCount % 2 == 0 && _currentStar == 5 && !_isGoldAchieved)
+            if (_currentStar == 5 && !_isGoldAchieved)
             {
                 foreach (var star in _starObjects)
                 {

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using YARG.Core.Chart;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -22,11 +21,8 @@ namespace YARG.Gameplay.Visuals
             _starpowerBar.material.SetFloat(_fill, (float) starpowerAmount);
         }
 
-        public void PulseBar(Beatline beat)
+        public void PulseBar()
         {
-            if (beat.Type == BeatlineType.Weak)
-                return;
-
             if (_starpowerAmount >= 0.5 || _starpowerActive)
             {
                 _starpowerBar.material.SetFloat(_pulse, 1f);
