@@ -1,6 +1,18 @@
-﻿using UnityEngine;
-using YARG.Core.Chart;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using YARG.Gameplay.Player;
+using YARG.Core;
+using YARG.Core.Audio;
+using YARG.Core.Chart;
+using YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.ProKeys.Engines;
+using YARG.Core.Input;
+using YARG.Core.Logging;
+using YARG.Core.Replays;
+using YARG.Gameplay.Visuals;
+using TMPro;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -24,6 +36,16 @@ namespace YARG.Gameplay.Visuals
         private Transform _leftModel;
         [SerializeField]
         private Transform _rightModel;
+        [Space]
+        [SerializeField]
+        private Transform _canvas;
+        
+        [SerializeField]
+        private TextMeshPro _leftText;
+
+        string[] chord_call = {};
+
+        int chord_qnty = 0;
 
         protected override void InitializeElement()
         {
@@ -58,6 +80,416 @@ namespace YARG.Gameplay.Visuals
             // Transform the end models
             _leftModel.localPosition = _leftModel.localPosition.WithX(minPos - _endOffsets);
             _rightModel.localPosition = _rightModel.localPosition.WithX(maxPos + _endOffsets);
+
+            //Chordname
+            string chord_name;
+            _leftText.text = "";
+            _leftText.textStyle = TMP_Style.NormalStyle;
+            foreach (var note in NoteRef.AllNotes)
+            {
+                Array.Resize(ref chord_call, chord_call.Length + 1);
+
+                int[] chord_notes = new int[25];
+
+                foreach (var child in note.AllNotes)
+                {
+                    if (note.IsChord == true)
+                    {
+                        //Get the number of notes in the chord and equate to a int value in the array
+                        chord_qnty += 1;
+                        chord_notes[chord_qnty - 1] = child.Key;
+                    }
+                }
+                if (chord_qnty <= 2)
+                {
+                    YargLogger.LogInfo("Not a full chord.");
+                }
+                else
+                {
+                    YargLogger.LogInfo(chord_notes[0] + ", " + chord_notes[1] + ", " + chord_notes[2] + ", " + chord_notes[3] + " will turn into...");
+                    Array.Sort(chord_notes, 0, chord_qnty);
+                    YargLogger.LogInfo(chord_notes[0] + ", " + chord_notes[1] + ", " + chord_notes[2] + ", " + chord_notes[3]);
+                }
+                
+
+                //Use the first note of the array to find the root
+                string GetRoot(int note_slot)
+                {
+                    string root = "";
+                    switch (chord_notes[note_slot] % 12)
+                    {
+                        case 0:
+                            root = "C";
+                            break;
+                        case 1:
+                            root = "C#";
+                            break;
+                        case 2:
+                            root = "D";
+                            break;
+                        case 3:
+                            root = "Eb";
+                            break;
+                        case 4:
+                            root = "E";
+                            break;
+                        case 5:
+                            root = "F";
+                            break;
+                        case 6:
+                            root = "F#";
+                            break;
+                        case 7:
+                            root = "G";
+                            break;
+                        case 8:
+                            root = "G#";
+                            break;
+                        case 9:
+                            root = "A";
+                            break;
+                        case 10:
+                            root = "Bb";
+                            break;
+                        case 11:
+                            root = "B";
+                            break;
+                        default:
+                            root = "X";
+                            break;
+                    }
+                    return root;
+                }
+
+                //Using the lowest note, find the first and second interval for three note chords
+                chord_name = GetRoot(0);
+                if (chord_qnty == 3)
+                {
+                    switch (chord_notes[1] - chord_notes[0])
+                    {
+                        case 2: //major 2nd
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 5: //sus2
+                                    chord_name += "<sup>sus2</sup>";
+                                    break;
+                                default:
+                                    //chord_name = "an unlisted minor 2nd interval chord.";
+                                    chord_name += "";
+                                    break;
+                            }
+                            break;
+                        case 3: //minor 3rd
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 3: //diminished
+                                    chord_name += "<sup>dim</sup>";
+                                    break;
+                                case 4: //minor
+                                    chord_name += "m";
+                                    break;
+                                case 5: //major, 1st inversion
+                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    chord_name = GetRoot(2);
+                                    break;
+                                case 7: //minor 7 no 5
+                                    chord_name += "<sup>m7no5</sup>";
+                                    break;
+                                default:
+                                    //chord_name = "an unlisted minor 3rd interval chord.";
+                                    chord_name += "?";
+                                    break;
+                            }
+                            break;
+                        case 4: //major 3rd
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 1: //major
+                                    chord_name = GetRoot(2) + "M<sup>7no3</sup>";
+                                    break;
+                                case 2: //major
+                                    chord_name = GetRoot(2) + "dim<sup>7no3</sup>";
+                                    break;
+                                case 3: //major
+                                    break;
+                                case 4: //augmented
+                                    chord_name += "<sup>aug</sup>";
+                                    break;
+                                case 5: //minor, 1st inversion
+                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    chord_name = GetRoot(2) + "m";
+                                    break;
+                                case 6:
+                                    chord_name += "<sup>7</sup>";
+                                    break;
+                                case 7:
+                                    chord_name += "M<sup>7</sup>";
+                                    break;
+                                case 8:
+                                    chord_name += "<sup>no5</sup>";
+                                    break;
+                                default:
+                                    chord_name += "";
+                                    break;
+                            }
+                            break;
+                        case 5: //perfect fourth
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 2: //minor, 2nd inversion
+                                    chord_name += "<sup>sus4</sup>";
+                                    break;
+                                case 3: //minor, 2nd inversion
+                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    chord_name = GetRoot(1) + "m";
+                                    break;
+                                case 4: //major, 2nd inversion
+                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    chord_name = GetRoot(1);
+                                    break;
+                                case 5: //sus2 inversion
+                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    chord_name = GetRoot(2) + "sus2";
+                                    break;
+                                case 7: //POWER!! 5
+                                    chord_name = GetRoot(1) + "5/" + GetRoot(0);
+                                    break;
+                                default:
+                                    chord_name += "";
+                                    break;
+                            }
+                            break;
+                        case 6: //diminished
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 3:
+                                    chord_name += "dim";
+                                    break;
+                                case 4: //minor 7 flat 5
+                                    chord_name += "?";
+                                    break;
+                                default:
+                                    chord_name += "";
+                                    break;
+                            }
+                            break;
+                        case 7: //perfect fifth
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 3: //minor 7th with no 3
+                                    chord_name += "m<sup>7no3</sup>";
+                                    break;
+                                case 4: //major 7 no 3
+                                    chord_name += "<sup>7no3</sup>";
+                                    break;
+                                case 5: //POWER!! 5
+                                    chord_name += "5";
+                                    break;
+                                default:
+                                    chord_name += "";
+                                    break;
+                            }
+                            break;
+                        default:
+                            chord_name += "?";
+                            break;
+                    }
+                    YargLogger.LogInfo("This chord is " + chord_name);
+                    _leftText.text = chord_name;
+                }
+                else if (chord_qnty == 4)
+                {
+                    switch (chord_notes[1] - chord_notes[0])
+                    {
+                        case 2: //major 2nd
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 2:
+                                    switch (chord_notes[3] - chord_notes[2])
+                                    {
+                                        case 2: //Uhhhh...
+                                            chord_name += "?";
+                                            break;
+                                        case 3:
+                                            chord_name += "<sup>add9</sup>";
+                                            break;
+                                        case 4:
+                                            chord_name += "<sup>add9#5</sup>";
+                                            break;
+                                        case 5:
+                                            chord_name += GetRoot(2) + "m<sup>add9</sup>";
+                                            break;
+                                        case 6:
+                                            chord_name += "<sup>7add9no5</sup>";
+                                            break;
+                                        case 7:
+                                            chord_name += "M<sup>7add9no5</sup>";
+                                            break;
+                                        default:
+                                            //chord_name = "an unlisted minor 2nd interval chord.";
+                                            chord_name += "?";
+                                            break;
+                                    }
+                                    break;
+                                case 3: //This could be anything, probably best to hide it
+                                    chord_name += "";
+                                    break;
+                                case 4: //This could be anything, probably best to hide it
+                                    chord_name += "";
+                                    break;
+                                case 5: //sus2
+                                    chord_name += "<sup>sus2</sup>";
+                                    break;
+                                case 7: //This could be anything, probably best to hide it
+                                    chord_name += "";
+                                    break;
+                                default:
+                                    //chord_name = "an unlisted minor 2nd interval chord.";
+                                    chord_name += "";
+                                    break;
+                            }
+                            break;
+                        case 3: //minor 3rd
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 3: //diminished
+                                    chord_name += "<sup>dim</sup>";
+                                    break;
+                                case 4: //minor
+                                    chord_name += "m";
+                                    switch (chord_notes[3] - chord_notes[2])
+                                        {
+                                            case 3: //m7
+                                                chord_name += "<sup>7</sup>";
+                                                break;
+                                            case 4: //minor
+                                                chord_name += "M7";
+                                                break;
+                                            case 5: //major, 1st inversion
+                                                break;
+                                            case 7: //minor no7 9
+                                                chord_name += "<sup>9no7</sup>";
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                        break;
+                                case 5: //major, 1st inversion
+                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    chord_name = GetRoot(2) + "M";
+                                    break;
+                                case 7: //minor 7 no 5
+                                    chord_name += "<sup>m7no5</sup>";
+                                    break;
+                                default:
+                                    //chord_name = "an unlisted minor 3rd interval chord.";
+                                    chord_name += "";
+                                    break;
+                            }
+                            break;
+                        case 4: //major 3rd
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 3: //major
+                                    switch (chord_notes[3] - chord_notes[2])
+                                    {
+                                        case 2:
+                                            chord_name += "<sup>6</sup>";
+                                            break;
+                                        case 3:
+                                            chord_name += "<sup>7</sup>";
+                                            break;
+                                        case 4:
+                                            chord_name += "M<sup>7</sup>";
+                                            break;
+                                        case 5:
+                                            chord_name += "M";
+                                            break;
+                                        case 6:
+                                            chord_name += "<sup>b9no7</sup>";
+                                            break;
+                                        case 7:
+                                            chord_name += "M<sup>7add9no5</sup>";
+                                            break;
+                                        default:
+                                            //chord_name = "an unlisted minor 2nd interval chord.";
+                                            chord_name += "???";
+                                            break;
+                                    }
+                                    break;
+                                case 4: //augmented
+                                    chord_name += "<sup>aug</sup>";
+                                    break;
+                                case 5: //major, 1st inversion
+                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    chord_name += GetRoot(2) + "m";
+                                    break;
+                                default:
+                                    chord_name += "";
+                                    break;
+                            }
+                            break;
+                        case 5: //perfect fourth
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 2: //minor, 2nd inversion
+                                    chord_name += "<sup>sus4</sup>";
+                                    break;
+                                case 3: //minor, 2nd inversion
+                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    chord_name = GetRoot(1) + "m";
+                                    break;
+                                case 4: //major, 2nd inversion
+                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    chord_name = GetRoot(1) + "M";
+                                    break;
+                                case 5: //sus2 inversion
+                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    chord_name = GetRoot(2) + "M";
+                                    break;
+                                default:
+                                    //chord_name = "an unlisted minor perfect 4th chord.";
+                                    chord_name += "";
+                                    break;
+                            }
+                            break;
+                        case 6: //diminished
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 3: //minor 7th with no 3
+                                    chord_name += "<sup>m7no3</sup>";
+                                    break;
+                                case 4: //minor 7 flat 5
+                                    chord_name += "m<sup>7no3</sup>";
+                                    break;
+                                default:
+                                    chord_name += "";
+                                    break;
+                            }
+                            break;
+                        case 7: //perfect fifth
+                            switch (chord_notes[2] - chord_notes[1])
+                            {
+                                case 3: //minor 7th with no 3
+                                    chord_name += "<sup>m7no3</sup>";
+                                    break;
+                                case 4: //major 7 no 3
+                                    chord_name += "<sup>7no3</sup>";
+                                    break;
+                                default:
+                                    chord_name += "";
+                                    break;
+                            }
+                            break;
+                        default:
+                            chord_name += "?";
+                            break;
+                    }
+                    YargLogger.LogInfo("This chord is " + chord_name);
+                    _leftText.text = chord_name;
+                }
+                chord_qnty = 0;
+            }
 
             // Update the container to the proper range shift offset
             UpdateXPosition();
