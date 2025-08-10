@@ -151,6 +151,11 @@ namespace YARG.Playback
         /// </summary>
         public double PauseStartTime { get; private set; }
 
+        /// <summary>
+        /// The amount of times the current song was paused.
+        /// </summary>
+        public int NumPauses { get; private set; }
+
         private bool _overridePause;
         private bool _resumeAfterOverride;
 
@@ -587,6 +592,7 @@ namespace YARG.Playback
                 return;
 
             Paused = true;
+            NumPauses++;
 
             // Visual time is used for pause time since it's closer to when
             // the song runner is actually being updated; the asserts in Update get hit otherwise

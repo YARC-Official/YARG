@@ -114,6 +114,9 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.Paused"/>
         public bool Paused => _songRunner.Paused;
 
+        /// <inheritdoc cref="SongRunner.NumPauses"/>
+        public int NumPauses => _songRunner.NumPauses;
+
         public double SongLength { get; private set; }
 
         public bool IsPractice      { get; private set; }
