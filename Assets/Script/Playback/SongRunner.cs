@@ -154,10 +154,7 @@ namespace YARG.Playback
         private bool _overridePause;
         private bool _resumeAfterOverride;
 
-        /// <summary>
-        /// Whether or not <see cref="InitializeSongTime"/> has been called yet.
-        /// </summary>
-        private bool _songTimeInitialized = false;
+        private double _forceStartTime = double.NaN;
         #endregion
 
         #region Audio syncing
@@ -207,9 +204,10 @@ namespace YARG.Playback
         /// Creates a new song runner with the given speed and calibration values.
         /// </summary>
         /// <remarks>
-        /// The created song runner will be in a partially initialized, unstarted state.
-        /// Full initialization is done lazily to prevent timing issues from loading lag,
-        /// the first call to <see cref="Update"/> will initialize and start the runner.
+        /// The created song runner will be in an unstarted state. Upon calling <see cref="Update"/>,
+        /// the runner will attempt to start and re-initialize its time values, to adjust for loading
+        /// lag. If the current frame took too long to process before the update started, then starting
+        /// will be skipped and attempted again next frame.
         /// <br/>
         /// Since the runner starts paused, anything that might potentially interact with it before
         /// starting must respect the paused state, otherwise incorrect behavior may happen.
@@ -217,12 +215,12 @@ namespace YARG.Playback
         /// <param name="songSpeed">
         /// The percentage song speed, where 1f == 100%.
         /// </param>
-        /// <param name="audioCalibration">
+        /// <param name="audioCalibrationMs">
         /// The audio calibration, in milliseconds.<br/>
         /// This value is negated and normalized to seconds for more intuitive usage in other code.
-        /// <paramref name="videoCalibration"/> is also applied to keep things visually synced.
+        /// <paramref name="videoCalibrationMs"/> is also applied to keep things visually synced.
         /// </param>
-        /// <param name="videoCalibration">
+        /// <param name="videoCalibrationMs">
         /// The video calibration, in milliseconds.<br/>
         /// This value is negated and normalized to seconds for more intuitive usage in other code.
         /// </param>
@@ -230,21 +228,26 @@ namespace YARG.Playback
         /// The song offset, in seconds.<br/>
         /// This value is negated for more intuitive usage in other code.
         /// </param>
-        public SongRunner(StemMixer mixer, float songSpeed = 1f, int audioCalibration = 0, int videoCalibration = 0,
-            double songOffset = 0)
+        public SongRunner(
+            StemMixer mixer,
+            double startTime,
+            double startDelay,
+            float songSpeed,
+            int audioCalibrationMs,
+            int videoCalibrationMs,
+            double songOffset
+        )
         {
             _mixer = mixer;
             SongSpeed = songSpeed;
-            VideoCalibration = -videoCalibration / 1000.0;
-            AudioCalibration = (-audioCalibration / 1000.0) - VideoCalibration;
+            VideoCalibration = -videoCalibrationMs / 1000.0;
+            AudioCalibration = (-audioCalibrationMs / 1000.0) - VideoCalibration;
 
             SongOffset = -songOffset;
 
             _syncThread = new Thread(SyncThread) { IsBackground = true };
 
-            InitializeSongTime(SongOffset);
-            // We need to re-initialize on the first call to Update()
-            _songTimeInitialized = false;
+            InitializeSongTime(startTime + SongOffset, startDelay);
         }
 
         ~SongRunner()
@@ -279,10 +282,10 @@ namespace YARG.Playback
             YargLogger.LogDebug("Starting song runner");
 
             // Re-initialize song times to avoid lag issues
-            if (!_songTimeInitialized)
-                InitializeSongTime(SongOffset);
+            InitializeSongTime(SongOffset);
 
             _syncThread.Start();
+            Started = true;
         }
 
         public void Update()
@@ -290,8 +293,22 @@ namespace YARG.Playback
             // Runner is lazy-started to avoid timing issues with lag
             if (!Started)
             {
+                // Hack: delay if the starting frame lagged
+
+                // Only delay a maximum of one second
+                if (double.IsNaN(_forceStartTime))
+                {
+                    _forceStartTime = InputManager.CurrentInputTime + 1;
+                }
+
+                double currentTime = InputManager.CurrentInputTime;
+                double currentFrameLength = currentTime - InputManager.InputUpdateTime;
+                if (currentFrameLength >= 0.1f && currentTime < _forceStartTime)
+                {
+                    return;
+                }
+
                 Start();
-                Started = true;
             }
 
             if (Paused)
@@ -513,8 +530,6 @@ namespace YARG.Playback
 
             YargLogger.LogFormatDebug("Set song time to {0:0.000000} (delay: {1:0.000000}).\n" +
                 "Seek time: {2:0.000000}, resulting song time: {3:0.000000}", time, delayTime, seekTime, SongTime);
-
-            _songTimeInitialized = true;
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
@@ -667,9 +682,9 @@ namespace YARG.Playback
 
         public static float ClampSongSpeed(float speed)
         {
-            // 10% - 5000%, we reserve 5% at the bottom so that audio syncing can still function
-            // BASS (the audio library in use at the time of writing) can go up to 5100%,
-            // but we round down since 5000% looks nicer (and it gives us good)
+            // 10% - 5000%, we reserve 5% at the bottom so that audio syncing can still function.
+            // BASS can go up to 5100%, but we round down since 5000% looks nicer (and it gives us a
+            // good buffer for audio syncing in the upper extreme).
             return Math.Clamp(speed, 10 / 100f, 5000 / 100f);
         }
     }

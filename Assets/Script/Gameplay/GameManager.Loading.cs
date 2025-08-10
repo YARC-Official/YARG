@@ -190,6 +190,8 @@ namespace YARG.Gameplay
             // Initialize song runner
             _songRunner = new SongRunner(
                 _mixer,
+                startTime: 0,
+                SONG_START_DELAY,
                 GlobalVariables.State.SongSpeed,
                 audioCalibration,
                 SettingsManager.Settings.VideoCalibration.Value,
