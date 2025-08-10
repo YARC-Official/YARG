@@ -95,7 +95,7 @@ namespace YARG.Menu.ProfileList
             }
         }
         
-        private string GetUniqueProfileName(string profileName)
+        private static string GetUniqueProfileName(string profileName)
         {
             int count = 1;
             var existingNames = PlayerContainer.Profiles.Select(p => p.Name);
