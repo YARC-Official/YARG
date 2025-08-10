@@ -151,8 +151,15 @@ namespace YARG.Playback
         /// </summary>
         public double PauseStartTime { get; private set; }
 
-        private bool _overridePause;
+        /// <summary>
+        /// Whether or not the song's pause state is currently overridden.
+        /// </summary>
+        public bool PauseOverridden => _pauseOverrides > 0;
+
+        private int _pauseOverrides;
         private bool _resumeAfterOverride;
+
+        private bool _pausedForFrameDebugger;
 
         private double _forceStartTime = double.NaN;
         #endregion
@@ -309,6 +316,20 @@ namespace YARG.Playback
                 }
 
                 Start();
+            }
+
+            // Hack: don't update while in the frame debugger
+            if (_pausedForFrameDebugger != FrameDebugger.enabled)
+            {
+                _pausedForFrameDebugger = FrameDebugger.enabled;
+                if (_pausedForFrameDebugger)
+                {
+                    OverridePause();
+                }
+                else
+                {
+                    OverrideResume();
+                }
             }
 
             if (Paused)
@@ -592,7 +613,7 @@ namespace YARG.Playback
         /// </summary>
         public void Pause()
         {
-            if (_overridePause)
+            if (PauseOverridden)
             {
                 _resumeAfterOverride = false;
                 return;
@@ -618,7 +639,7 @@ namespace YARG.Playback
         /// </summary>
         public void Resume()
         {
-            if (_overridePause)
+            if (PauseOverridden)
             {
                 _resumeAfterOverride = true;
                 return;
@@ -653,12 +674,13 @@ namespace YARG.Playback
         /// </summary>
         public void OverridePause()
         {
-            if (_overridePause)
-                throw new InvalidOperationException("Pause override is already active!");
+            if (!PauseOverridden)
+            {
+                Pause();
+                _resumeAfterOverride = true;
+            }
 
-            Pause();
-            _overridePause = true;
-            _resumeAfterOverride = true;
+            _pauseOverrides++;
         }
 
         /// <summary>
@@ -670,10 +692,12 @@ namespace YARG.Playback
         /// </returns>
         public bool OverrideResume()
         {
-            if (!_overridePause)
-                throw new InvalidOperationException("Pause override is not active!");
+            _pauseOverrides--;
+            if (PauseOverridden)
+            {
+                return false;
+            }
 
-            _overridePause = false;
             if (_resumeAfterOverride)
                 Resume();
 
