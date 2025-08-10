@@ -238,7 +238,7 @@ namespace YARG.Gameplay
             float totalStars = 0f;
             foreach (var player in _players)
             {
-                player.UpdateWithTimes(_songRunner.InputTime);
+                player.GameplayUpdate();
 
                 totalScore += player.Score;
                 totalStars += player.Stars;

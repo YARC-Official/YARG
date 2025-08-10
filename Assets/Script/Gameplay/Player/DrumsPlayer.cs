@@ -145,11 +145,6 @@ namespace YARG.Gameplay.Player
             _kickFretFlash.Initialize(colors.GetParticleColor(0).ToUnityColor());
         }
 
-        protected override void UpdateVisuals(double songTime)
-        {
-            UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
-        }
-
         public override void SetStemMuteState(bool muted)
         {
             if (IsStemMuted != muted)
