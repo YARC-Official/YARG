@@ -163,7 +163,7 @@ namespace YARG.Gameplay.Player
             }
 
             UpdateInputs(GameManager.InputTime);
-            UpdateVisuals(GameManager.RealVisualTime);
+            UpdateVisuals(GameManager.VisualTime);
         }
 
         protected abstract void UpdateVisuals(double visualTime);
@@ -321,7 +321,7 @@ namespace YARG.Gameplay.Player
 
             LastInputs[input.Action] = input;
 
-            double adjustedTime = GameManager.GetCalibratedRelativeInputTime(input.Time);
+            double adjustedTime = GameManager.GetRelativeInputTime(input.Time);
             // Apply input offset
             adjustedTime += InputCalibration;
             input = new(adjustedTime, input.Action, input.Integer);

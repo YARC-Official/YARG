@@ -478,15 +478,7 @@ namespace YARG.Gameplay
                     text.AppendFormat("Audio time: {0:0.000000}\n", _songRunner.AudioTime);
                     text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
                     text.AppendFormat("Input time: {0:0.000000}\n", _songRunner.InputTime);
-                    text.AppendLine();
-                    text.AppendFormat("Real song time: {0:0.000000}\n", _songRunner.RealSongTime);
-                    text.AppendFormat("Real audio time: {0:0.000000}\n", _songRunner.RealAudioTime);
-                    text.AppendFormat("Real visual time: {0:0.000000}\n", _songRunner.RealVisualTime);
-                    text.AppendFormat("Real input time: {0:0.000000}\n", _songRunner.RealInputTime);
-                    text.AppendLine();
-                    text.AppendFormat("Input base: {0:0.000000}\n", _songRunner.InputTimeBase);
                     text.AppendFormat("Input offset: {0:0.000000}\n", _songRunner.InputTimeOffset);
-                    text.AppendFormat("Pause time: {0:0.000000}\n", _songRunner.PauseStartTime);
 
                     GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
                 }

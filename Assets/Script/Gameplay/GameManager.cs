@@ -84,26 +84,14 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.SongTime"/>
         public double SongTime => _songRunner.SongTime;
 
-        /// <inheritdoc cref="SongRunner.RealSongTime"/>
-        public double RealSongTime => _songRunner.RealSongTime;
-
         /// <inheritdoc cref="SongRunner.AudioTime"/>
         public double AudioTime => _songRunner.AudioTime;
-
-        /// <inheritdoc cref="SongRunner.RealAudioTime"/>
-        public double RealAudioTime => _songRunner.RealAudioTime;
 
         /// <inheritdoc cref="SongRunner.VisualTime"/>
         public double VisualTime => _songRunner.VisualTime;
 
-        /// <inheritdoc cref="SongRunner.RealVisualTime"/>
-        public double RealVisualTime => _songRunner.RealVisualTime;
-
         /// <inheritdoc cref="SongRunner.InputTime"/>
         public double InputTime => _songRunner.InputTime;
-
-        /// <inheritdoc cref="SongRunner.RealInputTime"/>
-        public double RealInputTime => _songRunner.RealInputTime;
 
         /// <inheritdoc cref="SongRunner.SongSpeed"/>
         public float SongSpeed => _songRunner.SongSpeed;
@@ -231,7 +219,7 @@ namespace YARG.Gameplay
 
             // Update handlers
             _songRunner.Update();
-            BeatEventHandler.Update(_songRunner.RealSongTime, _songRunner.RealVisualTime);
+            BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
 
             // Update players
             int totalScore = 0;
@@ -409,9 +397,6 @@ namespace YARG.Gameplay
 
         public double GetRelativeInputTime(double timeFromInputSystem)
             => _songRunner.GetRelativeInputTime(timeFromInputSystem);
-
-        public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
-            => _songRunner.GetCalibratedRelativeInputTime(timeFromInputSystem);
 
         private bool EndSong()
         {

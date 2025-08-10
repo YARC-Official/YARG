@@ -18,48 +18,16 @@ namespace YARG.Playback
         /// </summary>
         /// <remarks>
         /// This value should be used for all interactions that are relative to the audio.
-        /// Note that this is driven by visual time, rather than audio time.
-        /// Use <see cref="AudioTime"/> if audio time is required.
+        /// Note that this is driven by input time, rather than audio time.
+        /// Use <see cref="AudioPlaybackTime"/> if the actual audio time is required.
         /// </remarks>
-        public double SongTime => RealSongTime + AudioCalibration;
-
-        /// <summary>
-        /// The time into the song, accounting for song speed but <b>not</b> audio calibration.<br/>
-        /// This is updated every frame while not paused.
-        /// </summary>
-        public double RealSongTime { get; private set; }
-
-        /// <summary>
-        /// The time into the audio, accounting for song speed and audio calibration.<br/>
-        /// This is updated every frame while not paused.
-        /// </summary>
-        /// <remarks>
-        /// This value is for scenarios that *must* be driven by audio time instead of visual time.
-        /// In general, <see cref="SongTime"/> should be used instead where possible.
-        /// </remarks>
-        public double AudioTime => RealAudioTime + AudioCalibration * SongSpeed;
-
-        /// <summary>
-        /// The time into the audio, accounting for song speed but <b>not</b> audio calibration.<br/>
-        /// This is updated every frame while not paused.
-        /// </summary>
-        public double RealAudioTime { get; private set; }
+        public double SongTime { get; private set; }
 
         /// <summary>
         /// The current visual time, accounting for song speed and video calibration.<br/>
         /// This is updated every frame while not paused.
         /// </summary>
-        public double VisualTime => RealVisualTime + VideoCalibration;
-
-        /// <summary>
-        /// The current visual time, accounting for song speed but <b>not</b> video calibration.<br/>
-        /// This is updated every frame while not paused.
-        /// </summary>
-        /// <remarks>
-        /// This value should be used for all visual interactions, as video calibration should not delay visuals.
-        /// It should also be used for setting position, otherwise the actual set position will be offset incorrectly.
-        /// </remarks>
-        public double RealVisualTime { get; private set; }
+        public double VisualTime { get; private set; }
 
         /// <summary>
         /// The current input time, accounting for song speed and video calibration.<br/>
@@ -67,26 +35,31 @@ namespace YARG.Playback
         /// </summary>
         /// <remarks>
         /// This value should be used for all interactions with inputs, engines, and replays.
+        /// It should also be used for setting position, as all times are based off of input time.
         /// </remarks>
-        public double InputTime => RealInputTime + VideoCalibration;
+        public double InputTime { get; private set; }
 
         /// <summary>
-        /// The current input time, accounting for song speed but <b>not</b> video calibration.<br/>
+        /// The playback position of the audio relative to gameplay.<br/>
         /// This is updated every frame while not paused.
         /// </summary>
-        public double RealInputTime { get; private set; }
+        /// <remarks>
+        /// This value is for scenarios that <b>must</b> be tied to audio playback time,
+        /// as opposed to input/visual time.
+        /// In general, <see cref="SongTime"/> should be used instead where possible.
+        /// </remarks>
+        public double AudioTime => AudioPlaybackTime + SongOffset;
 
         /// <summary>
-        /// The input time that is considered to be 0.
-        /// Applied before song speed is factored in.
+        /// The playback position of the audio relative to the audio file only.<br/>
+        /// This is updated every frame while not paused.
         /// </summary>
-        public double InputTimeOffset { get; private set; }
-
-        /// <summary>
-        /// The base time added on to relative time to get the real current input time.
-        /// Applied after song speed is.
-        /// </summary>
-        public double InputTimeBase { get; private set; }
+        /// <remarks>
+        /// This value is for scenarios that <b>must</b> know the position into the audio file,
+        /// as opposed to the gameplay song position.
+        /// In general, <see cref="SongTime"/> should be used instead where possible.
+        /// </remarks>
+        public double AudioPlaybackTime { get; private set; }
         #endregion
 
         #region Offsets
@@ -98,7 +71,7 @@ namespace YARG.Playback
         /// Positive calibration settings will result in a negative number here.
         /// This value also takes video calibration into account, otherwise things will not sync up visually.
         /// </remarks>
-        public double AudioCalibration { get; }
+        public double AudioCalibration { get; private set; }
 
         /// <summary>
         /// The video calibration, in seconds.
@@ -107,7 +80,7 @@ namespace YARG.Playback
         /// Be aware that this value is negated!
         /// Positive calibration settings will result in a negative number here.
         /// </remarks>
-        public double VideoCalibration { get; }
+        public double VideoCalibration { get; private set; }
 
         /// <summary>
         /// The song offset, in seconds.
@@ -118,7 +91,10 @@ namespace YARG.Playback
         /// </remarks>
         public double SongOffset { get; }
 
-        public double PlaybackLatency { get; }
+        /// <summary>
+        /// The input time that is considered to be 0.
+        /// </summary>
+        public double InputTimeOffset { get; private set; }
         #endregion
 
         #region Other state
@@ -145,11 +121,6 @@ namespace YARG.Playback
         /// Whether or not the song is currently paused.
         /// </summary>
         public bool Paused { get; private set; }
-
-        /// <summary>
-        /// The input time at which the song was paused.
-        /// </summary>
-        public double PauseStartTime { get; private set; }
 
         /// <summary>
         /// Whether or not the song's pause state is currently overridden.
@@ -201,10 +172,7 @@ namespace YARG.Playback
 
         #region Seek debugging
         private bool _seeked;
-        private double _previousRealSongTime = double.NaN;
-        private double _previousRealAudioTime = double.NaN;
-        private double _previousRealVisualTime = double.NaN;
-        private double _previousRealInputTime = double.NaN;
+        private double _previousInputTime = double.MinValue;
         #endregion
 
         /// <summary>
@@ -247,14 +215,12 @@ namespace YARG.Playback
         {
             _mixer = mixer;
             SongSpeed = songSpeed;
-            VideoCalibration = -videoCalibrationMs / 1000.0;
-            AudioCalibration = (-audioCalibrationMs / 1000.0) - VideoCalibration;
-
             SongOffset = -songOffset;
 
             _syncThread = new Thread(SyncThread) { IsBackground = true };
 
             InitializeSongTime(startTime + SongOffset, startDelay);
+            SetCalibration(audioCalibrationMs, videoCalibrationMs);
         }
 
         ~SongRunner()
@@ -289,7 +255,7 @@ namespace YARG.Playback
             YargLogger.LogDebug("Starting song runner");
 
             // Re-initialize song times to avoid lag issues
-            InitializeSongTime(InputTime);
+            InitializeSongTime(InputTime, 0);
 
             _syncThread.Start();
             Started = true;
@@ -336,38 +302,17 @@ namespace YARG.Playback
                 return;
 
             // Update times
-            UpdateInputTimes();
+            UpdateTimes();
 
             // Check for unexpected backwards time jumps
-
-            // Only check for greater-than here
-            // BASS's update rate is too coarse for equals to never happen
-            AssertTimeProgressionLenient(nameof(RealAudioTime), RealAudioTime, ref _previousRealAudioTime);
-
-            // *Do* check for equals here, as input time not updating is a more serious issue
-            AssertTimeProgression(nameof(RealSongTime), RealSongTime, ref _previousRealSongTime);
-            AssertTimeProgression(nameof(RealVisualTime), RealVisualTime, ref _previousRealVisualTime);
-            AssertTimeProgression(nameof(RealInputTime), RealInputTime, ref _previousRealInputTime);
+            YargLogger.AssertFormat(
+                InputTime >= _previousInputTime || _seeked,
+                "Unexpected time seek backwards! Went from {0} to {1} (delta: {2})",
+                _previousInputTime, InputTime, InputTime - _previousInputTime
+            );
+            _previousInputTime = InputTime;
 
             _seeked = false;
-        }
-
-        private void AssertTimeProgression(string name, double current, ref double previous)
-        {
-            if (previous >= current)
-            {
-                YargLogger.AssertFormat(_seeked, "Unexpected {0} seek backwards! Went from {1} to {2}", name, previous, current);
-            }
-            previous = current;
-        }
-
-        private void AssertTimeProgressionLenient(string name, double current, ref double previous)
-        {
-            if (previous > current)
-            {
-                YargLogger.AssertFormat(_seeked, "Unexpected {0} seek backwards! Went from {1} to {2}", name, previous, current);
-            }
-            previous = current;
         }
 
         private void SyncThread()
@@ -380,14 +325,12 @@ namespace YARG.Playback
             {
                 lock (_syncThread)
                 {
-                    double realAudioTime = _mixer.GetPosition();
-                    double realVisualTime = GetRelativeInputTime(InputManager.CurrentInputTime);
-                    double offset = SongOffset + (AudioCalibration * SongSpeed);
+                    double audioOffset = SongOffset - (AudioCalibration * SongSpeed);
 
-                    SyncAudioTime = realAudioTime + offset;
-                    SyncVisualTime = realVisualTime;
+                    SyncAudioTime = _mixer.GetPosition();
+                    SyncVisualTime = GetRelativeInputTime(InputManager.CurrentInputTime) - audioOffset;
 
-                    if (Paused || SyncVisualTime < offset || SyncVisualTime >= (_mixer.Length + offset))
+                    if (Paused || SyncVisualTime < 0 || SyncVisualTime >= _mixer.Length)
                     {
                         continue;
                     }
@@ -397,7 +340,7 @@ namespace YARG.Playback
                         _mixer.Play(false);
                     }
 
-                    if (realAudioTime >= _mixer.Length)
+                    if (SyncAudioTime >= _mixer.Length)
                     {
                         continue;
                     }
@@ -467,44 +410,41 @@ namespace YARG.Playback
 
         public double GetRelativeInputTime(double timeFromInputSystem)
         {
-            return InputTimeBase + ((timeFromInputSystem - InputTimeOffset) * SongSpeed);
+            return (timeFromInputSystem - InputTimeOffset) * SongSpeed;
         }
 
-        public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
+        private void UpdateTimes()
         {
-            return GetRelativeInputTime(timeFromInputSystem) + VideoCalibration;
+            InputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
+            SongTime = InputTime + (AudioCalibration * SongSpeed);
+            VisualTime = InputTime + (VideoCalibration * SongSpeed);
+
+            AudioPlaybackTime = _mixer.GetPosition();
         }
 
-        private void UpdateInputTimes()
+        private void SetInputBase(double songTime)
         {
-            // Update times
-            RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
-            RealVisualTime = InputTime;
-            // We use visual time for song time due to an apparent bug in BASS
-            // where it will sometimes not fire the song end event when the audio ends
-            // Using visual time guarantees a reliable timing source, and therefore song end timing
-            RealSongTime = RealVisualTime - AudioCalibration;
-            // Not technically an input time, but needs to be updated upon request
-            RealAudioTime = _mixer.GetPosition() + SongOffset;
-        }
-
-        private void SetInputBase(double inputBase)
-        {
-            double previousBase = InputTimeBase;
             double previousOffset = InputTimeOffset;
             double previousInputTime = InputTime;
+            double previousSongTime = SongTime;
             double previousVisualTime = VisualTime;
 
-            InputTimeBase = inputBase;
-            InputTimeOffset = InputManager.InputUpdateTime;
+            InputTimeOffset = InputManager.InputUpdateTime - (songTime / SongSpeed);
 
             // Update input times
-            UpdateInputTimes();
+            UpdateTimes();
 
-            YargLogger.LogFormatDebug("Set input time base.\nNew base: {0:0.000000}, new offset: {1:0.000000}, new visual time: {2:0.000000}, new input time: {3:0.000000}\n"
-                + "Old base: {4:0.000000}, old offset: {5:0.000000}, old visual time: {6:0.000000}, old input time: {7:0.000000}",
-                InputTimeBase, InputTimeOffset, VisualTime, InputTime, previousBase,
-                previousOffset, previousVisualTime, previousInputTime);
+            YargLogger.LogFormatDebug(
+                "Set input time base.\n" +
+                "Offset {0:0.000000} -> {1:0.000000}\n" +
+                "Input time {2:0.000000} -> {3:0.000000}\n" +
+                "Song time {4:0.000000} -> {5:0.000000}\n" +
+                "Visual time {6:0.000000} -> {7:0.000000}",
+                previousOffset, InputTimeOffset,
+                previousInputTime, InputTime,
+                previousSongTime, SongTime,
+                previousVisualTime, VisualTime
+            );
         }
 
         private void SetInputBaseChecked(double inputBase)
@@ -524,7 +464,7 @@ namespace YARG.Playback
                 previousInputTime, InputTime, threshold);
         }
 
-        private void InitializeSongTime(double time, double delayTime = SONG_START_DELAY)
+        private void InitializeSongTime(double time, double delayTime)
         {
             // Account for song speed
             delayTime *= SongSpeed;
@@ -536,18 +476,6 @@ namespace YARG.Playback
 
             // Set input offsets
             SetInputBase(seekTime);
-
-            // Override pause time so resuming works correctly
-            PauseStartTime = RealVisualTime;
-
-            // Previously audio calibration was handled on input time, as it consistently started out synced
-            // within 50 ms (within 5 ms a majority of the time)
-            // But it makes more sense to apply it to audio instead, and the small initial desync it
-            // may cause *really* isn't that big of a deal, as it's also usually within 50 ms,
-            // and the sync code handles it quickly anyways
-            //
-            // SetInputBase(seekTime + AudioCalibration);
-            // RealSongTime = seekTime;
 
             YargLogger.LogFormatDebug("Set song time to {0:0.000000} (delay: {1:0.000000}).\n" +
                 "Seek time: {2:0.000000}, resulting song time: {3:0.000000}", time, delayTime, seekTime, SongTime);
@@ -565,7 +493,7 @@ namespace YARG.Playback
 
                 _mixer.Pause();
                 // Audio seeking; cannot go negative
-                double seekTime = time - (delayTime + AudioCalibration) * SongSpeed - SongOffset;
+                double seekTime = time - (delayTime - AudioCalibration) * SongSpeed - SongOffset;
                 if (seekTime < 0)
                 {
                     seekTime = 0;
@@ -578,7 +506,7 @@ namespace YARG.Playback
                         _mixer.Play(true);
                 }
 
-                RealAudioTime = _previousRealAudioTime = seekTime;
+                UpdateTimes();
                 _seeked = true;
             }
         }
@@ -598,7 +526,7 @@ namespace YARG.Playback
                 // Adjust input offset, otherwise input time will desync
                 // TODO: Pressing and holding left or right in practice will
                 // cause time to progress much slower than it should
-                SetInputBaseChecked(RealInputTime);
+                SetInputBaseChecked(InputTime);
             }
 
             YargLogger.LogFormatDebug("Set song speed to {0:0.00}.\n"
@@ -607,6 +535,13 @@ namespace YARG.Playback
         }
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SongSpeed + deltaSpeed);
+
+        public void SetCalibration(int audioMs, int videoMs)
+        {
+            AudioCalibration = audioMs / 1000.0;
+            VideoCalibration = videoMs / 1000.0;
+            SetInputBase(InputTime);
+        }
 
         /// <summary>
         /// Pauses the song.
@@ -623,15 +558,12 @@ namespace YARG.Playback
                 return;
 
             Paused = true;
-
-            // Visual time is used for pause time since it's closer to when
-            // the song runner is actually being updated; the asserts in Update get hit otherwise
-            PauseStartTime = RealVisualTime;
             _mixer.Pause();
 
-            YargLogger.LogFormatDebug("Paused at song time {0:0.000000} (real: {1:0.000000}), visual time {2:0.000000} " +
-                "(real: {3:0.000000}), input time {4:0.000000} (real: {5:0.000000}).",
-                SongTime, RealSongTime, VisualTime, RealVisualTime, InputTime, RealInputTime);
+            YargLogger.LogFormatDebug(
+                "Paused at song time {0:0.000000}, visual time {1:0.000000}, input time {2:0.000000}.",
+                SongTime, VisualTime, InputTime
+            );
         }
 
         /// <summary>
@@ -649,11 +581,12 @@ namespace YARG.Playback
                 return;
 
             Paused = false;
-            SetInputBaseChecked(PauseStartTime);
+            SetInputBaseChecked(InputTime);
 
-            YargLogger.LogFormatDebug("Resumed at song time {0:0.000000} (real: {1:0.000000}), visual time {2:0.000000} " +
-                "(real: {3:0.000000}), input time {4:0.000000} (real: {5:0.000000}).",
-                SongTime, RealSongTime, VisualTime, RealVisualTime, InputTime, RealInputTime);
+            YargLogger.LogFormatDebug(
+                "Resumed at song time {0:0.000000}, visual time {1:0.000000}, input time {2:0.000000}.",
+                SongTime, VisualTime, InputTime
+            );
         }
 
         public void SetPaused(bool paused)
