@@ -458,7 +458,7 @@ namespace YARG.Playback
         {
             // Update times
             RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
-            RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
+            RealVisualTime = InputTime;
             // We use visual time for song time due to an apparent bug in BASS
             // where it will sometimes not fire the song end event when the audio ends
             // Using visual time guarantees a reliable timing source, and therefore song end timing
