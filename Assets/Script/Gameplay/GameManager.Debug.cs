@@ -15,17 +15,48 @@ namespace YARG.Gameplay
     {
         private ref struct DebugScrollView
         {
+            private bool _hasVertical;
+
             public static DebugScrollView Begin(string title, GUIStyle verticalStyle,
                 ref Vector2 scrollPosition, params GUILayoutOption[] scrollOptions)
             {
                 GUILayout.BeginVertical(title, verticalStyle);
                 scrollPosition = GUILayout.BeginScrollView(scrollPosition, scrollOptions);
-                return new DebugScrollView();
+                return new DebugScrollView()
+                {
+                    _hasVertical = true,
+                };
+            }
+
+            public static DebugScrollView Begin(ref Vector2 scrollPosition, params GUILayoutOption[] scrollOptions)
+            {
+                scrollPosition = GUILayout.BeginScrollView(scrollPosition, scrollOptions);
+                return new DebugScrollView()
+                {
+                    _hasVertical = false,
+                };
             }
 
             public void Dispose()
             {
                 GUILayout.EndScrollView();
+                if (_hasVertical)
+                {
+                    GUILayout.EndVertical();
+                }
+            }
+        }
+
+        private ref struct DebugVerticalArea
+        {
+            public static DebugVerticalArea Begin(string title, GUIStyle verticalStyle)
+            {
+                GUILayout.BeginVertical(title, verticalStyle);
+                return new DebugVerticalArea();
+            }
+
+            public void Dispose()
+            {
                 GUILayout.EndVertical();
             }
         }
@@ -143,8 +174,16 @@ namespace YARG.Gameplay
             }
 
             // Clamp position to screen bounds
-            _debugWindowRect.x = Math.Clamp(_debugWindowRect.x, 0, Screen.width - _debugWindowRect.width);
-            _debugWindowRect.y = Math.Clamp(_debugWindowRect.y, 0, Screen.height - _debugWindowRect.height);
+            _debugWindowRect.x = Math.Clamp(
+                _debugWindowRect.x,
+                -_debugWindowRect.width + (DEBUG_WINDOW_MARGIN * 2),
+                Math.Max(0, Screen.width - (DEBUG_WINDOW_MARGIN * 2))
+            );
+            _debugWindowRect.y = Math.Clamp(
+                _debugWindowRect.y,
+                0,
+                Math.Max(0, Screen.height - (DEBUG_WINDOW_MARGIN * 2))
+            );
 
             // Reset size so expansions don't persist
             _debugWindowRect.size = new Vector2();
@@ -417,77 +456,76 @@ namespace YARG.Gameplay
 
         private void TimingDebug()
         {
-            using (DebugScrollView.Begin("Calibration", VerticalGroupStyle,
-                ref _debugCalibrationScroll, GUILayout.Height(75 * _debugGuiScale)))
+            using (DebugScrollView.Begin(ref _debugCalibrationScroll, GUILayout.Height(300 * _debugGuiScale)))
             {
-                using var text = ZString.CreateStringBuilder(true);
+                using (DebugVerticalArea.Begin("Calibration", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
 
-                text.AppendFormat("Audio calibration: {0}ms\n", _songRunner.AudioCalibration);
-                text.AppendFormat("Video calibration: {0}ms\n", _songRunner.VideoCalibration);
-                text.AppendFormat("Song offset: {0}ms\n", _songRunner.SongOffset);
-                text.AppendFormat("Device audio latency: {0}ms\n", GlobalAudioHandler.PlaybackLatency);
+                    text.AppendFormat("Audio calibration: {0}ms\n", _songRunner.AudioCalibration);
+                    text.AppendFormat("Video calibration: {0}ms\n", _songRunner.VideoCalibration);
+                    text.AppendFormat("Song offset: {0}ms\n", _songRunner.SongOffset);
+                    text.AppendFormat("Device audio latency: {0}ms\n", GlobalAudioHandler.PlaybackLatency);
 
-                GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
-            }
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
 
-            using (DebugScrollView.Begin("Time", VerticalGroupStyle,
-                ref _debugTimeScroll, GUILayout.Height(125 * _debugGuiScale)))
-            {
-                using var text = ZString.CreateStringBuilder(true);
+                using (DebugVerticalArea.Begin("Time", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
 
-                text.AppendFormat("Song time: {0:0.000000}\n", _songRunner.SongTime);
-                text.AppendFormat("Audio time: {0:0.000000}\n", _songRunner.AudioTime);
-                text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
-                text.AppendFormat("Input time: {0:0.000000}\n", _songRunner.InputTime);
-                text.AppendLine();
-                text.AppendFormat("Real song time: {0:0.000000}\n", _songRunner.RealSongTime);
-                text.AppendFormat("Real audio time: {0:0.000000}\n", _songRunner.RealAudioTime);
-                text.AppendFormat("Real visual time: {0:0.000000}\n", _songRunner.RealVisualTime);
-                text.AppendFormat("Real input time: {0:0.000000}\n", _songRunner.RealInputTime);
-                text.AppendLine();
-                text.AppendFormat("Input base: {0:0.000000}\n", _songRunner.InputTimeBase);
-                text.AppendFormat("Input offset: {0:0.000000}\n", _songRunner.InputTimeOffset);
-                text.AppendFormat("Pause time: {0:0.000000}\n", _songRunner.PauseStartTime);
+                    text.AppendFormat("Song time: {0:0.000000}\n", _songRunner.SongTime);
+                    text.AppendFormat("Audio time: {0:0.000000}\n", _songRunner.AudioTime);
+                    text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
+                    text.AppendFormat("Input time: {0:0.000000}\n", _songRunner.InputTime);
+                    text.AppendLine();
+                    text.AppendFormat("Real song time: {0:0.000000}\n", _songRunner.RealSongTime);
+                    text.AppendFormat("Real audio time: {0:0.000000}\n", _songRunner.RealAudioTime);
+                    text.AppendFormat("Real visual time: {0:0.000000}\n", _songRunner.RealVisualTime);
+                    text.AppendFormat("Real input time: {0:0.000000}\n", _songRunner.RealInputTime);
+                    text.AppendLine();
+                    text.AppendFormat("Input base: {0:0.000000}\n", _songRunner.InputTimeBase);
+                    text.AppendFormat("Input offset: {0:0.000000}\n", _songRunner.InputTimeOffset);
+                    text.AppendFormat("Pause time: {0:0.000000}\n", _songRunner.PauseStartTime);
 
-                GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
-            }
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
 
-            using (DebugScrollView.Begin("Sync", VerticalGroupStyle,
-                ref _debugSyncScroll, GUILayout.Height(100 * _debugGuiScale)))
-            {
-                using var text = ZString.CreateStringBuilder(true);
+                using (DebugVerticalArea.Begin("Sync", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
 
-                text.AppendFormat("Audio/visual difference: {0:0.000000}\n", _songRunner.SyncDelta);
-                text.AppendFormat("Resync start delta: {0:0.000000}\n", _songRunner.SyncStartDelta);
-                text.AppendFormat("Resync worst delta: {0:0.000000}\n", _songRunner.SyncWorstDelta);
-                text.AppendFormat("Speed adjustment: {0:0.00}\n", _songRunner.SyncSpeedAdjustment);
-                text.AppendFormat("Speed multiplier: {0}\n", _songRunner.SyncSpeedMultiplier);
+                    text.AppendFormat("Audio/visual difference: {0:0.000000}\n", _songRunner.SyncDelta);
+                    text.AppendFormat("Resync start delta: {0:0.000000}\n", _songRunner.SyncStartDelta);
+                    text.AppendFormat("Resync worst delta: {0:0.000000}\n", _songRunner.SyncWorstDelta);
+                    text.AppendFormat("Speed adjustment: {0:0.00}\n", _songRunner.SyncSpeedAdjustment);
+                    text.AppendFormat("Speed multiplier: {0}\n", _songRunner.SyncSpeedMultiplier);
 
-                GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
-            }
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
 
-            using (DebugScrollView.Begin("Beats", VerticalGroupStyle,
-                ref _debugSyncScroll, GUILayout.Height(100 * _debugGuiScale)))
-            {
-                using var text = ZString.CreateStringBuilder(true);
+                using (DebugVerticalArea.Begin("Beats", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
 
-                var sync = Chart.SyncTrack;
+                    var sync = Chart.SyncTrack;
 
-                uint tick = sync.TimeToTick(_songRunner.SongTime);
+                    uint tick = sync.TimeToTick(_songRunner.SongTime);
 
-                double strongBeat = sync.GetStrongBeatPosition(tick);
-                double weakBeat = sync.GetWeakBeatPosition(tick);
-                double denomBeat = sync.GetDenominatorBeatPosition(tick);
-                double quarterNote = sync.GetQuarterNotePosition(tick);
-                double measure = sync.GetMeasurePosition(tick);
+                    double strongBeat = sync.GetStrongBeatPosition(tick);
+                    double weakBeat = sync.GetWeakBeatPosition(tick);
+                    double denomBeat = sync.GetDenominatorBeatPosition(tick);
+                    double quarterNote = sync.GetQuarterNotePosition(tick);
+                    double measure = sync.GetMeasurePosition(tick);
 
-                text.AppendFormat("Strong beat position: {0:0.000}\n", strongBeat);
-                text.AppendFormat("Weak beat position: {0:0.000}\n", weakBeat);
-                text.AppendFormat("Denominator beat position: {0:0.000}\n", denomBeat);
-                text.AppendFormat("Quarter note position: {0:0.000}\n", quarterNote);
-                text.AppendFormat("Measure position: {0:0.000}\n", measure);
+                    text.AppendFormat("Strong beat position: {0:0.000}\n", strongBeat);
+                    text.AppendFormat("Weak beat position: {0:0.000}\n", weakBeat);
+                    text.AppendFormat("Denominator beat position: {0:0.000}\n", denomBeat);
+                    text.AppendFormat("Quarter note position: {0:0.000}\n", quarterNote);
+                    text.AppendFormat("Measure position: {0:0.000}\n", measure);
 
-                GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
             }
         }
 
