@@ -574,6 +574,8 @@ namespace YARG.Gameplay
                     continue;
                 }
 
+                player.BaseStats.AverageMultiplier = player.CalculateAverageMultiplier();
+                player.BaseStats.NumPauses = NumPauses;
                 var (frame, stats) = player.ConstructReplayData();
                 frames.Add(frame);
                 replayStats.Add(stats);

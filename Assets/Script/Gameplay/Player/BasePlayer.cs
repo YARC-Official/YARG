@@ -401,7 +401,7 @@ namespace YARG.Gameplay.Player
 
         public abstract (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData();
 
-        protected float CalculateAverageMultiplier() {
+        public float CalculateAverageMultiplier() {
             // Casting is needed to ensure float division, not integer division
             return (float)BaseEngine.BaseStats.StarScore / BaseEngine.BaseScore;
         }
