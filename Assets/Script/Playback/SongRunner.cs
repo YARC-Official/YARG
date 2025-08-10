@@ -7,6 +7,62 @@ using YARG.Input;
 
 namespace YARG.Playback
 {
+    // There are many design decisions for SongRunner which may seem confusing.
+    // Here is an overview of everything and why it is done that way:
+    //
+    // # Time Clock
+    //
+    // The Unity input system's time clock is used as the primary time source, as opposed to audio
+    // playback time, for various reasons:
+    //
+    // - It makes frame-independent inputs significantly easier to handle (if not outright possible
+    //   in the first place) since input times aren't messed with whatsoever during playback
+    //   (except to offset them relative to an absolute starting time).
+    //
+    // - It ensures timing is consistent throughout the song. Audio playback can be subject to
+    //   various problems which could impact the playing experience very severely. The input system's
+    //   timer has no such issues since it is based on a monotonic source.
+    //
+    // - It provides much higher precision than audio playback does. BASS is limited to a 5 ms
+    //   update rate, which can cause visual stuttering or positional snapping/aliasing at framerates
+    //   higher than 200 FPS. The input system's time, being monotonically-based, is determined on-demand
+    //   and has a precision of around 100 microseconds (in my observations - Nate). A loop repeatedly
+    //   querying the input system's time will produce a different value on every query, even within the
+    //   same frame.
+    //
+    // - It makes it easy to allow times below 0 and beyond the audio's length. This is necessary
+    //   for a variety of reasons:
+    //   - Makes it possible to provide a small starting delay on songs, ensuring players have time
+    //     to prepare on songs that have no delay between the start of the audio and their first note.
+    //   - Makes song ending 100% reliable. The audio length reported by BASS is not reliably
+    //     accurate: the final position reported in a song can be below the reported length.
+    //     Additionally, while BASS has a song end event, even that has shown to be unreliable in
+    //     certain scenarios, not firing when it should. Thus, the only reliable way to ensure the
+    //     song ends is to have our own time source which can go beyond the audio length.
+    //   - Makes it significantly easier to support song offsets, further detailed below.
+    //
+    // # Song Offset
+    //
+    // To support song offsets (`delay = 1234` in song.ini, `Offset = 1.234` in .chart), audio time
+    // has an offset applied to conceptually shift the timeline for input time and the chart:
+    // with an offset of 15 seconds, the 0-point for input time will be 15 seconds into audio
+    // playback. Without applying the offset to audio time, this would cause a major discrepancy
+    // between input and audio times, and make their relationship hard to reason about. So, to keep
+    // the same basis for the two timelines, the audio position is offset such that, with the above
+    // example of a 15 second offset, the position at which audio will start is -15 seconds.
+    //
+    // # Synchronization
+    //
+    // Audio is synchronized relative to the input system's timer, not the other way around. As
+    // explained earlier, this is done to make it feasible to reason about an input's timing
+    // relative to the song, in a framerate-independent manner (in addition to the timing stability
+    // benefits also mentioned).
+    //
+    // Audio desync correction is performed by adjusting audio speed until it gradually falls back
+    // in line. This produces little to no audible effect in BASS, its time stretching is well-suited
+    // for this purpose. Seeking has also been considered for large desyncs, but is not implemented
+    // currently.
+
     public class SongRunner : IDisposable
     {
         #region Times
