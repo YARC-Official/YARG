@@ -289,7 +289,7 @@ namespace YARG.Playback
             YargLogger.LogDebug("Starting song runner");
 
             // Re-initialize song times to avoid lag issues
-            InitializeSongTime(SongOffset);
+            InitializeSongTime(InputTime);
 
             _syncThread.Start();
             Started = true;
