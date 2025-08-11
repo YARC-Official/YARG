@@ -2764,8 +2764,8 @@ MonoBehaviour:
   - {fileID: 7006697502306556741}
   - {fileID: 3355981162645808725}
   _songNameContainer: {fileID: 4368672747380734833}
-  _instrumentDifficultyViewContainer: {fileID: 0}
-  _instrumentDifficultyView: {fileID: 0}
+  _instrumentDifficultyViewContainer: {fileID: 6012949907685217146}
+  _instrumentDifficultyView: {fileID: 153509841728231075}
   _starView: {fileID: 6549734375584227207}
   _secondaryTextContainer: {fileID: 4454172983210282838}
   _asMadeFamousByTextContainer: {fileID: 1063990577666964748}
@@ -2778,8 +2778,8 @@ MonoBehaviour:
   _favouriteFilled: {fileID: 1390811379, guid: 81b6595c7cde06540b683feaa83291af, type: 3}
   _categoryNameContainer: {fileID: 2200136566915400073}
   _categoryText: {fileID: 9056057400455014970}
-  _starsObtainedView: {fileID: 0}
-  _starsObtainedText: {fileID: 0}
+  _starsObtainedView: {fileID: 4831385730584701946}
+  _starsObtainedText: {fileID: 2944395680739921185}
   _trackGradient: {fileID: 0}
   _normalCategoryHeaderGradient: {fileID: 0}
 --- !u!225 &215129106566158253
@@ -3084,6 +3084,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2757d4382315f8a46a8a0c2e76c0f881, type: 3}
+--- !u!114 &153509841728231075 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4906556586326073703, guid: 2757d4382315f8a46a8a0c2e76c0f881,
+    type: 3}
+  m_PrefabInstance: {fileID: 5059503203220813764}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2262484295386875851}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fa008f8a4acc064e87ffe6a81592afc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2262484295386875851 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6436490635875856399, guid: 2757d4382315f8a46a8a0c2e76c0f881,
