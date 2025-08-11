@@ -87,6 +87,10 @@ namespace YARG.Input
             new DrumPadButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };
 
+        public static BindingCollection CreateEliteDrumsBindings() => new(GameMode.EliteDrums)
+        {
+        };
+
         public static BindingCollection CreateProGuitarBindings() => new(GameMode.ProGuitar)
         {
             new IntegerBinding("ProGuitar.String1_Fret", (int) ProGuitarAction.String1_Fret),
@@ -162,6 +166,7 @@ namespace YARG.Input
 
                 GameMode.FourLaneDrums => CreateFourLaneDrumsBindings(),
                 GameMode.FiveLaneDrums => CreateFiveLaneDrumsBindings(),
+                GameMode.EliteDrums => CreateEliteDrumsBindings(),
 
                 GameMode.ProGuitar => CreateProGuitarBindings(),
                 GameMode.ProKeys => CreateProKeysBindings(),
