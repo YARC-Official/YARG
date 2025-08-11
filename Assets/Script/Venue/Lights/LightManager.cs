@@ -112,12 +112,12 @@ namespace YARG.Venue
             _harmoniousGradient = CreateGradient(_harmoniousColors);
 
             // 1/8th of a beat is a 32nd note
-            GameManager.BeatEventHandler.Subscribe(UpdateLightAnimation, 1f / 8f, mode: TempoMapEventMode.Quarter);
+            GameManager.BeatEventHandler.Visual.Subscribe(UpdateLightAnimation, BeatEventType.QuarterNote, division: 1f / 8f);
         }
 
         protected override void GameplayDestroy()
         {
-            GameManager.BeatEventHandler.Unsubscribe(UpdateLightAnimation);
+            GameManager.BeatEventHandler.Visual.Unsubscribe(UpdateLightAnimation);
         }
 
         private void Update()

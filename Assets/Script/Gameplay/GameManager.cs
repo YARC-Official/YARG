@@ -84,26 +84,14 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.SongTime"/>
         public double SongTime => _songRunner.SongTime;
 
-        /// <inheritdoc cref="SongRunner.RealSongTime"/>
-        public double RealSongTime => _songRunner.RealSongTime;
-
         /// <inheritdoc cref="SongRunner.AudioTime"/>
         public double AudioTime => _songRunner.AudioTime;
-
-        /// <inheritdoc cref="SongRunner.RealAudioTime"/>
-        public double RealAudioTime => _songRunner.RealAudioTime;
 
         /// <inheritdoc cref="SongRunner.VisualTime"/>
         public double VisualTime => _songRunner.VisualTime;
 
-        /// <inheritdoc cref="SongRunner.RealVisualTime"/>
-        public double RealVisualTime => _songRunner.RealVisualTime;
-
         /// <inheritdoc cref="SongRunner.InputTime"/>
         public double InputTime => _songRunner.InputTime;
-
-        /// <inheritdoc cref="SongRunner.RealInputTime"/>
-        public double RealInputTime => _songRunner.RealInputTime;
 
         /// <inheritdoc cref="SongRunner.SongSpeed"/>
         public float SongSpeed => _songRunner.SongSpeed;
@@ -121,7 +109,7 @@ namespace YARG.Gameplay
         public int   BandScore { get; private set; }
         public int   BandCombo { get; private set; }
         public float BandStars { get; private set; }
-        
+
         public ReplayInfo ReplayInfo { get; private set; }
         public ReplayData ReplayData { get; private set; }
 
@@ -196,7 +184,7 @@ namespace YARG.Gameplay
             _pauseMenu.PopAllMenus();
             _mixer?.Dispose();
             _songRunner?.Dispose();
-            BeatEventHandler?.Unsubscribe(StarPowerClap);
+            BeatEventHandler?.Audio.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
@@ -231,14 +219,14 @@ namespace YARG.Gameplay
 
             // Update handlers
             _songRunner.Update();
-            BeatEventHandler.Update(_songRunner.SongTime);
+            BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
 
             // Update players
             int totalScore = 0;
             float totalStars = 0f;
             foreach (var player in _players)
             {
-                player.UpdateWithTimes(_songRunner.InputTime);
+                player.GameplayUpdate();
 
                 totalScore += player.Score;
                 totalStars += player.Stars;
@@ -266,7 +254,7 @@ namespace YARG.Gameplay
         {
             _songRunner.SetSongTime(time, delayTime);
 
-            BeatEventHandler.ResetTimers();
+            BeatEventHandler.Reset();
             BackgroundManager.SetTime(_songRunner.SongTime + Song.SongOffsetSeconds);
         }
 
@@ -409,9 +397,6 @@ namespace YARG.Gameplay
 
         public double GetRelativeInputTime(double timeFromInputSystem)
             => _songRunner.GetRelativeInputTime(timeFromInputSystem);
-
-        public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
-            => _songRunner.GetCalibratedRelativeInputTime(timeFromInputSystem);
 
         private bool EndSong()
         {
