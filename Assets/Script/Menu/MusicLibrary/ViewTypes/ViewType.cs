@@ -1,4 +1,5 @@
 ﻿using Cysharp.Text;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
@@ -16,12 +17,22 @@ namespace YARG.Menu.MusicLibrary
             public bool IsFavorited;
         }
 
+        public struct ScoreInfo
+        {
+            public float      Percent;
+            public int        Score;
+            public Difficulty Difficulty;
+            public Instrument Instrument;
+            public bool       IsFc;
+        }
+
         public virtual bool UseAsMadeFamousBy => false;
 
         public virtual bool UseWiderPrimaryText => false;
 
         public override string GetSecondaryText(bool selected) => string.Empty;
         public virtual string GetSideText(bool selected) => string.Empty;
+        public virtual ScoreInfo? GetScoreInfo() => null;
 
         public virtual StarAmount? GetStarAmount() => null;
 
