@@ -5,7 +5,7 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class SunburstEffects : GameplayBehaviour
+    public class SunburstEffects : MonoBehaviour
     {
         [SerializeField]
         private GameObject _sunburstEffect;
@@ -44,10 +44,8 @@ namespace YARG.Gameplay.Visuals
 
         private const float TRANSITION_DURATION = 0.433f;
 
-        protected override void GameplayAwake()
+        private void Awake()
         {
-            GameManager.BeatEventHandler.Visual.Subscribe(PulseSunburst, BeatEventType.StrongBeat);
-
             // Get the components we'll need to manipulate later
             _sunburstMaterial = _sunburstEffect.GetComponent<SpriteRenderer>().material;
             _light = _lightEffect.GetComponent<Light>();
@@ -160,7 +158,7 @@ namespace YARG.Gameplay.Visuals
             _sunburstEffect.transform.Rotate(0f, 0f, Time.deltaTime * -25f);
         }
 
-        private void PulseSunburst()
+        public void PulseSunburst()
         {
             if (!_groove && !_starpower)
             {
@@ -260,7 +258,7 @@ namespace YARG.Gameplay.Visuals
             _lightEffect.SetActive(false);
         }
 
-        protected override void GameplayDestroy()
+        private void OnDestroy()
         {
             _sunburstPulseTween?.Kill();
             _multiplierIncreaseSequence?.Kill();
@@ -268,7 +266,6 @@ namespace YARG.Gameplay.Visuals
             _grooveStartSequence?.Kill();
             _starpowerStartSequence?.Kill();
             _sunburstDisableSequence?.Kill();
-            GameManager.BeatEventHandler.Visual.Unsubscribe(PulseSunburst);
         }
     }
 }
