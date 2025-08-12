@@ -110,6 +110,24 @@ namespace YARG.Menu.MusicLibrary
             return builder.ToString();
         }
 
+        public override ScoreInfo? GetScoreInfo()
+        {
+            // Never played!
+            if (_playerScoreRecord is null)
+            {
+                return null;
+            }
+
+            return new ScoreInfo
+            {
+                Score = _playerScoreRecord.Score,
+                Difficulty = _playerScoreRecord.Difficulty,
+                Percent = _playerPercentRecord.GetPercent(),
+                Instrument = _playerScoreRecord.Instrument,
+                IsFc = _playerPercentRecord.IsFc
+            };
+        }
+
         public override StarAmount? GetStarAmount()
         {
             // Only show stars if enabled

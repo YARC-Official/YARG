@@ -2,12 +2,9 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
-using YARG.Core;
-using YARG.Core.Song;
 using YARG.Helpers.Extensions;
-using YARG.Song;
+
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -24,9 +21,6 @@ namespace YARG.Menu.MusicLibrary
 
         private static Color _fcGold = new(1, 208 / 255, 41 / 255);
 
-        private void Awake()
-        {
-        }
 
         public void SetInfo(ViewType.ScoreInfo scoreInfo)
         {
@@ -35,16 +29,7 @@ namespace YARG.Menu.MusicLibrary
             _instrumentIcon.sprite = icon;
 
             // Set difficulty icon
-            var difficultyValue = scoreInfo.Difficulty switch
-            {
-                Difficulty.Easy => "E",
-                Difficulty.Medium => "M",
-                Difficulty.Hard => "H",
-                Difficulty.Expert => "X",
-                Difficulty.ExpertPlus => "XP",
-                _ => ""
-            };
-            var difficultyIcon = Addressables.LoadAssetAsync<Sprite>($"DifficultyIcons[Diff{difficultyValue}]").WaitForCompletion();
+            var difficultyIcon = Addressables.LoadAssetAsync<Sprite>($"DifficultyIcons[{scoreInfo.Difficulty.ToString()}]").WaitForCompletion();
             _difficultyIcon.sprite = difficultyIcon;
 
             // Set percent value

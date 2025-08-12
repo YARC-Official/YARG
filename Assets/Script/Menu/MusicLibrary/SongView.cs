@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Menu.ListMenu;
+using YARG.Settings;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -95,20 +96,19 @@ namespace YARG.Menu.MusicLibrary
             }
 
             // Show/hide favorite button
+            var favoriteInfo = viewType.GetFavoriteInfo();
 
-            // var favoriteInfo = viewType.GetFavoriteInfo();
-
-            // if (SettingsManager.Settings.ShowFavoriteButton.Value)
-            // {
-            //     _favoriteButtonContainer.SetActive(!selected && favoriteInfo.ShowFavoriteButton);
-            //     _favoriteButtonContainerSelected.SetActive(selected && favoriteInfo.ShowFavoriteButton);
-            //     UpdateFavoriteSprite(favoriteInfo);
-            // }
-            // else
-            // {
-            //     _favoriteButtonContainer.SetActive(false);
-            //     _favoriteButtonContainerSelected.SetActive(false);
-            // }
+            if (SettingsManager.Settings.ShowFavoriteButton.Value)
+            {
+                _favoriteButtonContainer.SetActive(!selected && favoriteInfo.ShowFavoriteButton);
+                _favoriteButtonContainerSelected.SetActive(selected && favoriteInfo.ShowFavoriteButton);
+                UpdateFavoriteSprite(favoriteInfo);
+            }
+            else
+            {
+                _favoriteButtonContainer.SetActive(false);
+                _favoriteButtonContainerSelected.SetActive(false);
+            }
 
             // Set height
             if (viewType is SortHeaderViewType)

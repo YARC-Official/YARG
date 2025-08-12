@@ -529,6 +529,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fa008f8a4acc064e87ffe6a81592afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _instrumentIcon: {fileID: 0}
-  _difficultyIcon: {fileID: 0}
-  _percentText: {fileID: 0}
+  _instrumentIcon: {fileID: 8738765378136697063}
+  _difficultyIcon: {fileID: 4230519954311980479}
+  _percentText: {fileID: 4824570177518276672}
