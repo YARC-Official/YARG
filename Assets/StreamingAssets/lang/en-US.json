@@ -230,7 +230,7 @@
             "PlayWithReplay": "Play With Replay"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to the v0.13 Nightly!</b></size></align>\n\nv0.13 adds Pro Keys to the game, as well as reintroducing Pro Guitar/Bass after it was removed in v0.12 due to time constraints. Please let us know how these instruments feel, as well as any bugs you find and missing features.\n\nInstrument engine code has once again gone through major changes to facilitate producing replays with 1:1 results to the original gameplay. <b>If you encounter any inconsistent replay results, report it to the YARG team on Discord or GitHub.</b>\n\nIf you previously played on the v0.12 nightly, all of your settings will be reset. This is due to nightly builds now using a separate location for data storage. Your nightly settings/scores will not persist to stable versions of YARG, and vice versa.\n\nAs we previously announced, <b>we do not recommend playing nightly full time, instead only for testing.</b> Nightly is now going to be much more unstable with many more bugs and unfinished systems.\n\n<b>If you have any feedback, please let us know on Discord or GitHub.</b>\n\nHave fun!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.13!</b></size></align>\n\nv0.13 is a major update that adds Pro Keys, brings major engine improvements for all instruments, along with a ton of quality of life features, performance improvements, and more.\n\n<b>If you have any feedback, or find any bugs, please let us know on Discord or GitHub.</b>\n\nHave fun!",
             "Options": {
                 "Quickplay": "Quickplay",
                 "Practice": "Practice",
@@ -367,6 +367,7 @@
 				"bass_intro": "Bass intro",
 				"vocal_intro": "Vocal intro",
 				"gtr_intro": "Gtr intro",
+				"aco_gtr_intro": "Aco gtr intro",
 				"violin_intro": "Violin intro",
 				"strings_intro": "Strings intro",
 				"orch_intro": "Orch intro",
@@ -418,14 +419,22 @@
 				"horn_solo": "Horn solo",
 				"flute_solo": "Flute solo",
 				"noise_solo": "Noise solo",
+				"noise_build": "Noise build",
 				"dj_solo": "DJ solo",
 				"slow_part": "Slow part",
+				"very_slow": "Very slow",
 				"fast_part": "Fast part",
+				"very_fast": "Very fast",
 				"quiet_part": "Quiet part",
+				"very_quiet": "Very quiet",
 				"loud_part": "Loud part",
+				"very_loud": "Very loud",
 				"heavy_part": "Heavy part",
+				"very_heavy": "Very heavy",
 				"spacey_part": "Spacey part",
+				"very_spacey": "Very spacey",
 				"trippy_part": "Trippy part",
+				"very_trippy": "Very trippy",
 				"break": "Break",
 				"breakdown": "Breakdown",
 				"gtr_break": "Gtr break",
@@ -474,6 +483,7 @@
 				"gtr_melody": "Gtr melody",
 				"gtr_line": "Gtr line",
 				"gtr_lick": "Gtr lick",
+				"gtr_ostinato": "Gtr ostinato",
 				"vocal_break": "Vocal break",
 				"ah": "Ah!",
 				"yeah": "Yeah!",
@@ -486,11 +496,15 @@
 				"outro_chorus": "Outro chorus",
 				"ending": "Ending",
 				"bre": "Big Rock Ending!",
-				"fade_out": "Fade out"
+				"fade_out": "Fade out",
+				"fast_picking": "Fast picking",
+				"foreplay_intro": "Foreplay intro",
+				"longtome_intro": "Long Time intro"
 			},
 			"SectionFormats": {
 				"LetterSection": "{0} section",
-				"WithNumber": "{0} {1}"
+				"WithNumber": "{0} {1}",
+				"PercentageBased": "{0}% - {1}%"
 			}
 		}
     },
@@ -1179,6 +1193,10 @@
             "UseThreeLaneLyricsInHarmony": {
                 "Name": "Use Three Lyric Lanes In Harmony",
                 "Description": "If enabled, the game will display three lyric lanes in harmony mode (one for each harmony). When disabled, the game will combine the lyrics of harmonies 2 and 3 into one lane at the top."
+            },
+            "EnableTrackEffects": {
+                "Name": "Enable Track Effects",
+                "Description": "If enabled, the game will display track effects for unison, solo, and drum SP activation phrases."
             }
         },
         "PresetType": {

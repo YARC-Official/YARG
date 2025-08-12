@@ -108,7 +108,7 @@ Material:
     - _ReceiveShadows: 1
     - _SHINE: 0
     - _ShineAmount: 0
-    - _Smoothness: 0.5
+    - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1

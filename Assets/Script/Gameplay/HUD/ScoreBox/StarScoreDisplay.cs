@@ -22,22 +22,16 @@ namespace YARG.Gameplay.HUD
         protected override void OnChartLoaded(SongChart chart)
         {
             _goldMeterHeight = GetComponent<RectTransform>().rect.height;
-
-            GameManager.BeatEventHandler.Visual.Subscribe(PulseGoldMeter, BeatEventType.StrongBeat, division: 2);
         }
 
-        protected override void GameplayDestroy()
-        {
-            GameManager.BeatEventHandler.Visual.Unsubscribe(PulseGoldMeter);
-        }
-
-        private void PulseGoldMeter()
+        private void Update()
         {
             if (_currentStar == 5 && !_isGoldAchieved)
             {
+                float pulse = 1 - (float)((GameManager.BeatEventHandler.Visual.StrongBeat.CurrentProgress / 2) % 1);
                 foreach (var star in _starObjects)
                 {
-                    star.PulseGoldMeter();
+                    star.SetGoldPulse(pulse);
                 }
             }
         }

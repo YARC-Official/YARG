@@ -89,7 +89,6 @@ GameObject:
   - component: {fileID: 3893353960159248544}
   - component: {fileID: 8079976114136154912}
   - component: {fileID: 5166421104015230384}
-  - component: {fileID: 3964323345609220062}
   m_Layer: 0
   m_Name: GoldProgress
   m_TagString: Untagged
@@ -189,27 +188,6 @@ MonoBehaviour:
   m_PartOfParent: 0
   m_IgnoreSelfGraphic: 0
   m_IgnoreSelfStencil: 0
---- !u!95 &3964323345609220062
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5877040520521870468}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 6ca8e621283fb0c42921f801c34fb73c, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &6609833391728450521
 GameObject:
   m_ObjectHideFlags: 0
@@ -373,7 +351,6 @@ GameObject:
   - component: {fileID: 6609833392484293585}
   - component: {fileID: 6609833392484293615}
   - component: {fileID: 6609833392484293614}
-  - component: {fileID: 8520595744802316547}
   m_Layer: 5
   m_Name: Complete
   m_TagString: Untagged
@@ -439,27 +416,6 @@ MonoBehaviour:
   m_FillOrigin: 2
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!95 &8520595744802316547
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6609833392484293584}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 4ba6ddee5b744bb478325c3cb09d7cba, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &6609833393552099944
 GameObject:
   m_ObjectHideFlags: 0
@@ -502,7 +458,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 20.399948, y: -20.400002}
+  m_AnchoredPosition: {x: 20.399963, y: -20.400024}
   m_SizeDelta: {x: 40.8, y: 40.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6609833393552099943
@@ -527,10 +483,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _starProgress: {fileID: 6609833392320429218}
   _starAnimator: {fileID: 3592059757134714684}
-  _goldProgressContainer: {fileID: 5877040520521870468}
+  _goldProgressGroup: {fileID: 3893353960159248544}
   _goldProgress: {fileID: 7784299631224693609}
   _goldProgressLine: {fileID: 5053758188157192625}
-  _goldMeterAnimator: {fileID: 3964323345609220062}
 --- !u!114 &6609833393552099942
 MonoBehaviour:
   m_ObjectHideFlags: 0

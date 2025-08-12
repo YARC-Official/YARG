@@ -136,6 +136,7 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.UseThreeLaneLyricsInHarmony),
+                nameof(Settings.EnableTrackEffects),
                 nameof(Settings.KickBounceMultiplier),
 
                 new HeaderMetadata("HUD"),

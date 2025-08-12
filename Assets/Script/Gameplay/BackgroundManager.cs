@@ -208,7 +208,7 @@ namespace YARG.Gameplay
             }
 
             // End video when reaching the specified end time
-            if (time - _videoStartTime >= _videoEndTime)
+            if (time + _videoStartTime >= _videoEndTime)
             {
                 _videoPlayer.Stop();
                 _videoPlayer.enabled = false;

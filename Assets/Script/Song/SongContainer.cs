@@ -454,16 +454,22 @@ namespace YARG.Song
                             key = node.Value[0].Charter;
                             break;
                         case SongAttribute.Genre:
-                            key = node.Value[0].Genre;
-                            if (key.Length > 0 && char.IsLower(key[0]))
+                        {
+                            var genre = node.Value[0].Genre;
+                            if (genre.Length > 0 && char.IsLower(genre[0]))
                             {
-                                key = char.ToUpperInvariant(key[0]).ToString();
-                                if (key.Length > 1)
+                                key = char.ToUpperInvariant(genre[0]).ToString();
+                                if (genre.Length > 1)
                                 {
-                                    key += key[1..];
+                                    key += genre[1..];
                                 }
                             }
+                            else
+                            {
+                                key = genre;
+                            }
                             break;
+                        }
                         case SongAttribute.Playlist:
                             key = node.Value[0].Playlist;
                             break;
