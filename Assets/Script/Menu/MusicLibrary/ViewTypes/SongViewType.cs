@@ -112,6 +112,8 @@ namespace YARG.Menu.MusicLibrary
 
         public override ScoreInfo? GetScoreInfo()
         {
+            FetchHighScores();
+
             // Never played!
             if (_playerScoreRecord is null)
             {
