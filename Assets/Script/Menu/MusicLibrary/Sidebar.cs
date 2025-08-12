@@ -38,6 +38,10 @@ namespace YARG.Menu.MusicLibrary
         private RawImage _albumCover;
         [SerializeField]
         private RawImage _albumCoverSmall;
+        [SerializeField]
+        private Image _sourceBackground;
+        [SerializeField]
+        private Image _charterBackground;
 
         [FormerlySerializedAs("difficultyRingPrefab")]
         [Space]
@@ -121,6 +125,9 @@ namespace YARG.Menu.MusicLibrary
             _albumCoverSmall.color = Color.clear;
             _album.text = string.Empty;
 
+            _sourceBackground.gameObject.SetActive(false);
+            _charterBackground.gameObject.SetActive(false);
+
             _year.text = string.Empty;
             _length.text = string.Empty;
 
@@ -157,6 +164,18 @@ namespace YARG.Menu.MusicLibrary
             }
 
             UpdateDifficulties(songEntry);
+
+            CancellationTokenSource token = new();
+            var icon = SongSources.SourceToIcon(songEntry.Source);
+            token.Token.ThrowIfCancellationRequested();
+
+            if (icon is not null)
+            {
+                _charterBackground.gameObject.SetActive(true);
+                _charterBackground.sprite = icon;
+                _sourceBackground.gameObject.SetActive(true);
+                _sourceBackground.sprite = icon;
+            }
 
             _cancellationToken = new();
             _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token, 0.25f);
