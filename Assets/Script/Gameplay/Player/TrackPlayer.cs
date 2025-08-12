@@ -213,6 +213,13 @@ namespace YARG.Gameplay.Player
 
         private void InitializeTrackEffects()
         {
+
+            // If the user doesn't want track effects, generate no effects
+            if (!SettingsManager.Settings.EnableTrackEffects.Value)
+            {
+                return;
+            }
+
             var phrases = new List<Phrase>();
 
             foreach (var phrase in NoteTrack.Phrases)
@@ -248,11 +255,6 @@ namespace YARG.Gameplay.Player
             foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, _trackEffects))
             {
                 _upcomingEffects.Enqueue(effect);
-            }
-
-            if (EngineContainer.UnisonPhrases.Any())
-            {
-                GameManager.EngineManager.OnUnisonPhraseSuccess += OnUnisonPhraseSuccess;
             }
         }
 
@@ -740,13 +742,6 @@ namespace YARG.Gameplay.Player
             {
                 haptic.SetSoloActive(false);
             }
-        }
-
-        protected virtual void OnUnisonPhraseSuccess()
-        {
-            // This is here because it seemed like awarding from TrackPlayer would work best for replays
-            // since all the replay data is saved here
-            YargLogger.LogFormatTrace("TrackPlayer would have awarded unison bonus at engine time {0}", Engine.CurrentTime);
         }
 
         protected virtual void OnCountdownChange(double countdownLength, double endTime)
