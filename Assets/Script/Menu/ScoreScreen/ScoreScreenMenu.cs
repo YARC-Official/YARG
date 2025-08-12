@@ -79,6 +79,7 @@ namespace YARG.Menu.ScoreScreen
                         }
                     }
                 });
+
             // dummy remove button so it can be used in add button
             NavigationScheme.Entry removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "", () => {});
             var addFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.AddToFavorites", () =>
@@ -95,6 +96,7 @@ namespace YARG.Menu.ScoreScreen
                         }, true));
                     }
                 });
+
             removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.RemoveFromFavorites", () =>
                 {
                     YargLogger.LogInfo("removed favorite");
@@ -109,6 +111,7 @@ namespace YARG.Menu.ScoreScreen
                         }, true));
                     }
                 });
+
             //different navigation scheme based on if the songs is favorited already
             if (isFavorited)
             {
