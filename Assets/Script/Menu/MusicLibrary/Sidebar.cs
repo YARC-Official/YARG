@@ -36,6 +36,8 @@ namespace YARG.Menu.MusicLibrary
         private TextMeshProUGUI _length;
         [SerializeField]
         private RawImage _albumCover;
+        [SerializeField]
+        private RawImage _albumCoverSmall;
 
         [FormerlySerializedAs("difficultyRingPrefab")]
         [Space]
@@ -115,6 +117,8 @@ namespace YARG.Menu.MusicLibrary
             // Hide album art
             _albumCover.texture = null;
             _albumCover.color = Color.clear;
+            _albumCoverSmall.texture = null;
+            _albumCoverSmall.color = Color.clear;
             _album.text = string.Empty;
 
             _year.text = string.Empty;
@@ -155,7 +159,9 @@ namespace YARG.Menu.MusicLibrary
             UpdateDifficulties(songEntry);
 
             _cancellationToken = new();
-            _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token);
+            _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token, 0.25f);
+            _cancellationToken = new();
+            _albumCoverSmall.LoadAlbumCover(songEntry, _cancellationToken.Token);
         }
 
         private void UpdateDifficulties(SongEntry entry)
