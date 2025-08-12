@@ -19,7 +19,7 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private TextMeshProUGUI _percentText;
 
-        private static Color _fcGold = new(1, 208 / 255, 41 / 255);
+        private static Color _fcGold = new(1, 208 / 255f, 41 / 255f);
 
 
         public void SetInfo(ViewType.ScoreInfo scoreInfo)
