@@ -36,6 +36,8 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         protected CameraPositioner CameraPositioner;
         [SerializeField]
+        protected HighwayCameraRendering HighwayCameraRendering;
+        [SerializeField]
         protected TrackMaterial TrackMaterial;
         [SerializeField]
         protected ComboMeter ComboMeter;
@@ -56,7 +58,6 @@ namespace YARG.Gameplay.Player
         protected KeyedPool NotePool;
         [SerializeField]
         protected Pool BeatlinePool;
-        [FormerlySerializedAs("SoloPool")]
         [SerializeField]
         protected Pool EffectPool;
 
@@ -279,7 +280,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void FinishInitialization()
         {
-            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.HighwayPreset);
+            TrackMaterial.Initialize(Player.HighwayPreset);
             CameraPositioner.Initialize(Player.CameraPreset);
         }
 

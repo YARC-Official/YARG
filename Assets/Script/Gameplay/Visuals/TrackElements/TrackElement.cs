@@ -1,7 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using UnityEngine;
 using YARG.Gameplay.Player;
-using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -32,26 +31,11 @@ namespace YARG.Gameplay.Visuals
 
         private void Start()
         {
-            // Get fade info
-            float fadePos = Player.ZeroFadePosition;
-            float fadeSize = Player.FadeSize;
-
-            // Set all fade values for meshes
-            var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
-            foreach (var meshRenderer in meshRenderers)
-            {
-                foreach (var material in meshRenderer.materials)
-                {
-                    material.SetFade(fadePos, fadeSize);
-                }
-            }
-
             // Set all fade values for note flares
             var noteFlares = GetComponentsInChildren<NoteFlare>(true);
             foreach (var noteFlare in noteFlares)
             {
                 noteFlare.TrackPlayer = Player;
-                noteFlare.SetFade(fadePos, fadeSize);
             }
         }
 

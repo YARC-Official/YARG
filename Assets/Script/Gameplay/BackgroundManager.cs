@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Cysharp.Threading.Tasks;
@@ -8,11 +7,14 @@ using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.IO;
-using YARG.Core.Logging;
 using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 using YARG.Venue;
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+using System.Collections.Generic;
+using YARG.Core.Logging;
+#endif
 
 namespace YARG.Gameplay
 {
