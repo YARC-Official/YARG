@@ -58,6 +58,7 @@ namespace YARG.Menu.ScoreScreen
         {
             var song = GlobalVariables.State.CurrentSong;
             var isFavorited = PlaylistContainer.FavoritesPlaylist.ContainsSong(song);
+            
             // Set navigation scheme
             var continueButtonEntry = new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
                 {
