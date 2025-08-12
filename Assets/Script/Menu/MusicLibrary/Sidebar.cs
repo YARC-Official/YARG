@@ -178,7 +178,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             _cancellationToken = new();
-            _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token, 0.25f);
+            _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token, 0.15f);
             _cancellationToken = new();
             _albumCoverSmall.LoadAlbumCover(songEntry, _cancellationToken.Token);
         }
