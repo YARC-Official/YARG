@@ -367,6 +367,7 @@
 				"bass_intro": "Bass intro",
 				"vocal_intro": "Vocal intro",
 				"gtr_intro": "Gtr intro",
+				"aco_gtr_intro": "Aco gtr intro",
 				"violin_intro": "Violin intro",
 				"strings_intro": "Strings intro",
 				"orch_intro": "Orch intro",
@@ -418,14 +419,22 @@
 				"horn_solo": "Horn solo",
 				"flute_solo": "Flute solo",
 				"noise_solo": "Noise solo",
+				"noise_build": "Noise build",
 				"dj_solo": "DJ solo",
 				"slow_part": "Slow part",
+				"very_slow": "Very slow",
 				"fast_part": "Fast part",
+				"very_fast": "Very fast",
 				"quiet_part": "Quiet part",
+				"very_quiet": "Very quiet",
 				"loud_part": "Loud part",
+				"very_loud": "Very loud",
 				"heavy_part": "Heavy part",
+				"very_heavy": "Very heavy",
 				"spacey_part": "Spacey part",
+				"very_spacey": "Very spacey",
 				"trippy_part": "Trippy part",
+				"very_trippy": "Very trippy",
 				"break": "Break",
 				"breakdown": "Breakdown",
 				"gtr_break": "Gtr break",
@@ -474,6 +483,7 @@
 				"gtr_melody": "Gtr melody",
 				"gtr_line": "Gtr line",
 				"gtr_lick": "Gtr lick",
+				"gtr_ostinato": "Gtr ostinato",
 				"vocal_break": "Vocal break",
 				"ah": "Ah!",
 				"yeah": "Yeah!",
@@ -486,11 +496,15 @@
 				"outro_chorus": "Outro chorus",
 				"ending": "Ending",
 				"bre": "Big Rock Ending!",
-				"fade_out": "Fade out"
+				"fade_out": "Fade out",
+				"fast_picking": "Fast picking",
+				"foreplay_intro": "Foreplay intro",
+				"longtome_intro": "Long Time intro"
 			},
 			"SectionFormats": {
 				"LetterSection": "{0} section",
-				"WithNumber": "{0} {1}"
+				"WithNumber": "{0} {1}",
+				"PercentageBased": "{0}% - {1}%"
 			}
 		}
     },
