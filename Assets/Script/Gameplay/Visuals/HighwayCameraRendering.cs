@@ -46,7 +46,7 @@ namespace YARG.Gameplay.Visuals
                 // Set up render texture
                 var descriptor = new RenderTextureDescriptor(
                     Screen.width, Screen.height,
-                    RenderTextureFormat.ARGBHalf);
+                    RenderTextureFormat.DefaultHDR);
                 descriptor.mipCount = 0;
                 _highwaysOutputTexture = new RenderTexture(descriptor);
                 _highwaysOutput.texture = _highwaysOutputTexture;

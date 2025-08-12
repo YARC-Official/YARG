@@ -6,12 +6,6 @@ uniform float4x4 _YargCamProjMatrices[MAX_MATRICES];
 uniform float _YargCurveFactors[MAX_MATRICES];
 uniform float _YargFadeParams[MAX_MATRICES * 2];
 
-#ifdef UNITY_REVERSED_Z
-const float Z_OFFSET = 0.0002;
-#else
-const float Z_OFFSET = -0.0002;
-#endif
-
 // World position to highway index
 inline int WorldPosToIndex(float3 positionWS)
 {
@@ -144,20 +138,27 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
 
     // Present as if its a single highway, using corresponding
     // camera's matrices
-    float4 clipPOS = mul(mul(_YargCamProjMatrices[index], _YargCamViewMatrices[index]), float4(positionWS, 1.0));
-
-    // separate highways to avoid clashes when there are a lot of them on at the same time
-    if (positionWS.x > index * 100.0)
-        clipPOS.z += Z_OFFSET * 10;
-    else
-        clipPOS.z -= Z_OFFSET * 10;
-     
+    float4 viewPOS = mul(_YargCamViewMatrices[index], float4(positionWS, 1.0));
+    float4 clipPOS = mul(_YargCamProjMatrices[index], viewPOS);
 
 #ifdef _RAISE_Z
     // We use this to raise certain elements to be rendered on top of the others without actually
     // raising them in the world space
-    clipPOS.z += Z_OFFSET;
+    #ifdef UNITY_REVERSED_Z
+        clipPOS.z += 0.002;
+    #else
+        clipPOS.z -= 0.002;
+    #endif
 #endif
+
+    // separate highways to avoid clashes when there are a lot of them on at the same time
+    float ndcZ = clipPOS.z / clipPOS.w;
+#ifdef UNITY_REVERSED_Z
+    ndcZ += 0.005 * (index % 2);
+#else
+    ndcZ -= 0.005 * (index % 2);
+#endif
+    clipPOS.z = ndcZ * clipPOS.w;
 
     return clipPOS;
 }

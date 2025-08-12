@@ -96,13 +96,6 @@ namespace YARG.Gameplay.Player
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
             FadeSize = Player.CameraPreset.FadeLength;
 
-            // Clip everything that was set to not be visible anyway
-            var camPosition = this.transform.position;
-            var trackZeroFadePosition = new Vector3(camPosition.x, camPosition.y, ZeroFadePosition + 3f);
-            Plane farPlane = new Plane();
-            farPlane.SetNormalAndPosition(this.TrackCamera.transform.forward, trackZeroFadePosition);
-            TrackCamera.farClipPlane = Mathf.Abs(farPlane.GetDistanceToPoint(this.TrackCamera.transform.position));
-
             _spawnAheadDelay = GameManager.IsPractice ? SettingsManager.Settings.PracticeRestartDelay.Value : 2;
             if (player.Profile.HighwayLength > 1)
             {
