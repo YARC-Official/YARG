@@ -61,7 +61,8 @@
             "UnpitchedOnly": "Unpitched Only",
             "NoDynamics": "No Dynamics",
             "NoVocalPercussion" : "No Percussion",
-            "RangeCompress": "No Range Shifts"
+            "RangeCompress": "No Range Shifts",
+            "NoStarPowerOverlap": "No Star Power Overlap"
         },
         "SortAttribute": {
             "Album": "Album",

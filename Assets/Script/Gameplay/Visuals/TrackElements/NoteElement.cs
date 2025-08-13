@@ -39,6 +39,7 @@ namespace YARG.Gameplay.Visuals
         public override double ElementTime => NoteRef.Time;
 
         private bool _lastStarPowerState;
+        private bool _lastStarPowerActiveState;
 
         public abstract void SetThemeModels(ThemeDict models, ThemeDict starPowerModels);
 
@@ -46,16 +47,18 @@ namespace YARG.Gameplay.Visuals
         {
             SustainState = SustainState.Waiting;
             _lastStarPowerState = NoteRef.IsStarPower;
+            _lastStarPowerActiveState = Player.BaseEngine.BaseStats.IsStarPowerActive;
         }
 
         protected override void UpdateElement()
         {
             // Call OnStarPowerUpdated if the star power state of the note changes
-            if (_lastStarPowerState != NoteRef.IsStarPower)
+            if (_lastStarPowerState != NoteRef.IsStarPower || _lastStarPowerActiveState != Player.BaseEngine.BaseStats.IsStarPowerActive)
             {
                 OnStarPowerUpdated();
-                _lastStarPowerState = NoteRef.IsStarPower;
             }
+            _lastStarPowerState = NoteRef.IsStarPower;
+            _lastStarPowerActiveState = Player.BaseEngine.BaseStats.IsStarPowerActive;
         }
 
         /// <summary>

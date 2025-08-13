@@ -69,8 +69,10 @@ namespace YARG.Gameplay.Player
 
             if (!Player.IsReplay)
             {
+                bool noStarPowerOverlap = (Player.Profile.CurrentModifiers & Core.Game.Modifier.NoStarPowerOverlap) != 0;
+
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.Drums.Create(StarMultiplierThresholds, mode);
+                EngineParams = Player.EnginePreset.Drums.Create(StarMultiplierThresholds, noStarPowerOverlap, mode);
             }
             else
             {

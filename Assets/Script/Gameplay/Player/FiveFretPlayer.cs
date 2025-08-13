@@ -107,8 +107,10 @@ namespace YARG.Gameplay.Player
 
             if (!Player.IsReplay)
             {
+                bool noStarPowerOverlap = (Player.Profile.CurrentModifiers & Core.Game.Modifier.NoStarPowerOverlap) != 0;
+
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
+                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass, noStarPowerOverlap);
                 //EngineParams = EnginePreset.Precision.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
             }
             else
