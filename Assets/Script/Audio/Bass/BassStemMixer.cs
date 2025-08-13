@@ -224,6 +224,17 @@ namespace YARG.Audio.BASS
             return data;
         }
 
+        protected override int GetLevel_Internal(float[] level)
+        {
+            bool status = Bass.ChannelGetLevel(_mixerHandle, level, 0.2f, LevelRetrievalFlags.Mono | LevelRetrievalFlags.RMS);
+            if (!status)
+            {
+                return (int) Bass.LastError;
+            }
+
+            return (int) ManagedBass.Errors.OK;
+        }
+
         protected override void SetSpeed_Internal(float speed, bool shiftPitch)
         {
             speed = (float) Math.Clamp(speed, 0.05, 50);

@@ -31,7 +31,7 @@ namespace YARG.Gameplay.Player
                 // If we're in a replay, don't change the note speed (it should be like a video
                 // slowing down/speeding up). The actual song speed should be taken into account though,
                 // which is saved in the engine parameter override.
-                if (GameManager.ReplayInfo != null)
+                if (Player.IsReplay)
                 {
                     return noteSpeed / (float) Player.EngineParameterOverride.SongSpeed;
                 }
@@ -118,7 +118,7 @@ namespace YARG.Gameplay.Player
                 SantrollerHaptics = Player.Bindings.GetDevicesByType<ISantrollerHaptics>();
             }
 
-            if (GameManager.ReplayInfo == null)
+            if (!Player.IsReplay)
             {
                 SubscribeToInputEvents();
             }
@@ -140,9 +140,9 @@ namespace YARG.Gameplay.Player
 
             _noteSpeedDifficultyScale = Player.Profile.CurrentDifficulty.NoteSpeedScale();
 
-            if (GameManager.ReplayInfo != null)
+            if (Player.IsReplay && GameManager.ReplayInfo != null)
             {
-                _replayInputs = new List<GameInput>(GameManager.ReplayData.Frames[index].Inputs);
+                _replayInputs = new List<GameInput>(GameManager.ReplayData.Frames[player.ReplayIndex].Inputs);
                 YargLogger.LogFormatDebug("Initialized replay inputs with {0} inputs", _replayInputs.Count);
             }
 
@@ -155,22 +155,18 @@ namespace YARG.Gameplay.Player
             IsInitialized = true;
         }
 
-        public virtual void UpdateWithTimes(double inputTime)
+        public virtual void GameplayUpdate()
         {
             if (!GameManager.Started || GameManager.Paused)
             {
                 return;
             }
 
-            UpdateInputs(inputTime);
-            UpdateVisualsWithTimes(inputTime);
+            UpdateInputs(GameManager.InputTime);
+            UpdateVisuals(GameManager.VisualTime);
         }
 
-        protected virtual void UpdateVisualsWithTimes(double inputTime)
-        {
-            UpdateVisuals(inputTime);
-        }
-
+        protected abstract void UpdateVisuals(double visualTime);
         protected abstract void ResetVisuals();
 
         public virtual void ResetPracticeSection()
@@ -181,8 +177,6 @@ namespace YARG.Gameplay.Player
 
             ResetVisuals();
         }
-
-        protected abstract void UpdateVisuals(double time);
 
         public abstract void SetPracticeSection(uint start, uint end);
 
@@ -203,12 +197,12 @@ namespace YARG.Gameplay.Player
             SetStemMuteState(false);
 
             ResetVisuals();
-            UpdateVisualsWithTimes(time);
+            UpdateVisuals(time);
         }
 
         protected override void GameplayDestroy()
         {
-            if (GameManager.ReplayInfo == null)
+            if (!Player.IsReplay)
             {
                 UnsubscribeFromInputEvents();
             }
@@ -226,7 +220,7 @@ namespace YARG.Gameplay.Player
             // Video offset is already accounted for
             time += InputCalibration;
 
-            if (GameManager.ReplayInfo != null)
+            if (Player.IsReplay && GameManager.ReplayInfo != null)
             {
                 while (_replayInputIndex < ReplayInputs.Count)
                 {
@@ -327,7 +321,7 @@ namespace YARG.Gameplay.Player
 
             LastInputs[input.Action] = input;
 
-            double adjustedTime = GameManager.GetCalibratedRelativeInputTime(input.Time);
+            double adjustedTime = GameManager.GetRelativeInputTime(input.Time);
             // Apply input offset
             adjustedTime += InputCalibration;
             input = new(adjustedTime, input.Action, input.Integer);
@@ -375,6 +369,16 @@ namespace YARG.Gameplay.Player
             {
                 InputViewer.OnInput(input);
             }
+        }
+
+        protected void OnComboIncrement(int amount)
+        {
+            GameManager.AddBandCombo(amount);
+        }
+
+        protected void OnComboReset()
+        {
+            GameManager.ResetBandCombo();
         }
 
         protected static int[] PopulateStarScoreThresholds(float[] multiplierThresh, int baseScore)

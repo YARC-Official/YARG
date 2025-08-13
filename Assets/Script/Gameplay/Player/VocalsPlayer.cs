@@ -113,13 +113,17 @@ namespace YARG.Gameplay.Player
             _hud.ShowPlayerName(player, needleIndex);
 
             // Create and start an input context for the mic
-            if (GameManager.ReplayInfo == null && player.Bindings.Microphone != null)
+            if (!Player.IsReplay && player.Bindings.Microphone != null)
             {
                 _inputContext = new MicInputContext(player.Bindings.Microphone, GameManager);
                 _inputContext.Start();
             }
 
             Engine = CreateEngine();
+
+            Engine.OnComboIncrement += OnComboIncrement;
+            Engine.OnComboReset += OnComboReset;
+
             if (vocalIndex == 0)
             {
                 if (Player.Profile.CurrentInstrument == Instrument.Vocals)
@@ -156,7 +160,7 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
-            if (GameManager.ReplayInfo == null)
+            if (!Player.IsReplay)
             {
                 var singToActivateStarPower = SettingsManager.Settings.VoiceActivatedVocalStarPower.Value;
 
@@ -254,7 +258,7 @@ namespace YARG.Gameplay.Player
         protected override void UpdateInputs(double time)
         {
             // Push all inputs from mic
-            if (GameManager.ReplayInfo == null && _inputContext != null)
+            if (!Player.IsReplay && _inputContext != null)
             {
                 foreach (var input in _inputContext.GetInputsFromMic())
                 {
@@ -276,18 +280,10 @@ namespace YARG.Gameplay.Player
             return currentTime - lastTime.Value <= 1f / EngineParams.ApproximateVocalFps + 0.05;
         }
 
-        protected override void UpdateVisualsWithTimes(double inputTime)
+        protected override void UpdateVisuals(double visualTime)
         {
-            base.UpdateVisualsWithTimes(inputTime);
-            UpdatePercussionPhrase(inputTime);
-        }
-
-        protected override void UpdateVisuals(double time)
-        {
-            const float NEEDLE_POS_LERP = 30f;
-            const float NEEDLE_POS_SNAP_MULTIPLIER = 10f;
-
-            const float NEEDLE_ROT_LERP = 25f;
+            UpdatePercussionPhrase(visualTime);
+            UpdateSingNeedle();
 
             // Get combo meter fill
             float fill = 0f;
@@ -300,6 +296,40 @@ namespace YARG.Gameplay.Player
             // Update HUD
             _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier,
                 (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
+
+        }
+
+        private float GetNeedleRotation(float pitchDist)
+        {
+            const float NEEDLE_ROT_MAX = 12f;
+
+            // Reduce the provided distance by applying a dead zone. This will prevent oversteer if the player's current pitch is well within the "Perfect" window.
+            var deadzoneInSemitones = EngineParams.PitchWindowPerfect / 2;
+            var adjustedPitchDist = ApplyPitchDeadZone(pitchDist, deadzoneInSemitones);
+
+            // Determine how off that is compared to the hit window
+            float distPercent = Mathf.Clamp(adjustedPitchDist / (EngineParams.PitchWindow - deadzoneInSemitones), -1f, 1f);
+
+            // Use that to get the target rotation
+            return distPercent * NEEDLE_ROT_MAX;
+        }
+
+        private float ApplyPitchDeadZone(float pitchDist, float deadZoneInSemitones)
+        {
+            if (pitchDist >= 0.0f)
+            {
+                return Mathf.Max(0.0f, pitchDist - deadZoneInSemitones);
+            }
+
+            return Mathf.Min(0.0f, pitchDist + deadZoneInSemitones);
+        }
+
+        private void UpdateSingNeedle()
+        {
+            const float NEEDLE_POS_LERP = 30f;
+            const float NEEDLE_POS_SNAP_MULTIPLIER = 10f;
+
+            const float NEEDLE_ROT_LERP = 25f;
 
             // Get the appropriate sing time
             var singTime = GameManager.InputTime - Player.Profile.InputCalibrationSeconds;
@@ -398,31 +428,6 @@ namespace YARG.Gameplay.Player
                         Quaternion.identity, Time.deltaTime * NEEDLE_ROT_LERP);
                 }
             }
-        }
-
-        private float GetNeedleRotation(float pitchDist)
-        {
-            const float NEEDLE_ROT_MAX = 12f;
-
-            // Reduce the provided distance by applying a dead zone. This will prevent oversteer if the player's current pitch is well within the "Perfect" window.
-            var deadzoneInSemitones = EngineParams.PitchWindowPerfect / 2;
-            var adjustedPitchDist = ApplyPitchDeadZone(pitchDist, deadzoneInSemitones);
-
-            // Determine how off that is compared to the hit window
-            float distPercent = Mathf.Clamp(adjustedPitchDist / (EngineParams.PitchWindow - deadzoneInSemitones), -1f, 1f);
-
-            // Use that to get the target rotation
-            return distPercent * NEEDLE_ROT_MAX;
-        }
-
-        private float ApplyPitchDeadZone(float pitchDist, float deadZoneInSemitones)
-        {
-            if (pitchDist >= 0.0f)
-            {
-                return Mathf.Max(0.0f, pitchDist - deadZoneInSemitones);
-            }
-
-            return Mathf.Min(0.0f, pitchDist + deadZoneInSemitones);
         }
 
         private void UpdatePercussionPhrase(double time)

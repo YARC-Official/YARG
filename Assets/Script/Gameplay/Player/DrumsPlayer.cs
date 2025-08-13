@@ -67,7 +67,7 @@ namespace YARG.Gameplay.Player
                 _                        => throw new Exception("Unreachable.")
             };
 
-            if (GameManager.ReplayInfo == null)
+            if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.Drums.Create(StarMultiplierThresholds, mode);
@@ -143,11 +143,6 @@ namespace YARG.Gameplay.Player
 
             // Particle 0 is always kick fret
             _kickFretFlash.Initialize(colors.GetParticleColor(0).ToUnityColor());
-        }
-
-        protected override void UpdateVisuals(double songTime)
-        {
-            UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
         }
 
         public override void SetStemMuteState(bool muted)

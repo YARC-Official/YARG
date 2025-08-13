@@ -10,7 +10,9 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Settings;
 using YARG.Song;
 
@@ -22,7 +24,8 @@ namespace YARG.Menu.MusicLibrary
         {
             Main,
             SortSelect,
-            GoToSection
+            GoToSection,
+            AddToPlaylist,
         }
 
         [SerializeField]
@@ -90,6 +93,9 @@ namespace YARG.Menu.MusicLibrary
                 case State.GoToSection:
                     CreateGoToSection();
                     break;
+                case State.AddToPlaylist:
+                    CreateAddToPlayList();
+                    break;
             }
 
             _navGroup.SelectFirst();
@@ -152,6 +158,62 @@ namespace YARG.Menu.MusicLibrary
                         gameObject.SetActive(false);
                     });
                 }
+
+                if (viewType is SongViewType && !_musicLibrary.PlaylistMode)
+                {
+                    CreateItem("AddToPlaylist", () =>
+                    {
+                        _menuState = State.AddToPlaylist;
+                        UpdateForState();
+                    });
+                }
+
+                if (_musicLibrary.PlaylistMode)
+                {
+                    CreateItem("RemoveFromPlaylist", () =>
+                    {
+                        _musicLibrary.CurrentSelection.RemoveFromPlaylist(_musicLibrary.SelectedPlaylist);
+                        gameObject.SetActive(false);
+                    });
+                }
+            }
+
+            if (viewType is PlaylistViewType && _musicLibrary.MenuState == MenuState.PlaylistSelect)
+            {
+                // Only for the ad hoc setlist
+                if (_musicLibrary.CurrentSelection is PlaylistViewType pv && pv.Playlist.Ephemeral)
+                {
+                    CreateItem("AddToPlaylist", () =>
+                    {
+                        _menuState = State.AddToPlaylist;
+                        UpdateForState();
+                    });
+                }
+            }
+
+            if (viewType is PlaylistViewType playlistView &&
+                playlistView.Playlist != PlaylistContainer.FavoritesPlaylist)
+            {
+                CreateItem("RemovePlaylist", () =>
+                {
+                    // Special handling for the ad hoc setlist
+                    if (playlistView.Playlist.Ephemeral)
+                    {
+                        playlistView.Playlist.Clear();
+                    }
+                    else
+                    {
+                        PlaylistContainer.RemovePlaylist(playlistView.Playlist);
+                    }
+
+                    _musicLibrary.RefreshAndReselect();
+                    gameObject.SetActive(false);
+                    // Annoyingly, this has to be done after the popup menu is made inactive, requring duplicate if statements
+                    if (playlistView.Playlist.Ephemeral)
+                    {
+                        _musicLibrary.SetNavigationScheme(true);
+                    }
+                });
             }
 
             // Only show these options if we are selecting a song
@@ -241,6 +303,85 @@ namespace YARG.Menu.MusicLibrary
                     gameObject.SetActive(false);
                 });
             }
+        }
+
+        private void CreateAddToPlayList()
+        {
+            // Get the list of playlists from PlaylistContainer and create items for each
+            foreach (var playlist in PlaylistContainer.Playlists)
+            {
+                CreateItemUnlocalized(playlist.Name, () =>
+                {
+                    if (_musicLibrary.CurrentSelection is SongViewType songView)
+                    {
+                        var song = songView.SongEntry;
+                        var artist = song.Artist;
+                        var title = song.Name;
+                        // Add the song to the playlist
+                        _musicLibrary.CurrentSelection.AddToPlaylist(playlist);
+                        gameObject.SetActive(false);
+                        ToastManager.ToastSuccess($"Added {artist} - {title} to {playlist.Name}");
+                    }
+                    else if (_musicLibrary.CurrentSelection is PlaylistViewType playlistView)
+                    {
+                        var songs = playlistView.Playlist.ToList();
+                        foreach (var song in songs)
+                        {
+                            playlist.AddSong(song);
+                        }
+
+                        gameObject.SetActive(false);
+                        ToastManager.ToastSuccess($"Added {songs.Count} songs to {playlist.Name}");
+                        _musicLibrary.RefreshAndReselect();
+                    }
+                });
+            }
+
+            // Add option to create new playlist
+            CreateItem("CreateNewPlaylist", () =>
+            {
+
+                // TODO: Localize all these strings
+
+                // Show text entry dialog
+                DialogManager.Instance.ShowRenameDialog("New Playlist Name", value =>
+                {
+                    // Make sure we aren't being Jadened
+                    if (value == Localize.Key("Menu.MusicLibrary.CurrentSetlist"))
+                    {
+                        ToastManager.ToastError("You can't create a playlist with that name");
+                        gameObject.SetActive(false);
+                        return;
+                    }
+
+                    // Create the playlist
+                    var playlist = PlaylistContainer.CreatePlaylist(value);
+                    // Add selected song to new playlist
+                    if (_musicLibrary.CurrentSelection is SongViewType songView)
+                    {
+                        songView.AddToPlaylist(playlist);
+                    }
+                    else if (_musicLibrary.CurrentSelection is PlaylistViewType playlistView)
+                    {
+                        foreach(var song in playlistView.Playlist.ToList())
+                        {
+                            playlist.AddSong(song);
+                        }
+                    }
+                    else
+                    {
+                        ToastManager.ToastError("You can't add that to a playlist");
+                        PlaylistContainer.RemovePlaylist(playlist);
+                        gameObject.SetActive(false);
+                        return;
+                    }
+
+                    // Close the popup
+                    gameObject.SetActive(false);
+                    _musicLibrary.RefreshAndReselect();
+                    ToastManager.ToastSuccess("Playlist Created");
+                });
+            });
         }
 
         private void SetLocalizedHeader(string localizeKey)

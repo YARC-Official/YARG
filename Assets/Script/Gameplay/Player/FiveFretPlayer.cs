@@ -13,6 +13,7 @@ using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 using Random = UnityEngine.Random;
@@ -104,7 +105,7 @@ namespace YARG.Gameplay.Player
                 StarMultiplierThresholds = BassStarMultiplierThresholds;
             }
 
-            if (GameManager.ReplayInfo == null)
+            if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
@@ -165,7 +166,7 @@ namespace YARG.Gameplay.Player
                 InitializeRangeShift();
             }
 
-            GameManager.BeatEventHandler.Subscribe(_fretArray.PulseFretColors);
+            GameManager.BeatEventHandler.Visual.Subscribe(_fretArray.PulseFretColors, BeatEventType.StrongBeat);
         }
 
         public override void ResetPracticeSection()
@@ -191,42 +192,21 @@ namespace YARG.Gameplay.Player
             base.SetReplayTime(time);
         }
 
-        private void ResetRangeShift(double time)
+        protected override void UpdateVisuals(double visualTime)
         {
-            if (!Player.Profile.RangeEnabled)
-            {
-                return;
-            }
-
-            // Despawn shift indicators and rebuild the shift queues based on the replay time
-            _rangeShiftEventQueue.Clear();
-            _shiftIndicators.Clear();
-            _shiftIndicatorPool.ReturnAllObjects();
-            _rangeIndicatorPool.ReturnAllObjects();
-            InitializeRangeShift(time);
-
+            base.UpdateVisuals(visualTime);
+            UpdateRangeShift(visualTime);
+            UpdateFretArray();
         }
 
-        protected override void UpdateVisuals(double songTime)
-        {
-            UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
-
-            UpdateRangeShift(songTime);
-
-            for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
-            {
-                _fretArray.SetPressed((int) fret, Engine.IsFretHeld(fret));
-            }
-        }
-
-        public void UpdateRangeShift(double songTime)
+        public void UpdateRangeShift(double visualTime)
         {
             if (!_rangeShiftEventQueue.TryPeek(out var nextShift))
             {
                 return;
             }
 
-            if (_shiftIndicators.TryPeek(out var shiftIndicator) && shiftIndicator.Time <= songTime + SpawnTimeOffset)
+            if (_shiftIndicators.TryPeek(out var shiftIndicator) && shiftIndicator.Time <= visualTime + SpawnTimeOffset)
             {
                 // The range indicator is dealt with in its own function
                 if (shiftIndicator.RangeIndicator)
@@ -260,7 +240,7 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            if (_fretPulseStarting && _fretPulseStartTime <= songTime)
+            if (_fretPulseStarting && _fretPulseStartTime <= visualTime)
             {
                 for (var i = nextShift.Position - 1; i < nextShift.Position + nextShift.Size - 1; i++)
                 {
@@ -272,7 +252,7 @@ namespace YARG.Gameplay.Player
 
 
             // Turn off the pulsing and switch active frets now that we're in the new range
-            if (nextShift.Time <= songTime)
+            if (nextShift.Time <= visualTime)
             {
                 _rangeShiftEventQueue.Dequeue();
                 for (var i = 0; i < _fretArray.FretCount; i++)
@@ -283,6 +263,30 @@ namespace YARG.Gameplay.Player
                 _fretPulseStarting = false;
                 CurrentRange = nextShift;
                 SetActiveFretsForShiftEvent(nextShift);
+            }
+        }
+
+        private void ResetRangeShift(double time)
+        {
+            if (!Player.Profile.RangeEnabled)
+            {
+                return;
+            }
+
+            // Despawn shift indicators and rebuild the shift queues based on the replay time
+            _rangeShiftEventQueue.Clear();
+            _shiftIndicators.Clear();
+            _shiftIndicatorPool.ReturnAllObjects();
+            _rangeIndicatorPool.ReturnAllObjects();
+            InitializeRangeShift(time);
+
+        }
+
+        private void UpdateFretArray()
+        {
+            for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
+            {
+                _fretArray.SetPressed((int) fret, Engine.IsFretHeld(fret));
             }
         }
 

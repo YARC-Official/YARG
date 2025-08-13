@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -16,7 +15,6 @@ using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
 using YARG.Playback;
 using YARG.Player;
-using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
 using YARG.Song;
@@ -126,7 +124,35 @@ namespace YARG.Gameplay
                     global.LoadScene(SceneIndex.Menu);
                     return;
                 }
-                _replayController.gameObject.SetActive(true);
+
+                if (!GlobalVariables.State.PlayingWithReplay)
+                {
+                    _replayController.gameObject.SetActive(true);
+                }
+                else
+                {
+                    // var players = new YargPlayer[YargPlayers.Count + PlayerContainer.Players.Count];
+                    _replayController.gameObject.SetActive(false);
+                    var players = new List<YargPlayer>();
+                    players.AddRange(PlayerContainer.Players);
+                    for (int i = 0; i < YargPlayers.Count; i++)
+                    {
+                         // YargPlayers[i].ReplayIndex = i;
+                         players.Add(YargPlayers[i]);
+                    }
+
+                    YargPlayers = players.ToArray();
+                }
+
+                var replayIndex = 0;
+                foreach (var player in YargPlayers)
+                {
+                    if (player.IsReplay)
+                    {
+                        player.ReplayIndex = replayIndex;
+                        replayIndex++;
+                    }
+                }
             }
 
             context.Queue(UniTask.RunOnThreadPool(LoadChart), "Loading chart...");
@@ -164,6 +190,8 @@ namespace YARG.Gameplay
             // Initialize song runner
             _songRunner = new SongRunner(
                 _mixer,
+                startTime: 0,
+                SONG_START_DELAY,
                 GlobalVariables.State.SongSpeed,
                 audioCalibration,
                 SettingsManager.Settings.VideoCalibration.Value,
@@ -201,8 +229,7 @@ namespace YARG.Gameplay
 
             // TODO: Move the offset here to SFX configuration
             // The clap SFX has 20 ms of lead-up before the actual impact happens
-            // Must be offset by audio calibration to account for playback delay
-            BeatEventHandler.Subscribe(StarPowerClap, -0.02 + _songRunner.AudioCalibration);
+            BeatEventHandler.Audio.Subscribe(StarPowerClap, BeatEventType.StrongBeat, offset: -0.02);
 
             // Log constant values
             YargLogger.LogFormatDebug("Audio calibration: {0}, video calibration: {1}, song offset: {2}",
@@ -216,7 +243,8 @@ namespace YARG.Gameplay
 
         private bool LoadReplay()
         {
-            var (result, data) = ReplayIO.TryLoadData(ReplayInfo);
+            var readOptions = new ReplayReadOptions { KeepFrameTimes = GlobalVariables.VerboseReplays };
+            var (result, data) = ReplayIO.TryLoadData(ReplayInfo, readOptions);
             if (result != ReplayReadResult.Valid)
             {
                 YargLogger.LogFormatError("Failed to load replay! Result: {0}", result);
@@ -326,7 +354,7 @@ namespace YARG.Gameplay
                 {
                     index++;
 
-                    if (ReplayInfo == null)
+                    if (!player.IsReplay)
                     {
                         // Reset microphone (resets channel buffers)
                         // We probably wanna do this no matter what, so put it up here
@@ -339,7 +367,7 @@ namespace YARG.Gameplay
                         continue;
                     }
 
-                    if (ReplayInfo == null)
+                    if (!player.IsReplay)
                     {
                         // Don't do this if it's a replay, because the replay
                         // would've already set its own presets at this point

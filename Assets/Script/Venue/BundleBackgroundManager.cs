@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using UnityEngine;
+using YARG.Gameplay;
+
 
 
 #if UNITY_EDITOR
@@ -31,6 +33,18 @@ namespace YARG.Venue
         {
             // Move object out of the way, so its effects don't collide with the tracks
             transform.position += Vector3.forward * 10_000f;
+        }
+
+        public void SetupVenueCamera(GameObject bgInstance)
+        {
+            mainCamera.gameObject.AddComponent<VenueCameraManager>();
+            var fsrManager = mainCamera.GetComponent<FSRCameraManager>();
+            if (fsrManager != null)
+            {
+                fsrManager.enabled = false;
+                fsrManager.textureParentObject = bgInstance;
+                fsrManager.enabled = true;
+            }
         }
 
         private void OnDestroy()

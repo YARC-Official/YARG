@@ -13,6 +13,7 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
+using YARG.Gameplay;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -61,7 +62,20 @@ namespace YARG.Menu.ScoreScreen
                 {
                     if (!_analyzingReplay)
                     {
-                        GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                        GlobalVariables.State.ShowIndex++;
+                        if (GlobalVariables.State.PlayingAShow &&
+                            GlobalVariables.State.ShowIndex < GlobalVariables.State.ShowSongs.Count)
+                        {
+                            // Reset CurrentSong and launch back into the Gameplay scene
+                            GlobalVariables.State.CurrentSong =
+                                GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex];
+                            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+                        }
+                        else
+                        {
+                            GlobalVariables.State.PlayingAShow = false;
+                            GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                        }
                     }
                 })
             }, true));
@@ -75,6 +89,7 @@ namespace YARG.Menu.ScoreScreen
             var song = GlobalVariables.State.CurrentSong;
             var scoreScreenStats = GlobalVariables.State.ScoreScreenStats.Value;
 
+#if UNITY_EDITOR || YARG_NIGHTLY_BUILD || YARG_TEST_BUILD
             // Do analysis of replay before showing any score data
             // This will make it so that if the analysis takes a while the screen is blank
             // (kinda like a loading screen)
@@ -96,6 +111,7 @@ namespace YARG.Menu.ScoreScreen
                     "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
                     $"Chart Hash: {song.Hash}");
             }
+#endif
 
             // Set text
             _songTitle.text = song.Name;
@@ -123,7 +139,10 @@ namespace YARG.Menu.ScoreScreen
 
         private void OnDisable()
         {
-            GlobalVariables.State = PersistentState.Default;
+            if (!GlobalVariables.State.PlayingAShow)
+            {
+                GlobalVariables.State = PersistentState.Default;
+            }
 
             Navigator.Instance.PopScheme();
         }
@@ -204,7 +223,11 @@ namespace YARG.Menu.ScoreScreen
                 return true;
             }
 
-            var (result, data) = ReplayIO.TryLoadData(replayEntry);
+            var replayOptions = new ReplayReadOptions
+            {
+                KeepFrameTimes = GlobalVariables.VerboseReplays
+            };
+            var (result, data) = ReplayIO.TryLoadData(replayEntry, replayOptions);
             if (result != ReplayReadResult.Valid)
             {
                 YargLogger.LogFormatError("Replay did not load. {0}", result);

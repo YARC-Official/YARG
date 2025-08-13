@@ -78,6 +78,27 @@ namespace YARG.Scores
             {
                 YargLogger.LogFormatDebug("Successfully updated the percentage field on {0} rows.", amountFilled);
             }
+
+            // Default missing IsReplay values to false
+            int amountUpdated = _db.Execute(
+                @"UPDATE PlayerScores
+                SET IsReplay = 0 WHERE IsReplay IS NULL"
+            );
+            if (amountUpdated > 0)
+            {
+                YargLogger.LogFormatDebug("Successfully updated the IsReplay field on {0} rows.", amountUpdated);
+            }
+
+            // Default missing PlayedWithReplay field to false
+            amountUpdated = _db.Execute(
+                @"UPDATE GameRecords
+                SET PlayedWithReplay = 0 WHERE PlayedWithReplay IS NULL"
+            );
+
+            if (amountUpdated > 0)
+            {
+                YargLogger.LogFormatDebug("Successfully updated the PlayedWithReplay field on {0} rows.", amountUpdated);
+            }
         }
 
         public void Dispose()
@@ -181,6 +202,7 @@ namespace YARG.Scores
 
         public List<GameRecord> QueryAllScoresByDate()
         {
+            // We don't check for WasPlayedWithReplay here because this is only used by the history menu
             return Query<GameRecord>(
                 @"SELECT * FROM GameRecords
                 ORDER BY Date DESC"
@@ -191,6 +213,7 @@ namespace YARG.Scores
         {
             return Query<GameRecord>(
                 @"SELECT *, MAX(BandScore) FROM GameRecords
+                WHERE PlayedWithReplay = 0
                 GROUP BY GameRecords.SongChecksum"
             );
         }
@@ -199,7 +222,7 @@ namespace YARG.Scores
         {
             return FindWithQuery<GameRecord>(
                 @"SELECT *, MAX(BandScore) FROM GameRecords
-                WHERE SongChecksum = ?",
+                WHERE SongChecksum = ? AND PlayedWithReplay = 0",
                 songChecksum.HashBytes
             );
         }
@@ -208,7 +231,8 @@ namespace YARG.Scores
         {
             return Query<PlayerScoreRecord>(
                 @"SELECT * FROM PlayerScores
-                WHERE PlayerId = ?",
+                WHERE PlayerId = ?
+                AND IsReplay = 0",
                 playerId
             );
         }
@@ -231,6 +255,7 @@ namespace YARG.Scores
                 ON PlayerScores.GameRecordId = GameRecords.Id
                 WHERE PlayerId = ?
                     AND Instrument = ?
+                    AND IsReplay = 0
                 ORDER BY {difficultyClause} Score DESC
               )
               GROUP BY SongChecksum";
@@ -260,6 +285,7 @@ namespace YARG.Scores
                 ON PlayerScores.GameRecordId = GameRecords.Id
                 WHERE PlayerId = ?
                     AND Instrument = ?
+                    AND IsReplay = 0
                 ORDER BY {difficultyClause} Percent DESC, IsFc DESC
               )
               GROUP BY SongChecksum";
@@ -285,7 +311,8 @@ namespace YARG.Scores
                     ON PlayerScores.GameRecordId = GameRecords.Id
                 WHERE GameRecords.SongChecksum = ?
                     AND PlayerScores.PlayerId = ?
-                    AND PlayerScores.Instrument = ?";
+                    AND PlayerScores.Instrument = ?
+                    AND PlayerScores.IsReplay = 0";
 
             if (highestDifficultyOnly)
             {
@@ -319,7 +346,8 @@ namespace YARG.Scores
                     ON PlayerScores.GameRecordId = GameRecords.Id
                 WHERE GameRecords.SongChecksum = ?
                     AND PlayerScores.PlayerId = ?
-                    AND PlayerScores.Instrument = ?";
+                    AND PlayerScores.Instrument = ?
+                    AND PlayerScores.IsReplay = 0";
 
             if (highestDifficultyOnly)
             {
@@ -345,6 +373,7 @@ namespace YARG.Scores
             return
                 DeferredQuery<GameRecord>(
                     $@"SELECT Id, SongChecksum, COUNT(SongChecksum) AS `Count` FROM GameRecords
+                    WHERE PlayedWithReplay = 0
                     GROUP BY SongChecksum
                     ORDER BY `Count` DESC
                     LIMIT {maxCount}"
@@ -358,7 +387,8 @@ namespace YARG.Scores
             var query =
                 @"SELECT COUNT(GameRecords.Id), GameRecords.SongChecksum from GameRecords, PlayerScores
                 WHERE PlayerScores.GameRecordId = GameRecords.Id
-                    AND PlayerScores.PlayerId = ?";
+                    AND PlayerScores.PlayerId = ?
+                    AND PlayerScores.IsReplay = 0";
 
             // If the profile instrument is bad, we can still return all scores for the profile
             if (profile.HasValidInstrument)

@@ -13,7 +13,7 @@ namespace YARG.Input
             return device switch
             {
                 Keyboard keyboard => SetDefaultBindings(keyboard),
-                Gamepad gamepad => SetDefaultBindings(gamepad),
+                Gamepad gamepad => SetDefaultBindings(gamepad, GamepadBindingMode.Gamepad),
 
                 FiveFretGuitar guitar => SetDefaultBindings(guitar),
                 SixFretGuitar guitar => SetDefaultBindings(guitar),
@@ -35,9 +35,9 @@ namespace YARG.Input
             return IsMenu ? SetDefaultMenuBindings(keyboard) : SetDefaultGameplayBindings(keyboard);
         }
 
-        public bool SetDefaultBindings(Gamepad gamepad)
+        public bool SetDefaultBindings(Gamepad gamepad, GamepadBindingMode mode)
         {
-            return IsMenu ? SetDefaultMenuBindings(gamepad) : SetDefaultGameplayBindings(gamepad);
+            return IsMenu ? SetDefaultMenuBindings(gamepad, mode) : SetDefaultGameplayBindings(gamepad, mode);
         }
 
         public bool SetDefaultBindings(FiveFretGuitar guitar)
