@@ -1,11 +1,15 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Audio;
+using YARG.Core.Engine.Guitar;
+using YARG.Core.Engine.ProKeys;
 using YARG.Core.Extensions;
+using YARG.Core.YARG.Core.Engine.ProKeys;
 using YARG.Gameplay.Player;
 using YARG.Integration;
 
@@ -327,7 +331,8 @@ namespace YARG.Gameplay
 
             string playerType = player switch
             {
-                FiveFretPlayer => "Five Fret Guitar",
+                FiveFretGuitarPlayer => "Five Fret Guitar",
+                FiveLaneKeysPlayer => "Five Lane Keys",
                 DrumsPlayer => "Drums",
                 VocalsPlayer => "Vocals",
                 ProKeysPlayer => "Pro Keys",
@@ -340,7 +345,7 @@ namespace YARG.Gameplay
             {
                 switch (player)
                 {
-                    case FiveFretPlayer fiveFretPlayer:
+                    case FiveFretGuitarPlayer fiveFretPlayer:
                     {
                         using var text = ZString.CreateStringBuilder(true);
 

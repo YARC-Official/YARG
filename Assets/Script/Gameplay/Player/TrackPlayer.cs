@@ -172,7 +172,7 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
-            SetupTheme(player.Profile.GameMode);
+            SetupTheme(player.Profile.CurrentInstrument.ToGameMode());
 
             Chart = chart;
 

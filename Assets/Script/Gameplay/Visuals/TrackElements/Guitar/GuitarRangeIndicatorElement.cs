@@ -1,11 +1,14 @@
 ﻿using System;
 using UnityEngine;
+using YARG.Core.Engine;
 using YARG.Gameplay.Player;
 using YARG.Helpers;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class GuitarRangeIndicatorElement : TrackElement<FiveFretPlayer>
+    public class GuitarRangeIndicatorElement<TEngine, TEngineParams> : TrackElement<FiveFretPlayer<TEngine, TEngineParams>>
+        where TEngine : BaseEngine
+        where TEngineParams : BaseEngineParameters
     {
         public        FiveFretRangeShift RangeShift;
 

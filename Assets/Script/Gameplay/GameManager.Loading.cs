@@ -386,7 +386,7 @@ namespace YARG.Gameplay
                             GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
                             GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
                             GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
-                            GameMode.ProKeys        => _proKeysPrefab,
+                            GameMode.ProKeys        => player.Profile.CurrentInstrument is Instrument.ProKeys ? _proKeysPrefab : _fiveFretGuitarPrefab,
                             GameMode.ProGuitar      => _proGuitarPrefab,
                             _                       => null
                         };

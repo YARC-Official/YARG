@@ -16,11 +16,12 @@ using YARG.Helpers;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
-using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
 {
-    public sealed class FiveFretPlayer : TrackPlayer<GuitarEngine, GuitarNote>
+    public abstract class FiveFretPlayer<TEngine, TEngineParams> : TrackPlayer<TEngine, GuitarNote>
+        where TEngine : BaseEngine
+        where TEngineParams : BaseEngineParameters
     {
         private const double SUSTAIN_END_MUTE_THRESHOLD      = 0.1;
 
@@ -33,12 +34,12 @@ namespace YARG.Gameplay.Player
             0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f
         };
 
-        private static float[] BassStarMultiplierThresholds => new[]
+        protected static float[] BassStarMultiplierThresholds => new[]
         {
             0.21f, 0.50f, 0.90f, 2.77f, 4.62f, 6.78f
         };
 
-        public GuitarEngineParameters EngineParams { get; private set; }
+        public abstract TEngineParams EngineParams { get; protected set; }
 
         private double TimeFromSpawnToStrikeline => SpawnTimeOffset - (-STRIKE_LINE_POS / NoteSpeed);
 
@@ -62,7 +63,7 @@ namespace YARG.Gameplay.Player
 
         [Header("Five Fret Specific")]
         [SerializeField]
-        private FretArray _fretArray;
+        protected FretArray _fretArray;
         [SerializeField]
         private Pool _shiftIndicatorPool;
         [SerializeField]
@@ -96,52 +97,6 @@ namespace YARG.Gameplay.Player
             return track.GetDifficulty(Player.Profile.CurrentDifficulty);
         }
 
-        protected override GuitarEngine CreateEngine()
-        {
-            // If on bass, replace the star multiplier threshold
-            bool isBass = Player.Profile.CurrentInstrument == Instrument.FiveFretBass;
-            if (isBass)
-            {
-                StarMultiplierThresholds = BassStarMultiplierThresholds;
-            }
-
-            if (!Player.IsReplay)
-            {
-                // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
-                //EngineParams = EnginePreset.Precision.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
-            }
-            else
-            {
-                // Otherwise, get from the replay
-                EngineParams = (GuitarEngineParameters) Player.EngineParameterOverride;
-            }
-
-            var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart);
-
-            HitWindow = EngineParams.HitWindow;
-
-            YargLogger.LogFormatDebug("Note count: {0}", NoteTrack.Notes.Count);
-
-            engine.OnNoteHit += OnNoteHit;
-            engine.OnNoteMissed += OnNoteMissed;
-            engine.OnOverstrum += OnOverhit;
-
-            engine.OnSustainStart += OnSustainStart;
-            engine.OnSustainEnd += OnSustainEnd;
-
-            engine.OnSoloStart += OnSoloStart;
-            engine.OnSoloEnd += OnSoloEnd;
-
-            engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
-            engine.OnStarPowerStatus += OnStarPowerStatus;
-
-            engine.OnCountdownChange += OnCountdownChange;
-
-            return engine;
-        }
-
         protected override void FinishInitialization()
         {
             base.FinishInitialization();
@@ -151,7 +106,7 @@ namespace YARG.Gameplay.Player
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
             _fretArray.Initialize(
                 Player.ThemePreset,
-                Player.Profile.GameMode,
+                Player.Profile.CurrentInstrument.ToGameMode(),
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip,
                 false, // Not applicable to five fret
@@ -228,7 +183,7 @@ namespace YARG.Gameplay.Player
 
                 YargLogger.LogDebug("Shift indicator spawned!");
 
-                ((GuitarShiftIndicatorElement) poolable).RangeShiftIndicator = shiftIndicator;
+                ((GuitarShiftIndicatorElement<TEngine, TEngineParams>) poolable).RangeShiftIndicator = shiftIndicator;
                 poolable.EnableFromPool();
 
                 _shiftIndicators.Dequeue();
@@ -279,14 +234,13 @@ namespace YARG.Gameplay.Player
             _shiftIndicatorPool.ReturnAllObjects();
             _rangeIndicatorPool.ReturnAllObjects();
             InitializeRangeShift(time);
-
         }
 
         private void UpdateFretArray()
         {
             for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
             {
-                _fretArray.SetPressed((int) fret, Engine.IsFretHeld(fret));
+                _fretArray.SetPressed((int) fret, IsFretHeld(fret));
             }
         }
 
@@ -306,7 +260,7 @@ namespace YARG.Gameplay.Player
 
             YargLogger.LogDebug("Range indicator spawned!");
 
-            ((GuitarRangeIndicatorElement) poolable).RangeShift = nextShift;
+            ((GuitarRangeIndicatorElement<TEngine, TEngineParams>) poolable).RangeShift = nextShift;
             poolable.EnableFromPool();
 
             _shiftIndicators.Dequeue();
@@ -335,7 +289,7 @@ namespace YARG.Gameplay.Player
 
         protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
         {
-            ((FiveFretNoteElement) poolable).NoteRef = note;
+            ((FiveFretNoteElement<TEngine, TEngineParams>) poolable).NoteRef = note;
         }
 
         protected override void OnNoteHit(int index, GuitarNote chordParent)
@@ -346,7 +300,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var note in chordParent.AllNotes)
             {
-                (NotePool.GetByKey(note) as FiveFretNoteElement)?.HitNote();
+                (NotePool.GetByKey(note) as FiveFretNoteElement<TEngine, TEngineParams>)?.HitNote();
 
                 if (note.Fret != (int) FiveFretGuitarFret.Open)
                 {
@@ -365,68 +319,11 @@ namespace YARG.Gameplay.Player
 
             foreach (var note in chordParent.AllNotes)
             {
-                (NotePool.GetByKey(note) as FiveFretNoteElement)?.MissNote();
+                (NotePool.GetByKey(note) as FiveFretNoteElement<TEngine, TEngineParams>)?.MissNote();
             }
         }
 
-        protected override void OnOverhit()
-        {
-            base.OnOverhit();
-
-            if (GameManager.IsSeekingReplay)
-            {
-                return;
-            }
-
-            if (SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value)
-            {
-                const int MIN = (int) SfxSample.Overstrum1;
-                const int MAX = (int) SfxSample.Overstrum4;
-
-                var randomOverstrum = (SfxSample) Random.Range(MIN, MAX + 1);
-                GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
-            }
-
-            // To check if held frets are valid
-            GuitarNote currentNote = null;
-            if (Engine.NoteIndex < Notes.Count)
-            {
-                var note = Notes[Engine.NoteIndex];
-
-                // Don't take the note if it's not within the hit window
-                // TODO: Make BaseEngine.IsNoteInWindow public and use that instead
-                var (frontEnd, backEnd) = Engine.CalculateHitWindow();
-                if (Engine.CurrentTime >= (note.Time + frontEnd) && Engine.CurrentTime <= (note.Time + backEnd))
-                {
-                    currentNote = note;
-                }
-            }
-
-            // Play miss animation for every held fret that does not match the current note
-            bool anyHeld = false;
-            for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
-            {
-                if (!Engine.IsFretHeld(fret))
-                {
-                    continue;
-                }
-
-                anyHeld = true;
-
-                if (currentNote == null || (currentNote.NoteMask & (1 << (int) fret)) == 0)
-                {
-                    _fretArray.PlayMissAnimation((int) fret);
-                }
-            }
-
-            // Play open-strum miss if no frets are held
-            if (!anyHeld)
-            {
-                _fretArray.PlayOpenMissAnimation();
-            }
-        }
-
-        private void OnSustainStart(GuitarNote parent)
+        protected void OnSustainStart(GuitarNote parent)
         {
             foreach (var note in parent.AllNotes)
             {
@@ -445,7 +342,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
+        protected void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
         {
             foreach (var note in parent.AllNotes)
             {
@@ -455,7 +352,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd(finished);
+                (NotePool.GetByKey(note) as FiveFretNoteElement<TEngine, TEngineParams>)?.SustainEnd(finished);
 
                 if (note.Fret != (int) FiveFretGuitarFret.Open)
                 {
@@ -501,13 +398,6 @@ namespace YARG.Gameplay.Player
                 GameManager.ChangeStemWhammyPitch(_stem, WhammyFactor);
             }
         }
-
-        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
-        {
-            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
-            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
-        }
-
 
         private void InitializeRangeShift(double time = 0)
         {
@@ -669,5 +559,7 @@ namespace YARG.Gameplay.Player
                 _fretArray.UpdateFretActiveState(_activeFrets);
             }
         }
+
+        protected abstract bool IsFretHeld(GuitarAction fret);
     }
 }
