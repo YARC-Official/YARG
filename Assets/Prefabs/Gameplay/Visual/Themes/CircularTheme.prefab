@@ -49,9 +49,12 @@ MonoBehaviour:
   _fiveFretNotes: {fileID: 6269854297387791962}
   _fourLaneNotes: {fileID: 0}
   _fiveLaneNotes: {fileID: 0}
+  _proKeysNotes: {fileID: 0}
   _fiveFretFret: {fileID: 206202885069211527}
   _fourLaneFret: {fileID: 206202885069211527}
   _fiveLaneFret: {fileID: 206202885069211527}
+  _whiteKey: {fileID: 0}
+  _blackKey: {fileID: 0}
   _kickFret: {fileID: 0}
 --- !u!1 &419940684236448424
 GameObject:
@@ -760,7 +763,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 636ebdd2c2274e348a75d39ad5f95a5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _scaleConstant: 4.25
 --- !u!1 &6269854297387791962
 GameObject:
   m_ObjectHideFlags: 0
@@ -940,7 +942,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 636ebdd2c2274e348a75d39ad5f95a5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _scaleConstant: 4.25
 --- !u!1 &8764092072349519144
 GameObject:
   m_ObjectHideFlags: 0
@@ -1407,7 +1408,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Materials.Array.data[3]
       value: 
-      objectReference: {fileID: 2100000, guid: c535f6f0b43b6f442818005dc36233c7, type: 2}
+      objectReference: {fileID: 2100000, guid: 70e6fe72bccaccf4cbc5ea63f305ac8d, type: 2}
     - target: {fileID: -7511558181221131132, guid: 50e67af97f805a64dbe4893367a999c4,
         type: 3}
       propertyPath: m_Materials.Array.data[4]
@@ -1931,7 +1932,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Materials.Array.data[1]
       value: 
-      objectReference: {fileID: 2100000, guid: 61345d0a60650f1488153b15b3c5e251, type: 2}
+      objectReference: {fileID: 2100000, guid: 955393af2abe8d846857bd37f837caee, type: 2}
     - target: {fileID: -7511558181221131132, guid: 73f23d9a00aa8c04191b20413cf12238,
         type: 3}
       propertyPath: m_Materials.Array.data[2]
