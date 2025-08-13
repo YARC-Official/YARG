@@ -49,6 +49,13 @@ namespace YARG.Gameplay.Visuals
             ParentPool.Return(this);
         }
 
+        public override void MissNote()
+        {
+            base.MissNote();
+
+            UpdateColor();
+        }
+
         public override void OnStarPowerUpdated()
         {
             base.OnStarPowerUpdated();
