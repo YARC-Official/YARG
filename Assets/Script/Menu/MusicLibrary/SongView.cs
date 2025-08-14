@@ -53,6 +53,9 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private Image _normalCategoryHeaderGradient;
 
+        [SerializeField]
+        private Image _selectedSourceIconBackground;
+
         public override void Show(bool selected, ViewType viewType)
         {
             base.Show(selected, viewType);
@@ -68,6 +71,8 @@ namespace YARG.Menu.MusicLibrary
                 _songNameContainer.SetActive(true);
                 _categoryNameContainer.SetActive(false);
             }
+
+            _selectedSourceIconBackground.enabled = selected & viewType is SongViewType;
 
             // Set side text
             var scoreInfo = viewType.GetScoreInfo();
