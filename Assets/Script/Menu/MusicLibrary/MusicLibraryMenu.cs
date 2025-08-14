@@ -102,8 +102,12 @@ namespace YARG.Menu.MusicLibrary
 
         private List<HoldContext> _heldInputs = new();
 
+        // Doesn't go through PlaylistContainer because it is ephemeral
+        public Playlist        ShowPlaylist { get; set; } = new(true);
+
         private static Instrument _lastInstrument;
         private static Difficulty _lastDifficulty;
+
         private static bool _needsReload = false;
 
         public static void NeedsReload()
