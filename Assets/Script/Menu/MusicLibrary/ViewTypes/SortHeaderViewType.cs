@@ -1,6 +1,7 @@
-﻿using Cysharp.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AddressableAssets;
+using YARG.Helpers;
+using YARG.Menu.Data;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -18,13 +19,20 @@ namespace YARG.Menu.MusicLibrary
         {
             HeaderText = headerText;
             _songCount = songCount;
-            
+
             ShortcutName = shortcutName;
         }
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(HeaderText, TextType.Bright, selected);
+            if (selected)
+            {
+                return TextColorer.StyleString(HeaderText, MenuData.Colors.HeaderSelectedPrimary, 600);
+            }
+            else
+            {
+                return TextColorer.StyleString(HeaderText, MenuData.Colors.HeaderPrimary, 600);
+            }
         }
 
         public override string GetSideText(bool selected)

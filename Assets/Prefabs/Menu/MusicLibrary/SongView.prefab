@@ -2056,9 +2056,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _canvasGroup: {fileID: 215129106566158253}
-  _normalBackground: {fileID: 4505452236614856762}
-  _selectedBackground: {fileID: 8586479606034422330}
-  _categoryBackground: {fileID: 4807421719434892723}
+  NormalBackground: {fileID: 4505452236614856762}
+  SelectedBackground: {fileID: 8586479606034422330}
+  CategoryBackground: {fileID: 4807421719434892723}
   _icon: {fileID: 91003172277932724}
   _primaryText:
   - {fileID: 6846856528720448031}
@@ -2066,7 +2066,8 @@ MonoBehaviour:
   _secondaryText:
   - {fileID: 7006697502306556741}
   _songNameContainer: {fileID: 4368672747380734833}
-  _sideText: {fileID: 1200385484507932754}
+  _instrumentDifficultyViewContainer: {fileID: 0}
+  _instrumentDifficultyView: {fileID: 0}
   _starView: {fileID: 6549734375584227207}
   _secondaryTextContainer: {fileID: 4454172983210282838}
   _asMadeFamousByTextContainer: {fileID: 1063990577666964748}
@@ -2079,6 +2080,10 @@ MonoBehaviour:
   _favouriteFilled: {fileID: 1390811379, guid: 81b6595c7cde06540b683feaa83291af, type: 3}
   _categoryNameContainer: {fileID: 2200136566915400073}
   _categoryText: {fileID: 9056057400455014970}
+  _starsObtainedView: {fileID: 0}
+  _starsObtainedText: {fileID: 0}
+  _trackGradient: {fileID: 0}
+  _normalCategoryHeaderGradient: {fileID: 0}
 --- !u!225 &215129106566158253
 CanvasGroup:
   m_ObjectHideFlags: 0

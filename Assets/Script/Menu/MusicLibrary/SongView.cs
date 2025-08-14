@@ -121,51 +121,53 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        // protected override void SetBackground(bool selected, BaseViewType.BackgroundType type)
-        // {
-        //     base.SetBackground(selected, type);
-        //
-        //     // _trackGradient.gameObject.SetActive(false);
-        //     // _normalCategoryHeaderGradient.gameObject.SetActive(false);
-        //     // if (selected && type is BaseViewType.BackgroundType.Category)
-        //     // {
-        //     //     _normalCategoryHeaderGradient.gameObject.SetActive(true);
-        //     // }
-        //     // else
-        //     // {
-        //     //     _trackGradient.gameObject.SetActive(true);
-        //     // }
-        //
-        //     // _normalBackground.SetActive(false);
-        //     // _selectedBackground.SetActive(false);
-        //     // _categoryBackground.SetActive(false);
-        //
-        //     // switch (type)
-        //     // {
-        //     //     case BaseViewType.BackgroundType.Normal:
-        //     //         if (selected)
-        //     //         {
-        //     //             _selectedBackground.SetActive(true);
-        //     //         }
-        //     //         else
-        //     //         {
-        //     //             _normalBackground.SetActive(true);
-        //     //         }
-        //
-        //     //         break;
-        //     //     case BaseViewType.BackgroundType.Category:
-        //     //         if (selected)
-        //     //         {
-        //     //             _selectedBackground.SetActive(true);
-        //     //         }
-        //     //         else
-        //     //         {
-        //     //             _categoryBackground.SetActive(true);
-        //     //         }
-        //
-        //     //         break;
-        //     // }
-        // }
+        protected override void SetBackground(bool selected, BaseViewType.BackgroundType type)
+        {
+            base.SetBackground(selected, type);
+
+            _trackGradient.gameObject.SetActive(false);
+            _normalCategoryHeaderGradient.gameObject.SetActive(false);
+            if (selected && type is BaseViewType.BackgroundType.Category)
+            {
+                _normalCategoryHeaderGradient.gameObject.SetActive(true);
+            }
+            else
+            {
+                _trackGradient.gameObject.SetActive(true);
+            }
+
+            NormalBackground.SetActive(false);
+            SelectedBackground.SetActive(false);
+            CategoryBackground.SetActive(false);
+
+            switch (type)
+            {
+                case BaseViewType.BackgroundType.Normal:
+                    if (selected)
+                    {
+                        SelectedBackground.SetActive(true);
+                    }
+                    else
+                    {
+                        NormalBackground.SetActive(true);
+                    }
+
+                    break;
+                case BaseViewType.BackgroundType.Category:
+                    if (selected)
+                    {
+                        SelectedBackground.SetActive(true);
+                    }
+                    else
+                    {
+                        CategoryBackground.SetActive(true);
+                    }
+
+                    break;
+                default:
+                    break;
+            }
+        }
 
         private void UpdateFavoriteSprite(ViewType.FavoriteInfo favoriteInfo)
         {

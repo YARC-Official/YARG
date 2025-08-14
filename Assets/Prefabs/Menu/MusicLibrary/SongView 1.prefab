@@ -1083,7 +1083,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: d89a92adc14690744a665ed3a961bd5e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 721c9007659e6d64a8207bdcadb34557, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1790,7 +1790,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: d89566a5d616a3a4b813c80dbdb7705c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 38b244b6a7be5ed4698898a0e862ba1e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2561,9 +2561,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _canvasGroup: {fileID: 215129106566158253}
-  _normalBackground: {fileID: 4505452236614856762}
-  _selectedBackground: {fileID: 8586479606034422330}
-  _categoryBackground: {fileID: 4807421719434892723}
+  NormalBackground: {fileID: 4505452236614856762}
+  SelectedBackground: {fileID: 8586479606034422330}
+  CategoryBackground: {fileID: 4807421719434892723}
   _icon: {fileID: 91003172277932724}
   _primaryText:
   - {fileID: 6846856528720448031}
@@ -2588,8 +2588,8 @@ MonoBehaviour:
   _categoryText: {fileID: 9056057400455014970}
   _starsObtainedView: {fileID: 4831385730584701946}
   _starsObtainedText: {fileID: 2944395680739921185}
-  _trackGradient: {fileID: 0}
-  _normalCategoryHeaderGradient: {fileID: 0}
+  _trackGradient: {fileID: 6944636780508236854}
+  _normalCategoryHeaderGradient: {fileID: 6245605068107858814}
 --- !u!225 &215129106566158253
 CanvasGroup:
   m_ObjectHideFlags: 0
