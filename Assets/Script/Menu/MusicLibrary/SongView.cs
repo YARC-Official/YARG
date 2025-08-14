@@ -52,6 +52,8 @@ namespace YARG.Menu.MusicLibrary
         private Image _trackGradient;
         [SerializeField]
         private Image _normalCategoryHeaderGradient;
+        [SerializeField]
+        private GameObject _buttonHeaderBackground;
 
         [SerializeField]
         private Image _selectedSourceIconBackground;
@@ -74,7 +76,7 @@ namespace YARG.Menu.MusicLibrary
 
             _selectedSourceIconBackground.enabled = selected & viewType is SongViewType;
 
-            // Set side text
+            // Set score and instrument display
             var scoreInfo = viewType.GetScoreInfo();
             _instrumentDifficultyViewContainer.SetActive(scoreInfo is not null);
             if (scoreInfo is not null)
@@ -120,6 +122,10 @@ namespace YARG.Menu.MusicLibrary
             {
                 gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 60);
             }
+            else if (viewType is ButtonViewType) // playlists
+            {
+                gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 70);
+            }
             else
             {
                 gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 80);
@@ -128,22 +134,12 @@ namespace YARG.Menu.MusicLibrary
 
         protected override void SetBackground(bool selected, BaseViewType.BackgroundType type)
         {
-            base.SetBackground(selected, type);
-
-            _trackGradient.gameObject.SetActive(false);
-            _normalCategoryHeaderGradient.gameObject.SetActive(false);
-            if (selected && type is BaseViewType.BackgroundType.Category)
-            {
-                _normalCategoryHeaderGradient.gameObject.SetActive(true);
-            }
-            else
-            {
-                _trackGradient.gameObject.SetActive(true);
-            }
+            _trackGradient.gameObject.SetActive(selected);
 
             NormalBackground.SetActive(false);
             SelectedBackground.SetActive(false);
             CategoryBackground.SetActive(false);
+            _buttonHeaderBackground.SetActive(false);
 
             switch (type)
             {
@@ -166,6 +162,17 @@ namespace YARG.Menu.MusicLibrary
                     else
                     {
                         CategoryBackground.SetActive(true);
+                    }
+
+                    break;
+                case BaseViewType.BackgroundType.Button:
+                    if (selected)
+                    {
+                        SelectedBackground.SetActive(true);
+                    }
+                    else
+                    {
+                        _buttonHeaderBackground.SetActive(true);
                     }
 
                     break;

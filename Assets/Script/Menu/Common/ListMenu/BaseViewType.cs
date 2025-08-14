@@ -12,7 +12,8 @@ namespace YARG.Menu.ListMenu
         public enum BackgroundType
         {
             Normal,
-            Category
+            Category,
+            Button
         }
 
         protected enum TextType

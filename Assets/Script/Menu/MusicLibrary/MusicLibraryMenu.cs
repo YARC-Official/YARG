@@ -5,6 +5,7 @@ using System.Threading;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Audio;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Localization;
@@ -491,18 +492,31 @@ namespace YARG.Menu.MusicLibrary
                     }
                 }
 
+                SortHeaderViewType sortHeader = null;
                 if (_sortedSongs.Length > 1)
                 {
-                    list.Add(new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup));
+                    sortHeader = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup);
+                    list.Add(sortHeader);
                 }
 
+                int sectionTotalStars = 0;
                 foreach (var song in section.Songs)
                 {
                     if (allowdupes || !song.IsDuplicate)
                     {
-                        list.Add(new SongViewType(this, song));
+                        var songView = new SongViewType(this, song);
+                        list.Add(songView);
+
+                        var starAmount = songView?.GetStarAmount();
+                        sectionTotalStars += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
                     }
                 }
+
+                if (sortHeader != null)
+                {
+                    sortHeader.TotalStarsCount = sectionTotalStars;
+                }
+
             }
             CalculateCategoryHeaderIndices(list);
             return list;
