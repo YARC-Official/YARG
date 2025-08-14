@@ -26,3 +26,16 @@ MonoBehaviour:
   NavigationYellow: {r: 1, g: 0.73333335, b: 0.050980393, a: 1}
   NavigationBlue: {r: 0.21568628, g: 0.5176471, b: 0.9764706, a: 1}
   NavigationOrange: {r: 1, g: 0.5176471, b: 0.07450981, a: 1}
+  TrackDefaultPrimary: {r: 0.62352943, g: 0.6392157, b: 0.78431374, a: 1}
+  TrackDefaultSecondary: {r: 0.2627451, g: 0.4117647, b: 0.57254905, a: 1}
+  TrackSelectedPrimary: {r: 1, g: 1, b: 1, a: 1}
+  TrackSelectedSecondary: {r: 0.64705884, g: 0.9372549, b: 1, a: 1}
+  ActionPrimary: {r: 0.83137256, g: 0.9137255, b: 1, a: 1}
+  ActionSecondary: {r: 0.3647059, g: 0.49411765, b: 0.6509804, a: 1}
+  SetlistPrimary: {r: 1, g: 0.83137256, b: 0.85490197, a: 1}
+  SetlistSecondary: {r: 0.6, g: 0.41568628, b: 0.47058824, a: 1}
+  HeaderPrimary: {r: 0.78039217, g: 0.8784314, b: 1, a: 1}
+  HeaderSecondary: {r: 0.69803923, g: 0.8039216, b: 0.92941177, a: 1}
+  HeaderTertiary: {r: 0.3647059, g: 0.49411765, b: 0.6509804, a: 1}
+  SubheaderPrimary: {r: 0.54509807, g: 0.627451, b: 0.7882353, a: 1}
+  HeaderSelectedPrimary: {r: 0.83137256, g: 0.9137255, b: 1, a: 1}

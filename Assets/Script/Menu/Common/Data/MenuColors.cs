@@ -26,6 +26,21 @@ namespace YARG.Menu.Data
         public Color NavigationBlue;
         public Color NavigationOrange;
 
+        [Header("MusicLibrary")]
+        public Color TrackDefaultPrimary;
+        public Color TrackDefaultSecondary;
+        public Color TrackSelectedPrimary;
+        public Color TrackSelectedSecondary;
+        public Color ActionPrimary;
+        public Color ActionSecondary;
+        public Color SetlistPrimary;
+        public Color SetlistSecondary;
+        public Color HeaderPrimary;
+        public Color HeaderSecondary;
+        public Color HeaderTertiary;
+        public Color SubheaderPrimary;
+        public Color HeaderSelectedPrimary;
+
         /// <summary>
         /// Determines the best text color to use with the given background color,
         /// using default bright/dark text colors.

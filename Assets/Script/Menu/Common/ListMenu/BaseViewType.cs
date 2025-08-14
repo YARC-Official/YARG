@@ -45,8 +45,8 @@ namespace YARG.Menu.ListMenu
                 return type switch
                 {
                     TextType.Bright    => TextColorer.StyleString(str, MenuData.Colors.BrightText, 500),
-                    TextType.Primary   => TextColorer.StyleString(str, MenuData.Colors.PrimaryText),
-                    TextType.Secondary => TextColorer.StyleString(str, MenuData.Colors.PrimaryText.WithAlpha(0.5f)),
+                    TextType.Primary   => TextColorer.StyleString(str, MenuData.Colors.TrackDefaultPrimary, 500),
+                    TextType.Secondary => TextColorer.StyleString(str, MenuData.Colors.TrackDefaultSecondary, 500),
                     _                  => throw new Exception("Unreachable.")
                 };
             }
@@ -54,9 +54,9 @@ namespace YARG.Menu.ListMenu
             {
                 return type switch
                 {
-                    TextType.Bright    => TextColorer.StyleString(str, MenuData.Colors.BrightText,  500),
-                    TextType.Primary   => TextColorer.StyleString(str, MenuData.Colors.BrightText,  700),
-                    TextType.Secondary => TextColorer.StyleString(str, MenuData.Colors.PrimaryText, 500),
+                    TextType.Bright    => TextColorer.StyleString(str, MenuData.Colors.BrightText, 500),
+                    TextType.Primary   => TextColorer.StyleString(str, MenuData.Colors.TrackSelectedPrimary, 600),
+                    TextType.Secondary => TextColorer.StyleString(str, MenuData.Colors.TrackSelectedSecondary, 500),
                     _                  => throw new Exception("Unreachable.")
                 };
             }
