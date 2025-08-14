@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Serialization;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay.HUD;
@@ -186,22 +185,16 @@ namespace YARG.Gameplay.Player
                 "Note pools must be of length three (one for each harmony part).");
         }
 
-        public RenderTexture InitializeRenderTexture(float vocalImageAspectRatio)
+        public void InitializeRenderTexture(float vocalImageAspectRatio, RenderTexture renderTexture)
         {
             // Set the vocal track render texture to a constant aspect ratio
             // to make it easier to work with and size.
-            int height = (int) (Screen.width / vocalImageAspectRatio);
-
-            // Create a render texture for the vocals
-            var descriptor = new RenderTextureDescriptor(
-                Screen.width, height, RenderTextureFormat.ARGBHalf);
-            descriptor.mipCount = 0;
-            var renderTexture = new RenderTexture(descriptor);
+            // int height = (int) (Screen.width / vocalImageAspectRatio);
+            float height =  Screen.width / vocalImageAspectRatio / Screen.height;
+            _trackCamera.rect = new Rect(0.0f, 1.0f - height, 1.0f, height);
 
             // Apply the render texture
             _trackCamera.targetTexture = renderTexture;
-
-            return renderTexture;
         }
 
         public void Initialize(VocalsTrack vocalsTrack, YargPlayer primaryPlayer)

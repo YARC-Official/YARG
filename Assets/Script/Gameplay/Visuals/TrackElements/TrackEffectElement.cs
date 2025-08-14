@@ -65,21 +65,13 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _MaskDisabled = Shader.PropertyToID("_Mask_Disabled");
         private static readonly int _MaskMinZ = Shader.PropertyToID("_Mask_Min_Z");
         private static readonly int _MaskMaxZ = Shader.PropertyToID("_Mask_Max_Z");
-        private static readonly int _MaskFadeDistance = Shader.PropertyToID("_Mask_Fade_Distance");
 
         public float StartVisibility;
         public float EndVisibility;
 
         // These are here to reflect the defaults set in the shader in case we need them in the future
-        private float MaskDisabled = 1.0f;
-        private float MaskFadeDistance = 0.2f;
-
         private bool _visibilityInTransition = false;
         private bool _maskEnabled = false;
-        private float _currentVisibility = 1.0f;
-        private float _currentEndZ = 0.0f;
-        private float _currentStartVisibility = 1.0f;
-        private float _currentEndVisibility = 1.0f;
 
 
         private bool _previousStartTransitionEnable;
@@ -109,9 +101,6 @@ namespace YARG.Gameplay.Visuals
             Visibility = EffectRef.Visibility;
             StartVisibility = EnableStartTransition ? Visibility : 0.0f;
             EndVisibility = EnableEndTransition ? Visibility : 0.0f;
-            _currentVisibility = Visibility;
-            _currentStartVisibility = StartVisibility;
-            _currentEndVisibility = EndVisibility;
             _visibilityInTransition = false;
 
             SetMaterials();
@@ -136,7 +125,6 @@ namespace YARG.Gameplay.Visuals
             {
                 foreach (var material in meshRenderer.materials)
                 {
-                    material.SetFade(fadePos, fadeSize);
                     material.SetFloat(_visibility, Visibility);
                 }
 
@@ -251,7 +239,6 @@ namespace YARG.Gameplay.Visuals
             _visibilityInTransition = true;
             _visibilityStartTime = GameManager.VisualTime;
             _maskEnabled = enable;
-            _currentEndZ = StartZ;
             Visibility = enable ? 1.0f : 0.0f;
         }
 
@@ -278,7 +265,6 @@ namespace YARG.Gameplay.Visuals
                     material.SetFloat(_MaskMaxZ, endZ);
                 }
             }
-            _currentEndZ = endZ;
         }
 
         private void SetAllVisibility(float visibility)
@@ -303,7 +289,6 @@ namespace YARG.Gameplay.Visuals
                 // if it happens to already be enabled isn't expensive.
                 meshRenderer.enabled = true;
             }
-            _currentVisibility = visibility;
         }
 
         protected override bool UpdateElementPosition()

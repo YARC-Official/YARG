@@ -259,6 +259,7 @@ namespace YARG.Settings
 
             public SliderSetting SongBackgroundOpacity { get; } = new(1f, 0f, 1f);
             public ToggleSetting UseThreeLaneLyricsInHarmony { get; } = new(true);
+            public ToggleSetting EnableTrackEffects { get; } = new(true);
             public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
 
             public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
@@ -437,7 +438,7 @@ namespace YARG.Settings
             #region Experimental
 
             public DropdownSetting<BandComboType> BandComboTypeSetting { get; } = new(BandComboType.Off)
-            {              
+            {
                 BandComboType.Off,
                 BandComboType.Lenient,
                 BandComboType.Strict

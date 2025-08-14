@@ -10,7 +10,8 @@ Material:
   m_Name: StarpowerBar_Top
   m_Shader: {fileID: -6465566751694194690, guid: 47dc40aa3ba7b644994f844e81364c13,
     type: 3}
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _RAISE_Z
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -103,6 +104,7 @@ Material:
     - _Parallax: 0.005
     - _QueueControl: 1
     - _QueueOffset: 1
+    - _RAISE_Z: 1
     - _ReceiveShadows: 1
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0

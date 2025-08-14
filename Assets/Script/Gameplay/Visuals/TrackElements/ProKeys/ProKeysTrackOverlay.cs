@@ -97,7 +97,6 @@ namespace YARG.Gameplay.Visuals
             var material = meshRenderer.material;
             material.color = color.WithAlpha(0.3f);
             material.SetTexture(BaseMap, _heldGradientTexture);
-            material.SetFade(player.ZeroFadePosition, player.FadeSize);
             material.SetFloat(Index, player.PlayerIndex);
             material.SetKeyword(new LocalKeyword(material.shader, "_ISHIGHLIGHT"), true);
 
@@ -114,7 +113,6 @@ namespace YARG.Gameplay.Visuals
 
             var material = overlay.GetComponentInChildren<MeshRenderer>().material;
             material.color = color.WithAlpha(0.05f);
-            material.SetFade(player.ZeroFadePosition, player.FadeSize);
             material.SetFloat(Index, player.PlayerIndex);
 
             // Set up the correct texture

@@ -1,8 +1,5 @@
 ﻿using UnityEngine;
 using YARG.Core.Engine;
-using YARG.Helpers.Extensions;
-using YARG.Settings.Customization;
-using YARG.Settings.Metadata;
 
 namespace YARG.Settings.Preview
 {
@@ -16,10 +13,6 @@ namespace YARG.Settings.Preview
         private void Awake()
         {
             _transformCache = transform;
-
-            // Set fade (required in case the hit window goes past the fade threshold)
-            var cameraPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
-            GetComponent<MeshRenderer>().material.SetFade(3f, cameraPreset.FadeLength);
         }
 
         private void Update()
