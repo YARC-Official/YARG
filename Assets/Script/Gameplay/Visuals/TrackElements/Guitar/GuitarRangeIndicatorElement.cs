@@ -6,9 +6,7 @@ using YARG.Helpers;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class GuitarRangeIndicatorElement<TEngine, TEngineParams> : TrackElement<FiveFretPlayer<TEngine, TEngineParams>>
-        where TEngine : BaseEngine
-        where TEngineParams : BaseEngineParameters
+    public class GuitarRangeIndicatorElement : TrackElement<FiveFretGuitarPlayer>
     {
         public        FiveFretRangeShift RangeShift;
 

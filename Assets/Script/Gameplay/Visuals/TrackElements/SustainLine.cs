@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.ProKeys;
 using YARG.Core.YARG.Core.Engine.ProKeys;
@@ -136,10 +135,6 @@ namespace YARG.Gameplay.Visuals
             {
                 // Make sure to lerp it to prevent jumps
                 _whammyFactor = Mathf.Lerp(_whammyFactor, guitarPlayer.WhammyFactor, Time.deltaTime * 6f);
-            } else if (_player is FiveLaneKeysPlayer keysPlayer)
-            {
-                // Make sure to lerp it to prevent jumps
-                _whammyFactor = Mathf.Lerp(_whammyFactor, keysPlayer.WhammyFactor, Time.deltaTime * 6f);
             }
 
             float whammy = _whammyFactor * 1.5f;

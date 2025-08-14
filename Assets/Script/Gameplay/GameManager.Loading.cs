@@ -42,6 +42,8 @@ namespace YARG.Gameplay
         [SerializeField]
         private GameObject _proKeysPrefab;
         [SerializeField]
+        private GameObject _fiveLaneKeysPrefab;
+        [SerializeField]
         private GameObject _proGuitarPrefab;
 
         private LoadFailureState _loadState;
@@ -386,7 +388,7 @@ namespace YARG.Gameplay
                             GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
                             GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
                             GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
-                            GameMode.ProKeys        => player.Profile.CurrentInstrument is Instrument.ProKeys ? _proKeysPrefab : _fiveFretGuitarPrefab,
+                            GameMode.ProKeys        => player.Profile.CurrentInstrument is Instrument.ProKeys ? _proKeysPrefab : _fiveLaneKeysPrefab,
                             GameMode.ProGuitar      => _proGuitarPrefab,
                             _                       => null
                         };

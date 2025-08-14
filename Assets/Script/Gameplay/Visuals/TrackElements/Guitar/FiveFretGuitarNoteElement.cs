@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
-    public sealed class FiveFretNoteElement<TEngine, TEngineParams> : NoteElement<GuitarNote, FiveFretPlayer<TEngine, TEngineParams>>
-        where TEngine : BaseEngine
-        where TEngineParams : BaseEngineParameters
+    public sealed class FiveFretGuitarNoteElement : NoteElement<GuitarNote, FiveFretGuitarPlayer>
     {
         private enum NoteType
         {

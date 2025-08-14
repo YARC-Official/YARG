@@ -1401,6 +1401,8 @@ MonoBehaviour:
     type: 3}
   _proKeysPrefab: {fileID: 7381119128095886790, guid: 52322b4e39d4f9349a65c60a07fc1b3a,
     type: 3}
+  _fiveLaneKeysPrefab: {fileID: 7381119128095886790, guid: f8d444689838b5c42b5d575fe3bc64a0,
+    type: 3}
   _proGuitarPrefab: {fileID: 0}
 --- !u!4 &318454372
 Transform:
@@ -1495,7 +1497,7 @@ PrefabInstance:
     - target: {fileID: 227366190812778480, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 157.1503
+      value: -142.36191
       objectReference: {fileID: 0}
     - target: {fileID: 1335195020114372814, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
@@ -1700,7 +1702,7 @@ PrefabInstance:
     - target: {fileID: 2517693471320601084, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -157.1503
+      value: 142.36191
       objectReference: {fileID: 0}
     - target: {fileID: 2640522790579517911, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}

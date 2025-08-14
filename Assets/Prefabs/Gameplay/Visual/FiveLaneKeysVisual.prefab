@@ -211,7 +211,7 @@ PrefabInstance:
     - target: {fileID: 90376540996421702, guid: 5800c42510b55c549be95ec3ecd75e1c,
         type: 3}
       propertyPath: m_Name
-      value: FiveFretVisual
+      value: FiveLaneKeysVisual
       objectReference: {fileID: 0}
     - target: {fileID: 332508866956410726, guid: 5800c42510b55c549be95ec3ecd75e1c,
         type: 3}
@@ -244,7 +244,7 @@ PrefabInstance:
         type: 3}
       propertyPath: <Prefab>k__BackingField
       value: 
-      objectReference: {fileID: 861361446070616044, guid: 03b0fdd0f2d131d4682ccf3aaf6ee2a7,
+      objectReference: {fileID: 861361446070616044, guid: 7651e9e7e8993f24f9226290078962fc,
         type: 3}
     - target: {fileID: 3428521509162818570, guid: 5800c42510b55c549be95ec3ecd75e1c,
         type: 3}
@@ -422,7 +422,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7381119128095886790}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8637f0af3df0ded4a910fec3f36db9ca, type: 3}
+  m_Script: {fileID: 11500000, guid: 6f213aad970b84749a6786a57c55d33d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   <TrackCamera>k__BackingField: {fileID: 5450824049626431651}
