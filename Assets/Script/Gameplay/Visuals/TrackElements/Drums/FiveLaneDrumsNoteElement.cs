@@ -90,7 +90,7 @@ namespace YARG.Gameplay.Visuals
             {
                 color = colors.ActivationNote;
             }
-            else if (NoteRef.IsStarPower)
+            else if (NoteRef.IsStarPower && !(Player.Engine.BaseParameters.NoStarPowerOverlap && Player.Engine.EngineStats.IsStarPowerActive))
             {
                 color = colors.GetNoteStarPowerColor(pad);
             }

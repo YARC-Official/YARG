@@ -151,8 +151,7 @@ namespace YARG.Gameplay.Visuals
 
             // Get which note color to use
             var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
-            var shouldDisplayStarPower = NoteRef.IsStarPower && !(Player.Engine.BaseParameters.NoStarPowerOverlap && Player.Engine.EngineStats.IsStarPowerActive);
-            var color = shouldDisplayStarPower
+            var color = NoteRef.IsStarPower && !(Player.Engine.BaseParameters.NoStarPowerOverlap && Player.Engine.EngineStats.IsStarPowerActive)
                 ? colors.GetNoteStarPowerColor(NoteRef.Fret)
                 : colorNoStarPower;
 

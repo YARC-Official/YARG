@@ -143,7 +143,7 @@ namespace YARG.Gameplay.Visuals
                 ? colors.BlackNoteStarPower.ToUnityColor()
                 : colors.WhiteNoteStarPower.ToUnityColor();
 
-            var color = NoteRef.IsStarPower
+            var color = NoteRef.IsStarPower && !(Player.Engine.BaseParameters.NoStarPowerOverlap && Player.Engine.EngineStats.IsStarPowerActive)
                 ? colorStarPower
                 : colorNoStarPower;
 
