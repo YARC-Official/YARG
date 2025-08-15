@@ -62,7 +62,7 @@ namespace YARG.Menu.MusicLibrary
         public override Sprite? GetIcon()
 #nullable disable
         {
-            return Addressables.LoadAssetAsync<Sprite>("MusicLibraryIcons[Down]").WaitForCompletion();
+            return Addressables.LoadAssetAsync<Sprite>("MusicLibraryUpIcon").WaitForCompletion();
         }
     }
 }
