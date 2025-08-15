@@ -104,14 +104,14 @@ namespace YARG.Venue
 			else if (location == VenueLightLocation.Center)
 			{
 				target = Color.white;
-				targetint = 0.5f;
+				targetint = 0.1f;
 			}
 			else
 			{
-				current.Intensity = Mathf.Lerp(current.Intensity, 0f, Time.deltaTime * speed);
+				targetint = 0f;
 			}
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
+			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * speed);
+			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * speed);
 			return current;
         }
 
