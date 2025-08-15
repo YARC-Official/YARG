@@ -8,6 +8,7 @@ using YARG.Core.Chart;
 using YARG.Gameplay.HUD;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
+using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings;
 
@@ -191,7 +192,13 @@ namespace YARG.Gameplay.Player
             // to make it easier to work with and size.
             // int height = (int) (Screen.width / vocalImageAspectRatio);
             float height =  Screen.width / vocalImageAspectRatio / Screen.height;
-            _trackCamera.rect = new Rect(0.0f, 1.0f - height, 1.0f, height);
+            var cameraRect = new Rect(0.0f, 1.0f - height, 1.0f, height);
+
+            // Adjust camera rect so vocal track clears stat bar
+            var statsRect = StatsManager.Instance.GetComponent<RectTransform>();
+            var statsHeightNormalized = statsRect.rect.height / Screen.height;
+            cameraRect.y -= statsHeightNormalized;
+            _trackCamera.rect = cameraRect;
 
             // Apply the render texture
             _trackCamera.targetTexture = renderTexture;

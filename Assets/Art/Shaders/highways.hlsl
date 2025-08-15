@@ -75,7 +75,7 @@ inline float3 YargWorldSpaceViewDir(float4 localPos)
     {
         float3 worldPos = mul(unity_ObjectToWorld, localPos).xyz;
         return YargWorldSpaceCameraPos(worldPos).xyz - worldPos;
-            
+
     } else {
         return WorldSpaceViewDir(localPos);
     }
@@ -102,7 +102,7 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
         return DefTransformWorldToHClip(positionWS);
 
     int index = WorldPosToIndex(positionWS);
-        
+
 #if 1
     // d = sqrt((x - t_x) * (x - t_x) + (z - t_z) * (z - t_z))
     // (x', y', z') = sin(d / R) * (R + y - t_y) / d * (x - t_x, 0, z - t_z) + (t_x, cos(d / R) * (R + y - t_y) - R + t_y, t_z)
@@ -121,7 +121,7 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
     float R = _YargCurveFactors[index];
 #define MAX_R 15.0
 #define MIN_R 2.0
-    
+
     if (R != 0)
     {
         R = sign(R) * MAX_R - R * ((MAX_R - MIN_R) / 3.0);
@@ -154,9 +154,9 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
     // separate highways to avoid clashes when there are a lot of them on at the same time
     float ndcZ = clipPOS.z / clipPOS.w;
 #ifdef UNITY_REVERSED_Z
-    ndcZ += 0.005 * (index % 2);
+    ndcZ += 0.005 * (index % (uint) 2);
 #else
-    ndcZ -= 0.005 * (index % 2);
+    ndcZ -= 0.005 * (index % (uint) 2);
 #endif
     clipPOS.z = ndcZ * clipPOS.w;
 
