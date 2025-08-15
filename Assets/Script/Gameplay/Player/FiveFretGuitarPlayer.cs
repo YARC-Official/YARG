@@ -17,6 +17,7 @@ using YARG.Helpers;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
+using YARG.Themes;
 using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
@@ -152,8 +153,7 @@ namespace YARG.Gameplay.Player
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
             _fretArray.Initialize(
                 Player.ThemePreset,
-                GameMode.FiveFretGuitar,
-                Instrument.FiveFretGuitar,
+                VisualStyle.FiveFretGuitar,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip,
                 false, // Not applicable to five fret

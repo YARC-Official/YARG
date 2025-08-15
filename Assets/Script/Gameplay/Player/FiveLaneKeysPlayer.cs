@@ -18,6 +18,7 @@ using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Playback;
 using YARG.Player;
+using YARG.Themes;
 using static YARG.Core.YARG.Core.Engine.ProKeys.FiveLaneKeysEngine;
 
 namespace YARG.Assets.Script.Gameplay.Player
@@ -143,8 +144,7 @@ namespace YARG.Assets.Script.Gameplay.Player
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
             _fretArray.Initialize(
                 Player.ThemePreset,
-                GameMode.FiveFretGuitar,
-                Instrument.ProKeys,
+                VisualStyle.FiveLaneKeys,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip,
                 false, // Not applicable to five fret

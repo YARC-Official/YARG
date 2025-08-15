@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -172,7 +173,7 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
-            SetupTheme(player.Profile.CurrentInstrument.ToGameMode());
+            SetupTheme();
 
             Chart = chart;
 
@@ -267,10 +268,14 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void SetupTheme(GameMode gameMode)
+        private void SetupTheme()
         {
+            var (gameMode, instrument) = (Player.Profile.GameMode, Player.Profile.CurrentInstrument);
+
+            var style = VisualStyleHelpers.GetVisualStyle(gameMode, instrument);
+
             var themePrefab = ThemeManager.Instance.CreateNotePrefabFromTheme(
-                Player.ThemePreset, gameMode, Player.Profile.CurrentInstrument, NotePool.Prefab);
+                Player.ThemePreset, style, NotePool.Prefab);
             NotePool.SetPrefabAndReset(themePrefab);
         }
 

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using YARG.Core;
 using YARG.Core.Engine.ProKeys;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
@@ -31,10 +30,10 @@ namespace YARG.Gameplay.Visuals
         {
             _player = player;
 
-            var whiteKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, GameMode.ProKeys,
-                Instrument.ProKeys, ThemeManager.WHITE_KEY_PREFAB_NAME);
-            var blackKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, GameMode.ProKeys,
-                Instrument.ProKeys, ThemeManager.BLACK_KEY_PREFAB_NAME);
+            var whiteKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, VisualStyle.ProKeys,
+                ThemeManager.WHITE_KEY_PREFAB_NAME);
+            var blackKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, VisualStyle.ProKeys,
+                ThemeManager.BLACK_KEY_PREFAB_NAME);
 
             // Pro-keys always starts at C
 
