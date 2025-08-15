@@ -11,7 +11,7 @@ namespace YARG.Themes
         private readonly GameObject _prefab;
         private readonly bool _builtIn;
 
-        public readonly Dictionary<(GameMode GameMode, string Name), GameObject> PrefabCache = new();
+        public readonly Dictionary<(GameMode GameMode, Instrument instrument, string Name), GameObject> PrefabCache = new();
 
         public ThemeContainer(GameObject themePrefab, bool builtIn)
         {

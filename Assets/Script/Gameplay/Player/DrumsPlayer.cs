@@ -134,6 +134,7 @@ namespace YARG.Gameplay.Player
             _fretArray.Initialize(
                 Player.ThemePreset,
                 Player.Profile.GameMode,
+                Player.Profile.CurrentInstrument,
                 colors,
                 Player.Profile.LeftyFlip,
                 Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals,

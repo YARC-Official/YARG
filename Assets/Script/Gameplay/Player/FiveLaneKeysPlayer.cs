@@ -22,7 +22,7 @@ using static YARG.Core.YARG.Core.Engine.ProKeys.FiveLaneKeysEngine;
 
 namespace YARG.Assets.Script.Gameplay.Player
 {
-    public sealed class FiveLaneKeysPlayer : TrackPlayer<FiveLaneKeysEngine, GuitarNote>, IFiveFretPlayer
+    public sealed class FiveLaneKeysPlayer : TrackPlayer<FiveLaneKeysEngine, GuitarNote>
     {
         private const double SUSTAIN_END_MUTE_THRESHOLD = 0.1;
 
@@ -144,6 +144,7 @@ namespace YARG.Assets.Script.Gameplay.Player
             _fretArray.Initialize(
                 Player.ThemePreset,
                 Player.Profile.CurrentInstrument.ToGameMode(),
+                Player.Profile.CurrentInstrument,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip,
                 false, // Not applicable to five fret

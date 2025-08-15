@@ -282,7 +282,7 @@ namespace YARG.Settings.Preview
             {
                 _fretArray.FretCount = CurrentGameModeInfo.FretCount;
                 _fretArray.UseKickFrets = CurrentGameModeInfo.UseKickFrets;
-                _fretArray.Initialize(theme, SelectedGameMode,
+                _fretArray.Initialize(theme, SelectedGameMode, Instrument.ProKeys,
                     CurrentGameModeInfo.FretColorProvider(ColorProfile.Default), false, false, false, false);
                 _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
             }

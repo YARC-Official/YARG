@@ -34,11 +34,11 @@ namespace YARG.Gameplay.Visuals
         private bool[] _pulsingFrets;
         private float  _pulseDuration;
 
-        public void Initialize(ThemePreset themePreset, GameMode gameMode,
+        public void Initialize(ThemePreset themePreset, GameMode gameMode, Instrument instrument,
             ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool splitProTomsAndCymbals, bool swapSnareAndHiHat, bool swapCrashAndRide)
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
-                themePreset, gameMode);
+                themePreset, gameMode, instrument);
 
             // Spawn in normal frets
             _frets.Clear();
@@ -74,7 +74,7 @@ namespace YARG.Gameplay.Visuals
             if (UseKickFrets)
             {
                 var kickFretPrefab = ThemeManager.Instance.CreateKickFretPrefabFromTheme(
-                    themePreset, gameMode);
+                    themePreset, gameMode, instrument);
 
                 // Spawn in kick frets
                 var leftKick = Instantiate(kickFretPrefab, transform);

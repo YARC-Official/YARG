@@ -30,7 +30,7 @@ namespace YARG.Themes
             _defaultTheme = _themeContainers[ThemePreset.Default];
         }
 
-        public GameObject CreateNotePrefabFromTheme(ThemePreset preset, GameMode gameMode, GameObject noModelPrefab)
+        public GameObject CreateNotePrefabFromTheme(ThemePreset preset, GameMode gameMode, Instrument instrument, GameObject noModelPrefab)
         {
             // Get the theme container
             var container = GetThemeContainer(preset, gameMode);
@@ -39,7 +39,7 @@ namespace YARG.Themes
                 return null;
             }
 
-            var prefabKey = (gameMode, NOTE_PREFAB_NAME);
+            var prefabKey = (gameMode, instrument, NOTE_PREFAB_NAME);
 
             // Try to get and return a cached version, otherwise we'll have to create it
             var cached = container.PrefabCache.GetValueOrDefault(prefabKey);
@@ -92,18 +92,18 @@ namespace YARG.Themes
             return gameObject;
         }
 
-        public GameObject CreateFretPrefabFromTheme(ThemePreset preset, GameMode gameMode,
+        public GameObject CreateFretPrefabFromTheme(ThemePreset preset, GameMode gameMode, Instrument instrument,
             string name = FRET_PREFAB_NAME)
         {
-            return CreatePrefabFromTheme<ThemeFret, Fret>(preset, gameMode, name);
+            return CreatePrefabFromTheme<ThemeFret, Fret>(preset, gameMode, instrument, name);
         }
 
-        public GameObject CreateKickFretPrefabFromTheme(ThemePreset preset, GameMode gameMode)
+        public GameObject CreateKickFretPrefabFromTheme(ThemePreset preset, GameMode gameMode, Instrument instrument)
         {
-            return CreatePrefabFromTheme<ThemeKickFret, KickFret>(preset, gameMode, KICK_FRET_PREFAB_NAME);
+            return CreatePrefabFromTheme<ThemeKickFret, KickFret>(preset, gameMode, instrument, KICK_FRET_PREFAB_NAME);
         }
 
-        public GameObject CreatePrefabFromTheme<TTheme, TBind>(ThemePreset preset, GameMode gameMode, string name)
+        public GameObject CreatePrefabFromTheme<TTheme, TBind>(ThemePreset preset, GameMode gameMode, Instrument instrument, string name)
             where TBind : MonoBehaviour, IThemeBindable<TTheme>
         {
             // Get the theme container
@@ -113,7 +113,7 @@ namespace YARG.Themes
                 return null;
             }
 
-            var prefabKey = (gameMode, name);
+            var prefabKey = (gameMode, instrument, name);
 
             // Try to get and return a cached version, otherwise we'll have to create it
             var cached = container.PrefabCache.GetValueOrDefault(prefabKey);

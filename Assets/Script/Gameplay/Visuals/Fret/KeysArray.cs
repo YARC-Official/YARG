@@ -32,9 +32,9 @@ namespace YARG.Gameplay.Visuals
             _player = player;
 
             var whiteKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, GameMode.ProKeys,
-                ThemeManager.WHITE_KEY_PREFAB_NAME);
+                Instrument.ProKeys, ThemeManager.WHITE_KEY_PREFAB_NAME);
             var blackKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, GameMode.ProKeys,
-                ThemeManager.BLACK_KEY_PREFAB_NAME);
+                Instrument.ProKeys, ThemeManager.BLACK_KEY_PREFAB_NAME);
 
             // Pro-keys always starts at C
 

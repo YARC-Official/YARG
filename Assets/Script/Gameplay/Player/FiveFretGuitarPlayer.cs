@@ -152,7 +152,8 @@ namespace YARG.Gameplay.Player
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
             _fretArray.Initialize(
                 Player.ThemePreset,
-                Player.Profile.CurrentInstrument.ToGameMode(),
+                GameMode.FiveFretGuitar,
+                Instrument.FiveFretGuitar,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip,
                 false, // Not applicable to five fret
