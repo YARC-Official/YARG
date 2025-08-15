@@ -154,11 +154,23 @@ namespace YARG.Menu.ScoreScreen
                 switch (score.Player.Profile.CurrentInstrument.ToGameMode())
                 {
                     case GameMode.FiveFretGuitar:
-                    {
-                        var card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
-                        card.SetCardContents();
-                        break;
+                    { 
+                        if (score.Player.Profile.GameMode is GameMode.ProKeys)
+                        {
+                            // Five-lane keys engine
+                            var card = Instantiate(_proKeysCardPrefab, _cardContainer);
+                            card.Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
+                            card.SetCardContents();
+                            break;
+                        }
+                        else
+                        {
+                            // Five-fret guitar engine
+                            var card = Instantiate(_guitarCardPrefab, _cardContainer);
+                            card.Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
+                            card.SetCardContents();
+                            break;
+                        }
                     }
                     case GameMode.FourLaneDrums:
                     case GameMode.FiveLaneDrums:
