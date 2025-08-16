@@ -50,6 +50,8 @@ namespace YARG.Menu.ScoreScreen
         private VocalsScoreCard _vocalsCardPrefab;
         [SerializeField]
         private ProKeysScoreCard _proKeysCardPrefab;
+        [SerializeField]
+        private ProKeysScoreCard _fiveLaneKeysCardPrefab;
 
         private bool _analyzingReplay;
 
@@ -151,26 +153,14 @@ namespace YARG.Menu.ScoreScreen
         {
             foreach (var score in scoreScreenStats.PlayerScores)
             {
-                switch (score.Player.Profile.CurrentInstrument.ToNativeGameMode())
+                switch (score.Player.Profile.GameMode)
                 {
                     case GameMode.FiveFretGuitar:
                     { 
-                        if (score.Player.Profile.GameMode is GameMode.Keys)
-                        {
-                            // Five-lane keys engine
-                            var card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                            card.Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats);
-                            card.SetCardContents();
-                            break;
-                        }
-                        else
-                        {
-                            // Five-fret guitar engine
-                            var card = Instantiate(_guitarCardPrefab, _cardContainer);
-                            card.Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
-                            card.SetCardContents();
-                            break;
-                        }
+                        var card = Instantiate(_guitarCardPrefab, _cardContainer);
+                        card.Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
+                        card.SetCardContents();
+                        break;
                     }
                     case GameMode.FourLaneDrums:
                     case GameMode.FiveLaneDrums:
@@ -189,9 +179,19 @@ namespace YARG.Menu.ScoreScreen
                     }
                     case GameMode.Keys:
                     {
-                        var card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats);
-                        card.SetCardContents();
+                        if (score.Player.Profile.CurrentInstrument is Instrument.ProKeys)
+                        {
+                            var card = Instantiate(_proKeysCardPrefab, _cardContainer);
+                            card.Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats);
+                            card.SetCardContents();
+                        }
+
+                        else // Five-Lane Keys
+                        {
+                            var card = Instantiate(_fiveLaneKeysCardPrefab, _cardContainer);
+                            card.Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats);
+                            card.SetCardContents();
+                        }
                         break;
                     }
                 }

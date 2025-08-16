@@ -231,7 +231,7 @@ namespace YARG.Menu.DifficultySelect
                 }
 
                 // Only allow vocal modifiers to be selected once (so they don't conflict)
-                if (player.Profile.CurrentInstrument.ToNativeGameMode() != GameMode.Vocals ||
+                if (player.Profile.GameMode != GameMode.Vocals ||
                     _vocalModifierSelectIndex == -1 ||
                     _vocalModifierSelectIndex == _playerIndex)
                 {
@@ -267,7 +267,7 @@ namespace YARG.Menu.DifficultySelect
                 CreateItem(LocalizeHeader("Ready"), _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
                 {
                     // If the player just selected vocal modifiers, don't show them again
-                    if (player.Profile.CurrentInstrument.ToNativeGameMode() == GameMode.Vocals &&
+                    if (player.Profile.GameMode == GameMode.Vocals &&
                         _vocalModifierSelectIndex == -1)
                     {
                         _vocalModifierSelectIndex = _playerIndex;
@@ -476,7 +476,7 @@ namespace YARG.Menu.DifficultySelect
                         if (player.SittingOut) continue;
                         if (player == primaryPlayer) continue;
 
-                        if (player.Profile.CurrentInstrument.ToNativeGameMode() == GameMode.Vocals)
+                        if (player.Profile.GameMode == GameMode.Vocals)
                         {
                             player.Profile.CopyModifiers(primaryPlayer.Profile);
                         }

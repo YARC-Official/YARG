@@ -21,7 +21,7 @@
             "FourLaneDrums": "Standard Drums",
             "FiveLaneDrums": "Five-Lane Drums",
             "ProGuitar": "Pro Guitar",
-            "ProKeys": "Keys",
+            "Keys": "Keys (Pro and Five-Lane)",
             "Menu": "Menu",
             "Vocals": "Vocals"
         },
@@ -1512,7 +1512,7 @@
                         "Drums": "Drums (Four- and Five-Lane)",
                         "FiveFretGuitar": "Five-Fret Guitar",
                         "Vocals": "Vocals",
-                        "ProKeys": "Keys (Pro and Five-Lane)"
+                        "Keys": "Keys (Pro and Five-Lane)"
                     }
                 },
                 "AntiGhosting": {
