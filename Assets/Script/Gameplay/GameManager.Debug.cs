@@ -448,6 +448,43 @@ namespace YARG.Gameplay
                         break;
                     }
 
+                    case FiveLaneKeysPlayer fiveLaneKeysPlayer:
+                    {
+                        using var text = ZString.CreateStringBuilder(true);
+
+                        var engine = fiveLaneKeysPlayer.Engine;
+                        text.AppendLine("State:");
+                        text.AppendFormat("- Key mask: 0x{0:X8}\n", engine.KeyMask);
+                        text.AppendFormat("- Previous key mask: 0x{0:X8}\n", engine.PreviousKeyMask);
+                        text.AppendLine();
+                        text.AppendFormat("- Chord stagger timer: {0}\n", engine.GetChordStaggerTimer());
+                        text.AppendFormat("- Fat finger timer: {0}\n", engine.GetFatFingerTimer());
+
+                        // Don't strip final newline here, for spacing with the toggle below
+                        GUILayout.Label(text.ToString());
+                        text.Clear();
+
+                        _debugProKeysPressTimesToggle = GUILayout.Toggle(_debugProKeysPressTimesToggle, "Key press times:");
+                        if (_debugProKeysPressTimesToggle)
+                        {
+                            var pressTimes = engine.GetKeyPressTimes();
+                            for (int i = 0; i < pressTimes.Length; i++)
+                            {
+                                text.AppendFormat("- {0}: {1:0.000000}\n", i + 1, pressTimes[i]);
+                            }
+
+                            GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                            text.Clear();
+                        }
+
+                        var stats = fiveLaneKeysPlayer.Engine.EngineStats;
+                        text.AppendLine("\nStats:");
+                        text.AppendFormat("- Overhits: {0}\n", stats.Overhits);
+
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                        break;
+                    }
+
                     default:
                         GUILayout.Label($"Player type {player.GetType()} not handled yet");
                         break;
