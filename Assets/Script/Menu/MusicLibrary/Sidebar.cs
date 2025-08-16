@@ -42,6 +42,10 @@ namespace YARG.Menu.MusicLibrary
         private Image _sourceBackground;
         [SerializeField]
         private Image _charterBackground;
+        [SerializeField]
+        private Image _bandDifficultyBar;
+        [SerializeField]
+        private TextMeshProUGUI _bandDifficultyLabel;
 
         [FormerlySerializedAs("difficultyRingPrefab")]
         [Space]
@@ -54,6 +58,10 @@ namespace YARG.Menu.MusicLibrary
 
         private MusicLibraryMenu _musicLibraryMenu;
         private SongSearchingField _songSearchingField;
+
+        private readonly Color _bandDifficultyGray = new Color(208 / 255f, 208 / 255f, 208 / 255f, 0.5f);
+        private readonly Color _bandDifficultyRed  = new Color(251 / 255f, 68 / 255f, 63 / 255f, 1);
+        private readonly Color _bandDifficultyBlue = new Color(46 / 255f, 217 / 255f, 255 / 255f, 1);
 
         public void Initialize(MusicLibraryMenu musicLibraryMenu, SongSearchingField songSearchingField)
         {
@@ -269,6 +277,23 @@ namespace YARG.Menu.MusicLibrary
             _difficultyRings[7].SetInfo("trueDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
             _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
             _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
+
+            var intensity = entry[Instrument.Band].Intensity;
+            _bandDifficultyLabel.text = intensity == -1 ? "-" : intensity.ToString();
+            _bandDifficultyBar.fillAmount = intensity < 0 ? 5 : Math.Clamp((float) intensity / 5, 0, 1);
+
+            if (intensity == -1)
+            {
+                _bandDifficultyBar.color = _bandDifficultyGray;
+            }
+            else if (intensity >= 6)
+            {
+                _bandDifficultyBar.color = _bandDifficultyRed;
+            }
+            else
+            {
+                _bandDifficultyBar.color = _bandDifficultyBlue;
+            }
         }
 
         public void PrimaryButtonClick()

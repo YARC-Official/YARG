@@ -1428,7 +1428,7 @@ GameObject:
   - component: {fileID: 6097587509553389397}
   - component: {fileID: 3588314348266865954}
   m_Layer: 5
-  m_Name: Difficulty Value
+  m_Name: Band Difficulty Value
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5405,6 +5405,8 @@ MonoBehaviour:
   _albumCoverSmall: {fileID: 7305124614973097718}
   _sourceBackground: {fileID: 4666594029308570395}
   _charterBackground: {fileID: 6355704463231264505}
+  _bandDifficultyBar: {fileID: 8275923123515974138}
+  _bandDifficultyLabel: {fileID: 6097587509553389397}
   _difficultyRingPrefab: {fileID: 397774209812536635, guid: 53438a07c6e5ec5409d5bde8514761ca,
     type: 3}
 --- !u!114 &5958352451011471035
