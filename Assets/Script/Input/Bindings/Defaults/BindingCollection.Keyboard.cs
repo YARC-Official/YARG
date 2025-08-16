@@ -17,7 +17,7 @@ namespace YARG.Input
                 GameMode.FiveLaneDrums => SetDefaultFiveLaneBindings(keyboard),
 
                 GameMode.ProGuitar => SetDefaultProGuitarBindings(keyboard),
-                GameMode.ProKeys => SetDefaultProKeysBindings(keyboard),
+                GameMode.Keys => SetDefaultProKeysBindings(keyboard),
 
                 GameMode.Vocals => SetDefaultVocalsBindings(keyboard),
 
@@ -115,7 +115,7 @@ namespace YARG.Input
 
         private bool SetDefaultProKeysBindings(Keyboard keyboard)
         {
-            if (Mode != GameMode.ProKeys)
+            if (Mode != GameMode.Keys)
                 return false;
 
             // screw it, we ballin'

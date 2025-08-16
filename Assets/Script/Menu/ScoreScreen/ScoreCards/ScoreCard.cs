@@ -136,7 +136,7 @@ namespace YARG.Menu.ScoreScreen
 
             // Set engine preset icons
             ModifierIcon.SpawnEnginePresetIcons(_modifierIconPrefab, _modifierIconContainer,
-                Player.EnginePreset, Player.Profile.CurrentInstrument.ToGameMode());
+                Player.EnginePreset, Player.Profile.GameMode);
 
             // Set modifier icons
             foreach (var modifier in EnumExtensions<Modifier>.Values)

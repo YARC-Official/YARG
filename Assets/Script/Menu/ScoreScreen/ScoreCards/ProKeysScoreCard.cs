@@ -4,7 +4,7 @@ using YARG.Core.Engine.ProKeys;
 
 namespace YARG.Menu.ScoreScreen
 {
-    public class ProKeysScoreCard : ScoreCard<ProKeysStats>
+    public class ProKeysScoreCard : ScoreCard<KeysStats>
     {
         [Space]
         [SerializeField]

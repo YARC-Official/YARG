@@ -20,7 +20,7 @@ namespace YARG.Helpers.Extensions
                 // GameMode.EliteDrums  => "eliteDrums",
 
                 GameMode.ProGuitar      => "realGuitar",
-                GameMode.ProKeys        => "realKeys",
+                GameMode.Keys        => "realKeys",
 
                 GameMode.Vocals         => "vocals",
 
@@ -68,7 +68,7 @@ namespace YARG.Helpers.Extensions
                     ProfileSettingStrings.LEFTY_FLIP,
                     ProfileSettingStrings.RANGE_DISABLE,
                 },
-                GameMode.ProKeys => new List<string>
+                GameMode.Keys => new List<string>
                 {
                     ProfileSettingStrings.RANGE_DISABLE
                 },

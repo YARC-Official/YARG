@@ -106,7 +106,7 @@ namespace YARG.Input
             new IndividualButtonBinding("Guitar.StarPower", (int) ProGuitarAction.StarPower),
         };
 
-        public static BindingCollection CreateProKeysBindings() => new(GameMode.ProKeys)
+        public static BindingCollection CreateProKeysBindings() => new(GameMode.Keys)
         {
             new ButtonBinding("ProKeys.Key1",  (int) ProKeysAction.Key1),
             new ButtonBinding("ProKeys.Key2",  (int) ProKeysAction.Key2),
@@ -171,7 +171,7 @@ namespace YARG.Input
                 GameMode.FiveLaneDrums => CreateFiveLaneDrumsBindings(),
 
                 GameMode.ProGuitar => CreateProGuitarBindings(),
-                GameMode.ProKeys => CreateProKeysBindings(),
+                GameMode.Keys => CreateProKeysBindings(),
 
                 GameMode.Vocals => CreateVocalsBindings(),
 

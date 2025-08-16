@@ -151,15 +151,15 @@ namespace YARG.Menu.ScoreScreen
         {
             foreach (var score in scoreScreenStats.PlayerScores)
             {
-                switch (score.Player.Profile.CurrentInstrument.ToGameMode())
+                switch (score.Player.Profile.CurrentInstrument.ToNativeGameMode())
                 {
                     case GameMode.FiveFretGuitar:
                     { 
-                        if (score.Player.Profile.GameMode is GameMode.ProKeys)
+                        if (score.Player.Profile.GameMode is GameMode.Keys)
                         {
                             // Five-lane keys engine
                             var card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                            card.Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
+                            card.Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats);
                             card.SetCardContents();
                             break;
                         }
@@ -187,10 +187,10 @@ namespace YARG.Menu.ScoreScreen
                         card.SetCardContents();
                         break;
                     }
-                    case GameMode.ProKeys:
+                    case GameMode.Keys:
                     {
                         var card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
+                        card.Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats);
                         card.SetCardContents();
                         break;
                     }

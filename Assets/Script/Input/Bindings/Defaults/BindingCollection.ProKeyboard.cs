@@ -33,7 +33,7 @@ namespace YARG.Input
                     AddBinding(ProKeysAction.TouchEffects, keyboard.analogPedal);
                     return true;
 
-                case GameMode.ProKeys:
+                case GameMode.Keys:
                     AddBinding(ProKeysAction.Key1, keyboard.key1);
                     AddBinding(ProKeysAction.Key2, keyboard.key2);
                     AddBinding(ProKeysAction.Key3, keyboard.key3);
