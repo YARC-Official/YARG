@@ -82,6 +82,8 @@ namespace YARG.Menu.DifficultySelect
         private readonly List<Difficulty> _possibleDifficulties = new();
         private readonly List<Modifier>   _possibleModifiers    = new();
 
+        private Modifier _excusableModifiers;
+
         private int _maxHarmonyIndex = 3;
 
         private readonly List<ModifierItem> _modifierItems = new();
@@ -235,9 +237,9 @@ namespace YARG.Menu.DifficultySelect
                 {
                     // Create modifiers body text
                     string modifierText = "";
-                    if (player.Profile.CurrentModifiers == Modifier.None)
+                    if ((player.Profile.CurrentModifiers & ~_excusableModifiers) == Modifier.None)
                     {
-                        // If there are no modifiers, then just say "none"
+                        // If there are no modifiers (ignoring the excusable ones), then just say "none"
                         modifierText = Modifier.None.ToLocalizedName();
                     }
                     else
@@ -317,6 +319,7 @@ namespace YARG.Menu.DifficultySelect
                 {
                     CurrentPlayer.Profile.CurrentInstrument = instrument;
                     UpdatePossibleDifficulties();
+                    UpdatePossibleModifiers();
 
                     _menuState = State.Main;
                     UpdateForPlayer();
@@ -406,6 +409,40 @@ namespace YARG.Menu.DifficultySelect
 
                 item.Active = profile.IsModifierActive(modifier);
             }
+        }
+
+        private void UpdatePossibleModifiers()
+        {
+            var profile = CurrentPlayer.Profile;
+
+            // Get the possible modifiers (split the enum into multiple) and
+            // make sure current modifiers are valid, and remove the invalid ones
+            _possibleModifiers.Clear();
+            var (possible, excusable) = profile.GameMode.PossibleModifiers(profile.CurrentInstrument);
+            _excusableModifiers = excusable;
+
+            foreach (var modifier in EnumExtensions<Modifier>.Values)
+            {
+                // Skip if the modifier is not a possible one
+                if ((possible & modifier) == 0)
+                {
+                    // Also try to clear it if it isn't considered excusable yet the player somehow has it
+                    if (((excusable & modifier) == 0) && profile.IsModifierActive(modifier))
+                    {
+                        profile.RemoveModifiers(modifier);
+                    }
+
+                    continue;
+                }
+
+                _possibleModifiers.Add(modifier);
+
+                if (profile.IsModifierActive(modifier) && !_possibleModifiers.Contains(modifier))
+                {
+                    profile.RemoveModifiers(modifier);
+                }
+            }
+
         }
 
         private void ChangePlayer(int add)
@@ -503,31 +540,7 @@ namespace YARG.Menu.DifficultySelect
                 profile.HarmonyIndex = 0;
             }
 
-            // Get the possible modifiers (split the enum into multiple) and
-            // make sure current modifiers are valid, and remove the invalid ones
-            _possibleModifiers.Clear();
-            var possible = profile.GameMode.PossibleModifiers();
-            foreach (var modifier in EnumExtensions<Modifier>.Values)
-            {
-                // Skip if the modifier is not a possible one
-                if ((possible & modifier) == 0)
-                {
-                    // Also try to remove it if the player has it for some reason
-                    if (profile.IsModifierActive(modifier))
-                    {
-                        profile.RemoveModifiers(modifier);
-                    }
-
-                    continue;
-                }
-
-                _possibleModifiers.Add(modifier);
-
-                if (profile.IsModifierActive(modifier) && !_possibleModifiers.Contains(modifier))
-                {
-                    profile.RemoveModifiers(modifier);
-                }
-            }
+            UpdatePossibleModifiers();
 
             // Don't sit out by default
             CurrentPlayer.SittingOut = false;
