@@ -68,6 +68,10 @@ namespace YARG.Helpers.Extensions
                     ProfileSettingStrings.LEFTY_FLIP,
                     ProfileSettingStrings.RANGE_DISABLE,
                 },
+                GameMode.ProKeys => new List<string>
+                {
+                    ProfileSettingStrings.RANGE_DISABLE
+                },
                 _ => new List<string>()
             };
 

@@ -94,7 +94,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <Prefab>k__BackingField: {fileID: 6252920090088018630, guid: 742bbf327b6e5644ab4d1c6e3b417c1f,
+  <Prefab>k__BackingField: {fileID: 6252920090088018630, guid: 686328d85492f9e45acc3b542e831cf9,
     type: 3}
   _prewarmAmount: 2
   _objectCap: 5
@@ -142,7 +142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <Prefab>k__BackingField: {fileID: 8633516561021093830, guid: d29c09ffc7e0eab4fba5cd025695b6b9,
+  <Prefab>k__BackingField: {fileID: 8633516561021093830, guid: 00c35f2f4ad25d24aabce486c058ea79,
     type: 3}
   _prewarmAmount: 4
   _objectCap: 12

@@ -221,7 +221,7 @@ namespace YARG.Assets.Script.Gameplay.Player
 
                 YargLogger.LogDebug("Shift indicator spawned!");
 
-                ((GuitarShiftIndicatorElement) poolable).RangeShiftIndicator = shiftIndicator;
+                ((FiveLaneKeysShiftIndicatorElement) poolable).RangeShiftIndicator = shiftIndicator;
                 poolable.EnableFromPool();
 
                 _shiftIndicators.Dequeue();
@@ -299,7 +299,7 @@ namespace YARG.Assets.Script.Gameplay.Player
 
             YargLogger.LogDebug("Range indicator spawned!");
 
-            ((GuitarRangeIndicatorElement) poolable).RangeShift = nextShift;
+            ((FiveLaneKeysRangeIndicatorElement) poolable).RangeShift = nextShift;
             poolable.EnableFromPool();
 
             _shiftIndicators.Dequeue();
