@@ -35,10 +35,6 @@ namespace YARG.Gameplay.Visuals
             }
 
             SetHitWindowSize();
-
-            // Set fade (required in case the hit window goes past the fade threshold)
-            GetComponent<MeshRenderer>().material
-                .SetFade(_player.ZeroFadePosition, _player.FadeSize);
         }
 
         public void SetHitWindowSize()

@@ -85,12 +85,6 @@ namespace YARG.Settings.Preview
             var cameraPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
             var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
 
-            // Update fade
-            foreach (var material in _materials)
-            {
-                material.SetFade(3f, cameraPreset.FadeLength);
-            }
-
             // Update color
             var color = FakeTrackPlayer.CurrentGameModeInfo.NoteColorProvider(colorProfile, NoteRef);
             _currentNoteGroup.SetColorWithEmission(color, color);
