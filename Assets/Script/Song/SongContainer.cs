@@ -488,7 +488,6 @@ namespace YARG.Song
                 SongEntry[] songs = new SongEntry[songCount];
                 int index = 0;
 
-                YargPlayer player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
                 foreach (var node in entries)
                 {
                     for (int i = 0; i < node.Value.Count; i++)
