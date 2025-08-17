@@ -228,13 +228,8 @@ namespace YARG.Gameplay.Player
             // If the chart did not provide a vocal scroll speed, check whether the lyrics are too fast to
             // comfortably display at the default speed. Note that DTA-based songs that use the default value
             // of 2300 are treated as having no value.
-            if (trackSpeed is null)
-            {
-                TrackSpeed = GetScrollSpeed(vocalsTrack.Parts);
-            } else
-            {
-                TrackSpeed = trackSpeed.Value * STANDARD_SCROLL_SPEED;
-            }
+            var scalingFactor = trackSpeed ?? GetScrollSpeedScalingFactor(vocalsTrack.Parts);
+            TrackSpeed = scalingFactor * STANDARD_SCROLL_SPEED;
 
             _lyricContainer.TrackSpeed = TrackSpeed;
 
@@ -518,12 +513,12 @@ namespace YARG.Gameplay.Player
         // Should only be used when the chart did not provide an explicit vocal scroll speed. Finds the largest distance
         // between a note tube and its associated lyric element (computed with respect to the default scroll speed). If
         // that distance is too big, returns an increased vocal scroll speed
-        private float GetScrollSpeed(List<VocalsPart> parts)
+        private float GetScrollSpeedScalingFactor(List<VocalsPart> parts)
         {
             var textWidthTester = gameObject.AddComponent<TextMeshPro>();
 
             const float DEFAULT_TRACK_SPEED = 5;
-            const float THRESHOLD = 300;
+            const int THRESHOLD = 300;
 
             var greatestOffset = 0d;
 
@@ -556,7 +551,16 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            return greatestOffset > THRESHOLD ? 8f : 5f;
+            if (greatestOffset < THRESHOLD)
+            {
+                return 1f;
+            }
+
+            // Every 200 units past the threshold increases the scaling factor (plus an initial increase for
+            // passing the threshold in the first place)
+            int severity = (((int)greatestOffset - THRESHOLD) / 200) + 1;
+
+            return 1f + (severity * 0.3f);
         }
     }
 }
