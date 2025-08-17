@@ -91,6 +91,7 @@ namespace YARG.Menu.ScoreScreen
                     {
                         PlaylistContainer.FavoritesPlaylist.AddSong(song);
                         isFavorited = true;
+                        Navigator.Instance.PopScheme();
                         Navigator.Instance.PushScheme(new NavigationScheme(new()
                         {
                             continueButtonEntry,
@@ -106,6 +107,7 @@ namespace YARG.Menu.ScoreScreen
                     {
                         PlaylistContainer.FavoritesPlaylist.RemoveSong(song);
                         isFavorited = false;
+                        Navigator.Instance.PopScheme();
                         Navigator.Instance.PushScheme(new NavigationScheme(new()
                         {
                             continueButtonEntry,
