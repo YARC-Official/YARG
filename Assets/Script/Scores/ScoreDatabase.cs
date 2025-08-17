@@ -49,6 +49,14 @@ namespace YARG.Scores
     }
 
     /// <summary>
+    /// Extended player score record that includes the joined SongChecksum.
+    /// </summary>
+    public class PlayerScoreWithChecksum : PlayerScoreRecord
+    {
+        public byte[] SongChecksum { get; set; }
+    }
+
+    /// <summary>
     /// The score database.
     /// </summary>
     /// <remarks>
@@ -405,6 +413,37 @@ namespace YARG.Scores
                 profile.Id,
                 (int) profile.CurrentInstrument
             );
+        }
+
+        public List<PlayerScoreWithChecksum> QueryPlayerBestStars(YargProfile profile, bool highestDifficultyOnly)
+        {
+            string query = $@"SELECT * FROM (
+                SELECT * FROM PlayerScores
+                    INNER JOIN GameRecords
+                ON PlayerScores.GameRecordId = GameRecords.Id
+                WHERE PlayerId = ?
+                    AND Instrument = ?";
+
+            if (!highestDifficultyOnly)
+            {
+                query += @"
+                    AND PlayerScores.Difficulty = ?";
+            }
+            query += @"
+                ORDER BY PlayerScores.Stars DESC
+                )
+                GROUP BY SongChecksum";
+
+            return highestDifficultyOnly
+                ? Query<PlayerScoreWithChecksum>(
+                    query,
+                    profile.Id,
+                    (int) profile.CurrentInstrument)
+                : Query<PlayerScoreWithChecksum>(
+                    query,
+                    profile.Id,
+                    (int) profile.CurrentInstrument,
+                    (int) profile.CurrentDifficulty);
         }
 
         #endregion

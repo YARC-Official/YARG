@@ -383,5 +383,27 @@ namespace YARG.Scores
                 return new List<SongEntry>();
             }
         }
+
+        public static Dictionary<HashWrapper, StarAmount> GetBestStarsForSong(YargProfile profile)
+        {
+            try
+            {
+                List<PlayerScoreWithChecksum> records = _db.QueryPlayerBestStars(profile, false);
+                Dictionary<HashWrapper, StarAmount> result = new Dictionary<HashWrapper, StarAmount>();
+
+                foreach (PlayerScoreWithChecksum record in records)
+                {
+                    HashWrapper hash = HashWrapper.Create(record.SongChecksum);
+                    result[hash] = record.Stars;
+                }
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to fetch best star value from database.");
+            }
+            return new Dictionary<HashWrapper, StarAmount>();
+        }
     }
 }

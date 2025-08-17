@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Audio;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Localization;
@@ -102,6 +104,16 @@ namespace YARG.Menu.MusicLibrary
 
         // Doesn't go through PlaylistContainer because it is ephemeral
         public Playlist        ShowPlaylist { get; set; } = new(true);
+
+        private static Instrument _lastInstrument;
+        private static Difficulty _lastDifficulty;
+
+        private static bool _needsReload = false;
+
+        public static void NeedsReload()
+        {
+            _needsReload = true;
+        }
 
         private int _primaryHeaderIndex;
 
@@ -270,6 +282,83 @@ namespace YARG.Menu.MusicLibrary
                     new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                         OnButtonHit, OnButtonRelease),
                 }, false));
+            }
+
+            // Check if instrument or difficulty has changed, triggering a library refresh
+            YargProfile profile = null;
+            foreach (YargPlayer p in PlayerContainer.Players)
+            {
+                if (!p.Profile.IsBot)
+                {
+                    profile = p.Profile;
+                    break;
+                }
+            }
+            Instrument currentInstrument = profile?.CurrentInstrument ?? Instrument.FiveFretGuitar;
+            Difficulty currentDifficulty = profile?.CurrentDifficulty ?? Difficulty.Expert;
+            if (_needsReload ||
+                currentInstrument != _lastInstrument ||
+                currentDifficulty != _lastDifficulty)
+            {
+                _lastInstrument = currentInstrument;
+                _lastDifficulty = currentDifficulty;
+                _needsReload = false;
+
+                _searchField.Reset();
+                UpdateSearch(true);
+            }
+
+            // Restore search
+            _searchField.Restore();
+            _searchField.OnSearchQueryUpdated += UpdateSearch;
+
+            if (CurrentlyPlaying != null)
+            {
+                _currentSong = CurrentlyPlaying;
+            }
+
+            ShouldDisplaySoloHighScores = PlayerContainer.Players.Count(e => !e.Profile.IsBot) == 1;
+
+            StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value;
+            _previewDelay = 0;
+            if (_reloadState == MusicLibraryReloadState.Full)
+            {
+                Refresh();
+            }
+            else if (_reloadState == MusicLibraryReloadState.Partial)
+            {
+                UpdateSearch(true);
+                SelectedIndex = _savedIndex;
+            }
+            else if (_currentSong != null)
+            {
+                UpdateSearch(true);
+            }
+
+            CurrentlyPlaying = null;
+            _reloadState = MusicLibraryReloadState.None;
+
+            // Set proper text
+            _subHeader.text = LibraryMode switch
+            {
+                MusicLibraryMode.QuickPlay => Localize.Key("Menu.Main.Options.Quickplay"),
+                MusicLibraryMode.Practice  => Localize.Key("Menu.Main.Options.Practice"),
+                _                          => throw new Exception("Unreachable.")
+            };
+
+            // Set IsPractice as well
+            GlobalVariables.State.IsPractice = LibraryMode == MusicLibraryMode.Practice;
+            GlobalVariables.State.CurrentReplay = null;
+
+            // Show no player warning
+            _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
+
+            // Make sure sort is not by play count if there are only bots
+            if (PlayerContainer.OnlyHasBotsActive() &&
+                SettingsManager.Settings.LibrarySort == SortAttribute.Playcount)
+            {
+                // Name makes a good fallback?
+                ChangeSort(SortAttribute.Name);
             }
         }
 

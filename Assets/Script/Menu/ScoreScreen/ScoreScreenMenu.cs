@@ -15,6 +15,7 @@ using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
 using YARG.Gameplay;
 using YARG.Localization;
+using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Scores;
@@ -189,6 +190,7 @@ namespace YARG.Menu.ScoreScreen
 
         private void OnDisable()
         {
+            MusicLibraryMenu.CurrentlyPlaying = GlobalVariables.State.CurrentSong;
             if (!GlobalVariables.State.PlayingAShow)
             {
                 GlobalVariables.State = PersistentState.Default;
@@ -235,6 +237,12 @@ namespace YARG.Menu.ScoreScreen
                 }
             }
 
+            // Mark that the music library should refresh when next opened
+            if (GlobalVariables.State.ScoreScreenStats.Value.PlayerScores.Any(e => !e.Player.Profile.IsBot))
+            {
+                MusicLibraryMenu.NeedsReload();
+            }
+            
             // Make sure to update the canvases since we *just* added the score cards
             Canvas.ForceUpdateCanvases();
 
