@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Assertions;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Gameplay.HUD;
 using YARG.Core.Logging;
+using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -102,6 +103,11 @@ namespace YARG.Gameplay.Player
         /// </summary>
         private const double MINIMUM_SHIFT_TIME = 0.25;
 
+        /// <summary>
+        /// The standard scaling factor for vocal scroll speeds.
+        /// </summary>
+        private const float STANDARD_SCROLL_SPEED = 5f;
+
         [SerializeField]
         private VocalsPlayer _vocalPlayerPrefab;
         [SerializeField]
@@ -170,6 +176,8 @@ namespace YARG.Gameplay.Player
         private double _changeStartTime;
         private double _changeEndTime;
 
+        
+
         public float TrackSpeed { get; private set; }
 
         public int LyricLaneCount { get; private set; }
@@ -204,7 +212,7 @@ namespace YARG.Gameplay.Player
             _trackCamera.targetTexture = renderTexture;
         }
 
-        public void Initialize(VocalsTrack vocalsTrack, YargPlayer primaryPlayer)
+        public void Initialize(VocalsTrack vocalsTrack, YargPlayer primaryPlayer, float? trackSpeed)
         {
             _originalVocalsTrack = vocalsTrack;
 
@@ -216,7 +224,18 @@ namespace YARG.Gameplay.Player
             }
 
             _vocalsTrack = _originalVocalsTrack.Clone();
-            TrackSpeed = primaryPlayer.Profile.NoteSpeed;
+
+            // If the chart did not provide a vocal scroll speed, check whether the lyrics are too fast to
+            // comfortably display at the default speed. Note that DTA-based songs that use the default value
+            // of 2300 are treated as having no value.
+            if (trackSpeed is null)
+            {
+                TrackSpeed = GetScrollSpeed(vocalsTrack.Parts);
+            } else
+            {
+                TrackSpeed = trackSpeed.Value * STANDARD_SCROLL_SPEED;
+            }
+
             _lyricContainer.TrackSpeed = TrackSpeed;
 
             // Create trackers and indices
@@ -494,6 +513,50 @@ namespace YARG.Gameplay.Player
             _vocalsTrack.RangeShifts.RemoveAll(n => n.Tick < rangesStart || n.Tick >= end);
 
             ResetPracticeSection();
+        }
+
+        // Should only be used when the chart did not provide an explicit vocal scroll speed. Finds the largest distance
+        // between a note tube and its associated lyric element (computed with respect to the default scroll speed). If
+        // that distance is too big, returns an increased vocal scroll speed
+        private float GetScrollSpeed(List<VocalsPart> parts)
+        {
+            var textWidthTester = gameObject.AddComponent<TextMeshPro>();
+
+            const float DEFAULT_TRACK_SPEED = 5;
+            const float THRESHOLD = 300;
+
+            var greatestOffset = 0d;
+
+            foreach (var part in parts)
+            {
+                var lastEdgeTime = double.NegativeInfinity;
+
+                foreach (var phrase in part.NotePhrases)
+                {
+                    foreach (var lyric in phrase.Lyrics)
+                    {
+                        if (lyric.PitchSlide)
+                        {
+                            continue;
+                        }
+
+                        if (lyric.Time < lastEdgeTime)
+                        {
+                            // This lyric is too early to be spawned right on cue, and will have to be offset.
+                            // Check if the offset is the biggest we've seen so far
+                            greatestOffset = Math.Max(greatestOffset, lastEdgeTime - lyric.Time);
+                        }
+                        var spawnTime = Math.Max(lyric.Time, lastEdgeTime);
+
+                        textWidthTester.text = lyric.Text;
+                        var width = textWidthTester.GetPreferredValues().x;
+
+                        lastEdgeTime = spawnTime + (width + VocalLyricContainer.LYRIC_SPACING) / DEFAULT_TRACK_SPEED;
+                    }
+                }
+            }
+
+            return greatestOffset > THRESHOLD ? 8f : 5f;
         }
     }
 }

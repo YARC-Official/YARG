@@ -7,7 +7,7 @@ namespace YARG.Gameplay.Player
 {
     public class VocalLyricContainer : MonoBehaviour
     {
-        private const float LYRIC_SPACING = 0.25f;
+        public const float LYRIC_SPACING = 0.25f;
 
         [Header("Index 0 should be bottom, 2 should be top.")]
         [SerializeField]

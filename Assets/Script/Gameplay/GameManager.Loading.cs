@@ -420,7 +420,7 @@ namespace YARG.Gameplay
                             var chart = player.Profile.CurrentInstrument == Instrument.Vocals
                                 ? Chart.Vocals
                                 : Chart.Harmony;
-                            VocalTrack.Initialize(chart, player);
+                            VocalTrack.Initialize(chart, player, Song.VocalScrollSpeedScalingFactor);
 
                             _lyricBar.SetActive(false);
                             vocalTrackInitialized = true;
@@ -434,7 +434,7 @@ namespace YARG.Gameplay
 
                         var percussionTrack = VocalTrack.CreatePercussionTrack();
                         percussionTrack.TrackSpeed = VocalTrack.TrackSpeed;
-                        vocalsPlayer.Initialize(index, vocalIndex, player, Chart, playerHud, percussionTrack, lastHighScore);
+                        vocalsPlayer.Initialize(index, vocalIndex, player, Chart, playerHud, percussionTrack, lastHighScore, VocalTrack.TrackSpeed);
 
                         _players.Add(vocalsPlayer);
                     }
