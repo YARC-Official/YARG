@@ -19,6 +19,7 @@ using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Scores;
 using YARG.Song;
+using YARG.Playlists;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -55,10 +56,11 @@ namespace YARG.Menu.ScoreScreen
 
         private void OnEnable()
         {
+            var song = GlobalVariables.State.CurrentSong;
+            var isFavorited = PlaylistContainer.FavoritesPlaylist.ContainsSong(song);
+            
             // Set navigation scheme
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
-            {
-                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
+            var continueButtonEntry = new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
                 {
                     if (!_analyzingReplay)
                     {
@@ -77,8 +79,57 @@ namespace YARG.Menu.ScoreScreen
                             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
                         }
                     }
-                })
-            }, true));
+                });
+
+            // dummy remove button so it can be used in add button
+            NavigationScheme.Entry removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "", () => {});
+            var addFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.AddToFavorites", () =>
+                {
+                    YargLogger.LogInfo("added favorite");
+                    if (!isFavorited)
+                    {
+                        PlaylistContainer.FavoritesPlaylist.AddSong(song);
+                        isFavorited = true;
+                        Navigator.Instance.PushScheme(new NavigationScheme(new()
+                        {
+                            continueButtonEntry,
+                            removeFavoriteButtonEntry
+                        }, true));
+                    }
+                });
+
+            removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.RemoveFromFavorites", () =>
+                {
+                    YargLogger.LogInfo("removed favorite");
+                    if (isFavorited)
+                    {
+                        PlaylistContainer.FavoritesPlaylist.RemoveSong(song);
+                        isFavorited = false;
+                        Navigator.Instance.PushScheme(new NavigationScheme(new()
+                        {
+                            continueButtonEntry,
+                            addFavoriteButtonEntry
+                        }, true));
+                    }
+                });
+
+            //different navigation scheme based on if the songs is favorited already
+            if (isFavorited)
+            {
+                Navigator.Instance.PushScheme(new NavigationScheme(new()
+                {
+                    continueButtonEntry,
+                    removeFavoriteButtonEntry
+                }, true));
+            }
+            else
+            {
+                Navigator.Instance.PushScheme(new NavigationScheme(new()
+                {
+                    continueButtonEntry,
+                    addFavoriteButtonEntry
+                }, true));
+            }
 
             if (GlobalVariables.State.ScoreScreenStats is null)
             {
@@ -86,7 +137,6 @@ namespace YARG.Menu.ScoreScreen
                 return;
             }
 
-            var song = GlobalVariables.State.CurrentSong;
             var scoreScreenStats = GlobalVariables.State.ScoreScreenStats.Value;
 
 #if UNITY_EDITOR || YARG_NIGHTLY_BUILD || YARG_TEST_BUILD
