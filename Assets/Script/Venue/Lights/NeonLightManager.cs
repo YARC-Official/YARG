@@ -1,4 +1,5 @@
 using UnityEngine;
+using YARG.Core.Logging;
 
 namespace YARG.Venue
 {
@@ -18,9 +19,10 @@ namespace YARG.Venue
         private Material[] _neonMaterials;
 		
 		[System.Serializable]
-		public class NeonFullColor {
+		public struct NeonFullColor {
 			public Material Material;
 			public VenueLightLocation Location;
+			public VenueSpotLightLocation SpotLocation;
 			[System.NonSerialized] 
 			public Color InitialColor;
 		}
@@ -41,17 +43,10 @@ namespace YARG.Venue
 
         private void Update()
         {
-			var lightState = _lightManager.GenericLightState;
-			var lightStateLeft = _lightManager.LeftLightState;
-			var lightStateRight = _lightManager.RightLightState;
-			var lightStateFront = _lightManager.FrontLightState;
-			var lightStateBack = _lightManager.BackLightState;
-			var lightStateCenter = _lightManager.CenterLightState;
-			var lightStateCrowd = _lightManager.CrowdLightState;
-
             // Update all of the materials
             foreach (var material in _neonMaterials)
             {
+				var lightState = _lightManager.GenericLightState;
 				material.SetFloat(_emissionMultiplier, lightState.Intensity);
 
                 if (lightState.Color == null)
@@ -64,43 +59,58 @@ namespace YARG.Venue
                 }
             } 
 			
-            for (int i = 0; i < _neonMaterialsFullColor.Length; i++) 
-                {
-                if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Generic)
-                {
-					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightState.Color ?? _neonMaterialsFullColor[i].InitialColor);
-					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightState.Intensity);
-                }
-				else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Left)
-                {
-					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateLeft.Color ?? _neonMaterialsFullColor[i].InitialColor);
-					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateLeft.Intensity);
-                }
-                else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Right)
-                {
-					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateRight.Color ?? _neonMaterialsFullColor[i].InitialColor);
-					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateRight.Intensity);
-                }
-                else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Front)
-                {
-					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateFront.Color ?? _neonMaterialsFullColor[i].InitialColor);
-					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateFront.Intensity);
-                }
-                else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Back)
-                {
-					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateBack.Color ?? _neonMaterialsFullColor[i].InitialColor);
-					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateBack.Intensity);
-                }
-                else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Center)
-                {
-					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateCenter.Color ?? _neonMaterialsFullColor[i].InitialColor);
-					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateCenter.Intensity);
-                }
-                else if (_neonMaterialsFullColor[i].Location == VenueLightLocation.Crowd)
-                {
-					_neonMaterialsFullColor[i].Material.SetColor(_emissionColor, lightStateCrowd.Color ?? _neonMaterialsFullColor[i].InitialColor);
-					_neonMaterialsFullColor[i].Material.SetFloat(_emissionMultiplier, lightStateCrowd.Intensity);
-                }
+            for (int i = 0; i < _neonMaterialsFullColor.Length; i++)
+            {
+				var neon = _neonMaterialsFullColor[i];
+				
+				switch (neon.Location)
+				{
+					case VenueLightLocation.Generic:
+						var lightState = _lightManager.GenericLightState;
+						neon.Material.SetColor(_emissionColor, lightState.Color ?? neon.InitialColor);
+						neon.Material.SetFloat(_emissionMultiplier, lightState.Intensity);
+					break;
+					
+					case VenueLightLocation.Left:
+						var lightStateLeft = _lightManager.LeftLightState;
+						neon.Material.SetColor(_emissionColor, lightStateLeft.Color ?? neon.InitialColor);
+						neon.Material.SetFloat(_emissionMultiplier, lightStateLeft.Intensity);
+					break;
+					
+					case VenueLightLocation.Right:
+						var lightStateRight = _lightManager.RightLightState;
+						neon.Material.SetColor(_emissionColor, lightStateRight.Color ?? neon.InitialColor);
+						neon.Material.SetFloat(_emissionMultiplier, lightStateRight.Intensity);
+					break;
+					
+					case VenueLightLocation.Front:
+						var lightStateFront = _lightManager.FrontLightState;
+						neon.Material.SetColor(_emissionColor, lightStateFront.Color ?? neon.InitialColor);
+						neon.Material.SetFloat(_emissionMultiplier, lightStateFront.Intensity);
+					break;
+					
+					case VenueLightLocation.Back:
+						var lightStateBack = _lightManager.BackLightState;
+						neon.Material.SetColor(_emissionColor, lightStateBack.Color ?? neon.InitialColor);
+						neon.Material.SetFloat(_emissionMultiplier, lightStateBack.Intensity);
+					break;
+					
+					case VenueLightLocation.Center:
+						var lightStateCenter = _lightManager.CenterLightState;
+						neon.Material.SetColor(_emissionColor, lightStateCenter.Color ?? neon.InitialColor);
+						neon.Material.SetFloat(_emissionMultiplier, lightStateCenter.Intensity);
+					break;
+					
+					case VenueLightLocation.Crowd:
+						var lightStateCrowd = _lightManager.CrowdLightState;
+						neon.Material.SetColor(_emissionColor, lightStateCrowd.Color ?? neon.InitialColor);
+						neon.Material.SetFloat(_emissionMultiplier, lightStateCrowd.Intensity);
+					break;
+					
+					default:
+						YargLogger.LogDebug("Unknown location for neon light");
+					break;
+				}
             }
         }
     }
