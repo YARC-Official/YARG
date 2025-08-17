@@ -339,10 +339,25 @@ namespace YARG.Song
 
         private static SongCategory[] GetStars()
         {
-            YargPlayer player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+
+            if (PlayerContainer.OnlyHasBotsActive())
+            {
+                // If the previous sort exists and is reasonable, use that, otherwise use titles
+                var previousSort = SettingsManager.Settings.PreviousLibrarySort;
+                if (previousSort != SortAttribute.Stars && previousSort != SortAttribute.Playcount &&
+                    previousSort != SortAttribute.Playable)
+                {
+                    return GetSortedCategory(previousSort);
+                }
+
+                return _sortTitles;
+            }
+
+            YargPlayer player = PlayerContainer.Players.FirstOrDefault(e => !e.Profile.IsBot);
             if (player == null)
             {
-                return Array.Empty<SongCategory>();
+                // This case should have been caught above, but just in case
+                return _sortTitles;
             }
 
             _runtimeStars.Clear();
