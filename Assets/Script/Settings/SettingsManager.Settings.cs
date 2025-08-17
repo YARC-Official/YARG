@@ -344,10 +344,9 @@ namespace YARG.Settings
             #endregion
 
             #region Lighting Peripherals
-
-            public ToggleSetting StageKitEnabled { get; } = new(true, StageKitEnabledCallback);
-            public ToggleSetting DMXEnabled { get; } = new(false, DMXEnabledCallback);
-            public ToggleSetting RB3EEnabled { get; } = new(false, RB3EEnabledCallback);
+            public ToggleSetting StageKitEnabled  { get; } = new(true, StageKitEnabledCallback);
+            public ToggleSetting DMXEnabled       { get; } = new(false, DMXEnabledCallback);
+            public ToggleSetting RB3EEnabled      { get; } = new(false, RB3EEnabledCallback);
 
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(
                 new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => SacnInterpreter.Instance.DimmerChannels = v);
@@ -437,6 +436,7 @@ namespace YARG.Settings
 
             #region Experimental
 
+            public ToggleSetting DataStreamEnable { get; } = new(false, DataStreamEnableCallback );
             public DropdownSetting<BandComboType> BandComboTypeSetting { get; } = new(BandComboType.Off)
             {
                 BandComboType.Off,
@@ -486,6 +486,15 @@ namespace YARG.Settings
                 StatsManager.Instance.SetShowing(StatsManager.Stat.ActiveBots, value);
             }
 
+            private static void DataStreamEnableCallback(bool value)
+            {
+                //To avoid being toggled on twice at start
+                if (!IsInitialized)
+                {
+                    return;
+                }
+                DataStreamController.Instance.HandleEnabledChanged(value);
+            }
             private static void RB3EEnabledCallback(bool value)
             {
                 RB3EHardware.Instance.HandleEnabledChanged(value);
