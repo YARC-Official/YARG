@@ -195,12 +195,37 @@ namespace YARG.Menu.Dialogs
             // For now we're just testing with pro keys, so I'm not going to set up a bunch of different maps
             // Pro keys uses "ProKeys.Key1" through "ProKeys.Key25" for the main keys, and that's all we're doing for now
             // TODO: Use the action enum instead of the name
-            if (bindingName.StartsWith("ProKeys.Key"))
+
+            if (_player.Profile.GameMode == GameMode.ProKeys)
             {
-                var key = _keyHighlights[int.Parse(bindingName[11..]) - 1];
+                if (bindingName.StartsWith("ProKeys.Key"))
+                {
+                    var key = _keyHighlights[int.Parse(bindingName[11..]) - 1];
+                    return key;
+                }
+
+                return null;
+            }
+
+            if (_player.Profile.GameMode == GameMode.FourLaneDrums)
+            {
+                var key = bindingName switch
+                {
+                    "FourDrums.RedPad" => _keyHighlights[0],
+                    "FourDrums.YellowPad" => _keyHighlights[1],
+                    "FourDrums.BluePad" => _keyHighlights[2],
+                    "FourDrums.GreenPad" => _keyHighlights[3],
+                    "FourDrums.YellowCymbal" => _keyHighlights[4],
+                    "FourDrums.BlueCymbal" => _keyHighlights[5],
+                    "FourDrums.GreenCymbal" => _keyHighlights[6],
+                    "Drums.Kick" => _keyHighlights[7],
+                    _ => null
+                };
+
                 return key;
             }
 
+            YargLogger.LogWarning($"Unsupported game mode for friendly binding: {_player.Profile.GameMode}");
             return null;
         }
 
