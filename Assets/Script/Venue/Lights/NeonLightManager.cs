@@ -22,7 +22,6 @@ namespace YARG.Venue
 		public struct NeonFullColor {
 			public Material Material;
 			public VenueLightLocation Location;
-			public VenueSpotLightLocation SpotLocation;
 			[System.NonSerialized] 
 			public Color InitialColor;
 		}
