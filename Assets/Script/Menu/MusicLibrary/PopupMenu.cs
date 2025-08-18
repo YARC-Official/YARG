@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -130,6 +131,26 @@ namespace YARG.Menu.MusicLibrary
                     _menuState = State.GoToSection;
                     UpdateForState();
                 });
+
+                if (SongContainer.AreAnyHeadersCollapsed())
+                {
+                    CreateItem("ExpandAll", () =>
+                    {
+                        _musicLibrary.ExpandAll();
+                        gameObject.SetActive(false);
+                    });
+                }
+
+                IEnumerable<string> headerTexts = _musicLibrary.ViewList.OfType<SortHeaderViewType>()
+                    .Select(header => header.HeaderText);
+                if (!SongContainer.AreAllHeaderCollapsed(headerTexts))
+                {
+                    CreateItem("CollapseAll", () =>
+                    {
+                        _musicLibrary.CollapseAll();
+                        gameObject.SetActive(false);
+                    });
+                }
             }
 
             var viewType = _musicLibrary.CurrentSelection;
@@ -272,6 +293,7 @@ namespace YARG.Menu.MusicLibrary
 
                 CreateItemUnlocalized(sort.ToLocalizedName(), () =>
                 {
+                    SongContainer.ClearCollapsedHeaders();
                     _musicLibrary.ChangeSort(sort);
                     gameObject.SetActive(false);
                 });

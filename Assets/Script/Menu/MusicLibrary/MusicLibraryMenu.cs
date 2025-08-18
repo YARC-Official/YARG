@@ -435,7 +435,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (!_sortedSongs.Any(section => section.Songs.Length > 0))
             {
-                list.Add(new SortHeaderViewType(Localize.Key("Menu.MusicLibrary.NoSongsMatchCriteria"), 0, null));
+                list.Add(new SortHeaderViewType(Localize.Key("Menu.MusicLibrary.NoSongsMatchCriteria"), 0, null, this));
                 return list;
             }
 
@@ -534,14 +534,17 @@ namespace YARG.Menu.MusicLibrary
 
                 if (_sortedSongs.Length > 1)
                 {
-                    list.Add(new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup));
+                    list.Add(new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup, this));
                 }
 
-                foreach (var song in section.Songs)
+                if (!SongContainer.IsHeaderCollapsed(displayName))
                 {
-                    if (allowdupes || !song.IsDuplicate)
+                    foreach (var song in section.Songs)
                     {
-                        list.Add(new SongViewType(this, song));
+                        if (allowdupes || !song.IsDuplicate)
+                        {
+                            list.Add(new SongViewType(this, song));
+                        }
                     }
                 }
             }
@@ -571,7 +574,7 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new SortHeaderViewType(
                     section.Category.ToUpperInvariant(),
                     section.Songs.Length,
-                    section.CategoryGroup));
+                    section.CategoryGroup, this));
 
                 foreach (var song in section.Songs)
                 {
@@ -1038,6 +1041,144 @@ namespace YARG.Menu.MusicLibrary
         public void SetSearchInput(SortAttribute songAttribute, string input)
         {
             _searchField.SetSearchInput(songAttribute, input);
+        }
+
+        public void ToggleCollapseOfSortHeader(SortHeaderViewType sortHeader)
+        {
+            var headerIndex = ((List<ViewType>) ViewList).IndexOf(sortHeader);
+            if(headerIndex < 0)
+                return;
+
+            SongContainer.ToggleCategoryCollapse(sortHeader.HeaderText);
+            var isCollapsing = SongContainer.IsHeaderCollapsed(sortHeader.HeaderText);
+
+            var index = SelectedIndex;
+            // Check if header is above selected entry
+            // If so, we have to calculate a new selected index
+            if (index > headerIndex)
+            {
+                if (isCollapsing)
+                {
+                    if (IsSelectedEntryInSectionBeingCollapsed())
+                    {
+                        index = headerIndex;
+                    }
+                    else
+                    {
+                        index -= GetEntryCountUnderSortHeader();
+                    }
+                    UpdateSearch(true);
+                    SelectedIndex = index;
+                }
+                else // Is Expanding
+                {
+                    UpdateSearch(true);
+                    SelectedIndex = index + GetEntryCountUnderSortHeader();
+                }
+            }
+            else // Sort header below selected index
+            {
+                UpdateSearch(true);
+                SelectedIndex = index;
+            }
+
+            // Local Functions
+            bool IsSelectedEntryInSectionBeingCollapsed()
+            {
+                if (ViewList[index] is SortHeaderViewType) return false;
+                for (int i = headerIndex + 1; i < index; i++)
+                {
+                    if (ViewList[i] is SortHeaderViewType) return false;
+                }
+                return true;
+            }
+
+            int GetEntryCountUnderSortHeader()
+            {
+                for (int i = headerIndex + 1; i < ViewList.Count; i++)
+                {
+                    if (ViewList[i] is SortHeaderViewType) return i - headerIndex - 1;
+                }
+                return headerIndex - ViewList.Count - 1;
+            }
+        }
+
+        public void CollapseAll()
+        {
+            foreach (var header in ViewList.OfType<SortHeaderViewType>())
+            {
+                SongContainer.CollapseHeader(header.HeaderText);
+            }
+            int firstSortHeaderIndex = -1;
+            int headerCount = 0;
+            var count = Math.Min(ViewList.Count, SelectedIndex + 1);
+            for (int i = 0; i < count; i++)
+            {
+                if (ViewList[i] is SortHeaderViewType sortHeader)
+                {
+                    if (firstSortHeaderIndex == -1)
+                    {
+                        firstSortHeaderIndex = i;
+                    }
+                    headerCount++;
+                }
+            }
+
+            var prevIndex = SelectedIndex;
+            UpdateSearch(true);
+            if (firstSortHeaderIndex != -1)
+            {
+                SelectedIndex = firstSortHeaderIndex + headerCount - 1;
+            }
+            else
+            {
+                SelectedIndex = prevIndex;
+            }
+        }
+
+        public void ExpandAll()
+        {
+            int offsetFromHeader = SelectedIndex;
+            string headerText = string.Empty;
+            int index = SelectedIndex;
+
+            if (CurrentSelection is SortHeaderViewType sortHeader)
+            {
+                offsetFromHeader = 0;
+                headerText = sortHeader.HeaderText;
+            }
+            else
+            {
+                for (int i = index - 1; i >= 0; i--)
+                {
+                    if (ViewList[i] is SortHeaderViewType sortHeaderAbove)
+                    {
+                        offsetFromHeader = index - i;
+                        headerText = sortHeaderAbove.HeaderText;
+                        break;
+                    }
+                }
+            }
+
+            foreach (var header in ViewList.OfType<SortHeaderViewType>())
+            {
+                SongContainer.ExpandHeader(header.HeaderText);
+            }
+
+            UpdateSearch(true);
+            SelectedIndex = GetSelectedIndex();
+
+            int GetSelectedIndex()
+            {
+                for (int i = 0; i < ViewList.Count; i++)
+                {
+                    if (ViewList[i] is SortHeaderViewType header && header.HeaderText == headerText)
+                    {
+                        return i + offsetFromHeader;
+                    }
+                }
+                return index;
+            }
         }
     }
 }
