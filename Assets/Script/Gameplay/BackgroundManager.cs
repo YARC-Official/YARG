@@ -3,14 +3,18 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.UI;
 using UnityEngine.Video;
-using YARG.Core.Extensions;
 using YARG.Core.IO;
 using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 using YARG.Venue;
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+using System.Collections.Generic;
+using YARG.Core.Logging;
+#endif
 
 namespace YARG.Gameplay
 {
@@ -62,30 +66,78 @@ namespace YARG.Gameplay
             {
                 case BackgroundType.Yarground:
                     var bundle = AssetBundle.LoadFromStream(result.Stream);
+                    AssetBundle shaderBundle = null;
 
                     // KEEP THIS PATH LOWERCASE
                     // Breaks things for other platforms, because Unity
                     var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
                         BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+                    var renderers = bg.GetComponentsInChildren<Renderer>(true);
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+                    var metalShaders = new Dictionary<string, Shader>();
 
-#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-                    // Fix for non-Windows machines
-                    // Probably there's a better way to do this.
-					Renderer[] renderers = bg.GetComponentsInChildren<Renderer>();
+                    var shaderBundleData = (TextAsset)await bundle.LoadAssetAsync<TextAsset>(
+                        "Assets/" + BundleBackgroundManager.BACKGROUND_SHADER_BUNDLE_NAME
+                    );
 
-					foreach (Renderer renderer in renderers) {
-						Material[] materials = renderer.sharedMaterials;
+                    if (shaderBundleData != null && shaderBundleData.bytes.Length > 0)
+                    {
+                        YargLogger.LogInfo("Loading Metal shader bundle");
+                        shaderBundle = await AssetBundle.LoadFromMemoryAsync(shaderBundleData.bytes);
+                        var allAssets = shaderBundle.LoadAllAssets<Shader>();
+                        foreach (var shader in allAssets)
+                        {
+                            metalShaders.Add(shader.name, shader);
+                        }
+                    }
+                    else
+                    {
+                        YargLogger.LogInfo("Did not find Metal shader bundle");
+                    }
 
-						for (int i = 0; i < materials.Length; i++) {
-							Material material = materials[i];
-							material.shader = Shader.Find(material.shader.name);
-						}
-					}
+                    // Yarground comes with shaders for dx11/dx12/glcore/vulkan
+                    // Metal shaders used on OSX come in this separate bundle
+                    // Update our renderers to use them
+
+                    foreach (var renderer in renderers)
+                    {
+                        foreach (var material in renderer.sharedMaterials)
+                        {
+                            var shaderName = material.shader.name;
+                            if (metalShaders.TryGetValue(shaderName, out var shader))
+                            {
+                                YargLogger.LogFormatDebug("Found bundled shader {0}", shaderName);
+                                // We found shader from Yarground
+                                material.shader = shader;
+                            }
+                            else
+                            {
+                                YargLogger.LogFormatDebug("Did not find bundled shader {0}", shaderName);
+                                // Fallback to try to find among builtin shaders
+                                material.shader = Shader.Find(shaderName);
+                            }
+                        }
+                    }
 #endif
+                    // Hookup song-specific textures
+                    var textureManager = GetComponent<TextureManager>();
+                    foreach (var renderer in renderers)
+                    {
+                        foreach (var material in renderer.sharedMaterials)
+                        {
+                            textureManager.ProcessMaterial(material);
+                        }
+                    }
 
                     var bgInstance = Instantiate(bg);
+                    var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
+                    bundleBackgroundManager.Bundle = bundle;
+                    bundleBackgroundManager.ShaderBundle = shaderBundle;
+                    bundleBackgroundManager.SetupVenueCamera(bgInstance);
 
-                    bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
+                    // Destroy the default camera (venue has its own)
+                    Destroy(_videoPlayer.targetCamera.gameObject);
+
                     break;
                 case BackgroundType.Video:
                     switch (result.Stream)
@@ -156,7 +208,7 @@ namespace YARG.Gameplay
             }
 
             // End video when reaching the specified end time
-            if (time - _videoStartTime >= _videoEndTime)
+            if (time + _videoStartTime >= _videoEndTime)
             {
                 _videoPlayer.Stop();
                 _videoPlayer.enabled = false;
@@ -175,27 +227,29 @@ namespace YARG.Gameplay
             const double endTimeThreshold = 0;
             const double dontLoopThreshold = 0.85;
 
-            if (_source == VenueSource.Song)
+            if (_source == VenueSource.Song && !GameManager.Song.VideoLoop)
             {
                 _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
                 _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
-                if (_videoEndTime <= 0)
-                    _videoEndTime = double.NaN;
 
                 player.time = _videoStartTime;
                 player.playbackSpeed = GameManager.SongSpeed;
 
-                // Determine whether or not to loop the video
-                if (Math.Abs(_videoStartTime) <= startTimeThreshold && _videoEndTime <= endTimeThreshold)
+                // Only loop the video if it's not around the same length as the song
+                if (Math.Abs(_videoStartTime) < startTimeThreshold &&
+                    _videoEndTime <= endTimeThreshold &&
+                    player.length < GameManager.SongLength * dontLoopThreshold)
                 {
-                    // Only loop the video if it's not around the same length as the song
-                    double lengthRatio = player.length / GameManager.SongLength;
-                    player.isLooping = lengthRatio < dontLoopThreshold;
+                    player.isLooping = true;
+                    _videoEndTime = double.NaN;
                 }
                 else
                 {
-                    // Never loop the video if start/end times are specified
                     player.isLooping = false;
+                    if (_videoEndTime <= 0)
+                    {
+                        _videoEndTime = player.length;
+                    }
                 }
             }
             else

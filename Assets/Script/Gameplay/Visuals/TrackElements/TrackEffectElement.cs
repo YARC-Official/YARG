@@ -1,11 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Serialization;
-using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 
@@ -28,6 +23,8 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Material _soloTrimMaterial;
         [SerializeField]
+        private Material _soloTrimTransitionMaterial;
+        [SerializeField]
         private Material _soloTransitionMaterial;
         [SerializeField]
         private Material _soloRailLeftTransitionMaterial;
@@ -39,6 +36,8 @@ namespace YARG.Gameplay.Visuals
         private Material _unisonRailMaterial;
         [SerializeField]
         private Material _unisonTrimMaterial;
+        [SerializeField]
+        private Material _unisonTrimTransitionMaterial;
         [SerializeField]
         private Material _unisonTransitionMaterial;
         [SerializeField]
@@ -52,6 +51,8 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Material _drumFillTrimMaterial;
         [SerializeField]
+        private Material _drumFillTrimTransitionMaterial;
+        [SerializeField]
         private Material _drumFillTransitionMaterial;
         [SerializeField]
         private Material _drumFillRailLeftTransitionMaterial;
@@ -64,21 +65,13 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _MaskDisabled = Shader.PropertyToID("_Mask_Disabled");
         private static readonly int _MaskMinZ = Shader.PropertyToID("_Mask_Min_Z");
         private static readonly int _MaskMaxZ = Shader.PropertyToID("_Mask_Max_Z");
-        private static readonly int _MaskFadeDistance = Shader.PropertyToID("_Mask_Fade_Distance");
 
         public float StartVisibility;
         public float EndVisibility;
 
         // These are here to reflect the defaults set in the shader in case we need them in the future
-        private float MaskDisabled = 1.0f;
-        private float MaskFadeDistance = 0.2f;
-
         private bool _visibilityInTransition = false;
         private bool _maskEnabled = false;
-        private float _currentVisibility = 1.0f;
-        private float _currentEndZ = 0.0f;
-        private float _currentStartVisibility = 1.0f;
-        private float _currentEndVisibility = 1.0f;
 
 
         private bool _previousStartTransitionEnable;
@@ -108,9 +101,6 @@ namespace YARG.Gameplay.Visuals
             Visibility = EffectRef.Visibility;
             StartVisibility = EnableStartTransition ? Visibility : 0.0f;
             EndVisibility = EnableEndTransition ? Visibility : 0.0f;
-            _currentVisibility = Visibility;
-            _currentStartVisibility = StartVisibility;
-            _currentEndVisibility = EndVisibility;
             _visibilityInTransition = false;
 
             SetMaterials();
@@ -135,7 +125,6 @@ namespace YARG.Gameplay.Visuals
             {
                 foreach (var material in meshRenderer.materials)
                 {
-                    material.SetFade(fadePos, fadeSize);
                     material.SetFloat(_visibility, Visibility);
                 }
 
@@ -248,9 +237,8 @@ namespace YARG.Gameplay.Visuals
         public void MakeVisible(bool enable = true)
         {
             _visibilityInTransition = true;
-            _visibilityStartTime = GameManager.RealVisualTime;
+            _visibilityStartTime = GameManager.VisualTime;
             _maskEnabled = enable;
-            _currentEndZ = StartZ;
             Visibility = enable ? 1.0f : 0.0f;
         }
 
@@ -277,7 +265,6 @@ namespace YARG.Gameplay.Visuals
                     material.SetFloat(_MaskMaxZ, endZ);
                 }
             }
-            _currentEndZ = endZ;
         }
 
         private void SetAllVisibility(float visibility)
@@ -302,7 +289,6 @@ namespace YARG.Gameplay.Visuals
                 // if it happens to already be enabled isn't expensive.
                 meshRenderer.enabled = true;
             }
-            _currentVisibility = visibility;
         }
 
         protected override bool UpdateElementPosition()
@@ -365,6 +351,12 @@ namespace YARG.Gameplay.Visuals
                 {
                     continue;
                 }
+
+                if (child.gameObject.name is "TrackEffectTransitionTrimLeft" or "TrackEffectTransitionTrimRight")
+                {
+                    continue;
+                }
+
                 // Change the child's scale such that their world size remains the same after the parent scales
                 var originalScale = 0.005f;
                 var newScale = originalScale / scaleFactor;
@@ -462,6 +454,16 @@ namespace YARG.Gameplay.Visuals
                     TrackEffectType.DrumFillAndUnison => _drumFillTrimMaterial,
                     _                                 => null,
                 },
+                "TrackEffectTransitionTrimLeft" => effectType switch
+                {
+                    TrackEffectType.Solo              => _soloTrimTransitionMaterial,
+                    TrackEffectType.Unison            => _unisonTrimTransitionMaterial,
+                    TrackEffectType.DrumFill          => _drumFillTrimTransitionMaterial,
+                    TrackEffectType.SoloAndUnison     => _unisonTrimTransitionMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _drumFillTrimTransitionMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillTrimTransitionMaterial,
+                    _                                 => null,
+                },
                 "TrackEffectTrimRight" => effectType switch {
                     TrackEffectType.Solo              => _soloTrimMaterial,
                     TrackEffectType.Unison            => _unisonTrimMaterial,
@@ -469,6 +471,16 @@ namespace YARG.Gameplay.Visuals
                     TrackEffectType.SoloAndUnison     => _unisonTrimMaterial,
                     TrackEffectType.SoloAndDrumFill   => _drumFillTrimMaterial,
                     TrackEffectType.DrumFillAndUnison => _drumFillTrimMaterial,
+                    _                                 => null,
+                },
+                "TrackEffectTransitionTrimRight" => effectType switch
+                {
+                    TrackEffectType.Solo              => _soloTrimTransitionMaterial,
+                    TrackEffectType.Unison            => _unisonTrimTransitionMaterial,
+                    TrackEffectType.DrumFill          => _drumFillTrimTransitionMaterial,
+                    TrackEffectType.SoloAndUnison     => _unisonTrimTransitionMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _drumFillTrimTransitionMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillTrimTransitionMaterial,
                     _                                 => null,
                 },
                 "TrackEffectStart" => effectType switch
@@ -509,23 +521,20 @@ namespace YARG.Gameplay.Visuals
         {
             if (_visibilityInTransition)
             {
-                // SetAllVisibility(Mathf.Lerp(_currentVisibility, Visibility, Time.deltaTime * 5f));
                 SetAllVisibility(Visibility);
             }
 
             if (_maskEnabled)
             {
-                var timeSinceStart = GameManager.RealVisualTime - _visibilityStartTime;
+                var timeSinceStart = GameManager.VisualTime - _visibilityStartTime;
                 // Go up the track at twice the notespeed (extra parentheses for clarity)
-                var maskEndZ = (float) (StartZ + ((timeSinceStart * Player.NoteSpeed) * 2));
-                // SetEffectMask(Mathf.Lerp(_currentEndZ, EndZ, Time.deltaTime * 5f));
-                SetEffectMask(maskEndZ);
+                SetEffectMask((float) (StartZ + (timeSinceStart * Math.Max(10f, Player.NoteSpeed * 3))));
             }
         }
 
         private float ZFromTime(double time)
         {
-            float z = TrackPlayer.STRIKE_LINE_POS + (float) (time - GameManager.RealVisualTime) * Player.NoteSpeed;
+            float z = TrackPlayer.STRIKE_LINE_POS + (float) (time - GameManager.VisualTime) * Player.NoteSpeed;
             return z;
         }
     }

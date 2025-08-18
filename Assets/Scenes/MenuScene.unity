@@ -274,6 +274,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1937505654}
     m_Modifications:
+    - target: {fileID: 950919677875588641, guid: d0f49c8c82390784ca352d6673844922,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 950919677875588641, guid: d0f49c8c82390784ca352d6673844922,
+        type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 1731608351740115684, guid: d0f49c8c82390784ca352d6673844922,
         type: 3}
       propertyPath: m_Name
@@ -630,6 +640,7 @@ GameObject:
   - component: {fileID: 1937505654}
   - component: {fileID: 1937505655}
   - component: {fileID: 1937505656}
+  - component: {fileID: 1937505657}
   m_Layer: 0
   m_Name: Menu Manager
   m_TagString: Untagged
@@ -681,6 +692,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 15e15a0d3f161b24a8f3fc72ff301709, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1937505657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1937505653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5d5a22ae6edb5042a3d027466ca40f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &2071019548 stripped

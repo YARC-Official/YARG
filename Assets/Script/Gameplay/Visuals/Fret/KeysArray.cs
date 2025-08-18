@@ -61,7 +61,7 @@ namespace YARG.Gameplay.Visuals
                     var color = colors.GetBlackKeyColor(group);
 
                     var fretComp = fret.GetComponent<Fret>();
-                    fretComp.Initialize(color, color, color);
+                    fretComp.Initialize(color, color, color, color);
 
                     var material = fret.GetComponentInChildren<MeshRenderer>().material;
                     material.SetFloat(IndexId, player.PlayerIndex);
@@ -86,7 +86,7 @@ namespace YARG.Gameplay.Visuals
                     var color = colors.WhiteKey;
 
                     var fretComp = fret.GetComponent<Fret>();
-                    fretComp.Initialize(color, color, color);
+                    fretComp.Initialize(color, color, color, color);
 
                     var material = fret.GetComponentInChildren<MeshRenderer>().material;
                     material.SetFloat(IndexId, player.PlayerIndex);
@@ -112,6 +112,12 @@ namespace YARG.Gameplay.Visuals
         {
             _keys[index].PlayHitAnimation();
             _keys[index].PlayHitParticles();
+        }
+
+        public void PlayMissAnimation(int index)
+        {
+            _keys[index].PlayMissAnimation();
+            _keys[index].PlayMissParticles();
         }
     }
 }

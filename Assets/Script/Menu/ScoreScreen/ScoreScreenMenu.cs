@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,11 +13,14 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
+using YARG.Gameplay;
 using YARG.Localization;
+using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Scores;
 using YARG.Song;
+using YARG.Playlists;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -53,17 +57,80 @@ namespace YARG.Menu.ScoreScreen
 
         private void OnEnable()
         {
+            var song = GlobalVariables.State.CurrentSong;
+            var isFavorited = PlaylistContainer.FavoritesPlaylist.ContainsSong(song);
+            
             // Set navigation scheme
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
-            {
-                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
+            var continueButtonEntry = new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
                 {
                     if (!_analyzingReplay)
                     {
-                        GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                        GlobalVariables.State.ShowIndex++;
+                        if (GlobalVariables.State.PlayingAShow &&
+                            GlobalVariables.State.ShowIndex < GlobalVariables.State.ShowSongs.Count)
+                        {
+                            // Reset CurrentSong and launch back into the Gameplay scene
+                            GlobalVariables.State.CurrentSong =
+                                GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex];
+                            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+                        }
+                        else
+                        {
+                            GlobalVariables.State.PlayingAShow = false;
+                            GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                        }
                     }
-                })
-            }, true));
+                });
+
+            // dummy remove button so it can be used in add button
+            NavigationScheme.Entry removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "", () => {});
+            var addFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.AddToFavorites", () =>
+                {
+                    YargLogger.LogInfo("added favorite");
+                    if (!isFavorited)
+                    {
+                        PlaylistContainer.FavoritesPlaylist.AddSong(song);
+                        isFavorited = true;
+                        Navigator.Instance.PushScheme(new NavigationScheme(new()
+                        {
+                            continueButtonEntry,
+                            removeFavoriteButtonEntry
+                        }, true));
+                    }
+                });
+
+            removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.RemoveFromFavorites", () =>
+                {
+                    YargLogger.LogInfo("removed favorite");
+                    if (isFavorited)
+                    {
+                        PlaylistContainer.FavoritesPlaylist.RemoveSong(song);
+                        isFavorited = false;
+                        Navigator.Instance.PushScheme(new NavigationScheme(new()
+                        {
+                            continueButtonEntry,
+                            addFavoriteButtonEntry
+                        }, true));
+                    }
+                });
+
+            //different navigation scheme based on if the songs is favorited already
+            if (isFavorited)
+            {
+                Navigator.Instance.PushScheme(new NavigationScheme(new()
+                {
+                    continueButtonEntry,
+                    removeFavoriteButtonEntry
+                }, true));
+            }
+            else
+            {
+                Navigator.Instance.PushScheme(new NavigationScheme(new()
+                {
+                    continueButtonEntry,
+                    addFavoriteButtonEntry
+                }, true));
+            }
 
             if (GlobalVariables.State.ScoreScreenStats is null)
             {
@@ -71,24 +138,37 @@ namespace YARG.Menu.ScoreScreen
                 return;
             }
 
-            var song = GlobalVariables.State.CurrentSong;
             var scoreScreenStats = GlobalVariables.State.ScoreScreenStats.Value;
 
+#if UNITY_EDITOR || YARG_NIGHTLY_BUILD || YARG_TEST_BUILD
             // Do analysis of replay before showing any score data
             // This will make it so that if the analysis takes a while the screen is blank
             // (kinda like a loading screen)
-            if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
+            try
             {
-                DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
-                    "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
-                    "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
-                    $"Chart Hash: {song.Hash.ToString()}");
+                if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
+                {
+                    DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
+                        "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
+                        "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
+                        $"Chart Hash: {song.Hash}");
+                }
             }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, $"Failed to analyze replay! Song hash: {song.Hash}");
+                DialogManager.Instance.ShowMessage("Failed To Analyze Replay!",
+                    "The replay analysis for this run resulted in an unexpected error.\n" +
+                    "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
+                    $"Chart Hash: {song.Hash}");
+            }
+#endif
 
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-            _bandScoreNotSavedMessage.gameObject.SetActive(!ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
+            _bandScoreNotSavedMessage.gameObject.SetActive(
+                !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
 
             // Set speed text (if not at 100% speed)
             if (!Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f))
@@ -110,7 +190,11 @@ namespace YARG.Menu.ScoreScreen
 
         private void OnDisable()
         {
-            GlobalVariables.State = PersistentState.Default;
+            MusicLibraryMenu.CurrentlyPlaying = GlobalVariables.State.CurrentSong;
+            if (!GlobalVariables.State.PlayingAShow)
+            {
+                GlobalVariables.State = PersistentState.Default;
+            }
 
             Navigator.Instance.PopScheme();
         }
@@ -153,6 +237,12 @@ namespace YARG.Menu.ScoreScreen
                 }
             }
 
+            // Mark that the music library should refresh when next opened
+            if (GlobalVariables.State.ScoreScreenStats.Value.PlayerScores.Any(e => !e.Player.Profile.IsBot))
+            {
+                MusicLibraryMenu.NeedsReload();
+            }
+            
             // Make sure to update the canvases since we *just* added the score cards
             Canvas.ForceUpdateCanvases();
 
@@ -176,12 +266,14 @@ namespace YARG.Menu.ScoreScreen
                 _analyzingReplay = false;
                 return true;
             }
+
             if (GlobalVariables.State.ScoreScreenStats.Value.PlayerScores.All(e => e.Player.Profile.IsBot))
             {
                 YargLogger.LogInfo("No human players in ReplayEntry.");
                 _analyzingReplay = false;
                 return true;
             }
+
             if (replayEntry == null)
             {
                 YargLogger.LogError("ReplayEntry is null");
@@ -189,7 +281,11 @@ namespace YARG.Menu.ScoreScreen
                 return true;
             }
 
-            var (result, data) = ReplayIO.TryLoadData(replayEntry);
+            var replayOptions = new ReplayReadOptions
+            {
+                KeepFrameTimes = GlobalVariables.VerboseReplays
+            };
+            var (result, data) = ReplayIO.TryLoadData(replayEntry, replayOptions);
             if (result != ReplayReadResult.Valid)
             {
                 YargLogger.LogFormatError("Replay did not load. {0}", result);
@@ -197,20 +293,35 @@ namespace YARG.Menu.ScoreScreen
                 return true;
             }
 
-            var results = ReplayAnalyzer.AnalyzeReplay(chart, data);
-            for(int i = 0; i < results.Length; i++)
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, replayEntry, data);
+            bool allPass = true;
+
+            for (int i = 0; i < results.Length; i++)
             {
                 var analysisResult = results[i];
 
+                // Always print the stats in debug mode
+#if UNITY_EDITOR || YARG_TEST_BUILD
+                YargLogger.LogFormatInfo("({0}, {1}/{2}) Verification Result: {3}. Stats:\n{4}",
+                    data.Frames[i].Profile.Name, data.Frames[i].Profile.CurrentInstrument,
+                    data.Frames[i].Profile.CurrentDifficulty, item4: analysisResult.Passed ? "Passed" : "Failed",
+                    item5: analysisResult.StatLog);
+#endif
+
                 if (!analysisResult.Passed)
                 {
+#if !(UNITY_EDITOR || YARG_TEST_BUILD)
+                    YargLogger.LogFormatWarning("({0}, {1}/{2}) FAILED verification. Stats:\n{3}",
+                        data.Frames[i].Profile.Name, data.Frames[i].Profile.CurrentInstrument,
+                        data.Frames[i].Profile.CurrentDifficulty, item4: analysisResult.StatLog);
+#endif
                     _analyzingReplay = false;
-                    return false;
+                    allPass = false;
                 }
             }
 
             _analyzingReplay = false;
-            return true;
+            return allPass;
         }
     }
 }

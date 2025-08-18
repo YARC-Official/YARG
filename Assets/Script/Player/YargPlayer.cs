@@ -1,4 +1,5 @@
 ﻿using System;
+using YARG.Core;
 using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Core.Input;
@@ -30,16 +31,23 @@ namespace YARG.Player
         public CameraPreset  CameraPreset  { get; private set; }
         public HighwayPreset HighwayPreset { get; private set; }
 
+        public bool IsReplay { get; private set; }
+        public int ReplayIndex = -1;
+
         /// <summary>
         /// Overrides the engine parameters in the gameplay player.
         /// This is only used when loading replays.
         /// </summary>
         public BaseEngineParameters EngineParameterOverride { get; set; }
 
+        public bool IsMissingMicrophone => Profile.GameMode == GameMode.Vocals && Bindings.Microphone == null && !Profile.IsBot;
+        public bool IsMissingInputDevice => Profile.GameMode != GameMode.Vocals && !Bindings.HasDeviceAssigned && !Profile.IsBot;
+
         public YargPlayer(YargProfile profile, ProfileBindings bindings)
         {
             Profile = profile;
             Bindings = bindings;
+            IsReplay = false;
         }
 
         public YargPlayer(ReplayFrame frame, ReplayData replay)
@@ -47,6 +55,7 @@ namespace YARG.Player
             Profile = frame.Profile;
             Bindings = null;
             EngineParameterOverride = frame.EngineParameters;
+            IsReplay = true;
 
             EnginePreset = CustomContentManager.EnginePresets.GetPresetById(Profile.EnginePreset)
                 ?? EnginePreset.Default;

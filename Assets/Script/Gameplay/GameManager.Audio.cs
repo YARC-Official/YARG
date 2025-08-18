@@ -5,7 +5,6 @@ using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
 using UnityEngine;
 using YARG.Core.Audio;
-using YARG.Core.Chart;
 using YARG.Settings;
 
 namespace YARG.Gameplay
@@ -111,10 +110,12 @@ namespace YARG.Gameplay
             _backgroundStem = _stemStates.Count > 1 ? SongStem.Song : _stemStates.First().Key;
         }
 
-        private void StarPowerClap(Beatline beat)
+        private void StarPowerClap()
         {
-            if (_starPowerActivations < 1 || beat.Type == BeatlineType.Weak)
+            if (_starPowerActivations < 1)
+            {
                 return;
+            }
 
             GlobalAudioHandler.PlaySoundEffect(SfxSample.Clap);
         }

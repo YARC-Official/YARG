@@ -17,8 +17,8 @@ namespace YARG.Venue
 
     public static class VenueLoader
     {
-        private static readonly string _venueFolder;
-        public static DirectoryInfo VenueFolder
+        private static readonly string _venueFolder = Path.Combine(PathHelper.PersistentDataPath, "venue");
+        public static string VenueFolder
         {
             get
             {
@@ -26,13 +26,8 @@ namespace YARG.Venue
                 {
                     Directory.CreateDirectory(_venueFolder);
                 }
-                return new DirectoryInfo(_venueFolder);
+                return _venueFolder;
             }
-        }
-
-        static VenueLoader()
-        {
-            _venueFolder = Path.Combine(PathHelper.PersistentDataPath, "venue");
         }
 
 #nullable enable
@@ -43,11 +38,7 @@ namespace YARG.Venue
             source = VenueSource.Song;
             if (!SettingsManager.Settings.DisablePerSongBackgrounds.Value)
             {
-                result = song.LoadBackground(
-                    BackgroundType.Image |
-                    BackgroundType.Video |
-                    BackgroundType.Yarground
-                );
+                result = song.LoadBackground();
             }
 
             if (!SettingsManager.Settings.DisableGlobalBackgrounds.Value && result == null)
@@ -67,23 +58,23 @@ namespace YARG.Venue
                 "*.yarground", "*.mp4", "*.mov", "*.webm", "*.png", "*.jpg", "*.jpeg"
             };
 
-            var dirInfo = VenueFolder;
-            var filePaths = new List<FileInfo>();
+            string venueFolder = VenueFolder;
+            var filePaths = new List<string>();
             foreach (var ext in validExtensions)
             {
-                filePaths.AddRange(dirInfo.EnumerateFiles(ext, PathHelper.SafeSearchOptions));
+                filePaths.AddRange(Directory.EnumerateFiles(venueFolder, ext, PathHelper.SafeSearchOptions));
             }
 
             while (filePaths.Count > 0)
             {
                 int index = Random.Range(0, filePaths.Count);
-                var info = filePaths[index];
-                switch (info.Extension)
+                var file = filePaths[index];
+                switch (Path.GetExtension(file))
                 {
                     case ".png":
                     case ".jpg":
                     case ".jpeg":
-                        var image = YARGImage.Load(info);
+                        var image = YARGImage.Load(file);
                         if (image != null)
                         {
                             return new BackgroundResult(image);
@@ -92,9 +83,9 @@ namespace YARG.Venue
                     case ".mp4":
                     case ".mov":
                     case ".webm":
-                        return new BackgroundResult(BackgroundType.Video, File.OpenRead(info.FullName));
+                        return new BackgroundResult(BackgroundType.Video, File.OpenRead(file));
                     case ".yarground":
-                        return new BackgroundResult(BackgroundType.Yarground, File.OpenRead(info.FullName));
+                        return new BackgroundResult(BackgroundType.Yarground, File.OpenRead(file));
                     default:
                         filePaths.RemoveAt(index);
                         break;

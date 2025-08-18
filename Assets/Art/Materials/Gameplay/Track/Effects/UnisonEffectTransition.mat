@@ -99,6 +99,10 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
+    - _Mask_Disabled: 1
+    - _Mask_Fade_Distance: 0.1
+    - _Mask_Max_Z: 8
+    - _Mask_Min_Z: -4
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005

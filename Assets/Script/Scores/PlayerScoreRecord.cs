@@ -32,6 +32,7 @@ namespace YARG.Scores
         public int  NotesHit    { get; set; }
         public int  NotesMissed { get; set; }
         public bool IsFc        { get; set; }
+        public bool IsReplay    { get; set; }
 
         /// <remarks>
         /// This property was added afterwards, so it is nullable.

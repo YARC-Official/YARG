@@ -9,14 +9,7 @@ namespace YARG.Gameplay.Visuals
     {
         public TrackPlayer TrackPlayer { get; set; }
 
-        [SerializeField]
-        private float _scaleConstant = 4.25f;
-
         private LensFlareComponentSRP _flare;
-
-        private float _fadeFullPosition;
-        private float _fadeZeroPosition;
-        private float _fadeSize;
 
         private void Awake()
         {
@@ -28,36 +21,19 @@ namespace YARG.Gameplay.Visuals
             _flare.intensity = 0f;
         }
 
-        public void SetFade(float fadePos, float fadeSize)
-        {
-            _fadeFullPosition = fadePos - fadeSize;
-            _fadeZeroPosition = fadePos;
-            _fadeSize = fadeSize;
-        }
-
         private void Update()
         {
-            // Update flare intensity based on fade
-
             var pos = transform.position.z;
             float intensity = 1f;
-
-            if (pos >= _fadeZeroPosition)
-            {
-                intensity = 0f;
-            }
-            else if (pos > _fadeFullPosition)
-            {
-                intensity = 1f - (pos - _fadeFullPosition) / _fadeSize;
-            }
 
             // We use "EaseInOutCubic" as the track fade also uses that
             _flare.intensity = EaseInOutCubic(Mathf.Clamp01(intensity));
 
-            // Update flare scale based on distance from camera
+            // Update flare scale based on distance from camera and attempt to normalize for FOV, includes tangent/cotangent for accurate FOV scaling
 
-            _flare.scale = _scaleConstant /
-                Vector3.Distance(transform.position, TrackPlayer.TrackCamera.transform.position);
+            float fovScale = (2.5f / Mathf.Tan(0.0125f * TrackPlayer.TrackCamera.fieldOfView - .05f)) + 1.282f;
+            _flare.scale = fovScale / Vector3.Distance(transform.position, TrackPlayer.TrackCamera.transform.position);
+
         }
 
         private static float EaseInOutCubic(float x)

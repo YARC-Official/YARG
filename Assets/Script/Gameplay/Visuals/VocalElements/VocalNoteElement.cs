@@ -25,14 +25,16 @@ namespace YARG.Gameplay.Visuals
         protected override void InitializeElement()
         {
             var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
+            MaterialPropertyInstance.Instance.Clear();
+            MaterialPropertyInstance.Instance.SetColor("_BaseColor", color);
 
             // Set line color
             foreach (var line in _lineRenderers)
             {
-                line.material.color = color;
+                line.SetPropertyBlock(MaterialPropertyInstance.Instance);
             }
 
-            YargLogger.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length);
+            YargLogger.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length, "Line renderer count does not match width multiplier count!");
             UpdateLinePoints();
         }
 

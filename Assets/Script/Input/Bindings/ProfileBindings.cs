@@ -26,7 +26,8 @@ namespace YARG.Input
         private readonly Dictionary<GameMode, BindingCollection> _bindsByGameMode = new();
         public readonly BindingCollection MenuBindings;
 
-        public bool Empty => _devices.Count < 1 && Microphone is null;
+        public bool HasDeviceAssigned => _devices.Count > 0;
+        public bool Empty => !HasDeviceAssigned && Microphone is null;
 
         public BindingCollection this[GameMode mode] => _bindsByGameMode[mode];
 
@@ -213,10 +214,6 @@ namespace YARG.Input
             _devices.Add(device);
             NotifyDeviceAdded(device);
 
-            // Assign default binds if this device has none
-            if (index < 0 && !ContainsBindingsForDevice(device))
-                SetDefaultBinds(device);
-
             return true;
         }
 
@@ -288,12 +285,33 @@ namespace YARG.Input
         public bool SetDefaultBinds(InputDevice device)
         {
             if (!ContainsDevice(device))
+            {
                 return false;
+            }
 
             foreach (var bindings in _bindsByGameMode.Values)
+            {
                 bindings.SetDefaultBindings(device);
+            }
 
             MenuBindings.SetDefaultBindings(device);
+
+            return true;
+        }
+
+        public bool SetDefaultBinds(Gamepad gamepad, GamepadBindingMode mode)
+        {
+            if (!ContainsDevice(gamepad))
+            {
+                return false;
+            }
+
+            foreach (var bindings in _bindsByGameMode.Values)
+            {
+                bindings.SetDefaultBindings(gamepad, mode);
+            }
+
+            MenuBindings.SetDefaultBindings(gamepad, mode);
 
             return true;
         }

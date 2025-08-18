@@ -68,6 +68,21 @@ namespace YARG.Playlists
                     SavePlaylist(FavoritesPlaylist, _favoritesPath);
                 }
             }
+
+            // Load any other playlists found in the playlist folder
+            foreach (var file in Directory.GetFiles(PlaylistDirectory))
+            {
+                if (file == _favoritesPath || !file.EndsWith(".json"))
+                {
+                    continue;
+                }
+
+                var playlist = LoadPlaylist(file);
+                if (playlist is not null && playlist.Id != FavoritesPlaylist.Id)
+                {
+                    _playlists.Add(playlist);
+                }
+            }
         }
 
         public static void SaveAll()
@@ -75,7 +90,7 @@ namespace YARG.Playlists
             SavePlaylist(FavoritesPlaylist, _favoritesPath);
         }
 
-        private static void SavePlaylist(Playlist playlist)
+        public static void SavePlaylist(Playlist playlist)
         {
             var path = Path.Join(PlaylistDirectory, GetFileNameForPlaylist(playlist));
             SavePlaylist(playlist, path);
@@ -91,6 +106,15 @@ namespace YARG.Playlists
             catch (Exception ex)
             {
                 YargLogger.LogException(ex, "Failed to save playlist");
+            }
+        }
+
+        private static void DeletePlaylist(Playlist playlist)
+        {
+            var path = Path.Join(PlaylistDirectory, GetFileNameForPlaylist(playlist));
+            if (File.Exists(path))
+            {
+                File.Delete(path);
             }
         }
 
@@ -127,6 +151,27 @@ namespace YARG.Playlists
             fileName += $".{playlist.Id.ToString()[..8]}.json";
 
             return fileName;
+        }
+
+        public static Playlist CreatePlaylist(string name)
+        {
+            var playlist = new Playlist
+            {
+                Name = name,
+                Author = "You",
+                Id = Guid.NewGuid(),
+                SongHashes = new List<HashWrapper>()
+            };
+
+            SavePlaylist(playlist);
+            _playlists.Add(playlist);
+            return playlist;
+        }
+
+        public static void RemovePlaylist(Playlist playlist)
+        {
+            _playlists.Remove(playlist);
+            DeletePlaylist(playlist);
         }
     }
 }

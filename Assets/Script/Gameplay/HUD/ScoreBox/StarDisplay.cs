@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,13 +25,11 @@ namespace YARG.Gameplay.HUD
 
         [Space]
         [SerializeField]
-        private GameObject _goldProgressContainer;
+        private CanvasGroup _goldProgressGroup;
         [SerializeField]
         private Image _goldProgress;
         [SerializeField]
         private RawImage _goldProgressLine;
-        [SerializeField]
-        private Animator _goldMeterAnimator;
 
         private float _goldMeterHeight;
 
@@ -43,15 +40,13 @@ namespace YARG.Gameplay.HUD
 
         public void PopNew()
         {
-            gameObject.SetActive(true);
+            GetComponent<Image>().fillAmount = 1;
             _starAnimator.Play(ANIMATION_POP_NEW);
         }
 
-        public void PulseGoldMeter()
+        public void SetGoldPulse(float pulse)
         {
-            // TODO: Use animation triggers instead
-            // These arguments are required for it to properly loop
-            _goldMeterAnimator.Play(ANIMATION_GOLD_METER, -1, 0f);
+            _goldProgressGroup.alpha = pulse;
         }
 
         public void SetProgress(float progress)
@@ -81,7 +76,7 @@ namespace YARG.Gameplay.HUD
             {
                 // Finish the gold star
                 _goldProgress.fillAmount = 1;
-                _goldProgressContainer.gameObject.SetActive(false);
+                _goldProgressGroup.gameObject.SetActive(false);
 
                 _starAnimator.Play(ANIMATION_GOLD);
             }

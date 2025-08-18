@@ -49,6 +49,10 @@ namespace YARG.Menu.DifficultySelect
         private TMP_InputField _speedInput;
         [SerializeField]
         private TextMeshProUGUI _loadingPhrase;
+        [SerializeField]
+        private TextMeshProUGUI _warningMessage;
+        [SerializeField]
+        private GameObject _warningMessageContainer;
 
         [Space]
         [SerializeField]
@@ -81,6 +85,8 @@ namespace YARG.Menu.DifficultySelect
         private int _maxHarmonyIndex = 3;
 
         private readonly List<ModifierItem> _modifierItems = new();
+
+        private List<SongEntry> _songList;
 
         private YargPlayer CurrentPlayer => PlayerContainer.Players[_playerIndex];
 
@@ -119,6 +125,15 @@ namespace YARG.Menu.DifficultySelect
             _speedInput.text = $"{Mathf.RoundToInt(_songSpeed * 100f)}%";
             _songTitleText.text = GlobalVariables.State.CurrentSong.Name;
             _artistText.text = GlobalVariables.State.CurrentSong.Artist;
+
+            if (GlobalVariables.State.PlayingAShow)
+            {
+                _songList = GlobalVariables.State.ShowSongs;
+            }
+            else
+            {
+                _songList = new List<SongEntry> { GlobalVariables.State.CurrentSong };
+            }
 
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
@@ -168,6 +183,19 @@ namespace YARG.Menu.DifficultySelect
         private void CreateMainMenu()
         {
             var player = CurrentPlayer;
+
+            if (player.IsMissingMicrophone)
+            {
+                ShowWarning(Localize.Key("Menu.DifficultySelect.WarningVocalistNoMicrophone"));
+            }
+            else if (player.IsMissingInputDevice)
+            {
+                ShowWarning(Localize.Key("Menu.DifficultySelect.WarningPlayerNoInputDevice"));
+            }
+            else
+            {
+                ShowWarning(null);
+            }
 
             // Only show all these options if there are instruments available
             if (_possibleInstruments.Count > 0)
@@ -263,6 +291,20 @@ namespace YARG.Menu.DifficultySelect
                     player.SittingOut = true;
                     ChangePlayer(1);
                 });
+            }
+        }
+
+        private void ShowWarning(string message)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                _warningMessageContainer.SetActive(false);
+                _warningMessage.text = "";
+            }
+            else
+            {
+                _warningMessageContainer.SetActive(true);
+                _warningMessage.text = message;
             }
         }
 
@@ -418,14 +460,28 @@ namespace YARG.Menu.DifficultySelect
             var profile = CurrentPlayer.Profile;
             var song = GlobalVariables.State.CurrentSong;
 
-            // Get the possible instruments for this song and player
+            // Get the possible instruments for this show and player
+            // TODO: We should probably allow players to select instruments that are not in
+            //  all songs and have them sit out songs that don't have that instrument
             _possibleInstruments.Clear();
             var allowedInstruments = profile.GameMode.PossibleInstruments();
+
             foreach (var instrument in allowedInstruments)
             {
-                if (!HasPlayableInstrument(song, instrument)) continue;
+                bool invalidInstrument = false;
+                foreach (var showSong in _songList)
+                {
+                    if (!HasPlayableInstrument(showSong, instrument))
+                    {
+                        invalidInstrument = true;
+                        break;
+                    }
+                }
 
-                _possibleInstruments.Add(instrument);
+                if (!invalidInstrument)
+                {
+                    _possibleInstruments.Add(instrument);
+                }
             }
 
             // Set the instrument to a valid one
@@ -434,8 +490,12 @@ namespace YARG.Menu.DifficultySelect
                 profile.CurrentInstrument = _possibleInstruments[0];
             }
 
-            // Get the possible harmonies for this song
+            // Get the possible harmonies for this show
             _maxHarmonyIndex = song.VocalsCount;
+            foreach (var showsong in GlobalVariables.State.ShowSongs)
+            {
+                _maxHarmonyIndex = Mathf.Min(_maxHarmonyIndex, showsong.VocalsCount);
+            }
 
             // Set the harmony index to a valid one
             if (profile.HarmonyIndex >= _maxHarmonyIndex)
@@ -483,18 +543,27 @@ namespace YARG.Menu.DifficultySelect
             _possibleDifficulties.Clear();
 
             var profile = CurrentPlayer.Profile;
-            var song = GlobalVariables.State.CurrentSong;
 
             // Get the possible difficulties for the player's instrument in the song
             foreach (var difficulty in EnumExtensions<Difficulty>.Values)
             {
-                if (!HasPlayableDifficulty(song, profile.CurrentInstrument, difficulty))
+                bool invalidDifficulty = false;
+                foreach (var showsong in _songList)
                 {
-                    continue;
+                    if (!HasPlayableDifficulty(showsong, profile.CurrentInstrument, difficulty))
+                    {
+                        invalidDifficulty = true;
+                        break;
+                    }
                 }
 
-                _possibleDifficulties.Add(difficulty);
+                if (!invalidDifficulty)
+                {
+                    _possibleDifficulties.Add(difficulty);
+                }
             }
+
+            // TODO: Handle difficulty fallback better in play a show mode
 
             var diff = (int) profile.DifficultyFallback;
             while (diff >= (int) Difficulty.Beginner && !_possibleDifficulties.Contains((Difficulty) diff))

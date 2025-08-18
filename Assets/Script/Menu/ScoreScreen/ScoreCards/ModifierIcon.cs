@@ -11,6 +11,7 @@ namespace YARG.Menu.ScoreScreen
         private const string GHOSTING           = "Ghosting";
         private const string INFINITE_FRONT_END = "InfiniteFrontEnd";
         private const string DYNAMIC_HIT_WINDOW = "DynamicHitWindow";
+        private const string SOLO_TAPS          = "SoloTaps";
 
         [SerializeField]
         private Image _icon;
@@ -53,6 +54,13 @@ namespace YARG.Menu.ScoreScreen
                     {
                         var icon = Instantiate(prefab, parent);
                         icon.InitializeCustom(DYNAMIC_HIT_WINDOW);
+                    }
+
+                    // Solo Taps
+                    if (enginePreset.FiveFretGuitar.SoloTaps)
+                    {
+                        var icon = Instantiate(prefab, parent);
+                        icon.InitializeCustom(SOLO_TAPS);
                     }
 
                     break;

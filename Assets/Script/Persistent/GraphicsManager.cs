@@ -12,17 +12,35 @@ namespace YARG
         Off
     }
 
+    public enum VenueAntiAliasingMethod
+    {
+        None,
+        FXAA,
+        MSAA,
+        FSR3,
+    }
+
     public class GraphicsManager : MonoSingleton<GraphicsManager>
     {
         [SerializeField]
         private VolumeProfile postProcessingProfile = null;
 
         private Bloom bloom = null;
+        private FilmGrain filmGrain = null;
+
+        public float VenueRenderScale = 1.0f;
+        public VenueAntiAliasingMethod VenueAntiAliasing = VenueAntiAliasingMethod.None;
 
         public bool BloomEnabled
         {
             set => bloom.active = value;
             get => bloom.active;
+        }
+
+        public bool FilmGrainEnabled
+        {
+            set => filmGrain.active = value;
+            get => filmGrain.active;
         }
 
         public bool LowQuality
@@ -37,6 +55,10 @@ namespace YARG
             {
                 YargLogger.LogError("Could not find bloom component in the post process volume.");
             }
+            if (!postProcessingProfile.TryGet(out filmGrain))
+            {
+                YargLogger.LogError("Could not find film grain component in the post process volume.");
+            }
         }
 
         private void OnApplicationQuit()
@@ -45,6 +67,7 @@ namespace YARG
 
             // For some reason, UNITY EDITOR SAVES THIS IN THE VOLUME PROFILE!!!!
             BloomEnabled = true;
+            FilmGrainEnabled = true;
             LowQuality = false;
 
 #endif

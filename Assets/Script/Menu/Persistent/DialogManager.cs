@@ -117,6 +117,9 @@ namespace YARG.Menu.Persistent
             dialog.AddDialogButton("Menu.Common.Cancel", MenuData.Colors.CancelButton, ClearDialog);
             dialog.AddDialogButton("Menu.Common.Confirm", MenuData.Colors.ConfirmButton, SubmitAndClearDialog);
 
+            // Make the dialog input field active so no mouse is required
+            dialog.ActivateInputField();
+
             return dialog;
         }
 

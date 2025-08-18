@@ -139,7 +139,7 @@ namespace YARG.Menu.MusicLibrary
             _source.text = SongSources.SourceToGameName(songEntry.Source);
             _charter.text = songEntry.Charter;
             _genre.text = songEntry.Genre;
-            _year.text = songEntry.Year;
+            _year.text = songEntry.ParsedYear;
 
             // Format and show length
             var time = TimeSpan.FromMilliseconds(songEntry.SongLengthMilliseconds);
@@ -271,7 +271,7 @@ namespace YARG.Menu.MusicLibrary
                     _songSearchingField.SetSearchInput(SortAttribute.Album, $"\"{songEntry.Album.SearchStr}\"");
                     break;
                 case "year":
-                    _songSearchingField.SetSearchInput(SortAttribute.Year, $"\"{songEntry.Year}\"");
+                    _songSearchingField.SetSearchInput(SortAttribute.Year, $"\"{songEntry.ParsedYear}\"");
                     break;
                 case "charter":
                     _songSearchingField.SetSearchInput(SortAttribute.Charter, $"\"{songEntry.Charter.SearchStr}\"");
