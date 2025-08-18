@@ -290,7 +290,7 @@
             "AddedToSet": "Added To Setlist",
             "PlaylistAddedToSet": "Added {0:N0} Songs From Playlist To Setlist",
             "StartSet": "Start The Set",
-            "StartShow": "Play Me Show, Mateys!",
+            "PlayShow": "Play A Show",
             "NoSongsInPlaylist": "No Songs In Playlist",
             "CannotAddToSelf": "No, I will not create an ouroboros for you. Nice try, Jaden.",
             "AddToShow": "Add To Show",

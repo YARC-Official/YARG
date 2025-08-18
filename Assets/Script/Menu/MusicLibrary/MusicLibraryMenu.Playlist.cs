@@ -166,10 +166,8 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                     () => CurrentSelection?.PrimaryButtonClick()),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", LeaveShowMode),
-                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.StartShow",
+                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.StartShow",
                     OnPlayShowHit),
-                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
-                    () => _searchField.Focus()),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                     OnButtonHit, OnButtonRelease),
             }, false));
@@ -238,6 +236,7 @@ namespace YARG.Menu.MusicLibrary
         private void LeaveShowMode()
         {
             SelectedPlaylist = null;
+            ShowPlaylist.Clear();
 
             // Pop the navigation scheme
             Navigator.Instance.PopScheme();
@@ -245,18 +244,12 @@ namespace YARG.Menu.MusicLibrary
             // in the case that we are leaving show mode with a playlist that has entries
             SetNavigationScheme(true);
 
-
             // Back to library
             MenuState = MenuState.Library;
             Refresh();
 
             // An arbitrary choice
             SetIndexTo(i => i is ButtonViewType { ID: RANDOM_SONG_ID });
-        }
-
-        public void CreateShowCategories()
-        {
-
         }
 
         private void StartSetlist()
@@ -341,6 +334,10 @@ namespace YARG.Menu.MusicLibrary
                 GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
                 GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs.First();
                 GlobalVariables.State.ShowIndex = 0;
+
+                // Make sure we don't come back to play a show after show has been played
+                LeaveShowMode();
+
                 MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
             }
         }
