@@ -31,9 +31,18 @@ namespace YARG.Venue
 
         private LightState[] _lightStates;
         public LightState GenericLightState => _lightStates[(int) VenueLightLocation.Generic];
+		public LightState LeftLightState => _lightStates[(int) VenueLightLocation.Left];
+		public LightState RightLightState => _lightStates[(int) VenueLightLocation.Right];
+		public LightState FrontLightState => _lightStates[(int) VenueLightLocation.Front];
+		public LightState BackLightState => _lightStates[(int) VenueLightLocation.Back];
+		public LightState CenterLightState => _lightStates[(int) VenueLightLocation.Center];
+		public LightState CrowdLightState => _lightStates[(int) VenueLightLocation.Crowd];
 
         [SerializeField]
         private float _gradientLightingSpeed = 0.125f;
+		
+		private float _initialGradientSpeed;
+		
         [SerializeField]
         private float _gradientRandomness = 0.5f;
 
@@ -103,7 +112,10 @@ namespace YARG.Venue
                     Color.red,
                     Color.blue,
                 };
-            }
+            }			
+		
+			// Store gradient speed for temporary Frenzy/BRE speedup
+			_initialGradientSpeed = _gradientLightingSpeed;
 
             // Setup gradients
             _warmGradient = CreateGradient(_warmColors);
@@ -145,6 +157,7 @@ namespace YARG.Venue
                     case LightingType.CoolManual:
                     case LightingType.Verse:
                     case LightingType.Chorus:
+					case LightingType.Searchlights:
                         // Add a slight randomness to colored cues
                         for (int i = 0; i < _lightStates.Length; i++)
                         {
@@ -191,54 +204,81 @@ namespace YARG.Venue
 
                 switch (Animation)
                 {
+					case LightingType.Default:
+						_lightStates[i] = Default(_lightStates[i], location, _harmoniousGradient);
+						break;
                     case LightingType.Verse:
-                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _coolGradient, _warmGradient);
+                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _harmoniousGradient, _dissonantGradient);
+						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.Chorus:
                         _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _warmGradient, _coolGradient);
+						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.BlackoutFast:
-                        _lightStates[i] = BlackOut(_lightStates[i], 15f);
+                        _lightStates[i] = BlackOut(_lightStates[i], 30f);
                         break;
                     case LightingType.BlackoutSlow:
-                        _lightStates[i] = BlackOut(_lightStates[i], 10f);
+                        _lightStates[i] = BlackOut(_lightStates[i], 5f);
                         break;
-                    case LightingType.BigRockEnding:
+                    case LightingType.BlackoutSpotlight:
+                        _lightStates[i] = BlackOutSpot(_lightStates[i], 30f, location);
+                        break;
                     case LightingType.Dischord:
+						_lightStates[i] = AutoGradient(_lightStates[i], location, _dissonantGradient);
+						_gradientLightingSpeed = _initialGradientSpeed;
+						break;
+                    case LightingType.BigRockEnding:
+                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _dissonantGradient, _harmoniousGradient);
+						_gradientLightingSpeed = _initialGradientSpeed*16f;
+                        break;
                     case LightingType.Frenzy:
-                        _lightStates[i] = AutoGradient(_lightStates[i], _dissonantGradient);
+                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _dissonantGradient, _harmoniousGradient);
+						_gradientLightingSpeed = _initialGradientSpeed*8f;
                         break;
                     case LightingType.CoolAutomatic:
                     case LightingType.CoolManual:
-                        _lightStates[i] = AutoGradient(_lightStates[i], _coolGradient);
+					case LightingType.Sweep:
+                        _lightStates[i] = AutoGradient(_lightStates[i], location, _coolGradient);
+						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.FlareFast:
-                        _lightStates[i] = Flare(_lightStates[i], 15f);
+                        _lightStates[i] = Flare(_lightStates[i], 30f);
                         break;
                     case LightingType.FlareSlow:
-                        _lightStates[i] = Flare(_lightStates[i], 10f);
+                        _lightStates[i] = Flare(_lightStates[i], 5f);
                         break;
                     case LightingType.Harmony:
-                        _lightStates[i] = AutoGradient(_lightStates[i], _harmoniousGradient);
+                        _lightStates[i] = AutoGradient(_lightStates[i], location, _harmoniousGradient);
+						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.Silhouettes:
-                    case LightingType.SilhouettesSpotlight:
                         _lightStates[i] = Silhouette(_lightStates[i], location);
                         break;
+                    case LightingType.SilhouettesSpotlight:
+                        _lightStates[i] = SilhouetteSpot(_lightStates[i], location);
+                        break;
+					case LightingType.Searchlights:
+						_lightStates[i] = Searchlights(_lightStates[i], location, _warmGradient);
+						_gradientLightingSpeed = _initialGradientSpeed;
+						break;
                     case LightingType.StrobeFast:
                     case LightingType.StrobeSlow:
-                    case LightingType.Stomp:
                         _lightStates[i] = Strobe(_lightStates[i]);
                         break;
+                    case LightingType.Stomp:
+						_lightStates[i] = Stomp(_lightStates[i], _warmGradient);
+						break;
                     case LightingType.WarmAutomatic:
                     case LightingType.WarmManual:
-                        _lightStates[i] = AutoGradient(_lightStates[i], _warmGradient);
+                        _lightStates[i] = AutoGradient(_lightStates[i], location, _warmGradient);
+						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     default:
                         _lightStates[i].Intensity = 1f;
                         _lightStates[i].Color = null;
                         _lightStates[i].Delta = 0f;
-                        break;
+                        break; 
                 }
             }
         }
