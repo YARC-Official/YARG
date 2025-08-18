@@ -75,6 +75,9 @@ namespace YARG.Settings
                 nameof(Settings.DifficultyRings),
                 nameof(Settings.HighScoreInfo),
                 nameof(Settings.HighScoreHistory),
+                new HeaderMetadata("PlayAShow"),
+                nameof(Settings.PlayAShowTimeout),
+                nameof(Settings.RequireAllDifficulties),
             },
             new MetadataTab("Sound", icon: "Sound")
             {

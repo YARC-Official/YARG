@@ -52,7 +52,6 @@ namespace YARG.Playlists
                     PlaylistContainer.SavePlaylist(this);
                 }
             }
-
         }
 
         public void RemoveSong(SongEntry song)
