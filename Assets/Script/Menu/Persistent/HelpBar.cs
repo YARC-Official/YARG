@@ -72,6 +72,13 @@ namespace YARG.Menu.Persistent
                 MusicPlayer.gameObject.SetActive(false);
             }
 
+            if (scheme.SuppressHelpBar)
+            {
+                // We want the black bar, but no buttons
+                gameObject.SetActive(true);
+                return;
+            }
+
             // Update buttons
             int buttonIndex = 0;
             foreach (var entry in scheme.Entries)

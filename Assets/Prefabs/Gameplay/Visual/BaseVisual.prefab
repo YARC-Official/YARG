@@ -354,12 +354,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
-  m_renderer: {fileID: 8973305543521141988}
-  m_maskType: 0
   _SortingLayer: 0
   _SortingLayerID: 0
   _SortingOrder: 0
+  m_hasFontAssetChanged: 0
+  m_renderer: {fileID: 8973305543521141988}
+  m_maskType: 0
 --- !u!1 &1811260302183972900
 GameObject:
   m_ObjectHideFlags: 0
@@ -2045,7 +2045,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9101641622012883722}
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -2880304954506188981, guid: 7534ca7bb68ce1e1e8b1d6244bc0ae2b, type: 3}
 --- !u!23 &4832313740132043227
 MeshRenderer:
   m_ObjectHideFlags: 0

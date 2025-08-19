@@ -94,11 +94,13 @@ namespace YARG.Gameplay.Visuals
             // Get colors
             var colorNoStarPower = colors.GetNoteColor(pad);
             var color = colorNoStarPower;
+
             if (NoteRef.WasMissed)
             {
                 color = colors.Miss;
             }
-            else if (NoteRef.IsStarPowerActivator && Player.Engine.CanStarPowerActivate)
+            else if (NoteRef.IsStarPowerActivator && Player.Engine.CanStarPowerActivate && !Player.Engine.BaseStats.IsStarPowerActive)
+
             {
                 color = colors.ActivationNote;
             }

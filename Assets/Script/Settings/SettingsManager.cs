@@ -75,6 +75,9 @@ namespace YARG.Settings
                 nameof(Settings.DifficultyRings),
                 nameof(Settings.HighScoreInfo),
                 nameof(Settings.HighScoreHistory),
+                new HeaderMetadata("PlayAShow"),
+                nameof(Settings.PlayAShowTimeout),
+                nameof(Settings.RequireAllDifficulties),
             },
             new MetadataTab("Sound", icon: "Sound")
             {
@@ -215,8 +218,9 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.UseWhammyFx),
                 nameof(Settings.WhammyPitchShiftAmount),
-                nameof(Settings.BandComboTypeSetting)
+                nameof(Settings.BandComboTypeSetting),
 	            // nameof(Settings.WhammyOversampleFactor),
+                nameof(Settings.DataStreamEnable),
             }
         };
 

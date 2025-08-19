@@ -49,6 +49,14 @@ namespace YARG.Scores
     }
 
     /// <summary>
+    /// Extended player score record that includes the joined SongChecksum.
+    /// </summary>
+    public class PlayerScoreWithChecksum : PlayerScoreRecord
+    {
+        public byte[] SongChecksum { get; set; }
+    }
+
+    /// <summary>
     /// The score database.
     /// </summary>
     /// <remarks>
@@ -385,7 +393,7 @@ namespace YARG.Scores
         public List<PlayCountRecord> QueryPlayerMostPlayedSongs(YargProfile profile, SortOrdering ordering)
         {
             var query =
-                @"SELECT COUNT(GameRecords.Id), GameRecords.SongChecksum from GameRecords, PlayerScores
+                @"SELECT GameRecords.SongChecksum, COUNT(GameRecords.Id) AS Count from GameRecords, PlayerScores
                 WHERE PlayerScores.GameRecordId = GameRecords.Id
                     AND PlayerScores.PlayerId = ?
                     AND PlayerScores.IsReplay = 0";
@@ -398,13 +406,44 @@ namespace YARG.Scores
 
             query +=
                 $@"GROUP BY GameRecords.SongChecksum
-                ORDER BY COUNT(GameRecords.Id) {ordering.ToQueryString()}";
+                ORDER BY Count {ordering.ToQueryString()}";
 
             return _db.Query<PlayCountRecord>(
                 query,
                 profile.Id,
                 (int) profile.CurrentInstrument
             );
+        }
+
+        public List<PlayerScoreWithChecksum> QueryPlayerBestStars(YargProfile profile, bool highestDifficultyOnly)
+        {
+            string query = $@"SELECT * FROM (
+                SELECT * FROM PlayerScores
+                    INNER JOIN GameRecords
+                ON PlayerScores.GameRecordId = GameRecords.Id
+                WHERE PlayerId = ?
+                    AND Instrument = ?";
+
+            if (!highestDifficultyOnly)
+            {
+                query += @"
+                    AND PlayerScores.Difficulty = ?";
+            }
+            query += @"
+                ORDER BY PlayerScores.Stars DESC
+                )
+                GROUP BY SongChecksum";
+
+            return highestDifficultyOnly
+                ? Query<PlayerScoreWithChecksum>(
+                    query,
+                    profile.Id,
+                    (int) profile.CurrentInstrument)
+                : Query<PlayerScoreWithChecksum>(
+                    query,
+                    profile.Id,
+                    (int) profile.CurrentInstrument,
+                    (int) profile.CurrentDifficulty);
         }
 
         #endregion
