@@ -225,10 +225,28 @@ namespace YARG.Gameplay.Player
 
             _vocalsTrack = _originalVocalsTrack.Clone();
 
-            // If the chart did not provide a vocal scroll speed, check whether the lyrics are too fast to
-            // comfortably display at the default speed. Note that DTA-based songs that use the default value
-            // of 2300 are treated as having no value.
-            var scalingFactor = trackSpeed ?? GetScrollSpeedScalingFactor(vocalsTrack.Parts);
+            float scalingFactor;
+
+            // If the chart provided a vocal scrolling speed, use it. Note that the default value of 2300 in DTAs
+            // is treated as no value.
+            if (trackSpeed is not null)
+            {
+                scalingFactor = trackSpeed.Value;
+            }
+
+            // If we're in scrolling lyrics mode and weren't provided a vocal scroll speed, determine if we need
+            // to increase the speed to keep the lyrics from being pushed too far out of sync.
+            else if (!SettingsManager.Settings.StaticVocalsMode.Value)
+            {
+                scalingFactor = GetScrollSpeedScalingFactor(vocalsTrack.Parts); ;
+            }
+
+            // If we're in static lyrics mode, we don't need to worry about checking the lyric offsets.
+            else
+            {
+                scalingFactor = 1f;
+            }
+
             TrackSpeed = scalingFactor * STANDARD_SCROLL_SPEED;
 
             _lyricContainer.TrackSpeed = TrackSpeed;

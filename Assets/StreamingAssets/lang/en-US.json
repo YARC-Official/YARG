@@ -1190,6 +1190,10 @@
                 "Name": "Show Player Name When Starting Song",
                 "Description": "If enabled, the player name and instrument icon will appear when the song starts."
             },
+			"StaticVocalsMode": {
+				"Name": "Static Vocals Mode",
+				"Description": "When enabled, lyrics stay stationary on the left side of the vocal highway. When disabled, lyrics scroll across the vocal highway."
+			},
             "UseThreeLaneLyricsInHarmony": {
                 "Name": "Use Three Lyric Lanes In Harmony",
                 "Description": "If enabled, the game will display three lyric lanes in harmony mode (one for each harmony). When disabled, the game will combine the lyrics of harmonies 2 and 3 into one lane at the top."
