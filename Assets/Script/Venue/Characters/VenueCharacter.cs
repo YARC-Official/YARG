@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using AnimationTrigger = YARG.Venue.Characters.CharacterManager.AnimationTrigger;
@@ -59,7 +60,11 @@ namespace YARG.Venue.Characters
         [HideInInspector]
         public AnimationDictionary LayerStates;
 
-        private Dictionary<string, List<string>> _layerStates;
+        [SerializeField]
+        private AnimationStateMap _animationStates;
+
+
+    private Dictionary<string, List<string>> _layerStates;
 
         private bool _ikActive;
         private Transform _leftHandObject;

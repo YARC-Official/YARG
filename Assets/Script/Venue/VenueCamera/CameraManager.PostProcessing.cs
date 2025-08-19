@@ -46,7 +46,8 @@ namespace YARG.Venue.VenueCamera
         private ClampedFloatParameter _activeGrainResponse  = new(0.0f, 1.0f, 0.0f);
 
         private readonly Color _greenTint = new(0.0f, 1.0f, 0.65f, 1.0f);
-        private readonly Color _blueTint  = new(0.2f, 0.7f, 1.0f, 1.0f);
+        private readonly Color _blueTint  = new(0.0f, 0.7f, 2.0f, 1.0f);
+        private          Color _desatTint = new(1.3f, 0.7f, 0.7f, 1.0f);
 
         private readonly List<CurveAnimation>        _curveAnimations        = new();
         private readonly List<FloatAnimation>        _floatAnimations        = new();
@@ -139,7 +140,9 @@ namespace YARG.Venue.VenueCamera
                 case PostProcessingType.Choppy_BlackAndWhite:
                     SetLowFrameRate(true);
                     SetBlackAndWhite(true);
-                    SetBadCopier(true);
+                    SetGrainy(true);
+                    // SetBadCopier(true);
+                    SetContrast(true);
                     break;
                 case PostProcessingType.Scanlines_BlackAndWhite:
                     SetBlackAndWhite(true);
@@ -147,7 +150,8 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.Polarized_BlackAndWhite:
                     SetBlackAndWhite(true);
-                    SetPosterize(true);
+                    SetContrast(true);
+                    // SetPosterize(true);
                     break;
                 case PostProcessingType.SepiaTone:
                     SetSepiaTone(true);
@@ -185,6 +189,10 @@ namespace YARG.Venue.VenueCamera
                     SetDesaturation(true, -35f);
                     break;
                 case PostProcessingType.Trails_Flickery: // TODO: Add a flicker effect for this
+					SetDesaturatedRed(true);
+					SetTrail(true);
+					SetContrast(true);
+					break;
                 case PostProcessingType.Trails:
                     SetTrail(true, 0.55f);
 					SetBloom(true);
@@ -199,9 +207,12 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.Trails_Spacey:
                     SetTrail(true, 0.9f);
-                    SetDesaturation(true, 20f);
+                    // SetDesaturation(true, 20f);
+                    SetBrightness(true);
+                    SetBloom(true);
+                    SetChromaticAberration(true);
                     break;
-                case PostProcessingType.Desaturated_Red:
+                case PostProcessingType.Desaturated_Red: // TODO: This almost certainly needs drastic adjustment
                     SetDesaturatedRed(true);
                     break;
                 case PostProcessingType.Desaturated_Blue:
@@ -209,6 +220,7 @@ namespace YARG.Venue.VenueCamera
                     SetBloom(true);
                     break;
                 case PostProcessingType.PhotoNegative_RedAndBlack:
+                    SetInvertedColors(true);
                     SetPhotoNegativeRedAndBlack(true);
                     break;
                 case PostProcessingType.Contrast_Green:
@@ -222,6 +234,9 @@ namespace YARG.Venue.VenueCamera
                 case PostProcessingType.Contrast_Red:
                     SetContrastRed(true);
                     SetBloom(true);
+                    break;
+                case PostProcessingType.Polarized_RedAndBlue:
+                    SetPsychRB(true);
                     break;
                 default:
                     found = false;
@@ -262,6 +277,8 @@ namespace YARG.Venue.VenueCamera
                     SetInvertedColors(false);
                     break;
                 case PostProcessingType.Mirror:
+                    // TODO: This is supposed to also have a "psychadelic coloring" effect
+                    // "Polarizes everything to green/orange with some blue and purple here and there"
                     SetMirror(false);
                     break;
                 case PostProcessingType.BlackAndWhite:
@@ -270,11 +287,17 @@ namespace YARG.Venue.VenueCamera
                 case PostProcessingType.Choppy_BlackAndWhite:
                     SetLowFrameRate(false);
                     SetBlackAndWhite(false);
-                    SetBadCopier(false);
+					SetGrainy(false);
+                    SetContrast(false);
+                    break;
+                case PostProcessingType.Scanlines_BlackAndWhite:
+                    SetBlackAndWhite(false);
+                    SetScanline(false);
                     break;
                 case PostProcessingType.Polarized_BlackAndWhite:
                     SetBlackAndWhite(false);
-                    SetPosterize(false);
+                    // SetPosterize(false);
+                    SetContrast(false);
                     break;
                 case PostProcessingType.SepiaTone:
                     SetSepiaTone(false);
@@ -286,11 +309,7 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.Scanlines:
                     SetScanline(false);
-                    SetBloom(false);
-                    break;
-                case PostProcessingType.Scanlines_BlackAndWhite:
-                    SetBlackAndWhite(false);
-                    SetScanline(false);
+					SetBloom(false);
                     break;
                 case PostProcessingType.Scanlines_Blue:
                     SetBlueTint(false);
@@ -315,22 +334,30 @@ namespace YARG.Venue.VenueCamera
                     SetChromaticAberration(false);
                     SetDesaturation(false);
                     break;
+                case PostProcessingType.Trails_Flickery: // TODO: Add a flicker effect for this
+					SetDesaturatedRed(false);
+					SetTrail(false);
+					SetContrast(false);
+					break;
+                case PostProcessingType.Trails:
+                    SetTrail(false);
+					SetBloom(false);
+                    break;
                 case PostProcessingType.Trails_Desaturated:
                     SetPosterize(false);
-                    SetDesaturation(false);
                     SetTrail(false);
+                    SetDesaturation(false);
                     break;
-                case PostProcessingType.Trails:
                 case PostProcessingType.Trails_Long:
-                case PostProcessingType.Trails_Flickery:
                     SetTrail(false);
                     break;
                 case PostProcessingType.Trails_Spacey:
-                    SetTrail(false);
-                    SetDesaturation(false);
-                    SetBloom(false);
+                    SetTrail(false, 0.9f);
+                    SetBrightness(false);
+					SetBloom(false);
+                    SetChromaticAberration(false);
                     break;
-                case PostProcessingType.Desaturated_Red:
+                case PostProcessingType.Desaturated_Red: // TODO: This almost certainly needs drastic adjustment
                     SetDesaturatedRed(false);
                     break;
                 case PostProcessingType.Desaturated_Blue:
@@ -338,6 +365,7 @@ namespace YARG.Venue.VenueCamera
                     SetBloom(false);
                     break;
                 case PostProcessingType.PhotoNegative_RedAndBlack:
+                    SetInvertedColors(false);
                     SetPhotoNegativeRedAndBlack(false);
                     break;
                 case PostProcessingType.Contrast_Green:
@@ -352,6 +380,9 @@ namespace YARG.Venue.VenueCamera
                     SetContrastRed(false);
                     SetBloom(false);
                     break;
+				case PostProcessingType.Polarized_RedAndBlue:
+					SetPsychRB(false);
+					break;
             }
         }
 
@@ -362,13 +393,9 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            if (!_profile.TryGet<ChannelMixer>(out var channelMixer))
-            {
-                return;
-            }
-
-            SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.01f, enabled);
-            SetAnimation(channelMixer.greenOutGreenIn, enabled ? 10f : 100f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? _desatTint : Color.white, 0.01f, enabled);
+            SetAnimation(colorAdjustments.hueShift, enabled ? -90f : 0f, 0.01f, enabled);
         }
 
         private void SetContrastBlue(bool enabled)
@@ -378,13 +405,9 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            if (!_profile.TryGet<ChannelMixer>(out var channelMixer))
-            {
-                return;
-            }
-
-            SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.01f, enabled);
-            SetAnimation(channelMixer.blueOutBlueIn, enabled ? 10f : 100f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? _desatTint : Color.white, 0.01f, enabled);
+            SetAnimation(colorAdjustments.hueShift, enabled ? 90f : 0f, 0.01f, enabled);
         }
 
         private void SetContrastRed(bool enabled)
@@ -394,13 +417,8 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            if (!_profile.TryGet<ChannelMixer>(out var channelMixer))
-            {
-                return;
-            }
-
-            SetAnimation(colorAdjustments.postExposure, enabled ? 1f : 0f, 0.01f, enabled);
-            SetAnimation(channelMixer.redOutRedIn, enabled ? 10f : 100f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? _desatTint : Color.white, 0.01f, enabled);
         }
 
         private void SetExposure(bool enabled, float strength = 0f)
@@ -437,29 +455,16 @@ namespace YARG.Venue.VenueCamera
 
         private void SetDesaturatedRed(bool enabled)
         {
-            if (!_profile.TryGet<ColorCurves>(out var colorCurves))
+			if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            var bounds = new Vector2(0, 1);
+			Color desatRed = new Color(1.1f, 0.9f, 0.9f);
 
-            // We need to define this during setup, but it's too ugly to put up top for now
-            var lumVSatCurve =
-                new TextureCurve(new AnimationCurve(new Keyframe(0, 0.525f), new Keyframe(0.639f, 0.085f)), 0.5f, false,
-                    in bounds);
-            var greenCurve =
-                new TextureCurve(
-                    new AnimationCurve(new Keyframe(0, 0.0f), new Keyframe(0.5f, 0.0f), new Keyframe(1, 1)), 0.5f,
-                    false, in bounds);
-            var blueCurve =
-                new TextureCurve(
-                    new AnimationCurve(new Keyframe(0, 0.0f), new Keyframe(0.437f, 0.0f), new Keyframe(0.659f, 0.174f),
-                        new Keyframe(1, 1)), 0.5f, false, in bounds);
-
-            SetAnimation(colorCurves.lumVsSat, enabled ? lumVSatCurve : _defaultCurve, 0.01f, enabled);
-            SetAnimation(colorCurves.green, enabled ? greenCurve : _defaultCurve, 0.01f, enabled);
-            SetAnimation(colorCurves.blue, enabled ? blueCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, 0.01f, enabled);
+			SetAnimation(colorAdjustments.colorFilter, enabled ? desatRed : Color.white, 0.01f, enabled);
+			SetAnimation(colorAdjustments.saturation, enabled ? -50f : 0f, 0.01f, enabled);
         }
 
         private void SetDesaturatedBlue(bool enabled)
@@ -468,22 +473,11 @@ namespace YARG.Venue.VenueCamera
             {
                 return;
             }
-            if (!_profile.TryGet<ColorCurves>(out var colorCurves))
-            {
-                return;
-            }
 
-            var bounds = new Vector2(0, 1);
+			Color DesatBlue = new Color(0f, 0f, 4f);
 
-            var hueVsSatCurve = new TextureCurve(new AnimationCurve(new Keyframe(0, 0.152f),
-                new Keyframe(0.361f, 0.152f), new Keyframe(0.367f, 0.5f), new Keyframe(0.677f, 0.5f),
-                new Keyframe(0.683f, 0.152f), new Keyframe(1, 0.152f)), 0.5f, false, in bounds);
-
-            var blueFilterColor = new Color(0.413f, 0.559f, 0.962f, 1f);
-
-            SetAnimation(colorCurves.hueVsSat, enabled ? hueVsSatCurve : _flatHalfCurve, 0.01f, enabled);
-            SetAnimation(colorAdjustments.postExposure, enabled ? 1.5f : 0f, 0.01f, enabled);
-            SetAnimation(colorAdjustments.colorFilter, enabled ? blueFilterColor : Color.white, 0.01f, enabled);
+            SetAnimation(colorAdjustments.saturation, enabled ? -90f : 0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? DesatBlue : Color.white, 0.01f, enabled);
         }
 
         private void SetPhotoNegativeRedAndBlack(bool enabled)
@@ -497,19 +491,11 @@ namespace YARG.Venue.VenueCamera
 
             var flatZeroCurve = new TextureCurve(new AnimationCurve(new Keyframe(0, 0), new Keyframe(1, 0)), 0.5f,
                 false, in bounds);
-            var redCurve =
-                new TextureCurve(
-                    new AnimationCurve(new Keyframe(0, 0), new Keyframe(0.069f, 0.734f), new Keyframe(0.5f, 0.0f),
-                        new Keyframe(1, 1)), 0.5f, false, in bounds);
-            var masterCurve = new TextureCurve(
-                new AnimationCurve(new Keyframe(0, 0), new Keyframe(0.297f, 0), new Keyframe(0.519f, 0.519f), new Keyframe(1, 0)),
-                0.5f, false, in bounds);
 
-            SetAnimation(colorCurves.hueVsHue, enabled ? _invertCurve : _defaultCurve, 0.01f, enabled);
+            var flatZeroCurveParam = new TextureCurveParameter(flatZeroCurve, true);
+
             SetAnimation(colorCurves.green, enabled ? flatZeroCurve : _defaultCurve, 0.01f, enabled);
             SetAnimation(colorCurves.blue, enabled ? flatZeroCurve : _defaultCurve, 0.01f, enabled);
-            SetAnimation(colorCurves.red, enabled ? redCurve : _defaultCurve, 0.01f, enabled);
-            SetAnimation(colorCurves.master, enabled ? masterCurve : _defaultCurve, 0.01f, enabled);
         }
 
         private void SetInvertedColors(bool enabled)
@@ -608,9 +594,8 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(colorAdjustments.saturation, (float)(enabled ? -100.0f : 0.0f), 0.01f, enabled);
-            SetAnimation(colorAdjustments.contrast, (float)(enabled ? 100f : 1.0f), 0.01f, enabled);
-            SetAnimation(colorAdjustments.postExposure, (float)(enabled ? 1.5f : 1.0f), 0.01f, enabled);
-        }
+            SetAnimation(colorAdjustments.contrast, (float)(enabled ? -10f : 1.0f), 0.01f, enabled);
+		}
 
         private void SetBadCopier(bool enabled)
         {
@@ -679,6 +664,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
+			SetAnimation(colorAdjustments.saturation, enabled ? -20f : 0f, 0.01f, enabled);
             SetAnimation(colorAdjustments.colorFilter, enabled ? _greenTint : Color.white, 0.01f, enabled);
         }
 
@@ -730,6 +716,24 @@ namespace YARG.Venue.VenueCamera
             SetAnimation(colorAdjustments.contrast, enabled ? 20.0f : 0.0f, 0.01f, enabled);
             SetAnimation(grain.intensity, enabled ? 1.0f : 0.25f, 0.01f, enabled);
             SetAnimation(grain.response, enabled ? 0.0f : 0.8f, 0.01f, enabled);
+        }
+
+		private void SetPsychRB(bool enabled)
+        {
+            if (!_profile.TryGet<ColorCurves>(out var colorCurves))
+            {
+                return;
+            }
+
+            var bounds = new Vector2(0, 1);
+
+            var flatZeroCurve = new TextureCurve(new AnimationCurve(new Keyframe(0, 0), new Keyframe(1, 0)), 0.5f,
+                false, in bounds);
+
+            var flatZeroCurveParam = new TextureCurveParameter(flatZeroCurve, true);
+
+            SetAnimation(colorCurves.green, enabled ? flatZeroCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.blue, enabled ? _invertCurve : _defaultCurve, 0.01f, enabled);
         }
 
         public void SetAnimation(ClampedFloatParameter target, float endValue, float duration, bool finalOverrideState)

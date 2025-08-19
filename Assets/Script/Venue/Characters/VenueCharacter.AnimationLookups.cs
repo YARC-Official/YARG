@@ -49,14 +49,20 @@ namespace YARG.Venue.Characters
                     var hash = Animator.StringToHash($"{state}");
                     bool hasTrigger = _triggerNames.Contains(state);
 
-                    if (TryGetAnimationStateForName(state, out var animState))
+                    // Check _animationStates first, since it should be the source of truth if the venue has it populated
+                    if (_animationStates.TryGetStateForName(state, out var animState))
+                    {
+                        _animationEvents.Add(animState, state, hash, index, hasTrigger);
+                    }
+                    // Fallback to old behavior if venue doesn't have _animationStates populated or has a missing entry
+                    else if (TryGetAnimationStateForName(state, out animState))
                     {
                         _animationEvents.Add(animState, state, hash, index, hasTrigger);
                     }
                 }
             }
 
-            if (_triggerNames.Contains("Slap"))
+            if (_animationEvents.HasState(AnimationStateType.Slap))
             {
                 _hasSlap = true;
             }
@@ -287,6 +293,26 @@ namespace YARG.Venue.Characters
                 }
 
                 return false;
+            }
+
+            public bool HasState(AnimationStateType type)
+            {
+                return _lookup.ContainsKey(type);
+            }
+
+            public bool HasState(AnimationType type)
+            {
+                return _lookup.ContainsKey(_typeToState[type]);
+            }
+
+            public bool HasState(string name)
+            {
+                return _lookupByName.ContainsKey(name);
+            }
+
+            public bool HasState(int hash)
+            {
+                return _lookupByHash.ContainsKey(hash);
             }
 
             public bool TryGetFullPath(int hash, out AnimationEventInfo info)
