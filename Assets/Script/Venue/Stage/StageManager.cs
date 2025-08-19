@@ -51,7 +51,7 @@ namespace YARG.Venue.Stage
 
             // Check for stage events and dispatch them as required
             while (_stageEventIndex < _stageEvents.Count &&
-                _stageEvents[_stageEventIndex].Time <= GameManager.RealVisualTime)
+                _stageEvents[_stageEventIndex].Time <= GameManager.VisualTime)
             {
                 var stageEvent = _stageEvents[_stageEventIndex];
                 _stageEventIndex++;
