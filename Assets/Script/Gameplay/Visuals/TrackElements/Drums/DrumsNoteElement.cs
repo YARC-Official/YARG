@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Engine.Drums;
 using YARG.Gameplay.Player;
 using YARG.Themes;
 
@@ -47,6 +48,15 @@ namespace YARG.Gameplay.Visuals
             base.HitNote();
 
             ParentPool.Return(this);
+        }
+
+        protected override bool CalcStarPowerVisible()
+        {
+            if (!NoteRef.IsStarPower)
+            {
+                return false;
+            }
+            return !(((DrumsEngineParameters) Player.BaseParameters).NoStarPowerOverlap && Player.BaseStats.IsStarPowerActive);
         }
 
         protected override void HideElement()
