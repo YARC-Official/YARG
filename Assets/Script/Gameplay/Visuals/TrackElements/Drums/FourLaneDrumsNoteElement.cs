@@ -94,7 +94,13 @@ namespace YARG.Gameplay.Visuals
             // Get colors
             var colorNoStarPower = colors.GetNoteColor(pad);
             var color = colorNoStarPower;
-            if (NoteRef.IsStarPowerActivator && Player.Engine.CanStarPowerActivate && !Player.Engine.BaseStats.IsStarPowerActive)
+
+            if (NoteRef.WasMissed)
+            {
+                color = colors.Miss;
+            }
+            else if (NoteRef.IsStarPowerActivator && Player.Engine.CanStarPowerActivate && !Player.Engine.BaseStats.IsStarPowerActive)
+
             {
                 color = colors.ActivationNote;
             }
@@ -105,6 +111,9 @@ namespace YARG.Gameplay.Visuals
 
             // Set the note color
             NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
+
+            // Set the metal color
+            NoteGroup.SetMetalColor(colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor());
         }
     }
 }
