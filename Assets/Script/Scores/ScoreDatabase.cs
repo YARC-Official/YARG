@@ -393,7 +393,7 @@ namespace YARG.Scores
         public List<PlayCountRecord> QueryPlayerMostPlayedSongs(YargProfile profile, SortOrdering ordering)
         {
             var query =
-                @"SELECT COUNT(GameRecords.Id), GameRecords.SongChecksum from GameRecords, PlayerScores
+                @"SELECT GameRecords.SongChecksum, COUNT(GameRecords.Id) AS Count from GameRecords, PlayerScores
                 WHERE PlayerScores.GameRecordId = GameRecords.Id
                     AND PlayerScores.PlayerId = ?
                     AND PlayerScores.IsReplay = 0";
@@ -406,7 +406,7 @@ namespace YARG.Scores
 
             query +=
                 $@"GROUP BY GameRecords.SongChecksum
-                ORDER BY COUNT(GameRecords.Id) {ordering.ToQueryString()}";
+                ORDER BY Count {ordering.ToQueryString()}";
 
             return _db.Query<PlayCountRecord>(
                 query,

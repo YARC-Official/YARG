@@ -32,9 +32,9 @@ namespace YARG.Song
         Source,
         SongLength,
         DateAdded,
-        Playable,
         Playcount,
         Stars,
+        Playable,
 
         Instrument,
         FiveFretGuitar,
@@ -300,6 +300,7 @@ namespace YARG.Song
         // every play, when profiles change, and probably a bunch of other stuff
         private static SongCategory[] GetPlaycounts()
         {
+            int[] countThresholds = { 100, 50, 40, 30, 20, 10, 5, 1 };
             // This should never happen since play count shouldn't be selectable without
             // a non-bot profile and MusicLibraryMenu already checks for this, but let's double check
             if (PlayerContainer.OnlyHasBotsActive())
@@ -307,11 +308,50 @@ namespace YARG.Song
                 // Titles seems like a reasonable fallback
                 return _sortTitles;
             }
-            var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+
+            var player = PlayerContainer.Players.FirstOrDefault(e => !e.Profile.IsBot);
+
+            if (player == null)
+            {
+                // This case should have been caught above, but just in case
+                return _sortTitles;
+            }
+
+            // Set up an array of lists of songentries, one for each play count threshold (plus one for the unplayed header)
+            var categorySongs = new List<SongEntry>[countThresholds.Length];
+            for (int i = 0; i < countThresholds.Length; i++)
+            {
+                categorySongs[i] = new List<SongEntry>();
+            }
 
             var counts = ScoreContainer.GetPlayedSongsForUserByPlaycount(player.Profile, SortOrdering.Descending);
+
+            // Counts will be in descending order, so we can iterate through the list until we drop below the threshold
+            // and then move to the next threshold
+            int thresholdIndex = 0;
+            foreach ((SongEntry song, int count) in counts)
+            {
+                if (count < countThresholds[thresholdIndex])
+                {
+                    // Increase thresholdIndex until threshold is less than or equal to count and add the song to that category
+                    while (count < countThresholds[thresholdIndex] && thresholdIndex < countThresholds.Length - 1)
+                    {
+                        thresholdIndex++;
+                    }
+                }
+
+                // Double check that we haven't run out of thresholds
+                if (thresholdIndex >= countThresholds.Length)
+                {
+                    break;
+                }
+
+                categorySongs[thresholdIndex].Add(song);
+            }
+
             // Get all the unplayed songs and stuff them on the end of the list
             var zeroPlaySongs = new List<SongEntry>();
+            var zeroPlayCategories = new List<SongCategory>();
             var previousSort = SettingsManager.Settings.PreviousLibrarySort;
 
             if (previousSort == SortAttribute.Unspecified)
@@ -325,16 +365,46 @@ namespace YARG.Song
             {
                 foreach (var song in category.Songs)
                 {
-                    if (!counts.Contains(song))
+                    if (!counts.ContainsKey(song))
                     {
                         zeroPlaySongs.Add(song);
                     }
                 }
+
+                zeroPlayCategories.Add(new SongCategory(category.Category, zeroPlaySongs.ToArray(), category.CategoryGroup));
+                zeroPlaySongs.Clear();
             }
-            var countCategories = new SongCategory[2];
-            countCategories[0] = new SongCategory("PLAYED SONGS", counts.ToArray(), "Played Songs");
-            countCategories[1] = new SongCategory("UNPLAYED SONGS", zeroPlaySongs.ToArray(), "Unplayed Songs");
-            return countCategories;
+
+            int filledCategories = 0;
+            for (int i = 0; i < countThresholds.Length; i++)
+            {
+                if (categorySongs[i].Count > 0)
+                {
+                    filledCategories++;
+                }
+            }
+
+            var categories = new SongCategory[filledCategories + zeroPlayCategories.Count];
+
+            // Build the played categories, skipping any unfilled categories
+
+            int categoryIndex = 0;
+            for (int i = 0; i < countThresholds.Length; i++)
+            {
+                if (categorySongs[i].Count > 0)
+                {
+                    categories[categoryIndex] = new SongCategory($"Played {countThresholds[i]}+ times", categorySongs[i].ToArray(), $"Played {countThresholds[i]}+ times");
+                    categoryIndex++;
+                }
+            }
+
+            // Now add the unplayed categories
+            for (int i = 0; i < zeroPlayCategories.Count; i++)
+            {
+                categories[categoryIndex + i] = zeroPlayCategories[i];
+            }
+
+            return categories;
         }
 
         private static SongCategory[] GetStars()
