@@ -59,7 +59,7 @@ namespace YARG.Menu.MusicLibrary
         private MusicLibraryMenu _musicLibraryMenu;
         private SongSearchingField _songSearchingField;
 
-        private readonly Color _bandDifficultyGray = new Color(208 / 255f, 208 / 255f, 208 / 255f, 0.5f);
+        private readonly Color _bandDifficultyGray = new Color(20 / 255f, 20 / 255f, 20 / 255f, 1f);
         private readonly Color _bandDifficultyRed  = new Color(251 / 255f, 68 / 255f, 63 / 255f, 1);
         private readonly Color _bandDifficultyBlue = new Color(46 / 255f, 217 / 255f, 255 / 255f, 1);
 
