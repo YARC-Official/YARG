@@ -81,6 +81,14 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private PopupMenu _popupMenu;
 
+        [Space]
+        [SerializeField]
+        private TextMeshProUGUI _sortInfoHeaderPrimaryText;
+        [SerializeField]
+        private TextMeshProUGUI _sortInfoHeaderSongCountText;
+        [SerializeField]
+        private TextMeshProUGUI _sortInfoHeaderStarCountText;
+
         protected override int ExtraListViewPadding => 15;
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
@@ -1006,6 +1014,8 @@ namespace YARG.Menu.MusicLibrary
             }
             SettingsManager.Settings.LibrarySort = sort;
             UpdateSearch(true);
+
+            _sortInfoHeaderPrimaryText.text = $"Sorting by {sort.ToString()}";
         }
 
         public void SetSearchInput(SortAttribute songAttribute, string input)
