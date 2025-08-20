@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
+using YARG.Helpers;
 using YARG.Localization;
+using YARG.Menu.Data;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -88,6 +91,9 @@ namespace YARG.Menu.MusicLibrary
         private TextMeshProUGUI _sortInfoHeaderSongCountText;
         [SerializeField]
         private TextMeshProUGUI _sortInfoHeaderStarCountText;
+        private int _totalSongCount = 0;
+        private int _totalStarCount = 0;
+        private int _numPlaylists    = 0;
 
         protected override int ExtraListViewPadding => 15;
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
@@ -120,6 +126,9 @@ namespace YARG.Menu.MusicLibrary
 
             // Initialize sidebar
             _sidebar.Initialize(this, _searchField);
+
+            // Fill in sort information
+            UpdateSortInformationHeader();
         }
 
         private void OnEnable()
@@ -188,6 +197,9 @@ namespace YARG.Menu.MusicLibrary
                 // Name makes a good fallback?
                 ChangeSort(SortAttribute.Name);
             }
+
+            // Fill in sort information
+            UpdateSortInformationHeader();
         }
 
         // Public because PopupMenu may need to reset the navigation scheme
@@ -333,6 +345,7 @@ namespace YARG.Menu.MusicLibrary
 
         private List<ViewType> CreatePlaylistSelectViewList()
         {
+            _numPlaylists = 0;
             SongCategory[] emptyCategory = Array.Empty<SongCategory>();
             int id = BACK_ID + 1;
             var list = new List<ViewType>
@@ -357,6 +370,7 @@ namespace YARG.Menu.MusicLibrary
                     MenuState = MenuState.Playlist;
                     Refresh();
                 }, PLAYLIST_ID));
+            _numPlaylists++;
 
 
             list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.YourPlaylists"),
@@ -373,6 +387,7 @@ namespace YARG.Menu.MusicLibrary
                         Refresh();
                     }, id));
                 id++;
+                _numPlaylists++;
             }
 
             // Add any other user defined playlists
@@ -385,6 +400,7 @@ namespace YARG.Menu.MusicLibrary
                     Refresh();
                 }, id));
                 id++;
+                _numPlaylists++;
             }
 
             return list;
@@ -393,6 +409,7 @@ namespace YARG.Menu.MusicLibrary
         private List<ViewType> CreateNormalViewList()
         {
             var list = new List<ViewType>();
+            _totalStarCount = 0;
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
             // which means the song list hasn't been constructed yet.
@@ -519,6 +536,7 @@ namespace YARG.Menu.MusicLibrary
                         sectionTotalStars += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
                     }
                 }
+                _totalStarCount += sectionTotalStars;
 
                 if (sortHeader != null)
                 {
@@ -526,6 +544,8 @@ namespace YARG.Menu.MusicLibrary
                 }
 
             }
+
+            _totalSongCount = songCount;
             CalculateCategoryHeaderIndices(list);
             return list;
         }
@@ -642,6 +662,7 @@ namespace YARG.Menu.MusicLibrary
             SetRecommendedSongs();
             _searchField.Reset();
             UpdateSearch(true);
+            UpdateSortInformationHeader();
         }
 
         private void UpdateSearch(bool force)
@@ -1014,8 +1035,62 @@ namespace YARG.Menu.MusicLibrary
             }
             SettingsManager.Settings.LibrarySort = sort;
             UpdateSearch(true);
+            UpdateSortInformationHeader();
+        }
 
-            _sortInfoHeaderPrimaryText.text = $"Sorting by {sort.ToString()}";
+        private void UpdateSortInformationHeader()
+        {
+            if (MenuState == MenuState.Library)
+            {
+                var sortingBy = TextColorer.StyleString("Sorting by ",
+                    MenuData.Colors.HeaderTertiary,
+                    600);
+
+                var sortKey = TextColorer.StyleString(SettingsManager.Settings.LibrarySort.ToString(),
+                    MenuData.Colors.HeaderSecondary,
+                    700);
+
+                _sortInfoHeaderPrimaryText.text = ZString.Concat(sortingBy, sortKey);
+
+                var count = TextColorer.StyleString(
+                    ZString.Format("{0:N0}", _totalSongCount),
+                    MenuData.Colors.HeaderSecondary,
+                    500);
+
+                var songs = TextColorer.StyleString(
+                    _totalSongCount == 1 ? "SONG" : "SONGS",
+                    MenuData.Colors.HeaderTertiary,
+                    600);
+
+                _sortInfoHeaderSongCountText.text = ZString.Concat(count, " ", songs);
+
+                var obtainedStars = TextColorer.StyleString(
+                    ZString.Format("{0}", _totalStarCount),
+                    MenuData.Colors.HeaderSecondary,
+                    700);
+
+                var totalStars = TextColorer.StyleString(
+                    ZString.Format(" / {0}", _totalSongCount * 5),
+                    MenuData.Colors.HeaderTertiary,
+                    600);
+
+                _sortInfoHeaderStarCountText.text = ZString.Concat(obtainedStars, totalStars);
+            }
+            else if (MenuState == MenuState.PlaylistSelect)
+            {
+                var count = TextColorer.StyleString(
+                    ZString.Format("{0:N0}", _numPlaylists),
+                    MenuData.Colors.HeaderSecondary,
+                    500);
+
+                var songs = TextColorer.StyleString(
+                    _numPlaylists == 1 ? "PLAYLIST" : "PLAYLISTS",
+                    MenuData.Colors.HeaderTertiary,
+                    600);
+
+                _sortInfoHeaderSongCountText.text = ZString.Concat(count, " ", songs);
+            }
+
         }
 
         public void SetSearchInput(SortAttribute songAttribute, string input)
