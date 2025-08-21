@@ -50,7 +50,7 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
-            if (_phraseRef.Time > GameManager.SongTime || _phraseRef.TimeEnd <= GameManager.SongTime)
+            if (_phraseRef.Time > GameManager.SongTime)
             {
                 _builder.Append(FUTURE_PHRASE_COLOR_TAG);
 
@@ -63,29 +63,14 @@ namespace YARG.Gameplay.Visuals
             }
             else
             {
+                _builder.Append(FUTURE_LYRIC_COLOR_TAG);
+
                 foreach (var lyric in _phraseRef.Lyrics)
                 {
-                    var probableLyricEnd = GetProbableNoteEndOfLyric(_phraseRef, lyric);
-
-                    if (probableLyricEnd <= GameManager.SongTime)
-                    {
-                        _builder.Append($"{PAST_LYRIC_COLOR_TAG}{RenderStaticSyllable(lyric)}{CLOSE_COLOR_TAG}");
-                    }
-
-                    else if (lyric.Time <= GameManager.SongTime && GameManager.SongTime < probableLyricEnd)
-                    {
-                        _builder.Append($"{PRESENT_LYRIC_COLOR_TAG}{RenderStaticSyllable(lyric)}{CLOSE_COLOR_TAG}");
-                    }
-
-                    else
-                    {
-                        _builder.Append($"{FUTURE_LYRIC_COLOR_TAG}{RenderStaticSyllable(lyric)}{CLOSE_COLOR_TAG}");
-                    }
+                    _builder.Append(RenderStaticSyllable(lyric));
                 }
-            }
-            if (string.IsNullOrEmpty(_phraseText.text))
-            {
-                ParentPool.Return(this);
+
+                _builder.Append(CLOSE_COLOR_TAG);
             }
 
             transform.localPosition = transform.localPosition.WithX(_x);
@@ -101,6 +86,35 @@ namespace YARG.Gameplay.Visuals
 
         protected override void UpdateElement()
         {
+            if (_phraseRef.Time > GameManager.SongTime)
+            {
+                // Future phrases don't need to update after initialization, until they become the active phrase
+                return;
+            }
+
+            _builder.Clear();
+
+            foreach (var lyric in _phraseRef.Lyrics)
+            {
+                var probableLyricEnd = GetProbableNoteEndOfLyric(_phraseRef, lyric);
+
+                if (probableLyricEnd <= GameManager.SongTime)
+                {
+                    _builder.Append($"{PAST_LYRIC_COLOR_TAG}{RenderStaticSyllable(lyric)}{CLOSE_COLOR_TAG}");
+                }
+
+                else if (lyric.Time <= GameManager.SongTime && GameManager.SongTime < probableLyricEnd)
+                {
+                    _builder.Append($"{PRESENT_LYRIC_COLOR_TAG}{RenderStaticSyllable(lyric)}{CLOSE_COLOR_TAG}");
+                }
+
+                else
+                {
+                    _builder.Append($"{FUTURE_LYRIC_COLOR_TAG}{RenderStaticSyllable(lyric)}{CLOSE_COLOR_TAG}");
+                }
+            }
+
+            _phraseText.text = _builder.ToString();
         }
 
         protected override bool UpdateElementPosition()
