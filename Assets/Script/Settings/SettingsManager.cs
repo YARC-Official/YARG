@@ -221,6 +221,7 @@ namespace YARG.Settings
                 nameof(Settings.BandComboTypeSetting),
 	            // nameof(Settings.WhammyOversampleFactor),
                 nameof(Settings.DataStreamEnable),
+                nameof(Settings.EnableVoxSamples),
             }
         };
 

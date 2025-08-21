@@ -1234,6 +1234,10 @@
             "EnableTrackEffects": {
                 "Name": "Enable Track Effects",
                 "Description": "If enabled, the game will display track effects for unison, solo, and drum SP activation phrases."
+            },
+            "EnableVoxSamples": {
+                "Name": "Enable Vox Samples",
+                "Description": "If enabled, the game might make some noises at you on the score screen."
             }
         },
         "PresetType": {

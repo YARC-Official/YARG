@@ -448,6 +448,8 @@ namespace YARG.Settings
                 BandComboType.Strict
             };
 
+            public ToggleSetting EnableVoxSamples { get; } = new(false);
+
             #endregion
 
             #region Callbacks
