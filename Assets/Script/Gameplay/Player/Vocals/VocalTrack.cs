@@ -254,14 +254,16 @@ namespace YARG.Gameplay.Player
             // Create trackers and indices
             var parts = _vocalsTrack.Parts;
             _phraseMarkerIndices = new int[parts.Count];
-            _noteTrackers = new PhraseNoteTracker[parts.Count];
-            _lyricTrackers = new PhraseNoteTracker[parts.Count];
+            _scrollingNoteTrackers = new ScrollingPhraseNoteTracker[parts.Count];
+            _scrollingLyricTrackers = new ScrollingPhraseNoteTracker[parts.Count];
+            _staticPhraseTrackers = new StaticPhraseTracker[parts.Count];
 
             // Create PhraseNoteTrackers
             for (int i = 0; i < parts.Count; i++)
             {
-                _noteTrackers[i] = new PhraseNoteTracker(parts[i], false);
-                _lyricTrackers[i] = new PhraseNoteTracker(parts[i], true);
+                _scrollingNoteTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], false);
+                _scrollingLyricTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], true);
+                _staticPhraseTrackers[i] = new StaticPhraseTracker(parts[i]);
             }
 
             // Choose the correct amount of lanes
@@ -478,11 +480,11 @@ namespace YARG.Gameplay.Player
             if (!gameObject.activeSelf) return;
 
             // Reset indices
-            for (int i = 0; i < _noteTrackers.Length; i++)
+            for (int i = 0; i < _scrollingNoteTrackers.Length; i++)
             {
                 _phraseMarkerIndices[i] = 0;
-                _noteTrackers[i].Reset();
-                _lyricTrackers[i].Reset();
+                _scrollingNoteTrackers[i].Reset();
+                _scrollingLyricTrackers[i].Reset();
             }
 
             // Return everything
@@ -517,8 +519,8 @@ namespace YARG.Gameplay.Player
                 part.NotePhrases.RemoveAll(n => n.Tick < start || n.Tick >= end);
                 part.TextEvents.RemoveAll(n => n.Tick < start || n.Tick >= end);
 
-                _noteTrackers[i] = new PhraseNoteTracker(part, false);
-                _lyricTrackers[i] = new PhraseNoteTracker(part, true);
+                _scrollingNoteTrackers[i] = new ScrollingPhraseNoteTracker(part, false);
+                _scrollingLyricTrackers[i] = new ScrollingPhraseNoteTracker(part, true);
             }
 
             // The most recent range shift before the start tick should still be preserved

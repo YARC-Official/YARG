@@ -1,97 +1,28 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Visuals;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
     public partial class VocalTrack
     {
-        private class PhraseNoteTracker
-        {
-            private readonly VocalsPart _vocalsPart;
-
-            private int _phraseIndex;
-            private int _noteOrLyricIndex;
-
-            public VocalsPhrase CurrentPhrase => _vocalsPart.NotePhrases[_phraseIndex];
-            private bool CurrentPhraseInBounds => _phraseIndex < _vocalsPart.NotePhrases.Count;
-
-            public VocalNote CurrentNote =>
-                CurrentPhrase.PhraseParentNote.ChildNotes[_noteOrLyricIndex];
-            public bool CurrentNoteInBounds =>
-                CurrentPhraseInBounds &&
-                _noteOrLyricIndex < CurrentPhrase.PhraseParentNote.ChildNotes.Count;
-
-            public LyricEvent CurrentLyric =>
-                CurrentPhrase.Lyrics[_noteOrLyricIndex];
-            public bool CurrentLyricInBounds =>
-                CurrentPhraseInBounds &&
-                _noteOrLyricIndex < CurrentPhrase.Lyrics.Count;
-
-            public PhraseNoteTracker(VocalsPart vocalsPart, bool forLyrics)
-            {
-                _vocalsPart = vocalsPart;
-
-                // If the first phrase in the song has no notes/lyrics, skip it
-                if (CurrentPhraseInBounds)
-                {
-                    if (forLyrics && !CurrentLyricInBounds)
-                    {
-                        NextLyric();
-                    }
-                    else if (!forLyrics && !CurrentNoteInBounds)
-                    {
-                        NextNote();
-                    }
-                }
-            }
-
-            public void Reset()
-            {
-                _phraseIndex = 0;
-                _noteOrLyricIndex = 0;
-            }
-
-            public void NextNote()
-            {
-                _noteOrLyricIndex++;
-
-                if (CurrentNoteInBounds) return;
-
-                // Make sure to skip all of the empty phrases
-                do
-                {
-                    _phraseIndex++;
-                    _noteOrLyricIndex = 0;
-                } while (CurrentPhraseInBounds && !CurrentNoteInBounds);
-            }
-
-            public void NextLyric()
-            {
-                _noteOrLyricIndex++;
-
-                if (CurrentLyricInBounds) return;
-
-                // Make sure to skip all of the empty phrases
-                do
-                {
-                    _phraseIndex++;
-                    _noteOrLyricIndex = 0;
-                } while (CurrentPhraseInBounds && !CurrentLyricInBounds);
-            }
-
-            public VocalNote GetProbableNoteAtLyric()
-            {
-                return CurrentPhrase.PhraseParentNote.ChildNotes
-                    .FirstOrDefault(note => note.Tick == CurrentLyric.Tick);
-            }
-        }
-
         private int[] _phraseMarkerIndices;
+        private const float LEFT_EDGE = -4.9f;
+        private const float MAXIMUM_NUMBER_OF_PHRASES = 10;
 
         // These track the phrase and note within the phrase
-        private PhraseNoteTracker[] _noteTrackers;
-        private PhraseNoteTracker[] _lyricTrackers;
+        private ScrollingPhraseNoteTracker[] _scrollingNoteTrackers;
+        private ScrollingPhraseNoteTracker[] _scrollingLyricTrackers;
+
+        // These track the current phrase and note within the phrase, in terms more useful for rendering static lyrics
+        private StaticPhraseTracker[] _staticPhraseTrackers;
+
+        private Queue<VocalStaticLyricPhraseElement> _displayedElements = new();
+        private int _highestPhraseIndexDisplayed = -1;
+        private float _rightEdge = LEFT_EDGE;
 
         private void UpdateSpawning()
         {
@@ -99,13 +30,13 @@ namespace YARG.Gameplay.Player
             for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
             {
                 // Spawn in notes and lyrics
-                SpawnNotesInPhrase(_noteTrackers[i], i);
-                SpawnLyricsInPhrase(_lyricTrackers[i], i);
+                SpawnNotesInPhrase(_scrollingNoteTrackers[i], i);
+                SpawnLyrics(_scrollingLyricTrackers[i], _staticPhraseTrackers[i], i);
                 SpawnPhraseLines(i);
             }
         }
 
-        private void SpawnNotesInPhrase(PhraseNoteTracker tracker, int harmonyIndex)
+        private void SpawnNotesInPhrase(ScrollingPhraseNoteTracker tracker, int harmonyIndex)
         {
             var pool = _notePools[harmonyIndex];
 
@@ -144,11 +75,22 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void SpawnLyricsInPhrase(PhraseNoteTracker tracker, int harmonyIndex)
+        private void SpawnLyrics(ScrollingPhraseNoteTracker scrollingTracker, StaticPhraseTracker staticTracker, int harmonyIndex)
+        {
+            if (SettingsManager.Settings.StaticVocalsMode.Value)
+            {
+                SpawnStaticLyrics(staticTracker, harmonyIndex);
+            } else
+            {
+                SpawnScrollingLyrics(scrollingTracker, harmonyIndex);
+            }
+        }
+
+        private void SpawnScrollingLyrics(ScrollingPhraseNoteTracker tracker, int harmonyIndex)
         {
             while (tracker.CurrentLyricInBounds && tracker.CurrentLyric.Time <= GameManager.SongTime + SpawnTimeOffset)
             {
-                if (!_lyricContainer.TrySpawnLyric(
+                if (!_lyricContainer.TrySpawnScrollingLyric(
                     tracker.CurrentLyric,
                     tracker.GetProbableNoteAtLyric(),
                     AllowStarPower && tracker.CurrentPhrase.IsStarPower,
@@ -159,6 +101,48 @@ namespace YARG.Gameplay.Player
                 }
 
                 tracker.NextLyric();
+            }
+        }
+
+        private void SpawnStaticLyrics(StaticPhraseTracker tracker, int harmonyIndex)
+        {
+            var change = tracker.UpdateCurrentPhrase(GameManager.SongTime);
+
+            switch (change.Type)
+            {
+                case PhraseChangeType.NoChange or PhraseChangeType.EnteredPhrase:
+                    break;
+                case PhraseChangeType.ExitedPhrase or PhraseChangeType.ExitedAndEnteredPhrase:
+                    var leftmostPhraseElement = _displayedElements.Dequeue();
+                    var leftShift = leftmostPhraseElement.Width + VocalLyricContainer.STATIC_PHRASE_SPACING;
+                    foreach (var remainingPhrase in _displayedElements)
+                    {
+                        remainingPhrase.transform.localPosition = remainingPhrase.transform.localPosition
+                            .WithX(remainingPhrase.transform.localPosition.x - leftShift);
+
+                    }
+                    _rightEdge -= leftShift;
+                    leftmostPhraseElement.Dismiss();
+                    break;
+            }
+
+            // Enqueue more phrases, if we have room
+            for (var phraseIdx = _highestPhraseIndexDisplayed + 1; phraseIdx < _vocalsTrack.Parts[harmonyIndex].NotePhrases.Count; phraseIdx++)
+            {
+                if (_displayedElements.Count > MAXIMUM_NUMBER_OF_PHRASES)
+                {
+                    break;
+                }
+
+                var phrase = _vocalsTrack.Parts[harmonyIndex].NotePhrases[phraseIdx];
+                var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(phrase, phrase.IsStarPower, harmonyIndex, _rightEdge);
+
+                if (newPhraseElement != null)
+                {
+                    _rightEdge += newPhraseElement.Width + VocalLyricContainer.STATIC_PHRASE_SPACING;
+                    _highestPhraseIndexDisplayed = phraseIdx;
+                    _displayedElements.Enqueue(newPhraseElement);
+                }
             }
         }
 

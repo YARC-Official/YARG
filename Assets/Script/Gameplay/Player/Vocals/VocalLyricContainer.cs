@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor.ShaderGraph.Internal;
+using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Visuals;
 using YARG.Settings;
@@ -8,10 +9,16 @@ namespace YARG.Gameplay.Player
     public class VocalLyricContainer : MonoBehaviour
     {
         public const float LYRIC_SPACING = 0.25f;
+        public const float STATIC_PHRASE_SPACING = .5f;
 
         [Header("Index 0 should be bottom, 2 should be top.")]
         [SerializeField]
-        private Pool[] _pools;
+        private Pool[] _scrollingPools;
+
+        [Header("Index 0 should be bottom, 2 should be top.")]
+        [SerializeField]
+        private Pool[] _staticPools;
+
 
         private readonly double[] _lastLyricEdgeTime =
         {
@@ -22,7 +29,7 @@ namespace YARG.Gameplay.Player
 
         private string _lastSecondHarmonyLyric;
 
-        public bool TrySpawnLyric(LyricEvent lyric, VocalNote probableNotePair, bool isStarpower, int harmIndex)
+        public bool TrySpawnScrollingLyric(LyricEvent lyric, VocalNote probableNotePair, bool isStarpower, int harmIndex)
         {
             var combineHarmonyLyrics = !SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value;
 
@@ -42,7 +49,7 @@ namespace YARG.Gameplay.Player
             }
 
             // Skip this frame if the pool is full
-            if (!_pools[lane].CanSpawnAmount(1))
+            if (!_scrollingPools[lane].CanSpawnAmount(1))
             {
                 return false;
             }
@@ -52,7 +59,7 @@ namespace YARG.Gameplay.Player
 
             // Spawn the vocal lyric
             bool allowHiding = harmIndex != 0 && combineHarmonyLyrics;
-            var obj = (VocalLyricElement) _pools[lane].TakeWithoutEnabling();
+            var obj = (VocalScrollingLyricSyllableElement) _scrollingPools[lane].TakeWithoutEnabling();
             obj.Initialize(lyric, _lastLyricEdgeTime[lane], length, isStarpower, harmIndex, allowHiding);
             obj.EnableFromPool();
 
@@ -68,13 +75,55 @@ namespace YARG.Gameplay.Player
             return true;
         }
 
+        public VocalStaticLyricPhraseElement? TrySpawnStaticLyricPhrase(VocalsPhrase phrase, bool isStarpower,
+            int harmIndex, float x)
+        {
+            var combineHarmonyLyrics = !SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value;
+
+            // Choose the correct lane for the lyrics
+            int lane = harmIndex;
+            if (combineHarmonyLyrics && lane == 1)
+            {
+                // In two lane mode, the middle track should not be used
+                lane = 2;
+            }
+
+            // Skip this frame if the pool is full
+            if (!_staticPools[lane].CanSpawnAmount(1))
+            {
+                return null;
+            }
+
+            // Spawn the vocal lyric
+            bool allowHiding = harmIndex != 0 && combineHarmonyLyrics;
+            var obj = (VocalStaticLyricPhraseElement) _staticPools[lane].TakeWithoutEnabling();
+            obj.Initialize(phrase, isStarpower, harmIndex, allowHiding, x);
+            obj.EnableFromPool();
+
+            // Set the edge time
+            _lastLyricEdgeTime[lane] = obj.ElementTime + (obj.Width + LYRIC_SPACING) / TrackSpeed;
+
+            // When combining lyrics, prevent duplicates on HARM3
+            if (combineHarmonyLyrics && harmIndex == 1)
+            {
+                _lastSecondHarmonyLyric = "lyric.Text TODO";
+            }
+
+            return obj;
+        }
+
         public void ResetVisuals()
         {
             _lastLyricEdgeTime[0] = double.NegativeInfinity;
             _lastLyricEdgeTime[1] = double.NegativeInfinity;
             _lastLyricEdgeTime[2] = double.NegativeInfinity;
 
-            foreach (var pool in _pools)
+            foreach (var pool in _scrollingPools)
+            {
+                pool.ReturnAllObjects();
+            }
+
+            foreach (var pool in _staticPools)
             {
                 pool.ReturnAllObjects();
             }
