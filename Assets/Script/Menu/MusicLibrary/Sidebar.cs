@@ -47,6 +47,9 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private TextMeshProUGUI _bandDifficultyLabel;
 
+        [SerializeField]
+        private GameObject _sidebarContents;
+
         [FormerlySerializedAs("difficultyRingPrefab")]
         [Space]
         [SerializeField]
@@ -135,6 +138,7 @@ namespace YARG.Menu.MusicLibrary
 
             _sourceBackground.gameObject.SetActive(false);
             _charterBackground.gameObject.SetActive(false);
+            _sidebarContents.gameObject.SetActive(false);
 
             _year.text = string.Empty;
             _length.text = string.Empty;
@@ -184,6 +188,8 @@ namespace YARG.Menu.MusicLibrary
                 _sourceBackground.gameObject.SetActive(true);
                 _sourceBackground.sprite = icon;
             }
+
+            _sidebarContents.gameObject.SetActive(true);
 
             _cancellationToken = new();
             _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token, 0.15f);
