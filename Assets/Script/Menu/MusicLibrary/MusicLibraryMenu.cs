@@ -1083,12 +1083,12 @@ namespace YARG.Menu.MusicLibrary
                     MenuData.Colors.HeaderSecondary,
                     500);
 
-                var songs = TextColorer.StyleString(
+                var playlists = TextColorer.StyleString(
                     _numPlaylists == 1 ? "PLAYLIST" : "PLAYLISTS",
                     MenuData.Colors.HeaderTertiary,
                     600);
 
-                _sortInfoHeaderSongCountText.text = ZString.Concat(count, " ", songs);
+                _sortInfoHeaderSongCountText.text = ZString.Concat(count, " ", playlists);
             }
 
         }
