@@ -5,11 +5,13 @@ using System.Threading;
 using Cysharp.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Helpers;
+using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.ListMenu;
@@ -91,9 +93,11 @@ namespace YARG.Menu.MusicLibrary
         private TextMeshProUGUI _sortInfoHeaderSongCountText;
         [SerializeField]
         private TextMeshProUGUI _sortInfoHeaderStarCountText;
+        [SerializeField]
+        private Image _sortInfoHeaderStarIcon;
         private int _totalSongCount = 0;
         private int _totalStarCount = 0;
-        private int _numPlaylists    = 0;
+        private int _numPlaylists = 0;
 
         protected override int ExtraListViewPadding => 15;
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
@@ -1042,7 +1046,7 @@ namespace YARG.Menu.MusicLibrary
         {
             if (MenuState == MenuState.Library)
             {
-                var sortingBy = TextColorer.StyleString("Sorting by ",
+                var sortingBy = TextColorer.StyleString("SORTING BY ",
                     MenuData.Colors.HeaderTertiary,
                     600);
 
@@ -1075,9 +1079,14 @@ namespace YARG.Menu.MusicLibrary
                     600);
 
                 _sortInfoHeaderStarCountText.text = ZString.Concat(obtainedStars, totalStars);
+                _sortInfoHeaderStarIcon.color = _sortInfoHeaderStarIcon.color.WithAlpha(1);
             }
             else if (MenuState == MenuState.PlaylistSelect)
             {
+                _sortInfoHeaderPrimaryText.text = ZString.Concat(
+                    TextColorer.StyleString("SHOWING ", MenuData.Colors.HeaderTertiary, 600),
+                    TextColorer.StyleString("ALL PLAYLISTS", MenuData.Colors.HeaderSecondary, 700));
+
                 var count = TextColorer.StyleString(
                     ZString.Format("{0:N0}", _numPlaylists),
                     MenuData.Colors.HeaderSecondary,
@@ -1089,6 +1098,17 @@ namespace YARG.Menu.MusicLibrary
                     600);
 
                 _sortInfoHeaderSongCountText.text = ZString.Concat(count, " ", playlists);
+                _sortInfoHeaderStarCountText.text = "";
+                _sortInfoHeaderStarIcon.color = _sortInfoHeaderStarIcon.color.WithAlpha(0);
+            }
+            else if (MenuState == MenuState.Playlist)
+            {
+                _sortInfoHeaderPrimaryText.text = ZString.Concat(
+                    TextColorer.StyleString("PLAYLIST ", MenuData.Colors.HeaderTertiary, 600),
+                    TextColorer.StyleString(SelectedPlaylist.Name, MenuData.Colors.HeaderSecondary, 700));
+                _sortInfoHeaderSongCountText.text = "";
+                _sortInfoHeaderStarCountText.text = "";
+                _sortInfoHeaderStarIcon.color = _sortInfoHeaderStarIcon.color.WithAlpha(0);
             }
 
         }
