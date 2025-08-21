@@ -49,22 +49,6 @@ namespace YARG.Gameplay.Visuals
             ParentPool.Return(this);
         }
 
-        public override void MissNote()
-        {
-            base.MissNote();
-
-            UpdateColor();
-        }
-
-        public override void OnStarPowerUpdated()
-        {
-            base.OnStarPowerUpdated();
-
-            UpdateColor();
-        }
-
-        protected abstract void UpdateColor();
-
         protected override void HideElement()
         {
             HideNotes();

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
@@ -143,6 +145,79 @@ namespace YARG.Gameplay.Player
 
             // Particle 0 is always kick fret
             _kickFretFlash.Initialize(colors.GetParticleColor(0).ToUnityColor());
+
+            // Use checkpointing to only iterate through the notes once
+            int checkpoint = 0;
+
+            // Set up drum fill lead-ups
+            foreach (var effect in _trackEffects)
+            {
+                for (int i = checkpoint; i < Notes.Count; i++)
+                {
+                    checkpoint = i;
+
+                    // If the current note is outside of the target phrase or if we have exhausted all notes
+                    if (Notes[i].Time >= effect.TimeEnd || i == Notes.Count - 1)
+                    {
+                        // Get the rightmost pad
+                        var rightmostNote = Notes[i].ParentOrSelf;
+                        foreach (var note in Notes[i].AllNotes)
+                        {
+                            if (note.Pad > rightmostNote.Pad)
+                            {
+                                rightmostNote = note;
+                            }
+
+                            // Set every note on this tick as an activation note in the case of AllNotes
+                            if (Player.Profile.StarPowerActivationType is StarPowerActivationType.AllNotes)
+                            {
+                                note.DrumFlags |= DrumNoteFlags.StarPowerActivator;
+                            }
+                        }
+
+                        // Only set the rightmost activation note in the case of RightmostNote
+                        if (Player.Profile.StarPowerActivationType is StarPowerActivationType.RightmostNote)
+                        {
+                            rightmostNote.DrumFlags |= DrumNoteFlags.StarPowerActivator;
+                        }
+
+                        int fillLane = rightmostNote.Pad;
+
+                        // Convert pad to lane for pro
+                        if (Player.Profile.CurrentInstrument == Instrument.ProDrums)
+                        {
+                            if (Player.Profile.SplitProTomsAndCymbals)
+                            {
+                                fillLane = GetFillLaneForSplitView(fillLane);
+                            }
+                            else if (fillLane > 4)
+                            {
+                                fillLane -= 3;
+                            }
+                        }
+
+                        effect.FillLane = fillLane;
+                        effect.TotalLanes = _fretArray.FretCount;
+                        break;
+                    }
+                }
+            }
+        }
+
+        private int GetFillLaneForSplitView(int rightmostPad)
+        {
+            return rightmostPad switch
+            {
+                0 => 0,
+                1 => ShouldSwapSnareAndHiHat() ? 2 : 1,
+                2 => 3,
+                3 => 5,
+                4 => 7,
+                5 => ShouldSwapSnareAndHiHat() ? 1 : 2,
+                6 => ShouldSwapCrashAndRide() ? 6 : 4,
+                7 => ShouldSwapCrashAndRide() ? 4 : 6,
+                _ => 0,
+            };
         }
 
         public override void SetStemMuteState(bool muted)

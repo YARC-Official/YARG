@@ -48,6 +48,10 @@ namespace YARG.Gameplay.Visuals
         public bool OriginalStartTransitionEnable { get; private set; }
         public float Visibility { get; set; } = 1.0f;
 
+        // For drum fill lead-up positioning
+        public int FillLane        { get; set; } = 0;
+        public int TotalLanes { get; set; } = 1;
+
         public bool Equals(TrackEffect other) => other is not null && Time.Equals(other.Time) && TimeEnd.Equals(other.TimeEnd);
         public override bool Equals(object obj) => obj is TrackEffect && Equals((TrackEffect)obj);
         public override int GetHashCode() => HashCode.Combine(Time, TimeEnd);

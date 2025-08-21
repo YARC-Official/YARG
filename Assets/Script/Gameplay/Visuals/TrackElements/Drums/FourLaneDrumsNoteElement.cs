@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Helpers.Extensions;
+using Color = System.Drawing.Color;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -69,7 +70,13 @@ namespace YARG.Gameplay.Visuals
             UpdateColor();
         }
 
-        protected override void UpdateColor()
+        protected override void UpdateElement()
+        {
+            // Potentially update flash in case of activation note
+            UpdateColor();
+        }
+
+        private void UpdateColor()
         {
             var colors = Player.Player.ColorProfile.FourLaneDrums;
 
@@ -100,9 +107,15 @@ namespace YARG.Gameplay.Visuals
                 color = colors.Miss;
             }
             else if (NoteRef.IsStarPowerActivator && Player.Engine.CanStarPowerActivate && !Player.Engine.BaseStats.IsStarPowerActive)
-
             {
-                color = colors.ActivationNote;
+                float pulse = (float) GameManager.BeatEventHandler.Visual.StrongBeat.CurrentPercentage;
+                var fullColor = colors.GetActivationNoteColor(pad);
+                color = Color.FromArgb(
+                    fullColor.A,
+                    GetColorFromPulse(fullColor.R, pulse),
+                    GetColorFromPulse(fullColor.G, pulse),
+                    GetColorFromPulse(fullColor.B, pulse)
+                );
             }
             else if (NoteRef.IsStarPower)
             {
@@ -114,6 +127,12 @@ namespace YARG.Gameplay.Visuals
 
             // Set the metal color
             NoteGroup.SetMetalColor(colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor());
+        }
+
+        private static int GetColorFromPulse(int color, float pulse)
+        {
+            float intensity = Mathf.Pow(pulse - 1, 3) + 1f;
+            return (int) (intensity * color);
         }
     }
 }
