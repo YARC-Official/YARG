@@ -55,11 +55,13 @@ namespace YARG.Menu.ScoreScreen
 
         private bool _analyzingReplay;
 
+        private bool _restartingSong;
+
         private void OnEnable()
         {
             var song = GlobalVariables.State.CurrentSong;
             var isFavorited = PlaylistContainer.FavoritesPlaylist.ContainsSong(song);
-            
+
             // Set navigation scheme
             var continueButtonEntry = new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
                 {
@@ -82,6 +84,18 @@ namespace YARG.Menu.ScoreScreen
                     }
                 });
 
+            var endEarlyButtonEntry = new NavigationScheme.Entry(MenuAction.Red, "end setlist early", () =>
+            {
+                GlobalVariables.State.PlayingAShow = false;
+                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+            });
+
+            var restartButtonEntry = new NavigationScheme.Entry(MenuAction.Yellow, "restart song", () =>
+            {
+                _restartingSong = true;
+                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+            });
+
             // dummy remove button so it can be used in add button
             NavigationScheme.Entry removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "", () => {});
             var addFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.AddToFavorites", () =>
@@ -95,6 +109,8 @@ namespace YARG.Menu.ScoreScreen
                         Navigator.Instance.PushScheme(new NavigationScheme(new()
                         {
                             continueButtonEntry,
+                            endEarlyButtonEntry,
+                            restartButtonEntry,
                             removeFavoriteButtonEntry
                         }, true));
                     }
@@ -111,6 +127,8 @@ namespace YARG.Menu.ScoreScreen
                         Navigator.Instance.PushScheme(new NavigationScheme(new()
                         {
                             continueButtonEntry,
+                            endEarlyButtonEntry,
+                            restartButtonEntry,
                             addFavoriteButtonEntry
                         }, true));
                     }
@@ -122,6 +140,8 @@ namespace YARG.Menu.ScoreScreen
                 Navigator.Instance.PushScheme(new NavigationScheme(new()
                 {
                     continueButtonEntry,
+                    endEarlyButtonEntry,
+                    restartButtonEntry,
                     removeFavoriteButtonEntry
                 }, true));
             }
@@ -130,6 +150,8 @@ namespace YARG.Menu.ScoreScreen
                 Navigator.Instance.PushScheme(new NavigationScheme(new()
                 {
                     continueButtonEntry,
+                    endEarlyButtonEntry,
+                    restartButtonEntry,
                     addFavoriteButtonEntry
                 }, true));
             }
@@ -188,12 +210,15 @@ namespace YARG.Menu.ScoreScreen
             CreateScoreCards(scoreScreenStats);
 
             _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
+
+            //set restarting state
+            _restartingSong = false;
         }
 
         private void OnDisable()
         {
             MusicLibraryMenu.CurrentlyPlaying = GlobalVariables.State.CurrentSong;
-            if (!GlobalVariables.State.PlayingAShow)
+            if (!GlobalVariables.State.PlayingAShow && !_restartingSong)
             {
                 GlobalVariables.State = PersistentState.Default;
             }
