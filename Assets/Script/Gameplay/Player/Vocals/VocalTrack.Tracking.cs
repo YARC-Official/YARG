@@ -10,9 +10,18 @@ namespace YARG.Gameplay.Player
 {
     public partial class VocalTrack
     {
+        public enum StaticLyricShiftType
+        {
+            None,
+            PhraseToPhrase,
+            PhraseToGap,
+            GapToPhrase,
+            FinalPhraseComplete
+        }
 
         private class StaticPhraseTracker
         {
+            private const double IMMINENCE_THRESHOLD = .3d;
 
             private readonly VocalsPart _vocalsPart;
 
@@ -20,18 +29,51 @@ namespace YARG.Gameplay.Player
             // of a phrase ends, not when the phrase itself ends
             private int _leftmostPhraseIndex = 0;
 
+            private bool _inGap = true;
+
             // Returns true if it's time to shift
-            public bool UpdateCurrentPhrase(double time)
+            public StaticLyricShiftType UpdateCurrentPhrase(double time)
             {
                 var currentLeftmostPhrase = _vocalsPart.NotePhrases[_leftmostPhraseIndex];
 
-                if (time >= currentLeftmostPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd)
+                // We haven't passed the last note of the leftmost phrase. If we're in a gap, we need to check if the leftmost phrase
+                // is now imminent
+                if (_inGap)
                 {
-                    _leftmostPhraseIndex++;
-                    return true;
+                    if (currentLeftmostPhrase.PhraseParentNote.Time < time + IMMINENCE_THRESHOLD)
+                    {
+                        _inGap = false;
+                        return StaticLyricShiftType.GapToPhrase;
+                    }
                 }
 
-                return false;
+                // We've passed the last note of the leftmost phrase, so it's time to shift
+                else if (time >= currentLeftmostPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd)
+                {
+                    _leftmostPhraseIndex++;
+
+                    if (_leftmostPhraseIndex >= _vocalsPart.NotePhrases.Count)
+                    {
+                        return StaticLyricShiftType.FinalPhraseComplete;
+                    }
+
+                    var newLeftmostPhrase = _vocalsPart.NotePhrases[_leftmostPhraseIndex];
+
+                    if (newLeftmostPhrase.PhraseParentNote.Time > time + IMMINENCE_THRESHOLD)
+                    {
+                        _inGap = true;
+
+                        // The next phrase isn't very soon, so shift to a gap
+                        return StaticLyricShiftType.PhraseToGap;
+                    }
+
+                    // The next phrase is imminent, so shift straight to it
+                    return StaticLyricShiftType.PhraseToPhrase;
+                }
+
+                
+
+                return StaticLyricShiftType.None;
             }
 
             public StaticPhraseTracker(VocalsPart vocalsPart)

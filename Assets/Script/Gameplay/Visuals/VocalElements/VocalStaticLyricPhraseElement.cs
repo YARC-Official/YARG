@@ -26,6 +26,7 @@ namespace YARG.Gameplay.Visuals
         private int _harmonyIndex;
         private bool _allowHiding;
         private float _x;
+        private bool _isFuture = true;
 
         private Utf16ValueStringBuilder _builder;
 
@@ -50,7 +51,7 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
-            if (_phraseRef.Time > GameManager.SongTime)
+            if (_isFuture)
             {
                 _builder.Append(FUTURE_PHRASE_COLOR_TAG);
 
@@ -78,15 +79,21 @@ namespace YARG.Gameplay.Visuals
             _phraseText.text = _builder.ToString();
         }
 
+        public void Activate()
+        {
+            _isFuture = false;
+        }
+
         public void Dismiss()
         {
+            _isFuture = true;
             DisableIntoPool();
             ParentPool.Return(this);
         }
 
         protected override void UpdateElement()
         {
-            if (_phraseRef.Time > GameManager.SongTime)
+            if (_isFuture)
             {
                 // Future phrases don't need to update after initialization, until they become the active phrase
                 return;

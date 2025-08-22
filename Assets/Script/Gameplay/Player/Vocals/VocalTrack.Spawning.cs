@@ -11,7 +11,7 @@ namespace YARG.Gameplay.Player
     public partial class VocalTrack
     {
         private int[] _phraseMarkerIndices;
-        private const float LEFT_EDGE = -4.9f;
+        private const float LEFT_EDGE = -4.75f;
         private const float MAXIMUM_NUMBER_OF_PHRASES = 10;
 
         // These track the phrase and note within the phrase
@@ -23,7 +23,7 @@ namespace YARG.Gameplay.Player
 
         private Queue<VocalStaticLyricPhraseElement> _displayedElements = new();
         private int _highestPhraseIndexDisplayed = -1;
-        private float _rightEdge = LEFT_EDGE;
+        private float _rightEdge = LEFT_EDGE + VocalLyricContainer.STATIC_PHRASE_SPACING;
 
         private void UpdateSpawning()
         {
@@ -109,17 +109,40 @@ namespace YARG.Gameplay.Player
         {
             var change = tracker.UpdateCurrentPhrase(GameManager.SongTime);
 
-            if (change)
+            switch (change)
             {
-                var leftmostPhraseElement = _displayedElements.Dequeue();
-                var leftShift = leftmostPhraseElement.Width + VocalLyricContainer.STATIC_PHRASE_SPACING;
-                foreach (var remainingPhrase in _displayedElements)
-                {
-                    remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift, .1f);
+                case StaticLyricShiftType.None:
+                    break;
+                case StaticLyricShiftType.PhraseToPhrase or StaticLyricShiftType.PhraseToGap:
+                    var leftmostPhraseElement = _displayedElements.Dequeue();
+                    var leftShift = leftmostPhraseElement.Width;
+                    if (change is StaticLyricShiftType.PhraseToPhrase)
+                    {
+                        leftShift += VocalLyricContainer.STATIC_PHRASE_SPACING;
+                        _displayedElements.Peek().Activate();
+                    }
 
-                }
-                _rightEdge -= leftShift;
-                leftmostPhraseElement.Dismiss();
+                    foreach (var remainingPhrase in _displayedElements)
+                    {
+                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift, .1f);
+
+                    }
+                    _rightEdge -= leftShift;
+                    leftmostPhraseElement.Dismiss();
+                    break;
+                case StaticLyricShiftType.GapToPhrase:
+                    _rightEdge -= VocalLyricContainer.STATIC_PHRASE_SPACING;
+                    foreach (var remainingPhrase in _displayedElements)
+                    {
+                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - VocalLyricContainer.STATIC_PHRASE_SPACING, .1f);
+
+                    }
+                    _displayedElements.Peek().Activate();
+                    break;
+                case StaticLyricShiftType.FinalPhraseComplete:
+                    var finalPhraseElement = _displayedElements.Dequeue();
+                    finalPhraseElement.Dismiss();
+                    break;
             }
 
             // Enqueue more phrases, if we have room
