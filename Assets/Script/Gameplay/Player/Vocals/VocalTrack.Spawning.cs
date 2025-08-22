@@ -149,7 +149,8 @@ namespace YARG.Gameplay.Player
 
                     foreach (var remainingPhrase in queue)
                     {
-                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift, STATIC_LYRIC_SHIFT_DURATION);
+                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift,
+                            Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, leftmostPhraseElement.Duration));
 
                     }
                     _rightEdges[harmonyIndex] -= leftShift;
@@ -157,19 +158,27 @@ namespace YARG.Gameplay.Player
                     break;
                 }
                 case StaticLyricShiftType.GapToPhrase:
+                {
+                    var leftmostPhraseElement = queue.Peek();
+
                     _rightEdges[harmonyIndex] -= VocalLyricContainer.STATIC_PHRASE_SPACING;
                     foreach (var remainingPhrase in queue)
                     {
-                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - VocalLyricContainer.STATIC_PHRASE_SPACING, .1f);
+                        remainingPhrase.transform.DOLocalMoveX(
+                            remainingPhrase.transform.localPosition.x - VocalLyricContainer.STATIC_PHRASE_SPACING,
+                            Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, leftmostPhraseElement.Duration));
 
                     }
-                    queue.Peek().Activate();
+                    leftmostPhraseElement.Activate();
                     break;
+                }
                 case StaticLyricShiftType.FinalPhraseComplete:
+                {
                     _noMoreStaticPhrases = true;
                     var finalPhraseElement = queue.Dequeue();
                     finalPhraseElement.Dismiss();
                     break;
+                }
                 case StaticLyricShiftType.NoPhrases:
                     _noMoreStaticPhrases = true;
                     break;

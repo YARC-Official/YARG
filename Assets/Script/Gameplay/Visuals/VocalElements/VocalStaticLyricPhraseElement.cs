@@ -33,6 +33,11 @@ namespace YARG.Gameplay.Visuals
 
         public override double ElementTime => _phraseRef.Time;
 
+        // Time from the beginning of the first note to the end of the last (0 if there are no notes)
+        // If this is shorter than the lyric shift duration, we'll shift in this amount of time to make sure we don't get caught in the middle of a shift
+        public float Duration => _phraseRef.PhraseParentNote.ChildNotes.Count == 0 ?
+            0f : (float)(_phraseRef.PhraseParentNote.ChildNotes[^1].TimeEnd - _phraseRef.PhraseParentNote.ChildNotes[0].Time);
+
         [SerializeField]
         private TextMeshPro _phraseText;
 
