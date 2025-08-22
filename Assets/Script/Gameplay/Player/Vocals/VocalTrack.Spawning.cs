@@ -12,7 +12,8 @@ namespace YARG.Gameplay.Player
     public partial class VocalTrack
     {
         private int[] _phraseMarkerIndices;
-        private const float LEFT_EDGE = -4.75f;
+        private const float SPACING_FROM_SING_LINE = .25f;
+        private const float LEFT_EDGE = VocalElement.SING_LINE_POS + SPACING_FROM_SING_LINE;
         private const float MAXIMUM_PHRASE_QUEUE_SIZE = 10;
         private const float STATIC_LYRIC_SHIFT_DURATION = .1f;
 

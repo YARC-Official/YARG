@@ -93,6 +93,7 @@ namespace YARG.Gameplay.Player
             public void Reset()
             {
                 _leftmostPhraseIndex = 0;
+                _inGap = true;
             }
         }
 
