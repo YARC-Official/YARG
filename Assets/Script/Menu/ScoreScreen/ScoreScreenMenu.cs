@@ -96,6 +96,12 @@ namespace YARG.Menu.ScoreScreen
                 GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
             });
 
+            // dummy schemes for buttons
+            var StandardFavoriteScheme = new NavigationScheme(new() {}, true);
+            var StandardNonFavoriteScheme = new NavigationScheme(new() {}, true);
+            var ShowFavoriteScheme = new NavigationScheme(new() {}, true);
+            var ShowNonFavoriteScheme = new NavigationScheme(new() {}, true);
+
             // dummy remove button so it can be used in add button
             NavigationScheme.Entry removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "", () => {});
             var addFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.AddToFavorites", () =>
@@ -106,13 +112,15 @@ namespace YARG.Menu.ScoreScreen
                         PlaylistContainer.FavoritesPlaylist.AddSong(song);
                         isFavorited = true;
                         Navigator.Instance.PopScheme();
-                        Navigator.Instance.PushScheme(new NavigationScheme(new()
+                        if (GlobalVariables.State.PlayingAShow &&
+                            GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
                         {
-                            continueButtonEntry,
-                            endEarlyButtonEntry,
-                            restartButtonEntry,
-                            removeFavoriteButtonEntry
-                        }, true));
+                            Navigator.Instance.PushScheme(ShowFavoriteScheme);
+                        }
+                        else
+                        {
+                            Navigator.Instance.PushScheme(StandardFavoriteScheme);
+                        }
                     }
                 });
 
@@ -124,36 +132,73 @@ namespace YARG.Menu.ScoreScreen
                         PlaylistContainer.FavoritesPlaylist.RemoveSong(song);
                         isFavorited = false;
                         Navigator.Instance.PopScheme();
-                        Navigator.Instance.PushScheme(new NavigationScheme(new()
+                        if (GlobalVariables.State.PlayingAShow &&
+                            GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
                         {
-                            continueButtonEntry,
-                            endEarlyButtonEntry,
-                            restartButtonEntry,
-                            addFavoriteButtonEntry
-                        }, true));
+                            Navigator.Instance.PushScheme(ShowNonFavoriteScheme);
+                        }
+                        else
+                        {
+                            Navigator.Instance.PushScheme(StandardNonFavoriteScheme);
+                        }
                     }
                 });
 
-            //different navigation scheme based on if the songs is favorited already
+            //define each case for the navigation menu
+            StandardFavoriteScheme = new NavigationScheme(new()
+            {
+                continueButtonEntry,
+                restartButtonEntry,
+                removeFavoriteButtonEntry
+            }, true);
+            
+            StandardNonFavoriteScheme = new NavigationScheme(new()
+            {
+                continueButtonEntry,
+                restartButtonEntry,
+                addFavoriteButtonEntry
+            }, true);
+
+            ShowFavoriteScheme = new NavigationScheme(new()
+            {
+                continueButtonEntry,
+                endEarlyButtonEntry,
+                restartButtonEntry,
+                removeFavoriteButtonEntry
+            }, true);
+
+            ShowNonFavoriteScheme = new NavigationScheme(new()
+            {
+                continueButtonEntry,
+                endEarlyButtonEntry,
+                restartButtonEntry,
+                addFavoriteButtonEntry
+            }, true);
+            
+            //different navigation scheme based on if the songs is favorited already and if there is an upcoming setlist song
             if (isFavorited)
             {
-                Navigator.Instance.PushScheme(new NavigationScheme(new()
+                if (GlobalVariables.State.PlayingAShow &&
+                    GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
                 {
-                    continueButtonEntry,
-                    endEarlyButtonEntry,
-                    restartButtonEntry,
-                    removeFavoriteButtonEntry
-                }, true));
+                    Navigator.Instance.PushScheme(ShowFavoriteScheme);
+                }
+                else
+                {
+                    Navigator.Instance.PushScheme(StandardFavoriteScheme);
+                }
             }
             else
             {
-                Navigator.Instance.PushScheme(new NavigationScheme(new()
+                if (GlobalVariables.State.PlayingAShow &&
+                    GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
                 {
-                    continueButtonEntry,
-                    endEarlyButtonEntry,
-                    restartButtonEntry,
-                    addFavoriteButtonEntry
-                }, true));
+                    Navigator.Instance.PushScheme(ShowNonFavoriteScheme);
+                }
+                else
+                {
+                    Navigator.Instance.PushScheme(StandardNonFavoriteScheme);
+                }
             }
 
             if (GlobalVariables.State.ScoreScreenStats is null)
