@@ -100,6 +100,12 @@
             "Harmony": "Harmony",
             "Band": "Band",
             "Playcount": "Play Count"
+        },
+        "StarPowerActivationType" : {
+            "Freestyle": "Freestyle",
+            "RightmostLane": "Rightmost Lane",
+            "RightmostNote": "Rightmost Note",
+            "AllNotes": "All Notes"
         }
     },
     "Menu": {
@@ -1301,11 +1307,17 @@
                 "BlueCymbalStarpower": {
                     "Name": "Blue Cymbal Star Power"
                 },
+                "BlueCymbalActivationNote": {
+                    "Name": "Blue Cymbal Star Power\nActivation"
+                },
                 "BlueDrum": {
                     "Name": "Blue Drum"
                 },
                 "BlueDrumStarpower": {
                     "Name": "Blue Drum Star Power"
+                },
+                "BluePadActivationNote": {
+                    "Name": "Blue Drum Star Power\nActivation"
                 },
                 "BlueFret": {
                     "Name": "Blue Fret"
@@ -1318,6 +1330,9 @@
                 },
                 "BlueNoteStarPower": {
                     "Name": "Blue Note Star Power"
+                },
+                "BlueActivationNote": {
+                    "Name": "Blue Note Star Power\nActivation"
                 },
                 "BlueParticles": {
                     "Name": "Blue Particles"
@@ -1340,11 +1355,17 @@
                 "GreenCymbalStarpower": {
                     "Name": "Green Cymbal Star Power"
                 },
+                "GreenCymbalActivationNote": {
+                    "Name": "Green Cymbal Star Power\nActivation"
+                },
                 "GreenDrum": {
                     "Name": "Green Drum"
                 },
                 "GreenDrumStarpower": {
                     "Name": "Green Drum Star Power"
+                },
+                "GreenPadActivationNote": {
+                    "Name": "Green Drum Star Power\nActivation"
                 },
                 "GreenFret": {
                     "Name": "Green Fret"
@@ -1357,6 +1378,9 @@
                 },
                 "GreenNoteStarPower": {
                     "Name": "Green Note Star Power"
+                },
+                "GreenActivationNote": {
+                    "Name": "Green Note Star Power\nActivation"
                 },
                 "GreenParticles": {
                     "Name": "Green Particles"
@@ -1378,6 +1402,9 @@
                 },
                 "KickStarpower": {
                     "Name": "Kick Star Power"
+                },
+                "KickActivationNote": {
+                    "Name": "Kick Star Power\nActivation"
                 },
                 "OpenFret": {
                     "Name": "Open Fret"
@@ -1406,6 +1433,9 @@
                 "OrangeNoteStarPower": {
                     "Name": "Orange Note Star Power"
                 },
+                "OrangeActivationNote": {
+                    "Name": "Orange Note Star Power\nActivation"
+                },
                 "OrangeParticles": {
                     "Name": "Orange Particles"
                 },
@@ -1427,11 +1457,17 @@
                 "RedCymbalStarpower": {
                     "Name": "Red Cymbal Star Power"
                 },
+                "RedCymbalActivationNote": {
+                    "Name": "Red Cymbal Star Power\nActivation"
+                },
                 "RedDrum": {
                     "Name": "Red Drum"
                 },
                 "RedDrumStarpower": {
                     "Name": "Red Drum Star Power"
+                },
+                "RedPadActivationNote": {
+                    "Name": "Red Drum Star Power\nActivation"
                 },
                 "RedFret": {
                     "Name": "Red Fret"
@@ -1444,6 +1480,9 @@
                 },
                 "RedNoteStarPower": {
                     "Name": "Red Note Star Power"
+                },
+                "RedActivationNote": {
+                    "Name": "Red Note Star Power\nActivation"
                 },
                 "RedParticles": {
                     "Name": "Red Particles"
@@ -1466,11 +1505,17 @@
                 "YellowCymbalStarpower": {
                     "Name": "Yellow Cymbal Star Power"
                 },
+                "YellowCymbalActivationNote": {
+                    "Name": "Yellow Cymbal Star Power\nActivation"
+                },
                 "YellowDrum": {
                     "Name": "Yellow Drum"
                 },
                 "YellowDrumStarpower": {
                     "Name": "Yellow Drum Star Power"
+                },
+                "YellowPadActivationNote": {
+                    "Name": "Yellow Drum Star Power\nActivation"
                 },
                 "YellowFret": {
                     "Name": "Yellow Fret"
@@ -1483,6 +1528,9 @@
                 },
                 "YellowNoteStarPower": {
                     "Name": "Yellow Note Star Power"
+                },
+                "YellowActivationNote": {
+                    "Name": "Yellow Note Star Power\nActivation"
                 },
                 "YellowParticles": {
                     "Name": "Yellow Particles"
