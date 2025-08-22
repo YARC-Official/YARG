@@ -19,6 +19,7 @@ namespace YARG.Gameplay.HUD
     public class CountdownDisplay : GameplayBehaviour
     {
         private const float FADE_ANIM_LENGTH = 0.5f;
+        private const double HIDE_DELAY = 1;
 
         public static CountdownDisplayMode DisplayStyle;
 
@@ -46,8 +47,11 @@ namespace YARG.Gameplay.HUD
 
             double currentTime = GameManager.SongTime;
             double timeRemaining = endTime - currentTime;
-
-            bool shouldDisplay = timeRemaining > WaitCountdown.END_COUNTDOWN_SECOND + FADE_ANIM_LENGTH;
+            if (timeRemaining < 0)
+            {
+                return;
+            }
+            bool shouldDisplay = timeRemaining > HIDE_DELAY + FADE_ANIM_LENGTH;
 
             if (GameManager.IsPractice)
             {
