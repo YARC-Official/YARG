@@ -257,6 +257,8 @@ namespace YARG.Gameplay.Player
             _scrollingNoteTrackers = new ScrollingPhraseNoteTracker[parts.Count];
             _scrollingLyricTrackers = new ScrollingPhraseNoteTracker[parts.Count];
             _staticPhraseTrackers = new StaticPhraseTracker[parts.Count];
+            _staticPhraseQueues = new Queue<VocalStaticLyricPhraseElement>[parts.Count];
+            
 
             // Create PhraseNoteTrackers
             for (int i = 0; i < parts.Count; i++)
@@ -264,6 +266,7 @@ namespace YARG.Gameplay.Player
                 _scrollingNoteTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], false);
                 _scrollingLyricTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], true);
                 _staticPhraseTrackers[i] = new StaticPhraseTracker(parts[i]);
+                _staticPhraseQueues[i] = new Queue<VocalStaticLyricPhraseElement>();
             }
 
             // Choose the correct amount of lanes
