@@ -208,6 +208,8 @@ namespace YARG.Settings
 
             public ToggleSetting ApplyVolumesInMusicLibrary { get; } = new(true);
 
+            public ToggleSetting EnableVoxSamples { get; } = new(true);
+
             #endregion
 
             #region Graphics
