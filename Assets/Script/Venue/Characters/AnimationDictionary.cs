@@ -1,61 +1,74 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace YARG.Venue.Characters
 {
-    /// <summary>
-    /// A stupid workaround for Unity's inability to serialize Dictionary&lt;&lt;T&gt;,List&lt;T&gt;&gt;
-    /// </summary>
+    [Serializable]
+    public class LayerAnimationList
+    {
+        public string       layerName;
+        public List<string> animationNames = new();
+    }
 
-    // What we're doing here is using Unity's limited SerializedDictionary to store a layer name and a number
-    // of animations in that layer and a serialized List<string> with the animation names for the layers.
-    // Unity can serialize these things, but we have to go to the trouble of putting everything back together ourselves
+    /// <summary>
+    /// A serializable data structure to represent a dictionary of string to list of strings.
+    /// This replaces the previous implementation that relied on a combination of lists and a SerializedDictionary.
+    /// </summary>
     [Serializable]
     public class AnimationDictionary
     {
-        // TODO: Make this actually work right or get rid of it, rn it's somehow trying to add the "Base Layer" key
-        // to _layerCounts repeatedly.
-
-        // In case it isn't obvious, layerCounts and layerNames are separate because layerCounts is not ordered
         [SerializeField]
-        private SerializedDictionary<string, int> _layerCounts = new();
-        [SerializeField]
-        private List<string> _layerNames = new();
-        [SerializeField]
-        private List<string> _animationNames = new();
+        private List<LayerAnimationList> _layers = new();
 
         public void Add(string layerName, string animationName)
         {
-            if (!_layerNames.Contains(layerName))
+            // Find an existing entry for the layer
+            LayerAnimationList layerList = null;
+            foreach (var layer in _layers)
             {
-                _layerNames.Add(layerName);
+                if (layer.layerName == layerName)
+                {
+                    layerList = layer;
+                    break;
+                }
             }
 
-            _layerCounts.TryAdd(layerName, 0);
-            _layerCounts[layerName]++;
+            // If no entry exists, create a new one
+            if (layerList == null)
+            {
+                layerList = new LayerAnimationList { layerName = layerName };
+                _layers.Add(layerList);
+            }
 
-            _animationNames.Add(animationName);
+            layerList.animationNames.Add(animationName);
+        }
 
+        public void Clear()
+        {
+            _layers.Clear();
         }
 
         public Dictionary<string, List<string>> ToDictionary()
         {
             var dict = new Dictionary<string, List<string>>();
-            int runningCount = 0;
-
-            foreach (var name in _layerNames)
+            foreach (var layer in _layers)
             {
-                // Get the count and add that many to the list
-                var count = _layerCounts[name];
-                var list = new List<string>();
-                for (int i = runningCount; i < count + runningCount; i++)
+                if (string.IsNullOrEmpty(layer.layerName))
                 {
-                    list.Add(_animationNames[i]);
+                    continue;
                 }
-                runningCount += count;
-                dict.Add(name, list);
+
+                if (!dict.ContainsKey(layer.layerName))
+                {
+                    // Create a new list to avoid aliasing with the serialized list
+                    dict.Add(layer.layerName, new List<string>(layer.animationNames));
+                }
+                else
+                {
+                    // If a layer with the same name was somehow added twice (e.g. via inspector), merge them.
+                    dict[layer.layerName].AddRange(layer.animationNames);
+                }
             }
 
             return dict;

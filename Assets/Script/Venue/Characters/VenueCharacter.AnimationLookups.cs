@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Chart.Events;
 using YARG.Core.Logging;
 using AnimationType = YARG.Core.Chart.AnimationEvent.AnimationType;
 
@@ -16,11 +17,15 @@ namespace YARG.Venue.Characters
         private Dictionary<AnimationType, AnimationEventInfo>                _animationLookup          = new();
         private Dictionary<string, int>                                      _layerNameToIndex         = new();
         private Dictionary<string, int>                                      _leftHandPositionHashes   = new();
-        private string                                                       _currentChordShape;
+        private ChordShape                                                   _currentChordShape;
 
         private readonly AnimationEvents _animationEvents = new();
         private readonly List<string>    _triggerNames = new();
         private readonly HashSet<int>    _floatHashes = new();
+        private readonly HashSet<int>    _boolHashes = new();
+        private readonly HashSet<int>    _intHashes = new();
+
+        private readonly Dictionary<string, int> _hashCache = new();
 
 
         private void PopulateAnimationData()
@@ -37,27 +42,70 @@ namespace YARG.Venue.Characters
                 {
                     _floatHashes.Add(parm.nameHash);
                 }
+
+                if (parm.type == AnimatorControllerParameterType.Bool)
+                {
+                    _boolHashes.Add(parm.nameHash);
+                }
+
+                if (parm.type == AnimatorControllerParameterType.Int)
+                {
+                    _intHashes.Add(parm.nameHash);
+                }
             }
 
             // Populate AnimationEvents with AnimationEventInfo
+
+
+            // Reverse _layerStates to get a lookup of state names to layer indexes
+            var layerDict = new Dictionary<string, List<int>>();
+
             foreach (var layer in _layerStates)
             {
                 var index = _animator.GetLayerIndex(layer.Key);
-
-                foreach (var state in layer.Value)
+                foreach (var stateName in layer.Value)
                 {
-                    var hash = Animator.StringToHash($"{state}");
-                    bool hasTrigger = _triggerNames.Contains(state);
+                    layerDict.TryAdd(stateName, new List<int>());
+                    layerDict[stateName].Add(index);
+                }
+            }
 
-                    // Check _animationStates first, since it should be the source of truth if the venue has it populated
-                    if (_animationStates.TryGetStateForName(state, out var animState))
+            if (_animationStates.Dictionary.Keys.Count > 0)
+            {
+                // If _animationStates is populated, use it to populate the AnimationEvents
+                var animationDict = _animationStates.Dictionary;
+                foreach (var stateType in animationDict.Keys)
+                {
+                    var stateName = animationDict[stateType];
+                    var hash = Animator.StringToHash(stateName);
+                    var hasTrigger = _triggerNames.Contains(stateName);
+                    if (!layerDict.TryGetValue(stateName, out var layerList))
                     {
-                        _animationEvents.Add(animState, state, hash, index, hasTrigger);
+                        YargLogger.LogDebug($"Venue specified invalid state name: {stateName} for {stateType}");
+                        continue;
                     }
-                    // Fallback to old behavior if venue doesn't have _animationStates populated or has a missing entry
-                    else if (TryGetAnimationStateForName(state, out animState))
+
+                    foreach (var layer in layerList)
                     {
-                        _animationEvents.Add(animState, state, hash, index, hasTrigger);
+                        _animationEvents.Add(stateType, stateName, hash, layer, hasTrigger);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var layer in _layerStates)
+                {
+                    var index = _animator.GetLayerIndex(layer.Key);
+
+                    foreach (var state in layer.Value)
+                    {
+                        var hash = Animator.StringToHash(state);
+                        bool hasTrigger = _triggerNames.Contains(state);
+
+                        if (TryGetAnimationStateForName(state, out var animState))
+                        {
+                            _animationEvents.Add(animState, state, hash, index, hasTrigger);
+                        }
                     }
                 }
             }
@@ -68,6 +116,14 @@ namespace YARG.Venue.Characters
             }
         }
 
+        /// <summary>
+        /// Gets an animation state type for a given animation name
+        /// <br /><br />
+        /// <b>NOTE:</b> This is for backwards compatibility with early draft venues, it will eventually be removed
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="outVar"></param>
+        /// <returns></returns>
         private static bool TryGetAnimationStateForName(string name, out AnimationStateType outVar)
         {
             // Deal with venues that don't have separate hard/soft animations
@@ -532,6 +588,21 @@ namespace YARG.Venue.Characters
             Slap,
             Pick,
             Finger,
+            IdleIntense,
+            PlayingSolo
+        }
+
+        private AnimationStateType? GetAnimationStateForHandMap(HandMap.HandMapType handMap)
+        {
+            return handMap switch
+            {
+                HandMap.HandMapType.ChordA => AnimationStateType.LhChordA,
+                HandMap.HandMapType.ChordC => AnimationStateType.LhChordC,
+                HandMap.HandMapType.ChordD => AnimationStateType.LhChordD,
+                HandMap.HandMapType.DropD => AnimationStateType.LhChordDropD,
+                HandMap.HandMapType.DropD2 => AnimationStateType.LhChordDropD2,
+                _ => null
+            };
         }
 
         private AnimationStateType GetDrumAnimationForNote(DrumNote child)
@@ -549,6 +620,11 @@ namespace YARG.Venue.Characters
                 FourLaneDrumPad.RedDrum => AnimationStateType.SnareLhHard,
                 _ => throw new ArgumentOutOfRangeException(nameof(pad), pad, "Bad drum pad how?")
             };
+        }
+
+        private void SetTrigger(CharacterState.CharacterStateType state)
+        {
+            SetTrigger(CharacterStateAnimationStates[state]);
         }
 
         private void SetTrigger(string triggerName)
@@ -612,8 +688,8 @@ namespace YARG.Venue.Characters
                     {
                         YargLogger.LogFormatDebug("Setting trigger for generic state {0}", state);
                         // First, reset the bools to false (if they exist)
-                        _animator.SetBool("isMellow", false);
-                        _animator.SetBool("isIntense", false);
+                        SetBool("isMellow", false);
+                        SetBool("isIntense", false);
 
                         // Now reset them if necessary so that transitions can use them to select the correct variety
                         if (IsLayeredState(state))
@@ -621,10 +697,10 @@ namespace YARG.Venue.Characters
                             switch (state)
                             {
                                 case AnimationStateType.Mellow:
-                                    _animator.SetBool("isMellow", true);
+                                    SetBool("isMellow", true);
                                     break;
                                 case AnimationStateType.Intense:
-                                    _animator.SetBool("isIntense", true);
+                                    SetBool("isIntense", true);
                                     break;
                             };
                         }
@@ -652,6 +728,55 @@ namespace YARG.Venue.Characters
             }
         }
 
+        private void SetFloat(string property, float value)
+        {
+            if (!_hashCache.TryGetValue(property, out var hash))
+            {
+                hash = Animator.StringToHash(name);
+                _hashCache.Add(property, hash);
+            }
+
+            SetFloat(hash, value);
+        }
+
+        private void SetBool(int hash, bool value)
+        {
+            if (_boolHashes.Contains(hash))
+            {
+                _animator.SetBool(hash, value);
+            }
+        }
+
+        private void SetBool(string property, bool value)
+        {
+            if (!_hashCache.TryGetValue(property, out var hash))
+            {
+                hash = Animator.StringToHash(property);
+                _hashCache.Add(property, hash);
+            }
+
+            SetBool(hash, value);
+        }
+
+        private void SetInteger(int hash, int value)
+        {
+            if (_intHashes.Contains(hash))
+            {
+                _animator.SetInteger(hash, value);
+            }
+        }
+
+        private void SetInteger(string property, int value)
+        {
+            if (!_hashCache.TryGetValue(property, out var hash))
+            {
+                hash = Animator.StringToHash(property);
+                _hashCache.Add(property, hash);
+            }
+
+            SetInteger(hash, value);
+        }
+
         private static bool IsLayeredState(AnimationStateType state)
         {
             return state is AnimationStateType.Mellow or AnimationStateType.Intense;
@@ -673,6 +798,57 @@ namespace YARG.Venue.Characters
 
             // Hand maps
             { AnimationStateType.LhChordDropD2, AnimationStateType.LhChordDropD }
+        };
+
+        public enum ChordShape
+        {
+            SingleHigh,
+            SingleLow,
+            ChordHigh,
+            ChordLow,
+            OpenChord,
+            SingleHighVibrato,
+            SingleLowVibrato,
+            ChordHighVibrato,
+            ChordLowVibrato,
+            ChordA,
+            ChordC,
+            ChordD,
+            DropD,
+            DropDOpen,
+            DropDVibrato,
+            DropD2,
+        }
+
+        public static readonly Dictionary<ChordShape, AnimationStateType> ChordAnimationStates = new()
+        {
+            { ChordShape.SingleHigh, AnimationStateType.LhSingleHigh },
+            { ChordShape.SingleLow, AnimationStateType.LhSingleLow },
+            { ChordShape.ChordHigh, AnimationStateType.LhChordHigh },
+            { ChordShape.ChordLow, AnimationStateType.LhChordLow },
+            { ChordShape.OpenChord, AnimationStateType.LhOpenChord },
+            { ChordShape.SingleHighVibrato, AnimationStateType.LhSingleHighVibrato },
+            { ChordShape.SingleLowVibrato, AnimationStateType.LhSingleLowVibrato },
+            { ChordShape.ChordHighVibrato, AnimationStateType.LhChordHighVibrato },
+            { ChordShape.ChordLowVibrato, AnimationStateType.LhChordLowVibrato },
+            { ChordShape.ChordA, AnimationStateType.LhChordA },
+            { ChordShape.ChordC, AnimationStateType.LhChordC },
+            { ChordShape.ChordD, AnimationStateType.LhChordD },
+            { ChordShape.DropD, AnimationStateType.LhChordDropD },
+            { ChordShape.DropDOpen, AnimationStateType.LhDropDOpen },
+            { ChordShape.DropDVibrato, AnimationStateType.LhChordDropDVibrato },
+            { ChordShape.DropD2, AnimationStateType.LhChordDropD2 },
+        };
+
+        public static readonly Dictionary<CharacterState.CharacterStateType, AnimationStateType> CharacterStateAnimationStates = new()
+        {
+            { CharacterState.CharacterStateType.Idle, AnimationStateType.Idle },
+            { CharacterState.CharacterStateType.IdleIntense, AnimationStateType.IdleIntense },
+            { CharacterState.CharacterStateType.IdleRealtime, AnimationStateType.IdleRealtime },
+            { CharacterState.CharacterStateType.Intense, AnimationStateType.Intense },
+            { CharacterState.CharacterStateType.Mellow, AnimationStateType.Mellow },
+            { CharacterState.CharacterStateType.Play, AnimationStateType.Playing },
+            { CharacterState.CharacterStateType.PlaySolo, AnimationStateType.PlayingSolo }
         };
     }
 }

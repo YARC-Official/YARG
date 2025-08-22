@@ -244,11 +244,7 @@ namespace YARG.Venue.VenueCamera
 
             if (cut.RandomChoices.Count > 0)
             {
-                var choices = " ";
-                foreach (var choice in cut.RandomChoices)
-                {
-                    choices += choice + ", ";
-                }
+                var choices = string.Join(", ", cut.RandomChoices);
                 YargLogger.LogDebug($"Camera cut has options: {choices}");
             }
             else

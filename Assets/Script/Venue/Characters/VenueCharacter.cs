@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using AnimationTrigger = YARG.Venue.Characters.CharacterManager.AnimationTrigger;
@@ -26,12 +25,6 @@ namespace YARG.Venue.Characters
             Drums,
             Vocals,
             Keys,
-        }
-
-        public enum AnimationStates
-        {
-            Idle,
-            Playing
         }
 
         [SerializeField]
@@ -64,7 +57,7 @@ namespace YARG.Venue.Characters
         private AnimationStateMap _animationStates;
 
 
-    private Dictionary<string, List<string>> _layerStates;
+        private Dictionary<string, List<string>> _layerStates;
 
         private bool _ikActive;
         private Transform _leftHandObject;
@@ -86,14 +79,7 @@ namespace YARG.Venue.Characters
 
         private bool _isAnimating;
 
-        private int _kickLayerIndex;
-        private int _hatLayerIndex;
-        private int _leftHandLayerIndex;
-        private int _rightHandLayerIndex;
-
         private string _currentLeftHandPosition;
-
-        private string _strumTrigger = "Strum";
 
         private List<int> _strumUpHashes = new();
 
@@ -112,8 +98,8 @@ namespace YARG.Venue.Characters
         private bool _isBend;
         private bool _handDown;
 
-        private string _delayedTriggerName;
-        private float  _delayedTriggerTime;
+        private AnimationStateType? _delayedTriggerState;
+        private float               _delayedTriggerTime;
 
         private bool _alwaysBend => _handMap == HandMapType.AllBend;
         [NonSerialized]
@@ -154,34 +140,6 @@ namespace YARG.Venue.Characters
             if (_enableAnimationStates) {
                 _idleAnimationHash = Animator.StringToHash(_idleAnimationName);
                 _playingAnimationHash = Animator.StringToHash(_playingAnimationName);
-            }
-
-            if (Type == CharacterType.Drums)
-            {
-                // TODO: WTFBBQ, this doesn't work either
-                // _kickLayerIndex = _animator.GetLayerIndex("Kick Layer");
-                // _hatLayerIndex = _animator.GetLayerIndex("Hat Layer");
-
-                _kickLayerIndex = 1;
-                _hatLayerIndex = 2;
-            }
-
-            if (Type == CharacterType.Guitar || Type == CharacterType.Bass)
-            {
-                // TODO: Figure out why this returns -1 for Guitar
-                // _leftHandLayerIndex = _animator.GetLayerIndex("Left Hand");
-
-                // Getting the index is broke, but we know it's 1, so we'll hardcode it for now (except that it isn't for drums now..fml)
-                if (Type != CharacterType.Drums)
-                {
-                    _leftHandLayerIndex = 1;
-                    _rightHandLayerIndex = 0;
-                }
-                else
-                {
-                    _leftHandLayerIndex = 3;
-                    _rightHandLayerIndex = 4;
-                }
             }
 
             GetPositionHashes();
@@ -264,11 +222,11 @@ namespace YARG.Venue.Characters
             if (_delayedTriggerTime > 0)
             {
                 _delayedTriggerTime -= Time.deltaTime;
-                if (_delayedTriggerTime <= 0 && _delayedTriggerName != null)
+                if (_delayedTriggerTime <= 0 && _delayedTriggerState.HasValue)
                 {
-                    _animator.SetTrigger(_delayedTriggerName);
+                    SetTrigger(_delayedTriggerState.Value);
                     _delayedTriggerTime = 0f;
-                    _delayedTriggerName = null;
+                    _delayedTriggerState = null;
                 }
             }
         }
@@ -363,46 +321,14 @@ namespace YARG.Venue.Characters
                 return;
             }
 
-            _strumTrigger = strumMap switch
-            {
-                StrumMapType.Default => "Strum",
-                StrumMapType.Pick => "Pick",
-                StrumMapType.SlapBass => "Slap",
-                _ => "Strum"
-            };
+            _strumMap = strumMap;
 
             YargLogger.LogDebug($"Strum map {strumMap} set");
         }
 
         private void HandleCharacterState(CharacterStateType characterState)
         {
-            var triggerText = characterState switch
-            {
-                CharacterStateType.Idle => _idleAnimationName,
-                CharacterStateType.IdleIntense => _idleAnimationName,
-                CharacterStateType.IdleRealtime => _idleAnimationName,
-                CharacterStateType.Intense => _playingAnimationName,
-                CharacterStateType.Mellow => _playingAnimationName,
-                CharacterStateType.Play => _playingAnimationName,
-                CharacterStateType.PlaySolo => _playingAnimationName,
-                _ => _playingAnimationName
-            };
-
-            // We're not supporting all of these yet, so winnow them down to what we are supporting
-            triggerText = triggerText switch
-            {
-                "Idle"         => "Idle",
-                "IdleIntense"  => "Idle",
-                "IdleRealtime" => "Idle",
-                "Intense"      => "Playing",
-                "Mellow"       => "Playing",
-                "Playing"      => "Playing",
-                "PlaySolo"     => "Playing",
-                _              => "Idle"
-            };
-
-            YargLogger.LogDebug($"Animation state {characterState} triggered");
-            SetTrigger(triggerText);
+            SetTrigger(characterState);
         }
 
         private void HandleHandMap(HandMapType handMap)
@@ -417,34 +343,22 @@ namespace YARG.Venue.Characters
             {
                 _inhibitHandShape = false;
                 _handMap = handMap;
-                // If this is a forced chord shape, we have to send an animation trigger and set the inhibit flag
+                var trigger = GetAnimationStateForHandMap(handMap);
+                // If this is a forced chord shape, we have to set the inhibit flag
                 switch (handMap)
                 {
                     case HandMapType.ChordA:
-                        SetTrigger("ChordA");
-                        _inhibitHandShape = true;
-                        YargLogger.LogDebug("Chord A triggered");
-                        break;
                     case HandMapType.ChordC:
-                        SetTrigger("ChordC");
-                        _inhibitHandShape = true;
-                        YargLogger.LogDebug("Chord C triggered");
-                        break;
                     case HandMapType.ChordD:
-                        SetTrigger("ChordD");
-                        _inhibitHandShape = true;
-                        YargLogger.LogDebug("Chord D triggered");
-                        break;
                     case HandMapType.DropD:
-                        SetTrigger("DropD");
-                        _inhibitHandShape = true;
-                        YargLogger.LogDebug("Drop D triggered");
-                        break;
                     case HandMapType.DropD2:
-                        SetTrigger("DropD");
-                        YargLogger.LogDebug("Drop D triggered");
                         _inhibitHandShape = true;
                         break;
+                }
+
+                if (trigger.HasValue)
+                {
+                    SetTrigger(trigger.Value);
                 }
 
                 if (handMap == HandMapType.Default)
@@ -466,8 +380,6 @@ namespace YARG.Venue.Characters
                     break;
                 case CharacterManager.TriggerType.StrumMap:
                     HandleStrumMap(animation.StrumMap);
-                    YargLogger.LogDebug($"Strum map {animation.StrumMap} triggered");
-                    _strumMap = animation.StrumMap;
                     break;
             }
         }
@@ -486,72 +398,40 @@ namespace YARG.Venue.Characters
 
         public void OnDrumAnimation(AnimationType animation)
         {
-            var animName = animation switch
+            AnimationStateType? animState = animation switch
             {
-                AnimationType.Kick => "Kick",
-                AnimationType.OpenHiHat => "OpenHat",
-                AnimationType.CloseHiHat => "CloseHat",
-                AnimationType.HihatLeftHand => "HihatLeft",
-                AnimationType.HihatRightHand => "HihatRight",
-                AnimationType.SnareLhHard => "SnareLeft",
-                AnimationType.SnareRhHard => "SnareRight",
-                AnimationType.SnareLhSoft => "SnareLeft",
-                AnimationType.SnareRhSoft => "SnareRight",
-                AnimationType.Crash1LhHard => "Crash1Left",
-                AnimationType.Crash1LhSoft => "Crash1Left",
-                AnimationType.Crash1RhHard => "Crash1Right",
-                AnimationType.Crash1RhSoft => "Crash1Left",
-                AnimationType.Crash2LhHard => "Crash2Left",
-                AnimationType.Crash2LhSoft => "Crash2Left",
-                AnimationType.Crash2RhHard => "Crash2Right",
-                AnimationType.Crash2RhSoft => "Crash2Right",
-                AnimationType.RideLh => "RideLeft",
-                AnimationType.RideRh => "RideRight",
-                AnimationType.Tom1LeftHand => "Tom1Left",
-                AnimationType.Tom1RightHand => "Tom1Right",
-                AnimationType.Tom2LeftHand => "Tom2Left",
-                AnimationType.Tom2RightHand => "Tom2Right",
-                AnimationType.FloorTomLeftHand => "FloorTomLeft",
-                AnimationType.FloorTomRightHand => "FloorTomRight",
+                AnimationType.Kick => AnimationStateType.Kick,
+                AnimationType.OpenHiHat => AnimationStateType.OpenHiHat,
+                AnimationType.CloseHiHat => AnimationStateType.CloseHiHat,
+                AnimationType.HihatLeftHand => AnimationStateType.HihatLeftHand,
+                AnimationType.HihatRightHand => AnimationStateType.HihatRightHand,
+                AnimationType.SnareLhHard => AnimationStateType.SnareLhHard,
+                AnimationType.SnareRhHard => AnimationStateType.SnareRhHard,
+                AnimationType.SnareLhSoft => AnimationStateType.SnareLhSoft,
+                AnimationType.SnareRhSoft => AnimationStateType.SnareRhSoft,
+                AnimationType.Crash1LhHard => AnimationStateType.Crash1LhHard,
+                AnimationType.Crash1LhSoft => AnimationStateType.Crash1LhSoft,
+                AnimationType.Crash1RhHard => AnimationStateType.Crash1RhHard,
+                AnimationType.Crash1RhSoft => AnimationStateType.Crash1RhSoft,
+                AnimationType.Crash2LhHard => AnimationStateType.Crash2LhHard,
+                AnimationType.Crash2LhSoft => AnimationStateType.Crash2LhSoft,
+                AnimationType.Crash2RhHard => AnimationStateType.Crash2RhHard,
+                AnimationType.Crash2RhSoft => AnimationStateType.Crash2RhSoft,
+                AnimationType.RideLh => AnimationStateType.RideLh,
+                AnimationType.RideRh => AnimationStateType.RideRh,
+                AnimationType.Tom1LeftHand => AnimationStateType.Tom1LeftHand,
+                AnimationType.Tom1RightHand => AnimationStateType.Tom1RightHand,
+                AnimationType.Tom2LeftHand => AnimationStateType.Tom2LeftHand,
+                AnimationType.Tom2RightHand => AnimationStateType.Tom2RightHand,
+                AnimationType.FloorTomLeftHand => AnimationStateType.FloorTomLeftHand,
+                AnimationType.FloorTomRightHand => AnimationStateType.FloorTomRightHand,
                 _ => null
             };
 
-            int? layerIndex = animation switch
+            if (animState.HasValue)
             {
-                AnimationType.Kick           => _kickLayerIndex,
-                AnimationType.OpenHiHat      => _hatLayerIndex,
-                AnimationType.CloseHiHat     => _hatLayerIndex,
-                AnimationType.HihatLeftHand  => _leftHandLayerIndex,
-                AnimationType.HihatRightHand => _rightHandLayerIndex,
-                AnimationType.SnareLhHard    => _leftHandLayerIndex,
-                AnimationType.SnareRhSoft    => _rightHandLayerIndex,
-                AnimationType.SnareLhSoft    => _leftHandLayerIndex,
-                AnimationType.SnareRhHard    => _rightHandLayerIndex,
-                AnimationType.Crash1LhHard   => _leftHandLayerIndex,
-                AnimationType.Crash1LhSoft   => _leftHandLayerIndex,
-                AnimationType.Crash1RhHard   => _rightHandLayerIndex,
-                AnimationType.Crash1RhSoft   => _rightHandLayerIndex,
-                AnimationType.Crash2LhHard   => _leftHandLayerIndex,
-                AnimationType.Crash2LhSoft   => _leftHandLayerIndex,
-                AnimationType.Crash2RhHard   => _rightHandLayerIndex,
-                AnimationType.Crash2RhSoft   => _rightHandLayerIndex,
-                AnimationType.RideLh         => _leftHandLayerIndex,
-                AnimationType.RideRh         => _rightHandLayerIndex,
-                AnimationType.Tom1LeftHand   => _leftHandLayerIndex,
-                AnimationType.Tom1RightHand  => _rightHandLayerIndex,
-                AnimationType.Tom2LeftHand   => _leftHandLayerIndex,
-                AnimationType.Tom2RightHand  => _rightHandLayerIndex,
-                AnimationType.FloorTomLeftHand => _leftHandLayerIndex,
-                AnimationType.FloorTomRightHand => _rightHandLayerIndex,
-                _                                       => null
-            };
-
-            if (animName == null || !layerIndex.HasValue)
-            {
-                return;
+                SetTrigger(animState.Value);
             }
-
-            SetTrigger(animName);
 
         }
 
@@ -579,9 +459,6 @@ namespace YARG.Venue.Characters
                     // Figure out which way to strum...I guess by looking at which state we're currently in?
                     // TODO: Handle the case where the state exists in more than one layer
                     var currentState = _animator.GetCurrentAnimatorStateInfo(strumDownEvent[0].Layer);
-                    var nextState = _animator.GetNextAnimatorStateInfo(strumDownEvent[0].Layer);
-                    var currentClip = _animator.GetCurrentAnimatorClipInfo(0)[0].clip.name;
-
 
                     bool strumUp = false;
                     if (!_animationEvents.TryGet(currentState.shortNameHash, out var currentStateInfo))
@@ -602,11 +479,11 @@ namespace YARG.Venue.Characters
 
                     if (strumUp)
                     {
-                        SetTrigger("StrumUp");
+                        SetTrigger(AnimationStateType.StrumUp);
                     }
                     else
                     {
-                        SetTrigger("StrumDown");
+                        SetTrigger(AnimationStateType.StrumDown);
                     }
                 }
                 SetHandAnimationForNote(gNote);
@@ -689,51 +566,51 @@ namespace YARG.Venue.Characters
                 {
                     if (isSustain || _alwaysBend)
                     {
-                        if (_currentChordShape == "DefaultChordLowVibrato")
+                        if (_currentChordShape == ChordShape.ChordLowVibrato)
                         {
                             return;
                         }
 
                         // Trigger chord low vibrato hand shape
-                        SetTrigger("DefaultChordLowVibrato");
-                        SetDelayedTrigger("DefaultChordLow", sustainLength);
+                        SetTrigger(AnimationStateType.LhChordLowVibrato);
+                        SetDelayedTrigger(AnimationStateType.LhChordLow, sustainLength);
                     }
                     else
                     {
-                        if (_currentChordShape == "DefaultChordLow")
+                        if (_currentChordShape == ChordShape.ChordLow)
                         {
                             return;
                         }
 
                         // Trigger chord low hand shape
-                        SetTrigger("DefaultChordLow");
-                        _currentChordShape = "DefaultChordLow";
+                        SetTrigger(AnimationStateType.LhChordLow);
+                        _currentChordShape = ChordShape.ChordLow;
                     }
                 }
                 else
                 {
                     if (isSustain || _alwaysBend)
                     {
-                        if (_currentChordShape == "DefaultChordHighVibrato")
+                        if (_currentChordShape == ChordShape.ChordHighVibrato)
                         {
                             return;
                         }
 
                         // Trigger chord high vibrato hand shape
-                        SetTrigger("DefaultChordHighVibrato");
-                        _currentChordShape = "DefaultChordHighVibrato";
-                        SetDelayedTrigger("DefaultChordHigh", sustainLength);
+                        SetTrigger(AnimationStateType.LhChordHighVibrato);
+                        _currentChordShape = ChordShape.ChordHighVibrato;
+                        SetDelayedTrigger(AnimationStateType.LhChordHigh, sustainLength);
                     }
                     else
                     {
-                        if (_currentChordShape == "DefaultChordHigh")
+                        if (_currentChordShape == ChordShape.ChordHigh)
                         {
                             return;
                         }
 
                         // Trigger chord high hand shape
-                        SetTrigger("DefaultChordHigh");
-                        _currentChordShape = "DefaultChordHigh";
+                        SetTrigger(AnimationStateType.LhChordHigh);
+                        _currentChordShape = ChordShape.ChordHigh;
                     }
                 }
             }
@@ -748,54 +625,54 @@ namespace YARG.Venue.Characters
                 {
                     if (isSustain || _alwaysBend)
                     {
-                        if (_currentChordShape == "DefaultSingleLowVibrato")
+                        if (_currentChordShape == ChordShape.ChordLowVibrato)
                         {
                             return;
                         }
 
                         // Trigger single note low vibrato hand shape
-                        SetTrigger("DefaultSingleLowVibrato");
-                        _currentChordShape = "DefaultSingleLowVibrato";
-                        SetDelayedTrigger("DefaultSingleLow", sustainLength);
+                        SetTrigger(AnimationStateType.LhSingleLowVibrato);
+                        _currentChordShape = ChordShape.ChordLowVibrato;
+                        SetDelayedTrigger(AnimationStateType.LhSingleLow, sustainLength);
                     }
                     else
                     {
-                        if (_currentChordShape == "DefaultSingleLow")
+                        if (_currentChordShape == ChordShape.SingleLow)
                         {
                             return;
                         }
 
                         // Trigger single note low hand shape
-                        SetTrigger("DefaultSingleLow");
-                        _currentChordShape = "DefaultSingleLow";
+                        SetTrigger(AnimationStateType.LhSingleLow);
+                        _currentChordShape = ChordShape.SingleLow;
                     }
                 }
                 else
                 {
                     if (isSustain || _alwaysBend)
                     {
-                        if (_currentChordShape == "DefaultSingleHighVibrato")
+                        if (_currentChordShape == ChordShape.SingleHighVibrato)
                         {
                             return;
                         }
 
                         // Trigger single note high vibrato hand shape
-                        SetTrigger("DefaultSingleHighVibrato");
-                        _currentChordShape = "DefaultSingleHighVibrato";
-                        SetDelayedTrigger("DefaultSingleHigh", sustainLength);
+                        SetTrigger(AnimationStateType.LhSingleHighVibrato);
+                        _currentChordShape = ChordShape.SingleHighVibrato;
+                        SetDelayedTrigger(AnimationStateType.LhSingleHigh, sustainLength);
                     }
                     else
                     {
 
 
-                        if (_currentChordShape == "DefaultSingleHigh")
+                        if (_currentChordShape == ChordShape.SingleHigh)
                         {
                             return;
                         }
 
                         // Trigger single note high hand shape
-                        SetTrigger("DefaultSingleHigh");
-                        _currentChordShape = "DefaultSingleHigh";
+                        SetTrigger(AnimationStateType.LhSingleHigh);
+                        _currentChordShape = ChordShape.SingleHigh;
                     }
                 }
             }
@@ -806,56 +683,51 @@ namespace YARG.Venue.Characters
 
                 if (_handMap == HandMapType.DropD || _handMap == HandMapType.DropD2)
                 {
-                    if (_currentChordShape == "DropDOpen")
+                    if (_currentChordShape == ChordShape.DropDOpen)
                     {
                         return;
                     }
 
-                    SetTrigger("DropDOpen");
-                    _currentChordShape = "DropDOpen";
-                    // YargLogger.LogDebug("Drop D open hand shape triggered");
-
+                    SetTrigger(AnimationStateType.LhDropDOpen);
+                    _currentChordShape = ChordShape.DropDOpen;
                     return;
                 }
 
-                if (_currentChordShape == "DefaultOpen")
+                if (_currentChordShape == ChordShape.OpenChord)
                 {
                     return;
                 }
                 // Trigger open hand shape
-                SetTrigger("DefaultOpen");
-                _currentChordShape = "DefaultOpen";
+                SetTrigger(AnimationStateType.LhOpenChord);
+                _currentChordShape = ChordShape.OpenChord;
             }
         }
 
         private bool HandleDropD(bool isSustain, float sustainLength)
         {
-            // YargLogger.LogDebug("HandleDropD called");
+            // TODO: Figure out what is different about DropD2 and give it different handling
             if (_handMap == HandMapType.DropD || _handMap == HandMapType.DropD2)
             {
-                // YargLogger.LogDebug("Drop D hand shape");
                 if (isSustain)
                 {
-                    if (_currentChordShape == "DropDVibrato")
+                    if (_currentChordShape == ChordShape.DropDVibrato)
                     {
                         return true;
                     }
-                    SetTrigger("DropDVibrato");
-                    _currentChordShape = "DropDVibrato";
-                    SetDelayedTrigger("DropD", sustainLength);
-                    // YargLogger.LogDebug("Drop D vibrato hand shape triggered");
+                    SetTrigger(AnimationStateType.LhChordDropDVibrato);
+                    _currentChordShape = ChordShape.DropDVibrato;
+                    SetDelayedTrigger(AnimationStateType.LhChordDropD, sustainLength);
                     return true;
                 }
 
-                if (_currentChordShape == "DropD")
+                if (_currentChordShape == ChordShape.DropD)
                 {
                     return true;
                 }
 
                 // Trigger drop D hand shape
-                SetTrigger("DropD");
-                _currentChordShape = "DropD";
-                // YargLogger.LogDebug("Returned to DropD hand shape");
+                SetTrigger(AnimationStateType.LhChordDropD);
+                _currentChordShape = ChordShape.DropD;
                 return true;
             }
 
@@ -945,15 +817,15 @@ namespace YARG.Venue.Characters
             _animator.SetIKPosition(AvatarIKGoal.LeftHand, _leftHandObject.position);
         }
 
-        private void SetDelayedTrigger(string triggerName, float delay)
+        private void SetDelayedTrigger(AnimationStateType trigger, float delay)
         {
-            _delayedTriggerName = triggerName;
+            _delayedTriggerState = trigger;
             _delayedTriggerTime = delay;
         }
 
         private void CancelDelayedTrigger()
         {
-            _delayedTriggerName = null;
+            _delayedTriggerState = null;
             _delayedTriggerTime = 0;
         }
 

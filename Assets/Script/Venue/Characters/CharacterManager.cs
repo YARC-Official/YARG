@@ -17,7 +17,7 @@ namespace YARG.Venue.Characters
         [SerializeField]
         private GameObject _venue;
 
-        private Dictionary<VenueCharacter.CharacterType, VenueCharacter> _characters = new();
+        private readonly Dictionary<VenueCharacter.CharacterType, VenueCharacter> _characters = new();
 
         // Ugh, the different note types ruin me again
         private List<VocalsPhrase> _vocalNotes;
@@ -57,7 +57,6 @@ namespace YARG.Venue.Characters
         private double                 _hatTimer;
 
         // Text event animation triggers from the individual instrumentdifficulty tracks
-        // TODO: Parse these in the parser and merge them with the AnimationEvent stuff
         private List<AnimationTrigger> _guitarMaps;
         private List<AnimationTrigger> _bassMaps;
         private List<AnimationTrigger> _drumMaps;
@@ -71,9 +70,9 @@ namespace YARG.Venue.Characters
         {
             // Find all the VenueCharacters in the venue
 
-            var _venueCharacters = _venue.GetComponentsInChildren<VenueCharacter>(true);
+            var venueCharacters = _venue.GetComponentsInChildren<VenueCharacter>(true);
 
-            foreach (var character in _venueCharacters)
+            foreach (var character in venueCharacters)
             {
                 _characters.Add(character.Type, character);
             }
@@ -88,7 +87,7 @@ namespace YARG.Venue.Characters
             var drumsId = chart.ProDrums.GetDifficulty(Difficulty.Expert);
 
             InstrumentTrack<GuitarNote> guitarTrack = chart.GetFiveFretTrack(Instrument.FiveFretGuitar);
-            InstrumentTrack<GuitarNote> bassTrack = chart.GetFiveFretTrack(Instrument.FiveFretBass);;
+            InstrumentTrack<GuitarNote> bassTrack = chart.GetFiveFretTrack(Instrument.FiveFretBass);
             InstrumentTrack<DrumNote> drumsTrack = chart.GetDrumsTrack(Instrument.ProDrums);
             VocalsTrack vocalsTrack = chart.GetVocalsTrack(Instrument.Vocals);
             InstrumentTrack<GuitarNote> keysTrack = chart.GetFiveFretTrack(Instrument.Keys);
@@ -130,7 +129,7 @@ namespace YARG.Venue.Characters
             }
 
             // If we have at least [idle] and [playing] set ChartHasAnimations for the character
-            if (_guitarMaps.FindLastIndex(e => e.State == CharacterStateType.Idle) > 0)
+            if (_guitarMaps.Count > 0)
             {
                 foreach (var key in _characters.Keys)
                 {
@@ -141,7 +140,7 @@ namespace YARG.Venue.Characters
                 }
             }
 
-            if (_bassMaps.FindLastIndex(e => e.State == CharacterStateType.Idle) > 0)
+            if (_bassMaps.Count > 0)
             {
                 foreach (var key in _characters.Keys)
                 {
@@ -152,7 +151,7 @@ namespace YARG.Venue.Characters
                 }
             }
 
-            if (_drumMaps.FindLastIndex(e => e.State == CharacterStateType.Idle) > 0)
+            if (_drumMaps.Count > 0)
             {
                 foreach (var key in _characters.Keys)
                 {
@@ -163,7 +162,7 @@ namespace YARG.Venue.Characters
                 }
             }
 
-            if (_vocalMaps.FindLastIndex(e => e.State == CharacterStateType.Idle) > 0)
+            if (_vocalMaps.Count > 0)
             {
                 foreach (var key in _characters.Keys)
                 {
@@ -175,10 +174,10 @@ namespace YARG.Venue.Characters
             }
 
             // Don't animate until there are notes (at least until we have idle animations)
-            foreach (var character in _characters.Values)
-            {
-                character.StopAnimation();
-            }
+            // foreach (var character in _characters.Values)
+            // {
+            //     character.StopAnimation();
+            // }
         }
 
         private void Update()
