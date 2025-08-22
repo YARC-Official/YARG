@@ -84,13 +84,13 @@ namespace YARG.Menu.ScoreScreen
                     }
                 });
 
-            var endEarlyButtonEntry = new NavigationScheme.Entry(MenuAction.Red, "end setlist early", () =>
+            var endEarlyButtonEntry = new NavigationScheme.Entry(MenuAction.Red, "Menu.ScoreScreen.EndSetlistEarly", () =>
             {
                 GlobalVariables.State.PlayingAShow = false;
                 GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
             });
 
-            var restartButtonEntry = new NavigationScheme.Entry(MenuAction.Yellow, "restart song", () =>
+            var restartButtonEntry = new NavigationScheme.Entry(MenuAction.Yellow, "Menu.ScoreScreen.RestartSong", () =>
             {
                 _restartingSong = true;
                 GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
