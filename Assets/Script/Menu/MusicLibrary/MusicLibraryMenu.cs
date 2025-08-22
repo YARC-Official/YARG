@@ -217,7 +217,10 @@ namespace YARG.Menu.MusicLibrary
                 _lastDifficulty = currentDifficulty;
                 _needsReload = false;
 
-                _reloadState = MusicLibraryReloadState.Partial;
+                if (_reloadState != MusicLibraryReloadState.Full)
+                {
+                    _reloadState = MusicLibraryReloadState.Partial;
+                }
             }
         }
 
