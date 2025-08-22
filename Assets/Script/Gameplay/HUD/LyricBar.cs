@@ -169,7 +169,7 @@ namespace YARG.Gameplay.HUD
             {
                 var lyric = lyrics[i++];
                 _builder.Append(lyric.Text);
-                if (!lyric.JoinWithNext && i < lyrics.Count)
+                if (!lyric.JoinOrHyphenateWithNext && i < lyrics.Count)
                 {
                     _builder.Append(' ');
                 }
@@ -181,7 +181,7 @@ namespace YARG.Gameplay.HUD
             {
                 var lyric = lyrics[i++];
                 _builder.Append(lyric.Text);
-                if (!lyric.JoinWithNext && i < lyrics.Count)
+                if (!lyric.JoinOrHyphenateWithNext && i < lyrics.Count)
                 {
                     _builder.Append(' ');
                 }
@@ -217,7 +217,7 @@ namespace YARG.Gameplay.HUD
             {
                 var lyric = lyrics[i++];
                 _builder.Append(lyric.Text);
-                if (!lyric.JoinWithNext && i < lyrics.Count)
+                if (!lyric.JoinOrHyphenateWithNext && i < lyrics.Count)
                 {
                     _builder.Append(' ');
                 }
