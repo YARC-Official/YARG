@@ -141,7 +141,7 @@ namespace YARG.Menu.MusicLibrary
 
             ShouldDisplaySoloHighScores = !PlayerContainer.OnlyHasBotsActive();
 
-            RefreshIfNeeded();
+            SetRefreshIfNeeded();
 
             StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value;
             _previewDelay = 0;
@@ -196,7 +196,7 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private void RefreshIfNeeded()
+        private void SetRefreshIfNeeded()
         {
             YargProfile profile = null;
             foreach (YargPlayer p in PlayerContainer.Players)
@@ -217,8 +217,7 @@ namespace YARG.Menu.MusicLibrary
                 _lastDifficulty = currentDifficulty;
                 _needsReload = false;
 
-                _searchField.Reset();
-                UpdateSearch(true);
+                _reloadState = MusicLibraryReloadState.Partial;
             }
         }
 
