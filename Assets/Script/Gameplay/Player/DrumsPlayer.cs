@@ -146,10 +146,16 @@ namespace YARG.Gameplay.Player
             // Particle 0 is always kick fret
             _kickFretFlash.Initialize(colors.GetParticleColor(0).ToUnityColor());
 
+            // Set up drum fill lead-ups
+            PopulateDrumFills();
+        }
+
+        // TODO: Move this logic back into Core where it belongs
+        private void PopulateDrumFills()
+        {
             // Use checkpointing to only iterate through the notes once
             int checkpoint = 0;
 
-            // Set up drum fill lead-ups
             foreach (var effect in _trackEffects)
             {
                 for (int i = checkpoint; i < Notes.Count; i++)
