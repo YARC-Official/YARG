@@ -28,8 +28,7 @@ namespace YARG.Gameplay.Visuals
         private float _x;
         private bool _isFuture = true;
 
-        private Utf16ValueStringBuilder _phraseBuilder;
-        private Utf16ValueStringBuilder _syllableBuilder;
+        private Utf16ValueStringBuilder _builder;
 
         public override double ElementTime => _phraseRef.Time;
 
@@ -52,42 +51,32 @@ namespace YARG.Gameplay.Visuals
             _allowHiding = allowHiding;
             _x = x;
 
-            _phraseBuilder = ZString.CreateStringBuilder(false);
-            _syllableBuilder = ZString.CreateStringBuilder(false);
+            _builder = ZString.CreateStringBuilder(false);
         }
 
         protected override void InitializeElement()
         {
             if (_isFuture)
             {
-                _phraseBuilder.Append(FUTURE_PHRASE_COLOR_TAG);
-
-                for (var lyricIdx = 0; lyricIdx < _phraseRef.Lyrics.Count; lyricIdx++)
-                {
-                    var lyric = _phraseRef.Lyrics[lyricIdx];
-                    var lastLyricOfPhrase = lyricIdx == _phraseRef.Lyrics.Count - 1;
-                    _phraseBuilder.Append(ConstructStaticSyllable(lyric, lastLyricOfPhrase));
-                }
-
-                _phraseBuilder.Append(CLOSE_COLOR_TAG);
+                _builder.Append(FUTURE_PHRASE_COLOR_TAG);
             }
             else
             {
-                _phraseBuilder.Append(FUTURE_LYRIC_COLOR_TAG);
-
-                for (var lyricIdx = 0; lyricIdx < _phraseRef.Lyrics.Count; lyricIdx++)
-                {
-                    var lyric = _phraseRef.Lyrics[lyricIdx];
-                    var lastLyricOfPhrase = lyricIdx == _phraseRef.Lyrics.Count - 1;
-                    _phraseBuilder.Append(ConstructStaticSyllable(lyric, lastLyricOfPhrase));
-                }
-
-                _phraseBuilder.Append(CLOSE_COLOR_TAG);
+                _builder.Append(FUTURE_LYRIC_COLOR_TAG);
             }
+
+            for (var lyricIdx = 0; lyricIdx < _phraseRef.Lyrics.Count; lyricIdx++)
+            {
+                var lyric = _phraseRef.Lyrics[lyricIdx];
+                var lastLyricOfPhrase = lyricIdx == _phraseRef.Lyrics.Count - 1;
+                ConstructStaticSyllable(lyric, null, lastLyricOfPhrase);
+            }
+
+            _builder.Append(CLOSE_COLOR_TAG);
 
             transform.localPosition = transform.localPosition.WithX(_x);
 
-            _phraseText.text = _phraseBuilder.ToString();
+            _phraseText.text = _builder.ToString();
         }
 
         public void Activate()
@@ -110,7 +99,7 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            _phraseBuilder.Clear();
+            _builder.Clear();
 
             for (var lyricIdx = 0; lyricIdx < _phraseRef.Lyrics.Count; lyricIdx++)
             {
@@ -121,21 +110,21 @@ namespace YARG.Gameplay.Visuals
 
                 if (probableLyricEnd <= GameManager.SongTime)
                 {
-                    _phraseBuilder.Append($"{PAST_LYRIC_COLOR_TAG}{ConstructStaticSyllable(lyric, lastLyricOfPhrase)}{CLOSE_COLOR_TAG}");
+                    ConstructStaticSyllable(lyric, PAST_LYRIC_COLOR_TAG, lastLyricOfPhrase);
                 }
 
                 else if (lyric.Time <= GameManager.SongTime && GameManager.SongTime < probableLyricEnd)
                 {
-                    _phraseBuilder.Append($"{PRESENT_LYRIC_COLOR_TAG}{ConstructStaticSyllable(lyric, lastLyricOfPhrase)}{CLOSE_COLOR_TAG}");
+                    ConstructStaticSyllable(lyric, PRESENT_LYRIC_COLOR_TAG, lastLyricOfPhrase);
                 }
 
                 else
                 {
-                    _phraseBuilder.Append($"{FUTURE_LYRIC_COLOR_TAG}{ConstructStaticSyllable(lyric, lastLyricOfPhrase)}{CLOSE_COLOR_TAG}");
+                    ConstructStaticSyllable(lyric, FUTURE_LYRIC_COLOR_TAG, lastLyricOfPhrase);
                 }
             }
 
-            _phraseText.text = _phraseBuilder.ToString();
+            _phraseText.text = _builder.ToString();
         }
 
         protected override bool UpdateElementPosition()
@@ -147,34 +136,45 @@ namespace YARG.Gameplay.Visuals
         {
         }
 
-        private string ConstructStaticSyllable(LyricEvent lyric, bool lastLyricOfPhrase)
+        private void ConstructStaticSyllable(LyricEvent lyric, string? colorTag, bool lastLyricOfPhrase)
         {
-            _syllableBuilder.Clear();
+            if (_harmonyIndex is not 0 && lyric.HarmonyHidden && _allowHiding)
+            {
+                return;
+            }
+
+            if (colorTag is not null)
+            {
+                _builder.Append(colorTag);
+            }
 
             if (lyric.NonPitched)
             {
-                _syllableBuilder.Append("<i>");
+                _builder.Append("<i>");
             }
 
             if (lyric.JoinWithNext)
             {
-                _syllableBuilder.Append(lyric.Text[0..^1]);
+                _builder.Append(lyric.Text[0..^1]);
             }
             else
             {
-                _syllableBuilder.Append(lyric.Text);
+                _builder.Append(lyric.Text);
                 if (!lyric.HyphenateWithNext && !lastLyricOfPhrase)
                 {
-                    _syllableBuilder.Append(" ");
+                    _builder.Append(" ");
                 }
             }
 
             if (lyric.NonPitched)
             {
-                _syllableBuilder.Append("</i>");
+                _builder.Append("</i>");
             }
 
-            return _syllableBuilder.ToString();
+            if (colorTag is not null)
+            {
+                _builder.Append(CLOSE_COLOR_TAG);
+            }
         }
 
         private static double GetProbableNoteEndOfLyric(VocalsPhrase phrase, LyricEvent lyric)
