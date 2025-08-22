@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using YARG.Settings;
 
@@ -13,6 +14,7 @@ namespace YARG.Gameplay.Player
         private int[] _phraseMarkerIndices;
         private const float LEFT_EDGE = -4.75f;
         private const float MAXIMUM_PHRASE_QUEUE_SIZE = 10;
+        private const float STATIC_LYRIC_SHIFT_DURATION = .1f;
 
         private ScrollingPhraseNoteTracker[] _scrollingNoteTrackers;
         private ScrollingPhraseNoteTracker[] _scrollingLyricTrackers;
@@ -116,23 +118,35 @@ namespace YARG.Gameplay.Player
             {
                 case StaticLyricShiftType.None:
                     break;
-                case StaticLyricShiftType.PhraseToPhrase or StaticLyricShiftType.PhraseToGap:
+                case StaticLyricShiftType.PhraseToGap:
+                {
                     var leftmostPhraseElement = queue.Dequeue();
                     var leftShift = leftmostPhraseElement.Width;
-                    if (change is StaticLyricShiftType.PhraseToPhrase)
-                    {
-                        leftShift += VocalLyricContainer.STATIC_PHRASE_SPACING;
-                        queue.Peek().Activate();
-                    }
 
                     foreach (var remainingPhrase in queue)
                     {
-                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift, .1f);
+                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift, STATIC_LYRIC_SHIFT_DURATION);
 
                     }
                     _rightEdges[harmonyIndex] -= leftShift;
                     leftmostPhraseElement.Dismiss();
                     break;
+                }
+                case StaticLyricShiftType.PhraseToPhrase:
+                {
+                    var leftmostPhraseElement = queue.Dequeue();
+                    var leftShift = leftmostPhraseElement.Width + VocalLyricContainer.STATIC_PHRASE_SPACING;
+                    queue.Peek().Activate();
+
+                    foreach (var remainingPhrase in queue)
+                    {
+                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift, STATIC_LYRIC_SHIFT_DURATION);
+
+                    }
+                    _rightEdges[harmonyIndex] -= leftShift;
+                    leftmostPhraseElement.Dismiss();
+                    break;
+                }
                 case StaticLyricShiftType.GapToPhrase:
                     _rightEdges[harmonyIndex] -= VocalLyricContainer.STATIC_PHRASE_SPACING;
                     foreach (var remainingPhrase in queue)

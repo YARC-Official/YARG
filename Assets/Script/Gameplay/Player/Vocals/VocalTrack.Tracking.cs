@@ -59,7 +59,8 @@ namespace YARG.Gameplay.Player
 
                     var newLeftmostPhrase = _vocalsPart.NotePhrases[_leftmostPhraseIndex];
 
-                    if (newLeftmostPhrase.PhraseParentNote.Time > time + IMMINENCE_THRESHOLD)
+                    // Factor in the shift duration here, so that we don't go from gap to phrase in the middle of a phrase-to-gap shift
+                    if (newLeftmostPhrase.PhraseParentNote.Time > time + IMMINENCE_THRESHOLD + STATIC_LYRIC_SHIFT_DURATION)
                     {
                         _inGap = true;
 
