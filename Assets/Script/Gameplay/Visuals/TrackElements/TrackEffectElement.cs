@@ -422,7 +422,7 @@ namespace YARG.Gameplay.Visuals
 
         private float GetXScaleForLeadUp()
         {
-            // Hide lead up if the chosen star power activation type does not need it
+            // Hide lead-up if the chosen star power activation type does not need it
             if (Player.Player.Profile.StarPowerActivationType is StarPowerActivationType.AllNotes
                 or StarPowerActivationType.Freestyle)
             {
@@ -430,9 +430,13 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Kick lead-ups and unknown indices should not be shrunken
-            return EffectRef.FillLane <= 0 || EffectRef.FillLane > EffectRef.TotalLanes
-                ? 1f
-                : 1f / EffectRef.TotalLanes;
+            if (EffectRef.FillLane <= 0 || EffectRef.FillLane > EffectRef.TotalLanes)
+            {
+                return 1f;
+            }
+
+            // Scale lead-up width appropriately
+            return 1f / EffectRef.TotalLanes;
         }
 
         // Returns the material corresponding to a specific effect object and effect type
