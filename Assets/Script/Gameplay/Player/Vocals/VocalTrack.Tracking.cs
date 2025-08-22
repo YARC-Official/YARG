@@ -10,92 +10,28 @@ namespace YARG.Gameplay.Player
 {
     public partial class VocalTrack
     {
-        public enum PhraseChangeType
-        {
-            NoChange,
-            ExitedPhrase, // Exited into a gap between phrases
-            EnteredPhrase, // Entered a phrase from a gap
-            ExitedAndEnteredPhrase // Went directly from one phrase to the next
-        }
-
-        public struct PhraseChangeInfo
-        {
-            public PhraseChangeType Type;
-            public int? PhraseExitedIdx;
-            public int? PhraseEnteredIdx;
-        }
 
         private class StaticPhraseTracker
         {
+
             private readonly VocalsPart _vocalsPart;
 
-            // These track the index of the phrase and note that were most recently *started*, regardless
-            // of whether they have since ended. Before we hit the first phrase or note (index 0), default
-            // to -1
-            private int _phraseIndex = -1;
+            // Index of the the phrase that should be leftmost in the static lyrics display. This updates as soon as the last note
+            // of a phrase ends, not when the phrase itself ends
+            private int _leftmostPhraseIndex = 0;
 
-            // These track whether the indexed phrase and note are currently being played (true), or if we're instead
-            // in a gap between that phrase/note and the next (false)
-            private bool _phraseIndexStillActive = false;
-
-            public VocalsPhrase? CurrentPhrase => _phraseIndexStillActive ? _vocalsPart.NotePhrases[_phraseIndex] : null;
-
-            public IEnumerable<VocalsPhrase> FuturePhrases => _vocalsPart.NotePhrases.Skip(_phraseIndex + 1);
-
-            public IEnumerable<VocalsPhrase> CurrentAndFuturePhrases => _vocalsPart.NotePhrases.Skip(_phraseIndex);
-
-            // Returns true if the current phrase has changed (either because there's a new index or because we're now between phrases)
-            public PhraseChangeInfo UpdateCurrentPhrase(double time)
+            // Returns true if it's time to shift
+            public bool UpdateCurrentPhrase(double time)
             {
-                for (var i = 0; i < _vocalsPart.NotePhrases.Count; i++)
+                var currentLeftmostPhrase = _vocalsPart.NotePhrases[_leftmostPhraseIndex];
+
+                if (time >= currentLeftmostPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd)
                 {
-                    var phrase = _vocalsPart.NotePhrases[i];
-
-                    if (phrase.TimeEnd < time)
-                    {
-                        // Phrases that have already passed are irrelevant
-                        continue;
-                    }
-
-                    // We've reached a phrase that has not yet ended. Now check if it's begun yet
-                    if (phrase.Time <= time)
-                    {
-                        // This phrase has begun and not yet ended; it's the current phrase...
-
-                        if (_phraseIndex == i)
-                        {
-                            // ...but we knew that already; no change
-                            return new() { Type = PhraseChangeType.NoChange };
-                        }
-
-                        // ...which is new since the last time we checked. Update the phrase index
-                        _phraseIndex = i;
-
-                        // Did we come from another phrase?
-                        if (_phraseIndexStillActive)
-                        {
-                            // Yes
-                            return new() { Type = PhraseChangeType.ExitedAndEnteredPhrase, PhraseEnteredIdx = i, PhraseExitedIdx = i - 1 };
-                        }
-                        // No; we came from a gap
-                        _phraseIndexStillActive = true;
-                        return new() { Type = PhraseChangeType.EnteredPhrase, PhraseEnteredIdx = i };
-                    }
-
-                    // We're in a phrase gap...
-                    if (!_phraseIndexStillActive)
-                    {
-                        // ...but we already knew that; no change
-                        return new() { Type = PhraseChangeType.NoChange };
-                    }
-                    // ...which is new since the last time we checked
-                    _phraseIndexStillActive = false;
-                    return new() { Type = PhraseChangeType.ExitedPhrase, PhraseExitedIdx = i };
-                    
+                    _leftmostPhraseIndex++;
+                    return true;
                 }
 
-                // We didn't find any phrases, presumably because we've passed the last phrase of the song. Nothing has changed
-                return new() { Type = PhraseChangeType.NoChange };
+                return false;
             }
 
             public StaticPhraseTracker(VocalsPart vocalsPart)
@@ -105,8 +41,7 @@ namespace YARG.Gameplay.Player
 
             public void Reset()
             {
-                _phraseIndex = -1;
-                _phraseIndexStillActive = false;
+                _leftmostPhraseIndex = 0;
             }
         }
 

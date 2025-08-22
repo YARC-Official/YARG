@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using DG.Tweening;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -108,22 +109,17 @@ namespace YARG.Gameplay.Player
         {
             var change = tracker.UpdateCurrentPhrase(GameManager.SongTime);
 
-            switch (change.Type)
+            if (change)
             {
-                case PhraseChangeType.NoChange or PhraseChangeType.EnteredPhrase:
-                    break;
-                case PhraseChangeType.ExitedPhrase or PhraseChangeType.ExitedAndEnteredPhrase:
-                    var leftmostPhraseElement = _displayedElements.Dequeue();
-                    var leftShift = leftmostPhraseElement.Width + VocalLyricContainer.STATIC_PHRASE_SPACING;
-                    foreach (var remainingPhrase in _displayedElements)
-                    {
-                        remainingPhrase.transform.localPosition = remainingPhrase.transform.localPosition
-                            .WithX(remainingPhrase.transform.localPosition.x - leftShift);
+                var leftmostPhraseElement = _displayedElements.Dequeue();
+                var leftShift = leftmostPhraseElement.Width + VocalLyricContainer.STATIC_PHRASE_SPACING;
+                foreach (var remainingPhrase in _displayedElements)
+                {
+                    remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift, .1f);
 
-                    }
-                    _rightEdge -= leftShift;
-                    leftmostPhraseElement.Dismiss();
-                    break;
+                }
+                _rightEdge -= leftShift;
+                leftmostPhraseElement.Dismiss();
             }
 
             // Enqueue more phrases, if we have room

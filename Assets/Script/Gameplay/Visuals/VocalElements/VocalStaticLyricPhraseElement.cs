@@ -150,7 +150,7 @@ namespace YARG.Gameplay.Visuals
         private static double GetProbableNoteEndOfLyric(VocalsPhrase phrase, LyricEvent lyric)
         {
             return phrase.PhraseParentNote.ChildNotes
-                .FirstOrDefault(note => note.Tick == lyric.Tick).TimeEnd;
+                .FirstOrDefault(note => note.Tick == lyric.Tick).TotalTimeEnd;
         }
     }
 }
