@@ -29,6 +29,8 @@ namespace YARG.Gameplay.Player
             LEFT_EDGE + VocalLyricContainer.STATIC_PHRASE_SPACING
         };
 
+        private bool _noMoreStaticPhrases = false;
+
         private void UpdateSpawning()
         {
             // For each harmony...
@@ -111,6 +113,11 @@ namespace YARG.Gameplay.Player
 
         private void SpawnStaticLyrics(StaticPhraseTracker tracker, int harmonyIndex)
         {
+            if (_noMoreStaticPhrases)
+            {
+                return;
+            }
+
             var change = tracker.UpdateCurrentPhrase(GameManager.SongTime);
             var queue = _staticPhraseQueues[harmonyIndex];
 
@@ -157,6 +164,7 @@ namespace YARG.Gameplay.Player
                     queue.Peek().Activate();
                     break;
                 case StaticLyricShiftType.FinalPhraseComplete:
+                    _noMoreStaticPhrases = true;
                     var finalPhraseElement = queue.Dequeue();
                     finalPhraseElement.Dismiss();
                     break;
@@ -171,6 +179,12 @@ namespace YARG.Gameplay.Player
                 }
 
                 var phrase = _vocalsTrack.Parts[harmonyIndex].NotePhrases[phraseIdx];
+
+                if (phrase.IsPercussion)
+                {
+                    continue;
+                }
+
                 var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(phrase, phrase.IsStarPower, harmonyIndex, _rightEdges[harmonyIndex]);
 
                 if (newPhraseElement != null)

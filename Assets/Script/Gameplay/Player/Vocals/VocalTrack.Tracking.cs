@@ -50,12 +50,16 @@ namespace YARG.Gameplay.Player
                 // We've passed the last note of the leftmost phrase, so it's time to shift
                 else if (time >= currentLeftmostPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd)
                 {
-                    _leftmostPhraseIndex++;
-
-                    if (_leftmostPhraseIndex >= _vocalsPart.NotePhrases.Count)
+                    // Skip percussion phrases
+                    do
                     {
-                        return StaticLyricShiftType.FinalPhraseComplete;
-                    }
+                        if (_leftmostPhraseIndex + 1 >= _vocalsPart.NotePhrases.Count)
+                        {
+                            return StaticLyricShiftType.FinalPhraseComplete;
+                        }
+
+                        _leftmostPhraseIndex++;
+                    } while (_vocalsPart.NotePhrases[_leftmostPhraseIndex].IsPercussion);
 
                     var newLeftmostPhrase = _vocalsPart.NotePhrases[_leftmostPhraseIndex];
 
@@ -80,6 +84,10 @@ namespace YARG.Gameplay.Player
             public StaticPhraseTracker(VocalsPart vocalsPart)
             {
                 _vocalsPart = vocalsPart;
+                while (vocalsPart.NotePhrases[_leftmostPhraseIndex].IsPercussion)
+                {
+                    _leftmostPhraseIndex++;
+                }
             }
 
             public void Reset()

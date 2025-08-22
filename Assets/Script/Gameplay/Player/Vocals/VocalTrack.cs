@@ -488,6 +488,8 @@ namespace YARG.Gameplay.Player
                 _phraseMarkerIndices[i] = 0;
                 _scrollingNoteTrackers[i].Reset();
                 _scrollingLyricTrackers[i].Reset();
+                _staticPhraseTrackers[i].Reset();
+                _staticPhraseQueues[i].Clear();
             }
 
             // Return everything
@@ -522,8 +524,10 @@ namespace YARG.Gameplay.Player
                 part.NotePhrases.RemoveAll(n => n.Tick < start || n.Tick >= end);
                 part.TextEvents.RemoveAll(n => n.Tick < start || n.Tick >= end);
 
-                _scrollingNoteTrackers[i] = new ScrollingPhraseNoteTracker(part, false);
-                _scrollingLyricTrackers[i] = new ScrollingPhraseNoteTracker(part, true);
+                _scrollingNoteTrackers[i] = new(part, false);
+                _scrollingLyricTrackers[i] = new(part, true);
+                _staticPhraseTrackers[i] = new(part);
+                _staticPhraseQueues[i].Clear();
             }
 
             // The most recent range shift before the start tick should still be preserved
