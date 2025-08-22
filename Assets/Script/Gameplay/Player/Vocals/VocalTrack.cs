@@ -490,13 +490,18 @@ namespace YARG.Gameplay.Player
                 _scrollingLyricTrackers[i].Reset();
                 _staticPhraseTrackers[i].Reset();
                 _staticPhraseQueues[i].Clear();
+                _highestEnqueuedPhraseIndices[i] = -1;
+                _rightEdges[i] = DEFAULT_RIGHT_EDGE;
             }
+
+            _noMoreStaticPhrases = false;
 
             // Return everything
             foreach (var pool in _notePools)
             {
                 pool.ReturnAllObjects();
             }
+
             _lyricContainer.ResetVisuals();
             _talkiePool.ReturnAllObjects();
 
@@ -528,7 +533,6 @@ namespace YARG.Gameplay.Player
                 _scrollingLyricTrackers[i] = new(part, true);
                 _staticPhraseTrackers[i] = new(part);
                 _staticPhraseQueues[i].Clear();
-                _noMoreStaticPhrases = false;
             }
 
             // The most recent range shift before the start tick should still be preserved

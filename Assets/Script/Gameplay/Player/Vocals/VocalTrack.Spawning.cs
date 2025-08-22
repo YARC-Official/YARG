@@ -14,6 +14,7 @@ namespace YARG.Gameplay.Player
         private int[] _phraseMarkerIndices;
         private const float SPACING_FROM_SING_LINE = .25f;
         private const float LEFT_EDGE = VocalElement.SING_LINE_POS + SPACING_FROM_SING_LINE;
+        private const float DEFAULT_RIGHT_EDGE = LEFT_EDGE + VocalLyricContainer.STATIC_PHRASE_SPACING;
         private const float MAXIMUM_PHRASE_QUEUE_SIZE = 10;
         private const float STATIC_LYRIC_SHIFT_DURATION = .1f;
 
@@ -25,9 +26,9 @@ namespace YARG.Gameplay.Player
 
         private int[] _highestEnqueuedPhraseIndices = { -1, -1, -1 };
         private float[] _rightEdges = {
-            LEFT_EDGE + VocalLyricContainer.STATIC_PHRASE_SPACING,
-            LEFT_EDGE + VocalLyricContainer.STATIC_PHRASE_SPACING,
-            LEFT_EDGE + VocalLyricContainer.STATIC_PHRASE_SPACING
+            DEFAULT_RIGHT_EDGE,
+            DEFAULT_RIGHT_EDGE,
+            DEFAULT_RIGHT_EDGE
         };
 
         private bool _noMoreStaticPhrases = false;
@@ -168,6 +169,9 @@ namespace YARG.Gameplay.Player
                     _noMoreStaticPhrases = true;
                     var finalPhraseElement = queue.Dequeue();
                     finalPhraseElement.Dismiss();
+                    break;
+                case StaticLyricShiftType.NoPhrases:
+                    _noMoreStaticPhrases = true;
                     break;
             }
 

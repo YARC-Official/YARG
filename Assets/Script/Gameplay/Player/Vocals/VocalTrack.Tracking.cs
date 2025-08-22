@@ -16,7 +16,8 @@ namespace YARG.Gameplay.Player
             PhraseToPhrase,
             PhraseToGap,
             GapToPhrase,
-            FinalPhraseComplete
+            FinalPhraseComplete,
+            NoPhrases
         }
 
         private class StaticPhraseTracker
@@ -34,6 +35,11 @@ namespace YARG.Gameplay.Player
             // Returns true if it's time to shift
             public StaticLyricShiftType UpdateCurrentPhrase(double time)
             {
+                if (_vocalsPart.NotePhrases.Count == 0)
+                {
+                    return StaticLyricShiftType.NoPhrases;
+                }
+
                 var currentLeftmostPhrase = _vocalsPart.NotePhrases[_leftmostPhraseIndex];
 
                 // We haven't passed the last note of the leftmost phrase. If we're in a gap, we need to check if the leftmost phrase
@@ -84,7 +90,7 @@ namespace YARG.Gameplay.Player
             public StaticPhraseTracker(VocalsPart vocalsPart)
             {
                 _vocalsPart = vocalsPart;
-                while (vocalsPart.NotePhrases[_leftmostPhraseIndex].IsPercussion)
+                while (vocalsPart.NotePhrases.Count > _leftmostPhraseIndex + 1 && vocalsPart.NotePhrases[_leftmostPhraseIndex].IsPercussion)
                 {
                     _leftmostPhraseIndex++;
                 }
