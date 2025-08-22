@@ -528,6 +528,7 @@ namespace YARG.Gameplay.Player
                 _scrollingLyricTrackers[i] = new(part, true);
                 _staticPhraseTrackers[i] = new(part);
                 _staticPhraseQueues[i].Clear();
+                _noMoreStaticPhrases = false;
             }
 
             // The most recent range shift before the start tick should still be preserved
