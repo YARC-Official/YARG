@@ -1383,6 +1383,15 @@
                 "KickStarpower": {
                     "Name": "Kick Star Power"
                 },
+                "Metal": {
+                    "Name": "Note Metal"
+                },
+                "MetalStarPower": {
+                    "Name": "Note Metal Star Power"
+                },
+                "Miss": {
+                    "Name": "Missed Note"
+                },
                 "OpenFret": {
                     "Name": "Open Fret"
                 },
