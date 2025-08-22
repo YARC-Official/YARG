@@ -208,6 +208,8 @@ namespace YARG.Settings
 
             public ToggleSetting ApplyVolumesInMusicLibrary { get; } = new(true);
 
+            public ToggleSetting EnableVoxSamples { get; } = new(true);
+
             #endregion
 
             #region Graphics
@@ -447,8 +449,6 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
-
-            public ToggleSetting EnableVoxSamples { get; } = new(false);
 
             #endregion
 

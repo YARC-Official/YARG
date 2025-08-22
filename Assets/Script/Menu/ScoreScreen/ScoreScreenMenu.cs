@@ -208,12 +208,22 @@ namespace YARG.Menu.ScoreScreen
         private void CreateScoreCards(ScoreScreenStats scoreScreenStats)
         {
             int fcCount = 0;
+            int highScoreCount = 0;
 
             foreach (var score in scoreScreenStats.PlayerScores)
             {
-                if (score.Stats.IsFullCombo)
+                // Bots don't get vox
+                if (!score.Player.Profile.IsBot)
                 {
-                    fcCount++;
+                    // We intentionally don't count both high score and full combo
+                    if (score.Stats.IsFullCombo)
+                    {
+                        fcCount++;
+                    }
+                    else if (score.IsHighScore)
+                    {
+                        highScoreCount++;
+                    }
                 }
 
                 switch (score.Player.Profile.CurrentInstrument.ToGameMode())
@@ -268,36 +278,72 @@ namespace YARG.Menu.ScoreScreen
             // As a final bonus, play the appropriate full combo vox samples
             if (SettingsManager.Settings.EnableVoxSamples.Value)
             {
-                if (fcCount > 0)
-                {
-                    GlobalAudioHandler.PlayVoxSample(VoxSample.FullCombo);
-                    YargLogger.LogInfo("Playing full combo vox sample");
-                }
+                PlayScoreVox(fcCount, highScoreCount);
+            }
+        }
 
-                if (fcCount > 1)
+        private static void PlayScoreVox(int fcCount, int highScoreCount)
+        {
+            if (fcCount > 0)
+            {
+                GlobalAudioHandler.PlayVoxSample(VoxSample.FullCombo);
+                YargLogger.LogInfo("Playing full combo vox sample");
+            }
+
+            if (fcCount > 1)
+            {
+                YargLogger.LogDebug($"Playing full combo vox sample for {fcCount} times");
+                switch (fcCount)
                 {
-                    YargLogger.LogDebug($"Playing full combo vox sample for {fcCount} times");
-                    switch (fcCount)
-                    {
-                        case 2:
-                            GlobalAudioHandler.PlayVoxSample(VoxSample.Times2);
-                            break;
-                        case 3:
-                            GlobalAudioHandler.PlayVoxSample(VoxSample.Times3);
-                            break;
-                        case 4:
-                            GlobalAudioHandler.PlayVoxSample(VoxSample.Times4);
-                            break;
-                        case 5:
-                            GlobalAudioHandler.PlayVoxSample(VoxSample.Times5);
-                            break;
-                        case 6:
-                            GlobalAudioHandler.PlayVoxSample(VoxSample.Times6);
-                            break;
-                        case > 6:
-                            GlobalAudioHandler.PlayVoxSample(VoxSample.TimesMany);
-                            break;
-                    }
+                    case 2:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times2);
+                        break;
+                    case 3:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times3);
+                        break;
+                    case 4:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times4);
+                        break;
+                    case 5:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times5);
+                        break;
+                    case 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times6);
+                        break;
+                    case > 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.TimesMany);
+                        break;
+                }
+            }
+
+            if (highScoreCount > 0)
+            {
+                GlobalAudioHandler.PlayVoxSample(VoxSample.HighScore);
+                YargLogger.LogInfo("Playing high score vox sample");
+            }
+
+            if (highScoreCount > 1)
+            {
+                switch (highScoreCount)
+                {
+                    case 2:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times2);
+                        break;
+                    case 3:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times3);
+                        break;
+                    case 4:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times4);
+                        break;
+                    case 5:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times5);
+                        break;
+                    case 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times6);
+                        break;
+                    case > 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.TimesMany);
+                        break;
                 }
             }
         }
