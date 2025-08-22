@@ -92,5 +92,11 @@ namespace YARG.Gameplay.Visuals
                 };
             }
         }
+
+        protected static int GetColorFromPulse(int color, float pulse)
+        {
+            float intensity = Mathf.Pow(pulse - 1, 3) + 1f;
+            return (int) (intensity * color);
+        }
     }
 }

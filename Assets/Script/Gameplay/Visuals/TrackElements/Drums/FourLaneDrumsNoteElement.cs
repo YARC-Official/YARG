@@ -128,11 +128,5 @@ namespace YARG.Gameplay.Visuals
             // Set the metal color
             NoteGroup.SetMetalColor(colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor());
         }
-
-        private static int GetColorFromPulse(int color, float pulse)
-        {
-            float intensity = Mathf.Pow(pulse - 1, 3) + 1f;
-            return (int) (intensity * color);
-        }
     }
 }
