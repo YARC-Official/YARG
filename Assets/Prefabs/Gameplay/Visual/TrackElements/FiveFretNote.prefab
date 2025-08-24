@@ -96,6 +96,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _sustainMaterial: {fileID: 2100000, guid: d48ab1d390f77c245be4530d285c3c67, type: 2}
   _sustainWidth: 0.45
+  _subdivisions: 4
   _setShaderProperties: 1
 --- !u!1 &6398637443606615521
 GameObject:
@@ -143,4 +144,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _sustainMaterial: {fileID: 2100000, guid: d3210b5e82586ef4d801f715c888240d, type: 2}
   _sustainWidth: 2
+  _subdivisions: 16
   _setShaderProperties: 1

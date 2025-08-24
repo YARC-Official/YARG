@@ -20,6 +20,8 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private float _sustainWidth = 0.1f;
         [SerializeField]
+        private int _subdivisions = 1; // Number of subdivisions on start/end edges
+        [SerializeField]
         private bool _setShaderProperties = true;
 
         private MeshRenderer _meshRenderer;
@@ -75,26 +77,60 @@ namespace YARG.Gameplay.Visuals
             _sustainMesh = new Mesh();
             _sustainMesh.name = "SustainLine";
 
-            // Create vertices for a quad (4 vertices)
-            Vector3[] vertices = new Vector3[4];
-            Vector3[] normals = new Vector3[4];
-            Vector2[] uvs = new Vector2[4];
-            int[] triangles = new int[6];
+            // Ensure subdivisions is at least 1
+            int subdivisions = Mathf.Max(1, _subdivisions);
 
-            // Set up triangles (two triangles forming a quad) - ensure correct winding order
-            triangles[0] = 0; triangles[1] = 2; triangles[2] = 1;
-            triangles[3] = 0; triangles[4] = 3; triangles[5] = 2;
+            // Calculate vertex count: (subdivisions + 1) vertices on each end edge
+            int verticesPerEdge = subdivisions + 1;
+            int totalVertices = verticesPerEdge * 2; // Start edge + end edge
 
-            // Set up UVs - alternative rotation fix
-            uvs[0] = new Vector2(1, 0); // Bottom left -> Bottom right in UV space
-            uvs[1] = new Vector2(1, 1); // Bottom right -> Top right in UV space
-            uvs[2] = new Vector2(0, 1); // Top right -> Top left in UV space
-            uvs[3] = new Vector2(0, 0); // Top left -> Bottom left in UV space
+            Vector3[] vertices = new Vector3[totalVertices];
+            Vector3[] normals = new Vector3[totalVertices];
+            Vector2[] uvs = new Vector2[totalVertices];
 
-            // Set up normals (pointing up)
-            for (int i = 0; i < 4; i++)
+            // Calculate triangle count: subdivisions * 2 triangles per subdivision
+            int triangleCount = subdivisions * 2;
+            int[] triangles = new int[triangleCount * 3];
+
+            // Set up UVs and normals
+            for (int i = 0; i < totalVertices; i++)
             {
                 normals[i] = Vector3.up;
+            }
+
+            // Set up UVs for start edge (left side in UV space)
+            for (int i = 0; i < verticesPerEdge; i++)
+            {
+                float t = (float)i / subdivisions; // 0 to 1 across the width
+                uvs[i] = new Vector2(0f, 1f - t); // Left side, top to bottom
+            }
+
+            // Set up UVs for end edge (right side in UV space)
+            for (int i = 0; i < verticesPerEdge; i++)
+            {
+                float t = (float)i / subdivisions; // 0 to 1 across the width
+                uvs[verticesPerEdge + i] = new Vector2(1f, 1f - t); // Right side, top to bottom
+            }
+
+            // Set up triangles with consistent winding
+            int triangleIndex = 0;
+            for (int i = 0; i < subdivisions; i++)
+            {
+                // Vertex indices for this quad segment
+                int bottomLeft = i;                    // Start edge, left vertex
+                int bottomRight = i + 1;              // Start edge, right vertex  
+                int topLeft = verticesPerEdge + i;    // End edge, left vertex
+                int topRight = verticesPerEdge + i + 1; // End edge, right vertex
+
+                // First triangle: bottomLeft -> topLeft -> bottomRight
+                triangles[triangleIndex++] = bottomLeft;
+                triangles[triangleIndex++] = topLeft;
+                triangles[triangleIndex++] = bottomRight;
+
+                // Second triangle: bottomRight -> topLeft -> topRight
+                triangles[triangleIndex++] = bottomRight;
+                triangles[triangleIndex++] = topLeft;
+                triangles[triangleIndex++] = topRight;
             }
 
             _sustainMesh.vertices = vertices;
@@ -102,8 +138,16 @@ namespace YARG.Gameplay.Visuals
             _sustainMesh.uv = uvs;
             _sustainMesh.triangles = triangles;
 
-            // Ensure proper bounds
+            // Ensure proper bounds and validate mesh
+            _sustainMesh.RecalculateNormals();
             _sustainMesh.RecalculateBounds();
+
+            // Validate the mesh has the expected triangle count
+            int expectedTriangles = subdivisions * 2 * 3;
+            if (triangles.Length != expectedTriangles)
+            {
+                Debug.LogError($"SustainLine: Triangle count mismatch! Expected {expectedTriangles}, got {triangles.Length}");
+            }
 
             _meshFilter.mesh = _sustainMesh;
         }
@@ -221,23 +265,31 @@ namespace YARG.Gameplay.Visuals
         {
             if (_sustainMesh == null) return;
 
-            Vector3[] vertices = new Vector3[4];
-            Vector3[] normals = new Vector3[4];
+            // Ensure subdivisions is at least 1
+            int subdivisions = Mathf.Max(1, _subdivisions);
+            int verticesPerEdge = subdivisions + 1;
+            int totalVertices = verticesPerEdge * 2;
+
+            Vector3[] vertices = new Vector3[totalVertices];
+            Vector3[] normals = new Vector3[totalVertices];
             float halfWidth = _sustainWidth * 0.5f;
 
-            // Create quad vertices from current start to full length
-            // Bottom vertices (at _currentStartZ)
-            vertices[0] = new Vector3(-halfWidth, 0f, _currentStartZ); // Bottom left
-            vertices[1] = new Vector3(halfWidth, 0f, _currentStartZ);  // Bottom right
-
-            // Top vertices (at _currentLength)
-            vertices[2] = new Vector3(halfWidth, 0.01f, _currentLength);  // Top right (slightly elevated)
-            vertices[3] = new Vector3(-halfWidth, 0.01f, _currentLength); // Top left (slightly elevated)
-
-            // Set normals
-            for (int i = 0; i < 4; i++)
+            // Create start edge vertices (at _currentStartZ)
+            for (int i = 0; i < verticesPerEdge; i++)
             {
+                float t = (float)i / subdivisions; // 0 to 1 across the width
+                float x = Mathf.Lerp(-halfWidth, halfWidth, t);
+                vertices[i] = new Vector3(x, 0f, _currentStartZ);
                 normals[i] = Vector3.up;
+            }
+
+            // Create end edge vertices (at _currentLength)
+            for (int i = 0; i < verticesPerEdge; i++)
+            {
+                float t = (float)i / subdivisions; // 0 to 1 across the width
+                float x = Mathf.Lerp(-halfWidth, halfWidth, t);
+                vertices[verticesPerEdge + i] = new Vector3(x, 0.01f, _currentLength); // Slightly elevated
+                normals[verticesPerEdge + i] = Vector3.up;
             }
 
             _sustainMesh.vertices = vertices;
