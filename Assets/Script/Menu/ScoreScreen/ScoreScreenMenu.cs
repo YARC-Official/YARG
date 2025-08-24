@@ -362,7 +362,6 @@ namespace YARG.Menu.ScoreScreen
         {
             var song = GlobalVariables.State.CurrentSong;
 
-            // Set navigation scheme
             _continueButtonEntry = new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
                 {
                     if (!_analyzingReplay)
@@ -396,7 +395,6 @@ namespace YARG.Menu.ScoreScreen
                 GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
             });
 
-            // dummy remove button so it can be used in add button
             _addFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.AddToFavorites", () =>
                 {
                     YargLogger.LogInfo("added favorite");
@@ -410,6 +408,7 @@ namespace YARG.Menu.ScoreScreen
                     PlaylistContainer.FavoritesPlaylist.RemoveSong(song);
                     UpdateNavigationScheme(true);
                 });
+            
             UpdateNavigationScheme();
         }
 
