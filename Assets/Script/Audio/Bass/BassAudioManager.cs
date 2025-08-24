@@ -148,6 +148,7 @@ namespace YARG.Audio.BASS
 
             LoadSfx();
             LoadDrumSfx(); // TODO: move drum sfx loading/disposal to song start/end respectively IF there are any drum players
+            LoadVox();
 
             var info = Bass.Info;
             PlaybackLatency = info.Latency + Bass.DeviceBufferLength + devPeriod;
@@ -315,6 +316,35 @@ namespace YARG.Audio.BASS
             }
 
             YargLogger.LogInfo("Finished loading Drum SFX");
+        }
+
+        private void LoadVox()
+        {
+            YargLogger.LogInfo("Loading VOX");
+            string voxFolder = Path.Combine(Application.streamingAssetsPath, "vox");
+
+            foreach (string voxFile in AudioHelpers.VoxSamplePaths)
+            {
+                string voxBase = Path.Combine(voxFolder, voxFile);
+                foreach (string format in SupportedFormats)
+                {
+                    string voxPath = voxBase + format;
+                    if (File.Exists(voxPath))
+                    {
+                        var voxSample = AudioHelpers.GetVoxSampleFromName(voxFile);
+                        var vox = BassVoxSampleChannel.Create(voxSample, voxPath);
+
+                        if (vox != null)
+                        {
+                            VoxSamples[(int) voxSample] = vox;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            YargLogger.LogInfo("Finished loading VOX");
         }
 
         protected override void SetMasterVolume(double volume)

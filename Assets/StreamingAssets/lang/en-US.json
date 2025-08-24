@@ -1236,6 +1236,10 @@
             "EnableTrackEffects": {
                 "Name": "Enable Track Effects",
                 "Description": "If enabled, the game will display track effects for unison, solo, and drum SP activation phrases."
+            },
+            "EnableVoxSamples": {
+                "Name": "Enable Vox Samples",
+                "Description": "If enabled, the game might make some noises at you on the score screen."
             }
         },
         "PresetType": {
@@ -1380,6 +1384,15 @@
                 },
                 "KickStarpower": {
                     "Name": "Kick Star Power"
+                },
+                "Metal": {
+                    "Name": "Note Metal"
+                },
+                "MetalStarPower": {
+                    "Name": "Note Metal Star Power"
+                },
+                "Miss": {
+                    "Name": "Missed Note"
                 },
                 "OpenFret": {
                     "Name": "Open Fret"

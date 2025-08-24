@@ -2,8 +2,11 @@
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
+using YARG.Audio.BASS;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.ProKeys;
@@ -21,6 +24,7 @@ using YARG.Menu.Persistent;
 using YARG.Scores;
 using YARG.Song;
 using YARG.Playlists;
+using YARG.Settings;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -135,8 +139,25 @@ namespace YARG.Menu.ScoreScreen
 
         private void CreateScoreCards(ScoreScreenStats scoreScreenStats)
         {
+            int fcCount = 0;
+            int highScoreCount = 0;
+
             foreach (var score in scoreScreenStats.PlayerScores)
             {
+                // Bots don't get vox
+                if (!score.Player.Profile.IsBot)
+                {
+                    // We intentionally don't count both high score and full combo
+                    if (score.Stats.IsFullCombo)
+                    {
+                        fcCount++;
+                    }
+                    else if (score.IsHighScore)
+                    {
+                        highScoreCount++;
+                    }
+                }
+
                 switch (score.Player.Profile.CurrentInstrument.ToGameMode())
                 {
                     case GameMode.FiveFretGuitar:
@@ -176,7 +197,7 @@ namespace YARG.Menu.ScoreScreen
             {
                 MusicLibraryMenu.NeedsReload();
             }
-            
+
             // Make sure to update the canvases since we *just* added the score cards
             Canvas.ForceUpdateCanvases();
 
@@ -184,6 +205,78 @@ namespace YARG.Menu.ScoreScreen
             if (_horizontalScrollBar.gameObject.activeSelf)
             {
                 _horizontalScrollBar.value = 0f;
+            }
+
+            // As a final bonus, play the appropriate full combo vox samples
+            if (SettingsManager.Settings.EnableVoxSamples.Value)
+            {
+                PlayScoreVox(fcCount, highScoreCount);
+            }
+        }
+
+        private static void PlayScoreVox(int fcCount, int highScoreCount)
+        {
+            if (fcCount > 0)
+            {
+                GlobalAudioHandler.PlayVoxSample(VoxSample.FullCombo);
+                YargLogger.LogInfo("Playing full combo vox sample");
+            }
+
+            if (fcCount > 1)
+            {
+                YargLogger.LogDebug($"Playing full combo vox sample for {fcCount} times");
+                switch (fcCount)
+                {
+                    case 2:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times2);
+                        break;
+                    case 3:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times3);
+                        break;
+                    case 4:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times4);
+                        break;
+                    case 5:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times5);
+                        break;
+                    case 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times6);
+                        break;
+                    case > 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.TimesMany);
+                        break;
+                }
+            }
+
+            if (highScoreCount > 0)
+            {
+                GlobalAudioHandler.PlayVoxSample(VoxSample.HighScore);
+                YargLogger.LogInfo("Playing high score vox sample");
+            }
+
+            if (highScoreCount > 1)
+            {
+                switch (highScoreCount)
+                {
+                    case 2:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times2);
+                        break;
+                    case 3:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times3);
+                        break;
+                    case 4:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times4);
+                        break;
+                    case 5:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times5);
+                        break;
+                    case 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times6);
+                        break;
+                    case > 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.TimesMany);
+                        break;
+                }
             }
         }
 
