@@ -8,12 +8,12 @@ namespace YARG.Gameplay.Visuals
         private const float GLOW_THRESHOLD = 0.15f;
 
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
-        private static readonly int _glowAmount    = Shader.PropertyToID("_GlowAmount");
+        private static readonly int _glowAmount = Shader.PropertyToID("_GlowAmount");
 
-        private static readonly int _primaryAmplitude   = Shader.PropertyToID("_PrimaryAmplitude");
+        private static readonly int _primaryAmplitude = Shader.PropertyToID("_PrimaryAmplitude");
         private static readonly int _secondaryAmplitude = Shader.PropertyToID("_SecondaryAmplitude");
-        private static readonly int _tertiaryAmplitude  = Shader.PropertyToID("_TertiaryAmplitude");
-        private static readonly int _forwardOffset      = Shader.PropertyToID("_ForwardOffset");
+        private static readonly int _tertiaryAmplitude = Shader.PropertyToID("_TertiaryAmplitude");
+        private static readonly int _forwardOffset = Shader.PropertyToID("_ForwardOffset");
 
         [SerializeField]
         private Material _sustainMaterial;
@@ -41,14 +41,14 @@ namespace YARG.Gameplay.Visuals
         private void Awake()
         {
             _player = GetComponentInParent<TrackPlayer>();
-            
+
             // Setup mesh components
             _meshRenderer = GetComponent<MeshRenderer>();
             if (_meshRenderer == null)
             {
                 _meshRenderer = gameObject.AddComponent<MeshRenderer>();
             }
-            
+
             _meshFilter = GetComponent<MeshFilter>();
             if (_meshFilter == null)
             {
@@ -74,26 +74,37 @@ namespace YARG.Gameplay.Visuals
         {
             _sustainMesh = new Mesh();
             _sustainMesh.name = "SustainLine";
-            
+
             // Create vertices for a quad (4 vertices)
             Vector3[] vertices = new Vector3[4];
+            Vector3[] normals = new Vector3[4];
             Vector2[] uvs = new Vector2[4];
             int[] triangles = new int[6];
 
-            // Set up triangles (two triangles forming a quad)
-            triangles[0] = 0; triangles[1] = 1; triangles[2] = 2;
-            triangles[3] = 0; triangles[4] = 2; triangles[5] = 3;
+            // Set up triangles (two triangles forming a quad) - ensure correct winding order
+            triangles[0] = 0; triangles[1] = 2; triangles[2] = 1;
+            triangles[3] = 0; triangles[4] = 3; triangles[5] = 2;
 
-            // Set up UVs
-            uvs[0] = new Vector2(0, 0); // Bottom left
-            uvs[1] = new Vector2(1, 0); // Bottom right
-            uvs[2] = new Vector2(1, 1); // Top right
-            uvs[3] = new Vector2(0, 1); // Top left
+            // Set up UVs - alternative rotation fix
+            uvs[0] = new Vector2(1, 0); // Bottom left -> Bottom right in UV space
+            uvs[1] = new Vector2(1, 1); // Bottom right -> Top right in UV space
+            uvs[2] = new Vector2(0, 1); // Top right -> Top left in UV space
+            uvs[3] = new Vector2(0, 0); // Top left -> Bottom left in UV space
+
+            // Set up normals (pointing up)
+            for (int i = 0; i < 4; i++)
+            {
+                normals[i] = Vector3.up;
+            }
 
             _sustainMesh.vertices = vertices;
+            _sustainMesh.normals = normals;
             _sustainMesh.uv = uvs;
             _sustainMesh.triangles = triangles;
-            
+
+            // Ensure proper bounds
+            _sustainMesh.RecalculateBounds();
+
             _meshFilter.mesh = _sustainMesh;
         }
 
@@ -166,7 +177,7 @@ namespace YARG.Gameplay.Visuals
             // Get the new line start position. Said position should be at
             // the strike line and relative to the note itself.
             float newStart = -transform.parent.localPosition.z + TrackPlayer.STRIKE_LINE_POS;
-            
+
             if (Mathf.Abs(_currentStartZ - newStart) > 0.001f)
             {
                 _currentStartZ = newStart;
@@ -211,18 +222,26 @@ namespace YARG.Gameplay.Visuals
             if (_sustainMesh == null) return;
 
             Vector3[] vertices = new Vector3[4];
+            Vector3[] normals = new Vector3[4];
             float halfWidth = _sustainWidth * 0.5f;
 
             // Create quad vertices from current start to full length
             // Bottom vertices (at _currentStartZ)
             vertices[0] = new Vector3(-halfWidth, 0f, _currentStartZ); // Bottom left
             vertices[1] = new Vector3(halfWidth, 0f, _currentStartZ);  // Bottom right
-            
+
             // Top vertices (at _currentLength)
             vertices[2] = new Vector3(halfWidth, 0.01f, _currentLength);  // Top right (slightly elevated)
             vertices[3] = new Vector3(-halfWidth, 0.01f, _currentLength); // Top left (slightly elevated)
 
+            // Set normals
+            for (int i = 0; i < 4; i++)
+            {
+                normals[i] = Vector3.up;
+            }
+
             _sustainMesh.vertices = vertices;
+            _sustainMesh.normals = normals;
             _sustainMesh.RecalculateNormals();
             _sustainMesh.RecalculateBounds();
         }
@@ -233,7 +252,7 @@ namespace YARG.Gameplay.Visuals
             {
                 DestroyImmediate(_materialInstance);
             }
-            
+
             if (_sustainMesh != null)
             {
                 DestroyImmediate(_sustainMesh);
