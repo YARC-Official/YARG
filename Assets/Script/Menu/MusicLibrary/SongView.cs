@@ -46,6 +46,8 @@ namespace YARG.Menu.MusicLibrary
         private RectTransform _starsObtainedView;
         [SerializeField]
         private TextMeshProUGUI _starsObtainedText;
+        [SerializeField]
+        private TextMeshProUGUI _scoreText;
 
         [Space]
         [SerializeField]
@@ -100,6 +102,13 @@ namespace YARG.Menu.MusicLibrary
             if (viewType is SortHeaderViewType)
             {
                 _starsObtainedText.text = viewType.GetSideText(selected);
+            }
+
+            var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
+            _scoreText.gameObject.SetActive(scoreInfoMode == HighScoreInfoMode.Score && viewType is SongViewType);
+            if (scoreInfoMode == HighScoreInfoMode.Score)
+            {
+                _scoreText.text = viewType.GetSideText(selected);
             }
 
             // Show/hide favorite button

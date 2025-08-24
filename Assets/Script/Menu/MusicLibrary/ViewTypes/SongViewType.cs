@@ -86,20 +86,7 @@ namespace YARG.Menu.MusicLibrary
                 return "Score display error!";
             }
 
-            var percentDifficulty = _playerPercentRecord.Difficulty;
-            var percent = Mathf.Floor(_playerPercentRecord.GetPercent() * 100f);
-            var percentColor = _playerPercentRecord.IsFc ? "#fcd13c" : "#ffffff";
-
-            builder.AppendFormat("<sprite name=\"{0}\"> <color={1}>{2:N0}%</color><space=0.5em>",
-                percentDifficulty, percentColor, percent);
-
             var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
-
-            // Percent and score could potentially come from separate difficulties depending on settings
-            if (scoreInfoMode != HighScoreInfoMode.Off && _playerScoreRecord.Difficulty != _playerPercentRecord.Difficulty)
-            {
-                builder.AppendFormat("|<space=0.5em><sprite name=\"{0}\"> ", _playerScoreRecord.Difficulty);
-            }
 
             // Append the score if the setting is enabled
             if (scoreInfoMode == HighScoreInfoMode.Score)
