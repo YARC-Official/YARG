@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Menu.Data;
 using YARG.Menu.ListMenu;
 using YARG.Settings;
 
@@ -98,6 +99,10 @@ namespace YARG.Menu.MusicLibrary
 
             // Set "As Made Famous By" text
             _asMadeFamousByTextContainer.SetActive(viewType.UseAsMadeFamousBy);
+            if (viewType.UseAsMadeFamousBy)
+            {
+                _asMadeFamousByTextContainer.GetComponent<TextMeshProUGUI>().color = selected ? MenuData.Colors.BrightText : MenuData.Colors.TrackDefaultSecondary;
+            }
 
             // Set stars obtained view
             _starsObtainedView.gameObject.SetActive(viewType is SortHeaderViewType);
