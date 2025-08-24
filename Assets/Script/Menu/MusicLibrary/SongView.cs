@@ -64,6 +64,8 @@ namespace YARG.Menu.MusicLibrary
         {
             base.Show(selected, viewType);
 
+            var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
+
             // use category header primary text (which supports wider text), when used as section header
             if(viewType.UseWiderPrimaryText)
             {
@@ -88,7 +90,7 @@ namespace YARG.Menu.MusicLibrary
 
             // Set star view
             var starAmount = viewType.GetStarAmount();
-            _starView.gameObject.SetActive(starAmount is not null);
+            _starView.gameObject.SetActive(scoreInfoMode == HighScoreInfoMode.Stars && starAmount is not null);
             if (starAmount is not null)
             {
                 _starView.SetStars(starAmount.Value);
@@ -104,7 +106,6 @@ namespace YARG.Menu.MusicLibrary
                 _starsObtainedText.text = viewType.GetSideText(selected);
             }
 
-            var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
             _scoreText.gameObject.SetActive(scoreInfoMode == HighScoreInfoMode.Score && viewType is SongViewType);
             if (scoreInfoMode == HighScoreInfoMode.Score)
             {

@@ -2,12 +2,10 @@
 using Cysharp.Text;
 using UnityEngine;
 using YARG.Core.Game;
-using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
-using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -63,14 +61,10 @@ namespace YARG.Menu.MusicLibrary
 
             using var builder = ZString.CreateStringBuilder();
 
+            // If non-null, band score is being requested
             if (_bandScoreRecord is not null)
             {
-                // Append the band score if the setting is enabled
-                if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
-                {
-                    builder.AppendFormat("{0:N0}", _bandScoreRecord.BandScore);
-                }
-
+                builder.AppendFormat("{0:N0}", _bandScoreRecord.BandScore);
                 return builder.ToString();
             }
 
@@ -80,20 +74,7 @@ namespace YARG.Menu.MusicLibrary
                 return string.Empty;
             }
 
-            if (_playerPercentRecord is null)
-            {
-                YargLogger.Fail("Best Percentage score is missing!");
-                return "Score display error!";
-            }
-
-            var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
-
-            // Append the score if the setting is enabled
-            if (scoreInfoMode == HighScoreInfoMode.Score)
-            {
-                builder.AppendFormat("{0:N0}", _playerScoreRecord.Score);
-            }
-
+            builder.AppendFormat("{0:N0}", _playerScoreRecord.Score);
             return builder.ToString();
         }
 
@@ -119,12 +100,6 @@ namespace YARG.Menu.MusicLibrary
 
         public override StarAmount? GetStarAmount()
         {
-            // Only show stars if enabled
-            if (SettingsManager.Settings.HighScoreInfo.Value != HighScoreInfoMode.Stars)
-            {
-                return null;
-            }
-
             FetchHighScores();
 
             if (_bandScoreRecord is not null)
