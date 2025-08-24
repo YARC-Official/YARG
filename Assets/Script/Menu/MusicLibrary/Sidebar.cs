@@ -46,6 +46,8 @@ namespace YARG.Menu.MusicLibrary
         private Image _bandDifficultyBar;
         [SerializeField]
         private TextMeshProUGUI _bandDifficultyLabel;
+        [SerializeField]
+        private TextMeshProUGUI _songRatingLabel;
 
         [SerializeField]
         private GameObject _sidebarContents;
@@ -146,6 +148,7 @@ namespace YARG.Menu.MusicLibrary
             _source.text = string.Empty;
             _charter.text = string.Empty;
             _genre.text = string.Empty;
+            _songRatingLabel.text = string.Empty;
 
             // Hide all difficulty rings
             foreach (var difficultyRing in _difficultyRings)
@@ -163,6 +166,15 @@ namespace YARG.Menu.MusicLibrary
             _charter.text = songEntry.Charter;
             _genre.text = songEntry.Genre;
             _year.text = songEntry.ParsedYear;
+            _songRatingLabel.text = songEntry.SongRating switch
+            {
+                SongRating.Unspecified => "?",
+                SongRating.Family_Friendly => "FF",
+                SongRating.Supervision_Recommended => "SR",
+                SongRating.Mature => "MC",
+                SongRating.No_Rating => "NR",
+                _ => "?",
+            };
 
             // Format and show length
             var time = TimeSpan.FromMilliseconds(songEntry.SongLengthMilliseconds);
