@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using YARG.Gameplay.Player;
-using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -17,11 +16,16 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _forwardOffset      = Shader.PropertyToID("_ForwardOffset");
 
         [SerializeField]
-        private LineRenderer _lineRenderer;
+        private Material _sustainMaterial;
+        [SerializeField]
+        private float _sustainWidth = 0.1f;
         [SerializeField]
         private bool _setShaderProperties = true;
 
-        private Material _material;
+        private MeshRenderer _meshRenderer;
+        private MeshFilter _meshFilter;
+        private Mesh _sustainMesh;
+        private Material _materialInstance;
         private TrackPlayer _player;
 
         private SustainState _hitState = SustainState.Waiting;
@@ -30,29 +34,82 @@ namespace YARG.Gameplay.Visuals
         private float _secondaryAmplitudeTime;
         private float _tertiaryAmplitudeTime;
 
+        // Mesh properties
+        private float _currentLength;
+        private float _currentStartZ;
+
         private void Awake()
         {
             _player = GetComponentInParent<TrackPlayer>();
-            _material = _lineRenderer.material;
+            
+            // Setup mesh components
+            _meshRenderer = GetComponent<MeshRenderer>();
+            if (_meshRenderer == null)
+            {
+                _meshRenderer = gameObject.AddComponent<MeshRenderer>();
+            }
+            
+            _meshFilter = GetComponent<MeshFilter>();
+            if (_meshFilter == null)
+            {
+                _meshFilter = gameObject.AddComponent<MeshFilter>();
+            }
+
+            // Create material instance
+            if (_sustainMaterial != null)
+            {
+                _materialInstance = new Material(_sustainMaterial);
+                _meshRenderer.material = _materialInstance;
+            }
+
+            // Create the mesh
+            CreateSustainMesh();
         }
 
         private void Start()
         {
         }
 
+        private void CreateSustainMesh()
+        {
+            _sustainMesh = new Mesh();
+            _sustainMesh.name = "SustainLine";
+            
+            // Create vertices for a quad (4 vertices)
+            Vector3[] vertices = new Vector3[4];
+            Vector2[] uvs = new Vector2[4];
+            int[] triangles = new int[6];
+
+            // Set up triangles (two triangles forming a quad)
+            triangles[0] = 0; triangles[1] = 1; triangles[2] = 2;
+            triangles[3] = 0; triangles[4] = 2; triangles[5] = 3;
+
+            // Set up UVs
+            uvs[0] = new Vector2(0, 0); // Bottom left
+            uvs[1] = new Vector2(1, 0); // Bottom right
+            uvs[2] = new Vector2(1, 1); // Top right
+            uvs[3] = new Vector2(0, 1); // Top left
+
+            _sustainMesh.vertices = vertices;
+            _sustainMesh.uv = uvs;
+            _sustainMesh.triangles = triangles;
+            
+            _meshFilter.mesh = _sustainMesh;
+        }
+
         public void Initialize(float len)
         {
-            // Set initial line length
-            // Make sure to make point 0 higher up so it renders it in the correct direction
-            _lineRenderer.SetPosition(0, new Vector3(0f, 0.01f, len));
-            _lineRenderer.SetPosition(1, Vector3.zero);
-
+            _currentLength = len;
+            _currentStartZ = 0f;
+            UpdateMeshGeometry();
             ResetAmplitudes();
         }
 
         public void SetState(SustainState state, Color c)
         {
             _hitState = state;
+
+            if (_materialInstance == null) return;
 
             // Get the glow value based on the value of the color
             Color.RGBToHSV(c, out _, out _, out float value);
@@ -61,19 +118,19 @@ namespace YARG.Gameplay.Visuals
             switch (state)
             {
                 case SustainState.Waiting:
-                    _material.color = c;
-                    _material.SetColor(_emissionColor, c);
-                    _material.SetFloat(_glowAmount, glow * 0.9f);
+                    _materialInstance.color = c;
+                    _materialInstance.SetColor(_emissionColor, c);
+                    _materialInstance.SetFloat(_glowAmount, glow * 0.9f);
                     break;
                 case SustainState.Hitting:
-                    _material.color = c;
-                    _material.SetColor(_emissionColor, c * 3f);
-                    _material.SetFloat(_glowAmount, glow);
+                    _materialInstance.color = c;
+                    _materialInstance.SetColor(_emissionColor, c * 3f);
+                    _materialInstance.SetFloat(_glowAmount, glow);
                     break;
                 case SustainState.Missed:
-                    _material.color = new Color(0f, 0f, 0f, 1f);
-                    _material.SetColor(_emissionColor, new Color(0.1f, 0.1f, 0.1f, 1f));
-                    _material.SetFloat(_glowAmount, 0f);
+                    _materialInstance.color = new Color(0f, 0f, 0f, 1f);
+                    _materialInstance.SetColor(_emissionColor, new Color(0.1f, 0.1f, 0.1f, 1f));
+                    _materialInstance.SetFloat(_glowAmount, 0f);
                     ResetAmplitudes();
                     break;
             }
@@ -81,11 +138,11 @@ namespace YARG.Gameplay.Visuals
 
         private void ResetAmplitudes()
         {
-            if (!_setShaderProperties) return;
+            if (!_setShaderProperties || _materialInstance == null) return;
 
-            _material.SetFloat(_primaryAmplitude, 0f);
-            _material.SetFloat(_secondaryAmplitude, 0f);
-            _material.SetFloat(_tertiaryAmplitude, 0f);
+            _materialInstance.SetFloat(_primaryAmplitude, 0f);
+            _materialInstance.SetFloat(_secondaryAmplitude, 0f);
+            _materialInstance.SetFloat(_tertiaryAmplitude, 0f);
 
             _whammyFactor = 0f;
 
@@ -109,16 +166,19 @@ namespace YARG.Gameplay.Visuals
             // Get the new line start position. Said position should be at
             // the strike line and relative to the note itself.
             float newStart = -transform.parent.localPosition.z + TrackPlayer.STRIKE_LINE_POS;
-
-            // Apply to line renderer
-            _lineRenderer.SetPosition(1, new(0f, 0f, newStart));
+            
+            if (Mathf.Abs(_currentStartZ - newStart) > 0.001f)
+            {
+                _currentStartZ = newStart;
+                UpdateMeshGeometry();
+            }
         }
 
         private void UpdateAnimation(float noteSpeed)
         {
             // TODO: Reduce the amount of magic numbers lol
 
-            if (!_setShaderProperties || _hitState != SustainState.Hitting)
+            if (!_setShaderProperties || _hitState != SustainState.Hitting || _materialInstance == null)
             {
                 return;
             }
@@ -137,13 +197,47 @@ namespace YARG.Gameplay.Visuals
             _tertiaryAmplitudeTime += Time.deltaTime * (1.7f + whammy);
 
             // Change line amplitude
-            _material.SetFloat(_primaryAmplitude, 0.18f + whammy * 0.2f);
-            _material.SetFloat(_secondaryAmplitude, Mathf.Sin(_secondaryAmplitudeTime) * (whammy + 0.5f));
-            _material.SetFloat(_tertiaryAmplitude, Mathf.Sin(_tertiaryAmplitudeTime) * (whammy * 0.1f + 0.1f));
+            _materialInstance.SetFloat(_primaryAmplitude, 0.18f + whammy * 0.2f);
+            _materialInstance.SetFloat(_secondaryAmplitude, Mathf.Sin(_secondaryAmplitudeTime) * (whammy + 0.5f));
+            _materialInstance.SetFloat(_tertiaryAmplitude, Mathf.Sin(_tertiaryAmplitudeTime) * (whammy * 0.1f + 0.1f));
 
             // Move line forward
             float forwardSub = Time.deltaTime * noteSpeed / 2.5f * (1f + whammy * 0.1f);
-            _material.SetFloat(_forwardOffset, _material.GetFloat(_forwardOffset) + forwardSub);
+            _materialInstance.SetFloat(_forwardOffset, _materialInstance.GetFloat(_forwardOffset) + forwardSub);
+        }
+
+        private void UpdateMeshGeometry()
+        {
+            if (_sustainMesh == null) return;
+
+            Vector3[] vertices = new Vector3[4];
+            float halfWidth = _sustainWidth * 0.5f;
+
+            // Create quad vertices from current start to full length
+            // Bottom vertices (at _currentStartZ)
+            vertices[0] = new Vector3(-halfWidth, 0f, _currentStartZ); // Bottom left
+            vertices[1] = new Vector3(halfWidth, 0f, _currentStartZ);  // Bottom right
+            
+            // Top vertices (at _currentLength)
+            vertices[2] = new Vector3(halfWidth, 0.01f, _currentLength);  // Top right (slightly elevated)
+            vertices[3] = new Vector3(-halfWidth, 0.01f, _currentLength); // Top left (slightly elevated)
+
+            _sustainMesh.vertices = vertices;
+            _sustainMesh.RecalculateNormals();
+            _sustainMesh.RecalculateBounds();
+        }
+
+        private void OnDestroy()
+        {
+            if (_materialInstance != null)
+            {
+                DestroyImmediate(_materialInstance);
+            }
+            
+            if (_sustainMesh != null)
+            {
+                DestroyImmediate(_sustainMesh);
+            }
         }
     }
 }
