@@ -333,7 +333,7 @@
         "ScoreScreen" : {
             "BandScoreNotSaved" : "(Score not saved)",
             "RestartSong" : "Restart Song",
-            "EndSetlistEarly" : "End Setlist Early"
+            "EndSetlistEarly" : "End Setlist"
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
