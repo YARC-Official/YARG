@@ -440,7 +440,7 @@ namespace YARG.Menu.ScoreScreen
             if (GlobalVariables.State.PlayingAShow &&
                 GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
             {
-                buttons.Add(_endEarlyButtonEntry);
+                buttons.Insert(1, _endEarlyButtonEntry);
             }
 
             Navigator.Instance.PushScheme(new(buttons, true));
