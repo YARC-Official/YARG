@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using YARG.Core.Game;
 using YARG.Menu.ListMenu;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -42,7 +43,7 @@ namespace YARG.Menu.MusicLibrary
         private GameObject _categoryNameContainer;
         [SerializeField]
         private TextMeshProUGUI _categoryText;
-        
+
         [SerializeField]
         private GameObject _starHeaderGroup;
         [SerializeField]
@@ -115,7 +116,7 @@ namespace YARG.Menu.MusicLibrary
                 }
             }
 
-            if (starHeaderAmount != StarAmount.None)
+            if (starHeaderAmount != StarAmount.None && SettingsManager.Settings.LibrarySort == SortAttribute.Stars)
             {
                 int starCount = starHeaderAmount.GetStarCount();
                 Sprite starSprite = starHeaderAmount == StarAmount.StarGold ? _starGoldSprite : _starWhiteSprite;
