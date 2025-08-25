@@ -145,4 +145,4 @@ MonoBehaviour:
   _sustainMaterial: {fileID: 2100000, guid: d3210b5e82586ef4d801f715c888240d, type: 2}
   _sustainWidth: 2
   _subdivisions: 16
-  _setShaderProperties: 1
+  _setShaderProperties: 0
