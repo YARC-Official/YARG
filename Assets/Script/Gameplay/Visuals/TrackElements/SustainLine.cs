@@ -98,18 +98,18 @@ namespace YARG.Gameplay.Visuals
                 normals[i] = Vector3.up;
             }
 
-            // Set up UVs for start edge (left side in UV space)
+            // Set up UVs for start edge (right side in UV space)
             for (int i = 0; i < verticesPerEdge; i++)
             {
                 float t = (float)i / subdivisions; // 0 to 1 across the width
-                uvs[i] = new Vector2(0f, 1f - t); // Left side, top to bottom
+                uvs[i] = new Vector2(1f, 1f - t); // Right side, top to bottom
             }
 
-            // Set up UVs for end edge (right side in UV space)
+            // Set up UVs for end edge (left side in UV space)
             for (int i = 0; i < verticesPerEdge; i++)
             {
                 float t = (float)i / subdivisions; // 0 to 1 across the width
-                uvs[verticesPerEdge + i] = new Vector2(1f, 1f - t); // Right side, top to bottom
+                uvs[verticesPerEdge + i] = new Vector2(0f, 1f - t); // Left side, top to bottom
             }
 
             // Set up triangles with consistent winding
