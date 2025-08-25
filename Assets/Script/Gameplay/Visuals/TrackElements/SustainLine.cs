@@ -118,7 +118,7 @@ namespace YARG.Gameplay.Visuals
             {
                 // Vertex indices for this quad segment
                 int bottomLeft = i;                    // Start edge, left vertex
-                int bottomRight = i + 1;              // Start edge, right vertex  
+                int bottomRight = i + 1;              // Start edge, right vertex
                 int topLeft = verticesPerEdge + i;    // End edge, left vertex
                 int topRight = verticesPerEdge + i + 1; // End edge, right vertex
 
@@ -257,7 +257,7 @@ namespace YARG.Gameplay.Visuals
             _materialInstance.SetFloat(_tertiaryAmplitude, Mathf.Sin(_tertiaryAmplitudeTime) * (whammy * 0.1f + 0.1f));
 
             // Move line forward
-            float forwardSub = Time.deltaTime * noteSpeed / 2.5f * (1f + whammy * 0.1f);
+            float forwardSub = Time.deltaTime * 2.0f * (1f + whammy * 0.1f);
             _materialInstance.SetFloat(_forwardOffset, _materialInstance.GetFloat(_forwardOffset) + forwardSub);
         }
 
