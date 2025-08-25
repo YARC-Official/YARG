@@ -192,34 +192,6 @@ namespace YARG.Menu.MusicLibrary
             SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
         }
 
-        private void OnAddButtonHit(NavigationContext ctx)
-        {
-            _heldInputs.Add(new Navigator.HoldContext(ctx));
-        }
-
-        private void OnAddButtonRelease(NavigationContext ctx)
-        {
-            var holdContext = _heldInputs.FirstOrDefault(i => i.Context.IsSameAs(ctx));
-
-            if (ctx.Action == MenuAction.Yellow && (holdContext?.Timer > 0 || ctx.Player is null))
-            {
-                _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
-                AddToPlaylist();
-            }
-            else
-            {
-                _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
-                if (ShowPlaylist.Count > 0)
-                {
-                    StartSetlist();
-                }
-                else
-                {
-                    EnterShowMode();
-                }
-            }
-        }
-
         private void EnterShowMode()
         {
             // Update the navigation scheme
