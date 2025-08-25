@@ -122,10 +122,13 @@ namespace YARG.Scores
                 foreach (var playerEntry in playerEntries)
                 {
                     playerEntry.GameRecordId = gameRecord.Id;
-
                     // Record the player's info in the "Players" table
-                    string name = PlayerContainer.GetProfileById(playerEntry.PlayerId).Name;
-                    RecordPlayerInfo(playerEntry.PlayerId, name);
+
+                    if (!playerEntry.IsReplay)
+                    {
+                        string name = PlayerContainer.GetProfileById(playerEntry.PlayerId).Name;
+                        RecordPlayerInfo(playerEntry.PlayerId, name);
+                    }
                 }
 
                 _db.InsertSoloRecords(playerEntries);
@@ -356,11 +359,11 @@ namespace YARG.Scores
         }
 
         // this is the same as GetMostPlayedSongs, but is limited to the one profile and returns the entire list
-        public static List<SongEntry> GetPlayedSongsForUserByPlaycount(YargProfile profile, SortOrdering ordering)
+        public static Dictionary<SongEntry,int> GetPlayedSongsForUserByPlaycount(YargProfile profile, SortOrdering ordering)
         {
             try
             {
-                var songList = new List<SongEntry>();
+                var songPlays = new Dictionary<SongEntry, int>();
 
                 var mostPlayed = _db.QueryPlayerMostPlayedSongs(profile, ordering);
                 foreach (var record in mostPlayed)
@@ -368,17 +371,43 @@ namespace YARG.Scores
                     var hash = HashWrapper.Create(record.SongChecksum);
                     if (SongContainer.SongsByHash.TryGetValue(hash, out var list))
                     {
-                        songList.AddRange(list);
+                        var plays = record.Count;
+                        foreach (var song in list)
+                        {
+                            songPlays[song] = plays;
+                        }
                     }
                 }
 
-                return songList;
+                return songPlays;
             }
             catch (Exception e)
             {
                 YargLogger.LogException(e, "Failed to load most played songs from database.");
-                return new List<SongEntry>();
+                return new Dictionary<SongEntry, int>();
             }
+        }
+
+        public static Dictionary<HashWrapper, StarAmount> GetBestStarsForSong(YargProfile profile)
+        {
+            try
+            {
+                List<PlayerScoreWithChecksum> records = _db.QueryPlayerBestStars(profile, false);
+                Dictionary<HashWrapper, StarAmount> result = new Dictionary<HashWrapper, StarAmount>();
+
+                foreach (PlayerScoreWithChecksum record in records)
+                {
+                    HashWrapper hash = HashWrapper.Create(record.SongChecksum);
+                    result[hash] = record.Stars;
+                }
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to fetch best star value from database.");
+            }
+            return new Dictionary<HashWrapper, StarAmount>();
         }
     }
 }

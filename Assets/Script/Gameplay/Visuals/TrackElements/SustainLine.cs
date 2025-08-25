@@ -38,10 +38,6 @@ namespace YARG.Gameplay.Visuals
 
         private void Start()
         {
-            float fadePos = _player.ZeroFadePosition;
-            float fadeSize = _player.FadeSize;
-
-            _material.SetFade(fadePos, fadeSize);
         }
 
         public void Initialize(float len)

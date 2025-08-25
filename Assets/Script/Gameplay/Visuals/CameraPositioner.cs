@@ -29,8 +29,9 @@ namespace YARG.Gameplay.Visuals
 
         public void Initialize(CameraPreset preset)
         {
+            var camera = GetComponent<Camera>();
             // FOV
-            GetComponent<Camera>().fieldOfView = preset.FieldOfView;
+            camera.fieldOfView = preset.FieldOfView;
 
             // Position
             transform.localPosition = new Vector3(

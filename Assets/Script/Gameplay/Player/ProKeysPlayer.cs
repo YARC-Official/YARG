@@ -5,6 +5,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.ProKeys;
 using YARG.Core.Engine.ProKeys.Engines;
 using YARG.Core.Input;
@@ -18,6 +19,15 @@ namespace YARG.Gameplay.Player
     {
         public struct RangeShift
         {
+            public static readonly RangeShift Default = new()
+            {
+                Time = 0,
+                TimeLength = 0,
+                Tick = 0,
+                TickLength = 0,
+                Key = 0,
+            };
+
             public double Time;
             public double TimeLength;
 
@@ -84,7 +94,7 @@ namespace YARG.Gameplay.Player
 
         protected override ProKeysEngine CreateEngine()
         {
-            if (GameManager.ReplayInfo == null)
+            if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds);
@@ -96,6 +106,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = new YargProKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -132,7 +143,7 @@ namespace YARG.Gameplay.Player
 
             if (_rangeShifts.Count > 0)
             {
-                RangeShiftTo(_rangeShifts[0].Key, 0);
+                RangeShiftTo(_rangeShifts[0], 0);
                 _rangeShiftIndex++;
             }
         }
@@ -146,7 +157,7 @@ namespace YARG.Gameplay.Player
 
             if (_rangeShifts.Count > 0)
             {
-                RangeShiftTo(_rangeShifts[0].Key, 0);
+                RangeShiftTo(_rangeShifts[0], 0);
                 _rangeShiftIndex++;
             }
         }
@@ -161,7 +172,7 @@ namespace YARG.Gameplay.Player
             if (_rangeShifts.Count == 0)
             {
                 YargLogger.LogWarning("No range shifts found in chart. Defaulting to 0.");
-                RangeShiftTo(0, 0);
+                RangeShiftTo(RangeShift.Default, 0);
                 _rangeShiftIndex++;
 
                 return;
@@ -200,7 +211,7 @@ namespace YARG.Gameplay.Player
 
             if (_rangeShifts.Count > 0)
             {
-                RangeShiftTo(_rangeShifts[0].Key, 0);
+                RangeShiftTo(_rangeShifts[0], 0);
                 _rangeShiftIndex++;
             }
         }
@@ -257,17 +268,22 @@ namespace YARG.Gameplay.Player
             _keysArray.SetPressed(key, isPressed);
         }
 
-        private void RangeShiftTo(int noteIndex, double timeLength)
+        private void RangeShiftTo(in RangeShift shift, double timeLength = -1)
         {
+            if (timeLength < 0)
+            {
+                timeLength = shift.TimeLength;
+            }
+
             _isOffsetChanging = true;
 
-            _offsetStartTime = GameManager.RealVisualTime;
-            _offsetEndTime = GameManager.RealVisualTime + timeLength;
+            _offsetStartTime = shift.Time;
+            _offsetEndTime = shift.Time + timeLength;
 
             _previousOffset = _currentOffset;
 
             // We need to get the offset relative to the 0th key (as that's the base)
-            _targetOffset = _keysArray.GetKeyX(0) - _keysArray.GetKeyX(noteIndex);
+            _targetOffset = _keysArray.GetKeyX(0) - _keysArray.GetKeyX(shift.Key);
         }
 
         public float GetNoteX(int index)
@@ -275,53 +291,11 @@ namespace YARG.Gameplay.Player
             return _keysArray.GetKeyX(index) + _currentOffset;
         }
 
-        protected override void UpdateVisuals(double songTime)
+        protected override void UpdateVisuals(double visualTime)
         {
-            UpdateBaseVisuals(Engine.EngineStats, EngineParams, songTime);
-            UpdatePhrases(songTime);
-
-            if (_isOffsetChanging)
-            {
-                float changePercent = (float) YargMath.InverseLerpD(_offsetStartTime, _offsetEndTime,
-                    GameManager.RealVisualTime);
-
-                // Because the range shift is called when resetting practice mode, the start time
-                // will be that of the previous section causing the real time to be less than the start time.
-                // In that case, just complete the range shift immediately.
-                if (GameManager.RealVisualTime < _offsetStartTime)
-                {
-                    changePercent = 1f;
-                }
-
-                if (changePercent >= 1f)
-                {
-                    // If the change has finished, stop!
-                    _isOffsetChanging = false;
-                    _currentOffset = _targetOffset;
-                }
-                else
-                {
-                    _currentOffset = Mathf.Lerp(_previousOffset, _targetOffset, changePercent);
-                }
-
-                // Update the visuals with the new offsets
-
-                var keysTransform = _keysArray.transform;
-                keysTransform.localPosition = keysTransform.localPosition.WithX(_currentOffset);
-
-                var overlayTransform = _trackOverlay.transform;
-                overlayTransform.localPosition = overlayTransform.localPosition.WithX(_currentOffset);
-
-                foreach (var note in NotePool.AllSpawned)
-                {
-                    (note as ProKeysNoteElement)?.UpdateXPosition();
-                }
-
-                foreach (var bar in _chordBarPool.AllSpawned)
-                {
-                    (bar as ProKeysChordBarElement)?.UpdateXPosition();
-                }
-            }
+            base.UpdateVisuals(visualTime);
+            UpdatePhrases(visualTime);
+            UpdateRange(visualTime);
         }
 
         protected override void ResetVisuals()
@@ -331,20 +305,20 @@ namespace YARG.Gameplay.Player
             _chordBarPool.ReturnAllObjects();
         }
 
-        private void UpdatePhrases(double songTime)
+        private void UpdatePhrases(double visualTime)
         {
-            while (_rangeShiftIndex < _rangeShifts.Count && _rangeShifts[_rangeShiftIndex].Time <= songTime)
+            while (_rangeShiftIndex < _rangeShifts.Count && _rangeShifts[_rangeShiftIndex].Time <= visualTime)
             {
                 var rangeShift = _rangeShifts[_rangeShiftIndex];
 
                 const double rangeShiftTime = 0.25;
-                RangeShiftTo(rangeShift.Key, rangeShiftTime);
+                RangeShiftTo(rangeShift, rangeShiftTime);
 
                 _rangeShiftIndex++;
             }
 
             while (_shiftIndicatorIndex < _shiftIndicators.Count
-                && _shiftIndicators[_shiftIndicatorIndex].Time <= songTime + SpawnTimeOffset)
+                && _shiftIndicators[_shiftIndicatorIndex].Time <= visualTime + SpawnTimeOffset)
             {
                 var shiftIndicator = _shiftIndicators[_shiftIndicatorIndex];
 
@@ -367,6 +341,53 @@ namespace YARG.Gameplay.Player
                 poolable.EnableFromPool();
 
                 _shiftIndicatorIndex++;
+            }
+        }
+
+        private void UpdateRange(double visualTime)
+        {
+            if (!_isOffsetChanging)
+            {
+                return;
+            }
+
+            float changePercent = (float) YargMath.InverseLerpD(_offsetStartTime, _offsetEndTime, visualTime);
+
+            // Because the range shift is called when resetting practice mode, the start time
+            // will be that of the previous section causing the real time to be less than the start time.
+            // In that case, just complete the range shift immediately.
+            if (visualTime < _offsetStartTime)
+            {
+                changePercent = 1f;
+            }
+
+            if (changePercent >= 1f)
+            {
+                // If the change has finished, stop!
+                _isOffsetChanging = false;
+                _currentOffset = _targetOffset;
+            }
+            else
+            {
+                _currentOffset = Mathf.Lerp(_previousOffset, _targetOffset, changePercent);
+            }
+
+            // Update the visuals with the new offsets
+
+            var keysTransform = _keysArray.transform;
+            keysTransform.localPosition = keysTransform.localPosition.WithX(_currentOffset);
+
+            var overlayTransform = _trackOverlay.transform;
+            overlayTransform.localPosition = overlayTransform.localPosition.WithX(_currentOffset);
+
+            foreach (var note in NotePool.AllSpawned)
+            {
+                (note as ProKeysNoteElement)?.UpdateXPosition();
+            }
+
+            foreach (var bar in _chordBarPool.AllSpawned)
+            {
+                (bar as ProKeysChordBarElement)?.UpdateXPosition();
             }
         }
 

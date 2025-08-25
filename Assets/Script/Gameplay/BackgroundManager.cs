@@ -1,17 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.IO;
-using YARG.Core.Logging;
 using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 using YARG.Venue;
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+using System.Collections.Generic;
+using YARG.Core.Logging;
+#endif
 
 namespace YARG.Gameplay
 {
@@ -69,7 +72,7 @@ namespace YARG.Gameplay
                     // Breaks things for other platforms, because Unity
                     var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
                         BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
-
+                    var renderers = bg.GetComponentsInChildren<Renderer>(true);
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
                     var metalShaders = new Dictionary<string, Shader>();
 
@@ -95,7 +98,6 @@ namespace YARG.Gameplay
                     // Yarground comes with shaders for dx11/dx12/glcore/vulkan
                     // Metal shaders used on OSX come in this separate bundle
                     // Update our renderers to use them
-                    var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
                     foreach (var renderer in renderers)
                     {
@@ -117,10 +119,21 @@ namespace YARG.Gameplay
                         }
                     }
 #endif
+                    // Hookup song-specific textures
+                    var textureManager = GetComponent<TextureManager>();
+                    foreach (var renderer in renderers)
+                    {
+                        foreach (var material in renderer.sharedMaterials)
+                        {
+                            textureManager.ProcessMaterial(material);
+                        }
+                    }
+
                     var bgInstance = Instantiate(bg);
                     var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
                     bundleBackgroundManager.Bundle = bundle;
                     bundleBackgroundManager.ShaderBundle = shaderBundle;
+                    bundleBackgroundManager.SetupVenueCamera(bgInstance);
 
                     // Destroy the default camera (venue has its own)
                     Destroy(_videoPlayer.targetCamera.gameObject);
@@ -195,7 +208,7 @@ namespace YARG.Gameplay
             }
 
             // End video when reaching the specified end time
-            if (time - _videoStartTime >= _videoEndTime)
+            if (time + _videoStartTime >= _videoEndTime)
             {
                 _videoPlayer.Stop();
                 _videoPlayer.enabled = false;

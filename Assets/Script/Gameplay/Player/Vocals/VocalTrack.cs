@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Serialization;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay.HUD;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
+using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings;
 
@@ -186,22 +186,22 @@ namespace YARG.Gameplay.Player
                 "Note pools must be of length three (one for each harmony part).");
         }
 
-        public RenderTexture InitializeRenderTexture(float vocalImageAspectRatio)
+        public void InitializeRenderTexture(float vocalImageAspectRatio, RenderTexture renderTexture)
         {
             // Set the vocal track render texture to a constant aspect ratio
             // to make it easier to work with and size.
-            int height = (int) (Screen.width / vocalImageAspectRatio);
+            // int height = (int) (Screen.width / vocalImageAspectRatio);
+            float height =  Screen.width / vocalImageAspectRatio / Screen.height;
+            var cameraRect = new Rect(0.0f, 1.0f - height, 1.0f, height);
 
-            // Create a render texture for the vocals
-            var descriptor = new RenderTextureDescriptor(
-                Screen.width, height, RenderTextureFormat.ARGBHalf);
-            descriptor.mipCount = 0;
-            var renderTexture = new RenderTexture(descriptor);
+            // Adjust camera rect so vocal track clears stat bar
+            var statsRect = StatsManager.Instance.GetComponent<RectTransform>();
+            var statsHeightNormalized = statsRect.rect.height / Screen.height;
+            cameraRect.y -= statsHeightNormalized;
+            _trackCamera.rect = cameraRect;
 
             // Apply the render texture
             _trackCamera.targetTexture = renderTexture;
-
-            return renderTexture;
         }
 
         public void Initialize(VocalsTrack vocalsTrack, YargPlayer primaryPlayer)
@@ -315,19 +315,19 @@ namespace YARG.Gameplay.Player
             return percussionTrack;
         }
 
-        public void UpdateCountdown(int measuresLeft, double countdownLength, double endTime)
+        public void UpdateCountdown(double countdownLength, double endTime)
         {
             if (_countdownDisplay == null)
             {
                 return;
             }
 
-            _countdownDisplay.UpdateCountdown(measuresLeft, countdownLength, endTime);
+            _countdownDisplay.UpdateCountdown(countdownLength, endTime);
         }
 
         private void Update()
         {
-            double time = GameManager.RealVisualTime;
+            double time = GameManager.VisualTime;
 
             // Handle range changes
             var ranges = _vocalsTrack.RangeShifts;

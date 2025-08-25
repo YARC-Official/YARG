@@ -1,4 +1,4 @@
-{
+﻿{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -73,6 +73,7 @@
             "Playlist": "Playlist",
             "SongLength": "Duration",
             "Source": "Source",
+            "Stars": "Stars",
             "Unspecified": "None",
             "Year": "Year",
             "DateAdded": "Date Added",
@@ -201,6 +202,10 @@
                 "Title": "Experimental Features Notice",
                 "Description": "The options about to be displayed represent a work in progress. These features are subject to change, may contain bugs, and <b>could even cause major problems if enabled</b>.",
                 "Confirm": "I Understand"
+            },
+            "ShowDialog": {
+                "Title": "Choose Your Fate",
+                "Select": "That's Plenty"
             }
         },
         "DifficultySelect": {
@@ -226,10 +231,11 @@
                 "MoreThanYear": "More Than A Year"
             },
 
-            "Analyze": "Analyze"
+            "Analyze": "Analyze",
+            "PlayWithReplay": "Play With Replay"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to the v0.13 Nightly!</b></size></align>\n\nv0.13 adds Pro Keys to the game, as well as reintroducing Pro Guitar/Bass after it was removed in v0.12 due to time constraints. Please let us know how these instruments feel, as well as any bugs you find and missing features.\n\nInstrument engine code has once again gone through major changes to facilitate producing replays with 1:1 results to the original gameplay. <b>If you encounter any inconsistent replay results, report it to the YARG team on Discord or GitHub.</b>\n\nIf you previously played on the v0.12 nightly, all of your settings will be reset. This is due to nightly builds now using a separate location for data storage. Your nightly settings/scores will not persist to stable versions of YARG, and vice versa.\n\nAs we previously announced, <b>we do not recommend playing nightly full time, instead only for testing.</b> Nightly is now going to be much more unstable with many more bugs and unfinished systems.\n\n<b>If you have any feedback, please let us know on Discord or GitHub.</b>\n\nHave fun!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.13!</b></size></align>\n\nv0.13 is a major update that adds Pro Keys, brings major engine improvements for all instruments, along with a ton of quality of life features, performance improvements, and more.\n\n<b>If you have any feedback, or find any bugs, please let us know on Discord or GitHub.</b>\n\nHave fun!",
             "Options": {
                 "Quickplay": "Quickplay",
                 "Practice": "Practice",
@@ -253,6 +259,8 @@
             "PlayableSongs": "PLAYABLE SONGS",
             "RandomSong": "RANDOM SONG",
             "Playlists": "PLAYLISTS",
+            "Favorites": "Favorites",
+            "YourPlaylists": "YOUR PLAYLISTS",
             "Popup": {
                 "Header": {
                     "SortBy": "Sort By...",
@@ -265,6 +273,10 @@
                     "GoToSection": "Go To Section...",
                     "AddToFavorites": "Add To Favorites",
                     "RemoveFromFavorites": "Remove From Favorites",
+                    "AddToPlaylist": "Add To Playlist...",
+                    "RemoveFromPlaylist": "Remove From Playlist",
+                    "CreateNewPlaylist": "Create New...",
+                    "RemovePlaylist": "Remove Playlist",
                     "ViewSongFolder": "View Song Folder",
                     "CopySongChecksum": "Copy Song Checksum"
                 }
@@ -273,7 +285,33 @@
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
             "Play": "Play Song",
             "Search": "Search",
-            "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>"
+            "CurrentSetlist": "Current Setlist",
+            "AddToSet": "Add To Setlist",
+            "AddedToSet": "Added To Setlist",
+            "PlaylistAddedToSet": "Added {0:N0} Songs From Playlist To Setlist",
+            "StartSet": "Start The Set",
+            "PlayShow": "Play A Show",
+            "NoSongsInPlaylist": "No Songs In Playlist",
+            "CannotAddToSelf": "No, I will not create an ouroboros for you. Nice try, Jaden.",
+            "AddToShow": "Add To Show",
+            "AddedToShow": "Added To Show",
+            "StartShow": "Start The Show",
+            "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>",
+            "PlayAShow": {
+                "LongSong": "A Long Song",
+                "RandomSong": "A Random Song",
+                "ShortSong": "A Short Song",
+                "SongFromArtist": "A Song By {0}",
+                "SongFromDecade": "A Song From The {0}",
+                "SongFromFavorites": "One Of Your Favorite Songs",
+                "SongFromAnGenre": "An {0} Song",
+                "SongFromGenre": "A {0} Song",
+                "SongFromPlaylist": "A Song From Your Playlist {0}",
+                "SongFromSource": "A Song From {0}",
+                "StartsWithLetter": "A Song Starting With The Letter \"{0}\"",
+                "StartsWithNumber": "A Song Starting With A Number",
+                "StartsWithOther": "A Song Starting With Something Non-Alphanumeric"
+            }
         },
         "ProfileInfo": {
             "Name": "Edit Profile",
@@ -340,7 +378,159 @@
                 "Okay": "OKAY",
                 "Strong": "STRONG"
             }
-        }
+        },
+		"Practice": {
+			"Sections": {
+				"intro": "Intro",
+				"intro_slow": "Intro slow",
+				"intro_fast": "Intro fast",
+				"intro_heavy": "Intro heavy",
+				"quiet_intro": "Quiet intro",
+				"noise_intro": "Noise intro",
+				"drum_intro": "Drum intro",
+				"bass_intro": "Bass intro",
+				"vocal_intro": "Vocal intro",
+				"gtr_intro": "Gtr intro",
+				"aco_gtr_intro": "Aco gtr intro",
+				"violin_intro": "Violin intro",
+				"strings_intro": "Strings intro",
+				"orch_intro": "Orch intro",
+				"horn_intro": "Horn intro",
+				"harmonica_intro": "Harmonica intro",
+				"organ_intro": "Organ intro",
+				"piano_intro": "Piano intro",
+				"keyboard_intro": "Keyboard intro",
+				"dj_intro": "DJ intro",
+				"intro_hook": "Intro hook",
+				"intro_riff": "Intro riff",
+				"fade_in": "Fade in",
+				"drums_enter": "Drums enter",
+				"bass_enters": "Bass enters",
+				"gtr_enters": "Gtr enters",
+				"rhy_enters": "Gtr2 enters",
+				"band_enters": "Band enters",
+				"synth_enters": "Synth enters",
+				"keyboard_enters": "Keyboard enters",
+				"organ_enters": "Organ enters",
+				"piano_enters": "Piano enters",
+				"kick_it": "Kick It!",
+				"intro_verse": "Intro verse",
+				"intro_chorus": "Intro chorus",
+				"verse": "Verse",
+				"alt_verse": "Alt verse",
+				"quiet_verse": "Quiet verse",
+				"preverse": "Pre-verse",
+				"postverse": "Post-verse",
+				"chorus": "Chorus",
+				"chorus_break": "Chorus break",
+				"breakdown_chorus": "Breakdown chorus",
+				"alt_chorus": "Alt chorus",
+				"prechorus": "Pre-chorus",
+				"postchorus": "Post-chorus",
+				"bridge": "Bridge",
+				"gtr_solo": "Gtr solo",
+				"slide_solo": "Slide solo",
+				"violin_solo": "Violin solo",
+				"drum_solo": "Drum solo",
+				"percussion_solo": "Percussion solo",
+				"bass_solo": "Bass solo",
+				"organ_solo": "Organ solo",
+				"piano_solo": "Piano solo",
+				"keyboard_solo": "Keyboard solo",
+				"synth_solo": "Synth solo",
+				"harmonica_solo": "Harmonica solo",
+				"sax_solo": "Sax solo",
+				"horn_solo": "Horn solo",
+				"flute_solo": "Flute solo",
+				"noise_solo": "Noise solo",
+				"noise_build": "Noise build",
+				"dj_solo": "DJ solo",
+				"slow_part": "Slow part",
+				"very_slow": "Very slow",
+				"fast_part": "Fast part",
+				"very_fast": "Very fast",
+				"quiet_part": "Quiet part",
+				"very_quiet": "Very quiet",
+				"loud_part": "Loud part",
+				"very_loud": "Very loud",
+				"heavy_part": "Heavy part",
+				"very_heavy": "Very heavy",
+				"spacey_part": "Spacey part",
+				"very_spacey": "Very spacey",
+				"trippy_part": "Trippy part",
+				"very_trippy": "Very trippy",
+				"break": "Break",
+				"breakdown": "Breakdown",
+				"gtr_break": "Gtr break",
+				"bass_break": "Bass break",
+				"drum_break": "Drum break",
+				"organ_break": "Organ break",
+				"synth_break": "Synth break",
+				"piano_break": "Piano break",
+				"keyboard_break": "Keyboard break",
+				"horn_break": "Horn break",
+				"scratch_break": "Scratch break",
+				"percussion_break": "Percussion break",
+				"dj_break": "DJ break",
+				"drop": "Drop",
+				"interlude": "Interlude",
+				"soundscape": "Soundscape",
+				"jam": "Jam",
+				"space_jam": "Space jam",
+				"vamp": "Vamp",
+				"build_up": "Build up",
+				"speed_up": "Speed up",
+				"tension": "Tension",
+				"release": "Release",
+				"crescendo": "Crescendo",
+				"melody": "Melody",
+				"lo_melody": "Low melody",
+				"hi_melody": "High melody",
+				"main_riff": "Main riff",
+				"verse_riff": "Verse riff",
+				"chorus_riff": "Chorus riff",
+				"gtr_riff": "Gtr riff",
+				"bass_riff": "Bass riff",
+				"big_riff": "Big riff",
+				"bigger_riff": "Bigger riff",
+				"heavy_riff": "Heavy riff",
+				"fast_riff": "Fast riff",
+				"slow_riff": "Slow riff",
+				"swing_riff": "Swing riff",
+				"chunky_riff": "Chunky riff",
+				"odd_riff": "Odd riff",
+				"hook": "Hook",
+				"drum_roll": "Drum roll",
+				"gtr_lead": "Gtr lead",
+				"gtr_fill": "Gtr fill",
+				"gtr_hook": "Gtr hook",
+				"gtr_melody": "Gtr melody",
+				"gtr_line": "Gtr line",
+				"gtr_lick": "Gtr lick",
+				"gtr_ostinato": "Gtr ostinato",
+				"vocal_break": "Vocal break",
+				"ah": "Ah!",
+				"yeah": "Yeah!",
+				"oohs": "Oohs and Ahs",
+				"prayer": "Prayer",
+				"chant": "Chant",
+				"spoken_word": "Spoken word",
+				"outro": "Outro",
+				"outro_solo": "Outro solo",
+				"outro_chorus": "Outro chorus",
+				"ending": "Ending",
+				"bre": "Big Rock Ending!",
+				"fade_out": "Fade out",
+				"fast_picking": "Fast picking",
+				"foreplay_intro": "Foreplay intro",
+				"longtome_intro": "Long Time intro"
+			},
+			"SectionFormats": {
+				"LetterSection": "{0} section",
+				"WithNumber": "{0} {1}",
+				"PercentageBased": "{0}% - {1}%"
+			}
+		}
     },
 	"Preview": {
 		"Experimental": {
@@ -382,7 +572,12 @@
             "Red": "Red Fret (Second)",
             "Yellow": "Yellow Fret (Third)",
             "Blue": "Blue Fret (Fourth)",
-            "Orange": "Orange Fret (Fifth)"
+            "Orange": "Orange Fret (Fifth)",
+            "SoloGreen": "Solo Green Fret",
+            "SoloRed": "Solo Red Fret",
+            "SoloYellow": "Solo Yellow Fret",
+            "SoloBlue": "Solo Blue Fret",
+            "SoloOrange": "Solo Orange Fret"
         },
         "Guitar": {
             "StrumUp": "Strum Up",
@@ -478,6 +673,7 @@
             "Export": "Export",
             "PathsAndFolders": "Paths and Folders",
             "MusicLibrary": "Music Library",
+            "PlayAShow": "Play A Show",
             "ScanningOptions": "Scanning Options",
             "RB3E": "RB3E Settings",
             "Customization": "Buffer Customization",
@@ -543,6 +739,15 @@
             "AlwaysOnDrumSFX": {
                 "Name": "Always-On Drum SFX",
                 "Description": "Enables Drum SFX at all times."
+            },
+            "BandComboTypeSetting": {
+                "Name": "Band Streak Type",
+                "Description": "Adjusts how Band Streak is calculated, especially in multiplayer sessions. Set this to 'Off' to hide the Band Streak counter.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "Lenient": "Lenient",
+                    "Strict": "Strict"
+                }
             },
             "CrowdVolume": {
                 "Name": "Crowd Volume",
@@ -632,7 +837,7 @@
             },
             "FpsStats": {
                 "Name": "Show FPS Counter",
-                "Description": "Shows the framerate counter on the Status Bar"
+                "Description": "Shows the framerate counter on the Status Bar."
             },
             "FullscreenMode": {
                 "Name": "Fullscreen Mode",
@@ -689,7 +894,7 @@
             },
             "KickBounceMultiplier": {
                 "Name": "Drum Kick Bounce Multiplier",
-                "Description": "Controls the amount the track should bounce when you hit a kick note (drums only). Set to zero if you want to disable."
+                "Description": "Controls the amount the track should bounce when you hit a kick note (drums only). Set to \"0\" if you want to disable."
             },
             "LowQuality": {
                 "Name": "Low Quality Mode",
@@ -752,6 +957,14 @@
                     "Sparse": "50, 100, 250, 500, ..."
                 }
             },
+            "PlayAShowTimeout": {
+                "Name": "Show Selection Timeout",
+                "Description": "The amount of time to wait for votes before picking a song or refreshing the categories."
+            },
+            "RequireAllDifficulties": {
+                "Name": "Require All Difficulties",
+                "Description": "Require show songs to have at least Easy, Medium, Hard, and Expert difficulties"
+            },
             "PracticeRestartDelay": {
                 "Name": "Practice Restart Delay",
                 "Description": "The amount of time (in seconds) to delay the beginning of a section in Practice Mode."
@@ -773,7 +986,7 @@
             "SfxVolume": {
                 "Name": "SFX Volume",
                 "PauseName": "SFX",
-                "Description": "Adjusts the game's sound effect volume, such as when gaining a star, or activating starpower."
+                "Description": "Adjusts the game's sound effect volume, such as when gaining a star, or activating Star Power."
             },
             "ShowAdvancedMusicLibraryOptions": {
                 "Name": "Show Advanced Music Library Options",
@@ -814,7 +1027,7 @@
             },
             "StarPowerHighwayFx": {
                 "Name": "Star Power Highway FX Mode",
-                "Description": "Disables visual elements on the highway which appear when Star Power is active",
+                "Description": "Disables visual elements on the highway which appear when Star Power is active.",
                 "Dropdown": {
                     "Off": "Off",
                     "On": "On",
@@ -829,17 +1042,13 @@
                 "Name": "Chipmunk Speed",
                 "Description": "Disables pitch correction when playing songs at a fast or slow speed which may lead to some... interesting results."
             },
-            "UseCymbalModelsInFiveLane": {
-                "Name": "Use Cymbal Models In Five Lane",
-                "Description": "If enabled, cymbal models will be used in the second and fourth lanes instead of the standard note model (five-lane drums only)."
-            },
             "UseFullDirectoryForPlaylists": {
                 "Name": "Use Full Directory For Playlists",
                 "Description": "Use full directory for the playlist sort option in the music library. <color=white>Rescan required if changed!</color>"
             },
             "UseStarpowerFx": {
-                "Name": "Use Starpower SFX",
-                "Description": "If enabled, it will add reverb to stems where the player has starpower enabled.",
+                "Name": "Use Star Power SFX",
+                "Description": "If enabled, it will add reverb to stems where the player has Star Power enabled.",
                 "Dropdown": {
                     "MultitrackOnly": "Multitrack Only",
                     "Off": "Off",
@@ -852,7 +1061,29 @@
             },
             "WhammyPitchShiftAmount": {
                 "Name": "Whammy Pitch Shift Amount",
-                "Description": "Number of semitones the pitch is changed when the whammy bar is fully pressed. Larger amounts result in lower pitches; default is 1."
+                "Description": "Number of semitones the pitch is changed when the whammy bar is fully pressed. Larger amounts result in lower pitches; default is \"1\"."
+            },
+            "VenueAntiAliasing": {
+                "Name": "Venue Anti Aliasing",
+                "Description": "The anti-aliasing method to use for venue backgrounds.",
+                "Dropdown": {
+                    "None": "None",
+                    "FXAA": "FXAA",
+                    "MSAA": "MSAA",
+                    "FSR3": "FSR3"
+                }
+            },
+            "VenueRenderingQuality": {
+                "Name": "Venue Rendering Quality",
+                "Description": "The quality/resolution to use for venue backgrounds.",
+                "Dropdown": {
+                    "NativeAA": "Native",
+                    "UltraQuality": "Ultra Quality",
+                    "Quality": "Quality",
+                    "Balanced": "Balanced",
+                    "Performance": "Performance",
+                    "UltraPerformance": "Ultra Performance"
+                }
             },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",
@@ -886,19 +1117,23 @@
             },
             "ApplyVolumesInMusicLibrary": {
                 "Name": "Apply Volume Settings to Music Library Previews",
-                "Description": "I think this one speaks for itself"
+                "Description": "Volume settings for specific instrumments will be applied in the Music Library as well."
+            },
+            "DataStreamEnable": {
+                "Name": "Enable UDP data stream",
+                "Description": "Enables sending of UDP information packets over the network, for software such as YALCY."
             },
             "RB3EEnabled": {
                 "Name": "Enable RB3E Stage Kit data stream",
-                "Description": "Enables sending of RB3E style stage kit information packets over the network, for hardware such as StageKitPied"
+                "Description": "Enables sending of RB3E style stage kit information packets over the network, for hardware such as StageKitPied."
             },
             "RB3EBroadcastIP": {
                 "Name": "RB3E target IP",
-                "Description": "Sets the target IP for the RB3E data stream packets. 255.255.255.255 is the broadcast address for the current network"
+                "Description": "Sets the target IP for the RB3E data stream packets. 255.255.255.255 is the broadcast address for the current network."
             },
             "DMXKeyframeChannel": {
                 "Name": "DMX Keyframe",
-                "Description": "This channel receives the Next (3), Previous (13), and First(23) keyframe calls."
+                "Description": "This channel receives the Next (3), Previous (13), and First (23) keyframe calls."
             },
             "DMXBonusEffectChannel": {
                 "Name": "DMX Bonus Effect",
@@ -906,11 +1141,11 @@
             },
             "DMXDrumsChannel": {
                 "Name": "DMX Drum",
-                "Description": "This channel gets additively set to the current drum notes:  Kick (1), Red (2), Yellow (4), Blue (8), Green (16),  Yellow Cymbal (32), Blue Cymbal (64), Green Cymbal (128)."
+                "Description": "This channel gets additively set to the current drum notes: Kick (1), Red (2), Yellow (4), Blue (8), Green (16),  Yellow Cymbal (32), Blue Cymbal (64), Green Cymbal (128)."
             },
             "DMXBeatlineChannel": {
                 "Name": "DMX Beatline",
-                "Description": "This channel gets set on every measure  beat (1) and Strong beat (11)."
+                "Description": "This channel gets set on every measure beat (1) and Strong beat (11)."
             },
             "DMXPostProcessingChannel": {
                 "Name": "DMX Post-Processsing",
@@ -926,7 +1161,7 @@
             },
             "DMXPerformerChannel": {
                 "Name": "DMX Performer",
-                "Description": "This channel gets set to the current spotlight and sing-a-long"
+                "Description": "This channel gets set to the current spotlight and sing-a-long."
             },
             "DMXKeysChannel": {
                 "Name": "DMX Keys",
@@ -942,15 +1177,15 @@
             },
             "ShowTime": {
                 "Name": "Show Time",
-                "Description": "Show current time on Status Bar"
+                "Description": "Show current time on Status Bar."
             },
             "ShowBattery": {
                 "Name": "Show Battery",
-                "Description": "Show battery level on Status Bar (if battery is currently discharging)"
+                "Description": "Show battery level on Status Bar (if battery is currently discharging)."
             },
             "MemoryStats": {
                 "Name": "Show Memory Stats",
-                "Description": "Show memory usage stats on the Status Bar"
+                "Description": "Show memory usage stats on the Status Bar."
             },
             "ShowActivePlayers": {
                 "Name": "Show Active Players",
@@ -958,11 +1193,11 @@
             },
             "ShowActiveBots": {
                 "Name": "Show Active Bots",
-                "Description": "Show the number of active bot profiles on the Status Bar (if any)"
+                "Description": "Show the number of active bot profiles on the Status Bar (if any)."
             },
             "DMXUniverseChannel": {
                 "Name": "DMX Broadcast Universe",
-                "Description": "This is the universe that YARG will send the sACN packet to. Default is 1. Maximum is 65535"
+                "Description": "This is the universe that YARG will send the sACN packet to. Default is \"1\". Maximum is \"65535\"."
             },
             "ReconnectProfiles": {
                 "Name": "Reconnect Profiles",
@@ -995,6 +1230,14 @@
             "UseThreeLaneLyricsInHarmony": {
                 "Name": "Use Three Lyric Lanes In Harmony",
                 "Description": "If enabled, the game will display three lyric lanes in harmony mode (one for each harmony). When disabled, the game will combine the lyrics of harmonies 2 and 3 into one lane at the top."
+            },
+            "EnableTrackEffects": {
+                "Name": "Enable Track Effects",
+                "Description": "If enabled, the game will display track effects for unison, solo, and drum SP activation phrases."
+            },
+            "EnableVoxSamples": {
+                "Name": "Enable Vox Samples",
+                "Description": "If enabled, the game might make some noises at you on the score screen."
             }
         },
         "PresetType": {
@@ -1050,6 +1293,15 @@
                 "BlueCymbal": {
                     "Name": "Blue Cymbal"
                 },
+				"BlueCymbalFret": {
+					"Name": "Blue Cymbal Fret\n(split view only)"
+				},
+				"BlueCymbalFretInner": {
+					"Name": "Blue Cymbal Fret Inner\n(split view only)"
+				},
+				"BlueCymbalParticles": {
+					"Name": "Blue Cymbal Particles\n(split view only)"
+				},
                 "BlueCymbalStarpower": {
                     "Name": "Blue Cymbal Star Power"
                 },
@@ -1080,6 +1332,15 @@
                 "GreenCymbal": {
                     "Name": "Green Cymbal"
                 },
+				"GreenCymbalFret": {
+					"Name": "Green Cymbal Fret\n(split view only)"
+				},
+				"GreenCymbalFretInner": {
+					"Name": "Green Cymbal Fret Inner\n(split view only)"
+				},
+				"GreenCymbalParticles": {
+					"Name": "Green Cymbal Particles\n(split view only)"
+				},
                 "GreenCymbalStarpower": {
                     "Name": "Green Cymbal Star Power"
                 },
@@ -1122,6 +1383,15 @@
                 "KickStarpower": {
                     "Name": "Kick Star Power"
                 },
+                "Metal": {
+                    "Name": "Note Metal"
+                },
+                "MetalStarPower": {
+                    "Name": "Note Metal Star Power"
+                },
+                "Miss": {
+                    "Name": "Missed Note"
+                },
                 "OpenFret": {
                     "Name": "Open Fret"
                 },
@@ -1158,6 +1428,15 @@
                 "RedCymbal": {
                     "Name": "Red Cymbal"
                 },
+				"RedCymbalFret": {
+					"Name": "Red Cymbal Fret\n(split view only)"
+				},
+				"RedCymbalFretInner": {
+					"Name": "Red Cymbal Fret Inner\n(split view only)"
+				},
+				"RedCymbalParticles": {
+					"Name": "Red Cymbal Particles\n(split view only)"
+				},
                 "RedCymbalStarpower": {
                     "Name": "Red Cymbal Star Power"
                 },
@@ -1188,6 +1467,15 @@
                 "YellowCymbal": {
                     "Name": "Yellow Cymbal"
                 },
+				"YellowCymbalFret": {
+					"Name": "Yellow Cymbal Fret\n(split view only)"
+				},
+				"YellowCymbalFretInner": {
+					"Name": "Yellow Cymbal Fret Inner\n(split view only)"
+				},
+				"YellowCymbalParticles": {
+					"Name": "Yellow Cymbal Particles\n(split view only)"
+				},
                 "YellowCymbalStarpower": {
                     "Name": "Yellow Cymbal Star Power"
                 },
@@ -1277,7 +1565,7 @@
                 },
                 "FrontToBackRatio": {
                     "Name": "Hit Window Ratio",
-                    "Description": "The hit window's front to back ratio. 0 will bring the hit window fully backwards, 1 will keep it in the center, and 2 will move it to the front."
+                    "Description": "The hit window's front to back ratio. \"0\" will bring the hit window fully backwards, \"1\" will keep it in the center, and \"2\" will move it to the front."
                 },
                 "HitPercentE": {
                     "Name": "Hit Percent (Easy)",
@@ -1366,6 +1654,10 @@
                 "SustainDropLeniency": {
                     "Name": "Sustain Drop Leniency",
                     "Description": ""
+                },
+                "SoloTaps": {
+                    "Name": "Allow Taps During Solos",
+                    "Description": "Allows solo buttons to tap notes during solos"
                 }
             },
             "HighwayPreset" : {

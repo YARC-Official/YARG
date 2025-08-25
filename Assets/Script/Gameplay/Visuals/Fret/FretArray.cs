@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -34,7 +35,7 @@ namespace YARG.Gameplay.Visuals
         private float  _pulseDuration;
 
         public void Initialize(ThemePreset themePreset, GameMode gameMode,
-            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
+            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool splitProTomsAndCymbals, bool swapSnareAndHiHat, bool swapCrashAndRide)
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
                 themePreset, gameMode);
@@ -43,12 +44,21 @@ namespace YARG.Gameplay.Visuals
             _frets.Clear();
             for (int i = 0; i < FretCount; i++)
             {
+                int effectivePosition = i switch
+                {
+                    0 => swapSnareAndHiHat ? 1 : 0,
+                    1 => swapSnareAndHiHat ? 0 : 1,
+                    3 => swapCrashAndRide ? 5 : 3,
+                    5 => swapCrashAndRide ? 3 : 5,
+                    _ => i
+                };
+
                 // Spawn
                 var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);
 
                 // Position
-                float x = _trackWidth / FretCount * i - _trackWidth / 2f + 1f / FretCount;
+                float x = _trackWidth / FretCount * effectivePosition - _trackWidth / 2f + 1f / FretCount;
                 fret.transform.localPosition = new Vector3(leftyFlip ? -x : x, 0f, 0f);
 
                 // Scale
@@ -82,7 +92,8 @@ namespace YARG.Gameplay.Visuals
                 _kickFrets.Add(rightKick.GetComponent<KickFret>());
             }
 
-            InitializeColor(fretColorProvider, leftyFlip);
+            InitializeColor(fretColorProvider, leftyFlip, splitProTomsAndCymbals);
+
             _activeFrets = new bool[FretCount];
             _pulsingFrets = new bool[FretCount];
             // Start with all frets active, they will be set inactive once TrackPlayer figures itself out
@@ -92,12 +103,33 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
+        public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool splitProTomsAndCymbals)
         {
             for (int i = 0; i < _frets.Count; i++)
             {
-                int index = i + 1;
-                if (DontFlipColorsLeftyFlip && leftyFlip)
+                // This needs unique lefty flip logic because it's the one case where
+                // the fret order is different from the color profile order
+                int index;
+                if (splitProTomsAndCymbals)
+                {
+                    index = i switch
+                    {
+                        0 => leftyFlip ? 4 : 1,
+                        1 => leftyFlip ? 7 : 6,
+                        2 => leftyFlip ? 3 : 2,
+                        3 => leftyFlip ? 6 : 7,
+                        4 => leftyFlip ? 2 : 3,
+                        5 => leftyFlip ? 5 : 8,
+                        6 => leftyFlip ? 1 : 4,
+                        _ => throw new Exception("Unreachable.")
+                    };
+                }
+                else
+                {
+                    index = i + 1;
+                }
+
+                if (DontFlipColorsLeftyFlip && leftyFlip && !splitProTomsAndCymbals)
                 {
                     index = _frets.Count - index + 1;
                 }
@@ -178,7 +210,7 @@ namespace YARG.Gameplay.Visuals
             _pulsingFrets[fretIndex] = pulse;
         }
 
-        public void PulseFretColors(Beatline beat)
+        public void PulseFretColors()
         {
             for (int i = 0; i < _pulsingFrets.Length; i++)
             {

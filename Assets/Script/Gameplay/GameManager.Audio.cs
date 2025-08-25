@@ -2,7 +2,6 @@
 using System.Linq;
 using UnityEngine;
 using YARG.Core.Audio;
-using YARG.Core.Chart;
 using YARG.Settings;
 
 namespace YARG.Gameplay
@@ -107,10 +106,12 @@ namespace YARG.Gameplay
             _backgroundStem = _stemStates.Count > 1 ? SongStem.Song : _stemStates.First().Key;
         }
 
-        private void StarPowerClap(Beatline beat)
+        private void StarPowerClap()
         {
-            if (_starPowerActivations < 1 || beat.Type == BeatlineType.Weak)
+            if (_starPowerActivations < 1)
+            {
                 return;
+            }
 
             GlobalAudioHandler.PlaySoundEffect(SfxSample.Clap);
         }
@@ -174,7 +175,7 @@ namespace YARG.Gameplay
                 return;
             }
 
-            // If the specified stem is the same as the background stem, 
+            // If the specified stem is the same as the background stem,
             // ignore the request. This may be a chart without separate
             // stems for each instrument. In that scenario we don't want
             // to pitch bend because we'd be bending the entire track.

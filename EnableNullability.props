@@ -1,0 +1,9 @@
+<Project>
+
+  <!-- Condition hack to only apply to YARG.Core, as CsprojModifier
+    always imports this into Assembly-CSharp.csproj and friends -->
+  <PropertyGroup Condition="'$(MSBuildProjectFile)' == 'YARG.Core.Package.csproj'">
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

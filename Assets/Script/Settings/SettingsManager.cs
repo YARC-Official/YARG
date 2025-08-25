@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Utility;
 using YARG.Helpers;
@@ -75,6 +75,9 @@ namespace YARG.Settings
                 nameof(Settings.DifficultyRings),
                 nameof(Settings.HighScoreInfo),
                 nameof(Settings.HighScoreHistory),
+                new HeaderMetadata("PlayAShow"),
+                nameof(Settings.PlayAShowTimeout),
+                nameof(Settings.RequireAllDifficulties),
             },
             new MetadataTab("Sound", icon: "Sound")
             {
@@ -115,6 +118,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.UseChipmunkSpeed),
                 nameof(Settings.ApplyVolumesInMusicLibrary),
+                nameof(Settings.EnableVoxSamples),
             },
             new MetadataTab("Graphics", icon: "Display", new TrackPreviewBuilder())
             {
@@ -131,10 +135,12 @@ namespace YARG.Settings
                 nameof(Settings.DisableFilmGrain),
                 nameof(Settings.StarPowerHighwayFx),
                 nameof(Settings.SongBackgroundOpacity),
+                nameof(Settings.VenueRenderingQuality),
+                nameof(Settings.VenueAntiAliasing),
 
                 new HeaderMetadata("Gameplay"),
-                nameof(Settings.UseCymbalModelsInFiveLane),
                 nameof(Settings.UseThreeLaneLyricsInHarmony),
+                nameof(Settings.EnableTrackEffects),
                 nameof(Settings.KickBounceMultiplier),
 
                 new HeaderMetadata("HUD"),
@@ -213,7 +219,9 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.UseWhammyFx),
                 nameof(Settings.WhammyPitchShiftAmount),
+                nameof(Settings.BandComboTypeSetting),
 	            // nameof(Settings.WhammyOversampleFactor),
+                nameof(Settings.DataStreamEnable),
             }
         };
 
@@ -239,6 +247,12 @@ namespace YARG.Settings
 
             // If null, recreate
             Settings ??= new SettingContainer();
+            if (!SettingContainer.IsInitialized && SystemInfo.supportsComputeShaders && SystemInfo.supportsMotionVectors)
+            {
+                Settings.VenueAntiAliasing.Add(
+                     YARG.VenueAntiAliasingMethod.FSR3
+                );
+            }
             SettingContainer.IsInitialized = true;
 
             // Now that we're done loading, call all of the callbacks

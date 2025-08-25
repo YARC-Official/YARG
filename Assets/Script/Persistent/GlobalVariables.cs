@@ -39,7 +39,8 @@ namespace YARG
     {
         public List<YargPlayer> Players { get; private set; }
 
-        public static bool OfflineMode { get; private set; }
+        public static bool OfflineMode    { get; private set; }
+        public static bool VerboseReplays { get; private set; }
 
         public static string PersistentDataPathOverride { get; private set; }
 
@@ -47,7 +48,7 @@ namespace YARG
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
-        public string CurrentVersion { get; private set; } = "v0.12.6";
+        public string CurrentVersion { get; private set; } = "v0.13.0";
 
         protected override void SingletonAwake()
         {
@@ -58,13 +59,22 @@ namespace YARG
 
             if (CommandLineArgs.Offline)
             {
+                OfflineMode = true;
                 YargLogger.LogInfo("Playing in offline mode");
+            }
+
+            if (CommandLineArgs.VerboseReplays)
+            {
+                VerboseReplays = true;
+                YargLogger.LogInfo("Verbose replays enabled");
             }
 
             if (!string.IsNullOrEmpty(CommandLineArgs.DownloadLocation))
             {
                 PathHelper.SetSetlistPathFromDownloadLocation(CommandLineArgs.DownloadLocation);
             }
+
+            // TODO: Actually respect the PersistentDataPath arg
 
             // Initialize important classes
 
@@ -163,6 +173,7 @@ namespace YARG
             {
                 LoadSceneAdditive(scene);
             }
+            GC.Collect();
         }
 
         // Due to the preprocessor, it doesn't know that an instance variable is being used

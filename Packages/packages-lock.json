@@ -7,6 +7,13 @@
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
+    "com.cysharp.csprojmodifier": {
+      "version": "https://github.com/Cysharp/CsprojModifier.git?path=src/CsprojModifier/Assets/CsprojModifier",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "e82080dac67f22fa0ef0b7c0aceadda92df76ec3"
+    },
     "com.cysharp.unitask": {
       "version": "2.5.3",
       "depth": 0,
@@ -15,7 +22,7 @@
       "url": "https://package.openupm.com"
     },
     "com.github-glitchenzo.nugetforunity": {
-      "version": "3.1.3",
+      "version": "4.5.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -45,7 +52,7 @@
       "url": "https://package.openupm.com"
     },
     "com.thenathannator.plasticband": {
-      "version": "0.8.5",
+      "version": "0.9.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -108,7 +115,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "3.0.28",
+      "version": "3.0.36",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -117,7 +124,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.22",
+      "version": "2.0.23",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -211,18 +218,18 @@
       }
     },
     "com.unity.sysroot": {
-      "version": "2.0.7",
+      "version": "2.0.10",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.sysroot.linux-x86_64": {
-      "version": "2.0.6",
+      "version": "2.0.9",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "com.unity.sysroot": "2.0.7"
+        "com.unity.sysroot": "2.0.10"
       },
       "url": "https://packages.unity.com"
     },
@@ -258,6 +265,16 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.toolchain.linux-x86_64": {
+      "version": "2.0.10",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.sysroot": "2.0.10",
+        "com.unity.sysroot.linux-x86_64": "2.0.9"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.toolchain.macos-x86_64-linux-x86_64": {
       "version": "2.0.6",
       "depth": 0,
@@ -286,6 +303,19 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
       }
+    },
+    "fidelityfx.fsr": {
+      "version": "https://github.com/ndepoel/FSR3Unity.git?path=/Packages/fidelityfx.fsr",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "71879e71aa72465a79bdf009d7d71f9f7ab83066"
+    },
+    "in.yarg.core": {
+      "version": "file:../YARG.Core/YARG.Core",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
     },
     "jp.keijiro.minis": {
       "version": "https://github.com/TheNathannator/Minis.git?path=/Packages/jp.keijiro.minis#yarg",

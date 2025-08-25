@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using YARG.Audio;
+using UnityEngine.Serialization;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
-using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
-using YARG.Helpers.Extensions;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
@@ -37,6 +36,8 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         protected CameraPositioner CameraPositioner;
         [SerializeField]
+        protected HighwayCameraRendering HighwayCameraRendering;
+        [SerializeField]
         protected TrackMaterial TrackMaterial;
         [SerializeField]
         protected ComboMeter ComboMeter;
@@ -57,6 +58,8 @@ namespace YARG.Gameplay.Player
         protected KeyedPool NotePool;
         [SerializeField]
         protected Pool BeatlinePool;
+        [SerializeField]
+        protected Pool EffectPool;
 
         public float ZeroFadePosition { get; private set; }
         public float FadeSize         { get; private set; }
@@ -113,13 +116,6 @@ namespace YARG.Gameplay.Player
             TrackView.ShowPlayerName(player);
         }
 
-        protected override void UpdateVisualsWithTimes(double time)
-        {
-            base.UpdateVisualsWithTimes(time);
-            UpdateNotes(time);
-            UpdateBeatlines(time);
-        }
-
         protected override void ResetVisuals()
         {
             // "Muting a stem" isn't technically a visual,
@@ -134,10 +130,6 @@ namespace YARG.Gameplay.Player
 
             HitWindowDisplay.SetHitWindowSize();
         }
-
-        protected abstract void UpdateNotes(double time);
-
-        protected abstract void UpdateBeatlines(double time);
     }
 
     public abstract class TrackPlayer<TEngine, TNote> : TrackPlayer
@@ -152,7 +144,7 @@ namespace YARG.Gameplay.Player
 
         protected int NoteIndex { get; private set; }
 
-        protected InstrumentDifficulty<TNote> NoteTrack { get; private set; }
+        public InstrumentDifficulty<TNote> NoteTrack { get; private set; }
 
         private InstrumentDifficulty<TNote> OriginalNoteTrack { get; set; }
 
@@ -164,6 +156,12 @@ namespace YARG.Gameplay.Player
         private bool _newHighScoreShown;
 
         private double _previousStarPowerAmount;
+
+        private Queue<TrackEffect> _upcomingEffects = new();
+        private List<TrackEffectElement> _currentEffects = new();
+        private List<TrackEffect> _trackEffects = new();
+
+        protected SongChart Chart;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
@@ -177,6 +175,8 @@ namespace YARG.Gameplay.Player
 
             SetupTheme(player.Profile.GameMode);
 
+            Chart = chart;
+
             OriginalNoteTrack = GetNotes(chart);
             player.Profile.ApplyModifiers(OriginalNoteTrack);
 
@@ -189,11 +189,13 @@ namespace YARG.Gameplay.Player
 
             base.ComboMeter.Initialize(player.EnginePreset, Engine.BaseParameters.MaxMultiplier);
 
+            Engine.OnComboIncrement += OnComboIncrement;
+            Engine.OnComboReset += OnComboReset;
             if (GameManager.IsPractice)
             {
                 Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
             }
-            else if (GameManager.ReplayInfo != null)
+            else if (Player.IsReplay)
             {
                 // If it's a replay, the "SongSpeed" parameter should be set properly
                 // when it gets deserialized. Transfer this over to the engine.
@@ -204,9 +206,66 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
+            GameManager.BeatEventHandler.Visual.Subscribe(SunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
+            InitializeTrackEffects();
+
             ResetNoteCounters();
 
             FinishInitialization();
+        }
+
+        protected override void FinishDestruction()
+        {
+            GameManager.BeatEventHandler.Visual.Unsubscribe(SunburstEffects.PulseSunburst);
+
+            base.FinishDestruction();
+        }
+
+        private void InitializeTrackEffects()
+        {
+
+            // If the user doesn't want track effects, generate no effects
+            if (!SettingsManager.Settings.EnableTrackEffects.Value)
+            {
+                return;
+            }
+
+            var phrases = new List<Phrase>();
+
+            foreach (var phrase in NoteTrack.Phrases)
+            {
+                // We only want solo and drum fill here. Unisons are added later
+                // and there are no track effects for the other phrase types
+                if (phrase.Type is PhraseType.Solo or PhraseType.DrumFill)
+                {
+                    // It turns out that some charts have drum fill phrases that aren't SP activation
+                    // (they have no notes), so we need to ignore those
+                    if (phrase.Type is PhraseType.DrumFill)
+                    {
+                        foreach (var note in Notes)
+                        {
+                            if (note.Time >= phrase.Time && note.Time <= phrase.TimeEnd)
+                            {
+                                phrases.Add(phrase);
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        phrases.Add(phrase);
+                    }
+                }
+            }
+
+            phrases.AddRange(EngineContainer.UnisonPhrases);
+
+            var effects = TrackEffect.PhrasesToEffects(phrases);
+            _trackEffects.AddRange(effects);
+            foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, _trackEffects))
+            {
+                _upcomingEffects.Enqueue(effect);
+            }
         }
 
         private void SetupTheme(GameMode gameMode)
@@ -221,9 +280,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void FinishInitialization()
         {
-            GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBar);
-
-            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.HighwayPreset);
+            TrackMaterial.Initialize(Player.HighwayPreset);
             CameraPositioner.Initialize(Player.CameraPreset);
         }
 
@@ -249,9 +306,15 @@ namespace YARG.Gameplay.Player
             base.ResetPracticeSection();
         }
 
-        protected void UpdateBaseVisuals(BaseStats stats, BaseEngineParameters engineParams, double songTime)
+        protected override void UpdateVisuals(double visualTime)
         {
-            int maxMultiplier = engineParams.MaxMultiplier;
+            UpdateNotes(visualTime);
+            UpdateBeatlines(visualTime);
+            UpdateTrackEffects(visualTime);
+
+            var stats = Engine.BaseStats;
+
+            int maxMultiplier = Engine.BaseParameters.MaxMultiplier;
             if (stats.IsStarPowerActive)
             {
                 maxMultiplier *= 2;
@@ -263,13 +326,14 @@ namespace YARG.Gameplay.Player
 
             _currentMultiplier = stats.ScoreMultiplier;
 
-            TrackMaterial.SetTrackScroll(songTime, NoteSpeed);
+            TrackMaterial.SetTrackScroll(visualTime, NoteSpeed);
             TrackMaterial.GrooveMode = groove;
             TrackMaterial.StarpowerMode = stats.IsStarPowerActive;
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
             StarpowerBar.SetStarpower(currentStarPowerAmount, stats.IsStarPowerActive);
-            SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
+            StarpowerBar.UpdateFlash(GameManager.BeatEventHandler.Visual.StrongBeat.CurrentPercentage);
+            SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive, _currentMultiplier);
 
             TrackView.UpdateNoteStreak(stats.Combo);
 
@@ -308,9 +372,9 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected override void UpdateNotes(double songTime)
+        private void UpdateNotes(double visualTime)
         {
-            while (NoteIndex < Notes.Count && Notes[NoteIndex].Time <= songTime + SpawnTimeOffset)
+            while (NoteIndex < Notes.Count && Notes[NoteIndex].Time <= visualTime + SpawnTimeOffset)
             {
                 var note = Notes[NoteIndex];
 
@@ -338,7 +402,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected override void UpdateBeatlines(double time)
+        private void UpdateBeatlines(double time)
         {
             while (BeatlineIndex < Beatlines.Count && Beatlines[BeatlineIndex].Time <= time + SpawnTimeOffset)
             {
@@ -373,6 +437,148 @@ namespace YARG.Gameplay.Player
 
                 BeatlineIndex++;
             }
+        }
+
+        private void UpdateTrackEffects(double time)
+        {
+            if (_upcomingEffects.TryPeek(out var nextEffect) && nextEffect.Time <= time + SpawnTimeOffset)
+            {
+                SpawnEffect(nextEffect, false);
+            }
+
+            // If any of the current effects are drum fill, we need to react
+            // when starpower goes from unavailable to available
+
+            // Remove past effects from current list
+            // This may actually fail if an effect is reused from the pool
+            // too quickly, but as long as it is only being used for setting
+            // drum fill visibility, it shouldn't break.
+            for (var i = 0; i < _currentEffects.Count; i++)
+            {
+                if (!_currentEffects[i].Active)
+                {
+                    _currentEffects.RemoveAt(i);
+                }
+                else
+                {
+                    // See if it's an invisible drum fill and if starpower has become available
+                    // Since we never change visibility on anything but drum fills, there's no need to check
+                    // the effect type.
+                    // TODO: We also need to change effects that were originally a UnisonAndDrumFill or SoloAndDrumFill
+                    //  back from Unison or Solo, although I'm not even sure those exist. Maybe SoloAndDrumFill does..
+                    if ((_currentEffects[i].Visibility < 1.0f && Engine.CanStarPowerActivate) && !Engine.BaseStats.IsStarPowerActive)
+                    {
+                        _currentEffects[i].MakeVisible();
+                        // If start transition is disabled, previous should be disabled
+                        if (!_currentEffects[i].EffectRef.StartTransitionEnable)
+                        {
+                            _currentEffects[i - 1].SetEndTransitionVisible(false);
+                        }
+
+                        // If end transition is disabled, next should be disabled if it is spawned
+                        if (_currentEffects.Count > i + 1 && !_currentEffects[i].EffectRef.EndTransitionEnable)
+                        {
+                            _currentEffects[i + 1].SetStartTransitionVisible(false);
+                        }
+                    }
+                    // We also need to make already spawned drum fills disappear if the player activated SP
+                    // And we do need to check effect type here
+                    if (_currentEffects[i].EffectRef.EffectType == TrackEffectType.DrumFill &&
+                        (_currentEffects[i].Visibility == 1.0f && Engine.BaseStats.IsStarPowerActive))
+                    {
+                        _currentEffects[i].MakeVisible(false);
+
+                        if (!_currentEffects[i].EffectRef.StartTransitionEnable && i > 0)
+                        {
+                            // Previous maybe needs end transition enabled since we're disappearing
+                            // (if the effect type doesn't have an end transition set, it won't
+                            //  be active regardless of what we do here, so a hard enable is ok)
+                            _currentEffects[i - 1].SetEndTransitionVisible(true);
+                        }
+
+                        if (!_currentEffects[i].EffectRef.EndTransitionEnable)
+                        {
+                            // next needs start transition enabled, if it is spawned
+                            // if it isn't yet spawned, it should already be set correctly
+                            if (_currentEffects.Count > i + 1)
+                            {
+                                _currentEffects[i + 1].SetStartTransitionVisible(true);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void SpawnEffect(TrackEffect nextEffect, bool seeking)
+        {
+            var poolable = EffectPool.TakeWithoutEnabling();
+            if (poolable == null)
+            {
+                YargLogger.LogWarning("Attempted to spawn track effect, but it's at its cap!");
+                return;
+            }
+
+            // The seeking code handles this for us if we're seeking
+            if (!seeking)
+            {
+                _upcomingEffects.Dequeue();
+            }
+
+            // Do some magic to vanish drum fills if the player doesn't have enough SP to activate
+            // or if SP is already active.
+
+            if (Engine.BaseStats.IsStarPowerActive || !Engine.CanStarPowerActivate)
+            {
+                if (nextEffect.EffectType is TrackEffectType.DrumFill)
+                {
+                    nextEffect.Visibility = 0.0f;
+                    if (!nextEffect.StartTransitionEnable)
+                    {
+                        if (_currentEffects.Count > 0)
+                        {
+                            _currentEffects[^1].SetEndTransitionVisible(true);
+                            _currentEffects[^1].SetTransitionState();
+                        }
+                    }
+                    if (!nextEffect.EndTransitionEnable)
+                    {
+                        // Get next next and turn on its start transition
+                        // Since we are only spawning now, it shouldn't be possible
+                        // for next next to be spawned yet.
+                        if (_upcomingEffects.TryPeek(out var nextNextEffect))
+                        {
+                            nextNextEffect.StartTransitionEnable = true;
+                        }
+                    }
+
+                    if (!nextEffect.StartTransitionEnable)
+                    {
+                        // Turn on end transition for previous effect
+
+                        // Previous effect is by definition already spawned,
+                        // but we'll check that _currentEffects isn't length zero
+                        if (_currentEffects.Count > 0)
+                        {
+                            _currentEffects[^1].SetEndTransitionVisible(true);
+                        }
+                    }
+                }
+
+                if (nextEffect.EffectType is TrackEffectType.DrumFillAndUnison)
+                {
+                    nextEffect.EffectType = TrackEffectType.Unison;
+                }
+
+                if (nextEffect.EffectType is TrackEffectType.SoloAndDrumFill)
+                {
+                    nextEffect.EffectType = TrackEffectType.Solo;
+                }
+            }
+
+            ((TrackEffectElement) poolable).EffectRef = nextEffect;
+            _currentEffects.Add((TrackEffectElement) poolable);
+            poolable.EnableFromPool();
         }
 
         protected virtual void OnNoteSpawned(TNote parentNote)
@@ -417,7 +623,33 @@ namespace YARG.Gameplay.Player
             BeatlineIndex = 0;
             ResetNoteCounters();
 
+            // Reset the track effect overlay
+            ResetTrackEffectOverlay(time);
+
             base.SetReplayTime(time);
+        }
+
+        private void ResetTrackEffectOverlay(double time)
+        {
+            // despawn any existing track effects, rebuild track effect structures, spawn any that are now in current
+            _upcomingEffects.Clear();
+            for(var i = 0; i < EffectPool.AllSpawned.Count; i++)
+            {
+                var poolable = EffectPool.AllSpawned[i];
+                poolable.ParentPool.Return(poolable);
+            }
+
+            foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, _trackEffects))
+            {
+                if (effect.Time >= time)
+                {
+                    _upcomingEffects.Enqueue(effect);
+                } else if (effect.Time < time && time < effect.TimeEnd)
+                {
+                    // current effect, spawn it
+                    SpawnEffect(effect, true);
+                }
+            }
         }
 
         protected void SpawnNote(TNote note)
@@ -446,7 +678,7 @@ namespace YARG.Gameplay.Player
 
                     foreach (var haptics in SantrollerHaptics)
                     {
-                        haptics.SetMultiplier((uint) _currentMultiplier);
+                        haptics.SetMultiplier((byte) Math.Clamp(_currentMultiplier, 1, byte.MaxValue));
                     }
                 }
 
@@ -509,7 +741,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var haptic in SantrollerHaptics)
             {
-                haptic.SetSolo(true);
+                haptic.SetSoloActive(true);
             }
         }
 
@@ -519,13 +751,13 @@ namespace YARG.Gameplay.Player
 
             foreach (var haptic in SantrollerHaptics)
             {
-                haptic.SetSolo(false);
+                haptic.SetSoloActive(false);
             }
         }
 
-        protected virtual void OnCountdownChange(int measuresLeft, double countdownLength, double endTime)
+        protected virtual void OnCountdownChange(double countdownLength, double endTime)
         {
-            TrackView.UpdateCountdown(measuresLeft, countdownLength, endTime);
+            TrackView.UpdateCountdown(countdownLength, endTime);
         }
 
         protected virtual void OnStarPowerPhraseHit(TNote note)
@@ -533,16 +765,9 @@ namespace YARG.Gameplay.Player
             OnStarPowerPhraseHit();
         }
 
-        protected override void FinishDestruction()
+        public override void GameplayUpdate()
         {
-            base.FinishDestruction();
-
-            GameManager.BeatEventHandler.Unsubscribe(StarpowerBar.PulseBar);
-        }
-
-        public override void UpdateWithTimes(double inputTime)
-        {
-            base.UpdateWithTimes(inputTime);
+            base.GameplayUpdate();
 
             if (LastHighScore != null && !_newHighScoreShown && Score > LastHighScore)
             {

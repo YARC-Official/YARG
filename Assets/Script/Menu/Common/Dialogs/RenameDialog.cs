@@ -17,5 +17,10 @@ namespace YARG.Menu.Dialogs
 
             RenameAction?.Invoke(_inputField.text);
         }
+
+        public void ActivateInputField()
+        {
+            _inputField.ActivateInputField();
+        }
     }
 }

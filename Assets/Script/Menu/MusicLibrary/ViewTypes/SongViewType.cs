@@ -90,7 +90,7 @@ namespace YARG.Menu.MusicLibrary
             var percent = Mathf.Floor(_playerPercentRecord.GetPercent() * 100f);
             var percentColor = _playerPercentRecord.IsFc ? "#fcd13c" : "#ffffff";
 
-            builder.AppendFormat("<sprite name=\"{0}\"> <color={1}>{2:N0}%</color><space=0.5em>",
+            builder.AppendFormat("<sprite name=\"{0}\"> <mspace=.5em><color={1}>{2,3:N0}</mspace>%</color><space=0.5em>",
                 percentDifficulty, percentColor, percent);
 
             var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
@@ -153,6 +153,11 @@ namespace YARG.Menu.MusicLibrary
             }
 
             GlobalVariables.State.CurrentSong = SongEntry;
+            // This just makes stuff in DifficultySelectMenu easier
+            GlobalVariables.State.ShowSongs.Clear();
+            GlobalVariables.State.ShowSongs.Add(SongEntry);
+            GlobalVariables.State.PlayingAShow = false;
+
             MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }
 
@@ -177,10 +182,25 @@ namespace YARG.Menu.MusicLibrary
 
                 // If we are in the favorites menu, then update the playlist
                 // to remove the song that was just removed.
-                if (MusicLibraryMenu.SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
+                if (_musicLibrary.SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
                 {
                     _musicLibrary.RefreshAndReselect();
                 }
+            }
+        }
+
+        public override void AddToPlaylist(Playlist playlist)
+        {
+            playlist.AddSong(SongEntry);
+        }
+
+        public override void RemoveFromPlaylist(Playlist playlist)
+        {
+            playlist.RemoveSong(SongEntry);
+
+            if (_musicLibrary.SelectedPlaylist == playlist)
+            {
+                _musicLibrary.RefreshAndReselect();
             }
         }
 
