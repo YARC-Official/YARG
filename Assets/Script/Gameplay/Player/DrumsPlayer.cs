@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
@@ -54,7 +56,9 @@ namespace YARG.Gameplay.Player
         protected override InstrumentDifficulty<DrumNote> GetNotes(SongChart chart)
         {
             var track = chart.GetDrumsTrack(Player.Profile.CurrentInstrument).Clone();
-            return track.GetDifficulty(Player.Profile.CurrentDifficulty);
+            var instrumentDifficulty = track.GetDifficulty(Player.Profile.CurrentDifficulty);
+            instrumentDifficulty.SetDrumActivationFlags(Player.Profile.StarPowerActivationType);
+            return instrumentDifficulty;
         }
 
         protected override DrumsEngine CreateEngine()
@@ -143,6 +147,112 @@ namespace YARG.Gameplay.Player
 
             // Particle 0 is always kick fret
             _kickFretFlash.Initialize(colors.GetParticleColor(0).ToUnityColor());
+
+            // Set up drum fill lead-ups
+            SetDrumFillEffects();
+        }
+
+        private int GetFillLaneForSplitView(int rightmostPad)
+        {
+            return rightmostPad switch
+            {
+                0 => 0,
+                1 => ShouldSwapSnareAndHiHat() ? 2 : 1,
+                2 => 3,
+                3 => 5,
+                4 => 7,
+                5 => ShouldSwapSnareAndHiHat() ? 1 : 2,
+                6 => ShouldSwapCrashAndRide() ? 6 : 4,
+                7 => ShouldSwapCrashAndRide() ? 4 : 6,
+                _ => 0,
+            };
+        }
+
+        private void SetDrumFillEffects()
+        {
+            int checkpoint = 0;
+            var pairedFillIndexes = new HashSet<int>();
+
+            // Find activation gems
+            foreach (var chord in Notes)
+            {
+                DrumNote rightmostNote = chord.ParentOrSelf;
+                bool foundStarpower = false;
+
+                // Check for SP activation note
+                foreach (var note in chord.AllNotes)
+                {
+                    rightmostNote = note;
+
+                    if (note.IsStarPowerActivator)
+                    {
+                        if (note.Pad > rightmostNote.Pad)
+                        {
+                            rightmostNote = note;
+                        }
+                        foundStarpower = true;
+                    }
+                }
+
+                if (!foundStarpower)
+                {
+                    continue;
+                }
+
+                int fillLane = rightmostNote.Pad;
+
+                // Convert pad to lane for pro
+                if (Player.Profile.CurrentInstrument == Instrument.ProDrums)
+                {
+                    if (Player.Profile.SplitProTomsAndCymbals)
+                    {
+                        fillLane = GetFillLaneForSplitView(fillLane);
+                    }
+                    else if (fillLane > 4)
+                    {
+                        fillLane -= 3;
+                    }
+                }
+
+                int candidateIndex = -1;
+
+                // Find the drum fill immediately before this note
+                for (var i = checkpoint; i < _trackEffects.Count; i++)
+                {
+                    if (_trackEffects[i].EffectType != TrackEffectType.DrumFill)
+                    {
+                        continue;
+                    }
+
+                    var effect = _trackEffects[i];
+
+                    if (effect.TimeEnd <= chord.Time)
+                    {
+                        candidateIndex = i;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                if (candidateIndex != -1)
+                {
+                    _trackEffects[candidateIndex].FillLane = fillLane;
+                    _trackEffects[candidateIndex].TotalLanes = _fretArray.FretCount;
+                    pairedFillIndexes.Add(candidateIndex);
+                    checkpoint = candidateIndex;
+                }
+            }
+
+            // Remove fills that are not paired with a note
+            for (var i = _trackEffects.Count - 1; i >= 0; i--)
+            {
+                if (_trackEffects[i].EffectType == TrackEffectType.DrumFill && !pairedFillIndexes.Contains(i))
+                {
+                    _trackEffects.RemoveAt(i);
+                }
+            }
         }
 
         public override void SetStemMuteState(bool muted)

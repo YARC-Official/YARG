@@ -159,7 +159,7 @@ namespace YARG.Gameplay.Player
 
         private Queue<TrackEffect> _upcomingEffects = new();
         private List<TrackEffectElement> _currentEffects = new();
-        private List<TrackEffect> _trackEffects = new();
+        protected List<TrackEffect> _trackEffects = new();
 
         protected SongChart Chart;
 

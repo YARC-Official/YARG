@@ -19,11 +19,12 @@ namespace YARG.Assets.Script.Helpers
         public const string NOTE_SPEED_AND_HIGHWAY_LENGTH = "Note Speed and Highway Length";
 
         // GameMode-specific
-        public const string LEFTY_FLIP = "Lefty Flip";
-        public const string RANGE_DISABLE = "Range Disable";
+        public const string LEFTY_FLIP                              = "Lefty Flip";
+        public const string RANGE_DISABLE                           = "Range Disable";
         public const string SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS = "Split Tom and Cymbal Lanes in Pro Drums";
-        public const string USE_CYMBAL_MODELS = "Use Cymbal Models";
-        public const string SWAP_SNARE_AND_HI_HAT = "Swap Snare and Hi-Hat";
-        public const string SWAP_CRASH_AND_RIDE = "Swap Crash and Ride";
+        public const string USE_CYMBAL_MODELS                       = "Use Cymbal Models";
+        public const string SWAP_SNARE_AND_HI_HAT                   = "Swap Snare and Hi-Hat";
+        public const string SWAP_CRASH_AND_RIDE                     = "Swap Crash and Ride";
+        public const string DRUM_STAR_POWER_ACTIVATION_TYPE         = "Star Power Activation Type";
     }
 }
