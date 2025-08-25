@@ -162,64 +162,59 @@ namespace YARG.Menu.MusicLibrary
         // of each player's possible instruments
         private bool IsSongPlayable(SongEntry song)
         {
-            List<Instrument> candidateInstruments = new();
             bool fdOnly = SettingsManager.Settings.RequireAllDifficulties.Value;
+            var playableInstruments = new List<Instrument>();
             foreach (var player in _players)
             {
-                bool playable = false;
-                foreach(var instrument in _instruments[player])
+                playableInstruments.Clear();
+
+                // Get the set of instruments this player can play on the new song.
+                foreach (var instrument in _instruments[player])
                 {
                     if (song.HasInstrument(instrument) && (!fdOnly || song.HasEmhxDifficultiesForInstrument(instrument)))
                     {
-                        playable = true;
-                        break;
+                        playableInstruments.Add(instrument);
                     }
                 }
 
-                if (!playable)
+                // If the player can't play this song at all, it's not playable.
+                if (playableInstruments.Count == 0)
                 {
                     return false;
                 }
 
-                // We also need to check if this song shares at least one instrument with the other songs already in ShowPlaylist
+                // If this is the first song, no need to check for commonality.
                 var playlist = _library.ShowPlaylist;
-
-                // No need to check if this is the first in the list
                 if (playlist.Count == 0)
                 {
                     continue;
                 }
 
-                candidateInstruments.Clear();
-                foreach (var instrument in _instruments[player])
-                {
-                    if (song.HasInstrument(instrument))
-                    {
-                        candidateInstruments.Add(instrument);
-                    }
-                }
-
+                // Now, filter this set of instruments by what's available in the other songs
                 foreach (var songHash in playlist.SongHashes)
                 {
-                    // We know this hash exists, because we are only working on the show playlist,
-                    // and we added it to the list ourselves
-                    bool hasCommonInstrument = false;
-                    foreach (var instrument in candidateInstruments)
+                    var playlistSong = SongContainer.SongsByHash[songHash][0];
+
+                    // Find instruments in common with this playlist song by removing ones that don't match
+                    for (int i = playableInstruments.Count - 1; i >= 0; i--)
                     {
-                        if (SongContainer.SongsByHash[songHash][0].HasInstrument(instrument))
+                        var instrument = playableInstruments[i];
+                        if (!playlistSong.HasInstrument(instrument) ||
+                            (fdOnly && !playlistSong.HasEmhxDifficultiesForInstrument(instrument)))
                         {
-                            hasCommonInstrument = true;
-                            break;
+                            playableInstruments.RemoveAt(i);
                         }
                     }
 
-                    if (!hasCommonInstrument)
+                    // If there are no common instruments left this song is not playable for this player
+                    if (playableInstruments.Count == 0)
                     {
                         return false;
                     }
                 }
             }
-
+            
+            // We didn't return earlier, so the song must be playable
             return true;
         }
 
