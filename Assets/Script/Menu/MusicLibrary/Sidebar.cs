@@ -7,9 +7,11 @@ using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers.Extensions;
+using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Song;
 
@@ -48,6 +50,10 @@ namespace YARG.Menu.MusicLibrary
         private TextMeshProUGUI _bandDifficultyLabel;
         [SerializeField]
         private TextMeshProUGUI _songRatingLabel;
+        [SerializeField]
+        private HelpBarButton _playButton;
+        [SerializeField]
+        private HelpBarButton _favoriteButton;
 
         [SerializeField]
         private GameObject _sidebarContents;
@@ -84,6 +90,10 @@ namespace YARG.Menu.MusicLibrary
                 var go = Instantiate(_difficultyRingPrefab, _difficultyRingsBottomContainer);
                 _difficultyRings.Add(go.GetComponent<DifficultyRing>());
             }
+
+            _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(MenuAction.Green,
+                "Menu.Common.Confirm",
+                () => _musicLibraryMenu.CurrentSelection.PrimaryButtonClick()));
         }
 
         public void UpdateSidebar()
