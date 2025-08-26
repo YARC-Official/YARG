@@ -3,7 +3,6 @@ using TMPro;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Core.Chart;
 using System;
 using Cysharp.Text;
 
@@ -81,9 +80,10 @@ namespace YARG.Gameplay.HUD
                 case CountdownDisplayMode.Measures:
                 {
                     var syncTrack = GameManager.Chart.SyncTrack;
-                    uint measureTick = syncTrack.TimeToMeasureTick(currentTime);
-                    uint endMeasureTick = syncTrack.TimeToMeasureTick(endTime);
-                    uint remainingMeasures = (endMeasureTick - measureTick) / syncTrack.MeasureResolution;
+                    // This is floored to snap the end time to the start of the measure
+                    double endMeasure = Math.Floor(syncTrack.GetMeasurePosition(endTime));
+                    double currentMeasure = syncTrack.GetMeasurePosition(currentTime);
+                    int remainingMeasures = (int) Math.Ceiling(endMeasure - currentMeasure);
                     _countdownText.SetText(remainingMeasures);
                     break;
                 }
