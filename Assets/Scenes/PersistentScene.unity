@@ -4610,14 +4610,14 @@ MonoBehaviour:
   m_Padding:
     m_Left: 0
     m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
+    m_Top: 15
+    m_Bottom: 15
   m_ChildAlignment: 3
-  m_Spacing: 32
+  m_Spacing: 25
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 1
-  m_ChildControlHeight: 1
+  m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
@@ -5143,7 +5143,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _buttonContainer: {fileID: 3534602385155217650}
-  _buttonPrefab: {fileID: 4008179247140915981, guid: 30b9c551da7693c43aaff6985673055d,
+  _buttonPrefab: {fileID: 4008179247140915981, guid: 8d66523691e71cd4c9a529b0324dfed2,
     type: 3}
   <MusicPlayer>k__BackingField: {fileID: 674775830}
 --- !u!224 &6394462513451335040
