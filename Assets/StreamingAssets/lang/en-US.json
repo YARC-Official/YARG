@@ -337,7 +337,9 @@
             "Players" : "Players"
         },
         "ScoreScreen" : {
-            "BandScoreNotSaved" : "(Score not saved)"
+            "BandScoreNotSaved" : "(Score not saved)",
+            "RestartSong" : "Restart Song",
+            "EndSetlistEarly" : "End Setlist"
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
