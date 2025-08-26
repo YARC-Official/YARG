@@ -262,6 +262,10 @@ namespace YARG.Gameplay.Player
 
             var effects = TrackEffect.PhrasesToEffects(phrases);
             _trackEffects.AddRange(effects);
+        }
+
+        private void FinalizeTrackEffects()
+        {
             foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, _trackEffects))
             {
                 _upcomingEffects.Enqueue(effect);
@@ -282,6 +286,7 @@ namespace YARG.Gameplay.Player
         {
             TrackMaterial.Initialize(Player.HighwayPreset);
             CameraPositioner.Initialize(Player.CameraPreset);
+            FinalizeTrackEffects();
         }
 
         protected void ResetNoteCounters()

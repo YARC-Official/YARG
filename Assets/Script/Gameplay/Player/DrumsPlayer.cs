@@ -113,8 +113,6 @@ namespace YARG.Gameplay.Player
 
         protected override void FinishInitialization()
         {
-            base.FinishInitialization();
-
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
 
             // Get the proper info for four/five lane
@@ -150,6 +148,8 @@ namespace YARG.Gameplay.Player
 
             // Set up drum fill lead-ups
             SetDrumFillEffects();
+
+            base.FinishInitialization();
         }
 
         private int GetFillLaneForSplitView(int rightmostPad)
