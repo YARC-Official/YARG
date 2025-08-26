@@ -9322,7 +9322,7 @@ PrefabInstance:
     - target: {fileID: 27970756789930951, guid: fbe721481a76d3340871db2a026bbbcb,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 1320
+      value: 1452.1365
       objectReference: {fileID: 0}
     - target: {fileID: 27970756789930951, guid: fbe721481a76d3340871db2a026bbbcb,
         type: 3}
@@ -9332,7 +9332,7 @@ PrefabInstance:
     - target: {fileID: 27970756789930951, guid: fbe721481a76d3340871db2a026bbbcb,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 660
+      value: 726.06824
       objectReference: {fileID: 0}
     - target: {fileID: 27970756789930951, guid: fbe721481a76d3340871db2a026bbbcb,
         type: 3}
@@ -9363,7 +9363,7 @@ PrefabInstance:
     - target: {fileID: 2017505357032953832, guid: fbe721481a76d3340871db2a026bbbcb,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 1320
+      value: 1452.1365
       objectReference: {fileID: 0}
     - target: {fileID: 2017505357032953832, guid: fbe721481a76d3340871db2a026bbbcb,
         type: 3}
@@ -9373,7 +9373,7 @@ PrefabInstance:
     - target: {fileID: 2017505357032953832, guid: fbe721481a76d3340871db2a026bbbcb,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 660
+      value: 726.06824
       objectReference: {fileID: 0}
     - target: {fileID: 2017505357032953832, guid: fbe721481a76d3340871db2a026bbbcb,
         type: 3}
@@ -9662,6 +9662,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_text
       value: PLAY SONG
+      objectReference: {fileID: 0}
+    - target: {fileID: 2066481331629264645, guid: 8d66523691e71cd4c9a529b0324dfed2,
+        type: 3}
+      propertyPath: _buttonStyle
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2919596403338703147, guid: 8d66523691e71cd4c9a529b0324dfed2,
         type: 3}

@@ -39,6 +39,7 @@ namespace YARG.Menu.Persistent
         private Color _buttonBackgroundColor;
         private Color _buttonImageColor;
         private Color _buttonBackgroundColorOnHover;
+        private Color _buttonBackgroundColorOnDown;
 
         public void SetInfoFromSchemeEntry(NavigationScheme.Entry entry)
         {
@@ -48,6 +49,8 @@ namespace YARG.Menu.Persistent
             _buttonBackgroundColor.a = 0.2f;
             _buttonBackgroundColorOnHover = icons.GetColor(entry.Action);
             _buttonBackgroundColorOnHover.a = 0.4f;
+            _buttonBackgroundColorOnDown = icons.GetColor(entry.Action);
+            _buttonBackgroundColorOnDown.a = 0.1f;
             _buttonImageColor = icons.GetColor(entry.Action);
             _buttonImageColor.a = 1f;
 
@@ -81,11 +84,9 @@ namespace YARG.Menu.Persistent
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            _buttonBackground.color = _buttonBackgroundColor;
             _buttonImage.color = _buttonImageColor;
             _buttonLabel.color = Color.white;
             _buttonText.color = Color.white;
-            _buttonOutline.color = _buttonBackgroundColor;
             if (_buttonStyle == HelpButtonStyle.Default)
             {
                 _buttonBackground.color = _buttonBackgroundColor;
@@ -100,11 +101,9 @@ namespace YARG.Menu.Persistent
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            _buttonBackground.color = Color.clear;
             _buttonImage.color = _buttonImageColor;
             _buttonLabel.color = Color.white;
             _buttonText.color = Color.white;
-            _buttonOutline.color = Color.clear;
             if (_buttonStyle == HelpButtonStyle.Default)
             {
                 _buttonBackground.color = Color.clear;
@@ -119,22 +118,20 @@ namespace YARG.Menu.Persistent
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            _buttonBackground.color = Color.grey;
-            _buttonImage.color = Color.grey;
-            _buttonLabel.color = Color.grey;
-            _buttonText.color = Color.grey;
-            _buttonOutline.color = Color.grey;
+            _buttonBackground.color = _buttonBackgroundColorOnDown;
+            _buttonImage.color = _buttonImageColor;
+            _buttonLabel.color = Color.white;
+            _buttonText.color = Color.white;
+            _buttonOutline.color = _buttonBackgroundColor;
 
             _entry?.Invoke();
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            _buttonBackground.color = Color.clear;
             _buttonImage.color = _buttonImageColor;
             _buttonLabel.color = Color.white;
             _buttonText.color = Color.white;
-            _buttonOutline.color = Color.clear;
             if (_buttonStyle == HelpButtonStyle.Default)
             {
                 _buttonBackground.color = Color.clear;
