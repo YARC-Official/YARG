@@ -182,8 +182,6 @@ namespace YARG.Gameplay.Player
                 // Check for SP activation note
                 foreach (var note in chord.AllNotes)
                 {
-                    rightmostNote = note;
-
                     if (note.IsStarPowerActivator)
                     {
                         if (note.Pad > rightmostNote.Pad)
