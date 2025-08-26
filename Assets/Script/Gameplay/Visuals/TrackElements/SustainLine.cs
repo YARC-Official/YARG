@@ -272,6 +272,7 @@ namespace YARG.Gameplay.Visuals
 
             Vector3[] vertices = new Vector3[totalVertices];
             Vector3[] normals = new Vector3[totalVertices];
+            Vector2[] uvs = new Vector2[totalVertices];
             float halfWidth = _sustainWidth * 0.5f;
 
             // Create start edge vertices (at _currentStartZ)
@@ -281,6 +282,7 @@ namespace YARG.Gameplay.Visuals
                 float x = Mathf.Lerp(-halfWidth, halfWidth, t);
                 vertices[i] = new Vector3(x, 0f, _currentStartZ);
                 normals[i] = Vector3.up;
+                uvs[i] = new Vector2(_currentLength - _currentStartZ, 1f - t);
             }
 
             // Create end edge vertices (at _currentLength)
@@ -290,10 +292,12 @@ namespace YARG.Gameplay.Visuals
                 float x = Mathf.Lerp(-halfWidth, halfWidth, t);
                 vertices[verticesPerEdge + i] = new Vector3(x, 0.01f, _currentLength); // Slightly elevated
                 normals[verticesPerEdge + i] = Vector3.up;
+                uvs[verticesPerEdge + i] = new Vector2(0f, 1f - t);
             }
 
             _sustainMesh.vertices = vertices;
             _sustainMesh.normals = normals;
+            _sustainMesh.uv = uvs;
             _sustainMesh.RecalculateNormals();
             _sustainMesh.RecalculateBounds();
         }
