@@ -10196,7 +10196,6 @@ MonoBehaviour:
   _allowColoring: 1
   _mode: 1
   _fadeOutRate: 150
-  _duration: 0
 --- !u!108 &4134314744215184549
 Light:
   m_ObjectHideFlags: 0
@@ -41387,7 +41386,6 @@ MonoBehaviour:
   _allowColoring: 1
   _mode: 1
   _fadeOutRate: 150
-  _duration: 0
 --- !u!108 &8296547536689478908
 Light:
   m_ObjectHideFlags: 0
@@ -61422,7 +61420,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 8ccc7600fd1624a458f5db0357b192a4,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.0475
+      value: 0.0465
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8ccc7600fd1624a458f5db0357b192a4,
         type: 3}
@@ -62365,7 +62363,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: f907a43e655c21b46b01b01f6a2ee801,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.055
+      value: 0.054
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f907a43e655c21b46b01b01f6a2ee801,
         type: 3}
@@ -62668,7 +62666,7 @@ PrefabInstance:
     - target: {fileID: 7137662299531785058, guid: 646e582c8d8303248aa9d4bd931b2081,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.03
+      value: 0.0315
       objectReference: {fileID: 0}
     - target: {fileID: 7137662299531785058, guid: 646e582c8d8303248aa9d4bd931b2081,
         type: 3}
@@ -63493,7 +63491,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: c58cec31fa674ce43a64f4fff3bb71b4,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.0475
+      value: 0.0465
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c58cec31fa674ce43a64f4fff3bb71b4,
         type: 3}
