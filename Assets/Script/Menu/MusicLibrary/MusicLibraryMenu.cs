@@ -214,7 +214,7 @@ namespace YARG.Menu.MusicLibrary
                 Navigator.Instance.PopScheme();
             }
 
-            if (ShowPlaylist.Count == 0)
+            if (MenuState == MenuState.Library || MenuState == MenuState.Playlist)
             {
                 Navigator.Instance.PushScheme(new NavigationScheme(new()
                 {
