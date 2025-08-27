@@ -691,6 +691,9 @@ namespace YARG.Menu.MusicLibrary
                 case MenuState.PlaylistSelect:
                     ExitPlaylistSelect();
                     break;
+                case MenuState.Show:
+                    LeaveShowMode();
+                    break;
                 case MenuState.Library:
                     ExitLibrary();
                     break;
