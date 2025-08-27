@@ -88,6 +88,12 @@ namespace YARG.Menu.Persistent
                     continue;
                 }
 
+                // Don't create a button for hidden actions
+                if (entry.Hide)
+                {
+                    continue;
+                }
+
                 var button = _buttons[buttonIndex];
                 button.gameObject.SetActive(true);
                 button.SetInfoFromSchemeEntry(entry);

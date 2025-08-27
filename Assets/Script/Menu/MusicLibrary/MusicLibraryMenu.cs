@@ -244,8 +244,8 @@ namespace YARG.Menu.MusicLibrary
                                 SelectedIndex++;
                             }
                         }),
-                    //new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
-                    //    () => CurrentSelection?.PrimaryButtonClick()),
+                    new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
+                        () => CurrentSelection?.PrimaryButtonClick(), hide: true),
                     new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
                     new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToSet",
                         AddToSetlist),
@@ -667,6 +667,7 @@ namespace YARG.Menu.MusicLibrary
             _searchField.Reset();
             UpdateSearch(true);
             UpdateSortInformationHeader();
+            SetNavigationScheme();
         }
 
         private void UpdateSearch(bool force)
