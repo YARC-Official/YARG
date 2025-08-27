@@ -30,7 +30,7 @@ namespace YARG.Gameplay.Visuals
         private Matrix4x4[] _camViewMatrices = new Matrix4x4[MAX_MATRICES];
         private Matrix4x4[] _camInvViewMatrices = new Matrix4x4[MAX_MATRICES];
         private Matrix4x4[] _camProjMatrices = new Matrix4x4[MAX_MATRICES];
-        public float Scale { get; private set; } = 1.0f ;
+        public float Scale { get; private set; } = 1.0f;
 
         public static readonly int YargHighwaysNumberID = Shader.PropertyToID("_YargHighwaysN");
         public static readonly int YargHighwayCamViewMatricesID = Shader.PropertyToID("_YargCamViewMatrices");
@@ -54,28 +54,30 @@ namespace YARG.Gameplay.Visuals
             return _highwaysOutputTexture;
         }
 
-
-        private Vector2 WorldToViewport(Vector3 positionWS, int index)
-        {
-            Vector4 clipSpacePos = (_camProjMatrices[index] * _camViewMatrices[index]) * new Vector4(positionWS.x, positionWS.y, positionWS.z, 1.0f);
-            // Perspective divide to get NDC
-            float ndcX = clipSpacePos.x / clipSpacePos.w;
-            float ndcY = clipSpacePos.y / clipSpacePos.w;
-
-            // NDC [-1, 1] → Viewport [0, 1]
-            float viewportX = (ndcX + 1.0f) * 0.5f;
-            float viewportY = (ndcY + 1.0f) * 0.5f;
-
-            Vector2 viewportPos = new Vector2(viewportX, viewportY);
-            return viewportPos;
-        }
-
         private Vector2 CalculateFadeParams(int index, Vector3 trackPosition, float ZeroFadePosition, float FadeSize)
         {
-            var trackZeroFadePosition = new Vector3(trackPosition.x, trackPosition.y, ZeroFadePosition - FadeSize);
-            var trackFullFadePosition = new Vector3(trackPosition.x, trackPosition.y, ZeroFadePosition);
-            var fadeStart = WorldToViewport(trackZeroFadePosition, index).y;
-            var fadeEnd = WorldToViewport(trackFullFadePosition, index).y;
+            var worldZeroFadePosition = new Vector3(trackPosition.x, trackPosition.y, ZeroFadePosition - FadeSize);
+            var worldFullFadePosition = new Vector3(trackPosition.x, trackPosition.y, ZeroFadePosition);
+
+            // Use the individual highway camera instead of the main render camera
+            var highwayCamera = _cameras[index];
+            Plane farPlane = new Plane();
+
+            farPlane.SetNormalAndPosition(highwayCamera.transform.forward, worldZeroFadePosition);
+            var fadeEnd = Mathf.Abs(farPlane.GetDistanceToPoint(highwayCamera.transform.position));
+
+            farPlane.SetNormalAndPosition(highwayCamera.transform.forward, worldFullFadePosition);
+            var fadeStart = Mathf.Abs(farPlane.GetDistanceToPoint(highwayCamera.transform.position));
+
+            // Fix: fadeStart should be the smaller distance (closer to camera), fadeEnd should be larger
+            // Swap them if they're backwards
+            if (fadeStart > fadeEnd)
+            {
+                var temp = fadeStart;
+                fadeStart = fadeEnd;
+                fadeEnd = temp;
+            }
+
             return new Vector2(fadeStart, fadeEnd);
         }
 

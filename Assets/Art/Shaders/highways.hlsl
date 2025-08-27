@@ -154,24 +154,24 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
     float4 viewPOS = mul(_YargCamViewMatrices[index], float4(positionWS, 1.0));
     float4 clipPOS = mul(_YargCamProjMatrices[index], viewPOS);
 
-#ifdef _RAISE_Z
-    // We use this to raise certain elements to be rendered on top of the others without actually
-    // raising them in the world space
-    #ifdef UNITY_REVERSED_Z
-        clipPOS.z += 0.002;
-    #else
-        clipPOS.z -= 0.002;
-    #endif
-#endif
+// #ifdef _RAISE_Z
+//     // We use this to raise certain elements to be rendered on top of the others without actually
+//     // raising them in the world space
+//     #ifdef UNITY_REVERSED_Z
+//         clipPOS.z += 0.002;
+//     #else
+//         clipPOS.z -= 0.002;
+//     #endif
+// #endif
 
-    // separate highways to avoid clashes when there are a lot of them on at the same time
-    float ndcZ = clipPOS.z / clipPOS.w;
-#ifdef UNITY_REVERSED_Z
-    ndcZ += 0.005 * (index % (uint) 2);
-#else
-    ndcZ -= 0.005 * (index % (uint) 2);
-#endif
-    clipPOS.z = ndcZ * clipPOS.w;
+//     // separate highways to avoid clashes when there are a lot of them on at the same time
+//     float ndcZ = clipPOS.z / clipPOS.w;
+// #ifdef UNITY_REVERSED_Z
+//     ndcZ += 0.005 * (index % (uint) 2);
+// #else
+//     ndcZ -= 0.005 * (index % (uint) 2);
+// #endif
+//     clipPOS.z = ndcZ * clipPOS.w;
 
     return clipPOS;
 }
@@ -180,4 +180,203 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
 inline float4 YargObjectToClipPos( in float3 pos )
 {
     return YargTransformWorldToHClip(mul(unity_ObjectToWorld, float4(pos, 1.0)).xyz);
+}
+
+// TODO: Should we construct this in C# side and pass another array instead?
+// could be a bit expensive to do this for every pixel in PP
+
+// Function to construct Unity's _ZBufferParams from projection matrix
+// Unity's _ZBufferParams format: (1-far/near, far/near, x/far, y/far)
+// where x and y are platform-specific linearization parameters
+
+// Matrix inverse function for 4x4 matrices
+float4x4 InverseMatrix(float4x4 m)
+{
+    float4x4 inv;
+    
+    inv[0][0] = m[1][1] * m[2][2] * m[3][3] - 
+                m[1][1] * m[2][3] * m[3][2] - 
+                m[2][1] * m[1][2] * m[3][3] + 
+                m[2][1] * m[1][3] * m[3][2] +
+                m[3][1] * m[1][2] * m[2][3] - 
+                m[3][1] * m[1][3] * m[2][2];
+
+    inv[1][0] = -m[1][0] * m[2][2] * m[3][3] + 
+                 m[1][0] * m[2][3] * m[3][2] + 
+                 m[2][0] * m[1][2] * m[3][3] - 
+                 m[2][0] * m[1][3] * m[3][2] - 
+                 m[3][0] * m[1][2] * m[2][3] + 
+                 m[3][0] * m[1][3] * m[2][2];
+
+    inv[2][0] = m[1][0] * m[2][1] * m[3][3] - 
+                m[1][0] * m[2][3] * m[3][1] - 
+                m[2][0] * m[1][1] * m[3][3] + 
+                m[2][0] * m[1][3] * m[3][1] + 
+                m[3][0] * m[1][1] * m[2][3] - 
+                m[3][0] * m[1][3] * m[2][1];
+
+    inv[3][0] = -m[1][0] * m[2][1] * m[3][2] + 
+                 m[1][0] * m[2][2] * m[3][1] +
+                 m[2][0] * m[1][1] * m[3][2] - 
+                 m[2][0] * m[1][2] * m[3][1] - 
+                 m[3][0] * m[1][1] * m[2][2] + 
+                 m[3][0] * m[1][2] * m[2][1];
+
+    inv[0][1] = -m[0][1] * m[2][2] * m[3][3] + 
+                 m[0][1] * m[2][3] * m[3][2] + 
+                 m[2][1] * m[0][2] * m[3][3] - 
+                 m[2][1] * m[0][3] * m[3][2] - 
+                 m[3][1] * m[0][2] * m[2][3] + 
+                 m[3][1] * m[0][3] * m[2][2];
+
+    inv[1][1] = m[0][0] * m[2][2] * m[3][3] - 
+                m[0][0] * m[2][3] * m[3][2] - 
+                m[2][0] * m[0][2] * m[3][3] + 
+                m[2][0] * m[0][3] * m[3][2] + 
+                m[3][0] * m[0][2] * m[2][3] - 
+                m[3][0] * m[0][3] * m[2][2];
+
+    inv[2][1] = -m[0][0] * m[2][1] * m[3][3] + 
+                 m[0][0] * m[2][3] * m[3][1] + 
+                 m[2][0] * m[0][1] * m[3][3] - 
+                 m[2][0] * m[0][3] * m[3][1] - 
+                 m[3][0] * m[0][1] * m[2][3] + 
+                 m[3][0] * m[0][3] * m[2][1];
+
+    inv[3][1] = m[0][0] * m[2][1] * m[3][2] - 
+                m[0][0] * m[2][2] * m[3][1] - 
+                m[2][0] * m[0][1] * m[3][2] + 
+                m[2][0] * m[0][2] * m[3][1] + 
+                m[3][0] * m[0][1] * m[2][2] - 
+                m[3][0] * m[0][2] * m[2][1];
+
+    inv[0][2] = m[0][1] * m[1][2] * m[3][3] - 
+                m[0][1] * m[1][3] * m[3][2] - 
+                m[1][1] * m[0][2] * m[3][3] + 
+                m[1][1] * m[0][3] * m[3][2] + 
+                m[3][1] * m[0][2] * m[1][3] - 
+                m[3][1] * m[0][3] * m[1][2];
+
+    inv[1][2] = -m[0][0] * m[1][2] * m[3][3] + 
+                 m[0][0] * m[1][3] * m[3][2] + 
+                 m[1][0] * m[0][2] * m[3][3] - 
+                 m[1][0] * m[0][3] * m[3][2] - 
+                 m[3][0] * m[0][2] * m[1][3] + 
+                 m[3][0] * m[0][3] * m[1][2];
+
+    inv[2][2] = m[0][0] * m[1][1] * m[3][3] - 
+                m[0][0] * m[1][3] * m[3][1] - 
+                m[1][0] * m[0][1] * m[3][3] + 
+                m[1][0] * m[0][3] * m[3][1] + 
+                m[3][0] * m[0][1] * m[1][3] - 
+                m[3][0] * m[0][3] * m[1][1];
+
+    inv[3][2] = -m[0][0] * m[1][1] * m[3][2] + 
+                 m[0][0] * m[1][2] * m[3][1] + 
+                 m[1][0] * m[0][1] * m[3][2] - 
+                 m[1][0] * m[0][2] * m[3][1] - 
+                 m[3][0] * m[0][1] * m[1][2] + 
+                 m[3][0] * m[0][2] * m[1][1];
+
+    inv[0][3] = -m[0][1] * m[1][2] * m[2][3] + 
+                 m[0][1] * m[1][3] * m[2][2] + 
+                 m[1][1] * m[0][2] * m[2][3] - 
+                 m[1][1] * m[0][3] * m[2][2] - 
+                 m[2][1] * m[0][2] * m[1][3] + 
+                 m[2][1] * m[0][3] * m[1][2];
+
+    inv[1][3] = m[0][0] * m[1][2] * m[2][3] - 
+                m[0][0] * m[1][3] * m[2][2] - 
+                m[1][0] * m[0][2] * m[2][3] + 
+                m[1][0] * m[0][3] * m[2][2] + 
+                m[2][0] * m[0][2] * m[1][3] - 
+                m[2][0] * m[0][3] * m[1][2];
+
+    inv[2][3] = -m[0][0] * m[1][1] * m[2][3] + 
+                 m[0][0] * m[1][3] * m[2][1] + 
+                 m[1][0] * m[0][1] * m[2][3] - 
+                 m[1][0] * m[0][3] * m[2][1] - 
+                 m[2][0] * m[0][1] * m[1][3] + 
+                 m[2][0] * m[0][3] * m[1][1];
+
+    inv[3][3] = m[0][0] * m[1][1] * m[2][2] - 
+                m[0][0] * m[1][2] * m[2][1] - 
+                m[1][0] * m[0][1] * m[2][2] + 
+                m[1][0] * m[0][2] * m[2][1] + 
+                m[2][0] * m[0][1] * m[1][2] - 
+                m[2][0] * m[0][2] * m[1][1];
+
+    float det = m[0][0] * inv[0][0] + m[0][1] * inv[1][0] + m[0][2] * inv[2][0] + m[0][3] * inv[3][0];
+
+    if (abs(det) < 1e-6)
+        return float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1); // Return identity if singular
+
+    det = 1.0 / det;
+
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            inv[i][j] = inv[i][j] * det;
+
+    return inv;
+}
+
+float4 ConstructZBufferParams(float4x4 projectionMatrix, float nearPlane, float farPlane)
+{
+    float4 zBufferParams;
+    
+    // Unity's _ZBufferParams components:
+    // x = 1 - far/near
+    // y = far/near  
+    // z = x/far = (1 - far/near)/far
+    // w = y/far = (far/near)/far = 1/near
+    
+    float farOverNear = farPlane / nearPlane;
+    
+    zBufferParams.x = 1.0 - farOverNear;        // 1 - far/near
+    zBufferParams.y = farOverNear;              // far/near
+    zBufferParams.z = zBufferParams.x / farPlane; // (1 - far/near)/far
+    zBufferParams.w = 1.0 / nearPlane;          // 1/near
+    
+    return zBufferParams;
+}
+
+// Alternative version that extracts near/far from projection matrix
+float4 ConstructZBufferParamsFromMatrix(float4x4 projectionMatrix)
+{
+    // Extract near and far planes from projection matrix
+    // Unity uses reverse-Z, so the formulas are different
+    
+    float nearPlane, farPlane;
+    
+    // Check if it's a perspective projection (P[3][2] != 0)
+    if (abs(projectionMatrix[3][2]) > 0.0001)
+    {
+        // Perspective projection
+        float A = projectionMatrix[2][2];
+        float B = projectionMatrix[2][3];
+        
+        // For Unity's reverse-Z: A = f/(n-f), B = fn/(n-f)
+        // Solve for n and f:
+        farPlane = B / A;
+        nearPlane = B / (A + 1.0);
+        
+        // Ensure positive values
+        nearPlane = abs(nearPlane);
+        farPlane = abs(farPlane);
+    }
+    else
+    {
+        // Orthographic projection - less common, keeping original logic
+        float A = projectionMatrix[2][2];
+        float B = projectionMatrix[2][3];
+        
+        float range = -2.0 / A;
+        nearPlane = (-B - 1.0) * range * 0.5;
+        farPlane = nearPlane + range;
+        
+        nearPlane = abs(nearPlane);
+        farPlane = abs(farPlane);
+    }
+    
+    return ConstructZBufferParams(projectionMatrix, nearPlane, farPlane);
 }

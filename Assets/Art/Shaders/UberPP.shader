@@ -18,8 +18,9 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
         #include "Assets/Art/Shaders/highways.hlsl"
- 
+
         // Hardcoded dependencies to reduce the number of variants
         #if _BLOOM_LQ || _BLOOM_HQ || _BLOOM_LQ_DIRT || _BLOOM_HQ_DIRT
             #define BLOOM
@@ -243,14 +244,31 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
             // YARG highway fading
             if (_YargHighwaysN > 0 && _IsFading > 0)
             {
-                float coord_y = uvDistorted.y;
                 int index = UVToIndex(uvDistorted);
-                float fadeStartPos = 1.0 - _YargFadeParams[index * 2];
-                float fadeEndPos   = 1.0 - _YargFadeParams[index * 2 + 1];
+                float fadeStartPos = _YargFadeParams[index * 2];
+                float fadeEndPos   = _YargFadeParams[index * 2 + 1];
                 
-                float rate = 1.0 / (fadeEndPos - fadeStartPos);
-                alpha = min(alpha, 1.0 - ((min(max(coord_y, fadeStartPos), fadeEndPos)) - fadeStartPos) * rate);  
-                alpha = smoothstep(0.0, 1.0, alpha);
+                // Sample raw depth
+                #if UNITY_REVERSED_Z
+                    real depth = SampleSceneDepth(uvDistorted);
+                #else
+                    real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(uvDistorted));
+                #endif
+                
+                // Use Unity's built-in LinearEyeDepth with main camera params as approximation
+                float linearDepth = LinearEyeDepth(depth, _ZBufferParams);
+                
+                // Apply fade based on linear depth
+                if (linearDepth > fadeEndPos)
+                    alpha = 0.0;
+                else if (linearDepth > fadeStartPos)
+                {
+                    float rate = 1.0 / (fadeEndPos - fadeStartPos);
+                    float fadeValue = (linearDepth - fadeStartPos) * rate;
+                    fadeValue = smoothstep(0.0, 1.0, fadeValue);
+
+                    alpha = min(alpha, 1.0 - fadeValue);
+                }
             }
             
             return half4(color, alpha);
