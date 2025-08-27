@@ -6,6 +6,7 @@ using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Playlists;
+using YARG.Player;
 using YARG.Settings;
 using YARG.Song;
 
@@ -226,7 +227,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void StartSetlist()
         {
-            if (ShowPlaylist.Count > 0)
+            if (ShowPlaylist.Count > 0 && PlayerContainer.Players.Count > 0)
             {
                 GlobalVariables.State.PlayingAShow = true;
                 GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
@@ -300,7 +301,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnPlayShowHit()
         {
-            if (ShowPlaylist.Count > 0)
+            if (ShowPlaylist.Count > 0 && PlayerContainer.Players.Count > 0)
             {
                 GlobalVariables.State.PlayingAShow = true;
                 GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
