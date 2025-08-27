@@ -23,6 +23,20 @@ namespace YARG.Gameplay.Player
 {
     public class DrumsPlayer : TrackPlayer<DrumsEngine, DrumNote>
     {
+        private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.2f;
+
+        private static readonly List<DrumsAction> ValidDrumActions = new List<DrumsAction>(){
+            DrumsAction.Kick,
+            DrumsAction.RedDrum,
+            DrumsAction.YellowDrum,
+            DrumsAction.BlueDrum,
+            DrumsAction.GreenDrum,
+            DrumsAction.YellowCymbal,
+            DrumsAction.OrangeCymbal,
+            DrumsAction.BlueCymbal,
+            DrumsAction.GreenCymbal,
+        };
+
         public DrumsEngineParameters EngineParams { get; private set; }
 
         [Header("Drums Specific")]
@@ -44,6 +58,8 @@ namespace YARG.Gameplay.Player
 
         private int[] _drumSoundEffectRoundRobin = new int[8];
         private float _drumSoundEffectAccentThreshold;
+
+        private Dictionary<int, float> _fretToLastPressedTimeDelta = new Dictionary<int, float>();
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
             int? currentHighScore)
@@ -148,6 +164,9 @@ namespace YARG.Gameplay.Player
 
             // Set up drum fill lead-ups
             SetDrumFillEffects();
+
+            // Initialize hit timestamps
+            InitializeHitTimes();
 
             base.FinishInitialization();
         }
@@ -332,7 +351,17 @@ namespace YARG.Gameplay.Player
                     };
                 }
 
-                _fretArray.PlayHitAnimation(fret);
+                if ((FourLaneDrumPad) note.Pad
+                    is FourLaneDrumPad.YellowCymbal
+                    or FourLaneDrumPad.BlueCymbal
+                    or FourLaneDrumPad.GreenCymbal)
+                {
+                    _fretArray.PlayCymbalHitAnimation(fret);
+                }
+                else
+                {
+                    _fretArray.PlayHitAnimation(fret);
+                }
             }
             else
             {
@@ -373,6 +402,9 @@ namespace YARG.Gameplay.Player
 
         private void OnPadHit(DrumsAction action, bool wasNoteHit, float velocity)
         {
+            // Update last hit times for fret flashing animation
+            ZeroOutHitTime(action);
+
             // Skip if a note was hit, because we have different logic for that below
             if (wasNoteHit)
             {
@@ -539,5 +571,61 @@ namespace YARG.Gameplay.Player
             Player.Profile.CurrentInstrument is Instrument.ProDrums &&
             Player.Profile.SplitProTomsAndCymbals &&
             Player.Profile.SwapCrashAndRide;
+
+        protected override void UpdateVisuals(double visualTime)
+        {
+            base.UpdateVisuals(visualTime);
+            UpdateHitTimes();
+            UpdateFretArray();
+        }
+
+        private void InitializeHitTimes()
+        {
+            for (int fret = 0; fret < _fretArray.FretCount; fret++)
+            {
+                _fretToLastPressedTimeDelta[fret] = float.MaxValue;
+            }
+        }
+
+        private void ZeroOutHitTime(DrumsAction action)
+        {
+            int fret = GetFret(action);
+            _fretToLastPressedTimeDelta[fret] = 0f;
+        }
+
+        private void UpdateHitTimes()
+        {
+            for (int fret = 0; fret < _fretArray.FretCount; fret++)
+            {
+                _fretToLastPressedTimeDelta[fret] += Time.deltaTime;
+            }
+        }
+
+        private void UpdateFretArray()
+        {
+            foreach (var action in ValidDrumActions)
+            {
+                if (action is not DrumsAction.Kick)
+                {
+                    int fret = GetFret(action);
+                    _fretArray.SetPressed(fret, _fretToLastPressedTimeDelta[fret] < DRUM_PAD_FLASH_HOLD_DURATION);
+                }
+            }
+        }
+
+        private int GetFret(DrumsAction action)
+        {
+            return action switch
+            {
+                DrumsAction.RedDrum      => 0,
+                DrumsAction.YellowDrum   => 1,
+                DrumsAction.BlueDrum     => 2,
+                DrumsAction.GreenDrum    => 3,
+                DrumsAction.YellowCymbal => 1,
+                DrumsAction.BlueCymbal   => 2,
+                DrumsAction.GreenCymbal  => 3,
+                _                        => -1,
+            };
+        }
     }
 }
