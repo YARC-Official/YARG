@@ -214,88 +214,48 @@ namespace YARG.Menu.MusicLibrary
                 Navigator.Instance.PopScheme();
             }
 
-            if (MenuState == MenuState.Library || MenuState == MenuState.Playlist)
+            bool isSelectingPlaylist = MenuState == MenuState.PlaylistSelect;
+
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                Navigator.Instance.PushScheme(new NavigationScheme(new()
-                {
-                    new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
-                        ctx =>
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
+                    ctx =>
+                    {
+                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
-                            {
-                                GoToPreviousSection();
-                            }
-                            else
-                            {
-                                SetWrapAroundState(!ctx.IsRepeat);
-                                SelectedIndex--;
-                            }
-                        }),
-                    new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
-                        ctx =>
+                            GoToPreviousSection();
+                        }
+                        else
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
-                            {
-                                GoToNextSection();
-                            }
-                            else
-                            {
-                                SetWrapAroundState(!ctx.IsRepeat);
-                                SelectedIndex++;
-                            }
-                        }),
-                    new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
-                        () => CurrentSelection?.PrimaryButtonClick(), hide: true),
-                    new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToSet",
-                        AddToSetlist),
-                    new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search",
-                        () => _searchField.Focus()),
-                    new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                        OnButtonHit, OnButtonRelease),
-                }, false));
-            }
-            else
-            {
-                Navigator.Instance.PushScheme(new NavigationScheme(new()
-                {
-                    new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
-                        ctx =>
+                            SetWrapAroundState(!ctx.IsRepeat);
+                            SelectedIndex--;
+                        }
+                    }),
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
+                    ctx =>
+                    {
+                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
-                            {
-                                GoToPreviousSection();
-                            }
-                            else
-                            {
-                                SetWrapAroundState(!ctx.IsRepeat);
-                                SelectedIndex--;
-                            }
-                        }),
-                    new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
-                        ctx =>
+                            GoToNextSection();
+                        }
+                        else
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
-                            {
-                                GoToNextSection();
-                            }
-                            else
-                            {
-                                SetWrapAroundState(!ctx.IsRepeat);
-                                SelectedIndex++;
-                            }
-                        }),
-                    new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
-                        () => CurrentSelection?.PrimaryButtonClick()),
-                    new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToSet",
-                        AddToSetlist),
-                    new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.StartSet",
-                        StartSetlist),
-                    new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                        OnButtonHit, OnButtonRelease),
-                }, false));
-            }
+                            SetWrapAroundState(!ctx.IsRepeat);
+                            SelectedIndex++;
+                        }
+                    }),
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
+                    () => CurrentSelection?.PrimaryButtonClick(), hide: !isSelectingPlaylist),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
+                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToSet",
+                    AddToSetlist),
+                isSelectingPlaylist ?
+                    new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.StartSet", StartSetlist) :
+                    new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search", _searchField.Focus),
+                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
+                    OnButtonHit, OnButtonRelease),
+            }, false));
+
         }
 
         protected override void OnSelectedIndexChanged()
