@@ -92,7 +92,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(MenuAction.Green,
-                "Menu.Common.Confirm",
+                "Menu.MusicLibrary.Play",
                 () => _musicLibraryMenu.CurrentSelection.PrimaryButtonClick()));
         }
 
