@@ -395,7 +395,7 @@ namespace YARG.Venue.VenueCamera
 
             SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, 0.01f, enabled);
             SetAnimation(colorAdjustments.colorFilter, enabled ? _desatTint : Color.white, 0.01f, enabled);
-            SetAnimation(colorAdjustments.hueShift, enabled ? -90f : 0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.hueShift, enabled ? 90f : 0f, 0.01f, enabled);
         }
 
         private void SetContrastBlue(bool enabled)
@@ -407,7 +407,7 @@ namespace YARG.Venue.VenueCamera
 
             SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, 0.01f, enabled);
             SetAnimation(colorAdjustments.colorFilter, enabled ? _desatTint : Color.white, 0.01f, enabled);
-            SetAnimation(colorAdjustments.hueShift, enabled ? 90f : 0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.hueShift, enabled ? -90f : 0f, 0.01f, enabled);
         }
 
         private void SetContrastRed(bool enabled)
