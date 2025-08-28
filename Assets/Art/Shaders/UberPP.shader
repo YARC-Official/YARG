@@ -255,6 +255,17 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
                     real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(uvDistorted));
                 #endif
                 
+                // Account for highway Z-clash avoidance offset in clip space
+                // The highways.hlsl modifies NDC Z: ndcZ += 0.005 * (index % 2)
+                // We need to reverse this before converting to linear depth
+                float offset = 0.005 * (index % 2);
+                // This highway had its NDC Z modified, reverse it
+                #ifdef UNITY_REVERSED_Z
+                    depth -= offset; // Remove the NDC offset
+                #else
+                    depth += offset; // Remove the NDC offset
+                #endif
+
                 // Use Unity's built-in LinearEyeDepth with main camera params as approximation
                 float linearDepth = LinearEyeDepth(depth, _ZBufferParams);
                 
