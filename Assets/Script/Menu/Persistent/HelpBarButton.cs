@@ -117,8 +117,6 @@ namespace YARG.Menu.Persistent
             {
                 _buttonBackground.color = _buttonBackgroundColorOnHover;
                 _buttonOutline.color = _buttonBackgroundColorOnHover;
-                _buttonLabel.color = Color.white;
-                _buttonText.color = Color.white;
             }
         }
 
