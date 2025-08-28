@@ -442,52 +442,50 @@ namespace YARG.Venue.Characters
 
             if (note is GuitarNote gNote)
             {
-                if (gNote.IsStrum)
+                // Handle alternate strums for bass
+                if (Type == CharacterType.Bass && _hasSlap && _strumMap == StrumMapType.SlapBass)
                 {
-                    // Handle alternate strums for bass
-                    if (Type == CharacterType.Bass && _hasSlap && _strumMap == StrumMapType.SlapBass)
-                    {
-                        // Just trigger slap and return
-                        SetTrigger(AnimationStateType.Slap);
-                        return;
-                    }
+                    // Just trigger slap and return
+                    SetTrigger(AnimationStateType.Slap);
+                    return;
+                }
 
-                    // Which layer has strum down?
-                    if (!_animationEvents.TryGet(AnimationStateType.StrumDown, out var strumDownEvent))
-                    {
-                        // TODO: Fall back to basic animations in this case
-                        return;
-                    }
-                    // Figure out which way to strum...I guess by looking at which state we're currently in?
-                    // TODO: Handle the case where the state exists in more than one layer
-                    var currentState = _animator.GetCurrentAnimatorStateInfo(strumDownEvent[0].Layer);
+                // Which layer has strum down?
+                if (!_animationEvents.TryGet(AnimationStateType.StrumDown, out var strumDownEvent))
+                {
+                    // TODO: Fall back to basic animations in this case
+                    return;
+                }
+                // Figure out which way to strum...I guess by looking at which state we're currently in?
+                // TODO: Handle the case where the state exists in more than one layer
+                var currentState = _animator.GetCurrentAnimatorStateInfo(strumDownEvent[0].Layer);
 
-                    bool strumUp = false;
-                    if (!_animationEvents.TryGet(currentState.shortNameHash, out var currentStateInfo))
+                bool strumUp = false;
+                if (!_animationEvents.TryGet(currentState.shortNameHash, out var currentStateInfo))
+                {
+                    foreach (var hash in _strumUpHashes)
                     {
-                        foreach (var hash in _strumUpHashes)
+                        if (currentState.shortNameHash == hash)
                         {
-                            if (currentState.shortNameHash == hash)
-                            {
-                                strumUp = true;
-                                break;
-                            }
+                            strumUp = true;
+                            break;
                         }
                     }
-                    else if (currentStateInfo.Type == AnimationStateType.StrumDown)
-                    {
-                        strumUp = true;
-                    }
-
-                    if (strumUp)
-                    {
-                        SetTrigger(AnimationStateType.StrumUp);
-                    }
-                    else
-                    {
-                        SetTrigger(AnimationStateType.StrumDown);
-                    }
                 }
+                else if (currentStateInfo.Type == AnimationStateType.StrumDown)
+                {
+                    strumUp = true;
+                }
+
+                if (strumUp)
+                {
+                    SetTrigger(AnimationStateType.StrumUp);
+                }
+                else
+                {
+                    SetTrigger(AnimationStateType.StrumDown);
+                }
+
                 SetHandAnimationForNote(gNote);
             }
 
