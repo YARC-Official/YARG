@@ -254,6 +254,7 @@ namespace YARG.Menu.MusicLibrary
                     new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Search", _searchField.Focus),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                     OnButtonHit, OnButtonRelease),
+                new NavigationScheme.Entry(MenuAction.Select, "Next Sort Category", NextSort, hide: true),
             }, false));
 
         }
@@ -767,6 +768,21 @@ namespace YARG.Menu.MusicLibrary
                     ExitLibrary();
                     break;
             }
+        }
+
+        public void NextSort()
+        {
+            SortAttribute nextSort;
+            if (SettingsManager.Settings.LibrarySort >= SortAttribute.Playcount)
+            {
+                nextSort = SortAttribute.Name;
+            }
+            else
+            {
+                 nextSort = (SortAttribute) ((int) SettingsManager.Settings.LibrarySort + 1);
+            }
+
+            ChangeSort(nextSort);
         }
 
         private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button)
