@@ -431,11 +431,8 @@ namespace YARG.Menu.MusicLibrary
 
                 _primaryHeaderIndex += 2;
 
-                if (SettingsManager.Settings.LibrarySort < SortAttribute.Playable)
+                if (SettingsManager.Settings.LibrarySort <= SortAttribute.Playcount)
                 {
-                    list.Add(new CategoryViewType(
-                        Localize.Key("Menu.MusicLibrary.AllSongs"), songCount, SongContainer.Songs));
-
                     if (_recommendedSongs != null)
                     {
                         string key = Localize.Key("Menu.MusicLibrary.RecommendedSongs",
@@ -455,10 +452,6 @@ namespace YARG.Menu.MusicLibrary
                         }
                         _primaryHeaderIndex += _recommendedSongs.Length + 1;
                     }
-                }
-                else
-                {
-                    list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.PlayableSongs"), songCount, _sortedSongs));
                 }
             }
 
@@ -1007,15 +1000,35 @@ namespace YARG.Menu.MusicLibrary
         {
             if (MenuState == MenuState.Library)
             {
-                var sortingBy = TextColorer.StyleString("SORTING BY ",
-                    MenuData.Colors.HeaderTertiary,
-                    600);
+                if (SettingsManager.Settings.LibrarySort <= SortAttribute.Playcount)
+                {
+                    var sortingBy = TextColorer.StyleString("SORTED BY ",
+                        MenuData.Colors.HeaderTertiary,
+                        600);
 
-                var sortKey = TextColorer.StyleString(SettingsManager.Settings.LibrarySort.ToString(),
-                    MenuData.Colors.HeaderSecondary,
-                    700);
+                    var sortKey = TextColorer.StyleString(SettingsManager.Settings.LibrarySort.ToLocalizedName(),
+                        MenuData.Colors.HeaderSecondary,
+                        700);
 
-                _sortInfoHeaderPrimaryText.text = ZString.Concat(sortingBy, sortKey);
+                    _sortInfoHeaderPrimaryText.text = ZString.Concat(sortingBy, sortKey);
+                }
+                else
+                {
+                    var playableSongs = TextColorer.StyleString(Localize.Key("Menu.MusicLibrary.PlayableSongs"),
+                        MenuData.Colors.HeaderTertiary,
+                        600);
+
+                    var on = TextColorer.StyleString(" ON ",
+                        MenuData.Colors.HeaderTertiary,
+                        600);
+
+                    var sortKey = TextColorer.StyleString(SettingsManager.Settings.LibrarySort.ToLocalizedName(),
+                        MenuData.Colors.HeaderSecondary,
+                        700);
+
+                    _sortInfoHeaderPrimaryText.text = ZString.Concat(playableSongs, on, sortKey);
+                }
+
 
                 var count = TextColorer.StyleString(
                     ZString.Format("{0:N0}", _totalSongCount),

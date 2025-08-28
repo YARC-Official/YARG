@@ -173,12 +173,12 @@ namespace YARG.Song
                 SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
                 SortAttribute.FiveFretBass   => _sortInstruments[Instrument.FiveFretBass],
                 SortAttribute.FiveFretRhythm => _sortInstruments[Instrument.FiveFretRhythm],
-                SortAttribute.FiveFretCoop   => _sortInstruments[Instrument.FiveFretCoopGuitar   ],
+                SortAttribute.FiveFretCoop   => _sortInstruments[Instrument.FiveFretCoopGuitar],
                 SortAttribute.Keys           => _sortInstruments[Instrument.Keys],
                 SortAttribute.SixFretGuitar  => _sortInstruments[Instrument.SixFretGuitar],
                 SortAttribute.SixFretBass    => _sortInstruments[Instrument.SixFretBass],
                 SortAttribute.SixFretRhythm  => _sortInstruments[Instrument.SixFretRhythm],
-                SortAttribute.SixFretCoop    => _sortInstruments[Instrument.SixFretCoopGuitar    ],
+                SortAttribute.SixFretCoop    => _sortInstruments[Instrument.SixFretCoopGuitar],
                 SortAttribute.FourLaneDrums  => _sortInstruments[Instrument.FourLaneDrums],
                 SortAttribute.ProDrums       => _sortInstruments[Instrument.ProDrums],
                 SortAttribute.FiveLaneDrums  => _sortInstruments[Instrument.FiveLaneDrums],
@@ -241,11 +241,14 @@ namespace YARG.Song
                         var set = new HashSet<SongEntry>();
                         foreach (var ins in player.Profile.GameMode.PossibleInstruments())
                         {
-                            foreach (var list in _songCache.Instruments[ins].Values)
+                            if (SongContainer.HasInstrument(ins))
                             {
-                                foreach (var entry in list)
+                                foreach (var list in _songCache.Instruments[ins].Values)
                                 {
-                                    set.Add(entry);
+                                    foreach (var entry in list)
+                                    {
+                                        set.Add(entry);
+                                    }
                                 }
                             }
                         }
