@@ -174,7 +174,7 @@ namespace YARG.Menu.MusicLibrary
             _album.text = songEntry.Album;
             _source.text = SongSources.SourceToGameName(songEntry.Source);
             _charter.text = songEntry.Charter;
-            _genre.text = songEntry.Genre;
+            _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre);
             _year.text = songEntry.ParsedYear;
             _songRatingLabel.text = songEntry.SongRating switch
             {
