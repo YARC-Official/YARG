@@ -123,7 +123,7 @@ namespace YARG.Venue.Characters
                 {
                     if (_characters[key].Type == VenueCharacter.CharacterType.Drums)
                     {
-                        _characters[key].ChartHasAnimations = true;
+                        _characters[key].ChartHasDrumAnimations = true;
                     }
                 }
             }

@@ -104,6 +104,8 @@ namespace YARG.Venue.Characters
         private bool _alwaysBend => _handMap == HandMapType.AllBend;
         [NonSerialized]
         public  bool ChartHasAnimations;
+        [NonSerialized]
+        public  bool ChartHasDrumAnimations;
 
         private bool _hasAdvancedAnimations;
         private bool _hasSlap;
@@ -490,7 +492,7 @@ namespace YARG.Venue.Characters
             }
 
             // Fake some animations if the chart doesn't have any to begin with
-            if (!ChartHasAnimations && note is DrumNote dNote)
+            if (!ChartHasDrumAnimations && note is DrumNote dNote)
             {
                 foreach (var child in dNote.AllNotes)
                 {
