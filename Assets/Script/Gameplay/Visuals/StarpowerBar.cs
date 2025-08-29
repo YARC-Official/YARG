@@ -26,12 +26,19 @@ namespace YARG.Gameplay.Visuals
             if (_starpowerAmount >= 0.5 || _starpowerActive)
             {
                 float pulse = 1 - (float) beatPercentage;
-                _starpowerBar.material.SetFloat(_pulse, pulse);
+                float relativePulse = GetRelativePulse(pulse);
+                _starpowerBar.material.SetFloat(_pulse, relativePulse);
             }
             else
             {
                 _starpowerBar.material.SetFloat(_pulse, 0f);
             }
+        }
+
+        private float GetRelativePulse(float pulse)
+        {
+            // Use x^2 curve to make the flash more noticeable
+            return pulse * pulse;
         }
     }
 }
