@@ -21,11 +21,14 @@ namespace YARG.Venue.Characters
 
         private readonly AnimationEvents _animationEvents = new();
         private readonly List<string>    _triggerNames = new();
+        private readonly List<int>       _triggerHashes = new();
         private readonly HashSet<int>    _floatHashes = new();
         private readonly HashSet<int>    _boolHashes = new();
         private readonly HashSet<int>    _intHashes = new();
 
         private readonly Dictionary<string, int> _hashCache = new();
+
+        private readonly List<int> _genericTriggerHashes = new();
 
 
         private void PopulateAnimationData()
@@ -89,6 +92,15 @@ namespace YARG.Venue.Characters
                     {
                         _animationEvents.Add(stateType, stateName, hash, layer, hasTrigger);
                     }
+
+                    if (hasTrigger)
+                    {
+                        _triggerHashes.Add(hash);
+                        if (IsGenericState(stateType))
+                        {
+                            _genericTriggerHashes.Add(hash);
+                        }
+                    }
                 }
             }
             else
@@ -105,6 +117,15 @@ namespace YARG.Venue.Characters
                         if (TryGetAnimationStateForName(state, out var animState))
                         {
                             _animationEvents.Add(animState, state, hash, index, hasTrigger);
+                        }
+
+                        if (hasTrigger)
+                        {
+                            _triggerHashes.Add(hash);
+                            if (IsGenericState(animState))
+                            {
+                                _genericTriggerHashes.Add(hash);
+                            }
                         }
                     }
                 }
@@ -691,6 +712,9 @@ namespace YARG.Venue.Characters
                         SetBool("isMellow", false);
                         SetBool("isIntense", false);
 
+                        // Also clear any outstanding triggers
+                        ResetGenericTriggers();
+
                         // Now reset them if necessary so that transitions can use them to select the correct variety
                         if (IsLayeredState(state))
                         {
@@ -706,6 +730,10 @@ namespace YARG.Venue.Characters
                         }
                     }
 
+                    // Seems like it could be expensive to reset all triggers every time we set a trigger, so leaving it
+                    // commented out until it proves necessary
+                    // ResetAllTriggers();
+
                     _animator.SetTrigger(hash);
                 }
                 else if (_animationStateFallbacks.TryGetValue(state, out var fallback))
@@ -717,6 +745,22 @@ namespace YARG.Venue.Characters
             else
             {
                 YargLogger.LogFormatDebug("Animation State '{0}' not found", state);
+            }
+        }
+
+        private void ResetGenericTriggers()
+        {
+            foreach (var hash in _genericTriggerHashes)
+            {
+                _animator.ResetTrigger(hash);
+            }
+        }
+
+        private void ResetAllTriggers()
+        {
+            foreach (var hash in _triggerHashes)
+            {
+                _animator.ResetTrigger(hash);
             }
         }
 
