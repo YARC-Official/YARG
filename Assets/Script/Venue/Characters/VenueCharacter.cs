@@ -214,7 +214,27 @@ namespace YARG.Venue.Characters
                 return;
             }
 
-            // TODO: Add check for vocals/keys when we actually support those
+            string[] requiredVocals =
+            {
+                "MouthOpen",
+                "MouthClose"
+            };
+
+            if (Type == CharacterType.Vocals)
+            {
+                foreach (var name in requiredVocals)
+                {
+                    if (!_animationEvents.TryGet(name, out var info))
+                    {
+                        allFound = false;
+                        break;
+                    }
+                }
+                _hasAdvancedAnimations = allFound;
+                return;
+            }
+
+            // TODO: Add check for keys when we actually support those
 
             _hasAdvancedAnimations = false;
         }
@@ -499,9 +519,10 @@ namespace YARG.Venue.Characters
                 }
             }
 
-            if (note is Note<VocalNote>)
+            if (note is VocalNote vNote)
             {
-
+                SetTrigger(AnimationStateType.MouthOpen);
+                SetDelayedTrigger(AnimationStateType.MouthClose, (float) vNote.TotalTimeLength);
             }
 
             if (note is Note<ProKeysNote>)
