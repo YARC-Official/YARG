@@ -373,9 +373,9 @@ namespace YARG.Gameplay.Player
                 haptics.SetStarPowerFill((float) currentStarPowerAmount);
             }
 
-            if (songTime > SongLength)
+            if (visualTime > SongLength)
             {
-                CameraPositioner.Lower(false);
+                CameraPositioner.Lower(true);
             }
         }
 
