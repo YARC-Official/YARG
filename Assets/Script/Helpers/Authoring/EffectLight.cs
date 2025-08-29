@@ -59,7 +59,7 @@ namespace YARG.Helpers.Authoring
         private void Update()
         {
             // Normal mode
-            if (_mode == Mode.Normal)
+            if (_mode == Mode.Normal && _light.intensity > 0f)
             {
                 _light.intensity = _initialIntensity * (_timeRemaining > 0f ? 1f : 0f);
                 _timeRemaining -= Time.deltaTime;

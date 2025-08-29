@@ -367,7 +367,7 @@ namespace YARG.Gameplay.Player
             {
                 if (isDrumFreestyle)
                 {
-                    _fretArray.PlayHitAnimation(fret);
+                    AnimateFret(fret);
                 }
                 else
                 {
