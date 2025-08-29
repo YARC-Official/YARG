@@ -327,7 +327,7 @@ namespace YARG.Gameplay.Player
 
         private void Update()
         {
-            double time = GameManager.RealVisualTime;
+            double time = GameManager.VisualTime;
 
             // Handle range changes
             var ranges = _vocalsTrack.RangeShifts;

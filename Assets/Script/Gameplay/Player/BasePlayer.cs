@@ -155,22 +155,18 @@ namespace YARG.Gameplay.Player
             IsInitialized = true;
         }
 
-        public virtual void UpdateWithTimes(double inputTime)
+        public virtual void GameplayUpdate()
         {
             if (!GameManager.Started || GameManager.Paused)
             {
                 return;
             }
 
-            UpdateInputs(inputTime);
-            UpdateVisualsWithTimes(inputTime);
+            UpdateInputs(GameManager.InputTime);
+            UpdateVisuals(GameManager.VisualTime);
         }
 
-        protected virtual void UpdateVisualsWithTimes(double inputTime)
-        {
-            UpdateVisuals(inputTime);
-        }
-
+        protected abstract void UpdateVisuals(double visualTime);
         protected abstract void ResetVisuals();
 
         public virtual void ResetPracticeSection()
@@ -181,8 +177,6 @@ namespace YARG.Gameplay.Player
 
             ResetVisuals();
         }
-
-        protected abstract void UpdateVisuals(double time);
 
         public abstract void SetPracticeSection(uint start, uint end);
 
@@ -203,7 +197,7 @@ namespace YARG.Gameplay.Player
             SetStemMuteState(false);
 
             ResetVisuals();
-            UpdateVisualsWithTimes(time);
+            UpdateVisuals(time);
         }
 
         protected override void GameplayDestroy()
@@ -327,7 +321,7 @@ namespace YARG.Gameplay.Player
 
             LastInputs[input.Action] = input;
 
-            double adjustedTime = GameManager.GetCalibratedRelativeInputTime(input.Time);
+            double adjustedTime = GameManager.GetRelativeInputTime(input.Time);
             // Apply input offset
             adjustedTime += InputCalibration;
             input = new(adjustedTime, input.Action, input.Integer);
