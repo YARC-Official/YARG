@@ -273,7 +273,7 @@ namespace YARG.Venue.VenueCamera
                     if (choices.Count > 0)
                     {
                         var selected = choices.Pick();
-                        cameras = _subjectToCameraMap[selected];
+                        cameras = _subjectToCameraMap.GetValueOrDefault(selected, _cameras);
                     }
                     else
                     {
@@ -316,7 +316,8 @@ namespace YARG.Venue.VenueCamera
                 // TODO: Fix this so it doesn't break when subject is "random"
                 if (_cameraLocationLookup.TryGetValue(subject, out var location))
                 {
-                    return _cameraLocations[location];
+                    var camera = _cameraLocations.GetValueOrDefault(location, _cameras.Pick());
+                    return camera;
                 }
 
                 if (hasConstraint)
