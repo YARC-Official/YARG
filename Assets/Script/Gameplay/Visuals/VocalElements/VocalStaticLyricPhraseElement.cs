@@ -171,6 +171,8 @@ namespace YARG.Gameplay.Visuals
         public void Dismiss()
         {
             _isFuture = true;
+            _syllables.Clear();
+            _builder.Clear();
             DisableIntoPool();
             ParentPool.Return(this);
         }
@@ -226,7 +228,7 @@ namespace YARG.Gameplay.Visuals
 
         private void MakeStaticLyricSyllable(string text, double time, double timeEnd, LyricSymbolFlags flags, bool isLastLyricOfPhrase)
         {
-            if (!SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value && ((flags & LyricSymbolFlags.HarmonyHidden) != 0))
+            if (_allowHiding && ((flags & LyricSymbolFlags.HarmonyHidden) != 0))
             {
                 return;
             }

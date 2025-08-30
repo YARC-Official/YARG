@@ -711,33 +711,33 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                var harm3PhraseIdx = 0;
+                var mergedPhraseIdx = 0;
 
-                foreach (var harm2Phrase in mainPart.StaticLyricPhrases)
+                foreach (var mainPhrase in mainPart.StaticLyricPhrases)
                 {
                     // Capture any HARM3-only phrases that happened since last time
-                    while (harm3PhraseIdx < mergedPart.StaticLyricPhrases.Count && mergedPart.StaticLyricPhrases[harm3PhraseIdx].Tick < harm2Phrase.Tick)
+                    while (mergedPhraseIdx < mergedPart.StaticLyricPhrases.Count && mergedPart.StaticLyricPhrases[mergedPhraseIdx].Tick < mainPhrase.Tick)
                     {
-                        phrasePairs.Add(new(null, mergedPart.StaticLyricPhrases[harm3PhraseIdx++]));
+                        phrasePairs.Add(new(null, mergedPart.StaticLyricPhrases[mergedPhraseIdx++]));
                     }
 
                     // Capture HARM2+3 phrase
-                    if (harm3PhraseIdx < mergedPart.StaticLyricPhrases.Count && mergedPart.StaticLyricPhrases[harm3PhraseIdx].Tick == harm2Phrase.Tick)
+                    if (mergedPhraseIdx < mergedPart.StaticLyricPhrases.Count && mergedPart.StaticLyricPhrases[mergedPhraseIdx].Tick == mainPhrase.Tick)
                     {
-                        phrasePairs.Add(new(harm2Phrase, mergedPart.StaticLyricPhrases[harm3PhraseIdx++]));
+                        phrasePairs.Add(new(mainPhrase, mergedPart.StaticLyricPhrases[mergedPhraseIdx++]));
                     }
 
                     // Capture HARM2-only phrase
                     else
                     {
-                        phrasePairs.Add(new(harm2Phrase, null));
+                        phrasePairs.Add(new(mainPhrase, null));
                     }
                 }
 
                 // Capture any remaining HARM3-only phrases after the last HARM2 phrase
-                while (harm3PhraseIdx < mergedPart.StaticLyricPhrases.Count)
+                while (mergedPhraseIdx < mergedPart.StaticLyricPhrases.Count)
                 {
-                    phrasePairs.Add(new(null, mergedPart.StaticLyricPhrases[harm3PhraseIdx++]));
+                    phrasePairs.Add(new(null, mergedPart.StaticLyricPhrases[mergedPhraseIdx++]));
                 }
             }
 
