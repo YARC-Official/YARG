@@ -492,9 +492,9 @@ namespace YARG.Gameplay.Player
                 _staticPhraseQueues[i].Clear();
                 _highestEnqueuedPhraseIndices[i] = -1;
                 _rightEdges[i] = DEFAULT_RIGHT_EDGE;
+                _noMoreStaticPhrases[i] = false;
             }
 
-            _noMoreStaticPhrases = false;
 
             // Return everything
             foreach (var pool in _notePools)

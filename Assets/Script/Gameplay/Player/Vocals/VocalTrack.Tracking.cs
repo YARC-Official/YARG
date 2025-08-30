@@ -35,12 +35,12 @@ namespace YARG.Gameplay.Player
             // Returns true if it's time to shift
             public StaticLyricShiftType UpdateCurrentPhrase(double time)
             {
-                if (_vocalsPart.NotePhrases.Count == 0)
+                if (_vocalsPart.StaticLyricPhrases.Count == 0)
                 {
                     return StaticLyricShiftType.NoPhrases;
                 }
 
-                var currentLeftmostPhrase = _vocalsPart.NotePhrases[_leftmostPhraseIndex];
+                var currentLeftmostPhrase = _vocalsPart.StaticLyricPhrases[_leftmostPhraseIndex];
 
                 // We haven't passed the last note of the leftmost phrase. If we're in a gap, we need to check if the leftmost phrase
                 // is now imminent
@@ -59,15 +59,15 @@ namespace YARG.Gameplay.Player
                     // Skip percussion phrases
                     do
                     {
-                        if (_leftmostPhraseIndex + 1 >= _vocalsPart.NotePhrases.Count)
+                        if (_leftmostPhraseIndex + 1 >= _vocalsPart.StaticLyricPhrases.Count)
                         {
                             return StaticLyricShiftType.FinalPhraseComplete;
                         }
 
                         _leftmostPhraseIndex++;
-                    } while (_vocalsPart.NotePhrases[_leftmostPhraseIndex].IsPercussion);
+                    } while (_vocalsPart.StaticLyricPhrases[_leftmostPhraseIndex].IsPercussion);
 
-                    var newLeftmostPhrase = _vocalsPart.NotePhrases[_leftmostPhraseIndex];
+                    var newLeftmostPhrase = _vocalsPart.StaticLyricPhrases[_leftmostPhraseIndex];
 
                     // Factor in the shift duration here, so that we don't go from gap to phrase in the middle of a phrase-to-gap shift
                     if (newLeftmostPhrase.PhraseParentNote.Time > time + IMMINENCE_THRESHOLD + STATIC_LYRIC_SHIFT_DURATION)
@@ -90,10 +90,6 @@ namespace YARG.Gameplay.Player
             public StaticPhraseTracker(VocalsPart vocalsPart)
             {
                 _vocalsPart = vocalsPart;
-                while (vocalsPart.NotePhrases.Count > _leftmostPhraseIndex + 1 && vocalsPart.NotePhrases[_leftmostPhraseIndex].IsPercussion)
-                {
-                    _leftmostPhraseIndex++;
-                }
             }
 
             public void Reset()

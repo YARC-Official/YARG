@@ -31,7 +31,7 @@ namespace YARG.Gameplay.Player
             DEFAULT_RIGHT_EDGE
         };
 
-        private bool _noMoreStaticPhrases = false;
+        private bool[] _noMoreStaticPhrases = { false, false, false };
 
         private void UpdateSpawning()
         {
@@ -115,7 +115,7 @@ namespace YARG.Gameplay.Player
 
         private void SpawnStaticLyrics(StaticPhraseTracker tracker, int harmonyIndex)
         {
-            if (_noMoreStaticPhrases)
+            if (_noMoreStaticPhrases[harmonyIndex])
             {
                 return;
             }
@@ -174,25 +174,25 @@ namespace YARG.Gameplay.Player
                 }
                 case StaticLyricShiftType.FinalPhraseComplete:
                 {
-                    _noMoreStaticPhrases = true;
+                    _noMoreStaticPhrases[harmonyIndex] = true;
                     var finalPhraseElement = queue.Dequeue();
                     finalPhraseElement.Dismiss();
                     break;
                 }
                 case StaticLyricShiftType.NoPhrases:
-                    _noMoreStaticPhrases = true;
+                    _noMoreStaticPhrases[harmonyIndex] = true;
                     break;
             }
 
             // Enqueue more phrases, if we have room
-            for (var phraseIdx = _highestEnqueuedPhraseIndices[harmonyIndex] + 1; phraseIdx < _vocalsTrack.Parts[harmonyIndex].NotePhrases.Count; phraseIdx++)
+            for (var phraseIdx = _highestEnqueuedPhraseIndices[harmonyIndex] + 1; phraseIdx < _vocalsTrack.Parts[harmonyIndex].StaticLyricPhrases.Count; phraseIdx++)
             {
                 if (queue.Count > MAXIMUM_PHRASE_QUEUE_SIZE)
                 {
                     break;
                 }
 
-                var phrase = _vocalsTrack.Parts[harmonyIndex].NotePhrases[phraseIdx];
+                var phrase = _vocalsTrack.Parts[harmonyIndex].StaticLyricPhrases[phraseIdx];
 
                 if (phrase.IsPercussion)
                 {

@@ -156,19 +156,24 @@ namespace YARG.Gameplay.Visuals
             if (lyric.JoinWithNext)
             {
                 _builder.Append(lyric.Text[0..^1]);
-            }
-            else
+                if (lyric.Text[^1] is '=')
+                {
+                    _builder.Append("-");
+                }
+            } else
             {
                 _builder.Append(lyric.Text);
-                if (!lyric.HyphenateWithNext && !lastLyricOfPhrase)
-                {
-                    _builder.Append(" ");
-                }
+                _builder.Append(" ");
             }
 
             if (lyric.NonPitched)
             {
                 _builder.Append("</i>");
+            }
+
+            if (!lyric.JoinWithNext && !lastLyricOfPhrase)
+            {
+                _builder.Append(" ");
             }
 
             if (colorTag is not null)
