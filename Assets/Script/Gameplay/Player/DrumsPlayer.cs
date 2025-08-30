@@ -345,9 +345,6 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            // Choose the correct fret
-            int fret = GetFret(action);
-
             bool isDrumFreestyle = IsDrumFreestyle();
 
             // Figure out wether its a drum freestyle or if AODSFX is enabled
@@ -357,20 +354,15 @@ namespace YARG.Gameplay.Player
                 PlayDrumSoundEffect(action, velocity);
             }
 
-            // Skip if no animation
-            if (fret == -1)
-            {
-                return;
-            }
-
-            if (fret != 0)
+            if (action is not DrumsAction.Kick)
             {
                 if (isDrumFreestyle)
                 {
-                    AnimateFret(fret);
+                    AnimateAction(action);
                 }
                 else
                 {
+                    int fret = GetFret(action);
                     _fretArray.PlayMissAnimation(fret);
                 }
             }
@@ -493,6 +485,37 @@ namespace YARG.Gameplay.Player
             for (int fret = 0; fret < _fretArray.FretCount; fret++)
             {
                 _fretArray.SetPressed(fret, _fretToLastPressedTimeDelta[fret] < DRUM_PAD_FLASH_HOLD_DURATION);
+            }
+        }
+
+        private void AnimateAction(DrumsAction action)
+        {
+            // Refers to the lane where 0 is red
+            int fret = GetFret(action);
+
+            if (_fiveLaneMode)
+            {
+                // Only use cymbal animation if the cymbal gems are being used
+                if (Player.Profile.UseCymbalModels && action is DrumsAction.YellowCymbal or DrumsAction.OrangeCymbal)
+                {
+                    _fretArray.PlayCymbalHitAnimation(fret);
+                }
+                else
+                {
+                    _fretArray.PlayHitAnimation(fret);
+                }
+
+                return;
+            }
+
+            // Can technically merge this condition with the above, but it's more readable like this
+            if (action is DrumsAction.YellowCymbal or DrumsAction.BlueCymbal or DrumsAction.GreenCymbal)
+            {
+                _fretArray.PlayCymbalHitAnimation(fret);
+            }
+            else
+            {
+                _fretArray.PlayHitAnimation(fret);
             }
         }
 
