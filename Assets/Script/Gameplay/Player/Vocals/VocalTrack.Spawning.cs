@@ -43,11 +43,19 @@ namespace YARG.Gameplay.Player
                 // Spawn in notes and lyrics
                 SpawnNotesInPhrase(_scrollingNoteTrackers[i], i);
                 SpawnPhraseLines(i);
+
+                if (!SettingsManager.Settings.StaticVocalsMode.Value)
+                {
+                    SpawnScrollingLyrics(_scrollingLyricTrackers[i], i);
+                }
             }
 
-            for (int i = 0; i < LyricLaneCount; i++)
+            if (SettingsManager.Settings.StaticVocalsMode.Value)
             {
-                SpawnLyrics(_scrollingLyricTrackers[i], _staticPhraseTrackers[i], i);
+                for (int i = 0; i < LyricLaneCount; i++)
+                {
+                    SpawnStaticLyrics(_staticPhraseTrackers[i], i);
+                }
             }
         }
 
@@ -87,17 +95,6 @@ namespace YARG.Gameplay.Player
                 }
 
                 tracker.NextNote();
-            }
-        }
-
-        private void SpawnLyrics(ScrollingPhraseNoteTracker scrollingTracker, StaticPhraseTracker staticTracker, int harmonyIndex)
-        {
-            if (SettingsManager.Settings.StaticVocalsMode.Value)
-            {
-                SpawnStaticLyrics(staticTracker, harmonyIndex);
-            } else
-            {
-                SpawnScrollingLyrics(scrollingTracker, harmonyIndex);
             }
         }
 
