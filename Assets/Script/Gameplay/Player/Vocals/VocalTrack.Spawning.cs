@@ -205,7 +205,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(phrase, phrase.IsStarPower, harmonyIndex, _rightEdges[harmonyIndex]);
+                var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(phrase, _vocalsTrack.Parts[harmonyIndex].NotePhrases, harmonyIndex, _rightEdges[harmonyIndex]);
 
                 if (newPhraseElement != null)
                 {

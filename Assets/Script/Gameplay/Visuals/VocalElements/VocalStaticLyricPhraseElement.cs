@@ -17,14 +17,16 @@ namespace YARG.Gameplay.Visuals
     public class VocalStaticLyricPhraseElement : BaseElement // not a VocalElement because it doesn't scroll along the highway
     {
         private const string PAST_LYRIC_COLOR_TAG = "<color=#595959>";
-        private const string PRESENT_LYRIC_COLOR_TAG = "<color=#5CB9FF>";
+        private const string PAST_STAR_POWER_LYRIC_COLOR_TAG = "<color=#757519>";
+        private const string PRESENT_LYRIC_COLOR_TAG = "<color=#13f0a6>";
         private const string FUTURE_LYRIC_COLOR_TAG = "<color=#FFFFFF>";
+        private const string FUTURE_STAR_POWER_LYRIC_COLOR_TAG = "<color=#FFEB04>";
         private const string FUTURE_PHRASE_COLOR_TAG = "<color=#595959>";
+        private const string FUTURE_STAR_POWER_PHRASE_COLOR_TAG = "<color=#757519>";
         private const string CLOSE_COLOR_TAG = "</color>";
 
         private VocalPhrasePair _phrasePairRef;
-        private VocalStaticLyricPhraseElement? _previousPhraseElement;
-        private bool _isStarpower;
+        private List<VocalsPhrase> _scoringPhrases; // Needed to determine which syllables should have star power coloring
         private int _harmonyIndex;
         private bool _allowHiding;
         private float _x;
@@ -43,11 +45,11 @@ namespace YARG.Gameplay.Visuals
 
         public double Duration => _phrasePairRef.Duration;
 
-        public void Initialize(VocalPhrasePair phrasePair, bool isStarpower, int harmonyIndex,
+        public void Initialize(VocalPhrasePair phrasePair, List<VocalsPhrase> scoringPhrases, int harmonyIndex,
             bool allowHiding, float x)
         {
             _phrasePairRef = phrasePair;
-            _isStarpower = isStarpower;
+            _scoringPhrases = scoringPhrases;
             _harmonyIndex = harmonyIndex;
             _allowHiding = allowHiding;
             _x = x;
@@ -151,14 +153,10 @@ namespace YARG.Gameplay.Visuals
 
             transform.localPosition = transform.localPosition.WithX(_x);
 
-            _builder.Append(FUTURE_PHRASE_COLOR_TAG);
-
             foreach (var syllable in _syllables)
             {
-                _builder.Append(syllable.Text);
+                BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? FUTURE_STAR_POWER_PHRASE_COLOR_TAG : FUTURE_PHRASE_COLOR_TAG);
             }
-
-            _builder.Append(CLOSE_COLOR_TAG);
 
             _phraseText.text = _builder.ToString();
         }
@@ -190,14 +188,14 @@ namespace YARG.Gameplay.Visuals
             {
                 if (GameManager.SongTime < syllable.Time)
                 {
-                    BuilderAppendWithColorTag(syllable.Text, FUTURE_LYRIC_COLOR_TAG);
+                    BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? FUTURE_STAR_POWER_LYRIC_COLOR_TAG : FUTURE_LYRIC_COLOR_TAG);
                 }
                 else if (syllable.Time <= GameManager.SongTime && GameManager.SongTime < syllable.TimeEnd)
                 {
                     BuilderAppendWithColorTag(syllable.Text, PRESENT_LYRIC_COLOR_TAG);
                 }
                 else {
-                    BuilderAppendWithColorTag(syllable.Text, PAST_LYRIC_COLOR_TAG);
+                    BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? PAST_STAR_POWER_LYRIC_COLOR_TAG : PAST_LYRIC_COLOR_TAG);
                 }
             }
 
@@ -233,7 +231,28 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            _syllables.Add(new(text, time, timeEnd, flags, isLastLyricOfPhrase));
+            // Determine whether the lyric falls within a star power scoring phrase
+            var isStarpower = false;
+            foreach (var scoringPhrase in _scoringPhrases)
+            {
+                if (scoringPhrase.Time > time)
+                {
+                    // We've reached the scoring phrase past this lyric, so we can stop
+                    // Arguably belt-and-suspenders, because the lyric should definitely be in *some* phrase, and we break once we find it
+                    break;
+                }
+
+                if (scoringPhrase.TimeEnd <= time)
+                {
+                    // This phrase ends before the lyric, so is irrelevant to whether the lyric is star power
+                    continue;
+                }
+
+                // At this point, we've found the scoring phrase that this lyric is a part of (going off of the beginning of the lyric)
+                isStarpower = scoringPhrase.IsStarPower;
+            }
+
+            _syllables.Add(new(text, time, timeEnd, isStarpower, flags, isLastLyricOfPhrase));
         }
 
         private struct StaticLyricSyllable
@@ -241,13 +260,15 @@ namespace YARG.Gameplay.Visuals
             public string Text;
             public double Time;
             public double TimeEnd;
+            public bool IsStarpower;
 
-            public StaticLyricSyllable(string text, double time, double timeEnd, LyricSymbolFlags flags, bool isLastLyricOfPhrase)
+            public StaticLyricSyllable(string text, double time, double timeEnd, bool isStarpower, LyricSymbolFlags flags, bool isLastLyricOfPhrase)
             {
                 var builder = ZString.CreateStringBuilder(false);
 
                 Time = time;
                 TimeEnd = timeEnd;
+                IsStarpower = isStarpower;
 
                 if ((flags & LyricSymbolFlags.NonPitched) != 0)
                 {

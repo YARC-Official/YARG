@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -77,7 +78,7 @@ namespace YARG.Gameplay.Player
             return true;
         }
 
-        public VocalStaticLyricPhraseElement? TrySpawnStaticLyricPhrase(VocalPhrasePair phrasePair, bool isStarpower,
+        public VocalStaticLyricPhraseElement? TrySpawnStaticLyricPhrase(VocalPhrasePair phrasePair, List<VocalsPhrase> scoringPhrases,
             int harmIndex, float x)
         {
             var combineHarmonyLyrics = !SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value;
@@ -107,7 +108,7 @@ namespace YARG.Gameplay.Player
             // Spawn the vocal lyric
             bool allowHiding = harmIndex != 0 && combineHarmonyLyrics;
             var obj = (VocalStaticLyricPhraseElement) _staticPools[laneIndex].TakeWithoutEnabling();
-            obj.Initialize(phrasePair, isStarpower, laneIndex, allowHiding, x);
+            obj.Initialize(phrasePair, scoringPhrases, laneIndex, allowHiding, x);
             obj.EnableFromPool();
 
             return obj;
