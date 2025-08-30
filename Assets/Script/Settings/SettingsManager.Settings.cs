@@ -67,9 +67,10 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
-            public ToggleSetting DisableGlobalBackgrounds { get; } = new(false);
+            public ToggleSetting DisableDefaultBackground  { get; } = new(false);
+            public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
-            public ToggleSetting WaitForSongVideo { get; } = new(true);
+            public ToggleSetting WaitForSongVideo          { get; } = new(true);
 
 
             public SliderSetting InputPollingFrequency { get; } = new(250f, 60f, 1000f,
