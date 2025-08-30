@@ -12,10 +12,12 @@ namespace YARG.Gameplay.Player
     public partial class VocalTrack
     {
         private int[] _phraseMarkerIndices;
-        private const float SPACING_FROM_SING_LINE = .25f;
-        private const float LEFT_EDGE = VocalElement.SING_LINE_POS + SPACING_FROM_SING_LINE;
-        private const float DEFAULT_RIGHT_EDGE = LEFT_EDGE + VocalLyricContainer.STATIC_PHRASE_SPACING;
-        private const float MAXIMUM_PHRASE_QUEUE_SIZE = 10;
+
+        // Static vocals-related constants
+        private const float STATIC_LYRICS_SPACING_FROM_SING_LINE = .25f;
+        private const float STATIC_LYRICS_LEFT_EDGE = VocalElement.SING_LINE_POS + STATIC_LYRICS_SPACING_FROM_SING_LINE;
+        private const float DEFAULT_STATIC_LYRICS_RIGHT_EDGE = STATIC_LYRICS_LEFT_EDGE + VocalLyricContainer.STATIC_PHRASE_SPACING;
+        private const float MAXIMUM_STATIC_PHRASE_QUEUE_SIZE = 10;
         private const float STATIC_LYRIC_SHIFT_DURATION = .1f;
 
         private ScrollingPhraseNoteTracker[] _scrollingNoteTrackers;
@@ -24,11 +26,11 @@ namespace YARG.Gameplay.Player
         private Queue<VocalStaticLyricPhraseElement>[] _staticPhraseQueues;
 
 
-        private int[] _highestEnqueuedPhraseIndices = { -1, -1, -1 };
+        private int[] _highestEnqueuedPhrasePairIndices = { -1, -1, -1 };
         private float[] _rightEdges = {
-            DEFAULT_RIGHT_EDGE,
-            DEFAULT_RIGHT_EDGE,
-            DEFAULT_RIGHT_EDGE
+            DEFAULT_STATIC_LYRICS_RIGHT_EDGE,
+            DEFAULT_STATIC_LYRICS_RIGHT_EDGE,
+            DEFAULT_STATIC_LYRICS_RIGHT_EDGE
         };
 
         private bool[] _noMoreStaticPhrases = { false, false, false };
@@ -40,8 +42,12 @@ namespace YARG.Gameplay.Player
             {
                 // Spawn in notes and lyrics
                 SpawnNotesInPhrase(_scrollingNoteTrackers[i], i);
-                SpawnLyrics(_scrollingLyricTrackers[i], _staticPhraseTrackers[i], i);
                 SpawnPhraseLines(i);
+            }
+
+            for (int i = 0; i < LyricLaneCount; i++)
+            {
+                SpawnLyrics(_scrollingLyricTrackers[i], _staticPhraseTrackers[i], i);
             }
         }
 
@@ -150,7 +156,7 @@ namespace YARG.Gameplay.Player
                     foreach (var remainingPhrase in queue)
                     {
                         remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift,
-                            Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, leftmostPhraseElement.Duration));
+                            Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, (float)leftmostPhraseElement.Duration));
 
                     }
                     _rightEdges[harmonyIndex] -= leftShift;
@@ -166,7 +172,7 @@ namespace YARG.Gameplay.Player
                     {
                         remainingPhrase.transform.DOLocalMoveX(
                             remainingPhrase.transform.localPosition.x - VocalLyricContainer.STATIC_PHRASE_SPACING,
-                            Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, leftmostPhraseElement.Duration));
+                            Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, (float)leftmostPhraseElement.Duration));
 
                     }
                     leftmostPhraseElement.Activate();
@@ -185,14 +191,14 @@ namespace YARG.Gameplay.Player
             }
 
             // Enqueue more phrases, if we have room
-            for (var phraseIdx = _highestEnqueuedPhraseIndices[harmonyIndex] + 1; phraseIdx < _vocalsTrack.Parts[harmonyIndex].StaticLyricPhrases.Count; phraseIdx++)
+            for (var phraseIdx = _highestEnqueuedPhrasePairIndices[harmonyIndex] + 1; phraseIdx < _staticPhraseTrackers[harmonyIndex].PhrasePairs.Count; phraseIdx++)
             {
-                if (queue.Count > MAXIMUM_PHRASE_QUEUE_SIZE)
+                if (queue.Count > MAXIMUM_STATIC_PHRASE_QUEUE_SIZE)
                 {
                     break;
                 }
 
-                var phrase = _vocalsTrack.Parts[harmonyIndex].StaticLyricPhrases[phraseIdx];
+                var phrase = _staticPhraseTrackers[harmonyIndex].PhrasePairs[phraseIdx];
 
                 if (phrase.IsPercussion)
                 {
@@ -204,7 +210,7 @@ namespace YARG.Gameplay.Player
                 if (newPhraseElement != null)
                 {
                     _rightEdges[harmonyIndex] += newPhraseElement.Width + VocalLyricContainer.STATIC_PHRASE_SPACING;
-                    _highestEnqueuedPhraseIndices[harmonyIndex] = phraseIdx;
+                    _highestEnqueuedPhrasePairIndices[harmonyIndex] = phraseIdx;
                     queue.Enqueue(newPhraseElement);
                 }
             }

@@ -1,8 +1,10 @@
-﻿using UnityEditor.ShaderGraph.Internal;
+﻿using System;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Visuals;
 using YARG.Settings;
+using static YARG.Gameplay.Player.VocalTrack;
 
 namespace YARG.Gameplay.Player
 {
@@ -75,39 +77,38 @@ namespace YARG.Gameplay.Player
             return true;
         }
 
-        public VocalStaticLyricPhraseElement? TrySpawnStaticLyricPhrase(VocalsPhrase phrase, bool isStarpower,
+        public VocalStaticLyricPhraseElement? TrySpawnStaticLyricPhrase(VocalPhrasePair phrasePair, bool isStarpower,
             int harmIndex, float x)
         {
             var combineHarmonyLyrics = !SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value;
 
-            // Choose the correct lane for the lyrics
-            int lane = harmIndex;
-            if (combineHarmonyLyrics && lane == 1)
+            int laneIndex;
+
+            if (combineHarmonyLyrics)
             {
-                // In two lane mode, the middle track should not be used
-                lane = 2;
+                laneIndex = harmIndex switch
+                {
+                    0 => 0,
+                    1 => 2,
+                    2 => 2,
+                    _ => throw new InvalidOperationException("Unexpected lyric lane count")
+                };
+            } else
+            {
+                laneIndex = harmIndex;
             }
 
             // Skip this frame if the pool is full
-            if (!_staticPools[lane].CanSpawnAmount(1))
+            if (!_staticPools[laneIndex].CanSpawnAmount(1))
             {
                 return null;
             }
 
             // Spawn the vocal lyric
             bool allowHiding = harmIndex != 0 && combineHarmonyLyrics;
-            var obj = (VocalStaticLyricPhraseElement) _staticPools[lane].TakeWithoutEnabling();
-            obj.Initialize(phrase, isStarpower, harmIndex, allowHiding, x);
+            var obj = (VocalStaticLyricPhraseElement) _staticPools[laneIndex].TakeWithoutEnabling();
+            obj.Initialize(phrasePair, isStarpower, laneIndex, allowHiding, x);
             obj.EnableFromPool();
-
-            // Set the edge time
-            _lastLyricEdgeTime[lane] = obj.ElementTime + (obj.Width + LYRIC_SPACING) / TrackSpeed;
-
-            // When combining lyrics, prevent duplicates on HARM3
-            if (combineHarmonyLyrics && harmIndex == 1)
-            {
-                _lastSecondHarmonyLyric = "lyric.Text TODO";
-            }
 
             return obj;
         }

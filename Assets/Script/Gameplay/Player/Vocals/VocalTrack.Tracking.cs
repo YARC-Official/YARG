@@ -24,7 +24,7 @@ namespace YARG.Gameplay.Player
         {
             private const double IMMINENCE_THRESHOLD = .3d;
 
-            private readonly VocalsPart _vocalsPart;
+            public List<VocalPhrasePair> PhrasePairs { get; } = new();
 
             // Index of the the phrase that should be leftmost in the static lyrics display. This updates as soon as the last note
             // of a phrase ends, not when the phrase itself ends
@@ -35,18 +35,18 @@ namespace YARG.Gameplay.Player
             // Returns true if it's time to shift
             public StaticLyricShiftType UpdateCurrentPhrase(double time)
             {
-                if (_vocalsPart.StaticLyricPhrases.Count == 0)
+                if (PhrasePairs.Count == 0)
                 {
                     return StaticLyricShiftType.NoPhrases;
                 }
 
-                var currentLeftmostPhrase = _vocalsPart.StaticLyricPhrases[_leftmostPhraseIndex];
+                var currentLeftmostPhrasePair = PhrasePairs[_leftmostPhraseIndex];
 
                 // We haven't passed the last note of the leftmost phrase. If we're in a gap, we need to check if the leftmost phrase
                 // is now imminent
                 if (_inGap)
                 {
-                    if (currentLeftmostPhrase.PhraseParentNote.Time < time + IMMINENCE_THRESHOLD)
+                    if (currentLeftmostPhrasePair.GetFirstNoteStartTime() < time + IMMINENCE_THRESHOLD)
                     {
                         _inGap = false;
                         return StaticLyricShiftType.GapToPhrase;
@@ -54,23 +54,23 @@ namespace YARG.Gameplay.Player
                 }
 
                 // We've passed the last note of the leftmost phrase, so it's time to shift
-                else if (time >= currentLeftmostPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd)
+                else if (time >= currentLeftmostPhrasePair.GetLastNoteTotalEndTime())
                 {
                     // Skip percussion phrases
                     do
                     {
-                        if (_leftmostPhraseIndex + 1 >= _vocalsPart.StaticLyricPhrases.Count)
+                        if (_leftmostPhraseIndex + 1 >= PhrasePairs.Count)
                         {
                             return StaticLyricShiftType.FinalPhraseComplete;
                         }
 
                         _leftmostPhraseIndex++;
-                    } while (_vocalsPart.StaticLyricPhrases[_leftmostPhraseIndex].IsPercussion);
+                    } while (PhrasePairs[_leftmostPhraseIndex].IsPercussion);
 
-                    var newLeftmostPhrase = _vocalsPart.StaticLyricPhrases[_leftmostPhraseIndex];
+                    var newLeftmostPhrase = PhrasePairs[_leftmostPhraseIndex];
 
                     // Factor in the shift duration here, so that we don't go from gap to phrase in the middle of a phrase-to-gap shift
-                    if (newLeftmostPhrase.PhraseParentNote.Time > time + IMMINENCE_THRESHOLD + STATIC_LYRIC_SHIFT_DURATION)
+                    if (newLeftmostPhrase.GetFirstNoteStartTime() > time + IMMINENCE_THRESHOLD + STATIC_LYRIC_SHIFT_DURATION)
                     {
                         _inGap = true;
 
@@ -87,9 +87,9 @@ namespace YARG.Gameplay.Player
                 return StaticLyricShiftType.None;
             }
 
-            public StaticPhraseTracker(VocalsPart vocalsPart)
+            public StaticPhraseTracker(List<VocalPhrasePair> phrasePairs)
             {
-                _vocalsPart = vocalsPart;
+                PhrasePairs = phrasePairs;
             }
 
             public void Reset()

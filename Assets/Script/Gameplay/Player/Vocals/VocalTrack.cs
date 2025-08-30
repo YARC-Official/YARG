@@ -251,24 +251,6 @@ namespace YARG.Gameplay.Player
 
             _lyricContainer.TrackSpeed = TrackSpeed;
 
-            // Create trackers and indices
-            var parts = _vocalsTrack.Parts;
-            _phraseMarkerIndices = new int[parts.Count];
-            _scrollingNoteTrackers = new ScrollingPhraseNoteTracker[parts.Count];
-            _scrollingLyricTrackers = new ScrollingPhraseNoteTracker[parts.Count];
-            _staticPhraseTrackers = new StaticPhraseTracker[parts.Count];
-            _staticPhraseQueues = new Queue<VocalStaticLyricPhraseElement>[parts.Count];
-            
-
-            // Create PhraseNoteTrackers
-            for (int i = 0; i < parts.Count; i++)
-            {
-                _scrollingNoteTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], false);
-                _scrollingLyricTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], true);
-                _staticPhraseTrackers[i] = new StaticPhraseTracker(parts[i]);
-                _staticPhraseQueues[i] = new Queue<VocalStaticLyricPhraseElement>();
-            }
-
             // Choose the correct amount of lanes
             LyricLaneCount = 1;
             if (vocalsTrack.Instrument == Instrument.Harmony)
@@ -276,6 +258,46 @@ namespace YARG.Gameplay.Player
                 LyricLaneCount = SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value
                     ? 3
                     : 2;
+            }
+
+            // Create trackers and indices
+            var parts = _vocalsTrack.Parts;
+            _phraseMarkerIndices = new int[parts.Count];
+            _scrollingNoteTrackers = new ScrollingPhraseNoteTracker[parts.Count];
+            _scrollingLyricTrackers = new ScrollingPhraseNoteTracker[parts.Count];
+            _staticPhraseTrackers = new StaticPhraseTracker[parts.Count];
+            _staticPhraseQueues = new Queue<VocalStaticLyricPhraseElement>[parts.Count];
+
+
+
+            // Create PhraseNoteTrackers
+            for (int i = 0; i < parts.Count; i++)
+            {
+                _scrollingNoteTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], false);
+                _scrollingLyricTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], true);
+
+                if (SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value)
+                {
+                    // If we're in 3-lane mode, just give each lane its own tracker with no merging
+                    _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], null));
+                }
+                else
+                {
+                    // If we're in 2-lane mode...
+                    switch (i)
+                    {
+                        case 0:
+                            // ...HARM1 gets its own tracker with no merging...
+                            _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], null));
+                            break;
+                        case 1:
+                            // ...but HARM2 gets HARM3 as a merged part
+                            _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], parts[i+1]));
+                            break;
+                        // Do nothing for HARM3, because it's being handled by HARM2
+                    }
+                }
+                _staticPhraseQueues[i] = new Queue<VocalStaticLyricPhraseElement>();
             }
 
             // Set the correct track material and track top constant
@@ -490,8 +512,8 @@ namespace YARG.Gameplay.Player
                 _scrollingLyricTrackers[i].Reset();
                 _staticPhraseTrackers[i].Reset();
                 _staticPhraseQueues[i].Clear();
-                _highestEnqueuedPhraseIndices[i] = -1;
-                _rightEdges[i] = DEFAULT_RIGHT_EDGE;
+                _highestEnqueuedPhrasePairIndices[i] = -1;
+                _rightEdges[i] = DEFAULT_STATIC_LYRICS_RIGHT_EDGE;
                 _noMoreStaticPhrases[i] = false;
             }
 
@@ -531,7 +553,14 @@ namespace YARG.Gameplay.Player
 
                 _scrollingNoteTrackers[i] = new(part, false);
                 _scrollingLyricTrackers[i] = new(part, true);
-                _staticPhraseTrackers[i] = new(part);
+            }
+
+            for (int i = 0; i < LyricLaneCount; i++)
+            {
+                var phrasePairs = _staticPhraseTrackers[i].PhrasePairs;
+                phrasePairs.RemoveAll(n => n.Tick < start || n.Tick >= end);
+
+                _staticPhraseTrackers[i] = new(phrasePairs);
                 _staticPhraseQueues[i].Clear();
             }
 
@@ -593,6 +622,126 @@ namespace YARG.Gameplay.Player
             int severity = (((int)greatestOffset - THRESHOLD) / 200) + 1;
 
             return 1f + (severity * 0.3f);
+        }
+
+        // Necessary for combining HARM2 and HARM3 in two-lane view
+        public struct VocalPhrasePair
+        {
+            public double Tick;
+            public double Time;
+
+            // In three-lane view, this is always populated
+            // In two-lane view, the HARM2 tracker might have some VocalPhrasePairs where this is null but mergedPhrase is not (for phrases that include
+            // HARM3 but not HARM2). Still always populated for HARM1
+            public VocalsPhrase? MainPhrase;
+
+            // In three-lane view, this is always null
+            // In two-lane view, this is populated with HARM3's phrases. When HARM2 and HARM3 share a phrase, both fields are populated. Still always null
+            // for HARM1
+            public VocalsPhrase? MergedPhrase;
+
+            public VocalPhrasePair(VocalsPhrase? mainPhrase, VocalsPhrase? mergedPhrase)
+            {
+                MainPhrase = mainPhrase;
+                MergedPhrase = mergedPhrase;
+
+                if (mainPhrase is not null)
+                {
+                    Tick = mainPhrase.Tick;
+                    Time = mainPhrase.Time;
+                } else if (mergedPhrase is not null)
+                {
+                    Tick = mergedPhrase.Tick;
+                    Time = mergedPhrase.Time;
+                } else
+                {
+                    throw new InvalidOperationException("Tried to create VocalPhrasePair with two null phrases");
+                }
+            }
+
+            // Percussion is only valid on Solo Vocals and HARM1, so the merged phrase can be assumed false
+            public readonly bool IsPercussion => MainPhrase?.IsPercussion ?? false;
+
+            public readonly bool IsStarPower => MainPhrase?.IsStarPower ?? MergedPhrase.IsStarPower;
+
+            public double Duration => GetLastNoteTotalEndTime() - GetFirstNoteStartTime();
+
+            public double GetFirstNoteStartTime()
+            {
+                if (MergedPhrase is null)
+                {
+                    return MainPhrase.PhraseParentNote.Time;
+                }
+                if (MainPhrase is null)
+                {
+                    return MergedPhrase.PhraseParentNote.Time;
+                } else
+                {
+                    return Math.Min(MainPhrase.PhraseParentNote.Time, MergedPhrase.PhraseParentNote.Time);
+                }
+            }
+
+            public double GetLastNoteTotalEndTime()
+            {
+                if (MergedPhrase is null)
+                {
+                    return MainPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
+                }
+                if (MainPhrase is null)
+                {
+                    return MergedPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
+                }
+                else
+                {
+                    return Math.Max(MainPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd, MergedPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd);
+                }
+            }
+        }
+
+        private List<VocalPhrasePair> GetVocalPhrasePairs(VocalsPart mainPart, VocalsPart? mergedPart)
+        {
+            var phrasePairs = new List<VocalPhrasePair>();
+
+            if (mergedPart is null)
+            {
+                foreach (var phrase in mainPart.StaticLyricPhrases)
+                {
+                    phrasePairs.Add(new(phrase, null));
+                }
+            }
+            else
+            {
+                var harm3PhraseIdx = 0;
+
+                foreach (var harm2Phrase in mainPart.StaticLyricPhrases)
+                {
+                    // Capture any HARM3-only phrases that happened since last time
+                    while (harm3PhraseIdx < mergedPart.StaticLyricPhrases.Count && mergedPart.StaticLyricPhrases[harm3PhraseIdx].Tick < harm2Phrase.Tick)
+                    {
+                        phrasePairs.Add(new(null, mergedPart.StaticLyricPhrases[harm3PhraseIdx++]));
+                    }
+
+                    // Capture HARM2+3 phrase
+                    if (harm3PhraseIdx < mergedPart.StaticLyricPhrases.Count && mergedPart.StaticLyricPhrases[harm3PhraseIdx].Tick == harm2Phrase.Tick)
+                    {
+                        phrasePairs.Add(new(harm2Phrase, mergedPart.StaticLyricPhrases[harm3PhraseIdx++]));
+                    }
+
+                    // Capture HARM2-only phrase
+                    else
+                    {
+                        phrasePairs.Add(new(harm2Phrase, null));
+                    }
+                }
+
+                // Capture any remaining HARM3-only phrases after the last HARM2 phrase
+                while (harm3PhraseIdx < mergedPart.StaticLyricPhrases.Count)
+                {
+                    phrasePairs.Add(new(null, mergedPart.StaticLyricPhrases[harm3PhraseIdx++]));
+                }
+            }
+
+            return phrasePairs;
         }
     }
 }
