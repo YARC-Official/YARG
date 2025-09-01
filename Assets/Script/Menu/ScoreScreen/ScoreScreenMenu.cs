@@ -26,6 +26,8 @@ using YARG.Scores;
 using YARG.Song;
 using YARG.Playlists;
 using YARG.Settings;
+using YARG.Helpers.Extensions;
+using YARG.Core.Engine;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -46,7 +48,21 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private TextMeshProUGUI _bandScoreNotSavedMessage;
         [SerializeField]
-        private Scrollbar _horizontalScrollBar;
+        private ScrollRect _cardScrollRect;
+        [SerializeField]
+        private float _horizontalScrollRate = 30f;
+        [SerializeField]
+        private float _verticalScrollRate = 15f;
+
+        [Space]
+        [SerializeField]
+        private List<ScoreCard<GuitarStats>> _guitarScoreCards = new();
+        [SerializeField]
+        private List<ScoreCard<DrumsStats>> _drumsScoreCards = new();
+        [SerializeField]
+        private List<ScoreCard<VocalsStats>> _vocalsScoreCards = new();
+        [SerializeField]
+        private List<ScoreCard<ProKeysStats>> _proKeysScoreCards = new();
 
         [Space]
         [SerializeField]
@@ -125,6 +141,7 @@ namespace YARG.Menu.ScoreScreen
 
             //set restarting state
             _restartingSong = false;
+
         }
 
         private void OnDisable()
@@ -166,6 +183,7 @@ namespace YARG.Menu.ScoreScreen
                         var card = Instantiate(_guitarCardPrefab, _cardContainer);
                         card.Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
                         card.SetCardContents();
+                        _guitarScoreCards.Add(card);
                         break;
                     }
                     case GameMode.FourLaneDrums:
@@ -174,6 +192,7 @@ namespace YARG.Menu.ScoreScreen
                         var card = Instantiate(_drumsCardPrefab, _cardContainer);
                         card.Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
                         card.SetCardContents();
+                        _drumsScoreCards.Add(card);
                         break;
                     }
                     case GameMode.Vocals:
@@ -181,6 +200,7 @@ namespace YARG.Menu.ScoreScreen
                         var card = Instantiate(_vocalsCardPrefab, _cardContainer);
                         card.Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
                         card.SetCardContents();
+                        _vocalsScoreCards.Add(card);
                         break;
                     }
                     case GameMode.ProKeys:
@@ -188,6 +208,7 @@ namespace YARG.Menu.ScoreScreen
                         var card = Instantiate(_proKeysCardPrefab, _cardContainer);
                         card.Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
                         card.SetCardContents();
+                        _proKeysScoreCards.Add(card);
                         break;
                     }
                 }
@@ -203,10 +224,7 @@ namespace YARG.Menu.ScoreScreen
             Canvas.ForceUpdateCanvases();
 
             // If the scroll bar is active, make it all the way to the left
-            if (_horizontalScrollBar.gameObject.activeSelf)
-            {
-                _horizontalScrollBar.value = 0f;
-            }
+            _cardScrollRect.horizontalNormalizedPosition = 0f;
 
             // As a final bonus, play the appropriate full combo vox samples
             if (SettingsManager.Settings.EnableVoxSamples.Value)
@@ -357,6 +375,10 @@ namespace YARG.Menu.ScoreScreen
         private NavigationScheme.Entry _restartButtonEntry;
         private NavigationScheme.Entry _removeFavoriteButtonEntry;
         private NavigationScheme.Entry _addFavoriteButtonEntry;
+        private NavigationScheme.Entry _scrollLeftEntry;
+        private NavigationScheme.Entry _scrollRightEntry;
+        private NavigationScheme.Entry _scrollUpEntry;
+        private NavigationScheme.Entry _scrollDownEntry;
 
         private void SetNavigationScheme()
         {
@@ -408,8 +430,53 @@ namespace YARG.Menu.ScoreScreen
                     PlaylistContainer.FavoritesPlaylist.RemoveSong(song);
                     UpdateNavigationScheme(true);
                 });
-            
+
+            _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.ScrollLeft", context =>
+                {
+                    _cardScrollRect.MoveHorizontalInUnits(-1 * _horizontalScrollRate);
+                });
+
+            _scrollRightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.ScrollRight", context =>
+                {
+                    _cardScrollRect.MoveHorizontalInUnits(_horizontalScrollRate);
+                });
+
+            _scrollUpEntry = new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.ScrollUp", context =>
+                {
+                    ScrollScoreCard(context.Player, _verticalScrollRate);
+                });
+
+            _scrollDownEntry = new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.ScrollDown", context =>
+                {
+                    ScrollScoreCard(context.Player, -1 * _verticalScrollRate);
+                });
+
             UpdateNavigationScheme();
+        }
+
+        private void ScrollScoreCard(YARG.Player.YargPlayer player, float delta)
+        {
+            // TODO: Very ugly, but needed since ScoreCard requires a generic type parameter.
+            var guitarCard = _guitarScoreCards.FirstOrDefault(card => card.Player == player);
+            if (guitarCard != null)
+            {
+                guitarCard.ScrollStats(delta);
+            }
+            var drumCard = _drumsScoreCards.FirstOrDefault(card => card.Player == player);
+            if (drumCard != null)
+            {
+                drumCard.ScrollStats(delta);
+            }
+            var vocalsCard = _vocalsScoreCards.FirstOrDefault(card => card.Player == player);
+            if (vocalsCard != null)
+            {
+                vocalsCard.ScrollStats(delta);
+            }
+            var proKeysCard = _proKeysScoreCards.FirstOrDefault(card => card.Player == player);
+            if (proKeysCard != null)
+            {
+                proKeysCard.ScrollStats(delta);
+            }
         }
 
         private void UpdateNavigationScheme(bool reset = false)
@@ -443,6 +510,10 @@ namespace YARG.Menu.ScoreScreen
                 buttons.Insert(1, _endEarlyButtonEntry);
             }
 
+            buttons.Add(_scrollLeftEntry);
+            buttons.Add(_scrollRightEntry);
+            buttons.Add(_scrollUpEntry);
+            buttons.Add(_scrollDownEntry);
             Navigator.Instance.PushScheme(new(buttons, true));
         }
     }

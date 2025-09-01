@@ -1,12 +1,13 @@
-﻿using TMPro;
+﻿using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
+using YARG.Helpers.Extensions;
 using YARG.Core;
 using YARG.Core.Engine;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
-using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Player;
 
@@ -49,6 +50,10 @@ namespace YARG.Menu.ScoreScreen
 
         [Space]
         [SerializeField]
+        private ScrollRect _statsRect;
+
+        [Space]
+        [SerializeField]
         private TextMeshProUGUI _notesHit;
         [SerializeField]
         private TextMeshProUGUI _maxStreak;
@@ -60,8 +65,9 @@ namespace YARG.Menu.ScoreScreen
         private ScoreCardColorizer _colorizer;
 
         protected bool IsHighScore;
-        protected YargPlayer Player;
         protected T Stats;
+
+        public YargPlayer Player;
 
         private void Awake()
         {
@@ -166,6 +172,11 @@ namespace YARG.Menu.ScoreScreen
             return
                 $"<font-weight=700><color=#{ColorUtility.ToHtmlStringRGB(_colorizer.CurrentColor)}>" +
                 $"{s}</color></font-weight>";
+        }
+
+        public void ScrollStats(float delta)
+        {
+            _statsRect.MoveVerticalInUnits(delta);
         }
     }
 }
