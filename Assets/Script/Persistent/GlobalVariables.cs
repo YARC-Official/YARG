@@ -71,7 +71,7 @@ namespace YARG
 
             if (!string.IsNullOrEmpty(CommandLineArgs.DownloadLocation))
             {
-                PathHelper.SetSetlistPathFromDownloadLocation(CommandLineArgs.DownloadLocation);
+                PathHelper.SetPathsFromDownloadLocation(CommandLineArgs.DownloadLocation);
             }
 
             // TODO: Actually respect the PersistentDataPath arg
