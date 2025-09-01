@@ -67,10 +67,17 @@ namespace YARG.Venue
             };
 
             string venueFolder = VenueFolder;
+            string launcherVenueFolder = PathHelper.VenuePath;
             var filePaths = new List<string>();
             foreach (var ext in validExtensions)
             {
                 filePaths.AddRange(Directory.EnumerateFiles(venueFolder, ext, PathHelper.SafeSearchOptions));
+            }
+
+            if (launcherVenueFolder != null && Directory.Exists(launcherVenueFolder))
+            {
+                // We limit ourselves to yarground here because that's all that will be downloaded by the launcher
+                filePaths.AddRange(Directory.EnumerateFiles(launcherVenueFolder, "*.yarground", PathHelper.SafeSearchOptions));
             }
 
             while (filePaths.Count > 0)
