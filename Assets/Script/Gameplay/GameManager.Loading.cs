@@ -402,7 +402,7 @@ namespace YARG.Gameplay
                         // Setup player
                         var trackPlayer = playerObject.GetComponent<TrackPlayer>();
                         var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
-                        trackPlayer.Initialize(index, player, Chart, trackView, _mixer, lastHighScore);
+                        trackPlayer.Initialize(highwayIndex, player, Chart, trackView, _mixer, lastHighScore);
 
                         _players.Add(trackPlayer);
                         _trackViewManager._highwayCameraRendering.AddTrackPlayer(trackPlayer);
