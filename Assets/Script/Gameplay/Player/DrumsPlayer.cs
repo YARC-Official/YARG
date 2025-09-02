@@ -23,6 +23,8 @@ namespace YARG.Gameplay.Player
 {
     public class DrumsPlayer : TrackPlayer<DrumsEngine, DrumNote>
     {
+        private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.2f;
+
         public DrumsEngineParameters EngineParams { get; private set; }
 
         [Header("Drums Specific")]
@@ -44,6 +46,8 @@ namespace YARG.Gameplay.Player
 
         private int[] _drumSoundEffectRoundRobin = new int[8];
         private float _drumSoundEffectAccentThreshold;
+
+        private Dictionary<int, float> _fretToLastPressedTimeDelta = new Dictionary<int, float>();
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
             int? currentHighScore)
@@ -148,6 +152,9 @@ namespace YARG.Gameplay.Player
 
             // Set up drum fill lead-ups
             SetDrumFillEffects();
+
+            // Initialize hit timestamps
+            InitializeHitTimes();
 
             base.FinishInitialization();
         }
@@ -287,59 +294,7 @@ namespace YARG.Gameplay.Player
 
             (NotePool.GetByKey(note) as DrumsNoteElement)?.HitNote();
 
-            // Four and five lane drums have the same kick value
-            if (note.Pad != (int) FourLaneDrumPad.Kick)
-            {
-                int fret;
-                if (!_fiveLaneMode)
-                {
-                    if (Player.Profile.SplitProTomsAndCymbals && EngineParams.Mode == DrumsEngineParameters.DrumMode.ProFourLane)
-                    {
-                        fret = (FourLaneDrumPad) note.Pad switch
-                        {
-                            FourLaneDrumPad.RedDrum      => 0,
-                            FourLaneDrumPad.YellowCymbal => 1,
-                            FourLaneDrumPad.YellowDrum   => 2,
-                            FourLaneDrumPad.BlueCymbal   => 3,
-                            FourLaneDrumPad.BlueDrum     => 4,
-                            FourLaneDrumPad.GreenCymbal  => 5,
-                            FourLaneDrumPad.GreenDrum    => 6,
-                            _ => -1
-                        };
-                    }
-                    else
-                    {
-                        fret = (FourLaneDrumPad) note.Pad switch
-                        {
-                            FourLaneDrumPad.RedDrum                                    => 0,
-                            FourLaneDrumPad.YellowDrum or FourLaneDrumPad.YellowCymbal => 1,
-                            FourLaneDrumPad.BlueDrum or FourLaneDrumPad.BlueCymbal     => 2,
-                            FourLaneDrumPad.GreenDrum or FourLaneDrumPad.GreenCymbal   => 3,
-                            _                                                          => -1
-                        };
-                    }
-                }
-                else
-                {
-                    fret = (FiveLaneDrumPad) note.Pad switch
-                    {
-                        FiveLaneDrumPad.Red    => 0,
-                        FiveLaneDrumPad.Yellow => 1,
-                        FiveLaneDrumPad.Blue   => 2,
-                        FiveLaneDrumPad.Orange => 3,
-                        FiveLaneDrumPad.Green  => 4,
-                        _                      => -1
-                    };
-                }
-
-                _fretArray.PlayHitAnimation(fret);
-            }
-            else
-            {
-                _kickFretFlash.PlayHitAnimation();
-                _fretArray.PlayKickFretAnimation();
-                CameraPositioner.Bounce();
-            }
+            AnimateFret(note.Pad);
         }
 
         protected override void OnNoteMissed(int index, DrumNote note)
@@ -373,6 +328,12 @@ namespace YARG.Gameplay.Player
 
         private void OnPadHit(DrumsAction action, bool wasNoteHit, float velocity)
         {
+            // Update last hit times for fret flashing animation
+            if (action is not DrumsAction.Kick)
+            {
+                ZeroOutHitTime(action);
+            }
+
             // Skip if a note was hit, because we have different logic for that below
             if (wasNoteHit)
             {
@@ -384,52 +345,6 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            // Choose the correct fret
-            int fret;
-            if (!_fiveLaneMode)
-            {
-                if (Player.Profile.SplitProTomsAndCymbals && Player.Profile.CurrentInstrument == Instrument.ProDrums)
-                {
-                    fret = action switch
-                    {
-                        DrumsAction.Kick         => 0,
-                        DrumsAction.RedDrum      => 1,
-                        DrumsAction.YellowCymbal => 2,
-                        DrumsAction.YellowDrum   => 3,
-                        DrumsAction.BlueCymbal   => 4,
-                        DrumsAction.BlueDrum     => 5,
-                        DrumsAction.GreenCymbal  => 6,
-                        DrumsAction.GreenDrum    => 7,
-                        _                        => -1
-                    };
-                }
-                else
-                {
-                    fret = action switch
-                    {
-                        DrumsAction.Kick                                   => 0,
-                        DrumsAction.RedDrum                                => 1,
-                        DrumsAction.YellowDrum or DrumsAction.YellowCymbal => 2,
-                        DrumsAction.BlueDrum or DrumsAction.BlueCymbal     => 3,
-                        DrumsAction.GreenDrum or DrumsAction.GreenCymbal   => 4,
-                        _                                                  => -1
-                    };
-                }
-            }
-            else
-            {
-                fret = action switch
-                {
-                    DrumsAction.Kick         => 0,
-                    DrumsAction.RedDrum      => 1,
-                    DrumsAction.YellowCymbal => 2,
-                    DrumsAction.BlueDrum     => 3,
-                    DrumsAction.OrangeCymbal => 4,
-                    DrumsAction.GreenDrum    => 5,
-                    _                        => -1
-                };
-            }
-
             bool isDrumFreestyle = IsDrumFreestyle();
 
             // Figure out wether its a drum freestyle or if AODSFX is enabled
@@ -439,21 +354,16 @@ namespace YARG.Gameplay.Player
                 PlayDrumSoundEffect(action, velocity);
             }
 
-            // Skip if no animation
-            if (fret == -1)
-            {
-                return;
-            }
-
-            if (fret != 0)
+            if (action is not DrumsAction.Kick)
             {
                 if (isDrumFreestyle)
                 {
-                    _fretArray.PlayHitAnimation(fret - 1);
+                    AnimateAction(action);
                 }
                 else
                 {
-                    _fretArray.PlayMissAnimation(fret - 1);
+                    int fret = GetFret(action);
+                    _fretArray.PlayMissAnimation(fret);
                 }
             }
             else
@@ -539,5 +449,230 @@ namespace YARG.Gameplay.Player
             Player.Profile.CurrentInstrument is Instrument.ProDrums &&
             Player.Profile.SplitProTomsAndCymbals &&
             Player.Profile.SwapCrashAndRide;
+
+        protected override void UpdateVisuals(double visualTime)
+        {
+            base.UpdateVisuals(visualTime);
+            UpdateHitTimes();
+            UpdateFretArray();
+        }
+
+        private void InitializeHitTimes()
+        {
+            for (int fret = 0; fret < _fretArray.FretCount; fret++)
+            {
+                _fretToLastPressedTimeDelta[fret] = float.MaxValue;
+            }
+        }
+
+        // i.e., flash this fret by making it seem pressed
+        private void ZeroOutHitTime(DrumsAction action)
+        {
+            int fret = GetFret(action);
+            _fretToLastPressedTimeDelta[fret] = 0f;
+        }
+
+        private void UpdateHitTimes()
+        {
+            for (int fret = 0; fret < _fretArray.FretCount; fret++)
+            {
+                _fretToLastPressedTimeDelta[fret] += Time.deltaTime;
+            }
+        }
+
+        private void UpdateFretArray()
+        {
+            for (int fret = 0; fret < _fretArray.FretCount; fret++)
+            {
+                _fretArray.SetPressed(fret, _fretToLastPressedTimeDelta[fret] < DRUM_PAD_FLASH_HOLD_DURATION);
+            }
+        }
+
+        private void AnimateAction(DrumsAction action)
+        {
+            // Refers to the lane where 0 is red
+            int fret = GetFret(action);
+
+            if (_fiveLaneMode)
+            {
+                // Only use cymbal animation if the cymbal gems are being used
+                if (Player.Profile.UseCymbalModels && action is DrumsAction.YellowCymbal or DrumsAction.OrangeCymbal)
+                {
+                    _fretArray.PlayCymbalHitAnimation(fret);
+                }
+                else
+                {
+                    _fretArray.PlayHitAnimation(fret);
+                }
+
+                return;
+            }
+
+            // Can technically merge this condition with the above, but it's more readable like this
+            if (action is DrumsAction.YellowCymbal or DrumsAction.BlueCymbal or DrumsAction.GreenCymbal)
+            {
+                _fretArray.PlayCymbalHitAnimation(fret);
+            }
+            else
+            {
+                _fretArray.PlayHitAnimation(fret);
+            }
+        }
+
+        private void AnimateFret(int pad)
+        {
+            // Four and five lane drums have the same kick value
+            if (pad == (int) FourLaneDrumPad.Kick)
+            {
+                _kickFretFlash.PlayHitAnimation();
+                _fretArray.PlayKickFretAnimation();
+                CameraPositioner.Bounce();
+                return;
+            }
+
+            // Must be a pad or cymbal
+            int fret = GetFret(pad);
+
+            if (_fiveLaneMode)
+            {
+                // Only use cymbal animation if the cymbal gems are being used
+                if (Player.Profile.UseCymbalModels && (FiveLaneDrumPad) pad
+                    is FiveLaneDrumPad.Yellow
+                    or FiveLaneDrumPad.Orange)
+                {
+                    _fretArray.PlayCymbalHitAnimation(fret);
+                }
+                else
+                {
+                    _fretArray.PlayHitAnimation(fret);
+                }
+
+                return;
+            }
+
+            // Can technically merge this condition with the above, but it's more readable like this
+            if ((FourLaneDrumPad) pad
+                is FourLaneDrumPad.YellowCymbal
+                or FourLaneDrumPad.BlueCymbal
+                or FourLaneDrumPad.GreenCymbal)
+            {
+                _fretArray.PlayCymbalHitAnimation(fret);
+            }
+            else
+            {
+                _fretArray.PlayHitAnimation(fret);
+            }
+        }
+
+        private int GetFret(DrumsAction action)
+        {
+            if (_fiveLaneMode)
+            {
+                return GetFiveLaneFret(action);
+            }
+
+            if (Player.Profile.SplitProTomsAndCymbals && Player.Profile.CurrentInstrument == Instrument.ProDrums)
+            {
+                return GetSplitFret(action);
+            }
+
+            return GetFourLaneFret(action);
+        }
+
+        private static int GetFourLaneFret(DrumsAction action)
+        {
+            return action switch
+            {
+                DrumsAction.RedDrum                                => 0,
+                DrumsAction.YellowDrum or DrumsAction.YellowCymbal => 1,
+                DrumsAction.BlueDrum or DrumsAction.BlueCymbal     => 2,
+                DrumsAction.GreenDrum or DrumsAction.GreenCymbal   => 3,
+                _                                                  => -1,
+            };
+        }
+
+        private static int GetFiveLaneFret(DrumsAction action)
+        {
+            return action switch
+            {
+                DrumsAction.RedDrum      => 0,
+                DrumsAction.YellowCymbal => 1,
+                DrumsAction.BlueDrum     => 2,
+                DrumsAction.OrangeCymbal => 3,
+                DrumsAction.GreenDrum    => 4,
+                _                        => -1,
+            };
+        }
+
+        private static int GetSplitFret(DrumsAction action)
+        {
+            return action switch
+            {
+                DrumsAction.RedDrum      => 0,
+                DrumsAction.YellowCymbal => 1,
+                DrumsAction.YellowDrum   => 2,
+                DrumsAction.BlueCymbal   => 3,
+                DrumsAction.BlueDrum     => 4,
+                DrumsAction.GreenCymbal  => 5,
+                DrumsAction.GreenDrum    => 6,
+                _                        => -1,
+            };
+        }
+
+        private int GetFret(int pad)
+        {
+            if (_fiveLaneMode)
+            {
+                return GetFiveLaneFret(pad);
+            }
+
+            if (Player.Profile.SplitProTomsAndCymbals
+                && EngineParams.Mode == DrumsEngineParameters.DrumMode.ProFourLane)
+            {
+                return GetSplitFret(pad);
+            }
+
+            return GetFourLaneFret(pad);
+        }
+
+        private static int GetFourLaneFret(int pad)
+        {
+            return (FourLaneDrumPad) pad switch
+            {
+                FourLaneDrumPad.RedDrum                                    => 0,
+                FourLaneDrumPad.YellowDrum or FourLaneDrumPad.YellowCymbal => 1,
+                FourLaneDrumPad.BlueDrum or FourLaneDrumPad.BlueCymbal     => 2,
+                FourLaneDrumPad.GreenDrum or FourLaneDrumPad.GreenCymbal   => 3,
+                _                                                          => -1,
+            };
+        }
+
+        private static int GetFiveLaneFret(int pad)
+        {
+            return (FiveLaneDrumPad) pad switch
+            {
+                FiveLaneDrumPad.Red    => 0,
+                FiveLaneDrumPad.Yellow => 1,
+                FiveLaneDrumPad.Blue   => 2,
+                FiveLaneDrumPad.Orange => 3,
+                FiveLaneDrumPad.Green  => 4,
+                _                      => -1,
+            };
+        }
+
+        private static int GetSplitFret(int pad)
+        {
+            return (FourLaneDrumPad) pad switch
+            {
+                FourLaneDrumPad.RedDrum      => 0,
+                FourLaneDrumPad.YellowCymbal => 1,
+                FourLaneDrumPad.YellowDrum   => 2,
+                FourLaneDrumPad.BlueCymbal   => 3,
+                FourLaneDrumPad.BlueDrum     => 4,
+                FourLaneDrumPad.GreenCymbal  => 5,
+                FourLaneDrumPad.GreenDrum    => 6,
+                _                            => -1,
+            };
+        }
     }
 }
