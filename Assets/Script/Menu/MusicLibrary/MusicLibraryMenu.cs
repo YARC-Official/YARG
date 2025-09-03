@@ -237,6 +237,20 @@ namespace YARG.Menu.MusicLibrary
                 Navigator.Instance.PopScheme();
             }
 
+            NavigationScheme.Entry leftEntry = default;
+            NavigationScheme.Entry rightEntry = default;
+
+            if (MenuState == MenuState.Playlist)
+            {
+                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Left", MovePlaylistEntryUp);
+                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Right", MovePlaylistEntryDown);
+            }
+            else
+            {
+                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Left", GoToPreviousSection);
+                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Right", GoToNextSection);
+            }
+
             if (ShowPlaylist.Count == 0)
             {
                 Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -267,8 +281,8 @@ namespace YARG.Menu.MusicLibrary
                                 SelectedIndex++;
                             }
                         }),
-                    new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Left", GoToPreviousSection),
-                    new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Right", GoToNextSection),
+                    leftEntry,
+                    rightEntry,
                     new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                         () => CurrentSelection?.PrimaryButtonClick()),
                     new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
@@ -310,8 +324,8 @@ namespace YARG.Menu.MusicLibrary
                                 SelectedIndex++;
                             }
                         }),
-                    new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Left", GoToPreviousSection),
-                    new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Right", GoToNextSection),
+                    leftEntry,
+                    rightEntry,
                     new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                         () => CurrentSelection?.PrimaryButtonClick()),
                     new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),

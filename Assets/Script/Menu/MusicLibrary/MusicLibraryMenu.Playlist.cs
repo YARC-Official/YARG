@@ -77,6 +77,7 @@ namespace YARG.Menu.MusicLibrary
 
         private List<ViewType> CreatePlaylistViewList()
         {
+            SetNavigationScheme(true);
             var list = new List<ViewType>
             {
                 new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
@@ -178,6 +179,7 @@ namespace YARG.Menu.MusicLibrary
         {
             SelectedPlaylist = null;
             MenuState = MenuState.PlaylistSelect;
+            SetNavigationScheme(true);
             Refresh();
 
             // Select playlist button
@@ -312,6 +314,24 @@ namespace YARG.Menu.MusicLibrary
                 LeaveShowMode();
 
                 MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
+            }
+        }
+
+        private void MovePlaylistEntryUp()
+        {
+            if (CurrentSelection is SongViewType selection)
+            {
+                SelectedPlaylist.MoveSongUp(selection.SongEntry);
+                Refresh();
+            }
+        }
+
+        private void MovePlaylistEntryDown()
+        {
+            if (CurrentSelection is SongViewType selection)
+            {
+                SelectedPlaylist.MoveSongDown(selection.SongEntry);
+                Refresh();
             }
         }
     }
