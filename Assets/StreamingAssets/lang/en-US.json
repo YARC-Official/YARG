@@ -291,6 +291,8 @@
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
             "Play": "Play Song",
             "Search": "Search",
+            "SkipSection": "<align=left><size=80%>Navigate<br>Sections</size></align>",
+            "MoveInPlaylist": "Move Song",
             "CurrentSetlist": "Current Setlist",
             "AddToSet": "Add To Setlist",
             "AddedToSet": "Added To Setlist",
@@ -302,7 +304,7 @@
             "AddToShow": "Add To Show",
             "AddedToShow": "Added To Show",
             "StartShow": "Start The Show",
-            "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>",
+            "MoreOptions": "More Options",
             "PlayAShow": {
                 "LongSong": "A Long Song",
                 "RandomSong": "A Random Song",

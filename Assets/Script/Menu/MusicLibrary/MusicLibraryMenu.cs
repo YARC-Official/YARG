@@ -242,13 +242,13 @@ namespace YARG.Menu.MusicLibrary
 
             if (MenuState == MenuState.Playlist)
             {
-                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Left", MovePlaylistEntryUp);
-                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Right", MovePlaylistEntryDown);
+                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryUp);
+                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryDown);
             }
             else
             {
-                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Left", GoToPreviousSection);
-                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Right", GoToNextSection);
+                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.SkipSection", GoToPreviousSection);
+                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.SkipSection", GoToNextSection);
             }
 
             if (ShowPlaylist.Count == 0)
