@@ -267,6 +267,8 @@ namespace YARG.Menu.MusicLibrary
                                 SelectedIndex++;
                             }
                         }),
+                    new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Left", GoToPreviousSection),
+                    new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Right", GoToNextSection),
                     new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                         () => CurrentSelection?.PrimaryButtonClick()),
                     new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
@@ -308,6 +310,8 @@ namespace YARG.Menu.MusicLibrary
                                 SelectedIndex++;
                             }
                         }),
+                    new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Left", GoToPreviousSection),
+                    new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Right", GoToNextSection),
                     new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                         () => CurrentSelection?.PrimaryButtonClick()),
                     new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
