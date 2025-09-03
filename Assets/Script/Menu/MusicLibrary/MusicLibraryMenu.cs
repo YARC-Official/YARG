@@ -4,11 +4,13 @@ using System.Linq;
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
+using YARG.Input;
 using YARG.Localization;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
@@ -194,6 +196,9 @@ namespace YARG.Menu.MusicLibrary
                 // Name makes a good fallback?
                 ChangeSort(SortAttribute.Name);
             }
+
+            InputManager.DeviceAdded += OnDeviceAdded;
+            InputManager.DeviceRemoved += OnDeviceRemoved;
         }
 
         private void SetRefreshIfNeeded()
@@ -665,6 +670,9 @@ namespace YARG.Menu.MusicLibrary
             _previewCanceller?.Cancel();
             _previewContext?.Stop();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
+
+            InputManager.DeviceAdded -= OnDeviceAdded;
+            InputManager.DeviceRemoved -= OnDeviceRemoved;
         }
 
         private void OnDestroy()
@@ -772,6 +780,16 @@ namespace YARG.Menu.MusicLibrary
         public void SetSearchInput(SortAttribute songAttribute, string input)
         {
             _searchField.SetSearchInput(songAttribute, input);
+        }
+
+        private void OnDeviceAdded(InputDevice device)
+        {
+            _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
+        }
+
+        private void OnDeviceRemoved(InputDevice device)
+        {
+            _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
         }
     }
 }
