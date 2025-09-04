@@ -999,6 +999,11 @@ namespace YARG.Menu.MusicLibrary
             SelectedIndex = index;
         }
 
+        public void RefreshSidebar()
+        {
+            _sidebar.RefreshFavoriteState();
+        }
+
         public void ChangeSort(SortAttribute sort)
         {
             // Keep the previous sort attribute, too, so it can be used to

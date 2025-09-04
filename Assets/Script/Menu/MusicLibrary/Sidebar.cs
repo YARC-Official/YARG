@@ -52,8 +52,12 @@ namespace YARG.Menu.MusicLibrary
         private TextMeshProUGUI _songRatingLabel;
         [SerializeField]
         private HelpBarButton _playButton;
+
+        [Space]
         [SerializeField]
-        private HelpBarButton _favoriteButton;
+        private HoverButton _favoriteButton;
+        [SerializeField]
+        private Image _favoriteButtonImage;
 
         [SerializeField]
         private GameObject _sidebarContents;
@@ -74,6 +78,9 @@ namespace YARG.Menu.MusicLibrary
         private readonly Color _bandDifficultyRed  = new Color(251 / 255f, 68 / 255f, 63 / 255f, 1);
         private readonly Color _bandDifficultyBlue = new Color(46 / 255f, 217 / 255f, 255 / 255f, 1);
 
+        private readonly Color _unfilledFavoritesHeart = new Color(60 / 255f, 0 / 255f, 11 / 255f);
+        private readonly Color _filledFavoritesHeart = new Color(255 / 255f, 89 / 255f, 119 / 255f);
+
         public void Initialize(MusicLibraryMenu musicLibraryMenu, SongSearchingField songSearchingField)
         {
             _musicLibraryMenu = musicLibraryMenu;
@@ -92,8 +99,22 @@ namespace YARG.Menu.MusicLibrary
             }
 
             _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(MenuAction.Green,
-                "Menu.MusicLibrary.Play",
-                () => _musicLibraryMenu.CurrentSelection.PrimaryButtonClick()));
+                "Menu.MusicLibrary.Play", () => _musicLibraryMenu.CurrentSelection.PrimaryButtonClick()));
+
+            void FavoriteClick()
+            {
+                _musicLibraryMenu.CurrentSelection.FavoriteClick();
+                _musicLibraryMenu.RefreshViewsObjects();
+                RefreshFavoriteState();
+            }
+
+            _favoriteButton.Initialize(FavoriteClick);
+        }
+
+        public void RefreshFavoriteState()
+        {
+            _favoriteButtonImage.color = _musicLibraryMenu.CurrentSelection.GetFavoriteInfo().IsFavorited ?
+                _filledFavoritesHeart : _unfilledFavoritesHeart;
         }
 
         public void UpdateSidebar()
@@ -130,6 +151,8 @@ namespace YARG.Menu.MusicLibrary
                     ClearSidebar();
                     break;
             }
+
+            RefreshFavoriteState();
         }
 
         private void ShowCategoryInfo(CategoryViewType categoryViewType)

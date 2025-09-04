@@ -169,6 +169,8 @@ namespace YARG.Menu.MusicLibrary
                     _musicLibrary.RefreshAndReselect();
                 }
             }
+
+            _musicLibrary.RefreshSidebar();
         }
 
         public override void AddToPlaylist(Playlist playlist)
