@@ -54,6 +54,21 @@ namespace YARG.Gameplay.Visuals
             return _highwaysOutputTexture;
         }
 
+        private Vector2 WorldToViewport(Vector3 positionWS, int index)
+        {
+            Vector4 clipSpacePos = (_camProjMatrices[index] * _camViewMatrices[index]) * new Vector4(positionWS.x, positionWS.y, positionWS.z, 1.0f);
+            // Perspective divide to get NDC
+            float ndcX = clipSpacePos.x / clipSpacePos.w;
+            float ndcY = clipSpacePos.y / clipSpacePos.w;
+
+            // NDC [-1, 1] → Viewport [0, 1]
+            float viewportX = (ndcX + 1.0f) * 0.5f;
+            float viewportY = (ndcY + 1.0f) * 0.5f;
+
+            Vector2 viewportPos = new Vector2(viewportX, viewportY);
+            return viewportPos;
+        }
+
         private Vector2 CalculateFadeParams(int index, Vector3 trackPosition, float ZeroFadePosition, float FadeSize)
         {
             var worldZeroFadePosition = new Vector3(trackPosition.x, trackPosition.y, ZeroFadePosition - FadeSize);
