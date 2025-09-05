@@ -27,6 +27,7 @@
     "com.cysharp.csprojmodifier": "https://github.com/Cysharp/CsprojModifier.git?path=src/CsprojModifier/Assets/CsprojModifier",
     "com.cysharp.unitask": "2.5.3",
     "com.github-glitchenzo.nugetforunity": "4.5.0",
+    "com.lukestilson.openvat": "https://github.com/sharpen3d/openvat-unity.git",
     "com.marijnzwemmer.unity-toolbar-extender": "1.4.2",
     "com.starasgames.tmpro-dynamic-data-cleaner": "1.0.0",
     "com.thenathannator.hidrogen": "0.4.3",

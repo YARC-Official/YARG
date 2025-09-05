@@ -359,11 +359,11 @@ namespace YARG.Scores
         }
 
         // this is the same as GetMostPlayedSongs, but is limited to the one profile and returns the entire list
-        public static List<SongEntry> GetPlayedSongsForUserByPlaycount(YargProfile profile, SortOrdering ordering)
+        public static Dictionary<SongEntry,int> GetPlayedSongsForUserByPlaycount(YargProfile profile, SortOrdering ordering)
         {
             try
             {
-                var songList = new List<SongEntry>();
+                var songPlays = new Dictionary<SongEntry, int>();
 
                 var mostPlayed = _db.QueryPlayerMostPlayedSongs(profile, ordering);
                 foreach (var record in mostPlayed)
@@ -371,16 +371,20 @@ namespace YARG.Scores
                     var hash = HashWrapper.Create(record.SongChecksum);
                     if (SongContainer.SongsByHash.TryGetValue(hash, out var list))
                     {
-                        songList.AddRange(list);
+                        var plays = record.Count;
+                        foreach (var song in list)
+                        {
+                            songPlays[song] = plays;
+                        }
                     }
                 }
 
-                return songList;
+                return songPlays;
             }
             catch (Exception e)
             {
                 YargLogger.LogException(e, "Failed to load most played songs from database.");
-                return new List<SongEntry>();
+                return new Dictionary<SongEntry, int>();
             }
         }
 

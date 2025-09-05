@@ -29,16 +29,6 @@ namespace YARG.Gameplay.Visuals
             base.GameplayAwake();
         }
 
-        private void Start()
-        {
-            // Set all fade values for note flares
-            var noteFlares = GetComponentsInChildren<NoteFlare>(true);
-            foreach (var noteFlare in noteFlares)
-            {
-                noteFlare.TrackPlayer = Player;
-            }
-        }
-
         protected override bool UpdateElementPosition()
         {
             // Calibration is not taken into consideration here, as that is instead handled in more

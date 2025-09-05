@@ -12,6 +12,7 @@ using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
+using YARG.Menu;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -68,9 +69,10 @@ namespace YARG.Settings
 
             public ToggleSetting NoFailMode { get; } = new(false);
 
-            public ToggleSetting DisableGlobalBackgrounds { get; } = new(false);
+            public ToggleSetting DisableDefaultBackground  { get; } = new(false);
+            public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
-            public ToggleSetting WaitForSongVideo { get; } = new(true);
+            public ToggleSetting WaitForSongVideo          { get; } = new(true);
 
 
             public SliderSetting InputPollingFrequency { get; } = new(250f, 60f, 1000f,
@@ -106,6 +108,9 @@ namespace YARG.Settings
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
+
+            public SliderSetting PlayAShowTimeout { get; } = new (10.0f, 1.0f, 30.0f);
+            public ToggleSetting RequireAllDifficulties { get; } = new(true);
 
             public DropdownSetting<DifficultyRingMode> DifficultyRings { get; }
                 = new(DifficultyRingMode.Classic)
@@ -205,6 +210,8 @@ namespace YARG.Settings
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
             public ToggleSetting ApplyVolumesInMusicLibrary { get; } = new(true);
+
+            public ToggleSetting EnableVoxSamples { get; } = new(true);
 
             #endregion
 

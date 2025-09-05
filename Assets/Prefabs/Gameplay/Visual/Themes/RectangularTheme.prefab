@@ -57,6 +57,15 @@ MonoBehaviour:
     EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 8720259403506147191}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 8720259403506147191}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &413377233256013164
 GameObject:
   m_ObjectHideFlags: 0
@@ -173,6 +182,19 @@ MonoBehaviour:
     EmissionMultiplier: 8
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 1137659872165019065}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 1137659872165019065}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 1137659872165019065}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &523444858385620418
 GameObject:
   m_ObjectHideFlags: 0
@@ -10018,6 +10040,15 @@ MonoBehaviour:
     EmissionMultiplier: 2.5
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 6490974643333962128}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 6490974643333962128}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &864788763194525350
 GameObject:
   m_ObjectHideFlags: 0
@@ -10107,6 +10138,15 @@ MonoBehaviour:
     EmissionMultiplier: 0
     EmissionAddition: -0.7
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 1710559943838633900}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 1710559943838633900}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &922141262468047875
 GameObject:
   m_ObjectHideFlags: 0
@@ -10355,6 +10395,15 @@ MonoBehaviour:
     EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 8955278816051136421}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 8955278816051136421}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &1447334668336755401
 GameObject:
   m_ObjectHideFlags: 0
@@ -15528,6 +15577,19 @@ MonoBehaviour:
     EmissionMultiplier: 8
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 868360296151660442}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 868360296151660442}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 868360296151660442}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &2293016267227878471
 GameObject:
   m_ObjectHideFlags: 0
@@ -15676,6 +15738,15 @@ MonoBehaviour:
     EmissionMultiplier: 8
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 5691484211434715446}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 5691484211434715446}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &2519982101321810702
 GameObject:
   m_ObjectHideFlags: 0
@@ -15729,6 +15800,11 @@ MonoBehaviour:
     EmissionMultiplier: 8
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 2145925856028161406}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &2573877056044305055
 GameObject:
   m_ObjectHideFlags: 0
@@ -20648,6 +20724,15 @@ MonoBehaviour:
     EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 1442160652507622597}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 1442160652507622597}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &3007197943067896178
 GameObject:
   m_ObjectHideFlags: 0
@@ -20701,6 +20786,15 @@ MonoBehaviour:
     EmissionMultiplier: 2.5
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 2213979832128167158}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 2213979832128167158}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &3028842569811858915
 GameObject:
   m_ObjectHideFlags: 0
@@ -25641,6 +25735,19 @@ MonoBehaviour:
     EmissionMultiplier: 2.5
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 2167952792276912750}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 2167952792276912750}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 2167952792276912750}
+    MaterialIndex: 3
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &3503407201778625847
 GameObject:
   m_ObjectHideFlags: 0
@@ -25694,6 +25801,15 @@ MonoBehaviour:
     EmissionMultiplier: 2.5
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 5102574401048905025}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 5102574401048905025}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &3992999653289438935
 GameObject:
   m_ObjectHideFlags: 0
@@ -30678,6 +30794,19 @@ MonoBehaviour:
     EmissionMultiplier: 2.5
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 1934315736436389587}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 1934315736436389587}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 1934315736436389587}
+    MaterialIndex: 3
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &4787541845059292856
 GameObject:
   m_ObjectHideFlags: 0
@@ -30833,6 +30962,15 @@ MonoBehaviour:
     EmissionMultiplier: 0
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 1777600924332194509}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 1777600924332194509}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &5103552119702715995
 GameObject:
   m_ObjectHideFlags: 0
@@ -30886,6 +31024,11 @@ MonoBehaviour:
     EmissionMultiplier: 8
     EmissionAddition: 1
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 8001540958738398021}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &5105827407962776137
 GameObject:
   m_ObjectHideFlags: 0
@@ -31056,6 +31199,15 @@ MonoBehaviour:
     EmissionMultiplier: 8
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 924727519420543321}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 924727519420543321}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &5319861011254233844
 GameObject:
   m_ObjectHideFlags: 0
@@ -40902,6 +41054,15 @@ MonoBehaviour:
     EmissionMultiplier: 8
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 8990243228353817618}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 8990243228353817618}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &6269854297387791962
 GameObject:
   m_ObjectHideFlags: 0
@@ -41109,6 +41270,15 @@ MonoBehaviour:
     EmissionMultiplier: 0
     EmissionAddition: -0.7
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 6037790144604702675}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 6037790144604702675}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &6602038446696215791
 GameObject:
   m_ObjectHideFlags: 0
@@ -41162,6 +41332,11 @@ MonoBehaviour:
     EmissionMultiplier: 6.25
     EmissionAddition: 0.075
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 148460116065036735}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &6648822484547972196
 GameObject:
   m_ObjectHideFlags: 0
@@ -41346,6 +41521,15 @@ MonoBehaviour:
     EmissionMultiplier: 2.5
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 9139252112784248896}
+    MaterialIndex: 1
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 9139252112784248896}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &6666075225030478821
 GameObject:
   m_ObjectHideFlags: 0
@@ -41395,14 +41579,23 @@ MonoBehaviour:
   <StarPowerVariant>k__BackingField: 0
   _coloredMaterials:
   - Mesh: {fileID: 7881106579530006386}
-    MaterialIndex: 1
-    EmissionMultiplier: 0
+    MaterialIndex: 3
+    EmissionMultiplier: 2.5
     EmissionAddition: 0
   - Mesh: {fileID: 7881106579530006386}
     MaterialIndex: 3
     EmissionMultiplier: 2.5
     EmissionAddition: 0
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 7881106579530006386}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
+  - Mesh: {fileID: 7881106579530006386}
+    MaterialIndex: 2
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &7038179290471763809
 GameObject:
   m_ObjectHideFlags: 0
@@ -46343,6 +46536,11 @@ MonoBehaviour:
     EmissionMultiplier: 6.25
     EmissionAddition: 0.075
   _coloredMaterialsNoStarPower: []
+  _coloredMetalMaterials:
+  - Mesh: {fileID: 2343365409775284982}
+    MaterialIndex: 0
+    EmissionMultiplier: 0
+    EmissionAddition: 0
 --- !u!1 &7447106803091914923
 GameObject:
   m_ObjectHideFlags: 0
@@ -61222,7 +61420,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 8ccc7600fd1624a458f5db0357b192a4,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.0475
+      value: 0.0465
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8ccc7600fd1624a458f5db0357b192a4,
         type: 3}
@@ -62165,7 +62363,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: f907a43e655c21b46b01b01f6a2ee801,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.055
+      value: 0.054
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f907a43e655c21b46b01b01f6a2ee801,
         type: 3}
@@ -62419,10 +62617,50 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2546153628872567235, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2546153628872567235, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 3780683828698714266, guid: e04222ae8a4f0c542926dc9ce20a58e0,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: -106.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541549595879022386, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541549595879022386, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
@@ -62468,7 +62706,7 @@ PrefabInstance:
     - target: {fileID: 7137662299531785058, guid: 646e582c8d8303248aa9d4bd931b2081,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.03
+      value: 0.0315
       objectReference: {fileID: 0}
     - target: {fileID: 7137662299531785058, guid: 646e582c8d8303248aa9d4bd931b2081,
         type: 3}
@@ -62804,6 +63042,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2546153628872567235, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2546153628872567235, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 2876113326277684539, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 3.75
+      objectReference: {fileID: 0}
     - target: {fileID: 2937627649796090548, guid: e04222ae8a4f0c542926dc9ce20a58e0,
         type: 3}
       propertyPath: m_Controller
@@ -62814,6 +63067,41 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: -106.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5638597123916329324, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 6.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541549595879022386, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541549595879022386, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
@@ -63293,7 +63581,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: c58cec31fa674ce43a64f4fff3bb71b4,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.0475
+      value: 0.0465
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c58cec31fa674ce43a64f4fff3bb71b4,
         type: 3}

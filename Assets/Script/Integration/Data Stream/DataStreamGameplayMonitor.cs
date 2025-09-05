@@ -198,6 +198,12 @@ namespace YARG.Integration
 
         private void Update()
         {
+            // Don't do any of this if the option is off
+            if (!SettingsManager.Settings.DataStreamEnable.Value)
+            {
+                return;
+            }
+
             // Let's get the current state of the game
 
             // Pause state

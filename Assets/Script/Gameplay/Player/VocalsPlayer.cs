@@ -71,6 +71,9 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, lastHighScore);
 
+            // Save the chart
+            _chart = chart;
+
             // Needle materials have names starting from 1.
             var needleIndex = (vocalIndex % NEEDLES_COUNT) + 1;
             var materialPath = $"VocalNeedle/{needleIndex}";
