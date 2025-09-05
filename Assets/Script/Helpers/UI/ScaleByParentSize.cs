@@ -25,6 +25,8 @@ namespace YARG.Helpers.UI
 
         [SerializeField]
         private Vector2 _initialSize = Vector2.one;
+        [SerializeField]
+        private ScaleMode _scaleMode = ScaleMode.ScaleByHeight;
 
         public void Initialize()
         {
@@ -39,10 +41,23 @@ namespace YARG.Helpers.UI
         private void UpdateScale()
         {
             var size = ParentRectTransform.rect.size;
-            float xRatio = size.x / _initialSize.x;
-            float yRatio = size.y / _initialSize.y;
+            float scale;
+            if (_scaleMode == ScaleMode.ScaleByWidth)
+            {
+                scale = size.x / _initialSize.x;
+            }
+            else
+            {
+                scale = size.y / _initialSize.y;
+            }
 
-            transform.localScale = new Vector3(xRatio, yRatio, 1f);
+            transform.localScale = new Vector3(scale, scale, 1f);
+        }
+
+        public enum ScaleMode
+        {
+            ScaleByHeight,
+            ScaleByWidth
         }
     }
 }

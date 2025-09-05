@@ -48,7 +48,7 @@ namespace YARG
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
-        public string CurrentVersion { get; private set; } = "v0.12.6";
+        public string CurrentVersion { get; private set; } = "v0.13.0";
 
         protected override void SingletonAwake()
         {
@@ -71,7 +71,7 @@ namespace YARG
 
             if (!string.IsNullOrEmpty(CommandLineArgs.DownloadLocation))
             {
-                PathHelper.SetSetlistPathFromDownloadLocation(CommandLineArgs.DownloadLocation);
+                PathHelper.SetPathsFromDownloadLocation(CommandLineArgs.DownloadLocation);
             }
 
             // TODO: Actually respect the PersistentDataPath arg

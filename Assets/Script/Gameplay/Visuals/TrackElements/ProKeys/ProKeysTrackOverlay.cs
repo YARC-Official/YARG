@@ -97,8 +97,7 @@ namespace YARG.Gameplay.Visuals
             var material = meshRenderer.material;
             material.color = color.WithAlpha(0.3f);
             material.SetTexture(BaseMap, _heldGradientTexture);
-            material.SetFade(player.ZeroFadePosition, player.FadeSize);
-            material.SetFloat(Index, player.PlayerIndex);
+            material.SetFloat(Index, player.HighwayIndex);
             material.SetKeyword(new LocalKeyword(material.shader, "_ISHIGHLIGHT"), true);
 
             highlight.SetActive(false);
@@ -114,8 +113,7 @@ namespace YARG.Gameplay.Visuals
 
             var material = overlay.GetComponentInChildren<MeshRenderer>().material;
             material.color = color.WithAlpha(0.05f);
-            material.SetFade(player.ZeroFadePosition, player.FadeSize);
-            material.SetFloat(Index, player.PlayerIndex);
+            material.SetFloat(Index, player.HighwayIndex);
 
             // Set up the correct texture
 
