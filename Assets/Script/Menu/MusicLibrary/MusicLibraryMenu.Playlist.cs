@@ -197,6 +197,12 @@ namespace YARG.Menu.MusicLibrary
 
         private void EnterShowMode()
         {
+            // Save the current selected index if we're in the main library
+            if (MenuState == MenuState.Library)
+            {
+                _mainLibraryIndex = SelectedIndex;
+            }
+
             // Update the navigation scheme
             SetShowNavigationScheme();
 
@@ -223,14 +229,27 @@ namespace YARG.Menu.MusicLibrary
             MenuState = MenuState.Library;
             Refresh();
 
-            // An arbitrary choice
-            SetIndexTo(i => i is ButtonViewType { ID: RANDOM_SONG_ID });
+            // Restore the main library index if it is valid
+            if (_mainLibraryIndex != -1)
+            {
+                SelectedIndex = _mainLibraryIndex;
+            }
+            else
+            {
+                SetIndexTo(i => i is ButtonViewType { ID: RANDOM_SONG_ID });
+            }
         }
 
         private void StartSetlist()
         {
             if (ShowPlaylist.Count > 0 && PlayerContainer.Players.Count > 0)
             {
+                // If we are in the main library, save the current index
+                if (MenuState == MenuState.Library)
+                {
+                    _mainLibraryIndex = SelectedIndex;
+                }
+
                 GlobalVariables.State.PlayingAShow = true;
                 GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
                 GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs.First();
