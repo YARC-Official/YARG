@@ -3,11 +3,11 @@ using System.IO;
 using UnityEngine;
 using YARG.Gameplay;
 
-
-
 #if UNITY_EDITOR
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Animations;
+using YARG.Venue.Characters;
 #endif
 
 namespace YARG.Venue
@@ -158,6 +158,41 @@ namespace YARG.Venue
                 AssetBundleBuild assetBundleBuild = default;
                 assetBundleBuild.assetBundleName = fileName;
                 assetBundleBuild.assetNames = assetPaths;
+
+                // We must examine anything that has the VenueCharacter component so we can deal with animations
+                // properly. First we find them, then check for an AnimatorController and extract the layers and
+                // animation states contained within. Then we assign them to a SerializedField on the VenueCharacter,
+                // which will hopefully end up on the character when the AssetBundle is built.
+
+                var characterComponents = clonedBackground.GetComponentsInChildren<VenueCharacter>();
+
+                foreach (var character in characterComponents)
+                {
+                    var animator = character.GetComponent<Animator>();
+                    if (animator == null)
+                    {
+                        continue;
+                    }
+
+                    // This should work since we're in the editor
+                    var controller = animator.runtimeAnimatorController as AnimatorController;
+                    if (controller == null)
+                    {
+                        continue;
+                    }
+
+                    var layerStates = new AnimationDictionary();
+                    foreach (var layer in controller.layers)
+                    {
+                        var layerName = layer.name;
+                        foreach (var state in layer.stateMachine.states)
+                        {
+                            layerStates.Add(layerName, state.state.name);
+                        }
+                    }
+
+                    character.LayerStates = layerStates;
+                }
 
                 PrefabUtility.SaveAsPrefabAsset(clonedBackground.gameObject, BACKGROUND_PREFAB_PATH);
 

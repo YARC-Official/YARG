@@ -28,6 +28,13 @@
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
+    "com.lukestilson.openvat": {
+      "version": "https://github.com/sharpen3d/openvat-unity.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "515fb93d2933b13fd3a12c6b7776533bc1625eae"
+    },
     "com.marijnzwemmer.unity-toolbar-extender": {
       "version": "1.4.2",
       "depth": 0,

@@ -302,6 +302,10 @@ namespace YARG.Settings.Preview
 
             SettingsMenu.Instance.SettingChanged += OnSettingChanged;
 
+            var highwayRenderer = _cameraPositioner.GetComponent<HighwayCameraRendering>();
+            var camera = _cameraPositioner.GetComponent<Camera>();
+            highwayRenderer.AddPlayerParams(transform.position, camera, 0, 0, 0);
+
             // Force update it as well to make sure it's right before any settings are changed
             OnSettingChanged();
         }
@@ -314,8 +318,14 @@ namespace YARG.Settings.Preview
             var highwayPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.HighwayPresets);
 
             // Update camera presets
-            _trackMaterial.Initialize(3f, cameraPreset.FadeLength, highwayPreset);
+            _trackMaterial.Initialize(highwayPreset);
             _cameraPositioner.Initialize(cameraPreset);
+
+            var camera = _cameraPositioner.GetComponent<Camera>();
+            var highwayRenderer = camera.GetComponent<HighwayCameraRendering>();
+            highwayRenderer.UpdateCurveFactor(cameraPreset.CurveFactor, 0);
+            highwayRenderer.UpdateFadeParams(0, 3f, cameraPreset.FadeLength);
+            highwayRenderer.UpdateCameraProjectionMatrices();
 
             // Update color profiles
             if (!CurrentGameModeInfo.UseProKeys)
@@ -329,7 +339,7 @@ namespace YARG.Settings.Preview
             // Update all of the notes
             foreach (var note in _notePool.AllSpawned)
             {
-                ((FakeNote) note).OnSettingChanged();
+                ((FakeNote)note).OnSettingChanged();
             }
         }
 
@@ -347,7 +357,7 @@ namespace YARG.Settings.Preview
                 _nextSpawnTime = PreviewTime + SPAWN_FREQ;
 
                 // Spawn note
-                var noteObj = (FakeNote) _notePool.KeyedTakeWithoutEnabling(note);
+                var noteObj = (FakeNote)_notePool.KeyedTakeWithoutEnabling(note);
                 noteObj.NoteRef = note;
                 noteObj.FakeTrackPlayer = this;
                 noteObj.EnableFromPool();

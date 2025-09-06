@@ -164,6 +164,12 @@ namespace YARG.Gameplay.Visuals
             _frets[index].PlayHitParticles();
         }
 
+        public void PlayCymbalHitAnimation(int index)
+        {
+            _frets[index].PlayCymbalHitAnimation();
+            _frets[index].PlayHitParticles();
+        }
+
         public void PlayOpenHitAnimation()
         {
             foreach (var fret in _frets)

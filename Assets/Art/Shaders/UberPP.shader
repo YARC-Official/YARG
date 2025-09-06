@@ -18,6 +18,7 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
+        #include "Assets/Art/Shaders/highways.hlsl"
  
         // Hardcoded dependencies to reduce the number of variants
         #if _BLOOM_LQ || _BLOOM_HQ || _BLOOM_LQ_DIRT || _BLOOM_HQ_DIRT
@@ -50,7 +51,9 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
         float4 _Grain_TilingParams;
         float4 _Bloom_Texture_TexelSize;
         float4 _Dithering_Params;
- 
+        // YARG
+        float _IsFading;
+
         #define DistCenter              _Distortion_Params1.xy
         #define DistAxis                _Distortion_Params1.zw
         #define DistTheta               _Distortion_Params2.x
@@ -109,7 +112,7 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
                 }
             }
             #endif
- 
+
             return uv;
         }
  
@@ -236,6 +239,20 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
             #endif
  
             half alpha = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uvDistorted).w;
+
+            // YARG highway fading
+            if (_YargHighwaysN > 0 && _IsFading > 0)
+            {
+                float coord_y = uvDistorted.y;
+                int index = UVToIndex(uvDistorted);
+                float fadeStartPos = 1.0 - _YargFadeParams[index * 2];
+                float fadeEndPos   = 1.0 - _YargFadeParams[index * 2 + 1];
+                
+                float rate = 1.0 / (fadeEndPos - fadeStartPos);
+                alpha = min(alpha, 1.0 - ((min(max(coord_y, fadeStartPos), fadeEndPos)) - fadeStartPos) * rate);  
+                alpha = smoothstep(0.0, 1.0, alpha);
+            }
+            
             return half4(color, alpha);
         }
  

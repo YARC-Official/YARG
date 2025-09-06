@@ -71,6 +71,9 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, lastHighScore);
 
+            // Save the chart
+            _chart = chart;
+
             // Needle materials have names starting from 1.
             var needleIndex = (vocalIndex % NEEDLES_COUNT) + 1;
             var materialPath = $"VocalNeedle/{needleIndex}";
@@ -280,18 +283,10 @@ namespace YARG.Gameplay.Player
             return currentTime - lastTime.Value <= 1f / EngineParams.ApproximateVocalFps + 0.05;
         }
 
-        protected override void UpdateVisualsWithTimes(double inputTime)
+        protected override void UpdateVisuals(double visualTime)
         {
-            base.UpdateVisualsWithTimes(inputTime);
-            UpdatePercussionPhrase(inputTime);
-        }
-
-        protected override void UpdateVisuals(double time)
-        {
-            const float NEEDLE_POS_LERP = 30f;
-            const float NEEDLE_POS_SNAP_MULTIPLIER = 10f;
-
-            const float NEEDLE_ROT_LERP = 25f;
+            UpdatePercussionPhrase(visualTime);
+            UpdateSingNeedle();
 
             // Get combo meter fill
             float fill = 0f;
@@ -304,6 +299,40 @@ namespace YARG.Gameplay.Player
             // Update HUD
             _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier,
                 (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
+
+        }
+
+        private float GetNeedleRotation(float pitchDist)
+        {
+            const float NEEDLE_ROT_MAX = 12f;
+
+            // Reduce the provided distance by applying a dead zone. This will prevent oversteer if the player's current pitch is well within the "Perfect" window.
+            var deadzoneInSemitones = EngineParams.PitchWindowPerfect / 2;
+            var adjustedPitchDist = ApplyPitchDeadZone(pitchDist, deadzoneInSemitones);
+
+            // Determine how off that is compared to the hit window
+            float distPercent = Mathf.Clamp(adjustedPitchDist / (EngineParams.PitchWindow - deadzoneInSemitones), -1f, 1f);
+
+            // Use that to get the target rotation
+            return distPercent * NEEDLE_ROT_MAX;
+        }
+
+        private float ApplyPitchDeadZone(float pitchDist, float deadZoneInSemitones)
+        {
+            if (pitchDist >= 0.0f)
+            {
+                return Mathf.Max(0.0f, pitchDist - deadZoneInSemitones);
+            }
+
+            return Mathf.Min(0.0f, pitchDist + deadZoneInSemitones);
+        }
+
+        private void UpdateSingNeedle()
+        {
+            const float NEEDLE_POS_LERP = 30f;
+            const float NEEDLE_POS_SNAP_MULTIPLIER = 10f;
+
+            const float NEEDLE_ROT_LERP = 25f;
 
             // Get the appropriate sing time
             var singTime = GameManager.InputTime - Player.Profile.InputCalibrationSeconds;
@@ -402,31 +431,6 @@ namespace YARG.Gameplay.Player
                         Quaternion.identity, Time.deltaTime * NEEDLE_ROT_LERP);
                 }
             }
-        }
-
-        private float GetNeedleRotation(float pitchDist)
-        {
-            const float NEEDLE_ROT_MAX = 12f;
-
-            // Reduce the provided distance by applying a dead zone. This will prevent oversteer if the player's current pitch is well within the "Perfect" window.
-            var deadzoneInSemitones = EngineParams.PitchWindowPerfect / 2;
-            var adjustedPitchDist = ApplyPitchDeadZone(pitchDist, deadzoneInSemitones);
-
-            // Determine how off that is compared to the hit window
-            float distPercent = Mathf.Clamp(adjustedPitchDist / (EngineParams.PitchWindow - deadzoneInSemitones), -1f, 1f);
-
-            // Use that to get the target rotation
-            return distPercent * NEEDLE_ROT_MAX;
-        }
-
-        private float ApplyPitchDeadZone(float pitchDist, float deadZoneInSemitones)
-        {
-            if (pitchDist >= 0.0f)
-            {
-                return Mathf.Max(0.0f, pitchDist - deadZoneInSemitones);
-            }
-
-            return Mathf.Min(0.0f, pitchDist + deadZoneInSemitones);
         }
 
         private void UpdatePercussionPhrase(double time)

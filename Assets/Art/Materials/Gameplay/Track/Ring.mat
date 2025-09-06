@@ -12,11 +12,12 @@ Material:
     type: 3}
   m_ValidKeywords:
   - _EMISSION_DISABLED
+  - _RAISE_Z
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3025
+  m_CustomRenderQueue: 2000
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -103,7 +104,8 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
-    - _QueueOffset: 25
+    - _QueueOffset: 0
+    - _RAISE_Z: 1
     - _ReceiveShadows: 1
     - _SHINE: 0
     - _ShineAmount: 0
