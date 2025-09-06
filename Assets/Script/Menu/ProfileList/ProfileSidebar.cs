@@ -31,6 +31,7 @@ namespace YARG.Menu.ProfileList
             GameMode.FiveFretGuitar,
             GameMode.FourLaneDrums,
             GameMode.FiveLaneDrums,
+            GameMode.EliteDrums,
             GameMode.Vocals,
             GameMode.ProKeys
         };

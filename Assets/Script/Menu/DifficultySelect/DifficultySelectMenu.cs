@@ -463,8 +463,10 @@ namespace YARG.Menu.DifficultySelect
             // Get the possible instruments for this show and player
             // TODO: We should probably allow players to select instruments that are not in
             //  all songs and have them sit out songs that don't have that instrument
+            // TODO: We should also let Ekit users choose an option that switches them between
+            // each song's native drum format
             _possibleInstruments.Clear();
-            var allowedInstruments = profile.GameMode.PossibleInstruments();
+            var allowedInstruments = profile.GameMode.PossibleInstrumentsForSong(GlobalVariables.State.CurrentSong);
 
             foreach (var instrument in allowedInstruments)
             {
