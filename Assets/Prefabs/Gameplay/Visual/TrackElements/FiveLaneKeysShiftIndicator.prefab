@@ -107,7 +107,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4327806709304797894}
-  - component: {fileID: -1084823873845606360}
+  - component: {fileID: -7495295553438018574}
   m_Layer: 6
   m_Name: FiveLaneKeysShiftIndicator
   m_TagString: Untagged
@@ -131,7 +131,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-1084823873845606360
+--- !u!114 &-7495295553438018574
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

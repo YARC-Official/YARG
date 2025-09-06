@@ -41,7 +41,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1909203970316929669}
-  - component: {fileID: 8357004528603560415}
+  - component: {fileID: 3540698430873124597}
   m_Layer: 0
   m_Name: FiveLaneKeysRangeIndicator
   m_TagString: Untagged
@@ -65,7 +65,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8357004528603560415
+--- !u!114 &3540698430873124597
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -77,7 +77,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc40b1e46078d424a940faf9315c299d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _meshRenderer: {fileID: 2354173079749435183}
+  _meshRenderer: {fileID: 0}
 --- !u!1 &7553305558568405431
 GameObject:
   m_ObjectHideFlags: 0
