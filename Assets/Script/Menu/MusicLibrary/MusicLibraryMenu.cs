@@ -143,6 +143,7 @@ namespace YARG.Menu.MusicLibrary
             // Restore search
             _searchField.Restore();
             _searchField.OnSearchQueryUpdated += UpdateSearch;
+            _searchField.OnSearchQueryUpdated += (bool force) => UpdateSortInformationHeader();
 
             if (CurrentlyPlaying != null)
             {
@@ -408,11 +409,7 @@ namespace YARG.Menu.MusicLibrary
                 }
             }
 
-            if (_searchField.IsSearching)
-            {
-                list.Add(new CategoryViewType(Localize.Key("Menu.MusicLibrary.SearchResults"), songCount, _sortedSongs));
-            }
-            else
+            if (!_searchField.IsSearching)
             {
                 list.Add(new ButtonViewType(
                     Localize.Key("Menu.MusicLibrary.RandomSong"),
@@ -1021,6 +1018,12 @@ namespace YARG.Menu.MusicLibrary
         {
             if (MenuState == MenuState.Library)
             {
+                var prefix = _searchField.IsSearching
+                    ? TextColorer.StyleString(
+                        ZString.Concat(Localize.Key("Menu.MusicLibrary.SearchResults"), " "),
+                        MenuData.Colors.HeaderSecondary, 700)
+                    : "";
+
                 if (SettingsManager.Settings.LibrarySort <= SortAttribute.Playcount)
                 {
                     var sortingBy = TextColorer.StyleString("SORTED BY ",
@@ -1031,15 +1034,11 @@ namespace YARG.Menu.MusicLibrary
                         MenuData.Colors.HeaderSecondary,
                         700);
 
-                    _sortInfoHeaderPrimaryText.text = ZString.Concat(sortingBy, sortKey);
+                    _sortInfoHeaderPrimaryText.text = ZString.Concat(prefix, sortingBy, sortKey);
                 }
                 else
                 {
-                    var playableSongs = TextColorer.StyleString(Localize.Key("Menu.MusicLibrary.PlayableSongs"),
-                        MenuData.Colors.HeaderTertiary,
-                        600);
-
-                    var on = TextColorer.StyleString(" ON ",
+                    var playableSongs = TextColorer.StyleString("PLAYABLE ON ",
                         MenuData.Colors.HeaderTertiary,
                         600);
 
@@ -1047,7 +1046,7 @@ namespace YARG.Menu.MusicLibrary
                         MenuData.Colors.HeaderSecondary,
                         700);
 
-                    _sortInfoHeaderPrimaryText.text = ZString.Concat(playableSongs, on, sortKey);
+                    _sortInfoHeaderPrimaryText.text = ZString.Concat(prefix, playableSongs, sortKey);
                 }
 
 
