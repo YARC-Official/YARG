@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using YARG.Gameplay.Player;
@@ -22,6 +23,8 @@ namespace YARG.Gameplay.Visuals
 
         private Camera _renderCamera;
         private RenderTexture _highwaysOutputTexture;
+        private RenderTexture _highwaysAlphaTexture;
+        private ScriptableRenderPass _fadeCalcPass;
 
         private float[] _curveFactors = new float[MAX_MATRICES];
         private float[] _zeroFadePositions = new float[MAX_MATRICES];
@@ -38,6 +41,7 @@ namespace YARG.Gameplay.Visuals
         public static readonly int YargHighwayCamProjMatricesID = Shader.PropertyToID("_YargCamProjMatrices");
         public static readonly int YargCurveFactorsID = Shader.PropertyToID("_YargCurveFactors");
         public static readonly int YargFadeParamsID = Shader.PropertyToID("_YargFadeParams");
+        public static readonly int YargHighwaysAlphaTextureID = Shader.PropertyToID("_YargHighwaysAlphaMask");
 
         public RenderTexture GetHighwayOutputTexture()
         {
@@ -54,7 +58,7 @@ namespace YARG.Gameplay.Visuals
             return _highwaysOutputTexture;
         }
 
-        private Vector2 WorldToViewport(Vector3 positionWS, int index)
+        public Vector2 WorldToViewport(Vector3 positionWS, int index)
         {
             Vector4 clipSpacePos = (_camProjMatrices[index] * _camViewMatrices[index]) * new Vector4(positionWS.x, positionWS.y, positionWS.z, 1.0f);
             // Perspective divide to get NDC
@@ -189,6 +193,23 @@ namespace YARG.Gameplay.Visuals
                 _renderCamera.targetTexture = GetHighwayOutputTexture();
             }
 
+            if (_highwaysAlphaTexture == null)
+            {
+                // For perf
+                float scaling = 0.5f;
+                var descriptor = new RenderTextureDescriptor(
+                    (int)(Screen.width * scaling), (int)(Screen.height * scaling),
+                    RenderTextureFormat.RFloat);
+                descriptor.mipCount = 0;
+                _highwaysAlphaTexture = new RenderTexture(descriptor);
+                Shader.SetGlobalTexture(YargHighwaysAlphaTextureID, _highwaysAlphaTexture);
+            }
+
+            if (_fadeCalcPass == null)
+            {
+                _fadeCalcPass = new FadePass(this);
+            }
+
             Shader.SetGlobalInteger(YargHighwaysNumberID, 0);
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             RenderPipelineManager.endCameraRendering += OnEndCameraRender;
@@ -240,6 +261,8 @@ namespace YARG.Gameplay.Visuals
             Shader.SetGlobalMatrixArray(YargHighwayCamViewMatricesID, _camViewMatrices);
             Shader.SetGlobalMatrixArray(YargHighwayCamInvViewMatricesID, _camInvViewMatrices);
             Shader.SetGlobalInteger(YargHighwaysNumberID, _cameras.Count);
+            var renderer = _renderCamera.GetUniversalAdditionalCameraData().scriptableRenderer;
+            renderer.EnqueuePass(_fadeCalcPass);
         }
 
         public void UpdateCameraProjectionMatrices()
@@ -293,6 +316,48 @@ namespace YARG.Gameplay.Visuals
         {
             Matrix4x4 postProj = GetPostProjectionMatrix(index, highwayCount, highwayScale);
             return postProj * camProj; // HLSL-style: mul(postProj, proj)
+        }
+
+        // Calculate Alpha mask for the highways rt
+        private sealed class FadePass : ScriptableRenderPass
+        {
+            private ProfilingSampler _ProfilingSampler = new ProfilingSampler("CalcFadeAlphaMask");
+            private CommandBuffer _cmd;
+            private HighwayCameraRendering _highwayCameraRendering;
+            private Material _material;
+
+            public FadePass(HighwayCameraRendering highCamRend)
+            {
+                _highwayCameraRendering = highCamRend;
+                renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+                _material = new Material(Shader.Find("HighwaysAlphaMask"));
+            }
+
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+            {
+                ScriptableRenderer renderer = renderingData.cameraData.renderer;
+                CommandBuffer cmd = CommandBufferPool.Get("CalcFadeAlphaMask");
+
+                using (new ProfilingScope(cmd, _ProfilingSampler))
+                {
+                    cmd.SetRenderTarget(_highwayCameraRendering._highwaysAlphaTexture);
+                    var shaderTagIds = new ShaderTagId[] { new ShaderTagId("UniversalForward") };
+                    var desc = new RendererListDesc(shaderTagIds, renderingData.cullResults, renderingData.cameraData.camera)
+                    {
+                        sortingCriteria = SortingCriteria.RenderQueue,
+                        renderQueueRange = RenderQueueRange.all,
+                        overrideMaterial = _material
+                    };
+
+                    var rendererList = context.CreateRendererList(desc);
+                    //The RenderingUtils.fullscreenMesh argument specifies that the mesh to draw is a quad.
+                    cmd.DrawRendererList(rendererList);
+                }
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                CommandBufferPool.Release(cmd);
+            }
         }
     }
 }

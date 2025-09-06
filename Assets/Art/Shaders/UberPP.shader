@@ -28,7 +28,6 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
                 #define BLOOM_DIRT
             #endif
         #endif
- 
         TEXTURE2D_X(_SourceTex);
         TEXTURE2D_X(_Bloom_Texture);
         TEXTURE2D(_LensDirt_Texture);
@@ -36,6 +35,7 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
         TEXTURE2D(_InternalLut);
         TEXTURE2D(_UserLut);
         TEXTURE2D(_BlueNoise_Texture);
+        TEXTURE2D(_YargHighwaysAlphaMask);
  
         float4 _Lut_Params;
         float4 _UserLut_Params;
@@ -240,49 +240,9 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
             #endif
  
             half alpha = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uvDistorted).w;
+            half alpha_mask = SAMPLE_TEXTURE2D(_YargHighwaysAlphaMask, sampler_LinearClamp, uvDistorted).r;
 
-            // YARG highway fading
-            if (_YargHighwaysN > 0 && _IsFading > 0)
-            {
-                int index = UVToIndex(uvDistorted);
-                float fadeStartPos = _YargFadeParams[index * 2];
-                float fadeEndPos   = _YargFadeParams[index * 2 + 1];
-                
-                // Sample raw depth
-                #if UNITY_REVERSED_Z
-                    real depth = SampleSceneDepth(uvDistorted);
-                #else
-                    real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(uvDistorted));
-                #endif
-                
-                // Account for highway Z-clash avoidance offset in clip space
-                // The highways.hlsl modifies NDC Z: ndcZ += 0.005 * (index % 2)
-                // We need to reverse this before converting to linear depth
-                float offset = 0.005 * (index % 2);
-                // This highway had its NDC Z modified, reverse it
-                #ifdef UNITY_REVERSED_Z
-                    depth -= offset; // Remove the NDC offset
-                #else
-                    depth += offset; // Remove the NDC offset
-                #endif
-
-                // Use Unity's built-in LinearEyeDepth with main camera params as approximation
-                float linearDepth = LinearEyeDepth(depth, _ZBufferParams);
-                
-                // Apply fade based on linear depth
-                if (linearDepth > fadeEndPos)
-                    alpha = 0.0;
-                else if (linearDepth > fadeStartPos)
-                {
-                    float rate = 1.0 / (fadeEndPos - fadeStartPos);
-                    float fadeValue = (linearDepth - fadeStartPos) * rate;
-                    fadeValue = smoothstep(0.0, 1.0, fadeValue);
-
-                    alpha = min(alpha, 1.0 - fadeValue);
-                }
-            }
-            
-            return half4(color, alpha);
+            return half4(color, min(alpha, alpha_mask));
         }
  
     ENDHLSL
