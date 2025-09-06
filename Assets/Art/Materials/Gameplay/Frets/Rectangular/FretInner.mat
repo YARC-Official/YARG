@@ -94,7 +94,7 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _MaxFade: 0.4
+    - _MaxFade: 1
     - _Metallic: 0
     - _MinimumFade: 1
     - _OcclusionStrength: 1

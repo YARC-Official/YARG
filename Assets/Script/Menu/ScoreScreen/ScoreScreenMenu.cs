@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
+using YARG.Audio.BASS;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.ProKeys;
@@ -15,10 +19,13 @@ using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
 using YARG.Gameplay;
 using YARG.Localization;
+using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Scores;
 using YARG.Song;
+using YARG.Playlists;
+using YARG.Settings;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -55,32 +62,13 @@ namespace YARG.Menu.ScoreScreen
 
         private bool _analyzingReplay;
 
+        private bool _restartingSong;
+
         private void OnEnable()
         {
-            // Set navigation scheme
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
-            {
-                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
-                {
-                    if (!_analyzingReplay)
-                    {
-                        GlobalVariables.State.ShowIndex++;
-                        if (GlobalVariables.State.PlayingAShow &&
-                            GlobalVariables.State.ShowIndex < GlobalVariables.State.ShowSongs.Count)
-                        {
-                            // Reset CurrentSong and launch back into the Gameplay scene
-                            GlobalVariables.State.CurrentSong =
-                                GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex];
-                            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
-                        }
-                        else
-                        {
-                            GlobalVariables.State.PlayingAShow = false;
-                            GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
-                        }
-                    }
-                })
-            }, true));
+            var song = GlobalVariables.State.CurrentSong;
+
+            SetNavigationScheme();
 
             if (GlobalVariables.State.ScoreScreenStats is null)
             {
@@ -88,7 +76,6 @@ namespace YARG.Menu.ScoreScreen
                 return;
             }
 
-            var song = GlobalVariables.State.CurrentSong;
             var scoreScreenStats = GlobalVariables.State.ScoreScreenStats.Value;
 
 #if UNITY_EDITOR || YARG_NIGHTLY_BUILD || YARG_TEST_BUILD
@@ -137,11 +124,15 @@ namespace YARG.Menu.ScoreScreen
             CreateScoreCards(scoreScreenStats);
 
             _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
+
+            //set restarting state
+            _restartingSong = false;
         }
 
         private void OnDisable()
         {
-            if (!GlobalVariables.State.PlayingAShow)
+            MusicLibraryMenu.CurrentlyPlaying = GlobalVariables.State.CurrentSong;
+            if (!GlobalVariables.State.PlayingAShow && !_restartingSong)
             {
                 GlobalVariables.State = PersistentState.Default;
             }
@@ -151,12 +142,29 @@ namespace YARG.Menu.ScoreScreen
 
         private void CreateScoreCards(ScoreScreenStats scoreScreenStats)
         {
+            int fcCount = 0;
+            int highScoreCount = 0;
+
             foreach (var score in scoreScreenStats.PlayerScores)
             {
+                // Bots don't get vox
+                if (!score.Player.Profile.IsBot)
+                {
+                    // We intentionally don't count both high score and full combo
+                    if (score.Stats.IsFullCombo)
+                    {
+                        fcCount++;
+                    }
+                    else if (score.IsHighScore)
+                    {
+                        highScoreCount++;
+                    }
+                }
+
                 switch (score.Player.Profile.GameMode)
                 {
                     case GameMode.FiveFretGuitar:
-                    { 
+                    {
                         var card = Instantiate(_guitarCardPrefab, _cardContainer);
                         card.Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
                         card.SetCardContents();
@@ -197,6 +205,12 @@ namespace YARG.Menu.ScoreScreen
                 }
             }
 
+            // Mark that the music library should refresh when next opened
+            if (GlobalVariables.State.ScoreScreenStats.Value.PlayerScores.Any(e => !e.Player.Profile.IsBot))
+            {
+                MusicLibraryMenu.NeedsReload();
+            }
+
             // Make sure to update the canvases since we *just* added the score cards
             Canvas.ForceUpdateCanvases();
 
@@ -204,6 +218,78 @@ namespace YARG.Menu.ScoreScreen
             if (_horizontalScrollBar.gameObject.activeSelf)
             {
                 _horizontalScrollBar.value = 0f;
+            }
+
+            // As a final bonus, play the appropriate full combo vox samples
+            if (SettingsManager.Settings.EnableVoxSamples.Value)
+            {
+                PlayScoreVox(fcCount, highScoreCount);
+            }
+        }
+
+        private static void PlayScoreVox(int fcCount, int highScoreCount)
+        {
+            if (fcCount > 0)
+            {
+                GlobalAudioHandler.PlayVoxSample(VoxSample.FullCombo);
+                YargLogger.LogInfo("Playing full combo vox sample");
+            }
+
+            if (fcCount > 1)
+            {
+                YargLogger.LogDebug($"Playing full combo vox sample for {fcCount} times");
+                switch (fcCount)
+                {
+                    case 2:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times2);
+                        break;
+                    case 3:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times3);
+                        break;
+                    case 4:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times4);
+                        break;
+                    case 5:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times5);
+                        break;
+                    case 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times6);
+                        break;
+                    case > 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.TimesMany);
+                        break;
+                }
+            }
+
+            if (highScoreCount > 0)
+            {
+                GlobalAudioHandler.PlayVoxSample(VoxSample.HighScore);
+                YargLogger.LogInfo("Playing high score vox sample");
+            }
+
+            if (highScoreCount > 1)
+            {
+                switch (highScoreCount)
+                {
+                    case 2:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times2);
+                        break;
+                    case 3:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times3);
+                        break;
+                    case 4:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times4);
+                        break;
+                    case 5:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times5);
+                        break;
+                    case 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.Times6);
+                        break;
+                    case > 6:
+                        GlobalAudioHandler.PlayVoxSample(VoxSample.TimesMany);
+                        break;
+                }
             }
         }
 
@@ -276,6 +362,100 @@ namespace YARG.Menu.ScoreScreen
 
             _analyzingReplay = false;
             return allPass;
+        }
+
+        private NavigationScheme.Entry _continueButtonEntry;
+        private NavigationScheme.Entry _endEarlyButtonEntry;
+        private NavigationScheme.Entry _restartButtonEntry;
+        private NavigationScheme.Entry _removeFavoriteButtonEntry;
+        private NavigationScheme.Entry _addFavoriteButtonEntry;
+
+        private void SetNavigationScheme()
+        {
+            var song = GlobalVariables.State.CurrentSong;
+
+            _continueButtonEntry = new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
+                {
+                    if (!_analyzingReplay)
+                    {
+                        GlobalVariables.State.ShowIndex++;
+                        if (GlobalVariables.State.PlayingAShow &&
+                            GlobalVariables.State.ShowIndex < GlobalVariables.State.ShowSongs.Count)
+                        {
+                            // Reset CurrentSong and launch back into the Gameplay scene
+                            GlobalVariables.State.CurrentSong =
+                                GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex];
+                            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+                        }
+                        else
+                        {
+                            GlobalVariables.State.PlayingAShow = false;
+                            GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                        }
+                    }
+                });
+
+            _endEarlyButtonEntry = new NavigationScheme.Entry(MenuAction.Red, "Menu.ScoreScreen.EndSetlistEarly", () =>
+            {
+                GlobalVariables.State.PlayingAShow = false;
+                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+            });
+
+            _restartButtonEntry = new NavigationScheme.Entry(MenuAction.Yellow, "Menu.ScoreScreen.RestartSong", () =>
+            {
+                _restartingSong = true;
+                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+            });
+
+            _addFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.AddToFavorites", () =>
+                {
+                    YargLogger.LogInfo("added favorite");
+                    PlaylistContainer.FavoritesPlaylist.AddSong(song);
+                    UpdateNavigationScheme(true);
+                });
+
+            _removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.RemoveFromFavorites", () =>
+                {
+                    YargLogger.LogInfo("removed favorite");
+                    PlaylistContainer.FavoritesPlaylist.RemoveSong(song);
+                    UpdateNavigationScheme(true);
+                });
+            
+            UpdateNavigationScheme();
+        }
+
+        private void UpdateNavigationScheme(bool reset = false)
+        {
+            if (reset)
+            {
+                Navigator.Instance.PopScheme();
+            }
+
+            List<NavigationScheme.Entry> buttons = new()
+            {
+                _continueButtonEntry,
+                _restartButtonEntry
+            };
+
+            var song = GlobalVariables.State.CurrentSong;
+            var isFavorited = PlaylistContainer.FavoritesPlaylist.ContainsSong(song);
+
+            if (isFavorited)
+            {
+                buttons.Add(_removeFavoriteButtonEntry);
+            }
+            else
+            {
+                buttons.Add(_addFavoriteButtonEntry);
+            }
+
+            if (GlobalVariables.State.PlayingAShow &&
+                GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
+            {
+                buttons.Insert(1, _endEarlyButtonEntry);
+            }
+
+            Navigator.Instance.PushScheme(new(buttons, true));
         }
     }
 }

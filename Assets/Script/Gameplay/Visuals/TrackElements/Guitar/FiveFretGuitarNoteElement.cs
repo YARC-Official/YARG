@@ -119,6 +119,14 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+
+        public override void MissNote()
+        {
+            base.MissNote();
+
+            UpdateColor();
+        }
+
         protected override void UpdateElement()
         {
             base.UpdateElement();
@@ -155,8 +163,16 @@ namespace YARG.Gameplay.Visuals
                 ? colors.GetNoteStarPowerColor(NoteRef.Fret)
                 : colorNoStarPower;
 
+            if (NoteRef.WasMissed)
+            {
+                color = colors.Miss;
+            }
+
             // Set the note color
             NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
+
+            // Set the metal color
+            NoteGroup.SetMetalColor(colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor());
 
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;

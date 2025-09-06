@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Audio;
@@ -249,6 +250,11 @@ namespace YARG.Input
         private int FindSerializedIndex(InputDevice device)
         {
             return _unresolvedDevices.FindIndex((dev) => dev.MatchesDevice(device));
+        }
+
+        public bool MatchesDevice(InputDevice device)
+        {
+            return _unresolvedDevices.Any(dev => dev.MatchesDevice(device));
         }
 
         public bool ContainsBindingsForDevice(InputDevice device)

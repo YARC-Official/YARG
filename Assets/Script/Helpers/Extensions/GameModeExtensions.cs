@@ -56,12 +56,14 @@ namespace YARG.Helpers.Extensions
                 {
                     ProfileSettingStrings.LEFTY_FLIP,
                     ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS,
+                    ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE,
                 },
                 GameMode.FiveLaneDrums => new List<string>
                 {
                     ProfileSettingStrings.LEFTY_FLIP,
                     ProfileSettingStrings.USE_CYMBAL_MODELS,
                     ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT,
+                    ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE,
                 },
                 GameMode.SixFretGuitar => new List<string>
                 {

@@ -25,7 +25,7 @@ namespace YARG.Gameplay.Visuals
         {
             if (_starpowerAmount >= 0.5 || _starpowerActive)
             {
-                float pulse = 1 - (float) beatPercentage;
+                float pulse = Mathf.Pow(1 - (float) beatPercentage, 2);
                 _starpowerBar.material.SetFloat(_pulse, pulse);
             }
             else
