@@ -818,5 +818,10 @@ namespace YARG.Menu.MusicLibrary
         {
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
         }
+
+        public static void ResetMainLibraryIndex()
+        {
+            _mainLibraryIndex = -1;
+        }
     }
 }
