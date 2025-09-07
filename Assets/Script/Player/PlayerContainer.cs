@@ -456,7 +456,7 @@ namespace YARG.Player
             }
             else if (device is ProKeyboard)
             {
-                gameMode = GameMode.Keys;
+                gameMode = GameMode.ProKeys;
                 profileName = "New Keys Profile";
             }
 

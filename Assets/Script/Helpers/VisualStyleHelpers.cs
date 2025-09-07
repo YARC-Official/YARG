@@ -18,7 +18,7 @@ namespace YARG.Assets.Script.Helpers
                 GameMode.SixFretGuitar => VisualStyle.SixFretGuitar,
                 GameMode.FourLaneDrums => VisualStyle.FourLaneDrums,
                 GameMode.FiveLaneDrums => VisualStyle.FiveLaneDrums,
-                GameMode.Keys => instrument is Instrument.ProKeys ? VisualStyle.ProKeys : VisualStyle.FiveLaneKeys,
+                GameMode.ProKeys => instrument is Instrument.ProKeys ? VisualStyle.ProKeys : VisualStyle.FiveLaneKeys,
                 _ => throw new Exception("Unhandled.")
             };
         }

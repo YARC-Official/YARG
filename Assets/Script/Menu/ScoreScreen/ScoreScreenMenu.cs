@@ -185,7 +185,7 @@ namespace YARG.Menu.ScoreScreen
                         card.SetCardContents();
                         break;
                     }
-                    case GameMode.Keys:
+                    case GameMode.ProKeys:
                     {
                         if (score.Player.Profile.CurrentInstrument is Instrument.ProKeys)
                         {

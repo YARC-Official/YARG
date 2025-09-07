@@ -210,7 +210,7 @@ namespace YARG.Settings.Preview
                 }
             },
             {
-                GameMode.Keys,
+                GameMode.ProKeys,
                 new Info
                 {
                     UseProKeys = true,
