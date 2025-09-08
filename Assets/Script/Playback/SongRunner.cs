@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using UnityEngine;
 using YARG.Core.Logging;
@@ -197,9 +197,10 @@ namespace YARG.Playback
         private bool _disposed;
 
         private volatile float _syncSpeedAdjustment;
-        private volatile int _syncSpeedMultiplier;
+        private volatile int   _syncSpeedMultiplier;
         private volatile float _syncStartDelta;
         private volatile float _syncWorstDelta;
+        private int   _counter;
 
         private readonly StemMixer _mixer;
 
@@ -376,11 +377,13 @@ namespace YARG.Playback
             const double INITIAL_SYNC_THRESH = 0.015;
             const double ADJUST_SYNC_THRESH = 0.005;
             const float SPEED_ADJUSTMENT = 0.05f;
+            const float WHAMMY_SYNC_INTERVAL = 1000;
 
             for (; !_disposed; Thread.Sleep(1))
             {
                 lock (_syncThread)
                 {
+                    _counter++;
                     double audioOffset = SongOffset - (AudioCalibration * SongSpeed);
 
                     SyncAudioTime = _mixer.GetPosition();
@@ -401,13 +404,10 @@ namespace YARG.Playback
                         continue;
                     }
 
-                    foreach (var channel in _mixer.Channels)
+                    if (_counter % WHAMMY_SYNC_INTERVAL == 0)
                     {
-                        if (channel.GetWhammyPitch() == 0.0f)
-                        {
-                            //Correct drift caused by pitch shift effect
-                            channel.SetWhammyPitch(0.0f);
-                        }
+                        _counter = 1;
+                        SyncWhammy();
                     }
 
                     // Account for song speed
@@ -458,6 +458,18 @@ namespace YARG.Playback
                     {
                         ResetSync();
                     }
+                }
+            }
+        }
+
+        private void SyncWhammy()
+        {
+            foreach (var channel in _mixer.Channels)
+            {
+                if (channel.GetWhammyPitch() == 0.0f)
+                {
+                    //Correct drift caused by pitch shift effect
+                    channel.SetWhammyPitch(0.0f);
                 }
             }
         }

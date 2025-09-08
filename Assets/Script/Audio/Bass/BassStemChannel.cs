@@ -99,8 +99,8 @@ namespace YARG.Audio.BASS
                 return 0.0;
             }
 
-            long bytes = BassMix.ChannelGetPosition(_streamHandles.Stream, PositionFlags.Bytes);
-            if (bytes < 0)
+            long position = BassMix.ChannelGetPosition(_streamHandles.Stream);
+            if (position < 0)
             {
                 YargLogger.LogFormatError("Failed to get byte position: {0}!", Bass.LastError);
                 return 0.0;
@@ -109,17 +109,17 @@ namespace YARG.Audio.BASS
             if (_streamHandles.PitchFX != 0)
             {
                 //Account for inherent pitch shift delay
-                bytes -= GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2;
+                position -= GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2;
             }
 
-            double position = Bass.ChannelBytes2Seconds(_streamHandles.Stream, bytes);
-            if (position < 0)
+            double seconds = Bass.ChannelBytes2Seconds(_streamHandles.Stream, position);
+            if (seconds < 0)
             {
                 YargLogger.LogFormatError("Failed to convert bytes to seconds: {0}!", Bass.LastError);
                 return 0.0;
             }
 
-            return position;
+            return seconds;
         }
 
         protected override void SetSpeed_Internal(float speed, bool shiftPitch)
