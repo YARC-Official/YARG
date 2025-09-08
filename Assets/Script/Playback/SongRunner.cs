@@ -401,6 +401,15 @@ namespace YARG.Playback
                         continue;
                     }
 
+                    foreach (var channel in _mixer.Channels)
+                    {
+                        if (channel.GetWhammyPitch() == 0.0f)
+                        {
+                            //Correct drift caused by pitch shift effect
+                            channel.SetWhammyPitch(0.0f);
+                        }
+                    }
+
                     // Account for song speed
                     double initialThreshold = INITIAL_SYNC_THRESH * SongSpeed;
                     double adjustThreshold = ADJUST_SYNC_THRESH * SongSpeed;

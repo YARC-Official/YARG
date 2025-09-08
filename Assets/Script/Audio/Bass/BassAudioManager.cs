@@ -530,12 +530,16 @@ namespace YARG.Audio.BASS
 
         internal static bool SetupPitchBend(in PitchShiftParametersStruct pitchParams, StreamHandle handles)
         {
-            handles.CompressorFX = BassHelpers.FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
-            if (handles.CompressorFX == 0)
+            handles.PitchFX = BassHelpers.FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
+            if (handles.PitchFX == 0)
             {
                 YargLogger.LogError("Failed to set up pitch bend for main stream!");
                 return false;
             }
+
+            // Adjust the position to account for inherent pitch fx delay
+            Bass.ChannelSetPosition(handles.Stream, GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2);
+
             return true;
         }
 
