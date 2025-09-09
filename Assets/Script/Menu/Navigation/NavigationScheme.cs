@@ -82,12 +82,23 @@ namespace YARG.Menu.Navigation
 
         public Action PopCallback;
 
+        public bool SuppressHelpBar;
+
         public NavigationScheme(List<Entry> entries, bool? allowsMusicPlayer, Action popCallback = null)
         {
             _entries = entries;
 
             AllowsMusicPlayer = allowsMusicPlayer;
             PopCallback = popCallback;
+        }
+
+        public NavigationScheme(List<Entry> entries, bool? allowsMusicPlayer, bool suppressHelpBar)
+        {
+            _entries = entries;
+
+            AllowsMusicPlayer = allowsMusicPlayer;
+            PopCallback = null;
+            SuppressHelpBar = suppressHelpBar;
         }
 
         public void InvokeFuncs(NavigationContext context)

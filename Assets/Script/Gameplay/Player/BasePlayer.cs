@@ -18,7 +18,7 @@ namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : GameplayBehaviour
     {
-        public int PlayerIndex { get; private set; }
+        public int HighwayIndex { get; private set; }
 
         public YargPlayer Player { get; private set; }
 
@@ -131,7 +131,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            PlayerIndex = index;
+            HighwayIndex = index;
             Player = player;
 
             SyncTrack = chart.SyncTrack;

@@ -73,6 +73,7 @@
             "Playlist": "Playlist",
             "SongLength": "Duration",
             "Source": "Source",
+            "Stars": "Stars",
             "Unspecified": "None",
             "Year": "Year",
             "DateAdded": "Date Added",
@@ -99,6 +100,12 @@
             "Harmony": "Harmony",
             "Band": "Band",
             "Playcount": "Play Count"
+        },
+        "StarPowerActivationType" : {
+            "Freestyle": "Freestyle",
+            "RightmostLane": "Rightmost Lane",
+            "RightmostNote": "Rightmost Note",
+            "AllNotes": "All Notes"
         }
     },
     "Menu": {
@@ -201,6 +208,10 @@
                 "Title": "Experimental Features Notice",
                 "Description": "The options about to be displayed represent a work in progress. These features are subject to change, may contain bugs, and <b>could even cause major problems if enabled</b>.",
                 "Confirm": "I Understand"
+            },
+            "ShowDialog": {
+                "Title": "Choose Your Fate",
+                "Select": "That's Plenty"
             }
         },
         "DifficultySelect": {
@@ -280,14 +291,35 @@
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
             "Play": "Play Song",
             "Search": "Search",
+            "SkipSection": "<align=left><size=80%>Navigate<br>Sections</size></align>",
+            "MoveInPlaylist": "Move Song",
             "CurrentSetlist": "Current Setlist",
             "AddToSet": "Add To Setlist",
             "AddedToSet": "Added To Setlist",
             "PlaylistAddedToSet": "Added {0:N0} Songs From Playlist To Setlist",
             "StartSet": "Start The Set",
+            "PlayShow": "Play A Show",
             "NoSongsInPlaylist": "No Songs In Playlist",
             "CannotAddToSelf": "No, I will not create an ouroboros for you. Nice try, Jaden.",
-            "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>"
+            "AddToShow": "Add To Show",
+            "AddedToShow": "Added To Show",
+            "StartShow": "Start The Show",
+            "MoreOptions": "More Options",
+            "PlayAShow": {
+                "LongSong": "A Long Song",
+                "RandomSong": "A Random Song",
+                "ShortSong": "A Short Song",
+                "SongFromArtist": "A Song By {0}",
+                "SongFromDecade": "A Song From The {0}",
+                "SongFromFavorites": "One Of Your Favorite Songs",
+                "SongFromAnGenre": "An {0} Song",
+                "SongFromGenre": "A {0} Song",
+                "SongFromPlaylist": "A Song From Your Playlist {0}",
+                "SongFromSource": "A Song From {0}",
+                "StartsWithLetter": "A Song Starting With The Letter \"{0}\"",
+                "StartsWithNumber": "A Song Starting With A Number",
+                "StartsWithOther": "A Song Starting With Something Non-Alphanumeric"
+            }
         },
         "ProfileInfo": {
             "Name": "Edit Profile",
@@ -307,7 +339,9 @@
             "Players" : "Players"
         },
         "ScoreScreen" : {
-            "BandScoreNotSaved" : "(Score not saved)"
+            "BandScoreNotSaved" : "(Score not saved)",
+            "RestartSong" : "Restart Song",
+            "EndSetlistEarly" : "End Setlist"
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
@@ -649,6 +683,7 @@
             "Export": "Export",
             "PathsAndFolders": "Paths and Folders",
             "MusicLibrary": "Music Library",
+            "PlayAShow": "Play A Show",
             "ScanningOptions": "Scanning Options",
             "RB3E": "RB3E Settings",
             "Customization": "Buffer Customization",
@@ -745,9 +780,13 @@
                 "Name": "Disable Film Grain",
                 "Description": "Disables post-processing film grain effect. May increase performance."
             },
+            "DisableDefaultBackground": {
+                "Name": "Disable Default Background",
+                "Description": "Disables the default background, allowing you to see a professional black background if no other backgrounds are available."
+            },
             "DisableGlobalBackgrounds": {
                 "Name": "Disable Global Backgrounds",
-                "Description": "Disables custom backgrounds from your venue folder and shows the ones in songs instead."
+                "Description": "Disables custom backgrounds from your venue folder, allowing the default background to be used if there is no per-song background."
             },
             "DisablePerSongBackgrounds": {
                 "Name": "Disable Per-Song Backgrounds",
@@ -932,6 +971,14 @@
                     "Sparse": "50, 100, 250, 500, ..."
                 }
             },
+            "PlayAShowTimeout": {
+                "Name": "Show Selection Timeout",
+                "Description": "The amount of time to wait for votes before picking a song or refreshing the categories."
+            },
+            "RequireAllDifficulties": {
+                "Name": "Require All Difficulties",
+                "Description": "Require show songs to have at least Easy, Medium, Hard, and Expert difficulties"
+            },
             "PracticeRestartDelay": {
                 "Name": "Practice Restart Delay",
                 "Description": "The amount of time (in seconds) to delay the beginning of a section in Practice Mode."
@@ -1086,6 +1133,10 @@
                 "Name": "Apply Volume Settings to Music Library Previews",
                 "Description": "Volume settings for specific instrumments will be applied in the Music Library as well."
             },
+            "DataStreamEnable": {
+                "Name": "Enable UDP data stream",
+                "Description": "Enables sending of UDP information packets over the network, for software such as YALCY."
+            },
             "RB3EEnabled": {
                 "Name": "Enable RB3E Stage Kit data stream",
                 "Description": "Enables sending of RB3E style stage kit information packets over the network, for hardware such as StageKitPied."
@@ -1197,6 +1248,10 @@
             "EnableTrackEffects": {
                 "Name": "Enable Track Effects",
                 "Description": "If enabled, the game will display track effects for unison, solo, and drum SP activation phrases."
+            },
+            "EnableVoxSamples": {
+                "Name": "Enable Vox Samples",
+                "Description": "If enabled, the game might make some noises at you on the score screen."
             }
         },
         "PresetType": {
@@ -1264,11 +1319,17 @@
                 "BlueCymbalStarpower": {
                     "Name": "Blue Cymbal Star Power"
                 },
+                "BlueCymbalActivationNote": {
+                    "Name": "Blue Cymbal Star Power\nActivation"
+                },
                 "BlueDrum": {
                     "Name": "Blue Drum"
                 },
                 "BlueDrumStarpower": {
                     "Name": "Blue Drum Star Power"
+                },
+                "BluePadActivationNote": {
+                    "Name": "Blue Drum Star Power\nActivation"
                 },
                 "BlueFret": {
                     "Name": "Blue Fret"
@@ -1281,6 +1342,9 @@
                 },
                 "BlueNoteStarPower": {
                     "Name": "Blue Note Star Power"
+                },
+                "BlueActivationNote": {
+                    "Name": "Blue Note Star Power\nActivation"
                 },
                 "BlueParticles": {
                     "Name": "Blue Particles"
@@ -1303,11 +1367,17 @@
                 "GreenCymbalStarpower": {
                     "Name": "Green Cymbal Star Power"
                 },
+                "GreenCymbalActivationNote": {
+                    "Name": "Green Cymbal Star Power\nActivation"
+                },
                 "GreenDrum": {
                     "Name": "Green Drum"
                 },
                 "GreenDrumStarpower": {
                     "Name": "Green Drum Star Power"
+                },
+                "GreenPadActivationNote": {
+                    "Name": "Green Drum Star Power\nActivation"
                 },
                 "GreenFret": {
                     "Name": "Green Fret"
@@ -1320,6 +1390,9 @@
                 },
                 "GreenNoteStarPower": {
                     "Name": "Green Note Star Power"
+                },
+                "GreenActivationNote": {
+                    "Name": "Green Note Star Power\nActivation"
                 },
                 "GreenParticles": {
                     "Name": "Green Particles"
@@ -1341,6 +1414,18 @@
                 },
                 "KickStarpower": {
                     "Name": "Kick Star Power"
+                },
+                "KickActivationNote": {
+                    "Name": "Kick Star Power\nActivation"
+                },
+                "Metal": {
+                    "Name": "Note Metal"
+                },
+                "MetalStarPower": {
+                    "Name": "Note Metal Star Power"
+                },
+                "Miss": {
+                    "Name": "Missed Note"
                 },
                 "OpenFret": {
                     "Name": "Open Fret"
@@ -1369,6 +1454,9 @@
                 "OrangeNoteStarPower": {
                     "Name": "Orange Note Star Power"
                 },
+                "OrangeActivationNote": {
+                    "Name": "Orange Note Star Power\nActivation"
+                },
                 "OrangeParticles": {
                     "Name": "Orange Particles"
                 },
@@ -1390,11 +1478,17 @@
                 "RedCymbalStarpower": {
                     "Name": "Red Cymbal Star Power"
                 },
+                "RedCymbalActivationNote": {
+                    "Name": "Red Cymbal Star Power\nActivation"
+                },
                 "RedDrum": {
                     "Name": "Red Drum"
                 },
                 "RedDrumStarpower": {
                     "Name": "Red Drum Star Power"
+                },
+                "RedPadActivationNote": {
+                    "Name": "Red Drum Star Power\nActivation"
                 },
                 "RedFret": {
                     "Name": "Red Fret"
@@ -1407,6 +1501,9 @@
                 },
                 "RedNoteStarPower": {
                     "Name": "Red Note Star Power"
+                },
+                "RedActivationNote": {
+                    "Name": "Red Note Star Power\nActivation"
                 },
                 "RedParticles": {
                     "Name": "Red Particles"
@@ -1429,11 +1526,17 @@
                 "YellowCymbalStarpower": {
                     "Name": "Yellow Cymbal Star Power"
                 },
+                "YellowCymbalActivationNote": {
+                    "Name": "Yellow Cymbal Star Power\nActivation"
+                },
                 "YellowDrum": {
                     "Name": "Yellow Drum"
                 },
                 "YellowDrumStarpower": {
                     "Name": "Yellow Drum Star Power"
+                },
+                "YellowPadActivationNote": {
+                    "Name": "Yellow Drum Star Power\nActivation"
                 },
                 "YellowFret": {
                     "Name": "Yellow Fret"
@@ -1446,6 +1549,9 @@
                 },
                 "YellowNoteStarPower": {
                     "Name": "Yellow Note Star Power"
+                },
+                "YellowActivationNote": {
+                    "Name": "Yellow Note Star Power\nActivation"
                 },
                 "YellowParticles": {
                     "Name": "Yellow Particles"

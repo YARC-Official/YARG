@@ -75,7 +75,7 @@ inline float3 YargWorldSpaceViewDir(float4 localPos)
     {
         float3 worldPos = mul(unity_ObjectToWorld, localPos).xyz;
         return YargWorldSpaceCameraPos(worldPos).xyz - worldPos;
-            
+
     } else {
         return WorldSpaceViewDir(localPos);
     }
@@ -102,7 +102,7 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
         return DefTransformWorldToHClip(positionWS);
 
     int index = WorldPosToIndex(positionWS);
-        
+
 #if 1
     // d = sqrt((x - t_x) * (x - t_x) + (z - t_z) * (z - t_z))
     // (x', y', z') = sin(d / R) * (R + y - t_y) / d * (x - t_x, 0, z - t_z) + (t_x, cos(d / R) * (R + y - t_y) - R + t_y, t_z)
@@ -121,15 +121,28 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
     float R = _YargCurveFactors[index];
 #define MAX_R 15.0
 #define MIN_R 2.0
-    
+
     if (R != 0)
     {
         R = sign(R) * MAX_R - R * ((MAX_R - MIN_R) / 3.0);
-        // We do not want sphere, we're omiting Z component of distance
         float d = abs(positionWS.x - t_x);
-        positionWS.xy = sin(d / R) * (R + positionWS.y - t_y) / d * float2(positionWS.x - t_x, 0) + float2(t_x, cos(d / R) * (R + positionWS.y - t_y) - R + t_y);
-    }
 
+        // Handle the sin(d/R)/d discontinuity using Taylor series approximation
+        float sinc_factor;
+        if (d < 0.001) // Very close to center
+        {
+            // sin(x)/x ≈ 1 - x²/6 + x⁴/120 for small x
+            float d_over_R = d / R;
+            sinc_factor = 1.0 - (d_over_R * d_over_R) / 6.0;
+        }
+        else
+        {
+            sinc_factor = sin(d / R) / d;
+        }
+
+        positionWS.xy = sinc_factor * (R + positionWS.y - t_y) * float2(positionWS.x - t_x, 0) +
+                        float2(t_x, cos(d / R) * (R + positionWS.y - t_y) - R + t_y);
+    }
 #else
     // Old basic y-only parabolic shift
     float delta_x = abs(index * 100 - positionWS.x);
@@ -154,9 +167,9 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
     // separate highways to avoid clashes when there are a lot of them on at the same time
     float ndcZ = clipPOS.z / clipPOS.w;
 #ifdef UNITY_REVERSED_Z
-    ndcZ += 0.005 * (index % 2);
+    ndcZ += 0.005 * (index % (uint) 2);
 #else
-    ndcZ -= 0.005 * (index % 2);
+    ndcZ -= 0.005 * (index % (uint) 2);
 #endif
     clipPOS.z = ndcZ * clipPOS.w;
 
