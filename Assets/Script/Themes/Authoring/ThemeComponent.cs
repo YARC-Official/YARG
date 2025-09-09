@@ -20,6 +20,8 @@ namespace YARG.Themes
         private GameObject _fiveLaneNotes;
         [SerializeField]
         private GameObject _proKeysNotes;
+        [SerializeField]
+        private GameObject _sixFretNotes;
 
         [Space]
         [SerializeField]
@@ -44,6 +46,7 @@ namespace YARG.Themes
             var parent = gameMode switch
             {
                 GameMode.FiveFretGuitar => _fiveFretNotes,
+                GameMode.SixFretGuitar  => _sixFretNotes,
                 GameMode.FourLaneDrums  => _fourLaneNotes,
                 GameMode.FiveLaneDrums  => _fiveLaneNotes,
                 GameMode.ProKeys        => _proKeysNotes,
@@ -61,6 +64,11 @@ namespace YARG.Themes
                 // Make sure we choose the correct variant
                 if (themeNote.StarPowerVariant != starPower) continue;
 
+                if (dict.ContainsKey(themeNote.NoteType))
+                {
+                    Debug.LogWarning($"Duplicate ThemeNoteType '{themeNote.NoteType}' found in theme notes for {gameMode}. Skipping duplicate.");
+                    continue;
+                }
                 dict.Add(themeNote.NoteType, themeNote.gameObject);
             }
 
@@ -84,6 +92,7 @@ namespace YARG.Themes
             return gameMode switch
             {
                 GameMode.FiveFretGuitar => _fiveFretFret,
+                GameMode.SixFretGuitar  => _fiveFretFret,
                 GameMode.FourLaneDrums  => _fourLaneFret,
                 GameMode.FiveLaneDrums  => _fiveLaneFret,
                 _  => throw new Exception("Unreachable.")

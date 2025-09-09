@@ -27,6 +27,16 @@ namespace YARG.Themes
         White     = 11,
         Black     = 12,
         Glissando = 13,
+        // --- Six Fret Visuals ---
+        Bar = 20,
+        BarHOPO = 21,
+        BarTap = 22,
+        W = 23,
+        WHOPO = 24,
+        WTap = 25,
+        B = 26,
+        BHOPO = 27,
+        BTap = 28,
     }
 
     public class ThemeNote : MonoBehaviour

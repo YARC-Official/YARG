@@ -121,14 +121,14 @@ namespace YARG.Gameplay.Visuals
         {
             foreach (var note in NoteGroups)
             {
-                if (note == null) return;
+                if (note == null) continue;
 
                 note.SetActive(false);
             }
 
             foreach (var note in StarPowerNoteGroups)
             {
-                if (note == null) return;
+                if (note == null) continue;
 
                 note.SetActive(false);
             }
@@ -143,7 +143,14 @@ namespace YARG.Gameplay.Visuals
         protected void AssignNoteGroup(ThemeDict models, ThemeDict starPowerModels,
             int index, ThemeNoteType noteType)
         {
-            var normalNote = NoteGroup.CreateNoteGroupFromTheme(transform, models[noteType]);
+            if (!models.TryGetValue(noteType, out var normalModel))
+            {
+                Debug.LogError($"Theme is missing note model for type '{noteType}'. This note will not be rendered. (Index: {index})");
+                NoteGroups[index] = null;
+                StarPowerNoteGroups[index] = null;
+                return;
+            }
+            var normalNote = NoteGroup.CreateNoteGroupFromTheme(transform, normalModel);
             NoteGroups[index] = normalNote;
 
             if (starPowerModels.TryGetValue(noteType, out var starPowerModel))

@@ -46,9 +46,17 @@ namespace YARG.Menu.ProfileList
             PlayerContainer.SaveProfiles();
 
             // Update player icons if a profile has changed its GameMode.
-            StatsManager.Instance.UpdateActivePlayers();
+            var stats = StatsManager.Instance;
+            if (stats != null)
+            {
+                stats.UpdateActivePlayers();
+            }
 
-            Navigator.Instance.PopScheme();
+            var navigator = Navigator.Instance;
+            if (navigator != null)
+            {
+                navigator.PopScheme();
+            }
         }
 
         public void RefreshList(YargProfile selectedProfile = null)
@@ -102,7 +110,7 @@ namespace YARG.Menu.ProfileList
                 Name = "New Profile",
                 NoteSpeed = 5,
                 HighwayLength = 1,
-                GameMode = GameMode.FiveFretGuitar
+                GameMode = GameMode.SixFretGuitar
             });
 
             RefreshList();
@@ -115,7 +123,7 @@ namespace YARG.Menu.ProfileList
                 Name = "Bot",
                 NoteSpeed = 5,
                 HighwayLength = 1,
-                GameMode = GameMode.FiveFretGuitar,
+                GameMode = GameMode.SixFretGuitar,
                 IsBot = true
             });
 

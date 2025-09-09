@@ -983,6 +983,7 @@
                     "Name": "Instrument",
                     "Dropdown": {
                         "FiveFretGuitar": "Five Fret Guitar",
+                        "SixFretGuitar": "Six Fret Guitar",
                         "FiveLaneDrums": "Five Lane Drums",
                         "FourLaneDrums": "Four Lane Drums",
                         "ProKeys": "Pro Keys"
