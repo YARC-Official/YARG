@@ -252,8 +252,8 @@ namespace YARG.Menu.MusicLibrary
 
             /*
 
-                Guitar               ; Bass               ; 4 or 5 lane ; Keys     ; Mic (dependent on mic count)
-                Pro Guitar or Co-op  ; Pro Bass or Rhythm ; True Drums  ; Pro Keys ; Band
+                Guitar               ; Bass               ; 4 or 5 lane ; Keys     ; Vocals
+                Pro Guitar or Co-op  ; Pro Bass or Rhythm ; True Drums  ; Pro Keys ; Harmony (dependent on mic count)
 
             */
 
@@ -279,24 +279,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             _difficultyRings[3].SetInfo("keys", Instrument.Keys, entry[Instrument.Keys]);
-
-            if (entry.HasInstrument(Instrument.Harmony))
-            {
-                _difficultyRings[4].SetInfo(
-                    entry.VocalsCount switch
-                    {
-                        2 => "twoVocals",
-                        >= 3 => "harmVocals",
-                        _ => "vocals"
-                    },
-                    Instrument.Harmony,
-                    entry[Instrument.Harmony]
-                );
-            }
-            else
-            {
-                _difficultyRings[4].SetInfo("vocals", Instrument.Vocals, entry[Instrument.Vocals]);
-            }
+            _difficultyRings[4].SetInfo("vocals", Instrument.Vocals, entry[Instrument.Vocals]);
 
             // Protar or Co-op
             if (entry.HasInstrument(Instrument.ProGuitar_17Fret) || entry.HasInstrument(Instrument.ProGuitar_22Fret))
@@ -334,7 +317,15 @@ namespace YARG.Menu.MusicLibrary
 
             _difficultyRings[7].SetInfo("trueDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
             _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
-            _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
+            _difficultyRings[9].SetInfo(
+                entry.VocalsCount switch
+                {
+                    >= 3 => "harmVocals",
+                    _    => "twoVocals"
+                },
+                Instrument.Harmony,
+                entry[Instrument.Harmony]
+            );
 
             var intensity = entry[Instrument.Band].Intensity;
             _bandDifficultyLabel.text = intensity == -1 ? "-" : intensity.ToString();
