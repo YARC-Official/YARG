@@ -275,6 +275,17 @@ namespace YARG.Menu.MusicLibrary
             NavigationScheme.Entry leftEntry = default;
             NavigationScheme.Entry rightEntry = default;
 
+            if (MenuState == MenuState.Playlist)
+            {
+                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryUp);
+                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryDown);
+            }
+            else
+            {
+                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.SkipSection", GoToPreviousSection);
+                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.SkipSection", GoToNextSection);
+            }
+
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
@@ -427,7 +438,7 @@ namespace YARG.Menu.MusicLibrary
 
                 _primaryHeaderIndex += 2;
 
-                if (SettingsManager.Settings.LibrarySort <= SortAttribute.Playcount)
+                if (SettingsManager.Settings.LibrarySort < SortAttribute.Instrument)
                 {
                     if (_recommendedSongs != null)
                     {
@@ -718,7 +729,7 @@ namespace YARG.Menu.MusicLibrary
         public void NextSort()
         {
             SortAttribute nextSort;
-            if (SettingsManager.Settings.LibrarySort >= SortAttribute.Playcount)
+            if (SettingsManager.Settings.LibrarySort >= SortAttribute.Playable)
             {
                 nextSort = SortAttribute.Name;
             }
@@ -815,7 +826,7 @@ namespace YARG.Menu.MusicLibrary
                         MenuData.Colors.HeaderSecondary, 700)
                     : "";
 
-                if (SettingsManager.Settings.LibrarySort <= SortAttribute.Playcount)
+                if (SettingsManager.Settings.LibrarySort < SortAttribute.Instrument)
                 {
                     var sortingBy = TextColorer.StyleString("SORTED BY ",
                         MenuData.Colors.HeaderTertiary,

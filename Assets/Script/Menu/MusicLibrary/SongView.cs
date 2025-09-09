@@ -158,6 +158,46 @@ namespace YARG.Menu.MusicLibrary
             {
                 gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 80);
             }
+
+            StarAmount starHeaderAmount = StarAmount.None;
+
+            foreach (StarAmount amount in Enum.GetValues(typeof(StarAmount)))
+            {
+                if (amount == StarAmount.None || amount == StarAmount.NoPart)
+                    continue; // skip irrelevant entries
+
+                string displayName = amount.GetDisplayName();
+
+                if (_categoryText.text.Contains(">" + displayName + "<"))
+                {
+                    starHeaderAmount = amount;
+                    break;
+                }
+            }
+
+            if (starHeaderAmount != StarAmount.None && SettingsManager.Settings.LibrarySort == SortAttribute.Stars)
+            {
+                int starCount = starHeaderAmount.GetStarCount();
+                Sprite starSprite = starHeaderAmount == StarAmount.StarGold ? _starGoldSprite : _starWhiteSprite;
+
+                _categoryText.gameObject.SetActive(false);
+                _starHeaderGroup.SetActive(true);
+
+                for (int i = 0; i < _starHeaderImages.Length; i++)
+                {
+                    bool show = i < starCount;
+                    _starHeaderImages[i].gameObject.SetActive(show);
+                    if (show)
+                    {
+                        _starHeaderImages[i].sprite = starSprite;
+                    }
+                }
+            }
+            else
+            {
+                _categoryText.gameObject.SetActive(true);
+                _starHeaderGroup.SetActive(false);
+            }
         }
 
         protected override void SetBackground(bool selected, BaseViewType.BackgroundType type)
@@ -206,46 +246,6 @@ namespace YARG.Menu.MusicLibrary
                     break;
                 default:
                     break;
-            }
-
-            StarAmount starHeaderAmount = StarAmount.None;
-
-            foreach (StarAmount amount in Enum.GetValues(typeof(StarAmount)))
-            {
-                if (amount == StarAmount.None || amount == StarAmount.NoPart)
-                    continue; // skip irrelevant entries
-
-                string displayName = amount.GetDisplayName();
-
-                if (_categoryText.text.Contains(">" + displayName + "<"))
-                {
-                    starHeaderAmount = amount;
-                    break;
-                }
-            }
-
-            if (starHeaderAmount != StarAmount.None && SettingsManager.Settings.LibrarySort == SortAttribute.Stars)
-            {
-                int starCount = starHeaderAmount.GetStarCount();
-                Sprite starSprite = starHeaderAmount == StarAmount.StarGold ? _starGoldSprite : _starWhiteSprite;
-
-                _categoryText.gameObject.SetActive(false);
-                _starHeaderGroup.SetActive(true);
-
-                for (int i = 0; i < _starHeaderImages.Length; i++)
-                {
-                    bool show = i < starCount;
-                    _starHeaderImages[i].gameObject.SetActive(show);
-                    if (show)
-                    {
-                        _starHeaderImages[i].sprite = starSprite;
-                    }
-                }
-            }
-            else
-            {
-                _categoryText.gameObject.SetActive(true);
-                _starHeaderGroup.SetActive(false);
             }
         }
 

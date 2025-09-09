@@ -97,12 +97,6 @@ namespace YARG.Menu.Persistent
                     continue;
                 }
 
-                // Don't create a button for hidden actions
-                if (entry.Hide)
-                {
-                    continue;
-                }
-
                 // Coalesce left/right into one button
                 if (entry.Action == MenuAction.Left)
                 {
@@ -113,6 +107,12 @@ namespace YARG.Menu.Persistent
                 if (entry.Action == MenuAction.Right)
                 {
                     hasRight = true;
+                    continue;
+                }
+
+                // Don't create a button for hidden actions
+                if (entry.Hide)
+                {
                     continue;
                 }
 
