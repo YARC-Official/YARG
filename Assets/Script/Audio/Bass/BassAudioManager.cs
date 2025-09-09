@@ -538,7 +538,8 @@ namespace YARG.Audio.BASS
             }
 
             // Adjust the position to account for inherent pitch fx delay
-            Bass.ChannelSetPosition(handles.Stream, GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2);
+            var position = GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2;
+            Bass.ChannelSetPosition(handles.Stream, position);
 
             return true;
         }
