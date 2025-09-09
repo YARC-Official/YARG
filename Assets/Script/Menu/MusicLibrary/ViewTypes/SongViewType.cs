@@ -74,7 +74,9 @@ namespace YARG.Menu.MusicLibrary
                 return string.Empty;
             }
 
-            builder.AppendFormat("{0:N0}", _playerScoreRecord.Score);
+            var percentColor = _playerPercentRecord.IsFc ? "#ffd029" : "#ffffff";
+            builder.AppendFormat("<mspace=.5em><color={1}>{0:N0}</color></mspace>",
+                _playerScoreRecord.Score, percentColor);
             return builder.ToString();
         }
 
