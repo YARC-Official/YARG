@@ -232,19 +232,7 @@ namespace YARG.Player
                 player.Bindings.OnDeviceAdded(device);
             }
 
-            if (!IsDeviceTaken(device))
-            {
-                var profile = GetProfileForDevice(device);
-                if (profile is not null)
-                {
-                    CreatePlayerFromProfile(profile, true);
-                }
-                else
-                {
-                    // Create a new profile if possible
-                    CreateProfileFromDevice(device);
-                }
-            }
+            TryCreateProfile(device);
         }
 
         private static void OnDeviceRemoved(InputDevice device)
@@ -253,6 +241,38 @@ namespace YARG.Player
             {
                 player.Bindings.OnDeviceRemoved(device);
             }
+        }
+
+        public static bool TryCreateProfile(InputDevice device)
+        {
+            if (IsDeviceTaken(device))
+            {
+                return false;
+            }
+
+            if (GetProfileForDevice(device) is not null)
+            {
+                return false;
+            }
+
+            return CreateProfileFromDevice(device);
+        }
+
+        public static bool TryConnectProfile(InputDevice device)
+        {
+            if (IsDeviceTaken(device))
+            {
+                return false;
+            }
+
+            var profile = GetProfileForDevice(device);
+            if (profile is null)
+            {
+                return false;
+            }
+
+            CreatePlayerFromProfile(profile, true);
+            return true;
         }
 
         public static int LoadProfiles()
@@ -422,18 +442,18 @@ namespace YARG.Player
             }
         }
 
-        private static void CreateProfileFromDevice(InputDevice device)
+        private static bool CreateProfileFromDevice(InputDevice device)
         {
             if (IsDeviceTaken(device))
             {
-                return;
+                return false;
             }
 
             if (device is not (FiveFretGuitar or FourLaneDrumkit or FiveLaneDrumkit or ProKeyboard))
             {
                 // Add a check for the default Keyboard/Mouse/whatever devices here so we can enable the toast
                 // ToastManager.ToastWarning("Automatic profile creation is not supported for this device!");
-                return;
+                return false;
             }
 
             GameMode gameMode = default;
@@ -474,7 +494,7 @@ namespace YARG.Player
             if (player is null)
             {
                 YargLogger.LogFormatError("Failed to connect profile {0}!", newProfile.Name);
-                return;
+                return false;
             }
 
             player.Bindings.AddDevice(device);
@@ -485,6 +505,7 @@ namespace YARG.Player
             }
 
             ToastManager.ToastSuccess("Profile created for new device.\nTime to do some YARGin!");
+            return true;
         }
     }
 }
