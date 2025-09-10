@@ -90,7 +90,7 @@ namespace YARG.Menu.Dialogs
         {
             return new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Select, "That's Enough!", OnSelectButton),
+                new NavigationScheme.Entry(MenuAction.Select, "Menu.Dialog.ShowDialog.Select", OnSelectButton),
                 new NavigationScheme.Entry(MenuAction.Green, "", ChooseSongAction),
                 new NavigationScheme.Entry(MenuAction.Red, "", ChooseSongAction),
                 new NavigationScheme.Entry(MenuAction.Yellow, "", ChooseSongAction),
@@ -105,6 +105,8 @@ namespace YARG.Menu.Dialogs
             var player = ctx.Player;
             var button = ctx.Action;
 
+            // A conscious choice was made here to use the switch statement instead of
+            // casting the enum to an int, as it is more robust in the face of future changes
             switch (button)
             {
                 case MenuAction.Green:
@@ -186,7 +188,6 @@ namespace YARG.Menu.Dialogs
                 selectedIndex = highestVotes[0];
             }
 
-            _votedPlayers.Clear();
             Array.Clear(_votes, 0, _votes.Length);
             MusicLibrary.ShowPlaylist.AddSong(_categories[selectedIndex].Song);
             HighlightSelectedSong(selectedIndex);
@@ -207,6 +208,9 @@ namespace YARG.Menu.Dialogs
 
         private void Refresh()
         {
+            // Clear the voted player list
+            _votedPlayers.Clear();
+
             // Reset the dots
             foreach (var image in _dotImages)
             {

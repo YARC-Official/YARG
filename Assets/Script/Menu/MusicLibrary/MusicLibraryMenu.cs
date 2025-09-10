@@ -63,6 +63,7 @@ namespace YARG.Menu.MusicLibrary
 
         private static string                  _currentSearch = string.Empty;
         private static int                     _savedIndex;
+        private static int                     _mainLibraryIndex = -1;
         private static MusicLibraryReloadState _reloadState = MusicLibraryReloadState.Full;
         private static Playlist                _savedPlaylist;
 
@@ -162,7 +163,15 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 UpdateSearch(true);
-                SelectedIndex = _savedIndex;
+
+                if (MenuState == MenuState.Library && _mainLibraryIndex != -1)
+                {
+                    SelectedIndex = _mainLibraryIndex;
+                }
+                else
+                {
+                    SelectedIndex = _savedIndex;
+                }
             }
             else if (_currentSong != null)
             {
@@ -808,6 +817,11 @@ namespace YARG.Menu.MusicLibrary
         private void OnDeviceRemoved(InputDevice device)
         {
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
+        }
+
+        public static void ResetMainLibraryIndex()
+        {
+            _mainLibraryIndex = -1;
         }
     }
 }
