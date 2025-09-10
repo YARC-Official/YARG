@@ -95,17 +95,6 @@ namespace YARG.Audio.BASS
         protected override double GetPosition_Internal()
         {
             double seconds = _mainChannel.GetPosition();
-
-            //Adjust for playback buffer
-            if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
-            {
-                seconds -= (Bass.PlaybackBufferLength / 1000.0f) * _speed;
-                // Gotta do this because ChannelBytes2Seconds() may not be less than the buffer at position 0
-                if (seconds < 0)
-                {
-                    seconds = 0;
-                }
-            }
             return seconds;
         }
 
