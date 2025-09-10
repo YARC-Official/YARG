@@ -1021,7 +1021,7 @@ PrefabInstance:
     - target: {fileID: 4030813025219603270, guid: 49677adeba8eb1b48880f7afc30a82a9,
         type: 3}
       propertyPath: m_Name
-      value: MusicLibraryMenu 1
+      value: MusicLibraryMenu
       objectReference: {fileID: 0}
     - target: {fileID: 4030813025219603270, guid: 49677adeba8eb1b48880f7afc30a82a9,
         type: 3}
