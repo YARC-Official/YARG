@@ -266,6 +266,12 @@ namespace YARG.Menu.MusicLibrary
         // Public because PopupMenu may need to reset the navigation scheme
         public void SetNavigationScheme(bool reset = false)
         {
+            // Show mode sets its own navigation, don't overwrite
+            if (MenuState == MenuState.Show)
+            {
+                return;
+            }
+
             if (reset)
             {
                 Navigator.Instance.PopScheme();
