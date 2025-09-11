@@ -142,6 +142,11 @@ namespace YARG.Gameplay.Player
                 {
                     GameManager.VocalTrack.UpdateCountdown(countdownLength, endTime);
                 };
+
+                if (!SettingsManager.Settings.NoFailMode.Value && !GlobalVariables.State.IsPractice)
+                {
+                    EngineContainer.OnSongFailed += OnSongFailed;
+                }
             }
 
             if (GameManager.IsPractice)

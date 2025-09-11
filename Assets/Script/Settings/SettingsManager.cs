@@ -48,6 +48,7 @@ namespace YARG.Settings
                 nameof(Settings.VoiceActivatedVocalStarPower),
                 nameof(Settings.EnablePracticeSP),
                 nameof(Settings.PracticeRestartDelay),
+                nameof(Settings.NoFailMode),
 
                 new HeaderMetadata("StatusBar"),
                 nameof(Settings.ShowBattery),
