@@ -143,7 +143,9 @@
             "Delete": "Delete",
 
             "Reset": "Reset",
-            "ResetAll": "Reset All"
+            "ResetAll": "Reset All",
+			
+			"Scroll" : "Scroll"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",

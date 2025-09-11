@@ -26,6 +26,8 @@ using YARG.Scores;
 using YARG.Song;
 using YARG.Playlists;
 using YARG.Settings;
+using YARG.Helpers.Extensions;
+using YARG.Core.Engine;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -46,7 +48,11 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private TextMeshProUGUI _bandScoreNotSavedMessage;
         [SerializeField]
-        private Scrollbar _horizontalScrollBar;
+        private ScrollRect _cardScrollRect;
+        [SerializeField]
+        private float _horizontalScrollRate = 30f;
+        [SerializeField]
+        private float _verticalScrollRate = 15f;
 
         [Space]
         [SerializeField]
@@ -61,6 +67,8 @@ namespace YARG.Menu.ScoreScreen
         private bool _analyzingReplay;
 
         private bool _restartingSong;
+
+        private readonly List<IScoreCard<BaseStats>> _scoreCards = new();
 
         private void OnEnable()
         {
@@ -125,6 +133,7 @@ namespace YARG.Menu.ScoreScreen
 
             //set restarting state
             _restartingSong = false;
+
         }
 
         private void OnDisable()
@@ -159,38 +168,40 @@ namespace YARG.Menu.ScoreScreen
                     }
                 }
 
+                IScoreCard<BaseStats> card = null;
+
                 switch (score.Player.Profile.CurrentInstrument.ToGameMode())
                 {
                     case GameMode.FiveFretGuitar:
                     {
-                        var card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
-                        card.SetCardContents();
+                        card = Instantiate(_guitarCardPrefab, _cardContainer);
+                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
                         break;
                     }
                     case GameMode.FourLaneDrums:
                     case GameMode.FiveLaneDrums:
                     {
-                        var card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
-                        card.SetCardContents();
+                        card = Instantiate(_drumsCardPrefab, _cardContainer);
+                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
                         break;
                     }
                     case GameMode.Vocals:
                     {
-                        var card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
-                        card.SetCardContents();
+                        card = Instantiate(_vocalsCardPrefab, _cardContainer);
+                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
                         break;
                     }
                     case GameMode.ProKeys:
                     {
-                        var card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
-                        card.SetCardContents();
+                        card = Instantiate(_proKeysCardPrefab, _cardContainer);
+                        ((ScoreCard<ProKeysStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
                         break;
                     }
                 }
+
+                Debug.Assert(card != null, $"ScoreCard not initialized for GameMode: {score.Player.Profile.CurrentInstrument.ToGameMode()}");
+                card.SetCardContents();
+                _scoreCards.Add(card);
             }
 
             // Mark that the music library should refresh when next opened
@@ -203,10 +214,7 @@ namespace YARG.Menu.ScoreScreen
             Canvas.ForceUpdateCanvases();
 
             // If the scroll bar is active, make it all the way to the left
-            if (_horizontalScrollBar.gameObject.activeSelf)
-            {
-                _horizontalScrollBar.value = 0f;
-            }
+            _cardScrollRect.horizontalNormalizedPosition = 0f;
 
             // As a final bonus, play the appropriate full combo vox samples
             if (SettingsManager.Settings.EnableVoxSamples.Value)
@@ -357,6 +365,10 @@ namespace YARG.Menu.ScoreScreen
         private NavigationScheme.Entry _restartButtonEntry;
         private NavigationScheme.Entry _removeFavoriteButtonEntry;
         private NavigationScheme.Entry _addFavoriteButtonEntry;
+        private NavigationScheme.Entry _scrollLeftEntry;
+        private NavigationScheme.Entry _scrollRightEntry;
+        private NavigationScheme.Entry _scrollUpEntry;
+        private NavigationScheme.Entry _scrollDownEntry;
 
         private void SetNavigationScheme()
         {
@@ -408,8 +420,34 @@ namespace YARG.Menu.ScoreScreen
                     PlaylistContainer.FavoritesPlaylist.RemoveSong(song);
                     UpdateNavigationScheme(true);
                 });
-            
+
+            _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", context =>
+                {
+                    _cardScrollRect.MoveHorizontalInUnits(-1 * _horizontalScrollRate);
+                });
+
+            _scrollRightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Scroll", context =>
+                {
+                    _cardScrollRect.MoveHorizontalInUnits(_horizontalScrollRate);
+                });
+
+            _scrollUpEntry = new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Scroll", context =>
+                {
+                    ScrollScoreCard(context.Player, _verticalScrollRate);
+                });
+
+            _scrollDownEntry = new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Scroll", context =>
+                {
+                    ScrollScoreCard(context.Player, -1 * _verticalScrollRate);
+                });
+
             UpdateNavigationScheme();
+        }
+
+        private void ScrollScoreCard(Player.YargPlayer player, float delta)
+        {
+            var card = _scoreCards.FirstOrDefault(card => card.Player == player);
+            card?.ScrollStats(delta);
         }
 
         private void UpdateNavigationScheme(bool reset = false)
@@ -443,6 +481,10 @@ namespace YARG.Menu.ScoreScreen
                 buttons.Insert(1, _endEarlyButtonEntry);
             }
 
+            buttons.Add(_scrollLeftEntry);
+            buttons.Add(_scrollRightEntry);
+            buttons.Add(_scrollUpEntry);
+            buttons.Add(_scrollDownEntry);
             Navigator.Instance.PushScheme(new(buttons, true));
         }
     }
