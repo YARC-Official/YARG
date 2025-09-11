@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
@@ -214,13 +215,19 @@ namespace YARG.Menu.ScoreScreen
             Canvas.ForceUpdateCanvases();
 
             // If the scroll bar is active, make it all the way to the left
-            _cardScrollRect.horizontalNormalizedPosition = 0f;
+            // InitializeScrollRect();
 
             // As a final bonus, play the appropriate full combo vox samples
             if (SettingsManager.Settings.EnableVoxSamples.Value)
             {
                 PlayScoreVox(fcCount, highScoreCount);
             }
+        }
+
+        private async void InitializeScrollRect()
+        {
+            await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
+            _cardScrollRect.horizontalNormalizedPosition = 0f;
         }
 
         private static void PlayScoreVox(int fcCount, int highScoreCount)
