@@ -56,16 +56,6 @@ namespace YARG.Menu.ScoreScreen
 
         [Space]
         [SerializeField]
-        private List<ScoreCard<GuitarStats>> _guitarScoreCards = new();
-        [SerializeField]
-        private List<ScoreCard<DrumsStats>> _drumsScoreCards = new();
-        [SerializeField]
-        private List<ScoreCard<VocalsStats>> _vocalsScoreCards = new();
-        [SerializeField]
-        private List<ScoreCard<ProKeysStats>> _proKeysScoreCards = new();
-
-        [Space]
-        [SerializeField]
         private GuitarScoreCard _guitarCardPrefab;
         [SerializeField]
         private DrumsScoreCard _drumsCardPrefab;
@@ -77,6 +67,8 @@ namespace YARG.Menu.ScoreScreen
         private bool _analyzingReplay;
 
         private bool _restartingSong;
+
+        private readonly List<IScoreCard<BaseStats>> _scoreCards = new();
 
         private void OnEnable()
         {
@@ -176,42 +168,40 @@ namespace YARG.Menu.ScoreScreen
                     }
                 }
 
+                IScoreCard<BaseStats> card = null;
+
                 switch (score.Player.Profile.CurrentInstrument.ToGameMode())
                 {
                     case GameMode.FiveFretGuitar:
                     {
-                        var card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
-                        card.SetCardContents();
-                        _guitarScoreCards.Add(card);
+                        card = Instantiate(_guitarCardPrefab, _cardContainer);
+                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
                         break;
                     }
                     case GameMode.FourLaneDrums:
                     case GameMode.FiveLaneDrums:
                     {
-                        var card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
-                        card.SetCardContents();
-                        _drumsScoreCards.Add(card);
+                        card = Instantiate(_drumsCardPrefab, _cardContainer);
+                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
                         break;
                     }
                     case GameMode.Vocals:
                     {
-                        var card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
-                        card.SetCardContents();
-                        _vocalsScoreCards.Add(card);
+                        card = Instantiate(_vocalsCardPrefab, _cardContainer);
+                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
                         break;
                     }
                     case GameMode.ProKeys:
                     {
-                        var card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
-                        card.SetCardContents();
-                        _proKeysScoreCards.Add(card);
+                        card = Instantiate(_proKeysCardPrefab, _cardContainer);
+                        ((ScoreCard<ProKeysStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
                         break;
                     }
                 }
+
+                Debug.Assert(card != null, $"ScoreCard not initialized for GameMode: {score.Player.Profile.CurrentInstrument.ToGameMode()}");
+                card.SetCardContents();
+                _scoreCards.Add(card);
             }
 
             // Mark that the music library should refresh when next opened
@@ -431,22 +421,22 @@ namespace YARG.Menu.ScoreScreen
                     UpdateNavigationScheme(true);
                 });
 
-            _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.ScrollLeft", context =>
+            _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", context =>
                 {
                     _cardScrollRect.MoveHorizontalInUnits(-1 * _horizontalScrollRate);
                 });
 
-            _scrollRightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.ScrollRight", context =>
+            _scrollRightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Scroll", context =>
                 {
                     _cardScrollRect.MoveHorizontalInUnits(_horizontalScrollRate);
                 });
 
-            _scrollUpEntry = new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.ScrollUp", context =>
+            _scrollUpEntry = new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Scroll", context =>
                 {
                     ScrollScoreCard(context.Player, _verticalScrollRate);
                 });
 
-            _scrollDownEntry = new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.ScrollDown", context =>
+            _scrollDownEntry = new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Scroll", context =>
                 {
                     ScrollScoreCard(context.Player, -1 * _verticalScrollRate);
                 });
@@ -454,29 +444,10 @@ namespace YARG.Menu.ScoreScreen
             UpdateNavigationScheme();
         }
 
-        private void ScrollScoreCard(YARG.Player.YargPlayer player, float delta)
+        private void ScrollScoreCard(Player.YargPlayer player, float delta)
         {
-            // TODO: Very ugly, but needed since ScoreCard requires a generic type parameter.
-            var guitarCard = _guitarScoreCards.FirstOrDefault(card => card.Player == player);
-            if (guitarCard != null)
-            {
-                guitarCard.ScrollStats(delta);
-            }
-            var drumCard = _drumsScoreCards.FirstOrDefault(card => card.Player == player);
-            if (drumCard != null)
-            {
-                drumCard.ScrollStats(delta);
-            }
-            var vocalsCard = _vocalsScoreCards.FirstOrDefault(card => card.Player == player);
-            if (vocalsCard != null)
-            {
-                vocalsCard.ScrollStats(delta);
-            }
-            var proKeysCard = _proKeysScoreCards.FirstOrDefault(card => card.Player == player);
-            if (proKeysCard != null)
-            {
-                proKeysCard.ScrollStats(delta);
-            }
+            var card = _scoreCards.FirstOrDefault(card => card.Player == player);
+            card?.ScrollStats(delta);
         }
 
         private void UpdateNavigationScheme(bool reset = false)

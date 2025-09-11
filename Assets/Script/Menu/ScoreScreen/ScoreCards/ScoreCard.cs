@@ -1,5 +1,4 @@
-﻿using System;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
@@ -13,7 +12,7 @@ using YARG.Player;
 
 namespace YARG.Menu.ScoreScreen
 {
-    public abstract class ScoreCard<T> : MonoBehaviour where T : BaseStats
+    public abstract class ScoreCard<T> : MonoBehaviour, IScoreCard<T> where T : BaseStats
     {
         [SerializeField]
         private ModifierIcon _modifierIconPrefab;
@@ -67,7 +66,7 @@ namespace YARG.Menu.ScoreScreen
         protected bool IsHighScore;
         protected T Stats;
 
-        public YargPlayer Player;
+        public YargPlayer Player { get; private set; }
 
         private void Awake()
         {
@@ -178,5 +177,12 @@ namespace YARG.Menu.ScoreScreen
         {
             _statsRect.MoveVerticalInUnits(delta);
         }
+    }
+
+    public interface IScoreCard<out T> where T : BaseStats
+    {
+        YargPlayer Player { get; }
+        void ScrollStats(float delta);
+        void SetCardContents();
     }
 }
