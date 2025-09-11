@@ -29,7 +29,8 @@ namespace YARG.Gameplay.HUD
         private Slider[] _playerSliders;
         private Tweener[] _happinessTweeners;
         private Tweener[] _xposTweeners;
-        private Tweener _bandColorTweener;
+        private Tweener _meterRedTweener;
+        private Tweener _meterGreenTweener;
         private Tweener _bandFillTweener;
         private float[] _previousPlayerHappiness;
         private float _previousBandHappiness;
@@ -65,10 +66,25 @@ namespace YARG.Gameplay.HUD
             _xPosVectors = new Vector2[_players.Count];
             _containerHeight = _sliderContainer.rect.height;
 
+            // Cache tweens for later use
+            _meterRedTweener = _fillImage.DOColor(Color.red, 0.25f).
+                SetLoops(-1, LoopType.Yoyo).
+                SetEase(Ease.InOutSine).
+                SetAutoKill(false).Pause();
+
+            _meterGreenTweener = _fillImage.DOColor(Color.green, 0.25f).
+                SetAutoKill(false).
+                Pause();
+            // 0.8f is an arbitrary placeholder
+            _bandFillTweener = _fillImage.DOFillAmount(0.8f, 0.125f).
+                SetAutoKill(false);
+
+
+
+
             // attach the slider instances to the scene and apply the correct icon
             for (int i = 0; i < _players.Count; i++)
             {
-                // float offset = SPRITE_OFFSET * (i + 1);
                 _playerSliders[i] = Instantiate(_sliderPrefab, _sliderContainer);
                 // y value is ignored, so it is ok that it is zero here
                 _xPosVectors[i] = new Vector2(SPRITE_OFFSET * (i + 1) + SPRITE_OFFSET * 0.2f, 0);
@@ -85,7 +101,6 @@ namespace YARG.Gameplay.HUD
 
                 // Cached for reuse because starting a new tween generates garbage
                 _happinessTweeners[i] = _playerSliders[i].DOValue(_players[i].Happiness, 0.5f).SetAutoKill(false);
-                // SPRITE_OFFSET here is just a placeholder, we're initializing without actually doing anything
                 _previousPlayerHappiness[i] = _players[i].Happiness;
             }
 
@@ -96,16 +111,13 @@ namespace YARG.Gameplay.HUD
         private void Update()
         {
             // Don't crash the whole game if we didn't get initialized and still manage to somehow become active
-            // TODO: This is actually happening somehow (at least sometimes) WTF?
             if (_engineManager == null)
             {
-                // YargLogger.LogDebug("FailMeter not initialized");
+                YargLogger.LogDebug("FailMeter not initialized");
                 return;
             }
 
             // No need for any of this if we're paused anyway
-            // TODO: While we should be doing this, it is also a dirty hack to keep from spawning a massive
-            //  number of unnecessary tweens since update gets called a lot more often when paused for whatever reason
             if (_gameManager.Paused)
             {
                 return;
@@ -119,33 +131,28 @@ namespace YARG.Gameplay.HUD
                 // We only want to do this once when passing the threshold
                 if (happiness < 0.33f && _previousBandHappiness >= 0.33f)
                 {
-                    if (_bandColorTweener != null && _bandColorTweener.active)
+                    if (_meterGreenTweener.active)
                     {
-                        _bandColorTweener.Kill();
+                        _meterGreenTweener.Pause();
                     }
                     _fillImage.color = Color.black;
-                    _bandColorTweener = _fillImage.DOColor(Color.red, 0.25f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
-                    // _fillImage.color = Color.red;
+                    _meterRedTweener.Restart();
                 }
                 else if (happiness >= 0.33f && _previousBandHappiness < 0.33f)
                 {
-                    if (_bandColorTweener != null && _bandColorTweener.active)
+                    if (_meterRedTweener.active)
                     {
-                        _bandColorTweener.Kill();
+                        _meterRedTweener.Pause();
                     }
-                    _bandColorTweener = _fillImage.DOColor(Color.green, 0.25f).SetAutoKill(true);
-                    // _fillImage.color = Color.green;
+                    _meterGreenTweener.Restart();
                 }
 
-                _fillImage.DOFillAmount(happiness, 0.125f);
-                // _fillImage.fillAmount = happiness;
+                _bandFillTweener.ChangeValues(_fillImage.fillAmount, happiness).Play();
 
                 _previousBandHappiness = _engineManager.Happiness;
 
             }
 
-            // TODO: Somewhere in here we need to adjust the X pos of the children when they are overlapping
-            //  (left for even numbered, right for odd numbered or vv, I forget)
             for (var i = 0; i < _players.Count; i++)
             {
                 // Convert happiness to a new y value
@@ -166,12 +173,6 @@ namespace YARG.Gameplay.HUD
                         overlap++;
                     }
                 }
-
-                // Move the icon SPRITE_OFFSET * overlap in the appropriate direction
-
-                // float offset = SPRITE_OFFSET * Math.Max(1, overlap + 1);
-                // TODO: This won't actually work once there are more than two players on a side
-                // offset *= Math.Max(1, (int) Math.Floor((float) i / 2));
 
                 // The extra SPRITE_OFFSET * 0.2f is to get the whole group a bit farther from the meter itself
                 _xPosVectors[i].x = SPRITE_OFFSET * (overlap + 1) + SPRITE_OFFSET * 0.2f;
@@ -204,7 +205,8 @@ namespace YARG.Gameplay.HUD
         private void OnDisable()
         {
             // Make sure the tweens are dead
-            _bandColorTweener?.Kill();
+            _meterRedTweener?.Kill();
+            _meterGreenTweener?.Kill();
             _bandFillTweener?.Kill();
             foreach (var tween in _happinessTweeners)
             {
