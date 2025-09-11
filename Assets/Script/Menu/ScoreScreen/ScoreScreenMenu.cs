@@ -215,7 +215,7 @@ namespace YARG.Menu.ScoreScreen
             Canvas.ForceUpdateCanvases();
 
             // If the scroll bar is active, make it all the way to the left
-            // InitializeScrollRect();
+            InitializeScrollRect();
 
             // As a final bonus, play the appropriate full combo vox samples
             if (SettingsManager.Settings.EnableVoxSamples.Value)
