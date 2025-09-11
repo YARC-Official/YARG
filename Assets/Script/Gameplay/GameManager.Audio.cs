@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core.Audio;
@@ -11,15 +12,16 @@ namespace YARG.Gameplay
         private const double DEFAULT_VOLUME = 1.0;
         public class StemState
         {
-            public readonly double Volume;
+            private SongStem _stem;
+            public double Volume => GetVolumeSetting();
             public int Total;
             public int Audible;
             public int ReverbCount;
             public float WhammyPitch;
 
-            public StemState(double volume)
+            public StemState(SongStem stem)
             {
-                Volume = volume;
+                _stem = stem;
             }
 
             public double SetMute(bool muted)
@@ -57,9 +59,30 @@ namespace YARG.Gameplay
                 return WhammyPitch;
             }
 
-            public double CalculateVolumeSetting()
+            private double GetVolumeSetting()
             {
-                return Volume * Audible / Total;
+                return _stem switch
+                {
+                    SongStem.Guitar => SettingsManager.Settings.GuitarVolume.Value,
+                    SongStem.Rhythm => SettingsManager.Settings.RhythmVolume.Value,
+                    SongStem.Bass   => SettingsManager.Settings.BassVolume.Value,
+                    SongStem.Keys   => SettingsManager.Settings.KeysVolume.Value,
+                    SongStem.Drums
+                        or SongStem.Drums1
+                        or SongStem.Drums2
+                        or SongStem.Drums3
+                        or SongStem.Drums4
+                        => SettingsManager.Settings.DrumsVolume.Value,
+                    SongStem.Vocals
+                        or SongStem.Vocals1
+                        or SongStem.Vocals2
+                        => SettingsManager.Settings.VocalsVolume.Value,
+                    SongStem.Song    => SettingsManager.Settings.SongVolume.Value,
+                    SongStem.Crowd   => SettingsManager.Settings.CrowdVolume.Value,
+                    SongStem.Sfx     => SettingsManager.Settings.SfxVolume.Value,
+                    SongStem.DrumSfx => SettingsManager.Settings.DrumSfxVolume.Value,
+                    _                => DEFAULT_VOLUME
+                };
             }
         }
 
@@ -81,8 +104,7 @@ namespace YARG.Gameplay
             _backgroundStem = SongStem.Song;
             foreach (var channel in _mixer.Channels)
             {
-                double volume = GlobalAudioHandler.GetVolumeSetting(channel.Stem);
-                var stemState = new StemState(volume);
+                var stemState = new StemState(channel.Stem);
                 switch (channel.Stem)
                 {
                     case SongStem.Drums:
