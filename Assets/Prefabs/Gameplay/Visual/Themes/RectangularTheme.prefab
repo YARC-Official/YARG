@@ -62617,10 +62617,50 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2546153628872567235, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2546153628872567235, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 3780683828698714266, guid: e04222ae8a4f0c542926dc9ce20a58e0,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: -106.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541549595879022386, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541549595879022386, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
@@ -63002,6 +63042,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2546153628872567235, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2546153628872567235, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 2876113326277684539, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 3.75
+      objectReference: {fileID: 0}
     - target: {fileID: 2937627649796090548, guid: e04222ae8a4f0c542926dc9ce20a58e0,
         type: 3}
       propertyPath: m_Controller
@@ -63012,6 +63067,41 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: -106.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5638597123916329324, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 6.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541549595879022386, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541549595879022386, guid: e04222ae8a4f0c542926dc9ce20a58e0,
+        type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}

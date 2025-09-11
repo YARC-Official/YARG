@@ -64,7 +64,7 @@ namespace YARG.Gameplay.Visuals
                     fretComp.Initialize(color, color, color, color);
 
                     var material = fret.GetComponentInChildren<MeshRenderer>().material;
-                    material.SetFloat(IndexId, player.PlayerIndex);
+                    material.SetFloat(IndexId, player.HighwayIndex);
 
                     _keys.Add(fretComp);
 
@@ -89,7 +89,7 @@ namespace YARG.Gameplay.Visuals
                     fretComp.Initialize(color, color, color, color);
 
                     var material = fret.GetComponentInChildren<MeshRenderer>().material;
-                    material.SetFloat(IndexId, player.PlayerIndex);
+                    material.SetFloat(IndexId, player.HighwayIndex);
 
                     _keys.Add(fretComp);
 

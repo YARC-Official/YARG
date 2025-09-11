@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using PlasticBand.Devices;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XInput;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers;
@@ -124,6 +127,7 @@ namespace YARG.Player
             _players.Add(player);
             _playersByProfile.Add(profile, player);
             ActiveProfilesChanged();
+            profile.ClaimProfile();
             return player;
         }
 
@@ -184,6 +188,30 @@ namespace YARG.Player
             return player;
         }
 
+#nullable enable
+        public static YargProfile? GetProfileForDevice(InputDevice device)
+#nullable disable
+        {
+            var candidateProfiles = new List<YargProfile>();
+
+            foreach (var profile in _profiles)
+            {
+                if (IsProfileTaken(profile))
+                {
+                    continue;
+                }
+
+                var bindings = BindingsContainer.GetBindingsForProfile(profile);
+                if (bindings.MatchesDevice(device))
+                {
+                    candidateProfiles.Add(profile);
+                }
+            }
+
+            // Return the profile that has the most recent LastUsed time
+            return candidateProfiles.OrderByDescending(e => e.LastUsed).FirstOrDefault();
+        }
+
         public static bool IsDeviceTaken(InputDevice device)
         {
             foreach (var player in _players)
@@ -203,6 +231,8 @@ namespace YARG.Player
             {
                 player.Bindings.OnDeviceAdded(device);
             }
+
+            TryCreateProfile(device);
         }
 
         private static void OnDeviceRemoved(InputDevice device)
@@ -211,6 +241,38 @@ namespace YARG.Player
             {
                 player.Bindings.OnDeviceRemoved(device);
             }
+        }
+
+        public static bool TryCreateProfile(InputDevice device)
+        {
+            if (IsDeviceTaken(device))
+            {
+                return false;
+            }
+
+            if (GetProfileForDevice(device) is not null)
+            {
+                return false;
+            }
+
+            return CreateProfileFromDevice(device);
+        }
+
+        public static bool TryConnectProfile(InputDevice device)
+        {
+            if (IsDeviceTaken(device))
+            {
+                return false;
+            }
+
+            var profile = GetProfileForDevice(device);
+            if (profile is null)
+            {
+                return false;
+            }
+
+            CreatePlayerFromProfile(profile, true);
+            return true;
         }
 
         public static int LoadProfiles()
@@ -378,6 +440,72 @@ namespace YARG.Player
             {
                 CreatePlayerFromProfile(profile, true);
             }
+        }
+
+        private static bool CreateProfileFromDevice(InputDevice device)
+        {
+            if (IsDeviceTaken(device))
+            {
+                return false;
+            }
+
+            if (device is not (FiveFretGuitar or FourLaneDrumkit or FiveLaneDrumkit or ProKeyboard))
+            {
+                // Add a check for the default Keyboard/Mouse/whatever devices here so we can enable the toast
+                // ToastManager.ToastWarning("Automatic profile creation is not supported for this device!");
+                return false;
+            }
+
+            GameMode gameMode = default;
+            string profileName = String.Empty;
+
+            if (device is FiveFretGuitar)
+            {
+                gameMode = GameMode.FiveFretGuitar;
+                profileName = "New Guitar Profile";
+            }
+            else if (device is FourLaneDrumkit)
+            {
+                gameMode = GameMode.FourLaneDrums;
+                profileName = "New Drums Profile";
+            }
+            else if (device is FiveLaneDrumkit)
+            {
+                gameMode = GameMode.FiveLaneDrums;
+                profileName = "New Drums Profile";
+            }
+            else if (device is ProKeyboard)
+            {
+                gameMode = GameMode.ProKeys;
+                profileName = "New Keys Profile";
+            }
+
+            var newProfile = new YargProfile
+            {
+                Name = profileName,
+                NoteSpeed = 5,
+                HighwayLength = 1,
+                GameMode = gameMode
+            };
+
+            AddProfile(newProfile);
+
+            var player = CreatePlayerFromProfile(newProfile, false);
+            if (player is null)
+            {
+                YargLogger.LogFormatError("Failed to connect profile {0}!", newProfile.Name);
+                return false;
+            }
+
+            player.Bindings.AddDevice(device);
+
+            if (!player.Bindings.ContainsBindingsForDevice(device))
+            {
+                player.Bindings.SetDefaultBinds(device);
+            }
+
+            ToastManager.ToastSuccess("Profile created for new device.\nTime to do some YARGin!");
+            return true;
         }
     }
 }

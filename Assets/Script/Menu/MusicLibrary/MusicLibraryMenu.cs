@@ -4,11 +4,13 @@ using System.Linq;
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
+using YARG.Input;
 using YARG.Localization;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
@@ -61,6 +63,7 @@ namespace YARG.Menu.MusicLibrary
 
         private static string                  _currentSearch = string.Empty;
         private static int                     _savedIndex;
+        private static int                     _mainLibraryIndex = -1;
         private static MusicLibraryReloadState _reloadState = MusicLibraryReloadState.Full;
         private static Playlist                _savedPlaylist;
 
@@ -160,7 +163,15 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 UpdateSearch(true);
-                SelectedIndex = _savedIndex;
+
+                if (MenuState == MenuState.Library && _mainLibraryIndex != -1)
+                {
+                    SelectedIndex = _mainLibraryIndex;
+                }
+                else
+                {
+                    SelectedIndex = _savedIndex;
+                }
             }
             else if (_currentSong != null)
             {
@@ -194,6 +205,9 @@ namespace YARG.Menu.MusicLibrary
                 // Name makes a good fallback?
                 ChangeSort(SortAttribute.Name);
             }
+
+            InputManager.DeviceAdded += OnDeviceAdded;
+            InputManager.DeviceRemoved += OnDeviceRemoved;
         }
 
         private void SetRefreshIfNeeded()
@@ -232,6 +246,20 @@ namespace YARG.Menu.MusicLibrary
                 Navigator.Instance.PopScheme();
             }
 
+            NavigationScheme.Entry leftEntry = default;
+            NavigationScheme.Entry rightEntry = default;
+
+            if (MenuState == MenuState.Playlist)
+            {
+                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryUp);
+                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryDown);
+            }
+            else
+            {
+                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.SkipSection", GoToPreviousSection);
+                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.SkipSection", GoToNextSection);
+            }
+
             if (ShowPlaylist.Count == 0)
             {
                 Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -262,6 +290,8 @@ namespace YARG.Menu.MusicLibrary
                                 SelectedIndex++;
                             }
                         }),
+                    leftEntry,
+                    rightEntry,
                     new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                         () => CurrentSelection?.PrimaryButtonClick()),
                     new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
@@ -303,6 +333,8 @@ namespace YARG.Menu.MusicLibrary
                                 SelectedIndex++;
                             }
                         }),
+                    leftEntry,
+                    rightEntry,
                     new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                         () => CurrentSelection?.PrimaryButtonClick()),
                     new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
@@ -665,6 +697,9 @@ namespace YARG.Menu.MusicLibrary
             _previewCanceller?.Cancel();
             _previewContext?.Stop();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
+
+            InputManager.DeviceAdded -= OnDeviceAdded;
+            InputManager.DeviceRemoved -= OnDeviceRemoved;
         }
 
         private void OnDestroy()
@@ -772,6 +807,21 @@ namespace YARG.Menu.MusicLibrary
         public void SetSearchInput(SortAttribute songAttribute, string input)
         {
             _searchField.SetSearchInput(songAttribute, input);
+        }
+
+        private void OnDeviceAdded(InputDevice device)
+        {
+            _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
+        }
+
+        private void OnDeviceRemoved(InputDevice device)
+        {
+            _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
+        }
+
+        public static void ResetMainLibraryIndex()
+        {
+            _mainLibraryIndex = -1;
         }
     }
 }

@@ -47,8 +47,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _allowColoring: 1
-  _mode: 1
-  _fadeOutRate: 150
+  _mode: 0
+  _fadeOutRate: 100
 --- !u!108 &5638597123916329324
 Light:
   m_ObjectHideFlags: 0
@@ -61,7 +61,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 20
+  m_Intensity: 4
   m_Range: 0.3
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -44338,8 +44338,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _allowColoring: 1
-  _mode: 1
-  _fadeOutRate: 150
+  _mode: 0
+  _fadeOutRate: 100
 --- !u!108 &6796047233673693642
 Light:
   m_ObjectHideFlags: 0
@@ -44352,7 +44352,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 20
+  m_Intensity: 4
   m_Range: 0.3
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -83625,7 +83625,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0, g: 0.9905877, b: 1, a: 1}
-  m_Intensity: 7.5
+  m_Intensity: 3
   m_Range: 0.24
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -83742,8 +83742,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _allowColoring: 0
-  _mode: 1
-  _fadeOutRate: 150
+  _mode: 0
+  _fadeOutRate: 100
 --- !u!108 &56920157294604733
 Light:
   m_ObjectHideFlags: 0
@@ -83756,7 +83756,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.7264151, g: 0, b: 0, a: 1}
-  m_Intensity: 20
+  m_Intensity: 4
   m_Range: 0.3
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -83919,8 +83919,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _allowColoring: 0
-  _mode: 1
-  _fadeOutRate: 150
+  _mode: 0
+  _fadeOutRate: 100
 --- !u!108 &2100315589831965914
 Light:
   m_ObjectHideFlags: 0
@@ -83933,7 +83933,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.7264151, g: 0, b: 0, a: 1}
-  m_Intensity: 20
+  m_Intensity: 4
   m_Range: 0.3
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -84089,6 +84089,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: -721521515004317085, guid: 18e2c48307ac7cd44893db16dcdcf2d5,
+        type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -721521515004317085, guid: 18e2c48307ac7cd44893db16dcdcf2d5,
         type: 3}
