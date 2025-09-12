@@ -1,13 +1,19 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
+using YARG.Core;
+using YARG.Core.Game;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
+using Color = System.Drawing.Color;
 
 namespace YARG.Gameplay.Visuals
 {
     public class TrackEffectElement : TrackElement<TrackPlayer>
     {
+        private static readonly float HIGHWAY_WIDTH = 10f;
+
         [SerializeField]
         private MeshRenderer _meshRenderer;
         [FormerlySerializedAs("DisableStartTransition")]
@@ -58,6 +64,8 @@ namespace YARG.Gameplay.Visuals
         private Material _drumFillRailLeftTransitionMaterial;
         [SerializeField]
         private Material _drumFillRailRightTransitionMaterial;
+        [SerializeField]
+        private Material _drumFillLeadUpMaterial;
 
         [SerializeField]
         public float Visibility;
@@ -105,6 +113,7 @@ namespace YARG.Gameplay.Visuals
 
             SetMaterials();
             RescaleForZ();
+            ScaleAndRepositionDrumFill();
             InitializeMaterials();
             SetTransitionState();
             Active = true;
@@ -357,6 +366,11 @@ namespace YARG.Gameplay.Visuals
                     continue;
                 }
 
+                if (child.gameObject.name is "TrackEffectLeadUp")
+                {
+                    continue;
+                }
+
                 // Change the child's scale such that their world size remains the same after the parent scales
                 var originalScale = 0.005f;
                 var newScale = originalScale / scaleFactor;
@@ -374,6 +388,55 @@ namespace YARG.Gameplay.Visuals
             // With the adjustments to the children made, we can scale the
             // parent and have everything end up in the right place
             cachedTransform.localScale = cachedTransform.localScale.WithZ(zScale);
+        }
+
+        // Used for positioning drum fill lead-ups
+        protected void ScaleAndRepositionDrumFill()
+        {
+            var cachedTransform = _meshRenderer.transform;
+            var children = cachedTransform.GetComponentsInChildren<Transform>();
+            foreach (var child in children)
+            {
+                if (child.gameObject.name is "TrackEffectLeadUp")
+                {
+                    // X offset will differ depending on what the rightmost gem is
+                    child.localPosition = child.localPosition.WithX(GetXOffsetForLeadUp());
+                    child.localScale = child.localScale.WithX(GetXScaleForLeadUp());
+                }
+            }
+        }
+
+        private float GetXOffsetForLeadUp()
+        {
+            // Kick lead-ups and unknown indices should be centered
+            if (EffectRef.FillLane <= 0 || EffectRef.FillLane > EffectRef.TotalLanes)
+            {
+                return 0f;
+            }
+
+            float increment = HIGHWAY_WIDTH / EffectRef.TotalLanes;
+            float initialOffset = -1 * (HIGHWAY_WIDTH / 2) + increment / 2;
+            float sign = Player.Player.Profile.LeftyFlip ? -1f : 1f;
+            return sign * (initialOffset + (EffectRef.FillLane - 1) * increment);
+        }
+
+        private float GetXScaleForLeadUp()
+        {
+            // Hide lead-up if the chosen star power activation type does not need it
+            if (Player.Player.Profile.StarPowerActivationType is StarPowerActivationType.AllNotes
+                or StarPowerActivationType.Freestyle)
+            {
+                return 0f;
+            }
+
+            // Kick lead-ups and unknown indices should not be shrunken
+            if (EffectRef.FillLane <= 0 || EffectRef.FillLane > EffectRef.TotalLanes)
+            {
+                return 1f;
+            }
+
+            // Scale lead-up width appropriately
+            return 1f / EffectRef.TotalLanes;
         }
 
         // Returns the material corresponding to a specific effect object and effect type
@@ -501,6 +564,13 @@ namespace YARG.Gameplay.Visuals
                     TrackEffectType.SoloAndUnison     => _unisonTransitionMaterial,
                     TrackEffectType.SoloAndDrumFill   => _drumFillTransitionMaterial,
                     TrackEffectType.DrumFillAndUnison => _drumFillTransitionMaterial,
+                    _                                 => null
+                },
+                "TrackEffectLeadUp" => effectType switch
+                {
+                    TrackEffectType.DrumFill          => _drumFillLeadUpMaterial,
+                    TrackEffectType.SoloAndDrumFill   => _drumFillLeadUpMaterial,
+                    TrackEffectType.DrumFillAndUnison => _drumFillLeadUpMaterial,
                     _                                 => null
                 },
                 _ => null,

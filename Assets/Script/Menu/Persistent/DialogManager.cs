@@ -1,9 +1,11 @@
 using System;
 using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks.Triggers;
 using UnityEngine;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
+using YARG.Menu.MusicLibrary;
 
 namespace YARG.Menu.Persistent
 {
@@ -27,6 +29,8 @@ namespace YARG.Menu.Persistent
         private ConfirmDeleteDialog _confirmDeleteDialog;
         [SerializeField]
         private ColorPickerDialog _colorPickerDialog;
+        [SerializeField]
+        private SongPickerListDialog _playAShowDialog;
 
         private Dialog _currentDialog;
 
@@ -157,6 +161,14 @@ namespace YARG.Menu.Persistent
             dialog.ClearButtons();
             dialog.AddDialogButton("Menu.Common.Cancel", MenuData.Colors.CancelButton, ClearDialog);
             dialog.AddDialogButton("Menu.Common.Apply", MenuData.Colors.ConfirmButton, () => _currentDialog.Submit());
+
+            return dialog;
+        }
+
+        public SongPickerListDialog ShowSongPickerDialog(string title, MusicLibraryMenu menu)
+        {
+            var dialog = ShowDialog(_playAShowDialog);
+            dialog.Initialize(menu);
 
             return dialog;
         }

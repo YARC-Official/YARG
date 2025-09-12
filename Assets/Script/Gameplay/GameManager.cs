@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -51,6 +51,9 @@ namespace YARG.Gameplay
 
         [SerializeField]
         private GameObject _lyricBar;
+
+        [SerializeField]
+        private FailMeter _failMeter;
 
         [field: SerializeField]
         public VocalTrack VocalTrack { get; private set; }
@@ -307,6 +310,10 @@ namespace YARG.Gameplay
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
                 }
+                else if (PlayerHasFailed)
+                {
+                    _pauseMenu.PushMenu(PauseMenuManager.Menu.FailPause);
+                }
                 else if (IsPractice)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
@@ -329,6 +336,8 @@ namespace YARG.Gameplay
             // Allow sleeping
             Screen.sleepTimeout = _originalSleepTimeout;
         }
+
+        public bool PlayerHasFailed { get; set; } = false;
 
         public void Resume()
         {

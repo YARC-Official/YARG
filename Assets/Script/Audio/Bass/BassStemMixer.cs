@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using ManagedBass;
@@ -14,6 +14,7 @@ namespace YARG.Audio.BASS
         private readonly int _mixerHandle;
         private readonly int _sourceStream;
 
+        private StemChannel _mainChannel;
         private StreamHandle _mainHandle;
         private int _songEndHandle;
         private float _speed;
@@ -93,29 +94,7 @@ namespace YARG.Audio.BASS
 
         protected override double GetPosition_Internal()
         {
-            long position = Bass.ChannelGetPosition(_mainHandle.Stream);
-            if (position < 0)
-            {
-                YargLogger.LogFormatError("Failed to get channel position in bytes: {0}", Bass.LastError);
-                return -1;
-            }
-
-            double seconds = Bass.ChannelBytes2Seconds(_mainHandle.Stream, position);
-            if (seconds < 0)
-            {
-                YargLogger.LogFormatError("Failed to get channel position in seconds: {0}", Bass.LastError);
-                return -1;
-            }
-
-            if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
-            {
-                seconds -= (Bass.PlaybackBufferLength / 1000.0f) * _speed;
-                // Gotta do this because ChannelBytes2Seconds() may not be less than the buffer at position 0
-                if (seconds < 0)
-                {
-                    seconds = 0;
-                }
-            }
+            double seconds = _mainChannel.GetPosition();
             return seconds;
         }
 
@@ -136,30 +115,14 @@ namespace YARG.Audio.BASS
                 // Pause when seeking to avoid desyncing individual stems
                 Pause_Internal();
             }
-
-            if (_channels.Count == 0)
+            if (_sourceStream != 0)
             {
-                long bytes = Bass.ChannelSeconds2Bytes(_mainHandle.Stream, position);
-                if (bytes < 0)
-                {
-                    YargLogger.LogFormatError("Failed to get channel position in bytes: {0}!", Bass.LastError);
-                }
-                else if (!BassMix.ChannelSetPosition(_mainHandle.Stream, bytes, PositionFlags.Bytes | PositionFlags.MixerReset))
-                {
-                    YargLogger.LogFormatError("Failed to set channel position: {0}!", Bass.LastError);
-                }
+                BassMix.SplitStreamReset(_sourceStream);
             }
-            else
-            {
-                if (_sourceStream != 0)
-                {
-                    BassMix.SplitStreamReset(_sourceStream);
-                }
 
-                foreach (var channel in _channels)
-                {
-                    channel.SetPosition(position);
-                }
+            foreach (var channel in _channels)
+            {
+                channel.SetPosition(position);
             }
 
             if (playing)
@@ -252,18 +215,20 @@ namespace YARG.Audio.BASS
 
         protected override bool AddChannel_Internal(SongStem stem)
         {
-            _mainHandle = StreamHandle.Create(_sourceStream, null);
-            if (_mainHandle == null)
+            if (!BassAudioManager.CreateSplitStreams(_sourceStream, null, out var streamHandles, out var reverbHandles))
             {
-                YargLogger.LogFormatError("Failed to load stem split stream {stem}: {0}!", Bass.LastError);
-            }
-
-            if (!BassMix.MixerAddChannel(_mixerHandle, _mainHandle.Stream, BassFlags.Default))
-            {
-                YargLogger.LogFormatError("Failed to add channel {stem} to mixer: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to load stem split streams {0}: {1}!", stem, Bass.LastError);
                 return false;
             }
-            _length = BassAudioManager.GetLengthInSeconds(_sourceStream);
+
+            if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.Default) ||
+                !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.Default))
+            {
+                YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stem, Bass.LastError);
+                return false;
+            }
+
+            CreateChannel(stem, _sourceStream, streamHandles, reverbHandles);
             return true;
         }
 
@@ -410,6 +375,7 @@ namespace YARG.Audio.BASS
             double length = BassAudioManager.GetLengthInSeconds(streamHandles.Stream);
             if (_mainHandle == null || length > _length)
             {
+                _mainChannel = stemchannel;
                 _mainHandle = streamHandles;
                 _length = length;
             }

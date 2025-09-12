@@ -201,6 +201,13 @@ namespace YARG.Gameplay
             // Spawn players
             CreatePlayers();
 
+            // Set up the crowd stem so it can be restored after muting (if it exists)
+            if (_stemStates.TryGetValue(SongStem.Crowd, out var state))
+            {
+                state.Total = 1;
+                state.Audible = 1;
+            }
+
             if (_loadState == LoadFailureState.Error)
             {
                 ToastManager.ToastError(_loadFailureMessage);
@@ -231,6 +238,13 @@ namespace YARG.Gameplay
             // TODO: Move the offset here to SFX configuration
             // The clap SFX has 20 ms of lead-up before the actual impact happens
             BeatEventHandler.Audio.Subscribe(StarPowerClap, BeatEventType.StrongBeat, offset: -0.02);
+
+            _failMeter.Initialize(EngineManager, this);
+
+            if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
+            {
+                _failMeter.gameObject.SetActive(false);
+            }
 
             // Log constant values
             YargLogger.LogFormatDebug("Audio calibration: {0}, video calibration: {1}, song offset: {2}",
@@ -402,7 +416,7 @@ namespace YARG.Gameplay
                         // Setup player
                         var trackPlayer = playerObject.GetComponent<TrackPlayer>();
                         var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
-                        trackPlayer.Initialize(index, player, Chart, trackView, _mixer, lastHighScore);
+                        trackPlayer.Initialize(highwayIndex, player, Chart, trackView, _mixer, lastHighScore);
 
                         _players.Add(trackPlayer);
                         _trackViewManager._highwayCameraRendering.AddTrackPlayer(trackPlayer);
