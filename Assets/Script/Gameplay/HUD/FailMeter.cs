@@ -30,10 +30,13 @@ namespace YARG.Gameplay.HUD
         private Tweener[] _happinessTweeners;
         private Tweener[] _xposTweeners;
         private Tweener _meterRedTweener;
+        private Tweener _meterYellowTweener;
         private Tweener _meterGreenTweener;
         private Tweener _bandFillTweener;
         private float[] _previousPlayerHappiness;
         private float _previousBandHappiness;
+
+        private MeterColor _previousMeterColor;
 
         private Vector2[] _playerPositions;
         private Vector2[] _xPosVectors;
@@ -71,6 +74,10 @@ namespace YARG.Gameplay.HUD
                 SetLoops(-1, LoopType.Yoyo).
                 SetEase(Ease.InOutSine).
                 SetAutoKill(false).Pause();
+
+            _meterYellowTweener = _fillImage.DOColor(Color.yellow, 0.25f).
+                SetAutoKill(false).
+                Pause();
 
             _meterGreenTweener = _fillImage.DOColor(Color.green, 0.25f).
                 SetAutoKill(false).
@@ -125,32 +132,7 @@ namespace YARG.Gameplay.HUD
 
             if (_previousBandHappiness != _engineManager.Happiness)
             {
-                // TODO: Cache and reuse these tweens to avoid generating unnecessary garbage
-                var happiness = _engineManager.Happiness;
-
-                // We only want to do this once when passing the threshold
-                if (happiness < 0.33f && _previousBandHappiness >= 0.33f)
-                {
-                    if (_meterGreenTweener.active)
-                    {
-                        _meterGreenTweener.Pause();
-                    }
-                    _fillImage.color = Color.black;
-                    _meterRedTweener.Restart();
-                }
-                else if (happiness >= 0.33f && _previousBandHappiness < 0.33f)
-                {
-                    if (_meterRedTweener.active)
-                    {
-                        _meterRedTweener.Pause();
-                    }
-                    _meterGreenTweener.Restart();
-                }
-
-                _bandFillTweener.ChangeValues(_fillImage.fillAmount, happiness).Play();
-
-                _previousBandHappiness = _engineManager.Happiness;
-
+                UpdateMeterFill();
             }
 
             for (var i = 0; i < _players.Count; i++)
@@ -202,10 +184,69 @@ namespace YARG.Gameplay.HUD
             }
         }
 
+        private void UpdateMeterFill()
+        {
+            var happiness = _engineManager.Happiness;
+
+            var currentColor = GetMeterColor(happiness);
+            if (currentColor != _previousMeterColor)
+            {
+                ApplyColor(currentColor);
+                _previousMeterColor = currentColor;
+            }
+
+            _bandFillTweener.ChangeValues(_fillImage.fillAmount, happiness).Play();
+
+            _previousBandHappiness = _engineManager.Happiness;
+        }
+
+        private void ApplyColor(MeterColor color)
+        {
+            if (_meterRedTweener.active)
+            {
+                _meterRedTweener.Pause();
+            }
+
+            if (_meterYellowTweener.active)
+            {
+                _meterYellowTweener.Pause();
+            }
+
+            if (_meterGreenTweener.active)
+            {
+                _meterGreenTweener.Pause();
+            }
+
+            switch (color)
+            {
+                case MeterColor.Red:
+                    _fillImage.color = Color.black;
+                    _meterRedTweener.Restart();
+                    break;
+                case MeterColor.Yellow:
+                    _meterYellowTweener.Restart();
+                    break;
+                case MeterColor.Green:
+                    _meterGreenTweener.Restart();
+                    break;
+            }
+        }
+
+        private static MeterColor GetMeterColor(float happiness)
+        {
+            return happiness switch
+            {
+                < 0.33f => MeterColor.Red,
+                < 0.66f => MeterColor.Yellow,
+                _       => MeterColor.Green
+            };
+        }
+
         private void OnDisable()
         {
             // Make sure the tweens are dead
             _meterRedTweener?.Kill();
+            _meterYellowTweener?.Kill();
             _meterGreenTweener?.Kill();
             _bandFillTweener?.Kill();
             foreach (var tween in _happinessTweeners)
@@ -217,6 +258,13 @@ namespace YARG.Gameplay.HUD
             {
                 tween.Kill();
             }
+        }
+
+        private enum MeterColor
+        {
+            Red,
+            Yellow,
+            Green
         }
     }
 }
