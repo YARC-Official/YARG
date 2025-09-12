@@ -93,9 +93,12 @@ namespace YARG.Gameplay.HUD
                 _playerPositions[i] = _playerSliders[i].handleRect.transform.position;
 
                 var handleImage = _playerSliders[i].handleRect.GetComponentInChildren<Image>();
-                var spriteName = $"InstrumentIcons[{_players[i].Instrument.ToResourceName()}]";
+                var spriteName = _players[i].GetInstrumentSprite();
+
                 var sprite = Addressables.LoadAssetAsync<Sprite>(spriteName).WaitForCompletion();
                 handleImage.sprite = sprite;
+                handleImage.color = _players[i].GetHarmonyColor();
+
                 _playerSliders[i].value = 0.01f;
                 _playerSliders[i].gameObject.SetActive(true);
 
