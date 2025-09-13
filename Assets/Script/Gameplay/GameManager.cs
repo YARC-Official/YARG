@@ -178,9 +178,10 @@ namespace YARG.Gameplay
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
 
-            foreach (var state in _stemStates)
+            //Restore stem volumes to their original state
+            foreach (var (stem, state) in _stemStates)
             {
-                GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
+                GlobalAudioHandler.SetVolumeSetting(stem, state.Volume);
             }
 
             DisposeDebug();
