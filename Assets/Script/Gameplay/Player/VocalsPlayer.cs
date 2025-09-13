@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
@@ -62,7 +65,7 @@ namespace YARG.Gameplay.Player
         private SongChart _chart;
 
         public void Initialize(int index, int vocalIndex, YargPlayer player, SongChart chart,
-            VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore)
+            VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore, float trackSpeed)
         {
             if (IsInitialized)
             {
@@ -79,20 +82,6 @@ namespace YARG.Gameplay.Player
             var materialPath = $"VocalNeedle/{needleIndex}";
             _needleRenderer.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
 
-            // Update speed of particles
-            var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
-            foreach (var system in particles)
-            {
-                // This interface is weird lol, `.main` is readonly but
-                // doesn't need to be re-assigned, changes are forwarded automatically
-                var main = system.main;
-
-                var startSpeed = main.startSpeed;
-                startSpeed.constant *= player.Profile.NoteSpeed;
-                main.startSpeed = startSpeed;
-                main.startColor = VocalTrack.Colors[Player.Profile.HarmonyIndex];
-            }
-
             // Get the notes from the specific harmony or solo part
 
             var multiTrack = chart.GetVocalsTrack(Player.Profile.CurrentInstrument);
@@ -104,6 +93,20 @@ namespace YARG.Gameplay.Player
             NoteTrack = OriginalNoteTrack;
 
             _phraseIndex = -1;
+
+            // Update speed of particles
+            var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
+            foreach (var system in particles)
+            {
+                // This interface is weird lol, `.main` is readonly but
+                // doesn't need to be re-assigned, changes are forwarded automatically
+                var main = system.main;
+
+                var startSpeed = main.startSpeed;
+                startSpeed.constant *= trackSpeed;
+                main.startSpeed = startSpeed;
+                main.startColor = VocalTrack.Colors[Player.Profile.HarmonyIndex];
+            }
 
             // Initialize player specific vocal visuals
 
