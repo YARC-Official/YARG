@@ -51,7 +51,12 @@ namespace YARG.Settings.Metadata
             new PresetSubTab<HighwayPreset>(
                 CustomContentManager.HighwayPresets,
                 new TrackPreviewBuilder(false, true, true),
-                false)
+                false),
+
+            new PresetSubTab<RockMeterPreset>(
+                CustomContentManager.RockMeterPresets,
+                new TrackPreviewBuilder(),
+                true),
                 
         };
 

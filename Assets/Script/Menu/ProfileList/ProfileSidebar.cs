@@ -87,6 +87,8 @@ namespace YARG.Menu.ProfileList
         private TMP_Dropdown _cameraPresetDropdown;
         [SerializeField]
         private TMP_Dropdown _highwayPresetDropdown;
+        [SerializeField]
+        private TMP_Dropdown _rockMeterPresetDropdown;
 
         [Space]
         [SerializeField]
@@ -115,6 +117,7 @@ namespace YARG.Menu.ProfileList
         private List<Guid> _cameraPresetsByIndex;
         private List<Guid> _themesByIndex;
         private List<Guid> _highwayPresetsByIndex;
+        private List<Guid> _rockmeterPresetsByIndex;
 
         private void Awake()
         {
@@ -148,6 +151,9 @@ namespace YARG.Menu.ProfileList
                     .Select(i => i.Id).ToList();
             _highwayPresetsByIndex =
                 CustomContentManager.HighwayPresets.AddOptionsToDropdown(_highwayPresetDropdown)
+                    .Select(i => i.Id).ToList();
+            _rockmeterPresetsByIndex =
+                CustomContentManager.RockMeterPresets.AddOptionsToDropdown(_rockMeterPresetDropdown)
                     .Select(i => i.Id).ToList();
 
             // Set drum star power activation type
@@ -200,6 +206,8 @@ namespace YARG.Menu.ProfileList
                 _highwayPresetsByIndex.IndexOf(profile.HighwayPreset));
             _starPowerActivationTypeDropdown.SetValueWithoutNotify(
                 _starPowerActivationTypesByIndex.IndexOf(profile.StarPowerActivationType));
+            _rockMeterPresetDropdown.SetValueWithoutNotify(
+                _rockmeterPresetsByIndex.IndexOf(profile.RockMeterPreset));
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
@@ -447,6 +455,11 @@ namespace YARG.Menu.ProfileList
         public void ChangeHighwayPreset()
         {
             _profile.HighwayPreset = _highwayPresetsByIndex[_highwayPresetDropdown.value];
+        }
+
+        public void ChangeRockMeterPreset()
+        {
+            _profile.RockMeterPreset = _rockmeterPresetsByIndex[_rockMeterPresetDropdown.value];
         }
     }
 }

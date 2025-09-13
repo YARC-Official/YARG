@@ -41,6 +41,7 @@ namespace YARG.Helpers.Extensions
                 ProfileSettingStrings.COLOR_PROFILE_SELECT,
                 ProfileSettingStrings.CAMERA_PRESET,
                 ProfileSettingStrings.HIGHWAY_PRESET,
+                ProfileSettingStrings.ROCK_METER_PRESET,
                 ProfileSettingStrings.INPUT_CALIBRATION,
                 ProfileSettingStrings.NOTE_SPEED_AND_HIGHWAY_LENGTH,
             };

@@ -1750,7 +1750,37 @@
                 "StarPowerColor": {
                     "Name": "Star Power Color"
                 }
-            }
+            },
+			"RockMeterPreset" : {
+                "StartingHappiness": {
+                    "Name": "Starting Happiness",
+					"Description": "This controls how full the Rock Meter is at the beginning of the song."
+                },
+				"MissDamageMultiplier": {
+                    "Name": "Miss Damage Multiplier",
+					"Description": "This controls how much the Rock Meter decreases when missing a note. Higher values make the game more difficult."
+                },
+				"OverhitDamageMultiplier": {
+                    "Name": "Overhit Damage Multiplier",
+					"Description": "This controls how much the Rock Meter decreases when over-strumming. Higher values make the game more difficult."
+                },
+				"HitRecoveryMultiplier": {
+                    "Name": "Hit Recovery Multiplier",
+					"Description": "This controls how much the Rock Meter recovers when hitting a note correctly. Higher values make the game easier."
+                },
+				"StarPowerEffectMultiplier": {
+                    "Name": "Star Power Effect Multiplier",
+					"Description": "This controls how much the Rock Meter recovers when successfully hitting a note while Star Power is active. This has no effect on misses or overhits."
+                },
+				"VocalsMissDamageMultiplier": {
+                    "Name": "Miss Damage Multiplier (Vocals)",
+					"Description": "This controls how much the Rock Meter decreases when a vocalist sings a phrase poorly. Higher values make the game more difficult."
+                },
+				"VocalsHitRecoveryMultiplier": {
+                    "Name": "Hit Recovery Multiplier (Vocals)",
+					"Description": "This controls how much the Rock Meter recovers when a vocalist earns an AWESOME rating in a phrase. Higher values make the game easier."
+                }
+			}
         }
     }
 }
