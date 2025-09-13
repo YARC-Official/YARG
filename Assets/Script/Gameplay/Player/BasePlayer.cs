@@ -371,7 +371,7 @@ namespace YARG.Gameplay.Player
             }
 
             GameManager.PlayerHasFailed = true;
-            GlobalAudioHandler.PlaySoundEffect(SfxSample.FailSound);
+            GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
             GameManager.Pause(true);
         }
 

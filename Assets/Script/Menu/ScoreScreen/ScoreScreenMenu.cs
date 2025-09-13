@@ -217,11 +217,8 @@ namespace YARG.Menu.ScoreScreen
             // If the scroll bar is active, make it all the way to the left
             InitializeScrollRect();
 
-            // As a final bonus, play the appropriate full combo vox samples
-            if (SettingsManager.Settings.EnableVoxSamples.Value)
-            {
-                PlayScoreVox(fcCount, highScoreCount);
-            }
+            // As a final bonus, play the appropriate full combo/high score vox samples
+            PlayScoreVox(fcCount, highScoreCount);
         }
 
         private async void InitializeScrollRect()

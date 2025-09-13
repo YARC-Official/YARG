@@ -7,6 +7,7 @@ using ManagedBass;
 using ManagedBass.Mix;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
@@ -93,6 +94,13 @@ namespace YARG.Audio.BASS
 
         protected override void Play_Internal()
         {
+            // Don't particularly like doing it here, but this is the only place in the playback chain where we can
+            // check for the vox enabled setting
+            if (!SettingsManager.Settings.EnableVoxSamples.Value)
+            {
+                return;
+            }
+
             if (IsAnyPlaying())
             {
                 QueuePlayback(this);

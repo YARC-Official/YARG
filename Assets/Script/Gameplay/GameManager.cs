@@ -203,7 +203,9 @@ namespace YARG.Gameplay
             // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
+                if ((!IsPractice || PracticeManager.HasSelectedSection) &&
+                    !DialogManager.Instance.IsDialogShowing &&
+                    !PlayerHasFailed)
                 {
                     SetPaused(!_pauseMenu.IsOpen);
                 }
