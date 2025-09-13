@@ -228,7 +228,7 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            CreateChannel(stem, _sourceStream, streamHandles, reverbHandles);
+            CreateChannel(stem, streamHandles, reverbHandles);
             return true;
         }
 
@@ -253,7 +253,7 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            CreateChannel(stem, sourceStream, streamHandles, reverbHandles);
+            CreateChannel(stem, streamHandles, reverbHandles);
             return true;
         }
 
@@ -294,7 +294,7 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            CreateChannel(stem, 0, streamHandles, reverbHandles);
+            CreateChannel(stem, streamHandles, reverbHandles);
             return true;
         }
 
@@ -367,10 +367,10 @@ namespace YARG.Audio.BASS
             }
         }
 
-        private void CreateChannel(SongStem stem, int sourceStream, StreamHandle streamHandles, StreamHandle reverbHandles)
+        private void CreateChannel(SongStem stem, StreamHandle streamHandles, StreamHandle reverbHandles)
         {
             var pitchparams = BassAudioManager.SetPitchParams(stem, _speed, streamHandles, reverbHandles);
-            var stemchannel = new BassStemChannel(_manager, stem, _clampStemVolume, sourceStream, pitchparams, streamHandles, reverbHandles);
+            var stemchannel = new BassStemChannel(_manager, stem, _clampStemVolume, pitchparams, streamHandles, reverbHandles);
 
             double length = BassAudioManager.GetLengthInSeconds(streamHandles.Stream);
             if (_mainHandle == null || length > _length)
