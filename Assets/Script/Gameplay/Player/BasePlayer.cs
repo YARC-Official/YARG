@@ -365,6 +365,11 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSongFailed()
         {
+            if (SettingsManager.Settings.NoFailMode.Value)
+            {
+                return;
+            }
+
             GameManager.PlayerHasFailed = true;
             GlobalAudioHandler.PlaySoundEffect(SfxSample.FailSound);
             GameManager.Pause(true);

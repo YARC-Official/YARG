@@ -139,7 +139,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnCountdownChange += OnCountdownChange;
 
-            if (!SettingsManager.Settings.NoFailMode.Value && !GlobalVariables.State.IsPractice)
+            if (!GlobalVariables.State.IsPractice)
             {
                 EngineContainer.OnSongFailed += OnSongFailed;
                 EngineContainer.OnHappinessOverThreshold += OnHappinessOverThreshold;
