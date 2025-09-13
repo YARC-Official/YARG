@@ -18,8 +18,9 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
         #include "Assets/Art/Shaders/highways.hlsl"
- 
+
         // Hardcoded dependencies to reduce the number of variants
         #if _BLOOM_LQ || _BLOOM_HQ || _BLOOM_LQ_DIRT || _BLOOM_HQ_DIRT
             #define BLOOM
@@ -27,7 +28,6 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
                 #define BLOOM_DIRT
             #endif
         #endif
- 
         TEXTURE2D_X(_SourceTex);
         TEXTURE2D_X(_Bloom_Texture);
         TEXTURE2D(_LensDirt_Texture);
@@ -35,6 +35,7 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
         TEXTURE2D(_InternalLut);
         TEXTURE2D(_UserLut);
         TEXTURE2D(_BlueNoise_Texture);
+        TEXTURE2D(_YargHighwaysAlphaMask);
  
         float4 _Lut_Params;
         float4 _UserLut_Params;
@@ -239,21 +240,9 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
             #endif
  
             half alpha = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uvDistorted).w;
+            half alpha_mask = SAMPLE_TEXTURE2D(_YargHighwaysAlphaMask, sampler_LinearClamp, uvDistorted).r;
 
-            // YARG highway fading
-            if (_YargHighwaysN > 0 && _IsFading > 0)
-            {
-                float coord_y = uvDistorted.y;
-                int index = UVToIndex(uvDistorted);
-                float fadeStartPos = 1.0 - _YargFadeParams[index * 2];
-                float fadeEndPos   = 1.0 - _YargFadeParams[index * 2 + 1];
-                
-                float rate = 1.0 / (fadeEndPos - fadeStartPos);
-                alpha = min(alpha, 1.0 - ((min(max(coord_y, fadeStartPos), fadeEndPos)) - fadeStartPos) * rate);  
-                alpha = smoothstep(0.0, 1.0, alpha);
-            }
-            
-            return half4(color, alpha);
+            return half4(color, min(alpha, alpha_mask));
         }
  
     ENDHLSL
