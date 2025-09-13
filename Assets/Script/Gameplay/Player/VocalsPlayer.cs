@@ -143,9 +143,11 @@ namespace YARG.Gameplay.Player
                     GameManager.VocalTrack.UpdateCountdown(countdownLength, endTime);
                 };
 
-                if (!SettingsManager.Settings.NoFailMode.Value && !GlobalVariables.State.IsPractice)
+                if (!GlobalVariables.State.IsPractice)
                 {
                     EngineContainer.OnSongFailed += OnSongFailed;
+                    EngineContainer.OnHappinessOverThreshold += OnHappinessOverThreshold;
+                    EngineContainer.OnHappinessUnderThreshold += OnHappinessUnderThreshold;
                 }
             }
 

@@ -243,7 +243,7 @@ namespace YARG.Gameplay
 
             if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
             {
-                _failMeter.gameObject.SetActive(false);
+                _failMeter.SetActive(false);
             }
 
             // Log constant values
