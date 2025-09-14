@@ -10,11 +10,14 @@ using UnityEngine.UI;
 using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
     public class FailMeter : MonoBehaviour
     {
+        [SerializeField]
+        private GameObject _meterContainer;
         [FormerlySerializedAs("Slider")]
         [SerializeField]
         private Slider _bandSlider;
@@ -40,6 +43,8 @@ namespace YARG.Gameplay.HUD
 
         private Vector2[] _playerPositions;
         private Vector2[] _xPosVectors;
+
+        private Vector3 _initialPosition;
 
         private float _containerHeight;
 
@@ -68,6 +73,8 @@ namespace YARG.Gameplay.HUD
             _playerPositions = new Vector2[_players.Count];
             _xPosVectors = new Vector2[_players.Count];
             _containerHeight = _sliderContainer.rect.height;
+
+            _initialPosition = _meterContainer.transform.position;
 
             // Cache tweens for later use
             _meterRedTweener = _fillImage.DOColor(Color.red, 0.25f).
@@ -100,9 +107,12 @@ namespace YARG.Gameplay.HUD
                 _playerPositions[i] = _playerSliders[i].handleRect.transform.position;
 
                 var handleImage = _playerSliders[i].handleRect.GetComponentInChildren<Image>();
-                var spriteName = $"InstrumentIcons[{_players[i].Instrument.ToResourceName()}]";
+                var spriteName = _players[i].GetInstrumentSprite();
+
                 var sprite = Addressables.LoadAssetAsync<Sprite>(spriteName).WaitForCompletion();
                 handleImage.sprite = sprite;
+                handleImage.color = _players[i].GetHarmonyColor();
+
                 _playerSliders[i].value = 0.01f;
                 _playerSliders[i].gameObject.SetActive(true);
 
@@ -229,6 +239,22 @@ namespace YARG.Gameplay.HUD
                 case MeterColor.Green:
                     _meterGreenTweener.Restart();
                     break;
+            }
+        }
+
+        public void SetActive(bool active)
+        {
+            if (!_meterContainer.activeSelf)
+            {
+                _meterContainer.SetActive(true);
+                _meterContainer.transform.DOMoveY(_initialPosition.y, 0.5f).
+                    SetEase(Ease.InOutSine);
+            }
+            else
+            {
+                // Move offscreen and disable the container
+                _meterContainer.transform.DOMoveY(-400f, 0.5f).SetEase(Ease.InOutSine).
+                    OnComplete(() => _meterContainer.SetActive(false));
             }
         }
 

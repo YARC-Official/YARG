@@ -112,7 +112,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnPadHit += OnPadHit;
 
-            if (!SettingsManager.Settings.NoFailMode.Value && !GlobalVariables.State.IsPractice)
+            if (!GlobalVariables.State.IsPractice)
             {
                 EngineContainer.OnSongFailed += OnSongFailed;
                 EngineContainer.OnHappinessOverThreshold += OnHappinessOverThreshold;

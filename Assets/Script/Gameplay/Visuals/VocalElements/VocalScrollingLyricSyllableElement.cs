@@ -5,7 +5,7 @@ using YARG.Core.Chart;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class VocalLyricElement : VocalElement
+    public class VocalScrollingLyricSyllableElement : VocalElement
     {
         private LyricEvent _lyricRef;
         private double _lyricLength;

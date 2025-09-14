@@ -178,9 +178,10 @@ namespace YARG.Gameplay
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
 
-            foreach (var state in _stemStates)
+            //Restore stem volumes to their original state
+            foreach (var (stem, state) in _stemStates)
             {
-                GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
+                GlobalAudioHandler.SetVolumeSetting(stem, state.Volume);
             }
 
             DisposeDebug();
@@ -202,7 +203,9 @@ namespace YARG.Gameplay
             // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
+                if ((!IsPractice || PracticeManager.HasSelectedSection) &&
+                    !DialogManager.Instance.IsDialogShowing &&
+                    !PlayerHasFailed)
                 {
                     SetPaused(!_pauseMenu.IsOpen);
                 }
