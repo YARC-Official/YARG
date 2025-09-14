@@ -92,9 +92,7 @@ namespace YARG.Gameplay.Visuals
             // Swap them if they're backwards
             if (fadeStart > fadeEnd)
             {
-                var temp = fadeStart;
-                fadeStart = fadeEnd;
-                fadeEnd = temp;
+                (fadeStart, fadeEnd) = (fadeEnd, fadeStart);
             }
 
             return new Vector2(fadeStart, fadeEnd);
@@ -122,7 +120,7 @@ namespace YARG.Gameplay.Visuals
             _renderCamera.orthographicSize = Math.Max(25, (maxWorld - minWorld) / 2);
         }
 
-        static float CalculateScale(int count)
+        private static float CalculateScale(int count)
         {
             // This equation calculates a good scale for all of the tracks.
             // It was made with experimentation; there's probably a "real" formula for this.
@@ -234,8 +232,11 @@ namespace YARG.Gameplay.Visuals
         {
             if (cam != _renderCamera)
             {
+                Shader.SetGlobalTexture(YargHighwaysAlphaTextureID, Texture2D.whiteTexture);
                 return;
             }
+
+            Shader.SetGlobalTexture(YargHighwaysAlphaTextureID, _highwaysAlphaTexture);
 
             if (_cameras.Count == 0)
             {
