@@ -72,7 +72,7 @@ namespace YARG.Player
             HighwayPreset = CustomContentManager.HighwayPresets.GetPresetById(Profile.HighwayPreset)
                 ?? HighwayPreset.Default;
 
-            RockMeterPreset = CustomContentManager.RockMeterPresets.GetPresetById(Profile.HighwayPreset) ??
+            RockMeterPreset = CustomContentManager.RockMeterPresets.GetPresetById(Profile.RockMeterPreset) ??
                 YARG.Core.Game.RockMeterPreset.Normal;
         }
 
@@ -104,16 +104,22 @@ namespace YARG.Player
         {
             EnginePreset = CustomContentManager.EnginePresets.GetPresetById(Profile.EnginePreset)
                 ?? EnginePreset.Default;
+            Profile.EnginePreset = EnginePreset.Id;
             ThemePreset = CustomContentManager.ThemePresets.GetPresetById(Profile.ThemePreset)
                 ?? ThemePreset.Default;
+            Profile.ThemePreset = ThemePreset.Id;
             ColorProfile = CustomContentManager.ColorProfiles.GetPresetById(Profile.ColorProfile)
                 ?? ColorProfile.Default;
+            Profile.ColorProfile = ColorProfile.Id;
             CameraPreset = CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
                 ?? CameraPreset.Default;
+            Profile.CameraPreset = CameraPreset.Id;
             HighwayPreset = CustomContentManager.HighwayPresets.GetPresetById(Profile.HighwayPreset)
                 ?? HighwayPreset.Default;
+            Profile.HighwayPreset = HighwayPreset.Id;
             RockMeterPreset = CustomContentManager.RockMeterPresets.GetPresetById(Profile.RockMeterPreset) ??
-                YARG.Core.Game.RockMeterPreset.Normal;
+                RockMeterPreset.Normal;
+            Profile.RockMeterPreset = RockMeterPreset.Id;
 
         }
 
