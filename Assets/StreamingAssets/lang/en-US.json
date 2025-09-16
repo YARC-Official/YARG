@@ -19,9 +19,9 @@
             "FiveFretGuitar": "Five Fret Guitar",
             "SixFretGuitar": "Six Fret Guitar",
             "FourLaneDrums": "Standard Drums",
-            "FiveLaneDrums": "5-Lane Drums",
+            "FiveLaneDrums": "Five-Lane Drums",
             "ProGuitar": "Pro Guitar",
-            "ProKeys": "Pro Keys",
+            "ProKeys": "Keys (Pro and Five-Lane)",
             "Menu": "Menu",
             "Vocals": "Vocals"
         },
@@ -646,6 +646,12 @@
             "Key23": "Key 23 (A#3)",
             "Key24": "Key 24 (B3)",
             "Key25": "Key 25 (C4)",
+			"OpenNote": "Five-Lane Open Note",
+			"GreenKey": "Five-Lane Green Key (First)",
+			"RedKey": "Five-Lane Red Key (Second)",
+			"YellowKey": "Five-Lane Yellow Key (Third)",
+			"BlueKey": "Five-Lane Blue Key (Fourth)",
+			"OrangeKey": "Five-Lane Orange Key (Fifth)",
             "StarPower": "Star Power Activate",
             "TouchEffects": "Touch Effects"
         }
@@ -1619,10 +1625,10 @@
                 "SubSection": {
                     "Name": "Game Mode",
                     "Dropdown": {
-                        "Drums": "Drums (4 and 5 lane)",
-                        "FiveFretGuitar": "Five Fret Guitar",
+                        "Drums": "Drums (Four- and Five-Lane)",
+                        "FiveFretGuitar": "Five-Fret Guitar",
                         "Vocals": "Vocals",
-                        "ProKeys": "Pro Keys"
+                        "Keys": "Keys (Pro and Five-Lane)"
                     }
                 },
                 "AntiGhosting": {

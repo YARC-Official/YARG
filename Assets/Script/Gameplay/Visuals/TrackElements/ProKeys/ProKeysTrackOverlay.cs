@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.Keys;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;

@@ -5,14 +5,12 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
-using YARG.Core.Engine.ProKeys;
-using YARG.Core.Engine.ProKeys.Engines;
+using YARG.Core.Engine.Keys;
+using YARG.Core.Engine.Keys.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Visuals;
-using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
@@ -56,7 +54,7 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
-        public ProKeysEngineParameters EngineParams { get; private set; }
+        public KeysEngineParameters EngineParams { get; private set; }
 
         public override bool ShouldUpdateInputsOnResume => true;
 
@@ -98,12 +96,12 @@ namespace YARG.Gameplay.Player
             if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds);
+                EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds, false);
             }
             else
             {
                 // Otherwise, get from the replay
-                EngineParams = (ProKeysEngineParameters) Player.EngineParameterOverride;
+                EngineParams = (KeysEngineParameters) Player.EngineParameterOverride;
             }
 
             var engine = new YargProKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);

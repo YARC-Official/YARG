@@ -1,20 +1,18 @@
-﻿using System;
-using UnityEngine;
-using YARG.Core.Engine;
-using YARG.Gameplay.Player;
+﻿using UnityEngine;
+using YARG.Assets.Script.Gameplay.Player;
 using YARG.Helpers;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class GuitarRangeIndicatorElement : TrackElement<FiveFretGuitarPlayer>
+    public class FiveLaneKeysRangeIndicatorElement : TrackElement<FiveLaneKeysPlayer>
     {
-        public        FiveFretRangeShift RangeShift;
+        public FiveFretRangeShift RangeShift;
 
         private const float SCALE_DENOMINATOR = 5f;
-        private const float TRACK_WIDTH       = 2f;
-        private const float FRET_SIZE         = TRACK_WIDTH / SCALE_DENOMINATOR;
-        private const float TRACK_MIDDLE      = 0f;
-        private const float RANGE_Y_SCALE     = 0.12f;
+        private const float TRACK_WIDTH = 2f;
+        private const float FRET_SIZE = TRACK_WIDTH / SCALE_DENOMINATOR;
+        private const float TRACK_MIDDLE = 0f;
+        private const float RANGE_Y_SCALE = 0.12f;
 
         private static readonly int _color = Shader.PropertyToID("_Color");
 
@@ -42,6 +40,5 @@ namespace YARG.Gameplay.Visuals
         protected override void HideElement()
         {
         }
-
     }
 }
