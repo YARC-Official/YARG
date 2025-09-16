@@ -1268,7 +1268,8 @@
             "CameraSettingsContainer": "Camera Presets",
             "ColorProfileContainer": "Color Profiles",
             "EnginePresetContainer": "Engine Presets",
-            "HighwayPresetContainer" : "Highway Presets"
+            "HighwayPresetContainer" : "Highway Presets",
+			"RockMeterPresetContainer" : "Rock Meter Presets"
         },
         "PresetSetting": {
             "CameraPreset": {
@@ -1773,7 +1774,7 @@
 					"Description": "This controls how much the Rock Meter recovers when hitting a note correctly. Higher values make the game easier."
                 },
 				"StarPowerEffectMultiplier": {
-                    "Name": "Star Power Effect Multiplier",
+                    "Name": "Star Power Multiplier",
 					"Description": "This controls how much the Rock Meter recovers when successfully hitting a note while Star Power is active. This has no effect on misses or overhits."
                 },
 				"VocalsMissDamageMultiplier": {
@@ -1782,7 +1783,7 @@
                 },
 				"VocalsHitRecoveryMultiplier": {
                     "Name": "Hit Recovery Multiplier (Vocals)",
-					"Description": "This controls how much the Rock Meter recovers when a vocalist earns an AWESOME rating in a phrase. Higher values make the game easier."
+					"Description": "This controls how much the Rock Meter recovers when a vocalist sings a phrase well. Higher values make the game easier."
                 }
 			}
         }
