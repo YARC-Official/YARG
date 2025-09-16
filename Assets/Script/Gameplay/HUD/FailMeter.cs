@@ -30,8 +30,8 @@ namespace YARG.Gameplay.HUD
         private RectTransform _sliderContainer;
 
         private Slider[] _playerSliders;
-        private Tweener[] _happinessTweeners;
-        private Tweener[] _xposTweeners;
+        private Tweener[] _happinessTweeners = Array.Empty<Tweener>();
+        private Tweener[] _xposTweeners = Array.Empty<Tweener>();
         private Tweener _meterRedTweener;
         private Tweener _meterYellowTweener;
         private Tweener _meterGreenTweener;
