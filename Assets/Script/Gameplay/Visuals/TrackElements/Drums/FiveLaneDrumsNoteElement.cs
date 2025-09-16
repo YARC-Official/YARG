@@ -13,7 +13,7 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
-            var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
+            var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
 
             if (NoteRef.Pad != 0)
             {
@@ -109,7 +109,7 @@ namespace YARG.Gameplay.Visuals
                     GetColorFromPulse(fullColor.B, pulse)
                 );
             }
-            else if (NoteRef.IsStarPower)
+            else if (IsStarPowerVisible)
             {
                 color = colors.GetNoteStarPowerColor(pad);
             }
@@ -118,7 +118,7 @@ namespace YARG.Gameplay.Visuals
             NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
 
             // Set the metal color
-            NoteGroup.SetMetalColor(colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor());
+            NoteGroup.SetMetalColor(colors.GetMetalColor(IsStarPowerVisible).ToUnityColor());
         }
     }
 }

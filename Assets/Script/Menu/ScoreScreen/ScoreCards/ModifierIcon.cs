@@ -8,10 +8,11 @@ namespace YARG.Menu.ScoreScreen
 {
     public class ModifierIcon : MonoBehaviour
     {
-        private const string GHOSTING           = "Ghosting";
-        private const string INFINITE_FRONT_END = "InfiniteFrontEnd";
-        private const string DYNAMIC_HIT_WINDOW = "DynamicHitWindow";
-        private const string SOLO_TAPS          = "SoloTaps";
+        private const string GHOSTING              = "Ghosting";
+        private const string INFINITE_FRONT_END    = "InfiniteFrontEnd";
+        private const string DYNAMIC_HIT_WINDOW    = "DynamicHitWindow";
+        private const string SOLO_TAPS             = "SoloTaps";
+        private const string NO_STAR_POWER_OVERLAP = "NoStarPowerOverlap";
 
         [SerializeField]
         private Image _icon;
@@ -63,6 +64,13 @@ namespace YARG.Menu.ScoreScreen
                         icon.InitializeCustom(SOLO_TAPS);
                     }
 
+                    // No Star Power Overlap
+                    if (enginePreset.FiveFretGuitar.NoStarPowerOverlap)
+                    {
+                        var icon = Instantiate(prefab, parent);
+                        icon.InitializeCustom(NO_STAR_POWER_OVERLAP);
+                    }
+
                     break;
                 case GameMode.FiveLaneDrums:
                 case GameMode.FourLaneDrums:
@@ -71,6 +79,22 @@ namespace YARG.Menu.ScoreScreen
                     {
                         var icon = Instantiate(prefab, parent);
                         icon.InitializeCustom(DYNAMIC_HIT_WINDOW);
+                    }
+
+                    // No Star Power Overlap
+                    if (enginePreset.FiveFretGuitar.NoStarPowerOverlap)
+                    {
+                        var icon = Instantiate(prefab, parent);
+                        icon.InitializeCustom(NO_STAR_POWER_OVERLAP);
+                    }
+
+                    break;
+                case GameMode.ProKeys:
+                    // No Star Power Overlap
+                    if (enginePreset.FiveFretGuitar.NoStarPowerOverlap)
+                    {
+                        var icon = Instantiate(prefab, parent);
+                        icon.InitializeCustom(NO_STAR_POWER_OVERLAP);
                     }
 
                     break;

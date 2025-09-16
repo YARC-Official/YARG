@@ -40,7 +40,7 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
-            var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
+            var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
 
             // Set the position
             transform.localPosition = Vector3.zero;
@@ -131,6 +131,15 @@ namespace YARG.Gameplay.Visuals
             UpdateColor();
         }
 
+        protected override bool CalcStarPowerVisible()
+        {
+            if (!NoteRef.IsStarPower)
+            {
+                return false;
+            }
+            return !(((ProKeysEngineParameters) Player.BaseParameters).NoStarPowerOverlap && Player.BaseStats.IsStarPowerActive);
+        }
+
         private void UpdateSustain()
         {
             _sustainLine.UpdateSustainLine(Player.NoteSpeed * GameManager.SongSpeed);
@@ -150,12 +159,12 @@ namespace YARG.Gameplay.Visuals
                 ? colors.BlackNoteStarPower.ToUnityColor()
                 : colors.WhiteNoteStarPower.ToUnityColor();
 
-            var color = NoteRef.IsStarPower
+            var color = IsStarPowerVisible
                 ? colorStarPower
                 : colorNoStarPower;
 
             NoteGroup.SetColorWithEmission(color, colorNoStarPower);
-            NoteGroup.SetMetalColor(colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor());
+            NoteGroup.SetMetalColor(colors.GetMetalColor(IsStarPowerVisible).ToUnityColor());
 
             if (!NoteRef.IsSustain) return;
 

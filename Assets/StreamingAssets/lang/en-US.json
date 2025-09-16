@@ -1724,6 +1724,10 @@
                 "SoloTaps": {
                     "Name": "Allow Taps During Solos",
                     "Description": "Allows solo buttons to tap notes during solos"
+                },
+                "NoStarPowerOverlap": {
+                    "Name": "No Star Power Overlap",
+                    "Description": "Disallows earning more Star Power while Star Power is already active."
                 }
             },
             "HighwayPreset" : {
