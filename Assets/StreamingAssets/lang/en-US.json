@@ -144,7 +144,7 @@
 
             "Reset": "Reset",
             "ResetAll": "Reset All",
-			
+
 			"Scroll" : "Scroll"
         },
         "Credits": {
@@ -1759,6 +1759,9 @@
                 },
                 "StarPowerColor": {
                     "Name": "Star Power Color"
+                },
+                "NoteHeight": {
+                    "Name": "Note Height"
                 }
             }
         }
