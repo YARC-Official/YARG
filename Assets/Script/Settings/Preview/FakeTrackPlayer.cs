@@ -4,7 +4,7 @@ using UnityEngine;
 using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.Keys;
 using YARG.Core.Game;
 using YARG.Gameplay;
 using YARG.Gameplay.Player;

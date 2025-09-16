@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using YARG.Core.Engine.Guitar;
-using YARG.Core.Engine.ProKeys;
-using YARG.Core.YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.Keys;
 using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.Visuals

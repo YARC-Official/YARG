@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
-using YARG.Core.Engine.ProKeys;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
-using YARG.Core.YARG.Core.Engine.Keys.FiveLaneKeys;
-using YARG.Core.YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.Keys;
+using YARG.Core.Engine.Keys.Engines;
 using YARG.Gameplay;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
@@ -19,7 +17,7 @@ using YARG.Helpers;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Themes;
-using static YARG.Core.YARG.Core.Engine.ProKeys.FiveLaneKeysEngine;
+using static YARG.Core.Engine.Keys.FiveLaneKeysEngine;
 
 namespace YARG.Assets.Script.Gameplay.Player
 {

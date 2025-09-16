@@ -1,6 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
-using YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.Keys;
 
 namespace YARG.Menu.ScoreScreen
 {

@@ -6,10 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Audio;
-using YARG.Core.Engine.Guitar;
-using YARG.Core.Engine.ProKeys;
 using YARG.Core.Extensions;
-using YARG.Core.YARG.Core.Engine.ProKeys;
 using YARG.Gameplay.Player;
 using YARG.Integration;
 

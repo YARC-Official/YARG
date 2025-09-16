@@ -5,14 +5,12 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
-using YARG.Core.Engine.ProKeys;
-using YARG.Core.Engine.ProKeys.Engines;
+using YARG.Core.Engine.Keys;
+using YARG.Core.Engine.Keys.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Visuals;
-using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
