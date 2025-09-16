@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Windows.Forms.VisualStyles;
 using UnityEngine;
-using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 
