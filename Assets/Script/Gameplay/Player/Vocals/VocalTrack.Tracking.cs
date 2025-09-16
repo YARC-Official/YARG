@@ -24,7 +24,7 @@ namespace YARG.Gameplay.Player
         {
             private const double IMMINENCE_THRESHOLD = .3d;
 
-            public List<VocalPhrasePair> PhrasePairs { get; } = new();
+            public List<VocalPhrasePair> PhrasePairs { get; }
 
             // Index of the the phrase that should be leftmost in the static lyrics display. This updates as soon as the last note
             // of a phrase ends, not when the phrase itself ends
@@ -56,16 +56,12 @@ namespace YARG.Gameplay.Player
                 // We've passed the last note of the leftmost phrase, so it's time to shift
                 else if (time >= currentLeftmostPhrasePair.GetLastNoteTotalEndTime())
                 {
-                    // Skip percussion phrases
-                    do
+                    if (_leftmostPhraseIndex + 1 >= PhrasePairs.Count)
                     {
-                        if (_leftmostPhraseIndex + 1 >= PhrasePairs.Count)
-                        {
-                            return StaticLyricShiftType.FinalPhraseComplete;
-                        }
+                        return StaticLyricShiftType.FinalPhraseComplete;
+                    }
 
-                        _leftmostPhraseIndex++;
-                    } while (PhrasePairs[_leftmostPhraseIndex].IsPercussion);
+                    _leftmostPhraseIndex++;
 
                     var newLeftmostPhrase = PhrasePairs[_leftmostPhraseIndex];
 
@@ -89,7 +85,14 @@ namespace YARG.Gameplay.Player
 
             public StaticPhraseTracker(List<VocalPhrasePair> phrasePairs)
             {
-                PhrasePairs = phrasePairs;
+                PhrasePairs = new();
+                foreach (var phrasePair in phrasePairs)
+                {
+                    if (!phrasePair.IsPercussion)
+                    {
+                        PhrasePairs.Add(phrasePair);
+                    }
+                }
             }
 
             public void Reset()
