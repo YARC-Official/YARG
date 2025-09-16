@@ -232,11 +232,8 @@ namespace YARG.Gameplay.Visuals
         {
             if (cam != _renderCamera)
             {
-                Shader.SetGlobalTexture(YargHighwaysAlphaTextureID, Texture2D.whiteTexture);
                 return;
             }
-
-            Shader.SetGlobalTexture(YargHighwaysAlphaTextureID, _highwaysAlphaTexture);
 
             if (_cameras.Count == 0)
             {
