@@ -278,10 +278,6 @@ namespace YARG.Gameplay.Visuals
                 if ((flags & LyricSymbolFlags.JoinWithNext) != 0)
                 {
                     builder.Append(text[0..^1]);
-                    if (text.EndsWith("="))
-                    {
-                        builder.Append("-");
-                    }
                 } else
                 {
                     builder.Append(text);
@@ -292,7 +288,7 @@ namespace YARG.Gameplay.Visuals
                     builder.Append("</i>");
                 }
 
-                if (!isLastLyricOfPhrase && ((flags & LyricSymbolFlags.JoinWithNext) == 0))
+                if (!isLastLyricOfPhrase && (flags & LyricSymbolFlags.JoinWithNext) == 0 && (flags & LyricSymbolFlags.HyphenateWithNext) == 0)
                 {
                     builder.Append(" ");
                 }
