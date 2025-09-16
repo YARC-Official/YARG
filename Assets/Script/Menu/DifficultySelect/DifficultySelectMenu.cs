@@ -158,6 +158,7 @@ namespace YARG.Menu.DifficultySelect
             // Reset content
             _navGroup.ClearNavigatables();
             _container.DestroyChildren();
+            StatsManager.Instance.UpdateActivePlayers();
 
             // Create the menu
             switch (_menuState)
@@ -323,9 +324,6 @@ namespace YARG.Menu.DifficultySelect
 
                     _menuState = State.Main;
                     UpdateForPlayer();
-
-                    // Update the instrument icons on the Status Bar (if enabled)
-                    StatsManager.Instance.UpdateActivePlayers();
                 });
             }
         }

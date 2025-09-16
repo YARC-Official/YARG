@@ -44,7 +44,7 @@ namespace YARG.Gameplay.HUD
             var profile = player.Profile;
             _playerName.text = profile.Name;
 
-            var spriteName = GetSpriteName(profile.CurrentInstrument, profile.HarmonyIndex);
+            var spriteName = player.GetInstrumentSprite();
             _instrumentIcon.sprite = Addressables
                 .LoadAssetAsync<Sprite>(spriteName)
                 .WaitForCompletion();
@@ -61,39 +61,13 @@ namespace YARG.Gameplay.HUD
 
             var textureNeedle = $"VocalNeedleTexture/{needleId}";
             _needleIcon.texture = Addressables.LoadAssetAsync<Texture2D>(textureNeedle).WaitForCompletion();
-            _instrumentIcon.color = GetHarmonyColor(player);
+            _instrumentIcon.color = player.GetHarmonyColor();
             ShowPlayer(player);
         }
 
         private bool ShouldShowPlayer()
         {
             return !GameManager.IsPractice && SettingsManager.Settings.ShowPlayerNameWhenStartingSong.Value;
-        }
-
-        private string GetSpriteName(Instrument currentInstrument, byte harmonyIndex)
-        {
-            if (currentInstrument == Instrument.Harmony)
-            {
-                return $"HarmonyVocalsIcons[{harmonyIndex + 1}]";
-            }
-
-            return $"InstrumentIcons[{currentInstrument.ToResourceName()}]";
-        }
-
-        private Color GetHarmonyColor(YargPlayer player)
-        {
-            if (player.Profile.CurrentInstrument != Instrument.Harmony)
-            {
-                return Color.white;
-            }
-
-            if (player.Profile.HarmonyIndex >= VocalTrack.Colors.Length)
-            {
-                YargLogger.LogWarning("PlayerNameDisplay", $"Harmony index {player.Profile.HarmonyIndex} is out of bounds.");
-                return Color.white;
-            }
-
-            return VocalTrack.Colors[player.Profile.HarmonyIndex];
         }
 
         private IEnumerator FadeoutCoroutine()
