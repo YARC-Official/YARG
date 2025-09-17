@@ -23,7 +23,7 @@ namespace YARG.Input
                     AddBinding(ProKeysAction.BlueKey, keyboard.key18);
                     AddBinding(ProKeysAction.OrangeKey, keyboard.key20);
 
-                    AddBinding(ProKeysAction.GreenKey, keyboard.key24);
+                    AddBinding(ProKeysAction.GreenKey, keyboard.key25);
 
                     AddBinding(ProKeysAction.StarPower, keyboard.overdrive);
                     AddBinding(ProKeysAction.StarPower, keyboard.selectButton);
@@ -70,6 +70,30 @@ namespace YARG.Input
 
                     AddBinding(ProKeysAction.TouchEffects, keyboard.touchStrip);
                     AddBinding(ProKeysAction.TouchEffects, keyboard.analogPedal);
+
+                    // 5LK-specific bindings
+
+                    // Lower octave
+                    AddBinding(ProKeysAction.GreenKey, keyboard.key1);
+                    AddBinding(ProKeysAction.RedKey, keyboard.key3);
+                    AddBinding(ProKeysAction.YellowKey, keyboard.key5);
+                    AddBinding(ProKeysAction.BlueKey, keyboard.key6);
+                    AddBinding(ProKeysAction.OrangeKey, keyboard.key8);
+                    AddBinding(ProKeysAction.OpenNote, keyboard.key10);
+
+                    // Middle octave
+                    AddBinding(ProKeysAction.OpenNote, keyboard.key12);
+                    AddBinding(ProKeysAction.GreenKey, keyboard.key13);
+                    AddBinding(ProKeysAction.RedKey, keyboard.key15);
+                    AddBinding(ProKeysAction.YellowKey, keyboard.key17);
+                    AddBinding(ProKeysAction.BlueKey, keyboard.key18);
+                    AddBinding(ProKeysAction.OrangeKey, keyboard.key20);
+                    AddBinding(ProKeysAction.OpenNote, keyboard.key22);
+
+                    // Upper part-of-an-octave
+                    AddBinding(ProKeysAction.OpenNote, keyboard.key24);
+                    AddBinding(ProKeysAction.GreenKey, keyboard.key25);
+
                     return true;
 
                 default:
