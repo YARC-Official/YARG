@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -434,7 +434,7 @@ namespace YARG.Gameplay
             try
             {
                 _isReplaySaved = false;
-                replayInfo = SaveReplay(InputTime, ScoreContainer.ScoreReplayDirectory);
+                replayInfo = SaveReplay(_songRunner.InputTime, ScoreContainer.ScoreReplayDirectory);
             }
             catch (Exception e)
             {
