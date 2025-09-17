@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -191,7 +191,7 @@ namespace YARG.Gameplay.Player
             HitWindow = EngineParams.HitWindow;
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Player.Profile.HarmonyIndex, _chart);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Player.Profile.HarmonyIndex, _chart, Player.RockMeterPreset);
 
             engine.OnStarPowerPhraseHit += _ => OnStarPowerPhraseHit();
             engine.OnStarPowerStatus += OnStarPowerStatus;

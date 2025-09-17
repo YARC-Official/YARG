@@ -127,6 +127,7 @@ namespace YARG.Player
             _players.Add(player);
             _playersByProfile.Add(profile, player);
             ActiveProfilesChanged();
+            player.RefreshPresets();
             profile.ClaimProfile();
             return player;
         }

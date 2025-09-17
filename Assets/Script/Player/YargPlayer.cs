@@ -25,11 +25,12 @@ namespace YARG.Player
         public bool InputsEnabled { get; private set; }
         public ProfileBindings Bindings { get; private set; }
 
-        public EnginePreset  EnginePreset  { get; private set; }
-        public ThemePreset   ThemePreset   { get; private set; }
-        public ColorProfile  ColorProfile  { get; private set; }
-        public CameraPreset  CameraPreset  { get; private set; }
-        public HighwayPreset HighwayPreset { get; private set; }
+        public EnginePreset    EnginePreset    { get; private set; }
+        public ThemePreset     ThemePreset     { get; private set; }
+        public ColorProfile    ColorProfile    { get; private set; }
+        public CameraPreset    CameraPreset    { get; private set; }
+        public HighwayPreset   HighwayPreset   { get; private set; }
+        public RockMeterPreset RockMeterPreset { get; private set; }
 
         public bool IsReplay { get; private set; }
         public int ReplayIndex = -1;
@@ -70,6 +71,9 @@ namespace YARG.Player
 
             HighwayPreset = CustomContentManager.HighwayPresets.GetPresetById(Profile.HighwayPreset)
                 ?? HighwayPreset.Default;
+
+            RockMeterPreset = CustomContentManager.RockMeterPresets.GetPresetById(Profile.RockMeterPreset) ??
+                YARG.Core.Game.RockMeterPreset.Normal;
         }
 
         public void SwapToProfile(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
@@ -100,14 +104,23 @@ namespace YARG.Player
         {
             EnginePreset = CustomContentManager.EnginePresets.GetPresetById(Profile.EnginePreset)
                 ?? EnginePreset.Default;
+            Profile.EnginePreset = EnginePreset.Id;
             ThemePreset = CustomContentManager.ThemePresets.GetPresetById(Profile.ThemePreset)
                 ?? ThemePreset.Default;
+            Profile.ThemePreset = ThemePreset.Id;
             ColorProfile = CustomContentManager.ColorProfiles.GetPresetById(Profile.ColorProfile)
                 ?? ColorProfile.Default;
+            Profile.ColorProfile = ColorProfile.Id;
             CameraPreset = CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
                 ?? CameraPreset.Default;
+            Profile.CameraPreset = CameraPreset.Id;
             HighwayPreset = CustomContentManager.HighwayPresets.GetPresetById(Profile.HighwayPreset)
                 ?? HighwayPreset.Default;
+            Profile.HighwayPreset = HighwayPreset.Id;
+            RockMeterPreset = CustomContentManager.RockMeterPresets.GetPresetById(Profile.RockMeterPreset) ??
+                RockMeterPreset.Normal;
+            Profile.RockMeterPreset = RockMeterPreset.Id;
+
         }
 
         public void EnableInputs()
