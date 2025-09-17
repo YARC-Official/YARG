@@ -1628,7 +1628,7 @@
                         "Drums": "Drums (Four- and Five-Lane)",
                         "FiveFretGuitar": "Five-Fret Guitar",
                         "Vocals": "Vocals",
-                        "Keys": "Keys (Pro and Five-Lane)"
+                        "ProKeys": "Keys (Pro and Five-Lane)"
                     }
                 },
                 "AntiGhosting": {
