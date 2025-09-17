@@ -304,6 +304,11 @@ namespace YARG.Menu.ProfileList
         public void ChangeGameMode()
         {
             _profile.GameMode = _gameModesByIndex[_gameModeDropdown.value];
+
+            // Set the player's instrument to the foremost of their new game mode's possible instruments. This prevents scenarios like
+            // a brand new Keys profile defaulting to 5L Lead Guitar instead of Pro Keys
+            _profile.CurrentInstrument = _profile.GameMode.PossibleInstruments()[0];
+
             _profileView.UpdateDisplay(_profile);
             // Update sidebar when game mode changes so the correct settings are displayed
             UpdateSidebar(_profile, _profileView);

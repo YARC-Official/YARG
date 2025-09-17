@@ -1,17 +1,17 @@
 ﻿using UnityEngine;
-using YARG.Core.Engine;
+using YARG.Assets.Script.Gameplay.Player;
 using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class GuitarShiftIndicatorElement : TrackElement<FiveFretGuitarPlayer>
+    public class FiveLaneKeysShiftIndicatorElement : TrackElement<FiveLaneKeysPlayer>
     {
         // TODO: These constants will only work for a five fret track, so work will be required to
         //  make it work with six fret if that ever becomes a thing
-        private const float                              WIDTH_NUMERATOR                  = 2f;
-        private const float                              WIDTH_DENOMINATOR                = 5f;
-        private const float                              SHIFT_INDICATOR_DEFAULT_POSITION = 1f;
-        public        FiveFretGuitarPlayer.RangeShiftIndicator RangeShiftIndicator;
+        private const float WIDTH_NUMERATOR = 2f;
+        private const float WIDTH_DENOMINATOR = 5f;
+        private const float SHIFT_INDICATOR_DEFAULT_POSITION = 1f;
+        public FiveFretGuitarPlayer.RangeShiftIndicator RangeShiftIndicator;
 
         public override double ElementTime => RangeShiftIndicator.Time;
 

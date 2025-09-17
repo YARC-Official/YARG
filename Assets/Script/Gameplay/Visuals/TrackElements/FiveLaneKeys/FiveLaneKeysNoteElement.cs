@@ -1,26 +1,30 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
+using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Chart;
-using YARG.Core.Engine.Keys;
+using YARG.Core.Engine;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
-    public sealed class ProKeysNoteElement : NoteElement<ProKeysNote, ProKeysPlayer>
+    public sealed class FiveLaneKeysNoteElement : NoteElement<GuitarNote, FiveLaneKeysPlayer>
     {
         private enum NoteType
         {
-            White     = 0,
-            Black     = 1,
-            Glissando = 2,
-
+            Normal = 0,
+            Open = 1,
             Count
         }
 
         [Space]
         [SerializeField]
+        private SustainLine _normalSustainLine;
+        [SerializeField]
+        private SustainLine _openSustainLine;
+
         private SustainLine _sustainLine;
 
         // Make sure the remove it later if it has a sustain
@@ -31,9 +35,9 @@ namespace YARG.Gameplay.Visuals
             Dictionary<ThemeNoteType, GameObject> starPowerModels)
         {
             CreateNoteGroupArrays((int) NoteType.Count);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.White,     ThemeNoteType.White);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Black,     ThemeNoteType.Black);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Glissando, ThemeNoteType.Glissando);
+
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Normal, ThemeNoteType.Normal);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Open,     ThemeNoteType.Open);
         }
 
         protected override void InitializeElement()
@@ -42,30 +46,44 @@ namespace YARG.Gameplay.Visuals
 
             var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
 
-            // Set the position
-            transform.localPosition = Vector3.zero;
-            UpdateXPosition();
-
-            // Get the note type
-            NoteType noteType;
-            if (ProKeysUtilities.IsWhiteKey(NoteRef.Key % 12))
+            if (NoteRef.Fret != (int) FiveFretGuitarFret.Open)
             {
-                if ((NoteRef.ProKeysFlags & ProKeysNoteFlags.Glissando) != 0)
+                // Deal with non-open notes
+
+                // Set the position
+                transform.localPosition = new Vector3(GetElementX(NoteRef.Fret, 5), 0f, 0f) * LeftyFlipMultiplier;
+
+                // Get which note model to use
+                NoteGroup = NoteRef.Type switch
                 {
-                    noteType = NoteType.Glissando;
-                }
-                else
-                {
-                    noteType = NoteType.White;
-                }
+                    GuitarNoteType.Strum or
+                    GuitarNoteType.Hopo  or 
+                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.Normal],
+                    _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
+                };
+
+                _sustainLine = _normalSustainLine;
             }
             else
             {
-                noteType = NoteType.Black;
+                // Deal with open notes
+
+                // Set the position
+                transform.localPosition = Vector3.zero;
+
+                // Get which note model to use
+                NoteGroup = NoteRef.Type switch
+                {
+                    GuitarNoteType.Strum or
+                    GuitarNoteType.Hopo or
+                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.Open],
+                    _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
+                };
+
+                _sustainLine = _openSustainLine;
             }
 
-            // Initialize the note group
-            NoteGroup = noteGroups[(int) noteType];
+            // Show and set material properties
             NoteGroup.SetActive(true);
             NoteGroup.Initialize();
 
@@ -96,20 +114,6 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public override void MissNote()
-        {
-            base.MissNote();
-
-            UpdateColor();
-        }
-
-        public void UpdateXPosition()
-        {
-            var t = transform;
-            t.localPosition = t.localPosition
-                .WithX(Player.GetNoteX(NoteRef.Key));
-        }
-
         protected override void UpdateElement()
         {
             base.UpdateElement();
@@ -138,35 +142,29 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateColor()
         {
-            var colors = Player.Player.ColorProfile.ProKeys;
+            var colors = Player.Player.ColorProfile.FiveFretGuitar;
 
-            var isBlackKey = ProKeysUtilities.IsBlackKey(NoteRef.Key % 12);
-
-            var colorNoStarPower = isBlackKey
-                ? colors.BlackNote.ToUnityColor()
-                : colors.WhiteNote.ToUnityColor();
-
-            var colorStarPower = isBlackKey
-                ? colors.BlackNoteStarPower.ToUnityColor()
-                : colors.WhiteNoteStarPower.ToUnityColor();
-
+            // Get which note color to use
+            var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
             var color = NoteRef.IsStarPower
-                ? colorStarPower
+                ? colors.GetNoteStarPowerColor(NoteRef.Fret)
                 : colorNoStarPower;
 
-            NoteGroup.SetColorWithEmission(color, colorNoStarPower);
-            NoteGroup.SetMetalColor(colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor());
+            // Set the note color
+            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
 
+            // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;
 
-            _sustainLine.SetState(SustainState, colorNoStarPower);
+            _sustainLine.SetState(SustainState, color.ToUnityColor());
         }
 
         protected override void HideElement()
         {
             HideNotes();
 
-            _sustainLine.gameObject.SetActive(false);
+            _normalSustainLine.gameObject.SetActive(false);
+            _openSustainLine.gameObject.SetActive(false);
         }
     }
 }

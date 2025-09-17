@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Audio;
 using YARG.Core.Extensions;
 using YARG.Gameplay.Player;
@@ -327,7 +328,8 @@ namespace YARG.Gameplay
 
             string playerType = player switch
             {
-                FiveFretPlayer => "Five Fret Guitar",
+                FiveFretGuitarPlayer => "Five Fret Guitar",
+                FiveLaneKeysPlayer => "Five Lane Keys",
                 DrumsPlayer => "Drums",
                 VocalsPlayer => "Vocals",
                 ProKeysPlayer => "Pro Keys",
@@ -340,7 +342,7 @@ namespace YARG.Gameplay
             {
                 switch (player)
                 {
-                    case FiveFretPlayer fiveFretPlayer:
+                    case FiveFretGuitarPlayer fiveFretPlayer:
                     {
                         using var text = ZString.CreateStringBuilder(true);
 
@@ -436,6 +438,43 @@ namespace YARG.Gameplay
                         }
 
                         var stats = proKeysPlayer.Engine.EngineStats;
+                        text.AppendLine("\nStats:");
+                        text.AppendFormat("- Overhits: {0}\n", stats.Overhits);
+
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                        break;
+                    }
+
+                    case FiveLaneKeysPlayer fiveLaneKeysPlayer:
+                    {
+                        using var text = ZString.CreateStringBuilder(true);
+
+                        var engine = fiveLaneKeysPlayer.Engine;
+                        text.AppendLine("State:");
+                        text.AppendFormat("- Key mask: 0x{0:X8}\n", engine.KeyMask);
+                        text.AppendFormat("- Previous key mask: 0x{0:X8}\n", engine.PreviousKeyMask);
+                        text.AppendLine();
+                        text.AppendFormat("- Chord stagger timer: {0}\n", engine.GetChordStaggerTimer());
+                        text.AppendFormat("- Fat finger timer: {0}\n", engine.GetFatFingerTimer());
+
+                        // Don't strip final newline here, for spacing with the toggle below
+                        GUILayout.Label(text.ToString());
+                        text.Clear();
+
+                        _debugProKeysPressTimesToggle = GUILayout.Toggle(_debugProKeysPressTimesToggle, "Key press times:");
+                        if (_debugProKeysPressTimesToggle)
+                        {
+                            var pressTimes = engine.GetKeyPressTimes();
+                            for (int i = 0; i < pressTimes.Length; i++)
+                            {
+                                text.AppendFormat("- {0}: {1:0.000000}\n", i + 1, pressTimes[i]);
+                            }
+
+                            GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                            text.Clear();
+                        }
+
+                        var stats = fiveLaneKeysPlayer.Engine.EngineStats;
                         text.AppendLine("\nStats:");
                         text.AppendFormat("- Overhits: {0}\n", stats.Overhits);
 

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 861361446070616035}
   - component: {fileID: 790704540839618363}
   m_Layer: 6
-  m_Name: FiveFretNote
+  m_Name: FiveFretGuitarNote
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

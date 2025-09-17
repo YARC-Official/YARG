@@ -4,21 +4,18 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
-using YARG.Audio.BASS;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
-using YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.Keys;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
-using YARG.Gameplay;
 using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
@@ -26,7 +23,6 @@ using YARG.Menu.Persistent;
 using YARG.Scores;
 using YARG.Song;
 using YARG.Playlists;
-using YARG.Settings;
 using YARG.Helpers.Extensions;
 using YARG.Core.Engine;
 
@@ -64,6 +60,8 @@ namespace YARG.Menu.ScoreScreen
         private VocalsScoreCard _vocalsCardPrefab;
         [SerializeField]
         private ProKeysScoreCard _proKeysCardPrefab;
+        [SerializeField]
+        private ProKeysScoreCard _fiveLaneKeysCardPrefab;
 
         private bool _analyzingReplay;
 
@@ -134,7 +132,6 @@ namespace YARG.Menu.ScoreScreen
 
             //set restarting state
             _restartingSong = false;
-
         }
 
         private void OnDisable()
@@ -171,7 +168,7 @@ namespace YARG.Menu.ScoreScreen
 
                 IScoreCard<BaseStats> card = null;
 
-                switch (score.Player.Profile.CurrentInstrument.ToGameMode())
+                switch (score.Player.Profile.GameMode)
                 {
                     case GameMode.FiveFretGuitar:
                     {
@@ -194,13 +191,21 @@ namespace YARG.Menu.ScoreScreen
                     }
                     case GameMode.ProKeys:
                     {
-                        card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                        ((ScoreCard<ProKeysStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
+                        if (score.Player.Profile.CurrentInstrument is Instrument.ProKeys)
+                        {
+                            card = Instantiate(_proKeysCardPrefab, _cardContainer);
+                        }
+                        else
+                        {
+                            card = Instantiate(_fiveLaneKeysCardPrefab, _cardContainer);
+                        }
+                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player,
+                            score.Stats as KeysStats);
                         break;
                     }
                 }
 
-                Debug.Assert(card != null, $"ScoreCard not initialized for GameMode: {score.Player.Profile.CurrentInstrument.ToGameMode()}");
+                Debug.Assert(card != null, $"ScoreCard not initialized for GameMode: {score.Player.Profile.GameMode}");
                 card.SetCardContents();
                 _scoreCards.Add(card);
             }

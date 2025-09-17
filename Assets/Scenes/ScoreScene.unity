@@ -1888,6 +1888,8 @@ MonoBehaviour:
     type: 3}
   _proKeysCardPrefab: {fileID: 7609862917790866568, guid: f5b2b04f2ac03bf4687dfc0f22f83212,
     type: 3}
+  _fiveLaneKeysCardPrefab: {fileID: 7609862917790866568, guid: 9edc458410d0341468ddff2aa7952f7d,
+    type: 3}
 --- !u!114 &1731608351534815137
 MonoBehaviour:
   m_ObjectHideFlags: 0
