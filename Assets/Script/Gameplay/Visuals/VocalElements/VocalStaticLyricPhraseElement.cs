@@ -73,7 +73,13 @@ namespace YARG.Gameplay.Visuals
 
                     var mergedLyric = mergedPhrase.Lyrics[mergedLyricIdx++];
                     var probableMergedLyricEnd = GetProbableNoteEndOfLyric(mergedPhrase, mergedLyric);
-                    MakeStaticLyricSyllable(mergedLyric.Text, mergedLyric.Time, probableMergedLyricEnd, mergedLyric.Flags, isLastLyricOfMergedPhrase);
+
+                    if (probableMergedLyricEnd is null)
+                    {
+                        continue;
+                    }
+
+                    MakeStaticLyricSyllable(mergedLyric.Text, mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, isLastLyricOfMergedPhrase);
                 }
             }
 
@@ -82,6 +88,11 @@ namespace YARG.Gameplay.Visuals
                 {
                     var mainLyric = mainPhrase.Lyrics[mainLyricIdx];
                     var probableMainLyricEnd = GetProbableNoteEndOfLyric(mainPhrase, mainLyric);
+                    if (probableMainLyricEnd is null)
+                    {
+                        continue;
+                    }
+
                     var isLastLyricOfMainPhrase = mainLyricIdx == mainPhrase.Lyrics.Count - 1;
 
                     if (mergedPhrase is not null)
@@ -96,9 +107,13 @@ namespace YARG.Gameplay.Visuals
 
                             var mergedLyric = mergedPhrase.Lyrics[mergedLyricIdx++];
                             var probableMergedLyricEnd = GetProbableNoteEndOfLyric(mergedPhrase, mergedLyric);
+                            if (probableMergedLyricEnd is null)
+                            {
+                                continue;
+                            }
 
                             // isLastLyricOfPhrase is definitely false, because we still have at least one main phrase lyric to add
-                            MakeStaticLyricSyllable(mergedLyric.Text, mergedLyric.Time, probableMergedLyricEnd, mergedLyric.Flags, false);
+                            MakeStaticLyricSyllable(mergedLyric.Text, mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, false);
                         }
                     }
 
@@ -113,7 +128,7 @@ namespace YARG.Gameplay.Visuals
                         mainLyricIsLastLyricOfEntirePhrase = false;
                     }
 
-                    MakeStaticLyricSyllable(mainLyric.Text, mainLyric.Time, probableMainLyricEnd, mainLyric.Flags, mainLyricIsLastLyricOfEntirePhrase);
+                    MakeStaticLyricSyllable(mainLyric.Text, mainLyric.Time, probableMainLyricEnd.Value, mainLyric.Flags, mainLyricIsLastLyricOfEntirePhrase);
 
                     // If there's a simultaneous syllable in the merged part...
                     if (mergedPhrase is not null && mergedLyricIdx < mergedPhrase.Lyrics.Count && mergedPhrase.Lyrics[mergedLyricIdx].Time == mainLyric.Time)
@@ -124,16 +139,20 @@ namespace YARG.Gameplay.Visuals
                         if (simultaneousMergedLyric.Text != mainLyric.Text)
                         {
                             var probableSimultaneousMergedLyricEnd = GetProbableNoteEndOfLyric(mergedPhrase, simultaneousMergedLyric);
-                            var isLastLyricOfMergedPhrase = mergedLyricIdx == mergedPhrase.Lyrics.Count - 1;
 
-                            // ...add it after the main syllable
-                            MakeStaticLyricSyllable(
-                                simultaneousMergedLyric.Text,
-                                simultaneousMergedLyric.Time,
-                                probableSimultaneousMergedLyricEnd,
-                                simultaneousMergedLyric.Flags,
-                                mainLyricIsLastLyricOfEntirePhrase && mergedLyricIdx == mergedPhrase.Lyrics.Count - 1
-                            );
+                            if (probableSimultaneousMergedLyricEnd is not null)
+                            {
+                                var isLastLyricOfMergedPhrase = mergedLyricIdx == mergedPhrase.Lyrics.Count - 1;
+
+                                // ...add it after the main syllable
+                                MakeStaticLyricSyllable(
+                                    simultaneousMergedLyric.Text,
+                                    simultaneousMergedLyric.Time,
+                                    probableSimultaneousMergedLyricEnd.Value,
+                                    simultaneousMergedLyric.Flags,
+                                    mainLyricIsLastLyricOfEntirePhrase && mergedLyricIdx == mergedPhrase.Lyrics.Count - 1
+                                );
+                            }
                         }
                     }
                 }
@@ -145,8 +164,13 @@ namespace YARG.Gameplay.Visuals
                     {
                         var mergedLyric = mergedPhrase.Lyrics[mergedLyricIdx++];
                         var probableMergedLyricEnd = GetProbableNoteEndOfLyric(mergedPhrase, mergedLyric);
+                        if (probableMergedLyricEnd is null)
+                        {
+                            continue;
+                        }
+
                         var isLastLyricOfMergedPhrase = mergedLyricIdx == mergedPhrase.Lyrics.Count - 1;
-                        MakeStaticLyricSyllable(mergedLyric.Text, mergedLyric.Time, probableMergedLyricEnd, mergedLyric.Flags, mergedLyricIdx == mergedPhrase.Lyrics.Count - 1);
+                        MakeStaticLyricSyllable(mergedLyric.Text, mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, mergedLyricIdx == mergedPhrase.Lyrics.Count - 1);
                     }
                 }
             }
@@ -218,10 +242,10 @@ namespace YARG.Gameplay.Visuals
             _builder.Append(CLOSE_COLOR_TAG);
         }
 
-        private static double GetProbableNoteEndOfLyric(VocalsPhrase phrase, LyricEvent lyric)
+        private static double? GetProbableNoteEndOfLyric(VocalsPhrase phrase, LyricEvent lyric)
         {
             return phrase.PhraseParentNote.ChildNotes
-                .FirstOrDefault(note => note.Tick == lyric.Tick).TotalTimeEnd;
+                .FirstOrDefault(note => note.Tick == lyric.Tick)?.TotalTimeEnd;
         }
 
         private void MakeStaticLyricSyllable(string text, double time, double timeEnd, LyricSymbolFlags flags, bool isLastLyricOfPhrase)
