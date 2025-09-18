@@ -194,7 +194,8 @@ namespace YARG.Gameplay.Visuals
             if (_highwaysAlphaTexture == null)
             {
                 // For perf
-                float scaling = 0.5f;
+                // float scaling = 0.5f;
+                float scaling = 1.0f;
                 var descriptor = new RenderTextureDescriptor(
                     (int)(Screen.width * scaling), (int)(Screen.height * scaling),
                     RenderTextureFormat.RFloat);
@@ -239,6 +240,9 @@ namespace YARG.Gameplay.Visuals
             {
                 return;
             }
+
+            // TODO: This should probably be done when track position changes rather than every frame
+            RecalculateFadeParams();
 
             if (_highwaysOutputTexture != null)
             {

@@ -26,11 +26,13 @@ namespace YARG.Gameplay.Visuals
         private const float PUNCH_ANIM_DURATION = 0.25f;
         private const float PUNCH_DISTANCE      = 0.03f;
 
-        private const float SCOOP_ANIM_DURATION = 0.125f;
-        private const float SCOOP_DOWN_DISTANCE = 2f;
-        private const float SCOOP_UP_DISTANCE   = 0.5f;
+        private const float SCOOP_ANIM_DURATION = 0.0833f;
+        private const float SCOOP_DOWN_DISTANCE = 1f;
+        private const float SCOOP_UP_DISTANCE   = 0.25f;
 
         private float _currentBounce;
+
+        private bool _highwayRaised = false;
 
         private GameManager  _gameManager;
         private CameraPreset _preset;
@@ -73,7 +75,13 @@ namespace YARG.Gameplay.Visuals
             // Animate the highway raise
             if (_gameManager != null && !_gameManager.IsPractice)
             {
+                if (_highwayRaised)
+                {
+                    return;
+                }
+
                 _coroutine = StartCoroutine(RaiseHighway(_preset, true));
+                _highwayRaised = true;
             }
         }
 
@@ -100,7 +108,11 @@ namespace YARG.Gameplay.Visuals
 
         public void Lower(bool isGameplayEnd)
         {
-            _coroutine = StartCoroutine(LowerHighway(_preset, isGameplayEnd));
+            if (_highwayRaised)
+            {
+                _coroutine = StartCoroutine(LowerHighway(_preset, isGameplayEnd));
+                _highwayRaised = false;
+            }
         }
 
         public void Punch()
@@ -154,10 +166,11 @@ namespace YARG.Gameplay.Visuals
                 .PrependInterval(delay)
                 .Append(transform
                     .DORotate(new Vector3().WithX(preset.Rotation + ANIM_PEAK_ROTATION), ANIM_PEAK_TO_VALLEY_INTERVAL)
-                    .SetEase(Ease.InOutSine))
+                .SetEase(Ease.InOutSine))
                 .Append(transform
                     .DORotate(new Vector3().WithX(preset.Rotation + ANIM_INIT_ROTATION), ANIM_BASE_TO_PEAK_INTERVAL)
-                    .SetEase(Ease.InCirc));
+                    .SetEase(Ease.InCirc))
+                .SetUpdate(true);
         }
 
         private IEnumerator PunchHighway(CameraPreset preset)
