@@ -278,6 +278,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             bool isSelectingPlaylist = MenuState == MenuState.PlaylistSelect;
+            bool setListNotEmpty = ShowPlaylist.Count > 0;
             NavigationScheme.Entry leftEntry = default;
             NavigationScheme.Entry rightEntry = default;
 
@@ -327,7 +328,7 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back, hide: true),
                 new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToSet",
                     AddToPlaylist),
-                isSelectingPlaylist ?
+                setListNotEmpty ?
                     new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.StartSet", StartSetlist) :
                     new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.PlayShow", EnterShowMode),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
