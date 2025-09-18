@@ -610,7 +610,10 @@ namespace YARG.Venue.Characters
             Pick,
             Finger,
             IdleIntense,
-            PlayingSolo
+            PlayingSolo,
+            // Vocal Animations
+            MouthOpen,
+            MouthClose
         }
 
         private AnimationStateType? GetAnimationStateForHandMap(HandMap.HandMapType handMap)

@@ -20,7 +20,7 @@ namespace YARG.Venue.Characters
         private readonly Dictionary<VenueCharacter.CharacterType, VenueCharacter> _characters = new();
 
         // Ugh, the different note types ruin me again
-        private List<VocalsPhrase> _vocalNotes;
+        private List<VocalNote>    _vocalNotes;
         private List<DrumNote>     _drumNotes;
         private List<GuitarNote>   _guitarNotes;
         private List<GuitarNote>   _bassNotes;
@@ -83,7 +83,7 @@ namespace YARG.Venue.Characters
             var bassId = chart.FiveFretBass.GetDifficulty(Difficulty.Expert);
             var keysId = chart.Keys.GetDifficulty(Difficulty.Expert);
             var proKeysId = chart.ProKeys.GetDifficulty(Difficulty.Expert);
-            var vocalsId = chart.Vocals.Parts[0];
+            var vocalsId = chart.Vocals.Parts[0].CloneAsInstrumentDifficulty();
             var drumsId = chart.ProDrums.GetDifficulty(Difficulty.Expert);
 
             InstrumentTrack<GuitarNote> guitarTrack = chart.GetFiveFretTrack(Instrument.FiveFretGuitar);
@@ -97,8 +97,22 @@ namespace YARG.Venue.Characters
             _bassNotes = bassId.Notes;
             _keysNotes = keysId.Notes;
             _proKeysNotes = proKeysId.Notes;
-            _vocalNotes = vocalsId.NotePhrases;
             _drumNotes = drumsId.Notes;
+
+            // extract individual vocal notes from phrases
+            _vocalNotes = new List<VocalNote>();
+
+            foreach (var phraseNote in vocalsId.Notes)
+            {
+                var phraseClone = phraseNote.Clone();
+                phraseClone.RemovePercussionChildNotes();
+
+                foreach (var note in phraseClone.ChildNotes)
+                {
+                    _vocalNotes.Add(note);
+                }
+            }
+
 
             _guitarAnimationEvents = guitarTrack.Animations.AnimationEvents;
             _bassAnimationEvents = bassTrack.Animations.AnimationEvents;
@@ -327,6 +341,20 @@ namespace YARG.Venue.Characters
                 _vocalTriggerIndex++;
 
                 character.OnGuitarAnimation(mapEvent);
+            }
+
+            while (_vocalNotes.Count > 0 && _vocalNoteIndex < _vocalNotes.Count && _vocalNotes[_vocalNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
+            {
+                if (_vocalNoteIndex >= _vocalNotes.Count)
+                {
+                    break;
+                }
+
+                var note = _vocalNotes[_vocalNoteIndex];
+                _vocalNoteIndex++;
+
+                // Notify the character
+                character.OnNote(note);
             }
         }
 
