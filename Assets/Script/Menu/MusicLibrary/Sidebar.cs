@@ -7,9 +7,11 @@ using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers.Extensions;
+using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Song;
 
@@ -36,6 +38,29 @@ namespace YARG.Menu.MusicLibrary
         private TextMeshProUGUI _length;
         [SerializeField]
         private RawImage _albumCover;
+        [SerializeField]
+        private RawImage _albumCoverSmall;
+        [SerializeField]
+        private Image _sourceBackground;
+        [SerializeField]
+        private Image _charterBackground;
+        [SerializeField]
+        private Image _bandDifficultyBar;
+        [SerializeField]
+        private TextMeshProUGUI _bandDifficultyLabel;
+        [SerializeField]
+        private TextMeshProUGUI _songRatingLabel;
+        [SerializeField]
+        private HelpBarButton _playButton;
+
+        [Space]
+        [SerializeField]
+        private HoverButton _favoriteButton;
+        [SerializeField]
+        private Image _favoriteButtonImage;
+
+        [SerializeField]
+        private GameObject _sidebarContents;
 
         [FormerlySerializedAs("difficultyRingPrefab")]
         [Space]
@@ -48,6 +73,13 @@ namespace YARG.Menu.MusicLibrary
 
         private MusicLibraryMenu _musicLibraryMenu;
         private SongSearchingField _songSearchingField;
+
+        private readonly Color _bandDifficultyGray = new Color(20 / 255f, 20 / 255f, 20 / 255f, 1f);
+        private readonly Color _bandDifficultyRed  = new Color(251 / 255f, 68 / 255f, 63 / 255f, 1);
+        private readonly Color _bandDifficultyBlue = new Color(46 / 255f, 217 / 255f, 255 / 255f, 1);
+
+        private readonly Color _unfilledFavoritesHeart = new Color(60 / 255f, 0 / 255f, 11 / 255f);
+        private readonly Color _filledFavoritesHeart = new Color(255 / 255f, 89 / 255f, 119 / 255f);
 
         public void Initialize(MusicLibraryMenu musicLibraryMenu, SongSearchingField songSearchingField)
         {
@@ -65,6 +97,24 @@ namespace YARG.Menu.MusicLibrary
                 var go = Instantiate(_difficultyRingPrefab, _difficultyRingsBottomContainer);
                 _difficultyRings.Add(go.GetComponent<DifficultyRing>());
             }
+
+            _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(MenuAction.Green,
+                "Menu.MusicLibrary.Play", () => _musicLibraryMenu.CurrentSelection.PrimaryButtonClick()));
+
+            void FavoriteClick()
+            {
+                _musicLibraryMenu.CurrentSelection.FavoriteClick();
+                _musicLibraryMenu.RefreshViewsObjects();
+                RefreshFavoriteState();
+            }
+
+            _favoriteButton.Initialize(FavoriteClick);
+        }
+
+        public void RefreshFavoriteState()
+        {
+            _favoriteButtonImage.color = _musicLibraryMenu.CurrentSelection.GetFavoriteInfo().IsFavorited ?
+                _filledFavoritesHeart : _unfilledFavoritesHeart;
         }
 
         public void UpdateSidebar()
@@ -101,6 +151,8 @@ namespace YARG.Menu.MusicLibrary
                     ClearSidebar();
                     break;
             }
+
+            RefreshFavoriteState();
         }
 
         private void ShowCategoryInfo(CategoryViewType categoryViewType)
@@ -115,7 +167,13 @@ namespace YARG.Menu.MusicLibrary
             // Hide album art
             _albumCover.texture = null;
             _albumCover.color = Color.clear;
+            _albumCoverSmall.texture = null;
+            _albumCoverSmall.color = Color.clear;
             _album.text = string.Empty;
+
+            _sourceBackground.gameObject.SetActive(false);
+            _charterBackground.gameObject.SetActive(false);
+            _sidebarContents.gameObject.SetActive(false);
 
             _year.text = string.Empty;
             _length.text = string.Empty;
@@ -123,6 +181,7 @@ namespace YARG.Menu.MusicLibrary
             _source.text = string.Empty;
             _charter.text = string.Empty;
             _genre.text = string.Empty;
+            _songRatingLabel.text = string.Empty;
 
             // Hide all difficulty rings
             foreach (var difficultyRing in _difficultyRings)
@@ -138,8 +197,17 @@ namespace YARG.Menu.MusicLibrary
             _album.text = songEntry.Album;
             _source.text = SongSources.SourceToGameName(songEntry.Source);
             _charter.text = songEntry.Charter;
-            _genre.text = songEntry.Genre;
+            _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre);
             _year.text = songEntry.ParsedYear;
+            _songRatingLabel.text = songEntry.SongRating switch
+            {
+                SongRating.Unspecified => "?",
+                SongRating.Family_Friendly => "FF",
+                SongRating.Supervision_Recommended => "SR",
+                SongRating.Mature => "MC",
+                SongRating.No_Rating => "NR",
+                _ => "?",
+            };
 
             // Format and show length
             var time = TimeSpan.FromMilliseconds(songEntry.SongLengthMilliseconds);
@@ -154,8 +222,24 @@ namespace YARG.Menu.MusicLibrary
 
             UpdateDifficulties(songEntry);
 
+            CancellationTokenSource token = new();
+            var icon = SongSources.SourceToIcon(songEntry.Source);
+            token.Token.ThrowIfCancellationRequested();
+
+            if (icon is not null)
+            {
+                _charterBackground.gameObject.SetActive(true);
+                _charterBackground.sprite = icon;
+                _sourceBackground.gameObject.SetActive(true);
+                _sourceBackground.sprite = icon;
+            }
+
+            _sidebarContents.gameObject.SetActive(true);
+
             _cancellationToken = new();
-            _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token);
+            _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token, 0.025f);
+            _cancellationToken = new();
+            _albumCoverSmall.LoadAlbumCover(songEntry, _cancellationToken.Token);
         }
 
         private void UpdateDifficulties(SongEntry entry)
@@ -168,8 +252,8 @@ namespace YARG.Menu.MusicLibrary
 
             /*
 
-                Guitar               ; Bass               ; 4 or 5 lane ; Keys     ; Mic (dependent on mic count)
-                Pro Guitar or Co-op  ; Pro Bass or Rhythm ; True Drums  ; Pro Keys ; Band
+                Guitar               ; Bass               ; 4 or 5 lane ; Keys     ; Vocals
+                Pro Guitar or Co-op  ; Pro Bass or Rhythm ; True Drums  ; Pro Keys ; Harmony (dependent on mic count)
 
             */
 
@@ -184,28 +268,18 @@ namespace YARG.Menu.MusicLibrary
             }
             else
             {
-                _difficultyRings[2].SetInfo("drums", Instrument.FourLaneDrums, entry[Instrument.FourLaneDrums]);
+                if (entry.HasInstrument(Instrument.ProDrums))
+                {
+                    _difficultyRings[2].SetInfo("realDrums", Instrument.ProDrums, entry[Instrument.ProDrums]);
+                }
+                else
+                {
+                    _difficultyRings[2].SetInfo("drums", Instrument.FourLaneDrums, entry[Instrument.FourLaneDrums]);
+                }
             }
 
             _difficultyRings[3].SetInfo("keys", Instrument.Keys, entry[Instrument.Keys]);
-
-            if (entry.HasInstrument(Instrument.Harmony))
-            {
-                _difficultyRings[4].SetInfo(
-                    entry.VocalsCount switch
-                    {
-                        2 => "twoVocals",
-                        >= 3 => "harmVocals",
-                        _ => "vocals"
-                    },
-                    Instrument.Harmony,
-                    entry[Instrument.Harmony]
-                );
-            }
-            else
-            {
-                _difficultyRings[4].SetInfo("vocals", Instrument.Vocals, entry[Instrument.Vocals]);
-            }
+            _difficultyRings[4].SetInfo("vocals", Instrument.Vocals, entry[Instrument.Vocals]);
 
             // Protar or Co-op
             if (entry.HasInstrument(Instrument.ProGuitar_17Fret) || entry.HasInstrument(Instrument.ProGuitar_22Fret))
@@ -243,7 +317,32 @@ namespace YARG.Menu.MusicLibrary
 
             _difficultyRings[7].SetInfo("trueDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
             _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
-            _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
+            _difficultyRings[9].SetInfo(
+                entry.VocalsCount switch
+                {
+                    >= 3 => "harmVocals",
+                    _    => "twoVocals"
+                },
+                Instrument.Harmony,
+                entry[Instrument.Harmony]
+            );
+
+            var intensity = entry[Instrument.Band].Intensity;
+            _bandDifficultyLabel.text = intensity == -1 ? "-" : intensity.ToString();
+            _bandDifficultyBar.fillAmount = intensity < 0 ? 5 : Math.Clamp((float) intensity / 5, 0, 1);
+
+            if (intensity == -1)
+            {
+                _bandDifficultyBar.color = _bandDifficultyGray;
+            }
+            else if (intensity >= 6)
+            {
+                _bandDifficultyBar.color = _bandDifficultyRed;
+            }
+            else
+            {
+                _bandDifficultyBar.color = _bandDifficultyBlue;
+            }
         }
 
         public void PrimaryButtonClick()

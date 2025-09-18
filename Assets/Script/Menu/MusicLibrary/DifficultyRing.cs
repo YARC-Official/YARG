@@ -160,16 +160,13 @@ namespace YARG.Menu.MusicLibrary
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (_active)
+            if (eventData.button == PointerEventData.InputButton.Right)
             {
-                if (eventData.button == PointerEventData.InputButton.Right)
-                {
-                    _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"\"{_intensity}\"");
-                }
-                else if (eventData.button == PointerEventData.InputButton.Left)
-                {
-                    _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"");
-                }
+                _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"\"{_intensity}\"");
+            }
+            else if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"");
             }
         }
     }

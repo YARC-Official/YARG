@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Menu.Data;
 using YARG.Core.Game;
 using YARG.Menu.ListMenu;
 using YARG.Settings;
@@ -14,7 +15,9 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private GameObject _songNameContainer;
         [SerializeField]
-        private TextMeshProUGUI _sideText;
+        private GameObject _instrumentDifficultyViewContainer;
+        [SerializeField]
+        private InstrumentDifficultyView _instrumentDifficultyView;
         [SerializeField]
         private StarView _starView;
 
@@ -43,6 +46,23 @@ namespace YARG.Menu.MusicLibrary
         private GameObject _categoryNameContainer;
         [SerializeField]
         private TextMeshProUGUI _categoryText;
+        [SerializeField]
+        private RectTransform _starsObtainedView;
+        [SerializeField]
+        private TextMeshProUGUI _starsObtainedText;
+        [SerializeField]
+        private TextMeshProUGUI _scoreText;
+
+        [Space]
+        [SerializeField]
+        private Image _trackGradient;
+        [SerializeField]
+        private Image _normalCategoryHeaderGradient;
+        [SerializeField]
+        private GameObject _buttonHeaderBackground;
+
+        [SerializeField]
+        private Image _selectedSourceIconBackground;
 
         [SerializeField]
         private GameObject _starHeaderGroup;
@@ -58,6 +78,8 @@ namespace YARG.Menu.MusicLibrary
         {
             base.Show(selected, viewType);
 
+            var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
+
             // use category header primary text (which supports wider text), when used as section header
             if (viewType.UseWiderPrimaryText)
             {
@@ -70,12 +92,19 @@ namespace YARG.Menu.MusicLibrary
                 _categoryNameContainer.SetActive(false);
             }
 
-            // Set side text
-            _sideText.text = viewType.GetSideText(selected);
+            _selectedSourceIconBackground.enabled = selected & viewType is SongViewType;
+
+            // Set score and instrument display
+            var scoreInfo = viewType.GetScoreInfo();
+            _instrumentDifficultyViewContainer.SetActive(scoreInfo is not null);
+            if (scoreInfo is not null)
+            {
+                _instrumentDifficultyView.SetInfo(scoreInfo.Value);
+            }
 
             // Set star view
             var starAmount = viewType.GetStarAmount();
-            _starView.gameObject.SetActive(starAmount is not null);
+            _starView.gameObject.SetActive(scoreInfoMode == HighScoreInfoMode.Stars && starAmount is not null);
             if (starAmount is not null)
             {
                 _starView.SetStars(starAmount.Value);
@@ -83,9 +112,25 @@ namespace YARG.Menu.MusicLibrary
 
             // Set "As Made Famous By" text
             _asMadeFamousByTextContainer.SetActive(viewType.UseAsMadeFamousBy);
+            if (viewType.UseAsMadeFamousBy)
+            {
+                _asMadeFamousByTextContainer.GetComponent<TextMeshProUGUI>().color = selected ? MenuData.Colors.BrightText : MenuData.Colors.TrackDefaultSecondary;
+            }
+
+            // Set stars obtained view
+            _starsObtainedView.gameObject.SetActive(viewType is SortHeaderViewType);
+            if (viewType is SortHeaderViewType)
+            {
+                _starsObtainedText.text = viewType.GetSideText(selected);
+            }
+
+            _scoreText.gameObject.SetActive(scoreInfoMode == HighScoreInfoMode.Score && viewType is SongViewType);
+            if (scoreInfoMode == HighScoreInfoMode.Score)
+            {
+                _scoreText.text = viewType.GetSideText(selected);
+            }
 
             // Show/hide favorite button
-
             var favoriteInfo = viewType.GetFavoriteInfo();
 
             if (SettingsManager.Settings.ShowFavoriteButton.Value)
@@ -98,6 +143,20 @@ namespace YARG.Menu.MusicLibrary
             {
                 _favoriteButtonContainer.SetActive(false);
                 _favoriteButtonContainerSelected.SetActive(false);
+            }
+
+            // Set height
+            if (viewType is SortHeaderViewType)
+            {
+                gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 60);
+            }
+            else if (viewType is ButtonViewType)
+            {
+                gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 70);
+            }
+            else
+            {
+                gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 80);
             }
 
             StarAmount starHeaderAmount = StarAmount.None;
@@ -138,6 +197,55 @@ namespace YARG.Menu.MusicLibrary
             {
                 _categoryText.gameObject.SetActive(true);
                 _starHeaderGroup.SetActive(false);
+            }
+        }
+
+        protected override void SetBackground(bool selected, BaseViewType.BackgroundType type)
+        {
+            _trackGradient.gameObject.SetActive(selected);
+
+            NormalBackground.SetActive(false);
+            SelectedBackground.SetActive(false);
+            CategoryBackground.SetActive(false);
+            _buttonHeaderBackground.SetActive(false);
+
+            switch (type)
+            {
+                case BaseViewType.BackgroundType.Normal:
+                    if (selected)
+                    {
+                        SelectedBackground.SetActive(true);
+                    }
+                    else
+                    {
+                        NormalBackground.SetActive(true);
+                    }
+
+                    break;
+                case BaseViewType.BackgroundType.Category:
+                    if (selected)
+                    {
+                        SelectedBackground.SetActive(true);
+                    }
+                    else
+                    {
+                        CategoryBackground.SetActive(true);
+                    }
+
+                    break;
+                case BaseViewType.BackgroundType.Button:
+                    if (selected)
+                    {
+                        SelectedBackground.SetActive(true);
+                    }
+                    else
+                    {
+                        _buttonHeaderBackground.SetActive(true);
+                    }
+
+                    break;
+                default:
+                    break;
             }
         }
 

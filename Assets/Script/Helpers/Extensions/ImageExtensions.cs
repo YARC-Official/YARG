@@ -63,7 +63,7 @@ namespace YARG.Helpers.Extensions
         }
 
         private static SongEntry _current = null;
-        public static async void LoadAlbumCover(this RawImage rawImage, SongEntry songEntry, CancellationToken cancellationToken)
+        public static async void LoadAlbumCover(this RawImage rawImage, SongEntry songEntry, CancellationToken cancellationToken, float alpha = 1)
         {
             _current = songEntry;
             using var image = await UniTask.RunOnThreadPool(songEntry.LoadAlbumData);
@@ -83,7 +83,7 @@ namespace YARG.Helpers.Extensions
                 {
                     rawImage.texture = image.LoadTexture(false);
                     rawImage.uvRect = new Rect(0f, 0f, 1f, -1f);
-                    rawImage.color = Color.white;
+                    rawImage.color = Color.white.WithAlpha(alpha);
                 }
                 else
                 {

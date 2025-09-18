@@ -14,9 +14,9 @@ namespace YARG.Menu.MusicLibrary
         public readonly string CharterCountText;
         public readonly string GenreCountText;
 
-        private readonly string _primary;
+        protected readonly string Primary;
 
-        private readonly int _songCount;
+        protected readonly int SongCount;
         private readonly Action _clickAction;
 
         private static readonly HashSet<string> SourceCounter  = new();
@@ -25,8 +25,8 @@ namespace YARG.Menu.MusicLibrary
         public CategoryViewType(string primary, int songCount, SongEntry[] songsUnderCategory,
             Action clickAction = null)
         {
-            _primary = primary;
-            _songCount = songCount;
+            Primary = primary;
+            SongCount = songCount;
             _clickAction = clickAction;
 
             foreach (var song in songsUnderCategory)
@@ -46,8 +46,8 @@ namespace YARG.Menu.MusicLibrary
 
         public CategoryViewType(string primary, int songCount, SongCategory[] songsUnderCategory)
         {
-            _primary = primary;
-            _songCount = songCount;
+            Primary = primary;
+            SongCount = songCount;
 
             foreach (var category in songsUnderCategory)
             {
@@ -69,12 +69,12 @@ namespace YARG.Menu.MusicLibrary
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(_primary, TextType.Bright, selected);
+            return FormatAs(Primary, TextType.Bright, selected);
         }
 
         public override string GetSideText(bool selected)
         {
-            return CreateSongCountString(_songCount);
+            return CreateSongCountString(SongCount);
         }
 
         public override void PrimaryButtonClick()
