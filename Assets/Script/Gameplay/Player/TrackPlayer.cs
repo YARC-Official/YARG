@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -10,6 +11,7 @@ using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
@@ -35,6 +37,8 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         protected CameraPositioner CameraPositioner;
         [SerializeField]
+        protected HighwayCameraRendering HighwayCameraRendering;
+        [SerializeField]
         protected TrackMaterial TrackMaterial;
         [SerializeField]
         protected ComboMeter ComboMeter;
@@ -55,7 +59,6 @@ namespace YARG.Gameplay.Player
         protected KeyedPool NotePool;
         [SerializeField]
         protected Pool BeatlinePool;
-        [FormerlySerializedAs("SoloPool")]
         [SerializeField]
         protected Pool EffectPool;
 
@@ -161,7 +164,7 @@ namespace YARG.Gameplay.Player
 
         private Queue<TrackEffect> _upcomingEffects = new();
         private List<TrackEffectElement> _currentEffects = new();
-        private List<TrackEffect> _trackEffects = new();
+        protected List<TrackEffect> _trackEffects = new();
 
         protected SongChart Chart;
 
@@ -178,7 +181,7 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
-            SetupTheme(player.Profile.GameMode);
+            SetupTheme();
 
             Chart = chart;
 
@@ -211,6 +214,7 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
+            GameManager.BeatEventHandler.Visual.Subscribe(SunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
             InitializeTrackEffects();
 
             ResetNoteCounters();
@@ -220,8 +224,22 @@ namespace YARG.Gameplay.Player
             SongLength = (float) chart.GetEndTime();
         }
 
+        protected override void FinishDestruction()
+        {
+            GameManager.BeatEventHandler.Visual.Unsubscribe(SunburstEffects.PulseSunburst);
+
+            base.FinishDestruction();
+        }
+
         private void InitializeTrackEffects()
         {
+
+            // If the user doesn't want track effects, generate no effects
+            if (!SettingsManager.Settings.EnableTrackEffects.Value)
+            {
+                return;
+            }
+
             var phrases = new List<Phrase>();
 
             foreach (var phrase in NoteTrack.Phrases)
@@ -254,21 +272,24 @@ namespace YARG.Gameplay.Player
 
             var effects = TrackEffect.PhrasesToEffects(phrases);
             _trackEffects.AddRange(effects);
+        }
+
+        private void FinalizeTrackEffects()
+        {
             foreach (var effect in TrackEffect.SliceEffects(NoteSpeed, _trackEffects))
             {
                 _upcomingEffects.Enqueue(effect);
             }
-
-            if (EngineContainer.UnisonPhrases.Any())
-            {
-                GameManager.EngineManager.OnUnisonPhraseSuccess += OnUnisonPhraseSuccess;
-            }
         }
 
-        private void SetupTheme(GameMode gameMode)
+        private void SetupTheme()
         {
+            var (gameMode, instrument) = (Player.Profile.GameMode, Player.Profile.CurrentInstrument);
+
+            var style = VisualStyleHelpers.GetVisualStyle(gameMode, instrument);
+
             var themePrefab = ThemeManager.Instance.CreateNotePrefabFromTheme(
-                Player.ThemePreset, gameMode, NotePool.Prefab);
+                Player.ThemePreset, style, NotePool.Prefab);
             NotePool.SetPrefabAndReset(themePrefab);
         }
 
@@ -277,8 +298,9 @@ namespace YARG.Gameplay.Player
 
         protected virtual void FinishInitialization()
         {
-            TrackMaterial.Initialize(ZeroFadePosition, FadeSize, Player.HighwayPreset);
+            TrackMaterial.Initialize(Player.HighwayPreset);
             CameraPositioner.Initialize(Player.CameraPreset);
+            FinalizeTrackEffects();
         }
 
         protected void ResetNoteCounters()
@@ -329,6 +351,7 @@ namespace YARG.Gameplay.Player
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
             StarpowerBar.SetStarpower(currentStarPowerAmount, stats.IsStarPowerActive);
+            StarpowerBar.UpdateFlash(GameManager.BeatEventHandler.Visual.StrongBeat.CurrentPercentage);
             SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive, _currentMultiplier);
 
             TrackView.UpdateNoteStreak(stats.Combo);
@@ -766,13 +789,6 @@ namespace YARG.Gameplay.Player
             {
                 haptic.SetSoloActive(false);
             }
-        }
-
-        protected virtual void OnUnisonPhraseSuccess()
-        {
-            // This is here because it seemed like awarding from TrackPlayer would work best for replays
-            // since all the replay data is saved here
-            YargLogger.LogFormatTrace("TrackPlayer would have awarded unison bonus at engine time {0}", Engine.CurrentTime);
         }
 
         protected virtual void OnCountdownChange(double countdownLength, double endTime)

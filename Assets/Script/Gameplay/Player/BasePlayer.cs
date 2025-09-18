@@ -18,7 +18,7 @@ namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : GameplayBehaviour
     {
-        public int PlayerIndex { get; private set; }
+        public int HighwayIndex { get; private set; }
 
         public YargPlayer Player { get; private set; }
 
@@ -102,6 +102,8 @@ namespace YARG.Gameplay.Player
 
         protected EngineManager.EngineContainer EngineContainer;
 
+        protected bool IsCrowdMuted { get; set; }
+
         protected override void GameplayAwake()
         {
             _replayInputs = new List<GameInput>();
@@ -131,7 +133,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            PlayerIndex = index;
+            HighwayIndex = index;
             Player = player;
 
             SyncTrack = chart.SyncTrack;
@@ -358,6 +360,40 @@ namespace YARG.Gameplay.Player
             foreach (var haptics in SantrollerHaptics)
             {
                 haptics.SetStarPowerActive(active);
+            }
+        }
+
+        protected virtual void OnSongFailed()
+        {
+            if (SettingsManager.Settings.NoFailMode.Value)
+            {
+                return;
+            }
+
+            GameManager.PlayerHasFailed = true;
+            GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
+            GameManager.Pause(true);
+        }
+
+        protected virtual void OnHappinessOverThreshold()
+        {
+            // First engine to be instantiated gets the pleasure of dealing with this
+            if (IsCrowdMuted && EngineContainer.EngineId == 0)
+            {
+                GameManager.ChangeStemMuteState(SongStem.Crowd, false, 1.0f);
+                IsCrowdMuted = false;
+                YargLogger.LogFormatDebug("Enabled crowd stem at time {0}", GameManager.SongTime);
+            }
+        }
+
+        protected virtual void OnHappinessUnderThreshold()
+        {
+            // First engine to be instantiated gets the pleasure of dealing with this
+            if (!IsCrowdMuted && EngineContainer.EngineId == 0)
+            {
+                GameManager.ChangeStemMuteState(SongStem.Crowd, true, 1.0f);
+                IsCrowdMuted = true;
+                YargLogger.LogFormatDebug("Disabled crowd stem at time {0}", GameManager.SongTime);
             }
         }
 

@@ -85,12 +85,6 @@ namespace YARG.Settings.Preview
             var cameraPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
             var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
 
-            // Update fade
-            foreach (var material in _materials)
-            {
-                material.SetFade(3f, cameraPreset.FadeLength);
-            }
-
             // Update color
             var color = FakeTrackPlayer.CurrentGameModeInfo.NoteColorProvider(colorProfile, NoteRef);
             _currentNoteGroup.SetColorWithEmission(color, color);
@@ -117,7 +111,7 @@ namespace YARG.Settings.Preview
             gameObject.SetActive(false);
         }
 
-        public static GameObject CreateFakeNoteFromTheme(ThemePreset themePreset, GameMode gameMode)
+        public static GameObject CreateFakeNoteFromTheme(ThemePreset themePreset, VisualStyle style)
         {
             // Create GameObject
             var notePrefab = new GameObject("Note Prefab");
@@ -125,8 +119,8 @@ namespace YARG.Settings.Preview
             var fakeNote = notePrefab.AddComponent<FakeNote>();
 
             // Get models
-            var themeContainer = ThemeManager.Instance.GetThemeContainer(themePreset, gameMode);
-            var models = themeContainer.GetThemeComponent().GetNoteModelsForGameMode(gameMode, false);
+            var themeContainer = ThemeManager.Instance.GetThemeContainer(themePreset, style);
+            var models = themeContainer.GetThemeComponent().GetNoteModelsForVisualStyle(style, false);
 
             // Create note groups
             fakeNote._noteGroups = new List<NoteTypePair>();

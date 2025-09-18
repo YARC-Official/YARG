@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.Keys;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
@@ -96,6 +96,13 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        public override void MissNote()
+        {
+            base.MissNote();
+
+            UpdateColor();
+        }
+
         public void UpdateXPosition()
         {
             var t = transform;
@@ -148,6 +155,7 @@ namespace YARG.Gameplay.Visuals
                 : colorNoStarPower;
 
             NoteGroup.SetColorWithEmission(color, colorNoStarPower);
+            NoteGroup.SetMetalColor(colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor());
 
             if (!NoteRef.IsSustain) return;
 

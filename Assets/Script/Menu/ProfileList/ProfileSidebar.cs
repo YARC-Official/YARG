@@ -35,6 +35,12 @@ namespace YARG.Menu.ProfileList
             GameMode.ProKeys
         };
 
+        private static readonly StarPowerActivationType[] _starPowerActivationTypes =
+        {
+            StarPowerActivationType.RightmostNote,
+            StarPowerActivationType.AllNotes,
+        };
+
         [SerializeField]
         private GameObject _contents;
         [SerializeField]
@@ -70,6 +76,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private Toggle _swapCrashAndRide;
         [SerializeField]
+        private TMP_Dropdown _starPowerActivationTypeDropdown;
+        [SerializeField]
         private TMP_Dropdown _engineDropdown;
         [SerializeField]
         private TMP_Dropdown _themeDropdown;
@@ -79,6 +87,8 @@ namespace YARG.Menu.ProfileList
         private TMP_Dropdown _cameraPresetDropdown;
         [SerializeField]
         private TMP_Dropdown _highwayPresetDropdown;
+        [SerializeField]
+        private TMP_Dropdown _rockMeterPresetDropdown;
 
         [Space]
         [SerializeField]
@@ -100,12 +110,14 @@ namespace YARG.Menu.ProfileList
         private YargProfile _profile;
 
         private readonly List<GameMode> _gameModesByIndex = new();
+        private readonly List<StarPowerActivationType> _starPowerActivationTypesByIndex = new();
 
         private List<Guid> _enginePresetsByIndex;
         private List<Guid> _colorProfilesByIndex;
         private List<Guid> _cameraPresetsByIndex;
         private List<Guid> _themesByIndex;
         private List<Guid> _highwayPresetsByIndex;
+        private List<Guid> _rockmeterPresetsByIndex;
 
         private void Awake()
         {
@@ -140,6 +152,17 @@ namespace YARG.Menu.ProfileList
             _highwayPresetsByIndex =
                 CustomContentManager.HighwayPresets.AddOptionsToDropdown(_highwayPresetDropdown)
                     .Select(i => i.Id).ToList();
+            _rockmeterPresetsByIndex =
+                CustomContentManager.RockMeterPresets.AddOptionsToDropdown(_rockMeterPresetDropdown)
+                    .Select(i => i.Id).ToList();
+
+            // Set drum star power activation type
+            _starPowerActivationTypeDropdown.options.Clear();
+            foreach (var starPowerActivationType in _starPowerActivationTypes)
+            {
+                _starPowerActivationTypesByIndex.Add(starPowerActivationType);
+                _starPowerActivationTypeDropdown.options.Add(new(starPowerActivationType.ToLocalizedName()));
+            }
         }
 
         public void UpdateSidebar(YargProfile profile, ProfileView profileView)
@@ -158,6 +181,8 @@ namespace YARG.Menu.ProfileList
             // Display the profile's options
             _profileName.text = _profile.Name;
             _gameModeDropdown.value = _gameModesByIndex.IndexOf(profile.GameMode);
+            _starPowerActivationTypeDropdown.value = _starPowerActivationTypesByIndex
+                .IndexOf(profile.StarPowerActivationType);
             _noteSpeedField.text = profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
@@ -179,6 +204,10 @@ namespace YARG.Menu.ProfileList
                 _cameraPresetsByIndex.IndexOf(profile.CameraPreset));
             _highwayPresetDropdown.SetValueWithoutNotify(
                 _highwayPresetsByIndex.IndexOf(profile.HighwayPreset));
+            _starPowerActivationTypeDropdown.SetValueWithoutNotify(
+                _starPowerActivationTypesByIndex.IndexOf(profile.StarPowerActivationType));
+            _rockMeterPresetDropdown.SetValueWithoutNotify(
+                _rockmeterPresetsByIndex.IndexOf(profile.RockMeterPreset));
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
@@ -275,6 +304,11 @@ namespace YARG.Menu.ProfileList
         public void ChangeGameMode()
         {
             _profile.GameMode = _gameModesByIndex[_gameModeDropdown.value];
+
+            // Set the player's instrument to the foremost of their new game mode's possible instruments. This prevents scenarios like
+            // a brand new Keys profile defaulting to 5L Lead Guitar instead of Pro Keys
+            _profile.CurrentInstrument = _profile.GameMode.PossibleInstruments()[0];
+
             _profileView.UpdateDisplay(_profile);
             // Update sidebar when game mode changes so the correct settings are displayed
             UpdateSidebar(_profile, _profileView);
@@ -353,6 +387,11 @@ namespace YARG.Menu.ProfileList
             _profile.EnginePreset = _enginePresetsByIndex[_engineDropdown.value];
         }
 
+        public void ChangeStarPowerActivationType()
+        {
+            _profile.StarPowerActivationType = _starPowerActivationTypesByIndex[_starPowerActivationTypeDropdown.value];
+        }
+
         public void ChangeTheme()
         {
             var themeGuid = _themesByIndex[_themeDropdown.value];
@@ -421,6 +460,11 @@ namespace YARG.Menu.ProfileList
         public void ChangeHighwayPreset()
         {
             _profile.HighwayPreset = _highwayPresetsByIndex[_highwayPresetDropdown.value];
+        }
+
+        public void ChangeRockMeterPreset()
+        {
+            _profile.RockMeterPreset = _rockmeterPresetsByIndex[_rockMeterPresetDropdown.value];
         }
     }
 }

@@ -54,9 +54,6 @@ namespace YARG
                 YargLogger.LogException(ex);
             }
 
-            // Fast scan (cache read) on startup
-            await SongContainer.RunRefresh(true, context);
-
             // Auto connect profiles, using the same order that they were previously connected.
             if (SettingsManager.Settings.ReconnectProfiles.Value)
             {
@@ -66,6 +63,9 @@ namespace YARG
             {
                 PlayerContainer.ClearProfileOrder();
             }
+
+            // Fast scan (cache read) on startup
+            await SongContainer.RunRefresh(true, context);
         }
     }
 

@@ -237,6 +237,7 @@ These are assets that are installed by NuGet, Unity's packaged manager, or via a
 | [SoftMaskForUGUI](https://github.com/mob-sakai/SoftMaskForUGUI) | Library | UI Utility
 | [Unity-Dependencies-Hunter](https://github.com/AlexeyPerov/Unity-Dependencies-Hunter) | Library | Unity Editor Utility
 | [tmpro-dynamic-data-cleaner](https://github.com/STARasGAMES/tmpro-dynamic-data-cleaner) | Library | Prevent Git Change Spam
+| [openvat-unity](https://github.com/sharpen3d/openvat-unity.git) | Library | OpenVAT (Vertex Animated Textures) Support
 
 ## 💸 Donate
 

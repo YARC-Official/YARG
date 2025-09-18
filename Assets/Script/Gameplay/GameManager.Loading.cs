@@ -10,6 +10,7 @@ using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
+using YARG.Gameplay.Visuals;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -41,6 +42,8 @@ namespace YARG.Gameplay
         private GameObject _fiveLaneDrumsPrefab;
         [SerializeField]
         private GameObject _proKeysPrefab;
+        [SerializeField]
+        private GameObject _fiveLaneKeysPrefab;
         [SerializeField]
         private GameObject _proGuitarPrefab;
 
@@ -200,6 +203,13 @@ namespace YARG.Gameplay
             // Spawn players
             CreatePlayers();
 
+            // Set up the crowd stem so it can be restored after muting (if it exists)
+            if (_stemStates.TryGetValue(SongStem.Crowd, out var state))
+            {
+                state.Total = 1;
+                state.Audible = 1;
+            }
+
             if (_loadState == LoadFailureState.Error)
             {
                 ToastManager.ToastError(_loadFailureMessage);
@@ -230,6 +240,13 @@ namespace YARG.Gameplay
             // TODO: Move the offset here to SFX configuration
             // The clap SFX has 20 ms of lead-up before the actual impact happens
             BeatEventHandler.Audio.Subscribe(StarPowerClap, BeatEventType.StrongBeat, offset: -0.02);
+
+            _failMeter.Initialize(EngineManager, this);
+
+            if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
+            {
+                _failMeter.SetActive(false);
+            }
 
             // Log constant values
             YargLogger.LogFormatDebug("Audio calibration: {0}, video calibration: {1}, song offset: {2}",
@@ -346,17 +363,17 @@ namespace YARG.Gameplay
             {
                 // Make sure to set up all of the HUD positions
                 _trackViewManager.SetAllHUDPositions();
+                _trackViewManager.SetAllHUDScale();
 
                 _players = new List<BasePlayer>();
 
                 bool vocalTrackInitialized = false;
 
                 int index = -1;
+                int highwayIndex = -1;
                 int vocalIndex = -1;
                 foreach (var player in YargPlayers)
                 {
-                    index++;
-
                     if (!player.IsReplay)
                     {
                         // Reset microphone (resets channel buffers)
@@ -369,6 +386,7 @@ namespace YARG.Gameplay
                     {
                         continue;
                     }
+                    index++;
 
                     if (!player.IsReplay)
                     {
@@ -383,13 +401,14 @@ namespace YARG.Gameplay
 
                     if (player.Profile.GameMode != GameMode.Vocals)
                     {
+                        highwayIndex++;
                         var prefab = player.Profile.GameMode switch
                         {
                             GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
                             GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
                             GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
                             GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
-                            GameMode.ProKeys        => _proKeysPrefab,
+                            GameMode.ProKeys        => player.Profile.CurrentInstrument is Instrument.ProKeys ? _proKeysPrefab : _fiveLaneKeysPrefab,
                             GameMode.ProGuitar      => _proGuitarPrefab,
                             _                       => null
                         };
@@ -398,13 +417,15 @@ namespace YARG.Gameplay
                         if (prefab == null) continue;
 
                         var playerObject = Instantiate(prefab,
-                            new Vector3(index * TRACK_SPACING_X, 100f, 0f), prefab.transform.rotation);
+                            new Vector3(highwayIndex * TRACK_SPACING_X, 100f, 0f), prefab.transform.rotation);
 
                         // Setup player
                         var trackPlayer = playerObject.GetComponent<TrackPlayer>();
                         var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
-                        trackPlayer.Initialize(index, player, Chart, trackView, _mixer, lastHighScore);
+                        trackPlayer.Initialize(highwayIndex, player, Chart, trackView, _mixer, lastHighScore);
+
                         _players.Add(trackPlayer);
+                        _trackViewManager._highwayCameraRendering.AddTrackPlayer(trackPlayer);
                     }
                     else
                     {
@@ -419,7 +440,7 @@ namespace YARG.Gameplay
                             var chart = player.Profile.CurrentInstrument == Instrument.Vocals
                                 ? Chart.Vocals
                                 : Chart.Harmony;
-                            VocalTrack.Initialize(chart, player);
+                            VocalTrack.Initialize(chart, player, Song.VocalScrollSpeedScalingFactor);
 
                             _lyricBar.SetActive(false);
                             vocalTrackInitialized = true;
@@ -433,7 +454,7 @@ namespace YARG.Gameplay
 
                         var percussionTrack = VocalTrack.CreatePercussionTrack();
                         percussionTrack.TrackSpeed = VocalTrack.TrackSpeed;
-                        vocalsPlayer.Initialize(index, vocalIndex, player, Chart, playerHud, percussionTrack, lastHighScore);
+                        vocalsPlayer.Initialize(index, vocalIndex, player, Chart, playerHud, percussionTrack, lastHighScore, VocalTrack.TrackSpeed);
 
                         _players.Add(vocalsPlayer);
                     }

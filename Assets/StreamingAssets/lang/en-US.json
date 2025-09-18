@@ -19,9 +19,9 @@
             "FiveFretGuitar": "Five Fret Guitar",
             "SixFretGuitar": "Six Fret Guitar",
             "FourLaneDrums": "Standard Drums",
-            "FiveLaneDrums": "5-Lane Drums",
+            "FiveLaneDrums": "Five-Lane Drums",
             "ProGuitar": "Pro Guitar",
-            "ProKeys": "Pro Keys",
+            "ProKeys": "Keys (Pro and Five-Lane)",
             "Menu": "Menu",
             "Vocals": "Vocals"
         },
@@ -73,6 +73,7 @@
             "Playlist": "Playlist",
             "SongLength": "Duration",
             "Source": "Source",
+            "Stars": "Stars",
             "Unspecified": "None",
             "Year": "Year",
             "DateAdded": "Date Added",
@@ -99,6 +100,12 @@
             "Harmony": "Harmony",
             "Band": "Band",
             "Playcount": "Play Count"
+        },
+        "StarPowerActivationType" : {
+            "Freestyle": "Freestyle",
+            "RightmostLane": "Rightmost Lane",
+            "RightmostNote": "Rightmost Note",
+            "AllNotes": "All Notes"
         }
     },
     "Menu": {
@@ -136,7 +143,9 @@
             "Delete": "Delete",
 
             "Reset": "Reset",
-            "ResetAll": "Reset All"
+            "ResetAll": "Reset All",
+			
+			"Scroll" : "Scroll"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",
@@ -201,6 +210,10 @@
                 "Title": "Experimental Features Notice",
                 "Description": "The options about to be displayed represent a work in progress. These features are subject to change, may contain bugs, and <b>could even cause major problems if enabled</b>.",
                 "Confirm": "I Understand"
+            },
+            "ShowDialog": {
+                "Title": "Choose Your Fate",
+                "Select": "That's Plenty"
             }
         },
         "DifficultySelect": {
@@ -280,14 +293,35 @@
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
             "Play": "Play Song",
             "Search": "Search",
+            "SkipSection": "<align=left><size=80%>Navigate<br>Sections</size></align>",
+            "MoveInPlaylist": "Move Song",
             "CurrentSetlist": "Current Setlist",
             "AddToSet": "Add To Setlist",
             "AddedToSet": "Added To Setlist",
             "PlaylistAddedToSet": "Added {0:N0} Songs From Playlist To Setlist",
             "StartSet": "Start The Set",
+            "PlayShow": "Play A Show",
             "NoSongsInPlaylist": "No Songs In Playlist",
             "CannotAddToSelf": "No, I will not create an ouroboros for you. Nice try, Jaden.",
-            "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>"
+            "AddToShow": "Add To Show",
+            "AddedToShow": "Added To Show",
+            "StartShow": "Start The Show",
+            "MoreOptions": "More Options",
+            "PlayAShow": {
+                "LongSong": "A Long Song",
+                "RandomSong": "A Random Song",
+                "ShortSong": "A Short Song",
+                "SongFromArtist": "A Song By {0}",
+                "SongFromDecade": "A Song From The {0}",
+                "SongFromFavorites": "One Of Your Favorite Songs",
+                "SongFromAnGenre": "An {0} Song",
+                "SongFromGenre": "A {0} Song",
+                "SongFromPlaylist": "A Song From Your Playlist {0}",
+                "SongFromSource": "A Song From {0}",
+                "StartsWithLetter": "A Song Starting With The Letter \"{0}\"",
+                "StartsWithNumber": "A Song Starting With A Number",
+                "StartsWithOther": "A Song Starting With Something Non-Alphanumeric"
+            }
         },
         "ProfileInfo": {
             "Name": "Edit Profile",
@@ -307,7 +341,9 @@
             "Players" : "Players"
         },
         "ScoreScreen" : {
-            "BandScoreNotSaved" : "(Score not saved)"
+            "BandScoreNotSaved" : "(Score not saved)",
+            "RestartSong" : "Restart Song",
+            "EndSetlistEarly" : "End Setlist"
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
@@ -367,6 +403,7 @@
 				"bass_intro": "Bass intro",
 				"vocal_intro": "Vocal intro",
 				"gtr_intro": "Gtr intro",
+				"aco_gtr_intro": "Aco gtr intro",
 				"violin_intro": "Violin intro",
 				"strings_intro": "Strings intro",
 				"orch_intro": "Orch intro",
@@ -418,14 +455,22 @@
 				"horn_solo": "Horn solo",
 				"flute_solo": "Flute solo",
 				"noise_solo": "Noise solo",
+				"noise_build": "Noise build",
 				"dj_solo": "DJ solo",
 				"slow_part": "Slow part",
+				"very_slow": "Very slow",
 				"fast_part": "Fast part",
+				"very_fast": "Very fast",
 				"quiet_part": "Quiet part",
+				"very_quiet": "Very quiet",
 				"loud_part": "Loud part",
+				"very_loud": "Very loud",
 				"heavy_part": "Heavy part",
+				"very_heavy": "Very heavy",
 				"spacey_part": "Spacey part",
+				"very_spacey": "Very spacey",
 				"trippy_part": "Trippy part",
+				"very_trippy": "Very trippy",
 				"break": "Break",
 				"breakdown": "Breakdown",
 				"gtr_break": "Gtr break",
@@ -474,6 +519,7 @@
 				"gtr_melody": "Gtr melody",
 				"gtr_line": "Gtr line",
 				"gtr_lick": "Gtr lick",
+				"gtr_ostinato": "Gtr ostinato",
 				"vocal_break": "Vocal break",
 				"ah": "Ah!",
 				"yeah": "Yeah!",
@@ -486,11 +532,15 @@
 				"outro_chorus": "Outro chorus",
 				"ending": "Ending",
 				"bre": "Big Rock Ending!",
-				"fade_out": "Fade out"
+				"fade_out": "Fade out",
+				"fast_picking": "Fast picking",
+				"foreplay_intro": "Foreplay intro",
+				"longtome_intro": "Long Time intro"
 			},
 			"SectionFormats": {
 				"LetterSection": "{0} section",
-				"WithNumber": "{0} {1}"
+				"WithNumber": "{0} {1}",
+				"PercentageBased": "{0}% - {1}%"
 			}
 		}
     },
@@ -596,6 +646,12 @@
             "Key23": "Key 23 (A#3)",
             "Key24": "Key 24 (B3)",
             "Key25": "Key 25 (C4)",
+			"OpenNote": "Five-Lane Open Note",
+			"GreenKey": "Five-Lane Green Key (First)",
+			"RedKey": "Five-Lane Red Key (Second)",
+			"YellowKey": "Five-Lane Yellow Key (Third)",
+			"BlueKey": "Five-Lane Blue Key (Fourth)",
+			"OrangeKey": "Five-Lane Orange Key (Fifth)",
             "StarPower": "Star Power Activate",
             "TouchEffects": "Touch Effects"
         }
@@ -635,6 +691,7 @@
             "Export": "Export",
             "PathsAndFolders": "Paths and Folders",
             "MusicLibrary": "Music Library",
+            "PlayAShow": "Play A Show",
             "ScanningOptions": "Scanning Options",
             "RB3E": "RB3E Settings",
             "Customization": "Buffer Customization",
@@ -731,9 +788,13 @@
                 "Name": "Disable Film Grain",
                 "Description": "Disables post-processing film grain effect. May increase performance."
             },
+            "DisableDefaultBackground": {
+                "Name": "Disable Default Background",
+                "Description": "Disables the default background, allowing you to see a professional black background if no other backgrounds are available."
+            },
             "DisableGlobalBackgrounds": {
                 "Name": "Disable Global Backgrounds",
-                "Description": "Disables custom backgrounds from your venue folder and shows the ones in songs instead."
+                "Description": "Disables custom backgrounds from your venue folder, allowing the default background to be used if there is no per-song background."
             },
             "DisablePerSongBackgrounds": {
                 "Name": "Disable Per-Song Backgrounds",
@@ -909,6 +970,10 @@
                 "Name": "No Kicks",
                 "Description": "Removes all kick notes (drums only)."
             },
+            "NoFailMode": {
+                "Name": "No Fail Mode",
+                "Description": "Disables ending a song early when crowd happiness is too low."
+            },
             "NoteStreakFrequency": {
                 "Name": "Note Streak Frequency",
                 "Description": "Sets the frequency of note streak notifications.",
@@ -917,6 +982,14 @@
                     "Frequent": "50, 100, 200, 300, ...",
                     "Sparse": "50, 100, 250, 500, ..."
                 }
+            },
+            "PlayAShowTimeout": {
+                "Name": "Show Selection Timeout",
+                "Description": "The amount of time to wait for votes before picking a song or refreshing the categories."
+            },
+            "RequireAllDifficulties": {
+                "Name": "Require All Difficulties",
+                "Description": "Require show songs to have at least Easy, Medium, Hard, and Expert difficulties"
             },
             "PracticeRestartDelay": {
                 "Name": "Practice Restart Delay",
@@ -1072,6 +1145,10 @@
                 "Name": "Apply Volume Settings to Music Library Previews",
                 "Description": "Volume settings for specific instrumments will be applied in the Music Library as well."
             },
+            "DataStreamEnable": {
+                "Name": "Enable UDP data stream",
+                "Description": "Enables sending of UDP information packets over the network, for software such as YALCY."
+            },
             "RB3EEnabled": {
                 "Name": "Enable RB3E Stage Kit data stream",
                 "Description": "Enables sending of RB3E style stage kit information packets over the network, for hardware such as StageKitPied."
@@ -1176,16 +1253,29 @@
                 "Name": "Show Player Name When Starting Song",
                 "Description": "If enabled, the player name and instrument icon will appear when the song starts."
             },
+			"StaticVocalsMode": {
+				"Name": "Static Vocals Mode",
+				"Description": "When enabled, lyrics stay stationary on the left side of the vocal highway. When disabled, lyrics scroll across the vocal highway."
+			},
             "UseThreeLaneLyricsInHarmony": {
                 "Name": "Use Three Lyric Lanes In Harmony",
                 "Description": "If enabled, the game will display three lyric lanes in harmony mode (one for each harmony). When disabled, the game will combine the lyrics of harmonies 2 and 3 into one lane at the top."
+            },
+            "EnableTrackEffects": {
+                "Name": "Enable Track Effects",
+                "Description": "If enabled, the game will display track effects for unison, solo, and drum SP activation phrases."
+            },
+            "EnableVoxSamples": {
+                "Name": "Enable Vox Samples",
+                "Description": "If enabled, the game might make some noises at you on the score screen."
             }
         },
         "PresetType": {
             "CameraSettingsContainer": "Camera Presets",
             "ColorProfileContainer": "Color Profiles",
             "EnginePresetContainer": "Engine Presets",
-            "HighwayPresetContainer" : "Highway Presets"
+            "HighwayPresetContainer" : "Highway Presets",
+			"RockMeterPresetContainer" : "Rock Meter Presets"
         },
         "PresetSetting": {
             "CameraPreset": {
@@ -1246,11 +1336,17 @@
                 "BlueCymbalStarpower": {
                     "Name": "Blue Cymbal Star Power"
                 },
+                "BlueCymbalActivationNote": {
+                    "Name": "Blue Cymbal Star Power\nActivation"
+                },
                 "BlueDrum": {
                     "Name": "Blue Drum"
                 },
                 "BlueDrumStarpower": {
                     "Name": "Blue Drum Star Power"
+                },
+                "BluePadActivationNote": {
+                    "Name": "Blue Drum Star Power\nActivation"
                 },
                 "BlueFret": {
                     "Name": "Blue Fret"
@@ -1263,6 +1359,9 @@
                 },
                 "BlueNoteStarPower": {
                     "Name": "Blue Note Star Power"
+                },
+                "BlueActivationNote": {
+                    "Name": "Blue Note Star Power\nActivation"
                 },
                 "BlueParticles": {
                     "Name": "Blue Particles"
@@ -1285,11 +1384,17 @@
                 "GreenCymbalStarpower": {
                     "Name": "Green Cymbal Star Power"
                 },
+                "GreenCymbalActivationNote": {
+                    "Name": "Green Cymbal Star Power\nActivation"
+                },
                 "GreenDrum": {
                     "Name": "Green Drum"
                 },
                 "GreenDrumStarpower": {
                     "Name": "Green Drum Star Power"
+                },
+                "GreenPadActivationNote": {
+                    "Name": "Green Drum Star Power\nActivation"
                 },
                 "GreenFret": {
                     "Name": "Green Fret"
@@ -1302,6 +1407,9 @@
                 },
                 "GreenNoteStarPower": {
                     "Name": "Green Note Star Power"
+                },
+                "GreenActivationNote": {
+                    "Name": "Green Note Star Power\nActivation"
                 },
                 "GreenParticles": {
                     "Name": "Green Particles"
@@ -1323,6 +1431,18 @@
                 },
                 "KickStarpower": {
                     "Name": "Kick Star Power"
+                },
+                "KickActivationNote": {
+                    "Name": "Kick Star Power\nActivation"
+                },
+                "Metal": {
+                    "Name": "Note Metal"
+                },
+                "MetalStarPower": {
+                    "Name": "Note Metal Star Power"
+                },
+                "Miss": {
+                    "Name": "Missed Note"
                 },
                 "OpenFret": {
                     "Name": "Open Fret"
@@ -1351,6 +1471,9 @@
                 "OrangeNoteStarPower": {
                     "Name": "Orange Note Star Power"
                 },
+                "OrangeActivationNote": {
+                    "Name": "Orange Note Star Power\nActivation"
+                },
                 "OrangeParticles": {
                     "Name": "Orange Particles"
                 },
@@ -1372,11 +1495,17 @@
                 "RedCymbalStarpower": {
                     "Name": "Red Cymbal Star Power"
                 },
+                "RedCymbalActivationNote": {
+                    "Name": "Red Cymbal Star Power\nActivation"
+                },
                 "RedDrum": {
                     "Name": "Red Drum"
                 },
                 "RedDrumStarpower": {
                     "Name": "Red Drum Star Power"
+                },
+                "RedPadActivationNote": {
+                    "Name": "Red Drum Star Power\nActivation"
                 },
                 "RedFret": {
                     "Name": "Red Fret"
@@ -1389,6 +1518,9 @@
                 },
                 "RedNoteStarPower": {
                     "Name": "Red Note Star Power"
+                },
+                "RedActivationNote": {
+                    "Name": "Red Note Star Power\nActivation"
                 },
                 "RedParticles": {
                     "Name": "Red Particles"
@@ -1411,11 +1543,17 @@
                 "YellowCymbalStarpower": {
                     "Name": "Yellow Cymbal Star Power"
                 },
+                "YellowCymbalActivationNote": {
+                    "Name": "Yellow Cymbal Star Power\nActivation"
+                },
                 "YellowDrum": {
                     "Name": "Yellow Drum"
                 },
                 "YellowDrumStarpower": {
                     "Name": "Yellow Drum Star Power"
+                },
+                "YellowPadActivationNote": {
+                    "Name": "Yellow Drum Star Power\nActivation"
                 },
                 "YellowFret": {
                     "Name": "Yellow Fret"
@@ -1428,6 +1566,9 @@
                 },
                 "YellowNoteStarPower": {
                     "Name": "Yellow Note Star Power"
+                },
+                "YellowActivationNote": {
+                    "Name": "Yellow Note Star Power\nActivation"
                 },
                 "YellowParticles": {
                     "Name": "Yellow Particles"
@@ -1485,10 +1626,10 @@
                 "SubSection": {
                     "Name": "Game Mode",
                     "Dropdown": {
-                        "Drums": "Drums (4 and 5 lane)",
-                        "FiveFretGuitar": "Five Fret Guitar",
+                        "Drums": "Drums (Four- and Five-Lane)",
+                        "FiveFretGuitar": "Five-Fret Guitar",
                         "Vocals": "Vocals",
-                        "ProKeys": "Pro Keys"
+                        "ProKeys": "Keys (Pro and Five-Lane)"
                     }
                 },
                 "AntiGhosting": {
@@ -1620,7 +1761,37 @@
                 "StarPowerColor": {
                     "Name": "Star Power Color"
                 }
-            }
+            },
+			"RockMeterPreset" : {
+                "StartingHappiness": {
+                    "Name": "Starting Happiness",
+					"Description": "This controls how full the Rock Meter is at the beginning of the song."
+                },
+				"MissDamageMultiplier": {
+                    "Name": "Miss Damage Multiplier",
+					"Description": "This controls how much the Rock Meter decreases when missing a note. Higher values make the game more difficult."
+                },
+				"OverhitDamageMultiplier": {
+                    "Name": "Overhit Damage Multiplier",
+					"Description": "This controls how much the Rock Meter decreases when over-strumming. Higher values make the game more difficult."
+                },
+				"HitRecoveryMultiplier": {
+                    "Name": "Hit Recovery Multiplier",
+					"Description": "This controls how much the Rock Meter recovers when hitting a note correctly. Higher values make the game easier."
+                },
+				"StarPowerEffectMultiplier": {
+                    "Name": "Star Power Multiplier",
+					"Description": "This controls how much the Rock Meter recovers when successfully hitting a note while Star Power is active. This has no effect on misses or overhits."
+                },
+				"VocalsMissDamageMultiplier": {
+                    "Name": "Miss Damage Multiplier (Vocals)",
+					"Description": "This controls how much the Rock Meter decreases when a vocalist sings a phrase poorly. Higher values make the game more difficult."
+                },
+				"VocalsHitRecoveryMultiplier": {
+                    "Name": "Hit Recovery Multiplier (Vocals)",
+					"Description": "This controls how much the Rock Meter recovers when a vocalist sings a phrase well. Higher values make the game easier."
+                }
+			}
         }
     }
 }
