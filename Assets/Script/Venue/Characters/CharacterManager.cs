@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -408,6 +409,31 @@ namespace YARG.Venue.Characters
                     GenerateVocalMap();
                     character.ChartHasAnimations = true;
                 }
+
+                if (character.Type == VenueCharacter.CharacterType.Drums)
+                {
+                    GenerateDrumsAnimations();
+                    character.ChartHasAnimations = true;
+                    character.ChartHasDrumAnimations = true;
+                    _songHasDrumAnimations = true;
+                }
+            }
+        }
+
+        private void GenerateDrumsAnimations()
+        {
+            YargLogger.LogDebug("Auto-generating missing drum animations");
+            _drumAnimationEvents.Clear();
+
+            // Create a drum animation event for each note, using GetDrumAnimationForNote
+            foreach (var parent in _drumNotes)
+            {
+                foreach (var note in parent.AllNotes)
+                {
+                    var anim = GetDrumAnimationForNote(note);
+
+                    _drumAnimationEvents.Add(new AnimationEvent(anim, note.Time, note.TimeLength, note.Tick, note.TickLength));
+                }
             }
         }
 
@@ -500,6 +526,23 @@ namespace YARG.Venue.Characters
             triggers.Sort((a, b) => a.Time.CompareTo(b.Time));
 
             return triggers;
+        }
+
+        public static AnimationEvent.AnimationType GetDrumAnimationForNote(DrumNote child)
+        {
+            var pad = (FourLaneDrumPad) child.Pad;
+            return pad switch
+            {
+                FourLaneDrumPad.Kick => AnimationEvent.AnimationType.Kick,
+                FourLaneDrumPad.YellowCymbal => AnimationEvent.AnimationType.HihatRightHand,
+                FourLaneDrumPad.BlueCymbal => AnimationEvent.AnimationType.RideRh,
+                FourLaneDrumPad.GreenCymbal => AnimationEvent.AnimationType.Crash1RhHard,
+                FourLaneDrumPad.GreenDrum => AnimationEvent.AnimationType.FloorTomRightHand,
+                FourLaneDrumPad.BlueDrum => AnimationEvent.AnimationType.Tom2RightHand,
+                FourLaneDrumPad.YellowDrum => AnimationEvent.AnimationType.Tom1RightHand,
+                FourLaneDrumPad.RedDrum => AnimationEvent.AnimationType.SnareLhHard,
+                _ => throw new ArgumentOutOfRangeException(nameof(pad), pad, "Bad drum pad how?")
+            };
         }
 
         public enum TriggerType
