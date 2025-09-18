@@ -14,6 +14,12 @@ namespace YARG.Gameplay.HUD
 {
     public class VocalsPlayerHUD : GameplayBehaviour
     {
+        private const float ANIM_LENGTH = 1f;
+        private const float ANIM_BASE_TO_PEAK_INTERVAL = 0.167f;
+        private const float ANIM_PEAK_TO_VALLEY_INTERVAL = 0.167f;
+        private const float ANIM_PEAK_SCALE = 1.1f;
+        private const float ANIM_VALLEY_SCALE = 1f;
+
         [SerializeField]
         private Image _comboMeterFill;
         [SerializeField]
@@ -31,8 +37,6 @@ namespace YARG.Gameplay.HUD
         private PlayerNameDisplay _playerNameDisplay;
 
         private float _comboMeterFillTarget;
-
-        private readonly PerformanceTextScaler _scaler = new(2f);
 
         private Coroutine _notificationCoroutine;
         private Coroutine _hudCoroutine;
@@ -135,17 +139,28 @@ namespace YARG.Gameplay.HUD
             };
 
             _performanceText.text = Localize.Key("Gameplay.Vocals.Performance", performanceKey);
+            _performanceText.transform.localScale = Vector3.zero;
 
-            _scaler.ResetAnimationTime();
+            const float animHoldInterval = ANIM_LENGTH
+                - 2f * (ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL);
 
-            while (_scaler.AnimTimeRemaining > 0f)
-            {
-                _scaler.AnimTimeRemaining -= Time.deltaTime;
-                float scale = _scaler.PerformanceTextScale();
-
-                _performanceText.transform.localScale = new Vector3(scale, scale, scale);
-                yield return null;
-            }
+            yield return DOTween.Sequence()
+                .Append(DOTween.Sequence()
+                    .Append(_performanceText.transform
+                        .DOScale(ANIM_PEAK_SCALE, ANIM_BASE_TO_PEAK_INTERVAL)
+                        .SetEase(Ease.OutCirc))
+                    .Append(_performanceText.transform
+                        .DOScale(ANIM_VALLEY_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
+                        .SetEase(Ease.InOutSine))
+                    .AppendInterval(animHoldInterval))
+                .Append(DOTween.Sequence()
+                    .Append(_performanceText.transform
+                        .DOScale(ANIM_PEAK_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
+                        .SetEase(Ease.InOutSine))
+                    .Append(_performanceText.transform
+                        .DOScale(0f, ANIM_BASE_TO_PEAK_INTERVAL)
+                        .SetEase(Ease.InCirc)))
+                .WaitForCompletion();
 
             _performanceText.text = string.Empty;
             _notificationCoroutine = null;
