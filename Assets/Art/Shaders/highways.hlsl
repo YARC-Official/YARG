@@ -181,3 +181,4 @@ inline float4 YargObjectToClipPos( in float3 pos )
 {
     return YargTransformWorldToHClip(mul(unity_ObjectToWorld, float4(pos, 1.0)).xyz);
 }
+

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -73,6 +74,8 @@ namespace YARG.Gameplay.Player
         protected bool IsBass { get; private set; }
 
         private float _spawnAheadDelay;
+
+        protected float SongLength;
 
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
@@ -157,6 +160,8 @@ namespace YARG.Gameplay.Player
 
         private double _previousStarPowerAmount;
 
+        private bool _wasStarPowerActive;
+
         private Queue<TrackEffect> _upcomingEffects = new();
         private List<TrackEffectElement> _currentEffects = new();
         protected List<TrackEffect> _trackEffects = new();
@@ -171,9 +176,12 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            // Consolidate tracks into a parent object for animation purposes
+            transform.SetParent(GameObject.Find("Visuals").transform);
+
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
-            SetupTheme(player.Profile.GameMode);
+            SetupTheme();
 
             Chart = chart;
 
@@ -212,6 +220,8 @@ namespace YARG.Gameplay.Player
             ResetNoteCounters();
 
             FinishInitialization();
+
+            SongLength = (float) chart.GetEndTime();
         }
 
         protected override void FinishDestruction()
@@ -272,10 +282,14 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void SetupTheme(GameMode gameMode)
+        private void SetupTheme()
         {
+            var (gameMode, instrument) = (Player.Profile.GameMode, Player.Profile.CurrentInstrument);
+
+            var style = VisualStyleHelpers.GetVisualStyle(gameMode, instrument);
+
             var themePrefab = ThemeManager.Instance.CreateNotePrefabFromTheme(
-                Player.ThemePreset, gameMode, NotePool.Prefab);
+                Player.ThemePreset, style, NotePool.Prefab);
             NotePool.SetPrefabAndReset(themePrefab);
         }
 
@@ -369,11 +383,22 @@ namespace YARG.Gameplay.Player
                 TrackView.ShowStarPowerReady();
             }
 
+            if (stats.IsStarPowerActive && !_wasStarPowerActive)
+            {
+                CameraPositioner.Scoop();
+            }
+
             _previousStarPowerAmount = currentStarPowerAmount;
+            _wasStarPowerActive = stats.IsStarPowerActive;
 
             foreach (var haptics in SantrollerHaptics)
             {
                 haptics.SetStarPowerFill((float) currentStarPowerAmount);
+            }
+
+            if (visualTime > SongLength)
+            {
+                CameraPositioner.Lower(true);
             }
         }
 
@@ -718,6 +743,7 @@ namespace YARG.Gameplay.Player
                 if (LastCombo >= 10)
                 {
                     GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
+                    CameraPositioner.Punch();
                 }
 
                 foreach (var haptics in SantrollerHaptics)
@@ -735,6 +761,11 @@ namespace YARG.Gameplay.Player
             {
                 ComboMeter.SetFullCombo(false);
                 IsFc = false;
+            }
+
+            if (LastCombo >= 10)
+            {
+                CameraPositioner.Punch();
             }
 
             LastCombo = Combo;

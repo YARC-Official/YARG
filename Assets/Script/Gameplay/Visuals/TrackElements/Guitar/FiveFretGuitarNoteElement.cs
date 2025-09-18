@@ -8,7 +8,7 @@ using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
-    public sealed class FiveFretNoteElement : NoteElement<GuitarNote, FiveFretPlayer>
+    public sealed class FiveFretGuitarNoteElement : NoteElement<GuitarNote, FiveFretGuitarPlayer>
     {
         private enum NoteType
         {

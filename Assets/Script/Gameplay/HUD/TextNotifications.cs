@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,6 +16,12 @@ namespace YARG.Gameplay.HUD
 
     public class TextNotifications : MonoBehaviour
     {
+        private const float ANIM_LENGTH = 2f;
+        private const float ANIM_BASE_TO_PEAK_INTERVAL = 0.167f;
+        private const float ANIM_PEAK_TO_VALLEY_INTERVAL = 0.167f;
+        private const float ANIM_PEAK_SCALE = 1.1f;
+        private const float ANIM_VALLEY_SCALE = 1f;
+
         [SerializeField]
         private TextMeshProUGUI _text;
         [SerializeField]
@@ -34,8 +41,6 @@ namespace YARG.Gameplay.HUD
         private Coroutine _coroutine;
 
         private readonly TextNotificationQueue _notificationQueue = new();
-
-        private readonly PerformanceTextScaler _scaler = new(2f);
 
         private void OnEnable()
         {
@@ -150,16 +155,29 @@ namespace YARG.Gameplay.HUD
         {
             _text.text = notificationText;
 
-            _scaler.ResetAnimationTime();
 
-            while (_scaler.AnimTimeRemaining > 0f)
-            {
-                _scaler.AnimTimeRemaining -= Time.deltaTime;
-                float scale = _scaler.PerformanceTextScale();
+            const float animHoldInterval = ANIM_LENGTH
+                - 2f * (ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL);
 
-                _containerRect.localScale = new Vector3(scale, scale, scale);
-                yield return null;
-            }
+            yield return DOTween.Sequence()
+                .Append(DOTween.Sequence()
+                    .Append(_containerRect
+                        .DOScale(ANIM_PEAK_SCALE, ANIM_BASE_TO_PEAK_INTERVAL)
+                        .SetEase(Ease.OutCirc))
+                    .Append(_containerRect
+
+                        .DOScale(ANIM_VALLEY_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
+                        .SetEase(Ease.InOutSine))
+                    .AppendInterval(animHoldInterval))
+                .Append(DOTween.Sequence()
+                    .Append(_containerRect
+                        .DOScale(ANIM_PEAK_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
+                        .SetEase(Ease.InOutSine))
+                    .Append(_containerRect
+
+                        .DOScale(0f, ANIM_BASE_TO_PEAK_INTERVAL)
+                        .SetEase(Ease.InCirc)))
+                .WaitForCompletion();
 
             _text.text = string.Empty;
             _coroutine = null;

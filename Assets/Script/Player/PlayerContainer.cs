@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using PlasticBand.Devices;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.XInput;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
@@ -127,6 +127,7 @@ namespace YARG.Player
             _players.Add(player);
             _playersByProfile.Add(profile, player);
             ActiveProfilesChanged();
+            player.RefreshPresets();
             profile.ClaimProfile();
             return player;
         }
@@ -232,7 +233,7 @@ namespace YARG.Player
                 player.Bindings.OnDeviceAdded(device);
             }
 
-            TryCreateProfile(device);
+            _ = TryCreateProfile(device);
         }
 
         private static void OnDeviceRemoved(InputDevice device)
@@ -243,8 +244,11 @@ namespace YARG.Player
             }
         }
 
-        public static bool TryCreateProfile(InputDevice device)
+        private static async UniTask<bool> TryCreateProfile(InputDevice device)
         {
+            // Some devices don't appear in their final form immediately, so we have to wait a bit
+            await UniTask.Delay(500, true);
+
             if (IsDeviceTaken(device))
             {
                 return false;

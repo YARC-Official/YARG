@@ -87,7 +87,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -111,6 +111,13 @@ namespace YARG.Gameplay.Player
             engine.OnCountdownChange += OnCountdownChange;
 
             engine.OnPadHit += OnPadHit;
+
+            if (!GlobalVariables.State.IsPractice)
+            {
+                EngineContainer.OnSongFailed += OnSongFailed;
+                EngineContainer.OnHappinessOverThreshold += OnHappinessOverThreshold;
+                EngineContainer.OnHappinessUnderThreshold += OnHappinessUnderThreshold;
+            }
 
             return engine;
         }
@@ -139,7 +146,7 @@ namespace YARG.Gameplay.Player
 
             _fretArray.Initialize(
                 Player.ThemePreset,
-                Player.Profile.GameMode,
+                _fiveLaneMode ? VisualStyle.FiveLaneDrums : VisualStyle.FourLaneDrums,
                 colors,
                 Player.Profile.LeftyFlip,
                 Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals,

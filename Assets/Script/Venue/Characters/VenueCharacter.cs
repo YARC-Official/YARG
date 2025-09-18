@@ -489,16 +489,6 @@ namespace YARG.Venue.Characters
                 SetHandAnimationForNote(gNote);
             }
 
-            // Fake some animations if the chart doesn't have any to begin with
-            if (!ChartHasDrumAnimations && note is DrumNote dNote)
-            {
-                foreach (var child in dNote.AllNotes)
-                {
-                    var anim = GetDrumAnimationForNote(child);
-                    SetTrigger(anim);
-                }
-            }
-
             if (note is Note<VocalNote>)
             {
 
