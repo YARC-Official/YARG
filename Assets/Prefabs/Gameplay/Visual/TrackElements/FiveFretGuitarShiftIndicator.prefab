@@ -109,7 +109,7 @@ GameObject:
   - component: {fileID: 4327806709304797894}
   - component: {fileID: -5509375559706405389}
   m_Layer: 6
-  m_Name: FiveFretShiftIndicator
+  m_Name: FiveFretGuitarShiftIndicator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

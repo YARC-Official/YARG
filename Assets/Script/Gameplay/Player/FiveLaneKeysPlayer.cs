@@ -4,27 +4,28 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
-using YARG.Core.Engine.Guitar;
-using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
+using YARG.Core.Engine.Keys;
+using YARG.Core.Engine.Keys.Engines;
+using YARG.Gameplay;
 using YARG.Gameplay.HUD;
+using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Playback;
 using YARG.Player;
-using YARG.Settings;
-using Random = UnityEngine.Random;
+using YARG.Themes;
+using static YARG.Core.Engine.Keys.FiveLaneKeysEngine;
 
-namespace YARG.Gameplay.Player
+namespace YARG.Assets.Script.Gameplay.Player
 {
-    public sealed class FiveFretPlayer : TrackPlayer<GuitarEngine, GuitarNote>
+    public sealed class FiveLaneKeysPlayer : TrackPlayer<FiveLaneKeysEngine, GuitarNote>
     {
-        private const double SUSTAIN_END_MUTE_THRESHOLD      = 0.1;
+        private const double SUSTAIN_END_MUTE_THRESHOLD = 0.1;
 
-        private const int   SHIFT_INDICATOR_MEASURES_BEFORE  = 5;
+        private const int SHIFT_INDICATOR_MEASURES_BEFORE = 5;
 
         public override bool ShouldUpdateInputsOnResume => true;
 
@@ -38,25 +39,15 @@ namespace YARG.Gameplay.Player
             0.21f, 0.50f, 0.90f, 2.77f, 4.62f, 6.78f
         };
 
-        public GuitarEngineParameters EngineParams { get; private set; }
+        public KeysEngineParameters EngineParams { get; private set; }
 
-        private double TimeFromSpawnToStrikeline => SpawnTimeOffset - (-STRIKE_LINE_POS / NoteSpeed);
-
-        public struct RangeShiftIndicator
-        {
-            public double Time;
-            public bool   LeftSide;
-            public int    Offset;
-            public bool   RangeIndicator;
-        }
-
-        private          FiveFretRangeShift[]       _allRangeShiftEvents;
-        private readonly Queue<FiveFretRangeShift>  _rangeShiftEventQueue = new();
-        private          FiveFretRangeShift         CurrentRange { get; set; }
-        private readonly Queue<RangeShiftIndicator> _shiftIndicators = new();
-        private          int                        _shiftIndicatorIndex;
-        private          bool                       _fretPulseStarting;
-        private          double                     _fretPulseStartTime;
+        private FiveFretRangeShift[] _allRangeShiftEvents;
+        private readonly Queue<FiveFretRangeShift> _rangeShiftEventQueue = new();
+        private FiveFretRangeShift CurrentRange { get; set; }
+        private readonly Queue<FiveFretGuitarPlayer.RangeShiftIndicator> _shiftIndicators = new();
+        private int _shiftIndicatorIndex;
+        private bool _fretPulseStarting;
+        private double _fretPulseStartTime;
 
         private bool[] _activeFrets = null;
 
@@ -78,7 +69,7 @@ namespace YARG.Gameplay.Player
         private int _sustainCount;
 
         private SongStem _stem;
-        private double   _practiceSectionStartTime;
+        private double _practiceSectionStartTime;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
@@ -96,7 +87,7 @@ namespace YARG.Gameplay.Player
             return track.GetDifficulty(Player.Profile.CurrentDifficulty);
         }
 
-        protected override GuitarEngine CreateEngine()
+        protected override FiveLaneKeysEngine CreateEngine()
         {
             // If on bass, replace the star multiplier threshold
             bool isBass = Player.Profile.CurrentInstrument == Instrument.FiveFretBass;
@@ -108,17 +99,17 @@ namespace YARG.Gameplay.Player
             if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
+                EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds, isBass);
                 //EngineParams = EnginePreset.Precision.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
             }
             else
             {
                 // Otherwise, get from the replay
-                EngineParams = (GuitarEngineParameters) Player.EngineParameterOverride;
+                EngineParams = (KeysEngineParameters) Player.EngineParameterOverride;
             }
 
-            var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart);
+            var engine = new YargFiveLaneKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -126,7 +117,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnNoteHit += OnNoteHit;
             engine.OnNoteMissed += OnNoteMissed;
-            engine.OnOverstrum += OnOverhit;
+            engine.OnOverhit += OnOverhit;
 
             engine.OnSustainStart += OnSustainStart;
             engine.OnSustainEnd += OnSustainEnd;
@@ -151,7 +142,7 @@ namespace YARG.Gameplay.Player
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
             _fretArray.Initialize(
                 Player.ThemePreset,
-                Player.Profile.GameMode,
+                VisualStyle.FiveLaneKeys,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip,
                 false, // Not applicable to five fret
@@ -228,7 +219,7 @@ namespace YARG.Gameplay.Player
 
                 YargLogger.LogDebug("Shift indicator spawned!");
 
-                ((GuitarShiftIndicatorElement) poolable).RangeShiftIndicator = shiftIndicator;
+                ((FiveLaneKeysShiftIndicatorElement) poolable).RangeShiftIndicator = shiftIndicator;
                 poolable.EnableFromPool();
 
                 _shiftIndicators.Dequeue();
@@ -284,9 +275,9 @@ namespace YARG.Gameplay.Player
 
         private void UpdateFretArray()
         {
-            for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
+            for (var fret = (int)FiveLaneKeysAction.GreenKey; fret <= (int)FiveLaneKeysAction.OrangeKey; fret++)
             {
-                _fretArray.SetPressed((int) fret, Engine.IsFretHeld(fret));
+                _fretArray.SetPressed(fret, Engine.IsKeyHeld((FiveLaneKeysAction)fret));
             }
         }
 
@@ -306,10 +297,97 @@ namespace YARG.Gameplay.Player
 
             YargLogger.LogDebug("Range indicator spawned!");
 
-            ((GuitarRangeIndicatorElement) poolable).RangeShift = nextShift;
+            ((FiveLaneKeysRangeIndicatorElement) poolable).RangeShift = nextShift;
             poolable.EnableFromPool();
 
             _shiftIndicators.Dequeue();
+        }
+
+        protected override bool InterceptInput(ref GameInput input)
+        {
+            var action = input.GetAction<ProKeysAction>();
+
+            // Ignore SP in practice mode
+            if (action == ProKeysAction.StarPower && GameManager.IsPractice) return true;
+
+            return false;
+        }
+
+        protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
+        {
+            ((FiveLaneKeysNoteElement) poolable).NoteRef = note;
+        }
+
+        protected override void OnNoteHit(int index, GuitarNote note)
+        {
+            base.OnNoteHit(index, note);
+
+            if (GameManager.Paused) return;
+
+            (NotePool.GetByKey(note) as FiveLaneKeysNoteElement)?.HitNote();
+
+            if (note.FiveLaneKeysAction is FiveLaneKeysAction.OpenNote)
+            {
+                _fretArray.PlayOpenHitAnimation();
+            } else
+            {
+                _fretArray.PlayHitAnimation((int)note.FiveLaneKeysAction);
+            }
+        }
+
+        protected override void OnNoteMissed(int index, GuitarNote chordParent)
+        {
+            base.OnNoteMissed(index, chordParent);
+
+            (NotePool.GetByKey(chordParent) as FiveLaneKeysNoteElement).MissNote();
+        }
+
+        private void OnOverhit(int key)
+        {
+            OnOverhit();
+
+            if (key is (int) FiveLaneKeysAction.OpenNote)
+            {
+                _fretArray.PlayOpenMissAnimation();
+            }
+            else
+            {
+                _fretArray.PlayMissAnimation(key);
+            }
+        }
+
+        private void OnSustainStart(GuitarNote note)
+        {
+            if (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote)
+            {
+                _fretArray.SetSustained((int) note.FiveLaneKeysAction, true);
+            }
+
+            _sustainCount++;
+        }
+
+        private void OnSustainEnd(GuitarNote note, double timeEnded, bool finished)
+        {
+            (NotePool.GetByKey(note) as FiveLaneKeysNoteElement)?.SustainEnd(finished);
+
+            // Mute the stem if you let go of the sustain too early.
+            // Leniency is handled by the engine's sustain burst threshold.
+            if (!finished)
+            {
+                // Do we want to check if its part of a chord, and if so, if all sustains were dropped to mute?
+                SetStemMuteState(true);
+            }
+
+            if (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote)
+            {
+                _fretArray.SetSustained((int) note.FiveLaneKeysAction, false);
+            }
+        }
+
+        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
+        {
+            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
         }
 
         public override void SetStemMuteState(bool muted)
@@ -320,194 +398,6 @@ namespace YARG.Gameplay.Player
                 IsStemMuted = muted;
             }
         }
-
-        public override void SetStarPowerFX(bool active)
-        {
-            GameManager.ChangeStemReverbState(_stem, active);
-        }
-
-        protected override void ResetVisuals()
-        {
-            base.ResetVisuals();
-
-            _fretArray.ResetAll();
-        }
-
-        protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
-        {
-            ((FiveFretNoteElement) poolable).NoteRef = note;
-        }
-
-        protected override void OnNoteHit(int index, GuitarNote chordParent)
-        {
-            base.OnNoteHit(index, chordParent);
-
-            if (GameManager.Paused) return;
-
-            foreach (var note in chordParent.AllNotes)
-            {
-                (NotePool.GetByKey(note) as FiveFretNoteElement)?.HitNote();
-
-                if (note.Fret != (int) FiveFretGuitarFret.Open)
-                {
-                    _fretArray.PlayHitAnimation(note.Fret - 1);
-                }
-                else
-                {
-                    _fretArray.PlayOpenHitAnimation();
-                }
-            }
-        }
-
-        protected override void OnNoteMissed(int index, GuitarNote chordParent)
-        {
-            base.OnNoteMissed(index, chordParent);
-
-            foreach (var note in chordParent.AllNotes)
-            {
-                (NotePool.GetByKey(note) as FiveFretNoteElement)?.MissNote();
-            }
-        }
-
-        protected override void OnOverhit()
-        {
-            base.OnOverhit();
-
-            if (GameManager.IsSeekingReplay)
-            {
-                return;
-            }
-
-            if (SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value)
-            {
-                const int MIN = (int) SfxSample.Overstrum1;
-                const int MAX = (int) SfxSample.Overstrum4;
-
-                var randomOverstrum = (SfxSample) Random.Range(MIN, MAX + 1);
-                GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
-            }
-
-            // To check if held frets are valid
-            GuitarNote currentNote = null;
-            if (Engine.NoteIndex < Notes.Count)
-            {
-                var note = Notes[Engine.NoteIndex];
-
-                // Don't take the note if it's not within the hit window
-                // TODO: Make BaseEngine.IsNoteInWindow public and use that instead
-                var (frontEnd, backEnd) = Engine.CalculateHitWindow();
-                if (Engine.CurrentTime >= (note.Time + frontEnd) && Engine.CurrentTime <= (note.Time + backEnd))
-                {
-                    currentNote = note;
-                }
-            }
-
-            // Play miss animation for every held fret that does not match the current note
-            bool anyHeld = false;
-            for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
-            {
-                if (!Engine.IsFretHeld(fret))
-                {
-                    continue;
-                }
-
-                anyHeld = true;
-
-                if (currentNote == null || (currentNote.NoteMask & (1 << (int) fret)) == 0)
-                {
-                    _fretArray.PlayMissAnimation((int) fret);
-                }
-            }
-
-            // Play open-strum miss if no frets are held
-            if (!anyHeld)
-            {
-                _fretArray.PlayOpenMissAnimation();
-            }
-        }
-
-        private void OnSustainStart(GuitarNote parent)
-        {
-            foreach (var note in parent.AllNotes)
-            {
-                // If the note is disjoint, only iterate the parent as sustains are added separately
-                if (parent.IsDisjoint && parent != note)
-                {
-                    continue;
-                }
-
-                if (note.Fret != (int) FiveFretGuitarFret.Open)
-                {
-                    _fretArray.SetSustained(note.Fret - 1, true);
-                }
-
-                _sustainCount++;
-            }
-        }
-
-        private void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
-        {
-            foreach (var note in parent.AllNotes)
-            {
-                // If the note is disjoint, only iterate the parent as sustains are added separately
-                if (parent.IsDisjoint && parent != note)
-                {
-                    continue;
-                }
-
-                (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd(finished);
-
-                if (note.Fret != (int) FiveFretGuitarFret.Open)
-                {
-                    _fretArray.SetSustained(note.Fret - 1, false);
-                }
-
-                _sustainCount--;
-            }
-
-            // Mute the stem if you let go of the sustain too early.
-            // Leniency is handled by the engine's sustain burst threshold.
-            if (!finished)
-            {
-                if (!parent.IsDisjoint || _sustainCount == 0)
-                {
-                    SetStemMuteState(true);
-                }
-            }
-
-            if (_sustainCount == 0)
-            {
-                WhammyFactor = 0;
-                GameManager.ChangeStemWhammyPitch(_stem, 0);
-            }
-        }
-
-        protected override bool InterceptInput(ref GameInput input)
-        {
-            // Ignore SP in practice mode
-            if (input.GetAction<GuitarAction>() == GuitarAction.StarPower && GameManager.IsPractice) return true;
-
-            return false;
-        }
-
-        protected override void OnInputQueued(GameInput input)
-        {
-            base.OnInputQueued(input);
-
-            // Update the whammy factor
-            if (_sustainCount > 0 && input.GetAction<GuitarAction>() == GuitarAction.Whammy)
-            {
-                WhammyFactor = Mathf.Clamp01(input.Axis);
-                GameManager.ChangeStemWhammyPitch(_stem, WhammyFactor);
-            }
-        }
-
-        public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
-        {
-            var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
-            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
-        }
-
 
         private void InitializeRangeShift(double time = 0)
         {
@@ -547,7 +437,7 @@ namespace YARG.Gameplay.Player
             FiveFretRangeShift mostRecentEvent = firstEvent;
 
             // Only queue range shifts that happen after time
-            for(int i = 1; i < _allRangeShiftEvents.Length; i++)
+            for (int i = 1; i < _allRangeShiftEvents.Length; i++)
             {
                 FiveFretRangeShift e = _allRangeShiftEvents[i];
                 // These have no visible effect on the track, so we just
@@ -625,7 +515,7 @@ namespace YARG.Gameplay.Player
 
                     firstBeatTime = beatlines[realIndex].Time < firstBeatTime ? beatlines[realIndex].Time : firstBeatTime;
 
-                    _shiftIndicators.Enqueue(new RangeShiftIndicator
+                    _shiftIndicators.Enqueue(new FiveFretGuitarPlayer.RangeShiftIndicator
                     {
                         Time = beatlines[realIndex].Time,
                         LeftSide = shiftLeft,

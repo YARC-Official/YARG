@@ -172,6 +172,13 @@ namespace YARG.Input
 
             new ButtonBinding("ProKeys.Key25", (int) ProKeysAction.Key25),
 
+            new ButtonBinding("ProKeys.OpenNote", (int) ProKeysAction.OpenNote),
+            new ButtonBinding("ProKeys.GreenKey", (int) ProKeysAction.GreenKey),
+            new ButtonBinding("ProKeys.RedKey", (int) ProKeysAction.RedKey),
+            new ButtonBinding("ProKeys.YellowKey", (int) ProKeysAction.YellowKey),
+            new ButtonBinding("ProKeys.BlueKey", (int) ProKeysAction.BlueKey),
+            new ButtonBinding("ProKeys.OrangeKey", (int) ProKeysAction.OrangeKey),
+
             new IndividualButtonBinding("ProKeys.StarPower", (int) ProKeysAction.StarPower),
 
             new AxisBinding("ProKeys.TouchEffects", (int) ProKeysAction.TouchEffects),

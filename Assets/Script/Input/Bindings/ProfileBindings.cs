@@ -20,6 +20,7 @@ namespace YARG.Input
 
         private SerializedMic _unresolvedMic;
         public MicDevice Microphone { get; private set; }
+        public List<InputDevice> InputDevices => _devices;
 
         private readonly List<SerializedInputDevice> _unresolvedDevices = new();
         private readonly List<InputDevice> _devices = new();

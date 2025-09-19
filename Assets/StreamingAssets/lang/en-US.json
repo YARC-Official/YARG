@@ -144,7 +144,9 @@
             "Delete": "Delete",
 
             "Reset": "Reset",
-            "ResetAll": "Reset All"
+            "ResetAll": "Reset All",
+			
+			"Scroll" : "Scroll"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",
@@ -671,6 +673,12 @@
             "Key23": "Key 23 (A#3)",
             "Key24": "Key 24 (B3)",
             "Key25": "Key 25 (C4)",
+			"OpenNote": "Five-Lane Open Note",
+			"GreenKey": "Five-Lane Green Key (First)",
+			"RedKey": "Five-Lane Red Key (Second)",
+			"YellowKey": "Five-Lane Yellow Key (Third)",
+			"BlueKey": "Five-Lane Blue Key (Fourth)",
+			"OrangeKey": "Five-Lane Orange Key (Fifth)",
             "StarPower": "Star Power Activate",
             "TouchEffects": "Touch Effects"
         }
@@ -989,6 +997,10 @@
                 "Name": "No Kicks",
                 "Description": "Removes all kick notes (drums only)."
             },
+            "NoFailMode": {
+                "Name": "No Fail Mode",
+                "Description": "Disables ending a song early when crowd happiness is too low."
+            },
             "NoteStreakFrequency": {
                 "Name": "Note Streak Frequency",
                 "Description": "Sets the frequency of note streak notifications.",
@@ -1268,6 +1280,10 @@
                 "Name": "Show Player Name When Starting Song",
                 "Description": "If enabled, the player name and instrument icon will appear when the song starts."
             },
+			"StaticVocalsMode": {
+				"Name": "Static Vocals Mode",
+				"Description": "When enabled, lyrics stay stationary on the left side of the vocal highway. When disabled, lyrics scroll across the vocal highway."
+			},
             "UseThreeLaneLyricsInHarmony": {
                 "Name": "Use Three Lyric Lanes In Harmony",
                 "Description": "If enabled, the game will display three lyric lanes in harmony mode (one for each harmony). When disabled, the game will combine the lyrics of harmonies 2 and 3 into one lane at the top."
@@ -1285,7 +1301,8 @@
             "CameraSettingsContainer": "Camera Presets",
             "ColorProfileContainer": "Color Profiles",
             "EnginePresetContainer": "Engine Presets",
-            "HighwayPresetContainer" : "Highway Presets"
+            "HighwayPresetContainer" : "Highway Presets",
+			"RockMeterPresetContainer" : "Rock Meter Presets"
         },
         "PresetSetting": {
             "CameraPreset": {
@@ -1636,10 +1653,10 @@
                 "SubSection": {
                     "Name": "Game Mode",
                     "Dropdown": {
-                        "Drums": "Drums (4 and 5 lane)",
-                        "FiveFretGuitar": "Five Fret Guitar",
+                        "Drums": "Drums (Four- and Five-Lane)",
+                        "FiveFretGuitar": "Five-Fret Guitar",
                         "Vocals": "Vocals",
-                        "ProKeys": "Pro Keys"
+                        "ProKeys": "Keys (Pro and Five-Lane)"
                     }
                 },
                 "AntiGhosting": {
@@ -1771,7 +1788,37 @@
                 "StarPowerColor": {
                     "Name": "Star Power Color"
                 }
-            }
+            },
+			"RockMeterPreset" : {
+                "StartingHappiness": {
+                    "Name": "Starting Happiness",
+					"Description": "This controls how full the Rock Meter is at the beginning of the song."
+                },
+				"MissDamageMultiplier": {
+                    "Name": "Miss Damage Multiplier",
+					"Description": "This controls how much the Rock Meter decreases when missing a note. Higher values make the game more difficult."
+                },
+				"OverhitDamageMultiplier": {
+                    "Name": "Overhit Damage Multiplier",
+					"Description": "This controls how much the Rock Meter decreases when over-strumming. Higher values make the game more difficult."
+                },
+				"HitRecoveryMultiplier": {
+                    "Name": "Hit Recovery Multiplier",
+					"Description": "This controls how much the Rock Meter recovers when hitting a note correctly. Higher values make the game easier."
+                },
+				"StarPowerEffectMultiplier": {
+                    "Name": "Star Power Multiplier",
+					"Description": "This controls how much the Rock Meter recovers when successfully hitting a note while Star Power is active. This has no effect on misses or overhits."
+                },
+				"VocalsMissDamageMultiplier": {
+                    "Name": "Miss Damage Multiplier (Vocals)",
+					"Description": "This controls how much the Rock Meter decreases when a vocalist sings a phrase poorly. Higher values make the game more difficult."
+                },
+				"VocalsHitRecoveryMultiplier": {
+                    "Name": "Hit Recovery Multiplier (Vocals)",
+					"Description": "This controls how much the Rock Meter recovers when a vocalist sings a phrase well. Higher values make the game easier."
+                }
+			}
         }
     }
 }

@@ -1,7 +1,12 @@
+using System.Collections;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using YARG.Core.Game;
+using YARG.Gameplay.HUD;
+using YARG.Gameplay.Player;
 using YARG.Settings;
+using YARG.Settings.Preview;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -10,7 +15,38 @@ namespace YARG.Gameplay.Visuals
         private const float BOUNCE_UNITS = 0.03f;
         private const float SPEED = 0.25f;
 
+        private const float GLOBAL_ANIM_DELAY = 2f;
+        private const float LOCAL_ANIM_OFFSET = 0.1f;
+
+        private const float ANIM_BASE_TO_PEAK_INTERVAL = 0.333f;
+        private const float ANIM_PEAK_TO_VALLEY_INTERVAL = 0.167f;
+        private const float ANIM_INIT_ROTATION = -60f;
+        private const float ANIM_PEAK_ROTATION = 2f;
+
+        private const float PUNCH_ANIM_DURATION = 0.25f;
+        private const float PUNCH_DISTANCE      = 0.03f;
+
+        private const float SCOOP_ANIM_DURATION = 0.0833f;
+        private const float SCOOP_DOWN_DISTANCE = 1f;
+        private const float SCOOP_UP_DISTANCE   = 0.25f;
+
         private float _currentBounce;
+
+        private bool _highwayRaised = false;
+
+        private GameManager  _gameManager;
+        private CameraPreset _preset;
+
+        private Tweener _punchLeft;
+        private Tweener _punchRight;
+
+        private Sequence _scoop;
+        private Sequence _raise;
+        private Sequence _lower;
+
+        private Sequence _bounce;
+
+        private float _cameraY;
 
         private void Start()
         {
@@ -41,6 +77,25 @@ namespace YARG.Gameplay.Visuals
 
             // Rotation
             transform.localRotation = Quaternion.Euler(preset.Rotation, 0f, 0f);
+
+            // Set camera preset
+            _preset = preset;
+
+            // Initialize sequences
+            InitializeSequences();
+
+            _gameManager = FindObjectOfType<GameManager>();
+            // Animate the highway raise
+            if (_gameManager != null && !_gameManager.IsPractice)
+            {
+                if (_highwayRaised)
+                {
+                    return;
+                }
+
+                RaiseHighway(true);
+                _highwayRaised = true;
+            }
         }
 
         private void Update()
@@ -55,13 +110,146 @@ namespace YARG.Gameplay.Visuals
 
         public void Bounce()
         {
-            // Prevent bounce from stacking up
-            transform.Translate(Vector3.up * _currentBounce, Space.World);
+            _bounce.Restart();
+        }
 
-            // Remember that we should be moving in the opposite direction
-            // because we're moving the camera, not the track.
-            _currentBounce = BOUNCE_UNITS * SettingsManager.Settings.KickBounceMultiplier.Value;
-            transform.Translate(Vector3.down * _currentBounce, Space.World);
+        public void Lower(bool isGameplayEnd)
+        {
+            if (_highwayRaised)
+            {
+                LowerHighway(isGameplayEnd);
+                _highwayRaised = false;
+            }
+        }
+
+        public void Punch()
+        {
+            PunchHighway();
+        }
+
+        public void Scoop()
+        {
+            ScoopHighway();
+        }
+
+        private void OnDestroy()
+        {
+            _lower?.Kill();
+            _raise?.Kill();
+            _scoop?.Kill();
+            _bounce?.Kill();
+            _punchLeft?.Kill();
+            _punchRight?.Kill();
+        }
+
+        private void InitializeSequences()
+        {
+            _raise = DOTween.Sequence()
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation + ANIM_PEAK_ROTATION), ANIM_BASE_TO_PEAK_INTERVAL)
+                    .SetEase(Ease.OutCirc))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation), ANIM_PEAK_TO_VALLEY_INTERVAL)
+                    .SetEase(Ease.InOutSine))
+                .AppendCallback(InitializeBounce)
+                .SetAutoKill(false)
+                .Pause();
+
+            _lower = DOTween.Sequence()
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation + ANIM_PEAK_ROTATION), ANIM_PEAK_TO_VALLEY_INTERVAL)
+                    .SetEase(Ease.InOutSine))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation + ANIM_INIT_ROTATION), ANIM_BASE_TO_PEAK_INTERVAL)
+                    .SetEase(Ease.InCirc))
+                .SetUpdate(true)
+                .SetAutoKill(false)
+                .Pause();
+
+            var leftVector = new Vector3(-PUNCH_DISTANCE, 0f, 0f);
+            var rightVector = new Vector3(PUNCH_DISTANCE, 0f, 0f);
+
+            _punchLeft = transform.DOPunchPosition(leftVector, PUNCH_ANIM_DURATION, 1, 1f, false)
+                .SetAutoKill(false)
+                .Pause();
+
+            _punchRight = transform.DOPunchPosition(rightVector, PUNCH_ANIM_DURATION, 1, 1f, false)
+                .SetAutoKill(false)
+                .Pause();
+
+            _scoop = DOTween.Sequence()
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation - SCOOP_DOWN_DISTANCE), SCOOP_ANIM_DURATION / 4f)
+                    .SetEase(Ease.OutSine))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation + SCOOP_UP_DISTANCE), SCOOP_ANIM_DURATION / 2f)
+                    .SetEase(Ease.InOutSine))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation), SCOOP_ANIM_DURATION / 4f)
+                    .SetEase(Ease.InOutSine))
+                .SetAutoKill(false)
+                .Pause();
+        }
+
+        private void InitializeBounce()
+        {
+            var bounceAmount = BOUNCE_UNITS * SettingsManager.Settings.KickBounceMultiplier.Value;
+
+            // Have to invert bounceAmount since we're moving the camera, not the track
+            var strength = new Vector3(0f, bounceAmount * -1, 0f);
+
+            _bounce = DOTween.Sequence().Append(
+                transform.DOPunchPosition(strength, 0.125f, 10, 1f, false))
+                .SetAutoKill(false)
+                .Pause();
+        }
+
+        private void RaiseHighway(bool isGameplayStart)
+        {
+            transform.localRotation = Quaternion.Euler(new Vector3().WithX(_preset.Rotation + ANIM_INIT_ROTATION));
+
+            var basePlayer = GetComponentInParent<BasePlayer>();
+            float delay = isGameplayStart
+                ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET + GLOBAL_ANIM_DELAY
+                : 0f;
+
+            // TODO: This will need to be reworked when it is possible for the highway to raise and lower other
+            //  than at the beginning and end of song
+            _raise.PrependInterval(delay).Restart();
+        }
+
+        // NOTE: Requires SONG_END_DELAY; will not animate until https://github.com/YARC-Official/YARG/pull/993 is in.
+        private void LowerHighway(bool isGameplayEnd)
+        {
+            transform.localRotation = Quaternion.Euler(new Vector3().WithX(_preset.Rotation));
+
+            var basePlayer = GetComponentInParent<BasePlayer>();
+            float delay = isGameplayEnd
+                ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET
+                : 0f;
+
+            // TODO: This will need to be reworked when it is possible for the highway to raise and lower other
+            //  than at the beginning and end of song
+            _lower.PrependInterval(delay).Restart();
+        }
+
+        private void PunchHighway()
+        {
+            // 50% chance left or right to lessen visual fatigue
+            if (Random.Range(0f, 1f) > 0.5f)
+            {
+                _punchLeft.Restart();
+            }
+            else
+            {
+                _punchRight.Restart();
+            }
+        }
+
+        private void ScoopHighway()
+        {
+            // Very quick blast down, up and back to origin for SP activation
+            _scoop.Restart();
         }
     }
 }
