@@ -36,6 +36,12 @@ namespace YARG.Player
         private static readonly Dictionary<Guid, YargProfile>       _profilesById     = new();
         private static readonly Dictionary<YargProfile, YargPlayer> _playersByProfile = new();
 
+        public delegate void OnPlayerAdded(YargPlayer player);
+        public delegate void OnPlayerRemoved(YargPlayer player);
+
+        public static event OnPlayerAdded PlayerAdded;
+        public static event OnPlayerRemoved PlayerRemoved;
+
         /// <summary>
         /// A list of all of the profiles (taken or not).
         /// </summary>
@@ -129,6 +135,7 @@ namespace YARG.Player
             ActiveProfilesChanged();
             player.RefreshPresets();
             profile.ClaimProfile();
+            PlayerAdded?.Invoke(player);
             return player;
         }
 
@@ -142,6 +149,7 @@ namespace YARG.Player
             _players.Remove(player);
             _playersByProfile.Remove(player.Profile);
 
+            PlayerRemoved?.Invoke(player);
             player.Dispose();
             ActiveProfilesChanged();
             return true;
