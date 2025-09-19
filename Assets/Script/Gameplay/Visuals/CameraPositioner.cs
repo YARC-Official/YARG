@@ -36,7 +36,17 @@ namespace YARG.Gameplay.Visuals
 
         private GameManager  _gameManager;
         private CameraPreset _preset;
-        private Coroutine    _coroutine;
+
+        private Tweener _punchLeft;
+        private Tweener _punchRight;
+
+        private Sequence _scoop;
+        private Sequence _raise;
+        private Sequence _lower;
+
+        private Sequence _bounce;
+
+        private float _cameraY;
 
         private void Start()
         {
@@ -71,6 +81,9 @@ namespace YARG.Gameplay.Visuals
             // Set camera preset
             _preset = preset;
 
+            // Initialize sequences
+            InitializeSequences();
+
             _gameManager = FindObjectOfType<GameManager>();
             // Animate the highway raise
             if (_gameManager != null && !_gameManager.IsPractice)
@@ -80,7 +93,7 @@ namespace YARG.Gameplay.Visuals
                     return;
                 }
 
-                _coroutine = StartCoroutine(RaiseHighway(_preset, true));
+                RaiseHighway(true);
                 _highwayRaised = true;
             }
         }
@@ -97,108 +110,146 @@ namespace YARG.Gameplay.Visuals
 
         public void Bounce()
         {
-            // Prevent bounce from stacking up
-            transform.Translate(Vector3.up * _currentBounce, Space.World);
-
-            // Remember that we should be moving in the opposite direction
-            // because we're moving the camera, not the track.
-            _currentBounce = BOUNCE_UNITS * SettingsManager.Settings.KickBounceMultiplier.Value;
-            transform.Translate(Vector3.down * _currentBounce, Space.World);
+            _bounce.Restart();
         }
 
         public void Lower(bool isGameplayEnd)
         {
             if (_highwayRaised)
             {
-                _coroutine = StartCoroutine(LowerHighway(_preset, isGameplayEnd));
+                LowerHighway(isGameplayEnd);
                 _highwayRaised = false;
             }
         }
 
         public void Punch()
         {
-            _coroutine = StartCoroutine(PunchHighway(_preset));
+            PunchHighway();
         }
 
         public void Scoop()
         {
-            _coroutine = StartCoroutine(ScoopHighway(_preset));
+            ScoopHighway();
         }
 
         private void OnDestroy()
         {
-            if (_coroutine != null)
-            {
-                StopCoroutine(_coroutine);
-            }
+            _lower?.Kill();
+            _raise?.Kill();
+            _scoop?.Kill();
+            _bounce?.Kill();
+            _punchLeft?.Kill();
+            _punchRight?.Kill();
         }
 
-        private IEnumerator RaiseHighway(CameraPreset preset, bool isGameplayStart)
+        private void InitializeSequences()
         {
-            transform.localRotation = Quaternion.Euler(new Vector3().WithX(preset.Rotation + ANIM_INIT_ROTATION));
+            _raise = DOTween.Sequence()
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation + ANIM_PEAK_ROTATION), ANIM_BASE_TO_PEAK_INTERVAL)
+                    .SetEase(Ease.OutCirc))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation), ANIM_PEAK_TO_VALLEY_INTERVAL)
+                    .SetEase(Ease.InOutSine))
+                .AppendCallback(InitializeBounce)
+                .SetAutoKill(false)
+                .Pause();
+
+            _lower = DOTween.Sequence()
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation + ANIM_PEAK_ROTATION), ANIM_PEAK_TO_VALLEY_INTERVAL)
+                    .SetEase(Ease.InOutSine))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation + ANIM_INIT_ROTATION), ANIM_BASE_TO_PEAK_INTERVAL)
+                    .SetEase(Ease.InCirc))
+                .SetUpdate(true)
+                .SetAutoKill(false)
+                .Pause();
+
+            var leftVector = new Vector3(-PUNCH_DISTANCE, 0f, 0f);
+            var rightVector = new Vector3(PUNCH_DISTANCE, 0f, 0f);
+
+            _punchLeft = transform.DOPunchPosition(leftVector, PUNCH_ANIM_DURATION, 1, 1f, false)
+                .SetAutoKill(false)
+                .Pause();
+
+            _punchRight = transform.DOPunchPosition(rightVector, PUNCH_ANIM_DURATION, 1, 1f, false)
+                .SetAutoKill(false)
+                .Pause();
+
+            _scoop = DOTween.Sequence()
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation - SCOOP_DOWN_DISTANCE), SCOOP_ANIM_DURATION / 4f)
+                    .SetEase(Ease.OutSine))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation + SCOOP_UP_DISTANCE), SCOOP_ANIM_DURATION / 2f)
+                    .SetEase(Ease.InOutSine))
+                .Append(transform
+                    .DORotate(new Vector3().WithX(_preset.Rotation), SCOOP_ANIM_DURATION / 4f)
+                    .SetEase(Ease.InOutSine))
+                .SetAutoKill(false)
+                .Pause();
+        }
+
+        private void InitializeBounce()
+        {
+            var bounceAmount = BOUNCE_UNITS * SettingsManager.Settings.KickBounceMultiplier.Value;
+
+            // Have to invert bounceAmount since we're moving the camera, not the track
+            var strength = new Vector3(0f, bounceAmount * -1, 0f);
+
+            _bounce = DOTween.Sequence().Append(
+                transform.DOPunchPosition(strength, 0.125f, 10, 1f, false))
+                .SetAutoKill(false)
+                .Pause();
+        }
+
+        private void RaiseHighway(bool isGameplayStart)
+        {
+            transform.localRotation = Quaternion.Euler(new Vector3().WithX(_preset.Rotation + ANIM_INIT_ROTATION));
 
             var basePlayer = GetComponentInParent<BasePlayer>();
             float delay = isGameplayStart
                 ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET + GLOBAL_ANIM_DELAY
                 : 0f;
 
-            yield return DOTween.Sequence()
-                .PrependInterval(delay)
-                .Append(transform
-                    .DORotate(new Vector3().WithX(preset.Rotation + ANIM_PEAK_ROTATION), ANIM_BASE_TO_PEAK_INTERVAL)
-                    .SetEase(Ease.OutCirc))
-                .Append(transform
-                    .DORotate(new Vector3().WithX(preset.Rotation), ANIM_PEAK_TO_VALLEY_INTERVAL)
-                    .SetEase(Ease.InOutSine));
+            // TODO: This will need to be reworked when it is possible for the highway to raise and lower other
+            //  than at the beginning and end of song
+            _raise.PrependInterval(delay).Restart();
         }
 
         // NOTE: Requires SONG_END_DELAY; will not animate until https://github.com/YARC-Official/YARG/pull/993 is in.
-        private IEnumerator LowerHighway(CameraPreset preset, bool isGameplayEnd)
+        private void LowerHighway(bool isGameplayEnd)
         {
-            transform.localRotation = Quaternion.Euler(new Vector3().WithX(preset.Rotation));
+            transform.localRotation = Quaternion.Euler(new Vector3().WithX(_preset.Rotation));
 
             var basePlayer = GetComponentInParent<BasePlayer>();
             float delay = isGameplayEnd
                 ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET
                 : 0f;
 
-            yield return DOTween.Sequence()
-                .PrependInterval(delay)
-                .Append(transform
-                    .DORotate(new Vector3().WithX(preset.Rotation + ANIM_PEAK_ROTATION), ANIM_PEAK_TO_VALLEY_INTERVAL)
-                .SetEase(Ease.InOutSine))
-                .Append(transform
-                    .DORotate(new Vector3().WithX(preset.Rotation + ANIM_INIT_ROTATION), ANIM_BASE_TO_PEAK_INTERVAL)
-                    .SetEase(Ease.InCirc))
-                .SetUpdate(true);
+            // TODO: This will need to be reworked when it is possible for the highway to raise and lower other
+            //  than at the beginning and end of song
+            _lower.PrependInterval(delay).Restart();
         }
 
-        private IEnumerator PunchHighway(CameraPreset preset)
+        private void PunchHighway()
         {
             // 50% chance left or right to lessen visual fatigue
-            float xPosDelta = PUNCH_DISTANCE * (Random.Range(0f, 1f) > 0.5f ? -1 : 1);
-
-            yield return DOTween.Sequence()
-                .Append(transform
-                    .DOPunchPosition(new Vector3()
-                            .WithX(xPosDelta)
-                            .WithY(PUNCH_DISTANCE),
-                        PUNCH_ANIM_DURATION, 1, 1f, false));
+            if (Random.Range(0f, 1f) > 0.5f)
+            {
+                _punchLeft.Restart();
+            }
+            else
+            {
+                _punchRight.Restart();
+            }
         }
 
-        private IEnumerator ScoopHighway(CameraPreset preset)
+        private void ScoopHighway()
         {
             // Very quick blast down, up and back to origin for SP activation
-            yield return DOTween.Sequence()
-                .Append(transform
-                    .DORotate(new Vector3().WithX(preset.Rotation - SCOOP_DOWN_DISTANCE), SCOOP_ANIM_DURATION / 4f)
-                    .SetEase(Ease.OutSine))
-                .Append(transform
-                    .DORotate(new Vector3().WithX(preset.Rotation + SCOOP_UP_DISTANCE), SCOOP_ANIM_DURATION / 2f)
-                    .SetEase(Ease.InOutSine))
-                .Append(transform
-                    .DORotate(new Vector3().WithX(preset.Rotation), SCOOP_ANIM_DURATION / 4f)
-                    .SetEase(Ease.InOutSine));
+            _scoop.Restart();
         }
     }
 }
