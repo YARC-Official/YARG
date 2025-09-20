@@ -17,7 +17,7 @@ namespace YARG.Helpers.Extensions
 
                 GameMode.FourLaneDrums  => "drums",
                 GameMode.FiveLaneDrums  => "ghDrums",
-                // GameMode.EliteDrums  => "eliteDrums",
+                GameMode.EliteDrums  => "trueDrums",
 
                 GameMode.ProGuitar      => "realGuitar",
                 GameMode.ProKeys        => "realKeys",
