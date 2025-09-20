@@ -18,9 +18,9 @@
         "GameMode": {
             "FiveFretGuitar": "5-Fret Guitar",
             "SixFretGuitar": "6-Fret Guitar",
-            "EliteDrums": "MIDI Drums",
-			"FourLaneDrums": "RB Drums (4-Lane and Pro)",
-            "FiveLaneDrums": "GH Drums",
+            "EliteDrums": "MIDI Drumkit",
+			"FourLaneDrums": "RB Drumkit (4-Lane and Pro)",
+            "FiveLaneDrums": "GH Drumkit",
             "ProGuitar": "Pro Guitar",
             "ProKeys": "Keys (Pro and 5-Lane)",
             "Menu": "Menu",
