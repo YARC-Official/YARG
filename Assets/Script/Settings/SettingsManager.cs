@@ -150,6 +150,7 @@ namespace YARG.Settings
                 nameof(Settings.ShowHitWindow),
                 nameof(Settings.DisableTextNotifications),
                 nameof(Settings.NoteStreakFrequency),
+                nameof(Settings.VocalStreakFrequency),
                 nameof(Settings.CountdownDisplay),
                 nameof(Settings.ShowPlayerNameWhenStartingSong),
                 nameof(Settings.LyricDisplay),

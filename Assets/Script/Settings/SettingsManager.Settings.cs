@@ -283,6 +283,14 @@ namespace YARG.Settings
                     NoteStreakFrequencyMode.Disabled
                 };
 
+            public DropdownSetting<VocalStreakFrequencyMode> VocalStreakFrequency { get; }
+                = new(VocalStreakFrequencyMode.Frequent)
+                {
+                    VocalStreakFrequencyMode.Frequent,
+                    VocalStreakFrequencyMode.Sparse,
+                    VocalStreakFrequencyMode.Disabled
+                };
+
             public DropdownSetting<CountdownDisplayMode> CountdownDisplay { get; }
                 = new(CountdownDisplayMode.Measures)
                 {
