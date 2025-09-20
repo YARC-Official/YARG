@@ -178,6 +178,7 @@ namespace YARG.Menu.ScoreScreen
                     }
                     case GameMode.FourLaneDrums:
                     case GameMode.FiveLaneDrums:
+                    case GameMode.EliteDrums:
                     {
                         card = Instantiate(_drumsCardPrefab, _cardContainer);
                         ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
