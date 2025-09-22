@@ -610,7 +610,7 @@ namespace YARG.Gameplay
             {
                 // Pause
                 case MenuAction.Start:
-                    if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
+                    if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing && !PlayerHasFailed)
                     {
                         SetPaused(!_songRunner.Paused);
                     }
