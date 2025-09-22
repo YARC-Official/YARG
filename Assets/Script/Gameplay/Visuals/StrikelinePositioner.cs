@@ -10,7 +10,7 @@ namespace YARG.Gameplay.Visuals
 {
     public class StrikelinePositioner : MonoBehaviour
     {
-        private const float GLOBAL_ANIM_DELAY = 2f;
+        private const float MAX_ANIM_DELAY = 2f;
         private const float LOCAL_ANIM_OFFSET = 0.1f;
 
         private const float ANIM_FRET_ZOOM_DELAY         = 0.5f;
@@ -20,6 +20,7 @@ namespace YARG.Gameplay.Visuals
         private const float ANIM_PEAK_Z_OFFSET           = 0.1f;
 
         private float       _zOffset;
+        private float       _globalAnimDelay;
         private Coroutine   _coroutine;
         private GameManager _gameManager;
 
@@ -28,7 +29,14 @@ namespace YARG.Gameplay.Visuals
             _zOffset = transform.localPosition.z;
 
             _gameManager = FindObjectOfType<GameManager>();
-            if (_gameManager != null && _gameManager.IsPractice == false)
+
+            // Determine the necessary delay
+            var timeToFirstNote = _gameManager.Chart.GetFirstNoteStartTime() + 2;
+            var animLength = ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL;
+            var latestStart = timeToFirstNote - animLength;
+            _globalAnimDelay = Mathf.Clamp((float) latestStart, 0f, MAX_ANIM_DELAY);
+
+            if (_gameManager != null && !_gameManager.IsPractice)
             {
                 _coroutine = StartCoroutine(RaiseStrikeline(true));
             }
@@ -42,7 +50,7 @@ namespace YARG.Gameplay.Visuals
 
             var basePlayer = GetComponentInParent<BasePlayer>();
             float delay = isGameplayStart
-                ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET + GLOBAL_ANIM_DELAY + ANIM_FRET_ZOOM_DELAY
+                ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET + _globalAnimDelay + ANIM_FRET_ZOOM_DELAY
                 : 0f;
 
             yield return DOTween.Sequence()
