@@ -206,8 +206,8 @@ namespace YARG.Menu.MusicLibrary
                 ChangeSort(SortAttribute.Name);
             }
 
-            InputManager.DeviceAdded += OnDeviceAdded;
-            InputManager.DeviceRemoved += OnDeviceRemoved;
+            PlayerContainer.PlayerAdded += OnPlayerAdded;
+            PlayerContainer.PlayerRemoved += OnPlayerRemoved;
         }
 
         private void SetRefreshIfNeeded()
@@ -698,8 +698,8 @@ namespace YARG.Menu.MusicLibrary
             _previewContext?.Stop();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
 
-            InputManager.DeviceAdded -= OnDeviceAdded;
-            InputManager.DeviceRemoved -= OnDeviceRemoved;
+            PlayerContainer.PlayerAdded -= OnPlayerAdded;
+            PlayerContainer.PlayerRemoved -= OnPlayerRemoved;
         }
 
         private void OnDestroy()
@@ -809,12 +809,12 @@ namespace YARG.Menu.MusicLibrary
             _searchField.SetSearchInput(songAttribute, input);
         }
 
-        private void OnDeviceAdded(InputDevice device)
+        private void OnPlayerAdded(YargPlayer player)
         {
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
         }
 
-        private void OnDeviceRemoved(InputDevice device)
+        private void OnPlayerRemoved(YargPlayer player)
         {
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
         }

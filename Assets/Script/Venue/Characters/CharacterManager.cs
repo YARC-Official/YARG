@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Chart.Events;
+using YARG.Core.Logging;
 using YARG.Gameplay;
 using AnimationEvent = YARG.Core.Chart.AnimationEvent;
 using CharacterStateType = YARG.Core.Chart.Events.CharacterState.CharacterStateType;
@@ -171,6 +173,10 @@ namespace YARG.Venue.Characters
                         _characters[key].ChartHasAnimations = true;
                     }
                 }
+            }
+            else
+            {
+                GenerateAnimations();
             }
 
             // Don't animate until there are notes (at least until we have idle animations)
@@ -387,6 +393,92 @@ namespace YARG.Venue.Characters
             }
         }
 
+        private void GenerateAnimations()
+        {
+            // If a character is missing animations, generate something (vocals only for now since bass and drums use notes)
+            foreach (var key in _characters.Keys)
+            {
+                var character = _characters[key];
+                if (character.ChartHasAnimations)
+                {
+                    continue;
+                }
+
+                if (character.Type == VenueCharacter.CharacterType.Vocals)
+                {
+                    GenerateVocalMap();
+                    character.ChartHasAnimations = true;
+                }
+
+                if (character.Type == VenueCharacter.CharacterType.Drums)
+                {
+                    GenerateDrumsAnimations();
+                    character.ChartHasAnimations = true;
+                    character.ChartHasDrumAnimations = true;
+                    _songHasDrumAnimations = true;
+                }
+            }
+        }
+
+        private void GenerateDrumsAnimations()
+        {
+            YargLogger.LogDebug("Auto-generating missing drum animations");
+            _drumAnimationEvents.Clear();
+
+            // Create a drum animation event for each note, using GetDrumAnimationForNote
+            foreach (var parent in _drumNotes)
+            {
+                foreach (var note in parent.AllNotes)
+                {
+                    var anim = GetDrumAnimationForNote(note);
+
+                    _drumAnimationEvents.Add(new AnimationEvent(anim, note.Time, note.TimeLength, note.Tick, note.TickLength));
+                }
+            }
+        }
+
+        private void GenerateVocalMap()
+        {
+            YargLogger.LogDebug("Auto-generating missing vocal maps");
+            _vocalMaps.Clear();
+
+            // Scan through the vocal phrases and create maps. Character should enter Play state half a second
+            // before the phrase begins and enter idle one second after the phrase ends if there is no phrase before
+            // that time.
+
+            // Start in idle state
+            double endTime = 0;
+            bool idle = true;
+            _vocalMaps.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default, default, 0));
+
+            foreach (var phrase in _vocalNotes)
+            {
+                if (idle)
+                {
+                    _vocalMaps.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Play, default,
+                        default, phrase.Time - 0.5f));
+                    endTime = phrase.TimeEnd;
+                    idle = false;
+                    continue;
+                }
+
+                // We need an idle period here unless the idle would be less than half a second
+                if (phrase.Time - 0.5 > endTime + 1)
+                {
+                    _vocalMaps.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default,
+                        default, endTime + 1));
+                    // Now start playing for the new phrase
+                    _vocalMaps.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Play, default,
+                        default, phrase.Time - 0.5f));
+                }
+
+                endTime = phrase.TimeEnd;
+            }
+
+            // Add the last idle state
+            _vocalMaps.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default, default, endTime));
+        }
+
         // Translate chart events into animation triggers
         private static List<AnimationTrigger> ProcessAnimationEvents<T>(InstrumentTrack<T> track) where T : Note<T>
         {
@@ -434,6 +526,23 @@ namespace YARG.Venue.Characters
             triggers.Sort((a, b) => a.Time.CompareTo(b.Time));
 
             return triggers;
+        }
+
+        public static AnimationEvent.AnimationType GetDrumAnimationForNote(DrumNote child)
+        {
+            var pad = (FourLaneDrumPad) child.Pad;
+            return pad switch
+            {
+                FourLaneDrumPad.Kick => AnimationEvent.AnimationType.Kick,
+                FourLaneDrumPad.YellowCymbal => AnimationEvent.AnimationType.HihatRightHand,
+                FourLaneDrumPad.BlueCymbal => AnimationEvent.AnimationType.RideRh,
+                FourLaneDrumPad.GreenCymbal => AnimationEvent.AnimationType.Crash1RhHard,
+                FourLaneDrumPad.GreenDrum => AnimationEvent.AnimationType.FloorTomRightHand,
+                FourLaneDrumPad.BlueDrum => AnimationEvent.AnimationType.Tom2RightHand,
+                FourLaneDrumPad.YellowDrum => AnimationEvent.AnimationType.Tom1RightHand,
+                FourLaneDrumPad.RedDrum => AnimationEvent.AnimationType.SnareLhHard,
+                _ => throw new ArgumentOutOfRangeException(nameof(pad), pad, "Bad drum pad how?")
+            };
         }
 
         public enum TriggerType
