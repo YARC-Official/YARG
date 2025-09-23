@@ -207,7 +207,7 @@ namespace YARG.Audio.BASS
             }
         }
 
-        protected override bool AddChannel_Internal(SongStem stem, Stream stream, int[] indices = null, float[] panning = null)
+        protected override bool AddChannels_Internal(Stream stream, params StemInfo[] stemInfos)
         {
             if (!BassAudioManager.CreateSourceStream(stream, out int sourceStream))
             {
@@ -215,45 +215,49 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            if (!BassAudioManager.CreateSplitStreams(sourceStream, indices, out var streamHandles, out var reverbHandles))
+            foreach (var (stem, indices, panning) in stemInfos)
             {
-                YargLogger.LogFormatError("Failed to load stem {0}: {1}!", stem, Bass.LastError);
-                return false;
-            }
-
-            if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.MixerChanMatrix) ||
-                !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.MixerChanMatrix))
-            {
-                YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stem, Bass.LastError);
-                return false;
-            }
-
-            if (indices != null && panning != null)
-            {
-                // First array = left pan, second = right pan
-                float[,] volumeMatrix = new float[2, indices.Length];
-
-                const int LEFT_PAN = 0;
-                const int RIGHT_PAN = 1;
-                for (int i = 0; i < indices.Length; ++i)
+                if (!BassAudioManager.CreateSplitStreams(sourceStream, indices, out var streamHandles,
+                    out var reverbHandles))
                 {
-                    volumeMatrix[LEFT_PAN, i] = panning[2 * i];
-                }
-
-                for (int i = 0; i < indices.Length; ++i)
-                {
-                    volumeMatrix[RIGHT_PAN, i] = panning[2 * i + 1];
-                }
-
-                if (!BassMix.ChannelSetMatrix(streamHandles.Stream, volumeMatrix) ||
-                    !BassMix.ChannelSetMatrix(reverbHandles.Stream, volumeMatrix))
-                {
-                    YargLogger.LogFormatError("Failed to set {stem} matrices: {0}!", Bass.LastError);
+                    YargLogger.LogFormatError("Failed to load stem {0}: {1}!", stem, Bass.LastError);
                     return false;
                 }
-            }
 
-            CreateChannel(stem, sourceStream, streamHandles, reverbHandles);
+                if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.MixerChanMatrix) ||
+                    !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.MixerChanMatrix))
+                {
+                    YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stem, Bass.LastError);
+                    return false;
+                }
+
+                if (indices != null && panning != null)
+                {
+                    // First array = left pan, second = right pan
+                    float[,] volumeMatrix = new float[2, indices.Length];
+
+                    const int LEFT_PAN = 0;
+                    const int RIGHT_PAN = 1;
+                    for (int i = 0; i < indices.Length; ++i)
+                    {
+                        volumeMatrix[LEFT_PAN, i] = panning[2 * i];
+                    }
+
+                    for (int i = 0; i < indices.Length; ++i)
+                    {
+                        volumeMatrix[RIGHT_PAN, i] = panning[2 * i + 1];
+                    }
+
+                    if (!BassMix.ChannelSetMatrix(streamHandles.Stream, volumeMatrix) ||
+                        !BassMix.ChannelSetMatrix(reverbHandles.Stream, volumeMatrix))
+                    {
+                        YargLogger.LogFormatError("Failed to set {stem} matrices: {0}!", Bass.LastError);
+                        return false;
+                    }
+                }
+
+                CreateChannel(stem, sourceStream, streamHandles, reverbHandles);
+            }
             return true;
         }
 
