@@ -89,6 +89,12 @@ namespace YARG.Gameplay.Visuals
 
             _gameManager = FindObjectOfType<GameManager>();
 
+            // If there is no game manager, we are in preview mode and none of this should happen
+            if (_gameManager == null)
+            {
+                return;
+            }
+
             // Set the highway raise delay
 
             // +2 because song time starts at -2, not 0.
@@ -100,7 +106,7 @@ namespace YARG.Gameplay.Visuals
             _globalAnimDelay = Mathf.Clamp((float) latestStart, 0f, MAX_ANIM_DELAY);
 
             // Animate the highway raise
-            if (_gameManager != null && !_gameManager.IsPractice)
+            if (!_gameManager.IsPractice && SettingsManager.Settings.EnableHighwayRaise.Value)
             {
                 if (_highwayRaised)
                 {
@@ -110,16 +116,6 @@ namespace YARG.Gameplay.Visuals
                 RaiseHighway(true);
                 _highwayRaised = true;
             }
-        }
-
-        private void Update()
-        {
-            if (_currentBounce <= 0f) return;
-
-            float speed = Time.deltaTime * SPEED;
-
-            _currentBounce -= speed;
-            transform.Translate(Vector3.up * speed, Space.World);
         }
 
         public void Bounce()

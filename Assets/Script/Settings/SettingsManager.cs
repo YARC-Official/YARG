@@ -144,6 +144,7 @@ namespace YARG.Settings
                 nameof(Settings.StaticVocalsMode),
                 nameof(Settings.UseThreeLaneLyricsInHarmony),
                 nameof(Settings.EnableTrackEffects),
+                nameof(Settings.EnableHighwayRaise),
                 nameof(Settings.KickBounceMultiplier),
 
                 new HeaderMetadata("HUD"),

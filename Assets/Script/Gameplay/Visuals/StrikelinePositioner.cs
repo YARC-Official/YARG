@@ -4,6 +4,7 @@ using DG.Tweening;
 using UnityEngine;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
+using YARG.Settings;
 using YARG.Settings.Preview;
 
 namespace YARG.Gameplay.Visuals
@@ -30,13 +31,19 @@ namespace YARG.Gameplay.Visuals
 
             _gameManager = FindObjectOfType<GameManager>();
 
+            // If there is no game manager, we are in preview mode and none of this should happen
+            if (_gameManager == null)
+            {
+                return;
+            }
+
             // Determine the necessary delay
             var timeToFirstNote = _gameManager.Chart.GetFirstNoteStartTime() + 2;
             var animLength = ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL;
             var latestStart = timeToFirstNote - animLength;
             _globalAnimDelay = Mathf.Clamp((float) latestStart, 0f, MAX_ANIM_DELAY);
 
-            if (_gameManager != null && !_gameManager.IsPractice)
+            if (!_gameManager.IsPractice && SettingsManager.Settings.EnableHighwayRaise.Value)
             {
                 _coroutine = StartCoroutine(RaiseStrikeline(true));
             }
