@@ -19,6 +19,7 @@ using YARG.Player;
 using YARG.Playlists;
 using YARG.Settings;
 using YARG.Song;
+using YARG.Helpers;
 using static YARG.Menu.Navigation.Navigator;
 using Random = UnityEngine.Random;
 
@@ -807,6 +808,13 @@ namespace YARG.Menu.MusicLibrary
         public void SetSearchInput(SortAttribute songAttribute, string input)
         {
             _searchField.SetSearchInput(songAttribute, input);
+        }
+
+        public async void RefreshSongs()
+        {
+            using var context = new LoadingContext();
+            await SongContainer.RunRefresh(false, context);
+            RefreshAndReselect();
         }
 
         private void OnPlayerAdded(YargPlayer player)

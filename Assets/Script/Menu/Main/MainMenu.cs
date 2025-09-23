@@ -8,6 +8,7 @@ using YARG.Menu.Settings;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Menu.Main
 {
@@ -47,6 +48,7 @@ namespace YARG.Menu.Main
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
                 new NavigationScheme.Entry(MenuAction.Select, "Menu.Main.GoToCurrentlyPlaying", CurrentlyPlaying),
+                new NavigationScheme.Entry(MenuAction.Orange, "Menu.Main.ScanSongs", RefreshSongs),
             }, true));
         }
 
@@ -124,6 +126,12 @@ namespace YARG.Menu.Main
         public void OpenGithub()
         {
             Application.OpenURL("https://github.com/YARC-Official/YARG");
+        }
+
+        public async void RefreshSongs()
+        {
+            using var context = new LoadingContext();
+            await SongContainer.RunRefresh(false, context);
         }
     }
 }
