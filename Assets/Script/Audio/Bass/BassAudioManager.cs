@@ -174,26 +174,7 @@ namespace YARG.Audio.BASS
             {
                 return null;
             }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, 0, clampStemVolume);
-        }
-
-        protected override StemMixer? CreateMixer(string name, Stream stream, float speed, double mixerVolume, bool clampStemVolume)
-        {
-            if (GlobalAudioHandler.LogMixerStatus)
-            {
-                YargLogger.LogDebug("Loading song");
-            }
-
-            if (!CreateMixerHandle(out int handle))
-            {
-                return null;
-            }
-
-            if (!CreateSourceStream(stream, out int sourceStream))
-            {
-                return null;
-            }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, sourceStream, clampStemVolume);
+            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume);
         }
 
         protected override MicDevice? GetInputDevice(string name)
