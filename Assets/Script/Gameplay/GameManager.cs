@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
-using YARG.Core.Engine.Drums;
-using YARG.Core.Engine.Guitar;
-using YARG.Core.Engine.Vocals;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
@@ -51,6 +47,9 @@ namespace YARG.Gameplay
 
         [SerializeField]
         private GameObject _lyricBar;
+
+        [SerializeField]
+        private FailMeter _failMeter;
 
         [field: SerializeField]
         public VocalTrack VocalTrack { get; private set; }
@@ -175,9 +174,10 @@ namespace YARG.Gameplay
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
 
-            foreach (var state in _stemStates)
+            //Restore stem volumes to their original state
+            foreach (var (stem, state) in _stemStates)
             {
-                GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
+                GlobalAudioHandler.SetVolumeSetting(stem, state.Volume);
             }
 
             DisposeDebug();
@@ -199,7 +199,9 @@ namespace YARG.Gameplay
             // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
+                if ((!IsPractice || PracticeManager.HasSelectedSection) &&
+                    !DialogManager.Instance.IsDialogShowing &&
+                    !PlayerHasFailed)
                 {
                     SetPaused(!_pauseMenu.IsOpen);
                 }
@@ -307,6 +309,10 @@ namespace YARG.Gameplay
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
                 }
+                else if (PlayerHasFailed)
+                {
+                    _pauseMenu.PushMenu(PauseMenuManager.Menu.FailPause);
+                }
                 else if (IsPractice)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
@@ -329,6 +335,8 @@ namespace YARG.Gameplay
             // Allow sleeping
             Screen.sleepTimeout = _originalSleepTimeout;
         }
+
+        public bool PlayerHasFailed { get; set; } = false;
 
         public void Resume()
         {
@@ -422,7 +430,7 @@ namespace YARG.Gameplay
             try
             {
                 _isReplaySaved = false;
-                replayInfo = SaveReplay(InputTime, ScoreContainer.ScoreReplayDirectory);
+                replayInfo = SaveReplay(_songRunner.InputTime, ScoreContainer.ScoreReplayDirectory);
             }
             catch (Exception e)
             {
@@ -598,7 +606,7 @@ namespace YARG.Gameplay
             {
                 // Pause
                 case MenuAction.Start:
-                    if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
+                    if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing && !PlayerHasFailed)
                     {
                         SetPaused(!_songRunner.Paused);
                     }
@@ -630,6 +638,23 @@ namespace YARG.Gameplay
         public void AddBandCombo(int amount)
         {
             BandCombo += amount;
+        }
+
+        private void OnHappinessUnderThreshold()
+        {
+            ChangeCrowdMuteState(true);
+        }
+
+        private void OnHappinessOverThreshold()
+        {
+            ChangeCrowdMuteState(false);
+        }
+
+        private void OnSongFailed()
+        {
+            PlayerHasFailed = true;
+            GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
+            Pause();
         }
     }
 }

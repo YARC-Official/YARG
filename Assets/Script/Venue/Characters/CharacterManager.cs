@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Chart.Events;
+using YARG.Core.Logging;
 using YARG.Gameplay;
 using AnimationEvent = YARG.Core.Chart.AnimationEvent;
 using CharacterStateType = YARG.Core.Chart.Events.CharacterState.CharacterStateType;
@@ -86,12 +88,12 @@ namespace YARG.Venue.Characters
             var vocalsId = chart.Vocals.Parts[0];
             var drumsId = chart.ProDrums.GetDifficulty(Difficulty.Expert);
 
-            InstrumentTrack<GuitarNote> guitarTrack = chart.GetFiveFretTrack(Instrument.FiveFretGuitar);
-            InstrumentTrack<GuitarNote> bassTrack = chart.GetFiveFretTrack(Instrument.FiveFretBass);
-            InstrumentTrack<DrumNote> drumsTrack = chart.GetDrumsTrack(Instrument.ProDrums);
-            VocalsTrack vocalsTrack = chart.GetVocalsTrack(Instrument.Vocals);
-            InstrumentTrack<GuitarNote> keysTrack = chart.GetFiveFretTrack(Instrument.Keys);
-            InstrumentTrack<ProKeysNote> proKeysTrack = chart.ProKeys;
+            var guitarTrack = chart.GetFiveFretTrack(Instrument.FiveFretGuitar);
+            var bassTrack = chart.GetFiveFretTrack(Instrument.FiveFretBass);
+            var drumsTrack = chart.GetDrumsTrack(Instrument.ProDrums);
+            var vocalsTrack = chart.GetVocalsTrack(Instrument.Vocals);
+            var keysTrack = chart.GetFiveFretTrack(Instrument.Keys);
+            var proKeysTrack = chart.ProKeys;
 
             _guitarNotes = guitarId.Notes;
             _bassNotes = bassId.Notes;
@@ -104,6 +106,12 @@ namespace YARG.Venue.Characters
             _bassAnimationEvents = bassTrack.Animations.AnimationEvents;
             _drumAnimationEvents = drumsTrack.Animations.AnimationEvents;
 
+            // We can generate passable drum animations, so do that if necessary
+            if (_drumAnimationEvents.Count < 1)
+            {
+                GenerateDrumsAnimations();
+            }
+
             // This will eventually be combined into the animation events stuff, but for now the text events from the
             // individual instrument difficulties are separate
             _guitarMaps = ProcessAnimationEvents(guitarTrack);
@@ -115,69 +123,26 @@ namespace YARG.Venue.Characters
 
             _tempoList = chart.SyncTrack.Tempos;
 
-            if (_drumAnimationEvents.Count > 0)
-            {
-                _songHasDrumAnimations = true;
-                // Find the drummer and tell it that there are animations
-                foreach (var key in _characters.Keys)
-                {
-                    if (_characters[key].Type == VenueCharacter.CharacterType.Drums)
-                    {
-                        _characters[key].ChartHasDrumAnimations = true;
-                    }
-                }
-            }
-
             // If we have at least [idle] and [playing] set ChartHasAnimations for the character
-            if (_guitarMaps.Count > 0)
+            if (_guitarMaps.Count < 1)
             {
-                foreach (var key in _characters.Keys)
-                {
-                    if (_characters[key].Type == VenueCharacter.CharacterType.Guitar)
-                    {
-                        _characters[key].ChartHasAnimations = true;
-                    }
-                }
+                _guitarMaps = GenerateMap(_guitarNotes);
             }
 
-            if (_bassMaps.Count > 0)
+            if (_bassMaps.Count < 1)
             {
-                foreach (var key in _characters.Keys)
-                {
-                    if (_characters[key].Type == VenueCharacter.CharacterType.Bass)
-                    {
-                        _characters[key].ChartHasAnimations = true;
-                    }
-                }
+                _bassMaps = GenerateMap(_bassNotes);
             }
 
-            if (_drumMaps.Count > 0)
+            if (_drumMaps.Count < 1)
             {
-                foreach (var key in _characters.Keys)
-                {
-                    if (_characters[key].Type == VenueCharacter.CharacterType.Drums)
-                    {
-                        _characters[key].ChartHasAnimations = true;
-                    }
-                }
+                _drumMaps = GenerateMap(_drumNotes);
             }
 
-            if (_vocalMaps.Count > 0)
+            if (_vocalMaps.Count < 1)
             {
-                foreach (var key in _characters.Keys)
-                {
-                    if (_characters[key].Type == VenueCharacter.CharacterType.Vocals)
-                    {
-                        _characters[key].ChartHasAnimations = true;
-                    }
-                }
+                _vocalMaps = GenerateMap(_vocalNotes);
             }
-
-            // Don't animate until there are notes (at least until we have idle animations)
-            // foreach (var character in _characters.Values)
-            // {
-            //     character.StopAnimation();
-            // }
         }
 
         private void Update()
@@ -365,12 +330,6 @@ namespace YARG.Venue.Characters
                     character.StopAnimation();
                 }
 
-                if (!_songHasDrumAnimations)
-                {
-                    character.OnNote(note);
-                    return;
-                }
-
                 while (_drumAnimationEvents.Count > 0 && _drumAnimationIndex < _drumAnimationEvents.Count &&
                     _drumAnimationEvents[_drumAnimationIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
                 {
@@ -385,6 +344,82 @@ namespace YARG.Venue.Characters
                     }
                 }
             }
+        }
+
+        private void GenerateDrumsAnimations()
+        {
+            YargLogger.LogDebug("Auto-generating missing drum animations");
+            _drumAnimationEvents.Clear();
+
+            // Create a drum animation event for each note, using GetDrumAnimationForNote
+            foreach (var parent in _drumNotes)
+            {
+                foreach (var note in parent.AllNotes)
+                {
+                    var anim = GetDrumAnimationForNote(note);
+
+                    _drumAnimationEvents.Add(new AnimationEvent(anim, note.Time, note.TimeLength, note.Tick, note.TickLength));
+                }
+            }
+        }
+
+        private static List<AnimationTrigger> GenerateMap<T>(List<T> notes) where T : Note<T>
+        {
+            var events = new List<ChartEvent>();
+            events.AddRange(notes);
+
+            return GenerateMap(events);
+        }
+
+        private static List<AnimationTrigger> GenerateMap(List<VocalsPhrase> phrases)
+        {
+            var events = new List<ChartEvent>();
+            events.AddRange(phrases);
+
+            return GenerateMap(events);
+        }
+
+        private static List<AnimationTrigger> GenerateMap(List<ChartEvent> events)
+        {
+            var triggers = new List<AnimationTrigger>();
+
+            // Scan through the events and create animation triggers. Character should enter Play state half a second
+            // before the phrase begins and enter idle one second after the phrase ends if there is no phrase before
+            // that time.
+
+            // Start in idle state
+            double endTime = 0;
+            bool idle = true;
+            triggers.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default, default, 0));
+
+            foreach (var chartEvent in events)
+            {
+                if (idle)
+                {
+                    triggers.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Play, default,
+                        default, chartEvent.Time - 0.5f));
+                    endTime = chartEvent.TimeEnd;
+                    idle = false;
+                    continue;
+                }
+
+                // We need an idle period here unless the idle would be less than half a second
+                if (chartEvent.Time - 0.5 > endTime + 1)
+                {
+                    triggers.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default,
+                        default, endTime + 1));
+                    // Now start playing for the new phrase
+                    triggers.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Play, default,
+                        default, chartEvent.Time - 0.5f));
+                }
+
+                endTime = chartEvent.TimeEnd;
+            }
+
+            // Add the last idle state
+            triggers.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default, default, endTime));
+
+            return triggers;
         }
 
         // Translate chart events into animation triggers
@@ -434,6 +469,23 @@ namespace YARG.Venue.Characters
             triggers.Sort((a, b) => a.Time.CompareTo(b.Time));
 
             return triggers;
+        }
+
+        public static AnimationEvent.AnimationType GetDrumAnimationForNote(DrumNote child)
+        {
+            var pad = (FourLaneDrumPad) child.Pad;
+            return pad switch
+            {
+                FourLaneDrumPad.Kick => AnimationEvent.AnimationType.Kick,
+                FourLaneDrumPad.YellowCymbal => AnimationEvent.AnimationType.HihatRightHand,
+                FourLaneDrumPad.BlueCymbal => AnimationEvent.AnimationType.RideRh,
+                FourLaneDrumPad.GreenCymbal => AnimationEvent.AnimationType.Crash1RhHard,
+                FourLaneDrumPad.GreenDrum => AnimationEvent.AnimationType.FloorTomRightHand,
+                FourLaneDrumPad.BlueDrum => AnimationEvent.AnimationType.Tom2RightHand,
+                FourLaneDrumPad.YellowDrum => AnimationEvent.AnimationType.Tom1RightHand,
+                FourLaneDrumPad.RedDrum => AnimationEvent.AnimationType.SnareLhHard,
+                _ => throw new ArgumentOutOfRangeException(nameof(pad), pad, "Bad drum pad how?")
+            };
         }
 
         public enum TriggerType

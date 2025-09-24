@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
+using static YARG.Themes.ThemeManager;
 
 namespace YARG.Themes
 {
@@ -39,18 +40,19 @@ namespace YARG.Themes
         [SerializeField]
         private GameObject _kickFret;
 
-        public Dictionary<ThemeNoteType, GameObject> GetNoteModelsForGameMode(GameMode gameMode, bool starPower)
+        public Dictionary<ThemeNoteType, GameObject> GetNoteModelsForVisualStyle(VisualStyle style, bool starPower)
         {
-            var parent = gameMode switch
+            var parent = style switch
             {
-                GameMode.FiveFretGuitar => _fiveFretNotes,
-                GameMode.FourLaneDrums  => _fourLaneNotes,
-                GameMode.FiveLaneDrums  => _fiveLaneNotes,
-                GameMode.ProKeys        => _proKeysNotes,
+                VisualStyle.FiveFretGuitar or
+                VisualStyle.FiveLaneKeys   => _fiveFretNotes,
+                VisualStyle.FourLaneDrums  => _fourLaneNotes,
+                VisualStyle.FiveLaneDrums  => _fiveLaneNotes,
+                VisualStyle.ProKeys        => _proKeysNotes,
                 _ => throw new Exception("Unreachable.")
             };
 
-            if (parent == null) throw new Exception($"Theme does not support game mode `{gameMode}`!");
+            if (parent == null) throw new Exception($"Theme does not support visual style `{style}`!");
 
             var dict = new Dictionary<ThemeNoteType, GameObject>();
 
@@ -67,11 +69,11 @@ namespace YARG.Themes
             return dict;
         }
 
-        public GameObject GetModelForGameMode(GameMode gameMode, string name)
+        public GameObject GetModelForVisualStyle(VisualStyle style, string name)
         {
             return name switch
             {
-                ThemeManager.FRET_PREFAB_NAME      => GetFretModelForGameMode(gameMode),
+                ThemeManager.FRET_PREFAB_NAME      => GetFretModelForVisualStyle(style),
                 ThemeManager.KICK_FRET_PREFAB_NAME => _kickFret,
                 ThemeManager.WHITE_KEY_PREFAB_NAME => _whiteKey,
                 ThemeManager.BLACK_KEY_PREFAB_NAME => _blackKey,
@@ -79,13 +81,14 @@ namespace YARG.Themes
             };
         }
 
-        private GameObject GetFretModelForGameMode(GameMode gameMode)
+        private GameObject GetFretModelForVisualStyle(VisualStyle style)
         {
-            return gameMode switch
+            return style switch
             {
-                GameMode.FiveFretGuitar => _fiveFretFret,
-                GameMode.FourLaneDrums  => _fourLaneFret,
-                GameMode.FiveLaneDrums  => _fiveLaneFret,
+                VisualStyle.FiveFretGuitar or
+                VisualStyle.FiveLaneKeys => _fiveFretFret,
+                VisualStyle.FourLaneDrums  => _fourLaneFret,
+                VisualStyle.FiveLaneDrums  => _fiveLaneFret,
                 _  => throw new Exception("Unreachable.")
             };
         }

@@ -102,10 +102,7 @@ namespace YARG.Venue.Characters
         private float               _delayedTriggerTime;
 
         private bool _alwaysBend => _handMap == HandMapType.AllBend;
-        [NonSerialized]
-        public  bool ChartHasAnimations;
-        [NonSerialized]
-        public  bool ChartHasDrumAnimations;
+
 
         private bool _hasAdvancedAnimations;
         private bool _hasSlap;
@@ -489,16 +486,6 @@ namespace YARG.Venue.Characters
                 SetHandAnimationForNote(gNote);
             }
 
-            // Fake some animations if the chart doesn't have any to begin with
-            if (!ChartHasDrumAnimations && note is DrumNote dNote)
-            {
-                foreach (var child in dNote.AllNotes)
-                {
-                    var anim = GetDrumAnimationForNote(child);
-                    SetTrigger(anim);
-                }
-            }
-
             if (note is Note<VocalNote>)
             {
 
@@ -741,11 +728,6 @@ namespace YARG.Venue.Characters
                 return;
             }
 
-            if (!ChartHasAnimations)
-            {
-                SetTrigger(_idleAnimationName);
-            }
-
             _isAnimating = false;
         }
 
@@ -759,12 +741,6 @@ namespace YARG.Venue.Characters
             _isAnimating = true;
 
             UpdateTempo(secondsPerBeat);
-
-            if (!ChartHasAnimations)
-            {
-                // If the chart has animations, this will get handled differently elsewhere
-                SetTrigger(_playingAnimationName);
-            }
         }
 
         public bool IsAnimating()

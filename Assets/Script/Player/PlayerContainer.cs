@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using PlasticBand.Devices;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.XInput;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
@@ -35,6 +35,12 @@ namespace YARG.Player
 
         private static readonly Dictionary<Guid, YargProfile>       _profilesById     = new();
         private static readonly Dictionary<YargProfile, YargPlayer> _playersByProfile = new();
+
+        public delegate void OnPlayerAdded(YargPlayer player);
+        public delegate void OnPlayerRemoved(YargPlayer player);
+
+        public static event OnPlayerAdded PlayerAdded;
+        public static event OnPlayerRemoved PlayerRemoved;
 
         /// <summary>
         /// A list of all of the profiles (taken or not).
@@ -127,7 +133,9 @@ namespace YARG.Player
             _players.Add(player);
             _playersByProfile.Add(profile, player);
             ActiveProfilesChanged();
+            player.RefreshPresets();
             profile.ClaimProfile();
+            PlayerAdded?.Invoke(player);
             return player;
         }
 
@@ -141,6 +149,7 @@ namespace YARG.Player
             _players.Remove(player);
             _playersByProfile.Remove(player.Profile);
 
+            PlayerRemoved?.Invoke(player);
             player.Dispose();
             ActiveProfilesChanged();
             return true;
@@ -232,19 +241,7 @@ namespace YARG.Player
                 player.Bindings.OnDeviceAdded(device);
             }
 
-            if (!IsDeviceTaken(device))
-            {
-                var profile = GetProfileForDevice(device);
-                if (profile is not null)
-                {
-                    CreatePlayerFromProfile(profile, true);
-                }
-                else
-                {
-                    // Create a new profile if possible
-                    CreateProfileFromDevice(device);
-                }
-            }
+            _ = TryCreateProfile(device);
         }
 
         private static void OnDeviceRemoved(InputDevice device)
@@ -253,6 +250,41 @@ namespace YARG.Player
             {
                 player.Bindings.OnDeviceRemoved(device);
             }
+        }
+
+        private static async UniTask<bool> TryCreateProfile(InputDevice device)
+        {
+            // Some devices don't appear in their final form immediately, so we have to wait a bit
+            await UniTask.Delay(500, true);
+
+            if (IsDeviceTaken(device))
+            {
+                return false;
+            }
+
+            if (GetProfileForDevice(device) is not null)
+            {
+                return false;
+            }
+
+            return CreateProfileFromDevice(device);
+        }
+
+        public static bool TryConnectProfile(InputDevice device)
+        {
+            if (IsDeviceTaken(device))
+            {
+                return false;
+            }
+
+            var profile = GetProfileForDevice(device);
+            if (profile is null)
+            {
+                return false;
+            }
+
+            CreatePlayerFromProfile(profile, true);
+            return true;
         }
 
         public static int LoadProfiles()
@@ -422,18 +454,18 @@ namespace YARG.Player
             }
         }
 
-        private static void CreateProfileFromDevice(InputDevice device)
+        private static bool CreateProfileFromDevice(InputDevice device)
         {
             if (IsDeviceTaken(device))
             {
-                return;
+                return false;
             }
 
             if (device is not (FiveFretGuitar or FourLaneDrumkit or FiveLaneDrumkit or ProKeyboard))
             {
                 // Add a check for the default Keyboard/Mouse/whatever devices here so we can enable the toast
                 // ToastManager.ToastWarning("Automatic profile creation is not supported for this device!");
-                return;
+                return false;
             }
 
             GameMode gameMode = default;
@@ -474,7 +506,7 @@ namespace YARG.Player
             if (player is null)
             {
                 YargLogger.LogFormatError("Failed to connect profile {0}!", newProfile.Name);
-                return;
+                return false;
             }
 
             player.Bindings.AddDevice(device);
@@ -485,6 +517,7 @@ namespace YARG.Player
             }
 
             ToastManager.ToastSuccess("Profile created for new device.\nTime to do some YARGin!");
+            return true;
         }
     }
 }

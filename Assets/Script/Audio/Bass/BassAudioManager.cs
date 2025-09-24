@@ -174,26 +174,7 @@ namespace YARG.Audio.BASS
             {
                 return null;
             }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, 0, clampStemVolume);
-        }
-
-        protected override StemMixer? CreateMixer(string name, Stream stream, float speed, double mixerVolume, bool clampStemVolume)
-        {
-            if (GlobalAudioHandler.LogMixerStatus)
-            {
-                YargLogger.LogDebug("Loading song");
-            }
-
-            if (!CreateMixerHandle(out int handle))
-            {
-                return null;
-            }
-
-            if (!CreateSourceStream(stream, out int sourceStream))
-            {
-                return null;
-            }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, sourceStream, clampStemVolume);
+            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume);
         }
 
         protected override MicDevice? GetInputDevice(string name)
@@ -530,12 +511,16 @@ namespace YARG.Audio.BASS
 
         internal static bool SetupPitchBend(in PitchShiftParametersStruct pitchParams, StreamHandle handles)
         {
-            handles.CompressorFX = BassHelpers.FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
-            if (handles.CompressorFX == 0)
+            handles.PitchFX = BassHelpers.FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
+            if (handles.PitchFX == 0)
             {
                 YargLogger.LogError("Failed to set up pitch bend for main stream!");
                 return false;
             }
+
+            // Adjust the position to account for inherent pitch fx delay
+            Bass.ChannelSetPosition(handles.Stream, GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2);
+
             return true;
         }
 

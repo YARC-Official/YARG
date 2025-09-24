@@ -1,23 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
-    public sealed class FiveFretNoteElement : NoteElement<GuitarNote, FiveFretPlayer>
+    public sealed class FiveLaneKeysNoteElement : NoteElement<GuitarNote, FiveLaneKeysPlayer>
     {
         private enum NoteType
         {
-            Strum    = 0,
-            HOPO     = 1,
-            Tap      = 2,
-            Open     = 3,
-            OpenHOPO = 4,
-
+            Normal = 0,
+            Open = 1,
             Count
         }
 
@@ -38,11 +36,8 @@ namespace YARG.Gameplay.Visuals
         {
             CreateNoteGroupArrays((int) NoteType.Count);
 
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Strum,    ThemeNoteType.Normal);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.HOPO,     ThemeNoteType.HOPO);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Tap,      ThemeNoteType.Tap);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Normal, ThemeNoteType.Normal);
             AssignNoteGroup(models, starPowerModels, (int) NoteType.Open,     ThemeNoteType.Open);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.OpenHOPO, ThemeNoteType.OpenHOPO);
         }
 
         protected override void InitializeElement()
@@ -61,9 +56,9 @@ namespace YARG.Gameplay.Visuals
                 // Get which note model to use
                 NoteGroup = NoteRef.Type switch
                 {
-                    GuitarNoteType.Strum => noteGroups[(int) NoteType.Strum],
-                    GuitarNoteType.Hopo  => noteGroups[(int) NoteType.HOPO],
-                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.Tap],
+                    GuitarNoteType.Strum or
+                    GuitarNoteType.Hopo  or
+                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.Normal],
                     _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
 
@@ -79,9 +74,9 @@ namespace YARG.Gameplay.Visuals
                 // Get which note model to use
                 NoteGroup = NoteRef.Type switch
                 {
-                    GuitarNoteType.Strum => noteGroups[(int) NoteType.Open],
+                    GuitarNoteType.Strum or
                     GuitarNoteType.Hopo or
-                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.OpenHOPO],
+                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.Open],
                     _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
 

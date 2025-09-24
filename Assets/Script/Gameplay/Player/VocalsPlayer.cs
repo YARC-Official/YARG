@@ -62,7 +62,7 @@ namespace YARG.Gameplay.Player
         private SongChart _chart;
 
         public void Initialize(int index, int vocalIndex, YargPlayer player, SongChart chart,
-            VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore)
+            VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore, float trackSpeed)
         {
             if (IsInitialized)
             {
@@ -79,20 +79,6 @@ namespace YARG.Gameplay.Player
             var materialPath = $"VocalNeedle/{needleIndex}";
             _needleRenderer.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
 
-            // Update speed of particles
-            var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
-            foreach (var system in particles)
-            {
-                // This interface is weird lol, `.main` is readonly but
-                // doesn't need to be re-assigned, changes are forwarded automatically
-                var main = system.main;
-
-                var startSpeed = main.startSpeed;
-                startSpeed.constant *= player.Profile.NoteSpeed;
-                main.startSpeed = startSpeed;
-                main.startColor = VocalTrack.Colors[Player.Profile.HarmonyIndex];
-            }
-
             // Get the notes from the specific harmony or solo part
 
             var multiTrack = chart.GetVocalsTrack(Player.Profile.CurrentInstrument);
@@ -104,6 +90,20 @@ namespace YARG.Gameplay.Player
             NoteTrack = OriginalNoteTrack;
 
             _phraseIndex = -1;
+
+            // Update speed of particles
+            var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
+            foreach (var system in particles)
+            {
+                // This interface is weird lol, `.main` is readonly but
+                // doesn't need to be re-assigned, changes are forwarded automatically
+                var main = system.main;
+
+                var startSpeed = main.startSpeed;
+                startSpeed.constant *= trackSpeed;
+                main.startSpeed = startSpeed;
+                main.startColor = VocalTrack.Colors[Player.Profile.HarmonyIndex];
+            }
 
             // Initialize player specific vocal visuals
 
@@ -181,7 +181,7 @@ namespace YARG.Gameplay.Player
             HitWindow = EngineParams.HitWindow;
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, _chart);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Player.Profile.HarmonyIndex, _chart, Player.RockMeterPreset);
 
             engine.OnStarPowerPhraseHit += _ => OnStarPowerPhraseHit();
             engine.OnStarPowerStatus += OnStarPowerStatus;

@@ -48,6 +48,7 @@ namespace YARG.Settings
                 nameof(Settings.VoiceActivatedVocalStarPower),
                 nameof(Settings.EnablePracticeSP),
                 nameof(Settings.PracticeRestartDelay),
+                nameof(Settings.NoFailMode),
 
                 new HeaderMetadata("StatusBar"),
                 nameof(Settings.ShowBattery),
@@ -140,8 +141,10 @@ namespace YARG.Settings
                 nameof(Settings.VenueAntiAliasing),
 
                 new HeaderMetadata("Gameplay"),
+                nameof(Settings.StaticVocalsMode),
                 nameof(Settings.UseThreeLaneLyricsInHarmony),
                 nameof(Settings.EnableTrackEffects),
+                nameof(Settings.EnableHighwayRaise),
                 nameof(Settings.KickBounceMultiplier),
 
                 new HeaderMetadata("HUD"),

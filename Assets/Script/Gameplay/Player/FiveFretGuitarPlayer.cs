@@ -4,7 +4,6 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
@@ -16,15 +15,16 @@ using YARG.Helpers;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
+using YARG.Themes;
 using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
 {
-    public sealed class FiveFretPlayer : TrackPlayer<GuitarEngine, GuitarNote>
+    public sealed class FiveFretGuitarPlayer : TrackPlayer<GuitarEngine, GuitarNote>
     {
-        private const double SUSTAIN_END_MUTE_THRESHOLD      = 0.1;
+        private const double SUSTAIN_END_MUTE_THRESHOLD = 0.1;
 
-        private const int   SHIFT_INDICATOR_MEASURES_BEFORE  = 5;
+        private const int SHIFT_INDICATOR_MEASURES_BEFORE = 5;
 
         public override bool ShouldUpdateInputsOnResume => true;
 
@@ -45,18 +45,18 @@ namespace YARG.Gameplay.Player
         public struct RangeShiftIndicator
         {
             public double Time;
-            public bool   LeftSide;
-            public int    Offset;
-            public bool   RangeIndicator;
+            public bool LeftSide;
+            public int Offset;
+            public bool RangeIndicator;
         }
 
-        private          FiveFretRangeShift[]       _allRangeShiftEvents;
-        private readonly Queue<FiveFretRangeShift>  _rangeShiftEventQueue = new();
-        private          FiveFretRangeShift         CurrentRange { get; set; }
+        private FiveFretRangeShift[] _allRangeShiftEvents;
+        private readonly Queue<FiveFretRangeShift> _rangeShiftEventQueue = new();
+        private FiveFretRangeShift CurrentRange { get; set; }
         private readonly Queue<RangeShiftIndicator> _shiftIndicators = new();
-        private          int                        _shiftIndicatorIndex;
-        private          bool                       _fretPulseStarting;
-        private          double                     _fretPulseStartTime;
+        private int _shiftIndicatorIndex;
+        private bool _fretPulseStarting;
+        private double _fretPulseStartTime;
 
         private bool[] _activeFrets = null;
 
@@ -78,7 +78,7 @@ namespace YARG.Gameplay.Player
         private int _sustainCount;
 
         private SongStem _stem;
-        private double   _practiceSectionStartTime;
+        private double _practiceSectionStartTime;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
@@ -117,8 +117,8 @@ namespace YARG.Gameplay.Player
                 EngineParams = (GuitarEngineParameters) Player.EngineParameterOverride;
             }
 
-            var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart);
+            var engine = new YargFiveFretGuitarEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -151,7 +151,7 @@ namespace YARG.Gameplay.Player
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
             _fretArray.Initialize(
                 Player.ThemePreset,
-                Player.Profile.GameMode,
+                VisualStyle.FiveFretGuitar,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.Profile.LeftyFlip,
                 false, // Not applicable to five fret
@@ -335,7 +335,7 @@ namespace YARG.Gameplay.Player
 
         protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
         {
-            ((FiveFretNoteElement) poolable).NoteRef = note;
+            ((FiveFretGuitarNoteElement) poolable).NoteRef = note;
         }
 
         protected override void OnNoteHit(int index, GuitarNote chordParent)
@@ -346,7 +346,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var note in chordParent.AllNotes)
             {
-                (NotePool.GetByKey(note) as FiveFretNoteElement)?.HitNote();
+                (NotePool.GetByKey(note) as FiveFretGuitarNoteElement)?.HitNote();
 
                 if (note.Fret != (int) FiveFretGuitarFret.Open)
                 {
@@ -365,7 +365,7 @@ namespace YARG.Gameplay.Player
 
             foreach (var note in chordParent.AllNotes)
             {
-                (NotePool.GetByKey(note) as FiveFretNoteElement)?.MissNote();
+                (NotePool.GetByKey(note) as FiveFretGuitarNoteElement)?.MissNote();
             }
         }
 
@@ -455,7 +455,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd(finished);
+                (NotePool.GetByKey(note) as FiveFretGuitarNoteElement)?.SustainEnd(finished);
 
                 if (note.Fret != (int) FiveFretGuitarFret.Open)
                 {
@@ -547,7 +547,7 @@ namespace YARG.Gameplay.Player
             FiveFretRangeShift mostRecentEvent = firstEvent;
 
             // Only queue range shifts that happen after time
-            for(int i = 1; i < _allRangeShiftEvents.Length; i++)
+            for (int i = 1; i < _allRangeShiftEvents.Length; i++)
             {
                 FiveFretRangeShift e = _allRangeShiftEvents[i];
                 // These have no visible effect on the track, so we just
