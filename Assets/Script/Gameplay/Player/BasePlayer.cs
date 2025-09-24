@@ -365,7 +365,9 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSongFailed()
         {
-            if (SettingsManager.Settings.NoFailMode.Value)
+            // Whether we are just playing a replay or this is a play with replay situation, the replay
+            //  player should not be able to trigger a fail
+            if (SettingsManager.Settings.NoFailMode.Value || Player.IsReplay)
             {
                 return;
             }

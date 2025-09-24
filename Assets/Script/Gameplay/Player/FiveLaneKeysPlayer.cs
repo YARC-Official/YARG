@@ -130,6 +130,13 @@ namespace YARG.Assets.Script.Gameplay.Player
 
             engine.OnCountdownChange += OnCountdownChange;
 
+            if (!GlobalVariables.State.IsPractice)
+            {
+                EngineContainer.OnHappinessOverThreshold += OnHappinessOverThreshold;
+                EngineContainer.OnHappinessUnderThreshold += OnHappinessUnderThreshold;
+                EngineContainer.OnSongFailed += OnSongFailed;
+            }
+
             return engine;
         }
 
