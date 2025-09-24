@@ -455,7 +455,6 @@ namespace YARG.Gameplay
                         text.AppendFormat("- Previous key mask: 0x{0:X8}\n", engine.PreviousKeyMask);
                         text.AppendLine();
                         text.AppendFormat("- Chord stagger timer: {0}\n", engine.GetChordStaggerTimer());
-                        text.AppendFormat("- Fat finger timer: {0}\n", engine.GetFatFingerTimer());
 
                         // Don't strip final newline here, for spacing with the toggle below
                         GUILayout.Label(text.ToString());

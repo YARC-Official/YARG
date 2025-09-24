@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
@@ -93,6 +92,8 @@ namespace YARG.Gameplay
         private SongStem _backgroundStem;
         private int _starPowerActivations = 0;
         private TweenerCore<double, double, NoOptions> _volumeTween;
+
+        private bool IsCrowdMuted = false;
 
         private void LoadAudio()
         {
@@ -234,6 +235,15 @@ namespace YARG.Gameplay
             // Set the pitch
             float percentActive = state.SetWhammyPitch(percent);
             GlobalAudioHandler.SetWhammyPitchSetting(stem, percentActive);
+        }
+
+        private void ChangeCrowdMuteState(bool muted)
+        {
+            if (IsCrowdMuted != muted)
+            {
+                ChangeStemMuteState(SongStem.Crowd, muted, 1.0f);
+                IsCrowdMuted = muted;
+            }
         }
     }
 }
