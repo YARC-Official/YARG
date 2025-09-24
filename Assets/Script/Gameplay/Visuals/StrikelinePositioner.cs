@@ -11,8 +11,9 @@ namespace YARG.Gameplay.Visuals
 {
     public class StrikelinePositioner : MonoBehaviour
     {
-        private const float MAX_ANIM_DELAY = 2f;
-        private const float LOCAL_ANIM_OFFSET = 0.1f;
+        private const float MAX_ANIM_DELAY         = 2f;
+        private const float LOCAL_ANIM_OFFSET      = 0.1f;
+        private const float MIN_TIME_TO_FIRST_NOTE = 1.0f;
 
         private const float ANIM_FRET_ZOOM_DELAY         = 0.5f;
         private const float ANIM_BASE_TO_PEAK_INTERVAL   = 0.167f;
@@ -40,7 +41,7 @@ namespace YARG.Gameplay.Visuals
             // Determine the necessary delay
             var timeToFirstNote = _gameManager.Chart.GetFirstNoteStartTime() + 2;
             var animLength = ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL;
-            var latestStart = timeToFirstNote - animLength;
+            var latestStart = timeToFirstNote - (animLength + MIN_TIME_TO_FIRST_NOTE);
             _globalAnimDelay = Mathf.Clamp((float) latestStart, 0f, MAX_ANIM_DELAY);
 
             if (!_gameManager.IsPractice && SettingsManager.Settings.EnableHighwayRaise.Value)
