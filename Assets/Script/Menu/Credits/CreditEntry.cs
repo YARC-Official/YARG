@@ -118,6 +118,17 @@ namespace YARG.Menu
                     }
 
                     break;
+                case "Bluesky":
+                    // If no dot, assume it's a .bsky.social handle, otherwise, use as is
+                    if (arg.Contains("."))
+                    {
+                        url = $"https://bsky.app/profile/{arg}";
+                    }
+                    else
+                    {
+                        url = $"https://bsky.social/profile/{arg}.bsky.social";
+                    }
+                    break;
                 default:
                     if (_urlTable.TryGetValue(social, out var templateUrl))
                     {
