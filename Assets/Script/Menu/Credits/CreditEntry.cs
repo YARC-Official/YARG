@@ -126,7 +126,7 @@ namespace YARG.Menu
                     }
                     else
                     {
-                        url = $"https://bsky.social/profile/{arg}.bsky.social";
+                        url = $"https://bsky.app/profile/{arg}.bsky.social";
                     }
                     break;
                 default:
