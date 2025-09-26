@@ -16,7 +16,7 @@ namespace YARG.Audio.BASS
     public class BassNormalizer : IDisposable
     {
         private const int SAMPLE_COUNT = 256 * 1024;
-        private const float TARGET_RMS = 0.175f; // about -14 LUFS
+        private const float TARGET_RMS = 0.15f;
         private const float MAX_GAIN = 1.3f;
 
         private int _mixer;
@@ -97,7 +97,7 @@ namespace YARG.Audio.BASS
 
         private bool CreateMixer(out int mixerHandle)
         {
-            mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Decode | BassFlags.Float);
+            mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Decode);
             if (mixerHandle == 0)
             {
                 YargLogger.LogFormatError("Failed to create mixer: {0}!", Bass.LastError);
@@ -138,21 +138,20 @@ namespace YARG.Audio.BASS
         {
             double cumulativeSumSquares = 0.0;
             long totalSamples = 0;
-            foreach (var audioSamples in ReadAudioSamples())
+            foreach (var audioBytes in ReadAudioBytes())
             {
-                long bufferBytes = audioSamples.Length * sizeof(float);
-                var bufferSeconds = Bass.ChannelBytes2Seconds(_mixer, bufferBytes);
-
+                var bufferSeconds = Bass.ChannelBytes2Seconds(_mixer, audioBytes.Length);
                 float[] level = new float[1];
-                bool status = Bass.ChannelGetLevel(_mixer, level, (float) bufferSeconds,
+                bool didGetLevel = Bass.ChannelGetLevel(_mixer, level, (float) bufferSeconds,
                     LevelRetrievalFlags.Mono | LevelRetrievalFlags.RMS);
 
                 var chunkedRms = level[0];
-                if (status && chunkedRms > 0)
+                if (didGetLevel && chunkedRms > 0)
                 {
-                    double sumSquares = chunkedRms * chunkedRms;
-                    cumulativeSumSquares += sumSquares * audioSamples.Length;
-                    totalSamples += audioSamples.Length;
+                    long numSamples = audioBytes.Length / sizeof(short);
+                    double sumSquares = chunkedRms * chunkedRms * numSamples;
+                    cumulativeSumSquares += sumSquares;
+                    totalSamples += numSamples;
                 }
                 else
                 {
@@ -165,17 +164,17 @@ namespace YARG.Audio.BASS
             }
         }
 
-        private IEnumerable<byte[]> ReadAudioSamples()
+        private IEnumerable<byte[]> ReadAudioBytes()
         {
             Bass.ChannelSetPosition(_mixer, 0);
-            byte[] buffer = new byte[SAMPLE_COUNT * sizeof(float)];
+            byte[] buffer = new byte[SAMPLE_COUNT * sizeof(short)];
             int data;
             while ((data = Bass.ChannelGetData(_mixer, buffer, buffer.Length)) > 0)
             {
                 if (data == buffer.Length)
                 {
                     yield return buffer;
-                    buffer = new byte[SAMPLE_COUNT * sizeof(float)];
+                    buffer = new byte[SAMPLE_COUNT * sizeof(short)];
                 }
                 else
                 {
