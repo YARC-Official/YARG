@@ -21,9 +21,9 @@ namespace YARG.Audio.BASS
         private StreamHandle _mainHandle;
         private int _songEndHandle;
         private float _speed;
-        private float        _gain = 0.8f;
-        private bool           _shouldNormalize = false;
-        private BassNormalizer _normalizer     = new();
+        private float _gain = 0.8f;
+        private bool _shouldNormalize = false;
+        private BassNormalizer _normalizer = new();
 
         public override event Action SongEnd
         {
@@ -132,7 +132,6 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to get volume: {0}", Bass.LastError);
             }
-            YargLogger.LogError($"Raw volume: {volume}");
             return BassAudioManager.LogarithmicVolume(volume);
         }
 
@@ -158,7 +157,6 @@ namespace YARG.Audio.BASS
 
         protected override void SetVolume_Internal(double volume)
         {
-            YargLogger.LogError($"Setting volume: {volume}, initial volume: {GetVolume_Internal()}");
             volume = BassAudioManager.ExponentialVolume(volume);
             if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Volume, volume))
             {
@@ -211,6 +209,17 @@ namespace YARG.Audio.BASS
                 return (int) Bass.LastError;
             }
             return data;
+        }
+
+        protected override int GetLevel_Internal(float[] level)
+        {
+            bool status = Bass.ChannelGetLevel(_mixerHandle, level, 0.2f, LevelRetrievalFlags.Mono | LevelRetrievalFlags.RMS);
+            if (!status)
+            {
+                return (int) Bass.LastError;
+            }
+
+            return (int) ManagedBass.Errors.OK;
         }
 
         protected override void SetSpeed_Internal(float speed, bool shiftPitch)

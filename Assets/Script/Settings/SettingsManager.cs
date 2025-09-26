@@ -122,7 +122,6 @@ namespace YARG.Settings
                 nameof(Settings.UseChipmunkSpeed),
                 nameof(Settings.ApplyVolumesInMusicLibrary),
                 nameof(Settings.EnableVoxSamples),
-                nameof(Settings.EnableNormalization),
             },
             new MetadataTab("Graphics", icon: "Display", new TrackPreviewBuilder())
             {
@@ -229,6 +228,7 @@ namespace YARG.Settings
                 nameof(Settings.BandComboTypeSetting),
 	            // nameof(Settings.WhammyOversampleFactor),
                 nameof(Settings.DataStreamEnable),
+                nameof(Settings.EnableNormalization),
             }
         };
 

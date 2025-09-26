@@ -229,8 +229,6 @@ namespace YARG.Settings
 
             public ToggleSetting EnableVoxSamples { get; } = new(true);
 
-            public ToggleSetting EnableNormalization { get; } = new(false);
-
             #endregion
 
             #region Graphics
@@ -480,6 +478,8 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
+
+            public ToggleSetting EnableNormalization { get; } = new(false);
 
             #endregion
 

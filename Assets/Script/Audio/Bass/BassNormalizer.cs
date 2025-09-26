@@ -15,13 +15,13 @@ namespace YARG.Audio.BASS
 {
     public class BassNormalizer : IDisposable
     {
-        private          int              _mixer;
-        private          BassAudioManager _manager;
-        private const    int              SAMPLE_COUNT    = 256 * 1024;
-        private const    float            TARGET_RMS      = 0.15f; // Usually ends up ~ -14 LUFS
-        private const    float            MAX_GAIN        = 1.3f;
-        private readonly List<Stream>     _streams        = new();
-        private readonly List<int>        _handles = new();
+        private const int SAMPLE_COUNT = 256 * 1024;
+        private const float TARGET_RMS = 0.175f; // about -14 LUFS
+        private const float MAX_GAIN = 1.3f;
+
+        private int _mixer;
+        private readonly List<Stream> _streams = new();
+        private readonly List<int> _handles = new();
 
         public bool AddStream(Stream stream, params StemMixer.StemInfo[] stemInfos)
         {
@@ -136,9 +136,6 @@ namespace YARG.Audio.BASS
 
         private void CalculateRms(IProgress<Double> progress)
         {
-            const float targetRms = 0.15f;
-            const float maxGainFactor = 1.3f;
-
             double cumulativeSumSquares = 0.0;
             long totalSamples = 0;
             foreach (var audioSamples in ReadAudioSamples())
@@ -163,29 +160,28 @@ namespace YARG.Audio.BASS
                 }
 
                 double rms = Math.Sqrt(cumulativeSumSquares / totalSamples);
-                double gain = Math.Min(maxGainFactor, targetRms / rms);
+                double gain = Math.Min(MAX_GAIN, TARGET_RMS / rms);
                 progress?.Report(gain);
             }
         }
 
-        private IEnumerable<float[]> ReadAudioSamples()
+        private IEnumerable<byte[]> ReadAudioSamples()
         {
             Bass.ChannelSetPosition(_mixer, 0);
-            float[] buffer = new float[SAMPLE_COUNT];
+            byte[] buffer = new byte[SAMPLE_COUNT * sizeof(float)];
             int data;
-            while ((data = Bass.ChannelGetData(_mixer, buffer, buffer.Length * sizeof(float))) > 0)
+            while ((data = Bass.ChannelGetData(_mixer, buffer, buffer.Length)) > 0)
             {
-                var numSamplesRead = data / sizeof(float);
-                if (numSamplesRead == buffer.Length)
+                if (data == buffer.Length)
                 {
                     yield return buffer;
-                    buffer = new float[SAMPLE_COUNT];
+                    buffer = new byte[SAMPLE_COUNT * sizeof(float)];
                 }
                 else
                 {
-                    var samples = new float[numSamplesRead];
-                    Array.Copy(buffer, samples, numSamplesRead);
-                    yield return samples;
+                    var bytes = new byte[data];
+                    Array.Copy(buffer, bytes, data);
+                    yield return bytes;
                 }
             }
 
