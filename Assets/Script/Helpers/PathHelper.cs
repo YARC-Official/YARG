@@ -62,6 +62,8 @@ namespace YARG.Helpers
         /// </summary>
         public static string VenuePath { get; private set; }
 
+        public static bool PathError { get; private set; }
+
         /// <summary>
         /// Safe options to use when enumerating files or directories.
         /// Recurses subdirectories.
@@ -99,7 +101,18 @@ namespace YARG.Helpers
             // Persistent Data Path override passed in from CLI
             if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
             {
-                Directory.CreateDirectory(CommandLineArgs.PersistentDataPath);
+                try
+                {
+                    Directory.CreateDirectory(CommandLineArgs.PersistentDataPath);
+                }
+                catch (IOException e)
+                {
+                    // YargLogger probably isn't going to work in this case, so we'll just use Unity's logging
+                    Debug.LogException(e);
+                    // Set a flag that we can check in a non-static method so we can pop a dialog and exit
+                    PathError = true;
+                }
+
                 PersistentDataPath = SanitizePath(CommandLineArgs.PersistentDataPath);
             }
 
