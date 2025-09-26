@@ -122,6 +122,7 @@ namespace YARG.Settings
                 nameof(Settings.UseChipmunkSpeed),
                 nameof(Settings.ApplyVolumesInMusicLibrary),
                 nameof(Settings.EnableVoxSamples),
+                nameof(Settings.EnableNormalization),
             },
             new MetadataTab("Graphics", icon: "Display", new TrackPreviewBuilder())
             {

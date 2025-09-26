@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using ManagedBass;
+using ManagedBass.Fx;
 using ManagedBass.Mix;
+using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
@@ -17,6 +21,9 @@ namespace YARG.Audio.BASS
         private StreamHandle _mainHandle;
         private int _songEndHandle;
         private float _speed;
+        private float        _gain = 0.8f;
+        private bool           _shouldNormalize = false;
+        private BassNormalizer _normalizer     = new();
 
         public override event Action SongEnd
         {
@@ -44,17 +51,40 @@ namespace YARG.Audio.BASS
             }
         }
 
-        internal BassStemMixer(string name, BassAudioManager manager, float speed, double volume, int handle, bool clampStemVolume)
+        internal BassStemMixer(string name, BassAudioManager manager, float speed, double volume, int handle, bool clampStemVolume, bool normalize)
             : base(name, manager, clampStemVolume)
         {
             _mixerHandle = handle;
             _speed = speed;
+            _shouldNormalize = normalize && Settings.SettingsManager.Settings.EnableNormalization.Value;
+            if (_shouldNormalize) {
+                AddGainDSP();
+            }
             SetVolume_Internal(volume);
             _BufferSetter(Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value, Bass.PlaybackBufferLength);
         }
 
+        private void AddGainDSP()
+        {
+            int dspHandle = Bass.ChannelSetDSP(_mixerHandle, (handle, channel, buffer, length, user) =>
+            {
+                BassHelpers.ApplyGain(_gain, buffer, length);
+            });
+
+            if (dspHandle == 0)
+            {
+                YargLogger.LogFormatError("Failed to add gain to monitor stream: {0}!", Bass.LastError);
+            }
+        }
+
         protected override int Play_Internal(bool restartBuffer)
         {
+            if (_shouldNormalize)
+            {
+                _normalizer.CalculateGain(gain => _gain = gain);
+                _shouldNormalize = false;
+            }
+
             if (!Bass.ChannelPlay(_mixerHandle, restartBuffer))
             {
                 return (int) Bass.LastError;
@@ -102,6 +132,7 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to get volume: {0}", Bass.LastError);
             }
+            YargLogger.LogError($"Raw volume: {volume}");
             return BassAudioManager.LogarithmicVolume(volume);
         }
 
@@ -127,6 +158,7 @@ namespace YARG.Audio.BASS
 
         protected override void SetVolume_Internal(double volume)
         {
+            YargLogger.LogError($"Setting volume: {volume}, initial volume: {GetVolume_Internal()}");
             volume = BassAudioManager.ExponentialVolume(volume);
             if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Volume, volume))
             {
@@ -181,17 +213,6 @@ namespace YARG.Audio.BASS
             return data;
         }
 
-        protected override int GetLevel_Internal(float[] level)
-        {
-            bool status = Bass.ChannelGetLevel(_mixerHandle, level, 0.2f, LevelRetrievalFlags.Mono | LevelRetrievalFlags.RMS);
-            if (!status)
-            {
-                return (int) Bass.LastError;
-            }
-
-            return (int) ManagedBass.Errors.OK;
-        }
-
         protected override void SetSpeed_Internal(float speed, bool shiftPitch)
         {
             speed = (float) Math.Clamp(speed, 0.05, 50);
@@ -209,57 +230,44 @@ namespace YARG.Audio.BASS
 
         protected override bool AddChannels_Internal(Stream stream, params StemInfo[] stemInfos)
         {
+            _normalizer.AddStream(stream, stemInfos);
             if (!BassAudioManager.CreateSourceStream(stream, out int sourceStream))
             {
-                YargLogger.LogFormatError("Failed to load stem source stream {stem}: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to load stem source stream: {0}!", Bass.LastError);
                 return false;
             }
 
-            foreach (var (stem, indices, panning) in stemInfos)
+
+            foreach (var stemInfo in stemInfos)
             {
-                if (!BassAudioManager.CreateSplitStreams(sourceStream, indices, out var streamHandles,
+                if (!BassAudioManager.CreateSplitStreams(sourceStream, stemInfo.Indices, out var streamHandles,
                     out var reverbHandles))
                 {
-                    YargLogger.LogFormatError("Failed to load stem {0}: {1}!", stem, Bass.LastError);
+                    YargLogger.LogFormatError("Failed to load stem {0}: {1}!", stemInfo.Stem, Bass.LastError);
                     return false;
                 }
 
-                var isMultiChannel = indices != null && panning != null;
-                var flags = isMultiChannel ? BassFlags.MixerChanMatrix : BassFlags.Default;
+                var volumeMatrix = stemInfo.VolumeMatrix;
+                var flags = volumeMatrix != null ? BassFlags.MixerChanMatrix : BassFlags.Default;
 
                 if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, flags) ||
                     !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, flags))
                 {
-                    YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stem, Bass.LastError);
+                    YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stemInfo.Stem, Bass.LastError);
                     return false;
                 }
 
-                if (isMultiChannel)
+                if (volumeMatrix != null)
                 {
-                    // First array = left pan, second = right pan
-                    float[,] volumeMatrix = new float[2, indices.Length];
-
-                    const int LEFT_PAN = 0;
-                    const int RIGHT_PAN = 1;
-                    for (int i = 0; i < indices.Length; ++i)
-                    {
-                        volumeMatrix[LEFT_PAN, i] = panning[2 * i];
-                    }
-
-                    for (int i = 0; i < indices.Length; ++i)
-                    {
-                        volumeMatrix[RIGHT_PAN, i] = panning[2 * i + 1];
-                    }
-
                     if (!BassMix.ChannelSetMatrix(streamHandles.Stream, volumeMatrix) ||
                         !BassMix.ChannelSetMatrix(reverbHandles.Stream, volumeMatrix))
                     {
-                        YargLogger.LogFormatError("Failed to set {stem} matrices: {0}!", Bass.LastError);
+                        YargLogger.LogFormatError("Failed to set {stem} matrices: {0}!", stemInfo.Stem, Bass.LastError);
                         return false;
                     }
                 }
 
-                CreateChannel(stem, sourceStream, streamHandles, reverbHandles);
+                CreateChannel(stemInfo.Stem, sourceStream, streamHandles, reverbHandles);
             }
             return true;
         }
@@ -307,6 +315,8 @@ namespace YARG.Audio.BASS
                 _mainHandle?.Dispose();
                 return;
             }
+
+            _normalizer.Dispose();
 
             foreach (var channel in Channels)
             {

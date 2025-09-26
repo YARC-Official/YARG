@@ -229,6 +229,8 @@ namespace YARG.Settings
 
             public ToggleSetting EnableVoxSamples { get; } = new(true);
 
+            public ToggleSetting EnableNormalization { get; } = new(false);
+
             #endregion
 
             #region Graphics
