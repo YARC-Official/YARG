@@ -12,7 +12,6 @@ namespace YARG.Audio.BASS
     public sealed class BassStemMixer : StemMixer
     {
         private readonly int _mixerHandle;
-        private readonly int _sourceStream;
 
         private StemChannel _mainChannel;
         private StreamHandle _mainHandle;
@@ -45,11 +44,10 @@ namespace YARG.Audio.BASS
             }
         }
 
-        internal BassStemMixer(string name, BassAudioManager manager, float speed, double volume, int handle, int sourceStream, bool clampStemVolume)
+        internal BassStemMixer(string name, BassAudioManager manager, float speed, double volume, int handle, bool clampStemVolume)
             : base(name, manager, clampStemVolume)
         {
             _mixerHandle = handle;
-            _sourceStream = sourceStream;
             _speed = speed;
             SetVolume_Internal(volume);
             _BufferSetter(Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value, Bass.PlaybackBufferLength);
@@ -114,10 +112,6 @@ namespace YARG.Audio.BASS
             {
                 // Pause when seeking to avoid desyncing individual stems
                 Pause_Internal();
-            }
-            if (_sourceStream != 0)
-            {
-                BassMix.SplitStreamReset(_sourceStream);
             }
 
             foreach (var channel in _channels)
@@ -213,26 +207,7 @@ namespace YARG.Audio.BASS
             }
         }
 
-        protected override bool AddChannel_Internal(SongStem stem)
-        {
-            if (!BassAudioManager.CreateSplitStreams(_sourceStream, null, out var streamHandles, out var reverbHandles))
-            {
-                YargLogger.LogFormatError("Failed to load stem split streams {0}: {1}!", stem, Bass.LastError);
-                return false;
-            }
-
-            if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.Default) ||
-                !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.Default))
-            {
-                YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stem, Bass.LastError);
-                return false;
-            }
-
-            CreateChannel(stem, streamHandles, reverbHandles);
-            return true;
-        }
-
-        protected override bool AddChannel_Internal(SongStem stem, Stream stream)
+        protected override bool AddChannels_Internal(Stream stream, params StemInfo[] stemInfos)
         {
             if (!BassAudioManager.CreateSourceStream(stream, out int sourceStream))
             {
@@ -240,61 +215,49 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            if (!BassAudioManager.CreateSplitStreams(sourceStream, null, out var streamHandles, out var reverbHandles))
+            foreach (var (stem, indices, panning) in stemInfos)
             {
-                YargLogger.LogFormatError("Failed to load stem split streams {stem}: {0}!", Bass.LastError);
-                return false;
+                if (!BassAudioManager.CreateSplitStreams(sourceStream, indices, out var streamHandles,
+                    out var reverbHandles))
+                {
+                    YargLogger.LogFormatError("Failed to load stem {0}: {1}!", stem, Bass.LastError);
+                    return false;
+                }
+
+                if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.MixerChanMatrix) ||
+                    !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.MixerChanMatrix))
+                {
+                    YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stem, Bass.LastError);
+                    return false;
+                }
+
+                if (indices != null && panning != null)
+                {
+                    // First array = left pan, second = right pan
+                    float[,] volumeMatrix = new float[2, indices.Length];
+
+                    const int LEFT_PAN = 0;
+                    const int RIGHT_PAN = 1;
+                    for (int i = 0; i < indices.Length; ++i)
+                    {
+                        volumeMatrix[LEFT_PAN, i] = panning[2 * i];
+                    }
+
+                    for (int i = 0; i < indices.Length; ++i)
+                    {
+                        volumeMatrix[RIGHT_PAN, i] = panning[2 * i + 1];
+                    }
+
+                    if (!BassMix.ChannelSetMatrix(streamHandles.Stream, volumeMatrix) ||
+                        !BassMix.ChannelSetMatrix(reverbHandles.Stream, volumeMatrix))
+                    {
+                        YargLogger.LogFormatError("Failed to set {stem} matrices: {0}!", Bass.LastError);
+                        return false;
+                    }
+                }
+
+                CreateChannel(stem, sourceStream, streamHandles, reverbHandles);
             }
-
-            if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.Default) ||
-                !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.Default))
-            {
-                YargLogger.LogFormatError("Failed to add channel {stem} to mixer: {0}!", Bass.LastError);
-                return false;
-            }
-
-            CreateChannel(stem, streamHandles, reverbHandles);
-            return true;
-        }
-
-        protected override bool AddChannel_Internal(SongStem stem, int[] indices, float[] panning)
-        {
-            if (!BassAudioManager.CreateSplitStreams(_sourceStream, indices, out var streamHandles, out var reverbHandles))
-            {
-                YargLogger.LogFormatError("Failed to load stem {0}: {1}!", stem, Bass.LastError);
-                return false;
-            }
-
-            if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.MixerChanMatrix) ||
-                !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.MixerChanMatrix))
-            {
-                YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stem, Bass.LastError);
-                return false;
-            }
-
-            // First array = left pan, second = right pan
-            float[,] volumeMatrix = new float[2, indices.Length];
-
-            const int LEFT_PAN = 0;
-            const int RIGHT_PAN = 1;
-            for (int i = 0; i < indices.Length; ++i)
-            {
-                volumeMatrix[LEFT_PAN, i] = panning[2 * i];
-            }
-
-            for (int i = 0; i < indices.Length; ++i)
-            {
-                volumeMatrix[RIGHT_PAN, i] = panning[2 * i + 1];
-            }
-
-            if (!BassMix.ChannelSetMatrix(streamHandles.Stream, volumeMatrix) ||
-                !BassMix.ChannelSetMatrix(reverbHandles.Stream, volumeMatrix))
-            {
-                YargLogger.LogFormatError("Failed to set {stem} matrices: {0}!", Bass.LastError);
-                return false;
-            }
-
-            CreateChannel(stem, streamHandles, reverbHandles);
             return true;
         }
 
@@ -357,20 +320,12 @@ namespace YARG.Audio.BASS
                     YargLogger.LogFormatError("Failed to free mixer stream (THIS WILL LEAK MEMORY!): {0}!", Bass.LastError);
                 }
             }
-
-            if (_sourceStream != 0)
-            {
-                if (!Bass.StreamFree(_sourceStream))
-                {
-                    YargLogger.LogFormatError("Failed to free mixer source stream (THIS WILL LEAK MEMORY!): {0}!", Bass.LastError);
-                }
-            }
         }
 
-        private void CreateChannel(SongStem stem, StreamHandle streamHandles, StreamHandle reverbHandles)
+        private void CreateChannel(SongStem stem, int sourceHandle, StreamHandle streamHandles, StreamHandle reverbHandles)
         {
             var pitchparams = BassAudioManager.SetPitchParams(stem, _speed, streamHandles, reverbHandles);
-            var stemchannel = new BassStemChannel(_manager, stem, _clampStemVolume, pitchparams, streamHandles, reverbHandles);
+            var stemchannel = new BassStemChannel(_manager, stem, _clampStemVolume, pitchparams, sourceHandle, streamHandles, reverbHandles);
 
             double length = BassAudioManager.GetLengthInSeconds(streamHandles.Stream);
             if (_mainHandle == null || length > _length)

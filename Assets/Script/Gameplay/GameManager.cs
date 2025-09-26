@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
-using YARG.Core.Engine.Drums;
-using YARG.Core.Engine.Guitar;
-using YARG.Core.Engine.Vocals;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
@@ -610,7 +606,7 @@ namespace YARG.Gameplay
             {
                 // Pause
                 case MenuAction.Start:
-                    if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
+                    if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing && !PlayerHasFailed)
                     {
                         SetPaused(!_songRunner.Paused);
                     }
@@ -642,6 +638,23 @@ namespace YARG.Gameplay
         public void AddBandCombo(int amount)
         {
             BandCombo += amount;
+        }
+
+        private void OnHappinessUnderThreshold()
+        {
+            ChangeCrowdMuteState(true);
+        }
+
+        private void OnHappinessOverThreshold()
+        {
+            ChangeCrowdMuteState(false);
+        }
+
+        private void OnSongFailed()
+        {
+            PlayerHasFailed = true;
+            GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
+            Pause();
         }
     }
 }

@@ -15,8 +15,9 @@ namespace YARG.Gameplay.Visuals
         private const float BOUNCE_UNITS = 0.03f;
         private const float SPEED = 0.25f;
 
-        private const float GLOBAL_ANIM_DELAY = 2f;
+        private const float MAX_ANIM_DELAY = 2f;
         private const float LOCAL_ANIM_OFFSET = 0.1f;
+        private const float MIN_TIME_TO_FIRST_NOTE = 1.0f;
 
         private const float ANIM_BASE_TO_PEAK_INTERVAL = 0.333f;
         private const float ANIM_PEAK_TO_VALLEY_INTERVAL = 0.167f;
@@ -29,6 +30,8 @@ namespace YARG.Gameplay.Visuals
         private const float SCOOP_ANIM_DURATION = 0.0833f;
         private const float SCOOP_DOWN_DISTANCE = 1f;
         private const float SCOOP_UP_DISTANCE   = 0.25f;
+
+        private float _globalAnimDelay;
 
         private float _currentBounce;
 
@@ -85,8 +88,25 @@ namespace YARG.Gameplay.Visuals
             InitializeSequences();
 
             _gameManager = FindObjectOfType<GameManager>();
+
+            // If there is no game manager, we are in preview mode and none of this should happen
+            if (_gameManager == null)
+            {
+                return;
+            }
+
+            // Set the highway raise delay
+
+            // +2 because song time starts at -2, not 0.
+            var timeToFirstNote = _gameManager.Chart.GetFirstNoteStartTime() + 2;
+            var animLength = ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL;
+
+            // The delay can be up to MAX_ANIM_DELAY, but should not be longer than firstNote - (animLength + 1)
+            var latestStart = timeToFirstNote - (animLength + MIN_TIME_TO_FIRST_NOTE);
+            _globalAnimDelay = Mathf.Clamp((float) latestStart, 0f, MAX_ANIM_DELAY);
+
             // Animate the highway raise
-            if (_gameManager != null && !_gameManager.IsPractice)
+            if (!_gameManager.IsPractice && SettingsManager.Settings.EnableHighwayRaise.Value)
             {
                 if (_highwayRaised)
                 {
@@ -96,16 +116,6 @@ namespace YARG.Gameplay.Visuals
                 RaiseHighway(true);
                 _highwayRaised = true;
             }
-        }
-
-        private void Update()
-        {
-            if (_currentBounce <= 0f) return;
-
-            float speed = Time.deltaTime * SPEED;
-
-            _currentBounce -= speed;
-            transform.Translate(Vector3.up * speed, Space.World);
         }
 
         public void Bounce()
@@ -210,7 +220,7 @@ namespace YARG.Gameplay.Visuals
 
             var basePlayer = GetComponentInParent<BasePlayer>();
             float delay = isGameplayStart
-                ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET + GLOBAL_ANIM_DELAY
+                ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET + _globalAnimDelay
                 : 0f;
 
             // TODO: This will need to be reworked when it is possible for the highway to raise and lower other

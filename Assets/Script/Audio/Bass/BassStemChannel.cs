@@ -8,6 +8,7 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassStemChannel : StemChannel
     {
+        private int _sourceHandle;
         private StreamHandle _streamHandles;
         private StreamHandle _reverbHandles;
         private PitchShiftParametersStruct _pitchParams;
@@ -15,9 +16,12 @@ namespace YARG.Audio.BASS
         private double _volume;
         private bool _isReverbing;
 
-        internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume, in PitchShiftParametersStruct pitchParams, in StreamHandle streamHandles, in StreamHandle reverbHandles)
+        internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume,
+            in PitchShiftParametersStruct pitchParams, int sourceHandle, in StreamHandle streamHandles,
+            in StreamHandle reverbHandles)
             : base(manager, stem, clampStemVolume)
         {
+            _sourceHandle = sourceHandle;
             _streamHandles = streamHandles;
             _reverbHandles = reverbHandles;
             _pitchParams = pitchParams;
@@ -64,6 +68,8 @@ namespace YARG.Audio.BASS
 
         protected override void SetPosition_Internal(double position)
         {
+            BassMix.SplitStreamReset(_sourceHandle);
+
             long bytes = Bass.ChannelSeconds2Bytes(_streamHandles.Stream, position);
             if (bytes < 0)
             {
@@ -198,6 +204,11 @@ namespace YARG.Audio.BASS
         {
             _streamHandles.Dispose();
             _reverbHandles.Dispose();
+            if (_sourceHandle != 0)
+            {
+                if (!Bass.StreamFree(_sourceHandle) && Bass.LastError != Errors.Handle)
+                    YargLogger.LogFormatError("Failed to free file stream (THIS WILL LEAK MEMORY): {0}!", Bass.LastError);
+            }
         }
     }
 }

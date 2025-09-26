@@ -147,6 +147,11 @@ namespace YARG.Menu.Credits
         {
             foreach (var song in SongContainer.Songs)
             {
+                if (song.Source.ToString() is not ("yarg" or "yargdlc" or "yarn"))
+                {
+                    continue;
+                }
+
                 // If the song has any of these properties, then add it to the credits
                 if (!string.IsNullOrEmpty(song.CreditWrittenBy) ||
                     !string.IsNullOrEmpty(song.CreditPerformedBy) ||

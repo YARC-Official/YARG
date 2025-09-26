@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
@@ -146,13 +146,6 @@ namespace YARG.Gameplay.Player
                 {
                     GameManager.VocalTrack.UpdateCountdown(countdownLength, endTime);
                 };
-
-                if (!GlobalVariables.State.IsPractice)
-                {
-                    EngineContainer.OnSongFailed += OnSongFailed;
-                    EngineContainer.OnHappinessOverThreshold += OnHappinessOverThreshold;
-                    EngineContainer.OnHappinessUnderThreshold += OnHappinessUnderThreshold;
-                }
             }
 
             if (GameManager.IsPractice)
