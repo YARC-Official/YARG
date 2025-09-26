@@ -174,15 +174,6 @@
             },
             "Song": {
                 "Name": "\"{0}\" by {1}",
-                "WrittenBy": "Written By: {0}",
-                "ComposedBy": "Composed By: {0}",
-                "ArrangedBy": "Arranged By: {0}",
-                "PerformedBy": "Performed By: {0}",
-                "WrittenAndPerformedBy": "Written and Performed By: {0}",
-                "ProducedBy": "Produced By: {0}",
-                "EngineeredBy": "Engineered By: {0}",
-                "MixedBy": "Mixed By: {0}",
-                "MasteredBy": "Mastered By: {0}",
                 "PublishedBy": "Published By: {0}",
                 "CourtesyOf": "Courtesy Of: {0}",
                 "AlbumCover": "Album Cover By: {0}",
@@ -196,7 +187,7 @@
                 "Engineered": "Engineered",
                 "Mixed": "Mixed",
                 "Mastered": "Mastered",
-                "By": "By {0}"
+                "By": "By: {0}"
             }
         },
         "Dialog": {
