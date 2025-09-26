@@ -4,6 +4,7 @@
         "Region": "United States",
         "ListDelimiter": {
             "Default": ", ",
+            "TwoItem": " and ",
             "Last": ", and "
         }
     },
@@ -145,7 +146,7 @@
 
             "Reset": "Reset",
             "ResetAll": "Reset All",
-			
+
 			"Scroll" : "Scroll"
         },
         "Credits": {
@@ -173,13 +174,21 @@
                 "Songs": "Songs"
             },
             "Song": {
-                "Name": "\"{0}\" By {1}",
-                "WrittenBy": "Written By: {0}",
-                "PerformedBy": "Performed By: {0}",
-                "WrittenAndPerformedBy": "Written and Performed By: {0}",
+                "Name": "\"{0}\" by {1}",
+                "PublishedBy": "Published By: {0}",
                 "CourtesyOf": "Courtesy Of: {0}",
                 "AlbumCover": "Album Cover By: {0}",
-                "License": "Song License: {0}"
+                "ChartedBy": "Charted By: {0}",
+                "License": "Song License: {0}",
+                "Written": "Written",
+                "Composed": "Composed",
+                "Arranged": "Arranged",
+                "Performed": "Performed",
+                "Produced": "Produced",
+                "Engineered": "Engineered",
+                "Mixed": "Mixed",
+                "Mastered": "Mastered",
+                "By": "By: {0}"
             }
         },
         "Dialog": {
@@ -1291,6 +1300,10 @@
             "EnableTrackEffects": {
                 "Name": "Enable Track Effects",
                 "Description": "If enabled, the game will display track effects for unison, solo, and drum SP activation phrases."
+            },
+            "EnableHighwayRaise": {
+                "Name": "Enable Highway Raise Animation",
+                "Description": "If enabled, the game will raise and lower the highway when the song starts or ends."
             },
             "EnableVoxSamples": {
                 "Name": "Enable Vox Samples",

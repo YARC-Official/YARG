@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core;
@@ -10,7 +9,6 @@ using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
-using YARG.Gameplay.Visuals;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -246,6 +244,14 @@ namespace YARG.Gameplay
             if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
             {
                 _failMeter.SetActive(false);
+            }
+            else if (ReplayInfo == null || GlobalVariables.State.PlayingWithReplay)
+            {
+                EngineManager.OnHappinessUnderThreshold += OnHappinessUnderThreshold;
+                EngineManager.OnHappinessOverThreshold += OnHappinessOverThreshold;
+                EngineManager.OnSongFailed += OnSongFailed;
+
+                EngineManager.InitializeHappiness();
             }
 
             // Log constant values

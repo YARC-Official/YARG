@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
 using YARG.Core.Game;
@@ -111,13 +109,6 @@ namespace YARG.Gameplay.Player
             engine.OnCountdownChange += OnCountdownChange;
 
             engine.OnPadHit += OnPadHit;
-
-            if (!GlobalVariables.State.IsPractice)
-            {
-                EngineContainer.OnSongFailed += OnSongFailed;
-                EngineContainer.OnHappinessOverThreshold += OnHappinessOverThreshold;
-                EngineContainer.OnHappinessUnderThreshold += OnHappinessUnderThreshold;
-            }
 
             return engine;
         }
