@@ -224,14 +224,17 @@ namespace YARG.Audio.BASS
                     return false;
                 }
 
-                if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, BassFlags.MixerChanMatrix) ||
-                    !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, BassFlags.MixerChanMatrix))
+                var isMultiChannel = indices != null && panning != null;
+                var flags = isMultiChannel ? BassFlags.MixerChanMatrix : BassFlags.Default;
+
+                if (!BassMix.MixerAddChannel(_mixerHandle, streamHandles.Stream, flags) ||
+                    !BassMix.MixerAddChannel(_mixerHandle, reverbHandles.Stream, flags))
                 {
                     YargLogger.LogFormatError("Failed to add channel {0} to mixer: {1}!", stem, Bass.LastError);
                     return false;
                 }
 
-                if (indices != null && panning != null)
+                if (isMultiChannel)
                 {
                     // First array = left pan, second = right pan
                     float[,] volumeMatrix = new float[2, indices.Length];
