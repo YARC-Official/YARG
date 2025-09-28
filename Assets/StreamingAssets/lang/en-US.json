@@ -161,13 +161,17 @@
                 "Artist": "Artist",
                 "Charter": "Charter",
                 "Developer": "Developer",
-                "Moderator": "Moderator"
+                "DocContributor": "Doc Contributor",
+                "Moderator": "Moderator",
+                "QATester": "QA Tester",
+                "SFXArtist": "SFX Artist"
             },
             "Header": {
                 "Contributors": "Contributors",
                 "GameStartedBy": "A Game Started By",
                 "LeadArtist": "Lead Artist",
                 "Maintainers": "Maintainers",
+                "ProjectManager": "Project Manager",
                 "SpecialThanks": "Special Thanks",
                 "SetlistManager": "Setlist Manager",
                 "Songs": "Songs"
