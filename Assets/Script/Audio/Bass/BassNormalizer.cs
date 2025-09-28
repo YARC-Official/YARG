@@ -15,13 +15,17 @@ namespace YARG.Audio.BASS
 {
     public class BassNormalizer : IDisposable
     {
-        private const int SAMPLE_COUNT = 256 * 1024;
-        private const float TARGET_RMS = 0.15f;
-        private const float MAX_GAIN = 1.3f;
+        private const int   SAMPLE_COUNT            = 256 * 1024;
+        private const float TARGET_RMS              = 0.175f;
+        private const float MAX_GAIN                = 1.5f;
 
-        private int _mixer;
-        private readonly List<Stream> _streams = new();
-        private readonly List<int> _handles = new();
+        private          int                     _mixer;
+        private readonly List<Stream>            _streams = new();
+        private readonly List<int>               _handles = new();
+        private          CancellationTokenSource _gainCalcCts = new();
+
+        public float               Gain { get; private set; } = 1.0f;
+        public event Action<float> OnGainAdjusted;
 
         public bool AddStream(Stream stream, params StemMixer.StemInfo[] stemInfos)
         {
@@ -38,7 +42,6 @@ namespace YARG.Audio.BASS
                 YargLogger.LogError("Failed to clone stream!");
                 return false;
             }
-            _streams.Add(clonedStream);
 
             if (!BassAudioManager.CreateSourceStream(clonedStream, out int sourceStream))
             {
@@ -85,14 +88,8 @@ namespace YARG.Audio.BASS
                     }
                 }
             }
-
+            StartGainCalculation();
             return true;
-        }
-
-        public void CalculateGain(Action<float> onGain)
-        {
-            var progress = new Progress<double>(gain => onGain?.Invoke((float) gain));
-            Task.Run(() => CalculateRms(progress));
         }
 
         private bool CreateMixer(out int mixerHandle)
@@ -103,11 +100,11 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to create mixer: {0}!", Bass.LastError);
                 return false;
             }
-
+            _handles.Add(mixerHandle);
             return true;
         }
 
-        private static bool CloneStreamToMemory(Stream original, out MemoryStream clonedStream)
+        private bool CloneStreamToMemory(Stream original, out MemoryStream clonedStream)
         {
             clonedStream = null;
             if (!original.CanRead || !original.CanSeek)
@@ -120,6 +117,7 @@ namespace YARG.Audio.BASS
                 clonedStream = new MemoryStream();
                 original.CopyTo(clonedStream);
                 clonedStream.Position = originalPosition;
+                _streams.Add(clonedStream);
                 return true;
             }
             catch
@@ -132,6 +130,20 @@ namespace YARG.Audio.BASS
             {
                 original.Position = originalPosition;
             }
+        }
+
+        private void StartGainCalculation()
+        {
+            _gainCalcCts.Cancel();
+            _gainCalcCts.Dispose();
+            _gainCalcCts = new CancellationTokenSource();
+
+            var progress = new Progress<double>(gain =>
+            {
+                OnGainAdjusted?.Invoke((float) gain);
+            });
+
+            Task.Run(() => CalculateRms(progress), _gainCalcCts.Token);
         }
 
         private void CalculateRms(IProgress<Double> progress)
@@ -160,6 +172,7 @@ namespace YARG.Audio.BASS
 
                 double rms = Math.Sqrt(cumulativeSumSquares / totalSamples);
                 double gain = Math.Min(MAX_GAIN, TARGET_RMS / rms);
+                Gain = (float) gain;
                 progress?.Report(gain);
             }
         }
@@ -189,14 +202,6 @@ namespace YARG.Audio.BASS
 
         public void Dispose()
         {
-            if (_mixer != 0)
-            {
-                if (!Bass.StreamFree(_mixer))
-                {
-                    YargLogger.LogFormatError("Failed to free mixer stream (THIS WILL LEAK MEMORY!): {0}!",
-                        Bass.LastError);
-                }
-            }
             foreach (var stream in _streams)
             {
                 stream.Dispose();

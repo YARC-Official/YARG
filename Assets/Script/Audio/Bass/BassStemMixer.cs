@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -17,12 +18,14 @@ namespace YARG.Audio.BASS
     {
         private readonly int _mixerHandle;
 
-        private StemChannel _mainChannel;
+        private StemChannel  _mainChannel;
         private StreamHandle _mainHandle;
-        private int _songEndHandle;
-        private float _speed;
-        private float _gain = 0.8f;
-        private bool _shouldNormalize = false;
+        private int          _songEndHandle;
+        private float        _speed;
+        private float        _gain = 1.0f;
+        private int          _gainDspHandle;
+
+        private bool           _shouldNormalize;
         private BassNormalizer _normalizer = new();
 
         public override event Action SongEnd
@@ -66,14 +69,14 @@ namespace YARG.Audio.BASS
 
         private void AddGainDSP()
         {
-            int dspHandle = Bass.ChannelSetDSP(_mixerHandle, (handle, channel, buffer, length, user) =>
+            _gainDspHandle = Bass.ChannelSetDSP(_mixerHandle, (handle, channel, buffer, length, user) =>
             {
                 BassHelpers.ApplyGain(_gain, buffer, length);
             });
 
-            if (dspHandle == 0)
+            if (_gainDspHandle == 0)
             {
-                YargLogger.LogFormatError("Failed to add gain to monitor stream: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to add gain DSP: {0}!", Bass.LastError);
             }
         }
 
@@ -81,8 +84,9 @@ namespace YARG.Audio.BASS
         {
             if (_shouldNormalize)
             {
-                _normalizer.CalculateGain(gain => _gain = gain);
-                _shouldNormalize = false;
+                _gain = _normalizer.Gain;
+                _normalizer.OnGainAdjusted -= OnGainAdjusted;
+                _normalizer.OnGainAdjusted += OnGainAdjusted;
             }
 
             if (!Bass.ChannelPlay(_mixerHandle, restartBuffer))
@@ -98,6 +102,11 @@ namespace YARG.Audio.BASS
                 }
             }
             return 0;
+        }
+
+        private void OnGainAdjusted(float adjustedGain)
+        {
+            _gain = adjustedGain;
         }
 
         protected override void FadeIn_Internal(double maxVolume, double duration)
@@ -241,8 +250,13 @@ namespace YARG.Audio.BASS
         {
             if (_shouldNormalize)
             {
-                _normalizer.AddStream(stream, stemInfos);
+                if (!_normalizer.AddStream(stream, stemInfos))
+                {
+                    YargLogger.LogError("Failed to add stream to normalizer. Disabling normalization.");
+                    _shouldNormalize = false;
+                }
             }
+
             if (!BassAudioManager.CreateSourceStream(stream, out int sourceStream))
             {
                 YargLogger.LogFormatError("Failed to load stem source stream: {0}!", Bass.LastError);
@@ -326,7 +340,13 @@ namespace YARG.Audio.BASS
                 _mainHandle?.Dispose();
                 return;
             }
+            if (_gainDspHandle != 0)
+            {
+                Bass.StreamFree(_gainDspHandle);
+            }
 
+
+            _normalizer.OnGainAdjusted -= OnGainAdjusted;
             _normalizer.Dispose();
 
             foreach (var channel in Channels)
