@@ -239,13 +239,15 @@ namespace YARG.Audio.BASS
 
         protected override bool AddChannels_Internal(Stream stream, params StemInfo[] stemInfos)
         {
-            _normalizer.AddStream(stream, stemInfos);
+            if (_shouldNormalize)
+            {
+                _normalizer.AddStream(stream, stemInfos);
+            }
             if (!BassAudioManager.CreateSourceStream(stream, out int sourceStream))
             {
                 YargLogger.LogFormatError("Failed to load stem source stream: {0}!", Bass.LastError);
                 return false;
             }
-
 
             foreach (var stemInfo in stemInfos)
             {
