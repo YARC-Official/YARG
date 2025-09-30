@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Net;
 using System.Net.Http;
 using Cysharp.Threading.Tasks;
@@ -8,9 +9,17 @@ using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Localization;
+using YARG.Settings;
 
 namespace YARG.Integration
 {
+    public enum DiscordRichPresenceMode
+    {
+        Show,
+        Limited,
+        Hide
+    }
+
     public class DiscordController : MonoSingleton<DiscordController>
     {
         private const long APPLICATION_ID = 1091177744416637028;
@@ -47,7 +56,21 @@ namespace YARG.Integration
             // Listen to the changing of states
             GameStateFetcher.GameStateChange += OnGameStateChange;
 
-            // Create the Discord instance
+            // Create the Discord instance if Discord rich presence is turned on
+            if (SettingsManager.Settings.DiscordRichPresence.Value != DiscordRichPresenceMode.Hide)
+            {
+                CreateInstance();
+            }
+        }
+
+        private void CreateInstance()
+        {
+            // Don't create new instance if instance already exists
+            if (_discord is not null)
+            {
+                return;
+            }
+
             try
             {
                 _discord = new Discord.Discord(APPLICATION_ID, (ulong) CreateFlags.NoRequireDiscord);
@@ -75,7 +98,8 @@ namespace YARG.Integration
                 return;
             }
 
-            if (state.CurrentScene != SceneIndex.Gameplay)
+            // Set default activity if the user is not playing, or if the Discord rich presence setting is set to limited
+            if (state.CurrentScene != SceneIndex.Gameplay || SettingsManager.Settings.DiscordRichPresence.Value == DiscordRichPresenceMode.Limited)
             {
                 _wasInGameplay = false;
                 _wasPaused = false;
@@ -232,7 +256,7 @@ namespace YARG.Integration
             TryDispose();
         }
 
-        private void TryDispose()
+        public void TryDispose()
         {
             if (_discord == null)
             {
