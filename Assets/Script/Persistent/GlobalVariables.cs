@@ -5,6 +5,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using YARG.Audio.BASS;
 using YARG.Core;
 using YARG.Core.Logging;
@@ -14,6 +15,7 @@ using YARG.Helpers;
 using YARG.Input;
 using YARG.Integration;
 using YARG.Localization;
+using YARG.Menu.Navigation;
 using YARG.Menu.ScoreScreen;
 using YARG.Player;
 using YARG.Playlists;
@@ -155,11 +157,13 @@ namespace YARG
             {
                 // When complete, set the newly loaded scene to the active one
                 SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex((int) scene));
+                Navigator.Instance.DisableMenuInputs = false;
             };
         }
 
         public void LoadScene(SceneIndex scene)
         {
+            Navigator.Instance.DisableMenuInputs = true;
             // Unload the current scene and load in the new one, or just load in the new one
             if (CurrentScene != SceneIndex.Persistent)
             {
