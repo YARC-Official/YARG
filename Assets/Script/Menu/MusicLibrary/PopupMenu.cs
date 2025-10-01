@@ -132,6 +132,19 @@ namespace YARG.Menu.MusicLibrary
                 });
             }
 
+            // Expand/Collapse All options
+            CreateItem("ExpandAll", () =>
+            {
+                _musicLibrary.ExpandAll();
+                gameObject.SetActive(false);
+            });
+
+            CreateItem("CollapseAll", () =>
+            {
+                _musicLibrary.CollapseAll();
+                gameObject.SetActive(false);
+            });
+
             var viewType = _musicLibrary.CurrentSelection;
 
             // Add/remove to favorites

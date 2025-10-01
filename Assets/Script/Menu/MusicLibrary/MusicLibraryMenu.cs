@@ -522,7 +522,9 @@ namespace YARG.Menu.MusicLibrary
                             category.CategoryGroup,
                             !category.Collapsed
                         );
+                        var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
                         RequestViewListUpdate();
+                        SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
                     });
                     list.Add(header);
                 }
@@ -800,6 +802,42 @@ namespace YARG.Menu.MusicLibrary
             {
                 SelectedIndex = Random.Range(0, ViewList.Count);
             } while (CurrentSelection is not SongViewType);
+        }
+
+        public void ExpandAll()
+        {
+            var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
+            _sortedSongs = _sortedSongs
+                .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, false))
+                .ToArray();
+            RequestViewListUpdate();
+            SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
+        }
+
+        public void CollapseAll()
+        {
+            var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
+            _sortedSongs = _sortedSongs
+                .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, true))
+                .ToArray();
+            RequestViewListUpdate();
+            if (ViewList[_sectionHeaderIndices[headerIndex]] is SortHeaderViewType)
+            {
+                //If we are in a collapsible section, return to the section header
+                offset = 0;
+            }
+            SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
+        }
+
+        private (int headerIndex, int offset) GetClosestHeaderIndexAndOffset()
+        {
+            var closestHeader = _sectionHeaderIndices
+                .Where(x => x <= SelectedIndex)
+                .OrderByDescending(x => x)
+                .First();
+            var headerIndex = _sectionHeaderIndices.IndexOf(closestHeader);
+            var offset = SelectedIndex - _sectionHeaderIndices[headerIndex];
+            return (headerIndex, offset);
         }
 
         public void RefreshAndReselect()
