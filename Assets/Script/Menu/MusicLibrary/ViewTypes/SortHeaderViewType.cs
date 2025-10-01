@@ -22,6 +22,7 @@ namespace YARG.Menu.MusicLibrary
         public readonly  string GenreCountText;
         private readonly int    _songCount;
         public           int    TotalStarsCount { get; set; }
+        private readonly bool   _collapsed;
         private readonly Action _onClicked;
 
         private static readonly HashSet<string> SourceCounter  = new();
@@ -29,11 +30,12 @@ namespace YARG.Menu.MusicLibrary
         private static readonly HashSet<string> GenreCounter   = new();
 
         public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory,
-            Action onClicked = null)
+            bool collapsed = false, Action onClicked = null)
         {
             HeaderText = headerText;
             _songCount = songCount;
             ShortcutName = shortcutName;
+            _collapsed = collapsed;
             _onClicked = onClicked;
 
             foreach (var song in songsUnderCategory)
@@ -88,7 +90,8 @@ namespace YARG.Menu.MusicLibrary
         public override Sprite? GetIcon()
 #nullable disable
         {
-            return Addressables.LoadAssetAsync<Sprite>("MusicLibraryUpIcon").WaitForCompletion();
+            string assetKey = _collapsed ? "MusicLibraryIcons[Right]" : "MusicLibraryIcons[Down]";
+            return Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
         }
 
         public override void PrimaryButtonClick()

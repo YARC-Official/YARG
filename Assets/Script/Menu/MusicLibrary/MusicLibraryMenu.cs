@@ -535,6 +535,7 @@ namespace YARG.Menu.MusicLibrary
                         section.Songs.Length,
                         section.CategoryGroup,
                         section.Songs,
+                        section.Collapsed,
                         onHeaderClicked);
                     list.Add(sortHeader);
                 }
