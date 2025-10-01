@@ -526,7 +526,9 @@ namespace YARG.Menu.MusicLibrary
                                 !category.Collapsed
                             );
 
+                            var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
                             RequestViewListUpdate();
+                            SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
                         };
                     }
 
