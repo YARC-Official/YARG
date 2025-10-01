@@ -138,7 +138,6 @@ namespace YARG.Menu.MusicLibrary
                 });
             }
 
-            // Expand/Collapse All options
             CreateItem("ExpandAll", () =>
             {
                 _musicLibrary.ExpandAll();
