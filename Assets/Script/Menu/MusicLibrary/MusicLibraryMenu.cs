@@ -509,8 +509,6 @@ namespace YARG.Menu.MusicLibrary
                     }
                 }
 
-                YargLogger.LogDebug("Rebuilding header");
-
                 if (_sortedSongs.Length > 1)
                 {
                     var header = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup, section.Collapsed, onClicked: () =>
