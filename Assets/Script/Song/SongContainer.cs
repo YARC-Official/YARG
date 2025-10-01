@@ -65,12 +65,14 @@ namespace YARG.Song
         public string      Category      { get; }
         public string      CategoryGroup { get; }
         public SongEntry[] Songs         { get; }
+        public bool Collapsed { get; }
 
-        public SongCategory(string category, SongEntry[] songs, string categoryGroupName)
+        public SongCategory(string category, SongEntry[] songs, string categoryGroupName, bool collapsed = false)
         {
             Category = category;
             Songs = songs;
             CategoryGroup = categoryGroupName;
+            Collapsed = collapsed;
         }
 
         public void Deconstruct(out string category, out SongEntry[] songs)
