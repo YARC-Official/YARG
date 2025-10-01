@@ -513,7 +513,7 @@ namespace YARG.Menu.MusicLibrary
 
                 if (_sortedSongs.Length > 1)
                 {
-                    var header = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup, onClicked: () =>
+                    var header = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup, section.Collapsed, onClicked: () =>
                     {
                         var category = _sortedSongs[index];
                         _sortedSongs[index] = new SongCategory(

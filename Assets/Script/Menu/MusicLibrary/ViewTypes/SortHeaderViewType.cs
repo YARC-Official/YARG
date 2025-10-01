@@ -1,4 +1,4 @@
-﻿using System;   
+﻿using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -10,16 +10,18 @@ namespace YARG.Menu.MusicLibrary
 
         public override bool UseWiderPrimaryText => true;
 
-        public readonly  string HeaderText;
-        public readonly  string ShortcutName;
-        private readonly int    _songCount;
-        private readonly Action _onClicked;
+        public readonly  string    HeaderText;
+        public readonly  string    ShortcutName;
+        private readonly int       _songCount;
+        private readonly Action    _onClicked;
+        private readonly bool _collapsed;
 
-        public SortHeaderViewType(string headerText, int songCount, string shortcutName, Action onClicked = null)
+        public SortHeaderViewType(string headerText, int songCount, string shortcutName, bool collapsed = false, Action onClicked = null)
         {
             HeaderText = headerText;
             _songCount = songCount;
             ShortcutName = shortcutName;
+            _collapsed = collapsed;
             _onClicked = onClicked;
         }
 
@@ -37,7 +39,8 @@ namespace YARG.Menu.MusicLibrary
         public override Sprite? GetIcon()
 #nullable disable
         {
-            return Addressables.LoadAssetAsync<Sprite>("MusicLibraryIcons[Down]").WaitForCompletion();
+            string assetKey = _collapsed ? "MusicLibraryIcons[Right]" : "MusicLibraryIcons[Down]";
+            return Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
         }
 
         public override void PrimaryButtonClick()
