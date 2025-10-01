@@ -491,7 +491,7 @@ namespace YARG.Menu.MusicLibrary
             bool showSortHeaders = _sortedSongs.Length > 1 ||
                 YARG.Menu.Filters.FiltersMenu.ActiveFilterPredicate != null;
 
-            foreach (var section in _sortedSongs)
+            foreach (var (section, index) in _sortedSongs.Select((s, i) => (s, i)))
             {
                 var displayName = section.Category;
                 if (SettingsManager.Settings.LibrarySort == SortAttribute.Source)
@@ -513,20 +513,50 @@ namespace YARG.Menu.MusicLibrary
                 SortHeaderViewType sortHeader = null;
                 if (showSortHeaders)
                 {
-                    sortHeader = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup, section.Songs);
+                    Action onHeaderClicked = null;
+                    if (_sortedSongs.Length > 1)
+                    {
+                        onHeaderClicked = () =>
+                        {
+                            var category = _sortedSongs[index];
+                            _sortedSongs[index] = new SongCategory(
+                                category.Category,
+                                category.Songs,
+                                category.CategoryGroup,
+                                !category.Collapsed
+                            );
+
+                            RequestViewListUpdate();
+                        };
+                    }
+
+                    sortHeader = new SortHeaderViewType(
+                        displayName,
+                        section.Songs.Length,
+                        section.CategoryGroup,
+                        section.Songs,
+                        onHeaderClicked);
                     list.Add(sortHeader);
                 }
 
                 int sectionTotalStars = 0;
-                foreach (var song in section.Songs)
+                if (_sortedSongs.Length <= 1 || !section.Collapsed)
                 {
-                    if (allowdupes || !song.IsDuplicate)
+                    foreach (var song in section.Songs)
                     {
+                        if (!allowdupes && song.IsDuplicate)
+                        {
+                            continue;
+                        }
+
                         var songView = new SongViewType(this, song);
                         list.Add(songView);
 
-                        var starAmount = songView?.GetStarAmount();
-                        sectionTotalStars += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
+                        var starAmount = songView.GetStarAmount();
+                        if (starAmount is not null)
+                        {
+                            sectionTotalStars += StarAmountHelper.GetStarCount(starAmount.Value);
+                        }
                     }
                 }
                 _totalStarCount += sectionTotalStars;

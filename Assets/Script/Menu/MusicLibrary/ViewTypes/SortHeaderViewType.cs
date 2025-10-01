@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -21,17 +22,19 @@ namespace YARG.Menu.MusicLibrary
         public readonly  string GenreCountText;
         private readonly int    _songCount;
         public           int    TotalStarsCount { get; set; }
+        private readonly Action _onClicked;
 
         private static readonly HashSet<string> SourceCounter  = new();
         private static readonly HashSet<string> CharterCounter = new();
         private static readonly HashSet<string> GenreCounter   = new();
 
-        public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory)
+        public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory,
+            Action onClicked = null)
         {
             HeaderText = headerText;
             _songCount = songCount;
-
             ShortcutName = shortcutName;
+            _onClicked = onClicked;
 
             foreach (var song in songsUnderCategory)
             {
@@ -86,6 +89,11 @@ namespace YARG.Menu.MusicLibrary
 #nullable disable
         {
             return Addressables.LoadAssetAsync<Sprite>("MusicLibraryUpIcon").WaitForCompletion();
+        }
+
+        public override void PrimaryButtonClick()
+        {
+            _onClicked?.Invoke();
         }
     }
 }
