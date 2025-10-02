@@ -1085,13 +1085,13 @@
                 "Name": "Use Full Directory For Playlists",
                 "Description": "Use full directory for the playlist sort option in the music library. <color=white>Rescan required if changed!</color>"
             },
-            "UseStarpowerFx": {
-                "Name": "Use Star Power SFX",
-                "Description": "If enabled, it will add reverb to stems where the player has Star Power enabled.",
+            "UseCrowdFx": {
+                "Name": "Use Crowd SFX",
+                "Description": "If enabled, crowd sounds will be played.",
                 "Dropdown": {
-                    "MultitrackOnly": "Multitrack Only",
-                    "Off": "Off",
-                    "On": "On"
+                    "Disabled": "Disabled",
+                    "StarpowerClapsOnly": "Starpower Claps Only",
+                    "Enabled": "Enabled"
                 }
             },
             "UseWhammyFx": {

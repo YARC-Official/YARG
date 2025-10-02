@@ -235,10 +235,6 @@ namespace YARG.Gameplay
                 Destroy(PracticeManager);
             }
 
-            // TODO: Move the offset here to SFX configuration
-            // The clap SFX has 20 ms of lead-up before the actual impact happens
-            BeatEventHandler.Audio.Subscribe(StarPowerClap, BeatEventType.StrongBeat, offset: -0.02);
-
             _failMeter.Initialize(EngineManager, this);
 
             if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
@@ -247,8 +243,6 @@ namespace YARG.Gameplay
             }
             else if (ReplayInfo == null || GlobalVariables.State.PlayingWithReplay)
             {
-                EngineManager.OnHappinessUnderThreshold += OnHappinessUnderThreshold;
-                EngineManager.OnHappinessOverThreshold += OnHappinessOverThreshold;
                 EngineManager.OnSongFailed += OnSongFailed;
 
                 EngineManager.InitializeHappiness();
@@ -354,10 +348,16 @@ namespace YARG.Gameplay
                 SongLength = endTime;
             }
 
+            // Get the first and last note times for the chart
+            FirstNoteTime = Chart.GetFirstNoteStartTime();
+            LastNoteTime = Chart.GetLastNoteEndTime();
+
             // Make sure enough beatlines have been generated to cover the song end delay
             Chart.SyncTrack.GenerateBeatlines(SongLength + SONG_END_DELAY, true);
 
             BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
+            CrowdEventHandler = new CrowdEventHandler(Chart, this);
+
             _chartLoaded?.Invoke(Chart);
 
             _songLoaded?.Invoke();

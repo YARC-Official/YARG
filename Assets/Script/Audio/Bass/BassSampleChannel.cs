@@ -27,7 +27,14 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            if (!Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AudioHelpers.SfxVolume[(int) sample]))
+            // Don't explode if we don't have a volume for this sample, just default to 1.0
+            var volume = 1.0;
+            if ((int) sample < AudioHelpers.SfxVolume.Count)
+            {
+                volume = AudioHelpers.SfxVolume[(int) sample];
+            }
+
+            if (!Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, volume))
             {
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", sample, Bass.LastError);
             }
@@ -61,6 +68,21 @@ namespace YARG.Audio.BASS
             }
 
             _lastPlaybackTime = InputManager.CurrentInputTime;
+        }
+
+        protected override void Stop_Internal()
+        {
+            // Check if the channel is playing
+            if (Bass.ChannelIsActive(_channel) is not (PlaybackState.Playing or PlaybackState.Stalled))
+            {
+                return;
+            }
+
+            // We pause rather than stop so it can be restarted later
+            if (!Bass.ChannelPause(_channel))
+            {
+                YargLogger.LogFormatError("Failed to stop {0} channel: {1}!", Sample, Bass.LastError);
+            }
         }
 
         protected override void SetVolume_Internal(double volume)
