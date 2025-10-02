@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Cysharp.Text;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -36,6 +37,12 @@ namespace YARG.Gameplay.HUD
 
         [SerializeField]
         private TextMeshProUGUI _bandComboText;
+
+        [SerializeField]
+        private GameObject _bandMultiplierObject;
+        [SerializeField]
+        private TextMeshProUGUI _bandMultiplierText;
+
         [SerializeField]
         private StarScoreDisplay _starScoreDisplay;
 
@@ -50,6 +57,8 @@ namespace YARG.Gameplay.HUD
         private Image _backgroundImage;
         [SerializeField]
         private Image _overlayImage;
+        [SerializeField]
+        private Image _bandBonusBackgroundImage;
 
         [Space]
         [SerializeField]
@@ -61,6 +70,7 @@ namespace YARG.Gameplay.HUD
 
         private int _bandScore;
         private int _bandCombo;
+        private int _bandMultiplier;
         
         private bool _songHasHours;
         private string _songLengthTime;
@@ -68,6 +78,25 @@ namespace YARG.Gameplay.HUD
 
         private bool _easterEggTriggered;
         private bool _vocalsOnly;
+        private bool _singlePlayer;
+
+        private Tween _multiplierShowTweener;
+
+        protected override void GameplayAwake()
+        {
+            _multiplierShowTweener =
+                DOTween.Sequence()
+                .Append(
+                    _bandMultiplierObject.transform
+                    .DOScaleX(1f, 0.5f)
+                    .SetEase(Ease.OutBack) 
+                )
+                .Join(
+                    _bandBonusBackgroundImage.DOFade(1f, 0.5f)
+                )
+                .SetAutoKill(false)
+                .Pause();
+        }
 
         private void Start()
         {
@@ -82,6 +111,7 @@ namespace YARG.Gameplay.HUD
         {
             _bandComboObject.SetActive(SettingsManager.Settings.BandComboTypeSetting.Value != BandComboType.Off);
             _vocalsOnly = PlayerContainer.Players.All(e => e.SittingOut || e.Profile.GameMode == GameMode.Vocals);
+            _singlePlayer = PlayerContainer.Players.Count(e => !e.SittingOut) == 1;
         }
 
         protected override void OnSongStarted()
@@ -135,6 +165,8 @@ namespace YARG.Gameplay.HUD
                 _bandComboText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandCombo / modifier);
             }
 
+            UpdateBandMultiplier();
+
             // Update song progress
             double length = GameManager.SongLength / GameManager.SongSpeed;
             double time = Math.Clamp(GameManager.SongTime / GameManager.SongSpeed, 0f, length);
@@ -151,6 +183,27 @@ namespace YARG.Gameplay.HUD
             var countDown = TimeSpan.FromSeconds(length - time);
 
             _songTimer.SetTextFormat(_timeFormat, countUp, countDown, _songLengthTime);
+        }
+
+        private void UpdateBandMultiplier()
+        {
+            if (GameManager.BandMultiplier == _bandMultiplier)
+            {
+                return;
+            }
+
+            var show = GameManager.BandMultiplier > 1 && !_singlePlayer;
+            _bandMultiplier = GameManager.BandMultiplier;
+            _bandMultiplierText.SetTextFormat("{0}x", GameManager.BandMultiplier);
+
+            if (show)
+            {
+                _multiplierShowTweener.PlayForward();
+            }
+            else
+            {
+                _multiplierShowTweener.PlayBackwards();
+            }         
         }
     }
 }

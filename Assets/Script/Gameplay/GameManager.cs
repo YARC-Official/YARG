@@ -105,9 +105,11 @@ namespace YARG.Gameplay
 
         public bool IsPractice      { get; private set; }
 
-        public int   BandScore { get; private set; }
-        public int   BandCombo { get; private set; }
-        public float BandStars { get; private set; }
+        // TODO: Move this to EngineManager.Band?
+        public int   BandScore      { get; private set; }
+        public int   BandCombo      { get; private set; }
+        public float BandStars      { get; private set; }
+        public int   BandMultiplier => EngineManager.BandMultiplier;
 
         public ReplayInfo ReplayInfo { get; private set; }
         public ReplayData ReplayData { get; private set; }
@@ -232,6 +234,7 @@ namespace YARG.Gameplay
 
                 totalScore += player.Score;
                 totalStars += player.Stars;
+                
             }
 
             if (GlobalVariables.VerboseReplays)
