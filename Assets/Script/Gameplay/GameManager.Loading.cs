@@ -367,10 +367,6 @@ namespace YARG.Gameplay
         {
             try
             {
-                // Make sure to set up all of the HUD positions
-                _trackViewManager.SetAllHUDPositions();
-                _trackViewManager.SetAllHUDScale();
-
                 _players = new List<BasePlayer>();
 
                 bool vocalTrackInitialized = false;
@@ -484,6 +480,8 @@ namespace YARG.Gameplay
                         state.Audible += 2;
                     }
                 }
+                // Set the hud scale (position is handled by TrackPlayer)
+                _trackViewManager.SetAllHUDScale();
             }
             catch (Exception ex)
             {
