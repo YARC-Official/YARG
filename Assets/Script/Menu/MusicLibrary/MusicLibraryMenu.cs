@@ -514,14 +514,20 @@ namespace YARG.Menu.MusicLibrary
                     var header = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup, section.Collapsed, onClicked: () =>
                     {
                         var category = _sortedSongs[index];
+                        var isNowCollapsed = !category.Collapsed;
                         _sortedSongs[index] = new SongCategory(
                             category.Category,
                             category.Songs,
                             category.CategoryGroup,
-                            !category.Collapsed
+                            isNowCollapsed
                         );
                         var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
                         RequestViewListUpdate();
+                        if (isNowCollapsed && ViewList[_sectionHeaderIndices[headerIndex]] is SortHeaderViewType)
+                        {
+                            //If we are in the section that is collapsing, return to the section header
+                            offset = 0;
+                        }
                         SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
                     });
                     list.Add(header);
@@ -560,7 +566,7 @@ namespace YARG.Menu.MusicLibrary
             for (int i = 0; i < list.Count; i++)
             {
                 var entry = list[i];
-                if (entry is CategoryViewType)
+                if (entry is CategoryViewType or ButtonViewType)
                 {
                     _sectionHeaderIndices.Add(i);
                 }
