@@ -58,7 +58,7 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private Image _overlayImage;
         [SerializeField]
-        private Image _bandBonusBackgroundImage;
+        private Image _bandMultiplierBackgroundImage;
 
         [Space]
         [SerializeField]
@@ -92,7 +92,7 @@ namespace YARG.Gameplay.HUD
                     .SetEase(Ease.OutBack) 
                 )
                 .Join(
-                    _bandBonusBackgroundImage.DOFade(1f, 0.5f)
+                    _bandMultiplierBackgroundImage.DOFade(1f, 0.5f)
                 )
                 .SetAutoKill(false)
                 .Pause();

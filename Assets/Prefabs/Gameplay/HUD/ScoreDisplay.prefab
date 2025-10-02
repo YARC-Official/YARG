@@ -615,7 +615,7 @@ MonoBehaviour:
   _songTimer: {fileID: 6897601373631971078}
   _backgroundImage: {fileID: 1682100932476655722}
   _overlayImage: {fileID: 7937186231754893085}
-  _bandBonusBackgroundImage: {fileID: 4902638801293819549}
+  _bandMultiplierBackgroundImage: {fileID: 1187631600554723187}
   _characterCountForBreak: 11
   _brokenBackgroundSprite: {fileID: -648612281, guid: 9a19cea8578114f42bec348c310a8891,
     type: 3}
