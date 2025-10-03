@@ -514,18 +514,17 @@ namespace YARG.Menu.MusicLibrary
                     var header = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup, section.Collapsed, onClicked: () =>
                     {
                         var category = _sortedSongs[index];
-                        var isNowCollapsed = !category.Collapsed;
                         _sortedSongs[index] = new SongCategory(
                             category.Category,
                             category.Songs,
                             category.CategoryGroup,
-                            isNowCollapsed
+                            !category.Collapsed
                         );
                         var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
                         RequestViewListUpdate();
-                        if (isNowCollapsed && ViewList[_sectionHeaderIndices[headerIndex]] is SortHeaderViewType)
+                        var closestHeader = ViewList[_sectionHeaderIndices[headerIndex]];
+                        if (closestHeader is SortHeaderViewType sortHeader && sortHeader.Collapsed)
                         {
-                            //If we are in the section that is collapsing, return to the section header
                             offset = 0;
                         }
                         SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
@@ -825,9 +824,9 @@ namespace YARG.Menu.MusicLibrary
                 .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, true))
                 .ToArray();
             RequestViewListUpdate();
-            if (ViewList[_sectionHeaderIndices[headerIndex]] is SortHeaderViewType)
+            var closestHeader = ViewList[_sectionHeaderIndices[headerIndex]];
+            if (closestHeader is SortHeaderViewType sortHeader && sortHeader.Collapsed)
             {
-                //If we are in a collapsible section, return to the section header
                 offset = 0;
             }
             SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;

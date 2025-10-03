@@ -10,18 +10,18 @@ namespace YARG.Menu.MusicLibrary
 
         public override bool UseWiderPrimaryText => true;
 
-        public readonly  string    HeaderText;
-        public readonly  string    ShortcutName;
-        private readonly int       _songCount;
-        private readonly Action    _onClicked;
-        private readonly bool _collapsed;
+        public readonly  string HeaderText;
+        public readonly  string ShortcutName;
+        public readonly  bool   Collapsed;
+        private readonly int    _songCount;
+        private readonly Action _onClicked;
 
         public SortHeaderViewType(string headerText, int songCount, string shortcutName, bool collapsed = false, Action onClicked = null)
         {
             HeaderText = headerText;
             _songCount = songCount;
             ShortcutName = shortcutName;
-            _collapsed = collapsed;
+            Collapsed = collapsed;
             _onClicked = onClicked;
         }
 
@@ -39,7 +39,7 @@ namespace YARG.Menu.MusicLibrary
         public override Sprite? GetIcon()
 #nullable disable
         {
-            string assetKey = _collapsed ? "MusicLibraryIcons[Right]" : "MusicLibraryIcons[Down]";
+            string assetKey = Collapsed ? "MusicLibraryIcons[Right]" : "MusicLibraryIcons[Down]";
             return Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
         }
 
