@@ -519,19 +519,19 @@ namespace YARG.Menu.MusicLibrary
                         onHeaderClicked = () =>
                         {
                             var category = _sortedSongs[index];
-                            var isNowCollapsed = !category.Collapsed;
                             _sortedSongs[index] = new SongCategory(
                                 category.Category,
                                 category.Songs,
                                 category.CategoryGroup,
-                                isNowCollapsed
+                                !category.Collapsed
                             );
 
                             var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
                             RequestViewListUpdate();
-                            if (isNowCollapsed && ViewList[_sectionHeaderIndices[headerIndex]] is SortHeaderViewType)
+                            var closestHeader = ViewList[_sectionHeaderIndices[headerIndex]];
+                            if (closestHeader is SortHeaderViewType closestSortHeader && closestSortHeader.Collapsed)
                             {
-                                // If we are in the section that is collapsing, return to the section header.
+                                // If the current section is collapsed, return to its header.
                                 offset = 0;
                             }
                             SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
@@ -971,6 +971,41 @@ namespace YARG.Menu.MusicLibrary
             } while (CurrentSelection is not SongViewType);
         }
 
+        public void ExpandAll()
+        {
+            var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
+            _sortedSongs = _sortedSongs
+                .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, false))
+                .ToArray();
+            RequestViewListUpdate();
+            SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
+        }
+
+        public void CollapseAll()
+        {
+            var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
+            _sortedSongs = _sortedSongs
+                .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, true))
+                .ToArray();
+            RequestViewListUpdate();
+            var closestHeader = ViewList[_sectionHeaderIndices[headerIndex]];
+            if (closestHeader is SortHeaderViewType sortHeader && sortHeader.Collapsed)
+            {
+                offset = 0;
+            }
+            SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
+        }
+
+        private (int headerIndex, int offset) GetClosestHeaderIndexAndOffset()
+        {
+            var closestHeader = _sectionHeaderIndices
+                .Where(x => x <= SelectedIndex)
+                .OrderByDescending(x => x)
+                .First();
+            var headerIndex = _sectionHeaderIndices.IndexOf(closestHeader);
+            var offset = SelectedIndex - _sectionHeaderIndices[headerIndex];
+            return (headerIndex, offset);
+        }
         public void RefreshAndReselect()
         {
             int index = SelectedIndex;

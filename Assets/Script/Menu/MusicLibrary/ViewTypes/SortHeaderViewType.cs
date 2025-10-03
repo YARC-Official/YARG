@@ -22,7 +22,7 @@ namespace YARG.Menu.MusicLibrary
         public readonly  string GenreCountText;
         private readonly int    _songCount;
         public           int    TotalStarsCount { get; set; }
-        private readonly bool   _collapsed;
+        public readonly  bool   Collapsed;
         private readonly Action _onClicked;
 
         private static readonly HashSet<string> SourceCounter  = new();
@@ -35,7 +35,7 @@ namespace YARG.Menu.MusicLibrary
             HeaderText = headerText;
             _songCount = songCount;
             ShortcutName = shortcutName;
-            _collapsed = collapsed;
+            Collapsed = collapsed;
             _onClicked = onClicked;
 
             foreach (var song in songsUnderCategory)
@@ -90,7 +90,7 @@ namespace YARG.Menu.MusicLibrary
         public override Sprite? GetIcon()
 #nullable disable
         {
-            string assetKey = _collapsed ? "MusicLibraryIcons[Right]" : "MusicLibraryIcons[Down]";
+            string assetKey = Collapsed ? "MusicLibraryIcons[Right]" : "MusicLibraryIcons[Down]";
             return Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
         }
 
