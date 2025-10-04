@@ -339,6 +339,9 @@ namespace YARG.Gameplay
             BackgroundManager.SetPaused(true);
             GameStateFetcher.SetPaused(true);
 
+            // Pause any audio samples that are currently playing
+            GlobalAudioHandler.PauseAllSfx();
+
             // Allow sleeping
             Screen.sleepTimeout = _originalSleepTimeout;
         }
@@ -368,6 +371,9 @@ namespace YARG.Gameplay
             Time.timeScale = 1f;
             BackgroundManager.SetPaused(false);
             GameStateFetcher.SetPaused(false);
+
+            // Unpause any audio samples that are currently playing
+            GlobalAudioHandler.ResumeAllSfx();
 
             // Disallow sleeping
             Screen.sleepTimeout = SleepTimeout.NeverSleep;

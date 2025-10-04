@@ -28,16 +28,27 @@ namespace YARG.Playback
         private readonly SyncTrack        _syncTrack;
         private readonly EngineManager    _engineManager;
 
+        private SfxSample[] _openSamples = { SfxSample.CrowdOpen1, SfxSample.CrowdOpen2 };
         private SfxSample[] _startSamples = { SfxSample.CrowdStart, SfxSample.CrowdStart2, SfxSample.CrowdStart3 };
+        private SfxSample[] _endSamples = { SfxSample.CrowdEnd1, SfxSample.CrowdEnd2 };
 
+        private SfxSample _selectedOpenSample;
         private SfxSample _selectedStartSample;
         // Only one for now, but more will come
-        private SfxSample _selectedEndSample = SfxSample.CrowdEnd;
+        private SfxSample _selectedEndSample = SfxSample.CrowdEnd1;
 
         private int _eventIndex;
 
+        // This is true if we have music start and music end, otherwise we just start with the crowd roar
+        private readonly bool _startWithMurmur;
+
+        private bool _openSamplePlayed;
+        private bool _startSamplePlayed;
         private bool _endSamplePlayed;
         private bool _disposed;
+
+        private readonly double _musicStartTime;
+        private readonly double _musicEndTime;
 
         public CrowdEventHandler(SongChart chart, GameManager gameManager)
         {
@@ -46,6 +57,23 @@ namespace YARG.Playback
             _syncTrack = chart.SyncTrack;
             _gameManager = gameManager;
             _engineManager = gameManager.EngineManager;
+
+            var (musicStart, musicEnd) = chart.GetMusicEvents();
+
+            if (musicStart == null || musicEnd == null)
+            {
+                _startWithMurmur = false;
+
+                // In this case, just start the crowd sound immediately
+                _musicStartTime = -2;
+                _musicEndTime = _gameManager.LastNoteTime;
+            }
+            else
+            {
+                _startWithMurmur = true;
+                _musicStartTime = musicStart.Time;
+                _musicEndTime = musicEnd.Time;
+            }
 
             // If crowd fx is disabled, don't bother subscribing to beat events
             if (SettingsManager.Settings.UseCrowdFx.Value != CrowdFxMode.Disabled)
@@ -60,8 +88,20 @@ namespace YARG.Playback
 
             if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
             {
+                _selectedOpenSample = _openSamples[UnityEngine.Random.Range(0, _openSamples.Length)];
                 _selectedStartSample = _startSamples[UnityEngine.Random.Range(0, _startSamples.Length)];
-                GlobalAudioHandler.PlaySoundEffect(_selectedStartSample);
+                _selectedEndSample = _endSamples[UnityEngine.Random.Range(0, _endSamples.Length)];
+
+                if (_startWithMurmur)
+                {
+                    GlobalAudioHandler.PlaySoundEffect(_selectedOpenSample, 1.0);
+                    _openSamplePlayed = true;
+                }
+                else
+                {
+                    GlobalAudioHandler.PlaySoundEffect(_selectedStartSample, 1.0);
+                    _startSamplePlayed = true;
+                }
             }
 
             if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
@@ -99,13 +139,30 @@ namespace YARG.Playback
                 _eventIndex++;
             }
 
-            if (time >= _gameManager.LastNoteTime)
+            if (!_startSamplePlayed && time >= _musicStartTime)
             {
-                // Play the end sample if it hasn't been played yet
-                if (!_endSamplePlayed)
+                _startSamplePlayed = true;
+
+                if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
                 {
-                    _endSamplePlayed = true;
-                    GlobalAudioHandler.PlaySoundEffect(_selectedEndSample);
+                    if (_startWithMurmur)
+                    {
+                        _openSamplePlayed = true;
+                        // GlobalAudioHandler.StopSoundEffect(_selectedOpenSample, 1.0);
+                    }
+
+                    GlobalAudioHandler.PlaySoundEffect(_selectedStartSample, 0.25);
+                }
+            }
+
+            if (!_endSamplePlayed && time >= _musicEndTime)
+            {
+                _endSamplePlayed = true;
+
+                // Play the end sample if it hasn't been played yet
+                if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+                {
+                    GlobalAudioHandler.PlaySoundEffect(_selectedEndSample, 0.5);
                 }
             }
         }
@@ -182,8 +239,9 @@ namespace YARG.Playback
                 _engineManager.OnSongFailed -= OnSongFailed;
                 _gameManager?.BeatEventHandler?.Audio.Unsubscribe(Clap);
 
+                GlobalAudioHandler.StopSoundEffect(_selectedOpenSample, 2.5);
                 GlobalAudioHandler.StopSoundEffect(_selectedStartSample);
-                GlobalAudioHandler.StopSoundEffect(_selectedEndSample);
+                GlobalAudioHandler.StopSoundEffect(_selectedEndSample, 0.5);
             }
 
             _disposed = true;
