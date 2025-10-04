@@ -238,6 +238,8 @@ These are assets that are installed by NuGet, Unity's packaged manager, or via a
 | [Unity-Dependencies-Hunter](https://github.com/AlexeyPerov/Unity-Dependencies-Hunter) | Library | Unity Editor Utility
 | [tmpro-dynamic-data-cleaner](https://github.com/STARasGAMES/tmpro-dynamic-data-cleaner) | Library | Prevent Git Change Spam
 | [openvat-unity](https://github.com/sharpen3d/openvat-unity.git) | Library | OpenVAT (Vertex Animated Textures) Support
+| [aperitif chatter.wav by soundslikewillem](https://freesound.org/s/449550/)|Sound effect|Attribution NonCommercial 4.0
+| [Crowd after Encore.wav by soundslikewillem](https://freesound.org/s/193064/)|Sound effect|Attribution NonCommercial 4.0
 
 ## 💸 Donate
 
