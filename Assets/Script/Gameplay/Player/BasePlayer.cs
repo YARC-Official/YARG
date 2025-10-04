@@ -370,42 +370,6 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected virtual void OnSongFailed()
-        {
-            // Whether we are just playing a replay or this is a play with replay situation, the replay
-            //  player should not be able to trigger a fail
-            if (SettingsManager.Settings.NoFailMode.Value || Player.IsReplay)
-            {
-                return;
-            }
-
-            GameManager.PlayerHasFailed = true;
-            GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
-            GameManager.Pause(true);
-        }
-
-        protected virtual void OnHappinessOverThreshold()
-        {
-            // First engine to be instantiated gets the pleasure of dealing with this
-            if (IsCrowdMuted && EngineContainer.EngineId == 0)
-            {
-                GameManager.ChangeStemMuteState(SongStem.Crowd, false, 1.0f);
-                IsCrowdMuted = false;
-                YargLogger.LogFormatDebug("Enabled crowd stem at time {0}", GameManager.SongTime);
-            }
-        }
-
-        protected virtual void OnHappinessUnderThreshold()
-        {
-            // First engine to be instantiated gets the pleasure of dealing with this
-            if (!IsCrowdMuted && EngineContainer.EngineId == 0)
-            {
-                GameManager.ChangeStemMuteState(SongStem.Crowd, true, 1.0f);
-                IsCrowdMuted = true;
-                YargLogger.LogFormatDebug("Disabled crowd stem at time {0}", GameManager.SongTime);
-            }
-        }
-
         protected abstract bool InterceptInput(ref GameInput input);
 
         protected virtual void OnInputQueued(GameInput input)
