@@ -294,6 +294,22 @@ namespace YARG.Menu.DifficultySelect
                     player.SittingOut = true;
                     ChangePlayer(1);
                 });
+
+                // Disconnect button
+                CreateItem(LocalizeHeader("Disconnect"), _possibleInstruments.Count <= 0, _difficultyRedPrefab, () =>
+                {
+                    // If the user disconnected, and the vocal modifiers were selected,
+                    // deselect them.
+                    if (_vocalModifierSelectIndex == _playerIndex)
+                    {
+                        _vocalModifierSelectIndex = -1;
+                    }
+
+                    PlayerContainer.DisposePlayer(player);
+
+                    // Since we're removing one player from the active players list, don't increment the player index.
+                    ChangePlayer(0);
+                });
             }
         }
 
