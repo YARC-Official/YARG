@@ -293,8 +293,8 @@ namespace YARG.Gameplay.Player
 
         protected void OnGameInput(ref GameInput input)
         {
-            // Ignore completely if the song hasn't started yet
-            if (!GameManager.Started)
+            // Ignore completely if the song hasn't started yet or player failed
+            if (!GameManager.Started || GameManager.PlayerHasFailed)
                 return;
 
             // Ignore while paused

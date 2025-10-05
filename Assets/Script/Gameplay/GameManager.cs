@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
@@ -660,16 +661,21 @@ namespace YARG.Gameplay
             BandCombo += amount;
         }
 
-        private void OnSongFailed()
+        private async void OnSongFailed()
         {
             if (SettingsManager.Settings.NoFailMode.Value || IsPractice)
             {
                 return;
             }
 
-            PlayerHasFailed = true;
-            GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
-            Pause();
+            if (!PlayerHasFailed)
+            {
+                PlayerHasFailed = true;
+                _mixer.FadeOut(SONG_END_DELAY);
+                await UniTask.Delay(TimeSpan.FromSeconds(SONG_END_DELAY));
+                GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
+                Pause();
+            }
         }
 
         // If we go from no fail to fail, we need to reinitialize the happiness state so we avoid
