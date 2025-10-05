@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -161,6 +161,7 @@ namespace YARG.Gameplay.Player
         private double _previousStarPowerAmount;
 
         private bool _wasStarPowerActive;
+        private bool _didLowerTrack;
 
         private Queue<TrackEffect> _upcomingEffects = new();
         private List<TrackEffectElement> _currentEffects = new();
@@ -397,12 +398,14 @@ namespace YARG.Gameplay.Player
                 haptics.SetStarPowerFill((float) currentStarPowerAmount);
             }
 
-            if (GameManager.PlayerHasFailed)
+            if (GameManager.PlayerHasFailed && !_didLowerTrack)
             {
+                _didLowerTrack = true;
                 CameraPositioner.Lower(false);
             }
-            else if (visualTime > SongLength)
+            else if (visualTime > SongLength && !_didLowerTrack)
             {
+                _didLowerTrack = true;
                 CameraPositioner.Lower(true);
             }
         }
