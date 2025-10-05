@@ -750,10 +750,6 @@
                 "PauseName": "Bass",
                 "Description": "Adjusts the song's bass guitar track volume. Only does something if the song is multi-track."
             },
-            "ClapsInStarpower": {
-                "Name": "Star Power Claps",
-                "Description": "Enables claps to the beat while Star Power is active."
-            },
             "CountdownDisplay": {
                 "Name": "Countdown Display",
                 "Description": "Choose how countdowns should be displayed during long breaks in a song.",
@@ -1092,6 +1088,15 @@
                     "MultitrackOnly": "Multitrack Only",
                     "Off": "Off",
                     "On": "On"
+                }
+            },
+            "UseCrowdFx": {
+                "Name": "Use Crowd SFX",
+                "Description": "If enabled, crowd sounds will be played.\nIf set to Starpower Claps Only, crowd sounds will only be played during Starpower.",
+                "Dropdown": {
+                    "Disabled": "Disabled",
+                    "StarpowerClapsOnly": "Starpower Claps Only",
+                    "Enabled": "Enabled"
                 }
             },
             "UseWhammyFx": {

@@ -16,6 +16,7 @@ using YARG.Menu;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Types;
@@ -196,7 +197,12 @@ namespace YARG.Settings
                 AudioFxMode.On
             };
 
-            public ToggleSetting ClapsInStarpower { get; } = new(true);
+            public DropdownSetting<CrowdFxMode> UseCrowdFx { get; } = new(CrowdFxMode.Enabled)
+            {
+                CrowdFxMode.Disabled,
+                CrowdFxMode.StarpowerClapsOnly,
+                CrowdFxMode.Enabled
+            };
 
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
 

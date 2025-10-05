@@ -299,6 +299,7 @@ namespace YARG.Gameplay.Player
         protected virtual void FinishInitialization()
         {
             TrackMaterial.Initialize(Player.HighwayPreset);
+            TrackView.UpdateHUDPosition();
             CameraPositioner.Initialize(Player.CameraPreset);
             FinalizeTrackEffects();
         }

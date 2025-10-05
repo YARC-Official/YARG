@@ -670,6 +670,12 @@ namespace YARG.Gameplay
                 else
                     text.Append("Lighting event: None\n");
 
+                if (CrowdEventHandler != null)
+                {
+                    text.AppendFormat("Clap state: {0}\n", CrowdEventHandler.ClapState);
+                    text.AppendFormat("Crowd state: {0}\n", CrowdEventHandler.CrowdState);
+                }
+
                 GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }
         }
