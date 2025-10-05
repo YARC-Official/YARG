@@ -53,24 +53,23 @@ namespace YARG.Integration
 
         public void Initialize()
         {
-            // Listen to the changing of states
-            GameStateFetcher.GameStateChange += OnGameStateChange;
-
-            // Create the Discord instance if Discord rich presence is turned on
-            if (SettingsManager.Settings.DiscordRichPresence.Value != DiscordRichPresenceMode.Hide)
+            // Don't create instance if Discord rich presence is turned off in settings
+            if (SettingsManager.Settings.DiscordRichPresence.Value == DiscordRichPresenceMode.Hide)
             {
-                CreateInstance();
+                return;
             }
-        }
 
-        private void CreateInstance()
-        {
             // Don't create new instance if instance already exists
             if (_discord is not null)
             {
                 return;
             }
 
+            CreateInstance();
+        }
+
+        private void CreateInstance()
+        {
             try
             {
                 _discord = new Discord.Discord(APPLICATION_ID, (ulong) CreateFlags.NoRequireDiscord);
@@ -82,6 +81,9 @@ namespace YARG.Integration
                 _discord = null;
                 return;
             }
+
+            // Listen to the changing of states
+            GameStateFetcher.GameStateChange += OnGameStateChange;
 
             // Get the start time of the game (Discord requires it in this format)
             _gameStartTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
@@ -265,6 +267,8 @@ namespace YARG.Integration
 
             try
             {
+                GameStateFetcher.GameStateChange -= OnGameStateChange;
+
                 _discord.GetActivityManager().ClearActivity(_ => { });
                 _discord.Dispose();
                 _discord = null;
