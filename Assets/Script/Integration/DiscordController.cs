@@ -37,6 +37,7 @@ namespace YARG.Integration
         private const string LARGE_ICON_KEY = "icon_stable";
 #endif
 
+        private bool _initialized = false;
         private Discord.Discord _discord;
 
         // Keep track of this in case we want to update the value asynchronously
@@ -53,6 +54,19 @@ namespace YARG.Integration
 
         public void Initialize()
         {
+            _initialized = true;
+
+            CreateInstance();
+        }
+
+        public void CreateInstance()
+        {
+            // Skip if loading screen hasn't finished loading localization (localization is required for rich presence to function normally)
+            if (!_initialized)
+            {
+                return;
+            }
+
             // Don't create instance if Discord rich presence is turned off in settings
             if (SettingsManager.Settings.DiscordRichPresence.Value == DiscordRichPresenceMode.Hide)
             {
@@ -65,11 +79,6 @@ namespace YARG.Integration
                 return;
             }
 
-            CreateInstance();
-        }
-
-        private void CreateInstance()
-        {
             try
             {
                 _discord = new Discord.Discord(APPLICATION_ID, (ulong) CreateFlags.NoRequireDiscord);

@@ -12,6 +12,7 @@ using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
+using YARG.Localization;
 using YARG.Menu;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
@@ -482,7 +483,7 @@ namespace YARG.Settings
                 }
                 else
                 {
-                    DiscordController.Instance.Initialize();
+                    DiscordController.Instance.CreateInstance();
                 }
             }
 
