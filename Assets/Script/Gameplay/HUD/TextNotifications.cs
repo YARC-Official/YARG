@@ -1,7 +1,6 @@
 ﻿using DG.Tweening;
 using System;
 using System.Collections;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -104,6 +103,7 @@ namespace YARG.Gameplay.HUD
                 StopCoroutine(_coroutine);
             }
 
+            _animationSequence.Kill();
             _notificationBackground.gameObject.SetActive(false);
             _containerRect.gameObject.SetActive(false);
         }
@@ -149,9 +149,15 @@ namespace YARG.Gameplay.HUD
 
         public void ShowVocalPhraseResult(string result, int streak)
         {
-            if (!isActiveAndEnabled) return;
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
 
-            if (incompatibleNotifications.Contains(_notificationQueue.Current ?? TextNotificationType.VocalPhraseResult)) return;
+            if (Array.IndexOf(incompatibleNotifications, _notificationQueue.Current ?? TextNotificationType.VocalPhraseResult) != -1)
+            {
+                return;
+            }
 
             _notificationQueue.Enqueue(new TextNotification(TextNotificationType.VocalPhraseResult, result));
         }
@@ -160,7 +166,10 @@ namespace YARG.Gameplay.HUD
         {
             var allowSuppress = Array.IndexOf(_highPriorityNotifications, notificationType) == -1;
 
-            if (allowSuppress && !isActiveAndEnabled) return;
+            if (allowSuppress && !isActiveAndEnabled)
+            {
+                return;
+            }
 
             _notificationQueue.Enqueue(new TextNotification(notificationType));
         }
@@ -168,10 +177,16 @@ namespace YARG.Gameplay.HUD
         public void UpdateNoteStreak(int streak)
         {
             // Don't build up notifications during a solo
-            if (!isActiveAndEnabled) return;
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
 
             // Only push to the queue if there is a change to the streak
-            if (streak == _streak) return;
+            if (streak == _streak)
+            {
+                return;
+            }
 
             // If the streak is less than before, then reset
             if (streak < _streak || _streak == 0)
@@ -201,7 +216,10 @@ namespace YARG.Gameplay.HUD
         private void Update()
         {
             // Never update this if text notifications are disabled
-            if (SettingsManager.Settings.DisableTextNotifications.Value && !_isVocals) return;
+            if (SettingsManager.Settings.DisableTextNotifications.Value && !_isVocals)
+            {
+                return;
+            }
 
             if (_coroutine == null && _notificationQueue.Count > 0)
             {
