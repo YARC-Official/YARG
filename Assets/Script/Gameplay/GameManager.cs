@@ -470,6 +470,9 @@ namespace YARG.Gameplay
 
             RecordScores(replayInfo);
 
+            // Dispose the crowd handler
+            CrowdEventHandler.Dispose();
+
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
             return true;
