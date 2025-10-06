@@ -135,7 +135,7 @@ namespace YARG.Menu.ScoreScreen
             _maxStreak.text = WrapWithColor(Stats.MaxCombo);
             _notesMissed.text = WrapWithColor(Stats.NotesMissed);
             _starpowerPhrases.text = $"{WrapWithColor(Stats.StarPowerPhrasesHit)} / {Stats.TotalStarPowerPhrases}";
-            _bandBonusScore.text = $"{WrapWithColor(Stats.BandBonusScore)}";
+            _bandBonusScore.text = WrapWithColor(Stats.BandBonusScore.ToString("N0"));
 
             // Set background icon
             _instrumentIcon.sprite = Addressables
