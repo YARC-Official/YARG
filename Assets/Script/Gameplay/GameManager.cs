@@ -180,6 +180,10 @@ namespace YARG.Gameplay
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
 
+            // Unsubscribe from other events
+            SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
+            EngineManager.OnSongFailed -= OnSongFailed;
+
             //Restore stem volumes to their original state
             foreach (var (stem, state) in _stemStates)
             {
@@ -339,6 +343,9 @@ namespace YARG.Gameplay
             BackgroundManager.SetPaused(true);
             GameStateFetcher.SetPaused(true);
 
+            // Pause any audio samples that are currently playing
+            GlobalAudioHandler.PauseAllSfx();
+
             // Allow sleeping
             Screen.sleepTimeout = _originalSleepTimeout;
         }
@@ -368,6 +375,9 @@ namespace YARG.Gameplay
             Time.timeScale = 1f;
             BackgroundManager.SetPaused(false);
             GameStateFetcher.SetPaused(false);
+
+            // Unpause any audio samples that are currently playing
+            GlobalAudioHandler.ResumeAllSfx();
 
             // Disallow sleeping
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
@@ -649,9 +659,24 @@ namespace YARG.Gameplay
 
         private void OnSongFailed()
         {
+            if (SettingsManager.Settings.NoFailMode.Value)
+            {
+                return;
+            }
+
             PlayerHasFailed = true;
             GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
             Pause();
+        }
+
+        // If we go from no fail to fail, we need to reinitialize the happiness state so we avoid
+        // the possibility of an instant fail. Yes, this is cheeseable since toggling no fail resets happiness.
+        private void OnNoFailModeChanged(bool noFail)
+        {
+            if (!noFail)
+            {
+                EngineManager.InitializeHappiness();
+            }
         }
     }
 }

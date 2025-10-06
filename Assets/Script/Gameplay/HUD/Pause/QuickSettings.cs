@@ -74,7 +74,7 @@ namespace YARG.Gameplay.HUD
 
         public void ToggleNoFail()
         {
-            SettingsManager.Settings.NoFailMode.SetValueWithoutNotify(!SettingsManager.Settings.NoFailMode.Value);
+            SettingsManager.Settings.NoFailMode.Value = !SettingsManager.Settings.NoFailMode.Value;
             _noFailText.text = SettingsManager.Settings.NoFailMode.Value ? "Disable No Fail" : "Enable No Fail";
 
             // Disappear the fail meter

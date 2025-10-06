@@ -65,6 +65,7 @@ namespace YARG.Settings
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),
                 nameof(Settings.WrapAroundNavigation),
+                nameof(Settings.DiscordRichPresence),
                 nameof(Settings.AmIAwesome),
             },
             new SongManagerTab("SongManager", icon: "Songs")
@@ -151,6 +152,7 @@ namespace YARG.Settings
                 nameof(Settings.ShowHitWindow),
                 nameof(Settings.DisableTextNotifications),
                 nameof(Settings.NoteStreakFrequency),
+                nameof(Settings.VocalStreakFrequency),
                 nameof(Settings.CountdownDisplay),
                 nameof(Settings.ShowPlayerNameWhenStartingSong),
                 nameof(Settings.LyricDisplay),
