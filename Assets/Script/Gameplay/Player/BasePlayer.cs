@@ -104,8 +104,6 @@ namespace YARG.Gameplay.Player
 
         protected EngineManager.EngineContainer EngineContainer;
 
-        protected bool IsCrowdMuted { get; set; }
-
         protected override void GameplayAwake()
         {
             _replayInputs = new List<GameInput>();

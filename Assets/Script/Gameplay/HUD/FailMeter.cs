@@ -29,15 +29,16 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private RectTransform _sliderContainer;
 
-        private Slider[] _playerSliders;
+        private Slider[]  _playerSliders;
         private Tweener[] _happinessTweeners = Array.Empty<Tweener>();
-        private Tweener[] _xposTweeners = Array.Empty<Tweener>();
-        private Tweener _meterRedTweener;
-        private Tweener _meterYellowTweener;
-        private Tweener _meterGreenTweener;
-        private Tweener _bandFillTweener;
-        private float[] _previousPlayerHappiness;
-        private float _previousBandHappiness;
+        private Tweener[] _xposTweeners      = Array.Empty<Tweener>();
+        private Tweener   _meterRedTweener;
+        private Tweener   _meterYellowTweener;
+        private Tweener   _meterGreenTweener;
+        private Tweener   _bandFillTweener;
+        private Tweener   _meterPositionTweener;
+        private float[]   _previousPlayerHappiness;
+        private float     _previousBandHappiness;
 
         private MeterColor _previousMeterColor;
 
@@ -47,6 +48,8 @@ namespace YARG.Gameplay.HUD
         private Vector3 _initialPosition;
 
         private float _containerHeight;
+
+        private bool _intendedActive;
 
 
         // TODO: Should probably make a more specific class we can reference here
@@ -89,9 +92,15 @@ namespace YARG.Gameplay.HUD
             _meterGreenTweener = _fillImage.DOColor(Color.green, 0.25f).
                 SetAutoKill(false).
                 Pause();
+
             // 0.8f is an arbitrary placeholder
             _bandFillTweener = _fillImage.DOFillAmount(0.8f, 0.125f).
                 SetAutoKill(false);
+
+            // This is set up to move the container offscreen, but may later be used to move it back on
+            _meterPositionTweener = _meterContainer.transform.DOMoveY(-400f, 0.5f).
+                SetAutoKill(false).
+                Pause();
 
 
 
@@ -130,7 +139,6 @@ namespace YARG.Gameplay.HUD
             // Don't crash the whole game if we didn't get initialized and still manage to somehow become active
             if (_engineManager == null)
             {
-                YargLogger.LogDebug("FailMeter not initialized");
                 return;
             }
 
@@ -244,17 +252,16 @@ namespace YARG.Gameplay.HUD
 
         public void SetActive(bool active)
         {
-            if (!_meterContainer.activeSelf)
+            if (active)
             {
-                _meterContainer.SetActive(true);
-                _meterContainer.transform.DOMoveY(_initialPosition.y, 0.5f).
-                    SetEase(Ease.InOutSine);
+                // Move onscreen
+                _meterPositionTweener.PlayBackwards();
             }
-            else
+
+            if (!active)
             {
-                // Move offscreen and disable the container
-                _meterContainer.transform.DOMoveY(-400f, 0.5f).SetEase(Ease.InOutSine).
-                    OnComplete(() => _meterContainer.SetActive(false));
+                // Move offscreen
+                _meterPositionTweener.PlayForward();
             }
         }
 
@@ -275,6 +282,7 @@ namespace YARG.Gameplay.HUD
             _meterYellowTweener?.Kill();
             _meterGreenTweener?.Kill();
             _bandFillTweener?.Kill();
+            _meterPositionTweener?.Kill();
             foreach (var tween in _happinessTweeners)
             {
                 tween.Kill();
