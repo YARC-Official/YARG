@@ -98,6 +98,11 @@ namespace YARG.Gameplay.HUD
                 .Pause();
         }
 
+        protected override void GameplayDestroy()
+        {
+            _multiplierShowTweener?.Kill();
+        }
+
         private void Start()
         {
             _scoreText.text = SCORE_PREFIX + "0";
