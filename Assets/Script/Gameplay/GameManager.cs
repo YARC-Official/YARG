@@ -659,7 +659,7 @@ namespace YARG.Gameplay
 
         private void OnSongFailed()
         {
-            if (SettingsManager.Settings.NoFailMode.Value)
+            if (SettingsManager.Settings.NoFailMode.Value || IsPractice)
             {
                 return;
             }
@@ -673,8 +673,15 @@ namespace YARG.Gameplay
         // the possibility of an instant fail. Yes, this is cheeseable since toggling no fail resets happiness.
         private void OnNoFailModeChanged(bool noFail)
         {
-            if (!noFail)
+            // If we're going from no fail to fail and happiness would result in an insta-fail, reset happiness,
+            // but also inhibit score saving to avoid cheesing
+            if (!noFail && EngineManager.Happiness <= 0f)
             {
+                foreach (var player in _players)
+                {
+                    player.Player.IsScoreValid = false;
+                }
+
                 EngineManager.InitializeHappiness();
             }
         }

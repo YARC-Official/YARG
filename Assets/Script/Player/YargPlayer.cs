@@ -32,6 +32,12 @@ namespace YARG.Player
         public HighwayPreset   HighwayPreset   { get; private set; }
         public RockMeterPreset RockMeterPreset { get; private set; }
 
+        /// <summary>
+        /// Whether or not the score is valid.
+        /// </summary>
+        /// <remarks>Could be invalidated due abusing pauses or no fail mode.</remarks>
+        public bool IsScoreValid { get; set; } = true;
+
         public bool IsReplay { get; private set; }
         public int ReplayIndex = -1;
 
