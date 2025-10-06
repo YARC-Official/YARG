@@ -80,6 +80,11 @@ namespace YARG.Menu.Credits
                 .Where(i => i.SpecialRole == "Founder")
             );
 
+            CreateHeader("ProjectManager");
+            CreateCredits(contributors
+                .Where(i => i.SpecialRole == "ProjectManager")
+            );
+
             CreateHeader("LeadArtist");
             CreateCredits(contributors
                 .Where(i => i.SpecialRole == "LeadArtist")

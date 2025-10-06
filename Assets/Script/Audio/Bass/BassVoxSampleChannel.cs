@@ -115,7 +115,7 @@ namespace YARG.Audio.BASS
 
         protected override void SetVolume_Internal(double volume)
         {
-            volume *= AudioHelpers.SfxVolume[(int) Sample];
+            volume *= AudioHelpers.SfxSamples[(int) Sample].Volume;
             if (!Bass.ChannelSetAttribute(_channel, ChannelAttribute.Volume, volume))
             {
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", Sample, Bass.LastError);

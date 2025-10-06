@@ -36,15 +36,31 @@ namespace YARG.Logging
             persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "release"));
 #endif
 
-            // Persistent Data Path override passed in from CLI
-            if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
+            try
             {
-                persistentPath = PathHelper.SanitizePath(CommandLineArgs.PersistentDataPath);
-                Directory.CreateDirectory(persistentPath);
-            }
+                // Persistent Data Path override passed in from CLI
+                if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
+                {
+                    persistentPath = PathHelper.SanitizePath(CommandLineArgs.PersistentDataPath);
+                    Directory.CreateDirectory(persistentPath);
+                }
 
-            _logsDirectory = Path.Combine(persistentPath, "logs");
-            Directory.CreateDirectory(_logsDirectory);
+                _logsDirectory = Path.Combine(persistentPath, "logs");
+                Directory.CreateDirectory(_logsDirectory);
+                string tempFile = Path.Combine(_logsDirectory, Path.GetRandomFileName());
+                using (FileStream fs = new FileStream(tempFile, FileMode.Create))
+                {
+                    // We're only attempting to trigger an exception if the directory isn't writable,
+                    // so we don't actually do anything here
+                }
+                File.Delete(tempFile);
+            }
+            catch (IOException e)
+            {
+                // Hopefully Unity's logger will have more success
+                Debug.LogException(e);
+                return;
+            }
 
             _fileYargLogListener = new FileYargLogListener(GetLogPath());
 

@@ -65,6 +65,7 @@ namespace YARG.Settings
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),
                 nameof(Settings.WrapAroundNavigation),
+                nameof(Settings.DiscordRichPresence),
                 nameof(Settings.AmIAwesome),
             },
             new SongManagerTab("SongManager", icon: "Songs")
@@ -109,7 +110,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.MuteOnMiss),
                 nameof(Settings.UseStarpowerFx),
-                nameof(Settings.ClapsInStarpower),
+                nameof(Settings.UseCrowdFx),
                 nameof(Settings.OverstrumAndOverhitSoundEffects),
                 nameof(Settings.AlwaysOnDrumSFX),
                 // nameof(Settings.UseWhammyFx),

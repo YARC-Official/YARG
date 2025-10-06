@@ -70,6 +70,7 @@ namespace YARG.Gameplay
         /// <see cref="GameplayBehaviour.OnChartLoaded"/>.
         /// </remarks>
         public BeatEventHandler BeatEventHandler { get; private set; }
+        public CrowdEventHandler CrowdEventHandler { get; private set; }
 
         public PracticeManager  PracticeManager  { get; private set; }
         public BackgroundManager BackgroundManager { get; private set; }
@@ -109,10 +110,15 @@ namespace YARG.Gameplay
         public int   BandCombo { get; private set; }
         public float BandStars { get; private set; }
 
+        public double FirstNoteTime { get; private set; }
+        public double LastNoteTime  { get; private set; }
+
         public ReplayInfo ReplayInfo { get; private set; }
         public ReplayData ReplayData { get; private set; }
 
         public IReadOnlyList<BasePlayer> Players => _players;
+
+        public int StarPowerActivations { get; private set; } = 0;
 
         private bool _isReplaySaved;
 
@@ -174,6 +180,10 @@ namespace YARG.Gameplay
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
 
+            // Unsubscribe from other events
+            SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
+            EngineManager.OnSongFailed -= OnSongFailed;
+
             //Restore stem volumes to their original state
             foreach (var (stem, state) in _stemStates)
             {
@@ -184,8 +194,8 @@ namespace YARG.Gameplay
             _pauseMenu.PopAllMenus();
             _mixer?.Dispose();
             _songRunner?.Dispose();
-            BeatEventHandler?.Audio.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();
+            CrowdEventHandler.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
             Time.timeScale = 1f;
@@ -222,6 +232,7 @@ namespace YARG.Gameplay
             // Update handlers
             _songRunner.Update();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
+            CrowdEventHandler.Update(_songRunner.SongTime);
 
             // Update players
             int totalScore = 0;
@@ -332,6 +343,9 @@ namespace YARG.Gameplay
             BackgroundManager.SetPaused(true);
             GameStateFetcher.SetPaused(true);
 
+            // Pause any audio samples that are currently playing
+            GlobalAudioHandler.PauseAllSfx();
+
             // Allow sleeping
             Screen.sleepTimeout = _originalSleepTimeout;
         }
@@ -361,6 +375,9 @@ namespace YARG.Gameplay
             Time.timeScale = 1f;
             BackgroundManager.SetPaused(false);
             GameStateFetcher.SetPaused(false);
+
+            // Unpause any audio samples that are currently playing
+            GlobalAudioHandler.ResumeAllSfx();
 
             // Disallow sleeping
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
@@ -640,21 +657,26 @@ namespace YARG.Gameplay
             BandCombo += amount;
         }
 
-        private void OnHappinessUnderThreshold()
-        {
-            ChangeCrowdMuteState(true);
-        }
-
-        private void OnHappinessOverThreshold()
-        {
-            ChangeCrowdMuteState(false);
-        }
-
         private void OnSongFailed()
         {
+            if (SettingsManager.Settings.NoFailMode.Value)
+            {
+                return;
+            }
+
             PlayerHasFailed = true;
             GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
             Pause();
+        }
+
+        // If we go from no fail to fail, we need to reinitialize the happiness state so we avoid
+        // the possibility of an instant fail. Yes, this is cheeseable since toggling no fail resets happiness.
+        private void OnNoFailModeChanged(bool noFail)
+        {
+            if (!noFail)
+            {
+                EngineManager.InitializeHappiness();
+            }
         }
     }
 }
