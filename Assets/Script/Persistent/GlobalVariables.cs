@@ -48,7 +48,7 @@ namespace YARG
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
-        public string CurrentVersion { get; private set; } = "v0.13.0";
+        public string CurrentVersion { get; private set; } = "v0.13.1";
 
         protected override void SingletonAwake()
         {
