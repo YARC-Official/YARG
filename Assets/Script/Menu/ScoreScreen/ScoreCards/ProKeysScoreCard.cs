@@ -1,10 +1,10 @@
 ﻿using TMPro;
 using UnityEngine;
-using YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.Keys;
 
 namespace YARG.Menu.ScoreScreen
 {
-    public class ProKeysScoreCard : ScoreCard<ProKeysStats>
+    public class ProKeysScoreCard : ScoreCard<KeysStats>
     {
         [Space]
         [SerializeField]

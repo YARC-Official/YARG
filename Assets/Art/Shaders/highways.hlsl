@@ -125,11 +125,24 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
     if (R != 0)
     {
         R = sign(R) * MAX_R - R * ((MAX_R - MIN_R) / 3.0);
-        // We do not want sphere, we're omiting Z component of distance
         float d = abs(positionWS.x - t_x);
-        positionWS.xy = sin(d / R) * (R + positionWS.y - t_y) / d * float2(positionWS.x - t_x, 0) + float2(t_x, cos(d / R) * (R + positionWS.y - t_y) - R + t_y);
-    }
 
+        // Handle the sin(d/R)/d discontinuity using Taylor series approximation
+        float sinc_factor;
+        if (d < 0.001) // Very close to center
+        {
+            // sin(x)/x ≈ 1 - x²/6 + x⁴/120 for small x
+            float d_over_R = d / R;
+            sinc_factor = 1.0 - (d_over_R * d_over_R) / 6.0;
+        }
+        else
+        {
+            sinc_factor = sin(d / R) / d;
+        }
+
+        positionWS.xy = sinc_factor * (R + positionWS.y - t_y) * float2(positionWS.x - t_x, 0) +
+                        float2(t_x, cos(d / R) * (R + positionWS.y - t_y) - R + t_y);
+    }
 #else
     // Old basic y-only parabolic shift
     float delta_x = abs(index * 100 - positionWS.x);
@@ -168,3 +181,4 @@ inline float4 YargObjectToClipPos( in float3 pos )
 {
     return YargTransformWorldToHClip(mul(unity_ObjectToWorld, float4(pos, 1.0)).xyz);
 }
+

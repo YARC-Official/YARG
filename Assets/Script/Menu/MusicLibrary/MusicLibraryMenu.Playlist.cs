@@ -6,6 +6,7 @@ using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Playlists;
+using YARG.Player;
 using YARG.Settings;
 using YARG.Song;
 
@@ -76,6 +77,7 @@ namespace YARG.Menu.MusicLibrary
 
         private List<ViewType> CreatePlaylistViewList()
         {
+            SetNavigationScheme(true);
             var list = new List<ViewType>
             {
                 new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
@@ -177,6 +179,7 @@ namespace YARG.Menu.MusicLibrary
         {
             SelectedPlaylist = null;
             MenuState = MenuState.PlaylistSelect;
+            SetNavigationScheme(true);
             Refresh();
 
             // Select playlist button
@@ -192,36 +195,14 @@ namespace YARG.Menu.MusicLibrary
             SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
         }
 
-        private void OnAddButtonHit(NavigationContext ctx)
-        {
-            _heldInputs.Add(new Navigator.HoldContext(ctx));
-        }
-
-        private void OnAddButtonRelease(NavigationContext ctx)
-        {
-            var holdContext = _heldInputs.FirstOrDefault(i => i.Context.IsSameAs(ctx));
-
-            if (ctx.Action == MenuAction.Yellow && (holdContext?.Timer > 0 || ctx.Player is null))
-            {
-                _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
-                AddToPlaylist();
-            }
-            else
-            {
-                _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
-                if (ShowPlaylist.Count > 0)
-                {
-                    StartSetlist();
-                }
-                else
-                {
-                    EnterShowMode();
-                }
-            }
-        }
-
         private void EnterShowMode()
         {
+            // Save the current selected index if we're in the main library
+            if (MenuState == MenuState.Library)
+            {
+                _mainLibraryIndex = SelectedIndex;
+            }
+
             // Update the navigation scheme
             SetShowNavigationScheme();
 
@@ -248,14 +229,27 @@ namespace YARG.Menu.MusicLibrary
             MenuState = MenuState.Library;
             Refresh();
 
-            // An arbitrary choice
-            SetIndexTo(i => i is ButtonViewType { ID: RANDOM_SONG_ID });
+            // Restore the main library index if it is valid
+            if (_mainLibraryIndex != -1)
+            {
+                SelectedIndex = _mainLibraryIndex;
+            }
+            else
+            {
+                SetIndexTo(i => i is ButtonViewType { ID: RANDOM_SONG_ID });
+            }
         }
 
         private void StartSetlist()
         {
-            if (ShowPlaylist.Count > 0)
+            if (ShowPlaylist.Count > 0 && PlayerContainer.Players.Count > 0)
             {
+                // If we are in the main library, save the current index
+                if (MenuState == MenuState.Library)
+                {
+                    _mainLibraryIndex = SelectedIndex;
+                }
+
                 GlobalVariables.State.PlayingAShow = true;
                 GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
                 GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs.First();
@@ -328,7 +322,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnPlayShowHit()
         {
-            if (ShowPlaylist.Count > 0)
+            if (ShowPlaylist.Count > 0 && PlayerContainer.Players.Count > 0)
             {
                 GlobalVariables.State.PlayingAShow = true;
                 GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
@@ -339,6 +333,24 @@ namespace YARG.Menu.MusicLibrary
                 LeaveShowMode();
 
                 MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
+            }
+        }
+
+        private void MovePlaylistEntryUp()
+        {
+            if (CurrentSelection is SongViewType selection)
+            {
+                SelectedPlaylist.MoveSongUp(selection.SongEntry);
+                Refresh();
+            }
+        }
+
+        private void MovePlaylistEntryDown()
+        {
+            if (CurrentSelection is SongViewType selection)
+            {
+                SelectedPlaylist.MoveSongDown(selection.SongEntry);
+                Refresh();
             }
         }
     }

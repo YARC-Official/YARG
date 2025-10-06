@@ -80,6 +80,11 @@ namespace YARG.Menu.Credits
                 .Where(i => i.SpecialRole == "Founder")
             );
 
+            CreateHeader("ProjectManager");
+            CreateCredits(contributors
+                .Where(i => i.SpecialRole == "ProjectManager")
+            );
+
             CreateHeader("LeadArtist");
             CreateCredits(contributors
                 .Where(i => i.SpecialRole == "LeadArtist")
@@ -147,6 +152,11 @@ namespace YARG.Menu.Credits
         {
             foreach (var song in SongContainer.Songs)
             {
+                if (song.Source.ToString() is not ("yarg" or "yargdlc" or "yarn"))
+                {
+                    continue;
+                }
+
                 // If the song has any of these properties, then add it to the credits
                 if (!string.IsNullOrEmpty(song.CreditWrittenBy) ||
                     !string.IsNullOrEmpty(song.CreditPerformedBy) ||

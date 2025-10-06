@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
-using YARG.Core.Engine.Drums;
-using YARG.Core.Engine.Guitar;
-using YARG.Core.Engine.Vocals;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
@@ -52,6 +48,9 @@ namespace YARG.Gameplay
         [SerializeField]
         private GameObject _lyricBar;
 
+        [SerializeField]
+        private FailMeter _failMeter;
+
         [field: SerializeField]
         public VocalTrack VocalTrack { get; private set; }
 
@@ -71,6 +70,7 @@ namespace YARG.Gameplay
         /// <see cref="GameplayBehaviour.OnChartLoaded"/>.
         /// </remarks>
         public BeatEventHandler BeatEventHandler { get; private set; }
+        public CrowdEventHandler CrowdEventHandler { get; private set; }
 
         public PracticeManager  PracticeManager  { get; private set; }
         public BackgroundManager BackgroundManager { get; private set; }
@@ -110,10 +110,15 @@ namespace YARG.Gameplay
         public int   BandCombo { get; private set; }
         public float BandStars { get; private set; }
 
+        public double FirstNoteTime { get; private set; }
+        public double LastNoteTime  { get; private set; }
+
         public ReplayInfo ReplayInfo { get; private set; }
         public ReplayData ReplayData { get; private set; }
 
         public IReadOnlyList<BasePlayer> Players => _players;
+
+        public int StarPowerActivations { get; private set; } = 0;
 
         private bool _isReplaySaved;
 
@@ -175,17 +180,22 @@ namespace YARG.Gameplay
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
 
-            foreach (var state in _stemStates)
+            // Unsubscribe from other events
+            SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
+            EngineManager.OnSongFailed -= OnSongFailed;
+
+            //Restore stem volumes to their original state
+            foreach (var (stem, state) in _stemStates)
             {
-                GlobalAudioHandler.SetVolumeSetting(state.Key, state.Value.Volume);
+                GlobalAudioHandler.SetVolumeSetting(stem, state.Volume);
             }
 
             DisposeDebug();
             _pauseMenu.PopAllMenus();
             _mixer?.Dispose();
             _songRunner?.Dispose();
-            BeatEventHandler?.Audio.Unsubscribe(StarPowerClap);
             BackgroundManager.Dispose();
+            CrowdEventHandler.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
             Time.timeScale = 1f;
@@ -199,7 +209,9 @@ namespace YARG.Gameplay
             // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
+                if ((!IsPractice || PracticeManager.HasSelectedSection) &&
+                    !DialogManager.Instance.IsDialogShowing &&
+                    !PlayerHasFailed)
                 {
                     SetPaused(!_pauseMenu.IsOpen);
                 }
@@ -220,6 +232,7 @@ namespace YARG.Gameplay
             // Update handlers
             _songRunner.Update();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
+            CrowdEventHandler.Update(_songRunner.SongTime);
 
             // Update players
             int totalScore = 0;
@@ -307,6 +320,10 @@ namespace YARG.Gameplay
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
                 }
+                else if (PlayerHasFailed)
+                {
+                    _pauseMenu.PushMenu(PauseMenuManager.Menu.FailPause);
+                }
                 else if (IsPractice)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
@@ -326,9 +343,14 @@ namespace YARG.Gameplay
             BackgroundManager.SetPaused(true);
             GameStateFetcher.SetPaused(true);
 
+            // Pause any audio samples that are currently playing
+            GlobalAudioHandler.PauseAllSfx();
+
             // Allow sleeping
             Screen.sleepTimeout = _originalSleepTimeout;
         }
+
+        public bool PlayerHasFailed { get; set; } = false;
 
         public void Resume()
         {
@@ -353,6 +375,9 @@ namespace YARG.Gameplay
             Time.timeScale = 1f;
             BackgroundManager.SetPaused(false);
             GameStateFetcher.SetPaused(false);
+
+            // Unpause any audio samples that are currently playing
+            GlobalAudioHandler.ResumeAllSfx();
 
             // Disallow sleeping
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
@@ -422,7 +447,7 @@ namespace YARG.Gameplay
             try
             {
                 _isReplaySaved = false;
-                replayInfo = SaveReplay(InputTime, ScoreContainer.ScoreReplayDirectory);
+                replayInfo = SaveReplay(_songRunner.InputTime, ScoreContainer.ScoreReplayDirectory);
             }
             catch (Exception e)
             {
@@ -444,6 +469,9 @@ namespace YARG.Gameplay
             };
 
             RecordScores(replayInfo);
+
+            // Dispose the crowd handler
+            CrowdEventHandler.Dispose();
 
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
@@ -598,7 +626,7 @@ namespace YARG.Gameplay
             {
                 // Pause
                 case MenuAction.Start:
-                    if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
+                    if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing && !PlayerHasFailed)
                     {
                         SetPaused(!_songRunner.Paused);
                     }
@@ -630,6 +658,35 @@ namespace YARG.Gameplay
         public void AddBandCombo(int amount)
         {
             BandCombo += amount;
+        }
+
+        private void OnSongFailed()
+        {
+            if (SettingsManager.Settings.NoFailMode.Value || IsPractice)
+            {
+                return;
+            }
+
+            PlayerHasFailed = true;
+            GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
+            Pause();
+        }
+
+        // If we go from no fail to fail, we need to reinitialize the happiness state so we avoid
+        // the possibility of an instant fail. Yes, this is cheeseable since toggling no fail resets happiness.
+        private void OnNoFailModeChanged(bool noFail)
+        {
+            // If we're going from no fail to fail and happiness would result in an insta-fail, reset happiness,
+            // but also inhibit score saving to avoid cheesing
+            if (!noFail && EngineManager.Happiness <= 0f)
+            {
+                foreach (var player in _players)
+                {
+                    player.Player.IsScoreValid = false;
+                }
+
+                EngineManager.InitializeHappiness();
+            }
         }
     }
 }

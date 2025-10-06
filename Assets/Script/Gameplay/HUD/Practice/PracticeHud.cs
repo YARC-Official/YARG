@@ -140,6 +140,8 @@ namespace YARG.Gameplay.HUD
 
             _percentHit = 0f;
             _bestPercentHit = 0f;
+            _offsetNotesHit = 0;
+            _speedChanged = false;
 
             _bestPercentText.text = "0%";
             _sectionText.text = _sections[_currentSectionIndex].Name;

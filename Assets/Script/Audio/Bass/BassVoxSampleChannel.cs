@@ -7,6 +7,7 @@ using ManagedBass;
 using ManagedBass.Mix;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
@@ -93,6 +94,13 @@ namespace YARG.Audio.BASS
 
         protected override void Play_Internal()
         {
+            // Don't particularly like doing it here, but this is the only place in the playback chain where we can
+            // check for the vox enabled setting
+            if (!SettingsManager.Settings.EnableVoxSamples.Value)
+            {
+                return;
+            }
+
             if (IsAnyPlaying())
             {
                 QueuePlayback(this);
@@ -107,7 +115,7 @@ namespace YARG.Audio.BASS
 
         protected override void SetVolume_Internal(double volume)
         {
-            volume *= AudioHelpers.SfxVolume[(int) Sample];
+            volume *= AudioHelpers.SfxSamples[(int) Sample].Volume;
             if (!Bass.ChannelSetAttribute(_channel, ChannelAttribute.Volume, volume))
             {
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", Sample, Bass.LastError);

@@ -1,4 +1,4 @@
-﻿using ManagedBass;
+using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
@@ -8,8 +8,7 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassStemChannel : StemChannel
     {
-        private readonly int _sourceHandle;
-
+        private int _sourceHandle;
         private StreamHandle _streamHandles;
         private StreamHandle _reverbHandles;
         private PitchShiftParametersStruct _pitchParams;
@@ -17,10 +16,12 @@ namespace YARG.Audio.BASS
         private double _volume;
         private bool _isReverbing;
 
-        internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume, int sourceStream, in PitchShiftParametersStruct pitchParams, in StreamHandle streamHandles, in StreamHandle reverbHandles)
+        internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume,
+            in PitchShiftParametersStruct pitchParams, int sourceHandle, in StreamHandle streamHandles,
+            in StreamHandle reverbHandles)
             : base(manager, stem, clampStemVolume)
         {
-            _sourceHandle = sourceStream;
+            _sourceHandle = sourceHandle;
             _streamHandles = streamHandles;
             _reverbHandles = reverbHandles;
             _pitchParams = pitchParams;
@@ -35,16 +36,6 @@ namespace YARG.Audio.BASS
 
         protected override void SetWhammyPitch_Internal(float percent)
         {
-            // If pitch effect hasn't been added yet, add it.
-            if (_streamHandles.PitchFX == 0)
-            {
-                _streamHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_streamHandles.Stream, _pitchParams);
-            }
-            if (_reverbHandles.PitchFX == 0)
-            {
-                _reverbHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_reverbHandles.Stream, _pitchParams);
-            }
-
             // Calculate shift
             float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
             _pitchParams.fPitchShift = shift;
@@ -64,36 +55,20 @@ namespace YARG.Audio.BASS
                     YargLogger.LogFormatError("Failed to set pitch on reverb: {0}", Bass.LastError);
                 }
             }
-            /*
-            else
-            {
-                // If pitch is effect running we could remove it.
-                // This would help with delay but there's a skip when adding or removing.
-                // Probably better to do this after at zero whammy rest for a period of time.
+        }
 
-                if (_streamHandles.PitchFX != 0)
-                {
-                    if (!Bass.ChannelRemoveFX(_streamHandles.Stream, _streamHandles.PitchFX))
-                    {
-                        YargLogger.LogFormatError("Failed to remove pitch effect: {0}!", Bass.LastError);
-                    }
-                    if (!Bass.ChannelRemoveFX(_reverbHandles.Stream, _streamHandles.PitchFX))
-                    {
-                        YargLogger.LogFormatError("Failed to remove pitch effect: {0}!", Bass.LastError);
-                    }
-                    _streamHandles.PitchFX = 0;
-                    _reverbHandles.PitchFX = 0;
-                }
+        protected override float GetWhammyPitch_Internal()
+        {
+            if (_streamHandles.PitchFX == 0)
+            {
+                return 0f;
             }
-            */
+            return _pitchParams.fPitchShift;
         }
 
         protected override void SetPosition_Internal(double position)
         {
-            if (_sourceHandle != 0)
-            {
-                BassMix.SplitStreamReset(_sourceHandle);
-            }
+            BassMix.SplitStreamReset(_sourceHandle);
 
             long bytes = Bass.ChannelSeconds2Bytes(_streamHandles.Stream, position);
             if (bytes < 0)
@@ -102,11 +77,47 @@ namespace YARG.Audio.BASS
                 return;
             }
 
+            if (_streamHandles.PitchFX != 0)
+            {
+                //Account for inherent pitch shift delay
+                bytes += GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2;
+            }
+
             bool success = BassMix.ChannelSetPosition(_streamHandles.Stream, bytes, PositionFlags.Bytes | PositionFlags.MixerReset);
             if (!success)
             {
                 YargLogger.LogFormatError("Failed to seek to position {0}!", position);
             }
+        }
+
+        protected override double GetPosition_Internal()
+        {
+            if (_streamHandles.Stream == 0)
+            {
+                return 0.0;
+            }
+
+            long position = BassMix.ChannelGetPosition(_streamHandles.Stream);
+            if (position < 0)
+            {
+                YargLogger.LogFormatError("Failed to get byte position: {0}!", Bass.LastError);
+                return 0.0;
+            }
+
+            if (_streamHandles.PitchFX != 0)
+            {
+                //Account for inherent pitch shift delay
+                position -= GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2;
+            }
+
+            double seconds = Bass.ChannelBytes2Seconds(_streamHandles.Stream, position);
+            if (seconds < 0)
+            {
+                YargLogger.LogFormatError("Failed to convert bytes to seconds: {0}!", Bass.LastError);
+                return 0.0;
+            }
+
+            return seconds;
         }
 
         protected override void SetSpeed_Internal(float speed, bool shiftPitch)
@@ -126,7 +137,7 @@ namespace YARG.Audio.BASS
             }
 
             float reverbVolume = _isReverbing ? (float) volume * BassHelpers.REVERB_VOLUME_MULTIPLIER : 0;
-            
+
             if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, reverbVolume, 0))
             {
                 YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
@@ -193,7 +204,6 @@ namespace YARG.Audio.BASS
         {
             _streamHandles.Dispose();
             _reverbHandles.Dispose();
-
             if (_sourceHandle != 0)
             {
                 if (!Bass.StreamFree(_sourceHandle) && Bass.LastError != Errors.Handle)

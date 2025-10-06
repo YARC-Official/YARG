@@ -58,6 +58,13 @@ namespace YARG.Helpers
         public static string SetlistPath { get; private set; }
 
         /// <summary>
+        /// YARC Launcher venue path.
+        /// </summary>
+        public static string VenuePath { get; private set; }
+
+        public static bool PathError { get; private set; }
+
+        /// <summary>
         /// Safe options to use when enumerating files or directories.
         /// Recurses subdirectories.
         /// </summary>
@@ -94,7 +101,18 @@ namespace YARG.Helpers
             // Persistent Data Path override passed in from CLI
             if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
             {
-                Directory.CreateDirectory(CommandLineArgs.PersistentDataPath);
+                try
+                {
+                    Directory.CreateDirectory(CommandLineArgs.PersistentDataPath);
+                }
+                catch (IOException e)
+                {
+                    // YargLogger probably isn't going to work in this case, so we'll just use Unity's logging
+                    Debug.LogException(e);
+                    // Set a flag that we can check in a non-static method so we can pop a dialog and exit
+                    PathError = true;
+                }
+
                 PersistentDataPath = SanitizePath(CommandLineArgs.PersistentDataPath);
             }
 
@@ -119,40 +137,50 @@ namespace YARG.Helpers
 
             // Get official setlist path
             // (this is replaced by the launch argument if it is set)
-            SetlistPath = FindSetlistPath();
+            (SetlistPath, VenuePath) = FindLauncherPaths();
         }
 
-        private static string FindSetlistPath()
+        private static (string, string) FindLauncherPaths()
         {
             // Use the launcher settings to find the setlist path
             string settingsPath = Path.Join(LauncherPath, "settings.json");
             if (!File.Exists(settingsPath))
             {
                 YargLogger.LogWarning("Failed to find launcher settings file. Game is most likely running without the launcher.");
-                return null;
+                return (null, null);
             }
 
             try
             {
                 var settingsFile = File.ReadAllText(settingsPath);
                 var json = JObject.Parse(settingsFile);
-                if (!json.TryGetValue("download_location", out var downloadLocation)) return null;
+                if (!json.TryGetValue("download_location", out var downloadLocation)) return (null, null);
 
                 string setlistPath = Path.Join(downloadLocation.ToString(), "Setlists");
-                if (!Directory.Exists(setlistPath)) return null;
+                string venuePath = Path.Join(downloadLocation.ToString(), "Venues");
+                if (!Directory.Exists(setlistPath))
+                {
+                    setlistPath = null;
+                }
 
-                return setlistPath;
+                if (!Directory.Exists(venuePath))
+                {
+                    venuePath = null;
+                }
+
+                return (setlistPath, venuePath);
             }
             catch (Exception e)
             {
                 YargLogger.LogException(e, "Failed to load setlist path.");
-                return null;
+                return (null, null);
             }
         }
 
-        public static void SetSetlistPathFromDownloadLocation(string downloadLocation)
+        public static void SetPathsFromDownloadLocation(string downloadLocation)
         {
             SetlistPath = Path.Join(downloadLocation, "Setlists");
+            VenuePath = Path.Join(downloadLocation, "Venues");
         }
 
         /// <summary>

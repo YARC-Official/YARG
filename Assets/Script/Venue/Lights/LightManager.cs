@@ -26,23 +26,34 @@ namespace YARG.Venue
             public float Delta;
         }
 
+        private readonly Dictionary<Performer, VenueSpotLightLocation> _spotlightLocations = new()
+        {
+            { Performer.Bass, VenueSpotLightLocation.Bass },
+            { Performer.Drums, VenueSpotLightLocation.Drums },
+            { Performer.Guitar, VenueSpotLightLocation.Guitar },
+            { Performer.Vocals, VenueSpotLightLocation.Vocals },
+        };
+
         public LightingType Animation { get; private set; }
         public int AnimationFrame { get; private set; }
 
+
+        // Double because spots stay on for the duration of the event and then turn off without an off event, so we store time
+        private double[]     _spotlightStates;
         private LightState[] _lightStates;
-        public LightState GenericLightState => _lightStates[(int) VenueLightLocation.Generic];
-		public LightState LeftLightState => _lightStates[(int) VenueLightLocation.Left];
-		public LightState RightLightState => _lightStates[(int) VenueLightLocation.Right];
-		public LightState FrontLightState => _lightStates[(int) VenueLightLocation.Front];
-		public LightState BackLightState => _lightStates[(int) VenueLightLocation.Back];
-		public LightState CenterLightState => _lightStates[(int) VenueLightLocation.Center];
-		public LightState CrowdLightState => _lightStates[(int) VenueLightLocation.Crowd];
+        public  LightState   GenericLightState => _lightStates[(int) VenueLightLocation.Generic];
+		public  LightState   LeftLightState    => _lightStates[(int) VenueLightLocation.Left];
+		public  LightState   RightLightState   => _lightStates[(int) VenueLightLocation.Right];
+		public  LightState   FrontLightState   => _lightStates[(int) VenueLightLocation.Front];
+		public  LightState   BackLightState    => _lightStates[(int) VenueLightLocation.Back];
+		public  LightState   CenterLightState  => _lightStates[(int) VenueLightLocation.Center];
+		public  LightState   CrowdLightState   => _lightStates[(int) VenueLightLocation.Crowd];
 
         [SerializeField]
         private float _gradientLightingSpeed = 0.125f;
-		
+
 		private float _initialGradientSpeed;
-		
+
         [SerializeField]
         private float _gradientRandomness = 0.5f;
 
@@ -58,7 +69,8 @@ namespace YARG.Venue
         [SerializeField]
         private Color _silhouetteColor;
 
-        private List<LightingEvent> _lightingEvents;
+        private List<LightingEvent>  _lightingEvents;
+        private List<PerformerEvent> _performerEvents;
 
         private Gradient _warmGradient;
         private Gradient _coolGradient;
@@ -66,13 +78,16 @@ namespace YARG.Venue
         private Gradient _harmoniousGradient;
 
         private int _lightingEventIndex;
+        private int _performerEventIndex;
         private int _beatIndex;
 
         protected override void OnChartLoaded(SongChart chart)
         {
             _lightStates = new LightState[EnumExtensions<VenueLightLocation>.Count];
+            _spotlightStates = new double[EnumExtensions<VenueSpotLightLocation>.Count];
 
             _lightingEvents = chart.VenueTrack.Lighting;
+            _performerEvents = chart.VenueTrack.Performer;
 
             // If the color arrays are empty, add basic ones for safety
 
@@ -112,8 +127,8 @@ namespace YARG.Venue
                     Color.red,
                     Color.blue,
                 };
-            }			
-		
+            }
+
 			// Store gradient speed for temporary Frenzy/BRE speedup
 			_initialGradientSpeed = _gradientLightingSpeed;
 
@@ -172,6 +187,27 @@ namespace YARG.Venue
                 }
 
                 _lightingEventIndex++;
+            }
+
+            // Look for new performer events
+            // TODO: Fix the event parsing so that Time and TimeEnd aren't backwards (with the attendant negative length)
+            while (_performerEventIndex < _performerEvents.Count &&
+                _performerEvents[_performerEventIndex].TimeEnd <= GameManager.VisualTime)
+            {
+                var current = _performerEvents[_performerEventIndex];
+                if (current.Type != PerformerEventType.Spotlight)
+                {
+                    _performerEventIndex++;
+                    continue;
+                }
+                if (!_spotlightLocations.TryGetValue(current.Performers, out var location))
+                {
+                    _performerEventIndex++;
+                    continue;
+                }
+                _spotlightStates[(int) location] = current.TimeLength * -1;
+
+                _performerEventIndex++;
             }
 
             UpdateLightStates();
@@ -278,7 +314,7 @@ namespace YARG.Venue
                         _lightStates[i].Intensity = 1f;
                         _lightStates[i].Color = null;
                         _lightStates[i].Delta = 0f;
-                        break; 
+                        break;
                 }
             }
         }
@@ -286,6 +322,11 @@ namespace YARG.Venue
         public LightState GetLightStateFor(VenueLightLocation location)
         {
             return _lightStates[(int) location];
+        }
+
+        public bool GetSpotlightStateFor(VenueSpotLightLocation location)
+        {
+            return _spotlightStates[(int) location] > 0;
         }
 
         private static Gradient CreateGradient(Color[] colors)

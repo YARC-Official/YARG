@@ -5,6 +5,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using YARG.Audio.BASS;
 using YARG.Core;
 using YARG.Core.Logging;
@@ -14,6 +15,7 @@ using YARG.Helpers;
 using YARG.Input;
 using YARG.Integration;
 using YARG.Localization;
+using YARG.Menu.Navigation;
 using YARG.Menu.ScoreScreen;
 using YARG.Player;
 using YARG.Playlists;
@@ -48,7 +50,7 @@ namespace YARG
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
-        public string CurrentVersion { get; private set; } = "v0.13.0";
+        public string CurrentVersion { get; private set; } = "v0.13.1";
 
         protected override void SingletonAwake()
         {
@@ -71,7 +73,7 @@ namespace YARG
 
             if (!string.IsNullOrEmpty(CommandLineArgs.DownloadLocation))
             {
-                PathHelper.SetSetlistPathFromDownloadLocation(CommandLineArgs.DownloadLocation);
+                PathHelper.SetPathsFromDownloadLocation(CommandLineArgs.DownloadLocation);
             }
 
             // TODO: Actually respect the PersistentDataPath arg
@@ -155,11 +157,13 @@ namespace YARG
             {
                 // When complete, set the newly loaded scene to the active one
                 SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex((int) scene));
+                Navigator.Instance.DisableMenuInputs = false;
             };
         }
 
         public void LoadScene(SceneIndex scene)
         {
+            Navigator.Instance.DisableMenuInputs = true;
             // Unload the current scene and load in the new one, or just load in the new one
             if (CurrentScene != SceneIndex.Persistent)
             {

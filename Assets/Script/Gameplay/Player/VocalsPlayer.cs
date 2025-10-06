@@ -50,6 +50,9 @@ namespace YARG.Gameplay.Player
         private VocalNote _lastTargetNote;
         private double?   _lastHitTime;
         private double?   _lastSingTime;
+        private double    _previousStarPowerPercent;
+        private bool      _hotStartChecked;
+        private bool      _newHighScoreShown;
 
         private VocalsPlayerHUD _hud;
         private VocalPercussionTrack _percussionTrack;
@@ -62,7 +65,7 @@ namespace YARG.Gameplay.Player
         private SongChart _chart;
 
         public void Initialize(int index, int vocalIndex, YargPlayer player, SongChart chart,
-            VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore)
+            VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore, float trackSpeed)
         {
             if (IsInitialized)
             {
@@ -71,24 +74,13 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, lastHighScore);
 
+            // Save the chart
+            _chart = chart;
+
             // Needle materials have names starting from 1.
             var needleIndex = (vocalIndex % NEEDLES_COUNT) + 1;
             var materialPath = $"VocalNeedle/{needleIndex}";
             _needleRenderer.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
-
-            // Update speed of particles
-            var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
-            foreach (var system in particles)
-            {
-                // This interface is weird lol, `.main` is readonly but
-                // doesn't need to be re-assigned, changes are forwarded automatically
-                var main = system.main;
-
-                var startSpeed = main.startSpeed;
-                startSpeed.constant *= player.Profile.NoteSpeed;
-                main.startSpeed = startSpeed;
-                main.startColor = VocalTrack.Colors[Player.Profile.HarmonyIndex];
-            }
 
             // Get the notes from the specific harmony or solo part
 
@@ -101,6 +93,21 @@ namespace YARG.Gameplay.Player
             NoteTrack = OriginalNoteTrack;
 
             _phraseIndex = -1;
+            _previousStarPowerPercent = 0.0;
+
+            // Update speed of particles
+            var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
+            foreach (var system in particles)
+            {
+                // This interface is weird lol, `.main` is readonly but
+                // doesn't need to be re-assigned, changes are forwarded automatically
+                var main = system.main;
+
+                var startSpeed = main.startSpeed;
+                startSpeed.constant *= trackSpeed;
+                main.startSpeed = startSpeed;
+                main.startColor = VocalTrack.Colors[Player.Profile.HarmonyIndex];
+            }
 
             // Initialize player specific vocal visuals
 
@@ -178,7 +185,7 @@ namespace YARG.Gameplay.Player
             HitWindow = EngineParams.HitWindow;
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, _chart);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Player.Profile.HarmonyIndex, _chart, Player.RockMeterPreset);
 
             engine.OnStarPowerPhraseHit += _ => OnStarPowerPhraseHit();
             engine.OnStarPowerStatus += OnStarPowerStatus;
@@ -188,16 +195,19 @@ namespace YARG.Gameplay.Player
                 _lastTargetNote = note;
             };
 
-            engine.OnPhraseHit += (percent, fullPoints) =>
+            engine.OnPhraseHit += (percent, fullPoints, isLastPhrase) =>
             {
-                _hud.ShowPhraseHit(percent);
-
                 if (!fullPoints)
                 {
                     IsFc = false;
                 }
-
+                
                 LastCombo = Combo;
+                
+                ShowTextNotifications(isLastPhrase);
+
+                // Order is important here. ShowVocalPhraseResult() will skip showing AWESOME! if other, more important notifications are already showing.
+                _hud.ShowPhraseHit(percent, Combo);
             };
 
             engine.OnNoteHit += (_, note) =>
@@ -296,7 +306,50 @@ namespace YARG.Gameplay.Player
             // Update HUD
             _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier,
                 (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
+        }
 
+        private void ShowTextNotifications(bool isLastPhrase)
+        {
+            if (SettingsManager.Settings.DisableTextNotifications.Value)
+            {
+                return;
+            }
+
+            var isStarPowerActive = Engine.EngineStats.IsStarPowerActive;
+            var currentStarPowerPercent = Engine.GetStarPowerBarAmount();
+            if (!isStarPowerActive && _previousStarPowerPercent < 0.5 && currentStarPowerPercent >= 0.5)
+            {
+                _hud.ShowNotification(TextNotificationType.StarPowerReady);
+
+            }
+            _previousStarPowerPercent = Engine.GetStarPowerBarAmount();
+
+            var isMaxMultiplier = Engine.EngineStats.ScoreMultiplier == (isStarPowerActive ? 8 : 4);
+
+            if (!_hotStartChecked && isMaxMultiplier && IsFc)
+            {
+                _hud.ShowNotification(TextNotificationType.HotStart);
+                _hotStartChecked = true;
+            }
+
+            if (LastHighScore != null && !_newHighScoreShown && Score > LastHighScore)
+            {
+                _hud.ShowNotification(TextNotificationType.NewHighScore);
+                _newHighScoreShown = true;
+            }
+
+            if (!isLastPhrase)
+            {
+                return;
+            }
+            if (IsFc)
+            {
+                _hud.ShowNotification(TextNotificationType.FullCombo);
+            }
+            else if (isMaxMultiplier)
+            {
+                _hud.ShowNotification(TextNotificationType.StrongFinish);
+            }
         }
 
         private float GetNeedleRotation(float pitchDist)

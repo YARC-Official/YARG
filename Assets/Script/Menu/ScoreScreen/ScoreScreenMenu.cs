@@ -1,22 +1,21 @@
-﻿using System;
+using System;
 using System.Linq;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
-using YARG.Audio.BASS;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
-using YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.Keys;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
-using YARG.Gameplay;
 using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
@@ -24,6 +23,9 @@ using YARG.Menu.Persistent;
 using YARG.Scores;
 using YARG.Song;
 using YARG.Playlists;
+using YARG.Helpers.Extensions;
+using YARG.Core.Engine;
+using YARG.Playback;
 using YARG.Settings;
 
 namespace YARG.Menu.ScoreScreen
@@ -45,7 +47,11 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private TextMeshProUGUI _bandScoreNotSavedMessage;
         [SerializeField]
-        private Scrollbar _horizontalScrollBar;
+        private ScrollRect _cardScrollRect;
+        [SerializeField]
+        private float _horizontalScrollRate = 30f;
+        [SerializeField]
+        private float _verticalScrollRate = 15f;
 
         [Space]
         [SerializeField]
@@ -56,87 +62,20 @@ namespace YARG.Menu.ScoreScreen
         private VocalsScoreCard _vocalsCardPrefab;
         [SerializeField]
         private ProKeysScoreCard _proKeysCardPrefab;
+        [SerializeField]
+        private ProKeysScoreCard _fiveLaneKeysCardPrefab;
 
         private bool _analyzingReplay;
+
+        private bool _restartingSong;
+
+        private readonly List<IScoreCard<BaseStats>> _scoreCards = new();
 
         private void OnEnable()
         {
             var song = GlobalVariables.State.CurrentSong;
-            var isFavorited = PlaylistContainer.FavoritesPlaylist.ContainsSong(song);
 
-            // Set navigation scheme
-            var continueButtonEntry = new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
-                {
-                    if (!_analyzingReplay)
-                    {
-                        GlobalVariables.State.ShowIndex++;
-                        if (GlobalVariables.State.PlayingAShow &&
-                            GlobalVariables.State.ShowIndex < GlobalVariables.State.ShowSongs.Count)
-                        {
-                            // Reset CurrentSong and launch back into the Gameplay scene
-                            GlobalVariables.State.CurrentSong =
-                                GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex];
-                            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
-                        }
-                        else
-                        {
-                            GlobalVariables.State.PlayingAShow = false;
-                            GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
-                        }
-                    }
-                });
-
-            // dummy remove button so it can be used in add button
-            NavigationScheme.Entry removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "", () => {});
-            var addFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.AddToFavorites", () =>
-                {
-                    YargLogger.LogInfo("added favorite");
-                    if (!isFavorited)
-                    {
-                        PlaylistContainer.FavoritesPlaylist.AddSong(song);
-                        isFavorited = true;
-                        Navigator.Instance.PopScheme();
-                        Navigator.Instance.PushScheme(new NavigationScheme(new()
-                        {
-                            continueButtonEntry,
-                            removeFavoriteButtonEntry
-                        }, true));
-                    }
-                });
-
-            removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.RemoveFromFavorites", () =>
-                {
-                    YargLogger.LogInfo("removed favorite");
-                    if (isFavorited)
-                    {
-                        PlaylistContainer.FavoritesPlaylist.RemoveSong(song);
-                        isFavorited = false;
-                        Navigator.Instance.PopScheme();
-                        Navigator.Instance.PushScheme(new NavigationScheme(new()
-                        {
-                            continueButtonEntry,
-                            addFavoriteButtonEntry
-                        }, true));
-                    }
-                });
-
-            //different navigation scheme based on if the songs is favorited already
-            if (isFavorited)
-            {
-                Navigator.Instance.PushScheme(new NavigationScheme(new()
-                {
-                    continueButtonEntry,
-                    removeFavoriteButtonEntry
-                }, true));
-            }
-            else
-            {
-                Navigator.Instance.PushScheme(new NavigationScheme(new()
-                {
-                    continueButtonEntry,
-                    addFavoriteButtonEntry
-                }, true));
-            }
+            SetNavigationScheme();
 
             if (GlobalVariables.State.ScoreScreenStats is null)
             {
@@ -170,6 +109,12 @@ namespace YARG.Menu.ScoreScreen
             }
 #endif
 
+            // Play audience chatter
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+            {
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.Chatter, 1.0);
+            }
+
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
@@ -192,14 +137,22 @@ namespace YARG.Menu.ScoreScreen
             CreateScoreCards(scoreScreenStats);
 
             _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
+
+            //set restarting state
+            _restartingSong = false;
         }
 
         private void OnDisable()
         {
             MusicLibraryMenu.CurrentlyPlaying = GlobalVariables.State.CurrentSong;
-            if (!GlobalVariables.State.PlayingAShow)
+            if (!GlobalVariables.State.PlayingAShow && !_restartingSong)
             {
                 GlobalVariables.State = PersistentState.Default;
+            }
+
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+            {
+                GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter, 1.0);
             }
 
             Navigator.Instance.PopScheme();
@@ -226,38 +179,48 @@ namespace YARG.Menu.ScoreScreen
                     }
                 }
 
-                switch (score.Player.Profile.CurrentInstrument.ToGameMode())
+                IScoreCard<BaseStats> card = null;
+
+                switch (score.Player.Profile.GameMode)
                 {
                     case GameMode.FiveFretGuitar:
                     {
-                        var card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
-                        card.SetCardContents();
+                        card = Instantiate(_guitarCardPrefab, _cardContainer);
+                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
                         break;
                     }
                     case GameMode.FourLaneDrums:
                     case GameMode.FiveLaneDrums:
                     {
-                        var card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
-                        card.SetCardContents();
+                        card = Instantiate(_drumsCardPrefab, _cardContainer);
+                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
                         break;
                     }
                     case GameMode.Vocals:
                     {
-                        var card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
-                        card.SetCardContents();
+                        card = Instantiate(_vocalsCardPrefab, _cardContainer);
+                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
                         break;
                     }
                     case GameMode.ProKeys:
                     {
-                        var card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                        card.Initialize(score.IsHighScore, score.Player, score.Stats as ProKeysStats);
-                        card.SetCardContents();
+                        if (score.Player.Profile.CurrentInstrument is Instrument.ProKeys)
+                        {
+                            card = Instantiate(_proKeysCardPrefab, _cardContainer);
+                        }
+                        else
+                        {
+                            card = Instantiate(_fiveLaneKeysCardPrefab, _cardContainer);
+                        }
+                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player,
+                            score.Stats as KeysStats);
                         break;
                     }
                 }
+
+                Debug.Assert(card != null, $"ScoreCard not initialized for GameMode: {score.Player.Profile.GameMode}");
+                card.SetCardContents();
+                _scoreCards.Add(card);
             }
 
             // Mark that the music library should refresh when next opened
@@ -270,16 +233,16 @@ namespace YARG.Menu.ScoreScreen
             Canvas.ForceUpdateCanvases();
 
             // If the scroll bar is active, make it all the way to the left
-            if (_horizontalScrollBar.gameObject.activeSelf)
-            {
-                _horizontalScrollBar.value = 0f;
-            }
+            InitializeScrollRect();
 
-            // As a final bonus, play the appropriate full combo vox samples
-            if (SettingsManager.Settings.EnableVoxSamples.Value)
-            {
-                PlayScoreVox(fcCount, highScoreCount);
-            }
+            // As a final bonus, play the appropriate full combo/high score vox samples
+            PlayScoreVox(fcCount, highScoreCount);
+        }
+
+        private async void InitializeScrollRect()
+        {
+            await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
+            _cardScrollRect.horizontalNormalizedPosition = 0f;
         }
 
         private static void PlayScoreVox(int fcCount, int highScoreCount)
@@ -417,6 +380,134 @@ namespace YARG.Menu.ScoreScreen
 
             _analyzingReplay = false;
             return allPass;
+        }
+
+        private NavigationScheme.Entry _continueButtonEntry;
+        private NavigationScheme.Entry _endEarlyButtonEntry;
+        private NavigationScheme.Entry _restartButtonEntry;
+        private NavigationScheme.Entry _removeFavoriteButtonEntry;
+        private NavigationScheme.Entry _addFavoriteButtonEntry;
+        private NavigationScheme.Entry _scrollLeftEntry;
+        private NavigationScheme.Entry _scrollRightEntry;
+        private NavigationScheme.Entry _scrollUpEntry;
+        private NavigationScheme.Entry _scrollDownEntry;
+
+        private void SetNavigationScheme()
+        {
+            var song = GlobalVariables.State.CurrentSong;
+
+            _continueButtonEntry = new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
+                {
+                    if (!_analyzingReplay)
+                    {
+                        GlobalVariables.State.ShowIndex++;
+                        if (GlobalVariables.State.PlayingAShow &&
+                            GlobalVariables.State.ShowIndex < GlobalVariables.State.ShowSongs.Count)
+                        {
+                            // Reset CurrentSong and launch back into the Gameplay scene
+                            GlobalVariables.State.CurrentSong =
+                                GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex];
+                            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+                        }
+                        else
+                        {
+                            GlobalVariables.State.PlayingAShow = false;
+                            GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                        }
+                    }
+                });
+
+            _endEarlyButtonEntry = new NavigationScheme.Entry(MenuAction.Red, "Menu.ScoreScreen.EndSetlistEarly", () =>
+            {
+                GlobalVariables.State.PlayingAShow = false;
+                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+            });
+
+            _restartButtonEntry = new NavigationScheme.Entry(MenuAction.Yellow, "Menu.ScoreScreen.RestartSong", () =>
+            {
+                _restartingSong = true;
+                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+            });
+
+            _addFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.AddToFavorites", () =>
+                {
+                    YargLogger.LogInfo("added favorite");
+                    PlaylistContainer.FavoritesPlaylist.AddSong(song);
+                    UpdateNavigationScheme(true);
+                });
+
+            _removeFavoriteButtonEntry = new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Popup.Item.RemoveFromFavorites", () =>
+                {
+                    YargLogger.LogInfo("removed favorite");
+                    PlaylistContainer.FavoritesPlaylist.RemoveSong(song);
+                    UpdateNavigationScheme(true);
+                });
+
+            _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", context =>
+                {
+                    _cardScrollRect.MoveHorizontalInUnits(-1 * _horizontalScrollRate);
+                });
+
+            _scrollRightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Scroll", context =>
+                {
+                    _cardScrollRect.MoveHorizontalInUnits(_horizontalScrollRate);
+                });
+
+            _scrollUpEntry = new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Scroll", context =>
+                {
+                    ScrollScoreCard(context.Player, _verticalScrollRate);
+                });
+
+            _scrollDownEntry = new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Scroll", context =>
+                {
+                    ScrollScoreCard(context.Player, -1 * _verticalScrollRate);
+                });
+
+            UpdateNavigationScheme();
+        }
+
+        private void ScrollScoreCard(Player.YargPlayer player, float delta)
+        {
+            var card = _scoreCards.FirstOrDefault(card => card.Player == player);
+            card?.ScrollStats(delta);
+        }
+
+        private void UpdateNavigationScheme(bool reset = false)
+        {
+            if (reset)
+            {
+                Navigator.Instance.PopScheme();
+            }
+
+            List<NavigationScheme.Entry> buttons = new()
+            {
+                _continueButtonEntry,
+                _restartButtonEntry
+            };
+
+            var song = GlobalVariables.State.CurrentSong;
+            var isFavorited = PlaylistContainer.FavoritesPlaylist.ContainsSong(song);
+
+            if (isFavorited)
+            {
+                buttons.Add(_removeFavoriteButtonEntry);
+            }
+            else
+            {
+                buttons.Add(_addFavoriteButtonEntry);
+            }
+
+            if (GlobalVariables.State.PlayingAShow &&
+                GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
+            {
+                buttons.Insert(1, _endEarlyButtonEntry);
+            }
+
+            buttons.Add(_scrollLeftEntry);
+            buttons.Add(_scrollRightEntry);
+            buttons.Add(_scrollUpEntry);
+            buttons.Add(_scrollDownEntry);
+            Navigator.Instance.PushScheme(new(buttons, true));
         }
     }
 }

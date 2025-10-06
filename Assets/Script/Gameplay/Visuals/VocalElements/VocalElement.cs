@@ -5,7 +5,7 @@ namespace YARG.Gameplay.Visuals
 {
     public abstract class VocalElement : BaseElement
     {
-        private const float SING_LINE_POS = -5f;
+        public const float SING_LINE_POS = -5f;
         private const float REMOVE_POINT = -15f;
 
         protected VocalTrack VocalTrack { get; private set; }

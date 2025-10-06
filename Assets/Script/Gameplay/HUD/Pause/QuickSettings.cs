@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks.Triggers;
+using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using YARG.Core.Logging;
@@ -25,13 +28,22 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private Transform _subSettingsBackButton;
 
+        [Space]
+        [SerializeField]
+        private GameObject _noFailButton;
+
         [FormerlySerializedAs("_pauseVolumeSettingPrefab")]
         [Space]
         [SerializeField]
         private VolumePauseSetting _volumePauseSettingPrefab;
 
+        private FailMeter _failMeter;
+        private TextMeshProUGUI _noFailText;
+
         protected override void OnSongStarted()
         {
+            _failMeter = FindObjectOfType<FailMeter>();
+            _noFailText = _noFailButton.GetComponentInChildren<TextMeshProUGUI>();
             _editHudButton.gameObject.SetActive(GameManager.Players.Count <= 1);
         }
 
@@ -41,6 +53,8 @@ namespace YARG.Gameplay.HUD
 
             _quickSettingsContainer.gameObject.SetActive(true);
             _subSettingsObject.SetActive(false);
+            // _noFailButton.SetActive(!SettingsManager.Settings.NoFailMode.Value);
+            _noFailText.text = SettingsManager.Settings.NoFailMode.Value ? "Disable No Fail" : "Enable No Fail";
         }
 
         public override void Back()
@@ -56,6 +70,15 @@ namespace YARG.Gameplay.HUD
         public void OpenAudioSettings()
         {
             OpenSubSettings(_soundSettings);
+        }
+
+        public void ToggleNoFail()
+        {
+            SettingsManager.Settings.NoFailMode.Value = !SettingsManager.Settings.NoFailMode.Value;
+            _noFailText.text = SettingsManager.Settings.NoFailMode.Value ? "Disable No Fail" : "Enable No Fail";
+
+            // Disappear the fail meter
+            _failMeter.SetActive(!SettingsManager.Settings.NoFailMode.Value);
         }
 
         private void OpenSubSettings(List<string> settings)
