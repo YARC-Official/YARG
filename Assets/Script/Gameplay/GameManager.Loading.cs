@@ -241,11 +241,16 @@ namespace YARG.Gameplay
             {
                 _failMeter.SetActive(false);
             }
-            else if (ReplayInfo == null || GlobalVariables.State.PlayingWithReplay)
+
+            // This is not an else because we still want to subscribe in case the user disables no fail during the song
+            // We check in the callback to determine whether we should actually run the fail routine
+            if (ReplayInfo == null || GlobalVariables.State.PlayingWithReplay)
             {
                 EngineManager.OnSongFailed += OnSongFailed;
 
                 EngineManager.InitializeHappiness();
+
+                SettingsManager.Settings.NoFailMode.OnChange += OnNoFailModeChanged;
             }
 
             // Log constant values

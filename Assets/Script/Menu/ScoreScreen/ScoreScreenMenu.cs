@@ -112,7 +112,7 @@ namespace YARG.Menu.ScoreScreen
             // Play audience chatter
             if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
             {
-                GlobalAudioHandler.PlaySoundEffect(SfxSample.Chatter);
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.Chatter, 1.0);
             }
 
             // Set text
@@ -152,7 +152,7 @@ namespace YARG.Menu.ScoreScreen
 
             if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
             {
-                GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter);
+                GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter, 1.0);
             }
 
             Navigator.Instance.PopScheme();
