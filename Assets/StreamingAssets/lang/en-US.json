@@ -377,6 +377,7 @@
             "HotStart": "HOT START",
             "NewHighScore": "NEW HIGH SCORE",
             "NoteStreak": "{0:N0}-NOTE STREAK",
+			"PhraseStreak": "{0:N0}-PHRASE STREAK",
             "StarPowerReady": "STAR POWER READY",
             "StrongFinish": "STRONG FINISH"
         },
@@ -1146,6 +1147,15 @@
                 "Name": "Vocal Monitoring Volume",
                 "PauseName": "Monitoring",
                 "Description": "Adjusts the feedback you hear when singing."
+            },
+			"VocalStreakFrequency": {
+                "Name": "Vocal Streak Frequency",
+                "Description": "Sets the frequency of phrase streak notifications for vocalists.",
+                "Dropdown": {
+                    "Disabled": "Disabled",
+                    "Frequent": "5, 10, 20, 30, ...",
+                    "Sparse": "5, 10, 25, 50, ..."
+                }
             },
             "VocalsVolume": {
                 "Name": "Vocals Volume",
