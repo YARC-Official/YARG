@@ -12,6 +12,7 @@ using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
+using YARG.Localization;
 using YARG.Menu;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
@@ -99,6 +100,15 @@ namespace YARG.Settings
             public ToggleSetting PauseOnFocusLoss { get; } = new(true);
 
             public ToggleSetting WrapAroundNavigation { get; } = new(true);
+
+            public DropdownSetting<DiscordRichPresenceMode> DiscordRichPresence { get; }
+                = new(DiscordRichPresenceMode.Show, DiscordRichPresenceCallback)
+                {
+                    DiscordRichPresenceMode.Show,
+                    DiscordRichPresenceMode.Limited,
+                    DiscordRichPresenceMode.Hide
+                };
+
             public ToggleSetting AmIAwesome { get; } = new(false);
 
             #endregion
@@ -468,6 +478,19 @@ namespace YARG.Settings
             private static void SetLogLevelCallback(LogLevel level)
             {
                 YargLogger.MinimumLogLevel = level;
+            }
+
+            private static void DiscordRichPresenceCallback(DiscordRichPresenceMode mode)
+            {
+                // Dispose Discord instance if rich presence is turned off, otherwise try initializing it again
+                if (mode == DiscordRichPresenceMode.Hide)
+                {
+                    DiscordController.Instance.TryDispose();
+                }
+                else
+                {
+                    DiscordController.Instance.CreateInstance();
+                }
             }
 
             private static void ShowBatteryCallback(bool value)
