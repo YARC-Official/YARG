@@ -377,6 +377,7 @@
             "HotStart": "HOT START",
             "NewHighScore": "NEW HIGH SCORE",
             "NoteStreak": "{0:N0}-NOTE STREAK",
+			"PhraseStreak": "{0:N0}-PHRASE STREAK",
             "StarPowerReady": "STAR POWER READY",
             "StrongFinish": "STRONG FINISH"
         },
@@ -813,6 +814,15 @@
                 "Name": "Disable Text Notifications",
                 "Description": "Disables text notification on the track such as \"100-Note Streak\" and \"Full Combo.\""
             },
+            "DiscordRichPresence": {
+                "Name": "Discord Rich Presence",
+                "Description": "Choose how YARG shows on your activity status on Discord.",
+                "Dropdown": {
+                    "Show": "Show all details",
+                    "Limited": "Show without the currently playing song",
+                    "Hide": "Hide"
+                }
+            },
             "DMXBlueChannels": {
                 "Name": "DMX Blue",
                 "Description": "The eight channels here represent the eight blue LEDs of the StageKit. They will receive on (255) and off (0) commands."
@@ -1069,10 +1079,10 @@
                     "Reduced": "Reduced"
                 }
             },
-			"SongBackgroundOpacity": {
-				"Name": "Song Background Opacity",
-				"Description": "Adjusts the opacity of background during gameplay."
-			},
+            "SongBackgroundOpacity": {
+                "Name": "Song Background Opacity",
+                "Description": "Adjusts the opacity of background during gameplay."
+            },
             "UseChipmunkSpeed": {
                 "Name": "Chipmunk Speed",
                 "Description": "Disables pitch correction when playing songs at a fast or slow speed which may lead to some... interesting results."
@@ -1138,15 +1148,24 @@
                 "PauseName": "Monitoring",
                 "Description": "Adjusts the feedback you hear when singing."
             },
+			"VocalStreakFrequency": {
+                "Name": "Vocal Streak Frequency",
+                "Description": "Sets the frequency of phrase streak notifications for vocalists.",
+                "Dropdown": {
+                    "Disabled": "Disabled",
+                    "Frequent": "5, 10, 20, 30, ...",
+                    "Sparse": "5, 10, 25, 50, ..."
+                }
+            },
             "VocalsVolume": {
                 "Name": "Vocals Volume",
                 "PauseName": "Vocals",
                 "Description": "Adjusts the song's vocal track volume. Only does something if the song is multi-track."
             },
-            "VoiceActivatedVocalStarPower" : {
-				"Name": "Voice Activated Star Power (Vocals)",
-				"Description": "If enabled, vocalists can activate their Star Power by making a noise. Keybinds can be used instead, regardless of this setting."
-			},
+            "VoiceActivatedVocalStarPower": {
+                "Name": "Voice Activated Star Power (Vocals)",
+                "Description": "If enabled, vocalists can activate their Star Power by making a noise. Keybinds can be used instead, regardless of this setting."
+            },
             "VSync": {
                 "Name": "Enable VSync",
                 "Description": "Enables VSync. VSync caps the framerate at your monitor's maximum framerate, and prevents tearing."

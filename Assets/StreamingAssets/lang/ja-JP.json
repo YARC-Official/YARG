@@ -1,4 +1,4 @@
-{
+﻿{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -546,6 +546,15 @@
             "DisableTextNotifications": {
                 "Name": "Disable Text Notifications",
                 "Description": "Disables text notification on the track such as \"100-Note Streak\" and \"Full Combo.\""
+            },
+            "DiscordRichPresence": {
+                "Name": "Discord Rich Presence",
+                "Description": "Choose how YARG shows on your activity status on Discord.",
+                "Dropdown": {
+                    "Show": "Show all details",
+                    "Limited": "Show without the currently playing song",
+                    "Hide": "Hide"
+                }
             },
             "DMXBlueChannels": {
                 "Name": "DMX Blue",

@@ -1,10 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using Cysharp.Text;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
@@ -14,12 +14,6 @@ namespace YARG.Gameplay.HUD
 {
     public class VocalsPlayerHUD : GameplayBehaviour
     {
-        private const float ANIM_LENGTH = 1f;
-        private const float ANIM_BASE_TO_PEAK_INTERVAL = 0.167f;
-        private const float ANIM_PEAK_TO_VALLEY_INTERVAL = 0.167f;
-        private const float ANIM_PEAK_SCALE = 1.1f;
-        private const float ANIM_VALLEY_SCALE = 1f;
-
         [SerializeField]
         private Image _comboMeterFill;
         [SerializeField]
@@ -31,23 +25,17 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _multiplierText;
         [SerializeField]
-        private TextMeshProUGUI _performanceText;
+        private TextNotifications _textNotifications;
 
         [SerializeField]
         private PlayerNameDisplay _playerNameDisplay;
 
         private float _comboMeterFillTarget;
 
-        private Coroutine _notificationCoroutine;
         private Coroutine _hudCoroutine;
 
         private bool _shouldPulse;
         private bool _hudShowing = true;
-
-        protected override void OnChartLoaded(SongChart chart)
-        {
-            _performanceText.text = string.Empty;
-        }
 
         public void Initialize(EnginePreset enginePreset)
         {
@@ -116,54 +104,19 @@ namespace YARG.Gameplay.HUD
             _shouldPulse = isStarPowerActive || starPowerPercent >= 0.5;
         }
 
-        public void ShowPhraseHit(double hitPercent)
-        {
-            if (_notificationCoroutine != null)
-            {
-                StopCoroutine(_notificationCoroutine);
-            }
-
-            _notificationCoroutine = StartCoroutine(ShowNextNotification(hitPercent));
-        }
-
-        private IEnumerator ShowNextNotification(double hitPercent)
+        public static string GetVocalPerformanceText(double hitPercent)
         {
             string performanceKey = hitPercent switch
             {
-                >= 1f   => "Awesome",
+                >= 1f => "Awesome",
                 >= 0.8f => "Strong",
                 >= 0.7f => "Good",
                 >= 0.6f => "Okay",
                 >= 0.1f => "Messy",
-                _       => "Awful"
+                _ => "Awful"
             };
 
-            _performanceText.text = Localize.Key("Gameplay.Vocals.Performance", performanceKey);
-            _performanceText.transform.localScale = Vector3.zero;
-
-            const float animHoldInterval = ANIM_LENGTH
-                - 2f * (ANIM_BASE_TO_PEAK_INTERVAL + ANIM_PEAK_TO_VALLEY_INTERVAL);
-
-            yield return DOTween.Sequence()
-                .Append(DOTween.Sequence()
-                    .Append(_performanceText.transform
-                        .DOScale(ANIM_PEAK_SCALE, ANIM_BASE_TO_PEAK_INTERVAL)
-                        .SetEase(Ease.OutCirc))
-                    .Append(_performanceText.transform
-                        .DOScale(ANIM_VALLEY_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
-                        .SetEase(Ease.InOutSine))
-                    .AppendInterval(animHoldInterval))
-                .Append(DOTween.Sequence()
-                    .Append(_performanceText.transform
-                        .DOScale(ANIM_PEAK_SCALE, ANIM_PEAK_TO_VALLEY_INTERVAL)
-                        .SetEase(Ease.InOutSine))
-                    .Append(_performanceText.transform
-                        .DOScale(0f, ANIM_BASE_TO_PEAK_INTERVAL)
-                        .SetEase(Ease.InCirc)))
-                .WaitForCompletion();
-
-            _performanceText.text = string.Empty;
-            _notificationCoroutine = null;
+            return Localize.Key("Gameplay.Vocals.Performance", performanceKey);
         }
 
         public void SetHUDShowing(bool show)
@@ -204,6 +157,21 @@ namespace YARG.Gameplay.HUD
         public void ShowPlayerName(YargPlayer player, int needleId)
         {
             _playerNameDisplay.ShowPlayer(player, needleId);
+        }
+
+        public void ShowPhraseHit(double hitPercent, int combo)
+        {
+            if (!Settings.SettingsManager.Settings.DisableTextNotifications.Value)
+            {
+                _textNotifications.UpdateNoteStreak(combo);
+            }
+            var resultText = GetVocalPerformanceText(hitPercent);
+            _textNotifications.ShowVocalPhraseResult(resultText, combo);
+        }
+
+        public void ShowNotification(TextNotificationType notificationType)
+        {
+            _textNotifications.ShowNotification(notificationType);
         }
     }
 }
