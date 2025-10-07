@@ -143,15 +143,19 @@ namespace YARG.Audio.BASS
                 OnGainAdjusted?.Invoke((float) gain);
             });
 
-            Task.Run(() => CalculateRms(progress), _gainCalcCts.Token);
+            Task.Run(() => CalculateRms(progress, _gainCalcCts.Token), _gainCalcCts.Token);
         }
 
-        private void CalculateRms(IProgress<Double> progress)
+        private void CalculateRms(IProgress<double> progress, CancellationToken token)
         {
             double cumulativeSumSquares = 0.0;
             long totalSamples = 0;
             foreach (var audioBytes in ReadAudioBytes())
             {
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
                 var bufferSeconds = Bass.ChannelBytes2Seconds(_mixer, audioBytes.Length);
                 float[] level = new float[1];
                 bool didGetLevel = Bass.ChannelGetLevel(_mixer, level, (float) bufferSeconds,
