@@ -258,8 +258,8 @@ namespace YARG.Gameplay
                 player.GameplayUpdate();
 
                 totalScore += player.Score;
-                totalStars += player.Stars;
-                
+                totalScore += player.BandBonusScore;
+                totalStars += player.Stars;               
             }
 
             if (GlobalVariables.VerboseReplays)
