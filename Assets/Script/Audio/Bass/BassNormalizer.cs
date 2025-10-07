@@ -15,9 +15,11 @@ namespace YARG.Audio.BASS
 {
     public class BassNormalizer : IDisposable
     {
-        private const int   SAMPLE_COUNT            = 256 * 1024;
-        private const float TARGET_RMS              = 0.175f;
-        private const float MAX_GAIN                = 1.5f;
+        private const int   BUFFER_SIZE        = 512 * 1024;
+        private const float TARGET_RMS         = 0.175f;
+        private const float MAX_GAIN           = 1.5f;
+        private const int   MAX_THREADS_ATTRIB = 86017;
+        private const int   START_SECONDS      = 5;
 
         private          int                     _mixer;
         private readonly List<Stream>            _streams = new();
@@ -88,6 +90,7 @@ namespace YARG.Audio.BASS
                     }
                 }
             }
+
             StartGainCalculation();
             return true;
         }
@@ -100,6 +103,12 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to create mixer: {0}!", Bass.LastError);
                 return false;
             }
+
+            if (!Bass.ChannelSetAttribute(mixerHandle, (ChannelAttribute) MAX_THREADS_ATTRIB, GlobalAudioHandler.MAX_THREADS))
+            {
+                YargLogger.LogFormatError("Failed to set mixer processing threads: {0}!", Bass.LastError);
+            }
+
             _handles.Add(mixerHandle);
             return true;
         }
@@ -150,13 +159,21 @@ namespace YARG.Audio.BASS
         {
             double cumulativeSumSquares = 0.0;
             long totalSamples = 0;
-            foreach (var audioBytes in ReadAudioBytes())
+            Bass.ChannelSetPosition(_mixer, START_SECONDS);
+            byte[] buffer = new byte[BUFFER_SIZE * sizeof(short)];
+
+            while (true)
             {
                 if (token.IsCancellationRequested)
                 {
                     return;
                 }
-                var bufferSeconds = Bass.ChannelBytes2Seconds(_mixer, audioBytes.Length);
+
+                int bytesRead = Bass.ChannelGetData(_mixer, buffer, buffer.Length);
+                if (bytesRead <= 0)
+                    break;
+
+                var bufferSeconds = Bass.ChannelBytes2Seconds(_mixer, bytesRead);
                 float[] level = new float[1];
                 bool didGetLevel = Bass.ChannelGetLevel(_mixer, level, (float) bufferSeconds,
                     LevelRetrievalFlags.Mono | LevelRetrievalFlags.RMS);
@@ -164,44 +181,17 @@ namespace YARG.Audio.BASS
                 var chunkedRms = level[0];
                 if (didGetLevel && chunkedRms > 0)
                 {
-                    long numSamples = audioBytes.Length / sizeof(short);
+                    long numSamples = bytesRead / sizeof(short);
                     double sumSquares = chunkedRms * chunkedRms * numSamples;
                     cumulativeSumSquares += sumSquares;
                     totalSamples += numSamples;
-                }
-                else
-                {
-                    continue;
-                }
 
-                double rms = Math.Sqrt(cumulativeSumSquares / totalSamples);
-                double gain = Math.Min(MAX_GAIN, TARGET_RMS / rms);
-                Gain = (float) gain;
-                progress?.Report(gain);
-            }
-        }
-
-        private IEnumerable<byte[]> ReadAudioBytes()
-        {
-            Bass.ChannelSetPosition(_mixer, 0);
-            byte[] buffer = new byte[SAMPLE_COUNT * sizeof(short)];
-            int data;
-            while ((data = Bass.ChannelGetData(_mixer, buffer, buffer.Length)) > 0)
-            {
-                if (data == buffer.Length)
-                {
-                    yield return buffer;
-                    buffer = new byte[SAMPLE_COUNT * sizeof(short)];
-                }
-                else
-                {
-                    var bytes = new byte[data];
-                    Array.Copy(buffer, bytes, data);
-                    yield return bytes;
+                    double rms = Math.Sqrt(cumulativeSumSquares / totalSamples);
+                    double gain = Math.Min(MAX_GAIN, TARGET_RMS / rms);
+                    Gain = (float) gain;
+                    progress?.Report(gain);
                 }
             }
-
-            Bass.ChannelSetPosition(_mixer, 0);
         }
 
         public void Dispose()
