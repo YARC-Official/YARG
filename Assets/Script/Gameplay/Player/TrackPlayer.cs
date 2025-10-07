@@ -385,7 +385,7 @@ namespace YARG.Gameplay.Player
                 TrackView.ShowStarPowerReady();
             }
 
-            if (stats.IsStarPowerActive && !_wasStarPowerActive)
+            if (stats.IsStarPowerActive && !_wasStarPowerActive && !_didLowerTrack)
             {
                 CameraPositioner.Scoop();
             }

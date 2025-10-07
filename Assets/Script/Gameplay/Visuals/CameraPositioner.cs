@@ -260,13 +260,6 @@ namespace YARG.Gameplay.Visuals
 
         private void ScoopHighway()
         {
-            var didLower = _lower?.IsPlaying() == true || _lower?.IsComplete() == true;
-            if (didLower)
-            {
-                //Don't scoop if highway lowered since it will reset position
-                return;
-            }
-
             // Very quick blast down, up and back to origin for SP activation
             _scoop.Restart();
         }
