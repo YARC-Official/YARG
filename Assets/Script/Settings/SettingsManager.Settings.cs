@@ -348,7 +348,7 @@ namespace YARG.Settings
 
             public void ExportSongsOuvert()
             {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "json", SongExport.ExportOuvert);
+                FileExplorerHelper.OpenSaveFile(null, "songs", "pdf", SongExport.ExportPdf);
             }
 
             public void ExportSongsText()
