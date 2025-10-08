@@ -184,19 +184,12 @@ namespace YARG.Gameplay
 
             FinalizeChart();
 
-            // Get audio calibration
-            int audioCalibration = SettingsManager.Settings.AudioCalibration.Value;
-            if (SettingsManager.Settings.AccountForHardwareLatency.Value)
-                audioCalibration += GlobalAudioHandler.PlaybackLatency;
-
             // Initialize song runner
             _songRunner = new SongRunner(
                 _mixer,
                 startTime: 0,
                 SONG_START_DELAY,
                 GlobalVariables.State.SongSpeed,
-                audioCalibration,
-                SettingsManager.Settings.VideoCalibration.Value,
                 Song.SongOffsetSeconds);
 
             // Spawn players

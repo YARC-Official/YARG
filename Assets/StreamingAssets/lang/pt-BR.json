@@ -494,6 +494,7 @@
             },
             "AudioCalibration": {
                 "Name": "Audio Calibration (ms)",
+                "PauseName": "Audio (ms)",
                 "Description": "Audio calibration in milliseconds. Use the calibrator to automatically calibrate. Higher values make the audio play earlier, while lower ones make the audio play later."
             },
             "AccountForHardwareLatency": {
@@ -814,6 +815,7 @@
             },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",
+                "PauseName": "Video (ms)",
                 "Description": "Video calibration in milliseconds. Use the calibrator to automatically calibrate. This accounts for delays between the game's processing and the actual frame being displayed."
             },
             "VocalMonitoring": {

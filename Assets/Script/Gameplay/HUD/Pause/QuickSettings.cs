@@ -37,6 +37,10 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private VolumePauseSetting _volumePauseSettingPrefab;
 
+        [Space]
+        [SerializeField]
+        private IntPauseSetting _intPauseSettingPrefab;
+
         private FailMeter _failMeter;
         private TextMeshProUGUI _noFailText;
 
@@ -71,6 +75,12 @@ namespace YARG.Gameplay.HUD
         {
             OpenSubSettings(_soundSettings);
         }
+
+        public void OpenCalibrationSettings()
+        {
+            OpenSubSettings(_calibrationSettings);
+        }
+
 
         public void ToggleNoFail()
         {
@@ -107,6 +117,14 @@ namespace YARG.Gameplay.HUD
                     {
                         var settingObject = Instantiate(_volumePauseSettingPrefab, _subSettingsContainer);
                         settingObject.Initialize(settingName, volumeSetting);
+
+                        _subSettingsNavGroup.AddNavigatable(settingObject.gameObject);
+                        break;
+                    }
+                    case IntSetting intSetting:
+                    {
+                        var settingObject = Instantiate(_intPauseSettingPrefab, _subSettingsContainer);
+                        settingObject.Initialize(settingName, intSetting);
 
                         _subSettingsNavGroup.AddNavigatable(settingObject.gameObject);
                         break;
