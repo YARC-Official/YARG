@@ -170,10 +170,13 @@ namespace YARG.Settings
 
             new MetadataTab("FileManagement", icon: "Files")
             {
-                new HeaderMetadata("Export"),
+                new HeaderMetadata("ExportSongs"),
                 new ButtonRowMetadata(
-                    nameof(Settings.ExportSongsOuvert),
-                    nameof(Settings.ExportSongsText)),
+                    nameof(Settings.ExportSongsJson),
+                    nameof(Settings.ExportSongsText),
+                    nameof(Settings.ExportSongsPdf),
+                    nameof(Settings.ExportSongsCsv)
+                ),
                 new HeaderMetadata("PathsAndFolders"),
                 new ButtonRowMetadata(
                     nameof(Settings.CopyCurrentSongTextFilePath),

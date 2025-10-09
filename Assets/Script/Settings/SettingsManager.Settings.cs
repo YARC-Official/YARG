@@ -24,6 +24,7 @@ using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
 using static FidelityFX.FSR3.Fsr3Upscaler;
+using Text = UnityEngine.UI.Text;
 
 namespace YARG.Settings
 {
@@ -346,14 +347,24 @@ namespace YARG.Settings
 
             #region File Management
 
-            public void ExportSongsOuvert()
+            public void ExportSongsJson()
             {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "pdf", SongExport.ExportPdf);
+                SongExport.Export(SongExport.ExportFormat.Json);
             }
 
             public void ExportSongsText()
             {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "txt", SongExport.ExportText);
+                SongExport.Export(SongExport.ExportFormat.Text);
+            }
+
+            public void ExportSongsPdf()
+            {
+                SongExport.Export(SongExport.ExportFormat.Pdf);
+            }
+
+            public void ExportSongsCsv()
+            {
+                SongExport.Export(SongExport.ExportFormat.Csv);
             }
 
             public void CopyCurrentSongTextFilePath()
