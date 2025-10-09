@@ -6,6 +6,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
@@ -309,6 +310,29 @@ namespace YARG.Gameplay
 
         private void GenerateVenueTrack()
         {
+            // If we have no venue events, see if there is a milo and attempt to use it if so
+            if (Chart.VenueTrack.IsEmpty)
+            {
+                var miloData = Song.LoadMiloData();
+                if (miloData is { Length: > 0 })
+                {
+                    var miloReader = new MiloAnimation(miloData);
+                    var miloAnimations = miloReader.GetMiloAnimation();
+
+                    SongChart.AddPostProcessingEventsFromMilo(Chart.VenueTrack.PostProcessing, miloAnimations, Chart);
+                    SongChart.AddCameraCutEventsFromMilo(Chart.VenueTrack.CameraCuts, miloAnimations, Chart);
+                    SongChart.AddLightingEventsFromMilo(Chart.VenueTrack.Lighting, miloAnimations, Chart);
+                    SongChart.AddStageEventsFromMilo(Chart.VenueTrack.Stage, miloAnimations, Chart);
+                    // SongChart.AddPerformerEventsFromMilo(Chart.VenueTrack.Performer, miloAnimations, Chart);
+
+                    // TODO: spotlight (aka performer)
+
+                    // Dispose of the FixedArray and the reader (which has its own FixedArray)
+                    miloData.Dispose();
+                    miloReader.Dispose();
+                }
+            }
+
             if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
             {
                 var preset = new VenueAutoGenerationPreset(VenueAutoGenerationPreset.DefaultPath);
