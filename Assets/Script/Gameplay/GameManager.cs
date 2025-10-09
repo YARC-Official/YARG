@@ -107,9 +107,25 @@ namespace YARG.Gameplay
 
         public bool IsPractice      { get; private set; }
 
-        public int   BandScore { get; private set; }
-        public int   BandCombo { get; private set; }
-        public float BandStars { get; private set; }
+        public int BandScore
+        {
+            get => EngineManager.Score;
+            set => EngineManager.Score = value;
+        }
+
+        public int BandCombo
+        {
+            get => EngineManager.Combo;
+            set => EngineManager.Combo = value;
+        }
+
+        public float BandStars
+        {
+            get => EngineManager.Stars;
+            set => EngineManager.Stars = value;
+        }
+
+        public int   BandMultiplier => EngineManager.BandMultiplier;
 
         public double FirstNoteTime { get; private set; }
         public double LastNoteTime  { get; private set; }
@@ -243,7 +259,8 @@ namespace YARG.Gameplay
                 player.GameplayUpdate();
 
                 totalScore += player.Score;
-                totalStars += player.Stars;
+                totalScore += player.BandBonusScore;
+                totalStars += player.Stars;               
             }
 
             if (GlobalVariables.VerboseReplays)
