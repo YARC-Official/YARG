@@ -310,27 +310,10 @@ namespace YARG.Gameplay
 
         private void GenerateVenueTrack()
         {
-            // If we have no venue events, see if there is a milo and attempt to use it if so
+            // If we have no venue events, attempt to load from milo
             if (Chart.VenueTrack.IsEmpty)
             {
-                var miloData = Song.LoadMiloData();
-                if (miloData is { Length: > 0 })
-                {
-                    var miloReader = new MiloAnimation(miloData);
-                    var miloAnimations = miloReader.GetMiloAnimation();
-
-                    SongChart.AddPostProcessingEventsFromMilo(Chart.VenueTrack.PostProcessing, miloAnimations, Chart);
-                    SongChart.AddCameraCutEventsFromMilo(Chart.VenueTrack.CameraCuts, miloAnimations, Chart);
-                    SongChart.AddLightingEventsFromMilo(Chart.VenueTrack.Lighting, miloAnimations, Chart);
-                    SongChart.AddStageEventsFromMilo(Chart.VenueTrack.Stage, miloAnimations, Chart);
-                    // SongChart.AddPerformerEventsFromMilo(Chart.VenueTrack.Performer, miloAnimations, Chart);
-
-                    // TODO: spotlight (aka performer)
-
-                    // Dispose of the FixedArray and the reader (which has its own FixedArray)
-                    miloData.Dispose();
-                    miloReader.Dispose();
-                }
+                    SongChart.LoadVenueFromMilo(Chart, Song);
             }
 
             if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
@@ -345,12 +328,6 @@ namespace YARG.Gameplay
                 {
                     Chart = preset.GenerateLightingEvents(Chart);
                 }
-
-                // TODO: add when characters and camera events are present in game
-                // if (Chart.VenueTrack.Camera.Count == 0)
-                // {
-                //     Chart = autoGenerationPreset.GenerateCameraCutEvents(Chart);
-                // }
             }
         }
 
