@@ -157,46 +157,18 @@ namespace YARG.Song
         private static void ExportPdf(string path)
         {
             QuestPDF.Settings.License = LicenseType.Community;
-            SongCategory[] songCategories = SongContainer.GetSortedCategory(SortAttribute.Artist);
+            var songCategories = SongContainer.GetSortedCategory(SortAttribute.Artist);
             int totalSongs = songCategories.Sum(category => category.Songs.Length);
-            int totalItems = songCategories.Sum(category => 1 + category.Songs.Length);
-            int maxColumnLength = (int) Math.Ceiling(totalItems / 3.0);
-            var columns = new List<List<SongCategory>>
-            {
-                new(),
-                new(),
-                new()
-            };
-            int columnIndex = 0;
-            int currentLength = 0;
-            foreach (var category in songCategories)
-            {
-                int categoryLength = 1 + category.Songs.Length;
-                bool willExceedMaxColumnSize = currentLength + categoryLength > maxColumnLength;
-                bool isLastColumn = columnIndex == 2;
-                bool columnHasItems = currentLength > 0;
-
-                // Move to next column if we will exceed max column size when adding this artist
-                // But not if we are on the last column
-                // And not if the current column is empty
-                bool shouldMoveToNextColumn = willExceedMaxColumnSize && !isLastColumn && columnHasItems;
-                if (shouldMoveToNextColumn)
-                {
-                    columnIndex++;
-                    currentLength = 0;
-                }
-
-                columns[columnIndex].Add(category);
-                currentLength += categoryLength;
-            }
-
+            const int columnCount = 5;
             var document = Document.Create(container =>
             {
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4);
                     page.Margin(1, Unit.Centimetre);
-                    page.DefaultTextStyle(x => x.FontSize(7));
+                    page.DefaultTextStyle(textStyle => textStyle
+                        .FontSize(7)
+                    );
                     page.Header()
                         .ShowOnce()
                         .AlignCenter()
@@ -204,35 +176,58 @@ namespace YARG.Song
                         .Text($"YARG Songbook - {totalSongs} Songs")
                         .Bold()
                         .FontSize(8);
-                    page.Content().Row(row =>
+                    page.Content().MultiColumn(multiColumn =>
                     {
-                        row.Spacing(10);
-                        foreach (var columnData in columns)
-                        {
-                            row.RelativeItem().Column(column =>
+                        multiColumn.Columns(columnCount);
+                        multiColumn.Spacing(0.5f);
+                        multiColumn.BalanceHeight();
+                        multiColumn
+                            .Spacer()
+                            .AlignCenter()
+                            .LineVertical(0.5f)
+                            .LineColor(Colors.Grey.Medium);
+                        multiColumn
+                            .Content()
+                            .Column(column =>
                             {
-                                column.Spacing(3);
-                                foreach ((string artist, var songs) in columnData)
+                                column.Spacing(0);
+                                foreach ((string artist, var songs) in songCategories)
                                 {
                                     column
                                         .Item()
-                                        .Text(RichTextUtils.StripRichTextTags(artist))
-                                        .Bold();
-                                    foreach (var song in songs)
-                                    {
-                                        column
-                                            .Item()
-                                            .PaddingLeft(8)
-                                            .Text(RichTextUtils.StripRichTextTags(song.Name));
-                                    }
-                                    column.Item().PaddingBottom(2);
+                                        .Column(sectionColumn =>
+                                        {
+                                            //Artist
+                                            sectionColumn.Item()
+                                                .Background("#F5F5F5")
+                                                .Padding(4)
+                                                .BorderBottom(Colors.Grey.Darken4)
+                                                .Text(RichTextUtils.StripRichTextTags(artist))
+                                                .Bold()
+                                                .ClampLines(1);
+
+                                            foreach (var song in songs)
+                                            {
+                                                sectionColumn
+                                                    .Item()
+                                                    .PaddingLeft(8)
+                                                    .PaddingRight(4)
+                                                    .Text(RichTextUtils.StripRichTextTags(song.Name))
+                                                    .ClampLines(1);
+                                            }
+                                        });
                                 }
                             });
-                        }
                     });
                     page.Footer()
                         .AlignCenter()
-                        .Text(x => { x.CurrentPageNumber(); });
+                        .PaddingTop(4)
+                        .Text(text =>
+                        {
+                            text.CurrentPageNumber();
+                            text.Span(" / ");
+                            text.TotalPages();
+                        });
                 });
             });
             document.GeneratePdf(path);
