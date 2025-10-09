@@ -216,6 +216,7 @@ namespace YARG.Gameplay.Visuals
 
         private void RaiseHighway(bool isGameplayStart)
         {
+            _scoop?.Kill();
             transform.localRotation = Quaternion.Euler(new Vector3().WithX(_preset.Rotation + ANIM_INIT_ROTATION));
 
             var basePlayer = GetComponentInParent<BasePlayer>();
@@ -231,6 +232,7 @@ namespace YARG.Gameplay.Visuals
         // NOTE: Requires SONG_END_DELAY; will not animate until https://github.com/YARC-Official/YARG/pull/993 is in.
         private void LowerHighway(bool isGameplayEnd)
         {
+            _scoop?.Kill();
             transform.localRotation = Quaternion.Euler(new Vector3().WithX(_preset.Rotation));
 
             var basePlayer = GetComponentInParent<BasePlayer>();
