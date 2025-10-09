@@ -5,15 +5,12 @@ using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Engine;
 using YARG.Core.Logging;
-using YARG.Gameplay;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
-using YARG.Localization;
-using YARG.Menu;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -24,7 +21,6 @@ using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
 using static FidelityFX.FSR3.Fsr3Upscaler;
-using Text = UnityEngine.UI.Text;
 
 namespace YARG.Settings
 {

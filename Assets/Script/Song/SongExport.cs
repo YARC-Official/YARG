@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition.Primitives;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers;
 
@@ -113,10 +111,7 @@ namespace YARG.Song
         private static void ExportCsv(string path)
         {
             using var output = new StreamWriter(path);
-
-            // Write header row
             output.WriteLine("Name,Artist,Album,Genre,Year,Length");
-
             foreach (var song in SongContainer.Songs)
             {
                 string name = Escape(RichTextUtils.StripRichTextTags(song.Name));
@@ -125,7 +120,6 @@ namespace YARG.Song
                 string genre = Escape(RichTextUtils.StripRichTextTags(song.Genre));
                 string year = Escape(RichTextUtils.StripRichTextTags(song.UnmodifiedYear));
 
-                // Format song length as minutes:seconds
                 int totalSeconds = (int) song.SongLengthSeconds;
                 int minutes = totalSeconds / 60;
                 int seconds = totalSeconds % 60;
