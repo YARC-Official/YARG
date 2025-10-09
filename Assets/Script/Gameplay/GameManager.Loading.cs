@@ -6,6 +6,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
@@ -309,6 +310,12 @@ namespace YARG.Gameplay
 
         private void GenerateVenueTrack()
         {
+            // If we have no venue events, attempt to load from milo
+            if (Chart.VenueTrack.IsEmpty)
+            {
+                    SongChart.LoadVenueFromMilo(Chart, Song);
+            }
+
             if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
             {
                 var preset = new VenueAutoGenerationPreset(VenueAutoGenerationPreset.DefaultPath);
@@ -321,12 +328,6 @@ namespace YARG.Gameplay
                 {
                     Chart = preset.GenerateLightingEvents(Chart);
                 }
-
-                // TODO: add when characters and camera events are present in game
-                // if (Chart.VenueTrack.Camera.Count == 0)
-                // {
-                //     Chart = autoGenerationPreset.GenerateCameraCutEvents(Chart);
-                // }
             }
         }
 
