@@ -1,4 +1,4 @@
-﻿{
+{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -702,7 +702,7 @@
             "Advanced": "Advanced",
             "DMXChannels": "DMX Channels",
             "LightingGeneral": "Lighting General",
-            "Export": "Export",
+            "ExportSongs": "Export Songs List",
             "PathsAndFolders": "Paths and Folders",
             "MusicLibrary": "Music Library",
             "PlayAShow": "Play A Show",
@@ -720,8 +720,9 @@
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
             "CopyCurrentSongTextFilePath": "Copy Current Song Text File Path",
-            "ExportSongsOuvert": "Export Songs List (For Ouvert Bot)",
-            "ExportSongsText": "Export Songs List (Plain Text)",
+            "ExportSongsJson": "JSON",
+            "ExportSongsText": "Plain Text",
+            "ExportSongsCsv": "CSV",
             "OpenCalibrator": "Open Calibrator",
             "OpenVenueFolder": "Open Backgrounds/Venue Folder",
             "AddFolder": "Add Folder",
