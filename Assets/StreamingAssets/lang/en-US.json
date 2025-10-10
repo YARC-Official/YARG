@@ -17,12 +17,13 @@
             "Medium": "Medium"
         },
         "GameMode": {
-            "FiveFretGuitar": "Five Fret Guitar",
-            "SixFretGuitar": "Six Fret Guitar",
-            "FourLaneDrums": "Standard Drums",
-            "FiveLaneDrums": "Five-Lane Drums",
+            "FiveFretGuitar": "5-Fret Guitar",
+            "SixFretGuitar": "6-Fret Guitar",
+            "EliteDrums": "MIDI Drumkit",
+			"FourLaneDrums": "RB Drumkit (4-Lane and Pro)",
+            "FiveLaneDrums": "GH Drumkit",
             "ProGuitar": "Pro Guitar",
-            "ProKeys": "Keys (Pro and Five-Lane)",
+            "ProKeys": "Keys (Pro and 5-Lane)",
             "Menu": "Menu",
             "Vocals": "Vocals"
         },
@@ -624,6 +625,32 @@
         "Drums": {
             "Kick": "Kick Pedal"
         },
+		"EliteDrums": {
+			"Stomp": "Hi-Hat Pedal Stomp",
+			"Splash": "Hi-Hat Pedal Splash",
+			"Snare": "Snare",
+			"ClosedHiHat": "Closed Hi-Hat",
+			"SizzleHiHat": "Sizzle Hi-Hat",
+			"OpenHiHat": "Open Hi-Hat",
+			"LeftCrash": "Left Crash",
+			"Tom1": "Tom 1",
+			"Tom2": "Tom 2",
+			"Tom3": "Tom 3",
+			"Ride": "Ride",
+			"RightCrash": "Right Crash",
+			"FourLaneRedDrum": "4-Lane Red Drum",
+			"FourLaneYellowDrum": "4-Lane Yellow Drum",
+			"FourLaneBlueDrum": "4-Lane Blue Drum",
+			"FourLaneGreenDrum": "4-Lane Green Drum",
+			"FourLaneYellowCymbal": "4-Lane Yellow Cymbal",
+			"FourLaneBlueCymbal": "4-Lane Blue Cymbal",
+			"FourLaneGreenCymbal": "4-Lane Green Cymbal",
+			"FiveLaneRedDrum": "5-Lane Red Drum",
+			"FiveLaneBlueDrum": "5-Lane Blue Drum",
+			"FiveLaneGreenDrum": "5-Lane Green Drum",
+			"FiveLaneYellowCymbal": "5-Lane Yellow Cymbal",
+			"FiveLaneOrangeCymbal": "5-Lane Orange Cymbal"
+		},
         "Vocals": {
             "StarPower": "Star Power Activate"
         },
