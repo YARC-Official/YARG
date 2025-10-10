@@ -1,19 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Engine;
 using YARG.Core.Logging;
-using YARG.Gameplay;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
-using YARG.Localization;
-using YARG.Menu;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -346,14 +343,20 @@ namespace YARG.Settings
 
             #region File Management
 
-            public void ExportSongsOuvert()
+            public void ExportSongsJson()
             {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "json", SongExport.ExportOuvert);
+                SongExport.Export(SongExport.ExportFormat.Json);
             }
 
             public void ExportSongsText()
             {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "txt", SongExport.ExportText);
+                SongExport.Export(SongExport.ExportFormat.Text);
+            }
+
+
+            public void ExportSongsCsv()
+            {
+                SongExport.Export(SongExport.ExportFormat.Csv);
             }
 
             public void CopyCurrentSongTextFilePath()
