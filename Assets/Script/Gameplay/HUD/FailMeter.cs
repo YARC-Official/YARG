@@ -58,9 +58,10 @@ namespace YARG.Gameplay.HUD
 
         private List<EngineManager.EngineContainer> _players = new();
 
-        private const float SPRITE_SIZE = 35;
         // Allows some overlap
-        private const float SPRITE_OFFSET = SPRITE_SIZE * 0.8f;
+        private const float HAPPINESS_COLLISION_RANGE = 0.06f;
+        private const float SPRITE_OVERLAP_OFFSET = 28f;
+        private const float SPRITE_INITIAL_OFFSET = 35f;
 
         // GameManager will have to initialize us
         public void Initialize(EngineManager engineManager, GameManager gameManager)
@@ -103,14 +104,13 @@ namespace YARG.Gameplay.HUD
                 Pause();
 
 
-
-
             // attach the slider instances to the scene and apply the correct icon
             for (int i = 0; i < _players.Count; i++)
             {
                 _playerSliders[i] = Instantiate(_sliderPrefab, _sliderContainer);
                 // y value is ignored, so it is ok that it is zero here
-                _xPosVectors[i] = new Vector2(SPRITE_OFFSET * (i + 1) + SPRITE_OFFSET * 0.2f, 0);
+                var xOffset = SPRITE_INITIAL_OFFSET + (SPRITE_OVERLAP_OFFSET * i);
+                _xPosVectors[i] = new Vector2(xOffset, 0);
 
                 _xposTweeners[i] = _playerSliders[i].handleRect.DOAnchorPosX(_xPosVectors[i].x, 0.125f).SetAutoKill(false);
                 _playerPositions[i] = _playerSliders[i].handleRect.transform.position;
@@ -167,15 +167,15 @@ namespace YARG.Gameplay.HUD
                         continue;
                     }
 
-                    if (newY >= _playerPositions[j].y - SPRITE_OFFSET &&
-                        newY <= _playerPositions[j].y + SPRITE_OFFSET)
+                    if (Math.Abs(_players[i].Happiness - _players[j].Happiness) < HAPPINESS_COLLISION_RANGE)
                     {
                         overlap++;
                     }
                 }
 
-                // The extra SPRITE_OFFSET * 0.2f is to get the whole group a bit farther from the meter itself
-                _xPosVectors[i].x = SPRITE_OFFSET * (overlap + 1) + SPRITE_OFFSET * 0.2f;
+                // The extra SPRITE_INITIAL_OFFSET is to get the whole group a bit farther from the meter itself
+                var xOffset =  SPRITE_INITIAL_OFFSET + (SPRITE_OVERLAP_OFFSET * overlap);
+                _xPosVectors[i].x = xOffset;
 
                 _xposTweeners[i].ChangeEndValue(_xPosVectors[i], 0.125f, true).Play();
 
