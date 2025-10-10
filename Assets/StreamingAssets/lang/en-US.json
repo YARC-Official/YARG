@@ -1801,6 +1801,9 @@
                 },
                 "StarPowerColor": {
                     "Name": "Star Power Color"
+                },
+                "NoteHeight": {
+                    "Name": "Note Height"
                 }
             },
 			"RockMeterPreset" : {

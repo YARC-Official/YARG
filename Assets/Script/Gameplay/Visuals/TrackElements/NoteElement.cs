@@ -46,6 +46,9 @@ namespace YARG.Gameplay.Visuals
         {
             SustainState = SustainState.Waiting;
             _lastStarPowerState = NoteRef.IsStarPower;
+
+            float noteHeight = Player.Player.HighwayPreset.NoteHeight;
+            transform.localScale = new Vector3(1f, noteHeight, 1f);
         }
 
         protected override void UpdateElement()
