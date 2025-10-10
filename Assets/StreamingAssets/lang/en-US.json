@@ -299,7 +299,9 @@
                     "CreateNewPlaylist": "Create New...",
                     "RemovePlaylist": "Remove Playlist",
                     "ViewSongFolder": "View Song Folder",
-                    "CopySongChecksum": "Copy Song Checksum"
+                    "CopySongChecksum": "Copy Song Checksum",
+                    "CollapseAll": "Collapse All",
+                    "ExpandAll": "Expand All"
                 }
             },
             "Back": "BACK",

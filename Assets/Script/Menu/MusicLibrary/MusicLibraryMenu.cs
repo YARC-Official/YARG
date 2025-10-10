@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,6 +9,7 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Input;
 using YARG.Localization;
@@ -489,7 +490,7 @@ namespace YARG.Menu.MusicLibrary
                 }
             }
 
-            foreach (var section in _sortedSongs)
+            foreach (var (section, index) in _sortedSongs.Select((s, i) => (s, i)))
             {
                 var displayName = section.Category;
                 if (SettingsManager.Settings.LibrarySort == SortAttribute.Source)
@@ -510,14 +511,35 @@ namespace YARG.Menu.MusicLibrary
 
                 if (_sortedSongs.Length > 1)
                 {
-                    list.Add(new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup));
+                    var header = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup, section.Collapsed, onClicked: () =>
+                    {
+                        var category = _sortedSongs[index];
+                        _sortedSongs[index] = new SongCategory(
+                            category.Category,
+                            category.Songs,
+                            category.CategoryGroup,
+                            !category.Collapsed
+                        );
+                        var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
+                        RequestViewListUpdate();
+                        var closestHeader = ViewList[_sectionHeaderIndices[headerIndex]];
+                        if (closestHeader is SortHeaderViewType sortHeader && sortHeader.Collapsed)
+                        {
+                            offset = 0;
+                        }
+                        SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
+                    });
+                    list.Add(header);
                 }
 
-                foreach (var song in section.Songs)
+                if (!section.Collapsed)
                 {
-                    if (allowdupes || !song.IsDuplicate)
+                    foreach (var song in section.Songs)
                     {
-                        list.Add(new SongViewType(this, song));
+                        if (allowdupes || !song.IsDuplicate)
+                        {
+                            list.Add(new SongViewType(this, song));
+                        }
                     }
                 }
             }
@@ -543,7 +565,7 @@ namespace YARG.Menu.MusicLibrary
             for (int i = 0; i < list.Count; i++)
             {
                 var entry = list[i];
-                if (entry is CategoryViewType)
+                if (entry is CategoryViewType or ButtonViewType)
                 {
                     _sectionHeaderIndices.Add(i);
                 }
@@ -783,6 +805,42 @@ namespace YARG.Menu.MusicLibrary
             {
                 SelectedIndex = Random.Range(0, ViewList.Count);
             } while (CurrentSelection is not SongViewType);
+        }
+
+        public void ExpandAll()
+        {
+            var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
+            _sortedSongs = _sortedSongs
+                .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, false))
+                .ToArray();
+            RequestViewListUpdate();
+            SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
+        }
+
+        public void CollapseAll()
+        {
+            var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
+            _sortedSongs = _sortedSongs
+                .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, true))
+                .ToArray();
+            RequestViewListUpdate();
+            var closestHeader = ViewList[_sectionHeaderIndices[headerIndex]];
+            if (closestHeader is SortHeaderViewType sortHeader && sortHeader.Collapsed)
+            {
+                offset = 0;
+            }
+            SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
+        }
+
+        private (int headerIndex, int offset) GetClosestHeaderIndexAndOffset()
+        {
+            var closestHeader = _sectionHeaderIndices
+                .Where(x => x <= SelectedIndex)
+                .OrderByDescending(x => x)
+                .First();
+            var headerIndex = _sectionHeaderIndices.IndexOf(closestHeader);
+            var offset = SelectedIndex - _sectionHeaderIndices[headerIndex];
+            return (headerIndex, offset);
         }
 
         public void RefreshAndReselect()
