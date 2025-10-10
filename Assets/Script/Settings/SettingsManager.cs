@@ -113,10 +113,8 @@ namespace YARG.Settings
                 nameof(Settings.UseCrowdFx),
                 nameof(Settings.OverstrumAndOverhitSoundEffects),
                 nameof(Settings.AlwaysOnDrumSFX),
-                // nameof(Settings.UseWhammyFx),
-                // nameof(Settings.WhammyPitchShiftAmount),
-                // nameof(Settings.WhammyOversampleFactor),
-                // nameof(Settings.ReverbInStarpower),
+                nameof(Settings.UseWhammyFx),
+                nameof(Settings.WhammyPitchShiftAmount),
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.UseChipmunkSpeed),
@@ -223,10 +221,7 @@ namespace YARG.Settings
             new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
-                nameof(Settings.UseWhammyFx),
-                nameof(Settings.WhammyPitchShiftAmount),
                 nameof(Settings.BandComboTypeSetting),
-	            // nameof(Settings.WhammyOversampleFactor),
                 nameof(Settings.DataStreamEnable),
             }
         };
