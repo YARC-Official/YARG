@@ -314,6 +314,8 @@ namespace YARG.Gameplay
             if (Chart.VenueTrack.IsEmpty)
             {
                     SongChart.LoadVenueFromMilo(Chart, Song);
+
+                    YargLogger.LogFormatWarning("Loaded {0} lighting events from milo", Chart.VenueTrack.Lighting.Count);
             }
 
             if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
