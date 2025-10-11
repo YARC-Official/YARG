@@ -478,6 +478,8 @@ namespace YARG.Settings
                 BandComboType.Strict
             };
 
+            public ToggleSetting EnableNormalization { get; } = new(false);
+
             #endregion
 
             #region Callbacks

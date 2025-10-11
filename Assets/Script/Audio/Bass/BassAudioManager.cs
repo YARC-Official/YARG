@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using ManagedBass;
@@ -163,7 +163,7 @@ namespace YARG.Audio.BASS
         }
 
 #nullable enable
-        protected override StemMixer? CreateMixer(string name, float speed, double mixerVolume, bool clampStemVolume)
+        protected override StemMixer? CreateMixer(string name, float speed, double mixerVolume, bool clampStemVolume, bool normalize)
         {
             if (GlobalAudioHandler.LogMixerStatus)
             {
@@ -174,7 +174,7 @@ namespace YARG.Audio.BASS
             {
                 return null;
             }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume);
+            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume, normalize);
         }
 
         protected override MicDevice? GetInputDevice(string name)

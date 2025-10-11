@@ -1309,6 +1309,10 @@
             "EnableVoxSamples": {
                 "Name": "Enable Vox Samples",
                 "Description": "If enabled, the game might make some noises at you on the score screen."
+            },
+            "EnableNormalization": {
+                "Name": "Normalize Audio",
+                "Description": "If enabled, normalizes audio so that all songs are approximately the same volume.  Increases memory and performance requirements."
             }
         },
         "PresetType": {
