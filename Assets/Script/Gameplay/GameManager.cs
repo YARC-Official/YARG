@@ -384,6 +384,11 @@ namespace YARG.Gameplay
             ResumeCore();
         }
 
+        public void UpdateCalibration()
+        {
+            _songRunner.UpdateCalibration();
+        }
+
         public void ResumeCore()
         {
             if (_draggableHud.EditMode)

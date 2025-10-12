@@ -10,6 +10,7 @@ using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
@@ -179,6 +180,8 @@ namespace YARG.Gameplay.Player
 
         protected SongChart Chart;
 
+        private AutoCalibrator autoCalibrator;
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
         {
@@ -246,6 +249,8 @@ namespace YARG.Gameplay.Player
             FinishInitialization();
 
             SongLength = (float) chart.GetEndTime();
+
+            autoCalibrator = new AutoCalibrator(GameManager);
         }
 
         protected override void FinishDestruction()
@@ -876,6 +881,8 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
+            CalculateAccuracy(note);
+
             if (!GameManager.IsSeekingReplay)
             {
                 SetStemMuteState(false);
@@ -903,6 +910,29 @@ namespace YARG.Gameplay.Player
             }
 
             LastCombo = Combo;
+        }
+
+        private void CalculateAccuracy(TNote note)
+        {
+            autoCalibrator.RecordAccuracy(note.Time);
+        }
+
+        private double CalculateMedian(List<double> values)
+        {
+            var sorted = values.OrderBy(x => x).ToList();
+            int count = sorted.Count;
+
+            if (count % 2 == 0)
+                return (sorted[count / 2 - 1] + sorted[count / 2]) / 2.0;
+            else
+                return sorted[count / 2];
+        }
+
+        private double CalculateMAD(List<double> values)
+        {
+            double median = CalculateMedian(values);
+            var deviations = values.Select(x => Math.Abs(x - median)).ToList();
+            return CalculateMedian(deviations);
         }
 
         protected virtual void OnNoteMissed(int index, TNote note)
