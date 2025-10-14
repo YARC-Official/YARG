@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using PlasticBand.Haptics;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.SceneManagement;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -56,8 +57,7 @@ namespace YARG.Integration
         private int _guitarIndex;
         private int _bassIndex;
         private int _stageIndex;
-        //NYI
-        //private int _performerIndex;
+        private int _performerIndex;
         private int _postProcessingIndex;
 
         private List<VocalNoteEvent> _vocalsNotes;
@@ -98,8 +98,7 @@ namespace YARG.Integration
             _guitarIndex = 0;
             _bassIndex = 0;
             _drumIndex = 0;
-            //NYI
-            //_performerIndex = 0;
+            _performerIndex = 0;
             _postProcessingIndex = 0;
             _keysIndex = 0;
 
@@ -196,6 +195,26 @@ namespace YARG.Integration
             return -2; // don't change the current note
         }
 
+        private void PerformerEventChecker(PerformerEventType type, ref Performer MLCvar)
+        {
+            while (_performerIndex < Venue.Performer.Count &&
+                Venue.Performer[_performerIndex].Time <= GameManager.SongTime &&
+                Venue.Performer[_performerIndex].Type == type &&
+                MLCvar == Performer.None)
+            {
+                MLCvar = Venue.Performer[_performerIndex].Performers;
+            }
+
+            while (_performerIndex < Venue.Performer.Count &&
+                Venue.Performer[_performerIndex].TimeEnd <= GameManager.SongTime &&
+                Venue.Performer[_performerIndex].Type == type &&
+                MLCvar != Performer.None)
+            {
+                MLCvar = Performer.None;
+                _performerIndex++;
+            }
+        }
+
         private void Update()
         {
             // Don't do any of this if the option is off
@@ -262,11 +281,11 @@ namespace YARG.Integration
                 DataStreamController.MLCCurrentHarmony2Note = harmony2Note;
             }
 
-            //Camera Cut events
-            // NYI - waiting for parser rewrite
 
-            // Performer events
-            // NYI - waiting for parser rewrite
+            //Performer events broken down into two types. Spotlight and Singalong
+            PerformerEventChecker(PerformerEventType.Singalong, ref DataStreamController.MLCSingalong);
+            PerformerEventChecker(PerformerEventType.Spotlight, ref DataStreamController.MLCSpotlight);
+
 
             // Post-processing events
             while (_postProcessingIndex < Venue.PostProcessing.Count &&
