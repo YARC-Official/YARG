@@ -137,7 +137,7 @@ namespace YARG.Gameplay.Visuals
             {
                 return false;
             }
-            return !(((ProKeysEngineParameters) Player.BaseParameters).NoStarPowerOverlap && Player.BaseStats.IsStarPowerActive);
+            return !(((KeysEngineParameters) Player.BaseParameters).NoStarPowerOverlap && Player.BaseStats.IsStarPowerActive);
         }
 
         private void UpdateSustain()
