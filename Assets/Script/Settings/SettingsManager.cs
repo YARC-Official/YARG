@@ -147,6 +147,7 @@ namespace YARG.Settings
                 nameof(Settings.EnableTrackEffects),
                 nameof(Settings.EnableHighwayRaise),
                 nameof(Settings.KickBounceMultiplier),
+                nameof(Settings.HighwayTiltMultiplier),
 
                 new HeaderMetadata("HUD"),
                 nameof(Settings.ShowHitWindow),

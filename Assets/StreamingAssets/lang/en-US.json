@@ -916,6 +916,10 @@
                     "HighestDifficulty": "Highest-played difficulty only"
                 }
             },
+            "HighwayTiltMultiplier": {
+                "Name": "Highway Tilt Multiplier",
+                "Description": "Controls the amount that the tracks should tilt inward during multiplayer gameplay only."
+            },
             "InputDeviceLogging": {
                 "Name": "Input Device Logging",
                 "Description": "Prints information about connected input devices to the game's log. Do not enable this unless you are having issues with specific devices, as it can print a very large amount of text for some devices!"
