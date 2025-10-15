@@ -35,12 +35,18 @@ namespace YARG.Helpers.Authoring
         private Light _light;
 
         private float _initialIntensity;
-        private bool _playing;
+        private bool  _playing;
+
+        private float _totalDuration;
+        private float _timeRemaining;
 
         private void Awake()
         {
             _light = GetComponent<Light>();
             _initialIntensity = _light.intensity;
+
+            // Keep sustained for duration (rate is a misnomer; rate = millisecond duration)
+            _totalDuration = _fadeOutRate * 0.001f;
         }
 
         private void Start()
@@ -52,6 +58,13 @@ namespace YARG.Helpers.Authoring
 
         private void Update()
         {
+            // Normal mode
+            if (_mode == Mode.Normal && _light.intensity > 0f)
+            {
+                _light.intensity = _initialIntensity * (_timeRemaining > 0f ? 1f : 0f);
+                _timeRemaining -= Time.deltaTime;
+            }
+
             // FadeOut mode
             if (_mode == Mode.FadeOut && _light.intensity > 0f)
             {
@@ -78,12 +91,13 @@ namespace YARG.Helpers.Authoring
         public void Play()
         {
             _light.intensity = _initialIntensity;
+            _timeRemaining = _totalDuration;
             _playing = true;
         }
 
         public void Stop()
         {
-            if (_mode != Mode.FadeOut)
+            if (_mode == Mode.Wavy)
             {
                 _light.intensity = 0f;
             }

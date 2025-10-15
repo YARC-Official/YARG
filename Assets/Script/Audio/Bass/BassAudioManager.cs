@@ -174,26 +174,7 @@ namespace YARG.Audio.BASS
             {
                 return null;
             }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, 0, clampStemVolume);
-        }
-
-        protected override StemMixer? CreateMixer(string name, Stream stream, float speed, double mixerVolume, bool clampStemVolume)
-        {
-            if (GlobalAudioHandler.LogMixerStatus)
-            {
-                YargLogger.LogDebug("Loading song");
-            }
-
-            if (!CreateMixerHandle(out int handle))
-            {
-                return null;
-            }
-
-            if (!CreateSourceStream(stream, out int sourceStream))
-            {
-                return null;
-            }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, sourceStream, clampStemVolume);
+            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume);
         }
 
         protected override MicDevice? GetInputDevice(string name)
@@ -267,16 +248,17 @@ namespace YARG.Audio.BASS
 
             string sfxFolder = Path.Combine(Application.streamingAssetsPath, "sfx");
 
-            foreach (string sfxFile in AudioHelpers.SfxPaths)
+            foreach (var sample in AudioHelpers.SfxSamples)
             {
+                var sfxFile = sample.File;
                 string sfxBase = Path.Combine(sfxFolder, sfxFile);
                 foreach (string format in SupportedFormats)
                 {
                     string sfxPath = sfxBase + format;
                     if (File.Exists(sfxPath))
                     {
-                        var sfxSample = AudioHelpers.GetSfxFromName(sfxFile);
-                        var sfx = BassSampleChannel.Create(sfxSample, sfxPath, 8);
+                        var sfxSample = sample.Kind;
+                        var sfx = BassSampleChannel.Create(sfxSample, sfxPath, 8, sample.CanLoop);
                         if (sfx != null)
                         {
                             SfxSamples[(int) sfxSample] = sfx;
@@ -296,15 +278,15 @@ namespace YARG.Audio.BASS
 
             string sfxFolder = Path.Combine(Application.streamingAssetsPath, "drumSfx");
 
-            foreach (string sfxFile in AudioHelpers.DrumSfxPaths)
+            foreach (var sample in AudioHelpers.DrumSamples)
             {
-                string sfxBase = Path.Combine(sfxFolder, sfxFile);
+                string sfxBase = Path.Combine(sfxFolder, sample.File);
                 foreach (string format in SupportedFormats)
                 {
                     string sfxPath = sfxBase + format;
                     if (File.Exists(sfxPath))
                     {
-                        var sfxSample = AudioHelpers.GetDrumSfxFromName(sfxFile);
+                        var sfxSample = sample.Kind;
                         var sfx = BassDrumSampleChannel.Create(sfxSample, sfxPath, 8);
                         if (sfx != null)
                         {
@@ -323,15 +305,15 @@ namespace YARG.Audio.BASS
             YargLogger.LogInfo("Loading VOX");
             string voxFolder = Path.Combine(Application.streamingAssetsPath, "vox");
 
-            foreach (string voxFile in AudioHelpers.VoxSamplePaths)
+            foreach (var sample in AudioHelpers.VoxSamples)
             {
-                string voxBase = Path.Combine(voxFolder, voxFile);
+                string voxBase = Path.Combine(voxFolder, sample.File);
                 foreach (string format in SupportedFormats)
                 {
                     string voxPath = voxBase + format;
                     if (File.Exists(voxPath))
                     {
-                        var voxSample = AudioHelpers.GetVoxSampleFromName(voxFile);
+                        var voxSample = sample.Kind;
                         var vox = BassVoxSampleChannel.Create(voxSample, voxPath);
 
                         if (vox != null)
@@ -530,12 +512,16 @@ namespace YARG.Audio.BASS
 
         internal static bool SetupPitchBend(in PitchShiftParametersStruct pitchParams, StreamHandle handles)
         {
-            handles.CompressorFX = BassHelpers.FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
-            if (handles.CompressorFX == 0)
+            handles.PitchFX = BassHelpers.FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
+            if (handles.PitchFX == 0)
             {
                 YargLogger.LogError("Failed to set up pitch bend for main stream!");
                 return false;
             }
+
+            // Adjust the position to account for inherent pitch fx delay
+            Bass.ChannelSetPosition(handles.Stream, GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2);
+
             return true;
         }
 

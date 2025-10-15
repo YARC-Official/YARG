@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using YARG.Core;
-using YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.Keys;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
 using YARG.Themes;
@@ -31,9 +30,9 @@ namespace YARG.Gameplay.Visuals
         {
             _player = player;
 
-            var whiteKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, GameMode.ProKeys,
+            var whiteKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, VisualStyle.ProKeys,
                 ThemeManager.WHITE_KEY_PREFAB_NAME);
-            var blackKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, GameMode.ProKeys,
+            var blackKeyPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, VisualStyle.ProKeys,
                 ThemeManager.BLACK_KEY_PREFAB_NAME);
 
             // Pro-keys always starts at C
@@ -64,7 +63,7 @@ namespace YARG.Gameplay.Visuals
                     fretComp.Initialize(color, color, color, color);
 
                     var material = fret.GetComponentInChildren<MeshRenderer>().material;
-                    material.SetFloat(IndexId, player.PlayerIndex);
+                    material.SetFloat(IndexId, player.HighwayIndex);
 
                     _keys.Add(fretComp);
 
@@ -89,7 +88,7 @@ namespace YARG.Gameplay.Visuals
                     fretComp.Initialize(color, color, color, color);
 
                     var material = fret.GetComponentInChildren<MeshRenderer>().material;
-                    material.SetFloat(IndexId, player.PlayerIndex);
+                    material.SetFloat(IndexId, player.HighwayIndex);
 
                     _keys.Add(fretComp);
 

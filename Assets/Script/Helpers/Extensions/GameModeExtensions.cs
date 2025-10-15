@@ -37,6 +37,12 @@ namespace YARG.Helpers.Extensions
             {
                 ProfileSettingStrings.INSTRUMENT_SELECT,
                 ProfileSettingStrings.ENGINE_PRESET,
+                ProfileSettingStrings.ROCK_METER_PRESET,
+                ProfileSettingStrings.INPUT_CALIBRATION,
+            };
+
+            List<string> unconditionallyValidInAllModesExceptVocals = new List<string>
+            {
                 ProfileSettingStrings.THEME_SELECT,
                 ProfileSettingStrings.COLOR_PROFILE_SELECT,
                 ProfileSettingStrings.CAMERA_PRESET,
@@ -45,7 +51,7 @@ namespace YARG.Helpers.Extensions
                 ProfileSettingStrings.NOTE_SPEED_AND_HIGHWAY_LENGTH,
             };
 
-            List<string> unconditionalGameModeOptions = gameMode switch
+            List<string> unconditionalOptionsPerGameMode = gameMode switch
             {
                 GameMode.FiveFretGuitar => new List<string>
                 {
@@ -70,11 +76,21 @@ namespace YARG.Helpers.Extensions
                     ProfileSettingStrings.LEFTY_FLIP,
                     ProfileSettingStrings.RANGE_DISABLE,
                 },
+                GameMode.ProKeys => new List<string>
+                {
+                    ProfileSettingStrings.RANGE_DISABLE
+                },
                 _ => new List<string>()
             };
 
             var possibleOptions = unconditionallyValidInAllModes;
-            possibleOptions.AddRange(unconditionalGameModeOptions);
+
+            if (gameMode is not GameMode.Vocals)
+            {
+                possibleOptions.AddRange(unconditionallyValidInAllModesExceptVocals);
+            }
+
+            possibleOptions.AddRange(unconditionalOptionsPerGameMode);
 
             // Split into a private method for readability
             possibleOptions.AddRange(ConditionalGameModeSettings(gameMode, dependencyNamesAndValues));

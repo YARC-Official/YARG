@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using YARG.Core;
 using YARG.Core.Game;
+using static YARG.Themes.ThemeManager;
 
 namespace YARG.Themes
 {
@@ -9,13 +10,14 @@ namespace YARG.Themes
         public static ThemePreset Default = new("Rectangular", true)
         {
             AssetBundleThemePath = "Themes/Rectangular",
-            SupportedGameModes =
+            SupportedStyles =
             {
-                GameMode.FiveFretGuitar,
-                GameMode.SixFretGuitar,
-                GameMode.FourLaneDrums,
-                GameMode.FiveLaneDrums,
-                GameMode.ProKeys
+                VisualStyle.FiveFretGuitar,
+                VisualStyle.SixFretGuitar,
+                VisualStyle.FourLaneDrums,
+                VisualStyle.FiveLaneDrums,
+                VisualStyle.FiveLaneKeys,
+                VisualStyle.ProKeys
             },
             PreferredColorProfile = ColorProfile.Default.Id,
             PreferredCameraPreset = CameraPreset.Default.Id
@@ -27,9 +29,10 @@ namespace YARG.Themes
             new ThemePreset("Circular (Beta)", true)
             {
                 AssetBundleThemePath = "Themes/Circular",
-                SupportedGameModes =
+                SupportedStyles =
                 {
-                    GameMode.FiveFretGuitar
+                    VisualStyle.FiveFretGuitar,
+                    VisualStyle.FiveLaneKeys
                 },
                 PreferredColorProfile = ColorProfile.CircularDefault.Id,
                 PreferredCameraPreset = CameraPreset.CircularDefault.Id,
@@ -37,11 +40,12 @@ namespace YARG.Themes
             new ThemePreset("YARG on Fire", true)
             {
                 AssetBundleThemePath = "Themes/AprilFools",
-                SupportedGameModes =
+                SupportedStyles =
                 {
-                    GameMode.FiveFretGuitar,
-                    GameMode.FourLaneDrums,
-                    GameMode.FiveLaneDrums
+                    VisualStyle.FiveFretGuitar,
+                    VisualStyle.FourLaneDrums,
+                    VisualStyle.FiveLaneDrums,
+                    VisualStyle.FiveLaneKeys
                 },
                 PreferredColorProfile = ColorProfile.AprilFoolsDefault.Id,
                 PreferredCameraPreset = CameraPreset.CircularDefault.Id,

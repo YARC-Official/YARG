@@ -80,7 +80,7 @@ namespace YARG.Gameplay.HUD
             Canvas.ForceUpdateCanvases();
 
             foreach (var view in _trackViews)
-                view.UpdateHUDPosition(_highwayCameraRendering.Scale);
+                view.UpdateHUDPosition();
         }
     }
 }

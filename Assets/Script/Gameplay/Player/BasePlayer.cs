@@ -11,6 +11,7 @@ using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Helpers.Extensions;
 using YARG.Input;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 
@@ -18,7 +19,7 @@ namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : GameplayBehaviour
     {
-        public int PlayerIndex { get; private set; }
+        public int HighwayIndex { get; private set; }
 
         public YargPlayer Player { get; private set; }
 
@@ -69,6 +70,7 @@ namespace YARG.Gameplay.Player
         public float Stars => BaseStats.Stars;
 
         public int Score => BaseStats.TotalScore;
+        public int BandBonusScore => BaseStats.BandBonusScore;
         public int Combo => BaseStats.Combo;
         public int NotesHit => BaseStats.NotesHit;
 
@@ -131,7 +133,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            PlayerIndex = index;
+            HighwayIndex = index;
             Player = player;
 
             SyncTrack = chart.SyncTrack;
@@ -292,8 +294,8 @@ namespace YARG.Gameplay.Player
 
         protected void OnGameInput(ref GameInput input)
         {
-            // Ignore completely if the song hasn't started yet
-            if (!GameManager.Started)
+            // Ignore completely if the song hasn't started yet or player failed
+            if (!GameManager.Started || GameManager.PlayerHasFailed)
                 return;
 
             // Ignore while paused
@@ -344,10 +346,16 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnStarPowerStatus(bool active)
         {
+            var deploySample = SfxSample.StarPowerDeploy;
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+            {
+                deploySample = SfxSample.StarPowerDeployCrowd;
+            }
+
             if (!GameManager.Paused)
             {
                 GlobalAudioHandler.PlaySoundEffect(active
-                    ? SfxSample.StarPowerDeploy
+                    ? deploySample
                     : SfxSample.StarPowerRelease);
 
                 SetStarPowerFX(active);

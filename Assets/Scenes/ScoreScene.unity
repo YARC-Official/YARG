@@ -1047,6 +1047,18 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 1025282832}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1251677025 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2692442145375190135, guid: 81863a63e0d96cf459c263ee0ea6f98e,
+    type: 3}
+  m_PrefabInstance: {fileID: 847517301}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1284876698
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1867,6 +1879,7 @@ MonoBehaviour:
   _bandScore: {fileID: 1305557732}
   _bandScoreNotSavedMessage: {fileID: 126113575}
   _horizontalScrollBar: {fileID: 1490960382}
+  _cardScrollRect: {fileID: 1251677025}
   _guitarCardPrefab: {fileID: 6705571759713988567, guid: 462dbfc1d4280484ebd8081e78f8f4ca,
     type: 3}
   _drumsCardPrefab: {fileID: 8960343160157875094, guid: 2ab07d8b9969ef4418e8da74642a371f,
@@ -1874,6 +1887,8 @@ MonoBehaviour:
   _vocalsCardPrefab: {fileID: 8427776599031895052, guid: d037b5975b78e3a4481a5c9d3d7f8c35,
     type: 3}
   _proKeysCardPrefab: {fileID: 7609862917790866568, guid: f5b2b04f2ac03bf4687dfc0f22f83212,
+    type: 3}
+  _fiveLaneKeysCardPrefab: {fileID: 7609862917790866568, guid: 9edc458410d0341468ddff2aa7952f7d,
     type: 3}
 --- !u!114 &1731608351534815137
 MonoBehaviour:

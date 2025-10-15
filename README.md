@@ -114,7 +114,7 @@ There are some dependencies that will be needed in order for HID devices (such a
       - the main repository's URL (`https://github.com/YARC-Official/YARG`) if you just want to build the game.
       - A complete example using the main repository's URL is `git clone -b dev --recursive https://github.com/YARC-Official/YARG.git`.
    6. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
-4. Install Unity 2021.3.36f1. Easiest method will be using Unity Hub:
+4. Install Unity 2021.3.45f2. Easiest method will be using Unity Hub:
    1. Download and install [Unity Hub](https://unity.com/download).
    2. Sign-in/create an account with a personal license (free).
    3. In Unity Hub, hit the arrow next to Add and select `Add project from disk`, then select the folder you cloned YARG to.
@@ -214,6 +214,8 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 | [PolyHaven](https://polyhaven.com/) | [CC0](https://creativecommons.org/publicdomain/zero/1.0/)
 | [BASS](https://www.un4seen.com/) | [Proprietary](https://www.un4seen.com/) (free for non-commercial use)
 | [Haukcode.sACN](https://github.com/HakanL/Haukcode.sACN) | [MIT](https://github.com/HakanL/Haukcode.sACN/blob/master/LICENSE) |
+| [aperitif chatter.wav by soundslikewillem](https://freesound.org/s/449550/)|[Attribution NonCommercial 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
+| [Crowd after Encore.wav by soundslikewillem](https://freesound.org/s/193064/)|[Attribution NonCommercial 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
 
 Please note that other libraries are **not** directly packaged within the source code, and are to be installed by NuGet, Unity's packaged manager, or via a Git submodule.
 

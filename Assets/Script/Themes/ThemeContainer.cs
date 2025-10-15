@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
+using static YARG.Themes.ThemeManager;
 using Object = UnityEngine.Object;
 
 namespace YARG.Themes
@@ -11,7 +12,7 @@ namespace YARG.Themes
         private readonly GameObject _prefab;
         private readonly bool _builtIn;
 
-        public readonly Dictionary<(GameMode GameMode, string Name), GameObject> PrefabCache = new();
+        public readonly Dictionary<(VisualStyle style, string Name), GameObject> PrefabCache = new();
 
         public ThemeContainer(GameObject themePrefab, bool builtIn)
         {

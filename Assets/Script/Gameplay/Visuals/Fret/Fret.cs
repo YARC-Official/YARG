@@ -11,11 +11,12 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _fade = Shader.PropertyToID("Fade");
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
 
-        private static readonly int _hit = Animator.StringToHash("Hit");
-        private static readonly int _miss = Animator.StringToHash("Miss");
-        private static readonly int _openMiss = Animator.StringToHash("OpenMiss");
-        private static readonly int _pressed = Animator.StringToHash("Pressed");
-        private static readonly int _sustain = Animator.StringToHash("Sustain");
+        private static readonly int _hit       = Animator.StringToHash("Hit");
+        private static readonly int _cymbalHit = Animator.StringToHash("CymbalHit");
+        private static readonly int _miss      = Animator.StringToHash("Miss");
+        private static readonly int _openMiss  = Animator.StringToHash("OpenMiss");
+        private static readonly int _pressed   = Animator.StringToHash("Pressed");
+        private static readonly int _sustain   = Animator.StringToHash("Sustain");
 
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
@@ -111,6 +112,11 @@ namespace YARG.Gameplay.Visuals
         public void PlayHitAnimation()
         {
             ThemeBind.Animator.SetTrigger(_hit);
+        }
+
+        public void PlayCymbalHitAnimation()
+        {
+            ThemeBind.Animator.SetTrigger(_cymbalHit);
         }
 
         public void PlayHitParticles()

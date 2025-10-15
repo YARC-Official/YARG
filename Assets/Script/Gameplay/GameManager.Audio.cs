@@ -1,7 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
+using DG.Tweening.Core;
+using DG.Tweening.Plugins.Options;
 using UnityEngine;
 using YARG.Core.Audio;
+using YARG.Playback;
 using YARG.Settings;
 
 namespace YARG.Gameplay
@@ -11,15 +15,16 @@ namespace YARG.Gameplay
         private const double DEFAULT_VOLUME = 1.0;
         public class StemState
         {
-            public readonly double Volume;
+            private SongStem _stem;
+            public double Volume => GetVolumeSetting();
             public int Total;
             public int Audible;
             public int ReverbCount;
             public float WhammyPitch;
 
-            public StemState(double volume)
+            public StemState(SongStem stem)
             {
-                Volume = volume;
+                _stem = stem;
             }
 
             public double SetMute(bool muted)
@@ -57,15 +62,36 @@ namespace YARG.Gameplay
                 return WhammyPitch;
             }
 
-            public double CalculateVolumeSetting()
+            private double GetVolumeSetting()
             {
-                return Volume * Audible / Total;
+                return _stem switch
+                {
+                    SongStem.Guitar => SettingsManager.Settings.GuitarVolume.Value,
+                    SongStem.Rhythm => SettingsManager.Settings.RhythmVolume.Value,
+                    SongStem.Bass   => SettingsManager.Settings.BassVolume.Value,
+                    SongStem.Keys   => SettingsManager.Settings.KeysVolume.Value,
+                    SongStem.Drums
+                        or SongStem.Drums1
+                        or SongStem.Drums2
+                        or SongStem.Drums3
+                        or SongStem.Drums4
+                        => SettingsManager.Settings.DrumsVolume.Value,
+                    SongStem.Vocals
+                        or SongStem.Vocals1
+                        or SongStem.Vocals2
+                        => SettingsManager.Settings.VocalsVolume.Value,
+                    SongStem.Song    => SettingsManager.Settings.SongVolume.Value,
+                    SongStem.Crowd   => SettingsManager.Settings.CrowdVolume.Value,
+                    SongStem.Sfx     => SettingsManager.Settings.SfxVolume.Value,
+                    SongStem.DrumSfx => SettingsManager.Settings.DrumSfxVolume.Value,
+                    _                => DEFAULT_VOLUME
+                };
             }
         }
 
-        private readonly Dictionary<SongStem, StemState> _stemStates = new();
-        private SongStem _backgroundStem;
-        private int _starPowerActivations = 0;
+        private readonly Dictionary<SongStem, StemState>        _stemStates = new();
+        private          SongStem                               _backgroundStem;
+        private          TweenerCore<double, double, NoOptions> _volumeTween;
 
         private void LoadAudio()
         {
@@ -81,8 +107,7 @@ namespace YARG.Gameplay
             _backgroundStem = SongStem.Song;
             foreach (var channel in _mixer.Channels)
             {
-                double volume = GlobalAudioHandler.GetVolumeSetting(channel.Stem);
-                var stemState = new StemState(volume);
+                var stemState = new StemState(channel.Stem);
                 switch (channel.Stem)
                 {
                     case SongStem.Drums:
@@ -106,27 +131,17 @@ namespace YARG.Gameplay
             _backgroundStem = _stemStates.Count > 1 ? SongStem.Song : _stemStates.First().Key;
         }
 
-        private void StarPowerClap()
-        {
-            if (_starPowerActivations < 1)
-            {
-                return;
-            }
-
-            GlobalAudioHandler.PlaySoundEffect(SfxSample.Clap);
-        }
-
         public void ChangeStarPowerStatus(bool active)
         {
-            if (!SettingsManager.Settings.ClapsInStarpower.Value)
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Disabled)
                 return;
 
-            _starPowerActivations += active ? 1 : -1;
-            if (_starPowerActivations < 0)
-                _starPowerActivations = 0;
+            StarPowerActivations += active ? 1 : -1;
+            if (StarPowerActivations < 0)
+                StarPowerActivations = 0;
         }
 
-        public void ChangeStemMuteState(SongStem stem, bool muted)
+        public void ChangeStemMuteState(SongStem stem, bool muted, float duration = 0.0f)
         {
             var setting = SettingsManager.Settings.MuteOnMiss.Value;
             if (setting == AudioFxMode.Off
@@ -137,7 +152,22 @@ namespace YARG.Gameplay
             }
 
             double volume = state.SetMute(muted);
-            GlobalAudioHandler.SetVolumeSetting(stem, volume);
+
+            if (duration <= 0.0f)
+            {
+                GlobalAudioHandler.SetVolumeSetting(stem, volume);
+                return;
+            }
+
+            if (_volumeTween == null || !_volumeTween.IsPlaying())
+            {
+                _volumeTween = DOTween.To(() => GlobalAudioHandler.GetVolumeSetting(stem),
+                    x => GlobalAudioHandler.SetVolumeSetting(stem, x), volume, duration);
+            }
+            else
+            {
+                _volumeTween.ChangeEndValue(volume);
+            }
         }
 
         public void ChangeStemReverbState(SongStem stem, bool reverb)

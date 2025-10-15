@@ -56,6 +56,11 @@ namespace YARG.Gameplay.Visuals
             {
                 SpawnStripe(new Color(0.3f, 0.75f, 0.3f));
             }
+
+            if (guitarPreset.HitWindow.IsDynamic)
+            {
+                SpawnStripe(new Color(0.3f, 0.3f, 0.75f));;
+            }
         }
 
         private void SpawnStripe(Color c)

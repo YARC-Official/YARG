@@ -15,6 +15,7 @@ namespace YARG.Assets.Script.Helpers
         public const string COLOR_PROFILE_SELECT = "Color Profile Select";
         public const string CAMERA_PRESET = "Camera Preset";
         public const string HIGHWAY_PRESET = "Highway Preset";
+        public const string ROCK_METER_PRESET = "Rock Meter Preset";
         public const string INPUT_CALIBRATION = "Input Calibration";
         public const string NOTE_SPEED_AND_HIGHWAY_LENGTH = "Note Speed and Highway Length";
 

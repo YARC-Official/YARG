@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Audio;
 using YARG.Core.Extensions;
 using YARG.Gameplay.Player;
@@ -297,11 +298,13 @@ namespace YARG.Gameplay
                 text.AppendFormat("- Sustain score: {0}\n", stats.SustainScore);
                 text.AppendFormat("- Star Power score: {0}\n", stats.StarPowerScore);
                 text.AppendFormat("- Solo bonus score: {0}\n", stats.SoloBonuses);
+                text.AppendFormat("- Band bonus score: {0}\n", stats.BandBonusScore);
                 text.AppendLine();
                 text.AppendLine("Combo stats:");
                 text.AppendFormat("- Combo: {0}\n", stats.Combo);
                 text.AppendFormat("- Max combo: {0}\n", stats.MaxCombo);
                 text.AppendFormat("- Multiplier: {0}\n", stats.ScoreMultiplier);
+                text.AppendFormat("- Band Bonus Multiplier: {0}\n", stats.BandBonusMultiplier);
                 text.AppendLine();
                 text.AppendFormat("- Notes hit: {0}/{1}\n", stats.NotesHit, stats.TotalNotes);
                 text.AppendFormat("- Notes missed: {0}\n", stats.NotesMissed);
@@ -327,7 +330,8 @@ namespace YARG.Gameplay
 
             string playerType = player switch
             {
-                FiveFretPlayer => "Five Fret Guitar",
+                FiveFretGuitarPlayer => "Five Fret Guitar",
+                FiveLaneKeysPlayer => "Five Lane Keys",
                 DrumsPlayer => "Drums",
                 VocalsPlayer => "Vocals",
                 ProKeysPlayer => "Pro Keys",
@@ -340,7 +344,7 @@ namespace YARG.Gameplay
             {
                 switch (player)
                 {
-                    case FiveFretPlayer fiveFretPlayer:
+                    case FiveFretGuitarPlayer fiveFretPlayer:
                     {
                         using var text = ZString.CreateStringBuilder(true);
 
@@ -436,6 +440,42 @@ namespace YARG.Gameplay
                         }
 
                         var stats = proKeysPlayer.Engine.EngineStats;
+                        text.AppendLine("\nStats:");
+                        text.AppendFormat("- Overhits: {0}\n", stats.Overhits);
+
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                        break;
+                    }
+
+                    case FiveLaneKeysPlayer fiveLaneKeysPlayer:
+                    {
+                        using var text = ZString.CreateStringBuilder(true);
+
+                        var engine = fiveLaneKeysPlayer.Engine;
+                        text.AppendLine("State:");
+                        text.AppendFormat("- Key mask: 0x{0:X8}\n", engine.KeyMask);
+                        text.AppendFormat("- Previous key mask: 0x{0:X8}\n", engine.PreviousKeyMask);
+                        text.AppendLine();
+                        text.AppendFormat("- Chord stagger timer: {0}\n", engine.GetChordStaggerTimer());
+
+                        // Don't strip final newline here, for spacing with the toggle below
+                        GUILayout.Label(text.ToString());
+                        text.Clear();
+
+                        _debugProKeysPressTimesToggle = GUILayout.Toggle(_debugProKeysPressTimesToggle, "Key press times:");
+                        if (_debugProKeysPressTimesToggle)
+                        {
+                            var pressTimes = engine.GetKeyPressTimes();
+                            for (int i = 0; i < pressTimes.Length; i++)
+                            {
+                                text.AppendFormat("- {0}: {1:0.000000}\n", i + 1, pressTimes[i]);
+                            }
+
+                            GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                            text.Clear();
+                        }
+
+                        var stats = fiveLaneKeysPlayer.Engine.EngineStats;
                         text.AppendLine("\nStats:");
                         text.AppendFormat("- Overhits: {0}\n", stats.Overhits);
 
@@ -629,6 +669,12 @@ namespace YARG.Gameplay
                     text.AppendFormat("Lighting event: {0}\n", MasterLightingController.CurrentLightingCue.Type);
                 else
                     text.Append("Lighting event: None\n");
+
+                if (CrowdEventHandler != null)
+                {
+                    text.AppendFormat("Clap state: {0}\n", CrowdEventHandler.ClapState);
+                    text.AppendFormat("Crowd state: {0}\n", CrowdEventHandler.CrowdState);
+                }
 
                 GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }

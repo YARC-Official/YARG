@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using YARG.Core.Engine.Guitar;
+using YARG.Core.Engine.Keys;
 using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.Visuals
@@ -239,10 +241,10 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Update whammy factor
-            if (_player is FiveFretPlayer player)
+            if (_player is FiveFretGuitarPlayer guitarPlayer)
             {
                 // Make sure to lerp it to prevent jumps
-                _whammyFactor = Mathf.Lerp(_whammyFactor, player.WhammyFactor, Time.deltaTime * 6f);
+                _whammyFactor = Mathf.Lerp(_whammyFactor, guitarPlayer.WhammyFactor, Time.deltaTime * 6f);
             }
 
             float whammy = _whammyFactor * 1.5f;

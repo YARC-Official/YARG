@@ -1,97 +1,39 @@
-﻿using System.Linq;
+﻿using DG.Tweening;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
     public partial class VocalTrack
     {
-        private class PhraseNoteTracker
-        {
-            private readonly VocalsPart _vocalsPart;
-
-            private int _phraseIndex;
-            private int _noteOrLyricIndex;
-
-            public VocalsPhrase CurrentPhrase => _vocalsPart.NotePhrases[_phraseIndex];
-            private bool CurrentPhraseInBounds => _phraseIndex < _vocalsPart.NotePhrases.Count;
-
-            public VocalNote CurrentNote =>
-                CurrentPhrase.PhraseParentNote.ChildNotes[_noteOrLyricIndex];
-            public bool CurrentNoteInBounds =>
-                CurrentPhraseInBounds &&
-                _noteOrLyricIndex < CurrentPhrase.PhraseParentNote.ChildNotes.Count;
-
-            public LyricEvent CurrentLyric =>
-                CurrentPhrase.Lyrics[_noteOrLyricIndex];
-            public bool CurrentLyricInBounds =>
-                CurrentPhraseInBounds &&
-                _noteOrLyricIndex < CurrentPhrase.Lyrics.Count;
-
-            public PhraseNoteTracker(VocalsPart vocalsPart, bool forLyrics)
-            {
-                _vocalsPart = vocalsPart;
-
-                // If the first phrase in the song has no notes/lyrics, skip it
-                if (CurrentPhraseInBounds)
-                {
-                    if (forLyrics && !CurrentLyricInBounds)
-                    {
-                        NextLyric();
-                    }
-                    else if (!forLyrics && !CurrentNoteInBounds)
-                    {
-                        NextNote();
-                    }
-                }
-            }
-
-            public void Reset()
-            {
-                _phraseIndex = 0;
-                _noteOrLyricIndex = 0;
-            }
-
-            public void NextNote()
-            {
-                _noteOrLyricIndex++;
-
-                if (CurrentNoteInBounds) return;
-
-                // Make sure to skip all of the empty phrases
-                do
-                {
-                    _phraseIndex++;
-                    _noteOrLyricIndex = 0;
-                } while (CurrentPhraseInBounds && !CurrentNoteInBounds);
-            }
-
-            public void NextLyric()
-            {
-                _noteOrLyricIndex++;
-
-                if (CurrentLyricInBounds) return;
-
-                // Make sure to skip all of the empty phrases
-                do
-                {
-                    _phraseIndex++;
-                    _noteOrLyricIndex = 0;
-                } while (CurrentPhraseInBounds && !CurrentLyricInBounds);
-            }
-
-            public VocalNote GetProbableNoteAtLyric()
-            {
-                return CurrentPhrase.PhraseParentNote.ChildNotes
-                    .FirstOrDefault(note => note.Tick == CurrentLyric.Tick);
-            }
-        }
-
         private int[] _phraseMarkerIndices;
 
-        // These track the phrase and note within the phrase
-        private PhraseNoteTracker[] _noteTrackers;
-        private PhraseNoteTracker[] _lyricTrackers;
+        // Static vocals-related constants
+        private const float STATIC_LYRICS_SPACING_FROM_SING_LINE = .25f;
+        private const float STATIC_LYRICS_LEFT_EDGE = VocalElement.SING_LINE_POS + STATIC_LYRICS_SPACING_FROM_SING_LINE;
+        private const float DEFAULT_STATIC_LYRICS_RIGHT_EDGE = STATIC_LYRICS_LEFT_EDGE + VocalLyricContainer.STATIC_PHRASE_SPACING;
+        private const float MAXIMUM_STATIC_PHRASE_QUEUE_SIZE = 10;
+        private const float STATIC_LYRIC_SHIFT_DURATION = .1f;
+
+        private ScrollingPhraseNoteTracker[] _scrollingNoteTrackers;
+        private ScrollingPhraseNoteTracker[] _scrollingLyricTrackers;
+        private StaticPhraseTracker[] _staticPhraseTrackers;
+        private Queue<VocalStaticLyricPhraseElement>[] _staticPhraseQueues;
+
+
+        private int[] _highestEnqueuedPhrasePairIndices = { -1, -1, -1 };
+        private float[] _rightEdges = {
+            DEFAULT_STATIC_LYRICS_RIGHT_EDGE,
+            DEFAULT_STATIC_LYRICS_RIGHT_EDGE,
+            DEFAULT_STATIC_LYRICS_RIGHT_EDGE
+        };
+
+        private bool[] _noMoreStaticPhrases = { false, false, false };
 
         private void UpdateSpawning()
         {
@@ -99,13 +41,25 @@ namespace YARG.Gameplay.Player
             for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
             {
                 // Spawn in notes and lyrics
-                SpawnNotesInPhrase(_noteTrackers[i], i);
-                SpawnLyricsInPhrase(_lyricTrackers[i], i);
+                SpawnNotesInPhrase(_scrollingNoteTrackers[i], i);
                 SpawnPhraseLines(i);
+
+                if (!SettingsManager.Settings.StaticVocalsMode.Value)
+                {
+                    SpawnScrollingLyrics(_scrollingLyricTrackers[i], i);
+                }
+            }
+
+            if (SettingsManager.Settings.StaticVocalsMode.Value)
+            {
+                for (int i = 0; i < LyricLaneCount; i++)
+                {
+                    SpawnStaticLyrics(_staticPhraseTrackers[i], i);
+                }
             }
         }
 
-        private void SpawnNotesInPhrase(PhraseNoteTracker tracker, int harmonyIndex)
+        private void SpawnNotesInPhrase(ScrollingPhraseNoteTracker tracker, int harmonyIndex)
         {
             var pool = _notePools[harmonyIndex];
 
@@ -144,11 +98,11 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void SpawnLyricsInPhrase(PhraseNoteTracker tracker, int harmonyIndex)
+        private void SpawnScrollingLyrics(ScrollingPhraseNoteTracker tracker, int harmonyIndex)
         {
             while (tracker.CurrentLyricInBounds && tracker.CurrentLyric.Time <= GameManager.SongTime + SpawnTimeOffset)
             {
-                if (!_lyricContainer.TrySpawnLyric(
+                if (!_lyricContainer.TrySpawnScrollingLyric(
                     tracker.CurrentLyric,
                     tracker.GetProbableNoteAtLyric(),
                     AllowStarPower && tracker.CurrentPhrase.IsStarPower,
@@ -159,6 +113,103 @@ namespace YARG.Gameplay.Player
                 }
 
                 tracker.NextLyric();
+            }
+        }
+
+        private void SpawnStaticLyrics(StaticPhraseTracker tracker, int harmonyIndex)
+        {
+            if (_noMoreStaticPhrases[harmonyIndex])
+            {
+                return;
+            }
+
+            var change = tracker.UpdateCurrentPhrase(GameManager.SongTime);
+            var queue = _staticPhraseQueues[harmonyIndex];
+
+            switch (change)
+            {
+                case StaticLyricShiftType.None:
+                    break;
+                case StaticLyricShiftType.PhraseToGap:
+                {
+                    var leftmostPhraseElement = queue.Dequeue();
+                    var leftShift = leftmostPhraseElement.Width;
+
+                    foreach (var remainingPhrase in queue)
+                    {
+                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift, STATIC_LYRIC_SHIFT_DURATION);
+
+                    }
+                    _rightEdges[harmonyIndex] -= leftShift;
+                    leftmostPhraseElement.Dismiss();
+                    break;
+                }
+                case StaticLyricShiftType.PhraseToPhrase:
+                {
+                    var leftmostPhraseElement = queue.Dequeue();
+                    var leftShift = leftmostPhraseElement.Width + VocalLyricContainer.STATIC_PHRASE_SPACING;
+                    queue.Peek().Activate();
+
+                    foreach (var remainingPhrase in queue)
+                    {
+                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift,
+                            Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, (float)leftmostPhraseElement.Duration));
+
+                    }
+                    _rightEdges[harmonyIndex] -= leftShift;
+                    leftmostPhraseElement.Dismiss();
+                    break;
+                }
+                case StaticLyricShiftType.GapToPhrase:
+                {
+                    var leftmostPhraseElement = queue.Peek();
+
+                    _rightEdges[harmonyIndex] -= VocalLyricContainer.STATIC_PHRASE_SPACING;
+                    foreach (var remainingPhrase in queue)
+                    {
+                        remainingPhrase.transform.DOLocalMoveX(
+                            remainingPhrase.transform.localPosition.x - VocalLyricContainer.STATIC_PHRASE_SPACING,
+                            Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, (float)leftmostPhraseElement.Duration));
+
+                    }
+                    leftmostPhraseElement.Activate();
+                    break;
+                }
+                case StaticLyricShiftType.FinalPhraseComplete:
+                {
+                    _noMoreStaticPhrases[harmonyIndex] = true;
+                    var finalPhraseElement = queue.Dequeue();
+                    finalPhraseElement.Dismiss();
+                    break;
+                }
+                case StaticLyricShiftType.NoPhrases:
+                    _noMoreStaticPhrases[harmonyIndex] = true;
+                    break;
+            }
+
+            // Enqueue more phrases, if we have room
+            for (var phraseIdx = _highestEnqueuedPhrasePairIndices[harmonyIndex] + 1; phraseIdx < _staticPhraseTrackers[harmonyIndex].PhrasePairs.Count; phraseIdx++)
+            {
+                if (queue.Count > MAXIMUM_STATIC_PHRASE_QUEUE_SIZE)
+                {
+                    break;
+                }
+
+                var phrase = _staticPhraseTrackers[harmonyIndex].PhrasePairs[phraseIdx];
+
+                if (phrase.IsPercussion)
+                {
+                    continue;
+                }
+
+                var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(phrase, _vocalsTrack.Parts[harmonyIndex].NotePhrases, harmonyIndex, _rightEdges[harmonyIndex]);
+
+                if (newPhraseElement != null)
+                {
+                    _rightEdges[harmonyIndex] += newPhraseElement.Width + VocalLyricContainer.STATIC_PHRASE_SPACING;
+                    _highestEnqueuedPhrasePairIndices[harmonyIndex] = phraseIdx;
+                    queue.Enqueue(newPhraseElement);
+                }
             }
         }
 

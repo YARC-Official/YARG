@@ -12,10 +12,12 @@ using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
+using YARG.Localization;
 using YARG.Menu;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Types;
@@ -67,6 +69,8 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
+            public ToggleSetting NoFailMode { get; } = new(false);
+
             public ToggleSetting DisableDefaultBackground  { get; } = new(false);
             public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
@@ -96,6 +100,15 @@ namespace YARG.Settings
             public ToggleSetting PauseOnFocusLoss { get; } = new(true);
 
             public ToggleSetting WrapAroundNavigation { get; } = new(true);
+
+            public DropdownSetting<DiscordRichPresenceMode> DiscordRichPresence { get; }
+                = new(DiscordRichPresenceMode.Show, DiscordRichPresenceCallback)
+                {
+                    DiscordRichPresenceMode.Show,
+                    DiscordRichPresenceMode.Limited,
+                    DiscordRichPresenceMode.Hide
+                };
+
             public ToggleSetting AmIAwesome { get; } = new(false);
 
             #endregion
@@ -194,17 +207,21 @@ namespace YARG.Settings
                 AudioFxMode.On
             };
 
-            public ToggleSetting ClapsInStarpower { get; } = new(true);
+            public DropdownSetting<CrowdFxMode> UseCrowdFx { get; } = new(CrowdFxMode.Enabled)
+            {
+                CrowdFxMode.Disabled,
+                CrowdFxMode.StarpowerClapsOnly,
+                CrowdFxMode.Enabled
+            };
 
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
 
             public ToggleSetting AlwaysOnDrumSFX { get; } = new(false);
 
-            public ToggleSetting UseWhammyFx { get; } = new(false, v => GlobalAudioHandler.UseWhammyFx = v);
+            public ToggleSetting UseWhammyFx { get; } = new(true, v => GlobalAudioHandler.UseWhammyFx = v);
 
             public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 5, v => GlobalAudioHandler.WhammyPitchShiftAmount = v);
 
-            // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
             public ToggleSetting ApplyVolumesInMusicLibrary { get; } = new(true);
@@ -265,8 +282,10 @@ namespace YARG.Settings
                 };
 
             public SliderSetting SongBackgroundOpacity { get; } = new(1f, 0f, 1f);
+            public ToggleSetting StaticVocalsMode { get; } = new(false);
             public ToggleSetting UseThreeLaneLyricsInHarmony { get; } = new(true);
             public ToggleSetting EnableTrackEffects { get; } = new(true);
+            public ToggleSetting EnableHighwayRaise { get; } = new(true);
             public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
 
             public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
@@ -278,6 +297,14 @@ namespace YARG.Settings
                     NoteStreakFrequencyMode.Frequent,
                     NoteStreakFrequencyMode.Sparse,
                     NoteStreakFrequencyMode.Disabled
+                };
+
+            public DropdownSetting<VocalStreakFrequencyMode> VocalStreakFrequency { get; }
+                = new(VocalStreakFrequencyMode.Frequent)
+                {
+                    VocalStreakFrequencyMode.Frequent,
+                    VocalStreakFrequencyMode.Sparse,
+                    VocalStreakFrequencyMode.Disabled
                 };
 
             public DropdownSetting<CountdownDisplayMode> CountdownDisplay { get; }
@@ -458,6 +485,19 @@ namespace YARG.Settings
             private static void SetLogLevelCallback(LogLevel level)
             {
                 YargLogger.MinimumLogLevel = level;
+            }
+
+            private static void DiscordRichPresenceCallback(DiscordRichPresenceMode mode)
+            {
+                // Dispose Discord instance if rich presence is turned off, otherwise try initializing it again
+                if (mode == DiscordRichPresenceMode.Hide)
+                {
+                    DiscordController.Instance.TryDispose();
+                }
+                else
+                {
+                    DiscordController.Instance.CreateInstance();
+                }
             }
 
             private static void ShowBatteryCallback(bool value)

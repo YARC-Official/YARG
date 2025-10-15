@@ -39,7 +39,7 @@ namespace YARG.Gameplay.HUD
             _trackPlayer = trackPlayer;
         }
 
-        public void UpdateHUDPosition(float scale)
+        public void UpdateHUDPosition()
         {
             var rect = GetComponent<RectTransform>();
             var viewportPos = _trackPlayer.HUDViewportPosition;
@@ -49,7 +49,7 @@ namespace YARG.Gameplay.HUD
 
             // Adjust the screen's viewport position to the rect's viewport position
             // -0.5f as our position is relative to center, not the corner
-            _topElementContainer.localPosition = _topElementContainer.localPosition.WithY(rect.rect.height * (viewportPos.y - 0.5f));
+            _topElementContainer.localPosition = _topElementContainer.localPosition.WithY(rectRect.height * (viewportPos.y - 0.5f));
         }
 
         public void UpdateCountdown(double countdownLength, double endTime)

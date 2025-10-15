@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
+using YARG.Gameplay.HUD;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 
@@ -36,13 +37,12 @@ namespace YARG.Menu.Persistent
 
            _playerNameText.text = profile.Name;
 
-            var instrumentSprite =player.IsMissingInputDevice || player.IsMissingMicrophone
-                 ? $"NoInstrumentIcons[{profile.CurrentInstrument.ToResourceName()}]"
-                 : $"InstrumentIcons[{profile.CurrentInstrument.ToResourceName()}]";
+            var instrumentSprite = player.GetInstrumentSprite();
 
             _playerInstrumentIcon.sprite = Addressables
                 .LoadAssetAsync<Sprite>(instrumentSprite)
                 .WaitForCompletion();
+            _playerInstrumentIcon.color = player.GetHarmonyColor();
         }
     }
 }

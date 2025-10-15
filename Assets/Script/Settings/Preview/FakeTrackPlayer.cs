@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Core.Engine.ProKeys;
+using YARG.Core.Engine.Keys;
 using YARG.Core.Game;
 using YARG.Gameplay;
 using YARG.Gameplay.Player;
@@ -277,19 +278,22 @@ namespace YARG.Settings.Preview
             CurrentGameModeInfo = _gameModeInfos[SelectedGameMode];
             var theme = ThemePreset.Default;
 
+            // If we aren't using Pro Keys, then the passed instrument doesn't really matter; arbitrarily pass Five-Fret Guitar
+            var style = VisualStyleHelpers.GetVisualStyle(SelectedGameMode, CurrentGameModeInfo.UseProKeys ? Instrument.ProKeys : Instrument.FiveFretGuitar);
+
             // Create frets and put then on the right layer
             if (!CurrentGameModeInfo.UseProKeys)
             {
                 _fretArray.FretCount = CurrentGameModeInfo.FretCount;
                 _fretArray.UseKickFrets = CurrentGameModeInfo.UseKickFrets;
-                _fretArray.Initialize(theme, SelectedGameMode,
+                _fretArray.Initialize(theme, style,
                     CurrentGameModeInfo.FretColorProvider(ColorProfile.Default), false, false, false, false);
                 _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
             }
 
             // Create the note prefab (this has to be specially done, because
             // TrackElements need references to the GameManager)
-            var prefab = FakeNote.CreateFakeNoteFromTheme(theme, SelectedGameMode);
+            var prefab = FakeNote.CreateFakeNoteFromTheme(theme, style);
             prefab.transform.parent = transform;
             prefab.SetActive(false);
             _notePool.SetPrefabAndReset(prefab);
