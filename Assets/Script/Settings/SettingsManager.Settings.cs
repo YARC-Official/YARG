@@ -173,7 +173,7 @@ namespace YARG.Settings
                 new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Song, v));
 
             public VolumeSetting CrowdVolume { get; } =
-                new(0.5f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
+                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
 
             public VolumeSetting SfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
