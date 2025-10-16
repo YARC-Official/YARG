@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -225,5 +226,13 @@ namespace YARG
             return $"{branch} b{commitCount} ({commit})";
 #endif
         }
+
     }
+}
+
+// Fixes compiler error when using sealed records in .NET <5.0, See https://github.com/dotnet/roslyn/issues/45510
+namespace System.Runtime.CompilerServices
+{
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    internal static class IsExternalInit { }
 }

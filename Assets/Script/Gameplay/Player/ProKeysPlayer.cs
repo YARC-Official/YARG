@@ -1,4 +1,4 @@
-﻿using DG.Tweening;
+using DG.Tweening;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +13,7 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
+using static YARG.Gameplay.Player.PlayerEvent;
 
 namespace YARG.Gameplay.Player
 {
@@ -278,7 +279,7 @@ namespace YARG.Gameplay.Player
             if (!finished)
             {
                 // Do we want to check if its part of a chord, and if so, if all sustains were dropped to mute?
-                SetStemMuteState(true);
+                OnEvent(new SustainBroken());
             }
         }
 
@@ -443,15 +444,6 @@ namespace YARG.Gameplay.Player
             foreach (var lane in LanePool.AllSpawned)
             {
                 (lane as LaneElement)?.OffsetXPosition(_currentOffset);
-            }
-        }
-
-        public override void SetStemMuteState(bool muted)
-        {
-            if (IsStemMuted != muted)
-            {
-                GameManager.ChangeStemMuteState(SongStem.Keys, muted);
-                IsStemMuted = muted;
             }
         }
 

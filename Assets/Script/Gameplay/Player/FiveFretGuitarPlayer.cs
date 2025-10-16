@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,15 +10,14 @@ using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
-using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Playback;
-using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
 using static YARG.Core.Game.ColorProfile;
+using static YARG.Gameplay.Player.PlayerEvent;
 using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
@@ -122,19 +121,7 @@ namespace YARG.Gameplay.Player
         public float WhammyFactor { get; private set; }
 
         private int _sustainCount;
-
-        private SongStem _stem;
         private double _practiceSectionStartTime;
-
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
-        {
-            _stem = player.Profile.CurrentInstrument.ToSongStem();
-            if (_stem == SongStem.Bass && mixer[SongStem.Bass] == null)
-            {
-                _stem = SongStem.Rhythm;
-            }
-            base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
-        }
 
         protected override InstrumentDifficulty<GuitarNote> GetNotes(SongChart chart)
         {
@@ -363,20 +350,6 @@ namespace YARG.Gameplay.Player
             _shiftIndicators.Dequeue();
         }
 
-        public override void SetStemMuteState(bool muted)
-        {
-            if (IsStemMuted != muted)
-            {
-                GameManager.ChangeStemMuteState(_stem, muted);
-                IsStemMuted = muted;
-            }
-        }
-
-        public override void SetStarPowerFX(bool active)
-        {
-            GameManager.ChangeStemReverbState(_stem, active);
-        }
-
         protected override void ResetVisuals()
         {
             base.ResetVisuals();
@@ -545,14 +518,14 @@ namespace YARG.Gameplay.Player
             {
                 if (!parent.IsDisjoint || _sustainCount == 0)
                 {
-                    SetStemMuteState(true);
+                    OnEvent(new SustainBroken());
                 }
             }
 
             if (_sustainCount == 0)
             {
+                OnEvent(new SustainEnded());
                 WhammyFactor = 0;
-                GameManager.ChangeStemWhammyPitch(_stem, 0);
             }
         }
 
@@ -581,7 +554,7 @@ namespace YARG.Gameplay.Player
             if (_sustainCount > 0 && input.GetAction<GuitarAction>() == GuitarAction.Whammy)
             {
                 WhammyFactor = Mathf.Clamp01(input.Axis);
-                GameManager.ChangeStemWhammyPitch(_stem, WhammyFactor);
+                OnEvent(new WhammyDuringSustain(WhammyFactor));
             }
         }
 

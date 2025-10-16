@@ -565,11 +565,6 @@ namespace YARG.Gameplay.Player
             ResetPracticeSection();
         }
 
-        public override void SetStemMuteState(bool muted)
-        {
-            // Vocals has no stem muting
-        }
-
         protected override bool InterceptInput(ref GameInput input)
         {
             return false;

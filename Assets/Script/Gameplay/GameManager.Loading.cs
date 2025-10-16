@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -195,6 +196,7 @@ namespace YARG.Gameplay
 
             // Spawn players
             CreatePlayers();
+            SetupPlayerAudio();
 
             // Set up the crowd stem so it can be restored after muting (if it exists)
             if (_stemStates.TryGetValue(SongStem.Crowd, out var state))
@@ -258,6 +260,20 @@ namespace YARG.Gameplay
             enabled = true;
             IsSongStarted = true;
             _songStarted?.Invoke();
+        }
+
+        private void SetupPlayerAudio()
+        {
+            _playerAudioManager = new PlayerAudioManager(this);
+            foreach (var player in _players)
+            {
+                var songStem = player.Player.Profile.CurrentInstrument.ToSongStem();
+                if (songStem == SongStem.Bass && _mixer[SongStem.Bass] == null)
+                {
+                    songStem = SongStem.Rhythm;
+                }
+                _playerAudioManager.AddPlayer(songStem, player);
+            }
         }
 
         private bool LoadReplay()

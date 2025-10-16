@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -15,11 +16,18 @@ using YARG.Input;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
+using static YARG.Gameplay.Player.PlayerEvent;
 
 namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : GameplayBehaviour
     {
+        public event Action<PlayerEvent> Events;
+        protected void OnEvent(PlayerEvent playerEvent)
+        {
+            Events?.Invoke(playerEvent);
+        }
+
         public int HighwayIndex { get; private set; }
 
         public YargPlayer Player { get; private set; }
@@ -200,12 +208,9 @@ namespace YARG.Gameplay.Player
 
         public abstract void SetPracticeSection(uint start, uint end);
 
-        // TODO Make this more generic
-        public abstract void SetStemMuteState(bool muted);
-
         public virtual void SetStarPowerFX(bool active)
         {
-            GameManager.ChangeStemReverbState(SongStem.Song, active);
+            OnEvent(new StarPowerChanged(active));
         }
 
         public virtual void SetReplayTime(double time)
@@ -214,7 +219,7 @@ namespace YARG.Gameplay.Player
 
             _replayInputIndex = BaseEngine.ProcessUpToTime(time, ReplayInputs);
 
-            SetStemMuteState(false);
+            OnEvent(new ReplayTimeChanged(time));
 
             ResetVisuals();
             UpdateVisuals(time);
