@@ -329,7 +329,7 @@ namespace YARG.Settings
                 };
 
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; }
-                = new(SongProgressMode.CountUpOnly)
+                = new(SongProgressMode.CountUpAndTotal)
                 {
                     SongProgressMode.None,
                     SongProgressMode.CountUpAndTotal,
