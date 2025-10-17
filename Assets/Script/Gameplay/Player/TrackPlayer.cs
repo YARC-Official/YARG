@@ -24,10 +24,12 @@ namespace YARG.Gameplay.Player
         public const float DEFAULT_ZERO_FADE_POS = 3f;
         public const float NOTE_SPAWN_OFFSET     = 5f;
 
-        public const float TRACK_WIDTH = 2f;
+        public const float TRACK_WIDTH  = 2f;
+        public const float TRACK_HEIGHT = 100f;
 
-        public const float HIGHWAY_GAP = 100f;
-        public const float HUD_HEIGHT  = 0.15f;
+        public const float HUD_TOP_ELEMENT_HEIGHT    = 0.15f;
+        public const float HUD_CENTER_ELEMENT_HEIGHT = 0f;
+        public const float HUD_CENTER_ELEMENT_DEPTH  = -1.5f;
 
         public static int HighwayCount = 1;
 
@@ -71,9 +73,14 @@ namespace YARG.Gameplay.Player
         public float FadeSize         { get; private set; }
 
         // Multiply by the reciprocal of 1 / player count to prevent the HUD from being too close to the highway;
-        public Vector2 HUDViewportPosition =>
+        public Vector2 HUDTopElementViewportPosition =>
             TrackCamera.WorldToViewportPoint(_hudLocation.position.WithY(
-                HUD_HEIGHT * (1 / HighwayCameraRendering.CalculateScale(HighwayCount)) + HIGHWAY_GAP));
+                HUD_TOP_ELEMENT_HEIGHT * (1 / HighwayCameraRendering.CalculateScale(HighwayCount)) + TRACK_HEIGHT));
+
+        public Vector2 HUDCenterElementViewportPosition =>
+            TrackCamera.WorldToViewportPoint(_hudLocation.position
+                .WithY(HUD_CENTER_ELEMENT_HEIGHT + TRACK_HEIGHT)
+                .WithZ(HUD_CENTER_ELEMENT_DEPTH));
 
         protected List<Beatline> Beatlines;
 

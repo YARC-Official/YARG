@@ -17,6 +17,8 @@ namespace YARG.Gameplay.HUD
         private ScaleByParentSize _UIScaler;
         [SerializeField]
         private RectTransform _topElementContainer;
+        [SerializeField]
+        private RectTransform _centerElementContainer;
 
         [Space]
         [SerializeField]
@@ -44,7 +46,8 @@ namespace YARG.Gameplay.HUD
         public void UpdateHUDPosition(int highwayIndex, int highwayCount)
         {
             var rect = GetComponent<RectTransform>();
-            var viewportPos = _trackPlayer.HUDViewportPosition;
+            var topViewportPos = _trackPlayer.HUDTopElementViewportPosition;
+            var centerViewportPos = _trackPlayer.HUDCenterElementViewportPosition;
 
             // Caching this is faster
             var rectRect = rect.rect;
@@ -56,8 +59,12 @@ namespace YARG.Gameplay.HUD
             // Adjust the screen's viewport position to the rect's viewport position
             // -0.5f as our position is relative to center, not the corner
             _topElementContainer.localPosition = _topElementContainer.localPosition
-                .WithX(rectRect.width * (viewportPos.x - 0.5f - hudOffset))
-                .WithY(rectRect.height * (viewportPos.y - 0.5f));
+                .WithX(rectRect.width * (topViewportPos.x - 0.5f - hudOffset))
+                .WithY(rectRect.height * (topViewportPos.y - 0.5f));
+
+            _centerElementContainer.localPosition = _centerElementContainer.localPosition
+                .WithX(rectRect.width * (centerViewportPos.x - 0.5f - hudOffset))
+                .WithY(rectRect.height * (centerViewportPos.y - 0.5f));
         }
 
         public void UpdateCountdown(double countdownLength, double endTime)
