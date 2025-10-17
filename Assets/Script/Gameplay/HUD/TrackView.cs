@@ -2,8 +2,10 @@
 using UnityEngine.UI;
 using YARG.Core.Engine;
 using YARG.Gameplay.Player;
+using YARG.Gameplay.Visuals;
 using YARG.Player;
 using YARG.Helpers.UI;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -39,7 +41,7 @@ namespace YARG.Gameplay.HUD
             _trackPlayer = trackPlayer;
         }
 
-        public void UpdateHUDPosition()
+        public void UpdateHUDPosition(int highwayIndex, int highwayCount)
         {
             var rect = GetComponent<RectTransform>();
             var viewportPos = _trackPlayer.HUDViewportPosition;
@@ -47,9 +49,15 @@ namespace YARG.Gameplay.HUD
             // Caching this is faster
             var rectRect = rect.rect;
 
+            // Divide tilt by 4; if highway tilt is maxed out, we want the bounds to be (-0.25, 0.25)
+            float hudOffset = HighwayCameraRendering.GetMultiplayerXOffset(highwayIndex, highwayCount,
+                SettingsManager.Settings.HighwayTiltMultiplier.Value / 4);
+
             // Adjust the screen's viewport position to the rect's viewport position
             // -0.5f as our position is relative to center, not the corner
-            _topElementContainer.localPosition = _topElementContainer.localPosition.WithY(rectRect.height * (viewportPos.y - 0.5f));
+            _topElementContainer.localPosition = _topElementContainer.localPosition
+                .WithX(rectRect.width * (viewportPos.x - 0.5f - hudOffset))
+                .WithY(rectRect.height * (viewportPos.y - 0.5f));
         }
 
         public void UpdateCountdown(double countdownLength, double endTime)

@@ -121,7 +121,7 @@ namespace YARG.Gameplay.Visuals
             _renderCamera.orthographicSize = Math.Max(25, (maxWorld - minWorld) / 2);
         }
 
-        private static float CalculateScale(int count)
+        public static float CalculateScale(int count)
         {
             // This equation calculates a good scale for all of the tracks.
             // It was made with experimentation; there's probably a "real" formula for this.

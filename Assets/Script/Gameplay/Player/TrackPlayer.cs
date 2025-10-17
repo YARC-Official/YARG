@@ -26,6 +26,11 @@ namespace YARG.Gameplay.Player
 
         public const float TRACK_WIDTH = 2f;
 
+        public const float HIGHWAY_GAP = 100f;
+        public const float HUD_HEIGHT  = 0.15f;
+
+        public static int HighwayCount = 1;
+
         public double SpawnTimeOffset => (ZeroFadePosition + _spawnAheadDelay + -STRIKE_LINE_POS) / NoteSpeed;
 
         protected TrackView TrackView { get; private set; }
@@ -65,7 +70,10 @@ namespace YARG.Gameplay.Player
         public float ZeroFadePosition { get; private set; }
         public float FadeSize         { get; private set; }
 
-        public Vector2 HUDViewportPosition => TrackCamera.WorldToViewportPoint(_hudLocation.position);
+        // Multiply by the reciprocal of 1 / player count to prevent the HUD from being too close to the highway;
+        public Vector2 HUDViewportPosition =>
+            TrackCamera.WorldToViewportPoint(_hudLocation.position.WithY(
+                HUD_HEIGHT * (1 / HighwayCameraRendering.CalculateScale(HighwayCount)) + HIGHWAY_GAP));
 
         protected List<Beatline> Beatlines;
 
@@ -174,6 +182,12 @@ namespace YARG.Gameplay.Player
             if (IsInitialized)
             {
                 return;
+            }
+
+            // Get player count
+            if (index + 1 > HighwayCount)
+            {
+                HighwayCount = index + 1;
             }
 
             // Consolidate tracks into a parent object for animation purposes
@@ -299,7 +313,6 @@ namespace YARG.Gameplay.Player
         protected virtual void FinishInitialization()
         {
             TrackMaterial.Initialize(Player.HighwayPreset);
-            TrackView.UpdateHUDPosition();
             CameraPositioner.Initialize(Player.CameraPreset);
             FinalizeTrackEffects();
         }
@@ -328,6 +341,9 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateVisuals(double visualTime)
         {
+            // Allow the HUD to track the highway with animations
+            TrackView.UpdateHUDPosition(HighwayIndex, HighwayCount);
+
             UpdateNotes(visualTime);
             UpdateBeatlines(visualTime);
             UpdateTrackEffects(visualTime);
