@@ -185,7 +185,12 @@ namespace YARG.Gameplay.Player
             }
 
             // Get player count
-            if (index + 1 > HighwayCount)
+            if (index == 0)
+            {
+                // Reset
+                HighwayCount = 1;
+            }
+            else if (index + 1 > HighwayCount)
             {
                 HighwayCount = index + 1;
             }
