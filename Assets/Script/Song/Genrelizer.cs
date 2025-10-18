@@ -35,6 +35,13 @@ namespace YARG.Song
 
         public static void GenrelizeAll(SongCache cache)
         {
+            // If Genrelizer data has failed, fall back to parsing literally
+            if (_genreAliases.Count + _subgenreAliases.Count + _subgenreMappings.Count == 0)
+            {
+                DegenrelizeAll(cache);
+                return;
+            }
+
             foreach (var list in cache.Entries)
             {
                 foreach (var songEntry in list.Value)

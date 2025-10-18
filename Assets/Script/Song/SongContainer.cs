@@ -155,7 +155,7 @@ namespace YARG.Song
                 await UniTask.NextFrame();
             }
 
-            if (SettingsManager.Settings.StandardizeGenres.Value)
+            if (SettingsManager.Settings.StandardizeGenres.Value && !GlobalVariables.OfflineMode)
             {
                 Genrelizer.GenrelizeAll(_songCache);
             } else
