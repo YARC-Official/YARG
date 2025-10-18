@@ -26,7 +26,7 @@
 
 # YARG on IOS (YARGOT)?
 
-Just wanted to see if I could get it to run on Iphone because I wanted to make a magsafe peripheral that you can find here: it actually works pretty well. As of right now I don't really wanna maintain this, the code is in Dev-IOS branch if you want to take over.
+Just wanted to see if I could get it to run on Iphone because I wanted to make a magsafe peripheral that you can find here: it actually works pretty well. 
 
 ## Features
 Only new features I added were some onscreen buttons, they only show up in game if you added them to your profile. The fret buttons are self explanatory but the strum buttons are for using a peripheral like the one I created. The left button is an alternate strum so it strums on press and release. The right one only strums on press. 
@@ -35,8 +35,8 @@ Only new features I added were some onscreen buttons, they only show up in game 
 
 I should've documented things better but the main thing was compiling a dll for ManagedBass that uses static linking which are in the repo and should just work. You might need to make sure they are added properly in XCode. Just make sure you set up your build settings to use them when building for IOS. Another was somewhere in YARG Core you can comment out a line that stops it from trying to initialize RTMIDI.dll I don't think this stopped the game from running though. Other than that it should just run, don't hesitate to send me a message on discord: yurdismelling if you have a question. I know I'm leaving out a lot.
 
-## wishlist
-Some things I'd like on the finished project if I ever continued this or someone else took over.
+## wishlist for YARG IOS
+### Some things I'd like on the finished project if I ever continued this or someone else took over.
 - The main one is YARN and official setlist integration. A screen where you can download Yarg songs over the internet like how you would on the pc launcher.
   - For this song download feature, a feature I really want is a hidden way of being able to change the endpoint URL that allows users to localhost songs from their pc. This is a hidden feature to prevent piracy and because it is meant for charters to be able to test their songs on IOS. It also would probably not be approved on the appstore if it was an easy to access setting. My idea for this was to make it so you can import your PC settings and if you add a line "YARNEndpointURL: 'localhost:1111' it will change it and then you can use some tool to host it. 
     - If you doubt this would be approved, look into an app called Stremio. This app normally lets you host custom content through addons which get tied to your account. You cannot add these addons on the IOS version, but if you already have them tied to your account, it will carry over.
