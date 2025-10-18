@@ -192,14 +192,15 @@ namespace YARG.Menu.MusicLibrary
 
             _currentSearchFilter = button.Text.text.ToLowerInvariant() switch
             {
-                "track"   => SortAttribute.Name,
-                "artist"  => SortAttribute.Artist,
-                "album"   => SortAttribute.Album,
-                "genre"   => SortAttribute.Genre,
-                "source"  => SortAttribute.Source,
-                "charter" => SortAttribute.Charter,
-                "year"    => SortAttribute.Year,
-                _         => SortAttribute.Unspecified
+                "track"     => SortAttribute.Name,
+                "artist"    => SortAttribute.Artist,
+                "album"     => SortAttribute.Album,
+                "genre"     => SortAttribute.Genre,
+                "subgenre"  => SortAttribute.Subgenre,
+                "source"    => SortAttribute.Source,
+                "charter"   => SortAttribute.Charter,
+                "year"      => SortAttribute.Year,
+                _           => SortAttribute.Unspecified
             };
 
             if (previousSearchFilter == SortAttribute.Unspecified)
@@ -220,14 +221,15 @@ namespace YARG.Menu.MusicLibrary
         {
             var toggleName = attribute switch
             {
-                SortAttribute.Name    => "track",
-                SortAttribute.Artist  => "artist",
-                SortAttribute.Album   => "album",
-                SortAttribute.Genre   => "genre",
-                SortAttribute.Source  => "source",
-                SortAttribute.Charter => "charter",
-                SortAttribute.Year    => "year",
-                _                     => string.Empty,
+                SortAttribute.Name      => "track",
+                SortAttribute.Artist    => "artist",
+                SortAttribute.Album     => "album",
+                SortAttribute.Genre     => "genre",
+                SortAttribute.Subgenre  => "subgenre",
+                SortAttribute.Source    => "source",
+                SortAttribute.Charter   => "charter",
+                SortAttribute.Year      => "year",
+                _                       => string.Empty,
             };
 
             if (!string.IsNullOrEmpty(toggleName))

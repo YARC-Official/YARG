@@ -313,6 +313,9 @@ namespace YARG.Menu.MusicLibrary
                 case "genre":
                     _songSearchingField.SetSearchInput(SortAttribute.Genre, $"\"{songEntry.Genre.SearchStr}\"");
                     break;
+                case "subgenre":
+                    _songSearchingField.SetSearchInput(SortAttribute.Subgenre, $"\"{songEntry.Subgenre.SearchStr}\"");
+                    break;
             }
         }
     }

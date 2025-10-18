@@ -65,7 +65,7 @@ namespace YARG
                 YargLogger.LogException(ex);
             }
 
-            // Load song sources and icons
+            // Load (sub)genre mappings
             try
             {
                 await Genrelizer.LoadGenreMappings(context);
