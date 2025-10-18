@@ -32,6 +32,10 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private TextMeshProUGUI _genre;
         [SerializeField]
+        private TextMeshProUGUI _genreDivider;
+        [SerializeField]
+        private TextMeshProUGUI _subgenre;
+        [SerializeField]
         private TextMeshProUGUI _year;
         [SerializeField]
         private TextMeshProUGUI _length;
@@ -49,6 +53,9 @@ namespace YARG.Menu.MusicLibrary
 
         private MusicLibraryMenu _musicLibraryMenu;
         private SongSearchingField _songSearchingField;
+
+        private const int FULL_GENRE_FIELD_WIDTH = 325;
+        private const int GENRE_DIVIDER_WIDTH = 10;
 
         public void Initialize(MusicLibraryMenu musicLibraryMenu, SongSearchingField songSearchingField)
         {
@@ -108,7 +115,7 @@ namespace YARG.Menu.MusicLibrary
         {
             _source.text = categoryViewType.SourceCountText;
             _charter.text = categoryViewType.CharterCountText;
-            _genre.text = categoryViewType.GenreCountText;
+            UpdateGenreAndSubgenre(categoryViewType.GenreCountText, categoryViewType.SubgenreCountText);
         }
 
         private void ClearSidebar()
@@ -123,7 +130,8 @@ namespace YARG.Menu.MusicLibrary
 
             _source.text = string.Empty;
             _charter.text = string.Empty;
-            _genre.text = string.Empty;
+            UpdateGenreAndSubgenre(string.Empty, string.Empty);
+            _genreDivider.gameObject.SetActive(false);
 
             // Hide all difficulty rings
             foreach (var difficultyRing in _difficultyRings)
@@ -139,7 +147,7 @@ namespace YARG.Menu.MusicLibrary
             _album.text = songEntry.Album;
             _source.text = SongSources.SourceToGameName(songEntry.Source);
             _charter.text = songEntry.Charter;
-            _genre.text = songEntry.Genre + (string.IsNullOrEmpty(songEntry.Subgenre) ? "" : ("<color=\"grey\">, <size=75%>" + songEntry.Subgenre + "</size>"));
+            UpdateGenreAndSubgenre(songEntry.Genre, songEntry.Subgenre);
             _year.text = songEntry.ParsedYear;
 
             // Format and show length
@@ -245,6 +253,31 @@ namespace YARG.Menu.MusicLibrary
             _difficultyRings[7].SetInfo("trueDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
             _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
             _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
+        }
+
+        private void UpdateGenreAndSubgenre(string genreText, string subgenreText)
+        {
+            _genre.text = genreText;
+            _genre.rectTransform.sizeDelta = new(
+                _genre.GetPreferredValues().x,
+                _genre.rectTransform.sizeDelta.y
+            );
+
+            if (string.IsNullOrEmpty(subgenreText))
+            {
+                _genreDivider.gameObject.SetActive(false);
+                _subgenre.gameObject.SetActive(false);
+            }
+            else
+            {
+                _genreDivider.gameObject.SetActive(true);
+                _subgenre.gameObject.SetActive(true);
+                _subgenre.text = subgenreText;
+                _subgenre.rectTransform.sizeDelta = new(
+                    Math.Min(FULL_GENRE_FIELD_WIDTH - _genre.rectTransform.sizeDelta.x - GENRE_DIVIDER_WIDTH, _subgenre.GetPreferredValues().x),
+                    _subgenre.rectTransform.sizeDelta.y
+                );
+            }
         }
 
         public void PrimaryButtonClick()
