@@ -26,7 +26,7 @@
 
 # YARG on IOS (YARGOT)?
 
-Just wanted to see if I could get it to run on Iphone because I wanted to make a magsafe peripheral that you can find here: it actually works pretty well. 
+Just wanted to see if I could get it to run on Iphone because I wanted to make a magsafe peripheral that you can find here: Not perfect since it was my first 3d print design but I think it turned out pretty well. 
 
 ## Features
 Only new features I added were some onscreen buttons, they only show up in game if you added them to your profile. The fret buttons are self explanatory but the strum buttons are for using a peripheral like the one I created. The left button is an alternate strum so it strums on press and release. The right one only strums on press. 
