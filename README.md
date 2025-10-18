@@ -24,7 +24,7 @@
 
 ---
 
-# YARG on IOS (YARGOT)?
+# YARG on IOS (YARG:OT)?
 
 Just wanted to see if I could get it to run on Iphone because I wanted to make a magsafe peripheral that you can find here: Not perfect since it was my first 3d print design but I think it turned out pretty well. 
 
