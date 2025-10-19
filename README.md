@@ -26,7 +26,7 @@
 
 # YARG on IOS (YARG:OT)?
 ### Code is in Dev-IOS branch
-Just wanted to see if I could get it to run on Iphone because I wanted to make a magsafe peripheral that you can find here: Not perfect since it was my first 3d print design but I think it turned out pretty well. 
+Just wanted to see if I could get it to run on Iphone because I wanted to make a magsafe peripheral that you can find here: https://makerworld.com/en/models/1901790-magsafe-guitar-hero-controller#profileId-2038327 Not perfect since it was my first 3d print design but I think it turned out pretty well. 
 
 ## Features
 Only new features I added were some onscreen buttons, they only show up in game if you added them to your profile. The fret buttons are self explanatory but the strum buttons are for using a peripheral like the one I created. The left button is an alternate strum so it strums on press and release. The right one only strums on press. 
@@ -38,7 +38,7 @@ I should've documented things better but the main thing was compiling a dll for 
 ## wishlist for YARG IOS
 ### Some things I'd like on the finished project if I ever continued this or someone else took over.
 - The main one is YARN and official setlist integration. A screen where you can download Yarg songs over the internet like how you would on the pc launcher.
-  - For this song download feature, a feature I really want is a hidden way of being able to change the endpoint URL that allows users to localhost songs from their pc. This is a hidden feature to prevent piracy and because it is meant for charters to be able to test their songs on IOS. It also would probably not be approved on the appstore if it was an easy to access setting. My idea for this was to make it so you can import your PC settings and if you add a line "YARNEndpointURL: 'localhost:1111' it will change it and then you can use some tool to host it. 
+  - For this song download feature, I really want a hidden way of being able to change the endpoint URL that allows users to localhost songs from their pc. "This would not be for piracy because it is meant for charters to be able to test their songs on IOS." It would probably not be approved on the appstore if it was an easy to access setting. My idea for this was to make it so you can import your PC YARG settings and if you add a line to the end of the JSON like "YARNEndpointURL: 'localhost:1111' it will change it and then you can use some tool to host your songs. 
     - If you doubt this would be approved, look into an app called Stremio. This app normally lets you host custom content through addons which get tied to your account. You cannot add these addons on the IOS version, but if you already have them tied to your account, it will carry over.
 - The library Yarg forked for MIDI does support IOS on later versions. It would be really cool to be able to have your ipad attached to your midi drumset and play that way. It would probably be one of the coolest drum tools.
 
