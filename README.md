@@ -1,6 +1,6 @@
 <p align="center">
   <picture>
-    <img alt="YARG Gameplay" src="./Images/Banner.png" width="100%">
+    <video src="https://cdn.discordapp.com/attachments/1146196431842066453/1429264713778462811/IMG_0656.mov?ex=68f581fe&is=68f4307e&hm=b6beff49867cd8e91a77bb0df13c1f176639ed4a4e10e4ecf4b954c8cc45d659" width="80%" controls></video>
   </picture>
 </p>
 
