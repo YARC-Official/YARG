@@ -1,10 +1,11 @@
 using System;
 using Cysharp.Threading.Tasks;
-using Cysharp.Threading.Tasks.Triggers;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
+using YARG.Player;
 using YARG.Menu.MusicLibrary;
 
 namespace YARG.Menu.Persistent
@@ -29,6 +30,8 @@ namespace YARG.Menu.Persistent
         private ConfirmDeleteDialog _confirmDeleteDialog;
         [SerializeField]
         private ColorPickerDialog _colorPickerDialog;
+        [SerializeField]
+        private FriendlyBindingDialog _friendlyBindingDialog;
         [SerializeField]
         private SongPickerListDialog _playAShowDialog;
 
@@ -76,6 +79,14 @@ namespace YARG.Menu.Persistent
                 ClearDialog
             );
 
+            return dialog;
+        }
+
+        public FriendlyBindingDialog ShowFriendlyBindingDialog(YargPlayer player, InputDevice device)
+        {
+            var dialog = ShowDialog(_friendlyBindingDialog);
+            dialog.SetParameters((device, player));
+            dialog.Initialize();
             return dialog;
         }
 
