@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 
 namespace YARG.Menu.ProfileInfo
 {
@@ -30,6 +32,21 @@ namespace YARG.Menu.ProfileInfo
             _tabs.TabChanged -= OnTabChanged;
 
             Navigator.Instance.PopScheme();
+        }
+
+        public async void ShowQuickBind()
+        {
+            if (CurrentProfile is { GameMode: GameMode.FourLaneDrums or GameMode.ProKeys })
+            {
+                var dialog = DialogManager.Instance.ShowFriendlyBindingDialog(CurrentProfile);
+                await dialog.WaitUntilClosed();
+            }
+            else
+            {
+                var dialog = DialogManager.Instance.ShowMessage("Unsupported Instrument Type",
+                    "Quick binding is currently only supported for Drums and Keys.");
+                await dialog.WaitUntilClosed();
+            }
         }
 
         private void OnTabChanged(string tabId)

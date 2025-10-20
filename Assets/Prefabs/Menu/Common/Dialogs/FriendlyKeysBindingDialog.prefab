@@ -2072,7 +2072,7 @@ PrefabInstance:
     - target: {fileID: 2732728202672684013, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
       propertyPath: m_Name
-      value: FriendlyBindingDialog
+      value: FriendlyKeysBindingDialog
       objectReference: {fileID: 0}
     - target: {fileID: 3592253422827641976, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
@@ -2083,6 +2083,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_VerticalAlignment
       value: 256
+      objectReference: {fileID: 0}
+    - target: {fileID: 4732085678758495887, guid: 1818ada90b0e3a44bac5b30bca3fde57,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5295032693729431089, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
@@ -2119,15 +2124,20 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5894898847643131742, guid: 1818ada90b0e3a44bac5b30bca3fde57,
+        type: 3}
+      propertyPath: m_text
+      value: KEYS BINDING
+      objectReference: {fileID: 0}
     - target: {fileID: 6204950225123887720, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6204950225123887720, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6204950225123887720, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
@@ -2137,12 +2147,12 @@ PrefabInstance:
     - target: {fileID: 6204950225123887720, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 910
       objectReference: {fileID: 0}
     - target: {fileID: 6204950225123887720, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -46
       objectReference: {fileID: 0}
     - target: {fileID: 7415278287532106372, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
@@ -2252,22 +2262,22 @@ PrefabInstance:
     - target: {fileID: 8430350063702937036, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8430350063702937036, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8430350063702937036, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 960
       objectReference: {fileID: 0}
     - target: {fileID: 8430350063702937036, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -50
       objectReference: {fileID: 0}
     - target: {fileID: 8993451066993214132, guid: 1818ada90b0e3a44bac5b30bca3fde57,
         type: 3}
@@ -2313,18 +2323,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &3856232723812518739 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5790124244930533663, guid: 1818ada90b0e3a44bac5b30bca3fde57,
-    type: 3}
-  m_PrefabInstance: {fileID: 7340498411476685388}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 488c720ded364a71b3dd346c383fc365, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!224 &4274855220174160216 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6813354997772161812, guid: 1818ada90b0e3a44bac5b30bca3fde57,
@@ -2354,8 +2352,8 @@ MonoBehaviour:
   _dialogButtonPrefab: {fileID: 2095609304296693110, guid: 1391aeff5bdd1ce40b9b1a76d237c1eb,
     type: 3}
   <Title>k__BackingField: {fileID: 3751589942787296530}
-  _progressDisplay: {fileID: 3856232723812518739}
   <Message>k__BackingField: {fileID: 6054121155834514996}
+  _imageContainer: {fileID: 0}
   _keyHighlights:
   - {fileID: 4665337479818388756}
   - {fileID: 3080429880532332824}

@@ -159,7 +159,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7415278287532106372}
-  - component: {fileID: 4705675202644815695}
   m_Layer: 5
   m_Name: DiscreteProgressDialog
   m_TagString: Untagged
@@ -189,25 +188,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &4705675202644815695
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2732728202672684013}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f015dc75f684f638bc27c954640db7a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _dialogButtonContainer: {fileID: 6813354997772161812}
-  _navigationGroup: {fileID: 3822882854416478517}
-  _dialogButtonPrefab: {fileID: 2095609304296693110, guid: 1391aeff5bdd1ce40b9b1a76d237c1eb,
-    type: 3}
-  <Title>k__BackingField: {fileID: 5894898847643131742}
-  _progressDisplay: {fileID: 5790124244930533663}
-  <Message>k__BackingField: {fileID: 3592253422827641976}
 --- !u!1 &4729318872833107305
 GameObject:
   m_ObjectHideFlags: 0
@@ -1007,20 +987,9 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8676928330097192637, guid: 45e9ecc67d82929418254df5052c5f99, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 45e9ecc67d82929418254df5052c5f99, type: 3}
---- !u!114 &5790124244930533663 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8676928330097192637, guid: 45e9ecc67d82929418254df5052c5f99,
-    type: 3}
-  m_PrefabInstance: {fileID: 2895817905113495458}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 488c720ded364a71b3dd346c383fc365, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!224 &6204950225123887720 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 9091758639617424842, guid: 45e9ecc67d82929418254df5052c5f99,

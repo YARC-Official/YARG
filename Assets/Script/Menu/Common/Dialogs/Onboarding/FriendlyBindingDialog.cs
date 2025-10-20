@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -11,18 +10,18 @@ using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Input;
+using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Persistent;
-using YARG.Menu.ProfileInfo;
 using YARG.Player;
 
 namespace YARG.Menu.Dialogs
 {
     /// <summary>
     /// A friendly dialog to help users bind keys to actions
-    /// Note: The caller must call SetDevice for this to actually work
+    /// Note: The caller must call SetParameters for this to actually work
     /// </summary>
-    public class FriendlyBindingDialog : DiscreteProgressDialog
+    public class FriendlyBindingDialog : ImageDialog
     {
         // I can't really think of a better way to do this than have key highlights defined and positioned in the editor
         [SerializeField]
@@ -35,7 +34,7 @@ namespace YARG.Menu.Dialogs
 
         // TODO: Refactor this so that InputControlDialogMenu and this can share
         //  duplicated code is bad.....mmkay?
-        // Be sure to cancel this task when the dialog closes
+
         private UniTask<bool>           _bindingTask;
         private CancellationTokenSource _cancellationTokenSource;
         private CancellationToken       _bindingToken;
@@ -50,13 +49,26 @@ namespace YARG.Menu.Dialogs
 
         private BindingCollection _bindingCollection;
 
+        private Dictionary<GameMode, (string initial, string complete)> _bindingMessages = new()
+        {
+            { GameMode.FourLaneDrums, (
+                "When a pad/cymbal is highlighted, strike the corresponding input on your drum kit.\n\nClick the Start button when you're ready to begin.",
+                "Binding complete.\n\nYou will still need to manually set menu navigation bindings if you have not already."
+                )
+            },
+            { GameMode.ProKeys, (
+                "When a key is highlighted, press the corresponding key on your keyboard.\n\nClick the Start button when you're ready to begin.",
+                "Binding complete.\n\nYou will still need to manually set bindings for 5 lane keys, star power activation, touch effects, and menu navigation."
+                )
+            }
+        };
+
         public override void Initialize()
         {
-            SetSteps(_keyHighlights.Length);
             base.Initialize();
 
-            Message.text =
-                "Press the highlighted key on your keyboard.\n\nPress the Start button when you're ready to begin.";
+            var gameMode = _player.Profile.GameMode;
+            Message.text = _bindingMessages[gameMode].initial;
 
             // Make sure all the highlights are disabled
             foreach (var key in _keyHighlights)
@@ -65,8 +77,10 @@ namespace YARG.Menu.Dialogs
             }
 
             ClearButtons();
-            _startButton = AddDialogButton("Start", MenuData.Colors.ConfirmButton, OnStartButtonPressed);
-            _cancelButton = AddDialogButton("Cancel", MenuData.Colors.CancelButton, OnCancelButtonPressed);
+            _startButton = AddDialogButton("Menu.Common.Start", MenuData.Colors.ConfirmButton, OnStartButtonPressed);
+            _cancelButton = AddDialogButton("Menu.Common.Cancel", MenuData.Colors.CancelButton, OnCancelButtonPressed);
+
+            _state = State.Starting;
         }
 
         public void SetParameters((InputDevice device, YargPlayer player) parameters)
@@ -85,25 +99,27 @@ namespace YARG.Menu.Dialogs
                 return;
             }
 
+            var gameMode = _player.Profile.GameMode;
+
             // Dim the start button, make it inactive, then call the binding loop
             var button = _startButton.gameObject.GetComponentInChildren<Button>();
             button.interactable = false;
             button.image.color = Color.gray;
-            _player.Bindings.ClearBindingsForDevice(_device);
+            _player.Bindings.ClearBindingsForDevice(_device, false);
             // TODO: _controlBinding needs to be set for this to work
-            _cancelButton.Text.text = "Skip";
+            _cancelButton.Text.text = Localize.Key("Menu.Dialog.FriendlyBindingDialog.Skip");
             var success = await BindingLoop();
             // TODO: if failed, we should show an error message of some sort
             button.interactable = true;
             button.image.color = MenuData.Colors.ConfirmButton;
-            _startButton.Text.text = "Done";
+            Message.text = _bindingMessages[gameMode].complete;
+            _startButton.Text.text = Localize.Key("Menu.Common.Close");
             button = _cancelButton.gameObject.GetComponentInChildren<Button>();
             button.interactable = false;
             button.image.color = Color.gray;
 
-            // TODO: Start needs to change to skip here so that the user can skip any controls they don't have on their device
-            //  after we've run out of bindings, we then need to change this to a button that says test and switch to operating
-            //  in reverse (they press button, on screen key highlights) and cancel needs to become "close"
+            // TODO: after we've run out of bindings, we need to change this to a button that says test and switch to
+            //  operating in reverse (they press button, on screen key highlights)
         }
 
         private async UniTask<bool> BindingLoop()
@@ -113,10 +129,7 @@ namespace YARG.Menu.Dialogs
 
             _bindGroupingTimer = null;
             _possibleControls.Clear();
-            _cancellationTokenSource = new CancellationTokenSource();
-            _bindingToken = _cancellationTokenSource.Token;
 
-            // Ok, we need to figure out a way to convert the binding action to a button on the screen
             foreach (var bind in _bindingCollection)
             {
                 _state = State.Waiting;
@@ -127,14 +140,21 @@ namespace YARG.Menu.Dialogs
                 {
                     continue;
                 }
+
+                _cancellationTokenSource = new CancellationTokenSource();
                 highlight.gameObject.SetActive(true);
-                var bindingSuccess = await GetControl(_bindingToken, bind);
-                if (!bindingSuccess)
+                var bindingSuccess = await GetControl(_cancellationTokenSource.Token, bind);
+                if (!bindingSuccess && !_cancellationTokenSource.IsCancellationRequested)
                 {
                     YargLogger.LogWarning($"Failed to bind {bind.Name}");
                 }
-                highlight.gameObject.SetActive(false);
-                ProgressToNextStep();
+
+                // If we ended up in the done state the dialog is being destroyed, so we shouldn't
+                // try to disable the input highlight
+                if (_state != State.Done)
+                {
+                    highlight.gameObject.SetActive(false);
+                }
             }
 
             _state = State.Done;
@@ -192,8 +212,6 @@ namespace YARG.Menu.Dialogs
         // This is virtual because different instruments will have different key highlights (eventually)
         protected virtual Image GetHighlightByName(string bindingName)
         {
-            // For now we're just testing with pro keys, so I'm not going to set up a bunch of different maps
-            // Pro keys uses "ProKeys.Key1" through "ProKeys.Key25" for the main keys, and that's all we're doing for now
             // TODO: Use the action enum instead of the name
 
             if (_player.Profile.GameMode == GameMode.ProKeys)
@@ -231,7 +249,7 @@ namespace YARG.Menu.Dialogs
 
         private void OnCancelButtonPressed()
         {
-            if (_bindingTask.Status == UniTaskStatus.Pending)
+            if (_state is not State.Starting and not State.Done)
             {
                 _cancellationTokenSource.Cancel();
                 return;
@@ -243,11 +261,11 @@ namespace YARG.Menu.Dialogs
 
         protected override void OnBeforeClose()
         {
-            _state = State.Done;
-            if (_bindingTask.Status == UniTaskStatus.Pending)
+            if (_state is not State.Starting and not State.Done)
             {
                 _cancellationTokenSource.Cancel();
             }
+            _state = State.Done;
         }
 
         // TODO
@@ -326,6 +344,7 @@ namespace YARG.Menu.Dialogs
 
         private enum State
         {
+            Starting,
             Waiting,
             Select,
             Done

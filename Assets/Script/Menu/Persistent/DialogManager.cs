@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
+using YARG.Core.Game;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
@@ -31,6 +32,8 @@ namespace YARG.Menu.Persistent
         private ConfirmDeleteDialog _confirmDeleteDialog;
         [SerializeField]
         private ColorPickerDialog _colorPickerDialog;
+        [SerializeField]
+        private FiveFretBindingDialog _fiveFretBindingDialog;
         [SerializeField]
         private FriendlyBindingDialog _friendlyKeysBindingDialog;
         [SerializeField]
@@ -85,14 +88,46 @@ namespace YARG.Menu.Persistent
             return dialog;
         }
 
-        public FriendlyBindingDialog ShowFriendlyBindingDialog(YargPlayer player, InputDevice device)
+        public FriendlyBindingDialog ShowFriendlyBindingDialog(YargProfile profile)
         {
+            YargPlayer player = null;
+            var players = PlayerContainer.Players;
+            foreach (var p in players)
+            {
+                if (p.Profile.Id == profile.Id)
+                {
+                    player = p;
+                    break;
+                }
+            }
+
+            if (player == null)
+            {
+                ShowMessage("Error", "Player not found for this profile. Please report on Discord.");
+                return null;
+            }
+
+            if (player.Bindings.InputDevices.Count != 1)
+            {
+                ShowMessage("Not Supported",
+                    "Quick binding is currently only supported for profiles with exactly one input device.");
+                return null;
+            }
+
+            var device = player.Bindings.InputDevices[0];
+
             var prefab = player.Profile.GameMode switch
             {
-                GameMode.ProKeys       => _friendlyKeysBindingDialog,
-                GameMode.FourLaneDrums => _friendlyDrumsBindingDialog,
-                _                      => throw new NotImplementedException("Game mode not supported")
+                GameMode.ProKeys        => _friendlyKeysBindingDialog,
+                GameMode.FourLaneDrums  => _friendlyDrumsBindingDialog,
+                _                       => null
             };
+
+            if (prefab == null)
+            {
+                ShowMessage("Instrument Not Supported", "Quick binding is not yet supported for this instrument.\nYou'll have to do it the old way, sorry.");
+                return null;
+            }
 
             var dialog = ShowDialog(prefab);
             dialog.SetParameters((device, player));

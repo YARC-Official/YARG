@@ -123,6 +123,7 @@
             "Continue": "Continue",
             "On": "On",
             "Off": "Off",
+            "Start": "Start",
 
             "Up": "Up",
             "Down": "Down",
@@ -227,6 +228,9 @@
             "ShowDialog": {
                 "Title": "Choose Your Fate",
                 "Select": "That's Plenty"
+            },
+            "FriendlyBindingDialog": {
+                "Skip": "Skip"
             }
         },
         "DifficultySelect": {
