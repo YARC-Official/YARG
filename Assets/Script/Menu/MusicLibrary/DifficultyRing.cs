@@ -2,7 +2,6 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Song;
@@ -41,11 +40,16 @@ namespace YARG.Menu.MusicLibrary
         private Color _ringPurpleColor;
         [SerializeField]
         private Material _ringRainbowMaterial;
+        [SerializeField]
+        private Color _partSelectedColor;
 
         private SongSearchingField _songSearchingField;
         private Instrument _instrument;
         private int _intensity;
         private bool _active;
+
+        private const float ACTIVE_OPACITY = 1f;
+        private const float INACTIVE_OPACITY = 0.2f;
 
         private void Awake()
         {
@@ -142,35 +146,58 @@ namespace YARG.Menu.MusicLibrary
             _ringSprite.material = ringMaterial;
 
             // Set opacity
-            const float ACTIVE_OPACITY = 1f;
-            const float INACTIVE_OPACITY = 0.2f;
             if (_active)
             {
-                _instrumentIcon.color = _instrumentIcon.color.WithAlpha(ACTIVE_OPACITY);
                 _ringSprite.color = _ringSprite.color.WithAlpha(ACTIVE_OPACITY);
                 _ringBase.color = _ringBase.color.WithAlpha(ACTIVE_OPACITY);
             }
             else
             {
-                _instrumentIcon.color = _instrumentIcon.color.WithAlpha(INACTIVE_OPACITY);
                 _ringSprite.color = _ringSprite.color.WithAlpha(INACTIVE_OPACITY);
                 _ringBase.color = _ringBase.color.WithAlpha(INACTIVE_OPACITY);
             }
+
+            UpdateIconColor();
+        }
+
+        private void UpdateIconColor()
+        {
+            if (!_active)
+            {
+                _instrumentIcon.color = Color.white.WithAlpha(INACTIVE_OPACITY);
+                return;
+            }
+            if (_songSearchingField.HasInstrumentFilter(_instrument))
+            {
+                _instrumentIcon.color = _partSelectedColor.WithAlpha(ACTIVE_OPACITY);
+                return;
+            }
+            _instrumentIcon.color = Color.white.WithAlpha(ACTIVE_OPACITY);
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (_active)
+
+            if (!_active)
             {
-                if (eventData.button == PointerEventData.InputButton.Right)
-                {
-                    _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"\"{_intensity}\"");
-                }
-                else if (eventData.button == PointerEventData.InputButton.Left)
-                {
-                    _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"");
-                }
+                return;
             }
+
+            if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"\"{_intensity}\"");
+            }
+            else if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                if (_instrument == Instrument.Band)
+                {
+                    // Don't allow filtering by "Band Instrument". That would be silly.
+                    return;
+                }
+                _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"");
+            }
+
+            UpdateIconColor();
         }
     }
 }

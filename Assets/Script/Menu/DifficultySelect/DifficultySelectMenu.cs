@@ -84,6 +84,7 @@ namespace YARG.Menu.DifficultySelect
         private readonly List<Difficulty> _possibleDifficulties = new();
         private readonly List<Modifier>   _possibleModifiers    = new();
 
+        [NonSerialized]
         private Modifier _excusableModifiers;
 
         private int _maxHarmonyIndex = 3;
