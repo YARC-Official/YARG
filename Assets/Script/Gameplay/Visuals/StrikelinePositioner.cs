@@ -44,7 +44,7 @@ namespace YARG.Gameplay.Visuals
             var latestStart = timeToFirstNote - (animLength + MIN_TIME_TO_FIRST_NOTE);
             _globalAnimDelay = Mathf.Clamp((float) latestStart, 0f, MAX_ANIM_DELAY);
 
-            if (!_gameManager.IsPractice && SettingsManager.Settings.EnableHighwayRaise.Value)
+            if (!_gameManager.IsPractice && SettingsManager.Settings.EnableHighwayAnimation.Value)
             {
                 _coroutine = StartCoroutine(RaiseStrikeline(true));
             }

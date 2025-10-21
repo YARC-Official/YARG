@@ -70,6 +70,8 @@ namespace YARG.Menu.DifficultySelect
         [SerializeField]
         private DifficultyItem _difficultyRedPrefab;
         [SerializeField]
+        private DifficultyItem _difficultyItemSmallRedPrefab;
+        [SerializeField]
         private ModifierItem _modifierItemPrefab;
 
         private int _playerIndex;
@@ -203,6 +205,19 @@ namespace YARG.Menu.DifficultySelect
             // Only show all these options if there are instruments available
             if (_possibleInstruments.Count > 0)
             {
+                // Ready button
+                CreateItem(LocalizeHeader("Ready"), _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
+                {
+                    // If the player just selected vocal modifiers, don't show them again
+                    if (player.Profile.GameMode == GameMode.Vocals &&
+                        _vocalModifierSelectIndex == -1)
+                    {
+                        _vocalModifierSelectIndex = _playerIndex;
+                    }
+
+                    ChangePlayer(1);
+                });
+
                 CreateItem(LocalizeHeader("Instrument"),
                     player.Profile.CurrentInstrument.ToLocalizedName(),
                     _lastMenuState == State.Instrument, () =>
@@ -263,26 +278,13 @@ namespace YARG.Menu.DifficultySelect
                         UpdateForPlayer();
                     });
                 }
-
-                // Ready button
-                CreateItem(LocalizeHeader("Ready"), _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
-                {
-                    // If the player just selected vocal modifiers, don't show them again
-                    if (player.Profile.GameMode == GameMode.Vocals &&
-                        _vocalModifierSelectIndex == -1)
-                    {
-                        _vocalModifierSelectIndex = _playerIndex;
-                    }
-
-                    ChangePlayer(1);
-                });
             }
 
             // Only show if there is more than one play, only if there is instruments available
             if (_possibleInstruments.Count <= 0 || PlayerContainer.Players.Count != 1)
             {
                 // Sit out button
-                CreateItem(LocalizeHeader("SitOut"), _possibleInstruments.Count <= 0, _difficultyRedPrefab, () =>
+                CreateItem(LocalizeHeader("SitOut"), _possibleInstruments.Count <= 0, _difficultyItemSmallRedPrefab, () =>
                 {
                     // If the user went back to sit out, and the vocal modifiers were selected,
                     // deselect them.
@@ -293,6 +295,22 @@ namespace YARG.Menu.DifficultySelect
 
                     player.SittingOut = true;
                     ChangePlayer(1);
+                });
+
+                // Disconnect button
+                CreateItem(LocalizeHeader("Disconnect"), _possibleInstruments.Count <= 0, _difficultyItemSmallRedPrefab, () =>
+                {
+                    // If the user disconnected, and the vocal modifiers were selected,
+                    // deselect them.
+                    if (_vocalModifierSelectIndex == _playerIndex)
+                    {
+                        _vocalModifierSelectIndex = -1;
+                    }
+
+                    PlayerContainer.DisposePlayer(player);
+
+                    // Since we're removing one player from the active players list, don't increment the player index.
+                    ChangePlayer(0);
                 });
             }
         }

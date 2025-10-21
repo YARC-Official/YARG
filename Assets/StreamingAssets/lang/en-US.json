@@ -236,6 +236,7 @@
             "Modifiers": "Modifiers",
             "Ready": "Ready",
             "SitOut": "Sit Out",
+			"Disconnect" : "Disconnect",
             "Done": "Done",
             "WarningPlayerNoInputDevice" : "This player has no input device assigned! Assign one from the Profiles menu.",
             "WarningVocalistNoMicrophone" : "This vocalist has no microphone assigned! Assign one from the Profiles menu."
@@ -1270,6 +1271,10 @@
                 "Name": "Reconnect Profiles",
                 "Description": "At startup, reconnect previously connected profiles."
             },
+            "AutoCreateProfiles": {
+                "Name": "Create Profiles Automatically",
+                "Description": "Automatically create profile for any newly connected plastic band devices."
+            },
             "DMXDimmerValues": {
                 "Name": "DMX Master Dimmer Values",
                 "Description": "These are the respective values that the Master Dimmer channels will be set to when YARG starts."
@@ -1306,9 +1311,9 @@
                 "Name": "Enable Track Effects",
                 "Description": "If enabled, the game will display track effects for unison, solo, and drum SP activation phrases."
             },
-            "EnableHighwayRaise": {
-                "Name": "Enable Highway Raise Animation",
-                "Description": "If enabled, the game will raise and lower the highway when the song starts or ends."
+            "EnableHighwayAnimation": {
+                "Name": "Enable Highway Animation",
+                "Description": "If enabled, the highway will animate at the beginning and end of the song and based on performance."
             },
             "EnableVoxSamples": {
                 "Name": "Enable Vox Samples",
@@ -1776,6 +1781,10 @@
                 "SoloTaps": {
                     "Name": "Allow Taps During Solos",
                     "Description": "Allows solo buttons to tap notes during solos"
+                },
+                "NoStarPowerOverlap": {
+                    "Name": "No Star Power Overlap",
+                    "Description": "Disallows earning more Star Power while Star Power is already active."
                 }
             },
             "HighwayPreset" : {

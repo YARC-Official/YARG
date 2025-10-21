@@ -60,6 +60,7 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.ReconnectProfiles),
+                nameof(Settings.AutoCreateProfiles),
                 nameof(Settings.ReduceNoteSpeedByDifficulty),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),
@@ -113,10 +114,8 @@ namespace YARG.Settings
                 nameof(Settings.UseCrowdFx),
                 nameof(Settings.OverstrumAndOverhitSoundEffects),
                 nameof(Settings.AlwaysOnDrumSFX),
-                // nameof(Settings.UseWhammyFx),
-                // nameof(Settings.WhammyPitchShiftAmount),
-                // nameof(Settings.WhammyOversampleFactor),
-                // nameof(Settings.ReverbInStarpower),
+                nameof(Settings.UseWhammyFx),
+                nameof(Settings.WhammyPitchShiftAmount),
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.UseChipmunkSpeed),
@@ -145,7 +144,7 @@ namespace YARG.Settings
                 nameof(Settings.StaticVocalsMode),
                 nameof(Settings.UseThreeLaneLyricsInHarmony),
                 nameof(Settings.EnableTrackEffects),
-                nameof(Settings.EnableHighwayRaise),
+                nameof(Settings.EnableHighwayAnimation),
                 nameof(Settings.KickBounceMultiplier),
                 nameof(Settings.HighwayTiltMultiplier),
 
@@ -224,10 +223,7 @@ namespace YARG.Settings
             new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
-                nameof(Settings.UseWhammyFx),
-                nameof(Settings.WhammyPitchShiftAmount),
                 nameof(Settings.BandComboTypeSetting),
-	            // nameof(Settings.WhammyOversampleFactor),
                 nameof(Settings.DataStreamEnable),
             }
         };

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DG.Tweening;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -69,6 +70,10 @@ namespace YARG.Gameplay.Player
         private Pool _shiftIndicatorPool;
         [SerializeField]
         private KeyedPool _chordBarPool;
+        [SerializeField]
+        private MeshRenderer _leftOutOfRangeFlasher;
+        [SerializeField]
+        private MeshRenderer _rightOutOfRangeFlasher;
 
         private List<RangeShift> _rangeShifts;
         private readonly List<RangeShiftIndicator> _shiftIndicators = new();
@@ -84,6 +89,16 @@ namespace YARG.Gameplay.Player
         private float _previousOffset;
         private float _currentOffset;
         private float _targetOffset;
+
+        private Tween _leftOutOfRangeTween => DOTween.Sequence(_leftOutOfRangeFlasher.material)
+            .Append(_leftOutOfRangeFlasher.material.DOFade(1.0f, 0.05f))
+            .Append(_leftOutOfRangeFlasher.material.DOFade(0.0f, 0.6f))
+            .SetAutoKill(false).Pause().SetEase(Ease.Linear);
+
+        private Tween _rightOutOfRangeTween => DOTween.Sequence(_rightOutOfRangeFlasher.material)
+            .Append(_rightOutOfRangeFlasher.material.DOFade(1.0f, 0.05f))
+            .Append(_rightOutOfRangeFlasher.material.DOFade(0.0f, 0.6f))
+            .SetAutoKill(false).Pause().SetEase(Ease.Linear);
 
         protected override InstrumentDifficulty<ProKeysNote> GetNotes(SongChart chart)
         {
@@ -139,6 +154,9 @@ namespace YARG.Gameplay.Player
 
             _keysArray.Initialize(this, Player.ThemePreset, Player.ColorProfile.ProKeys);
             _trackOverlay.Initialize(this, Player.ColorProfile.ProKeys);
+            var flasherColor = _leftOutOfRangeFlasher.material.color;
+            _leftOutOfRangeFlasher.material.color = new Color(flasherColor.r, flasherColor.g, flasherColor.b, 0.0f);
+            _rightOutOfRangeFlasher.material.color = new Color(flasherColor.r, flasherColor.g, flasherColor.b, 0.0f);
 
             if (_rangeShifts.Count > 0)
             {
@@ -265,6 +283,23 @@ namespace YARG.Gameplay.Player
         {
             _trackOverlay.SetKeyHeld(key, isPressed);
             _keysArray.SetPressed(key, isPressed);
+            if (isPressed)
+            {
+                ShowOutOfRangeFlasher(key);
+            }
+        }
+
+        private void ShowOutOfRangeFlasher(int key)
+        {
+            var currentRange = _rangeShifts[_rangeShiftIndex-1];
+            if (key < currentRange.Key)
+            {
+                _leftOutOfRangeTween.Restart();
+            }
+            else if (key > currentRange.Key + 16)
+            {
+                _rightOutOfRangeTween.Restart();
+            }
         }
 
         private void RangeShiftTo(in RangeShift shift, double timeLength = -1)
@@ -521,6 +556,13 @@ namespace YARG.Gameplay.Player
         {
             var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
             return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
+        }
+
+        protected override void FinishDestruction()
+        {
+            _leftOutOfRangeTween.Kill();
+            _rightOutOfRangeTween.Kill();
+            base.FinishDestruction();
         }
     }
 }
