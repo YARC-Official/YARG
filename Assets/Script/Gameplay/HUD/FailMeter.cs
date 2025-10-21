@@ -65,8 +65,8 @@ namespace YARG.Gameplay.HUD
 
         // Allows some overlap
         private const float HAPPINESS_COLLISION_RANGE = 0.06f;
-        private const float SPRITE_OVERLAP_OFFSET = 28f;
-        private const float SPRITE_INITIAL_OFFSET = 35f;
+        private const float SPRITE_OVERLAP_OFFSET     = 28f;
+        private const float SPRITE_INITIAL_OFFSET     = 42f;
 
         // GameManager will have to initialize us
         public void Initialize(EngineManager engineManager, GameManager gameManager)
@@ -121,7 +121,7 @@ namespace YARG.Gameplay.HUD
                 _xPosVectors[i] = new Vector2(xOffset, 0);
 
                 _xposTweeners[i] = _playerSliders[i].handleRect.DOAnchorPosX(_xPosVectors[i].x, 0.125f).SetAutoKill(false);
-                _needleSliders[i].handleRect.DOAnchorPosX(SPRITE_INITIAL_OFFSET * 1.5f, 0.125f).SetAutoKill(false);
+                _needleSliders[i].handleRect.DOAnchorPosX(SPRITE_INITIAL_OFFSET, 0.125f).SetAutoKill(false);
                 _playerPositions[i] = _playerSliders[i].handleRect.transform.position;
 
                 var handleImage = _playerSliders[i].handleRect.GetComponentInChildren<Image>();
