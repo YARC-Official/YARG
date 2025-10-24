@@ -14,6 +14,7 @@ using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
+using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -53,6 +54,26 @@ namespace YARG.Menu.DifficultySelect
         private TextMeshProUGUI _warningMessage;
         [SerializeField]
         private GameObject _warningMessageContainer;
+        [SerializeField]
+        private TextMeshProUGUI _waitingForPlayersText;
+        [SerializeField]
+        private TextMeshProUGUI _readyStatusText;
+        
+        [Header("Multiplayer Player Status")]
+        [SerializeField]
+        private GameObject _multiplayerPlayerListContainer;
+        [SerializeField]
+        private Transform _multiplayerPlayerListContent;
+        [SerializeField]
+        private GameObject _multiplayerPlayerEntryPrefab;
+        
+        [Header("Song Queue")]
+        [SerializeField]
+        private GameObject _songQueueContainer;
+        [SerializeField]
+        private Transform _songQueueContent;
+        [SerializeField]
+        private GameObject _songQueueEntryPrefab;
 
         [Space]
         [SerializeField]
@@ -74,6 +95,7 @@ namespace YARG.Menu.DifficultySelect
 
         private int _playerIndex;
         private int _vocalModifierSelectIndex = -1;
+        private readonly HashSet<int> _readyPlayerIndices = new();
 
         private State _lastMenuState;
         private State _menuState;
@@ -87,13 +109,57 @@ namespace YARG.Menu.DifficultySelect
         private int _maxHarmonyIndex = 3;
 
         private readonly List<ModifierItem> _modifierItems = new();
+        private readonly Dictionary<Networking.NetworkPlayerData, MultiplayerPlayerEntry> _playerEntries = new();
+        private readonly List<SongQueueEntry> _songQueueEntries = new();
 
         private List<SongEntry> _songList;
 
         private YargPlayer CurrentPlayer => PlayerContainer.Players[_playerIndex];
+        
+        private Multiplayer.MultiplayerDifficultySync _multiplayerSync;
 
         private void OnEnable()
         {
+            // Get or create multiplayer sync component
+            _multiplayerSync = GetComponent<Multiplayer.MultiplayerDifficultySync>();
+            if (_multiplayerSync == null)
+            {
+                _multiplayerSync = gameObject.AddComponent<Multiplayer.MultiplayerDifficultySync>();
+            }
+            
+            // Subscribe to waiting event
+            _multiplayerSync.OnWaitingForPlayers += ShowWaitingForPlayersMessage;
+            
+            // Hide waiting message initially
+            if (_waitingForPlayersText != null)
+            {
+                _waitingForPlayersText.gameObject.SetActive(false);
+            }
+            
+            // Update ready status initially
+            UpdateReadyStatus();
+            
+            // Subscribe to network player ready events
+            SubscribeToNetworkPlayerEvents();
+            
+            // Subscribe to player left event to update player list
+            if (Networking.YargNetworkManager.Instance != null)
+            {
+                Networking.YargNetworkManager.Instance.OnPlayerLeft += OnPlayerLeftLobby;
+            }
+            
+            // Update multiplayer player list with delay to allow NetworkPlayerData objects to spawn
+            if (Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                StartCoroutine(DelayedUpdateMultiplayerPlayerList());
+            }
+            
+            // Update song queue if playing a show
+            UpdateSongQueue();
+            
+            // Start coroutine to update ready status periodically
+            StartCoroutine(UpdateReadyStatusPeriodically());
+            
             string subHeaderKey = GlobalVariables.State.IsPractice ? "Practice" : "Quickplay";
             _subHeader.text = Localize.Key("Menu.Main.Options", subHeaderKey);
 
@@ -107,12 +173,51 @@ namespace YARG.Menu.DifficultySelect
                 {
                     if (_menuState == State.Main)
                     {
-                        if (_playerIndex == 0)
+                        // If current player is ready, unmark them and refresh
+                        if (_readyPlayerIndices.Contains(_playerIndex))
                         {
-                            MenuManager.Instance.PopMenu();
+                            _readyPlayerIndices.Remove(_playerIndex);
+                            
+                            // Notify network that player is no longer ready
+                            SetLocalPlayerReadyState(false);
+                            
+                            UpdateForPlayer();
+                        }
+                        else if (_playerIndex == 0)
+                        {
+                            // Check if in multiplayer
+                            if (Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive)
+                            {
+                                // Host can go back (takes everyone with them), client shows confirmation
+                                if (Networking.YargNetworkManager.Instance.IsHosting)
+                                {
+                                    Debug.Log($"[DifficultySelectMenu] Host pressing back - Menu stack count: {MenuManager.Instance.MenuStackCount}");
+                                    
+                                    // Sync menu navigation to all clients first
+                                    Networking.YargNetworkManager.Instance.SyncMenuNavigation(popMenu: true);
+                                    
+                                    Debug.Log("[DifficultySelectMenu] Host synced, now navigating locally");
+                                    
+                                    // Then host navigates back to music library
+                                    MenuManager.Instance.PopMenu();
+                                    
+                                    Debug.Log($"[DifficultySelectMenu] Host navigation complete - Menu stack count: {MenuManager.Instance.MenuStackCount}");
+                                }
+                                else
+                                {
+                                    // Client shows leave lobby confirmation dialog
+                                    ShowLeaveLobbyDialog();
+                                }
+                            }
+                            else
+                            {
+                                // Not in multiplayer - just go back
+                                MenuManager.Instance.PopMenu();
+                            }
                         }
                         else
                         {
+                            // Go to previous player
                             ChangePlayer(-1);
                         }
                     }
@@ -140,6 +245,13 @@ namespace YARG.Menu.DifficultySelect
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
             _vocalModifierSelectIndex = -1;
+            
+            // Sync initial player profile to multiplayer
+            if (_multiplayerSync != null && PlayerContainer.Players.Count > 0)
+            {
+                _multiplayerSync.SyncPlayerProfileOnEntry(PlayerContainer.Players[0]);
+            }
+            
             ChangePlayer(0);
 
             _loadingPhrase.text = RichTextUtils.StripRichTextTags(
@@ -199,6 +311,16 @@ namespace YARG.Menu.DifficultySelect
             {
                 ShowWarning(null);
             }
+
+            // If this player is already ready, show their ready state
+            if (_readyPlayerIndices.Contains(_playerIndex))
+            {
+                CreateReadyState(player);
+                return;
+            }
+            
+            // Show ready players side-by-side (Clone Hero style) - only if current player is NOT ready
+            ShowReadyPlayers();
 
             // Only show all these options if there are instruments available
             if (_possibleInstruments.Count > 0)
@@ -274,7 +396,20 @@ namespace YARG.Menu.DifficultySelect
                         _vocalModifierSelectIndex = _playerIndex;
                     }
 
-                    ChangePlayer(1);
+                    // Sync player selection to multiplayer
+                    if (_multiplayerSync != null)
+                    {
+                        _multiplayerSync.OnPlayerSelectionComplete(player);
+                    }
+
+                    // Mark this player as ready
+                    _readyPlayerIndices.Add(_playerIndex);
+                    
+                    // Notify network that player is ready
+                    SetLocalPlayerReadyState(true);
+                    
+                    // Refresh UI to show ready state (stay on current player)
+                    UpdateForPlayer();
                 });
             }
 
@@ -488,7 +623,21 @@ namespace YARG.Menu.DifficultySelect
                 _songSpeed = speed;
                 GlobalVariables.State.SongSpeed = speed;
 
-                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+                // Notify multiplayer that all local players are ready
+                if (_multiplayerSync != null)
+                {
+                    _multiplayerSync.OnAllLocalPlayersReady();
+                    // In multiplayer, the sync component will handle loading the gameplay scene
+                    // For host: checks if all network players ready, then loads
+                    // For client: waits for host's RPC
+                    // If not multiplayer, it loads immediately
+                }
+                else
+                {
+                    // Single player - load immediately
+                    GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+                }
+                
                 return;
             }
 
@@ -599,7 +748,234 @@ namespace YARG.Menu.DifficultySelect
 
         private void OnDisable()
         {
-            Navigator.Instance.PopScheme();
+            // Unsubscribe from waiting event
+            if (_multiplayerSync != null)
+            {
+                _multiplayerSync.OnWaitingForPlayers -= ShowWaitingForPlayersMessage;
+            }
+            
+            // Unsubscribe from network player events
+            UnsubscribeFromNetworkPlayerEvents();
+            
+            // Clean up player entries
+            foreach (var kvp in _playerEntries)
+            {
+                if (kvp.Value != null && kvp.Value.gameObject != null)
+                {
+                    Destroy(kvp.Value.gameObject);
+                }
+            }
+            _playerEntries.Clear();
+            
+            // Check if Navigator still exists (might be destroyed during scene transition)
+            if (Navigator.Instance != null)
+            {
+                Navigator.Instance.PopScheme();
+            }
+        }
+
+        private void ShowWaitingForPlayersMessage(string message)
+        {
+            if (_waitingForPlayersText != null)
+            {
+                _waitingForPlayersText.text = message;
+                _waitingForPlayersText.gameObject.SetActive(true);
+            }
+            
+            // Also update ready status display
+            UpdateReadyStatus();
+        }
+        
+        private void ShowReadyPlayers()
+        {
+            // Display all ready players side-by-side (Clone Hero style)
+            if (_readyPlayerIndices.Count == 0) return;
+
+            var readyPlayerNames = new System.Text.StringBuilder();
+            foreach (var index in _readyPlayerIndices)
+            {
+                if (index < PlayerContainer.Players.Count)
+                {
+                    var readyPlayer = PlayerContainer.Players[index];
+                    if (readyPlayerNames.Length > 0)
+                        readyPlayerNames.Append("    ");
+                    readyPlayerNames.Append($"✓ {readyPlayer.Profile.Name}");
+                }
+            }
+
+            // Show all ready players in one line
+            if (readyPlayerNames.Length > 0)
+            {
+                CreateItem(null, readyPlayerNames.ToString(), false, _difficultyGreenPrefab, () => { });
+            }
+        }
+
+        private void SetLocalPlayerReadyState(bool ready)
+        {
+            // Send ready state to network
+            if (Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                var localNetworkPlayer = GetLocalNetworkPlayer();
+                if (localNetworkPlayer != null)
+                {
+                    localNetworkPlayer.CmdSetReady(ready);
+                    Debug.Log($"[DifficultySelect] Set local player ready state to: {ready}");
+                }
+            }
+        }
+        
+        private void ShowLeaveLobbyDialog()
+        {
+            if (DialogManager.Instance == null) return;
+            
+            var dialog = DialogManager.Instance.ShowMessage(
+                "Leave Lobby?",
+                "Are you sure you want to leave the lobby? You will be disconnected from the host."
+            );
+            
+            dialog.ClearButtons();
+            dialog.AddDialogButton("Cancel", MenuData.Colors.BrightButton, () => DialogManager.Instance.ClearDialog());
+            dialog.AddDialogButton("Leave Lobby", MenuData.Colors.CancelButton, () =>
+            {
+                DialogManager.Instance.ClearDialog();
+                
+                // Client disconnects from network
+                if (Networking.YargNetworkManager.Instance != null)
+                {
+                    Networking.YargNetworkManager.Instance.LeaveLobby();
+                }
+                
+                // Go back to main menu or lobby browser
+                MenuManager.Instance.PopMenu();
+            });
+        }
+        
+        private void CreateReadyState(YargPlayer player)
+        {
+            // Show player's selected options as disabled (non-interactive) items
+            
+            // Show instrument (disabled)
+            CreateItem(LocalizeHeader("Instrument"),
+                player.Profile.CurrentInstrument.ToLocalizedName(),
+                false, () => { });
+
+            // Show difficulty (disabled)
+            CreateItem(LocalizeHeader("Difficulty"),
+                player.Profile.CurrentDifficulty.ToLocalizedName(),
+                false, () => { });
+
+            // Show harmony index if applicable (disabled)
+            if (player.Profile.CurrentInstrument == Instrument.Harmony)
+            {
+                CreateItem(LocalizeHeader("Harmony"),
+                    (player.Profile.HarmonyIndex + 1).ToString(),
+                    false, () => { });
+            }
+
+            // Show modifiers (disabled)
+            string modifierText = "";
+            if ((player.Profile.CurrentModifiers & ~_excusableModifiers) == Modifier.None)
+            {
+                modifierText = Modifier.None.ToLocalizedName();
+            }
+            else
+            {
+                foreach (var modifier in _possibleModifiers)
+                {
+                    if (!player.Profile.IsModifierActive(modifier)) continue;
+                    modifierText += modifier.ToLocalizedName() + "\n";
+                }
+                modifierText = modifierText.Trim();
+            }
+            
+            CreateItem(LocalizeHeader("Modifiers"),
+                modifierText, false, () => { });
+            
+            // Show "Waiting for other players..." text if in multiplayer and not all players ready
+            if (Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                var allPlayers = Networking.YargNetworkManager.Instance.GetAllPlayers();
+                int readyCount = 0;
+                foreach (var p in allPlayers)
+                {
+                    if (p != null && p.IsReady) readyCount++;
+                }
+                
+                if (readyCount < allPlayers.Count)
+                {
+                    // Not all players ready - show waiting message
+                    CreateItem(null, $"Waiting for other players... ({readyCount}/{allPlayers.Count})", false, () => { });
+                }
+            }
+            
+            // Add "Unready" button (green, interactive) - this is the ONLY clickable button
+            CreateItem("Unready", true, _difficultyGreenPrefab, () =>
+            {
+                // Unmark player as ready
+                _readyPlayerIndices.Remove(_playerIndex);
+                
+                // Notify network that player is no longer ready
+                SetLocalPlayerReadyState(false);
+                
+                // Refresh the menu to show options again
+                UpdateForPlayer();
+            });
+        }
+        
+        private void UpdateReadyStatus()
+        {
+            if (_readyStatusText == null) return;
+            
+            // Check if in multiplayer
+            if (Networking.YargNetworkManager.Instance == null || !Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                _readyStatusText.gameObject.SetActive(false);
+                return;
+            }
+            
+            var allPlayers = Networking.YargNetworkManager.Instance.GetAllPlayers();
+            var localPlayer = GetLocalNetworkPlayer();
+            int readyCount = 0;
+            int totalCount = allPlayers.Count;
+            
+            foreach (var player in allPlayers)
+            {
+                if (player != null && player.IsReady)
+                {
+                    readyCount++;
+                }
+            }
+            
+            // Show different message if local player is ready
+            if (localPlayer != null && localPlayer.IsReady)
+            {
+                if (readyCount >= totalCount)
+                {
+                    _readyStatusText.text = "✓ All players ready! Starting game...";
+                    _readyStatusText.color = Color.green;
+                }
+                else
+                {
+                    _readyStatusText.text = $"✓ You are ready! Waiting for other players... ({readyCount}/{totalCount})";
+                    _readyStatusText.color = new Color(0f, 1f, 0.5f); // Cyan-ish green
+                }
+            }
+            else
+            {
+                _readyStatusText.text = $"Players Ready: {readyCount}/{totalCount}";
+                _readyStatusText.color = new Color(1f, 0.8f, 0f); // Orange/yellow
+            }
+            
+            _readyStatusText.gameObject.SetActive(true);
+        }
+        
+        private System.Collections.IEnumerator UpdateReadyStatusPeriodically()
+        {
+            while (enabled)
+            {
+                UpdateReadyStatus();
+                yield return new WaitForSeconds(0.5f);
+            }
         }
 
         private void CreateItem(string header, string body, bool selected, DifficultyItem difficultyItem, UnityAction a)
@@ -707,6 +1083,544 @@ namespace YARG.Menu.DifficultySelect
             int intSpeed = (int) Math.Clamp(speed, 10, 5000);
 
             _speedInput.SetTextWithoutNotify($"{intSpeed}%");
+        }
+        
+        private void SubscribeToNetworkPlayerEvents()
+        {
+            if (Networking.YargNetworkManager.Instance == null || !Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                return;
+            }
+            
+            var allPlayers = Networking.YargNetworkManager.Instance.GetAllPlayers();
+            foreach (var player in allPlayers)
+            {
+                if (player != null)
+                {
+                    player.OnReadyStateChangedEvent += OnNetworkPlayerReadyChanged;
+                    player.OnInstrumentChangedEvent += OnNetworkPlayerInstrumentChanged;
+                    player.OnDifficultyChangedEvent += OnNetworkPlayerDifficultyChanged;
+                }
+            }
+        }
+        
+        private void UnsubscribeFromNetworkPlayerEvents()
+        {
+            if (Networking.YargNetworkManager.Instance == null || !Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                return;
+            }
+            
+            // Unsubscribe from player left event
+            if (Networking.YargNetworkManager.Instance != null)
+            {
+                Networking.YargNetworkManager.Instance.OnPlayerLeft -= OnPlayerLeftLobby;
+            }
+            
+            var allPlayers = Networking.YargNetworkManager.Instance.GetAllPlayers();
+            foreach (var player in allPlayers)
+            {
+                if (player != null)
+                {
+                    player.OnReadyStateChangedEvent -= OnNetworkPlayerReadyChanged;
+                    player.OnInstrumentChangedEvent -= OnNetworkPlayerInstrumentChanged;
+                    player.OnDifficultyChangedEvent -= OnNetworkPlayerDifficultyChanged;
+                }
+            }
+        }
+        
+        private void OnPlayerLeftLobby(Networking.NetworkPlayerData player)
+        {
+            Debug.Log($"[DifficultySelectMenu] Player left: {player?.PlayerName}");
+            UpdateMultiplayerPlayerList();
+            UpdateReadyStatus();
+        }
+        
+        private void OnNetworkPlayerReadyChanged(bool isReady)
+        {
+            UpdateReadyStatus();
+            UpdateMultiplayerPlayerList();
+            
+            // If current player is ready, refresh their UI to update the waiting message
+            if (_readyPlayerIndices.Contains(_playerIndex))
+            {
+                UpdateForPlayer();
+            }
+            
+            // Check if all players are ready and auto-start
+            CheckAndAutoStart();
+        }
+        
+        private void OnNetworkPlayerInstrumentChanged(int instrument, int difficulty)
+        {
+            UpdateMultiplayerPlayerList();
+        }
+        
+        private void OnNetworkPlayerDifficultyChanged(int instrument, int difficulty)
+        {
+            UpdateMultiplayerPlayerList();
+        }
+        
+        private void CheckAndAutoStart()
+        {
+            if (Networking.YargNetworkManager.Instance == null || !Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                return;
+            }
+            
+            // Only check on host
+            if (!Networking.YargNetworkManager.Instance.IsHosting)
+            {
+                return;
+            }
+            
+            // Check if all players are ready
+            if (Networking.YargNetworkManager.Instance.AreAllPlayersReady())
+            {
+                Debug.Log("[DifficultySelect] All players ready - auto-starting gameplay");
+                
+                // Small delay to show "All players ready!" message
+                StartCoroutine(AutoStartGameplayAfterDelay());
+            }
+        }
+        
+        private System.Collections.IEnumerator AutoStartGameplayAfterDelay()
+        {
+            yield return new WaitForSeconds(1.0f);
+            
+            // Start gameplay for all players
+            Networking.YargNetworkManager.Instance.StartMultiplayerGameplay();
+        }
+        
+        private System.Collections.IEnumerator DelayedUpdateMultiplayerPlayerList()
+        {
+            // Wait a frame for NetworkPlayerData objects to be fully spawned
+            yield return null;
+            
+            Debug.Log("[DifficultySelectMenu] Delayed update of multiplayer player list");
+            UpdateMultiplayerPlayerList();
+        }
+        
+        private void UpdateMultiplayerPlayerList()
+        {
+            // Early exit if containers not assigned (optional feature)
+            if (_multiplayerPlayerListContainer == null || _multiplayerPlayerListContent == null)
+            {
+                return;
+            }
+            
+            // Only show player list container when in multiplayer
+            if (Networking.YargNetworkManager.Instance == null || !Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                _multiplayerPlayerListContainer.SetActive(false);
+                return;
+            }
+            
+            _multiplayerPlayerListContainer.SetActive(true);
+            
+            var allPlayers = Networking.YargNetworkManager.Instance.GetAllPlayers();
+            Debug.Log($"[DifficultySelectMenu] Found {allPlayers.Count} players in network");
+            var currentPlayers = new HashSet<Networking.NetworkPlayerData>(allPlayers.Where(p => p != null));
+            
+            // Remove entries for players that left
+            var playersToRemove = new List<Networking.NetworkPlayerData>();
+            foreach (var kvp in _playerEntries)
+            {
+                if (!currentPlayers.Contains(kvp.Key))
+                {
+                    playersToRemove.Add(kvp.Key);
+                    if (kvp.Value != null && kvp.Value.gameObject != null)
+                    {
+                        Destroy(kvp.Value.gameObject);
+                    }
+                }
+            }
+            
+            foreach (var player in playersToRemove)
+            {
+                _playerEntries.Remove(player);
+            }
+            
+            // Add entries for new players
+            foreach (var player in allPlayers)
+            {
+                if (player == null) continue;
+                
+                if (!_playerEntries.ContainsKey(player))
+                {
+                    Debug.Log($"[DifficultySelectMenu] Creating entry for player: {player.PlayerName}");
+                    CreateMultiplayerPlayerEntry(player);
+                }
+            }
+            
+            Debug.Log($"[DifficultySelectMenu] Total player entries: {_playerEntries.Count}");
+        }
+        
+        private void UpdateSongQueue()
+        {
+            // Early exit if containers not assigned
+            if (_songQueueContainer == null || _songQueueContent == null)
+            {
+                return;
+            }
+            
+            // Only show container if playing a show with songs in the queue
+            if (!GlobalVariables.State.PlayingAShow || GlobalVariables.State.ShowSongs == null || GlobalVariables.State.ShowSongs.Count == 0)
+            {
+                _songQueueContainer.SetActive(false);
+                return;
+            }
+            
+            Debug.Log($"[DifficultySelectMenu] Updating song queue - {GlobalVariables.State.ShowSongs.Count} songs, current index: {GlobalVariables.State.ShowIndex}");
+            _songQueueContainer.SetActive(true);
+            Debug.Log($"[DifficultySelectMenu] Song queue container is now active: {_songQueueContainer.activeSelf}");
+            
+            // Log container hierarchy and properties
+            Debug.Log($"[DifficultySelectMenu] Container name: {_songQueueContainer.name}, Content name: {_songQueueContent.name}");
+            var containerRect = _songQueueContainer.GetComponent<RectTransform>();
+            if (containerRect != null)
+            {
+                Debug.Log($"[DifficultySelectMenu] Container RectTransform - AnchoredPos: {containerRect.anchoredPosition}, SizeDelta: {containerRect.sizeDelta}, Scale: {containerRect.localScale}");
+            }
+            
+            var contentRect = _songQueueContent.GetComponent<RectTransform>();
+            if (contentRect != null)
+            {
+                Debug.Log($"[DifficultySelectMenu] Content RectTransform - AnchoredPos: {contentRect.anchoredPosition}, SizeDelta: {contentRect.sizeDelta}, Scale: {contentRect.localScale}");
+            }
+            
+            // Check for layout components
+            var layoutGroup = _songQueueContent.GetComponent<VerticalLayoutGroup>();
+            if (layoutGroup != null)
+            {
+                Debug.Log($"[DifficultySelectMenu] Content has VerticalLayoutGroup - enabled: {layoutGroup.enabled}, padding: {layoutGroup.padding.top}/{layoutGroup.padding.bottom}, spacing: {layoutGroup.spacing}");
+            }
+            else
+            {
+                Debug.LogWarning("[DifficultySelectMenu] Content missing VerticalLayoutGroup component!");
+            }
+            
+            var contentSizeFitter = _songQueueContent.GetComponent<ContentSizeFitter>();
+            if (contentSizeFitter != null)
+            {
+                Debug.Log($"[DifficultySelectMenu] Content has ContentSizeFitter - Vertical: {contentSizeFitter.verticalFit}");
+            }
+            
+            // Clear existing entries
+            foreach (var entry in _songQueueEntries)
+            {
+                if (entry != null && entry.gameObject != null)
+                {
+                    Destroy(entry.gameObject);
+                }
+            }
+            _songQueueEntries.Clear();
+            
+            // Create entry for each song in the queue
+            for (int i = 0; i < GlobalVariables.State.ShowSongs.Count; i++)
+            {
+                var song = GlobalVariables.State.ShowSongs[i];
+                bool isCurrent = (i == GlobalVariables.State.ShowIndex);
+                
+                CreateSongQueueEntry(song, isCurrent);
+            }
+            
+            Debug.Log($"[DifficultySelectMenu] Created {_songQueueEntries.Count} song queue entries");
+        }
+        
+        private void CreateSongQueueEntry(SongEntry song, bool isCurrent)
+        {
+            if (_songQueueContent == null || song == null)
+            {
+                Debug.LogWarning("[DifficultySelectMenu] CreateSongQueueEntry: Content or song is NULL!");
+                return;
+            }
+            
+            GameObject entryObject;
+            SongQueueEntry entryComponent;
+            
+            if (_songQueueEntryPrefab != null)
+            {
+                // Use prefab if available
+                Debug.Log($"[DifficultySelectMenu] Using prefab to create entry for {song.Name}");
+                entryObject = Instantiate(_songQueueEntryPrefab, _songQueueContent);
+                
+                // Force the entry to be active and visible
+                entryObject.SetActive(true);
+                
+                // Log detailed hierarchy info
+                Debug.Log($"[DifficultySelectMenu] Prefab instantiated - Name: {entryObject.name}, Active: {entryObject.activeSelf}, Parent: {_songQueueContent.name}");
+                
+                var rectTransform = entryObject.GetComponent<RectTransform>();
+                if (rectTransform != null)
+                {
+                    Debug.Log($"[DifficultySelectMenu] Entry RectTransform - AnchoredPos: {rectTransform.anchoredPosition}, SizeDelta: {rectTransform.sizeDelta}, Scale: {rectTransform.localScale}");
+                }
+                
+                // Check for Canvas components that might affect visibility
+                var canvas = entryObject.GetComponent<Canvas>();
+                if (canvas != null)
+                {
+                    Debug.Log($"[DifficultySelectMenu] Entry has Canvas component - enabled: {canvas.enabled}");
+                }
+                
+                var canvasGroup = entryObject.GetComponent<CanvasGroup>();
+                if (canvasGroup != null)
+                {
+                    Debug.Log($"[DifficultySelectMenu] Entry has CanvasGroup - alpha: {canvasGroup.alpha}, interactable: {canvasGroup.interactable}, blocksRaycasts: {canvasGroup.blocksRaycasts}");
+                    // Ensure it's visible
+                    canvasGroup.alpha = 1f;
+                }
+                
+                entryComponent = entryObject.GetComponent<SongQueueEntry>();
+                
+                if (entryComponent == null)
+                {
+                    Debug.LogWarning("[DifficultySelectMenu] Prefab missing SongQueueEntry component, adding it");
+                    entryComponent = entryObject.AddComponent<SongQueueEntry>();
+                }
+            }
+            else
+            {
+                // Fallback: create simple text entry
+                Debug.Log($"[DifficultySelectMenu] No prefab, creating fallback entry for {song.Name}");
+                entryObject = new GameObject($"SongQueueEntry_{song.Name}");
+                entryObject.transform.SetParent(_songQueueContent, false);
+                
+                // Add RectTransform for UI
+                var rectTransform = entryObject.AddComponent<RectTransform>();
+                rectTransform.sizeDelta = new Vector2(0, 40); // Height of 40
+                
+                // Add LayoutElement to ensure proper sizing
+                var layoutElement = entryObject.AddComponent<LayoutElement>();
+                layoutElement.minHeight = 40;
+                layoutElement.preferredHeight = 40;
+                
+                // Add background - green for current song, gray for others
+                var bg = entryObject.AddComponent<Image>();
+                if (isCurrent)
+                {
+                    bg.color = new Color(0.2f, 0.9f, 0.2f, 0.5f); // Green for current song
+                }
+                else
+                {
+                    bg.color = new Color(0.2f, 0.2f, 0.2f, 0.3f); // Gray for other songs
+                }
+                
+                // Create text for song name
+                var textGO = new GameObject("Text");
+                textGO.transform.SetParent(entryObject.transform, false);
+                var textRect = textGO.AddComponent<RectTransform>();
+                textRect.anchorMin = Vector2.zero;
+                textRect.anchorMax = Vector2.one;
+                textRect.offsetMin = new Vector2(10, 0);
+                textRect.offsetMax = new Vector2(-10, 0);
+                
+                var text = textGO.AddComponent<TextMeshProUGUI>();
+                text.text = $"{song.Name}\n<size=12>{song.Artist}</size>";
+                text.fontSize = 16;
+                text.color = Color.white;
+                text.alignment = TextAlignmentOptions.MidlineLeft;
+                
+                // Make current song bold
+                if (isCurrent)
+                {
+                    text.fontStyle = FontStyles.Bold;
+                }
+                
+                entryComponent = entryObject.AddComponent<SongQueueEntry>();
+            }
+            
+            entryComponent.Initialize(song, isCurrent);
+            _songQueueEntries.Add(entryComponent);
+            
+            Debug.Log($"[DifficultySelectMenu] Entry created and added - Total entries: {_songQueueEntries.Count}, Entry active: {entryObject.activeSelf}, In hierarchy: {entryObject.transform.parent != null}");
+        }
+        
+        private void CreateMultiplayerPlayerEntry(Networking.NetworkPlayerData player)
+        {
+            if (_multiplayerPlayerListContent == null || player == null)
+            {
+                Debug.LogWarning("[DifficultySelectMenu] CreateEntry: Content or player is NULL!");
+                return;
+            }
+            
+            // Don't create duplicate entries
+            if (_playerEntries.ContainsKey(player))
+            {
+                Debug.Log($"[DifficultySelectMenu] Entry already exists for {player.PlayerName}");
+                return;
+            }
+            
+            GameObject entryObject;
+            MultiplayerPlayerEntry entryComponent;
+            
+            if (_multiplayerPlayerEntryPrefab != null)
+            {
+                Debug.Log($"[DifficultySelectMenu] Using prefab to create entry for {player.PlayerName}");
+                // Use prefab if available
+                entryObject = Instantiate(_multiplayerPlayerEntryPrefab, _multiplayerPlayerListContent);
+                entryComponent = entryObject.GetComponent<MultiplayerPlayerEntry>();
+                
+                if (entryComponent == null)
+                {
+                    Debug.LogWarning("[DifficultySelectMenu] Prefab missing MultiplayerPlayerEntry component, adding it");
+                    entryComponent = entryObject.AddComponent<MultiplayerPlayerEntry>();
+                    
+                    // Wire up references to existing children in prefab
+                    var playerNameText = entryObject.transform.Find("PlayerName")?.GetComponent<TextMeshProUGUI>();
+                    var readyStatusIcon = entryObject.transform.Find("ReadyStatus")?.GetComponent<Image>();
+                    
+                    Debug.Log($"[DifficultySelectMenu] Found prefab children - Name: {playerNameText != null}, Status: {readyStatusIcon != null}");
+                    
+                    if (playerNameText != null && readyStatusIcon != null)
+                    {
+                        var type = typeof(MultiplayerPlayerEntry);
+                        type.GetField("_playerNameText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(entryComponent, playerNameText);
+                        type.GetField("_readyStatusIcon", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(entryComponent, readyStatusIcon);
+                        Debug.Log($"[DifficultySelectMenu] Wired up prefab references via reflection for {player.PlayerName}");
+                    }
+                    else
+                    {
+                        Debug.LogError("[DifficultySelectMenu] Prefab is missing required children! Expected: InstrumentIcon, PlayerName, DifficultyIcon, ReadyStatus");
+                    }
+                }
+            }
+            else
+            {
+                // Create entry from scratch
+                entryObject = new GameObject($"PlayerEntry_{player.PlayerName}");
+                entryObject.transform.SetParent(_multiplayerPlayerListContent, false);
+                
+                // Add layout group for horizontal layout
+                var layoutGroup = entryObject.AddComponent<HorizontalLayoutGroup>();
+                layoutGroup.spacing = 10f;
+                layoutGroup.childAlignment = TextAnchor.MiddleLeft;
+                layoutGroup.childControlWidth = false;
+                layoutGroup.childControlHeight = false;
+                layoutGroup.childForceExpandWidth = false;
+                layoutGroup.childForceExpandHeight = false;
+                
+                // Create player name text (will contain inline sprite icons)
+                // Create container to hold all elements
+                var containerObj = new GameObject("Container");
+                containerObj.transform.SetParent(entryObject.transform, false);
+                var containerRect = containerObj.AddComponent<RectTransform>();
+                containerRect.anchorMin = new Vector2(0, 0.5f);
+                containerRect.anchorMax = new Vector2(0, 0.5f);
+                containerRect.pivot = new Vector2(0, 0.5f);
+                // Create background panel for the entry (Halo Infinite style)
+                var backgroundObj = new GameObject("Background");
+                backgroundObj.transform.SetParent(containerObj.transform, false);
+                var backgroundImage = backgroundObj.AddComponent<Image>();
+                backgroundImage.color = new Color(0.1f, 0.1f, 0.1f, 0.8f); // Dark semi-transparent
+                var backgroundRect = backgroundImage.GetComponent<RectTransform>();
+                backgroundRect.anchorMin = Vector2.zero;
+                backgroundRect.anchorMax = Vector2.one;
+                backgroundRect.sizeDelta = Vector2.zero;
+                backgroundRect.anchoredPosition = Vector2.zero;
+                
+                // Create separator line at bottom (subtle)
+                var separatorObj = new GameObject("Separator");
+                separatorObj.transform.SetParent(containerObj.transform, false);
+                var separatorImage = separatorObj.AddComponent<Image>();
+                separatorImage.color = new Color(0.3f, 0.3f, 0.3f, 0.5f); // Subtle gray line
+                var separatorRect = separatorImage.GetComponent<RectTransform>();
+                separatorRect.anchorMin = new Vector2(0, 0);
+                separatorRect.anchorMax = new Vector2(1, 0);
+                separatorRect.pivot = new Vector2(0.5f, 0);
+                separatorRect.sizeDelta = new Vector2(0, 1); // 1px height
+                separatorRect.anchoredPosition = Vector2.zero;
+                
+                // Container setup - shorter height for compact Halo style
+                containerRect.sizeDelta = new Vector2(400, 35);
+                containerRect.anchoredPosition = Vector2.zero;
+                
+                // Create combined icons (instrument + difficulty) - smaller Halo style
+                var iconsObj = new GameObject("Icons");
+                iconsObj.transform.SetParent(containerObj.transform, false);
+                var iconsText = iconsObj.AddComponent<TextMeshProUGUI>();
+                iconsText.fontSize = 20; // Smaller icons
+                iconsText.alignment = TextAlignmentOptions.MidlineLeft;
+                iconsText.richText = true;
+                var iconsRect = iconsText.GetComponent<RectTransform>();
+                iconsRect.sizeDelta = new Vector2(60, 35); // Smaller to match entry height
+                iconsRect.anchoredPosition = new Vector2(8, 0); // Small left padding
+                iconsRect.anchorMin = new Vector2(0, 0.5f);
+                iconsRect.anchorMax = new Vector2(0, 0.5f);
+                iconsRect.pivot = new Vector2(0, 0.5f);
+                
+                // Create player name text - Halo Infinite style
+                var nameObj = new GameObject("PlayerName");
+                nameObj.transform.SetParent(containerObj.transform, false);
+                var nameText = nameObj.AddComponent<TextMeshProUGUI>();
+                nameText.fontSize = 18; // Slightly smaller, cleaner
+                nameText.alignment = TextAlignmentOptions.MidlineLeft;
+                nameText.enableWordWrapping = false;
+                nameText.overflowMode = TextOverflowModes.Ellipsis;
+                nameText.horizontalAlignment = HorizontalAlignmentOptions.Left;
+                nameText.color = Color.white; // Pure white like Halo
+                
+                var nameRect = nameText.GetComponent<RectTransform>();
+                nameRect.anchorMin = new Vector2(0, 0.5f);
+                nameRect.anchorMax = new Vector2(0, 0.5f);
+                nameRect.pivot = new Vector2(0, 0.5f);
+                nameRect.anchoredPosition = new Vector2(75, 0); // Closer to icons
+                nameRect.sizeDelta = new Vector2(240, 35);
+                
+                // Create ready status icon - right side like Halo
+                var statusObj = new GameObject("ReadyStatus");
+                statusObj.transform.SetParent(containerObj.transform, false);
+                var statusIcon = statusObj.AddComponent<Image>();
+                var statusRect = statusIcon.GetComponent<RectTransform>();
+                statusRect.sizeDelta = new Vector2(24, 24); // Smaller, more subtle
+                statusRect.anchoredPosition = new Vector2(-10, 0); // Right-aligned with padding
+                statusRect.anchorMin = new Vector2(1, 0.5f); // Anchor to right
+                statusRect.anchorMax = new Vector2(1, 0.5f);
+                statusRect.pivot = new Vector2(1, 0.5f);
+                
+                // Add MultiplayerPlayerEntry component and wire up references via reflection
+                entryComponent = entryObject.AddComponent<MultiplayerPlayerEntry>();
+                var type = typeof(MultiplayerPlayerEntry);
+                type.GetField("_iconsText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(entryComponent, iconsText);
+                type.GetField("_playerNameText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(entryComponent, nameText);
+                type.GetField("_readyStatusIcon", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(entryComponent, statusIcon);
+            }
+            
+            entryObject.SetActive(true);
+            
+            Debug.Log($"[DifficultySelectMenu] Entry created for {player.PlayerName}, initializing...");
+            
+            // Initialize the entry with player data
+            if (entryComponent != null)
+            {
+                entryComponent.Initialize(player);
+                _playerEntries[player] = entryComponent;
+                Debug.Log($"[DifficultySelectMenu] Entry initialized successfully for {player.PlayerName}");
+            }
+            else
+            {
+                Debug.LogError($"[DifficultySelectMenu] Failed to create MultiplayerPlayerEntry component for {player.PlayerName}!");
+            }
+        }
+        
+        private Networking.NetworkPlayerData GetLocalNetworkPlayer()
+        {
+            if (Networking.YargNetworkManager.Instance == null || !Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                return null;
+            }
+            
+            var allPlayers = Networking.YargNetworkManager.Instance.GetAllPlayers();
+            foreach (var player in allPlayers)
+            {
+                if (player != null && player.isLocalPlayer)
+                {
+                    return player;
+                }
+            }
+            
+            return null;
         }
     }
 }

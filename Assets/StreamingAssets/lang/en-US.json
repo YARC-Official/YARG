@@ -146,7 +146,8 @@
             "Reset": "Reset",
             "ResetAll": "Reset All",
 
-			"Scroll" : "Scroll"
+			"Scroll" : "Scroll",
+			"Refresh": "Refresh"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",
@@ -259,6 +260,7 @@
             "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.13!</b></size></align>\n\nv0.13 is a major update that adds Pro Keys, brings major engine improvements for all instruments, along with a ton of quality of life features, performance improvements, and more.\n\n<b>If you have any feedback, or find any bugs, please let us know on Discord or GitHub.</b>\n\nHave fun!",
             "Options": {
                 "Quickplay": "Quickplay",
+                "OnlineMultiplayer": "Online Multiplayer",
                 "Practice": "Practice",
                 "Profiles": "Profiles",
                 "History": "History",
@@ -267,6 +269,38 @@
                 "Exit": "Exit"
             },
             "GoToCurrentlyPlaying": "Go To Currently Playing"
+        },
+        "LobbyBrowser": {
+            "Name": "Lobby Browser",
+            "NoLobbiesFound": "NO LOBBIES FOUND",
+            "SearchingForLobbies": "Searching for lobbies...",
+            "LobbiesFound": "{0} {1} found",
+            "Lobby": "lobby",
+            "Lobbies": "lobbies",
+            "FavoriteLobbies": "★ FAVORITE LOBBIES",
+            "AllLobbies": "ALL LOBBIES",
+            "AvailableLobbies": "AVAILABLE LOBBIES",
+            "SelectLobby": "Select a lobby to view details",
+            "JoinLobby": "Join Lobby",
+            "AddToFavorites": "Add To Favorites",
+            "RemoveFromFavorites": "Remove From Favorites",
+            "Refresh": "Refresh",
+            "CreateLobby": "Create Lobby",
+            "DirectConnect": "Direct Connect",
+            "Back": "Back",
+            "PasswordRequired": "Password Required",
+            "PasswordRequiredMessage": "The lobby '{0}' requires a password.\nPassword input dialog coming soon!",
+            "PlayerCount": "{0}/{1} Players",
+            "Ping": "Ping: {0}ms",
+            "Privacy": "Privacy: {0}",
+            "PrivacyPublic": "Public",
+            "PrivacyPrivate": "Private",
+            "PrivacyFriendsOnly": "Friends Only",
+            "NoPlayersInLobby": "No players in lobby",
+            "PlayersInLobby": "{0} {1} in lobby",
+            "Player": "player",
+            "Players": "players",
+            "Host": "Host: {0}"
         },
         "MusicLibrary": {
             "Name": "Music Library",
@@ -356,7 +390,13 @@
         "ScoreScreen" : {
             "BandScoreNotSaved" : "(Score not saved)",
             "RestartSong" : "Restart Song",
-            "EndSetlistEarly" : "End Setlist"
+            "EndSetlistEarly" : "End Setlist",
+            "ReadyUp" : "Ready Up",
+            "Unready" : "Cancel Ready",
+            "ReadyStatus" : "Ready {0}/{1}",
+            "ReadyPrompt" : "Press Green to ready up.",
+            "AllReady" : "Everyone's ready!",
+            "WaitingForPlayers" : "Waiting for other players..."
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",

@@ -155,13 +155,33 @@ namespace YARG.Menu.MusicLibrary
             // Reset library's main index so we don't return to the index set by play a show
             MusicLibraryMenu.ResetMainLibraryIndex();
 
-            GlobalVariables.State.CurrentSong = SongEntry;
-            // This just makes stuff in DifficultySelectMenu easier
-            GlobalVariables.State.ShowSongs.Clear();
-            GlobalVariables.State.ShowSongs.Add(SongEntry);
-            GlobalVariables.State.PlayingAShow = false;
+            // Check if we're in multiplayer mode
+            bool isMultiplayer = YARG.Networking.YargNetworkManager.Instance != null && 
+                                 YARG.Networking.YargNetworkManager.Instance.isNetworkActive;
 
-            MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
+            if (isMultiplayer)
+            {
+                // In multiplayer, selecting a song adds it to the setlist
+                Debug.Log($"[SongViewType] Adding song to multiplayer setlist: {SongEntry.Name}");
+                
+                // Add to the multiplayer show playlist
+                _musicLibrary.AddSongToMultiplayerShow(SongEntry.Hash.ToString());
+                
+                // Show feedback to user
+                Menu.Persistent.ToastManager.ToastSuccess(Localization.Localize.Key("Menu.MusicLibrary.AddedToSet"));
+                
+                // Note: Host will start the show with the "Start Set" button
+            }
+            else
+            {
+                // Single player mode - proceed as normal
+                GlobalVariables.State.CurrentSong = SongEntry;
+                GlobalVariables.State.ShowSongs.Clear();
+                GlobalVariables.State.ShowSongs.Add(SongEntry);
+                GlobalVariables.State.PlayingAShow = false;
+
+                MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
+            }
         }
 
         public override void IconClick()
@@ -199,11 +219,26 @@ namespace YARG.Menu.MusicLibrary
 
         public override void RemoveFromPlaylist(Playlist playlist)
         {
-            playlist.RemoveSong(SongEntry);
+            // Check if we're in multiplayer mode and this is the show playlist
+            bool isMultiplayer = YARG.Networking.YargNetworkManager.Instance != null && 
+                                 YARG.Networking.YargNetworkManager.Instance.isNetworkActive;
 
-            if (_musicLibrary.SelectedPlaylist == playlist)
+            if (isMultiplayer && playlist.Ephemeral && _musicLibrary.ShowPlaylist == playlist)
             {
-                _musicLibrary.RefreshAndReselect();
+                // Multiplayer show playlist - use network command
+                Debug.Log($"[SongViewType] Removing song from multiplayer setlist: {SongEntry.Name}");
+                _musicLibrary.RemoveSongFromMultiplayerShow(SongEntry.Hash.ToString());
+                Menu.Persistent.ToastManager.ToastInformation($"Removed '{SongEntry.Name}' from setlist");
+            }
+            else
+            {
+                // Local playlist - remove directly
+                playlist.RemoveSong(SongEntry);
+
+                if (_musicLibrary.SelectedPlaylist == playlist)
+                {
+                    _musicLibrary.RefreshAndReselect();
+                }
             }
         }
 

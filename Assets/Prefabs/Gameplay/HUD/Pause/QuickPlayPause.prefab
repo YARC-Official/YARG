@@ -174,7 +174,7 @@ PrefabInstance:
     - target: {fileID: 8918172421923777625, guid: d0426e4d1cafc1c489d1df380508ec96,
         type: 3}
       propertyPath: m_Name
-      value: QuickPlay
+      value: QuickPlayPause
       objectReference: {fileID: 0}
     - target: {fileID: 8918172421923777626, guid: d0426e4d1cafc1c489d1df380508ec96,
         type: 3}

@@ -2,11 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using Mirror;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Engine.Drums;
+using YARG.Core.Engine.Guitar;
+using YARG.Core.Engine.Keys;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
@@ -29,6 +33,7 @@ namespace YARG.Gameplay
     [DefaultExecutionOrder(-1)]
     public partial class GameManager : MonoBehaviour
     {
+        private static GameManager _instance;
         public const double SONG_START_DELAY = SongRunner.SONG_START_DELAY;
         public const double SONG_END_DELAY = SONG_START_DELAY;
 
@@ -149,22 +154,57 @@ namespace YARG.Gameplay
         public int  ShowIndex = 0;
 
         private BandComboType _bandComboType;
+        private Menu.Multiplayer.MultiplayerGameplaySync _multiplayerSync;
 
         private void Awake()
         {
+            // MULTIPLAYER FIX: Singleton pattern to prevent duplicate GameManagers
+            if (_instance != null && _instance != this)
+            {
+                YargLogger.LogWarning("[GameManager] Duplicate GameManager detected! Destroying this duplicate.");
+                DestroyImmediate(gameObject);
+                return;
+            }
+            _instance = this;
+
             // Set references
             PracticeManager = GetComponent<PracticeManager>();
             BackgroundManager = GetComponent<BackgroundManager>();
             EngineManager = new EngineManager();
+            YargLogger.LogFormatInfo("[GameManager] Created new EngineManager with hash: {0}", EngineManager.GetHashCode());
 
-            YargPlayers = PlayerContainer.Players;
+            // Check if we're in multiplayer mode
+            bool isMultiplayer = Networking.YargNetworkManager.Instance != null && 
+                                 Networking.YargNetworkManager.Instance.isNetworkActive;
+
+            if (isMultiplayer)
+            {
+                // In multiplayer, mark that we need to create players in Start() after network objects spawn
+                // Initialize multiplayer sync component now
+                _multiplayerSync = gameObject.AddComponent<Menu.Multiplayer.MultiplayerGameplaySync>();
+                Debug.Log("[GameManager] Multiplayer sync component added - will create players in Start()");
+                
+                // Register disconnect event handlers for multiplayer gameplay
+                Networking.YargNetworkManager.Instance.OnClientDisconnected += OnClientDisconnectedDuringGameplay;
+                Networking.YargNetworkManager.Instance.OnLobbyLeft += OnLobbyLeftDuringGameplay;
+                Debug.Log("[GameManager] Registered disconnect event handlers for multiplayer");
+            }
+            else
+            {
+                // In single player, use PlayerContainer as normal
+                YargPlayers = PlayerContainer.Players;
+            }
 
             Song = GlobalVariables.State.CurrentSong;
             ReplayInfo = GlobalVariables.State.CurrentReplay;
             IsPractice = GlobalVariables.State.IsPractice && ReplayInfo == null;
             _bandComboType = SettingsManager.Settings.BandComboTypeSetting.Value;
 
-            Navigator.Instance.PopAllSchemes();
+            // Check if Navigator still exists (might be destroyed during scene transition)
+            if (Navigator.Instance != null)
+            {
+                Navigator.Instance.PopAllSchemes();
+            }
             GameStateFetcher.SetSongEntry(Song);
 
             if (Song is null)
@@ -197,22 +237,42 @@ namespace YARG.Gameplay
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             }
 
-            // Unsubscribe from other events
-            SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
-            EngineManager.OnSongFailed -= OnSongFailed;
+            // Unsubscribe from disconnect events
+            if (Networking.YargNetworkManager.Instance != null)
+            {
+                if (Networking.YargNetworkManager.Instance.isNetworkActive)
+                {
+                    Networking.YargNetworkManager.Instance.ReportLocalGameplayReady(false);
+                }
+                Networking.YargNetworkManager.Instance.OnClientDisconnected -= OnClientDisconnectedDuringGameplay;
+                Networking.YargNetworkManager.Instance.OnLobbyLeft -= OnLobbyLeftDuringGameplay;
+            }
+
+            // Unsubscribe from other events (null checks for duplicate GameManager case)
+            if (SettingsManager.Settings?.NoFailMode != null)
+            {
+                SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
+            }
+            if (EngineManager != null)
+            {
+                EngineManager.OnSongFailed -= OnSongFailed;
+            }
 
             //Restore stem volumes to their original state
-            foreach (var (stem, state) in _stemStates)
+            if (_stemStates != null)
             {
-                GlobalAudioHandler.SetVolumeSetting(stem, state.Volume);
+                foreach (var (stem, state) in _stemStates)
+                {
+                    GlobalAudioHandler.SetVolumeSetting(stem, state.Volume);
+                }
             }
 
             DisposeDebug();
-            _pauseMenu.PopAllMenus();
+            _pauseMenu?.PopAllMenus();
             _mixer?.Dispose();
             _songRunner?.Dispose();
-            BackgroundManager.Dispose();
-            CrowdEventHandler.Dispose();
+            BackgroundManager?.Dispose();
+            CrowdEventHandler?.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
             Time.timeScale = 1f;
@@ -230,7 +290,30 @@ namespace YARG.Gameplay
                     !DialogManager.Instance.IsDialogShowing &&
                     !PlayerHasFailed)
                 {
-                    SetPaused(!_pauseMenu.IsOpen);
+                    // Check if we're in multiplayer
+                    bool isMultiplayer = Networking.YargNetworkManager.Instance != null && 
+                                         Networking.YargNetworkManager.Instance.isNetworkActive;
+                    
+                    if (isMultiplayer)
+                    {
+                        // In multiplayer, pause menu shows but song keeps playing
+                        if (_pauseMenu.IsOpen)
+                        {
+                            // Close pause menu
+                            _pauseMenu.PopAllMenus();
+                        }
+                        else
+                        {
+                            // Show pause menu but keep song playing
+                            PauseCore(showMenu: true);
+                            _songRunner.Resume();
+                        }
+                    }
+                    else
+                    {
+                        // Single player - normal pause behavior
+                        SetPaused(!_pauseMenu.IsOpen);
+                    }
                 }
             }
 
@@ -240,8 +323,8 @@ namespace YARG.Gameplay
                 ToggleDebugEnabled();
             }
 
-            // Skip the rest if paused
-            if (_songRunner.Paused)
+            // Skip the rest if paused or not initialized yet
+            if (_songRunner == null || _songRunner.Paused)
             {
                 return;
             }
@@ -251,7 +334,12 @@ namespace YARG.Gameplay
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
             CrowdEventHandler.Update(_songRunner.SongTime);
 
-            // Update players
+            // Update players (skip if not initialized yet)
+            if (_players == null || _players.Count == 0)
+            {
+                return;
+            }
+            
             int totalScore = 0;
             float totalStars = 0f;
             foreach (var player in _players)
@@ -270,6 +358,8 @@ namespace YARG.Gameplay
 
             BandScore = totalScore;
             BandStars = totalStars / _players.Count;
+            
+            SendMultiplayerSnapshot();
 
             // End song if needed (required for the [end] event)
             if (_songRunner.SongTime >= SongLength)
@@ -279,6 +369,95 @@ namespace YARG.Gameplay
                     return;
                 }
             }
+        }
+
+        private void SendMultiplayerSnapshot(bool forceSend = false)
+        {
+            if (_multiplayerSync == null || _players == null || _players.Count == 0 || _songRunner == null)
+            {
+                return;
+            }
+
+            var localPlayer = _players[0];
+            var baseStats = localPlayer.BaseStats;
+
+            float starPowerAmount = 0f;
+            uint gaugeTicks = localPlayer.BaseEngine != null ? localPlayer.BaseEngine.TicksPerFullSpBar : 0u;
+            if (gaugeTicks > 0)
+            {
+                starPowerAmount = Mathf.Clamp01((float) baseStats.StarPowerTickAmount / gaugeTicks);
+            }
+            else if (baseStats.TotalStarPowerTicks > 0)
+            {
+                starPowerAmount = Mathf.Clamp01((float) baseStats.StarPowerTickAmount / baseStats.TotalStarPowerTicks);
+            }
+
+            var trackPlayer = localPlayer as TrackPlayer;
+
+            int notesMissed;
+            if (trackPlayer != null)
+            {
+                notesMissed = Mathf.Max(0, trackPlayer.GetResolvedMissCount());
+            }
+            else
+            {
+                notesMissed = Mathf.Max(0, localPlayer.TotalNotes - localPlayer.NotesHit);
+            }
+
+            int overstrums = 0;
+            int hoposStrummed = 0;
+            int overhits = 0;
+            int ghostInputs = 0;
+            int ghostsHit = 0;
+            int accentsHit = 0;
+            int dynamicsBonus = 0;
+            int bandBonusScore = Mathf.Max(0, localPlayer.BandBonusScore);
+
+            switch (baseStats)
+            {
+                case GuitarStats guitarStats:
+                    overstrums = Mathf.Max(0, guitarStats.Overstrums);
+                    hoposStrummed = Mathf.Max(0, guitarStats.HoposStrummed);
+                    ghostInputs = Mathf.Max(0, guitarStats.GhostInputs);
+                    break;
+                case DrumsStats drumsStats:
+                    overhits = Mathf.Max(0, drumsStats.Overhits);
+                    ghostsHit = Mathf.Max(0, drumsStats.GhostsHit);
+                    accentsHit = Mathf.Max(0, drumsStats.AccentsHit);
+                    dynamicsBonus = Mathf.Max(0, drumsStats.DynamicsBonus);
+                    break;
+                case KeysStats keysStats:
+                    overhits = Mathf.Max(0, keysStats.Overhits);
+                    break;
+            }
+
+            bool soloActive = false;
+            int soloSequence = -1;
+            int soloNoteCount = 0;
+            int soloNotesHit = 0;
+            int soloLastBonus = 0;
+            int soloTotalBonus = Mathf.Max(0, baseStats.SoloBonuses);
+
+            if (trackPlayer != null)
+            {
+                var soloSnapshot = trackPlayer.GetSoloSyncSnapshot();
+                soloActive = soloSnapshot.IsActive;
+                soloSequence = soloSnapshot.Sequence;
+                soloNoteCount = soloSnapshot.NoteCount;
+                soloNotesHit = soloSnapshot.NotesHit;
+                soloLastBonus = soloSnapshot.LastBonus;
+                soloTotalBonus = soloSnapshot.TotalBonus;
+            }
+
+            double songTime = _songRunner.SongTime;
+            double clientNetworkTime = NetworkTime.time;
+
+            _multiplayerSync.SubmitLocalSnapshot(localPlayer.Score, localPlayer.Combo, baseStats.MaxCombo,
+                baseStats.IsStarPowerActive, starPowerAmount, baseStats.StarPowerPhrasesHit,
+                baseStats.TotalStarPowerPhrases, localPlayer.NotesHit, notesMissed, overstrums, hoposStrummed,
+                overhits, ghostInputs, ghostsHit, accentsHit, dynamicsBonus, bandBonusScore, soloActive,
+                soloSequence, soloNoteCount, soloNotesHit, soloLastBonus, soloTotalBonus, songTime,
+                clientNetworkTime, forceSend);
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
@@ -334,6 +513,10 @@ namespace YARG.Gameplay
         {
             if (showMenu)
             {
+                // Check if we're in multiplayer (check this first before other modes)
+                bool isMultiplayer = Networking.YargNetworkManager.Instance != null && 
+                                     Networking.YargNetworkManager.Instance.isNetworkActive;
+                
                 if (!GlobalVariables.State.PlayingWithReplay && ReplayInfo != null)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
@@ -341,6 +524,11 @@ namespace YARG.Gameplay
                 else if (PlayerHasFailed)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.FailPause);
+                }
+                else if (isMultiplayer)
+                {
+                    // Multiplayer pause takes priority over practice/setlist modes
+                    _pauseMenu.PushMenu(PauseMenuManager.Menu.MultiplayerPause);
                 }
                 else if (IsPractice)
                 {
@@ -437,6 +625,70 @@ namespace YARG.Gameplay
 
             return resumed;
         }
+        
+        /// <summary>
+        /// Called when a client disconnects during gameplay (host perspective).
+        /// Brings everyone back to music library with notification.
+        /// </summary>
+        private void OnClientDisconnectedDuringGameplay(Mirror.NetworkConnectionToClient conn)
+        {
+            // Only handle if we're actually in gameplay
+            if (GlobalVariables.Instance.CurrentScene != SceneIndex.Gameplay)
+            {
+                return;
+            }
+            
+            // Only host receives this event
+            if (Networking.YargNetworkManager.Instance == null || !Networking.YargNetworkManager.Instance.IsHosting)
+            {
+                return;
+            }
+            
+            YargLogger.LogInfo($"[GameManager] Client disconnected during gameplay - stopping song and returning all players to music library");
+            
+            // Stop the song
+            SetPaused(true);
+            
+            // Sync all remaining clients back to music library
+            if (Networking.YargNetworkManager.Instance != null)
+            {
+                Networking.YargNetworkManager.Instance.SyncMenuNavigation(popMenu: false, targetMenu: Menu.MenuManager.Menu.MusicLibrary);
+                
+                // Host should also go directly to MusicLibrary after scene loads
+                Networking.YargNetworkManager.SetMenuNavigationAfterSceneLoad(
+                    Menu.MenuManager.Menu.OnlineMultiplayer,
+                    Menu.MenuManager.Menu.LobbyRoom,
+                    Menu.MenuManager.Menu.MusicLibrary);
+            }
+            
+            // Host also goes back to menu
+            GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+        }
+        
+        /// <summary>
+        /// Called when the lobby is left during gameplay (client perspective when host disconnects).
+        /// Brings client back to the lobby browser.
+        /// </summary>
+        private void OnLobbyLeftDuringGameplay()
+        {
+            // Only handle if we're actually in gameplay
+            if (GlobalVariables.Instance.CurrentScene != SceneIndex.Gameplay)
+            {
+                return;
+            }
+            
+            YargLogger.LogInfo($"[GameManager] Host disconnected during gameplay - stopping song and returning to lobby browser");
+            
+            // Stop the song
+            SetPaused(true);
+            
+            // Set navigation target to OnlineMultiplayer (lobby browser)
+            // This ensures client goes to lobby browser instead of MusicLibrary
+            Networking.YargNetworkManager.SetMenuNavigationAfterSceneLoad(Menu.MenuManager.Menu.OnlineMultiplayer);
+            
+            // Client goes back to menu
+            GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+        }
 
         public double GetRelativeInputTime(double timeFromInputSystem)
             => _songRunner.GetRelativeInputTime(timeFromInputSystem);
@@ -472,6 +724,9 @@ namespace YARG.Gameplay
                 YargLogger.LogException(e, "Failed to save replay!");
             }
 
+            SendMultiplayerSnapshot(forceSend: true);
+            ApplyAuthoritativeNetworkStats();
+
             // Pass the score info to the stats screen
             GlobalVariables.State.ScoreScreenStats = new ScoreScreenStats
             {
@@ -494,6 +749,142 @@ namespace YARG.Gameplay
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
             return true;
+        }
+
+        private void ApplyAuthoritativeNetworkStats()
+        {
+            if (Networking.YargNetworkManager.Instance == null || !Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                return;
+            }
+
+            foreach (var player in _players)
+            {
+                var networkData = player.NetworkPlayerData;
+                if (networkData == null)
+                {
+                    continue;
+                }
+
+                var stats = player.BaseStats;
+                int sanitizedScore = Mathf.Max(0, networkData.CurrentScore);
+                int bandBonusScore = Mathf.Max(0, networkData.BandBonusScore);
+                int totalSoloBonus = Mathf.Max(0, networkData.SoloTotalBonus);
+
+                int authoritativeHits = Mathf.Max(0, networkData.NotesHit);
+                int authoritativeMisses = Mathf.Max(0, networkData.NotesMissed);
+                int authoritativeTotalNotes = authoritativeHits + authoritativeMisses;
+                if (authoritativeTotalNotes > 0)
+                {
+                    stats.TotalNotes = Mathf.Max(stats.TotalNotes, authoritativeTotalNotes);
+                }
+
+                int totalNotes = stats.TotalNotes;
+                stats.NotesHit = Mathf.Clamp(authoritativeHits, 0, totalNotes);
+                stats.Combo = Mathf.Max(0, networkData.CurrentCombo);
+                stats.MaxCombo = Mathf.Max(stats.MaxCombo, networkData.CurrentStreak);
+
+                uint gaugeTicks = player.BaseEngine != null ? player.BaseEngine.TicksPerFullSpBar : 0u;
+                if (gaugeTicks > 0)
+                {
+                    stats.StarPowerTickAmount = (uint) Mathf.Clamp(
+                        Mathf.RoundToInt(networkData.StarPowerAmount * gaugeTicks), 0, (int) gaugeTicks);
+                }
+                else if (stats.TotalStarPowerTicks > 0)
+                {
+                    stats.StarPowerTickAmount = (uint) Mathf.Clamp(
+                        Mathf.RoundToInt(networkData.StarPowerAmount * stats.TotalStarPowerTicks),
+                        0, (int) stats.TotalStarPowerTicks);
+                }
+                else
+                {
+                    stats.StarPowerTickAmount = 0;
+                }
+
+                stats.IsStarPowerActive = networkData.IsStarPowerActive;
+
+                int totalStarPowerPhrases = Mathf.Max(stats.TotalStarPowerPhrases, networkData.TotalStarPowerPhrases);
+                if (totalStarPowerPhrases > 0)
+                {
+                    stats.TotalStarPowerPhrases = totalStarPowerPhrases;
+                    stats.StarPowerPhrasesHit = Mathf.Clamp(networkData.StarPowerPhrasesHit, 0, totalStarPowerPhrases);
+                }
+                else
+                {
+                    stats.StarPowerPhrasesHit = Mathf.Max(0, networkData.StarPowerPhrasesHit);
+                }
+
+                int maxMultiplier = player.BaseEngine?.BaseParameters?.MaxMultiplier ?? 4;
+                int baseMultiplier = Mathf.Clamp((stats.Combo / 10) + 1, 1, maxMultiplier);
+                int effectiveMultiplier = baseMultiplier;
+                if (networkData.IsStarPowerActive)
+                {
+                    effectiveMultiplier = Mathf.Min(baseMultiplier * 2, maxMultiplier * 2);
+                }
+
+                stats.ScoreMultiplier = effectiveMultiplier;
+                stats.BandMultiplier = effectiveMultiplier;
+
+                stats.SoloBonuses = totalSoloBonus;
+
+                stats.PendingScore = 0;
+                stats.SustainScore = 0;
+                stats.MultiplierScore = 0;
+
+                int committedScore = sanitizedScore - totalSoloBonus - bandBonusScore;
+                if (committedScore < 0)
+                {
+                    committedScore = Mathf.Max(0, sanitizedScore - totalSoloBonus);
+                }
+
+                if (committedScore + totalSoloBonus + bandBonusScore > sanitizedScore)
+                {
+                    bandBonusScore = Mathf.Max(0, sanitizedScore - (committedScore + totalSoloBonus));
+                }
+
+                stats.CommittedScore = committedScore;
+                stats.NoteScore = committedScore;
+                stats.BandBonusScore = bandBonusScore;
+
+                if (stats.TotalNotes > 0)
+                {
+                    stats.Stars = Mathf.Clamp01(stats.Percent) * 5f;
+                }
+
+                switch (stats)
+                {
+                    case GuitarStats guitarStats:
+                        guitarStats.Overstrums = Mathf.Max(0, networkData.Overstrums);
+                        guitarStats.HoposStrummed = Mathf.Max(0, networkData.HoposStrummed);
+                        guitarStats.GhostInputs = Mathf.Max(0, networkData.GhostInputs);
+                        break;
+                    case DrumsStats drumsStats:
+                        drumsStats.Overhits = Mathf.Max(0, networkData.Overhits);
+                        drumsStats.GhostsHit = Mathf.Clamp(networkData.GhostsHit, 0, drumsStats.TotalGhosts);
+                        drumsStats.AccentsHit = Mathf.Clamp(networkData.AccentsHit, 0, drumsStats.TotalAccents);
+                        drumsStats.DynamicsBonus = Mathf.Max(0, networkData.DynamicsBonus);
+                        break;
+                    case KeysStats keysStats:
+                        keysStats.Overhits = Mathf.Max(0, networkData.Overhits);
+                        break;
+                }
+            }
+
+            int authoritativeBandScore = 0;
+            float authoritativeBandStars = 0f;
+
+            foreach (var player in _players)
+            {
+                authoritativeBandScore += player.Score;
+                authoritativeBandScore += player.BaseStats.BandBonusScore;
+                authoritativeBandStars += player.Stars;
+            }
+
+            if (_players.Count > 0)
+            {
+                BandScore = authoritativeBandScore;
+                BandStars = authoritativeBandStars / _players.Count;
+            }
         }
 
         private void RecordScores(ReplayInfo replayInfo)
@@ -533,7 +924,9 @@ namespace YARG.Gameplay
                     IsFc = player.IsFc,
                     IsReplay = player.Player.IsReplay,
 
-                    Percent = player.BaseStats.Percent
+                    Percent = player.BaseStats.Percent,
+
+                    PlayerDisplayName = profile.Name
                 });
             }
 
@@ -656,7 +1049,21 @@ namespace YARG.Gameplay
         {
             if (!hasFocus && !Paused && SettingsManager.Settings.PauseOnFocusLoss.Value)
             {
-                SetPaused(true);
+                // Check if we're in multiplayer
+                bool isMultiplayer = Networking.YargNetworkManager.Instance != null && 
+                                     Networking.YargNetworkManager.Instance.isNetworkActive;
+                
+                if (isMultiplayer)
+                {
+                    // In multiplayer, show pause menu but keep song playing
+                    PauseCore(showMenu: true);
+                    _songRunner.Resume();
+                }
+                else
+                {
+                    // Single player - normal pause behavior
+                    SetPaused(true);
+                }
             }
         }
 
@@ -683,6 +1090,35 @@ namespace YARG.Gameplay
             if (SettingsManager.Settings.NoFailMode.Value || IsPractice)
             {
                 return;
+            }
+
+            // In multiplayer, only fail if a LOCAL player (with bindings) has failed
+            // Remote players have no inputs and will naturally hit 0 happiness, but shouldn't trigger game over
+            if (_multiplayerSync != null && _players != null && EngineManager != null)
+            {
+                bool localPlayerFailed = false;
+                var engines = EngineManager.Engines;
+                
+                // Check each engine to see if it belongs to a local player and has failed
+                for (int i = 0; i < Math.Min(_players.Count, engines.Count); i++)
+                {
+                    var player = _players[i];
+                    var engine = engines[i];
+                    
+                    // Check if this is a local player (has bindings) with failed engine (happiness <= 0)
+                    if (player.Player.Bindings != null && engine.Happiness <= 0f)
+                    {
+                        localPlayerFailed = true;
+                        break;
+                    }
+                }
+
+                // If no local player has actually failed, don't trigger game over
+                // (Remote players may have 0 happiness but shouldn't cause failure)
+                if (!localPlayerFailed)
+                {
+                    return;
+                }
             }
 
             if (!PlayerHasFailed)

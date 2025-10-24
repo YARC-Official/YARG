@@ -24,6 +24,7 @@
   ],
   "dependencies": {
     "com.coffee.softmask-for-ugui": "1.0.2",
+    "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity",
     "com.cysharp.csprojmodifier": "https://github.com/Cysharp/CsprojModifier.git?path=src/CsprojModifier/Assets/CsprojModifier",
     "com.cysharp.unitask": "2.5.3",
     "com.github-glitchenzo.nugetforunity": "4.5.0",
@@ -47,7 +48,8 @@
     "com.unity.toolchain.linux-x86_64": "2.0.10",
     "com.unity.toolchain.macos-x86_64-linux-x86_64": "2.0.6",
     "com.unity.toolchain.win-x86_64-linux-x86_64": "2.0.6",
-    "com.unity.ugui": "1.0.0",
+    "com.unity.ugui": "2.0.0",
+    "com.veriorpies.parrelsync": "https://github.com/VeriorPies/ParrelSync.git?path=/ParrelSync",
     "fidelityfx.fsr": "https://github.com/ndepoel/FSR3Unity.git?path=/Packages/fidelityfx.fsr",
     "in.yarg.core": "file:../YARG.Core/YARG.Core",
     "jp.keijiro.minis": "https://github.com/TheNathannator/Minis.git?path=/Packages/jp.keijiro.minis#yarg",

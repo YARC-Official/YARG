@@ -40,6 +40,9 @@ namespace YARG.Scores
         /// </remarks>
         public float? Percent { get; set; }
 
+        [SQLite.Ignore]
+        public string PlayerDisplayName { get; set; }
+
         public float GetPercent()
         {
             return Percent

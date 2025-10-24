@@ -14,7 +14,155 @@ namespace YARG.Menu.MusicLibrary
 {
     public partial class MusicLibraryMenu
     {
-        public Playlist       ShowPlaylist   { get; set; }         = new(true);
+        private YARG.Multiplayer.MultiplayerShowPlaylist _multiplayerShowPlaylist;
+
+        public Playlist ShowPlaylist
+        {
+            get
+            {
+                // In multiplayer, use the networked playlist
+                if (_multiplayerShowPlaylist != null)
+                {
+                    return _multiplayerShowPlaylist.ShowPlaylist;
+                }
+                // Fallback to local playlist
+                return _localShowPlaylist;
+            }
+            set
+            {
+                if (_multiplayerShowPlaylist != null)
+                {
+                    _multiplayerShowPlaylist.ShowPlaylist = value;
+                }
+                else
+                {
+                    _localShowPlaylist = value;
+                }
+            }
+        }
+
+        private Playlist _localShowPlaylist = new(true);
+
+        private void OnMultiplayerPlaylistUpdated()
+        {
+            UnityEngine.Debug.Log($"[MusicLibraryMenu] OnPlaylistUpdated triggered - refreshing UI. Playlist count: {ShowPlaylist.Count}");
+            // Always refresh the view list when playlist changes
+            Refresh();
+        }
+
+        private void EnsureMultiplayerShowPlaylist()
+        {
+            if (_multiplayerShowPlaylist == null && Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                // Get the spawned MultiplayerShowPlaylist from the NetworkManager
+                _multiplayerShowPlaylist = Networking.YargNetworkManager.Instance.MultiplayerShowPlaylist;
+                
+                if (_multiplayerShowPlaylist != null)
+                {
+                    // Subscribe to playlist updates
+                    _multiplayerShowPlaylist.OnPlaylistUpdated -= OnMultiplayerPlaylistUpdated;
+                    _multiplayerShowPlaylist.OnPlaylistUpdated += OnMultiplayerPlaylistUpdated;
+                    
+                    // Wait for initial sync on clients
+                    if (!Networking.YargNetworkManager.Instance.IsHosting && !_multiplayerShowPlaylist.HasReceivedInitialSync)
+                    {
+                        UnityEngine.Debug.Log($"[MusicLibraryMenu] Client waiting for initial playlist sync...");
+                        StartCoroutine(WaitForInitialSync());
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.Log($"[MusicLibraryMenu] MultiplayerShowPlaylist reference obtained. Current count: {_multiplayerShowPlaylist.ShowPlaylist.Count}");
+                    }
+                }
+                else
+                {
+                    UnityEngine.Debug.LogWarning("[MusicLibraryMenu] MultiplayerShowPlaylist not found - may not be spawned yet");
+                }
+            }
+            else if (_multiplayerShowPlaylist != null)
+            {
+                // Re-subscribe if we already have the reference (in case we navigated away and back)
+                _multiplayerShowPlaylist.OnPlaylistUpdated -= OnMultiplayerPlaylistUpdated;
+                _multiplayerShowPlaylist.OnPlaylistUpdated += OnMultiplayerPlaylistUpdated;
+                UnityEngine.Debug.Log($"[MusicLibraryMenu] Re-subscribed to playlist updates. Current count: {ShowPlaylist.Count}");
+            }
+        }
+
+        private System.Collections.IEnumerator WaitForInitialSync()
+        {
+            float timeout = 2f;
+            float elapsed = 0f;
+            
+            while (!_multiplayerShowPlaylist.HasReceivedInitialSync && elapsed < timeout)
+            {
+                yield return new UnityEngine.WaitForSeconds(0.1f);
+                elapsed += 0.1f;
+            }
+            
+            if (_multiplayerShowPlaylist.HasReceivedInitialSync)
+            {
+                UnityEngine.Debug.Log($"[MusicLibraryMenu] Initial sync received! Playlist count: {_multiplayerShowPlaylist.ShowPlaylist.Count}");
+                Refresh();
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning($"[MusicLibraryMenu] Timed out waiting for initial sync. Proceeding anyway.");
+            }
+        }
+
+        // Helper methods for multiplayer show playlist management
+        public void AddSongToMultiplayerShow(string songHash)
+        {
+            EnsureMultiplayerShowPlaylist();
+            if (_multiplayerShowPlaylist != null)
+            {
+                // Check if song is already in the playlist
+                if (_multiplayerShowPlaylist.IsInPlaylist(songHash))
+                {
+                    UnityEngine.Debug.Log($"[MusicLibraryMenu] Song {songHash} already in playlist, skipping add");
+                    return;
+                }
+                
+                // Get the player's name
+                string playerName = "Unknown";
+                if (PlayerContainer.Players.Count > 0)
+                {
+                    playerName = PlayerContainer.Players[0].Profile.Name;
+                }
+                
+                UnityEngine.Debug.Log($"[MusicLibraryMenu] Calling CmdAddSongToShow for hash: {songHash} from player: {playerName}");
+                _multiplayerShowPlaylist.CmdAddSongToShow(songHash, playerName);
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("[MusicLibraryMenu] Cannot add song - MultiplayerShowPlaylist is null!");
+            }
+        }
+
+        public void RemoveSongFromMultiplayerShow(string songHash)
+        {
+            EnsureMultiplayerShowPlaylist();
+            if (_multiplayerShowPlaylist != null)
+            {
+                // Get the player's name
+                string playerName = "Unknown";
+                if (PlayerContainer.Players.Count > 0)
+                {
+                    playerName = PlayerContainer.Players[0].Profile.Name;
+                }
+                
+                _multiplayerShowPlaylist.CmdRemoveSongFromShow(songHash, playerName);
+            }
+        }
+
+        public void StartMultiplayerShow()
+        {
+            EnsureMultiplayerShowPlaylist();
+            if (_multiplayerShowPlaylist != null && Networking.YargNetworkManager.Instance.IsHosting)
+            {
+                _multiplayerShowPlaylist.CmdStartShow();
+            }
+        }
 
         private List<ViewType> CreatePlaylistSelectViewList()
         {
@@ -217,7 +365,8 @@ namespace YARG.Menu.MusicLibrary
         private void LeaveShowMode()
         {
             SelectedPlaylist = null;
-            ShowPlaylist.Clear();
+            // Don't clear the setlist - users may want to go back to library to add more songs
+            // ShowPlaylist.Clear();
 
             // Pop the navigation scheme
             Navigator.Instance.PopScheme();
@@ -242,24 +391,53 @@ namespace YARG.Menu.MusicLibrary
 
         private void StartSetlist()
         {
-            if (ShowPlaylist.Count > 0 && PlayerContainer.Players.Count > 0)
+            if (ShowPlaylist.Count == 0)
             {
-                // If we are in the main library, save the current index
-                if (MenuState == MenuState.Library)
-                {
-                    _mainLibraryIndex = SelectedIndex;
-                }
-
-                GlobalVariables.State.PlayingAShow = true;
-                GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
-                GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs.First();
-                GlobalVariables.State.ShowIndex = 0;
-                MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
+                ToastManager.ToastError("Add songs to the setlist first!");
+                return;
             }
+            
+            if (PlayerContainer.Players.Count == 0)
+            {
+                ToastManager.ToastError("No players available!");
+                return;
+            }
+            
+            bool isMultiplayer = Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive;
+            
+            if (isMultiplayer)
+            {
+                // In multiplayer, only host can start
+                if (Networking.YargNetworkManager.Instance.IsHosting)
+                {
+                    UnityEngine.Debug.Log($"[MusicLibraryMenu] Host starting show with {ShowPlaylist.Count} songs from MusicLibrary");
+                    ToastManager.ToastInformation($"Starting show with {ShowPlaylist.Count} songs!");
+                    StartMultiplayerShow();
+                }
+                else
+                {
+                    ToastManager.ToastWarning("Only the host can start the show");
+                }
+                return;
+            }
+            
+            // Single player mode
+            if (MenuState == MenuState.Library)
+            {
+                _mainLibraryIndex = SelectedIndex;
+            }
+
+            GlobalVariables.State.PlayingAShow = true;
+            GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
+            GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs.First();
+            GlobalVariables.State.ShowIndex = 0;
+            MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }
 
         private void AddToPlaylist()
         {
+            bool isMultiplayer = Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive;
+            
             if (CurrentSelection is PlaylistViewType playlist)
             {
                 if (playlist.Playlist.SongHashes.Count == 0)
@@ -279,7 +457,14 @@ namespace YARG.Menu.MusicLibrary
 
                 foreach (var song in playlist.Playlist.ToList())
                 {
-                    ShowPlaylist.AddSong(song);
+                    if (isMultiplayer)
+                    {
+                        AddSongToMultiplayerShow(song.Hash.ToString());
+                    }
+                    else
+                    {
+                        ShowPlaylist.AddSong(song);
+                    }
                     i++;
                 }
 
@@ -309,7 +494,15 @@ namespace YARG.Menu.MusicLibrary
 
             if (CurrentSelection is SongViewType selection)
             {
-                ShowPlaylist.AddSong(selection.SongEntry);
+                if (isMultiplayer)
+                {
+                    AddSongToMultiplayerShow(selection.SongEntry.Hash.ToString());
+                }
+                else
+                {
+                    ShowPlaylist.AddSong(selection.SongEntry);
+                }
+                
                 if (ShowPlaylist.Count == 1)
                 {
                     // We need to rebuild the navigation scheme after adding the first song
@@ -320,10 +513,63 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
+        private void QuickStartShow()
+        {
+            // Quick start for multiplayer - starts the show immediately if there are songs
+            bool isMultiplayer = Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive;
+            
+            if (!isMultiplayer)
+            {
+                // Fallback to regular add to playlist behavior in single player
+                AddToPlaylist();
+                return;
+            }
+            
+            if (ShowPlaylist.Count == 0)
+            {
+                ToastManager.ToastWarning("Add songs to the setlist first!");
+                return;
+            }
+            
+            if (PlayerContainer.Players.Count == 0)
+            {
+                ToastManager.ToastError("No players available!");
+                return;
+            }
+            
+            // Only host can start the show
+            if (!Networking.YargNetworkManager.Instance.IsHosting)
+            {
+                ToastManager.ToastWarning("Only the host can start the show");
+                return;
+            }
+            
+            UnityEngine.Debug.Log($"[MusicLibraryMenu] Quick starting show with {ShowPlaylist.Count} songs");
+            ToastManager.ToastSuccess($"Starting show with {ShowPlaylist.Count} songs!");
+            StartMultiplayerShow();
+        }
+
         private void OnPlayShowHit()
         {
             if (ShowPlaylist.Count > 0 && PlayerContainer.Players.Count > 0)
             {
+                bool isMultiplayer = Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive;
+                
+                if (isMultiplayer)
+                {
+                    // In multiplayer, only host can start
+                    if (Networking.YargNetworkManager.Instance.IsHosting)
+                    {
+                        StartMultiplayerShow();
+                    }
+                    else
+                    {
+                        ToastManager.ToastWarning("Only the host can start the show");
+                    }
+                    return;
+                }
+                
+                // Single player mode
                 GlobalVariables.State.PlayingAShow = true;
                 GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
                 GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs.First();

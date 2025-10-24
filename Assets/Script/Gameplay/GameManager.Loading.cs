@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core;
@@ -100,6 +101,49 @@ namespace YARG.Gameplay
 
         private async void Start()
         {
+            Debug.Log("[GameManager.Start] BEGIN - Entering Start method");
+            
+            // If in multiplayer, create players BEFORE anything else
+            if (_multiplayerSync != null)
+            {
+                Debug.Log("[GameManager] Multiplayer mode detected - creating players from network objects...");
+                
+                // Shorter initial delay since NetworkPlayerData now has explicit DontDestroyOnLoad
+                Debug.Log("[GameManager] Initial wait: 500ms for network object stabilization...");
+                await Cysharp.Threading.Tasks.UniTask.Delay(500);
+                
+                // Create players from network data
+                Debug.Log("[GameManager] Attempting to create multiplayer players...");
+                YargPlayers = Menu.Multiplayer.MultiplayerPlayerManager.CreateMultiplayerPlayers();
+                Debug.Log($"[GameManager] Multiplayer mode - created {YargPlayers.Count} players from network data");
+                
+                // If still no players, retry with shorter intervals (objects should exist now)
+                int attempts = 0;
+                while (YargPlayers.Count == 0 && attempts < 3)
+                {
+                    attempts++;
+                    int delayMs = 300; // Shorter retry since DontDestroyOnLoad is explicit
+                    Debug.LogWarning($"[GameManager] No players found (attempt {attempts}/3), waiting {delayMs}ms for network sync...");
+                    await Cysharp.Threading.Tasks.UniTask.Delay(delayMs);
+                    YargPlayers = Menu.Multiplayer.MultiplayerPlayerManager.CreateMultiplayerPlayers();
+                    Debug.Log($"[GameManager] After delay - created {YargPlayers.Count} players from network data");
+                }
+                
+                // If still no players after all attempts, log error but continue
+                if (YargPlayers.Count == 0)
+                {
+                    Debug.LogError("[GameManager] FAILED to create multiplayer players after 3 attempts! Cannot start gameplay.");
+                    ToastManager.ToastError("Failed to create players for multiplayer game!");
+                    GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                    return;
+                }
+                else
+                {
+                    Debug.Log($"[GameManager] Successfully created {YargPlayers.Count} multiplayer players");
+                }
+            }
+            
+            Debug.Log("[GameManager.Start] Creating LoadingContext to show loading screen");
             // Displays the loading screen
             using var context = new LoadingContext();
             var global = GlobalVariables.Instance;
@@ -157,9 +201,12 @@ namespace YARG.Gameplay
                 }
             }
 
+            Debug.Log("[GameManager.Start] Queueing chart and audio loading tasks");
             context.Queue(UniTask.RunOnThreadPool(LoadChart), "Loading chart...");
             context.Queue(UniTask.RunOnThreadPool(LoadAudio), "Loading audio...");
+            Debug.Log("[GameManager.Start] Waiting for loading tasks to complete...");
             await context.Wait();
+            Debug.Log("[GameManager.Start] Loading tasks completed");
 
             if (_loadState == LoadFailureState.Rescan)
             {
@@ -258,10 +305,44 @@ namespace YARG.Gameplay
             YargLogger.LogFormatDebug("Audio calibration: {0}, video calibration: {1}, song offset: {2}",
                 _songRunner.AudioCalibration, _songRunner.VideoCalibration, _songRunner.SongOffset);
 
+            await WaitForMultiplayerSongStartAsync();
+
+            Debug.Log("[GameManager.Start] About to exit using block - LoadingContext will be disposed");
             // Loaded, enable updates
             enabled = true;
             IsSongStarted = true;
             _songStarted?.Invoke();
+            Debug.Log("[GameManager.Start] END - Exiting Start method, loading screen should be hidden");
+        }
+
+        private async UniTask WaitForMultiplayerSongStartAsync()
+        {
+            if (_multiplayerSync == null)
+            {
+                return;
+            }
+
+            var networkManager = Networking.YargNetworkManager.Instance;
+            if (networkManager == null || !networkManager.isNetworkActive)
+            {
+                return;
+            }
+
+            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(12));
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, this.GetCancellationTokenOnDestroy());
+
+            try
+            {
+                await networkManager.WaitForMultiplayerGameplayStartAsync(linkedCts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                if (timeoutCts.IsCancellationRequested)
+                {
+                    Debug.LogWarning("[GameManager] Timed out waiting for all players to finish loading. Proceeding with song start.");
+                    networkManager.ForceCompleteGameplayStartBarrier();
+                }
+            }
         }
 
         private bool LoadReplay()
@@ -384,7 +465,7 @@ namespace YARG.Gameplay
                 int vocalIndex = -1;
                 foreach (var player in YargPlayers)
                 {
-                    if (!player.IsReplay)
+                    if (!player.IsReplay && player.Bindings != null)
                     {
                         // Reset microphone (resets channel buffers)
                         // We probably wanna do this no matter what, so put it up here
@@ -408,6 +489,11 @@ namespace YARG.Gameplay
                     var lastHighScore = ScoreContainer.GetHighScore(Song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, false)?.Score;
                     YargLogger.LogFormatInfo("Current high score for player {0} on {1}: {2}",
                         player.Profile.Name, player.Profile.CurrentInstrument, lastHighScore ?? 0);
+                    
+                    // DEBUG: Log chart instance before each player creation
+                    var chartStatus = Chart != null ? "NOT NULL" : "NULL";
+                    var chartHash = Chart?.GetHashCode() ?? -1;
+                    YargLogger.LogInfo($"[GameManager] Creating player {player.Profile.Name}, Chart instance: {chartStatus}, GetHashCode: {chartHash}");
 
                     if (player.Profile.GameMode != GameMode.Vocals)
                     {
@@ -436,6 +522,12 @@ namespace YARG.Gameplay
 
                         _players.Add(trackPlayer);
                         _trackViewManager._highwayCameraRendering.AddTrackPlayer(trackPlayer);
+                        
+                        // MULTIPLAYER: Attach visualizer for remote players
+                        if (_multiplayerSync != null)
+                        {
+                            AttachRemotePlayerVisualizer(trackPlayer, index); // Use index directly (already incremented above)
+                        }
                     }
                     else
                     {
@@ -467,6 +559,12 @@ namespace YARG.Gameplay
                         vocalsPlayer.Initialize(index, vocalIndex, player, Chart, playerHud, percussionTrack, lastHighScore, VocalTrack.TrackSpeed);
 
                         _players.Add(vocalsPlayer);
+
+                        // MULTIPLAYER: Ensure remote vocal players also receive network visualization/input mapping
+                        if (_multiplayerSync != null)
+                        {
+                            AttachRemotePlayerVisualizer(vocalsPlayer, index);
+                        }
                     }
 
                     // Add (or increase total of) the stem state
@@ -496,6 +594,56 @@ namespace YARG.Gameplay
                 _loadState = LoadFailureState.Error;
                 _loadFailureMessage = "Failed to load song!";
                 YargLogger.LogException(ex, "Failed to load song!");
+            }
+        }
+        
+        /// <summary>
+        /// Attach RemotePlayerVisualizer to a player for multiplayer network sync.
+        /// </summary>
+        private void AttachRemotePlayerVisualizer(BasePlayer player, int playerIndex)
+        {
+            try
+            {
+                if (Menu.Multiplayer.MultiplayerPlayerManager.TryGetNetworkPlayer(player.Player, out var mappedNetworkPlayer))
+                {
+                    player.SetNetworkPlayerData(mappedNetworkPlayer);
+
+                    if (player is Player.TrackPlayer trackPlayer)
+                    {
+                        var simulation = player.gameObject.AddComponent<Player.RemotePlayerSimulation>();
+                        simulation.Initialize(trackPlayer, mappedNetworkPlayer);
+
+                        YargLogger.LogInfo($"[GameManager] Attached RemotePlayerSimulation to player {player.Player.Profile.Name} (Network: {mappedNetworkPlayer.PlayerName}) via direct map");
+                    }
+                    return;
+                }
+
+                // Fallback: attempt to match by index if the lookup failed (should not happen)
+                var networkPlayers = Networking.YargNetworkManager.Instance.GetAllPlayers();
+
+                if (playerIndex >= 0 && playerIndex < networkPlayers.Count)
+                {
+                    var networkPlayerData = networkPlayers[playerIndex];
+
+                    player.SetNetworkPlayerData(networkPlayerData);
+
+                    if (player is Player.TrackPlayer trackPlayer)
+                    {
+                        var simulation = player.gameObject.AddComponent<Player.RemotePlayerSimulation>();
+                        simulation.Initialize(trackPlayer, networkPlayerData);
+
+                        YargLogger.LogInfo($"[GameManager] Attached RemotePlayerSimulation to player {player.Player.Profile.Name} (Network: {networkPlayerData.PlayerName}) using index fallback");
+                    }
+                }
+                else
+                {
+                    YargLogger.LogFormatWarning("[GameManager] Unable to resolve NetworkPlayerData for player {0} (index {1}, total {2})",
+                        player.Player.Profile.Name, playerIndex, networkPlayers.Count);
+                }
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Failed to attach RemotePlayerVisualizer");
             }
         }
     }

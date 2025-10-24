@@ -126,7 +126,16 @@ namespace YARG.Scores
 
                     if (!playerEntry.IsReplay)
                     {
-                        string name = PlayerContainer.GetProfileById(playerEntry.PlayerId).Name;
+                        var profile = PlayerContainer.GetProfileById(playerEntry.PlayerId);
+                        string name = profile?.Name ?? playerEntry.PlayerDisplayName;
+
+                        if (string.IsNullOrWhiteSpace(name))
+                        {
+                            name = playerEntry.PlayerId != Guid.Empty
+                                ? playerEntry.PlayerId.ToString("N")
+                                : "Unknown Player";
+                        }
+
                         RecordPlayerInfo(playerEntry.PlayerId, name);
                     }
                 }
@@ -137,10 +146,9 @@ namespace YARG.Scores
                 var songChecksum = HashWrapper.Create(gameRecord.SongChecksum);
                 UpdateBandHighScore(songChecksum);
 
-                if (playerEntries.Count == 1)
+                foreach (var playerEntry in playerEntries)
                 {
-                    // Player high scores are only relevant if there is a single player
-                    UpdatePlayerHighScores(songChecksum, playerEntries.First());
+                    UpdatePlayerHighScores(songChecksum, playerEntry);
                 }
 
                 YargLogger.LogInfo("Recorded score for song.");
@@ -158,10 +166,30 @@ namespace YARG.Scores
 
         private static void UpdatePlayerHighScores(HashWrapper songChecksum, PlayerScoreRecord newScore)
         {
-            PlayerHighScores[songChecksum] = _db.QueryPlayerSongHighScore(
+            var highScore = _db.QueryPlayerSongHighScore(
                 songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly);
-            PlayerHighPercentages[songChecksum] = _db.QueryPlayerSongHighestPercentage(
+            if (highScore != null)
+            {
+                PlayerHighScores[songChecksum] = highScore;
+            }
+            else
+            {
+                PlayerHighScores.Remove(songChecksum);
+            }
+
+            var highPercentage = _db.QueryPlayerSongHighestPercentage(
                 songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly);
+            if (highPercentage != null)
+            {
+                PlayerHighPercentages[songChecksum] = highPercentage;
+            }
+            else
+            {
+                PlayerHighPercentages.Remove(songChecksum);
+            }
+
+            _currentPlayerId = newScore.PlayerId;
+            _currentInstrument = newScore.Instrument;
         }
 
         public static void RecordPlayerInfo(Guid id, string name)
