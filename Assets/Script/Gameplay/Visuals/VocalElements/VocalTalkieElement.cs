@@ -41,13 +41,23 @@ namespace YARG.Gameplay.Visuals
 
             // Set the color
             var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
-            mesh.material.color = color.WithAlpha(ALPHA_VALUE);
+            mesh.material.SetColor("_BaseColor", color.WithAlpha(ALPHA_VALUE));
 
             // Update the size of the talkie
             var transform = mesh.transform;
             float length = VocalTrack.GetPosForTime(NoteRef.TotalTimeEnd) - VocalTrack.GetPosForTime(NoteRef.Time);
             transform.localScale = transform.localScale.WithX(length);
             transform.localPosition = transform.localPosition.WithX(length / 2f);
+
+            // Prevent Z-fighting (Y acts as the "Z" coordinate here)
+            // All values must be under 0.1 (minimum forward offset for vocal pipes)
+            transform.position = transform.position.WithY(NoteRef.HarmonyPart switch
+            {
+                2 => 0f,
+                1 => 0.25f,
+                0 => 0.5f,
+                _ => 0f,
+            });
         }
 
         protected override void UpdateElement()
