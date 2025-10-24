@@ -28,7 +28,7 @@ namespace YARG.Gameplay.Player
         public const float TRACK_HEIGHT = 100f;
 
         public const float HUD_TOP_ELEMENT_HEIGHT = 0.15f;
-        public const float HUD_CENTER_ELEMENT_DEPTH = -1f;
+        public const float HUD_CENTER_ELEMENT_DEPTH = 1.5f;
 
         public static int HighwayCount = 1;
 
@@ -79,7 +79,7 @@ namespace YARG.Gameplay.Player
         public Vector2 HUDCenterElementViewportPosition =>
             TrackCamera.WorldToViewportPoint(_hudLocation.position
                 .WithY(TRACK_HEIGHT)
-                .WithZ(HUD_CENTER_ELEMENT_DEPTH));
+                .WithZ(STRIKE_LINE_POS + HUD_CENTER_ELEMENT_DEPTH));
 
         protected List<Beatline> Beatlines;
 

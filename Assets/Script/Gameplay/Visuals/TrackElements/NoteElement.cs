@@ -81,7 +81,7 @@ namespace YARG.Gameplay.Visuals
                 NoteGroup.SetActive(false);
 
                 // Enable the new one
-                NoteGroup = (IsStarPowerVisible ? NoteGroups : StarPowerNoteGroups)[index];
+                NoteGroup = (IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups)[index];
                 NoteGroup.SetActive(true);
                 NoteGroup.Initialize();
             }
