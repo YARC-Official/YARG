@@ -388,7 +388,7 @@
 				"NuMetal": "Nu-Metal",
 				"Orchestral": "Orchestral",
 				"Pop": "Pop",
-				"PopPunk": "Pop Punk",
+				"PopPunk": "Pop-Punk",
 				"PopRock": "Pop-Rock",
 				"PostHardcore": "Post-Hardcore",
 				"Progressive": "Progressive",
@@ -1148,7 +1148,7 @@
             },
 			"StandardizeGenres": {
 				"Name": "Standardize Genre Metadata",
-				"Description": "Categorizes genre metadata into a standard set of genres, using data from the <link ID=\"https://github.com/YARC-Official/Genrelizer/\">Genrelizer</link> GitHub repository. <color=white>Rescan required if changed!</color>"
+				"Description": "Categorizes genre metadata into a standard set of genres, using data from the Genrelizer GitHub repository. <color=white>Rescan required if changed!</color>"
 			},
             "StarPowerHighwayFx": {
                 "Name": "Star Power Highway FX Mode",

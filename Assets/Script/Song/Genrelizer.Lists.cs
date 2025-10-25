@@ -60,7 +60,7 @@ namespace YARG.Song
         private const string NU_METAL = "nu-metal";
         private const string ORCHESTRAL = "orchestral";
         private const string POP = "pop";
-        private const string POP_PUNK = "pop punk";
+        private const string POP_PUNK = "pop-punk";
         private const string POP_ROCK = "pop-rock";
         private const string POST_HARDCORE = "post-hardcore";
         private const string PROGRESSIVE = "progressive";
