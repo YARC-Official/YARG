@@ -60,6 +60,9 @@ namespace YARG.Gameplay.Player
 
         private int _phraseIndex = -1;
 
+        private float _remotePhraseFillTarget;
+        private bool _hasRemotePhraseProgress;
+
         private const int NEEDLES_COUNT = 7;
 
         private SongChart _chart;
@@ -120,7 +123,7 @@ namespace YARG.Gameplay.Player
             _hud.ShowPlayerName(player, needleIndex);
 
             // Create and start an input context for the mic
-            if (!Player.IsReplay && player.Bindings.Microphone != null)
+            if (!Player.IsReplay && player.Bindings != null && player.Bindings.Microphone != null)
             {
                 _inputContext = new MicInputContext(player.Bindings.Microphone, GameManager);
                 _inputContext.Start();
@@ -295,17 +298,32 @@ namespace YARG.Gameplay.Player
             UpdatePercussionPhrase(visualTime);
             UpdateSingNeedle();
 
-            // Get combo meter fill
             float fill = 0f;
-            if (Engine.PhraseTicksTotal != null && Engine.PhraseTicksTotal.Value != 0)
+            int multiplier;
+            float starPowerPercent;
+            bool isStarPowerActive;
+
+            if (IsRemotePlayer)
             {
-                fill = (float) (Engine.PhraseTicksHit / Engine.PhraseTicksTotal.Value);
-                fill /= (float) EngineParams.PhraseHitPercent;
+                fill = _hasRemotePhraseProgress ? _remotePhraseFillTarget : 0f;
+                multiplier = Mathf.Max(1, BaseStats.ScoreMultiplier);
+                starPowerPercent = GetStarPowerPercentFromStats();
+                isStarPowerActive = BaseStats.IsStarPowerActive;
+            }
+            else
+            {
+                if (Engine.PhraseTicksTotal != null && Engine.PhraseTicksTotal.Value != 0)
+                {
+                    fill = (float) (Engine.PhraseTicksHit / Engine.PhraseTicksTotal.Value);
+                    fill /= (float) EngineParams.PhraseHitPercent;
+                }
+
+                multiplier = Engine.EngineStats.ScoreMultiplier;
+                starPowerPercent = (float) Engine.GetStarPowerBarAmount();
+                isStarPowerActive = Engine.EngineStats.IsStarPowerActive;
             }
 
-            // Update HUD
-            _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier,
-                (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
+            _hud.UpdateInfo(fill, multiplier, starPowerPercent, isStarPowerActive);
         }
 
         private void ShowTextNotifications(bool isLastPhrase)
@@ -547,6 +565,73 @@ namespace YARG.Gameplay.Player
         public override void SetStemMuteState(bool muted)
         {
             // Vocals has no stem muting
+        }
+
+        private float GetStarPowerPercentFromStats()
+        {
+            if (BaseEngine == null)
+            {
+                return 0f;
+            }
+
+            uint gaugeTicks = BaseEngine.TicksPerFullSpBar;
+            if (gaugeTicks > 0)
+            {
+                return Mathf.Clamp01((float) BaseStats.StarPowerTickAmount / gaugeTicks);
+            }
+
+            if (BaseStats.TotalStarPowerTicks > 0)
+            {
+                return Mathf.Clamp01((float) BaseStats.StarPowerTickAmount / BaseStats.TotalStarPowerTicks);
+            }
+
+            return 0f;
+        }
+
+        internal void ApplyRemotePhraseProgress(float ticksHit, int ticksTotal)
+        {
+            if (!IsRemotePlayer)
+            {
+                return;
+            }
+
+            if (ticksTotal > 0 && EngineParams != null)
+            {
+                float normalized = Mathf.Clamp01(ticksHit / Mathf.Max(1f, ticksTotal));
+                float phraseThreshold = Mathf.Max((float) EngineParams.PhraseHitPercent, 0.001f);
+                _remotePhraseFillTarget = Mathf.Clamp01(normalized / phraseThreshold);
+                _hasRemotePhraseProgress = true;
+            }
+            else
+            {
+                _remotePhraseFillTarget = 0f;
+                _hasRemotePhraseProgress = false;
+            }
+        }
+
+        internal void UpdateRemoteCountdown()
+        {
+            if (!IsRemotePlayer || Engine == null)
+            {
+                return;
+            }
+
+            var countdowns = Engine.WaitCountdownsReadOnly;
+            if (countdowns == null || countdowns.Count == 0)
+            {
+                return;
+            }
+
+            double songTime = GameManager.SongTime;
+            for (int i = 0; i < countdowns.Count; i++)
+            {
+                var countdown = countdowns[i];
+                if (songTime >= countdown.Time && songTime < countdown.DeactivateTime)
+                {
+                    GameManager.VocalTrack.UpdateCountdown(countdown.TimeLength, countdown.TimeEnd);
+                    break;
+                }
+            }
         }
 
         protected override bool InterceptInput(ref GameInput input)

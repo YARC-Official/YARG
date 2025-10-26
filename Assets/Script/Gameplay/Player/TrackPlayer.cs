@@ -171,8 +171,9 @@ namespace YARG.Gameplay.Player
             return 0;
         }
 
-        internal virtual bool ResolveRemoteNote(ref int cursor, bool wasHit)
+        internal virtual bool ResolveRemoteNote(ref int cursor, bool wasHit, out int resolvedWeight)
         {
+            resolvedWeight = 0;
             return false;
         }
 
@@ -901,8 +902,10 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        internal override bool ResolveRemoteNote(ref int cursor, bool wasHit)
+        internal override bool ResolveRemoteNote(ref int cursor, bool wasHit, out int resolvedWeight)
         {
+            resolvedWeight = 0;
+
             while (cursor < Notes.Count && Notes[cursor].ParentOrSelf.WasFullyHitOrMissed())
             {
                 cursor++;
@@ -914,6 +917,12 @@ namespace YARG.Gameplay.Player
             }
 
             var note = Notes[cursor].ParentOrSelf;
+
+            resolvedWeight = Engine.GetNumberOfNotes(note);
+            if (resolvedWeight <= 0)
+            {
+                resolvedWeight = 1;
+            }
 
             if (wasHit)
             {

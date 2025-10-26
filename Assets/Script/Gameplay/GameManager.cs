@@ -11,6 +11,7 @@ using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Keys;
+using YARG.Core.Engine.Vocals;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
@@ -305,8 +306,7 @@ namespace YARG.Gameplay
                         else
                         {
                             // Show pause menu but keep song playing
-                            PauseCore(showMenu: true);
-                            _songRunner.Resume();
+                            PauseCore(showMenu: true, freezeGameplay: false);
                         }
                     }
                     else
@@ -378,86 +378,113 @@ namespace YARG.Gameplay
                 return;
             }
 
-            var localPlayer = _players[0];
-            var baseStats = localPlayer.BaseStats;
-
-            float starPowerAmount = 0f;
-            uint gaugeTicks = localPlayer.BaseEngine != null ? localPlayer.BaseEngine.TicksPerFullSpBar : 0u;
-            if (gaugeTicks > 0)
-            {
-                starPowerAmount = Mathf.Clamp01((float) baseStats.StarPowerTickAmount / gaugeTicks);
-            }
-            else if (baseStats.TotalStarPowerTicks > 0)
-            {
-                starPowerAmount = Mathf.Clamp01((float) baseStats.StarPowerTickAmount / baseStats.TotalStarPowerTicks);
-            }
-
-            var trackPlayer = localPlayer as TrackPlayer;
-
-            int notesMissed;
-            if (trackPlayer != null)
-            {
-                notesMissed = Mathf.Max(0, trackPlayer.GetResolvedMissCount());
-            }
-            else
-            {
-                notesMissed = Mathf.Max(0, localPlayer.TotalNotes - localPlayer.NotesHit);
-            }
-
-            int overstrums = 0;
-            int hoposStrummed = 0;
-            int overhits = 0;
-            int ghostInputs = 0;
-            int ghostsHit = 0;
-            int accentsHit = 0;
-            int dynamicsBonus = 0;
-            int bandBonusScore = Mathf.Max(0, localPlayer.BandBonusScore);
-
-            switch (baseStats)
-            {
-                case GuitarStats guitarStats:
-                    overstrums = Mathf.Max(0, guitarStats.Overstrums);
-                    hoposStrummed = Mathf.Max(0, guitarStats.HoposStrummed);
-                    ghostInputs = Mathf.Max(0, guitarStats.GhostInputs);
-                    break;
-                case DrumsStats drumsStats:
-                    overhits = Mathf.Max(0, drumsStats.Overhits);
-                    ghostsHit = Mathf.Max(0, drumsStats.GhostsHit);
-                    accentsHit = Mathf.Max(0, drumsStats.AccentsHit);
-                    dynamicsBonus = Mathf.Max(0, drumsStats.DynamicsBonus);
-                    break;
-                case KeysStats keysStats:
-                    overhits = Mathf.Max(0, keysStats.Overhits);
-                    break;
-            }
-
-            bool soloActive = false;
-            int soloSequence = -1;
-            int soloNoteCount = 0;
-            int soloNotesHit = 0;
-            int soloLastBonus = 0;
-            int soloTotalBonus = Mathf.Max(0, baseStats.SoloBonuses);
-
-            if (trackPlayer != null)
-            {
-                var soloSnapshot = trackPlayer.GetSoloSyncSnapshot();
-                soloActive = soloSnapshot.IsActive;
-                soloSequence = soloSnapshot.Sequence;
-                soloNoteCount = soloSnapshot.NoteCount;
-                soloNotesHit = soloSnapshot.NotesHit;
-                soloLastBonus = soloSnapshot.LastBonus;
-                soloTotalBonus = soloSnapshot.TotalBonus;
-            }
-
             double songTime = _songRunner.SongTime;
             double clientNetworkTime = NetworkTime.time;
 
-            _multiplayerSync.SubmitLocalSnapshot(localPlayer.Score, localPlayer.Combo, baseStats.MaxCombo,
-                baseStats.IsStarPowerActive, starPowerAmount, baseStats.StarPowerPhrasesHit,
-                baseStats.TotalStarPowerPhrases, localPlayer.NotesHit, notesMissed, overstrums, hoposStrummed,
-                overhits, ghostInputs, ghostsHit, accentsHit, dynamicsBonus, bandBonusScore, soloActive,
-                soloSequence, soloNoteCount, soloNotesHit, soloLastBonus, soloTotalBonus, songTime,
-                clientNetworkTime, forceSend);
+            foreach (var player in _players)
+            {
+                var networkData = player.NetworkPlayerData;
+                if (networkData == null || !networkData.IsLocalUser)
+                {
+                    continue;
+                }
+
+                var baseStats = player.BaseStats;
+
+                float starPowerAmount = 0f;
+                uint gaugeTicks = player.BaseEngine != null ? player.BaseEngine.TicksPerFullSpBar : 0u;
+                if (gaugeTicks > 0)
+                {
+                    starPowerAmount = Mathf.Clamp01((float) baseStats.StarPowerTickAmount / gaugeTicks);
+                }
+                else if (baseStats.TotalStarPowerTicks > 0)
+                {
+                    starPowerAmount = Mathf.Clamp01((float) baseStats.StarPowerTickAmount / baseStats.TotalStarPowerTicks);
+                }
+
+                var trackPlayer = player as TrackPlayer;
+
+                int notesMissed = trackPlayer != null
+                    ? Mathf.Max(0, trackPlayer.GetResolvedMissCount())
+                    : Mathf.Max(0, player.TotalNotes - player.NotesHit);
+
+                int overstrums = 0;
+                int hoposStrummed = 0;
+                int overhits = 0;
+                int ghostInputs = 0;
+                int ghostsHit = 0;
+                int accentsHit = 0;
+                int dynamicsBonus = 0;
+                int bandBonusScore = Mathf.Max(0, player.BandBonusScore);
+                int vocalsTicksHit = 0;
+                int vocalsTicksMissed = 0;
+                float vocalsPhraseTicksHit = 0f;
+                int vocalsPhraseTicksTotal = 0;
+
+                switch (baseStats)
+                {
+                    case GuitarStats guitarStats:
+                        overstrums = Mathf.Max(0, guitarStats.Overstrums);
+                        hoposStrummed = Mathf.Max(0, guitarStats.HoposStrummed);
+                        ghostInputs = Mathf.Max(0, guitarStats.GhostInputs);
+                        break;
+                    case DrumsStats drumsStats:
+                        overhits = Mathf.Max(0, drumsStats.Overhits);
+                        ghostsHit = Mathf.Max(0, drumsStats.GhostsHit);
+                        accentsHit = Mathf.Max(0, drumsStats.AccentsHit);
+                        dynamicsBonus = Mathf.Max(0, drumsStats.DynamicsBonus);
+                        break;
+                    case KeysStats keysStats:
+                        overhits = Mathf.Max(0, keysStats.Overhits);
+                        break;
+                    case VocalsStats vocalsStats:
+                        vocalsTicksHit = (int)Math.Min(vocalsStats.TicksHit, (uint)int.MaxValue);
+                        vocalsTicksMissed = (int)Math.Min(vocalsStats.TicksMissed, (uint)int.MaxValue);
+                        if (player is VocalsPlayer vocalsPlayer && vocalsPlayer.Engine != null)
+                        {
+                            var phraseTotal = vocalsPlayer.Engine.PhraseTicksTotal;
+                            if (phraseTotal.HasValue && phraseTotal.Value > 0)
+                            {
+                                vocalsPhraseTicksTotal = Mathf.Clamp((int)phraseTotal.Value, 0, int.MaxValue);
+                                float clampedHit = Mathf.Clamp((float)vocalsPlayer.Engine.PhraseTicksHit, 0f,
+                                    vocalsPhraseTicksTotal > 0 ? vocalsPhraseTicksTotal : float.MaxValue);
+                                vocalsPhraseTicksHit = clampedHit;
+                            }
+                            else
+                            {
+                                vocalsPhraseTicksHit = 0f;
+                                vocalsPhraseTicksTotal = 0;
+                            }
+                        }
+                        break;
+                }
+
+                bool soloActive = false;
+                int soloSequence = -1;
+                int soloNoteCount = 0;
+                int soloNotesHit = 0;
+                int soloLastBonus = 0;
+                int soloTotalBonus = Mathf.Max(0, baseStats.SoloBonuses);
+
+                if (trackPlayer != null)
+                {
+                    var soloSnapshot = trackPlayer.GetSoloSyncSnapshot();
+                    soloActive = soloSnapshot.IsActive;
+                    soloSequence = soloSnapshot.Sequence;
+                    soloNoteCount = soloSnapshot.NoteCount;
+                    soloNotesHit = soloSnapshot.NotesHit;
+                    soloLastBonus = soloSnapshot.LastBonus;
+                    soloTotalBonus = soloSnapshot.TotalBonus;
+                }
+
+                _multiplayerSync.SubmitLocalSnapshot(networkData, player.Score, player.Combo, baseStats.MaxCombo,
+                    baseStats.IsStarPowerActive, starPowerAmount, baseStats.StarPowerPhrasesHit,
+                    baseStats.TotalStarPowerPhrases, player.NotesHit, notesMissed, overstrums, hoposStrummed,
+                    overhits, ghostInputs, ghostsHit, accentsHit, dynamicsBonus, bandBonusScore, vocalsTicksHit,
+                    vocalsTicksMissed, vocalsPhraseTicksHit, vocalsPhraseTicksTotal, soloActive, soloSequence,
+                    soloNoteCount, soloNotesHit, soloLastBonus, soloTotalBonus, songTime, clientNetworkTime,
+                    forceSend);
+            }
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
@@ -509,7 +536,7 @@ namespace YARG.Gameplay
             PauseCore(showMenu);
         }
 
-        private void PauseCore(bool showMenu)
+        private void PauseCore(bool showMenu, bool freezeGameplay = true)
         {
             if (showMenu)
             {
@@ -544,19 +571,24 @@ namespace YARG.Gameplay
                 }
             }
 
-            // Pause the background/venue
-            Time.timeScale = 0f;
-            BackgroundManager.SetPaused(true);
-            GameStateFetcher.SetPaused(true);
+            if (freezeGameplay)
+            {
+                // Pause the background/venue
+                Time.timeScale = 0f;
+                BackgroundManager.SetPaused(true);
+                GameStateFetcher.SetPaused(true);
 
-            // Pause any audio samples that are currently playing
-            GlobalAudioHandler.PauseAllSfx();
+                // Pause any audio samples that are currently playing
+                GlobalAudioHandler.PauseAllSfx();
 
-            // Allow sleeping
-            Screen.sleepTimeout = _originalSleepTimeout;
+                // Allow sleeping
+                Screen.sleepTimeout = _originalSleepTimeout;
+            }
         }
 
         public bool PlayerHasFailed { get; set; } = false;
+
+        private bool _multiplayerFailureReported;
 
         public void Resume()
         {
@@ -1039,7 +1071,24 @@ namespace YARG.Gameplay
                 case MenuAction.Start:
                     if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing && !PlayerHasFailed)
                     {
-                        SetPaused(!_songRunner.Paused);
+                        bool isMultiplayer = Networking.YargNetworkManager.Instance != null &&
+                                             Networking.YargNetworkManager.Instance.isNetworkActive;
+
+                        if (isMultiplayer)
+                        {
+                            if (_pauseMenu != null && _pauseMenu.IsOpen)
+                            {
+                                _pauseMenu.PopAllMenus();
+                            }
+                            else
+                            {
+                                PauseCore(showMenu: true, freezeGameplay: false);
+                            }
+                        }
+                        else
+                        {
+                            SetPaused(!_songRunner.Paused);
+                        }
                     }
                     break;
             }
@@ -1056,8 +1105,10 @@ namespace YARG.Gameplay
                 if (isMultiplayer)
                 {
                     // In multiplayer, show pause menu but keep song playing
-                    PauseCore(showMenu: true);
-                    _songRunner.Resume();
+                    if (_pauseMenu != null && !_pauseMenu.IsOpen)
+                    {
+                        PauseCore(showMenu: true, freezeGameplay: false);
+                    }
                 }
                 else
                 {
@@ -1085,50 +1136,84 @@ namespace YARG.Gameplay
             BandCombo += amount;
         }
 
-        private async void OnSongFailed()
+        private void OnSongFailed()
         {
             if (SettingsManager.Settings.NoFailMode.Value || IsPractice)
             {
                 return;
             }
 
-            // In multiplayer, only fail if a LOCAL player (with bindings) has failed
-            // Remote players have no inputs and will naturally hit 0 happiness, but shouldn't trigger game over
-            if (_multiplayerSync != null && _players != null && EngineManager != null)
+            if (IsMultiplayerActive())
             {
-                bool localPlayerFailed = false;
-                var engines = EngineManager.Engines;
-                
-                // Check each engine to see if it belongs to a local player and has failed
-                for (int i = 0; i < Math.Min(_players.Count, engines.Count); i++)
-                {
-                    var player = _players[i];
-                    var engine = engines[i];
-                    
-                    // Check if this is a local player (has bindings) with failed engine (happiness <= 0)
-                    if (player.Player.Bindings != null && engine.Happiness <= 0f)
-                    {
-                        localPlayerFailed = true;
-                        break;
-                    }
-                }
+                HandleMultiplayerSongFailed();
+                return;
+            }
 
-                // If no local player has actually failed, don't trigger game over
-                // (Remote players may have 0 happiness but shouldn't cause failure)
-                if (!localPlayerFailed)
+            _ = RunBandFailureSequenceAsync();
+        }
+
+        private bool IsMultiplayerActive()
+        {
+            return _multiplayerSync != null &&
+                   Networking.YargNetworkManager.Instance != null &&
+                   Networking.YargNetworkManager.Instance.isNetworkActive;
+        }
+
+        private void HandleMultiplayerSongFailed()
+        {
+            var networkManager = Networking.YargNetworkManager.Instance;
+            if (networkManager == null || !networkManager.isNetworkActive)
+            {
+                _ = RunBandFailureSequenceAsync();
+                return;
+            }
+
+            if (_multiplayerFailureReported)
+            {
+                return;
+            }
+
+            _multiplayerFailureReported = true;
+
+            bool sentReport = false;
+            foreach (var playerData in networkManager.GetAllPlayers())
+            {
+                if (playerData != null && playerData.IsLocalUser)
                 {
-                    return;
+                    playerData.CmdReportSongFailed();
+                    sentReport = true;
                 }
             }
 
-            if (!PlayerHasFailed)
+            if (!sentReport)
             {
-                PlayerHasFailed = true;
-                _mixer.FadeOut(SONG_END_DELAY);
-                await UniTask.Delay(TimeSpan.FromSeconds(SONG_END_DELAY));
-                GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
-                Pause();
+                _ = RunBandFailureSequenceAsync();
             }
+        }
+
+        internal void HandleNetworkBandFailed()
+        {
+            if (PlayerHasFailed)
+            {
+                return;
+            }
+
+            _multiplayerFailureReported = true;
+            _ = RunBandFailureSequenceAsync();
+        }
+
+        private async UniTask RunBandFailureSequenceAsync()
+        {
+            if (PlayerHasFailed)
+            {
+                return;
+            }
+
+            PlayerHasFailed = true;
+            _mixer.FadeOut(SONG_END_DELAY);
+            await UniTask.Delay(TimeSpan.FromSeconds(SONG_END_DELAY));
+            GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
+            Pause();
         }
 
         // If we go from no fail to fail, we need to reinitialize the happiness state so we avoid

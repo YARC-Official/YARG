@@ -311,8 +311,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lobbyNameText: {fileID: 1031774404246240403}
   hostNameText: {fileID: 0}
-  playerCountText: {fileID: 5267057905723167913}
-  lobbyCodeText: {fileID: 0}
+  playerCountText: {fileID: 0}
+  lobbyCodeText: {fileID: 5267057905723167913}
+  connectionInfoText: {fileID: 0}
   playerListContainer: {fileID: 3548508936628456358}
   playerEntryPrefab: {fileID: 3768752809924424384}
   browseSongsButton: {fileID: 0}

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
 using YARG.Networking;
@@ -10,9 +11,10 @@ namespace YARG.Menu.Multiplayer
     /// </summary>
     public class MultiplayerGameplaySync : MonoBehaviour
     {
-        private const double MIN_CHANGED_SNAPSHOT_INTERVAL = 0.09d;
-        private const double MAX_UNCHANGED_SNAPSHOT_INTERVAL = 0.45d;
+        private const double MIN_CHANGED_SNAPSHOT_INTERVAL = 0.02d; // ~50 Hz when state changes
+        private const double MAX_UNCHANGED_SNAPSHOT_INTERVAL = 0.20d; // 5 Hz keep-alive when idle
         private const float STAR_POWER_DELTA_EPSILON = 0.0025f;
+        private const float VOCAL_PHRASE_DELTA_EPSILON = 0.25f;
 
         private readonly struct GameplaySnapshot
         {
@@ -33,6 +35,10 @@ namespace YARG.Menu.Multiplayer
             public readonly int AccentsHit;
             public readonly int DynamicsBonus;
             public readonly int BandBonusScore;
+            public readonly int VocalsTicksHit;
+            public readonly int VocalsTicksMissed;
+            public readonly float VocalsPhraseTicksHit;
+            public readonly int VocalsPhraseTicksTotal;
             public readonly bool SoloActive;
             public readonly int SoloSequence;
             public readonly int SoloNoteCount;
@@ -45,7 +51,8 @@ namespace YARG.Menu.Multiplayer
             public GameplaySnapshot(int score, int combo, int streak, bool starPowerActive, float starPowerAmount,
                 int starPowerPhrasesHit, int totalStarPowerPhrases, int notesHit, int notesMissed, int overstrums,
                 int hoposStrummed, int overhits, int ghostInputs, int ghostsHit, int accentsHit, int dynamicsBonus,
-                int bandBonusScore, bool soloActive, int soloSequence, int soloNoteCount, int soloNotesHit,
+                int bandBonusScore, int vocalsTicksHit, int vocalsTicksMissed, float vocalsPhraseTicksHit,
+                int vocalsPhraseTicksTotal, bool soloActive, int soloSequence, int soloNoteCount, int soloNotesHit,
                 int soloLastBonus, int soloTotalBonus, double songTime, double clientNetworkTime)
             {
                 Score = score;
@@ -65,6 +72,10 @@ namespace YARG.Menu.Multiplayer
                 AccentsHit = accentsHit;
                 DynamicsBonus = dynamicsBonus;
                 BandBonusScore = bandBonusScore;
+                VocalsTicksHit = vocalsTicksHit;
+                VocalsTicksMissed = vocalsTicksMissed;
+                VocalsPhraseTicksHit = vocalsPhraseTicksHit;
+                VocalsPhraseTicksTotal = vocalsPhraseTicksTotal;
                 SoloActive = soloActive;
                 SoloSequence = soloSequence;
                 SoloNoteCount = soloNoteCount;
@@ -128,6 +139,21 @@ namespace YARG.Menu.Multiplayer
                     return true;
                 }
 
+                if (VocalsTicksHit != other.VocalsTicksHit || VocalsTicksMissed != other.VocalsTicksMissed)
+                {
+                    return true;
+                }
+
+                if (VocalsPhraseTicksTotal != other.VocalsPhraseTicksTotal)
+                {
+                    return true;
+                }
+
+                if (Mathf.Abs(VocalsPhraseTicksHit - other.VocalsPhraseTicksHit) > VOCAL_PHRASE_DELTA_EPSILON)
+                {
+                    return true;
+                }
+
                 if (SoloActive != other.SoloActive || SoloSequence != other.SoloSequence)
                 {
                     return true;
@@ -148,10 +174,14 @@ namespace YARG.Menu.Multiplayer
         }
 
         private bool _isMultiplayer;
-        private NetworkPlayerData _localPlayerData;
-        private bool _hasLastSnapshot;
-        private GameplaySnapshot _lastSnapshot;
-        private uint _snapshotSequence;
+        private readonly Dictionary<NetworkPlayerData, SnapshotState> _snapshotStates = new();
+
+        private sealed class SnapshotState
+        {
+            public bool HasLastSnapshot;
+            public GameplaySnapshot LastSnapshot;
+            public uint Sequence;
+        }
 
         private void Start()
         {
@@ -165,26 +195,25 @@ namespace YARG.Menu.Multiplayer
 
             _isMultiplayer = true;
 
-            // Get local player's NetworkPlayerData
             var allPlayers = YargNetworkManager.Instance.GetAllPlayers();
+            bool foundLocalPlayer = false;
+
             foreach (var playerData in allPlayers)
             {
-                if (playerData != null && playerData.isLocalPlayer)
+                if (playerData != null && playerData.IsLocalUser)
                 {
-                    _localPlayerData = playerData;
-                    break;
+                    playerData.CmdResetGameState();
+                    foundLocalPlayer = true;
                 }
             }
 
-            if (_localPlayerData == null)
+            if (!foundLocalPlayer)
             {
                 Debug.LogWarning("[MultiplayerGameplaySync] Could not find local NetworkPlayerData");
                 Destroy(this);
                 return;
             }
 
-            // Reset game state at start
-            _localPlayerData.CmdResetGameState();
             ResetSnapshotCache();
 
             Debug.Log("[MultiplayerGameplaySync] Initialized - using local authority gameplay snapshots");
@@ -192,25 +221,37 @@ namespace YARG.Menu.Multiplayer
 
         private void ResetSnapshotCache()
         {
-            _hasLastSnapshot = false;
-            _lastSnapshot = default;
-            _snapshotSequence = 0;
+            _snapshotStates.Clear();
+        }
+
+        private SnapshotState GetOrCreateState(NetworkPlayerData networkPlayerData)
+        {
+            if (!_snapshotStates.TryGetValue(networkPlayerData, out var state))
+            {
+                state = new SnapshotState();
+                _snapshotStates[networkPlayerData] = state;
+            }
+
+            return state;
         }
 
         /// <summary>
         /// Submit the current local gameplay state for replication to other clients.
         /// The caller is responsible for providing song/network timestamps in the same frame.
         /// </summary>
-        public void SubmitLocalSnapshot(int score, int combo, int streak, bool starPowerActive, float starPowerAmount,
+        public void SubmitLocalSnapshot(NetworkPlayerData networkPlayerData, int score, int combo, int streak, bool starPowerActive, float starPowerAmount,
             int starPowerPhrasesHit, int totalStarPowerPhrases, int notesHit, int notesMissed, int overstrums,
             int hoposStrummed, int overhits, int ghostInputs, int ghostsHit, int accentsHit, int dynamicsBonus,
-            int bandBonusScore, bool soloActive, int soloSequence, int soloNoteCount, int soloNotesHit,
+            int bandBonusScore, int vocalsTicksHit, int vocalsTicksMissed, float vocalsPhraseTicksHit,
+            int vocalsPhraseTicksTotal, bool soloActive, int soloSequence, int soloNoteCount, int soloNotesHit,
             int soloLastBonus, int soloTotalBonus, double songTime, double clientNetworkTime, bool forceSend = false)
         {
-            if (!_isMultiplayer || _localPlayerData == null || !_localPlayerData.isLocalPlayer)
+            if (!_isMultiplayer || networkPlayerData == null || !networkPlayerData.IsLocalUser)
             {
                 return;
             }
+
+            var state = GetOrCreateState(networkPlayerData);
 
             int sanitizedScore = Math.Max(0, score);
             int sanitizedCombo = Math.Max(0, combo);
@@ -225,6 +266,10 @@ namespace YARG.Menu.Multiplayer
             int sanitizedAccentsHit = Math.Max(0, accentsHit);
             int sanitizedDynamicsBonus = Math.Max(0, dynamicsBonus);
             int sanitizedBandBonusScore = Math.Max(0, bandBonusScore);
+            int sanitizedVocalsTicksHit = Math.Max(0, vocalsTicksHit);
+            int sanitizedVocalsTicksMissed = Math.Max(0, vocalsTicksMissed);
+            float sanitizedVocalsPhraseTicksHit = Mathf.Max(0f, vocalsPhraseTicksHit);
+            int sanitizedVocalsPhraseTicksTotal = Math.Max(0, vocalsPhraseTicksTotal);
             int sanitizedTotalStarPowerPhrases = Math.Max(0, totalStarPowerPhrases);
             int sanitizedStarPowerPhrasesHit = Math.Max(0, starPowerPhrasesHit);
             if (sanitizedTotalStarPowerPhrases > 0)
@@ -238,29 +283,42 @@ namespace YARG.Menu.Multiplayer
             int sanitizedSoloTotalBonus = Math.Max(0, soloTotalBonus);
 
             // Ensure values stay monotonic so the server doesn't reject snapshots due to engine bookkeeping churn.
-            if (_hasLastSnapshot)
+            if (state.HasLastSnapshot)
             {
-                sanitizedScore = Math.Max(sanitizedScore, _lastSnapshot.Score);
-                sanitizedStreak = Math.Max(sanitizedStreak, _lastSnapshot.Streak);
-                sanitizedNotesHit = Math.Max(sanitizedNotesHit, _lastSnapshot.NotesHit);
-                sanitizedNotesMissed = Math.Max(sanitizedNotesMissed, _lastSnapshot.NotesMissed);
-                sanitizedOverstrums = Math.Max(sanitizedOverstrums, _lastSnapshot.Overstrums);
-                sanitizedHoposStrummed = Math.Max(sanitizedHoposStrummed, _lastSnapshot.HoposStrummed);
-                sanitizedOverhits = Math.Max(sanitizedOverhits, _lastSnapshot.Overhits);
-                sanitizedGhostInputs = Math.Max(sanitizedGhostInputs, _lastSnapshot.GhostInputs);
-                sanitizedGhostsHit = Math.Max(sanitizedGhostsHit, _lastSnapshot.GhostsHit);
-                sanitizedAccentsHit = Math.Max(sanitizedAccentsHit, _lastSnapshot.AccentsHit);
-                sanitizedDynamicsBonus = Math.Max(sanitizedDynamicsBonus, _lastSnapshot.DynamicsBonus);
-                sanitizedBandBonusScore = Math.Max(sanitizedBandBonusScore, _lastSnapshot.BandBonusScore);
-                sanitizedStarPowerPhrasesHit = Math.Max(sanitizedStarPowerPhrasesHit, _lastSnapshot.StarPowerPhrasesHit);
-                sanitizedTotalStarPowerPhrases = Math.Max(sanitizedTotalStarPowerPhrases, _lastSnapshot.TotalStarPowerPhrases);
-                sanitizedSoloTotalBonus = Math.Max(sanitizedSoloTotalBonus, _lastSnapshot.SoloTotalBonus);
+                var lastSnapshot = state.LastSnapshot;
 
-                if (sanitizedSoloSequence == _lastSnapshot.SoloSequence)
+                sanitizedScore = Math.Max(sanitizedScore, lastSnapshot.Score);
+                sanitizedStreak = Math.Max(sanitizedStreak, lastSnapshot.Streak);
+                sanitizedNotesHit = Math.Max(sanitizedNotesHit, lastSnapshot.NotesHit);
+                sanitizedNotesMissed = Math.Max(sanitizedNotesMissed, lastSnapshot.NotesMissed);
+                sanitizedOverstrums = Math.Max(sanitizedOverstrums, lastSnapshot.Overstrums);
+                sanitizedHoposStrummed = Math.Max(sanitizedHoposStrummed, lastSnapshot.HoposStrummed);
+                sanitizedOverhits = Math.Max(sanitizedOverhits, lastSnapshot.Overhits);
+                sanitizedGhostInputs = Math.Max(sanitizedGhostInputs, lastSnapshot.GhostInputs);
+                sanitizedGhostsHit = Math.Max(sanitizedGhostsHit, lastSnapshot.GhostsHit);
+                sanitizedAccentsHit = Math.Max(sanitizedAccentsHit, lastSnapshot.AccentsHit);
+                sanitizedDynamicsBonus = Math.Max(sanitizedDynamicsBonus, lastSnapshot.DynamicsBonus);
+                sanitizedBandBonusScore = Math.Max(sanitizedBandBonusScore, lastSnapshot.BandBonusScore);
+                sanitizedVocalsTicksHit = Math.Max(sanitizedVocalsTicksHit, lastSnapshot.VocalsTicksHit);
+                sanitizedVocalsTicksMissed = Math.Max(sanitizedVocalsTicksMissed, lastSnapshot.VocalsTicksMissed);
+                sanitizedStarPowerPhrasesHit = Math.Max(sanitizedStarPowerPhrasesHit, lastSnapshot.StarPowerPhrasesHit);
+                sanitizedTotalStarPowerPhrases = Math.Max(sanitizedTotalStarPowerPhrases, lastSnapshot.TotalStarPowerPhrases);
+                sanitizedSoloTotalBonus = Math.Max(sanitizedSoloTotalBonus, lastSnapshot.SoloTotalBonus);
+
+                if (sanitizedSoloSequence == lastSnapshot.SoloSequence)
                 {
-                    sanitizedSoloNotesHit = Math.Max(sanitizedSoloNotesHit, _lastSnapshot.SoloNotesHit);
-                    sanitizedSoloNoteCount = Math.Max(sanitizedSoloNoteCount, _lastSnapshot.SoloNoteCount);
+                    sanitizedSoloNotesHit = Math.Max(sanitizedSoloNotesHit, lastSnapshot.SoloNotesHit);
+                    sanitizedSoloNoteCount = Math.Max(sanitizedSoloNoteCount, lastSnapshot.SoloNoteCount);
                 }
+            }
+
+            if (sanitizedVocalsPhraseTicksTotal > 0)
+            {
+                sanitizedVocalsPhraseTicksHit = Mathf.Min(sanitizedVocalsPhraseTicksHit, sanitizedVocalsPhraseTicksTotal);
+            }
+            else
+            {
+                sanitizedVocalsPhraseTicksHit = 0f;
             }
 
             float clampedStarPower = Mathf.Clamp01(starPowerAmount);
@@ -269,16 +327,17 @@ namespace YARG.Menu.Multiplayer
                 clampedStarPower, sanitizedStarPowerPhrasesHit, sanitizedTotalStarPowerPhrases, sanitizedNotesHit,
                 sanitizedNotesMissed, sanitizedOverstrums, sanitizedHoposStrummed, sanitizedOverhits,
                 sanitizedGhostInputs, sanitizedGhostsHit, sanitizedAccentsHit, sanitizedDynamicsBonus,
-                sanitizedBandBonusScore, soloActive, sanitizedSoloSequence, sanitizedSoloNoteCount,
-                sanitizedSoloNotesHit, sanitizedSoloLastBonus, sanitizedSoloTotalBonus, songTime,
-                clientNetworkTime);
+                sanitizedBandBonusScore, sanitizedVocalsTicksHit, sanitizedVocalsTicksMissed,
+                sanitizedVocalsPhraseTicksHit, sanitizedVocalsPhraseTicksTotal, soloActive, sanitizedSoloSequence,
+                sanitizedSoloNoteCount, sanitizedSoloNotesHit, sanitizedSoloLastBonus, sanitizedSoloTotalBonus,
+                songTime, clientNetworkTime);
 
-            bool shouldSend = forceSend || !_hasLastSnapshot;
+            bool shouldSend = forceSend || !state.HasLastSnapshot;
 
-            if (!shouldSend && _hasLastSnapshot)
+            if (!shouldSend && state.HasLastSnapshot)
             {
-                double elapsed = snapshot.ClientNetworkTime - _lastSnapshot.ClientNetworkTime;
-                bool changed = snapshot.DiffersFrom(_lastSnapshot);
+                double elapsed = snapshot.ClientNetworkTime - state.LastSnapshot.ClientNetworkTime;
+                bool changed = snapshot.DiffersFrom(state.LastSnapshot);
 
                 if (changed)
                 {
@@ -295,17 +354,19 @@ namespace YARG.Menu.Multiplayer
                 return;
             }
 
-            _snapshotSequence++;
-            _localPlayerData.CmdSubmitGameplaySnapshot(snapshot.Score, snapshot.Combo, snapshot.Streak,
+            state.Sequence++;
+            networkPlayerData.CmdSubmitGameplaySnapshot(snapshot.Score, snapshot.Combo, snapshot.Streak,
                 snapshot.StarPowerActive, snapshot.StarPowerAmount, snapshot.StarPowerPhrasesHit,
                 snapshot.TotalStarPowerPhrases, snapshot.NotesHit, snapshot.NotesMissed, snapshot.Overstrums,
                 snapshot.HoposStrummed, snapshot.Overhits, snapshot.GhostInputs, snapshot.GhostsHit,
-                snapshot.AccentsHit, snapshot.DynamicsBonus, snapshot.BandBonusScore, snapshot.SoloActive,
-                snapshot.SoloSequence, snapshot.SoloNoteCount, snapshot.SoloNotesHit, snapshot.SoloLastBonus,
-                snapshot.SoloTotalBonus, snapshot.SongTime, snapshot.ClientNetworkTime, _snapshotSequence);
+                snapshot.AccentsHit, snapshot.DynamicsBonus, snapshot.BandBonusScore, snapshot.VocalsTicksHit,
+                snapshot.VocalsTicksMissed, snapshot.VocalsPhraseTicksHit, snapshot.VocalsPhraseTicksTotal,
+                snapshot.SoloActive, snapshot.SoloSequence, snapshot.SoloNoteCount, snapshot.SoloNotesHit,
+                snapshot.SoloLastBonus, snapshot.SoloTotalBonus, snapshot.SongTime, snapshot.ClientNetworkTime,
+                state.Sequence);
 
-            _lastSnapshot = snapshot;
-            _hasLastSnapshot = true;
+            state.LastSnapshot = snapshot;
+            state.HasLastSnapshot = true;
         }
         
         private void OnDestroy()

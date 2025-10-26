@@ -61,6 +61,9 @@ namespace YARG.Input
             AddBinding(MenuAction.Blue, guitar.blueFret);
             AddBinding(MenuAction.Orange, guitar.orangeFret);
 
+            AddBinding(MenuAction.Up, guitar.strumUp);
+            AddBinding(MenuAction.Down, guitar.strumDown);
+
             AddBinding(MenuAction.Up, guitar.dpad.up);
             AddBinding(MenuAction.Down, guitar.dpad.down);
             AddBinding(MenuAction.Left, guitar.dpad.left);

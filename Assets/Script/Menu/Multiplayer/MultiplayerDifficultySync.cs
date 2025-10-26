@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
@@ -14,7 +15,7 @@ namespace YARG.Menu.Multiplayer
     {
         private bool _isMultiplayer;
         private bool _isHost;
-        private bool _hasSyncedProfile;
+        private readonly HashSet<int> _syncedProfileIndices = new();
 
         /// <summary>
         /// Event fired when host is waiting for other players.
@@ -48,11 +49,17 @@ namespace YARG.Menu.Multiplayer
                 return;
             }
 
-            // Get the local player's NetworkPlayerData
-            var localPlayerData = GetLocalPlayerData();
+            int playerIndex = FindLocalPlayerIndex(player);
+            if (playerIndex < 0)
+            {
+                Debug.LogWarning("[MultiplayerDifficultySync] Unable to determine local player index for selection sync");
+                return;
+            }
+
+            var localPlayerData = FindLocalNetworkData(playerIndex);
             if (localPlayerData == null)
             {
-                Debug.LogWarning("[MultiplayerDifficultySync] Could not find local NetworkPlayerData");
+                Debug.LogWarning($"[MultiplayerDifficultySync] Could not find local NetworkPlayerData for index {playerIndex}");
                 return;
             }
 
@@ -70,7 +77,7 @@ namespace YARG.Menu.Multiplayer
             // Mark as ready
             localPlayerData.CmdSetReady(true);
 
-            _hasSyncedProfile = true;
+            _syncedProfileIndices.Add(playerIndex);
         }
 
         /// <summary>
@@ -115,12 +122,18 @@ namespace YARG.Menu.Multiplayer
         /// </summary>
         public void SyncPlayerProfileOnEntry(YargPlayer player)
         {
-            if (!_isMultiplayer || _hasSyncedProfile)
+            if (!_isMultiplayer)
             {
                 return;
             }
 
-            var localPlayerData = GetLocalPlayerData();
+            int playerIndex = FindLocalPlayerIndex(player);
+            if (playerIndex < 0 || _syncedProfileIndices.Contains(playerIndex))
+            {
+                return;
+            }
+
+            var localPlayerData = FindLocalNetworkData(playerIndex);
             if (localPlayerData == null)
             {
                 return;
@@ -135,20 +148,40 @@ namespace YARG.Menu.Multiplayer
 
             localPlayerData.CmdSyncPlayerProfile(gameMode, instrument, difficulty);
             localPlayerData.CmdSetInstrument(instrument, difficulty);
+
+            _syncedProfileIndices.Add(playerIndex);
         }
 
-        private NetworkPlayerData GetLocalPlayerData()
+        private int FindLocalPlayerIndex(YargPlayer player)
+        {
+            var players = PlayerContainer.Players;
+            if (players == null)
+            {
+                return -1;
+            }
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                if (players[i] == player)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private NetworkPlayerData FindLocalNetworkData(int playerIndex)
         {
             if (YargNetworkManager.Instance == null)
             {
                 return null;
             }
 
-            // Find the local player's NetworkPlayerData
             var allPlayers = YargNetworkManager.Instance.GetAllPlayers();
             foreach (var playerData in allPlayers)
             {
-                if (playerData != null && playerData.isLocalPlayer)
+                if (playerData != null && playerData.IsLocalUser && playerData.PlayerIndex == playerIndex)
                 {
                     return playerData;
                 }

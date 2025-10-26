@@ -43,6 +43,8 @@ namespace kcp2k
         bool active = false; // active between when connect() and disconnect() are called
         public bool connected;
 
+        public Func<ArraySegment<byte>, bool> RawReceiveFilter;
+
         public KcpClient(Action OnConnected,
                          Action<ArraySegment<byte>, KcpChannel> OnData,
                          Action OnDisconnected,
@@ -198,6 +200,25 @@ namespace kcp2k
             SendData(segment, channel);
         }
 
+        public bool TrySendRaw(ArraySegment<byte> data)
+        {
+            if (socket == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                socket.SendNonBlocking(data);
+                return true;
+            }
+            catch (SocketException e)
+            {
+                Log.Warning($"[KCP] Client: RawSend failed: {e}");
+                return false;
+            }
+        }
+
         // insert raw IO. usually from socket.Receive.
         // offset is useful for relays, where we may parse a header and then
         // feed the rest to kcp.
@@ -265,7 +286,14 @@ namespace kcp2k
             if (active)
             {
                 while (RawReceive(out ArraySegment<byte> segment))
+                {
+                    if (RawReceiveFilter != null && RawReceiveFilter.Invoke(segment))
+                    {
+                        continue;
+                    }
+
                     RawInput(segment);
+                }
             }
 
             // RawReceive may have disconnected peer. active check again.

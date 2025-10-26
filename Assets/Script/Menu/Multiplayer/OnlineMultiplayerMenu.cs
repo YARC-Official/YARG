@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Networking;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -72,6 +73,7 @@ namespace YARG.Menu.Multiplayer
         public void OnFindLobbyClicked()
         {
             // Open the lobby browser menu
+            YargLogger.LogInfo("[OnlineMultiplayerMenu] Find Lobby clicked");
             MenuManager.Instance.PushMenu(MenuManager.Menu.LobbyBrowser);
         }
 
@@ -79,11 +81,12 @@ namespace YARG.Menu.Multiplayer
         {
             if (createLobbyDialog != null)
             {
+                YargLogger.LogInfo("[OnlineMultiplayerMenu] Create Lobby clicked");
                 createLobbyDialog.SetActive(true);
             }
             else
             {
-                Debug.LogWarning("Create Lobby Dialog not assigned in Inspector!");
+                YargLogger.LogWarning("[OnlineMultiplayerMenu] Create Lobby Dialog not assigned in Inspector!");
             }
         }
 
@@ -91,11 +94,12 @@ namespace YARG.Menu.Multiplayer
         {
             if (directConnectDialog != null)
             {
+                YargLogger.LogInfo("[OnlineMultiplayerMenu] Direct Connect clicked");
                 directConnectDialog.SetActive(true);
             }
             else
             {
-                Debug.LogWarning("Direct Connect Dialog not assigned in Inspector!");
+                YargLogger.LogWarning("[OnlineMultiplayerMenu] Direct Connect Dialog not assigned in Inspector!");
             }
         }
 
@@ -106,7 +110,7 @@ namespace YARG.Menu.Multiplayer
 
         private void OnLobbyCreated(YargNetworkManager.LobbyInfo lobby)
         {
-            Debug.Log($"[OnlineMultiplayerMenu] Lobby created: {lobby.lobbyName}");
+            YargLogger.LogInfo($"[OnlineMultiplayerMenu] Lobby created: {lobby.lobbyName}");
             UpdateConnectionStatus();
             
             // Don't show dialog or navigate here - the host's own OnLobbyJoined will handle it
@@ -120,12 +124,12 @@ namespace YARG.Menu.Multiplayer
             // Prevent multiple calls (Mirror can trigger this multiple times)
             if (_hasJoinedLobby)
             {
-                Debug.Log($"[OnlineMultiplayerMenu] Already joined lobby, ignoring duplicate call");
+                YargLogger.LogInfo("[OnlineMultiplayerMenu] Already joined lobby, ignoring duplicate call");
                 return;
             }
             
             _hasJoinedLobby = true;
-            Debug.Log($"[OnlineMultiplayerMenu] Joined lobby: {lobby.lobbyName}");
+            YargLogger.LogInfo($"[OnlineMultiplayerMenu] Joined lobby: {lobby.lobbyName}");
             UpdateConnectionStatus();
             
             // Dismiss any connecting dialogs
@@ -141,18 +145,23 @@ namespace YARG.Menu.Multiplayer
 
         private void OnLobbyLeft()
         {
-            Debug.Log("Left lobby");
+            YargLogger.LogInfo("[OnlineMultiplayerMenu] Left lobby");
             _hasJoinedLobby = false;
             UpdateConnectionStatus();
         }
 
         private void OnNetworkError(string error)
         {
-            Debug.LogError($"Network error: {error}");
+            YargLogger.LogError($"[OnlineMultiplayerMenu] Network error: {error}");
             
             // Show error dialog using YARG's DialogManager
             if (DialogManager.Instance != null)
             {
+                if (DialogManager.Instance.IsDialogShowing)
+                {
+                    DialogManager.Instance.ClearDialog();
+                }
+
                 DialogManager.Instance.ShowMessage("Connection Error", error);
             }
 

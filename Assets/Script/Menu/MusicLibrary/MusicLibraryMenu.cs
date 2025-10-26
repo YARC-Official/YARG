@@ -106,6 +106,9 @@ namespace YARG.Menu.MusicLibrary
 
         private List<HoldContext> _heldInputs = new();
 
+        private const float MORE_OPTIONS_ACTIVATION_DELAY = 0.35f;
+        private float _moreOptionsActivationTimer;
+
         // Doesn't go through PlaylistContainer because it is ephemeral
 
         private static Instrument _lastInstrument;
@@ -328,6 +331,11 @@ namespace YARG.Menu.MusicLibrary
             if (reset)
             {
                 Navigator.Instance.PopScheme();
+            }
+
+            if (MenuState != MenuState.Show)
+            {
+                _moreOptionsActivationTimer = 0f;
             }
 
             NavigationScheme.Entry leftEntry = default;
@@ -776,6 +784,11 @@ namespace YARG.Menu.MusicLibrary
             foreach (var heldInput in _heldInputs)
                 heldInput.Timer -= Time.unscaledDeltaTime;
 
+            if (_moreOptionsActivationTimer > 0f)
+            {
+                _moreOptionsActivationTimer -= Time.unscaledDeltaTime;
+            }
+
             base.Update();
         }
 
@@ -872,8 +885,18 @@ namespace YARG.Menu.MusicLibrary
         {
             var holdContext = _heldInputs.FirstOrDefault(i => i.Context.IsSameAs(ctx));
 
-            if (ctx.Action == MenuAction.Orange && (holdContext?.Timer > 0 || ctx.Player is null))
-                _popupMenu.gameObject.SetActive(true);
+            if (ctx.Action == MenuAction.Orange)
+            {
+                bool triggeredByInstrument = ctx.Player != null;
+                bool requiresHold = triggeredByInstrument && MenuState != MenuState.Show;
+                bool heldLongEnough = holdContext != null && holdContext.Timer <= 0f;
+
+                // In show mode the orange menu should open immediately even for instruments.
+                if (_moreOptionsActivationTimer <= 0f && (!requiresHold || heldLongEnough))
+                {
+                    _popupMenu.gameObject.SetActive(true);
+                }
+            }
 
             _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
         }

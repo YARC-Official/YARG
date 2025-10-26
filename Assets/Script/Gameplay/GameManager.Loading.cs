@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -19,6 +20,7 @@ using YARG.Player;
 using YARG.Scores;
 using YARG.Settings;
 using YARG.Song;
+using YARG.Networking;
 
 namespace YARG.Gameplay
 {
@@ -102,6 +104,8 @@ namespace YARG.Gameplay
         private async void Start()
         {
             Debug.Log("[GameManager.Start] BEGIN - Entering Start method");
+
+            _multiplayerFailureReported = false;
             
             // If in multiplayer, create players BEFORE anything else
             if (_multiplayerSync != null)
@@ -140,6 +144,12 @@ namespace YARG.Gameplay
                 else
                 {
                     Debug.Log($"[GameManager] Successfully created {YargPlayers.Count} multiplayer players");
+                }
+
+                var networkManager = Networking.YargNetworkManager.Instance;
+                if (networkManager != null && networkManager.IsHosting && Mirror.NetworkServer.active)
+                {
+                    networkManager.ResetBandFailureTracking();
                 }
             }
             
@@ -343,6 +353,8 @@ namespace YARG.Gameplay
                     networkManager.ForceCompleteGameplayStartBarrier();
                 }
             }
+
+            await UniTask.SwitchToMainThread();
         }
 
         private bool LoadReplay()
@@ -604,47 +616,79 @@ namespace YARG.Gameplay
         {
             try
             {
-                if (Menu.Multiplayer.MultiplayerPlayerManager.TryGetNetworkPlayer(player.Player, out var mappedNetworkPlayer))
+                var networkPlayerData = ResolveNetworkPlayerData(player, playerIndex);
+                if (networkPlayerData == null)
                 {
-                    player.SetNetworkPlayerData(mappedNetworkPlayer);
-
-                    if (player is Player.TrackPlayer trackPlayer)
-                    {
-                        var simulation = player.gameObject.AddComponent<Player.RemotePlayerSimulation>();
-                        simulation.Initialize(trackPlayer, mappedNetworkPlayer);
-
-                        YargLogger.LogInfo($"[GameManager] Attached RemotePlayerSimulation to player {player.Player.Profile.Name} (Network: {mappedNetworkPlayer.PlayerName}) via direct map");
-                    }
+                    YargLogger.LogFormatWarning("[GameManager] Unable to resolve NetworkPlayerData for player {0} (index {1})",
+                        player.Player.Profile.Name, playerIndex);
                     return;
                 }
 
-                // Fallback: attempt to match by index if the lookup failed (should not happen)
-                var networkPlayers = Networking.YargNetworkManager.Instance.GetAllPlayers();
+                player.SetNetworkPlayerData(networkPlayerData);
 
-                if (playerIndex >= 0 && playerIndex < networkPlayers.Count)
+                var profile = player.Player.Profile;
+                if (!networkPlayerData.IsLocalUser)
                 {
-                    var networkPlayerData = networkPlayers[playerIndex];
+                    var simulation = player.gameObject.AddComponent<Player.RemotePlayerSimulation>();
+                    simulation.Initialize(player, networkPlayerData);
 
-                    player.SetNetworkPlayerData(networkPlayerData);
-
-                    if (player is Player.TrackPlayer trackPlayer)
-                    {
-                        var simulation = player.gameObject.AddComponent<Player.RemotePlayerSimulation>();
-                        simulation.Initialize(trackPlayer, networkPlayerData);
-
-                        YargLogger.LogInfo($"[GameManager] Attached RemotePlayerSimulation to player {player.Player.Profile.Name} (Network: {networkPlayerData.PlayerName}) using index fallback");
-                    }
+                    var instrument = profile != null ? profile.CurrentInstrument.ToString() : "Unknown";
+                    YargLogger.LogInfo($"[GameManager] Attached RemotePlayerSimulation to player {profile?.Name ?? "Unknown"} ({instrument}) (Network: {networkPlayerData.PlayerName})");
                 }
                 else
                 {
-                    YargLogger.LogFormatWarning("[GameManager] Unable to resolve NetworkPlayerData for player {0} (index {1}, total {2})",
-                        player.Player.Profile.Name, playerIndex, networkPlayers.Count);
+                    YargLogger.LogInfo($"[GameManager] Player {profile?.Name ?? "Unknown"} mapped to local NetworkPlayerData {networkPlayerData.PlayerName}; skipping remote simulation.");
                 }
             }
             catch (Exception ex)
             {
                 YargLogger.LogException(ex, "Failed to attach RemotePlayerVisualizer");
             }
+        }
+
+        private static NetworkPlayerData ResolveNetworkPlayerData(BasePlayer player, int playerIndex)
+        {
+            bool expectsLocalData = player.Player.Bindings != null && !player.Player.IsReplay;
+
+            if (Menu.Multiplayer.MultiplayerPlayerManager.TryGetNetworkPlayer(player.Player, out var mappedNetworkPlayer))
+            {
+                if (mappedNetworkPlayer != null && mappedNetworkPlayer.IsLocalUser == expectsLocalData)
+                {
+                    return mappedNetworkPlayer;
+                }
+
+                YargLogger.LogFormatWarning("[GameManager] NetworkPlayerData mismatch for player {0} (expected local={1}, mapped local={2}).",
+                    player.Player.Profile.Name, expectsLocalData, mappedNetworkPlayer?.IsLocalUser);
+            }
+
+            var manager = Networking.YargNetworkManager.Instance;
+            if (manager == null)
+            {
+                return null;
+            }
+
+            var networkPlayers = manager.GetAllPlayers();
+
+            if (playerIndex >= 0 && playerIndex < networkPlayers.Count)
+            {
+                var indexedPlayer = networkPlayers[playerIndex];
+                if (indexedPlayer != null && indexedPlayer.IsLocalUser == expectsLocalData)
+                {
+                    return indexedPlayer;
+                }
+            }
+
+            // As a final fallback, try to match by player name and locality
+            var byName = networkPlayers.FirstOrDefault(p => p != null &&
+                                                            p.IsLocalUser == expectsLocalData &&
+                                                            string.Equals(p.PlayerName, player.Player.Profile.Name, StringComparison.Ordinal));
+            if (byName != null)
+            {
+                return byName;
+            }
+
+            // If we still didn't find a match, look for any entry that matches the expected locality
+            return networkPlayers.FirstOrDefault(p => p != null && p.IsLocalUser == expectsLocalData);
         }
     }
 }

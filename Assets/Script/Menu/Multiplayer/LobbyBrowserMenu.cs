@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,6 +8,7 @@ using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Networking;
+using YARG.Networking.Bookmarks;
 
 namespace YARG.Menu.Multiplayer
 {
@@ -32,6 +34,16 @@ namespace YARG.Menu.Multiplayer
         {
             _favorites = new LobbyFavorites();
             _favorites.OnFavoritesChanged += RefreshList;
+        }
+
+        private void OnDestroy()
+        {
+            if (_favorites != null)
+            {
+                _favorites.OnFavoritesChanged -= RefreshList;
+                _favorites.Dispose();
+                _favorites = null;
+            }
         }
         
         private void OnEnable()
@@ -115,13 +127,28 @@ namespace YARG.Menu.Multiplayer
             }
             
             // Separate favorites and non-favorites
-            var favorites = _currentLobbies
-                .Where(lobby => _favorites.IsFavorited(lobby.ipAddress))
-                .OrderByDescending(lobby => lobby.currentPlayers)
+            var favoriteBookmarks = _favorites.GetFavorites()
+                .OrderByDescending(bookmark => bookmark.lastConnected)
                 .ToList();
+            var favorites = new List<LobbyViewType>();
+            var discoveredLookup = _currentLobbies.ToDictionary(
+                lobby => LobbyBookmarkUtility.BuildKey(lobby.ipAddress, lobby.port),
+                lobby => lobby);
+
+            foreach (var bookmark in favoriteBookmarks)
+            {
+                if (discoveredLookup.TryGetValue(bookmark.EndpointKey, out var match))
+                {
+                    favorites.Add(new DiscoveredLobbyViewType(match, this, _favorites));
+                }
+                else
+                {
+                    favorites.Add(new SavedLobbyViewType(bookmark, this, _favorites));
+                }
+            }
             
             var others = _currentLobbies
-                .Where(lobby => !_favorites.IsFavorited(lobby.ipAddress))
+                .Where(lobby => !_favorites.IsFavorited(lobby.ipAddress, lobby.port))
                 .OrderByDescending(lobby => lobby.currentPlayers)
                 .ToList();
             
@@ -129,10 +156,7 @@ namespace YARG.Menu.Multiplayer
             if (favorites.Count > 0)
             {
                 viewTypes.Add(new LobbyCategoryViewType("★ FAVORITE LOBBIES"));
-                foreach (var lobby in favorites)
-                {
-                    viewTypes.Add(new DiscoveredLobbyViewType(lobby, this, _favorites));
-                }
+                viewTypes.AddRange(favorites);
             }
             
             // Add all lobbies section
@@ -143,6 +167,21 @@ namespace YARG.Menu.Multiplayer
                 foreach (var lobby in others)
                 {
                     viewTypes.Add(new DiscoveredLobbyViewType(lobby, this, _favorites));
+                }
+            }
+
+            var recents = _favorites.GetRecents()
+                .Where(bookmark => !discoveredLookup.ContainsKey(bookmark.EndpointKey) && !_favorites.IsFavorited(bookmark.address, bookmark.port))
+                .OrderByDescending(bookmark => bookmark.lastConnected)
+                .Take(10)
+                .ToList();
+
+            if (recents.Count > 0)
+            {
+                viewTypes.Add(new LobbyCategoryViewType("RECENT CONNECTIONS"));
+                foreach (var bookmark in recents)
+                {
+                    viewTypes.Add(new SavedLobbyViewType(bookmark, this, _favorites));
                 }
             }
             
@@ -180,7 +219,7 @@ namespace YARG.Menu.Multiplayer
                 }
                 else
                 {
-                    int favoriteCount = lobbies.Count(l => _favorites.IsFavorited(l.ipAddress));
+                    int favoriteCount = lobbies.Count(l => _favorites.IsFavorited(l.ipAddress, l.port));
                     if (favoriteCount > 0)
                     {
                         _statusText.text = $"{lobbies.Count} {(lobbies.Count == 1 ? "lobby" : "lobbies")} found ({favoriteCount} favorite{(favoriteCount == 1 ? "" : "s")})";
@@ -232,12 +271,6 @@ namespace YARG.Menu.Multiplayer
         {
             if (YargNetworkManager.Instance != null)
             {
-                // Update last connected time for favorites
-                if (_favorites.IsFavorited(lobby.ipAddress))
-                {
-                    _favorites.UpdateLastConnected(lobby.ipAddress);
-                }
-                
                 YargNetworkManager.Instance.JoinDiscoveredLobby(lobby, password);
             }
         }
@@ -245,6 +278,20 @@ namespace YARG.Menu.Multiplayer
         private void Back()
         {
             MenuManager.Instance.PopMenu();
+        }
+
+        internal void JoinSavedBookmark(LobbyBookmark bookmark)
+        {
+            if (bookmark == null || YargNetworkManager.Instance == null)
+            {
+                return;
+            }
+
+            var endpoint = string.IsNullOrWhiteSpace(bookmark.address)
+                ? string.Empty
+                : string.Concat(bookmark.address, ":", Math.Clamp(bookmark.port, 0, ushort.MaxValue));
+
+            YargNetworkManager.Instance.JoinLobby(endpoint, bookmark.password);
         }
     }
 }

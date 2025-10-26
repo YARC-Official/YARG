@@ -66,6 +66,9 @@ namespace kcp2k
         protected KcpServer server;
         protected KcpClient client;
 
+        public event Func<ArraySegment<byte>, IPEndPoint, bool> ServerRawPacket;
+        public event Func<ArraySegment<byte>, bool> ClientRawPacket;
+
         // debugging
         [Header("Debug")]
         public bool debugLog;
@@ -119,6 +122,7 @@ namespace kcp2k
                 (error, reason) => OnClientError?.Invoke(ToTransportError(error), reason), // may be null during shutdown: https://github.com/MirrorNetworking/Mirror/issues/3876
                 config
             );
+            client.RawReceiveFilter = HandleClientRawInput;
 
             // server
             server = new KcpServer(
@@ -128,6 +132,7 @@ namespace kcp2k
                 (connectionId, error, reason) => OnServerError.Invoke(connectionId, ToTransportError(error), reason),
                 config
             );
+            server.OnRawInput = HandleServerRawInput;
 
             if (statisticsLog)
                 InvokeRepeating(nameof(OnLogStatistics), 1, 1);
@@ -174,6 +179,8 @@ namespace kcp2k
             // call event. might be null if no statistics are listening etc.
             OnClientDataSent?.Invoke(segment, channelId);
         }
+
+        public bool TrySendClientRaw(ArraySegment<byte> segment) => client?.TrySendRaw(segment) ?? false;
         public override void ClientDisconnect() => client.Disconnect();
         // process incoming in early update
         public override void ClientEarlyUpdate()
@@ -204,6 +211,9 @@ namespace kcp2k
             // call event. might be null if no statistics are listening etc.
             OnServerDataSent?.Invoke(connectionId, segment, channelId);
         }
+
+        public bool TrySendServerRaw(IPEndPoint remoteEndPoint, ArraySegment<byte> segment) => server?.TrySendRaw(remoteEndPoint, segment) ?? false;
+
         public override void ServerDisconnect(int connectionId) =>  server.Disconnect(connectionId);
         public override string ServerGetClientAddress(int connectionId)
         {
@@ -360,6 +370,26 @@ namespace kcp2k
         }
 
         public override string ToString() => $"KCP [{port}]";
+
+        bool HandleServerRawInput(ArraySegment<byte> segment, IPEndPoint remoteEndPoint)
+        {
+            if (ServerRawPacket == null)
+            {
+                return false;
+            }
+
+            return ServerRawPacket.Invoke(segment, remoteEndPoint);
+        }
+
+        bool HandleClientRawInput(ArraySegment<byte> segment)
+        {
+            if (ClientRawPacket == null)
+            {
+                return false;
+            }
+
+            return ClientRawPacket.Invoke(segment);
+        }
     }
 }
 //#endif MIRROR <- commented out because MIRROR isn't defined on first import yet

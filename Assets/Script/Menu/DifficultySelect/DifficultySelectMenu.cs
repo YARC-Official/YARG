@@ -104,6 +104,7 @@ namespace YARG.Menu.DifficultySelect
         private readonly List<Difficulty> _possibleDifficulties = new();
         private readonly List<Modifier>   _possibleModifiers    = new();
 
+        [NonSerialized]
         private Modifier _excusableModifiers;
 
         private int _maxHarmonyIndex = 3;
@@ -164,70 +165,7 @@ namespace YARG.Menu.DifficultySelect
             _subHeader.text = Localize.Key("Menu.Main.Options", subHeaderKey);
 
             // Set navigation scheme
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
-            {
-                NavigationScheme.Entry.NavigateUp,
-                NavigationScheme.Entry.NavigateDown,
-                NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
-                {
-                    if (_menuState == State.Main)
-                    {
-                        // If current player is ready, unmark them and refresh
-                        if (_readyPlayerIndices.Contains(_playerIndex))
-                        {
-                            _readyPlayerIndices.Remove(_playerIndex);
-                            
-                            // Notify network that player is no longer ready
-                            SetLocalPlayerReadyState(false);
-                            
-                            UpdateForPlayer();
-                        }
-                        else if (_playerIndex == 0)
-                        {
-                            // Check if in multiplayer
-                            if (Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive)
-                            {
-                                // Host can go back (takes everyone with them), client shows confirmation
-                                if (Networking.YargNetworkManager.Instance.IsHosting)
-                                {
-                                    Debug.Log($"[DifficultySelectMenu] Host pressing back - Menu stack count: {MenuManager.Instance.MenuStackCount}");
-                                    
-                                    // Sync menu navigation to all clients first
-                                    Networking.YargNetworkManager.Instance.SyncMenuNavigation(popMenu: true);
-                                    
-                                    Debug.Log("[DifficultySelectMenu] Host synced, now navigating locally");
-                                    
-                                    // Then host navigates back to music library
-                                    MenuManager.Instance.PopMenu();
-                                    
-                                    Debug.Log($"[DifficultySelectMenu] Host navigation complete - Menu stack count: {MenuManager.Instance.MenuStackCount}");
-                                }
-                                else
-                                {
-                                    // Client shows leave lobby confirmation dialog
-                                    ShowLeaveLobbyDialog();
-                                }
-                            }
-                            else
-                            {
-                                // Not in multiplayer - just go back
-                                MenuManager.Instance.PopMenu();
-                            }
-                        }
-                        else
-                        {
-                            // Go to previous player
-                            ChangePlayer(-1);
-                        }
-                    }
-                    else
-                    {
-                        _menuState = State.Main;
-                        UpdateForPlayer();
-                    }
-                })
-            }, false));
+            Navigator.Instance.PushScheme(CreateNavigationScheme());
 
             _speedInput.text = $"{Mathf.RoundToInt(_songSpeed * 100f)}%";
             _songTitleText.text = GlobalVariables.State.CurrentSong.Name;
@@ -261,6 +199,156 @@ namespace YARG.Menu.DifficultySelect
             _sourceIcon.gameObject.SetActive(_sourceIcon.sprite != null);
         }
 
+        private NavigationScheme CreateNavigationScheme()
+        {
+            return new NavigationScheme(new()
+            {
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up", context =>
+                {
+                    if (!IsNavigationContextAllowed(context))
+                    {
+                        return;
+                    }
+
+                    _navGroup.SelectPrevious(context.IsRepeat);
+                }),
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down", context =>
+                {
+                    if (!IsNavigationContextAllowed(context))
+                    {
+                        return;
+                    }
+
+                    _navGroup.SelectNext(context.IsRepeat);
+                }),
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", context =>
+                {
+                    if (!IsNavigationContextAllowed(context))
+                    {
+                        return;
+                    }
+
+                    _navGroup.ConfirmSelection();
+                }),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", context =>
+                {
+                    if (!IsNavigationContextAllowed(context))
+                    {
+                        return;
+                    }
+
+                    HandleBackAction();
+                })
+            }, false);
+        }
+
+        private bool IsNavigationContextAllowed(NavigationContext context)
+        {
+            if (_playerIndex < 0 || _playerIndex >= PlayerContainer.Players.Count)
+            {
+                return context.Player == null;
+            }
+
+            if (context.Player is null)
+            {
+                return true;
+            }
+
+            if (context.Player == CurrentPlayer)
+            {
+                return true;
+            }
+
+            int targetIndex = -1;
+            for (int i = 0; i < PlayerContainer.Players.Count; i++)
+            {
+                if (PlayerContainer.Players[i] == context.Player)
+                {
+                    targetIndex = i;
+                    break;
+                }
+            }
+
+            if (targetIndex < 0)
+            {
+                Debug.LogWarning($"[DifficultySelectMenu] Received menu input for untracked player '{context.Player?.Profile?.Name}'");
+                return false;
+            }
+
+            Debug.Log($"[DifficultySelectMenu] Switching active player from index {_playerIndex} to {targetIndex} for action {context.Action} by '{context.Player.Profile.Name}'");
+            SetActivePlayer(targetIndex);
+
+            return context.Player == CurrentPlayer;
+        }
+
+        private void HandleBackAction()
+        {
+            if (_menuState == State.Main)
+            {
+                // If current player is ready, unmark them and refresh
+                if (_readyPlayerIndices.Contains(_playerIndex))
+                {
+                    int currentIndex = _playerIndex;
+                    _readyPlayerIndices.Remove(currentIndex);
+
+                    // Notify network that player is no longer ready
+                    SetLocalPlayerReadyState(currentIndex, false);
+
+                    UpdateForPlayer();
+                }
+                else if (_playerIndex == 0)
+                {
+                    // Check if in multiplayer
+                    if (Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive)
+                    {
+                        // Host can go back (takes everyone with them), client shows confirmation
+                        if (Networking.YargNetworkManager.Instance.IsHosting)
+                        {
+                            Debug.Log($"[DifficultySelectMenu] Host pressing back - Menu stack count: {MenuManager.Instance.MenuStackCount}");
+
+                            // Sync menu navigation to all clients first
+                            Networking.YargNetworkManager.Instance.SyncMenuNavigation(popMenu: true);
+
+                            Debug.Log("[DifficultySelectMenu] Host synced, now navigating locally");
+
+                            // Then host navigates back to music library
+                            MenuManager.Instance.PopMenu();
+
+                            Debug.Log($"[DifficultySelectMenu] Host navigation complete - Menu stack count: {MenuManager.Instance.MenuStackCount}");
+                        }
+                        else
+                        {
+                            // Client shows leave lobby confirmation dialog
+                            ShowLeaveLobbyDialog();
+                        }
+                    }
+                    else
+                    {
+                        // Not in multiplayer - just go back
+                        MenuManager.Instance.PopMenu();
+                    }
+                }
+                else
+                {
+                    // Go to previous player
+                    ChangePlayer(-1);
+                }
+            }
+            else
+            {
+                _menuState = State.Main;
+                UpdateForPlayer();
+            }
+        }
+
+        private void EnsureNavigationSelection()
+        {
+            if (_navGroup.Count > 0 && _navGroup.SelectedBehaviour == null)
+            {
+                _navGroup.SelectFirst();
+            }
+        }
+
         private void UpdateForPlayer()
         {
             // Set player text
@@ -291,6 +379,8 @@ namespace YARG.Menu.DifficultySelect
                     CreateHarmonyMenu();
                     break;
             }
+
+                    EnsureNavigationSelection();
 
             _lastMenuState = _menuState;
         }
@@ -389,11 +479,13 @@ namespace YARG.Menu.DifficultySelect
                 // Ready button
                 CreateItem(LocalizeHeader("Ready"), _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
                 {
+                    int currentIndex = _playerIndex;
+
                     // If the player just selected vocal modifiers, don't show them again
                     if (player.Profile.GameMode == GameMode.Vocals &&
                         _vocalModifierSelectIndex == -1)
                     {
-                        _vocalModifierSelectIndex = _playerIndex;
+                        _vocalModifierSelectIndex = currentIndex;
                     }
 
                     // Sync player selection to multiplayer
@@ -403,13 +495,19 @@ namespace YARG.Menu.DifficultySelect
                     }
 
                     // Mark this player as ready
-                    _readyPlayerIndices.Add(_playerIndex);
-                    
+                    _readyPlayerIndices.Add(currentIndex);
+
                     // Notify network that player is ready
-                    SetLocalPlayerReadyState(true);
-                    
-                    // Refresh UI to show ready state (stay on current player)
+                    SetLocalPlayerReadyState(currentIndex, true);
+
+                    // Refresh UI so this player's ready state is shown immediately
                     UpdateForPlayer();
+
+                    // Advance to the next local player that still needs input, or finish if none remain
+                    if (!TryAdvanceToNextPendingPlayer())
+                    {
+                        CompleteLocalPlayerSelection();
+                    }
                 });
             }
 
@@ -578,75 +676,119 @@ namespace YARG.Menu.DifficultySelect
 
         }
 
-        private void ChangePlayer(int add)
+        private bool TryAdvanceToNextPendingPlayer()
         {
-            _playerIndex += add;
-            _menuState = State.Main;
-
-            // When the user(s) have selected all of their difficulties, move on
-            if (_playerIndex >= PlayerContainer.Players.Count)
+            int playerCount = PlayerContainer.Players.Count;
+            if (playerCount == 0)
             {
-                // If everyone is sitting out, show a warning and boot back to music library
-                if (PlayerContainer.Players.All(i => i.SittingOut))
+                return false;
+            }
+
+            for (int nextIndex = _playerIndex + 1; nextIndex < playerCount; nextIndex++)
+            {
+                if (_readyPlayerIndices.Contains(nextIndex))
                 {
-                    MenuManager.Instance.PopMenu();
-
-                    DialogManager.Instance.ShowMessage("Nobody's Playing!",
-                        "You tried to play a song with every player sitting out.");
-
-                    return;
+                    continue;
                 }
 
-                // Ensure all vocal players have the same modifiers active
-                if (_vocalModifierSelectIndex != -1)
+                var nextPlayer = PlayerContainer.Players[nextIndex];
+                if (nextPlayer.SittingOut)
                 {
-                    // Call the player with the selected modifiers, the "primary player"
-                    var primaryPlayer = PlayerContainer.Players[_vocalModifierSelectIndex];
-
-                    // Copy modifiers to all other vocal players
-                    foreach (var player in PlayerContainer.Players)
-                    {
-                        if (player.SittingOut) continue;
-                        if (player == primaryPlayer) continue;
-
-                        if (player.Profile.GameMode == GameMode.Vocals)
-                        {
-                            player.Profile.CopyModifiers(primaryPlayer.Profile);
-                        }
-                    }
+                    continue;
                 }
 
-                // This will always work (as it's set up in the input field)
-                // The max speed that the game can keep up with is 5000%
-                float speed = float.Parse(_speedInput.text.TrimEnd('%')) / 100f;
-                speed = Mathf.Clamp(speed, 0.1f, 50.0f);
-                _songSpeed = speed;
-                GlobalVariables.State.SongSpeed = speed;
+                ChangePlayer(nextIndex - _playerIndex);
+                return true;
+            }
 
-                // Notify multiplayer that all local players are ready
-                if (_multiplayerSync != null)
-                {
-                    _multiplayerSync.OnAllLocalPlayersReady();
-                    // In multiplayer, the sync component will handle loading the gameplay scene
-                    // For host: checks if all network players ready, then loads
-                    // For client: waits for host's RPC
-                    // If not multiplayer, it loads immediately
-                }
-                else
-                {
-                    // Single player - load immediately
-                    GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
-                }
-                
+            return false;
+        }
+
+        private void CompleteLocalPlayerSelection()
+        {
+            int playerCount = PlayerContainer.Players.Count;
+
+            if (playerCount == 0 || PlayerContainer.Players.All(i => i.SittingOut))
+            {
+                MenuManager.Instance.PopMenu();
+
+                DialogManager.Instance.ShowMessage("Nobody's Playing!",
+                    "You tried to play a song with every player sitting out.");
+
                 return;
             }
+
+            // Clamp to a valid index so un-ready actions remain functional while waiting
+            _playerIndex = Mathf.Clamp(_playerIndex, 0, playerCount - 1);
+
+            // Ensure all vocal players have the same modifiers active
+            if (_vocalModifierSelectIndex != -1)
+            {
+                var primaryPlayer = PlayerContainer.Players[_vocalModifierSelectIndex];
+
+                foreach (var player in PlayerContainer.Players)
+                {
+                    if (player.SittingOut || player == primaryPlayer)
+                    {
+                        continue;
+                    }
+
+                    if (player.Profile.GameMode == GameMode.Vocals)
+                    {
+                        player.Profile.CopyModifiers(primaryPlayer.Profile);
+                    }
+                }
+            }
+
+            float speed = float.Parse(_speedInput.text.TrimEnd('%')) / 100f;
+            speed = Mathf.Clamp(speed, 0.1f, 50.0f);
+            _songSpeed = speed;
+            GlobalVariables.State.SongSpeed = speed;
+
+            if (_multiplayerSync != null)
+            {
+                _multiplayerSync.OnAllLocalPlayersReady();
+            }
+            else
+            {
+                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+            }
+        }
+
+        private void ChangePlayer(int add)
+        {
+            SetActivePlayer(_playerIndex + add);
+        }
+
+        private void SetActivePlayer(int targetIndex)
+        {
+            int playerCount = PlayerContainer.Players.Count;
+
+            if (playerCount == 0)
+            {
+                _playerIndex = 0;
+                CompleteLocalPlayerSelection();
+                return;
+            }
+
+            if (targetIndex >= playerCount)
+            {
+                _playerIndex = playerCount;
+                CompleteLocalPlayerSelection();
+                return;
+            }
+
+            if (targetIndex < 0)
+            {
+                targetIndex = 0;
+            }
+
+            _playerIndex = targetIndex;
+            _menuState = State.Main;
 
             var profile = CurrentPlayer.Profile;
             var song = GlobalVariables.State.CurrentSong;
 
-            // Get the possible instruments for this show and player
-            // TODO: We should probably allow players to select instruments that are not in
-            //  all songs and have them sit out songs that don't have that instrument
             _possibleInstruments.Clear();
             var allowedInstruments = profile.GameMode.PossibleInstruments();
 
@@ -668,20 +810,17 @@ namespace YARG.Menu.DifficultySelect
                 }
             }
 
-            // Set the instrument to a valid one
             if (!_possibleInstruments.Contains(profile.CurrentInstrument) && _possibleInstruments.Count > 0)
             {
                 profile.CurrentInstrument = _possibleInstruments[0];
             }
 
-            // Get the possible harmonies for this show
             _maxHarmonyIndex = song.VocalsCount;
             foreach (var showsong in GlobalVariables.State.ShowSongs)
             {
                 _maxHarmonyIndex = Mathf.Min(_maxHarmonyIndex, showsong.VocalsCount);
             }
 
-            // Set the harmony index to a valid one
             if (profile.HarmonyIndex >= _maxHarmonyIndex)
             {
                 profile.HarmonyIndex = 0;
@@ -689,10 +828,8 @@ namespace YARG.Menu.DifficultySelect
 
             UpdatePossibleModifiers();
 
-            // Don't sit out by default
             CurrentPlayer.SittingOut = false;
 
-            // Update the possible difficulties as well
             UpdatePossibleDifficulties();
 
             UpdateForPlayer();
@@ -810,18 +947,25 @@ namespace YARG.Menu.DifficultySelect
             }
         }
 
-        private void SetLocalPlayerReadyState(bool ready)
+        private void SetLocalPlayerReadyState(int playerIndex, bool ready)
         {
             // Send ready state to network
             if (Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive)
             {
-                var localNetworkPlayer = GetLocalNetworkPlayer();
+                var localNetworkPlayer = GetLocalNetworkPlayer(playerIndex);
                 if (localNetworkPlayer != null)
                 {
                     localNetworkPlayer.CmdSetReady(ready);
-                    Debug.Log($"[DifficultySelect] Set local player ready state to: {ready}");
+                    Debug.Log($"[DifficultySelect] Set local player {playerIndex} ready state to: {ready}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[DifficultySelect] Could not find local network player for index {playerIndex} to set ready state.");
                 }
             }
+
+            // Update status text locally so UI reflects the change immediately
+            UpdateReadyStatus();
         }
         
         private void ShowLeaveLobbyDialog()
@@ -911,12 +1055,14 @@ namespace YARG.Menu.DifficultySelect
             // Add "Unready" button (green, interactive) - this is the ONLY clickable button
             CreateItem("Unready", true, _difficultyGreenPrefab, () =>
             {
+                int currentIndex = _playerIndex;
+
                 // Unmark player as ready
-                _readyPlayerIndices.Remove(_playerIndex);
-                
+                _readyPlayerIndices.Remove(currentIndex);
+
                 // Notify network that player is no longer ready
-                SetLocalPlayerReadyState(false);
-                
+                SetLocalPlayerReadyState(currentIndex, false);
+
                 // Refresh the menu to show options again
                 UpdateForPlayer();
             });
@@ -925,7 +1071,6 @@ namespace YARG.Menu.DifficultySelect
         private void UpdateReadyStatus()
         {
             if (_readyStatusText == null) return;
-            
             // Check if in multiplayer
             if (Networking.YargNetworkManager.Instance == null || !Networking.YargNetworkManager.Instance.isNetworkActive)
             {
@@ -934,22 +1079,39 @@ namespace YARG.Menu.DifficultySelect
             }
             
             var allPlayers = Networking.YargNetworkManager.Instance.GetAllPlayers();
-            var localPlayer = GetLocalNetworkPlayer();
             int readyCount = 0;
-            int totalCount = allPlayers.Count;
-            
+            int totalCount = 0;
+            int localPlayerCount = 0;
+            int localReadyCount = 0;
+
             foreach (var player in allPlayers)
             {
-                if (player != null && player.IsReady)
+                if (player == null)
+                {
+                    continue;
+                }
+
+                totalCount++;
+                if (player.IsReady)
                 {
                     readyCount++;
                 }
+
+                if (player.IsLocalUser)
+                {
+                    localPlayerCount++;
+                    if (player.IsReady)
+                    {
+                        localReadyCount++;
+                    }
+                }
             }
-            
-            // Show different message if local player is ready
-            if (localPlayer != null && localPlayer.IsReady)
+
+            bool allLocalPlayersReady = localPlayerCount > 0 && localReadyCount == localPlayerCount;
+
+            if (allLocalPlayersReady)
             {
-                if (readyCount >= totalCount)
+                if (readyCount >= totalCount && totalCount > 0)
                 {
                     _readyStatusText.text = "✓ All players ready! Starting game...";
                     _readyStatusText.color = Color.green;
@@ -1604,7 +1766,7 @@ namespace YARG.Menu.DifficultySelect
             }
         }
         
-        private Networking.NetworkPlayerData GetLocalNetworkPlayer()
+        private Networking.NetworkPlayerData GetLocalNetworkPlayer(int playerIndex)
         {
             if (Networking.YargNetworkManager.Instance == null || !Networking.YargNetworkManager.Instance.isNetworkActive)
             {
@@ -1614,7 +1776,7 @@ namespace YARG.Menu.DifficultySelect
             var allPlayers = Networking.YargNetworkManager.Instance.GetAllPlayers();
             foreach (var player in allPlayers)
             {
-                if (player != null && player.isLocalPlayer)
+                if (player != null && player.IsLocalUser && player.PlayerIndex == playerIndex)
                 {
                     return player;
                 }

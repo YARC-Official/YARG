@@ -28,7 +28,7 @@ namespace YARG.Gameplay.Player
         /// Network player data for multiplayer. Only set for multiplayer games.
         /// </summary>
         private Networking.NetworkPlayerData _networkPlayerData;
-        private RemotePlayerSimulation _remoteSimulation;
+        private IRemotePlayerSimulation _remoteSimulation;
 
         public float NoteSpeed
         {
@@ -336,7 +336,7 @@ namespace YARG.Gameplay.Player
 
         internal Networking.NetworkPlayerData NetworkPlayerData => _networkPlayerData;
 
-        internal void RegisterRemoteSimulation(RemotePlayerSimulation simulation)
+        internal void RegisterRemoteSimulation(IRemotePlayerSimulation simulation)
         {
             _remoteSimulation = simulation;
         }

@@ -1,9 +1,11 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
+using YARG.Core;
+using YARG.Core.Game;
+using YARG.Input;
 using YARG.Networking;
 using YARG.Player;
-using YARG.Core.Game;
-using System.Collections.Generic;
-using YARG.Core;
 
 namespace YARG.Menu.Multiplayer
 {
@@ -14,6 +16,7 @@ namespace YARG.Menu.Multiplayer
     public class MultiplayerPlayerManager : MonoBehaviour
     {
         private static readonly Dictionary<YargPlayer, NetworkPlayerData> _playerNetworkLookup = new Dictionary<YargPlayer, NetworkPlayerData>();
+        private static readonly Dictionary<NetworkPlayerData, ProfileBinding> _networkProfileBindings = new Dictionary<NetworkPlayerData, ProfileBinding>();
 
         /// <summary>
         /// Gets the cached map between the runtime <see cref="YargPlayer"/> objects and their backing
@@ -61,7 +64,7 @@ namespace YARG.Menu.Multiplayer
                     continue;
                 }
 
-                Debug.Log($"[MultiplayerPlayerManager] Processing NetworkPlayerData: PlayerName={networkPlayer.PlayerName}, isLocalPlayer={networkPlayer.isLocalPlayer}");
+                Debug.Log($"[MultiplayerPlayerManager] Processing NetworkPlayerData: PlayerName={networkPlayer.PlayerName}, isLocal={networkPlayer.IsLocalUser}");
 
                 // Get or create a YargPlayer for this network player
                 var yargPlayer = CreatePlayerFromNetworkData(networkPlayer);
@@ -69,6 +72,7 @@ namespace YARG.Menu.Multiplayer
                 {
                     players.Add(yargPlayer);
                     _playerNetworkLookup[yargPlayer] = networkPlayer;
+                    ApplyNetworkBindings(yargPlayer, networkPlayer);
                     Debug.Log($"[MultiplayerPlayerManager] Created player: {yargPlayer.Profile.Name}, Instrument: {yargPlayer.Profile.CurrentInstrument}");
                 }
                 else
@@ -98,16 +102,17 @@ namespace YARG.Menu.Multiplayer
             // Get the profile from the network data
             YargProfile profile;
 
-            if (networkData.isLocalPlayer)
+            if (networkData.IsLocalUser)
             {
-                // For local player, use the actual profile from PlayerContainer
-                if (PlayerContainer.Players.Count > 0)
+                // For local player, try to use the matching profile from PlayerContainer
+                int index = networkData.PlayerIndex;
+                if (index >= 0 && index < PlayerContainer.Players.Count)
                 {
-                    profile = PlayerContainer.Players[0].Profile;
+                    profile = PlayerContainer.Players[index].Profile;
                 }
                 else
                 {
-                    Debug.LogWarning("[MultiplayerPlayerManager] No local players in PlayerContainer!");
+                    Debug.LogWarning($"[MultiplayerPlayerManager] No local player found in PlayerContainer for index {index} (count={PlayerContainer.Players.Count})");
                     return null;
                 }
             }
@@ -119,7 +124,9 @@ namespace YARG.Menu.Multiplayer
 
             // Create the player
             // Note: We don't add this to PlayerContainer because it's a temporary multiplayer-only player
-            var bindings = networkData.isLocalPlayer ? PlayerContainer.Players[0].Bindings : null;
+            var bindings = networkData.IsLocalUser
+                ? ResolveLocalBindings(networkData.PlayerIndex)
+                : null;
             var yargPlayer = new YargPlayer(profile, bindings);
 
             return yargPlayer;
@@ -131,34 +138,120 @@ namespace YARG.Menu.Multiplayer
         private static YargProfile CreateTemporaryProfile(NetworkPlayerData networkData)
         {
             var profile = new YargProfile();
-            profile.Name = networkData.PlayerName;
 
-            // Set instrument from network data
-            if (networkData.Instrument >= 0)
-            {
-                profile.CurrentInstrument = (Instrument)networkData.Instrument;
-            }
-            else
-            {
-                profile.CurrentInstrument = Instrument.FiveFretGuitar; // Default
-            }
-
-            // Set difficulty from network data
-            if (networkData.Difficulty >= 0)
-            {
-                profile.CurrentDifficulty = (Difficulty)networkData.Difficulty;
-            }
-            else
-            {
-                profile.CurrentDifficulty = Difficulty.Expert; // Default
-            }
-
-            // Determine game mode from instrument
-            profile.GameMode = profile.CurrentInstrument.ToNativeGameMode();
+            ApplyProfileSnapshot(profile, networkData);
 
             Debug.Log($"[MultiplayerPlayerManager] Created temp profile: {profile.Name}, GameMode: {profile.GameMode}, Instrument: {profile.CurrentInstrument}, Difficulty: {profile.CurrentDifficulty}");
 
             return profile;
+        }
+
+        private static ProfileBindings ResolveLocalBindings(int playerIndex)
+        {
+            if (PlayerContainer.Players.Count == 0)
+            {
+                return null;
+            }
+
+            if (playerIndex >= 0 && playerIndex < PlayerContainer.Players.Count)
+            {
+                return PlayerContainer.Players[playerIndex].Bindings;
+            }
+
+            return PlayerContainer.Players[0].Bindings;
+        }
+
+        private static void ApplyProfileSnapshot(YargProfile profile, NetworkPlayerData networkData)
+        {
+            if (profile == null || networkData == null)
+            {
+                return;
+            }
+
+            profile.Name = networkData.PlayerName;
+
+            UpdateInstrumentAndDifficulty(profile, networkData.Instrument, networkData.Difficulty);
+        }
+
+        private static void ApplyNetworkBindings(YargPlayer yargPlayer, NetworkPlayerData networkData)
+        {
+            if (yargPlayer == null || networkData == null)
+            {
+                return;
+            }
+
+            if (networkData.IsLocalUser)
+            {
+                // Local players already rely on PlayerContainer data.
+                return;
+            }
+
+            ApplyProfileSnapshot(yargPlayer.Profile, networkData);
+
+            if (_networkProfileBindings.TryGetValue(networkData, out var existing))
+            {
+                networkData.OnPlayerNameChangedEvent -= existing.NameHandler;
+                networkData.OnInstrumentChangedEvent -= existing.InstrumentHandler;
+                networkData.OnDifficultyChangedEvent -= existing.DifficultyHandler;
+            }
+
+            var binding = new ProfileBinding
+            {
+                NameHandler = newName => yargPlayer.Profile.Name = newName,
+                InstrumentHandler = (instrument, difficulty) => UpdateInstrumentAndDifficulty(yargPlayer.Profile, instrument, difficulty),
+                DifficultyHandler = (instrument, difficulty) => UpdateInstrumentAndDifficulty(yargPlayer.Profile, instrument, difficulty)
+            };
+
+            networkData.OnPlayerNameChangedEvent += binding.NameHandler;
+            networkData.OnInstrumentChangedEvent += binding.InstrumentHandler;
+            networkData.OnDifficultyChangedEvent += binding.DifficultyHandler;
+
+            _networkProfileBindings[networkData] = binding;
+        }
+
+        private sealed class ProfileBinding
+        {
+            public Action<string> NameHandler;
+            public Action<int, int> InstrumentHandler;
+            public Action<int, int> DifficultyHandler;
+        }
+
+        private static void UpdateInstrumentAndDifficulty(YargProfile profile, int instrumentValue, int difficultyValue)
+        {
+            if (profile == null)
+            {
+                return;
+            }
+
+            profile.CurrentInstrument = SanitizeInstrument(instrumentValue);
+            profile.CurrentDifficulty = SanitizeDifficulty(difficultyValue);
+            profile.GameMode = profile.CurrentInstrument.ToNativeGameMode();
+        }
+
+        private static Instrument SanitizeInstrument(int instrumentValue)
+        {
+            // Network payloads use int, while the Instrument enum is backed by byte and intentionally sparse.
+            // Use Enum.IsDefined against the underlying byte value so vocals (40) and other reserved ranges survive sync.
+            if (instrumentValue >= byte.MinValue && instrumentValue <= byte.MaxValue)
+            {
+                var candidate = (Instrument)(byte)instrumentValue;
+                if (Enum.IsDefined(typeof(Instrument), candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            return Instrument.FiveFretGuitar;
+        }
+
+        private static Difficulty SanitizeDifficulty(int difficultyValue)
+        {
+            if (difficultyValue >= 0 && difficultyValue < Enum.GetValues(typeof(Difficulty)).Length)
+            {
+                return (Difficulty)difficultyValue;
+            }
+
+            return Difficulty.Expert;
         }
     }
 }

@@ -98,7 +98,7 @@ namespace YARG.Gameplay.HUD
                     continue;
 
                 // Create display for this player (but not for local player)
-                if (!playerData.isLocalPlayer)
+                if (!playerData.IsLocalUser)
                 {
                     CreatePlayerDisplay(playerData);
                 }

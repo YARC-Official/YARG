@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Mirror;
 using UnityEngine;
+using YARG.Core.Song;
+using YARG.Playback;
 using YARG.Playlists;
 using YARG.Song;
 
@@ -29,11 +31,35 @@ namespace YARG.Multiplayer
             _localShowPlaylist = new Playlist(true);
         }
 
+        private void ApplyPlaylistToGlobalState(bool updateCurrentSong)
+        {
+            GlobalVariables.State.ShowSongs = _localShowPlaylist.ToList();
+
+            if (!updateCurrentSong)
+            {
+                return;
+            }
+
+            if (GlobalVariables.State.ShowSongs.Count == 0)
+            {
+                GlobalVariables.State.ShowIndex = 0;
+                GlobalVariables.State.CurrentSong = null;
+                return;
+            }
+
+            GlobalVariables.State.ShowIndex = Mathf.Clamp(
+                GlobalVariables.State.ShowIndex,
+                0,
+                GlobalVariables.State.ShowSongs.Count - 1);
+            GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex];
+        }
+
         private void OnShowPlaylistChanged(string oldValue, string newValue)
         {
             Debug.Log($"[MultiplayerShowPlaylist] OnShowPlaylistChanged hook fired. Old: '{oldValue}', New: '{newValue}'");
             DeserializeShowPlaylist(newValue);
             _hasReceivedInitialSync = true;
+            ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
             Debug.Log($"[MultiplayerShowPlaylist] After deserialization, playlist has {_localShowPlaylist.Count} songs");
             OnPlaylistUpdated?.Invoke();
         }
@@ -82,6 +108,7 @@ namespace YARG.Multiplayer
             {
                 Debug.Log("[MultiplayerShowPlaylist] Host skipping SyncVar wait - using local playlist");
                 _hasReceivedInitialSync = true;
+                ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
                 OnPlaylistUpdated?.Invoke();
                 return;
             }
@@ -97,6 +124,7 @@ namespace YARG.Multiplayer
                 DeserializeShowPlaylist(showPlaylistSerialized);
                 Debug.Log($"[MultiplayerShowPlaylist] Client playlist now has {_localShowPlaylist.Count} songs");
                 _hasReceivedInitialSync = true;
+                ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
                 
                 // Trigger update event so UI refreshes
                 OnPlaylistUpdated?.Invoke();
@@ -116,6 +144,7 @@ namespace YARG.Multiplayer
             DeserializeShowPlaylist(showPlaylistSerialized);
             Debug.Log($"[MultiplayerShowPlaylist] Client playlist now has {_localShowPlaylist.Count} songs");
             _hasReceivedInitialSync = true;
+            ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
             
             // Trigger update event so UI refreshes
             OnPlaylistUpdated?.Invoke();
@@ -143,6 +172,7 @@ namespace YARG.Multiplayer
                 {
                     _localShowPlaylist.AddSong(songList[0]);
                     Debug.Log($"[MultiplayerShowPlaylist] Added song '{songList[0].Name}' to show playlist (now {_localShowPlaylist.Count} songs)");
+                    ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
                     SyncShowPlaylistToClients();
                     
                     // Notify all players via toast
@@ -178,6 +208,7 @@ namespace YARG.Multiplayer
                     var artist = songList[0].Artist;
                     _localShowPlaylist.RemoveSong(songList[0]);
                     Debug.Log($"[MultiplayerShowPlaylist] Removed song '{songName}' from show playlist (now {_localShowPlaylist.Count} songs)");
+                    ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
                     SyncShowPlaylistToClients();
                     
                     // Notify all players via toast
@@ -227,9 +258,8 @@ namespace YARG.Multiplayer
         private void NavigateToDifficultySelect()
         {
             GlobalVariables.State.PlayingAShow = true;
-            GlobalVariables.State.ShowSongs = _localShowPlaylist.ToList();
-            GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs.First();
             GlobalVariables.State.ShowIndex = 0;
+            ApplyPlaylistToGlobalState(updateCurrentSong: true);
             
             Debug.Log($"[MultiplayerShowPlaylist] Navigating to difficulty select with {GlobalVariables.State.ShowSongs.Count} songs. First song: {GlobalVariables.State.CurrentSong.Name}");
             YARG.Menu.MenuManager.Instance.PushMenu(YARG.Menu.MenuManager.Menu.DifficultySelect);
@@ -270,6 +300,7 @@ namespace YARG.Multiplayer
 
                 DeserializeShowPlaylist(serializedPlaylist);
                 _hasReceivedInitialSync = true;
+                ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
                 OnPlaylistUpdated?.Invoke();
                 Debug.Log($"[MultiplayerShowPlaylist] After RPC deserialization, playlist has {_localShowPlaylist.Count} songs");
             }
@@ -292,6 +323,24 @@ namespace YARG.Multiplayer
             _localShowPlaylist.Clear();
             SyncShowPlaylistToClients();
             Debug.Log("[MultiplayerShowPlaylist] Cleared show playlist");
+            ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
+        }
+
+        public void HostRemoveSong(SongEntry song)
+        {
+            if (!isServer || song == null)
+            {
+                return;
+            }
+
+            if (!_localShowPlaylist.ContainsSong(song))
+            {
+                return;
+            }
+
+            _localShowPlaylist.RemoveSong(song);
+            ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
+            SyncShowPlaylistToClients();
         }
     }
 }

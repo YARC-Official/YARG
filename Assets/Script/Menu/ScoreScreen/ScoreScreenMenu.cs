@@ -509,7 +509,7 @@ namespace YARG.Menu.ScoreScreen
                 _networkPlayers.Add(player);
                 player.OnReadyStateChangedEvent += HandleReadyStateChanged;
 
-                if (player.isLocalPlayer)
+                if (player.IsLocalUser)
                 {
                     _localNetworkPlayer = player;
                 }
@@ -682,11 +682,6 @@ namespace YARG.Menu.ScoreScreen
                     GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
                 {
                     buttons.Add(_endEarlyButtonEntry);
-                }
-
-                if (_isHost)
-                {
-                    buttons.Add(_restartButtonEntry);
                 }
             }
             else

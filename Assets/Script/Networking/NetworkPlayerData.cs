@@ -1,6 +1,8 @@
 using Mirror;
 using UnityEngine;
 using System;
+using YARG;
+using YARG.Gameplay;
 
 namespace YARG.Networking
 {
@@ -98,6 +100,18 @@ namespace YARG.Networking
         private int dynamicsBonus = 0;
 
         [SyncVar]
+        private int vocalsTicksHit = 0;
+
+        [SyncVar]
+        private int vocalsTicksMissed = 0;
+
+        [SyncVar]
+        private float vocalsPhraseTicksHit = 0f;
+
+        [SyncVar]
+        private int vocalsPhraseTicksTotal = 0;
+
+        [SyncVar]
         private uint lastGameplaySnapshotSequence = 0;
 
         [SyncVar]
@@ -132,8 +146,12 @@ namespace YARG.Networking
 
         [SyncVar]
         private double gameplayReadyServerTime = 0d;
+
+        [SyncVar]
+        private bool hasFailed = false;
         
         private double _lastStaleSnapshotLogTime = double.MinValue;
+        private bool _localAuthorityInitialized;
 
         // Events
         public event Action<string> OnPlayerNameChangedEvent;
@@ -165,6 +183,10 @@ namespace YARG.Networking
         public int GhostsHit => ghostsHit;
         public int AccentsHit => accentsHit;
         public int DynamicsBonus => dynamicsBonus;
+        public int VocalsTicksHit => vocalsTicksHit;
+        public int VocalsTicksMissed => vocalsTicksMissed;
+        public float VocalsPhraseTicksHit => vocalsPhraseTicksHit;
+        public int VocalsPhraseTicksTotal => vocalsPhraseTicksTotal;
         public uint LastGameplaySnapshotSequence => lastGameplaySnapshotSequence;
         public double LastGameplaySongTime => lastGameplaySongTime;
         public double LastGameplayNetworkTime => lastGameplayNetworkTime;
@@ -177,21 +199,72 @@ namespace YARG.Networking
         public int SoloTotalBonus => soloTotalBonus;
         public bool GameplayReady => gameplayReady;
         public double GameplayReadyServerTime => gameplayReadyServerTime;
+        public bool HasFailed => hasFailed;
+        public bool IsLocalUser
+        {
+            get
+            {
+                if (isClient && !NetworkServer.active)
+                {
+                    return isLocalPlayer || isOwned;
+                }
+
+                if (isClient && NetworkServer.active)
+                {
+                    if (isLocalPlayer)
+                    {
+                        return true;
+                    }
+                }
+
+                if (NetworkServer.active && NetworkServer.localConnection != null)
+                {
+                    return connectionToClient != null && connectionToClient == NetworkServer.localConnection;
+                }
+
+                return false;
+            }
+        }
         public override void OnStartLocalPlayer()
         {
             base.OnStartLocalPlayer();
+            InitializeLocalAuthority();
+        }
 
-            // Set initial player name from profile (fetched at spawn time to ensure profiles are loaded)
-            string profileName = YargNetworkManager.Instance.GetPlayerNameFromProfile();
-            CmdSetPlayerName(profileName);
-            
-            // Start ping measurement for this local player
-            StartCoroutine(MeasurePing());
+        public override void OnStartAuthority()
+        {
+            base.OnStartAuthority();
+            InitializeLocalAuthority();
+        }
+
+        private void InitializeLocalAuthority()
+        {
+            if (_localAuthorityInitialized || !isClient)
+            {
+                return;
+            }
+
+            _localAuthorityInitialized = true;
+
+            string profileName = YargNetworkManager.Instance != null
+                ? YargNetworkManager.Instance.GetPlayerNameFromProfile(playerIndex)
+                : playerName;
+            if (!string.IsNullOrWhiteSpace(profileName))
+            {
+                CmdSetPlayerName(profileName);
+            }
+
+            if (isActiveAndEnabled)
+            {
+                StartCoroutine(MeasurePing());
+            }
+
+            YargNetworkManager.Instance?.OnLocalNetworkPlayerReady(this);
         }
 
         private System.Collections.IEnumerator MeasurePing()
         {
-            while (isLocalPlayer)
+            while (IsLocalUser)
             {
                 // Wait 1 second between ping updates
                 yield return new WaitForSeconds(1f);
@@ -394,6 +467,19 @@ namespace YARG.Networking
             }
         }
 
+        [Server]
+        public void SetPlayerIndexServer(int index)
+        {
+            playerIndex = index;
+        }
+
+        [Server]
+        public void SetInstrumentServer(int instrumentType, int difficultyLevel)
+        {
+            instrument = instrumentType;
+            difficulty = difficultyLevel;
+        }
+
         /// <summary>
         /// Set player name.
         /// </summary>
@@ -426,6 +512,55 @@ namespace YARG.Networking
         public void CmdSetGameplayReady(bool ready)
         {
             SetGameplayReadyServer(ready);
+        }
+
+        [Command]
+        public void CmdReportSongFailed()
+        {
+            if (!NetworkServer.active)
+            {
+                return;
+            }
+
+            ServerRegisterFailure();
+        }
+
+        [Server]
+        internal void ServerRegisterFailure()
+        {
+            if (hasFailed)
+            {
+                return;
+            }
+
+            hasFailed = true;
+
+            if (YargNetworkManager.Instance != null)
+            {
+                YargNetworkManager.Instance.ServerOnPlayerFailed(this);
+            }
+        }
+
+        [Server]
+        internal void ServerClearFailureFlag()
+        {
+            hasFailed = false;
+        }
+
+        [TargetRpc]
+        internal void TargetHandleBandFailed(NetworkConnection target)
+        {
+            ClientHandleBandFailed();
+        }
+
+        [Client]
+        internal void ClientHandleBandFailed()
+        {
+            UnityMainThreadCallback.QueueEvent(() =>
+            {
+                var manager = UnityEngine.Object.FindObjectOfType<GameManager>();
+                manager?.HandleNetworkBandFailed();
+            });
         }
 
         /// <summary>
@@ -472,15 +607,27 @@ namespace YARG.Networking
         }
 
         [Command]
+        public void CmdSyncLocalPlayerSlots(string[] playerNames, int[] instruments, int[] difficulties)
+        {
+            if (!NetworkServer.active || YargNetworkManager.Instance == null)
+            {
+                return;
+            }
+
+            YargNetworkManager.Instance.ServerSyncLocalPlayerSlots(connectionToClient, playerNames, instruments, difficulties);
+        }
+
+        [Command]
         public void CmdSubmitGameplaySnapshot(int score, int combo, int streak, bool starPowerActiveState,
             float starPowerCharge, int authoritativeStarPowerPhrasesHit, int authoritativeTotalStarPowerPhrases,
             int authoritativeNotesHit, int authoritativeNotesMissed,
             int authoritativeOverstrums, int authoritativeHoposStrummed, int authoritativeOverhits,
             int authoritativeGhostInputs, int authoritativeGhostsHit, int authoritativeAccentsHit,
-            int authoritativeDynamicsBonus, int authoritativeBandBonusScore, bool authoritativeSoloActive,
-            int authoritativeSoloSequence, int authoritativeSoloNoteCount, int authoritativeSoloNotesHit,
-            int authoritativeSoloLastBonus, int authoritativeSoloTotalBonus, double clientSongTime,
-            double clientNetworkTime, uint sequence)
+            int authoritativeDynamicsBonus, int authoritativeBandBonusScore, int authoritativeVocalsTicksHit,
+            int authoritativeVocalsTicksMissed, float authoritativeVocalsPhraseTicksHit,
+            int authoritativeVocalsPhraseTicksTotal, bool authoritativeSoloActive, int authoritativeSoloSequence,
+            int authoritativeSoloNoteCount, int authoritativeSoloNotesHit, int authoritativeSoloLastBonus,
+            int authoritativeSoloTotalBonus, double clientSongTime, double clientNetworkTime, uint sequence)
         {
             if (!NetworkServer.active)
             {
@@ -506,7 +653,9 @@ namespace YARG.Networking
                 authoritativeOverstrums < 0 || authoritativeHoposStrummed < 0 ||
                 authoritativeOverhits < 0 || authoritativeGhostInputs < 0 ||
                 authoritativeGhostsHit < 0 || authoritativeAccentsHit < 0 ||
-                authoritativeDynamicsBonus < 0 || authoritativeBandBonusScore < 0)
+                authoritativeDynamicsBonus < 0 || authoritativeBandBonusScore < 0 ||
+                authoritativeVocalsTicksHit < 0 || authoritativeVocalsTicksMissed < 0 ||
+                authoritativeVocalsPhraseTicksHit < 0f || authoritativeVocalsPhraseTicksTotal < 0)
             {
                 Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName} due to negative values.");
                 return;
@@ -545,12 +694,6 @@ namespace YARG.Networking
                 return;
             }
 
-            if (streak < currentStreak)
-            {
-                Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: streak regressed ({streak} < {currentStreak}).");
-                return;
-            }
-
             if (authoritativeNotesHit < notesHit)
             {
                 Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: notesHit regressed ({authoritativeNotesHit} < {notesHit}).");
@@ -559,8 +702,7 @@ namespace YARG.Networking
 
             if (authoritativeNotesMissed < notesMissed)
             {
-                Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: notesMissed regressed ({authoritativeNotesMissed} < {notesMissed}).");
-                return;
+                LogStateRegression("notesMissed", notesMissed, authoritativeNotesMissed);
             }
 
             if (authoritativeOverstrums < overstrums)
@@ -577,44 +719,47 @@ namespace YARG.Networking
 
             if (authoritativeOverhits < overhits)
             {
-                Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: overhits regressed ({authoritativeOverhits} < {overhits}).");
-                return;
+                LogStateRegression("overhits", overhits, authoritativeOverhits);
             }
 
             if (authoritativeGhostInputs < ghostInputs)
             {
-                Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: ghostInputs regressed ({authoritativeGhostInputs} < {ghostInputs}).");
-                return;
+                LogStateRegression("ghostInputs", ghostInputs, authoritativeGhostInputs);
             }
 
             if (authoritativeGhostsHit < ghostsHit)
             {
-                Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: ghostsHit regressed ({authoritativeGhostsHit} < {ghostsHit}).");
-                return;
+                LogStateRegression("ghostsHit", ghostsHit, authoritativeGhostsHit);
             }
 
             if (authoritativeAccentsHit < accentsHit)
             {
-                Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: accentsHit regressed ({authoritativeAccentsHit} < {accentsHit}).");
-                return;
+                LogStateRegression("accentsHit", accentsHit, authoritativeAccentsHit);
             }
 
             if (authoritativeDynamicsBonus < dynamicsBonus)
             {
-                Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: dynamicsBonus regressed ({authoritativeDynamicsBonus} < {dynamicsBonus}).");
-                return;
+                LogStateRegression("dynamicsBonus", dynamicsBonus, authoritativeDynamicsBonus);
             }
 
             if (authoritativeBandBonusScore < bandBonusScore)
             {
-                Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: bandBonusScore regressed ({authoritativeBandBonusScore} < {bandBonusScore}).");
-                return;
+                LogStateRegression("bandBonusScore", bandBonusScore, authoritativeBandBonusScore);
+            }
+
+            if (authoritativeVocalsTicksHit < vocalsTicksHit)
+            {
+                LogStateRegression("vocalsTicksHit", vocalsTicksHit, authoritativeVocalsTicksHit);
+            }
+
+            if (authoritativeVocalsTicksMissed < vocalsTicksMissed)
+            {
+                LogStateRegression("vocalsTicksMissed", vocalsTicksMissed, authoritativeVocalsTicksMissed);
             }
 
             if (authoritativeSoloTotalBonus < soloTotalBonus)
             {
-                Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: soloTotalBonus regressed ({authoritativeSoloTotalBonus} < {soloTotalBonus}).");
-                return;
+                LogStateRegression("soloTotalBonus", soloTotalBonus, authoritativeSoloTotalBonus);
             }
 
             if (authoritativeStarPowerPhrasesHit < starPowerPhrasesHit)
@@ -638,6 +783,21 @@ namespace YARG.Networking
             if (authoritativeSoloSequence == soloSequence && authoritativeSoloNotesHit < soloNotesHit)
             {
                 Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: soloNotesHit regressed within sequence ({authoritativeSoloNotesHit} < {soloNotesHit}).");
+                return;
+            }
+            if (authoritativeVocalsPhraseTicksTotal == 0)
+            {
+                authoritativeVocalsPhraseTicksHit = 0f;
+            }
+            else if (authoritativeVocalsPhraseTicksHit > authoritativeVocalsPhraseTicksTotal)
+            {
+                Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: vocalsPhraseTicksHit exceeds total ({authoritativeVocalsPhraseTicksHit} > {authoritativeVocalsPhraseTicksTotal}).");
+                return;
+            }
+
+            if (float.IsNaN(authoritativeVocalsPhraseTicksHit) || float.IsInfinity(authoritativeVocalsPhraseTicksHit))
+            {
+                Debug.LogWarning($"[NetworkPlayerData] Rejecting snapshot from {playerName}: vocalsPhraseTicksHit is invalid ({authoritativeVocalsPhraseTicksHit}).");
                 return;
             }
 
@@ -679,6 +839,18 @@ namespace YARG.Networking
             ghostsHit = authoritativeGhostsHit;
             accentsHit = authoritativeAccentsHit;
             dynamicsBonus = authoritativeDynamicsBonus;
+            vocalsTicksHit = authoritativeVocalsTicksHit;
+            vocalsTicksMissed = authoritativeVocalsTicksMissed;
+            if (authoritativeVocalsPhraseTicksTotal > 0)
+            {
+                vocalsPhraseTicksTotal = authoritativeVocalsPhraseTicksTotal;
+                vocalsPhraseTicksHit = Mathf.Clamp(authoritativeVocalsPhraseTicksHit, 0f, authoritativeVocalsPhraseTicksTotal);
+            }
+            else
+            {
+                vocalsPhraseTicksTotal = 0;
+                vocalsPhraseTicksHit = 0f;
+            }
             lastGameplaySnapshotSequence = sequence;
             lastGameplaySongTime = clientSongTime;
             lastGameplayNetworkTime = clientNetworkTime;
@@ -752,6 +924,10 @@ namespace YARG.Networking
             ghostsHit = 0;
             accentsHit = 0;
             dynamicsBonus = 0;
+            vocalsTicksHit = 0;
+            vocalsTicksMissed = 0;
+            vocalsPhraseTicksHit = 0f;
+            vocalsPhraseTicksTotal = 0;
             soloActive = false;
             soloSequence = -1;
             soloNoteCount = 0;
@@ -763,6 +939,21 @@ namespace YARG.Networking
             lastGameplayNetworkTime = 0d;
             lastGameplayLatencyMs = 0f;
             _lastStaleSnapshotLogTime = double.MinValue;
+            hasFailed = false;
+        }
+
+        private void LogStateRegression(string statName, int previousValue, int newValue)
+        {
+            int regression = previousValue - newValue;
+            if (regression <= 0)
+            {
+                return;
+            }
+
+            if (regression > NOTES_DELTA_WARNING)
+            {
+                Debug.LogWarning($"[NetworkPlayerData] {statName} regressed by {regression} for {playerName}. Accepting snapshot to resync state.");
+            }
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using YARG.Core.Input;
 using YARG.Networking;
+using YARG.Networking.STUN;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -22,6 +23,7 @@ namespace YARG.Menu.Multiplayer
         [SerializeField] private TextMeshProUGUI hostNameText;
         [SerializeField] private TextMeshProUGUI playerCountText;
         [SerializeField] private TextMeshProUGUI lobbyCodeText;
+        [SerializeField] private TextMeshProUGUI connectionInfoText;
         
         [Header("Player List")]
         [SerializeField] private Transform playerListContainer;
@@ -162,7 +164,7 @@ namespace YARG.Menu.Multiplayer
             if (isHost)
             {
                 entries.Add(new NavigationScheme.Entry(MenuAction.Yellow, "Browse Songs", OnBrowseSongsClicked));
-                if (selectedPlayer != null && !selectedPlayer.isLocalPlayer)
+                if (selectedPlayer != null && !selectedPlayer.IsLocalUser)
                 {
                     entries.Add(new NavigationScheme.Entry(MenuAction.Blue, "Kick Player", OnKickPlayerClicked));
                 }
@@ -301,15 +303,62 @@ namespace YARG.Menu.Multiplayer
                 Debug.LogWarning("[LobbyRoomMenu] playerCountText is NULL!");
             }
 
-            if (lobbyCodeText != null)
+            var connectionTextTarget = connectionInfoText != null ? connectionInfoText : lobbyCodeText;
+
+            if (connectionTextTarget != null)
             {
-                // Show IP:Port for direct connect
-                lobbyCodeText.text = $"Connect: {lobby.ipAddress}";
-                Debug.Log($"[LobbyRoomMenu] Set lobbyCodeText to: Connect: {lobby.ipAddress}");
+                int fallbackPort = lobby.port > 0
+                    ? lobby.port
+                    : (YargNetworkManager.Instance != null ? YargNetworkManager.Instance.DefaultPort : NetworkTransportDefaults.DefaultUdpPort);
+
+                string lanEndpoint = FormatEndpoint(lobby.ipAddress, lobby.port, fallbackPort);
+                string wanEndpoint = FormatEndpoint(lobby.publicAddress, lobby.publicPort, fallbackPort);
+
+                string connectLabel = string.Empty;
+
+                if (!string.IsNullOrEmpty(lanEndpoint))
+                {
+                    connectLabel = $"Direct Connect (LAN): {lanEndpoint}";
+                }
+
+                if (!string.IsNullOrEmpty(wanEndpoint) && !wanEndpoint.Equals(lanEndpoint))
+                {
+                    if (!string.IsNullOrEmpty(connectLabel))
+                    {
+                        connectLabel += "\n";
+                    }
+
+                    string wanTag = lobby.supportsNatTraversal ? "Direct Connect (WAN)" : "Public Address";
+                    connectLabel += $"{wanTag}: {wanEndpoint}";
+                }
+
+                if (string.IsNullOrEmpty(connectLabel))
+                {
+                    connectLabel = "Direct Connect: Resolving...";
+                }
+
+                // Optionally surface NAT type for quick diagnostics when available
+                if (lobby.natType != NetworkNatType.Unknown)
+                {
+                    connectLabel += $"\nNAT Type: {lobby.natType}";
+                }
+
+                string finalLabel = connectLabel;
+                if (connectionTextTarget == playerCountText && playerCountText != null)
+                {
+                    string baseText = playerCountText.text;
+                    if (!string.IsNullOrEmpty(baseText))
+                    {
+                        finalLabel = string.Concat(baseText, "\n", connectLabel);
+                    }
+                }
+
+                connectionTextTarget.text = finalLabel;
+                Debug.Log($"[LobbyRoomMenu] Set connection info text to: {finalLabel.Replace('\n', ' ')}");
             }
             else
             {
-                Debug.LogWarning("[LobbyRoomMenu] lobbyCodeText is NULL!");
+                Debug.LogWarning("[LobbyRoomMenu] Connection info text target is NULL!");
             }
 
             // Show/hide controls based on role
@@ -322,6 +371,17 @@ namespace YARG.Menu.Multiplayer
             
             // Force UI update
             UnityEngine.Canvas.ForceUpdateCanvases();
+        }
+
+        private static string FormatEndpoint(string address, int port, int fallbackPort)
+        {
+            if (string.IsNullOrWhiteSpace(address))
+            {
+                return string.Empty;
+            }
+
+            int finalPort = port > 0 ? port : fallbackPort;
+            return finalPort > 0 ? $"{address}:{finalPort}" : address;
         }
 
         private void UpdateControlsForRole()
@@ -470,7 +530,7 @@ namespace YARG.Menu.Multiplayer
             }
 
             // Check if this is the local player
-            bool isLocalPlayer = playerData.isLocalPlayer;
+            bool isLocalPlayer = playerData.IsLocalUser;
             
             // Set up selection for host (or for all players for future features)
             var button = entry.GetComponent<Button>();
@@ -580,7 +640,7 @@ namespace YARG.Menu.Multiplayer
             }
             
             // Don't allow kicking yourself
-            if (selectedPlayer.isLocalPlayer)
+            if (selectedPlayer.IsLocalUser)
             {
                 Debug.LogWarning("[LobbyRoomMenu] Cannot kick yourself!");
                 return;

@@ -4,6 +4,7 @@ using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Keys;
+using YARG.Core.Engine.Vocals;
 using YARG.Networking;
 
 namespace YARG.Gameplay.Player
@@ -14,11 +15,19 @@ namespace YARG.Gameplay.Player
     /// and star power indicators aligned with the authoritative stats broadcast by the
     /// owning client.
     /// </summary>
-    public class RemotePlayerSimulation : MonoBehaviour
+    public interface IRemotePlayerSimulation
     {
+        void ApplyRemoteState(double localInputTime);
+    }
+
+    public class RemotePlayerSimulation : MonoBehaviour, IRemotePlayerSimulation
+    {
+        private BasePlayer _basePlayer;
         private TrackPlayer _trackPlayer;
+        private VocalsPlayer _vocalsPlayer;
         private NetworkPlayerData _networkPlayerData;
         private BaseStats _stats = null!;
+        private VocalsStats _vocalsStats;
 
         private int _noteCursor;
         private int _resolvedHits;
@@ -34,70 +43,108 @@ namespace YARG.Gameplay.Player
 
         private bool _isInitialized;
 
-        public void Initialize(TrackPlayer trackPlayer, NetworkPlayerData networkPlayerData)
+        public void Initialize(BasePlayer player, NetworkPlayerData networkPlayerData)
         {
-            _trackPlayer = trackPlayer;
+            _basePlayer = player;
+            _trackPlayer = player as TrackPlayer;
+            _vocalsPlayer = player as VocalsPlayer;
             _networkPlayerData = networkPlayerData;
 
-            if (_networkPlayerData == null || _trackPlayer == null || _networkPlayerData.isLocalPlayer)
+            if (_networkPlayerData == null || _basePlayer == null || _networkPlayerData.IsLocalUser)
             {
                 enabled = false;
                 return;
             }
 
-            _trackPlayer.RegisterRemoteSimulation(this);
-            _stats = _trackPlayer.BaseStats;
+            _stats = _basePlayer.BaseStats;
+            _vocalsStats = _stats as VocalsStats;
+
+            _basePlayer.RegisterRemoteSimulation(this);
 
             ResetSimulation();
             _isInitialized = true;
             ApplyRemoteState(0d);
         }
 
-        internal void ApplyRemoteState(double localInputTime)
+        public void ApplyRemoteState(double localInputTime)
         {
             _ = localInputTime;
 
-            if (!_isInitialized || _networkPlayerData == null || _trackPlayer == null)
+            if (!_isInitialized || _networkPlayerData == null || _basePlayer == null)
             {
                 return;
             }
 
             bool snapshotReset = _networkPlayerData.LastGameplaySnapshotSequence < _lastSnapshotSequence;
-            bool countersReset = _networkPlayerData.NotesHit < _resolvedHits || _networkPlayerData.NotesMissed < _resolvedMisses;
+            bool trackCountersReset = _trackPlayer != null &&
+                (_networkPlayerData.NotesHit < _resolvedHits || _networkPlayerData.NotesMissed < _resolvedMisses);
 
-            if (snapshotReset || countersReset)
+            if (snapshotReset || trackCountersReset)
             {
                 ResetSimulation();
             }
 
             ApplySnapshotToStats();
-            UpdateRemoteSoloState();
+
+            if (_trackPlayer != null)
+            {
+                UpdateRemoteSoloState();
+            }
 
             bool starPowerChanged = _networkPlayerData.IsStarPowerActive != _lastStarPowerActive;
             if (starPowerChanged)
             {
                 _lastStarPowerActive = _networkPlayerData.IsStarPowerActive;
-                _trackPlayer.ApplyRemoteStarPowerState(_lastStarPowerActive);
-            }
-            ProcessNoteDiffs();
 
-            _trackPlayer.UpdateRemoteCountdown();
+                if (_trackPlayer != null)
+                {
+                    _trackPlayer.ApplyRemoteStarPowerState(_lastStarPowerActive);
+                }
+            }
+
+            if (_trackPlayer != null)
+            {
+                ProcessNoteDiffs();
+                _trackPlayer.UpdateRemoteCountdown();
+            }
+            else if (_vocalsPlayer != null)
+            {
+                _vocalsPlayer.UpdateRemoteCountdown();
+            }
 
             _lastSnapshotSequence = _networkPlayerData.LastGameplaySnapshotSequence;
         }
 
         private void OnDestroy()
         {
-            if (_trackPlayer != null)
-            {
-                _trackPlayer.RegisterRemoteSimulation(null);
-            }
+            _basePlayer?.RegisterRemoteSimulation(null);
         }
 
         private void ApplySnapshotToStats()
         {
-            int totalNotes = _trackPlayer.GetRemoteNoteCount();
-            _stats.TotalNotes = Math.Max(_stats.TotalNotes, totalNotes);
+            var baseEngine = _basePlayer.BaseEngine;
+            var baseParameters = baseEngine != null ? baseEngine.BaseParameters : null;
+
+            int totalNotes = _stats.TotalNotes;
+
+            if (_trackPlayer != null)
+            {
+                int remoteNoteCount = _trackPlayer.GetRemoteNoteCount();
+                if (remoteNoteCount > totalNotes)
+                {
+                    totalNotes = remoteNoteCount;
+                    _stats.TotalNotes = remoteNoteCount;
+                }
+            }
+            else if (totalNotes <= 0)
+            {
+                int fallbackNotes = Math.Max(0, _networkPlayerData.NotesHit + _networkPlayerData.NotesMissed);
+                if (fallbackNotes > totalNotes)
+                {
+                    totalNotes = fallbackNotes;
+                    _stats.TotalNotes = fallbackNotes;
+                }
+            }
 
             _stats.NotesHit = Mathf.Clamp(_networkPlayerData.NotesHit, 0, totalNotes);
             _stats.Combo = Math.Max(0, _networkPlayerData.CurrentCombo);
@@ -121,19 +168,19 @@ namespace YARG.Gameplay.Player
             _stats.MultiplierScore = 0;
             _stats.BandBonusScore = 0;
 
-            int baseMultiplier = Mathf.Min((_stats.Combo / 10) + 1, _trackPlayer.BaseEngine.BaseParameters.MaxMultiplier);
-            baseMultiplier = Math.Max(baseMultiplier, 1);
+            int maxMultiplier = baseParameters != null ? baseParameters.MaxMultiplier : 4;
+            int baseMultiplier = Math.Max(1, Mathf.Min((_stats.Combo / 10) + 1, maxMultiplier));
             int effectiveMultiplier = baseMultiplier;
             if (_networkPlayerData.IsStarPowerActive)
             {
-                effectiveMultiplier = Math.Min(baseMultiplier * 2, _trackPlayer.BaseEngine.BaseParameters.MaxMultiplier * 2);
+                effectiveMultiplier = Math.Min(baseMultiplier * 2, maxMultiplier * 2);
             }
 
             _stats.ScoreMultiplier = effectiveMultiplier;
             _stats.BandMultiplier = effectiveMultiplier;
             _stats.IsStarPowerActive = _networkPlayerData.IsStarPowerActive;
 
-            uint gaugeTicks = _trackPlayer.BaseEngine != null ? _trackPlayer.BaseEngine.TicksPerFullSpBar : 0u;
+            uint gaugeTicks = baseEngine != null ? baseEngine.TicksPerFullSpBar : 0u;
             if (gaugeTicks > 0)
             {
                 int targetTicks = Mathf.Clamp(Mathf.RoundToInt(_networkPlayerData.StarPowerAmount * gaugeTicks), 0, (int)gaugeTicks);
@@ -186,11 +233,54 @@ namespace YARG.Gameplay.Player
                 keysStats.Overhits = Mathf.Max(0, _networkPlayerData.Overhits);
             }
 
-            _stats.BandBonusScore = Mathf.Max(0, _networkPlayerData.BandBonusScore);
+            _stats.BandBonusScore = Math.Max(0, _networkPlayerData.BandBonusScore);
 
             if (_stats.TotalNotes > 0)
             {
                 _stats.Stars = Mathf.Clamp01(_stats.Percent) * 5f;
+            }
+
+            if (_vocalsStats != null)
+            {
+                ApplyVocalsSnapshot(totalNotes);
+            }
+        }
+
+        private void ApplyVocalsSnapshot(int totalNotes)
+        {
+            int authoritativeTicksHit = Mathf.Max(0, _networkPlayerData.VocalsTicksHit);
+            int authoritativeTicksMissed = Mathf.Max(0, _networkPlayerData.VocalsTicksMissed);
+
+            uint ticksHit;
+            uint ticksMissed;
+
+            if (authoritativeTicksHit > 0 || authoritativeTicksMissed > 0)
+            {
+                ticksHit = (uint)Mathf.Clamp(authoritativeTicksHit, 0, int.MaxValue);
+                ticksMissed = (uint)Mathf.Clamp(authoritativeTicksMissed, 0, int.MaxValue);
+            }
+            else
+            {
+                int clampedTotal = Math.Max(totalNotes, _stats.TotalNotes);
+                if (clampedTotal <= 0)
+                {
+                    clampedTotal = Math.Max(0, _networkPlayerData.NotesHit + _networkPlayerData.NotesMissed);
+                }
+
+                ticksHit = (uint)Mathf.Max(0, _stats.NotesHit);
+                ticksMissed = clampedTotal > 0
+                    ? (uint)Mathf.Max(0, clampedTotal - _stats.NotesHit)
+                    : 0u;
+            }
+
+            _vocalsStats.TicksHit = ticksHit;
+            _vocalsStats.TicksMissed = ticksMissed;
+
+            if (_vocalsPlayer != null)
+            {
+                float phraseTicksHit = Mathf.Max(0f, _networkPlayerData.VocalsPhraseTicksHit);
+                int phraseTicksTotal = Mathf.Max(0, _networkPlayerData.VocalsPhraseTicksTotal);
+                _vocalsPlayer.ApplyRemotePhraseProgress(phraseTicksHit, phraseTicksTotal);
             }
         }
 
@@ -201,7 +291,7 @@ namespace YARG.Gameplay.Player
             int noteCount = Math.Max(0, _networkPlayerData.SoloNoteCount);
             int notesHit = Mathf.Clamp(_networkPlayerData.SoloNotesHit, 0, noteCount > 0 ? noteCount : 0);
             int lastBonus = Math.Max(0, _networkPlayerData.SoloLastBonus);
-            var trackView = _trackPlayer.TrackView;
+            var trackView = _trackPlayer?.TrackView;
 
             if (sequence > _lastSoloSequence)
             {
@@ -241,25 +331,34 @@ namespace YARG.Gameplay.Player
 
         private void ProcessNoteDiffs()
         {
+            if (_trackPlayer == null)
+            {
+                return;
+            }
+
             int targetHits = Math.Max(0, _networkPlayerData.NotesHit);
             int targetMisses = Math.Max(0, _networkPlayerData.NotesMissed);
 
             while (_resolvedHits < targetHits)
             {
-                if (!_trackPlayer.ResolveRemoteNote(ref _noteCursor, true))
+                if (!_trackPlayer.ResolveRemoteNote(ref _noteCursor, true, out int resolvedWeight))
                 {
                     break;
                 }
-                _resolvedHits++;
+
+                int weight = Mathf.Max(1, resolvedWeight);
+                _resolvedHits = Math.Min(targetHits, _resolvedHits + weight);
             }
 
             while (_resolvedMisses < targetMisses)
             {
-                if (!_trackPlayer.ResolveRemoteNote(ref _noteCursor, false))
+                if (!_trackPlayer.ResolveRemoteNote(ref _noteCursor, false, out int resolvedWeight))
                 {
                     break;
                 }
-                _resolvedMisses++;
+
+                int weight = Mathf.Max(1, resolvedWeight);
+                _resolvedMisses = Math.Min(targetMisses, _resolvedMisses + weight);
             }
         }
 
@@ -270,6 +369,15 @@ namespace YARG.Gameplay.Player
                 _trackPlayer.ApplyRemoteStarPowerState(false);
                 _trackPlayer.ResetRemoteSimulationState();
             }
+
+            if (_vocalsStats != null)
+            {
+                _vocalsStats.TicksHit = 0;
+                _vocalsStats.TicksMissed = 0;
+            }
+
+            _vocalsPlayer?.ApplyRemotePhraseProgress(0f, 0);
+
             _noteCursor = 0;
             _resolvedHits = 0;
             _resolvedMisses = 0;

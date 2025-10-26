@@ -4276,6 +4276,11 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -90
       objectReference: {fileID: 0}
+    - target: {fileID: 5844209559293958664, guid: 392da254cc61d854391229c822dd31f2,
+        type: 3}
+      propertyPath: m_text
+      value: Create Lobby
+      objectReference: {fileID: 0}
     - target: {fileID: 5935635676146957564, guid: 392da254cc61d854391229c822dd31f2,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -5124,12 +5129,12 @@ PrefabInstance:
     - target: {fileID: 1857742001770364529, guid: e398231c334c6834b9c2012df1178c2b,
         type: 3}
       propertyPath: m_PreferredWidth
-      value: 581.6752
+      value: 587.9898
       objectReference: {fileID: 0}
     - target: {fileID: 1857742001770364529, guid: e398231c334c6834b9c2012df1178c2b,
         type: 3}
       propertyPath: m_PreferredHeight
-      value: 1163.3503
+      value: 1175.9796
       objectReference: {fileID: 0}
     - target: {fileID: 3530021195590366330, guid: e398231c334c6834b9c2012df1178c2b,
         type: 3}

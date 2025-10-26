@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using YARG.Core.Logging;
 using YARG.Networking;
 using YARG.Menu.Persistent;
 
@@ -105,6 +106,7 @@ namespace YARG.Menu.Multiplayer
             // Close this dialog first
             gameObject.SetActive(false);
             
+            YargLogger.LogFormatInfo("[CreateLobbyDialog] Create clicked with name '{0}', maxPlayers={1}, privacy={2}", lobbyName, maxPlayers, privacyMode);
             YargNetworkManager.Instance.CreateLobby(lobbyName, maxPlayers, privacyMode, password);
             
             // Don't show success message here - OnLobbyJoined will handle it

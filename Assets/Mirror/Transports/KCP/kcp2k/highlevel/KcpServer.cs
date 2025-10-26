@@ -10,6 +10,8 @@ namespace kcp2k
 {
     public class KcpServer
     {
+        public Func<ArraySegment<byte>, IPEndPoint, bool> OnRawInput;
+
         // callbacks
         // even for errors, to allow liraries to show popups etc.
         // instead of logging directly.
@@ -73,6 +75,24 @@ namespace kcp2k
             {
                 // IPv6 socket with DualMode @ "::" : port
                 Socket socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+
+                try
+                {
+                    socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                }
+                catch (SocketException e)
+                {
+                    Log.Warning($"[KCP] Failed to enable SO_REUSEADDR (IPv6): {e}");
+                }
+
+                try
+                {
+                    socket.ExclusiveAddressUse = false;
+                }
+                catch (SocketException e)
+                {
+                    Log.Warning($"[KCP] Failed to disable ExclusiveAddressUse (IPv6): {e}");
+                }
 
                 // enabling DualMode may throw:
                 // https://learn.microsoft.com/en-us/dotnet/api/System.Net.Sockets.Socket.DualMode?view=net-7.0
@@ -141,6 +161,25 @@ namespace kcp2k
             {
                 // IPv4 socket @ "0.0.0.0" : port
                 Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+                try
+                {
+                    socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                }
+                catch (SocketException e)
+                {
+                    Log.Warning($"[KCP] Failed to enable SO_REUSEADDR (IPv4): {e}");
+                }
+
+                try
+                {
+                    socket.ExclusiveAddressUse = false;
+                }
+                catch (SocketException e)
+                {
+                    Log.Warning($"[KCP] Failed to disable ExclusiveAddressUse (IPv4): {e}");
+                }
+
                 socket.Bind(new IPEndPoint(IPAddress.Any, port));
                 return socket;
             }
@@ -208,6 +247,16 @@ namespace kcp2k
             {
                 if (socket.ReceiveFromNonBlocking(rawReceiveBuffer, out segment, ref newClientEP))
                 {
+                    if (OnRawInput != null && newClientEP is IPEndPoint remoteEp)
+                    {
+                        IPEndPoint remote = new IPEndPoint(remoteEp.Address, remoteEp.Port);
+                        if (OnRawInput.Invoke(segment, remote))
+                        {
+                            segment = default;
+                            return false;
+                        }
+                    }
+
                     // set connectionId to hash from endpoint
                     connectionId = Common.ConnectionHash(newClientEP);
                     return true;
@@ -244,6 +293,25 @@ namespace kcp2k
             catch (SocketException e)
             {
                 Log.Error($"[KCP] Server: SendTo failed: {e}");
+            }
+        }
+
+        public bool TrySendRaw(IPEndPoint remoteEndPoint, ArraySegment<byte> data)
+        {
+            if (socket == null || remoteEndPoint == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                socket.SendToNonBlocking(data, remoteEndPoint);
+                return true;
+            }
+            catch (SocketException e)
+            {
+                Log.Warning($"[KCP] Server: RawSend failed: {e}");
+                return false;
             }
         }
 

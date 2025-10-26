@@ -1,5 +1,7 @@
+using System;
 using YARG.Menu.ListMenu;
 using YARG.Networking;
+using YARG.Networking.Bookmarks;
 using Cysharp.Text;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
@@ -40,7 +42,7 @@ namespace YARG.Menu.Multiplayer
         
         public override BackgroundType Background => BackgroundType.Normal;
         public override bool ShowFavoriteButton => true;
-        public override bool IsFavorited => _favorites.IsFavorited(_lobbyInfo.ipAddress);
+        public override bool IsFavorited => _favorites.IsFavorited(_lobbyInfo.ipAddress, _lobbyInfo.port);
         public override int Ping => CalculatePing();
         
         public YargNetworkManager.LobbyInfo LobbyInfo => _lobbyInfo;
@@ -121,7 +123,7 @@ namespace YARG.Menu.Multiplayer
                 return 999;
             
             // Otherwise, simulate based on network discovery interval
-            return Random.Range(10, 100);
+            return UnityEngine.Random.Range(10, 100);
         }
         
         public override void OnJoinClick()
@@ -133,11 +135,11 @@ namespace YARG.Menu.Multiplayer
         {
             if (IsFavorited)
             {
-                _favorites.RemoveFavorite(_lobbyInfo.ipAddress);
+                _favorites.RemoveFavorite(_lobbyInfo.ipAddress, _lobbyInfo.port);
             }
             else
             {
-                _favorites.AddFavorite(_lobbyInfo.ipAddress, _lobbyInfo.lobbyName);
+                _favorites.AddFavorite(_lobbyInfo.ipAddress, _lobbyInfo.port, _lobbyInfo.lobbyName, string.Empty);
             }
         }
     }
@@ -171,6 +173,56 @@ namespace YARG.Menu.Multiplayer
         public override void OnJoinClick()
         {
             // Categories are not joinable
+        }
+    }
+
+    /// <summary>
+    /// ViewType for offline saved bookmarks (favorites or recents).
+    /// </summary>
+    public class SavedLobbyViewType : LobbyViewType
+    {
+        private readonly LobbyBookmark _bookmark;
+        private readonly LobbyBrowserMenu _menu;
+        private readonly LobbyFavorites _favorites;
+
+        public override BackgroundType Background => BackgroundType.Normal;
+        public override bool ShowFavoriteButton => true;
+        public override bool IsFavorited => _favorites.IsFavorited(_bookmark.address, _bookmark.port);
+
+        public SavedLobbyViewType(LobbyBookmark bookmark, LobbyBrowserMenu menu, LobbyFavorites favorites)
+        {
+            _bookmark = bookmark;
+            _menu = menu;
+            _favorites = favorites;
+        }
+
+        public override string GetPrimaryText(bool selected)
+        {
+            return FormatAs(string.IsNullOrWhiteSpace(_bookmark.displayName) ? _bookmark.address : _bookmark.displayName, TextType.Primary, selected);
+        }
+
+        public override string GetSecondaryText(bool selected)
+        {
+            int clampedPort = Math.Clamp(_bookmark.port, 0, ushort.MaxValue);
+            var endpoint = string.Concat(_bookmark.address, ":", clampedPort);
+            return FormatAs(endpoint, TextType.Secondary, selected);
+        }
+
+        public override void OnJoinClick()
+        {
+            _menu.JoinSavedBookmark(_bookmark);
+        }
+
+        public override void OnFavoriteClick()
+        {
+            if (IsFavorited)
+            {
+                _favorites.RemoveFavorite(_bookmark.address, _bookmark.port);
+            }
+            else
+            {
+                _favorites.AddFavorite(_bookmark.address, _bookmark.port, _bookmark.displayName, _bookmark.password);
+            }
         }
     }
 }

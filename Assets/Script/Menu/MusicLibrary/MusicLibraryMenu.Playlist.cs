@@ -285,6 +285,8 @@ namespace YARG.Menu.MusicLibrary
                 Navigator.Instance.PopScheme();
             }
 
+            _moreOptionsActivationTimer = MORE_OPTIONS_ACTIVATION_DELAY;
+
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
@@ -355,11 +357,14 @@ namespace YARG.Menu.MusicLibrary
             SetShowNavigationScheme();
 
             // Display the show screen
-			SelectedPlaylist = ShowPlaylist;
+    		SelectedPlaylist = ShowPlaylist;
             MenuState = MenuState.Show;
             Refresh();
 
-            DialogManager.Instance.ShowSongPickerDialog("Pick Your Poison", this);
+                if (ShowPlaylist.Count == 0)
+                {
+                    DialogManager.Instance.ShowSongPickerDialog("Pick Your Poison", this);
+                }
         }
 
         private void LeaveShowMode()
