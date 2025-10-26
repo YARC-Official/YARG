@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -279,9 +280,30 @@ namespace YARG.Networking.STUN
                 throw new StunException($"Failed to resolve STUN host '{host}'", ex);
             }
 
-            foreach (var address in addresses)
+            var orderedAddresses = addresses
+                .Where(ip => ip != null && (ip.AddressFamily == AddressFamily.InterNetwork || ip.AddressFamily == AddressFamily.InterNetworkV6))
+                .OrderBy(ip => ip.AddressFamily == AddressFamily.InterNetwork ? 0 : 1)
+                .ToArray();
+
+            if (orderedAddresses.Length == 0)
+            {
+                throw new StunException($"STUN host '{host}' did not resolve to any IPv4/IPv6 addresses.");
+            }
+
+            foreach (var resolved in orderedAddresses)
             {
                 token.ThrowIfCancellationRequested();
+
+                IPAddress address = resolved;
+                if (address.IsIPv4MappedToIPv6)
+                {
+                    address = address.MapToIPv4();
+                }
+
+                if (address.AddressFamily == AddressFamily.InterNetworkV6 && (_kcpTransport == null || !_kcpTransport.DualMode))
+                {
+                    continue;
+                }
 
                 var endPoint = new IPEndPoint(address, port);
                 var request = StunClient.BuildBindingRequest(out var transactionId);
@@ -512,7 +534,8 @@ namespace YARG.Networking.STUN
                 PublicEndPoint = mapped ?? new IPEndPoint(IPAddress.None, 0),
                 LocalEndPoint = new IPEndPoint(IPAddress.Any, _kcpTransport != null ? _kcpTransport.Port : 0),
                 StunServer = pending.Server,
-                Timestamp = DateTimeOffset.UtcNow
+                Timestamp = DateTimeOffset.UtcNow,
+                IsTransportSocketResult = true
             };
 
             pending.Completion.TrySetResult(result);

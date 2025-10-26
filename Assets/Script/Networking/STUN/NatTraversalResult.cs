@@ -17,6 +17,8 @@ namespace YARG.Networking.STUN
         public string StunServer { get; set; } = string.Empty;
         public DateTimeOffset Timestamp { get; set; }
             = DateTimeOffset.UtcNow;
+        public bool IsTransportSocketResult { get; set; }
+            = false;
 
         public bool HasPublicAddress =>
             PublicEndPoint != null && !Equals(PublicEndPoint.Address, IPAddress.None);
@@ -32,6 +34,6 @@ namespace YARG.Networking.STUN
         }
 
         public override string ToString() =>
-            $"NatTraversalResult(Type={NatType}, Public={PublicEndPoint}, Local={LocalEndPoint}, Server={StunServer})";
+            $"NatTraversalResult(Type={NatType}, Public={PublicEndPoint}, Local={LocalEndPoint}, Server={StunServer}, TransportSocket={IsTransportSocketResult})";
     }
 }

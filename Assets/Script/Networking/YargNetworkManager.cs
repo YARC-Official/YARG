@@ -1155,6 +1155,12 @@ namespace YARG.Networking
                 return;
             }
 
+            if (_isHost && !result.IsTransportSocketResult)
+            {
+                LogWarning("[YargNetworkManager] Ignoring NAT result that was not derived from the transport socket; WAN port may be inaccurate.");
+                return;
+            }
+
             bool changed = _lastPublicEndpoint == null || !_lastPublicEndpoint.Equals(result.PublicEndPoint);
             _lastPublicEndpoint = result.PublicEndPoint;
 
