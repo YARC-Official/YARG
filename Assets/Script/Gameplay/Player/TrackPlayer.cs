@@ -180,7 +180,7 @@ namespace YARG.Gameplay.Player
 
         protected SongChart Chart;
 
-        private AutoCalibrator autoCalibrator;
+        private AutoCalibrator _autoCalibrator;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
@@ -250,7 +250,7 @@ namespace YARG.Gameplay.Player
 
             SongLength = (float) chart.GetEndTime();
 
-            autoCalibrator = new AutoCalibrator(GameManager);
+            _autoCalibrator = new AutoCalibrator(GameManager);
         }
 
         protected override void FinishDestruction()
@@ -914,7 +914,7 @@ namespace YARG.Gameplay.Player
 
         private void CalculateAccuracy(TNote note)
         {
-            autoCalibrator.RecordAccuracy(note.Time);
+            _autoCalibrator.RecordAccuracy(note.Time);
         }
 
         private double CalculateMedian(List<double> values)

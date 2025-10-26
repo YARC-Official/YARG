@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Menu.Navigation;
 using YARG.Settings.Types;
 
@@ -41,6 +42,11 @@ namespace YARG.Gameplay.HUD
 
         private void OnValueChange(string text)
         {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return;
+            }
+
             try
             {
                 int value = int.Parse(text, CultureInfo.InvariantCulture);
@@ -51,13 +57,6 @@ namespace YARG.Gameplay.HUD
             {
                 // Ignore error
             }
-
-            RefreshVisual();
-        }
-
-        private void RefreshVisual()
-        {
-            _inputField.text = Setting.Value.ToString(CultureInfo.InvariantCulture);
         }
     }
 }

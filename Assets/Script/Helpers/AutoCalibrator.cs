@@ -20,7 +20,7 @@ namespace YARG.Helpers
 
         private int _baselineCalibration;
         private double? _lastAbsMedian;
-        private bool _isStable;
+        public bool IsStable;
 
         public AutoCalibrator(GameManager gameManager)
         {
@@ -30,6 +30,11 @@ namespace YARG.Helpers
 
         public void RecordAccuracy(double noteTime)
         {
+            if (IsStable)
+            {
+                return;
+            }
+
             double accuracy = (_gameManager.InputTime - noteTime) * 1000;
             _accuracyList.Add(accuracy);
             if (_accuracyList.Count < SAMPLE_SIZE)
@@ -39,19 +44,16 @@ namespace YARG.Helpers
 
             double median = CalculateMedian(_accuracyList);
             double absMedian = Math.Abs(median);
+            UpdateCalibration(median, absMedian);
+
             if (absMedian < STABLE_THRESHOLD)
             {
-                _isStable = true;
-            }
-
-            bool shouldUpdate = !_isStable || !_lastAbsMedian.HasValue || absMedian < _lastAbsMedian.Value;
-            if (shouldUpdate)
-            {
-                UpdateCalibration(median, absMedian);
+                NotifyCalibrationStable();
+                IsStable = true;
             }
             else
             {
-                NotifyCalibrationStable();
+                NotifyCalibrationUpdated();
             }
             _accuracyList.Clear();
         }
@@ -62,15 +64,20 @@ namespace YARG.Helpers
             var hardwareAdjustment = SettingsManager.Settings.AccountForHardwareLatency.Value ? GlobalAudioHandler.PlaybackLatency : 0;
             int calibrationValue = _baselineCalibration + clampedMedian - hardwareAdjustment;
             SettingsManager.Settings.AudioCalibration.Value = calibrationValue;
-            _gameManager.UpdateCalibration(); //Hacky
-
-            ToastManager.ToastMessage($"Calibration updated: {calibrationValue} ms");
+            _gameManager.UpdateCalibration();
             _baselineCalibration = calibrationValue;
             _lastAbsMedian = absMedian;
         }
 
+        private void NotifyCalibrationUpdated()
+        {
+            //TODO: translation
+            ToastManager.ToastMessage($"Calibration updated: {_baselineCalibration} ms");
+        }
+
         private void NotifyCalibrationStable()
         {
+            //TODO: translation
             YargLogger.LogInfo($"Calibration stable ({_baselineCalibration} ms)");
             ToastManager.ToastSuccess($"Calibration stable ({_baselineCalibration} ms)");
         }
