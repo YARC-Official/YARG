@@ -1109,7 +1109,9 @@ namespace YARG.Networking
                 {
                     HandlePublicEndpointChanged(result);
 
-                    if (result.HasPublicAddress)
+                    bool resultAccepted = !_isHost || result.IsTransportSocketResult;
+
+                    if (resultAccepted && result.HasPublicAddress)
                     {
                         lobby.publicAddress = result.PublicEndPoint.Address.ToString();
                         if (result.PublicEndPoint.Port != 0)
@@ -1120,12 +1122,23 @@ namespace YARG.Networking
                         lobby.supportsNatTraversal = true;
                     }
 
-                    lobby.natType = result.NatType;
-                    lobby.stunServer = result.StunServer;
+                    if (resultAccepted)
+                    {
+                        lobby.natType = result.NatType;
+                        lobby.stunServer = result.StunServer;
+                    }
+
                     lobby.punchPort = _natService.PunchPort;
 
                     var publicEndpoint = result.PublicEndPoint != null ? result.PublicEndPoint.ToString() : "Unavailable";
-                    LogInfo($"[YargNetworkManager] NAT probe succeeded via {result.StunServer} - NAT Type: {result.NatType}, Public Endpoint: {publicEndpoint}");
+                    if (resultAccepted)
+                    {
+                        LogInfo($"[YargNetworkManager] NAT probe succeeded via {result.StunServer} - NAT Type: {result.NatType}, Public Endpoint: {publicEndpoint}");
+                    }
+                    else
+                    {
+                        LogWarning($"[YargNetworkManager] NAT probe via {result.StunServer} only succeeded using a fallback socket; ignoring potential port remap ({publicEndpoint}).");
+                    }
 
                     var discovery = GetComponent<YargNetworkDiscovery>();
                     discovery?.AdvertiseServer(lobby);

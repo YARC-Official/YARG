@@ -305,7 +305,13 @@ namespace YARG.Networking.STUN
                     continue;
                 }
 
-                var endPoint = new IPEndPoint(address, port);
+                IPAddress sendAddress = address;
+                if (sendAddress.AddressFamily == AddressFamily.InterNetwork && _kcpTransport != null && _kcpTransport.DualMode)
+                {
+                    sendAddress = sendAddress.MapToIPv6();
+                }
+
+                var endPoint = new IPEndPoint(sendAddress, port);
                 var request = StunClient.BuildBindingRequest(out var transactionId);
                 var completion = new UniTaskCompletionSource<NatTraversalResult>();
                 var key = ToTransactionKey(transactionId);
@@ -322,6 +328,7 @@ namespace YARG.Networking.STUN
                     {
                         _pendingServerStun.Remove(key);
                     }
+                    Debug.LogWarning($"[NatTraversalService] Transport STUN dispatch via {stunServer} ({address}) failed; retrying with next address.");
                     continue;
                 }
 
