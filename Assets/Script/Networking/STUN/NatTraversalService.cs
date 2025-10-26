@@ -105,6 +105,10 @@ namespace YARG.Networking.STUN
             }
 
             StunException lastError = null;
+            NatTraversalResult transportResult = null;
+            NatTraversalResult fallbackResult = null;
+            bool transportMismatchDetected = false;
+
             foreach (var server in stunServers)
             {
                 if (string.IsNullOrWhiteSpace(server))
@@ -117,6 +121,7 @@ namespace YARG.Networking.STUN
                 try
                 {
                     NatTraversalResult result;
+
                     if (NetworkServer.active && _kcpTransport != null)
                     {
                         try
@@ -141,9 +146,26 @@ namespace YARG.Networking.STUN
                             result.LocalEndPoint = new IPEndPoint(IPAddress.Any, _kcpTransport.Port);
                         }
 
-                        _cachedResult = result;
-                        NotifyPublicEndpointChanged();
-                        return _cachedResult;
+                        if (result.IsTransportSocketResult)
+                        {
+                            if (transportResult == null)
+                            {
+                                transportResult = result;
+                            }
+                            else if (!AreEndpointsEquivalent(transportResult.PublicEndPoint, result.PublicEndPoint))
+                            {
+                                transportMismatchDetected = true;
+                            }
+
+                            if (transportMismatchDetected)
+                            {
+                                // We have enough evidence of inconsistent mapping; keep iterating to gather more logs but no need to store additional results.
+                            }
+                        }
+                        else if (transportResult == null && fallbackResult == null)
+                        {
+                            fallbackResult = result;
+                        }
                     }
                 }
                 catch (StunException ex)
@@ -151,6 +173,28 @@ namespace YARG.Networking.STUN
                     lastError = ex;
                     Debug.LogWarning($"[NatTraversalService] STUN probe failed via {trimmed}: {ex.Message}");
                 }
+            }
+
+            NatTraversalResult selected = transportResult ?? fallbackResult;
+            if (selected != null)
+            {
+                if (transportResult != null)
+                {
+                    transportResult.IsPortMappingConsistent = !transportMismatchDetected;
+                    if (transportMismatchDetected)
+                    {
+                        transportResult.NatType = NetworkNatType.Symmetric;
+                        Debug.LogWarning("[NatTraversalService] Detected inconsistent public port mappings across STUN servers. NAT is likely symmetric, and automatic hole punching may fail.");
+                    }
+                }
+                else if (fallbackResult != null)
+                {
+                    fallbackResult.IsPortMappingConsistent = false;
+                }
+
+                _cachedResult = selected;
+                NotifyPublicEndpointChanged();
+                return _cachedResult;
             }
 
             throw lastError ?? new StunException("STUN probing failed");
@@ -602,6 +646,21 @@ namespace YARG.Networking.STUN
             }
 
             return IsPunchPayload(new ArraySegment<byte>(payload));
+        }
+
+        private static bool AreEndpointsEquivalent(IPEndPoint a, IPEndPoint b)
+        {
+            if (a == null && b == null)
+            {
+                return true;
+            }
+
+            if (a == null || b == null)
+            {
+                return false;
+            }
+
+            return Equals(a.Address, b.Address) && a.Port == b.Port;
         }
 
         private static string ToTransactionKey(ReadOnlySpan<byte> transactionId)

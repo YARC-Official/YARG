@@ -1118,25 +1118,30 @@ namespace YARG.Networking
                         {
                             lobby.publicPort = result.PublicEndPoint.Port;
                         }
-
-                        lobby.supportsNatTraversal = true;
                     }
+
+                    lobby.punchPort = _natService.PunchPort;
 
                     if (resultAccepted)
                     {
                         lobby.natType = result.NatType;
                         lobby.stunServer = result.StunServer;
-                    }
+                        lobby.supportsNatTraversal = result.HasPublicAddress && result.IsPortMappingConsistent;
 
-                    lobby.punchPort = _natService.PunchPort;
-
-                    var publicEndpoint = result.PublicEndPoint != null ? result.PublicEndPoint.ToString() : "Unavailable";
-                    if (resultAccepted)
-                    {
-                        LogInfo($"[YargNetworkManager] NAT probe succeeded via {result.StunServer} - NAT Type: {result.NatType}, Public Endpoint: {publicEndpoint}");
+                        var publicEndpoint = result.PublicEndPoint != null ? result.PublicEndPoint.ToString() : "Unavailable";
+                        if (result.IsPortMappingConsistent)
+                        {
+                            LogInfo($"[YargNetworkManager] NAT probe succeeded via {result.StunServer} - NAT Type: {result.NatType}, Public Endpoint: {publicEndpoint}");
+                        }
+                        else
+                        {
+                            LogWarning($"[YargNetworkManager] STUN probe indicates inconsistent public port mappings (probable symmetric NAT). Automatic hole punching may fail. Public Endpoint observed: {publicEndpoint}");
+                        }
                     }
                     else
                     {
+                        lobby.supportsNatTraversal = false;
+                        var publicEndpoint = result.PublicEndPoint != null ? result.PublicEndPoint.ToString() : "Unavailable";
                         LogWarning($"[YargNetworkManager] NAT probe via {result.StunServer} only succeeded using a fallback socket; ignoring potential port remap ({publicEndpoint}).");
                     }
 
@@ -1188,10 +1193,15 @@ namespace YARG.Networking
                 _currentLobby.publicPort = result.PublicEndPoint.Port;
             }
 
-            _currentLobby.supportsNatTraversal = result.HasPublicAddress;
+            _currentLobby.supportsNatTraversal = result.HasPublicAddress && result.IsPortMappingConsistent;
             _currentLobby.punchPort = _natService != null ? _natService.PunchPort : _currentLobby.punchPort;
             _currentLobby.natType = result.NatType;
             _currentLobby.stunServer = result.StunServer ?? string.Empty;
+
+            if (result.IsTransportSocketResult && !result.IsPortMappingConsistent)
+            {
+                LogWarning("[YargNetworkManager] Host NAT reported inconsistent external ports across STUN servers. Manual port forwarding will likely be required.");
+            }
 
             if (changed && result.HasPublicAddress)
             {
