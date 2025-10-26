@@ -37,6 +37,7 @@ namespace YARG.Networking.STUN
         private CancellationTokenSource _punchSendCts;
         private KcpTransport _kcpTransport;
         private readonly Dictionary<string, PendingStunRequest> _pendingServerStun = new();
+        private readonly HashSet<string> _loggedPunchSources = new();
         private readonly object _stunSync = new();
 
         private static readonly byte[] PunchPayload = Encoding.ASCII.GetBytes("YARG_PUNCH");
@@ -284,10 +285,22 @@ namespace YARG.Networking.STUN
 
             _kcpTransport = transport;
 
+            if (_kcpTransport == null)
+            {
+                lock (_loggedPunchSources)
+                {
+                    _loggedPunchSources.Clear();
+                }
+            }
+
             if (_kcpTransport != null)
             {
                 _kcpTransport.ServerRawPacket += OnServerRawPacket;
                 _kcpTransport.ClientRawPacket += OnClientRawPacket;
+                lock (_loggedPunchSources)
+                {
+                    _loggedPunchSources.Clear();
+                }
             }
         }
 
@@ -605,6 +618,17 @@ namespace YARG.Networking.STUN
                 return false;
             }
 
+            var key = remoteEndPoint?.ToString() ?? string.Empty;
+            if (!string.IsNullOrEmpty(key))
+            {
+                lock (_loggedPunchSources)
+                {
+                    if (_loggedPunchSources.Add(key))
+                    {
+                        Debug.Log($"[NatTraversalService] Received UDP punch from {remoteEndPoint}");
+                    }
+                }
+            }
             PunchPacketReceived?.Invoke(remoteEndPoint, PunchPayload);
             RespondToPunch(remoteEndPoint, PunchPayload, RESPONSE_BURST_COUNT, RESPONSE_INTERVAL, this.GetCancellationTokenOnDestroy(), "auto-response").Forget();
             return true;
