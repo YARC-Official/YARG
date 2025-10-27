@@ -4,7 +4,6 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using YARG.Networking.STUN;
 
 namespace YARG.Networking
 {
@@ -94,11 +93,7 @@ namespace YARG.Networking
                 publicAddress = _advertisedLobby.publicAddress,
                 port = (ushort)Mathf.Clamp(_advertisedLobby.port, 0, ushort.MaxValue),
                 publicPort = (ushort)Mathf.Clamp(_advertisedLobby.publicPort, 0, ushort.MaxValue),
-                punchPort = (ushort)Mathf.Clamp(_advertisedLobby.punchPort, 0, ushort.MaxValue),
-                natType = (byte)_advertisedLobby.natType,
-                supportsNatTraversal = _advertisedLobby.supportsNatTraversal,
-                transportId = _advertisedLobby.transportId ?? string.Empty,
-                stunServer = _advertisedLobby.stunServer ?? string.Empty
+                transportId = _advertisedLobby.transportId ?? string.Empty
             };
 
             return response;
@@ -125,12 +120,8 @@ namespace YARG.Networking
                 lastSeen = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 port = response.port != 0 ? response.port : NetworkTransportDefaults.DefaultTcpPort,
                 publicPort = response.publicPort != 0 ? response.publicPort : response.port,
-                punchPort = response.punchPort != 0 ? response.punchPort : NetworkTransportDefaults.DefaultUdpPort,
-                natType = (NetworkNatType)response.natType,
-                supportsNatTraversal = response.supportsNatTraversal,
                 publicAddress = string.IsNullOrWhiteSpace(response.publicAddress) ? endpoint.Address.ToString() : response.publicAddress,
-                transportId = response.transportId ?? string.Empty,
-                stunServer = response.stunServer ?? string.Empty
+                transportId = response.transportId ?? string.Empty
             };
 
             // Add or update lobby
@@ -225,10 +216,6 @@ namespace YARG.Networking
         public string publicAddress;
         public ushort port;
         public ushort publicPort;
-        public ushort punchPort;
-        public byte natType;
-        public bool supportsNatTraversal;
         public string transportId;
-        public string stunServer;
     }
 }

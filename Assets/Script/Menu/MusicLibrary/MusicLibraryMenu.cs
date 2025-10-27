@@ -19,7 +19,6 @@ using YARG.Player;
 using YARG.Playlists;
 using YARG.Settings;
 using YARG.Song;
-using static YARG.Menu.Navigation.Navigator;
 using Random = UnityEngine.Random;
 
 namespace YARG.Menu.MusicLibrary
@@ -104,7 +103,23 @@ namespace YARG.Menu.MusicLibrary
         private List<int> _sectionHeaderIndices = new();
         public List<(string, int)> Shortcuts { get; private set; } = new();
 
-        private List<HoldContext> _heldInputs = new();
+        private sealed class MenuButtonHold
+        {
+            public MenuButtonHold(NavigationContext context)
+            {
+                Context = context;
+                Duration = 0f;
+                UsedAsModifier = false;
+                Triggered = false;
+            }
+
+            public NavigationContext Context { get; }
+            public float Duration { get; set; }
+            public bool UsedAsModifier { get; set; }
+            public bool Triggered { get; set; }
+        }
+
+        private readonly List<MenuButtonHold> _heldInputs = new();
 
         private const float MORE_OPTIONS_ACTIVATION_DELAY = 0.35f;
         private float _moreOptionsActivationTimer;
@@ -366,7 +381,7 @@ namespace YARG.Menu.MusicLibrary
                     new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                         ctx =>
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange, true))
                             {
                                 GoToPreviousSection();
                             }
@@ -379,7 +394,7 @@ namespace YARG.Menu.MusicLibrary
                     new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
                         ctx =>
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange, true))
                             {
                                 GoToNextSection();
                             }
@@ -416,7 +431,7 @@ namespace YARG.Menu.MusicLibrary
                     new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                         ctx =>
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange, true))
                             {
                                 GoToPreviousSection();
                             }
@@ -429,7 +444,7 @@ namespace YARG.Menu.MusicLibrary
                     new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
                         ctx =>
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange, true))
                             {
                                 GoToNextSection();
                             }
@@ -782,7 +797,22 @@ namespace YARG.Menu.MusicLibrary
         protected override void Update()
         {
             foreach (var heldInput in _heldInputs)
-                heldInput.Timer -= Time.unscaledDeltaTime;
+            {
+                heldInput.Duration += Time.unscaledDeltaTime;
+
+                if (heldInput.Context.Player == null && heldInput.Context.Action == MenuAction.Orange && !heldInput.Triggered)
+                {
+                    if (_moreOptionsActivationTimer <= 0f)
+                    {
+                        if (!_popupMenu.gameObject.activeSelf)
+                        {
+                            _popupMenu.gameObject.SetActive(true);
+                        }
+
+                        heldInput.Triggered = true;
+                    }
+                }
+            }
 
             if (_moreOptionsActivationTimer > 0f)
             {
@@ -831,6 +861,8 @@ namespace YARG.Menu.MusicLibrary
             PlayerContainer.PlayerAdded -= OnPlayerAdded;
             PlayerContainer.PlayerRemoved -= OnPlayerRemoved;
 
+            _heldInputs.Clear();
+
             // Unsubscribe from multiplayer playlist updates
             if (_multiplayerShowPlaylist != null)
             {
@@ -871,30 +903,46 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button)
+        private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button, bool markAsModifier = false)
         {
-            return _heldInputs.Any(i => i.Context.Player == player && i.Context.Action == button);
+            foreach (var hold in _heldInputs)
+            {
+                if (hold.Context.Player == player && hold.Context.Action == button)
+                {
+                    if (markAsModifier)
+                    {
+                        hold.UsedAsModifier = true;
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void OnButtonHit(NavigationContext ctx)
         {
-            _heldInputs.Add(new HoldContext(ctx));
+            _heldInputs.Add(new MenuButtonHold(ctx));
         }
 
         private void OnButtonRelease(NavigationContext ctx)
         {
             var holdContext = _heldInputs.FirstOrDefault(i => i.Context.IsSameAs(ctx));
 
-            if (ctx.Action == MenuAction.Orange)
+            if (ctx.Action == MenuAction.Orange && holdContext != null)
             {
                 bool triggeredByInstrument = ctx.Player != null;
-                bool requiresHold = triggeredByInstrument && MenuState != MenuState.Show;
-                bool heldLongEnough = holdContext != null && holdContext.Timer <= 0f;
+                bool usedAsModifier = holdContext.UsedAsModifier;
 
-                // In show mode the orange menu should open immediately even for instruments.
-                if (_moreOptionsActivationTimer <= 0f && (!requiresHold || heldLongEnough))
+                if (!holdContext.Triggered && _moreOptionsActivationTimer <= 0f && (!triggeredByInstrument || !usedAsModifier))
                 {
-                    _popupMenu.gameObject.SetActive(true);
+                    if (!_popupMenu.gameObject.activeSelf)
+                    {
+                        _popupMenu.gameObject.SetActive(true);
+                    }
+
+                    holdContext.Triggered = true;
                 }
             }
 

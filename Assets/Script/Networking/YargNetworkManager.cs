@@ -10,7 +10,6 @@ using System.Net.Sockets;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using YARG.Networking.Bookmarks;
-using YARG.Networking.STUN;
 using YARG.Networking.UPnP;
 using YARG.Core.Logging;
 using YARG.Player;
@@ -58,7 +57,6 @@ namespace YARG.Networking
         private bool _isHost = false;
         private YARG.Multiplayer.MultiplayerShowPlaylist _multiplayerShowPlaylist;
         private static bool _isQuitting = false;
-        private NatTraversalService _natService;
         private string _lastJoinAddress;
         private int _lastJoinPort;
         private string _lastJoinPassword;
@@ -67,11 +65,8 @@ namespace YARG.Networking
         private UpnpPortMappingHandle _tcpPortMapping;
         private UpnpPortMappingHandle _udpPortMapping;
         private CancellationTokenSource _portMappingCts;
-        private readonly Dictionary<string, DateTime> _recentNatPunches = new();
         private bool _clientJoinPending;
         private bool _localSlotSyncPending;
-        private static readonly TimeSpan NatPunchCacheDuration = TimeSpan.FromSeconds(5);
-        private IPEndPoint _lastPublicEndpoint;
 
         private readonly HashSet<uint> _serverGameplayReadyPlayers = new();
         private bool _serverGameplayBarrierActive;
@@ -93,10 +88,7 @@ namespace YARG.Networking
         public bool IsConnected => isNetworkActive && !_isHost;
         public YARG.Multiplayer.MultiplayerShowPlaylist MultiplayerShowPlaylist => _multiplayerShowPlaylist;
         public int DefaultPort => ResolveTransportPort();
-        public int SuggestedDirectConnectPort => _lastPublicEndpoint != null && _lastPublicEndpoint.Port > 0
-            ? _lastPublicEndpoint.Port
-            : ResolveTransportPort();
-        public IPEndPoint LastPublicEndpoint => _lastPublicEndpoint;
+        public int SuggestedDirectConnectPort => ResolveTransportPort();
         public bool IsJoinInProgress => _clientJoinPending;
         // Events
         public event Action<LobbyInfo> OnLobbyCreated;
@@ -166,28 +158,6 @@ namespace YARG.Networking
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
-
-            _natService = GetComponent<NatTraversalService>();
-            if (_natService == null)
-            {
-                _natService = NatTraversalService.Instance ?? gameObject.AddComponent<NatTraversalService>();
-            }
-            else if (NatTraversalService.Instance != null)
-            {
-                _natService = NatTraversalService.Instance;
-            }
-            if (_natService != null)
-            {
-                _natService.PunchPacketReceived -= HandleNatPunchPacket;
-                _natService.PunchPacketReceived += HandleNatPunchPacket;
-                _natService.PublicEndpointChanged -= HandlePublicEndpointChanged;
-                _natService.PublicEndpointChanged += HandlePublicEndpointChanged;
-                _natService.AttachTransport(kcpTransport);
-                if (_natService.CachedResult != null)
-                {
-                    HandlePublicEndpointChanged(_natService.CachedResult);
-                }
-            }
 
             // Set default player name (will be updated from profile when network player spawns)
             _playerName = $"Player_{UnityEngine.Random.Range(1000, 9999)}";
@@ -589,8 +559,6 @@ namespace YARG.Networking
 
             string connectionInfo = $"{networkAddress}:{ResolveTransportPort()}";
 
-            ConfigureNatPunchPort((ushort)ResolveTransportPort());
-
             LogInfo($"[YargNetworkManager] CreateLobby: Starting host on {connectionInfo}");
             LogInfo($"[YargNetworkManager] CreateLobby: NetworkServer.active before StartHost: {NetworkServer.active}");
             
@@ -608,12 +576,8 @@ namespace YARG.Networking
                 ipAddress = networkAddress,
                 port = ResolveTransportPort(),
                 publicPort = ResolveTransportPort(),
-                punchPort = _natService != null ? _natService.PunchPort : NetworkTransportDefaults.DefaultUdpPort,
                 publicAddress = networkAddress,
-                natType = NetworkNatType.Unknown,
-                supportsNatTraversal = false,
-                transportId = Transport.active != null ? Transport.active.GetType().Name : "Unknown",
-                stunServer = string.Empty
+                transportId = Transport.active != null ? Transport.active.GetType().Name : "Unknown"
             };
 
             LogInfo($"[YargNetworkManager] Creating lobby '{lobbyName}' on {connectionInfo}");
@@ -638,7 +602,6 @@ namespace YARG.Networking
             
             // Host will also trigger OnClientConnect which will fire OnLobbyJoined for navigation
 
-            ScheduleNatProbe(_currentLobby);
             TrySetupPortMapping(ResolveTransportPort());
 
             LobbyBookmarkStore.Instance.RecordConnection(
@@ -701,7 +664,6 @@ namespace YARG.Networking
             }
 
             bool startClientCalled = false;
-            bool punchStarted = false;
 
             try
             {
@@ -738,28 +700,6 @@ namespace YARG.Networking
                 networkAddress = address;
                 SetTransportPort(port);
 
-                IPAddress resolvedAddress = null;
-                IPEndPoint punchTarget = null;
-                if (_natService != null)
-                {
-                    ConfigureNatPunchPort((ushort)ResolveTransportPort());
-                    if (TryResolveIp(address, out resolvedAddress))
-                    {
-                        if (ShouldSkipPunch(resolvedAddress))
-                        {
-                            LogInfo($"[YargNetworkManager] Skipping UDP punch for local/private address {resolvedAddress}");
-                        }
-                        else
-                        {
-                            punchTarget = new IPEndPoint(resolvedAddress, port);
-                        }
-                    }
-                    else
-                    {
-                        LogWarning($"[YargNetworkManager] Unable to resolve {address} for UDP punching");
-                    }
-                }
-
                 _lastJoinAddress = address;
                 _lastJoinPort = port;
                 _lastJoinPassword = password ?? string.Empty;
@@ -781,11 +721,7 @@ namespace YARG.Networking
                     port = port,
                     publicPort = port,
                     publicAddress = address,
-                    punchPort = _natService != null ? _natService.PunchPort : NetworkTransportDefaults.DefaultUdpPort,
-                    natType = NetworkNatType.Unknown,
-                    supportsNatTraversal = false,
-                    transportId = Transport.active != null ? Transport.active.GetType().Name : "Unknown",
-                    stunServer = string.Empty
+                    transportId = Transport.active != null ? Transport.active.GetType().Name : "Unknown"
                 };
 
                 if (!string.IsNullOrEmpty(password))
@@ -802,31 +738,6 @@ namespace YARG.Networking
                 LogInfo("[YargNetworkManager] JoinLobby: StartClient() called");
                 LogInfo($"[YargNetworkManager] JoinLobby: NetworkClient.active after StartClient: {NetworkClient.active}");
 
-                if (punchTarget != null)
-                {
-                    _natService?.BeginHolePunch(punchTarget, "client-connect", TimeSpan.FromSeconds(12));
-                    punchStarted = true;
-                }
-
-                if (punchStarted)
-                {
-                    try
-                    {
-                        var joinCompleted = UniTask.WaitUntil(() => !_clientJoinPending, cancellationToken: destroyToken);
-                        var punchTimeout = TimeSpan.FromMilliseconds(Math.Max(KcpLowLatencyTimeoutMs, 5000));
-                        var timeout = UniTask.Delay(punchTimeout, cancellationToken: destroyToken);
-                        await UniTask.WhenAny(joinCompleted, timeout);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        // join attempt aborted, fall through to stop punching
-                    }
-                    finally
-                    {
-                        _natService?.StopHolePunch();
-                        punchStarted = false;
-                    }
-                }
             }
             catch (OperationCanceledException)
             {
@@ -841,37 +752,8 @@ namespace YARG.Networking
                 if (!startClientCalled)
                 {
                     _clientJoinPending = false;
-                    if (punchStarted)
-                    {
-                        _natService?.StopHolePunch();
-                    }
                 }
             }
-        }
-
-        public void BeginManualPunch(string endpoint)
-        {
-            if (_natService == null)
-            {
-                LogWarning("[YargNetworkManager] Cannot punch without NatTraversalService");
-                return;
-            }
-
-            ParseEndpoint(endpoint, out var address, out var port);
-            if (!TryResolveIp(address, out var remoteAddress))
-            {
-                LogWarning($"[YargNetworkManager] Unable to resolve {address} for manual punching");
-                return;
-            }
-
-            ConfigureNatPunchPort((ushort)ResolveTransportPort());
-            if (ShouldSkipPunch(remoteAddress))
-            {
-                LogInfo($"[YargNetworkManager] Skipping manual punch for local/private address {remoteAddress}");
-                return;
-            }
-
-            _natService.BeginHolePunch(new IPEndPoint(remoteAddress, port), "manual");
         }
 
         /// <summary>
@@ -938,13 +820,6 @@ namespace YARG.Networking
 
             _currentLobby = null;
             _connectedPlayers.Clear();
-
-            if (_natService != null)
-            {
-                _natService.StopKeepAlive();
-                _natService.StopHolePunch();
-            }
-
             ResetJoinTracking();
             _clientJoinPending = false;
 
@@ -1016,11 +891,6 @@ namespace YARG.Networking
 
         public string GetShareableDirectConnectEndpoint()
         {
-            if (_lastPublicEndpoint != null && _lastPublicEndpoint.Port > 0)
-            {
-                return $"{_lastPublicEndpoint.Address}:{_lastPublicEndpoint.Port}";
-            }
-
             return $"{networkAddress}:{ResolveTransportPort()}";
         }
 
@@ -1061,14 +931,12 @@ namespace YARG.Networking
             if (Transport.active is PortTransport portTransport)
             {
                 portTransport.Port = (ushort)port;
-                ConfigureNatPunchPort((ushort)port);
                 return;
             }
 
             if (TryGetComponent<KcpTransport>(out var kcp))
             {
                 kcp.Port = (ushort)port;
-                ConfigureNatPunchPort((ushort)port);
                 return;
             }
 
@@ -1078,179 +946,12 @@ namespace YARG.Networking
             }
         }
 
-        private void ConfigureNatPunchPort(ushort port)
-        {
-            if (_natService == null)
-            {
-                return;
-            }
-
-            if (NetworkServer.active)
-            {
-                return;
-            }
-
-            _natService.ConfigurePunchPort(port);
-        }
-
-        private async UniTaskVoid ScheduleNatProbe(LobbyInfo lobby)
-        {
-            if (_natService == null || lobby == null)
-            {
-                return;
-            }
-
-            try
-            {
-                var token = this.GetCancellationTokenOnDestroy();
-                var result = await _natService.ProbeAsync(false, token);
-
-                if (result != null && lobby == _currentLobby)
-                {
-                    HandlePublicEndpointChanged(result);
-
-                    bool resultAccepted = !_isHost || result.IsTransportSocketResult;
-
-                    if (resultAccepted && result.HasPublicAddress)
-                    {
-                        lobby.publicAddress = result.PublicEndPoint.Address.ToString();
-                        if (result.PublicEndPoint.Port != 0)
-                        {
-                            lobby.publicPort = result.PublicEndPoint.Port;
-                        }
-                    }
-
-                    lobby.punchPort = _natService.PunchPort;
-
-                    if (resultAccepted)
-                    {
-                        lobby.natType = result.NatType;
-                        lobby.stunServer = result.StunServer;
-                        lobby.supportsNatTraversal = result.HasPublicAddress && result.IsPortMappingConsistent;
-
-                        var publicEndpoint = result.PublicEndPoint != null ? result.PublicEndPoint.ToString() : "Unavailable";
-                        if (result.IsPortMappingConsistent)
-                        {
-                            LogInfo($"[YargNetworkManager] NAT probe succeeded via {result.StunServer} - NAT Type: {result.NatType}, Public Endpoint: {publicEndpoint}");
-                        }
-                        else
-                        {
-                            LogWarning($"[YargNetworkManager] STUN probe indicates inconsistent public port mappings (probable symmetric NAT). Automatic hole punching may fail. Public Endpoint observed: {publicEndpoint}");
-                        }
-                    }
-                    else
-                    {
-                        lobby.supportsNatTraversal = false;
-                        var publicEndpoint = result.PublicEndPoint != null ? result.PublicEndPoint.ToString() : "Unavailable";
-                        LogWarning($"[YargNetworkManager] NAT probe via {result.StunServer} only succeeded using a fallback socket; ignoring potential port remap ({publicEndpoint}).");
-                    }
-
-                    var discovery = GetComponent<YargNetworkDiscovery>();
-                    discovery?.AdvertiseServer(lobby);
-
-                    // Notify listeners (e.g., lobby UI) that the lobby metadata changed
-                    TriggerLobbyJoinedEvent(lobby);
-                }
-
-                _natService.BeginKeepAlive();
-            }
-            catch (Exception ex)
-            {
-                LogWarning($"[YargNetworkManager] NAT probe failed: {ex}");
-            }
-        }
-
-        private void HandlePublicEndpointChanged(NatTraversalResult result)
-        {
-            if (result == null)
-            {
-                return;
-            }
-
-            if (result.PublicEndPoint == null || result.PublicEndPoint.Address.Equals(IPAddress.None))
-            {
-                _lastPublicEndpoint = null;
-                return;
-            }
-
-            if (_isHost && !result.IsTransportSocketResult)
-            {
-                LogWarning("[YargNetworkManager] Ignoring NAT result that was not derived from the transport socket; WAN port may be inaccurate.");
-                return;
-            }
-
-            bool changed = _lastPublicEndpoint == null || !_lastPublicEndpoint.Equals(result.PublicEndPoint);
-            _lastPublicEndpoint = result.PublicEndPoint;
-
-            if (!_isHost || _currentLobby == null)
-            {
-                return;
-            }
-
-            _currentLobby.publicAddress = result.PublicEndPoint.Address.ToString();
-            if (result.PublicEndPoint.Port != 0)
-            {
-                _currentLobby.publicPort = result.PublicEndPoint.Port;
-            }
-
-            _currentLobby.supportsNatTraversal = result.HasPublicAddress && result.IsPortMappingConsistent;
-            _currentLobby.punchPort = _natService != null ? _natService.PunchPort : _currentLobby.punchPort;
-            _currentLobby.natType = result.NatType;
-            _currentLobby.stunServer = result.StunServer ?? string.Empty;
-
-            if (result.IsTransportSocketResult && !result.IsPortMappingConsistent)
-            {
-                LogWarning("[YargNetworkManager] Host NAT reported inconsistent external ports across STUN servers. Manual port forwarding will likely be required.");
-            }
-
-            if (changed && result.HasPublicAddress)
-            {
-                LogInfo($"[YargNetworkManager] Direct connect (WAN) endpoint updated: {_currentLobby.publicAddress}:{_currentLobby.publicPort}");
-            }
-        }
-
         private void ResetJoinTracking()
         {
             _lastJoinAddress = null;
             _lastJoinPort = 0;
             _lastJoinPassword = null;
             _lastJoinDisplayName = null;
-        }
-
-        private void HandleNatPunchPacket(IPEndPoint remoteEndPoint, byte[] _)
-        {
-            if (remoteEndPoint == null)
-            {
-                return;
-            }
-
-            if (ShouldSkipPunch(remoteEndPoint.Address))
-            {
-                return;
-            }
-
-            var now = DateTime.UtcNow;
-            string key = remoteEndPoint.ToString();
-
-            if (_recentNatPunches.TryGetValue(key, out var lastSeen) && (now - lastSeen) < NatPunchCacheDuration)
-            {
-                return;
-            }
-
-            _recentNatPunches[key] = now;
-
-            if (_recentNatPunches.Count > 128)
-            {
-                _recentNatPunches.Clear();
-                _recentNatPunches[key] = now;
-            }
-
-            LogInfo($"[YargNetworkManager] NAT punch handshake observed from {remoteEndPoint}");
-
-            if (NetworkServer.active && _natService != null)
-            {
-                _natService.BeginHolePunch(remoteEndPoint, "server-relay", TimeSpan.FromSeconds(12));
-            }
         }
 
         private static bool ShouldResolveLocalAddress(string address)
@@ -1365,11 +1066,7 @@ namespace YARG.Networking
                     }
                 }
 
-                var udpPort = _natService != null ? _natService.PunchPort : transportPort;
-                if (udpPort <= 0)
-                {
-                    udpPort = transportPort;
-                }
+                var udpPort = transportPort;
                 _udpPortMapping = await _upnpMapper.TryAddMappingAsync(udpPort, "UDP", "YARG NAT Punch", token);
                 if (_udpPortMapping != null)
                 {
@@ -1411,91 +1108,6 @@ namespace YARG.Networking
             {
                 LogWarning($"[YargNetworkManager] Failed to remove UPnP mappings: {ex.Message}");
             }
-        }
-
-        private bool TryResolveIp(string host, out IPAddress address)
-        {
-            address = null;
-
-            if (string.IsNullOrWhiteSpace(host))
-            {
-                return false;
-            }
-
-            if (IPAddress.TryParse(host, out var parsed))
-            {
-                address = parsed;
-                return true;
-            }
-
-            try
-            {
-                var resolved = Dns.GetHostAddresses(host);
-                address = resolved.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork)
-                          ?? resolved.FirstOrDefault();
-                return address != null;
-            }
-            catch (Exception ex)
-            {
-                LogWarning($"[YargNetworkManager] Failed to resolve host '{host}' for UDP punching: {ex.Message}");
-                return false;
-            }
-        }
-
-        private static bool ShouldSkipPunch(IPAddress address)
-        {
-            if (address == null)
-            {
-                return true;
-            }
-
-            if (address.IsIPv4MappedToIPv6)
-            {
-                address = address.MapToIPv4();
-            }
-
-            if (IPAddress.IsLoopback(address))
-            {
-                return true;
-            }
-
-            if (address.AddressFamily == AddressFamily.InterNetwork)
-            {
-                var octets = address.GetAddressBytes();
-                if (octets.Length != 4)
-                {
-                    return false;
-                }
-
-                if (octets[0] == 10)
-                {
-                    return true;
-                }
-
-                if (octets[0] == 172 && octets[1] >= 16 && octets[1] <= 31)
-                {
-                    return true;
-                }
-
-                if (octets[0] == 192 && octets[1] == 168)
-                {
-                    return true;
-                }
-
-                if (octets[0] == 169 && octets[1] == 254)
-                {
-                    return true;
-                }
-            }
-            else if (address.AddressFamily == AddressFamily.InterNetworkV6)
-            {
-                if (address.IsIPv6LinkLocal || address.IsIPv6SiteLocal || address.Equals(IPAddress.IPv6Loopback))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private void ParseEndpoint(string endpoint, out string address, out int port)
@@ -1742,8 +1354,6 @@ namespace YARG.Networking
 
             _clientJoinPending = false;
 
-            _natService?.StopHolePunch();
-
             // Request player spawning (since autoCreatePlayer is disabled)
             if (!NetworkClient.ready)
             {
@@ -1789,10 +1399,6 @@ namespace YARG.Networking
                         transportId = Transport.active != null ? Transport.active.GetType().Name : "Unknown",
                         port = ResolveTransportPort(),
                         publicPort = ResolveTransportPort(),
-                        punchPort = _natService != null ? _natService.PunchPort : NetworkTransportDefaults.DefaultUdpPort,
-                        supportsNatTraversal = false,
-                        natType = NetworkNatType.Unknown,
-                        stunServer = string.Empty,
                         isActive = true
                     };
                 }
@@ -1827,8 +1433,6 @@ namespace YARG.Networking
             _currentLobby = null;
             _connectedPlayers.Clear();
             _hasTriggeredJoinEvent = false;
-
-            _natService?.StopHolePunch();
             _clientJoinPending = false;
             ResetJoinTracking();
 
@@ -1930,7 +1534,6 @@ namespace YARG.Networking
             base.OnClientError(error, reason);
             LogError($"[YargNetworkManager] Client error: {error} - {reason}");
             LogError($"[YargNetworkManager] Was trying to connect to: {networkAddress}");
-            _natService?.StopHolePunch();
             _clientJoinPending = false;
             if (!_isHost && NetworkClient.active)
             {
@@ -2715,7 +2318,6 @@ namespace YARG.Networking
             public string ipAddress;
             public string publicAddress;
             public string transportId;
-            public string stunServer;
             public int currentPlayers;
             public int maxPlayers;
             public LobbyPrivacyMode privacyMode;
@@ -2724,9 +2326,6 @@ namespace YARG.Networking
             public bool isActive;
             public int port;
             public int publicPort;
-            public int punchPort;
-            public bool supportsNatTraversal;
-            public NetworkNatType natType;
             public long lastSeen;
 
             public override string ToString()
@@ -2753,13 +2352,6 @@ namespace YARG.Networking
                 PlayerContainer.PlayerRemoved -= OnLocalPlayerRemovedFromContainer;
                 Instance = null;
             }
-            if (_natService != null)
-            {
-                _natService.PunchPacketReceived -= HandleNatPunchPacket;
-                _natService.PublicEndpointChanged -= HandlePublicEndpointChanged;
-            }
-            _lastPublicEndpoint = null;
-            _natService?.StopKeepAlive();
             TeardownPortMappingsAsync().Forget();
             base.OnDestroy();
         }

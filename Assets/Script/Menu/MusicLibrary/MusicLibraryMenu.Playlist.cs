@@ -292,7 +292,7 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx =>
                     {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange, true))
                         {
                             GoToPreviousSection();
                         }
@@ -305,7 +305,7 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
                     ctx =>
                     {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange, true))
                         {
                             GoToNextSection();
                         }
@@ -377,10 +377,10 @@ namespace YARG.Menu.MusicLibrary
             Navigator.Instance.PopScheme();
             // We have to reset the navigation scheme so the help bar has the correct yellow button text
             // in the case that we are leaving show mode with a playlist that has entries
+            MenuState = MenuState.Library;
             SetNavigationScheme(true);
 
             // Back to library
-            MenuState = MenuState.Library;
             Refresh();
 
             // Restore the main library index if it is valid

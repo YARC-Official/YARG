@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using TMPro;
 using YARG.Core.Input;
 using YARG.Networking;
-using YARG.Networking.STUN;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -328,19 +327,12 @@ namespace YARG.Menu.Multiplayer
                         connectLabel += "\n";
                     }
 
-                    string wanTag = lobby.supportsNatTraversal ? "Direct Connect (WAN)" : "Public Address";
-                    connectLabel += $"{wanTag}: {wanEndpoint}";
+                    connectLabel += $"Public Address: {wanEndpoint}";
                 }
 
                 if (string.IsNullOrEmpty(connectLabel))
                 {
                     connectLabel = "Direct Connect: Resolving...";
-                }
-
-                // Optionally surface NAT type for quick diagnostics when available
-                if (lobby.natType != NetworkNatType.Unknown)
-                {
-                    connectLabel += $"\nNAT Type: {lobby.natType}";
                 }
 
                 string finalLabel = connectLabel;
