@@ -1140,8 +1140,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 99 PHRASE STREAK!
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: f941d094fa226f74e9866f5e556ce769, type: 2}
-  m_sharedMaterial: {fileID: 3946058399964092608, guid: f941d094fa226f74e9866f5e556ce769,
+  m_fontAsset: {fileID: 11400000, guid: d9dd031fb1c2f2f4fabb34137edfa885, type: 2}
+  m_sharedMaterial: {fileID: 1536850694454096710, guid: d9dd031fb1c2f2f4fabb34137edfa885,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -1311,6 +1311,11 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: -105
       objectReference: {fileID: 0}
+    - target: {fileID: 6424116249910258502, guid: c950f4332cd2fde4ca0568dd2b24be0f,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -18
+      objectReference: {fileID: 0}
     - target: {fileID: 6731294974148575212, guid: c950f4332cd2fde4ca0568dd2b24be0f,
         type: 3}
       propertyPath: m_SizeDelta.x
@@ -1320,6 +1325,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 95
+      objectReference: {fileID: 0}
+    - target: {fileID: 6731294974148575212, guid: c950f4332cd2fde4ca0568dd2b24be0f,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -17
       objectReference: {fileID: 0}
     - target: {fileID: 7257162965220430353, guid: c950f4332cd2fde4ca0568dd2b24be0f,
         type: 3}

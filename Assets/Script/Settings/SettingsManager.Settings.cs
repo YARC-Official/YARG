@@ -174,7 +174,7 @@ namespace YARG.Settings
                 new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Song, v));
 
             public VolumeSetting CrowdVolume { get; } =
-                new(0.5f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
+                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
 
             public VolumeSetting SfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
@@ -233,8 +233,9 @@ namespace YARG.Settings
 
             #region Graphics
 
-            public ToggleSetting VSync { get; } = new(true, VSyncCallback);
-            public IntSetting FpsCap { get; } = new(60, 0, onChange: FpsCapCallback);
+            public ToggleSetting VSync       { get; } = new(true, VSyncCallback);
+            public IntSetting    FpsCap      { get; } = new(60, 0, onChange: FpsCapCallback);
+            public IntSetting    VenueFpsCap { get; } = new(60, 1);
 
             public DropdownSetting<FullScreenMode> FullscreenMode { get; }
                 = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)
@@ -286,8 +287,9 @@ namespace YARG.Settings
             public ToggleSetting StaticVocalsMode { get; } = new(false);
             public ToggleSetting UseThreeLaneLyricsInHarmony { get; } = new(true);
             public ToggleSetting EnableTrackEffects { get; } = new(true);
-            public ToggleSetting EnableHighwayRaise { get; } = new(true);
+            public ToggleSetting EnableHighwayAnimation { get; } = new(true);
             public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
+            public SliderSetting HighwayTiltMultiplier { get; } = new(0.5f, 0f, 1f);
 
             public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
@@ -328,7 +330,7 @@ namespace YARG.Settings
                 };
 
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; }
-                = new(SongProgressMode.CountUpOnly)
+                = new(SongProgressMode.CountUpAndTotal)
                 {
                     SongProgressMode.None,
                     SongProgressMode.CountUpAndTotal,

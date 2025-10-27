@@ -36,6 +36,7 @@ namespace YARG.Settings.Metadata
         public override void BuildSettingTab(Transform container, NavigationGroup navGroup)
         {
             _settingVisuals.Clear();
+            var settingIndex = 0;
 
             // Once we've found the tab, add the settings
             foreach (var settingMetadata in _settings)
@@ -51,6 +52,7 @@ namespace YARG.Settings.Metadata
                         go.GetComponentInChildren<TextMeshProUGUI>().text =
                             Localize.Key("Settings.Header", header.HeaderName);
 
+                        settingIndex = 0;
                         break;
                     }
                     case ButtonRowMetadata buttonRow:
@@ -81,10 +83,12 @@ namespace YARG.Settings.Metadata
 
                         var visual = SpawnSettingVisual(setting, container);
                         visual.AssignSetting(field.FieldName, field.HasDescription);
+                        visual.AssignIndex(settingIndex);
 
                         _settingVisuals.Add(field.FieldName, visual);
                         navGroup.AddNavigatable(visual.gameObject);
 
+                        settingIndex++;
                         break;
                     }
                 }

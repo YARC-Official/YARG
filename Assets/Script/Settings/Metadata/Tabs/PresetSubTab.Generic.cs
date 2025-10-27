@@ -19,6 +19,8 @@ namespace YARG.Settings.Metadata
 {
     public class PresetSubTab<T> : PresetSubTab where T : BasePreset
     {
+        private int _fieldIndex;
+
         private struct FieldSettingInfo
         {
             public FieldInfo Field;
@@ -187,6 +189,7 @@ namespace YARG.Settings.Metadata
             }
 
             SpawnHeader(settingContainer, "PresetSettings");
+            _fieldIndex = 0;
 
             switch (_presetRef)
             {
@@ -347,7 +350,9 @@ namespace YARG.Settings.Metadata
         {
             var visual = SpawnSettingVisual(settingType, container);
             visual.AssignPresetSetting($"{presetName}.{name}", hasDescription, settingType);
+            visual.AssignIndex(_fieldIndex);
             navGroup.AddNavigatable(visual.gameObject);
+            _fieldIndex++;
         }
 
         private void CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,

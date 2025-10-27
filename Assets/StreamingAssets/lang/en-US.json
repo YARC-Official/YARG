@@ -17,33 +17,33 @@
             "Medium": "Medium"
         },
         "GameMode": {
-            "FiveFretGuitar": "Five Fret Guitar",
-            "SixFretGuitar": "Six Fret Guitar",
-            "FourLaneDrums": "Standard Drums",
-            "FiveLaneDrums": "Five-Lane Drums",
-            "ProGuitar": "Pro Guitar",
-            "ProKeys": "Keys (Pro and Five-Lane)",
+            "FiveFretGuitar": "Guitar (5-Fret)",
+            "SixFretGuitar": "Guitar (6-Fret)",
+            "FourLaneDrums": "Drums (4-Lane, Pro)",
+            "FiveLaneDrums": "Drums (5-Lane)",
+            "ProGuitar": "Pro Guitar (17-Fret, 22-Fret)",
+            "ProKeys": "Keys (5-Lane, Pro)",
             "Menu": "Menu",
             "Vocals": "Vocals"
         },
         "Instrument": {
             "FiveFretGuitar": "Guitar",
             "FiveFretBass": "Bass",
-            "FiveFretRhythm": "Rhythm Guitar",
-            "FiveFretCoopGuitar": "Co-op Guitar",
+            "FiveFretRhythm": "Rhythm",
+            "FiveFretCoopGuitar": "Co-op",
             "Keys": "Keys",
             "SixFretGuitar": "Guitar",
             "SixFretBass": "Bass",
-            "SixFretRhythm": "Rhythm Guitar",
-            "SixFretCoopGuitar": "Co-op Guitar",
-            "FourLaneDrums": "Four Lane Drums",
+            "SixFretRhythm": "Rhythm",
+            "SixFretCoopGuitar": "Co-op",
+            "FourLaneDrums": "Drums",
             "ProDrums": "Pro Drums",
-            "FiveLaneDrums": "Five Lane Drums",
+            "FiveLaneDrums": "Drums",
             "EliteDrums": "Elite Drums",
-            "ProGuitar_17Fret": "Pro Guitar (17-fret)",
-            "ProGuitar_22Fret": "Pro Guitar (22-fret)",
-            "ProBass_17Fret": "Pro Bass (17-fret)",
-            "ProBass_22Fret": "Pro Bass (22-fret)",
+            "ProGuitar_17Fret": "Pro Guitar (17-Fret)",
+            "ProGuitar_22Fret": "Pro Guitar (22-Fret)",
+            "ProBass_17Fret": "Pro Bass (17-Fret)",
+            "ProBass_22Fret": "Pro Bass (22-Fret)",
             "ProKeys": "Pro Keys",
             "Vocals": "Vocals",
             "Harmony": "Harmony",
@@ -79,23 +79,23 @@
             "Year": "Year",
             "DateAdded": "Date Added",
             "Playable": "Playable Songs",
-            "FiveFretGuitar": "Five Fret Guitar",
-            "FiveFretBass": "Five Fret Bass",
-            "FiveFretRhythm": "Five Fret Rhythm Guitar",
-            "FiveFretCoop": "Five Fret Co-Op Guitar",
+            "FiveFretGuitar": "Guitar (5-Fret)",
+            "FiveFretBass": "Bass (5-Fret)",
+            "FiveFretRhythm": "Rhythm (5-Fret)",
+            "FiveFretCoop": "Co-op (5-Fret)",
             "Keys": "Keys",
-            "SixFretGuitar": "Six Fret Guitar",
-            "SixFretBass": "Six Fret Bass",
-            "SixFretRhythm": "Six Fret Rhythm Guitar",
-            "SixFretCoop": "Six Fret Co-Op Guitar",
-            "FourLaneDrums": "Four Lane Drums",
+            "SixFretGuitar": "Guitar (6-Fret)",
+            "SixFretBass": "Bass (6-Fret)",
+            "SixFretRhythm": "Rhythm (6-Fret)",
+            "SixFretCoop": "Co-op (6-Fret)",
+            "FourLaneDrums": "Drums (4-Lane)",
             "ProDrums": "Pro Drums",
-            "FiveLaneDrums": "Five Lane Drums",
+            "FiveLaneDrums": "Drums (5-Lane)",
             "EliteDrums": "Elite Drums",
-            "ProGuitar_17": "Pro Guitar (17-fret)",
-            "ProGuitar_22": "Pro Guitar (22-fret)",
-            "ProBass_17": "Pro Bass (17-fret)",
-            "ProBass_22": "Pro Bass (22-fret)",
+            "ProGuitar_17": "Pro Guitar (17-Fret)",
+            "ProGuitar_22": "Pro Guitar (22-Fret)",
+            "ProBass_17": "Pro Bass (17-Fret)",
+            "ProBass_22": "Pro Bass (22-Fret)",
             "ProKeys": "Pro Keys",
             "Vocals": "Vocals",
             "Harmony": "Harmony",
@@ -921,6 +921,10 @@
                     "HighestDifficulty": "Highest-played difficulty only"
                 }
             },
+            "HighwayTiltMultiplier": {
+                "Name": "Highway Tilt Multiplier",
+                "Description": "Controls the amount that the tracks should tilt inward during multiplayer gameplay only."
+            },
             "InputDeviceLogging": {
                 "Name": "Input Device Logging",
                 "Description": "Prints information about connected input devices to the game's log. Do not enable this unless you are having issues with specific devices, as it can print a very large amount of text for some devices!"
@@ -1004,7 +1008,7 @@
                 "Dropdown": {
                     "Disabled": "Disabled",
                     "Frequent": "50, 100, 200, 300, ...",
-                    "Sparse": "50, 100, 250, 500, ..."
+                    "Sparse": "50, 100, 250, 500, 750, ..."
                 }
             },
             "PlayAShowTimeout": {
@@ -1117,6 +1121,10 @@
             "UseWhammyFx": {
                 "Name": "Use Whammy SFX",
                 "Description": "If enabled, it will add pitch bending to guitar stems when the player presses the whammy bar.\nWARNING: This setting is known to cause audio desync issues on some machines."
+            },
+            "VenueFpsCap": {
+                "Name": "Venue FPS Cap",
+                "Description": "The framerate cap for venue backgrounds. Lower this to reduce GPU usage."
             },
             "WhammyPitchShiftAmount": {
                 "Name": "Whammy Pitch Shift Amount",
@@ -1311,9 +1319,9 @@
                 "Name": "Enable Track Effects",
                 "Description": "If enabled, the game will display track effects for unison, solo, and drum SP activation phrases."
             },
-            "EnableHighwayRaise": {
-                "Name": "Enable Highway Raise Animation",
-                "Description": "If enabled, the game will raise and lower the highway when the song starts or ends."
+            "EnableHighwayAnimation": {
+                "Name": "Enable Highway Animation",
+                "Description": "If enabled, the highway will animate at the beginning and end of the song and based on performance."
             },
             "EnableVoxSamples": {
                 "Name": "Enable Vox Samples",
@@ -1362,9 +1370,9 @@
                 "SubSection": {
                     "Name": "Instrument",
                     "Dropdown": {
-                        "FiveFretGuitar": "Five Fret Guitar",
-                        "FiveLaneDrums": "Five Lane Drums",
-                        "FourLaneDrums": "Four Lane Drums",
+                        "FiveFretGuitar": "Guitar (5-Fret)",
+                        "FiveLaneDrums": "Drums (5-Lane)",
+                        "FourLaneDrums": "Drums (4-Lane)",
                         "ProKeys": "Pro Keys"
                     }
                 },
@@ -1676,10 +1684,10 @@
                 "SubSection": {
                     "Name": "Game Mode",
                     "Dropdown": {
-                        "Drums": "Drums (Four- and Five-Lane)",
-                        "FiveFretGuitar": "Five-Fret Guitar",
+                        "Drums": "Drums",
+                        "FiveFretGuitar": "Guitar",
                         "Vocals": "Vocals",
-                        "ProKeys": "Keys (Pro and Five-Lane)"
+                        "ProKeys": "Keys"
                     }
                 },
                 "AntiGhosting": {

@@ -85,6 +85,14 @@ There are some dependencies that will be needed in order for HID devices (such a
   - The file name may differ if desired, but it must come before `73-seat-late.rules`!
 3. Reboot your system to apply the new udev rule, then you should be all good to go!
 
+For improved compatibility when using the XBOX 360 Wireless Adapter with Linux, create a new udev rules file called `99-yarg-libusb.rules` inside of `/etc/udev/rules.d/` or `/usr/lib/udev/rules.d/`, with the following contents:
+
+```
+SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="0291", MODE="0666"
+SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02a9", MODE="0666"
+SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="0719", MODE="0666"
+```
+
 ## 🔨 Building/Contributing
 
 > [!IMPORTANT]

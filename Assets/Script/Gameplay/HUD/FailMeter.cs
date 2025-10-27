@@ -8,6 +8,7 @@ using UnityEngine.Rendering.VirtualTexturing;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core.Engine;
+using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
@@ -27,11 +28,15 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private Slider _sliderPrefab;
         [SerializeField]
+        private Slider _needlePrefab;
+        [SerializeField]
         private RectTransform _sliderContainer;
 
         private Slider[]  _playerSliders;
-        private Tweener[] _happinessTweeners = Array.Empty<Tweener>();
-        private Tweener[] _xposTweeners      = Array.Empty<Tweener>();
+        private Slider[]  _needleSliders;
+        private Tweener[] _playerHappinessTweeners = Array.Empty<Tweener>();
+        private Tweener[] _needleHappinessTweeners = Array.Empty<Tweener>();
+        private Tweener[] _xposTweeners            = Array.Empty<Tweener>();
         private Tweener   _meterRedTweener;
         private Tweener   _meterYellowTweener;
         private Tweener   _meterGreenTweener;
@@ -60,8 +65,8 @@ namespace YARG.Gameplay.HUD
 
         // Allows some overlap
         private const float HAPPINESS_COLLISION_RANGE = 0.06f;
-        private const float SPRITE_OVERLAP_OFFSET = 28f;
-        private const float SPRITE_INITIAL_OFFSET = 35f;
+        private const float SPRITE_OVERLAP_OFFSET     = 28f;
+        private const float SPRITE_INITIAL_OFFSET     = 42f;
 
         // GameManager will have to initialize us
         public void Initialize(EngineManager engineManager, GameManager gameManager)
@@ -71,8 +76,10 @@ namespace YARG.Gameplay.HUD
             _players.AddRange(engineManager.Engines);
 
             _playerSliders = new Slider[_players.Count];
+            _needleSliders = new Slider[_players.Count];
             _xposTweeners = new Tweener[_players.Count];
-            _happinessTweeners = new Tweener[_players.Count];
+            _playerHappinessTweeners = new Tweener[_players.Count];
+            _needleHappinessTweeners = new Tweener[_players.Count];
             _previousPlayerHappiness = new float[_players.Count];
             _playerPositions = new Vector2[_players.Count];
             _xPosVectors = new Vector2[_players.Count];
@@ -81,16 +88,16 @@ namespace YARG.Gameplay.HUD
             _initialPosition = _meterContainer.transform.position;
 
             // Cache tweens for later use
-            _meterRedTweener = _fillImage.DOColor(Color.red, 0.25f).
+            _meterRedTweener = _fillImage.DOColor(ColorProfile.DefaultRed.ToUnityColor(), 0.25f).
                 SetLoops(-1, LoopType.Yoyo).
                 SetEase(Ease.InOutSine).
                 SetAutoKill(false).Pause();
 
-            _meterYellowTweener = _fillImage.DOColor(Color.yellow, 0.25f).
+            _meterYellowTweener = _fillImage.DOColor(ColorProfile.DefaultYellow.ToUnityColor(), 0.25f).
                 SetAutoKill(false).
                 Pause();
 
-            _meterGreenTweener = _fillImage.DOColor(Color.green, 0.25f).
+            _meterGreenTweener = _fillImage.DOColor(ColorProfile.DefaultGreen.ToUnityColor(), 0.25f).
                 SetAutoKill(false).
                 Pause();
 
@@ -108,11 +115,13 @@ namespace YARG.Gameplay.HUD
             for (int i = 0; i < _players.Count; i++)
             {
                 _playerSliders[i] = Instantiate(_sliderPrefab, _sliderContainer);
+                _needleSliders[i] = Instantiate(_needlePrefab, _sliderContainer);
                 // y value is ignored, so it is ok that it is zero here
                 var xOffset = SPRITE_INITIAL_OFFSET + (SPRITE_OVERLAP_OFFSET * i);
                 _xPosVectors[i] = new Vector2(xOffset, 0);
 
                 _xposTweeners[i] = _playerSliders[i].handleRect.DOAnchorPosX(_xPosVectors[i].x, 0.125f).SetAutoKill(false);
+                _needleSliders[i].handleRect.DOAnchorPosX(SPRITE_INITIAL_OFFSET, 0.125f).SetAutoKill(false);
                 _playerPositions[i] = _playerSliders[i].handleRect.transform.position;
 
                 var handleImage = _playerSliders[i].handleRect.GetComponentInChildren<Image>();
@@ -123,10 +132,13 @@ namespace YARG.Gameplay.HUD
                 handleImage.color = _players[i].GetHarmonyColor();
 
                 _playerSliders[i].value = 0.01f;
+                _needleSliders[i].value = 0.01f;
                 _playerSliders[i].gameObject.SetActive(true);
+                _needleSliders[i].gameObject.SetActive(true);
 
                 // Cached for reuse because starting a new tween generates garbage
-                _happinessTweeners[i] = _playerSliders[i].DOValue(_players[i].Happiness, 0.5f).SetAutoKill(false);
+                _playerHappinessTweeners[i] = _playerSliders[i].DOValue(_players[i].Happiness, 0.5f).SetAutoKill(false);
+                _needleHappinessTweeners[i] = _needleSliders[i].DOValue(_players[i].Happiness, 0.5f).SetAutoKill(false);
                 _previousPlayerHappiness[i] = _players[i].Happiness;
             }
 
@@ -185,15 +197,26 @@ namespace YARG.Gameplay.HUD
                 // This we can not do if the current player's happiness hasn't changed
                 if (_previousPlayerHappiness[i] != _players[i].Happiness)
                 {
-                    _happinessTweeners[i].ChangeValues(_playerSliders[i].value, _players[i].Happiness, 0.1f);
+                    _playerHappinessTweeners[i].ChangeValues(_playerSliders[i].value, _players[i].Happiness, 0.1f);
+                    _needleHappinessTweeners[i].ChangeValues(_needleSliders[i].value, _players[i].Happiness, 0.1f);
+
                     // Not sure if strictly necessary, but it seems like good practice to not try to play a playing tween
-                    if (_happinessTweeners[i].IsComplete())
+                    if (_playerHappinessTweeners[i].IsComplete())
                     {
-                        _happinessTweeners[i].Play();
+                        _playerHappinessTweeners[i].Play();
                     }
                     else
                     {
-                        _happinessTweeners[i].Restart();
+                        _playerHappinessTweeners[i].Restart();
+                    }
+
+                    if (_needleHappinessTweeners[i].IsComplete())
+                    {
+                        _needleHappinessTweeners[i].Play();
+                    }
+                    else
+                    {
+                        _needleHappinessTweeners[i].Restart();
                     }
                 }
 
@@ -269,9 +292,9 @@ namespace YARG.Gameplay.HUD
         {
             return happiness switch
             {
-                < 0.33f => MeterColor.Red,
-                < 0.66f => MeterColor.Yellow,
-                _       => MeterColor.Green
+                < 0.333f => MeterColor.Red,
+                < 0.666f => MeterColor.Yellow,
+                _        => MeterColor.Green
             };
         }
 
@@ -283,7 +306,12 @@ namespace YARG.Gameplay.HUD
             _meterGreenTweener?.Kill();
             _bandFillTweener?.Kill();
             _meterPositionTweener?.Kill();
-            foreach (var tween in _happinessTweeners)
+            foreach (var tween in _playerHappinessTweeners)
+            {
+                tween.Kill();
+            }
+
+            foreach (var tween in _needleHappinessTweeners)
             {
                 tween.Kill();
             }

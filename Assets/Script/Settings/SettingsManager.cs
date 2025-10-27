@@ -127,6 +127,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Display"),
                 nameof(Settings.VSync),
                 nameof(Settings.FpsCap),
+                nameof(Settings.VenueFpsCap),
                 nameof(Settings.FullscreenMode),
                 nameof(Settings.Resolution),
                 nameof(Settings.FpsStats),
@@ -144,8 +145,9 @@ namespace YARG.Settings
                 nameof(Settings.StaticVocalsMode),
                 nameof(Settings.UseThreeLaneLyricsInHarmony),
                 nameof(Settings.EnableTrackEffects),
-                nameof(Settings.EnableHighwayRaise),
+                nameof(Settings.EnableHighwayAnimation),
                 nameof(Settings.KickBounceMultiplier),
+                nameof(Settings.HighwayTiltMultiplier),
 
                 new HeaderMetadata("HUD"),
                 nameof(Settings.ShowHitWindow),
