@@ -557,7 +557,15 @@ namespace YARG.Networking
                 }
             }
 
-            string connectionInfo = $"{networkAddress}:{ResolveTransportPort()}";
+            int transportPort = ResolveTransportPort();
+            if (transportPort <= 0)
+            {
+                transportPort = NetworkTransportDefaults.DefaultUdpPort;
+            }
+
+            SetTransportPort(transportPort);
+
+            string connectionInfo = $"{networkAddress}:{transportPort}";
 
             LogInfo($"[YargNetworkManager] CreateLobby: Starting host on {connectionInfo}");
             LogInfo($"[YargNetworkManager] CreateLobby: NetworkServer.active before StartHost: {NetworkServer.active}");
@@ -574,8 +582,8 @@ namespace YARG.Networking
                 password = password,
                 isActive = true,
                 ipAddress = networkAddress,
-                port = ResolveTransportPort(),
-                publicPort = ResolveTransportPort(),
+                port = transportPort,
+                publicPort = transportPort,
                 publicAddress = networkAddress,
                 transportId = Transport.active != null ? Transport.active.GetType().Name : "Unknown"
             };
@@ -595,18 +603,18 @@ namespace YARG.Networking
 
             LogInfo($"[YargNetworkManager] Lobby created successfully! Connection info: {connectionInfo}");
             LogInfo($"[YargNetworkManager] CreateLobby: NetworkServer.active after StartHost: {NetworkServer.active}");
-            LogInfo($"[YargNetworkManager] CreateLobby: NetworkServer listening on port: {ResolveTransportPort()}");
+            LogInfo($"[YargNetworkManager] CreateLobby: NetworkServer listening on port: {transportPort}");
             
             // Trigger OnLobbyCreated event (but don't navigate yet)
             OnLobbyCreated?.Invoke(_currentLobby);
             
             // Host will also trigger OnClientConnect which will fire OnLobbyJoined for navigation
 
-            TrySetupPortMapping(ResolveTransportPort());
+            TrySetupPortMapping(transportPort);
 
             LobbyBookmarkStore.Instance.RecordConnection(
                 networkAddress,
-                ResolveTransportPort(),
+                transportPort,
                 _currentLobby.lobbyName,
                 string.Empty);
 

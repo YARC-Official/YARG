@@ -6,6 +6,6 @@ namespace YARG.Networking
     public static class NetworkTransportDefaults
     {
         public const ushort DefaultTcpPort = 22023;
-        public const ushort DefaultUdpPort = 32023;
+        public const ushort DefaultUdpPort = 7777;
     }
 }
