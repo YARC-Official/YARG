@@ -2,8 +2,10 @@
 using UnityEngine.UI;
 using YARG.Core.Engine;
 using YARG.Gameplay.Player;
+using YARG.Gameplay.Visuals;
 using YARG.Player;
 using YARG.Helpers.UI;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -15,6 +17,8 @@ namespace YARG.Gameplay.HUD
         private ScaleByParentSize _UIScaler;
         [SerializeField]
         private RectTransform _topElementContainer;
+        [SerializeField]
+        private RectTransform _centerElementContainer;
 
         [Space]
         [SerializeField]
@@ -39,17 +43,28 @@ namespace YARG.Gameplay.HUD
             _trackPlayer = trackPlayer;
         }
 
-        public void UpdateHUDPosition(float scale)
+        public void UpdateHUDPosition(int highwayIndex, int highwayCount)
         {
             var rect = GetComponent<RectTransform>();
-            var viewportPos = _trackPlayer.HUDViewportPosition;
+            var topViewportPos = _trackPlayer.HUDTopElementViewportPosition;
+            var centerViewportPos = _trackPlayer.HUDCenterElementViewportPosition;
 
             // Caching this is faster
             var rectRect = rect.rect;
 
+            // Divide tilt by 4; if highway tilt is maxed out, we want the bounds to be (-0.25, 0.25)
+            float hudOffset = HighwayCameraRendering.GetMultiplayerXOffset(highwayIndex, highwayCount,
+                SettingsManager.Settings.HighwayTiltMultiplier.Value / 4);
+
             // Adjust the screen's viewport position to the rect's viewport position
             // -0.5f as our position is relative to center, not the corner
-            _topElementContainer.localPosition = _topElementContainer.localPosition.WithY(rect.rect.height * (viewportPos.y - 0.5f));
+            _topElementContainer.localPosition = _topElementContainer.localPosition
+                .WithX(rectRect.width * (topViewportPos.x - 0.5f - hudOffset))
+                .WithY(rectRect.height * (topViewportPos.y - 0.5f));
+
+            _centerElementContainer.localPosition = _centerElementContainer.localPosition
+                .WithX(rectRect.width * (centerViewportPos.x - 0.5f - hudOffset))
+                .WithY(rectRect.height * (centerViewportPos.y - 0.5f));
         }
 
         public void UpdateCountdown(double countdownLength, double endTime)

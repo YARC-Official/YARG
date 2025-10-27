@@ -448,8 +448,8 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            slowFPS.SkipFrames.value = enabled ? divisor : 1;
-            slowFPS.SkipFrames.overrideState = enabled;
+            slowFPS.Divisor.value = enabled ? divisor : 1;
+            slowFPS.Divisor.overrideState = enabled;
             slowFPS.active = enabled;
         }
 

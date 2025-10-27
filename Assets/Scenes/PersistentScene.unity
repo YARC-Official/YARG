@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12731713, g: 0.13414738, b: 0.121078536, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -234,6 +233,12 @@ MonoBehaviour:
   _confirmDeleteDialog: {fileID: 2644037509781810562, guid: ebcec8920f1142d438ac08c589bd13e8,
     type: 3}
   _colorPickerDialog: {fileID: 6710161102796530923, guid: 5b1c5ee7b42f2b04bad86eaac460548a,
+    type: 3}
+  _fiveFretBindingDialog: {fileID: 8818966947784792005, guid: e8570a7fcb0d6564091be07f5d4e6123,
+    type: 3}
+  _friendlyKeysBindingDialog: {fileID: 2758766270758023739, guid: 829fa92f93519cf4ea75a8b2bdbd372a,
+    type: 3}
+  _friendlyDrumsBindingDialog: {fileID: 2758766270758023739, guid: 1cb9dc49b3acfa24289e270a6fe4328d,
     type: 3}
   _playAShowDialog: {fileID: 6162491671344219383, guid: 0a237e5e84df70342aba8aab3b3e5d6b,
     type: 3}

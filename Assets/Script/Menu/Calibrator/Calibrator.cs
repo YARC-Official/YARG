@@ -9,6 +9,8 @@ using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Input;
 using YARG.Localization;
+using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings;
 
@@ -51,8 +53,6 @@ namespace YARG.Menu.Calibrator
         private void Start()
         {
             UpdateForState();
-
-            InputManager.MenuInput += OnMenuInput;
         }
 
         private void OnDestroy()
@@ -88,13 +88,6 @@ namespace YARG.Menu.Calibrator
 
                     _calibrationTimes.Add(Time.realtimeSinceStartupAsDouble - _time);
                     break;
-                case State.Starting:
-                case State.AudioDone:
-                    if (input.GetAction<MenuAction>() == MenuAction.Red)
-                    {
-                        BackButton();
-                    }
-                    break;
             }
         }
 
@@ -125,6 +118,7 @@ namespace YARG.Menu.Calibrator
             {
                 case State.Starting:
                     _startingStateContainer.SetActive(true);
+                    SetConfirmNavigation();
                     break;
                 case State.AudioWaiting:
                     _audioCalibrateContainer.SetActive(true);
@@ -134,6 +128,8 @@ namespace YARG.Menu.Calibrator
                     _audioCalibrateText.text =
                         "Press any button on each tick you hear.\n" +
                         "Press any button when you are ready.";
+                    SetEmptyNavigation();
+                    StartCoroutine(EnableInputAfterDelay());
                     break;
                 case State.Audio:
                     _audioCalibrateContainer.SetActive(true);
@@ -151,10 +147,40 @@ namespace YARG.Menu.Calibrator
                 case State.AudioDone:
                     _audioCalibrateContainer.SetActive(true);
                     CalculateAudioLatency();
+                    SetBackNavigation();
+                    InputManager.MenuInput -= OnMenuInput;
                     break;
             }
         }
 
+        private IEnumerator EnableInputAfterDelay()
+        {
+            yield return new WaitForSeconds(0.5f);
+            InputManager.MenuInput += OnMenuInput;
+        }
+
+        private void SetConfirmNavigation()
+        {
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", () => StartAudioMode()),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => BackButton()),
+            }, true));
+        }
+
+        private void SetBackNavigation()
+        {
+            Navigator.Instance.PopScheme();
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => BackButton()),
+            }, true));
+        }
+        private void SetEmptyNavigation()
+        {
+            Navigator.Instance.PopScheme();
+            Navigator.Instance.PushScheme(NavigationScheme.Empty);
+        }
         private void CalculateAudioLatency()
         {
             // Drop all discrepancies

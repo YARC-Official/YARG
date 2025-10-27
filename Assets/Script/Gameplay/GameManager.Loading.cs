@@ -6,6 +6,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
@@ -235,23 +236,22 @@ namespace YARG.Gameplay
                 Destroy(PracticeManager);
             }
 
-            // TODO: Move the offset here to SFX configuration
-            // The clap SFX has 20 ms of lead-up before the actual impact happens
-            BeatEventHandler.Audio.Subscribe(StarPowerClap, BeatEventType.StrongBeat, offset: -0.02);
-
             _failMeter.Initialize(EngineManager, this);
 
-            if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
+            if (SettingsManager.Settings.NoFailMode.Value || IsPractice)
             {
                 _failMeter.SetActive(false);
             }
-            else if (ReplayInfo == null || GlobalVariables.State.PlayingWithReplay)
+
+            // This is not an else because we still want to subscribe in case the user disables no fail during the song
+            // We check in the callback to determine whether we should actually run the fail routine
+            if (ReplayInfo == null || GlobalVariables.State.PlayingWithReplay)
             {
-                EngineManager.OnHappinessUnderThreshold += OnHappinessUnderThreshold;
-                EngineManager.OnHappinessOverThreshold += OnHappinessOverThreshold;
                 EngineManager.OnSongFailed += OnSongFailed;
 
                 EngineManager.InitializeHappiness();
+
+                SettingsManager.Settings.NoFailMode.OnChange += OnNoFailModeChanged;
             }
 
             // Log constant values
@@ -310,6 +310,14 @@ namespace YARG.Gameplay
 
         private void GenerateVenueTrack()
         {
+            // If we have no venue events, attempt to load from milo
+            if (Chart.VenueTrack.IsEmpty)
+            {
+                    SongChart.LoadVenueFromMilo(Chart, Song);
+
+                    YargLogger.LogFormatWarning("Loaded {0} lighting events from milo", Chart.VenueTrack.Lighting.Count);
+            }
+
             if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
             {
                 var preset = new VenueAutoGenerationPreset(VenueAutoGenerationPreset.DefaultPath);
@@ -322,12 +330,6 @@ namespace YARG.Gameplay
                 {
                     Chart = preset.GenerateLightingEvents(Chart);
                 }
-
-                // TODO: add when characters and camera events are present in game
-                // if (Chart.VenueTrack.Camera.Count == 0)
-                // {
-                //     Chart = autoGenerationPreset.GenerateCameraCutEvents(Chart);
-                // }
             }
         }
 
@@ -354,10 +356,16 @@ namespace YARG.Gameplay
                 SongLength = endTime;
             }
 
+            // Get the first and last note times for the chart
+            FirstNoteTime = Chart.GetFirstNoteStartTime();
+            LastNoteTime = Chart.GetLastNoteEndTime();
+
             // Make sure enough beatlines have been generated to cover the song end delay
             Chart.SyncTrack.GenerateBeatlines(SongLength + SONG_END_DELAY, true);
 
             BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
+            CrowdEventHandler = new CrowdEventHandler(Chart, this);
+
             _chartLoaded?.Invoke(Chart);
 
             _songLoaded?.Invoke();
@@ -367,10 +375,6 @@ namespace YARG.Gameplay
         {
             try
             {
-                // Make sure to set up all of the HUD positions
-                _trackViewManager.SetAllHUDPositions();
-                _trackViewManager.SetAllHUDScale();
-
                 _players = new List<BasePlayer>();
 
                 bool vocalTrackInitialized = false;
@@ -485,6 +489,8 @@ namespace YARG.Gameplay
                         state.Audible += 2;
                     }
                 }
+                // Set the hud scale (position is handled by TrackPlayer)
+                _trackViewManager.SetAllHUDScale();
             }
             catch (Exception ex)
             {

@@ -43,6 +43,8 @@ namespace YARG.Integration
             public LightingType       Keyframe;
             public bool               BonusEffect;
             public bool               AutoGenVenueTrack;
+            public Performer          Spotlight;
+            public Performer          Singalong;
         }
 
         public enum PlatformByte
@@ -113,6 +115,8 @@ namespace YARG.Integration
         public static LightingType       MLCCurrentLightingCue;
         public static PostProcessingType MLCPostProcessing;
         public static bool               MLCAutoGenVenueTrack;
+        public static Performer          MLCSpotlight;
+        public static Performer          MLCSingalong;
 
         public static ushort MLCudpPort = 36107; //hardcoded for now.
         public static string MLCudpIP = "255.255.255.255"; // "this" network's broadcast address
@@ -177,12 +181,13 @@ namespace YARG.Integration
             message.PostProcessing = MLCPostProcessing;         // setter triggered by the GameplayMonitor.
             message.FogState = MLCFogState;                     // gets set by the GameplayMonitor.
             message.StrobeState = MLCStrobeState;               // gets set by the GameplayMonitor.
-            message.Performer = 0x00;                           // Performer isn't parsed yet
             message.Beat = MLCCurrentBeat;                      // gets set by the GameplayMonitor.
             message.Keyframe = MLCKeyframe;                     // gets set on lighting cue change.
             message.BonusEffect = MLCBonusFX;                   // gets set by the GameplayMonitor.
 
             message.AutoGenVenueTrack = MLCAutoGenVenueTrack;   // gets set on chart load by the GameplayMonitor.
+            message.Spotlight = MLCSpotlight;                     // gets set by the GameplayMonitor.
+            message.Singalong = MLCSingalong;             // gets set by the GameplayMonitor.
 
             SerializeAndSend(message);
 
@@ -246,6 +251,9 @@ namespace YARG.Integration
             MLCCurrentBeat = 0;
             MLCKeyframe = 0;
             MLCBonusFX = false;
+            //MLCAutoGenVenueTrack set on chart load by the GameplayMonitor.
+            MLCSpotlight = Performer.None;
+            MLCSingalong = Performer.None;
 
 
             switch ((SceneIndex) scene.buildIndex)
@@ -333,11 +341,12 @@ namespace YARG.Integration
                 _writer.Write((byte) message.PostProcessing);
                 _writer.Write(message.FogState); //bool
                 _writer.Write((byte) message.StrobeState);
-                _writer.Write(message.Performer); //byte
                 _writer.Write(message.Beat); //byte
                 _writer.Write((byte) message.Keyframe);
                 _writer.Write(message.BonusEffect); //bool
                 _writer.Write(message.AutoGenVenueTrack); //bool
+                _writer.Write((byte) message.Spotlight);
+                _writer.Write((byte) message.Singalong);
 
                 _sendClient.Send(_ms.GetBuffer(), (int) _ms.Position);
             }

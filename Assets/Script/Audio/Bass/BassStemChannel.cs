@@ -13,8 +13,9 @@ namespace YARG.Audio.BASS
         private StreamHandle _reverbHandles;
         private PitchShiftParametersStruct _pitchParams;
 
-        private double _volume;
-        private bool _isReverbing;
+        private          double _volume;
+        private          bool   _isReverbing;
+        private readonly long   _length;
 
         internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume,
             in PitchShiftParametersStruct pitchParams, int sourceHandle, in StreamHandle streamHandles,
@@ -25,6 +26,12 @@ namespace YARG.Audio.BASS
             _streamHandles = streamHandles;
             _reverbHandles = reverbHandles;
             _pitchParams = pitchParams;
+
+            _length = Bass.ChannelGetLength(_streamHandles.Stream);
+            if (_length < 0)
+            {
+                YargLogger.LogFormatError("Failed to get channel length in bytes: {0}!", Bass.LastError);
+            }
 
             double volume = GlobalAudioHandler.GetTrueVolume(stem);
             if (clampStemVolume && volume < MINIMUM_STEM_VOLUME)
@@ -77,6 +84,12 @@ namespace YARG.Audio.BASS
                 return;
             }
 
+            // Don't attempt to seek past the end of the stream
+            if (_length > 0 && bytes > _length)
+            {
+                bytes = _length - 1;
+            }
+
             if (_streamHandles.PitchFX != 0)
             {
                 //Account for inherent pitch shift delay
@@ -86,7 +99,7 @@ namespace YARG.Audio.BASS
             bool success = BassMix.ChannelSetPosition(_streamHandles.Stream, bytes, PositionFlags.Bytes | PositionFlags.MixerReset);
             if (!success)
             {
-                YargLogger.LogFormatError("Failed to seek to position {0}!", position);
+                YargLogger.LogFormatError("Failed to seek to position {0} (bytes {1}, length {2}!", position, bytes, _length);
             }
         }
 

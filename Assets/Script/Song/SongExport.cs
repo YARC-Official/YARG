@@ -48,6 +48,7 @@ namespace YARG.Song
                     string name = RichTextUtils.StripRichTextTags(song.Name);
                     output.WriteLine($"{artist} - {name}");
                 }
+                output.WriteLine("");
             }
             output.Flush();
         }

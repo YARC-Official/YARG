@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
@@ -25,6 +25,8 @@ using YARG.Song;
 using YARG.Playlists;
 using YARG.Helpers.Extensions;
 using YARG.Core.Engine;
+using YARG.Playback;
+using YARG.Settings;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -107,6 +109,12 @@ namespace YARG.Menu.ScoreScreen
             }
 #endif
 
+            // Play audience chatter
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+            {
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.Chatter, 1.0);
+            }
+
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
@@ -140,6 +148,11 @@ namespace YARG.Menu.ScoreScreen
             if (!GlobalVariables.State.PlayingAShow && !_restartingSong)
             {
                 GlobalVariables.State = PersistentState.Default;
+            }
+
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+            {
+                GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter, 1.0);
             }
 
             Navigator.Instance.PopScheme();

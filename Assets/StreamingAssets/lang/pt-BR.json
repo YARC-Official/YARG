@@ -1,4 +1,4 @@
-{
+﻿{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -543,6 +543,15 @@
                 "Name": "Disable Text Notifications",
                 "Description": "Disables text notification on the track such as \"100-Note Streak\" and \"Full Combo.\""
             },
+            "DiscordRichPresence": {
+                "Name": "Discord Rich Presence",
+                "Description": "Choose how YARG shows on your activity status on Discord.",
+                "Dropdown": {
+                    "Show": "Show all details",
+                    "Limited": "Show without the currently playing song",
+                    "Hide": "Hide"
+                }
+            },
             "DMXBlueChannels": {
                 "Name": "DMX Blue",
                 "Description": "The eight channels here represent the eight blue LEDs of the StageKit. They will receive on (255) and off (0) commands."
@@ -703,7 +712,7 @@
                 "Dropdown": {
                     "Disabled": "Disabled",
                     "Frequent": "50, 100, 200, 300, ...",
-                    "Sparse": "50, 100, 250, 500, ..."
+                    "Sparse": "50, 100, 250, 500, 750, ..."
                 }
             },
             "PreviewVolume": {
