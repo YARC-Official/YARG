@@ -37,6 +37,8 @@ namespace YARG.Menu.Multiplayer
         private NetworkPlayerData selectedPlayer = null;
         private PlayerView selectedPlayerView = null;
         private System.Collections.Generic.Dictionary<NetworkPlayerData, PlayerView> playerViews = new System.Collections.Generic.Dictionary<NetworkPlayerData, PlayerView>();
+        private bool _waitingForSongSync;
+        private string _defaultWaitingForHostText;
 
         private void Start()
         {
@@ -62,6 +64,11 @@ namespace YARG.Menu.Multiplayer
             {
                 Debug.LogWarning("[LobbyRoomMenu] leaveLobbyButton is NULL!");
             }
+
+            if (waitingForHostText != null)
+            {
+                _defaultWaitingForHostText = waitingForHostText.text;
+            }
             
             // Subscribe to network events
             if (YargNetworkManager.Instance != null)
@@ -69,8 +76,11 @@ namespace YARG.Menu.Multiplayer
                 YargNetworkManager.Instance.OnLobbyLeft += OnLobbyLeft;
                 YargNetworkManager.Instance.OnNetworkError += OnNetworkError;
                 YargNetworkManager.Instance.OnLobbyJoined += OnLobbyInfoUpdated;
+                YargNetworkManager.Instance.OnSharedSongSyncStateChanged += OnSharedSongSyncStateChanged;
                 Debug.Log("[LobbyRoomMenu] Subscribed to YargNetworkManager events");
                 // TODO: Subscribe to player joined/left events when implemented
+
+                OnSharedSongSyncStateChanged(YargNetworkManager.Instance.IsSharedSongSyncComplete);
             }
             else
             {
@@ -92,6 +102,8 @@ namespace YARG.Menu.Multiplayer
         private void OnEnable()
         {
             Debug.Log("[LobbyRoomMenu] OnEnable called");
+
+            _waitingForSongSync = false;
             
             // Subscribe to player join/leave events
             if (YargNetworkManager.Instance != null)
@@ -102,6 +114,11 @@ namespace YARG.Menu.Multiplayer
             
             // RefreshLobbyInfo will call UpdateNavigationScheme after setting isHost
             RefreshLobbyInfo();
+
+            if (YargNetworkManager.Instance != null)
+            {
+                OnSharedSongSyncStateChanged(YargNetworkManager.Instance.IsSharedSongSyncComplete);
+            }
         }
 
         private void OnDisable()
@@ -132,6 +149,7 @@ namespace YARG.Menu.Multiplayer
                 YargNetworkManager.Instance.OnLobbyLeft -= OnLobbyLeft;
                 YargNetworkManager.Instance.OnNetworkError -= OnNetworkError;
                 YargNetworkManager.Instance.OnLobbyJoined -= OnLobbyInfoUpdated;
+                YargNetworkManager.Instance.OnSharedSongSyncStateChanged -= OnSharedSongSyncStateChanged;
             }
         }
         
@@ -248,6 +266,46 @@ namespace YARG.Menu.Multiplayer
             RefreshLobbyInfo();
         }
 
+        private void OnSharedSongSyncStateChanged(bool ready)
+        {
+            bool disableBrowse = !ready || _waitingForSongSync;
+
+            if (browseSongsButton != null)
+            {
+                browseSongsButton.interactable = isHost && !disableBrowse;
+            }
+
+            if (waitingForHostText != null)
+            {
+                if (isHost)
+                {
+                    if (_waitingForSongSync && !ready)
+                    {
+                        waitingForHostText.text = "Syncing shared song library...";
+                        waitingForHostText.gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        waitingForHostText.text = _defaultWaitingForHostText;
+                        waitingForHostText.gameObject.SetActive(false);
+                    }
+                }
+                else
+                {
+                    waitingForHostText.text = !string.IsNullOrEmpty(_defaultWaitingForHostText)
+                        ? _defaultWaitingForHostText
+                        : "Waiting for host...";
+                    waitingForHostText.gameObject.SetActive(!ready);
+                }
+            }
+
+            if (ready && _waitingForSongSync)
+            {
+                _waitingForSongSync = false;
+                Debug.Log("[LobbyRoomMenu] Shared song sync complete; music library will open momentarily.");
+            }
+        }
+
         private void RefreshLobbyInfo()
         {
             Debug.Log("[LobbyRoomMenu] RefreshLobbyInfo called");
@@ -355,6 +413,11 @@ namespace YARG.Menu.Multiplayer
 
             // Show/hide controls based on role
             UpdateControlsForRole();
+
+            if (YargNetworkManager.Instance != null)
+            {
+                OnSharedSongSyncStateChanged(YargNetworkManager.Instance.IsSharedSongSyncComplete);
+            }
             
             RefreshPlayerList();
             
@@ -388,8 +451,12 @@ namespace YARG.Menu.Multiplayer
             // Only clients see "waiting for host" message
             if (waitingForHostText != null)
             {
-                waitingForHostText.gameObject.SetActive(!isHost);
-                Debug.Log($"[LobbyRoomMenu] Waiting for host text visible: {!isHost}");
+                if (!isHost && string.IsNullOrEmpty(waitingForHostText.text))
+                {
+                    waitingForHostText.text = !string.IsNullOrEmpty(_defaultWaitingForHostText)
+                        ? _defaultWaitingForHostText
+                        : "Waiting for host...";
+                }
             }
         }
         
@@ -590,17 +657,27 @@ namespace YARG.Menu.Multiplayer
             }
 
             Debug.Log("Host starting song selection...");
-            
-            // Navigate host to MusicLibrary
-            MenuManager.Instance.PushMenu(MenuManager.Menu.MusicLibrary);
-            
-            // Tell all clients to navigate to MusicLibrary via RPC
-            if (YargNetworkManager.Instance != null)
+
+            if (YargNetworkManager.Instance == null)
             {
-                YargNetworkManager.Instance.StartSongSelection();
+                Debug.LogWarning("[LobbyRoomMenu] Cannot start song selection - network manager missing");
+                return;
             }
-            
-            // TODO: Set MusicLibrary to multiplayer queue mode
+
+            if (_waitingForSongSync)
+            {
+                Debug.Log("[LobbyRoomMenu] Already waiting for shared song sync to complete.");
+                return;
+            }
+
+            if (!YargNetworkManager.Instance.IsSharedSongSyncComplete)
+            {
+                Debug.Log("[LobbyRoomMenu] Shared song sync in progress; queuing music library navigation until ready.");
+                _waitingForSongSync = true;
+                OnSharedSongSyncStateChanged(false);
+            }
+
+            YargNetworkManager.Instance.StartSongSelection();
         }
 
         public void OnLeaveLobbyClicked()

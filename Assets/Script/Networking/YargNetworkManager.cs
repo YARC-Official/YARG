@@ -74,6 +74,8 @@ namespace YARG.Networking
         private readonly Dictionary<uint, HashSet<HashWrapper>> _playerSongLibraries = new();
         private readonly HashSet<uint> _playersPendingSongSync = new();
         private HashSet<HashWrapper>? _sharedSongHashes;
+        private bool _sharedSongSyncComplete = true;
+        private bool _pendingSongSelectionBroadcast;
 
         private readonly HashSet<uint> _serverGameplayReadyPlayers = new();
         private bool _serverGameplayBarrierActive;
@@ -97,6 +99,7 @@ namespace YARG.Networking
         public int DefaultPort => ResolveTransportPort();
         public int SuggestedDirectConnectPort => ResolveTransportPort();
         public bool IsJoinInProgress => _clientJoinPending;
+        public bool IsSharedSongSyncComplete => _sharedSongSyncComplete;
         // Events
         public event Action<LobbyInfo> OnLobbyCreated;
         public event Action<LobbyInfo> OnLobbyJoined;
@@ -107,6 +110,7 @@ namespace YARG.Networking
         public event Action<string> OnNetworkError;
         public event Action<NetworkConnectionToClient> OnClientConnected;
         public event Action<NetworkConnectionToClient> OnClientDisconnected;
+        public event Action<bool> OnSharedSongSyncStateChanged;
 
         public enum LobbyPrivacyMode
         {
@@ -1672,6 +1676,7 @@ namespace YARG.Networking
             {
                 _playerSongLibraries[netId] = new HashSet<HashWrapper>();
                 _playersPendingSongSync.Add(netId);
+                UpdateSharedSongSyncState();
             }
 
             var library = _playerSongLibraries[netId];
@@ -1709,6 +1714,7 @@ namespace YARG.Networking
 
             _playersPendingSongSync.Add(playerData.netId);
             _playerSongLibraries[playerData.netId] = new HashSet<HashWrapper>();
+            UpdateSharedSongSyncState();
         }
 
         private void RemoveSongLibraryForPlayer(NetworkPlayerData playerData)
@@ -1720,6 +1726,24 @@ namespace YARG.Networking
 
             _playerSongLibraries.Remove(playerData.netId);
             _playersPendingSongSync.Remove(playerData.netId);
+            UpdateSharedSongSyncState();
+        }
+
+        private void UpdateSharedSongSyncState()
+        {
+            bool isComplete = _playersPendingSongSync.Count == 0;
+
+            if (isComplete != _sharedSongSyncComplete)
+            {
+                _sharedSongSyncComplete = isComplete;
+                OnSharedSongSyncStateChanged?.Invoke(isComplete);
+            }
+
+            if (isComplete && _pendingSongSelectionBroadcast)
+            {
+                _pendingSongSelectionBroadcast = false;
+                BroadcastSongSelectionNavigation();
+            }
         }
 
         private void RecalculateSharedSongs()
@@ -1738,6 +1762,7 @@ namespace YARG.Networking
             {
                 _sharedSongHashes = null;
                 BroadcastSharedSongs();
+                UpdateSharedSongSyncState();
                 return;
             }
 
@@ -1761,6 +1786,7 @@ namespace YARG.Networking
 
             _sharedSongHashes = intersection ?? new HashSet<HashWrapper>();
             BroadcastSharedSongs();
+            UpdateSharedSongSyncState();
         }
 
         private void BroadcastSharedSongs()
@@ -1838,7 +1864,9 @@ namespace YARG.Networking
             _playerSongLibraries.Clear();
             _playersPendingSongSync.Clear();
             _sharedSongHashes = null;
+            _pendingSongSelectionBroadcast = false;
             MultiplayerSongFilter.ClearSharedSongs();
+            UpdateSharedSongSyncState();
         }
 
         public override void OnServerError(NetworkConnectionToClient conn, TransportError error, string reason)
@@ -1968,10 +1996,22 @@ namespace YARG.Networking
                 LogWarning("[YargNetworkManager] StartSongSelection called but not host");
                 return;
             }
-            
+
+            if (!_sharedSongSyncComplete)
+            {
+                LogInfo("[YargNetworkManager] Song selection requested, waiting for shared song sync to complete.");
+                _pendingSongSelectionBroadcast = true;
+                return;
+            }
+
+            BroadcastSongSelectionNavigation();
+        }
+
+        [Server]
+        private void BroadcastSongSelectionNavigation()
+        {
             LogInfo("[YargNetworkManager] Host starting song selection for all clients");
-            
-            // Tell all players to navigate to music library
+
             foreach (var playerData in GetAllPlayers())
             {
                 if (playerData != null)
@@ -1979,6 +2019,8 @@ namespace YARG.Networking
                     playerData.TargetNavigateToMusicLibrary();
                 }
             }
+
+            OnHostStartedSongSelection?.Invoke();
         }
 
         /// <summary>
