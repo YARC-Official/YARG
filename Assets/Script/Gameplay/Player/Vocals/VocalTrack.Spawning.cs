@@ -35,7 +35,7 @@ namespace YARG.Gameplay.Player
 
         private bool[] _noMoreStaticPhrases = { false, false, false };
 
-        private void UpdateSpawning(int totalHarms)
+        private void UpdateSpawning()
         {
             // For each harmony...
             for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
@@ -54,7 +54,7 @@ namespace YARG.Gameplay.Player
             {
                 for (int i = 0; i < LyricLaneCount; i++)
                 {
-                    SpawnStaticLyrics(_staticPhraseTrackers[i], totalHarms, i);
+                    SpawnStaticLyrics(_staticPhraseTrackers[i], i);
                 }
             }
         }
@@ -117,7 +117,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void SpawnStaticLyrics(StaticPhraseTracker tracker, int totalHarms, int harmonyIndex)
+        private void SpawnStaticLyrics(StaticPhraseTracker tracker, int harmonyIndex)
         {
             if (_noMoreStaticPhrases[harmonyIndex])
             {
@@ -203,7 +203,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(phrase, _vocalsTrack.Parts[harmonyIndex].NotePhrases, totalHarms, harmonyIndex, _rightEdges[harmonyIndex]);
+                var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(phrase, _vocalsTrack.Parts[harmonyIndex].NotePhrases, _totalHarms, harmonyIndex, _rightEdges[harmonyIndex]);
 
                 if (newPhraseElement != null)
                 {

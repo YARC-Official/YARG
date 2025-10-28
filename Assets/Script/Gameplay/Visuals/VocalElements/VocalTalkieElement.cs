@@ -22,6 +22,8 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private MeshRenderer _threeLaneTalkie;
 
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+
         protected override void InitializeElement()
         {
             // Get the right talkie mesh
@@ -41,7 +43,7 @@ namespace YARG.Gameplay.Visuals
 
             // Set the color
             var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
-            mesh.material.SetColor("_BaseColor", color.WithAlpha(ALPHA_VALUE));
+            mesh.material.SetColor(BaseColorId, color.WithAlpha(ALPHA_VALUE));
 
             // Update the size of the talkie
             var transform = mesh.transform;
@@ -51,13 +53,14 @@ namespace YARG.Gameplay.Visuals
 
             // Prevent Z-fighting (Y acts as the "Z" coordinate here)
             // All values must be under 0.1 (minimum forward offset for vocal pipes)
-            transform.position = transform.position.WithY(NoteRef.HarmonyPart switch
+            float yPos = NoteRef.HarmonyPart switch
             {
                 2 => 0f,
-                1 => 0.25f,
-                0 => 0.5f,
+                1 => 0.025f,
+                0 => 0.05f,
                 _ => 0f,
-            });
+            };
+            transform.position = transform.position.WithY(yPos);
         }
 
         protected override void UpdateElement()
