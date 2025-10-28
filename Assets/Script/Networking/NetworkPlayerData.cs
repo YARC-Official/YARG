@@ -408,15 +408,20 @@ namespace YARG.Networking
             const float MAX_WAIT_SECONDS = 10f;
             float waited = 0f;
             int initialRefreshVersion = YARG.Song.SongContainer.RefreshVersion;
+            bool isInitialScanPending = initialRefreshVersion < 1;
 
             try
             {
-                while (YARG.Song.SongContainer.Count == 0 &&
-                       YARG.Song.SongContainer.RefreshVersion == initialRefreshVersion &&
-                       waited < MAX_WAIT_SECONDS)
+                if (isInitialScanPending)
                 {
-                    yield return null;
-                    waited += Time.unscaledDeltaTime;
+                    // Wait for the very first library refresh to complete so we do not upload a stale empty list.
+                    while (YARG.Song.SongContainer.Count == 0 &&
+                           YARG.Song.SongContainer.RefreshVersion == initialRefreshVersion &&
+                           waited < MAX_WAIT_SECONDS)
+                    {
+                        yield return null;
+                        waited += Time.unscaledDeltaTime;
+                    }
                 }
 
                 if (YargNetworkManager.Instance == null || !YargNetworkManager.Instance.isNetworkActive || !NetworkClient.active)
