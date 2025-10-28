@@ -81,6 +81,7 @@ namespace YARG.Networking
         private bool _sharedSongSyncComplete = true;
         private bool _pendingSongSelectionBroadcast;
         private readonly Dictionary<uint, Stopwatch> _songLibraryReceiveTimers = new();
+        private readonly Dictionary<uint, Stopwatch> _songLibraryFirstChunkTimers = new();
         private readonly Dictionary<uint, int> _songLibraryChunkCounts = new();
         private readonly Dictionary<uint, int> _songLibraryReceivedHashes = new();
         private readonly Dictionary<uint, long> _songLibraryReceivedBytes = new();
@@ -1697,6 +1698,12 @@ namespace YARG.Networking
                 _songLibraryReceivedHashes[netId] = 0;
                 _songLibraryReceivedBytes[netId] = 0;
 
+                if (_songLibraryFirstChunkTimers.TryGetValue(netId, out var firstChunkTimer) && firstChunkTimer.IsRunning)
+                {
+                    firstChunkTimer.Stop();
+                    LogInfo($"[SongSync] Player {netId} first chunk arrived after {firstChunkTimer.Elapsed.TotalMilliseconds:F2} ms since library tracking.");
+                }
+
                 LogInfo($"[SongSync] Player {netId} started uploading song hashes.");
             }
 
@@ -1865,9 +1872,19 @@ namespace YARG.Networking
                 return;
             }
 
-            _playersPendingSongSync.Add(playerData.netId);
-            _playerSongLibraries[playerData.netId] = new HashSet<HashWrapper>();
+            uint netId = playerData.netId;
+
+            _playersPendingSongSync.Add(netId);
+            _playerSongLibraries[netId] = new HashSet<HashWrapper>();
             UpdateSharedSongSyncState();
+
+            if (!_songLibraryFirstChunkTimers.TryGetValue(netId, out var timer))
+            {
+                timer = new Stopwatch();
+                _songLibraryFirstChunkTimers[netId] = timer;
+            }
+
+            timer.Restart();
         }
 
         private void RemoveSongLibraryForPlayer(NetworkPlayerData playerData)
@@ -1880,6 +1897,7 @@ namespace YARG.Networking
             _playerSongLibraries.Remove(playerData.netId);
             _playersPendingSongSync.Remove(playerData.netId);
             _songLibraryReceiveTimers.Remove(playerData.netId);
+            _songLibraryFirstChunkTimers.Remove(playerData.netId);
             _songLibraryChunkCounts.Remove(playerData.netId);
             _songLibraryReceivedHashes.Remove(playerData.netId);
             _songLibraryReceivedBytes.Remove(playerData.netId);
@@ -2056,6 +2074,7 @@ namespace YARG.Networking
             _sharedSongHashes = null;
             _pendingSongSelectionBroadcast = false;
             _songLibraryReceiveTimers.Clear();
+            _songLibraryFirstChunkTimers.Clear();
             _songLibraryChunkCounts.Clear();
             _songLibraryReceivedHashes.Clear();
             _songLibraryReceivedBytes.Clear();
