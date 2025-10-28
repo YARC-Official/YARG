@@ -25,6 +25,7 @@ namespace YARG.Networking
         private const float LATENCY_WARNING_THRESHOLD_MS = 350f;
         private const double SNAPSHOT_OUT_OF_ORDER_LOG_COOLDOWN = 1.5d;
         private const int SONG_HASHES_PER_CHUNK = 2048;
+        private const int SONG_LIBRARY_CHUNKS_PER_FRAME = 8;
 
         [Header("Player Info")]
         [SyncVar(hook = nameof(OnPlayerNameChanged))]
@@ -61,6 +62,9 @@ namespace YARG.Networking
             _lastUploadedSongVersion = -1;
             _songHashBlob = null;
             _songHashBlobVersion = -1;
+            _songHashChunks?.Clear();
+            _songHashChunks = null;
+            _songHashChunksVersion = -1;
         }
 
         private void OnDestroy()
@@ -196,6 +200,8 @@ namespace YARG.Networking
         private int _lastUploadedSongVersion = -1;
         private byte[] _songHashBlob;
         private int _songHashBlobVersion = -1;
+        private List<byte[]> _songHashChunks;
+        private int _songHashChunksVersion = -1;
 
         // Events
         public event Action<string> OnPlayerNameChangedEvent;
@@ -332,6 +338,9 @@ namespace YARG.Networking
 
             _songHashBlob = null;
             _songHashBlobVersion = -1;
+            _songHashChunks?.Clear();
+            _songHashChunks = null;
+            _songHashChunksVersion = -1;
 
             EnsureSongLibraryUpload(restart: true);
         }
@@ -414,8 +423,7 @@ namespace YARG.Networking
                 var hashList = YARG.Song.SongContainer.SongHashes;
                 int totalSongs = hashList.Count;
 
-                EnsureSongHashBlob(refreshVersion, hashList);
-                byte[] hashBlob = _songHashBlob ?? Array.Empty<byte>();
+                EnsureSongHashChunks(refreshVersion, hashList);
 
                 bool isFirstChunk = true;
                 if (totalSongs == 0)
@@ -425,20 +433,30 @@ namespace YARG.Networking
                     yield break;
                 }
 
-                int index = 0;
-
-                while (index < totalSongs)
+                var chunkList = _songHashChunks;
+                if (chunkList == null || chunkList.Count == 0)
                 {
-                    int chunkSongCount = Math.Min(SONG_HASHES_PER_CHUNK, totalSongs - index);
-                    byte[] chunk = BuildSongLibraryChunk(hashBlob, index, chunkSongCount);
-                    bool isFinalChunk = (index + chunkSongCount) >= totalSongs;
-                    CmdSubmitSongLibraryChunk(chunk, isFirstChunk, isFinalChunk);
+                    Debug.LogWarning("[NetworkPlayerData] Expected cached song-hash chunks but none were generated.");
+                    CmdSubmitSongLibraryChunk(Array.Empty<byte>(), true, true);
+                    _lastUploadedSongVersion = refreshVersion;
+                    yield break;
+                }
 
-                    isFirstChunk = false;
-                    index += chunkSongCount;
+                int chunkIndex = 0;
+                int chunkCount = chunkList.Count;
 
-                    // Yield occasionally to avoid long stalls for extremely large libraries
-                    if (index < totalSongs)
+                while (chunkIndex < chunkCount)
+                {
+                    int batchEnd = Math.Min(chunkIndex + SONG_LIBRARY_CHUNKS_PER_FRAME, chunkCount);
+
+                    for (; chunkIndex < batchEnd; chunkIndex++)
+                    {
+                        bool isFinalChunk = chunkIndex == chunkCount - 1;
+                        CmdSubmitSongLibraryChunk(chunkList[chunkIndex], isFirstChunk, isFinalChunk);
+                        isFirstChunk = false;
+                    }
+
+                    if (chunkIndex < chunkCount)
                     {
                         yield return null;
                     }
@@ -487,27 +505,61 @@ namespace YARG.Networking
             _songHashBlobVersion = refreshVersion;
         }
 
-        private static byte[] BuildSongLibraryChunk(byte[] hashBlob, int startIndex, int count)
+        private void EnsureSongHashChunks(int refreshVersion, IReadOnlyList<HashWrapper> hashList)
+        {
+            EnsureSongHashBlob(refreshVersion, hashList);
+
+            if (_songHashChunks != null && _songHashChunksVersion == refreshVersion)
+            {
+                return;
+            }
+
+            if (_songHashChunks == null)
+            {
+                _songHashChunks = new List<byte[]>();
+            }
+            else
+            {
+                _songHashChunks.Clear();
+            }
+
+            _songHashChunksVersion = refreshVersion;
+
+            if (hashList.Count == 0)
+            {
+                return;
+            }
+
+            int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
+            int totalSongs = hashList.Count;
+
+            for (int index = 0; index < totalSongs;)
+            {
+                int chunkSongCount = Math.Min(SONG_HASHES_PER_CHUNK, totalSongs - index);
+                int rawLength = chunkSongCount * hashSize;
+                int byteOffset = index * hashSize;
+
+                _songHashChunks.Add(CreateSongLibraryChunk(_songHashBlob, byteOffset, rawLength));
+                index += chunkSongCount;
+            }
+        }
+
+        private static byte[] CreateSongLibraryChunk(byte[] hashBlob, int byteOffset, int rawLength)
         {
             const int headerSize = 5;
-            int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
 
-            if (count <= 0)
+            if (rawLength <= 0)
             {
                 byte[] emptyChunk = new byte[headerSize];
                 BinaryPrimitives.WriteInt32LittleEndian(emptyChunk.AsSpan(1, 4), 0);
                 return emptyChunk;
             }
 
-            int rawLength = count * hashSize;
             byte[] chunk = new byte[headerSize + rawLength];
             chunk[0] = 0;
             BinaryPrimitives.WriteInt32LittleEndian(chunk.AsSpan(1, 4), rawLength);
 
-            if (rawLength > 0)
-            {
-                Buffer.BlockCopy(hashBlob, startIndex * hashSize, chunk, headerSize, rawLength);
-            }
+            Buffer.BlockCopy(hashBlob, byteOffset, chunk, headerSize, rawLength);
 
             return chunk;
         }
