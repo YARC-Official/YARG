@@ -1,4 +1,5 @@
 using System;
+using Mirror;
 using UnityEngine;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
@@ -43,6 +44,10 @@ namespace YARG.Gameplay.Player
 
         private bool _isInitialized;
 
+        private const double LOCAL_RESOLVE_LEAD_SECONDS = 0.12;
+        private const double REMOTE_RESOLVE_LEAD_SECONDS = 0.04;
+        private const double MAX_SNAPSHOT_PREDICTION_SECONDS = 0.35;
+
         public void Initialize(BasePlayer player, NetworkPlayerData networkPlayerData)
         {
             _basePlayer = player;
@@ -68,12 +73,12 @@ namespace YARG.Gameplay.Player
 
         public void ApplyRemoteState(double localInputTime)
         {
-            _ = localInputTime;
-
             if (!_isInitialized || _networkPlayerData == null || _basePlayer == null)
             {
                 return;
             }
+
+            double remoteSongTime = EstimateRemoteSongTime(localInputTime);
 
             bool snapshotReset = _networkPlayerData.LastGameplaySnapshotSequence < _lastSnapshotSequence;
             bool trackCountersReset = _trackPlayer != null &&
@@ -104,7 +109,7 @@ namespace YARG.Gameplay.Player
 
             if (_trackPlayer != null)
             {
-                ProcessNoteDiffs();
+                ProcessNoteDiffs(localInputTime, remoteSongTime);
                 _trackPlayer.UpdateRemoteCountdown();
             }
             else if (_vocalsPlayer != null)
@@ -329,7 +334,7 @@ namespace YARG.Gameplay.Player
             _wasSoloActive = soloActive;
         }
 
-        private void ProcessNoteDiffs()
+        private void ProcessNoteDiffs(double localInputTime, double remoteSongTime)
         {
             if (_trackPlayer == null)
             {
@@ -341,7 +346,8 @@ namespace YARG.Gameplay.Player
 
             while (_resolvedHits < targetHits)
             {
-                if (!_trackPlayer.ResolveRemoteNote(ref _noteCursor, true, out int resolvedWeight))
+                if (!_trackPlayer.ResolveRemoteNote(ref _noteCursor, true, localInputTime, remoteSongTime,
+                        LOCAL_RESOLVE_LEAD_SECONDS, REMOTE_RESOLVE_LEAD_SECONDS, out int resolvedWeight))
                 {
                     break;
                 }
@@ -352,7 +358,8 @@ namespace YARG.Gameplay.Player
 
             while (_resolvedMisses < targetMisses)
             {
-                if (!_trackPlayer.ResolveRemoteNote(ref _noteCursor, false, out int resolvedWeight))
+                if (!_trackPlayer.ResolveRemoteNote(ref _noteCursor, false, localInputTime, remoteSongTime,
+                        LOCAL_RESOLVE_LEAD_SECONDS, REMOTE_RESOLVE_LEAD_SECONDS, out int resolvedWeight))
                 {
                     break;
                 }
@@ -387,6 +394,35 @@ namespace YARG.Gameplay.Player
             _lastSoloSequence = -1;
             _wasSoloActive = false;
             _remoteSoloSection = null;
+        }
+
+        private double EstimateRemoteSongTime(double localInputTime)
+        {
+            double remoteTime = Math.Max(0d, _networkPlayerData.LastGameplaySongTime);
+
+            double snapshotDelta = NetworkTime.time - _networkPlayerData.LastGameplayNetworkTime;
+            if (!double.IsNaN(snapshotDelta) && snapshotDelta > 0d)
+            {
+                remoteTime += Math.Min(snapshotDelta, MAX_SNAPSHOT_PREDICTION_SECONDS);
+            }
+
+            double latencySeconds = Math.Max(0d, (double) _networkPlayerData.LastGameplayLatencyMs) / 1000.0;
+            if (latencySeconds > 0d)
+            {
+                remoteTime += Math.Min(latencySeconds * 0.5, MAX_SNAPSHOT_PREDICTION_SECONDS);
+            }
+
+            if (remoteTime > localInputTime + MAX_SNAPSHOT_PREDICTION_SECONDS)
+            {
+                remoteTime = localInputTime + MAX_SNAPSHOT_PREDICTION_SECONDS;
+            }
+
+            if (remoteTime < localInputTime - MAX_SNAPSHOT_PREDICTION_SECONDS)
+            {
+                remoteTime = localInputTime - MAX_SNAPSHOT_PREDICTION_SECONDS;
+            }
+
+            return remoteTime;
         }
     }
 }

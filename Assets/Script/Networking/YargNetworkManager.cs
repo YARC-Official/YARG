@@ -3,6 +3,7 @@ using kcp2k;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -12,6 +13,8 @@ using Cysharp.Threading.Tasks;
 using YARG.Networking.Bookmarks;
 using YARG.Networking.UPnP;
 using YARG.Core.Logging;
+using YARG.Core.Song;
+using YARG.Multiplayer;
 using YARG.Player;
 using YARG.Core.Game;
 using YARG.Core;
@@ -67,6 +70,10 @@ namespace YARG.Networking
         private CancellationTokenSource _portMappingCts;
         private bool _clientJoinPending;
         private bool _localSlotSyncPending;
+
+        private readonly Dictionary<uint, HashSet<HashWrapper>> _playerSongLibraries = new();
+        private readonly HashSet<uint> _playersPendingSongSync = new();
+        private HashSet<HashWrapper>? _sharedSongHashes;
 
         private readonly HashSet<uint> _serverGameplayReadyPlayers = new();
         private bool _serverGameplayBarrierActive;
@@ -195,6 +202,7 @@ namespace YARG.Networking
                 return;
             }
 
+            transport.DualMode = false;
             transport.NoDelay = true;
 
             if (transport.Interval > KcpLowLatencyIntervalMs)
@@ -563,7 +571,12 @@ namespace YARG.Networking
                 transportPort = NetworkTransportDefaults.DefaultUdpPort;
             }
 
+            // Ensure the active transport and the serialized component stay in sync.
             SetTransportPort(transportPort);
+            if (transport is KcpTransport kcp)
+            {
+                kcp.Port = (ushort)transportPort;
+            }
 
             string connectionInfo = $"{networkAddress}:{transportPort}";
 
@@ -981,6 +994,8 @@ namespace YARG.Networking
         {
             try
             {
+                var candidates = new List<(IPAddress address, bool hasGateway, int preference)>(8);
+
                 foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
                 {
                     if (nic.OperationalStatus != OperationalStatus.Up)
@@ -993,21 +1008,41 @@ namespace YARG.Networking
                         continue;
                     }
 
+                    if (IsInterfaceExcluded(nic))
+                    {
+                        continue;
+                    }
+
                     var properties = nic.GetIPProperties();
+                    bool hasGateway = properties.GatewayAddresses.Any(g => IsRoutableGateway(g?.Address));
+
                     foreach (var unicast in properties.UnicastAddresses)
                     {
-                        if (unicast.Address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+                        var address = unicast.Address;
+                        if (address == null || address.AddressFamily != AddressFamily.InterNetwork)
                         {
                             continue;
                         }
 
-                        if (IPAddress.IsLoopback(unicast.Address))
+                        if (IPAddress.IsLoopback(address) || address.Equals(IPAddress.Any) || IsLinkLocal(address))
                         {
                             continue;
                         }
 
-                        return unicast.Address.ToString();
+                        int preference = GetIpv4PreferenceScore(address);
+                        candidates.Add((address, hasGateway, preference));
                     }
+                }
+
+                if (candidates.Count > 0)
+                {
+                    var selected = candidates
+                        .OrderByDescending(c => GetCompositePreference(c.preference, c.hasGateway))
+                        .ThenByDescending(c => c.preference)
+                        .ThenByDescending(c => c.hasGateway)
+                        .First();
+
+                    return selected.address.ToString();
                 }
             }
             catch (Exception ex)
@@ -1020,7 +1055,7 @@ namespace YARG.Networking
                 var host = Dns.GetHostEntry(Dns.GetHostName());
                 foreach (var ip in host.AddressList)
                 {
-                    if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && !IPAddress.IsLoopback(ip))
+                    if (ip.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ip) && !IsLinkLocal(ip))
                     {
                         return ip.ToString();
                     }
@@ -1032,6 +1067,91 @@ namespace YARG.Networking
             }
 
             return string.Empty;
+        }
+
+        private static bool IsInterfaceExcluded(NetworkInterface nic)
+        {
+            string description = nic.Description ?? string.Empty;
+            string name = nic.Name ?? string.Empty;
+
+            if (description.Contains("Tailscale", StringComparison.OrdinalIgnoreCase) ||
+                description.Contains("ZeroTier", StringComparison.OrdinalIgnoreCase) ||
+                description.Contains("Hamachi", StringComparison.OrdinalIgnoreCase) ||
+                name.Contains("Tailscale", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsRoutableGateway(IPAddress? address)
+        {
+            if (address == null)
+            {
+                return false;
+            }
+
+            if (address.AddressFamily != AddressFamily.InterNetwork)
+            {
+                return false;
+            }
+
+            if (address.Equals(IPAddress.Any) || IPAddress.IsLoopback(address))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsLinkLocal(IPAddress address)
+        {
+            if (address == null || address.AddressFamily != AddressFamily.InterNetwork)
+            {
+                return false;
+            }
+
+            var bytes = address.GetAddressBytes();
+            return bytes[0] == 169 && bytes[1] == 254;
+        }
+
+        private static int GetIpv4PreferenceScore(IPAddress address)
+        {
+            if (address == null || address.AddressFamily != AddressFamily.InterNetwork)
+            {
+                return 0;
+            }
+
+            var bytes = address.GetAddressBytes();
+
+            if (bytes[0] == 192 && bytes[1] == 168)
+            {
+                return 4;
+            }
+
+            if (bytes[0] == 10)
+            {
+                return 3;
+            }
+
+            if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
+            {
+                return 2;
+            }
+
+            if (bytes[0] == 100 && bytes[1] >= 64 && bytes[1] <= 127)
+            {
+                return 1;
+            }
+
+            return 0;
+        }
+
+        private static int GetCompositePreference(int basePreference, bool hasGateway)
+        {
+            int gatewayBonus = hasGateway ? 1 : 0;
+            return (basePreference * 2) + gatewayBonus;
         }
 
         private void TrySetupPortMapping(int transportPort)
@@ -1325,6 +1445,7 @@ namespace YARG.Networking
             {
                 foreach (var player in _connectedPlayers[conn])
                 {
+                    RemoveSongLibraryForPlayer(player);
                     OnPlayerLeft?.Invoke(player);
                 }
                 _connectedPlayers.Remove(conn);
@@ -1350,6 +1471,8 @@ namespace YARG.Networking
             OnClientDisconnected?.Invoke(conn);
             base.OnServerDisconnect(conn);
             LogInfo($"Client disconnected: {conn.connectionId}");
+
+            RecalculateSharedSongs();
         }
 
         private bool _hasTriggeredJoinEvent = false;
@@ -1443,6 +1566,7 @@ namespace YARG.Networking
             _hasTriggeredJoinEvent = false;
             _clientJoinPending = false;
             ResetJoinTracking();
+            ResetSharedSongState();
 
             OnLobbyLeft?.Invoke();
             LogInfo("Disconnected from host");
@@ -1456,18 +1580,21 @@ namespace YARG.Networking
             RegisterMultiplayerShowPlaylistSpawnHandler();
 
             _localSlotSyncPending = false;
+            ResetSharedSongState();
         }
 
         public override void OnStopHost()
         {
             base.OnStopHost();
             TeardownPortMappingsAsync().Forget();
+            ResetSharedSongState();
         }
 
         public override void OnStopServer()
         {
             base.OnStopServer();
             TeardownPortMappingsAsync().Forget();
+            ResetSharedSongState();
         }
 
         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
@@ -1508,6 +1635,8 @@ namespace YARG.Networking
 
                 OnPlayerJoined?.Invoke(playerData);
                 LogInfo($"[YargNetworkManager] Player spawned successfully for connection {conn.connectionId}");
+
+                TrackPlayerSongLibrary(playerData);
                 
                 // Show toast notification for player join (except for host joining their own lobby)
                 if (conn.connectionId != 0)
@@ -1528,6 +1657,188 @@ namespace YARG.Networking
             {
                 LogError($"[YargNetworkManager] Player prefab does not have NetworkPlayerData component!");
             }
+        }
+
+        internal void ServerRegisterSongLibraryChunk(NetworkPlayerData playerData, byte[] chunk, bool isFirstChunk, bool isFinalChunk)
+        {
+            if (!NetworkServer.active || playerData == null)
+            {
+                return;
+            }
+
+            uint netId = playerData.netId;
+
+            if (isFirstChunk || !_playerSongLibraries.ContainsKey(netId))
+            {
+                _playerSongLibraries[netId] = new HashSet<HashWrapper>();
+                _playersPendingSongSync.Add(netId);
+            }
+
+            var library = _playerSongLibraries[netId];
+
+            if (chunk.Length > 0)
+            {
+                int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
+                if (chunk.Length % hashSize != 0)
+                {
+                    LogWarning($"[YargNetworkManager] Song library chunk from player {netId} had invalid size ({chunk.Length}). Ignoring remainder.");
+                }
+                else
+                {
+                    for (int offset = 0; offset < chunk.Length; offset += hashSize)
+                    {
+                        var hash = HashWrapper.Create(new ReadOnlySpan<byte>(chunk, offset, hashSize));
+                        library.Add(hash);
+                    }
+                }
+            }
+
+            if (isFinalChunk)
+            {
+                _playersPendingSongSync.Remove(netId);
+                RecalculateSharedSongs();
+            }
+        }
+
+        private void TrackPlayerSongLibrary(NetworkPlayerData playerData)
+        {
+            if (!NetworkServer.active || playerData == null)
+            {
+                return;
+            }
+
+            _playersPendingSongSync.Add(playerData.netId);
+            _playerSongLibraries[playerData.netId] = new HashSet<HashWrapper>();
+        }
+
+        private void RemoveSongLibraryForPlayer(NetworkPlayerData playerData)
+        {
+            if (playerData == null)
+            {
+                return;
+            }
+
+            _playerSongLibraries.Remove(playerData.netId);
+            _playersPendingSongSync.Remove(playerData.netId);
+        }
+
+        private void RecalculateSharedSongs()
+        {
+            if (!NetworkServer.active)
+            {
+                return;
+            }
+
+            if (_playersPendingSongSync.Count > 0)
+            {
+                return;
+            }
+
+            if (_playerSongLibraries.Count == 0)
+            {
+                _sharedSongHashes = null;
+                BroadcastSharedSongs();
+                return;
+            }
+
+            HashSet<HashWrapper>? intersection = null;
+            foreach (var library in _playerSongLibraries.Values)
+            {
+                if (intersection == null)
+                {
+                    intersection = new HashSet<HashWrapper>(library);
+                }
+                else
+                {
+                    intersection.IntersectWith(library);
+                }
+
+                if (intersection.Count == 0)
+                {
+                    break;
+                }
+            }
+
+            _sharedSongHashes = intersection ?? new HashSet<HashWrapper>();
+            BroadcastSharedSongs();
+        }
+
+        private void BroadcastSharedSongs()
+        {
+            if (!NetworkServer.active)
+            {
+                return;
+            }
+
+            var players = GetAllPlayers();
+
+            if (_sharedSongHashes == null)
+            {
+                foreach (var player in players)
+                {
+                    player?.TargetClearSharedSongs();
+                }
+
+                MultiplayerSongFilter.ClearSharedSongs();
+                return;
+            }
+
+            var chunks = BuildSharedSongChunks(_sharedSongHashes);
+
+            foreach (var player in players)
+            {
+                if (player == null)
+                {
+                    continue;
+                }
+
+                bool isFirstChunk = true;
+                for (int i = 0; i < chunks.Count; i++)
+                {
+                    bool isFinalChunk = i == chunks.Count - 1;
+                    player.TargetReceiveSharedSongChunk(chunks[i], isFirstChunk, isFinalChunk);
+                    isFirstChunk = false;
+                }
+            }
+        }
+
+        private static List<byte[]> BuildSharedSongChunks(HashSet<HashWrapper> hashes)
+        {
+            const int maxChunkBytes = 8192;
+            int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
+            int hashesPerChunk = Math.Max(1, maxChunkBytes / hashSize);
+
+            if (hashes.Count == 0)
+            {
+                return new List<byte[]> { Array.Empty<byte>() };
+            }
+
+            var hashArray = hashes.ToArray();
+            var chunks = new List<byte[]>();
+            int index = 0;
+
+            while (index < hashArray.Length)
+            {
+                int chunkCount = Math.Min(hashesPerChunk, hashArray.Length - index);
+                using var stream = new MemoryStream(chunkCount * hashSize);
+                for (int i = 0; i < chunkCount; i++)
+                {
+                    hashArray[index + i].Serialize(stream);
+                }
+
+                chunks.Add(stream.ToArray());
+                index += chunkCount;
+            }
+
+            return chunks;
+        }
+
+        private void ResetSharedSongState()
+        {
+            _playerSongLibraries.Clear();
+            _playersPendingSongSync.Clear();
+            _sharedSongHashes = null;
+            MultiplayerSongFilter.ClearSharedSongs();
         }
 
         public override void OnServerError(NetworkConnectionToClient conn, TransportError error, string reason)

@@ -1,8 +1,12 @@
+using System;
+using System.Collections;
+using System.IO;
 using Mirror;
 using UnityEngine;
-using System;
 using YARG;
+using YARG.Core.Song;
 using YARG.Gameplay;
+using YARG.Multiplayer;
 
 namespace YARG.Networking
 {
@@ -16,6 +20,8 @@ namespace YARG.Networking
         private const int NOTES_DELTA_WARNING = 20;
         private const float LATENCY_WARNING_THRESHOLD_MS = 350f;
         private const double SNAPSHOT_OUT_OF_ORDER_LOG_COOLDOWN = 1.5d;
+        private const int SONG_HASHES_PER_CHUNK = 256;
+
         [Header("Player Info")]
         [SyncVar(hook = nameof(OnPlayerNameChanged))]
         private string playerName = "Player";
@@ -152,6 +158,7 @@ namespace YARG.Networking
         
         private double _lastStaleSnapshotLogTime = double.MinValue;
         private bool _localAuthorityInitialized;
+        private bool _songLibraryUploadStarted;
 
         // Events
         public event Action<string> OnPlayerNameChangedEvent;
@@ -260,9 +267,15 @@ namespace YARG.Networking
             }
 
             YargNetworkManager.Instance?.OnLocalNetworkPlayerReady(this);
+
+            if (!_songLibraryUploadStarted && isActiveAndEnabled)
+            {
+                _songLibraryUploadStarted = true;
+                StartCoroutine(UploadSongLibrary());
+            }
         }
 
-        private System.Collections.IEnumerator MeasurePing()
+        private IEnumerator MeasurePing()
         {
             while (IsLocalUser)
             {
@@ -276,6 +289,63 @@ namespace YARG.Networking
                 // Send ping to server to sync with all clients
                 CmdUpdatePing(rtt);
             }
+        }
+
+        private IEnumerator UploadSongLibrary()
+        {
+            const float MAX_WAIT_SECONDS = 10f;
+            float waited = 0f;
+            while (YARG.Song.SongContainer.Count == 0 && waited < MAX_WAIT_SECONDS)
+            {
+                yield return null;
+                waited += Time.unscaledDeltaTime;
+            }
+
+            var songs = YARG.Song.SongContainer.Songs;
+            int totalSongs = songs?.Length ?? 0;
+
+            bool isFirstChunk = true;
+            if (totalSongs == 0)
+            {
+                CmdSubmitSongLibraryChunk(Array.Empty<byte>(), true, true);
+                yield break;
+            }
+
+            int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
+            int index = 0;
+
+            while (index < totalSongs)
+            {
+                int chunkSongCount = Math.Min(SONG_HASHES_PER_CHUNK, totalSongs - index);
+                int estimatedBytes = chunkSongCount * hashSize;
+                using var stream = new MemoryStream(estimatedBytes);
+
+                for (int i = 0; i < chunkSongCount; i++)
+                {
+                    songs[index + i].Hash.Serialize(stream);
+                }
+
+                byte[] chunk = stream.ToArray();
+                bool isFinalChunk = (index + chunkSongCount) >= totalSongs;
+                CmdSubmitSongLibraryChunk(chunk, isFirstChunk, isFinalChunk);
+
+                isFirstChunk = false;
+                index += chunkSongCount;
+
+                // Yield so we do not stall the main thread if song libraries are large
+                yield return null;
+            }
+        }
+
+        [Command]
+        private void CmdSubmitSongLibraryChunk(byte[] chunk, bool isFirstChunk, bool isFinalChunk)
+        {
+            if (YargNetworkManager.Instance == null)
+            {
+                return;
+            }
+
+            YargNetworkManager.Instance.ServerRegisterSongLibraryChunk(this, chunk ?? Array.Empty<byte>(), isFirstChunk, isFinalChunk);
         }
 
         /// <summary>
@@ -377,6 +447,31 @@ namespace YARG.Networking
             {
                 Debug.LogWarning($"[NetworkPlayerData] Song not found in container: {songHash}");
             }
+        }
+
+        [TargetRpc]
+        public void TargetReceiveSharedSongChunk(byte[] chunk, bool isFirstChunk, bool isFinalChunk)
+        {
+            if (isFirstChunk)
+            {
+                MultiplayerSongFilter.BeginSharedSongsUpload();
+            }
+
+            if (chunk != null && chunk.Length > 0)
+            {
+                MultiplayerSongFilter.AppendSharedSongsChunk(chunk);
+            }
+
+            if (isFinalChunk)
+            {
+                MultiplayerSongFilter.CommitSharedSongsUpload();
+            }
+        }
+
+        [TargetRpc]
+        public void TargetClearSharedSongs()
+        {
+            MultiplayerSongFilter.ClearSharedSongs();
         }
 
         /// <summary>

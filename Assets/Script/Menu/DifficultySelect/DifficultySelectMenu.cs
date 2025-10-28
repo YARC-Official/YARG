@@ -128,6 +128,8 @@ namespace YARG.Menu.DifficultySelect
                 _multiplayerSync = gameObject.AddComponent<Multiplayer.MultiplayerDifficultySync>();
             }
             
+            _multiplayerSync.ForceRefreshNetworkState();
+            
             // Subscribe to waiting event
             _multiplayerSync.OnWaitingForPlayers += ShowWaitingForPlayersMessage;
             
@@ -153,6 +155,14 @@ namespace YARG.Menu.DifficultySelect
             if (Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive)
             {
                 StartCoroutine(DelayedUpdateMultiplayerPlayerList());
+            }
+            else
+            {
+                ClearMultiplayerPlayerEntries();
+                if (_multiplayerPlayerListContainer != null)
+                {
+                    _multiplayerPlayerListContainer.SetActive(false);
+                }
             }
             
             // Update song queue if playing a show
@@ -1374,6 +1384,7 @@ namespace YARG.Menu.DifficultySelect
             // Only show player list container when in multiplayer
             if (Networking.YargNetworkManager.Instance == null || !Networking.YargNetworkManager.Instance.isNetworkActive)
             {
+                ClearMultiplayerPlayerEntries();
                 _multiplayerPlayerListContainer.SetActive(false);
                 return;
             }
@@ -1416,6 +1427,25 @@ namespace YARG.Menu.DifficultySelect
             }
             
             Debug.Log($"[DifficultySelectMenu] Total player entries: {_playerEntries.Count}");
+        }
+
+        private void ClearMultiplayerPlayerEntries()
+        {
+            if (_playerEntries.Count == 0)
+            {
+                return;
+            }
+
+            var entries = new List<MultiplayerPlayerEntry>(_playerEntries.Values);
+            _playerEntries.Clear();
+
+            foreach (var entry in entries)
+            {
+                if (entry != null && entry.gameObject != null)
+                {
+                    Destroy(entry.gameObject);
+                }
+            }
         }
         
         private void UpdateSongQueue()

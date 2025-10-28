@@ -16,6 +16,7 @@ namespace YARG.Menu.Multiplayer
         private bool _isMultiplayer;
         private bool _isHost;
         private readonly HashSet<int> _syncedProfileIndices = new();
+        private YargNetworkManager _subscribedNetworkManager;
 
         /// <summary>
         /// Event fired when host is waiting for other players.
@@ -23,19 +24,95 @@ namespace YARG.Menu.Multiplayer
         /// </summary>
         public System.Action<string> OnWaitingForPlayers;
 
-        private void Start()
+        private void OnEnable()
         {
-            // Check if we're in multiplayer mode
-            if (YargNetworkManager.Instance == null || !YargNetworkManager.Instance.isNetworkActive)
+            SubscribeToNetworkEvents();
+            RefreshNetworkState();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeFromNetworkEvents();
+        }
+
+        private void OnDestroy()
+        {
+            UnsubscribeFromNetworkEvents();
+        }
+
+        private void SubscribeToNetworkEvents()
+        {
+            var manager = YargNetworkManager.Instance;
+            if (manager == null || _subscribedNetworkManager == manager)
             {
-                _isMultiplayer = false;
                 return;
             }
 
-            _isMultiplayer = true;
-            _isHost = YargNetworkManager.Instance.IsHosting;
+            UnsubscribeFromNetworkEvents();
 
-            Debug.Log($"[MultiplayerDifficultySync] Initialized - Multiplayer: {_isMultiplayer}, Host: {_isHost}");
+            manager.OnLobbyJoined += HandleLobbyJoined;
+            manager.OnLobbyLeft += HandleLobbyLeft;
+            _subscribedNetworkManager = manager;
+        }
+
+        private void UnsubscribeFromNetworkEvents()
+        {
+            if (_subscribedNetworkManager == null)
+            {
+                return;
+            }
+
+            _subscribedNetworkManager.OnLobbyJoined -= HandleLobbyJoined;
+            _subscribedNetworkManager.OnLobbyLeft -= HandleLobbyLeft;
+            _subscribedNetworkManager = null;
+        }
+
+        private void HandleLobbyJoined(YargNetworkManager.LobbyInfo _)
+        {
+            RefreshNetworkState();
+        }
+
+        private void HandleLobbyLeft()
+        {
+            RefreshNetworkState();
+        }
+
+        public void ForceRefreshNetworkState()
+        {
+            RefreshNetworkState();
+        }
+
+        private void RefreshNetworkState()
+        {
+            var manager = YargNetworkManager.Instance;
+            bool wasMultiplayer = _isMultiplayer;
+            bool wasHost = _isHost;
+
+            if (manager != null && manager.isNetworkActive)
+            {
+                _isMultiplayer = true;
+                _isHost = manager.IsHosting;
+
+                if (!wasMultiplayer || wasHost != _isHost)
+                {
+                    Debug.Log($"[MultiplayerDifficultySync] Multiplayer active: {_isMultiplayer}, Host: {_isHost}");
+                }
+            }
+            else
+            {
+                _isMultiplayer = false;
+                _isHost = false;
+
+                if (wasMultiplayer)
+                {
+                    Debug.Log("[MultiplayerDifficultySync] Multiplayer session ended - switching to offline mode");
+                }
+
+                if (_syncedProfileIndices.Count > 0)
+                {
+                    _syncedProfileIndices.Clear();
+                }
+            }
         }
 
         /// <summary>

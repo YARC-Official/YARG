@@ -15,6 +15,7 @@ using YARG.Localization;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Multiplayer;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Settings;
@@ -238,6 +239,7 @@ namespace YARG.Menu.MusicLibrary
             // Restore search
             _searchField.Restore();
             _searchField.OnSearchQueryUpdated += UpdateSearch;
+            MultiplayerSongFilter.SharedSongsUpdated += OnSharedSongsUpdated;
 
             if (CurrentlyPlaying != null)
             {
@@ -708,12 +710,44 @@ namespace YARG.Menu.MusicLibrary
         {
             if (SongContainer.Count > RecommendedSongs.RECOMMEND_SONGS_COUNT)
             {
-                _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
+                var songs = RecommendedSongs.GetRecommendedSongs();
+                if (songs.Length > 0)
+                {
+                    var filtered = MultiplayerSongFilter.FilterSongs(songs);
+                    _recommendedSongs = filtered.Length > 0 ? filtered : null;
+                }
+                else
+                {
+                    _recommendedSongs = null;
+                }
             }
             else
             {
                 _recommendedSongs = null;
             }
+        }
+
+        private void ApplyMultiplayerSongFilter()
+        {
+            if (_sortedSongs == null)
+            {
+                return;
+            }
+
+            _sortedSongs = MultiplayerSongFilter.FilterCategories(_sortedSongs);
+        }
+
+        private void OnSharedSongsUpdated()
+        {
+            SetReload(MusicLibraryReloadState.Partial);
+
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
+
+            SetRecommendedSongs();
+            UpdateSearch(true);
         }
 
         private void Refresh()
@@ -757,6 +791,8 @@ namespace YARG.Menu.MusicLibrary
 
                 _searchField.gameObject.SetActive(false);
             }
+
+            ApplyMultiplayerSongFilter();
 
             RequestViewListUpdate();
 
@@ -857,6 +893,7 @@ namespace YARG.Menu.MusicLibrary
             _previewCanceller?.Cancel();
             _previewContext?.Stop();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
+            MultiplayerSongFilter.SharedSongsUpdated -= OnSharedSongsUpdated;
 
             PlayerContainer.PlayerAdded -= OnPlayerAdded;
             PlayerContainer.PlayerRemoved -= OnPlayerRemoved;

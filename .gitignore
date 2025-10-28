@@ -98,6 +98,8 @@ Assets/YargInput.cs
 # Rider
 .idea/
 
+.nuget/
+
 # Manually-imported input packages
 # For users who have trouble with the package manager
 Packages/com.thenathannator.hidrogen/
