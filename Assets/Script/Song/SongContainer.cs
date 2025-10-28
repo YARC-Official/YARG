@@ -100,7 +100,11 @@ namespace YARG.Song
 
         private static SongCategory[] _playables = null;
         private static SongCategory[] _sortStars = Array.Empty<SongCategory>();
+        private static HashWrapper[] _songHashes = Array.Empty<HashWrapper>();
+        private static int _refreshVersion;
         private static readonly Dictionary<SongEntry, StarAmount> _runtimeStars = new();
+
+        public static event Action SongsRefreshed;
 
         public static IReadOnlyDictionary<string, List<SongEntry>> Titles => _songCache.Titles;
         public static IReadOnlyDictionary<string, List<SongEntry>> Years => _songCache.Years;
@@ -118,6 +122,8 @@ namespace YARG.Song
         public static int Count => _songs.Length;
         public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
         public static SongEntry[] Songs => _songs;
+        public static IReadOnlyList<HashWrapper> SongHashes => _songHashes;
+        public static int RefreshVersion => _refreshVersion;
 
 #nullable enable
         public static async UniTask RunRefresh(bool quick, LoadingContext? context = null)
@@ -154,6 +160,13 @@ namespace YARG.Song
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             SongSources.LoadSprites(context);
+
+            unchecked
+            {
+                _refreshVersion++;
+            }
+
+            SongsRefreshed?.Invoke();
         }
 
         public static SongCategory[] GetSortedCategory(SortAttribute sort)
@@ -519,6 +532,10 @@ namespace YARG.Song
         private static void FillContainers()
         {
             _songs = SetAllSongs(_songCache.Entries);
+
+            _songHashes = _songCache.Entries.Count > 0
+                ? _songCache.Entries.Keys.ToArray()
+                : Array.Empty<HashWrapper>();
 
             _sortArtists      = Convert(_songCache.Artists, SongAttribute.Artist);
             _sortAlbums       = Convert(_songCache.Albums, SongAttribute.Album);

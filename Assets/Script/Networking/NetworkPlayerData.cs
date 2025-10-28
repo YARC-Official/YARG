@@ -35,6 +35,34 @@ namespace YARG.Networking
             Debug.Log($"[NetworkPlayerData] {playerName} marked as DontDestroyOnLoad");
         }
 
+        private void OnEnable()
+        {
+            YARG.Song.SongContainer.SongsRefreshed += OnSongContainerRefreshed;
+
+            if (_localAuthorityInitialized)
+            {
+                EnsureSongLibraryUpload(restart: false);
+            }
+        }
+
+        private void OnDisable()
+        {
+            YARG.Song.SongContainer.SongsRefreshed -= OnSongContainerRefreshed;
+
+            if (_songLibraryUploadRoutine != null)
+            {
+                StopCoroutine(_songLibraryUploadRoutine);
+                _songLibraryUploadRoutine = null;
+            }
+
+            _lastUploadedSongVersion = -1;
+        }
+
+        private void OnDestroy()
+        {
+            YARG.Song.SongContainer.SongsRefreshed -= OnSongContainerRefreshed;
+        }
+
         [SyncVar]
         private int playerIndex = 0;
 
@@ -159,7 +187,8 @@ namespace YARG.Networking
         
         private double _lastStaleSnapshotLogTime = double.MinValue;
         private bool _localAuthorityInitialized;
-        private bool _songLibraryUploadStarted;
+        private Coroutine _songLibraryUploadRoutine;
+        private int _lastUploadedSongVersion = -1;
 
         // Events
         public event Action<string> OnPlayerNameChangedEvent;
@@ -269,11 +298,60 @@ namespace YARG.Networking
 
             YargNetworkManager.Instance?.OnLocalNetworkPlayerReady(this);
 
-            if (!_songLibraryUploadStarted && isActiveAndEnabled)
+            if (isActiveAndEnabled)
             {
-                _songLibraryUploadStarted = true;
-                StartCoroutine(UploadSongLibrary());
+                EnsureSongLibraryUpload(restart: false);
             }
+        }
+
+        private void OnSongContainerRefreshed()
+        {
+            if (!_localAuthorityInitialized)
+            {
+                return;
+            }
+
+            EnsureSongLibraryUpload(restart: true);
+        }
+
+        private void EnsureSongLibraryUpload(bool restart)
+        {
+            if (!isClient || !IsLocalUser || !isActiveAndEnabled || !gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            if (YargNetworkManager.Instance == null || !YargNetworkManager.Instance.isNetworkActive || !NetworkClient.active)
+            {
+                return;
+            }
+
+            int currentVersion = YARG.Song.SongContainer.RefreshVersion;
+
+            if (!restart)
+            {
+                if (_lastUploadedSongVersion == currentVersion)
+                {
+                    return;
+                }
+
+                if (_songLibraryUploadRoutine != null)
+                {
+                    return;
+                }
+            }
+            else if (_lastUploadedSongVersion == currentVersion && _songLibraryUploadRoutine == null)
+            {
+                return;
+            }
+
+            if (_songLibraryUploadRoutine != null)
+            {
+                StopCoroutine(_songLibraryUploadRoutine);
+                _songLibraryUploadRoutine = null;
+            }
+
+            _songLibraryUploadRoutine = StartCoroutine(UploadSongLibrary());
         }
 
         private IEnumerator MeasurePing()
@@ -296,48 +374,64 @@ namespace YARG.Networking
         {
             const float MAX_WAIT_SECONDS = 10f;
             float waited = 0f;
-            while (YARG.Song.SongContainer.Count == 0 && waited < MAX_WAIT_SECONDS)
+
+            try
             {
-                yield return null;
-                waited += Time.unscaledDeltaTime;
-            }
-
-            var songsByHash = YARG.Song.SongContainer.SongsByHash;
-            var hashArray = songsByHash?.Keys.ToArray();
-            int totalSongs = hashArray?.Length ?? 0;
-
-            bool isFirstChunk = true;
-            if (totalSongs == 0)
-            {
-                CmdSubmitSongLibraryChunk(Array.Empty<byte>(), true, true);
-                yield break;
-            }
-
-            int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
-            int index = 0;
-
-            while (index < totalSongs)
-            {
-                int chunkSongCount = Math.Min(SONG_HASHES_PER_CHUNK, totalSongs - index);
-                using var stream = new MemoryStream(chunkSongCount * hashSize);
-
-                for (int i = 0; i < chunkSongCount; i++)
-                {
-                    hashArray![index + i].Serialize(stream);
-                }
-
-                byte[] chunk = stream.ToArray();
-                bool isFinalChunk = (index + chunkSongCount) >= totalSongs;
-                CmdSubmitSongLibraryChunk(chunk, isFirstChunk, isFinalChunk);
-
-                isFirstChunk = false;
-                index += chunkSongCount;
-
-                // Yield occasionally to avoid long stalls for extremely large libraries
-                if (index < totalSongs)
+                while (YARG.Song.SongContainer.Count == 0 && waited < MAX_WAIT_SECONDS)
                 {
                     yield return null;
+                    waited += Time.unscaledDeltaTime;
                 }
+
+                if (YargNetworkManager.Instance == null || !YargNetworkManager.Instance.isNetworkActive || !NetworkClient.active)
+                {
+                    yield break;
+                }
+
+                int refreshVersion = YARG.Song.SongContainer.RefreshVersion;
+                var hashList = YARG.Song.SongContainer.SongHashes;
+                int totalSongs = hashList.Count;
+
+                bool isFirstChunk = true;
+                if (totalSongs == 0)
+                {
+                    CmdSubmitSongLibraryChunk(Array.Empty<byte>(), true, true);
+                    _lastUploadedSongVersion = refreshVersion;
+                    yield break;
+                }
+
+                int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
+                int index = 0;
+
+                while (index < totalSongs)
+                {
+                    int chunkSongCount = Math.Min(SONG_HASHES_PER_CHUNK, totalSongs - index);
+                    using var stream = new MemoryStream(chunkSongCount * hashSize);
+
+                    for (int i = 0; i < chunkSongCount; i++)
+                    {
+                        hashList[index + i].Serialize(stream);
+                    }
+
+                    byte[] chunk = stream.ToArray();
+                    bool isFinalChunk = (index + chunkSongCount) >= totalSongs;
+                    CmdSubmitSongLibraryChunk(chunk, isFirstChunk, isFinalChunk);
+
+                    isFirstChunk = false;
+                    index += chunkSongCount;
+
+                    // Yield occasionally to avoid long stalls for extremely large libraries
+                    if (index < totalSongs)
+                    {
+                        yield return null;
+                    }
+                }
+
+                _lastUploadedSongVersion = refreshVersion;
+            }
+            finally
+            {
+                _songLibraryUploadRoutine = null;
             }
         }
 
