@@ -1830,7 +1830,7 @@ namespace YARG.Networking
 
         private static List<byte[]> BuildSharedSongChunks(HashSet<HashWrapper> hashes)
         {
-            const int maxChunkBytes = 8192;
+            const int maxChunkBytes = 32768;
             int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
             int hashesPerChunk = Math.Max(1, maxChunkBytes / hashSize);
 

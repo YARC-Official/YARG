@@ -21,7 +21,7 @@ namespace YARG.Networking
         private const int NOTES_DELTA_WARNING = 20;
         private const float LATENCY_WARNING_THRESHOLD_MS = 350f;
         private const double SNAPSHOT_OUT_OF_ORDER_LOG_COOLDOWN = 1.5d;
-        private const int SONG_HASHES_PER_CHUNK = 1024;
+        private const int SONG_HASHES_PER_CHUNK = 2048;
 
         [Header("Player Info")]
         [SyncVar(hook = nameof(OnPlayerNameChanged))]
@@ -39,7 +39,7 @@ namespace YARG.Networking
         {
             YARG.Song.SongContainer.SongsRefreshed += OnSongContainerRefreshed;
 
-            if (_localAuthorityInitialized)
+            if (isClient)
             {
                 EnsureSongLibraryUpload(restart: false);
             }
@@ -266,12 +266,24 @@ namespace YARG.Networking
         {
             base.OnStartLocalPlayer();
             InitializeLocalAuthority();
+            EnsureSongLibraryUpload(restart: false);
         }
 
         public override void OnStartAuthority()
         {
             base.OnStartAuthority();
             InitializeLocalAuthority();
+            EnsureSongLibraryUpload(restart: false);
+        }
+
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+
+            if (isClient && (isOwned || isLocalPlayer))
+            {
+                EnsureSongLibraryUpload(restart: false);
+            }
         }
 
         private void InitializeLocalAuthority()
@@ -316,7 +328,7 @@ namespace YARG.Networking
 
         private void EnsureSongLibraryUpload(bool restart)
         {
-            if (!isClient || !IsLocalUser || !isActiveAndEnabled || !gameObject.activeInHierarchy)
+            if (!isClient || (!IsLocalUser && !isOwned) || !isActiveAndEnabled || !gameObject.activeInHierarchy)
             {
                 return;
             }
