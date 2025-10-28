@@ -451,7 +451,7 @@ namespace YARG.Gameplay.Player
             }
 
             // Try to spawn lyrics and notes
-            UpdateSpawning(_totalHarms);
+            UpdateSpawning();
 
             // Fade on/off the starpower overlay
             bool starpowerActive = _vocalPlayers.Any(player => player.Engine.EngineStats.IsStarPowerActive);
