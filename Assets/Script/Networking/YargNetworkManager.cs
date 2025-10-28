@@ -12,6 +12,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
+using System.Diagnostics;
 using Cysharp.Threading.Tasks;
 using YARG.Networking.Bookmarks;
 using YARG.Networking.UPnP;
@@ -79,6 +80,10 @@ namespace YARG.Networking
         private HashSet<HashWrapper>? _sharedSongHashes;
         private bool _sharedSongSyncComplete = true;
         private bool _pendingSongSelectionBroadcast;
+        private readonly Dictionary<uint, Stopwatch> _songLibraryReceiveTimers = new();
+        private readonly Dictionary<uint, int> _songLibraryChunkCounts = new();
+        private readonly Dictionary<uint, int> _songLibraryReceivedHashes = new();
+        private readonly Dictionary<uint, long> _songLibraryReceivedBytes = new();
 
         private readonly HashSet<uint> _serverGameplayReadyPlayers = new();
         private bool _serverGameplayBarrierActive;
@@ -1680,14 +1685,35 @@ namespace YARG.Networking
                 _playerSongLibraries[netId] = new HashSet<HashWrapper>();
                 _playersPendingSongSync.Add(netId);
                 UpdateSharedSongSyncState();
+
+                if (!_songLibraryReceiveTimers.TryGetValue(netId, out var timer))
+                {
+                    timer = new Stopwatch();
+                    _songLibraryReceiveTimers[netId] = timer;
+                }
+
+                timer.Restart();
+                _songLibraryChunkCounts[netId] = 0;
+                _songLibraryReceivedHashes[netId] = 0;
+                _songLibraryReceivedBytes[netId] = 0;
+
+                LogInfo($"[SongSync] Player {netId} started uploading song hashes.");
             }
 
             var library = _playerSongLibraries[netId];
 
+            const int headerSize = 5;
+            int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
+
+            int processedHashes = 0;
+            int rawLength = 0;
+            int totalRead = 0;
+            bool isCompressed = false;
+            double chunkElapsedMs = 0d;
+
             if (chunk.Length > 0)
             {
-                const int headerSize = 5;
-                int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
+                var chunkStopwatch = Stopwatch.StartNew();
 
                 if (chunk.Length < headerSize)
                 {
@@ -1695,8 +1721,9 @@ namespace YARG.Networking
                 }
                 else
                 {
-                    bool isCompressed = chunk[0] == 1;
-                    int rawLength = BinaryPrimitives.ReadInt32LittleEndian(chunk.AsSpan(1, 4));
+                    isCompressed = chunk[0] == 1;
+                    rawLength = BinaryPrimitives.ReadInt32LittleEndian(chunk.AsSpan(1, 4));
+                    totalRead = rawLength;
 
                     if (rawLength < 0)
                     {
@@ -1710,7 +1737,6 @@ namespace YARG.Networking
                     {
                         ReadOnlySpan<byte> payloadSpan = ReadOnlySpan<byte>.Empty;
                         byte[] rentedBuffer = null;
-                        int totalRead = rawLength;
 
                         try
                         {
@@ -1760,6 +1786,8 @@ namespace YARG.Networking
                             }
                             else
                             {
+                                processedHashes = totalRead / hashSize;
+
                                 for (int offset = 0; offset < totalRead; offset += hashSize)
                                 {
                                     var hash = HashWrapper.Create(payloadSpan.Slice(offset, hashSize));
@@ -1776,11 +1804,56 @@ namespace YARG.Networking
                         }
                     }
                 }
+
+                chunkStopwatch.Stop();
+                chunkElapsedMs = chunkStopwatch.Elapsed.TotalMilliseconds;
+            }
+
+            _songLibraryChunkCounts.TryGetValue(netId, out int previousChunkCount);
+            int currentChunk = previousChunkCount + 1;
+            _songLibraryChunkCounts[netId] = currentChunk;
+
+            if (processedHashes > 0)
+            {
+                _songLibraryReceivedHashes.TryGetValue(netId, out int previousHashes);
+                _songLibraryReceivedHashes[netId] = previousHashes + processedHashes;
+
+                _songLibraryReceivedBytes.TryGetValue(netId, out long previousBytes);
+                _songLibraryReceivedBytes[netId] = previousBytes + (long)processedHashes * hashSize;
+            }
+
+            if (chunk.Length > 0)
+            {
+                LogInfo($"[SongSync] Player {netId}: chunk {currentChunk} processed {processedHashes} hashes (raw: {rawLength} bytes, decompressed: {totalRead} bytes, compressed: {isCompressed}) in {chunkElapsedMs:F2} ms.");
+            }
+            else
+            {
+                LogInfo($"[SongSync] Player {netId}: chunk {currentChunk} contained no payload (isFirst:{isFirstChunk}, isFinal:{isFinalChunk}).");
             }
 
             if (isFinalChunk)
             {
                 _playersPendingSongSync.Remove(netId);
+
+                _songLibraryReceiveTimers.TryGetValue(netId, out var overallTimer);
+                if (overallTimer != null)
+                {
+                    overallTimer.Stop();
+                }
+
+                _songLibraryChunkCounts.TryGetValue(netId, out int totalChunks);
+                _songLibraryReceivedHashes.TryGetValue(netId, out int totalHashes);
+                _songLibraryReceivedBytes.TryGetValue(netId, out long totalBytes);
+
+                double totalMs = overallTimer?.Elapsed.TotalMilliseconds ?? 0d;
+                float totalKiB = totalBytes / 1024f;
+                LogInfo($"[SongSync] Player {netId} upload complete in {totalMs:F2} ms ({totalHashes} hashes, {totalKiB:F1} KiB across {totalChunks} chunks). Library now stores {library.Count} unique hashes.");
+
+                _songLibraryReceiveTimers.Remove(netId);
+                _songLibraryChunkCounts.Remove(netId);
+                _songLibraryReceivedHashes.Remove(netId);
+                _songLibraryReceivedBytes.Remove(netId);
+
                 RecalculateSharedSongs();
             }
         }
@@ -1806,6 +1879,10 @@ namespace YARG.Networking
 
             _playerSongLibraries.Remove(playerData.netId);
             _playersPendingSongSync.Remove(playerData.netId);
+            _songLibraryReceiveTimers.Remove(playerData.netId);
+            _songLibraryChunkCounts.Remove(playerData.netId);
+            _songLibraryReceivedHashes.Remove(playerData.netId);
+            _songLibraryReceivedBytes.Remove(playerData.netId);
             UpdateSharedSongSyncState();
         }
 
@@ -1838,14 +1915,18 @@ namespace YARG.Networking
                 return;
             }
 
-            if (_playerSongLibraries.Count == 0)
+            int playerCount = _playerSongLibraries.Count;
+
+            if (playerCount == 0)
             {
                 _sharedSongHashes = null;
                 BroadcastSharedSongs();
                 UpdateSharedSongSyncState();
+                LogInfo("[SongSync] Shared song intersection skipped (no player libraries available).");
                 return;
             }
 
+            var recalcTimer = Stopwatch.StartNew();
             HashSet<HashWrapper>? intersection = null;
             foreach (var library in _playerSongLibraries.Values)
             {
@@ -1865,6 +1946,9 @@ namespace YARG.Networking
             }
 
             _sharedSongHashes = intersection ?? new HashSet<HashWrapper>();
+            recalcTimer.Stop();
+            int sharedCount = _sharedSongHashes.Count;
+            LogInfo($"[SongSync] Shared song intersection for {playerCount} players computed in {recalcTimer.Elapsed.TotalMilliseconds:F2} ms (shared hashes: {sharedCount}).");
             BroadcastSharedSongs();
             UpdateSharedSongSyncState();
         }
@@ -1876,7 +1960,17 @@ namespace YARG.Networking
                 return;
             }
 
+            var broadcastTimer = Stopwatch.StartNew();
+
             var players = GetAllPlayers();
+            int targetPlayerCount = 0;
+            foreach (var player in players)
+            {
+                if (player != null)
+                {
+                    targetPlayerCount++;
+                }
+            }
 
             if (_sharedSongHashes == null)
             {
@@ -1886,10 +1980,23 @@ namespace YARG.Networking
                 }
 
                 MultiplayerSongFilter.ClearSharedSongs();
+                broadcastTimer.Stop();
+                LogInfo($"[SongSync] Cleared shared songs for {targetPlayerCount} players in {broadcastTimer.Elapsed.TotalMilliseconds:F2} ms.");
                 return;
             }
 
+            var chunkBuildTimer = Stopwatch.StartNew();
             var chunks = BuildSharedSongChunks(_sharedSongHashes);
+            chunkBuildTimer.Stop();
+
+            int totalChunks = chunks.Count;
+            int totalBytes = 0;
+            foreach (var chunk in chunks)
+            {
+                totalBytes += chunk.Length;
+            }
+
+            LogInfo($"[SongSync] Prepared {totalChunks} shared-song chunks ({_sharedSongHashes.Count} hashes, {totalBytes / 1024f:F1} KiB) in {chunkBuildTimer.Elapsed.TotalMilliseconds:F2} ms.");
 
             foreach (var player in players)
             {
@@ -1906,6 +2013,9 @@ namespace YARG.Networking
                     isFirstChunk = false;
                 }
             }
+
+            broadcastTimer.Stop();
+            LogInfo($"[SongSync] Broadcast shared songs to {targetPlayerCount} players in {broadcastTimer.Elapsed.TotalMilliseconds:F2} ms.");
         }
 
         private static List<byte[]> BuildSharedSongChunks(HashSet<HashWrapper> hashes)
@@ -1945,6 +2055,10 @@ namespace YARG.Networking
             _playersPendingSongSync.Clear();
             _sharedSongHashes = null;
             _pendingSongSelectionBroadcast = false;
+            _songLibraryReceiveTimers.Clear();
+            _songLibraryChunkCounts.Clear();
+            _songLibraryReceivedHashes.Clear();
+            _songLibraryReceivedBytes.Clear();
             MultiplayerSongFilter.ClearSharedSongs();
             UpdateSharedSongSyncState();
         }

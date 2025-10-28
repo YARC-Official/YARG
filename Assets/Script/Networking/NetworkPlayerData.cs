@@ -2,11 +2,13 @@ using System;
 using System.Buffers.Binary;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Mirror;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using YARG;
 using YARG.Core.Song;
 using YARG.Gameplay;
@@ -423,7 +425,21 @@ namespace YARG.Networking
                 var hashList = YARG.Song.SongContainer.SongHashes;
                 int totalSongs = hashList.Count;
 
-                EnsureSongHashChunks(refreshVersion, hashList);
+                var chunkBuildTimer = Stopwatch.StartNew();
+                bool rebuiltChunks = EnsureSongHashChunks(refreshVersion, hashList);
+                chunkBuildTimer.Stop();
+
+                var chunkList = _songHashChunks;
+                int chunkCount = chunkList?.Count ?? 0;
+                int totalBytes = totalSongs * HashWrapper.HASH_SIZE_IN_BYTES;
+
+                if (totalSongs > 0)
+                {
+                    string buildMessage = rebuiltChunks
+                        ? $"[NetworkPlayerData] Built song-hash chunk cache in {chunkBuildTimer.Elapsed.TotalMilliseconds:F2} ms (songs: {totalSongs}, chunks: {chunkCount}, bytes: {totalBytes / 1024f:F1} KiB)."
+                        : $"[NetworkPlayerData] Reused cached song-hash chunks ({chunkCount}) after {chunkBuildTimer.Elapsed.TotalMilliseconds:F2} ms (songs: {totalSongs}).";
+                    Debug.Log(buildMessage);
+                }
 
                 bool isFirstChunk = true;
                 if (totalSongs == 0)
@@ -433,7 +449,6 @@ namespace YARG.Networking
                     yield break;
                 }
 
-                var chunkList = _songHashChunks;
                 if (chunkList == null || chunkList.Count == 0)
                 {
                     Debug.LogWarning("[NetworkPlayerData] Expected cached song-hash chunks but none were generated.");
@@ -442,8 +457,8 @@ namespace YARG.Networking
                     yield break;
                 }
 
+                var sendTimer = Stopwatch.StartNew();
                 int chunkIndex = 0;
-                int chunkCount = chunkList.Count;
 
                 while (chunkIndex < chunkCount)
                 {
@@ -461,6 +476,10 @@ namespace YARG.Networking
                         yield return null;
                     }
                 }
+
+                sendTimer.Stop();
+                int estimatedFrames = Mathf.Max(1, Mathf.CeilToInt((float)chunkCount / SONG_LIBRARY_CHUNKS_PER_FRAME));
+                Debug.Log($"[NetworkPlayerData] Sent {chunkCount} song-hash chunks ({totalSongs} songs) in {sendTimer.Elapsed.TotalMilliseconds:F2} ms (~{estimatedFrames} frames).");
 
                 _lastUploadedSongVersion = refreshVersion;
             }
@@ -505,13 +524,13 @@ namespace YARG.Networking
             _songHashBlobVersion = refreshVersion;
         }
 
-        private void EnsureSongHashChunks(int refreshVersion, IReadOnlyList<HashWrapper> hashList)
+        private bool EnsureSongHashChunks(int refreshVersion, IReadOnlyList<HashWrapper> hashList)
         {
             EnsureSongHashBlob(refreshVersion, hashList);
 
             if (_songHashChunks != null && _songHashChunksVersion == refreshVersion)
             {
-                return;
+                return false;
             }
 
             if (_songHashChunks == null)
@@ -527,7 +546,7 @@ namespace YARG.Networking
 
             if (hashList.Count == 0)
             {
-                return;
+                return true;
             }
 
             int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
@@ -542,6 +561,8 @@ namespace YARG.Networking
                 _songHashChunks.Add(CreateSongLibraryChunk(_songHashBlob, byteOffset, rawLength));
                 index += chunkSongCount;
             }
+
+            return true;
         }
 
         private static byte[] CreateSongLibraryChunk(byte[] hashBlob, int byteOffset, int rawLength)
