@@ -407,10 +407,13 @@ namespace YARG.Networking
         {
             const float MAX_WAIT_SECONDS = 10f;
             float waited = 0f;
+            int initialRefreshVersion = YARG.Song.SongContainer.RefreshVersion;
 
             try
             {
-                while (YARG.Song.SongContainer.Count == 0 && waited < MAX_WAIT_SECONDS)
+                while (YARG.Song.SongContainer.Count == 0 &&
+                       YARG.Song.SongContainer.RefreshVersion == initialRefreshVersion &&
+                       waited < MAX_WAIT_SECONDS)
                 {
                     yield return null;
                     waited += Time.unscaledDeltaTime;
