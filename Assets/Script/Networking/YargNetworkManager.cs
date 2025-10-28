@@ -2,8 +2,11 @@ using Mirror;
 using kcp2k;
 using UnityEngine;
 using System;
+using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -1683,17 +1686,94 @@ namespace YARG.Networking
 
             if (chunk.Length > 0)
             {
+                const int headerSize = 5;
                 int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
-                if (chunk.Length % hashSize != 0)
+
+                if (chunk.Length < headerSize)
                 {
-                    LogWarning($"[YargNetworkManager] Song library chunk from player {netId} had invalid size ({chunk.Length}). Ignoring remainder.");
+                    LogWarning($"[YargNetworkManager] Song library chunk from player {netId} was too small ({chunk.Length}).");
                 }
                 else
                 {
-                    for (int offset = 0; offset < chunk.Length; offset += hashSize)
+                    bool isCompressed = chunk[0] == 1;
+                    int rawLength = BinaryPrimitives.ReadInt32LittleEndian(chunk.AsSpan(1, 4));
+
+                    if (rawLength < 0)
                     {
-                        var hash = HashWrapper.Create(new ReadOnlySpan<byte>(chunk, offset, hashSize));
-                        library.Add(hash);
+                        LogWarning($"[YargNetworkManager] Song library chunk from player {netId} had negative payload length.");
+                    }
+                    else if (rawLength == 0)
+                    {
+                        // No hashes in this chunk.
+                    }
+                    else
+                    {
+                        ReadOnlySpan<byte> payloadSpan = ReadOnlySpan<byte>.Empty;
+                        byte[] rentedBuffer = null;
+                        int totalRead = rawLength;
+
+                        try
+                        {
+                            if (isCompressed)
+                            {
+                                rentedBuffer = ArrayPool<byte>.Shared.Rent(Math.Max(rawLength, 1));
+                                totalRead = 0;
+
+                                try
+                                {
+                                    using var compressedStream = new MemoryStream(chunk, headerSize, chunk.Length - headerSize);
+                                    using var deflate = new DeflateStream(compressedStream, CompressionMode.Decompress);
+
+                                    while (totalRead < rawLength)
+                                    {
+                                        int read = deflate.Read(rentedBuffer, totalRead, rawLength - totalRead);
+                                        if (read == 0)
+                                        {
+                                            break;
+                                        }
+                                        totalRead += read;
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    LogWarning($"[YargNetworkManager] Failed to decompress song library chunk from player {netId}: {ex.Message}");
+                                    totalRead = 0;
+                                }
+
+                                payloadSpan = new ReadOnlySpan<byte>(rentedBuffer, 0, Math.Max(totalRead, 0));
+                            }
+                            else
+                            {
+                                int availableBytes = Math.Min(rawLength, chunk.Length - headerSize);
+                                payloadSpan = new ReadOnlySpan<byte>(chunk, headerSize, Math.Max(availableBytes, 0));
+
+                                if (availableBytes != rawLength)
+                                {
+                                    LogWarning($"[YargNetworkManager] Song library chunk from player {netId} expected {rawLength} bytes but received {availableBytes}.");
+                                    totalRead = availableBytes;
+                                }
+                            }
+
+                            if (totalRead % hashSize != 0)
+                            {
+                                LogWarning($"[YargNetworkManager] Song library chunk from player {netId} had misaligned data ({totalRead} bytes).");
+                            }
+                            else
+                            {
+                                for (int offset = 0; offset < totalRead; offset += hashSize)
+                                {
+                                    var hash = HashWrapper.Create(payloadSpan.Slice(offset, hashSize));
+                                    library.Add(hash);
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            if (rentedBuffer != null)
+                            {
+                                ArrayPool<byte>.Shared.Return(rentedBuffer);
+                            }
+                        }
                     }
                 }
             }

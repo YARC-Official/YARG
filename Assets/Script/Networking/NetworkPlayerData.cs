@@ -1,7 +1,10 @@
 using System;
+using System.Buffers.Binary;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Mirror;
 using UnityEngine;
 using YARG;
@@ -56,6 +59,8 @@ namespace YARG.Networking
             }
 
             _lastUploadedSongVersion = -1;
+            _songHashBlob = null;
+            _songHashBlobVersion = -1;
         }
 
         private void OnDestroy()
@@ -189,6 +194,8 @@ namespace YARG.Networking
         private bool _localAuthorityInitialized;
         private Coroutine _songLibraryUploadRoutine;
         private int _lastUploadedSongVersion = -1;
+        private byte[] _songHashBlob;
+        private int _songHashBlobVersion = -1;
 
         // Events
         public event Action<string> OnPlayerNameChangedEvent;
@@ -323,6 +330,9 @@ namespace YARG.Networking
                 return;
             }
 
+            _songHashBlob = null;
+            _songHashBlobVersion = -1;
+
             EnsureSongLibraryUpload(restart: true);
         }
 
@@ -404,6 +414,9 @@ namespace YARG.Networking
                 var hashList = YARG.Song.SongContainer.SongHashes;
                 int totalSongs = hashList.Count;
 
+                EnsureSongHashBlob(refreshVersion, hashList);
+                byte[] hashBlob = _songHashBlob ?? Array.Empty<byte>();
+
                 bool isFirstChunk = true;
                 if (totalSongs == 0)
                 {
@@ -412,20 +425,12 @@ namespace YARG.Networking
                     yield break;
                 }
 
-                int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
                 int index = 0;
 
                 while (index < totalSongs)
                 {
                     int chunkSongCount = Math.Min(SONG_HASHES_PER_CHUNK, totalSongs - index);
-                    using var stream = new MemoryStream(chunkSongCount * hashSize);
-
-                    for (int i = 0; i < chunkSongCount; i++)
-                    {
-                        hashList[index + i].Serialize(stream);
-                    }
-
-                    byte[] chunk = stream.ToArray();
+                    byte[] chunk = BuildSongLibraryChunk(hashBlob, index, chunkSongCount);
                     bool isFinalChunk = (index + chunkSongCount) >= totalSongs;
                     CmdSubmitSongLibraryChunk(chunk, isFirstChunk, isFinalChunk);
 
@@ -445,6 +450,77 @@ namespace YARG.Networking
             {
                 _songLibraryUploadRoutine = null;
             }
+        }
+
+        private void EnsureSongHashBlob(int refreshVersion, IReadOnlyList<HashWrapper> hashList)
+        {
+            if (_songHashBlob != null &&
+                _songHashBlobVersion == refreshVersion &&
+                _songHashBlob.Length == hashList.Count * HashWrapper.HASH_SIZE_IN_BYTES)
+            {
+                return;
+            }
+
+            if (hashList.Count == 0)
+            {
+                _songHashBlob = Array.Empty<byte>();
+                _songHashBlobVersion = refreshVersion;
+                return;
+            }
+
+            int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
+            int totalBytes = hashList.Count * hashSize;
+
+            if (_songHashBlob == null || _songHashBlob.Length != totalBytes)
+            {
+                _songHashBlob = new byte[totalBytes];
+            }
+
+            Span<byte> span = new Span<byte>(_songHashBlob, 0, totalBytes);
+            int offset = 0;
+            for (int i = 0; i < hashList.Count; i++)
+            {
+                CopyHashToSpan(hashList[i], span.Slice(offset, hashSize));
+                offset += hashSize;
+            }
+
+            _songHashBlobVersion = refreshVersion;
+        }
+
+        private static byte[] BuildSongLibraryChunk(byte[] hashBlob, int startIndex, int count)
+        {
+            const int headerSize = 5;
+            int hashSize = HashWrapper.HASH_SIZE_IN_BYTES;
+
+            if (count <= 0)
+            {
+                byte[] emptyChunk = new byte[headerSize];
+                BinaryPrimitives.WriteInt32LittleEndian(emptyChunk.AsSpan(1, 4), 0);
+                return emptyChunk;
+            }
+
+            int rawLength = count * hashSize;
+            byte[] chunk = new byte[headerSize + rawLength];
+            chunk[0] = 0;
+            BinaryPrimitives.WriteInt32LittleEndian(chunk.AsSpan(1, 4), rawLength);
+
+            if (rawLength > 0)
+            {
+                Buffer.BlockCopy(hashBlob, startIndex * hashSize, chunk, headerSize, rawLength);
+            }
+
+            return chunk;
+        }
+
+        private static void CopyHashToSpan(HashWrapper hash, Span<byte> destination)
+        {
+            if (destination.Length < HashWrapper.HASH_SIZE_IN_BYTES)
+            {
+                throw new ArgumentException("Destination span is too small.", nameof(destination));
+            }
+
+            ReadOnlySpan<byte> source = MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref hash, 1));
+            source.Slice(0, HashWrapper.HASH_SIZE_IN_BYTES).CopyTo(destination);
         }
 
         [Command]
