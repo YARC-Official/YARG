@@ -268,6 +268,11 @@ namespace YARG.Menu.Multiplayer
 
         private void OnSharedSongSyncStateChanged(bool ready)
         {
+            if (isHost && !ready)
+            {
+                _waitingForSongSync = true;
+            }
+
             bool disableBrowse = !ready || _waitingForSongSync;
 
             if (browseSongsButton != null)
