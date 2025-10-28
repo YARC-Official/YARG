@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using Mirror;
 using UnityEngine;
 using YARG;
@@ -20,7 +21,7 @@ namespace YARG.Networking
         private const int NOTES_DELTA_WARNING = 20;
         private const float LATENCY_WARNING_THRESHOLD_MS = 350f;
         private const double SNAPSHOT_OUT_OF_ORDER_LOG_COOLDOWN = 1.5d;
-        private const int SONG_HASHES_PER_CHUNK = 256;
+        private const int SONG_HASHES_PER_CHUNK = 1024;
 
         [Header("Player Info")]
         [SyncVar(hook = nameof(OnPlayerNameChanged))]
@@ -301,8 +302,9 @@ namespace YARG.Networking
                 waited += Time.unscaledDeltaTime;
             }
 
-            var songs = YARG.Song.SongContainer.Songs;
-            int totalSongs = songs?.Length ?? 0;
+            var songsByHash = YARG.Song.SongContainer.SongsByHash;
+            var hashArray = songsByHash?.Keys.ToArray();
+            int totalSongs = hashArray?.Length ?? 0;
 
             bool isFirstChunk = true;
             if (totalSongs == 0)
@@ -317,12 +319,11 @@ namespace YARG.Networking
             while (index < totalSongs)
             {
                 int chunkSongCount = Math.Min(SONG_HASHES_PER_CHUNK, totalSongs - index);
-                int estimatedBytes = chunkSongCount * hashSize;
-                using var stream = new MemoryStream(estimatedBytes);
+                using var stream = new MemoryStream(chunkSongCount * hashSize);
 
                 for (int i = 0; i < chunkSongCount; i++)
                 {
-                    songs[index + i].Hash.Serialize(stream);
+                    hashArray![index + i].Serialize(stream);
                 }
 
                 byte[] chunk = stream.ToArray();
@@ -332,8 +333,11 @@ namespace YARG.Networking
                 isFirstChunk = false;
                 index += chunkSongCount;
 
-                // Yield so we do not stall the main thread if song libraries are large
-                yield return null;
+                // Yield occasionally to avoid long stalls for extremely large libraries
+                if (index < totalSongs)
+                {
+                    yield return null;
+                }
             }
         }
 
