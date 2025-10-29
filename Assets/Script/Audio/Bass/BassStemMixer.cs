@@ -3,20 +3,26 @@ using System.IO;
 using System.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Mix;
+using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Helpers;
+using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
     public sealed class BassStemMixer : StemMixer
     {
-        private readonly int _mixerHandle;
+        private const    float WHAMMY_SYNC_INTERVAL_SECONDS = 1f;
+        private          bool  IsWhammyEnabled => SettingsManager.Settings.UseWhammyFx.Value;
 
-        private StemChannel _mainChannel;
+        private readonly int   _mixerHandle;
+        private StemChannel  _mainChannel;
         private StreamHandle _mainHandle;
-        private int _songEndHandle;
-        private float _speed;
+        private int          _songEndHandle;
+        private float        _speed;
+        private Timer        _whammySyncTimer;
 
         public override event Action SongEnd
         {
@@ -49,8 +55,8 @@ namespace YARG.Audio.BASS
         {
             _mixerHandle = handle;
             _speed = speed;
+            _whammySyncTimer = new Timer();
             SetVolume_Internal(volume);
-            _BufferSetter(Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value, Bass.PlaybackBufferLength);
         }
 
         protected override int Play_Internal(bool restartBuffer)
@@ -60,14 +66,28 @@ namespace YARG.Audio.BASS
                 return (int) Bass.LastError;
             }
 
-            if (Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value)
+            if (IsWhammyEnabled)
             {
-                if (!Bass.ChannelUpdate(_mixerHandle, Bass.PlaybackBufferLength))
+                _whammySyncTimer.Start(WHAMMY_SYNC_INTERVAL_SECONDS, SyncWhammyDrift);
+            }
+
+            return 0;
+        }
+
+        /// <summary>.
+        /// The BASS PitchShift effect causes the stem playback to drift over time.
+        /// It was discovered that we can correct the drift by setting the whammy pitch
+        /// to 0% when no pitch shift is applied.
+        /// </summary>
+        private void SyncWhammyDrift()
+        {
+            foreach (var channel in Channels)
+            {
+                if (Mathf.Approximately(channel.GetWhammyPitch(), 1.0f))
                 {
-                    YargLogger.LogFormatError("Failed to fill playback buffer: {0}!", Bass.LastError);
+                    channel.SetWhammyPitch(percent: 0.0f);
                 }
             }
-            return 0;
         }
 
         protected override void FadeIn_Internal(double maxVolume, double duration)
@@ -284,7 +304,7 @@ namespace YARG.Audio.BASS
 
         protected override void SetBufferLength_Internal(int length)
         {
-            _BufferSetter(Settings.SettingsManager.Settings.EnablePlaybackBuffer.Value, length);
+            _BufferSetter(SettingsManager.Settings.EnablePlaybackBuffer.Value, length);
         }
 
         private void _BufferSetter(bool enable, int length)
@@ -302,6 +322,8 @@ namespace YARG.Audio.BASS
 
         protected override void DisposeManagedResources()
         {
+            _whammySyncTimer.Stop();
+            _whammySyncTimer = null;
             if (_channels.Count == 0)
             {
                 _mainHandle?.Dispose();

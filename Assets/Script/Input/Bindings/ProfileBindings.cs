@@ -269,14 +269,17 @@ namespace YARG.Input
             return MenuBindings.ContainsBindingsForDevice(device);
         }
 
-        public void ClearBindingsForDevice(InputDevice device)
+        public void ClearBindingsForDevice(InputDevice device, bool clearMenuBindings = true)
         {
             foreach (var bindings in _bindsByGameMode.Values)
             {
                 bindings.ClearBindingsForDevice(device);
             }
 
-            MenuBindings.ClearBindingsForDevice(device);
+            if (clearMenuBindings)
+            {
+                MenuBindings.ClearBindingsForDevice(device);
+            }
         }
 
         public void ClearAllBindings()

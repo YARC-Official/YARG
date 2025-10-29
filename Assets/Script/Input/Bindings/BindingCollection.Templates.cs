@@ -89,6 +89,36 @@ namespace YARG.Input
 
         public static BindingCollection CreateEliteDrumsBindings() => new(GameMode.EliteDrums)
         {
+            new DrumPadButtonBinding("Drums.Kick", (int) EliteDrumsAction.Kick),
+
+            /*
+            new DrumPadButtonBinding("EliteDrums.Stomp", (int) EliteDrumsAction.EliteStomp),
+            new DrumPadButtonBinding("EliteDrums.Splash", (int) EliteDrumsAction.EliteSplash),
+            new DrumPadButtonBinding("EliteDrums.Snare", (int) EliteDrumsAction.EliteSnare),
+            new DrumPadButtonBinding("EliteDrums.ClosedHiHat", (int) EliteDrumsAction.EliteClosedHiHat),
+            new DrumPadButtonBinding("EliteDrums.SizzleHiHat", (int) EliteDrumsAction.EliteSizzleHiHat),
+            new DrumPadButtonBinding("EliteDrums.OpenHiHat", (int) EliteDrumsAction.EliteOpenHiHat),
+            new DrumPadButtonBinding("EliteDrums.LeftCrash", (int) EliteDrumsAction.EliteLeftCrash),
+            new DrumPadButtonBinding("EliteDrums.Tom1", (int) EliteDrumsAction.EliteTom1),
+            new DrumPadButtonBinding("EliteDrums.Tom2", (int) EliteDrumsAction.EliteTom2),
+            new DrumPadButtonBinding("EliteDrums.Tom3", (int) EliteDrumsAction.EliteTom3),
+            new DrumPadButtonBinding("EliteDrums.Ride", (int) EliteDrumsAction.EliteRide),
+            new DrumPadButtonBinding("EliteDrums.RightCrash", (int) EliteDrumsAction.EliteRightCrash),
+            */
+
+            new DrumPadButtonBinding("EliteDrums.FourLaneRedDrum", (int) EliteDrumsAction.FourLaneRedDrum),
+            new DrumPadButtonBinding("EliteDrums.FourLaneYellowDrum", (int) EliteDrumsAction.FourLaneYellowDrum),
+            new DrumPadButtonBinding("EliteDrums.FourLaneBlueDrum", (int) EliteDrumsAction.FourLaneBlueDrum),
+            new DrumPadButtonBinding("EliteDrums.FourLaneGreenDrum", (int) EliteDrumsAction.FourLaneGreenDrum),
+            new DrumPadButtonBinding("EliteDrums.FourLaneYellowCymbal", (int) EliteDrumsAction.FourLaneYellowCymbal),
+            new DrumPadButtonBinding("EliteDrums.FourLaneBlueCymbal", (int) EliteDrumsAction.FourLaneBlueCymbal),
+            new DrumPadButtonBinding("EliteDrums.FourLaneGreenCymbal", (int) EliteDrumsAction.FourLaneGreenCymbal),
+                                      
+            new DrumPadButtonBinding("EliteDrums.FiveLaneRedDrum", (int) EliteDrumsAction.FiveLaneRedDrum),
+            new DrumPadButtonBinding("EliteDrums.FiveLaneBlueDrum", (int) EliteDrumsAction.FiveLaneBlueDrum),
+            new DrumPadButtonBinding("EliteDrums.FiveLaneGreenDrum", (int) EliteDrumsAction.FiveLaneGreenDrum),
+            new DrumPadButtonBinding("EliteDrums.FiveLaneYellowCymbal", (int) EliteDrumsAction.FiveLaneYellowCymbal),
+            new DrumPadButtonBinding("EliteDrums.FiveLaneOrangeCymbal", (int) EliteDrumsAction.FiveLaneOrangeCymbal)
         };
 
         public static BindingCollection CreateProGuitarBindings() => new(GameMode.ProGuitar)

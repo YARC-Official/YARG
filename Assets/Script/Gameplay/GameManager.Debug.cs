@@ -298,11 +298,13 @@ namespace YARG.Gameplay
                 text.AppendFormat("- Sustain score: {0}\n", stats.SustainScore);
                 text.AppendFormat("- Star Power score: {0}\n", stats.StarPowerScore);
                 text.AppendFormat("- Solo bonus score: {0}\n", stats.SoloBonuses);
+                text.AppendFormat("- Band bonus score: {0}\n", stats.BandBonusScore);
                 text.AppendLine();
                 text.AppendLine("Combo stats:");
                 text.AppendFormat("- Combo: {0}\n", stats.Combo);
                 text.AppendFormat("- Max combo: {0}\n", stats.MaxCombo);
                 text.AppendFormat("- Multiplier: {0}\n", stats.ScoreMultiplier);
+                text.AppendFormat("- Band Bonus Multiplier: {0}\n", stats.BandBonusMultiplier);
                 text.AppendLine();
                 text.AppendFormat("- Notes hit: {0}/{1}\n", stats.NotesHit, stats.TotalNotes);
                 text.AppendFormat("- Notes missed: {0}\n", stats.NotesMissed);
@@ -655,6 +657,9 @@ namespace YARG.Gameplay
                 ref _debugLightingScroll, GUILayout.Height(50 * _debugGuiScale)))
             {
                 using var text = ZString.CreateStringBuilder(true);
+
+                text.AppendFormat("Target Venue FPS: {0:00}\n", VenueCameraRenderer.TargetFPS);
+                text.AppendFormat("Actual Venue FPS: {0:00}\n", VenueCameraRenderer.ActualFPS);
 
                 text.AppendFormat("Lighting index: {0:000}/{1:000}\n",
                     MasterLightingGameplayMonitor.LightingIndex,

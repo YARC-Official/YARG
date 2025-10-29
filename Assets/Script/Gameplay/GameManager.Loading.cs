@@ -6,6 +6,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
@@ -309,6 +310,14 @@ namespace YARG.Gameplay
 
         private void GenerateVenueTrack()
         {
+            // If we have no venue events, attempt to load from milo
+            if (Chart.VenueTrack.IsEmpty)
+            {
+                    SongChart.LoadVenueFromMilo(Chart, Song);
+
+                    YargLogger.LogFormatWarning("Loaded {0} lighting events from milo", Chart.VenueTrack.Lighting.Count);
+            }
+
             if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
             {
                 var preset = new VenueAutoGenerationPreset(VenueAutoGenerationPreset.DefaultPath);
@@ -321,12 +330,6 @@ namespace YARG.Gameplay
                 {
                     Chart = preset.GenerateLightingEvents(Chart);
                 }
-
-                // TODO: add when characters and camera events are present in game
-                // if (Chart.VenueTrack.Camera.Count == 0)
-                // {
-                //     Chart = autoGenerationPreset.GenerateCameraCutEvents(Chart);
-                // }
             }
         }
 
@@ -415,6 +418,7 @@ namespace YARG.Gameplay
                             GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
                             GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
                             GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
+                            GameMode.EliteDrums     => Song.HasInstrument(Instrument.FiveLaneDrums) ? _fiveLaneDrumsPrefab : _fourLaneDrumsPrefab,
                             GameMode.ProKeys        => player.Profile.CurrentInstrument is Instrument.ProKeys ? _proKeysPrefab : _fiveLaneKeysPrefab,
                             GameMode.ProGuitar      => _proGuitarPrefab,
                             _                       => null
