@@ -113,8 +113,8 @@ namespace YARG.EditorTools
                 }
 
                 string address = entry.address;
-                settings.RemoveAssetEntry(entry.guid, group, postEvent: false);
-                var newEntry = settings.CreateOrMoveEntry(spriteGuid, group, readOnly: false, postEvent: false);
+                settings.RemoveAssetEntry(entry.guid, group, false);
+                var newEntry = settings.CreateOrMoveEntry(spriteGuid, group, false, false);
                 newEntry.SetAddress(address);
                 modified = true;
                 Debug.Log($"[MacMaintenanceTools] Rebound tab icon '{address}' to sprite GUID {spriteGuid}.");
