@@ -15,15 +15,10 @@ namespace YARG.EditorTools
     /// </summary>
     public static class MacMaintenanceTools
     {
-        private const string TAB_ICONS_GROUP_NAME = "TabIcons";
-        private static readonly string[] TabIconKeys =
+        private static readonly string[] SpriteSearchFolders =
         {
-            "Engine",
-            "Songs",
-            "Sound",
-            "Display",
-            "Customization",
-            "Generic"
+            "Assets/Art/UI/TabIcons",
+            "Assets/Art/Menu/Common/Icons"
         };
 
         [MenuItem("Tools/YARG/Fix Mac Setup")] 
@@ -35,7 +30,7 @@ namespace YARG.EditorTools
                 FixTabIconAddressables();
 
                 EditorUtility.DisplayProgressBar("YARG Mac Setup", "Reimporting critical assets", 0.4f);
-                ForceReimport("Assets/Prefabs/SettingPreviews/Track.prefab");
+                ForceReimport("Assets/Prefabs/SettingPreviews/Track/TrackPreview.prefab");
                 ForceReimport("Assets/Script/Audio");
 
                 EditorUtility.DisplayProgressBar("YARG Mac Setup", "Syncing Discord plugin settings", 0.65f);
@@ -69,34 +64,48 @@ namespace YARG.EditorTools
                 return;
             }
 
-            var group = settings.groups.FirstOrDefault(g => g != null && g.name == TAB_ICONS_GROUP_NAME);
-            if (group == null)
+            var entries = new List<(AddressableAssetEntry entry, AddressableAssetGroup group)>();
+            foreach (var group in settings.groups)
             {
-                Debug.LogWarning($"[MacMaintenanceTools] Addressables group '{TAB_ICONS_GROUP_NAME}' not found. Skipping tab icon fixes.");
-                return;
-            }
-
-            const string tabIconFolder = "Assets/Art/UI/TabIcons";
-            var spriteMap = BuildSpriteLookup(tabIconFolder);
-            if (spriteMap.Count == 0)
-            {
-                Debug.LogWarning($"[MacMaintenanceTools] No sprites discovered under '{tabIconFolder}'. Tab icon repair skipped.");
-                return;
-            }
-
-            var keys = new HashSet<string>(TabIconKeys.Select(k => k.ToLowerInvariant()));
-            var entries = group.entries.ToArray();
-
-            bool modified = false;
-            foreach (var entry in entries)
-            {
-                if (entry == null || string.IsNullOrWhiteSpace(entry.address))
+                if (group == null)
                 {
                     continue;
                 }
 
+                foreach (var entry in group.entries)
+                {
+                    if (entry == null || string.IsNullOrWhiteSpace(entry.address))
+                    {
+                        continue;
+                    }
+
+                    if (!entry.address.StartsWith("TabIcons[", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    entries.Add((entry, group));
+                }
+            }
+
+            if (entries.Count == 0)
+            {
+                Debug.LogWarning("[MacMaintenanceTools] No Addressable entries matching 'TabIcons[*]' were found. Skipping tab icon fixes.");
+                return;
+            }
+
+            var spriteMap = BuildSpriteLookup(SpriteSearchFolders);
+            if (spriteMap.Count == 0)
+            {
+                Debug.LogWarning("[MacMaintenanceTools] No tab icon sprites discovered in search folders. Tab icon repair skipped.");
+                return;
+            }
+
+            bool modified = false;
+            foreach (var (entry, group) in entries)
+            {
                 string key = ExtractKeyFromAddress(entry.address);
-                if (string.IsNullOrEmpty(key) || !keys.Contains(key.ToLowerInvariant()))
+                if (string.IsNullOrEmpty(key))
                 {
                     continue;
                 }
@@ -109,7 +118,7 @@ namespace YARG.EditorTools
 
                 if (entry.guid == spriteGuid)
                 {
-                    continue; // Already correct
+                    continue;
                 }
 
                 string address = entry.address;
@@ -117,7 +126,7 @@ namespace YARG.EditorTools
                 var newEntry = settings.CreateOrMoveEntry(spriteGuid, group);
                 if (newEntry == null)
                 {
-                    Debug.LogWarning($"[MacMaintenanceTools] Failed to move sprite GUID {spriteGuid} into group '{TAB_ICONS_GROUP_NAME}'.");
+                    Debug.LogWarning($"[MacMaintenanceTools] Failed to add sprite GUID {spriteGuid} into Addressables group '{group.name}'.");
                     continue;
                 }
 
@@ -128,8 +137,8 @@ namespace YARG.EditorTools
 
             if (modified)
             {
-                settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, null, postEvent: true, settingsModified: true);
-                Debug.Log("[MacMaintenanceTools] Tab icon addressables updated. Consider rebuilding Addressables (Build > Clean Build > New Build).");
+                settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, null, true, true);
+                Debug.Log("[MacMaintenanceTools] Tab icon addressables updated. Rebuild Addressables via Build > Clean Build > New Build.");
             }
             else
             {
@@ -137,30 +146,33 @@ namespace YARG.EditorTools
             }
         }
 
-        private static Dictionary<string, string> BuildSpriteLookup(string folderPath)
+        private static Dictionary<string, string> BuildSpriteLookup(IEnumerable<string> searchFolders)
         {
             var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            if (!AssetDatabase.IsValidFolder(folderPath))
+            foreach (var folderPath in searchFolders)
             {
-                return result;
-            }
-
-            string[] guids = AssetDatabase.FindAssets("t:Sprite", new[] { folderPath });
-            foreach (string guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (string.IsNullOrEmpty(path))
+                if (!AssetDatabase.IsValidFolder(folderPath))
                 {
                     continue;
                 }
 
-                string fileName = Path.GetFileNameWithoutExtension(path);
-                if (string.IsNullOrEmpty(fileName))
+                string[] guids = AssetDatabase.FindAssets("t:Sprite", new[] { folderPath });
+                foreach (string guid in guids)
                 {
-                    continue;
-                }
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    if (string.IsNullOrEmpty(path))
+                    {
+                        continue;
+                    }
 
-                result[fileName] = guid;
+                    string fileName = Path.GetFileNameWithoutExtension(path);
+                    if (string.IsNullOrEmpty(fileName))
+                    {
+                        continue;
+                    }
+
+                    result[fileName] = guid;
+                }
             }
 
             return result;
