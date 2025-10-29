@@ -113,8 +113,14 @@ namespace YARG.EditorTools
                 }
 
                 string address = entry.address;
-                settings.RemoveAssetEntry(entry.guid, group, false);
-                var newEntry = settings.CreateOrMoveEntry(spriteGuid, group, false, false);
+                group.RemoveAssetEntry(entry);
+                var newEntry = settings.CreateOrMoveEntry(spriteGuid, group);
+                if (newEntry == null)
+                {
+                    Debug.LogWarning($"[MacMaintenanceTools] Failed to move sprite GUID {spriteGuid} into group '{TAB_ICONS_GROUP_NAME}'.");
+                    continue;
+                }
+
                 newEntry.SetAddress(address);
                 modified = true;
                 Debug.Log($"[MacMaintenanceTools] Rebound tab icon '{address}' to sprite GUID {spriteGuid}.");
