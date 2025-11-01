@@ -138,7 +138,7 @@ namespace YARG.Menu.ScoreScreen
             _notesMissed.text = WrapWithColor(Stats.NotesMissed);
             _starpowerPhrases.text = $"{WrapWithColor(Stats.StarPowerPhrasesHit)} / {Stats.TotalStarPowerPhrases}";
             _bandBonusScore.text = WrapWithColor(Stats.BandBonusScore.ToString("N0"));
-            _averageOffset.text = WrapWithColor(Mathf.RoundToInt((float)(Stats.AverageOffset * 1000.0)).ToString() + " ms");
+            _averageOffset.text = WrapWithColor(Mathf.RoundToInt((float)(Stats.GetAverageOffset() * 1000.0)).ToString() + " ms");
 
             // Set background icon
             _instrumentIcon.sprite = Addressables
