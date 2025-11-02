@@ -4,6 +4,8 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 
 namespace YARG.Networking
 {
@@ -11,39 +13,78 @@ namespace YARG.Networking
     /// Network discovery for finding lobbies on the local network.
     /// Allows players to discover and join lobbies without knowing IP addresses.
     /// </summary>
-        public class YargNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, ServerResponse>
+    public class YargNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, ServerResponse>
+    {
+        /// <summary>
+        /// Exposes the configured UDP port used for discovery requests.
+        /// </summary>
+        public int DiscoveryPort => serverBroadcastListenPort;
+
+        /// <summary>
+        /// Send a direct discovery request to a specific address/port.
+        /// </summary>
+        public void SendDiscoveryRequest(string address, int port = 0)
         {
-            /// <summary>
-            /// Send a direct discovery request to a specific address/port.
-            /// </summary>
-            public void SendDiscoveryRequest(string address, int port)
+            if (clientUdpClient == null)
+                return;
+
+            if (NetworkClient.isConnected)
             {
-                if (clientUdpClient == null)
-                    return;
+                StopDiscovery();
+                return;
+            }
 
-                if (NetworkClient.isConnected)
-                {
-                    StopDiscovery();
-                    return;
-                }
+            if (string.IsNullOrWhiteSpace(address))
+            {
+                Debug.LogWarning("[YargNetworkDiscovery] Cannot send discovery request without an address.");
+                return;
+            }
 
+            int targetPort = port > 0 ? port : serverBroadcastListenPort;
+            if (targetPort <= 0)
+            {
+                Debug.LogWarning($"[YargNetworkDiscovery] Invalid discovery port resolved for '{address}'.");
+                return;
+            }
+
+            IPAddress ipAddress;
+            if (!IPAddress.TryParse(address, out ipAddress))
+            {
                 try
                 {
-                    var endPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse(address), port);
-                    using (Mirror.NetworkWriterPooled writer = Mirror.NetworkWriterPool.Get())
+                    var addresses = Dns.GetHostAddresses(address);
+                    ipAddress = addresses.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork) ?? addresses.FirstOrDefault();
+                    if (ipAddress == null)
                     {
-                        writer.WriteLong(secretHandshake);
-                        ServerRequest request = new ServerRequest();
-                        writer.Write(request);
-                        ArraySegment<byte> data = writer.ToArraySegment();
-                        clientUdpClient.SendAsync(data.Array, data.Count, endPoint);
+                        Debug.LogWarning($"[YargNetworkDiscovery] DNS lookup returned no usable addresses for {address}.");
+                        return;
                     }
                 }
-                catch (Exception ex)
+                catch (Exception dnsEx)
                 {
-                    Debug.LogWarning($"[YargNetworkDiscovery] Failed to send direct discovery request to {address}:{port}: {ex.Message}");
+                    Debug.LogWarning($"[YargNetworkDiscovery] DNS lookup failed for {address}: {dnsEx.Message}");
+                    return;
                 }
             }
+
+            try
+            {
+                targetPort = Mathf.Clamp(targetPort, 1, ushort.MaxValue);
+                var endPoint = new IPEndPoint(ipAddress, targetPort);
+                using (NetworkWriterPooled writer = NetworkWriterPool.Get())
+                {
+                    writer.WriteLong(secretHandshake);
+                    ServerRequest request = new ServerRequest();
+                    writer.Write(request);
+                    ArraySegment<byte> data = writer.ToArraySegment();
+                    clientUdpClient.SendAsync(data.Array, data.Count, endPoint);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[YargNetworkDiscovery] Failed to send direct discovery request to {ipAddress}:{targetPort}: {ex.Message}");
+            }
+        }
         private Dictionary<long, YargNetworkManager.LobbyInfo> _discoveredLobbies = new Dictionary<long, YargNetworkManager.LobbyInfo>();
         private YargNetworkManager.LobbyInfo _advertisedLobby;
         private float _lastCleanup = 0f;
