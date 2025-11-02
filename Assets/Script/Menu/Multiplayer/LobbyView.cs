@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
 using YARG.Menu.ListMenu;
@@ -10,7 +11,7 @@ namespace YARG.Menu.Multiplayer
     /// View component for displaying lobby information in the browser list.
     /// Follows YARG's ViewObject pattern.
     /// </summary>
-    public class LobbyView : ViewObject<LobbyViewType>, UnityEngine.EventSystems.IPointerEnterHandler, UnityEngine.EventSystems.IPointerExitHandler
+    public class LobbyView : ViewObject<LobbyViewType>, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
         public enum DisplayState
         {
@@ -1585,74 +1586,46 @@ namespace YARG.Menu.Multiplayer
             }
         }
 
-        public void OnPointerEnter(UnityEngine.EventSystems.PointerEventData eventData)
+        public void OnPointerEnter(PointerEventData eventData)
         {
-            if (!Showing) return;
+            if (!Showing)
+            {
+                return;
+            }
 
             EnsureRaycastTarget();
 
-            Debug.Log($"[LobbyView] OnPointerEnter for {ViewType?.GetPrimaryText(false)}");
-            // Ask the menu to show the sidebar for this view
-            var menu = ResolveMenu();
-            if (menu != null)
-            {
-                menu.ShowSidebarFor(ViewType);
-
-                // If this view is not the menu's selected view, temporarily show the
-                // selected background on hover so category rows use the highlighted
-                // appearance when hovered.
-                try
-                {
-                    bool isSelected = menu.CurrentSelection == ViewType;
-                    if (!isSelected)
-                    {
-                        if (_selectedBackground != null) _selectedBackground.SetActive(true);
-                        if (_normalBackground != null) _normalBackground.SetActive(false);
-                        if (_categoryBackground != null) _categoryBackground.SetActive(false);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"[LobbyView] Error while applying hover visuals: {ex}");
-                }
-            }
+            // Mouse hover should not change list selection or sidebar content.
+            // Leave visual state controlled exclusively by the active selection.
         }
 
-        public void OnPointerExit(UnityEngine.EventSystems.PointerEventData eventData)
+        public void OnPointerExit(PointerEventData eventData)
         {
-            if (!Showing) return;
-
-            Debug.Log($"[LobbyView] OnPointerExit for {ViewType?.GetPrimaryText(false)}");
-
-            // Restore sidebar to the menu's current selection
-            var menu = ResolveMenu();
-            if (menu != null)
+            if (!Showing)
             {
-                // Only override the sidebar when exiting to a different selection. When using the mouse,
-                // SelectedIndex often stays on its previous row, which would immediately hide hover previews
-                // (like hosted presets). Keep the last hovered sidebar visible unless a different selection
-                // is active so the user can move the cursor into the sidebar without it disappearing.
-                if (menu.CurrentSelection != null && menu.CurrentSelection != ViewType)
-                {
-                    menu.ShowSidebarFor(menu.CurrentSelection);
-                }
-
-                // Restore the background visuals to the normal/selected/category state.
-                try
-                {
-                    bool isSelected = menu.CurrentSelection == ViewType;
-                    if (!isSelected)
-                    {
-                        if (_selectedBackground != null) _selectedBackground.SetActive(false);
-                        if (_categoryBackground != null) _categoryBackground.SetActive(ViewType is LobbyCategoryViewType);
-                        if (_normalBackground != null) _normalBackground.SetActive(!(ViewType is LobbyCategoryViewType));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"[LobbyView] Error while restoring hover visuals: {ex}");
-                }
+                return;
             }
+
+            // Hover exit intentionally does nothing; selection visuals remain
+            // governed by the menu's active index.
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (!Showing || eventData == null)
+            {
+                return;
+            }
+
+            if (eventData.button != PointerEventData.InputButton.Left)
+            {
+                return;
+            }
+
+            EnsureRaycastTarget();
+
+            var menu = ResolveMenu();
+            menu?.HandleViewPointerClick(ViewType);
         }
 
         private void ApplyFavoriteButtonState(LobbyViewType viewType, bool selected)

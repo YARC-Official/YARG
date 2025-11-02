@@ -27,6 +27,13 @@ namespace YARG.Networking
         private static bool _waitingForAuthResponse;
         private static string _pendingFailureMessage;
         private const string DefaultFailureMessage = "Failed to join lobby. Authentication was rejected.";
+        private static bool _authFailureToastShown;
+
+        private static bool ShouldSuppressFeedback()
+        {
+            var manager = YargNetworkManager.Instance;
+            return manager != null && manager.IsProbeContextActive;
+        }
 
         public override void OnStartServer()
         {
@@ -60,14 +67,28 @@ namespace YARG.Networking
                 ClientAccept();
                 _waitingForAuthResponse = false;
                 _pendingFailureMessage = null;
+                _authFailureToastShown = false;
                 return;
             }
 
             // When the client connects, send the password (may be empty)
             try
             {
-                _waitingForAuthResponse = true;
-                _pendingFailureMessage = DefaultFailureMessage;
+                bool suppressFeedback = ShouldSuppressFeedback();
+
+                if (suppressFeedback)
+                {
+                    _waitingForAuthResponse = false;
+                    _pendingFailureMessage = null;
+                    _authFailureToastShown = false;
+                }
+                else
+                {
+                    _waitingForAuthResponse = true;
+                    _pendingFailureMessage = DefaultFailureMessage;
+                    _authFailureToastShown = false;
+                }
+
                 var manager = YargNetworkManager.Instance;
                 string pw = manager != null ? manager.GetPendingJoinPassword() : string.Empty;
                 var msg = new AuthRequestMessage { password = pw ?? string.Empty };
@@ -125,19 +146,33 @@ namespace YARG.Networking
 
         private void OnAuthResponseMessage(AuthResponseMessage msg)
         {
+            bool suppressFeedback = ShouldSuppressFeedback();
+
             if (msg.success)
             {
                 ClientAccept();
                 _waitingForAuthResponse = false;
                 _pendingFailureMessage = null;
+                 _authFailureToastShown = false;
             }
             else
             {
+                if (suppressFeedback)
+                {
+                    Debug.Log($"[PasswordAuthenticator] Probe authentication rejected (suppressed): {msg.message}");
+                    _waitingForAuthResponse = false;
+                    _pendingFailureMessage = null;
+                    _authFailureToastShown = false;
+                    ClientReject();
+                    return;
+                }
+
                 Debug.LogWarning($"[PasswordAuthenticator] Server rejected authentication: {msg.message}");
                 string display = string.IsNullOrWhiteSpace(msg.message) ? "Authentication failed." : msg.message;
                 ToastManager.ToastError(display);
                 _waitingForAuthResponse = false;
                 _pendingFailureMessage = null;
+                _authFailureToastShown = true;
                 ClientReject();
             }
         }
@@ -167,13 +202,35 @@ namespace YARG.Networking
 
         internal static void HandleClientDisconnectFallback()
         {
+            if (ShouldSuppressFeedback())
+            {
+                _waitingForAuthResponse = false;
+                _pendingFailureMessage = null;
+                _authFailureToastShown = false;
+                return;
+            }
+
             if (_waitingForAuthResponse && !string.IsNullOrEmpty(_pendingFailureMessage))
             {
                 ToastManager.ToastError(_pendingFailureMessage);
+                _authFailureToastShown = true;
             }
 
             _waitingForAuthResponse = false;
             _pendingFailureMessage = null;
+            _authFailureToastShown = false;
+        }
+
+        internal static void ClearPendingFailureState()
+        {
+            _waitingForAuthResponse = false;
+            _pendingFailureMessage = null;
+            _authFailureToastShown = false;
+        }
+
+        internal static bool WasAuthFailureToastShown()
+        {
+            return _authFailureToastShown;
         }
     }
 }

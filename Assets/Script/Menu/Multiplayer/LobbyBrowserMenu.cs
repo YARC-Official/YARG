@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 using TMPro;
 using YARG.Core.Input;
@@ -70,6 +71,9 @@ namespace YARG.Menu.Multiplayer
 
         private const double STALE_LOBBY_SECONDS = 18.0;
         private const float STALE_SWEEP_INTERVAL = 1.0f;
+        private const float PING_STATUS_REFRESH_MIN_INTERVAL = 4.0f;
+        private const float DISCOVERY_PING_INTERVAL = 5.0f;
+        private const int MAX_CONSECUTIVE_PROBE_FAILURES = 6;
 
         private LobbyFavorites _favorites;
         private List<YargNetworkManager.LobbyInfo> _currentLobbies = new();
@@ -84,12 +88,18 @@ namespace YARG.Menu.Multiplayer
 
         // Cache for ping results: endpointKey -> LobbyInfo (if online)
         private Dictionary<string, YargNetworkManager.LobbyInfo> _pingedLobbies = new();
+        private readonly Dictionary<string, int> _consecutiveProbeFailures = new();
         private HashSet<string> _pendingPings = new();
         private bool _isPingingSavedServers = false;
         private YargNetworkDiscovery _discovery;
         // Track the last view the sidebar was asked to show (hover or selection) so discovery updates can refresh it.
         private LobbyViewType _lastShownSidebarView;
         private float _nextStaleSweepAt;
+        private float _nextPingStatusRefreshAt;
+        private bool _pendingPingStatusRefresh;
+        private CancellationTokenSource _pingCancellation;
+        private float _lastPingStartedAt = float.NegativeInfinity;
+        private float _nextAutomaticPingAt;
 
         protected override int ExtraListViewPadding => 15;
 
@@ -158,7 +168,8 @@ namespace YARG.Menu.Multiplayer
 
             RefreshLobbies();
 
-            UniTask.Void(async () => await PingSavedServersAsync());
+            _nextAutomaticPingAt = Time.unscaledTime + DISCOVERY_PING_INTERVAL;
+            UniTask.Void(async () => await PingSavedServersAsync(force: true));
 
             // Debug: subscribe to navigator events to ensure inputs reach this menu
             if (Navigator.Instance != null)
@@ -195,6 +206,17 @@ namespace YARG.Menu.Multiplayer
                 _sidebar.ClearLobby();
             }
             _selectedLobby = null;
+
+            if (_pingCancellation != null)
+            {
+                try
+                {
+                    _pingCancellation.Cancel();
+                }
+                catch { }
+                _pingCancellation.Dispose();
+                _pingCancellation = null;
+            }
 
             if (Navigator.Instance != null)
             {
@@ -710,10 +732,10 @@ namespace YARG.Menu.Multiplayer
             bool hadLiveInfo = InvalidateSavedLobbyLiveInfo();
             if (hadLiveInfo)
             {
-                RefreshList(true);
+                RequestPingStatusRefresh(forceImmediate: true);
             }
             RefreshLobbies();
-            UniTask.Void(async () => await PingSavedServersAsync());
+            UniTask.Void(async () => await PingSavedServersAsync(force: true));
         }
 
         private bool InvalidateSavedLobbyLiveInfo()
@@ -738,7 +760,7 @@ namespace YARG.Menu.Multiplayer
             return changed;
         }
 
-        private static bool IsLobbyLive(YargNetworkManager.LobbyInfo lobby)
+        private bool IsLobbyLive(YargNetworkManager.LobbyInfo lobby)
         {
             if (lobby == null)
                 return false;
@@ -746,12 +768,30 @@ namespace YARG.Menu.Multiplayer
             if (!lobby.isActive)
                 return false;
 
+            string endpointKey = LobbyBookmarkUtility.BuildKey(lobby.ipAddress, lobby.port);
+            int failureCount = 0;
+            bool hasFailureTracking = false;
+            if (!string.IsNullOrEmpty(endpointKey))
+            {
+                hasFailureTracking = _consecutiveProbeFailures.TryGetValue(endpointKey, out failureCount);
+                if (hasFailureTracking && failureCount >= MAX_CONSECUTIVE_PROBE_FAILURES)
+                {
+                    return false;
+                }
+            }
+
             if (lobby.lastSeen <= 0)
                 return true;
 
             long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             long delta = now - lobby.lastSeen;
-            return delta <= STALE_LOBBY_SECONDS * 1000.0;
+            if (delta <= STALE_LOBBY_SECONDS * 1000.0)
+                return true;
+
+            if (hasFailureTracking && failureCount < MAX_CONSECUTIVE_PROBE_FAILURES)
+                return true;
+
+            return false;
         }
 
         private static void MarkLobbyHeartbeat(YargNetworkManager.LobbyInfo lobby)
@@ -761,6 +801,128 @@ namespace YARG.Menu.Multiplayer
 
             lobby.isActive = true;
             lobby.lastSeen = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
+
+        private static YargNetworkManager.LobbyInfo CloneLobbyInfo(YargNetworkManager.LobbyInfo source)
+        {
+            if (source == null)
+                return null;
+
+            return new YargNetworkManager.LobbyInfo
+            {
+                lobbyId = source.lobbyId,
+                lobbyName = source.lobbyName,
+                hostName = source.hostName,
+                ipAddress = source.ipAddress,
+                publicAddress = source.publicAddress,
+                transportId = source.transportId,
+                currentPlayers = source.currentPlayers,
+                maxPlayers = source.maxPlayers,
+                privacyMode = source.privacyMode,
+                hasPassword = source.hasPassword,
+                password = source.password,
+                isActive = source.isActive,
+                port = source.port,
+                publicPort = source.publicPort,
+                lastSeen = source.lastSeen,
+                playerNames = source.playerNames != null ? (string[])source.playerNames.Clone() : null,
+                playerInstruments = source.playerInstruments != null ? (int[])source.playerInstruments.Clone() : null
+            };
+        }
+
+        private static bool LobbyInfosEquivalent(YargNetworkManager.LobbyInfo a, YargNetworkManager.LobbyInfo b)
+        {
+            if (ReferenceEquals(a, b))
+                return true;
+
+            if (a == null || b == null)
+                return false;
+
+            if (!string.Equals(a.lobbyId ?? string.Empty, b.lobbyId ?? string.Empty, StringComparison.Ordinal))
+                return false;
+
+            if (!string.Equals(a.lobbyName ?? string.Empty, b.lobbyName ?? string.Empty, StringComparison.Ordinal))
+                return false;
+
+            if (!string.Equals(a.hostName ?? string.Empty, b.hostName ?? string.Empty, StringComparison.Ordinal))
+                return false;
+
+            if (!string.Equals(a.publicAddress ?? string.Empty, b.publicAddress ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (!string.Equals(a.transportId ?? string.Empty, b.transportId ?? string.Empty, StringComparison.Ordinal))
+                return false;
+
+            if (a.currentPlayers != b.currentPlayers || a.maxPlayers != b.maxPlayers)
+                return false;
+
+            if (a.hasPassword != b.hasPassword || a.privacyMode != b.privacyMode)
+                return false;
+
+            if (a.port != b.port || a.publicPort != b.publicPort)
+                return false;
+
+            var aNames = a.playerNames ?? Array.Empty<string>();
+            var bNames = b.playerNames ?? Array.Empty<string>();
+            if (aNames.Length != bNames.Length)
+                return false;
+            for (int i = 0; i < aNames.Length; i++)
+            {
+                if (!string.Equals(aNames[i] ?? string.Empty, bNames[i] ?? string.Empty, StringComparison.Ordinal))
+                    return false;
+            }
+
+            var aInstruments = a.playerInstruments ?? Array.Empty<int>();
+            var bInstruments = b.playerInstruments ?? Array.Empty<int>();
+            if (aInstruments.Length != bInstruments.Length)
+                return false;
+            for (int i = 0; i < aInstruments.Length; i++)
+            {
+                if (aInstruments[i] != bInstruments[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        private void RequestPingStatusRefresh(bool forceImmediate = false)
+        {
+            if (forceImmediate)
+            {
+                _nextPingStatusRefreshAt = Time.unscaledTime;
+            }
+
+            if (Time.unscaledTime >= _nextPingStatusRefreshAt)
+            {
+                ApplyPendingPingRefresh();
+            }
+            else
+            {
+                _pendingPingStatusRefresh = true;
+            }
+        }
+
+        private void ApplyPendingPingRefresh()
+        {
+            _pendingPingStatusRefresh = false;
+            _nextPingStatusRefreshAt = Time.unscaledTime + PING_STATUS_REFRESH_MIN_INTERVAL;
+            RefreshList(true);
+            TryRefreshSidebarLiveInfo();
+        }
+
+        private void TryRefreshSidebarLiveInfo()
+        {
+            if (_sidebar == null)
+                return;
+
+            try
+            {
+                ShowSidebarFor(_lastShownSidebarView ?? CurrentSelection);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LobbyBrowserMenu] Exception while updating sidebar after ping refresh: {ex}");
+            }
         }
 
         private bool CullStalePingCache()
@@ -982,6 +1144,100 @@ namespace YARG.Menu.Multiplayer
             }
         }
 
+        internal void HandleViewPointerClick(LobbyViewType view)
+        {
+            var target = TryRehydrateView(view);
+            if (target == null)
+            {
+                return;
+            }
+
+            SelectViewInternal(target);
+
+            if (!CanPerformGreenAction(target))
+            {
+                return;
+            }
+
+            try
+            {
+                target.OnJoinClick();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LobbyBrowserMenu] Failed to activate view via pointer click: {ex}");
+            }
+        }
+
+        private void SelectViewInternal(LobbyViewType view)
+        {
+            if (view == null)
+            {
+                return;
+            }
+
+            var views = ViewList;
+            if (views == null || views.Count == 0)
+            {
+                return;
+            }
+
+            int index = -1;
+            for (int i = 0; i < views.Count; i++)
+            {
+                if (ReferenceEquals(views[i], view))
+                {
+                    index = i;
+                    break;
+                }
+            }
+            if (index < 0)
+            {
+                string key = null;
+                try
+                {
+                    key = view.GetSelectionKey();
+                }
+                catch
+                {
+                    key = null;
+                }
+
+                if (!string.IsNullOrEmpty(key))
+                {
+                    for (int i = 0; i < views.Count; i++)
+                    {
+                        var candidate = views[i];
+                        if (candidate == null)
+                        {
+                            continue;
+                        }
+
+                        string candidateKey = null;
+                        try
+                        {
+                            candidateKey = candidate.GetSelectionKey();
+                        }
+                        catch
+                        {
+                            candidateKey = null;
+                        }
+
+                        if (!string.IsNullOrEmpty(candidateKey) && string.Equals(candidateKey, key, StringComparison.Ordinal))
+                        {
+                            index = i;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (index >= 0)
+            {
+                SelectedIndex = index;
+            }
+        }
+
         internal void HandleActionSelection(LobbyActionViewType action)
         {
             if (action == null)
@@ -1048,20 +1304,15 @@ namespace YARG.Menu.Multiplayer
                 string key = LobbyBookmarkUtility.BuildKey(lobby.ipAddress, lobby.port);
                 if (string.IsNullOrEmpty(key)) return;
                 MarkLobbyHeartbeat(lobby);
-                _pingedLobbies[key] = lobby;
+                var snapshot = CloneLobbyInfo(lobby);
+                bool hadExisting = _pingedLobbies.TryGetValue(key, out var previous) && previous != null;
+                ResetProbeFailureCount(key);
+                _pingedLobbies[key] = snapshot;
                 Debug.Log($"[LobbyBrowserMenu] Discovery found lobby for key {key}: {lobby.lobbyName}");
-                // Refresh the list so SavedLobbyViewType instances pick up LiveInfo
-                RefreshList(true);
-                // If the sidebar is currently showing the selection (which may be a saved bookmark),
-                // request it update so the sidebar displays live info immediately when discovery arrives.
-                try
+
+                if (!hadExisting || !LobbyInfosEquivalent(previous, snapshot))
                 {
-                    // Prefer refreshing whatever view was last shown in the sidebar (hover or selection).
-                    ShowSidebarFor(_lastShownSidebarView ?? CurrentSelection);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"[LobbyBrowserMenu] Exception while updating sidebar after discovery: {ex}");
+                    RequestPingStatusRefresh(forceImmediate: !hadExisting);
                 }
             }
             catch (Exception ex)
@@ -1077,8 +1328,10 @@ namespace YARG.Menu.Multiplayer
                 // Try to remove any pinged entries that match this lost server via matching ip/port from discovery component
                 // We don't have serverId -> endpoint mapping here, so just refresh lists (the discovery component cleans its own cache)
                 Debug.Log($"[LobbyBrowserMenu] Discovery reported lobby lost: {serverId}");
-                InvalidateSavedLobbyLiveInfo();
-                RefreshList(true);
+                if (InvalidateSavedLobbyLiveInfo())
+                {
+                    RequestPingStatusRefresh();
+                }
             }
             catch (Exception ex)
             {
@@ -1100,8 +1353,18 @@ namespace YARG.Menu.Multiplayer
 
                 if (changed)
                 {
-                    RefreshList(true);
+                    RequestPingStatusRefresh();
                 }
+            }
+
+            if (_pendingPingStatusRefresh && Time.unscaledTime >= _nextPingStatusRefreshAt)
+            {
+                ApplyPendingPingRefresh();
+            }
+
+            if (!_isPingingSavedServers && Time.unscaledTime >= _nextAutomaticPingAt)
+            {
+                UniTask.Void(async () => await PingSavedServersAsync());
             }
         }
 
@@ -1145,111 +1408,238 @@ namespace YARG.Menu.Multiplayer
         }
 
         // --- Ping saved servers (lightweight placeholder implementation) ---
-        private async UniTask PingSavedServersAsync()
+        private async UniTask PingSavedServersAsync(bool force = false)
         {
-            if (_isPingingSavedServers) return; _isPingingSavedServers = true;
+            if (_favorites == null)
+                return;
+
+            float now = Time.unscaledTime;
+            if (!force && (now - _lastPingStartedAt) < DISCOVERY_PING_INTERVAL)
+                return;
+
+            _lastPingStartedAt = now;
+            _nextAutomaticPingAt = now + DISCOVERY_PING_INTERVAL;
+
+            _pingedLobbies ??= new Dictionary<string, YargNetworkManager.LobbyInfo>();
+
+            if (_isPingingSavedServers)
+            {
+                if (_pingCancellation != null)
+                {
+                    _pingCancellation.Cancel();
+                }
+
+                await UniTask.WaitUntil(() => !_isPingingSavedServers);
+            }
+
+            _pingCancellation?.Dispose();
+            _pingCancellation = new CancellationTokenSource();
+
+            _isPingingSavedServers = true;
+
             try
             {
-                var favorites = _favorites.GetFavorites();
-                foreach (var bookmark in favorites)
+                var processedKeys = new HashSet<string>();
+                var token = _pingCancellation.Token;
+
+                await PingBookmarkCollectionAsync(_favorites.GetFavorites(), "favorite", processedKeys, token);
+                await PingBookmarkCollectionAsync(_favorites.GetRecents(), "recent", processedKeys, token);
+
+                RequestPingStatusRefresh();
+            }
+            catch (OperationCanceledException)
+            {
+                // Cancellation is expected when refresh restarts or menu closes.
+            }
+            finally
+            {
+                _isPingingSavedServers = false;
+                _pingCancellation?.Dispose();
+                _pingCancellation = null;
+            }
+        }
+
+        private async UniTask PingBookmarkCollectionAsync(IReadOnlyList<LobbyBookmark> bookmarks, string sourceLabel, HashSet<string> processedKeys, CancellationToken token)
+        {
+            if (bookmarks == null || bookmarks.Count == 0)
+                return;
+
+            foreach (var bookmark in bookmarks)
+            {
+                token.ThrowIfCancellationRequested();
+
+                if (bookmark == null)
+                    continue;
+
+                string key = bookmark.EndpointKey;
+                if (string.IsNullOrEmpty(key))
+                    continue;
+
+                if (processedKeys != null && !processedKeys.Add(key))
+                    continue;
+
+                if (_pendingPings.Contains(key))
+                    continue;
+
+                _pendingPings.Add(key);
+                try
                 {
-                    var key = bookmark.EndpointKey; if (string.IsNullOrEmpty(key)) continue; if (_pendingPings.Contains(key)) continue;
-                    _pendingPings.Add(key);
-                    try
+                    bool issuedRequest = SendDiscoveryRequestsForBookmark(bookmark, sourceLabel);
+
+                    bool probeSuccess = await ProbeBookmarkAsync(bookmark, token, sourceLabel);
+
+                    if (issuedRequest || probeSuccess)
                     {
-                        // If we have a discovery component, send a direct discovery request to populate live info.
-                        if (_discovery != null)
-                        {
-                            int port = bookmark.port > 0 ? bookmark.port : (YargNetworkManager.Instance?.SuggestedDirectConnectPort ?? NetworkTransportDefaults.DefaultTcpPort);
-                            try
-                            {
-                                // Try to use the address directly; if it's a hostname, attempt DNS resolve
-                                string sendAddress = bookmark.address;
-                                try
-                                {
-                                    System.Net.IPAddress.Parse(sendAddress);
-                                }
-                                catch
-                                {
-                                    try
-                                    {
-                                        var addrs = System.Net.Dns.GetHostAddresses(sendAddress);
-                                        var ipv4 = System.Array.Find(addrs, a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
-                                        if (ipv4 != null)
-                                        {
-                                            sendAddress = ipv4.ToString();
-                                        }
-                                    }
-                                    catch (Exception dnsEx)
-                                    {
-                                        Debug.LogWarning($"[LobbyBrowserMenu] DNS lookup failed for {sendAddress}: {dnsEx.Message}");
-                                    }
-                                }
-
-                                _discovery.SendDiscoveryRequest(sendAddress, port);
-                                Debug.Log($"[LobbyBrowserMenu] Sent discovery request to {sendAddress}:{port} for bookmark '{bookmark.displayName}'");
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.LogWarning($"[LobbyBrowserMenu] Failed to send discovery request to {bookmark.address}:{port}: {ex}");
-                            }
-                        }
-
-                        // Mark as unknown until discovery responds
-                        _pingedLobbies[key] = null;
+                        await UniTask.Yield(PlayerLoopTiming.Update, token);
                     }
-                    finally { _pendingPings.Remove(key); }
                 }
-                // Also ping recents
-                var recents = _favorites.GetRecents();
-                foreach (var bookmark in recents)
+                finally
                 {
-                    var key = bookmark.EndpointKey; if (string.IsNullOrEmpty(key)) continue; if (_pendingPings.Contains(key)) continue;
-                    _pendingPings.Add(key);
-                    try
-                    {
-                        if (_discovery != null)
-                        {
-                            int port = bookmark.port > 0 ? bookmark.port : (YargNetworkManager.Instance?.SuggestedDirectConnectPort ?? NetworkTransportDefaults.DefaultTcpPort);
-                            try
-                            {
-                                string sendAddress = bookmark.address;
-                                try
-                                {
-                                    System.Net.IPAddress.Parse(sendAddress);
-                                }
-                                catch
-                                {
-                                    try
-                                    {
-                                        var addrs = System.Net.Dns.GetHostAddresses(sendAddress);
-                                        var ipv4 = System.Array.Find(addrs, a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
-                                        if (ipv4 != null)
-                                        {
-                                            sendAddress = ipv4.ToString();
-                                        }
-                                    }
-                                    catch (Exception dnsEx)
-                                    {
-                                        Debug.LogWarning($"[LobbyBrowserMenu] DNS lookup failed for {sendAddress}: {dnsEx.Message}");
-                                    }
-                                }
-
-                                _discovery.SendDiscoveryRequest(sendAddress, port);
-                                Debug.Log($"[LobbyBrowserMenu] Sent discovery request to {sendAddress}:{port} for recent '{bookmark.displayName}'");
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.LogWarning($"[LobbyBrowserMenu] Failed to send discovery request to {bookmark.address}:{port}: {ex}");
-                            }
-                        }
-
-                        _pingedLobbies[key] = null;
-                    }
-                    finally { _pendingPings.Remove(key); }
+                    _pendingPings.Remove(key);
                 }
             }
-            finally { _isPingingSavedServers = false; }
+        }
+
+        private bool SendDiscoveryRequestsForBookmark(LobbyBookmark bookmark, string sourceLabel)
+        {
+            if (bookmark == null)
+                return false;
+
+            if (_discovery == null)
+                return false;
+
+            if (string.IsNullOrWhiteSpace(bookmark.address))
+                return false;
+
+            var candidatePorts = new List<int>(4);
+
+            int discoveryPort = _discovery.DiscoveryPort;
+            if (discoveryPort > 0)
+                candidatePorts.Add(discoveryPort);
+
+            int bookmarkPort = bookmark.port > 0 ? bookmark.port : (YargNetworkManager.Instance?.SuggestedDirectConnectPort ?? NetworkTransportDefaults.DefaultUdpPort);
+            if (bookmarkPort > 0)
+                candidatePorts.Add(bookmarkPort);
+
+            // Fallback to default transport ports to cover hosts that expose discovery separately from gameplay.
+            if (NetworkTransportDefaults.DefaultUdpPort > 0)
+                candidatePorts.Add(NetworkTransportDefaults.DefaultUdpPort);
+            if (NetworkTransportDefaults.DefaultTcpPort > 0)
+                candidatePorts.Add(NetworkTransportDefaults.DefaultTcpPort);
+
+            bool sentAny = false;
+            foreach (int port in candidatePorts.Distinct())
+            {
+                if (port <= 0 || port > ushort.MaxValue)
+                    continue;
+
+                try
+                {
+                    _discovery.SendDiscoveryRequest(bookmark.address, port);
+                    Debug.Log($"[LobbyBrowserMenu] Sent discovery request to {bookmark.address}:{port} for {sourceLabel} '{bookmark.displayName}'");
+                    sentAny = true;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[LobbyBrowserMenu] Failed to send discovery request to {bookmark.address}:{port}: {ex.Message}");
+                }
+            }
+
+            return sentAny;
+        }
+
+        private async UniTask<bool> ProbeBookmarkAsync(LobbyBookmark bookmark, CancellationToken token, string sourceLabel)
+        {
+            if (bookmark == null)
+                return false;
+
+            string key = bookmark.EndpointKey;
+            if (string.IsNullOrEmpty(key))
+                return false;
+
+            var manager = YargNetworkManager.Instance;
+            if (manager == null)
+                return false;
+
+            if (string.IsNullOrWhiteSpace(bookmark.address))
+                return false;
+
+            int port = bookmark.port > 0 ? bookmark.port : manager.SuggestedDirectConnectPort;
+
+            try
+            {
+                var info = await manager.ProbeLobbyAsync(bookmark.address, port, timeoutMilliseconds: 4500, cancellationToken: token);
+                if (info != null)
+                {
+                    info.ipAddress = bookmark.address;
+                    info.publicAddress = string.IsNullOrWhiteSpace(info.publicAddress) ? bookmark.address : info.publicAddress;
+                    info.port = port;
+                    MarkLobbyHeartbeat(info);
+                    var snapshot = CloneLobbyInfo(info);
+                    bool hadExisting = _pingedLobbies.TryGetValue(key, out var previous) && previous != null;
+                    ResetProbeFailureCount(key);
+                    _pingedLobbies[key] = snapshot;
+                    if (!hadExisting || !LobbyInfosEquivalent(previous, snapshot))
+                    {
+                        RequestPingStatusRefresh(forceImmediate: !hadExisting);
+                    }
+                    Debug.Log($"[LobbyBrowserMenu] Probe succeeded for {bookmark.address}:{port} ({sourceLabel})");
+                    return true;
+                }
+
+                Debug.Log($"[LobbyBrowserMenu] Probe returned no data for {bookmark.address}:{port} ({sourceLabel})");
+                HandleProbeFailure(key);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LobbyBrowserMenu] Probe failed for {bookmark.address}:{port} ({sourceLabel}): {ex.Message}");
+                HandleProbeFailure(key);
+            }
+
+            return false;
+        }
+
+        private void ResetProbeFailureCount(string endpointKey)
+        {
+            if (string.IsNullOrEmpty(endpointKey))
+                return;
+
+            _consecutiveProbeFailures.Remove(endpointKey);
+        }
+
+        private void HandleProbeFailure(string endpointKey)
+        {
+            if (string.IsNullOrEmpty(endpointKey))
+                return;
+
+            int failures = 1;
+            if (_consecutiveProbeFailures.TryGetValue(endpointKey, out var existing))
+            {
+                failures = existing + 1;
+            }
+
+            if (failures > MAX_CONSECUTIVE_PROBE_FAILURES)
+            {
+                failures = MAX_CONSECUTIVE_PROBE_FAILURES;
+            }
+
+            _consecutiveProbeFailures[endpointKey] = failures;
+
+            if (failures >= MAX_CONSECUTIVE_PROBE_FAILURES)
+            {
+                bool hadEntry = _pingedLobbies.TryGetValue(endpointKey, out var previous);
+                bool shouldNotify = !hadEntry || previous != null;
+                _pingedLobbies[endpointKey] = null;
+
+                if (shouldNotify)
+                {
+                    RequestPingStatusRefresh();
+                }
+            }
         }
 
         public void JoinSavedBookmark(LobbyBookmark bookmark)
