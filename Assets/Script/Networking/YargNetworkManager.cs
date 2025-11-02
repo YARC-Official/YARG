@@ -190,7 +190,9 @@ namespace YARG.Networking
             
             // Register spawn handler for MultiplayerShowPlaylist
             RegisterMultiplayerShowPlaylistSpawnHandler();
-            
+
+            EnsurePasswordAuthenticator();
+
             LogInfo("[YargNetworkManager] Initialized with autoCreatePlayer disabled");
 
             PlayerContainer.PlayerAdded += OnLocalPlayerAddedToContainer;
@@ -616,9 +618,21 @@ namespace YARG.Networking
 
             LogInfo($"[YargNetworkManager] Creating lobby '{lobbyName}' on {connectionInfo}");
 
-            // Start hosting
-            StartHost();
-            _isHost = true;
+            // Start hosting (guard against double-start which Mirror logs as "Server or Client already started")
+            if (!NetworkServer.active)
+            {
+                StartHost();
+                _isHost = true;
+            }
+            else
+            {
+                // Server already active - assume we're hosting or a previous host wasn't cleaned up.
+                LogWarning("[YargNetworkManager] StartHost skipped: NetworkServer already active.");
+                _isHost = true;
+            }
+
+            // Log sanitized server state for diagnostics (do not log actual password value)
+            LogInfo($"[YargNetworkManager] CreateLobby: hasPassword={_currentLobby.hasPassword}, transport={(Transport.active!=null?Transport.active.GetType().Name:"None")}, port={transportPort}");
 
             // Start broadcasting lobby for discovery
             var discovery = GetComponent<YargNetworkDiscovery>();
@@ -637,12 +651,6 @@ namespace YARG.Networking
             // Host will also trigger OnClientConnect which will fire OnLobbyJoined for navigation
 
             TrySetupPortMapping(transportPort);
-
-            LobbyBookmarkStore.Instance.RecordConnection(
-                networkAddress,
-                transportPort,
-                _currentLobby.lobbyName,
-                string.Empty);
 
             return _currentLobby;
         }
@@ -795,7 +803,12 @@ namespace YARG.Networking
         /// </summary>
         public void JoinDiscoveredLobby(LobbyInfo lobby, string password = "")
         {
-            if (lobby.hasPassword && lobby.password != password)
+            // NOTE: discovery responses do not include server-side passwords.
+            // If we have a locally-stored password for this lobby (e.g. from a bookmark),
+            // validate it here and reject obvious mismatches. If the lobby is only
+            // discovered (live) and no local password is known, allow the join to
+            // proceed if the caller supplied a password (UI should prompt when needed).
+            if (lobby.hasPassword && !string.IsNullOrEmpty(lobby.password) && lobby.password != password)
             {
                 OnNetworkError?.Invoke("Incorrect password");
                 return;
@@ -928,6 +941,25 @@ namespace YARG.Networking
             return $"{networkAddress}:{ResolveTransportPort()}";
         }
 
+        /// <summary>
+        /// Return the password that was provided for the pending join (if any).
+        /// Used by the client-side authenticator to send the password during authentication.
+        /// </summary>
+        public string GetPendingJoinPassword()
+        {
+            return _lastJoinPassword ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Return the server's configured lobby password (from the inspector or runtime).
+        /// This is a safe, read-only accessor used by the authenticator as a fallback
+        /// when authoritative LobbyInfo isn't available at authentication time.
+        /// </summary>
+        public string GetServerLobbyPassword()
+        {
+            return lobbyPassword ?? string.Empty;
+        }
+
         private int ResolveTransportPort()
         {
             if (Transport.active is PortTransport portTransport)
@@ -986,6 +1018,30 @@ namespace YARG.Networking
             _lastJoinPort = 0;
             _lastJoinPassword = null;
             _lastJoinDisplayName = null;
+        }
+
+        private void EnsurePasswordAuthenticator()
+        {
+            if (authenticator != null)
+            {
+                return;
+            }
+
+            var passwordAuthenticator = GetComponent<PasswordAuthenticator>();
+            if (passwordAuthenticator == null)
+            {
+                passwordAuthenticator = gameObject.AddComponent<PasswordAuthenticator>();
+                if (Application.isPlaying)
+                {
+                    LogInfo("[YargNetworkManager] Added PasswordAuthenticator to enforce lobby passwords.");
+                }
+            }
+            else if (Application.isPlaying)
+            {
+                LogInfo("[YargNetworkManager] Using existing PasswordAuthenticator component.");
+            }
+
+            authenticator = passwordAuthenticator;
         }
 
         private static bool ShouldResolveLocalAddress(string address)
@@ -1442,14 +1498,20 @@ namespace YARG.Networking
                 return;
             }
 
-            // Get player name before removing
-            string disconnectedPlayerName = "Unknown";
-            if (_connectedPlayers.ContainsKey(conn))
+            bool wasAuthenticated = conn != null && conn.isAuthenticated;
+
+            // Get player name before removing (only meaningful for authenticated connections)
+            string disconnectedPlayerName = null;
+            if (wasAuthenticated && _connectedPlayers.ContainsKey(conn))
             {
                 var players = _connectedPlayers[conn];
                 if (players.Count > 0 && players[0] != null)
                 {
                     disconnectedPlayerName = players[0].PlayerName;
+                }
+                else
+                {
+                    disconnectedPlayerName = "Unknown";
                 }
             }
             
@@ -1470,14 +1532,20 @@ namespace YARG.Networking
                 _currentLobby.currentPlayers = NetworkServer.connections.Count;
             }
             
-            // Show toast notification for player disconnect (except when host disconnects everyone)
-            if (NetworkServer.active && conn.connectionId != 0 && !string.IsNullOrEmpty(disconnectedPlayerName))
+            if (!wasAuthenticated)
             {
-                // Show toast to all remaining players
-                var allPlayers = GetAllPlayers();
-                if (allPlayers.Count > 0 && allPlayers[0] != null)
+                LogInfo($"[YargNetworkManager] Connection {conn.connectionId} failed authentication or disconnected before completing setup; skipping player left notifications.");
+            }
+            else
+            {
+                // Show toast notification for player disconnect (except when host disconnects everyone)
+                if (NetworkServer.active && conn.connectionId != 0 && !string.IsNullOrEmpty(disconnectedPlayerName))
                 {
-                    allPlayers[0].RpcShowPlayerLeftToast(disconnectedPlayerName);
+                    var allPlayers = GetAllPlayers();
+                    if (allPlayers.Count > 0 && allPlayers[0] != null)
+                    {
+                        allPlayers[0].RpcShowPlayerLeftToast(disconnectedPlayerName);
+                    }
                 }
             }
 
@@ -1566,6 +1634,8 @@ namespace YARG.Networking
         public override void OnClientDisconnect()
         {
             base.OnClientDisconnect();
+
+            PasswordAuthenticator.HandleClientDisconnectFallback();
 
             // Skip cleanup during application shutdown to prevent menu navigation errors
             if (_isQuitting)
@@ -2901,6 +2971,10 @@ namespace YARG.Networking
             public int port;
             public int publicPort;
             public long lastSeen;
+
+            // New fields for discovered player info
+            public string[] playerNames;
+            public int[] playerInstruments;
 
             public override string ToString()
             {

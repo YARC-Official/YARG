@@ -1,5 +1,4 @@
 using System;
-using System.Net;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -117,7 +116,8 @@ namespace YARG.Menu.Multiplayer
                 password = passwordInput.text;
             }
 
-            if (!TryNormalizeEndpoint(endpoint, out var normalizedEndpoint, out var errorMessage))
+            int defaultPort = GetDefaultPort();
+            if (!EndpointUtility.TryParseEndpoint(endpoint, defaultPort, out var host, out var parsedPort, out var errorMessage))
             {
                 if (!string.IsNullOrEmpty(errorMessage) && DialogManager.Instance != null)
                 {
@@ -125,6 +125,8 @@ namespace YARG.Menu.Multiplayer
                 }
                 return;
             }
+
+            string normalizedEndpoint = EndpointUtility.FormatEndpoint(host, parsedPort);
 
             ForceRestoreNavigation();
 
@@ -159,101 +161,6 @@ namespace YARG.Menu.Multiplayer
             gameObject.SetActive(false);
         }
 
-        private bool TryNormalizeEndpoint(string input, out string normalized, out string error)
-        {
-            normalized = string.Empty;
-            error = string.Empty;
-
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                error = "Please enter a valid host or IP address.";
-                return false;
-            }
-
-            string endpoint = input.Trim();
-            string host = endpoint;
-            int port = GetDefaultPort();
-
-            if (Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) && !string.IsNullOrWhiteSpace(uri.Host))
-            {
-                host = uri.Host;
-                if (uri.Port > 0)
-                {
-                    port = uri.Port;
-                }
-            }
-            else if (!endpoint.Contains(" "))
-            {
-                if (endpoint.StartsWith("[", StringComparison.Ordinal))
-                {
-                    int closing = endpoint.IndexOf(']');
-                    if (closing <= 0)
-                    {
-                        error = "IPv6 address is missing the closing ']'.";
-                        return false;
-                    }
-
-                    host = endpoint.Substring(1, closing - 1);
-
-                    if (closing + 1 < endpoint.Length)
-                    {
-                        if (endpoint[closing + 1] != ':' || !TryParsePort(endpoint[(closing + 2)..], out port, out error))
-                        {
-                            if (string.IsNullOrEmpty(error))
-                            {
-                                error = "Invalid port specified.";
-                            }
-                            return false;
-                        }
-                    }
-                }
-                else
-                {
-                    int colon = endpoint.LastIndexOf(':');
-                    if (colon > -1 && endpoint.IndexOf(':') == colon)
-                    {
-                        host = endpoint[..colon];
-                        if (!TryParsePort(endpoint[(colon + 1)..], out port, out error))
-                        {
-                            if (string.IsNullOrEmpty(error))
-                            {
-                                error = "Invalid port specified.";
-                            }
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            if (string.IsNullOrWhiteSpace(host))
-            {
-                error = "Host cannot be empty.";
-                return false;
-            }
-
-            host = host.Trim();
-
-            bool isIpAddress = IPAddress.TryParse(host, out _);
-            if (!isIpAddress && LooksLikeIpv4(host))
-            {
-                error = "IPv4 address appears to be malformed. Please double-check for extra digits or dots.";
-                return false;
-            }
-
-            if (!isIpAddress && Uri.CheckHostName(host) == UriHostNameType.Unknown)
-            {
-                error = "Host must be a valid IP address or domain.";
-                return false;
-            }
-
-            string formattedHost = host.Contains(':') && !host.StartsWith("[")
-                ? $"[{host}]"
-                : host;
-
-            normalized = port > 0 ? $"{formattedHost}:{port}" : formattedHost;
-            return true;
-        }
-
         private void OnIpFieldSelected(string _)
         {
             SuppressMenuNavigation();
@@ -261,31 +168,6 @@ namespace YARG.Menu.Multiplayer
             {
                 SelectAll(ipAddressInput);
             }
-        }
-
-        private static bool LooksLikeIpv4(string host)
-        {
-            if (string.IsNullOrEmpty(host))
-            {
-                return false;
-            }
-
-            bool hasDigit = false;
-            foreach (char c in host)
-            {
-                if (c >= '0' && c <= '9')
-                {
-                    hasDigit = true;
-                    continue;
-                }
-
-                if (c != '.')
-                {
-                    return false;
-                }
-            }
-
-            return hasDigit;
         }
 
         private static void SelectAll(TMP_InputField field)
@@ -301,17 +183,6 @@ namespace YARG.Menu.Multiplayer
             field.caretPosition = length;
         }
 
-        private bool TryParsePort(string text, out int port, out string error)
-        {
-            error = string.Empty;
-            if (!int.TryParse(text.Trim(), out port) || port <= 0 || port > 65535)
-            {
-                error = "Port must be between 1 and 65535.";
-                return false;
-            }
-
-            return true;
-        }
 
         private int GetDefaultPort()
         {

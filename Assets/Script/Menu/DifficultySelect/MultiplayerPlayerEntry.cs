@@ -191,5 +191,16 @@ namespace YARG.Menu.DifficultySelect
         {
             UpdateDisplay();
         }
+
+        /// <summary>
+        /// Set player name and instrument icon manually (for sidebar)
+        /// </summary>
+        public void SetPlayer(string name, string instrument)
+        {
+            if (_playerNameText != null)
+                _playerNameText.text = name;
+            if (_iconsText != null)
+                _iconsText.text = instrument;
+        }
     }
 }

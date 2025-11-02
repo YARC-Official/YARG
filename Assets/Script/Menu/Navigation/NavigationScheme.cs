@@ -12,17 +12,17 @@ namespace YARG.Menu.Navigation
         {
             public static readonly Entry NavigateUp = new(MenuAction.Up, "Menu.Common.Up", context =>
             {
-                NavigationGroup.CurrentNavigationGroup.SelectPrevious(context.IsRepeat);
+                NavigationGroup.CurrentNavigationGroup?.SelectPrevious(context.IsRepeat);
             });
 
             public static readonly Entry NavigateDown = new(MenuAction.Down, "Menu.Common.Down", context =>
             {
-                NavigationGroup.CurrentNavigationGroup.SelectNext(context.IsRepeat);
+                NavigationGroup.CurrentNavigationGroup?.SelectNext(context.IsRepeat);
             });
 
             public static readonly Entry NavigateSelect = new(MenuAction.Green, "Menu.Common.Confirm", () =>
             {
-                NavigationGroup.CurrentNavigationGroup.ConfirmSelection();
+                NavigationGroup.CurrentNavigationGroup?.ConfirmSelection();
             });
 
             public readonly MenuAction Action;

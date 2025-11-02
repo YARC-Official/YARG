@@ -35,6 +35,11 @@ namespace YARG.Menu.Multiplayer
             return _store.Recents;
         }
 
+        public LobbyBookmark FindBookmark(string address, int port)
+        {
+            return _store.GetFavorite(address, port) ?? _store.GetRecent(address, port);
+        }
+
         public bool IsFavorited(string address, int port)
         {
             return _store.IsFavorite(address, port);
@@ -53,6 +58,11 @@ namespace YARG.Menu.Multiplayer
         public void RecordConnection(string address, int port, string name, string password)
         {
             _store.RecordConnection(address, port, name, password);
+        }
+
+        public void UpdateBookmark(LobbyBookmark bookmark, string displayName, string address, int port, string password)
+        {
+            _store.UpdateBookmark(bookmark, displayName, address, port, password);
         }
 
         private void HandleStoreChanged()

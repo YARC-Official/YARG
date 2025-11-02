@@ -16,6 +16,7 @@ namespace YARG.Networking.Bookmarks
         public bool favorite;
         public long lastConnected;
         public long createdAt;
+        public bool displayNamePinned;
 
         public string EndpointKey => LobbyBookmarkUtility.BuildKey(address, (ushort)Mathf.Clamp(port, 0, ushort.MaxValue));
 
@@ -29,7 +30,8 @@ namespace YARG.Networking.Bookmarks
                 password = password,
                 favorite = favorite,
                 lastConnected = lastConnected,
-                createdAt = createdAt
+                createdAt = createdAt,
+                displayNamePinned = displayNamePinned
             };
         }
     }

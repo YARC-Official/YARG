@@ -11,8 +11,39 @@ namespace YARG.Networking
     /// Network discovery for finding lobbies on the local network.
     /// Allows players to discover and join lobbies without knowing IP addresses.
     /// </summary>
-    public class YargNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, ServerResponse>
-    {
+        public class YargNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, ServerResponse>
+        {
+            /// <summary>
+            /// Send a direct discovery request to a specific address/port.
+            /// </summary>
+            public void SendDiscoveryRequest(string address, int port)
+            {
+                if (clientUdpClient == null)
+                    return;
+
+                if (NetworkClient.isConnected)
+                {
+                    StopDiscovery();
+                    return;
+                }
+
+                try
+                {
+                    var endPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse(address), port);
+                    using (Mirror.NetworkWriterPooled writer = Mirror.NetworkWriterPool.Get())
+                    {
+                        writer.WriteLong(secretHandshake);
+                        ServerRequest request = new ServerRequest();
+                        writer.Write(request);
+                        ArraySegment<byte> data = writer.ToArraySegment();
+                        clientUdpClient.SendAsync(data.Array, data.Count, endPoint);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[YargNetworkDiscovery] Failed to send direct discovery request to {address}:{port}: {ex.Message}");
+                }
+            }
         private Dictionary<long, YargNetworkManager.LobbyInfo> _discoveredLobbies = new Dictionary<long, YargNetworkManager.LobbyInfo>();
         private YargNetworkManager.LobbyInfo _advertisedLobby;
         private float _lastCleanup = 0f;
@@ -73,13 +104,27 @@ namespace YARG.Networking
                 return default;
             }
 
-            // Don't advertise private lobbies without password
-            if (_advertisedLobby.privacyMode == YargNetworkManager.LobbyPrivacyMode.Private)
+            // Don't advertise private lobbies unless they provide a password (we allow
+            // password-protected private lobbies to be discoverable so clients can get
+            // basic stats and prompt for a password when joining).
+            if (_advertisedLobby.privacyMode == YargNetworkManager.LobbyPrivacyMode.Private && !_advertisedLobby.hasPassword)
             {
                 return default;
             }
 
-            // Create response with lobby info
+            // Gather player info
+            string[] playerNames = null;
+            int[] playerInstruments = null;
+            if (YargNetworkManager.Instance != null)
+            {
+                var players = YargNetworkManager.Instance.ConnectedPlayers
+                    .SelectMany(kvp => kvp.Value)
+                    .Where(p => p != null)
+                    .ToList();
+                playerNames = players.Select(p => p.PlayerName).ToArray();
+                playerInstruments = players.Select(p => p.Instrument).ToArray();
+            }
+
             ServerResponse response = new ServerResponse
             {
                 lobbyId = _advertisedLobby.lobbyId,
@@ -93,9 +138,12 @@ namespace YARG.Networking
                 publicAddress = _advertisedLobby.publicAddress,
                 port = (ushort)Mathf.Clamp(_advertisedLobby.port, 0, ushort.MaxValue),
                 publicPort = (ushort)Mathf.Clamp(_advertisedLobby.publicPort, 0, ushort.MaxValue),
-                transportId = _advertisedLobby.transportId ?? string.Empty
+                transportId = _advertisedLobby.transportId ?? string.Empty,
+                playerNames = playerNames,
+                playerInstruments = playerInstruments
             };
 
+            Debug.Log($"[YargNetworkDiscovery] Responding to discovery request: lobby='{response.lobbyName}', host='{response.hostName}', hasPassword={response.hasPassword}, players={response.currentPlayers}");
             return response;
         }
 
@@ -117,22 +165,23 @@ namespace YARG.Networking
                 hasPassword = response.hasPassword,
                 privacyMode = (YargNetworkManager.LobbyPrivacyMode)response.privacyMode,
                 isActive = true,
-                lastSeen = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                // Use milliseconds for lastSeen to match other code expectations
+                lastSeen = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 port = response.port != 0 ? response.port : NetworkTransportDefaults.DefaultTcpPort,
                 publicPort = response.publicPort != 0 ? response.publicPort : response.port,
                 publicAddress = string.IsNullOrWhiteSpace(response.publicAddress) ? endpoint.Address.ToString() : response.publicAddress,
-                transportId = response.transportId ?? string.Empty
+                transportId = response.transportId ?? string.Empty,
+                playerNames = response.playerNames,
+                playerInstruments = response.playerInstruments
             };
 
             // Add or update lobby
             bool isNew = !_discoveredLobbies.ContainsKey(response.serverId);
             _discoveredLobbies[response.serverId] = lobby;
 
-            if (isNew)
-            {
-                Debug.Log($"Discovered lobby: {lobby.lobbyName} at {lobby.ipAddress}");
-                OnLobbyDiscovered?.Invoke(lobby);
-            }
+            // Always invoke OnLobbyDiscovered for direct ping responses
+            Debug.Log($"Discovered lobby: {lobby.lobbyName} at {lobby.ipAddress}");
+            OnLobbyDiscovered?.Invoke(lobby);
 
             // Notify manager of updated lobby list
             if (YargNetworkManager.Instance != null)
@@ -217,5 +266,9 @@ namespace YARG.Networking
         public ushort port;
         public ushort publicPort;
         public string transportId;
+
+        // New fields for player info
+        public string[] playerNames;
+        public int[] playerInstruments;
     }
 }
