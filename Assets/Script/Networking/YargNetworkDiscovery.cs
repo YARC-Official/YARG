@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using kcp2k;
 
 namespace YARG.Networking
 {
@@ -91,6 +92,9 @@ namespace YARG.Networking
         private const float CLEANUP_INTERVAL = 5f;
         private const float LOBBY_TIMEOUT = 15f;
 
+        private KcpTransport _sharedPortTransport;
+        private bool _sharedPortHooked;
+
         public IReadOnlyDictionary<long, YargNetworkManager.LobbyInfo> DiscoveredLobbies => _discoveredLobbies;
 
         public event Action<YargNetworkManager.LobbyInfo> OnLobbyDiscovered;
@@ -122,6 +126,7 @@ namespace YARG.Networking
         public new void StopDiscovery()
         {
             base.StopDiscovery();
+            DisableSharedPortDiscovery();
             Debug.Log("Stopped lobby discovery");
         }
 
@@ -132,6 +137,7 @@ namespace YARG.Networking
         {
             _advertisedLobby = lobby;
             AdvertiseServer();
+            EnableSharedPortDiscovery();
             Debug.Log($"Advertising lobby: {lobby.lobbyName}");
         }
 
@@ -276,6 +282,87 @@ namespace YARG.Networking
             if (YargNetworkManager.Instance != null)
             {
                 YargNetworkManager.Instance.TriggerLobbyListUpdated(new List<YargNetworkManager.LobbyInfo>());
+            }
+        }
+
+        private void EnableSharedPortDiscovery()
+        {
+            if (_sharedPortHooked)
+                return;
+
+            Transport activeTransport = transport ?? Transport.active;
+            if (activeTransport == null)
+            {
+                activeTransport = GetComponent<Transport>();
+            }
+
+            _sharedPortTransport = activeTransport as KcpTransport ?? GetComponent<KcpTransport>();
+            if (_sharedPortTransport == null)
+            {
+                return;
+            }
+
+            _sharedPortTransport.ServerRawPacket += HandleSharedPortDiscoveryPacket;
+            _sharedPortHooked = true;
+        }
+
+        private void DisableSharedPortDiscovery()
+        {
+            if (!_sharedPortHooked)
+                return;
+
+            if (_sharedPortTransport != null)
+            {
+                _sharedPortTransport.ServerRawPacket -= HandleSharedPortDiscoveryPacket;
+            }
+
+            _sharedPortTransport = null;
+            _sharedPortHooked = false;
+        }
+
+        private bool HandleSharedPortDiscoveryPacket(ArraySegment<byte> payload, IPEndPoint endpoint)
+        {
+            if (_advertisedLobby == null || !_advertisedLobby.isActive)
+            {
+                return false;
+            }
+
+            if (payload.Count < sizeof(long))
+            {
+                return false;
+            }
+
+            try
+            {
+                using (NetworkReaderPooled reader = NetworkReaderPool.Get(payload))
+                {
+                    long handshake = reader.ReadLong();
+                    if (handshake != secretHandshake)
+                    {
+                        return false;
+                    }
+
+                    ServerRequest request = reader.Read<ServerRequest>();
+                    ServerResponse response = ProcessRequest(request, endpoint);
+
+                    using (NetworkWriterPooled writer = NetworkWriterPool.Get())
+                    {
+                        writer.WriteLong(secretHandshake);
+                        writer.Write(response);
+                        ArraySegment<byte> data = writer.ToArraySegment();
+                        if (_sharedPortTransport == null || !_sharedPortTransport.TrySendServerRaw(endpoint, data))
+                        {
+                            Debug.LogWarning($"[YargNetworkDiscovery] Failed to send shared-port discovery response to {endpoint}");
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[YargNetworkDiscovery] Exception while handling shared-port discovery packet: {ex.Message}");
+                return true;
             }
         }
     }
