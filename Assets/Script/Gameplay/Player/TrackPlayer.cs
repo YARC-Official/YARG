@@ -129,6 +129,7 @@ namespace YARG.Gameplay.Player
 
             // Must be done after the HUD location is set
             StarPowerEffect.Initialize();
+            StarPowerEffect.gameObject.SetActive(false);
 
             // Determine if a track is bass or not for the BASS GROOVE text notification
             IsBass = Player.Profile.CurrentInstrument
@@ -426,6 +427,7 @@ namespace YARG.Gameplay.Player
 
             if (SettingsManager.Settings.EnableTrackEffects.Value && currentStarPowerAmount > _previousStarPowerAmount)
             {
+                StarPowerEffect.gameObject.SetActive(true);
                 StarPowerEffect.PlayAnimation();
             }
 

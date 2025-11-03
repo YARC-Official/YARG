@@ -4,6 +4,8 @@ namespace YARG.Gameplay.Visuals
 {
     public class StarPowerEffectElement : MonoBehaviour
     {
+        private const float ANIM_LENGTH = 1f;
+
         // Safe amount backwards from the origin that we can assume the start position is
         private const float START_POSITION = 3f;
 
@@ -31,6 +33,12 @@ namespace YARG.Gameplay.Visuals
 
         private void Update()
         {
+            if (_animTimestamp > ANIM_LENGTH)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
             _animTimestamp += Time.deltaTime;
 
             foreach (var meshRenderer in GetComponentsInChildren<MeshRenderer>())
