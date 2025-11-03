@@ -240,6 +240,10 @@ MonoBehaviour:
     type: 3}
   _friendlyDrumsBindingDialog: {fileID: 2758766270758023739, guid: 1cb9dc49b3acfa24289e270a6fe4328d,
     type: 3}
+  _friendly5LaneDrumsBindingDialog: {fileID: 2758766270758023739, guid: 30b71ca7d004b6844823bc5cb8f5865b,
+    type: 3}
+  _friendlyMidiDrumsBindingDialog: {fileID: 5304055860439716800, guid: 99959ef0a2f04974c84eb885f7d6a48e,
+    type: 3}
   _playAShowDialog: {fileID: 6162491671344219383, guid: 0a237e5e84df70342aba8aab3b3e5d6b,
     type: 3}
 --- !u!1 &227771748

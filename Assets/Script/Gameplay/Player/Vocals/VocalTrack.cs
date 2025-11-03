@@ -176,7 +176,7 @@ namespace YARG.Gameplay.Player
         private double _changeStartTime;
         private double _changeEndTime;
 
-        
+        private static int _totalHarms;
 
         public float TrackSpeed { get; private set; }
 
@@ -251,17 +251,33 @@ namespace YARG.Gameplay.Player
 
             _lyricContainer.TrackSpeed = TrackSpeed;
 
+            // Reset first
+            _totalHarms = 0;
+
+            // Get the number of harmony parts in the song
+            var parts = _vocalsTrack.Parts;
+            foreach (var part in parts)
+            {
+                if (part.IsHarmony && part.NotePhrases.Count > 0)
+                {
+                    _totalHarms++;
+                }
+            }
+
             // Choose the correct amount of lanes
             LyricLaneCount = 1;
             if (vocalsTrack.Instrument == Instrument.Harmony)
             {
-                LyricLaneCount = SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value
-                    ? 3
-                    : 2;
+                LyricLaneCount = _totalHarms switch
+                {
+                    1 => 1, // Just in case there's a 1-harm chart
+                    2 => 2,
+                    3 => SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value ? 3 : 2,
+                    _ => 3,
+                };
             }
 
             // Create trackers and indices
-            var parts = _vocalsTrack.Parts;
             _phraseMarkerIndices = new int[parts.Count];
             _scrollingNoteTrackers = new ScrollingPhraseNoteTracker[parts.Count];
             _scrollingLyricTrackers = new ScrollingPhraseNoteTracker[parts.Count];
