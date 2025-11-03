@@ -36,10 +36,9 @@ namespace YARG.Menu.ProfileInfo
 
         public async void ShowQuickBind()
         {
-            if (CurrentProfile is { GameMode: GameMode.FourLaneDrums or GameMode.ProKeys or
-                GameMode.FiveLaneDrums or GameMode.EliteDrums})
+            if (CurrentProfile is { GameMode: GameMode.FourLaneDrums or GameMode.ProKeys })
             {
-                var dialog = DialogManager.Instance.ShowFriendlyBindingDialog(CurrentProfile, CurrentProfile.GameMode);
+                var dialog = DialogManager.Instance.ShowFriendlyBindingDialog(CurrentProfile);
                 await dialog.WaitUntilClosed();
             }
             else

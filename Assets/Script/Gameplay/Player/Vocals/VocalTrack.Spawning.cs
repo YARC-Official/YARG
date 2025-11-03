@@ -106,7 +106,6 @@ namespace YARG.Gameplay.Player
                     tracker.CurrentLyric,
                     tracker.GetProbableNoteAtLyric(),
                     AllowStarPower && tracker.CurrentPhrase.IsStarPower,
-                    _totalHarms,
                     harmonyIndex))
                 {
                     tracker.NextLyric();
@@ -203,7 +202,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(phrase, _vocalsTrack.Parts[harmonyIndex].NotePhrases, _totalHarms, harmonyIndex, _rightEdges[harmonyIndex]);
+                var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(phrase, _vocalsTrack.Parts[harmonyIndex].NotePhrases, harmonyIndex, _rightEdges[harmonyIndex]);
 
                 if (newPhraseElement != null)
                 {

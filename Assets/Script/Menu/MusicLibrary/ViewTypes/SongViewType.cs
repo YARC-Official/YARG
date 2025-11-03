@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
@@ -147,6 +148,13 @@ namespace YARG.Menu.MusicLibrary
         {
             base.PrimaryButtonClick();
 
+            // Don't allow playing songs when editing playlists
+            if (_musicLibrary.MenuState == MenuState.Playlist)
+            {
+                ToastManager.ToastInformation("Use Left/Right to reorder songs, or use the popup menu to remove.");
+                return;
+            }
+
             if (PlayerContainer.Players.Count <= 0)
             {
                 return;
@@ -183,12 +191,8 @@ namespace YARG.Menu.MusicLibrary
             {
                 PlaylistContainer.FavoritesPlaylist.RemoveSong(SongEntry);
 
-                // If we are in the favorites menu, then update the playlist
-                // to remove the song that was just removed.
-                if (_musicLibrary.SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
-                {
-                    _musicLibrary.RefreshAndReselect();
-                }
+                // Refresh the view to update the filter results
+                _musicLibrary.RefreshAndReselect();
             }
         }
 
@@ -201,10 +205,8 @@ namespace YARG.Menu.MusicLibrary
         {
             playlist.RemoveSong(SongEntry);
 
-            if (_musicLibrary.SelectedPlaylist == playlist)
-            {
-                _musicLibrary.RefreshAndReselect();
-            }
+            // Refresh the view to update the filter results
+            _musicLibrary.RefreshAndReselect();
         }
 
         private void FetchHighScores()

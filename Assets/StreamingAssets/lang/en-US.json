@@ -285,13 +285,14 @@
             },
             "PlayableSongs": "PLAYABLE SONGS",
             "RandomSong": "RANDOM SONG",
-            "Playlists": "PLAYLISTS",
+            "Playlists": "PLAYLIST MANAGER",
             "Favorites": "Favorites",
             "YourPlaylists": "YOUR PLAYLISTS",
             "Popup": {
                 "Header": {
                     "SortBy": "Sort By...",
-                    "GoTo": "Go To..."
+                    "GoTo": "Go To...",
+                    "SelectPlaylists": "Select Playlists"
                 },
                 "Item": {
                     "RandomSong": "Random Song",

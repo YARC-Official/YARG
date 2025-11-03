@@ -65,9 +65,6 @@ namespace YARG.Menu.MusicLibrary
         private static int                     _savedIndex;
         private static int                     _mainLibraryIndex = -1;
         private static MusicLibraryReloadState _reloadState = MusicLibraryReloadState.Full;
-        private static Playlist                _savedPlaylist;
-
-        public bool PlaylistMode => SelectedPlaylist != null;
 
         public static void SetReload(MusicLibraryReloadState state)
         {
@@ -154,14 +151,6 @@ namespace YARG.Menu.MusicLibrary
             }
             else if (_reloadState == MusicLibraryReloadState.Partial)
             {
-                // Note that the order matters here: SelectedPlaylist must be set before calling UpdateSearch,
-                // but SelectedIndex must be set _after_ calling UpdateSearch
-                SelectedPlaylist = _savedPlaylist;
-                if (SelectedPlaylist != null)
-                {
-                    MenuState = MenuState.Playlist;
-                }
-
                 UpdateSearch(true);
 
                 if (MenuState == MenuState.Library && _mainLibraryIndex != -1)
@@ -246,19 +235,13 @@ namespace YARG.Menu.MusicLibrary
                 Navigator.Instance.PopScheme();
             }
 
-            NavigationScheme.Entry leftEntry = default;
-            NavigationScheme.Entry rightEntry = default;
+            NavigationScheme.Entry leftEntry = MenuState == MenuState.Playlist
+                ? new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryUp)
+                : new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.SkipSection", GoToPreviousSection);
 
-            if (MenuState == MenuState.Playlist)
-            {
-                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryUp);
-                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryDown);
-            }
-            else
-            {
-                leftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.SkipSection", GoToPreviousSection);
-                rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.SkipSection", GoToNextSection);
-            }
+            NavigationScheme.Entry rightEntry = MenuState == MenuState.Playlist
+                ? new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryDown)
+                : new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.SkipSection", GoToNextSection);
 
             if (ShowPlaylist.Count == 0)
             {
@@ -576,7 +559,7 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private void Refresh()
+        public void Refresh()
         {
             SetRecommendedSongs();
             _searchField.Reset();
@@ -590,33 +573,8 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            if (!PlaylistMode)
-            {
-                _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
-                _searchField.gameObject.SetActive(true);
-            }
-            else
-            {
-                // Show playlist...
-
-                var songs = new SongEntry[SelectedPlaylist.SongHashes.Count];
-                int count = 0;
-                foreach (var hash in SelectedPlaylist.SongHashes)
-                {
-                    // Get the first song with the specified hash
-                    if (SongContainer.SongsByHash.TryGetValue(hash, out var song))
-                    {
-                        songs[count++] = song[0];
-                    }
-                }
-
-                _sortedSongs = new SongCategory[]
-                {
-                    new(SelectedPlaylist.Name, songs[..count], null)
-                };
-
-                _searchField.gameObject.SetActive(false);
-            }
+            _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
+            _searchField.gameObject.SetActive(true);
 
             RequestViewListUpdate();
 
@@ -690,7 +648,6 @@ namespace YARG.Menu.MusicLibrary
 
             // Save state
             _savedIndex = SelectedIndex;
-            _savedPlaylist = SelectedPlaylist;
 
             Navigator.Instance.PopScheme();
 

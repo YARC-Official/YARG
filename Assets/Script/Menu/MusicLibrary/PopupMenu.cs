@@ -159,26 +159,34 @@ namespace YARG.Menu.MusicLibrary
                     });
                 }
 
-                if (viewType is SongViewType && !_musicLibrary.PlaylistMode)
+                if (viewType is SongViewType)
                 {
-                    CreateItem("AddToPlaylist", () =>
+                    // Show "Remove from Playlist" if we're editing a playlist
+                    if (_musicLibrary.MenuState == MenuState.Playlist && _musicLibrary.SelectedPlaylist != null)
                     {
-                        _menuState = State.AddToPlaylist;
-                        UpdateForState();
-                    });
-                }
-
-                if (_musicLibrary.PlaylistMode)
-                {
-                    CreateItem("RemoveFromPlaylist", () =>
+                        CreateItem("RemoveFromPlaylist", () =>
+                        {
+                            var songView = viewType as SongViewType;
+                            _musicLibrary.SelectedPlaylist.RemoveSong(songView.SongEntry);
+                            _musicLibrary.RefreshAndReselect();
+                            gameObject.SetActive(false);
+                            ToastManager.ToastSuccess("Removed from playlist");
+                        });
+                    }
+                    else
                     {
-                        _musicLibrary.CurrentSelection.RemoveFromPlaylist(_musicLibrary.SelectedPlaylist);
-                        gameObject.SetActive(false);
-                    });
+                        // Only show "Add to Playlist" when not editing a playlist
+                        CreateItem("AddToPlaylist", () =>
+                        {
+                            _menuState = State.AddToPlaylist;
+                            UpdateForState();
+                        });
+                    }
                 }
             }
 
-            if (viewType is PlaylistViewType && _musicLibrary.MenuState == MenuState.PlaylistSelect)
+            // Playlist management functionality removed - playlists are now filters
+            if (false && viewType is PlaylistViewType)
             {
                 // Only for the ad hoc setlist
                 if (_musicLibrary.CurrentSelection is PlaylistViewType pv && pv.Playlist.Ephemeral)

@@ -173,5 +173,17 @@ namespace YARG.Playlists
             _playlists.Remove(playlist);
             DeletePlaylist(playlist);
         }
+
+        public static void RenamePlaylist(Playlist playlist, string newName)
+        {
+            // Delete old file
+            DeletePlaylist(playlist);
+
+            // Update name
+            playlist.Name = newName;
+
+            // Save with new name
+            SavePlaylist(playlist);
+        }
     }
 }

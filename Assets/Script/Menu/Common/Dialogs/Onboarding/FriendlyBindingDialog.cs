@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
+using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Logging;
@@ -21,35 +21,54 @@ namespace YARG.Menu.Dialogs
     /// A friendly dialog to help users bind keys to actions
     /// Note: The caller must call SetParameters for this to actually work
     /// </summary>
-    public abstract class FriendlyBindingDialog : ImageDialog
+    public class FriendlyBindingDialog : ImageDialog
     {
+        // I can't really think of a better way to do this than have key highlights defined and positioned in the editor
         [SerializeField]
-        protected TextMeshProUGUI ControlText;
-        [SerializeField]
-        protected Image[] _keyHighlights;
+        private Image[] _keyHighlights;
 
-        protected InputDevice   _device;
-        protected YargPlayer    _player;
-        protected ColoredButton _startButton;
-        protected ColoredButton _cancelButton;
+        private InputDevice   _device;
+        private YargPlayer    _player;
+        private ColoredButton _startButton;
+        private ColoredButton _cancelButton;
 
-        protected GameMode _mode;
+        // TODO: Refactor this so that InputControlDialogMenu and this can share
+        //  duplicated code is bad.....mmkay?
 
-        protected CancellationTokenSource _cancellationTokenSource;
-        protected CancellationTokenSource _bindingTokenSource;
-        protected State                   _state;
-        protected ActuationSettings       _bindSettings    = new();
+        private UniTask<bool>           _bindingTask;
+        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationToken       _bindingToken;
+        private State                   _state;
+        private ControlBinding          _binding;
+        private AllowedControl          _allowedControls = AllowedControl.All;
+        private ActuationSettings       _bindSettings    = new();
+        private InputControl            _grabbedControl;
 
-        protected BindingCollection _bindingCollection;
+        private          float?             _bindGroupingTimer;
+        private readonly List<InputControl> _possibleControls = new();
 
-        protected abstract (string initial, string complete) BindingMessages { get; set; }
+        private BindingCollection _bindingCollection;
+
+        private Dictionary<GameMode, (string initial, string complete)> _bindingMessages = new()
+        {
+            { GameMode.FourLaneDrums, (
+                "When a pad/cymbal is highlighted, strike the corresponding input on your drum kit.\n\nClick the Start button when you're ready to begin.",
+                "Binding complete.\n\nYou will still need to manually set menu navigation bindings if you have not already."
+                )
+            },
+            { GameMode.ProKeys, (
+                "When a key is highlighted, press the corresponding key on your keyboard.\n\nClick the Start button when you're ready to begin.",
+                "Binding complete.\n\nYou will still need to manually set bindings for 5 lane keys, star power activation, touch effects, and menu navigation."
+                )
+            }
+        };
 
         public override void Initialize()
         {
             base.Initialize();
 
-            Message.text = BindingMessages.initial;
-            ControlText.text = "";
+            var gameMode = _player.Profile.GameMode;
+            Message.text = _bindingMessages[gameMode].initial;
 
             // Make sure all the highlights are disabled
             foreach (var key in _keyHighlights)
@@ -64,15 +83,14 @@ namespace YARG.Menu.Dialogs
             _state = State.Starting;
         }
 
-        public void SetParameters((InputDevice device, YargPlayer player, GameMode mode) parameters)
+        public void SetParameters((InputDevice device, YargPlayer player) parameters)
         {
             _device = parameters.device;
             _player = parameters.player;
             _bindingCollection = _player.Bindings[_player.Profile.GameMode];
-            _mode = parameters.mode;
         }
 
-        public async void OnStartButtonPressed()
+        private async void OnStartButtonPressed()
         {
             // If we're done, this is now a done button that should close the dialog
             if (_state == State.Done)
@@ -87,29 +105,14 @@ namespace YARG.Menu.Dialogs
             var button = _startButton.gameObject.GetComponentInChildren<Button>();
             button.interactable = false;
             button.image.color = Color.gray;
-
             _player.Bindings.ClearBindingsForDevice(_device, false);
-
+            // TODO: _controlBinding needs to be set for this to work
             _cancelButton.Text.text = Localize.Key("Menu.Dialog.FriendlyBindingDialog.Skip");
-            _cancellationTokenSource = new CancellationTokenSource();
-            bool success;
-            try
-            {
-                success = await BindingLoop(gameMode);
-            }
-            catch (OperationCanceledException)
-            {
-                _bindingTokenSource.Cancel();
-            }
-            finally
-            {
-                ControlText.text = "";
-            }
-
+            var success = await BindingLoop();
             // TODO: if failed, we should show an error message of some sort
             button.interactable = true;
             button.image.color = MenuData.Colors.ConfirmButton;
-            Message.text = BindingMessages.complete;
+            Message.text = _bindingMessages[gameMode].complete;
             _startButton.Text.text = Localize.Key("Menu.Common.Close");
             button = _cancelButton.gameObject.GetComponentInChildren<Button>();
             button.interactable = false;
@@ -119,59 +122,31 @@ namespace YARG.Menu.Dialogs
             //  operating in reverse (they press button, on screen key highlights)
         }
 
-        protected abstract void CheckForModeSwitch(string key, GameMode mode);
-
-        protected virtual async UniTask<bool> BindingLoop(GameMode mode)
+        private async UniTask<bool> BindingLoop()
         {
             _state = State.Waiting;
+            _grabbedControl = null;
+
+            _bindGroupingTimer = null;
+            _possibleControls.Clear();
 
             foreach (var bind in _bindingCollection)
             {
                 _state = State.Waiting;
                 // Get the key highlight
                 var key = _player.Profile.LeftyFlip ? bind.NameLefty : bind.Name;
-
-                CheckForModeSwitch(key, mode);
-
-                // Skip bindings not relevant to this dialog
-                if (!IsKeyValid(mode, key))
-                {
-                    continue;
-                }
-
-                var highlight = GetHighlightByName(mode, key);
+                var highlight = GetHighlightByName(key);
                 if (highlight is null)
                 {
                     continue;
                 }
 
-                ControlText.text = Localize.Key("Bindings", key);
-
-                List<InputControl> possibleControls;
-
-                try
-                {
-                    _bindingTokenSource = new CancellationTokenSource();
-                    highlight.gameObject.SetActive(true);
-                    possibleControls =
-                        await InputControlBindingHelper.Instance.GetControl(_player, _bindingTokenSource.Token, bind);
-                }
-                catch (OperationCanceledException)
-                {
-                    return false;
-                }
-
-                if (possibleControls.Count == 0 && !_bindingTokenSource.IsCancellationRequested)
+                _cancellationTokenSource = new CancellationTokenSource();
+                highlight.gameObject.SetActive(true);
+                var bindingSuccess = await GetControl(_cancellationTokenSource.Token, bind);
+                if (!bindingSuccess && !_cancellationTokenSource.IsCancellationRequested)
                 {
                     YargLogger.LogWarning($"Failed to bind {bind.Name}");
-                    continue;
-                }
-
-                if (possibleControls.Count > 0)
-                {
-                    // For now we just take the first thing actuated
-                    // TODO: Make this more robust
-                    bind.AddControl(_bindSettings, possibleControls[0]);
                 }
 
                 // If we ended up in the done state the dialog is being destroyed, so we shouldn't
@@ -186,16 +161,60 @@ namespace YARG.Menu.Dialogs
             return true;
         }
 
-        protected virtual bool IsKeyValid(GameMode mode, string key)
+        private async UniTask<bool> GetControl(CancellationToken token, ControlBinding binding)
         {
-            return true;
+            _possibleControls.Clear();
+            _binding = binding;
+
+            try
+            {
+                // Listen until we cancel or an input is grabbed
+                InputState.onChange += Listen;
+                await UniTask.WaitUntil(() => _state != State.Waiting, cancellationToken: token);
+                InputState.onChange -= Listen;
+
+                // Get the actuated control
+                if (_possibleControls.Count > 1)
+                {
+                    // Multiple controls actuated, let the user choose
+                    // RefreshList();
+
+                    // Wait until the dialog is closed
+                    // await UniTask.WaitUntil(() => !gameObject.activeSelf, cancellationToken: token);
+                    YargLogger.LogWarning("Multiple controls actuated, but we don't support that yet!");
+                    return false;
+                }
+                else if (_possibleControls.Count == 1)
+                {
+                    _grabbedControl = _possibleControls[0];
+                }
+                else
+                {
+                    return false;
+                }
+
+                // Add the binding
+                binding.AddControl(_bindSettings, _grabbedControl);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                _state = State.Waiting;
+                return false;
+            }
+            finally
+            {
+                _state = State.Waiting;
+                InputState.onChange -= Listen;
+            }
         }
 
-        protected virtual Image GetHighlightByName(GameMode mode, string bindingName)
+        // This is virtual because different instruments will have different key highlights (eventually)
+        protected virtual Image GetHighlightByName(string bindingName)
         {
             // TODO: Use the action enum instead of the name
 
-            if (mode == GameMode.ProKeys)
+            if (_player.Profile.GameMode == GameMode.ProKeys)
             {
                 if (bindingName.StartsWith("ProKeys.Key"))
                 {
@@ -206,7 +225,7 @@ namespace YARG.Menu.Dialogs
                 return null;
             }
 
-            if (mode == GameMode.FourLaneDrums)
+            if (_player.Profile.GameMode == GameMode.FourLaneDrums)
             {
                 var key = bindingName switch
                 {
@@ -224,53 +243,11 @@ namespace YARG.Menu.Dialogs
                 return key;
             }
 
-            if (mode == GameMode.FiveLaneDrums)
-            {
-                var key = bindingName switch
-                {
-                    "FiveDrums.RedPad"       => _keyHighlights[0],
-                    "FiveDrums.YellowCymbal" => _keyHighlights[1],
-                    "FiveDrums.BluePad"      => _keyHighlights[2],
-                    "FiveDrums.OrangeCymbal" => _keyHighlights[3],
-                    "FiveDrums.GreenPad"     => _keyHighlights[4],
-                    "Drums.Kick"         => _keyHighlights[5],
-                    _ => null
-                };
-
-                return key;
-            }
-
-            if (mode == GameMode.EliteDrums)
-            {
-                // This is confusing since we do both 4 and 5 lane with different prefabs
-                var key = bindingName switch
-                {
-                    "EliteDrums.FourLaneRedDrum" => _keyHighlights[0],
-                    "EliteDrums.FourLaneYellowDrum" => _keyHighlights[1],
-                    "EliteDrums.FourLaneBlueDrum" => _keyHighlights[2],
-                    "EliteDrums.FourLaneGreenDrum" => _keyHighlights[3],
-                    "EliteDrums.FourLaneYellowCymbal" => _keyHighlights[4],
-                    "EliteDrums.FourLaneBlueCymbal" => _keyHighlights[5],
-                    "EliteDrums.FourLaneGreenCymbal" => _keyHighlights[6],
-
-                    "Drums.Kick" => _mode == GameMode.FourLaneDrums ? _keyHighlights[7] : _keyHighlights[5],
-
-                    "EliteDrums.FiveLaneRedDrum" => _keyHighlights[0],
-                    "EliteDrums.FiveLaneBlueDrum" => _keyHighlights[2],
-                    "EliteDrums.FiveLaneGreenDrum" => _keyHighlights[4],
-                    "EliteDrums.FiveLaneYellowCymbal" => _keyHighlights[1],
-                    "EliteDrums.FiveLaneOrangeCymbal" => _keyHighlights[3],
-                    _ => null
-                };
-
-                return key;
-            }
-
             YargLogger.LogWarning($"Unsupported game mode for friendly binding: {_player.Profile.GameMode}");
             return null;
         }
 
-        public void OnCancelButtonPressed()
+        private void OnCancelButtonPressed()
         {
             if (_state is not State.Starting and not State.Done)
             {
@@ -286,21 +263,112 @@ namespace YARG.Menu.Dialogs
         {
             if (_state is not State.Starting and not State.Done)
             {
-                _cancellationTokenSource?.Cancel();
-                _bindingTokenSource?.Cancel();
+                _cancellationTokenSource.Cancel();
             }
             _state = State.Done;
-
-            _cancellationTokenSource?.Dispose();
-            _bindingTokenSource?.Dispose();
         }
 
-        protected enum State
+        // TODO
+        // All this stuff is lifted from InputControlDialogMenu..this is not OK. Figure out how to single source this
+        // and use it anywhere we need to create bindings
+
+        private void Update()
+        {
+            // The grouping timer has not started yet
+            if (_bindGroupingTimer is null) return;
+
+            if (_bindGroupingTimer <= 0f)
+            {
+                _state = State.Select;
+                _bindGroupingTimer = null;
+            }
+            else
+            {
+                _bindGroupingTimer -= Time.deltaTime;
+            }
+        }
+
+        private void Listen(InputDevice device, InputEventPtr iep)
+        {
+            // Ignore controls for devices not added to the player's bindings
+            if (!_player.Bindings.ContainsDevice(device))
+                return;
+
+            // The eventPtr is not used here, as it is not guaranteed to be valid,
+            // and even if it were, it would no longer be useful for determining which controls changed
+            // since the state from that event has already been written to the device buffers by this time
+            foreach (var control in device.allControls)
+            {
+                // Ignore disallowed and inactive controls
+                if (!ControlAllowed(control) || !_binding.IsControlActuated(_bindSettings, control))
+                    continue;
+
+                if (!_possibleControls.Contains(control))
+                    _possibleControls.Add(control);
+
+                // Reset timer
+                _bindGroupingTimer = GROUP_TIME_THRESHOLD;
+            }
+        }
+
+        private bool ControlAllowed(InputControl control)
+        {
+            // AnyKeyControl is excluded as it would always be active
+            if (control is AnyKeyControl)
+            {
+                return false;
+            }
+
+            // Check that the control is allowed
+            if ((control.noisy && (_allowedControls & AllowedControl.Noisy) == 0) ||
+                (control.synthetic && (_allowedControls & AllowedControl.Synthetic) == 0) ||
+                // Buttons must be checked before axes, as ButtonControl inherits from AxisControl
+                (control is ButtonControl && (_allowedControls & AllowedControl.Button) == 0) ||
+                (control is AxisControl && (_allowedControls & AllowedControl.Axis) == 0))
+            {
+                return false;
+            }
+
+            // Modifier keys on keyboard have both individual left/right controls and combined controls,
+            // we want to ignore the combined controls to prevent ambiguity
+            if (control.device is Keyboard keyboard &&
+                (control == keyboard.shiftKey ||
+                control == keyboard.ctrlKey ||
+                control == keyboard.altKey))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private enum State
         {
             Starting,
             Waiting,
             Select,
             Done
         }
+
+        [Flags]
+        private enum AllowedControl
+        {
+            None = 0,
+
+            // Control types
+            Axis   = 0x01,
+            Button = 0x02,
+            // Doesn't really make sense unless we want to allow things like binding specific
+            // values to a button binding or using a range of values as an axis
+            // Integer = 0x04,
+
+            // Control attributes
+            Noisy     = 0x0100,
+            Synthetic = 0x0200,
+
+            All = Axis | Button | Noisy | Synthetic
+        }
+
+        private const float GROUP_TIME_THRESHOLD = 0.1f;
     }
 }
