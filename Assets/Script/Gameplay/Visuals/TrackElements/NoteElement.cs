@@ -77,7 +77,7 @@ namespace YARG.Gameplay.Visuals
         public virtual void OnStarPowerUpdated()
         {
             // If we did have star power and the user lost it (or vice versa), then swap the model out
-            int index = Array.IndexOf(IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups, NoteGroup);
+            int index = Array.IndexOf(IsStarPowerVisible ? NoteGroups : StarPowerNoteGroups, NoteGroup);
             if (index != -1)
             {
                 // Disable the old note group

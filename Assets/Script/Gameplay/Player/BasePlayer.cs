@@ -344,6 +344,11 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected virtual void OnStarPowerPhraseMissed()
+        {
+
+        }
+
         protected virtual void OnStarPowerStatus(bool active)
         {
             var deploySample = SfxSample.StarPowerDeploy;
