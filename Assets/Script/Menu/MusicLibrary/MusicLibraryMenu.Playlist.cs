@@ -94,8 +94,6 @@ namespace YARG.Menu.MusicLibrary
             list.Add(new ButtonViewType("Sort Z-A", "MusicLibraryIcons[Playlists]", SortPlaylistDescending));
             list.Add(new ButtonViewType("Sort Artist A-Z", "MusicLibraryIcons[Playlists]", SortPlaylistByArtistAscending));
             list.Add(new ButtonViewType("Sort Artist Z-A", "MusicLibraryIcons[Playlists]", SortPlaylistByArtistDescending));
-            list.Add(new ButtonViewType("Sort Oldest First", "MusicLibraryIcons[Playlists]", SortPlaylistOldestFirst));
-            list.Add(new ButtonViewType("Sort Newest First", "MusicLibraryIcons[Playlists]", SortPlaylistNewestFirst));
 
             // Only allow delete if not Favorites or Show playlist
             if (SelectedPlaylist != PlaylistContainer.FavoritesPlaylist && !SelectedPlaylist.Ephemeral)
@@ -175,24 +173,6 @@ namespace YARG.Menu.MusicLibrary
 
             SelectedPlaylist.SortByArtist(ascending: false);
             ToastManager.ToastSuccess("Sorted by Artist Z-A");
-            RefreshAndReselect();
-        }
-
-        private void SortPlaylistOldestFirst()
-        {
-            if (SelectedPlaylist == null) return;
-
-            SelectedPlaylist.SortByDateAdded(ascending: true);
-            ToastManager.ToastSuccess("Sorted Oldest First");
-            RefreshAndReselect();
-        }
-
-        private void SortPlaylistNewestFirst()
-        {
-            if (SelectedPlaylist == null) return;
-
-            SelectedPlaylist.SortByDateAdded(ascending: false);
-            ToastManager.ToastSuccess("Sorted Newest First");
             RefreshAndReselect();
         }
 

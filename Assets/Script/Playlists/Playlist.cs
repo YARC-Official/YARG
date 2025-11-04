@@ -140,24 +140,6 @@ namespace YARG.Playlists
             }
         }
 
-        public void SortByDateAdded(bool ascending = true)
-        {
-            // The list order represents chronological order (oldest at index 0, newest at end)
-            // Ascending = oldest first (current order)
-            // Descending = newest first (reverse order)
-
-            if (!ascending)
-            {
-                SongHashes.Reverse();
-            }
-            // If ascending, list is already in correct order (oldest first)
-
-            if (!Ephemeral)
-            {
-                PlaylistContainer.SavePlaylist(this);
-            }
-        }
-
         public void SortByArtist(bool ascending = true)
         {
             // Get all songs, sort by artist, then rebuild hash list
