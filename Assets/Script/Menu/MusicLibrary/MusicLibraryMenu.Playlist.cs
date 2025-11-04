@@ -89,17 +89,17 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new ButtonViewType("Rename Playlist", "MusicLibraryIcons[Playlists]", RenamePlaylist));
             }
 
-            // Add sort buttons
-            list.Add(new ButtonViewType("Sort A-Z", "MusicLibraryIcons[Playlists]", SortPlaylistAscending));
-            list.Add(new ButtonViewType("Sort Z-A", "MusicLibraryIcons[Playlists]", SortPlaylistDescending));
-            list.Add(new ButtonViewType("Sort Artist A-Z", "MusicLibraryIcons[Playlists]", SortPlaylistByArtistAscending));
-            list.Add(new ButtonViewType("Sort Artist Z-A", "MusicLibraryIcons[Playlists]", SortPlaylistByArtistDescending));
-
             // Only allow delete if not Favorites or Show playlist
             if (SelectedPlaylist != PlaylistContainer.FavoritesPlaylist && !SelectedPlaylist.Ephemeral)
             {
                 list.Add(new ButtonViewType("Delete Playlist", "MusicLibraryIcons[Playlists]", DeletePlaylist));
             }
+
+            // Add sort buttons
+            list.Add(new ButtonViewType("Sort A-Z", "MusicLibraryIcons[Playlists]", SortPlaylistAscending));
+            list.Add(new ButtonViewType("Sort Z-A", "MusicLibraryIcons[Playlists]", SortPlaylistDescending));
+            list.Add(new ButtonViewType("Sort Artist A-Z", "MusicLibraryIcons[Playlists]", SortPlaylistByArtistAscending));
+            list.Add(new ButtonViewType("Sort Artist Z-A", "MusicLibraryIcons[Playlists]", SortPlaylistByArtistDescending));
 
             // Add songs in the playlist
             foreach (var song in SelectedPlaylist.ToList())
