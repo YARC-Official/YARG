@@ -113,5 +113,75 @@ namespace YARG.Playlists
         {
             SongHashes.Clear();
         }
+
+        public void SortByName(bool ascending = true)
+        {
+            // Get all songs, sort by name, then rebuild hash list
+            var songs = ToList();
+
+            if (ascending)
+            {
+                songs.Sort((a, b) => string.Compare(a.Name, b.Name, System.StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                songs.Sort((a, b) => string.Compare(b.Name, a.Name, System.StringComparison.OrdinalIgnoreCase));
+            }
+
+            SongHashes.Clear();
+            foreach (var song in songs)
+            {
+                SongHashes.Add(song.Hash);
+            }
+
+            if (!Ephemeral)
+            {
+                PlaylistContainer.SavePlaylist(this);
+            }
+        }
+
+        public void SortByDateAdded(bool ascending = true)
+        {
+            // The list order represents chronological order (oldest at index 0, newest at end)
+            // Ascending = oldest first (current order)
+            // Descending = newest first (reverse order)
+
+            if (!ascending)
+            {
+                SongHashes.Reverse();
+            }
+            // If ascending, list is already in correct order (oldest first)
+
+            if (!Ephemeral)
+            {
+                PlaylistContainer.SavePlaylist(this);
+            }
+        }
+
+        public void SortByArtist(bool ascending = true)
+        {
+            // Get all songs, sort by artist, then rebuild hash list
+            var songs = ToList();
+
+            if (ascending)
+            {
+                songs.Sort((a, b) => string.Compare(a.Artist, b.Artist, System.StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                songs.Sort((a, b) => string.Compare(b.Artist, a.Artist, System.StringComparison.OrdinalIgnoreCase));
+            }
+
+            SongHashes.Clear();
+            foreach (var song in songs)
+            {
+                SongHashes.Add(song.Hash);
+            }
+
+            if (!Ephemeral)
+            {
+                PlaylistContainer.SavePlaylist(this);
+            }
+        }
     }
 }
