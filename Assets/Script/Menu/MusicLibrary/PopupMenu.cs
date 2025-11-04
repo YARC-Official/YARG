@@ -185,20 +185,6 @@ namespace YARG.Menu.MusicLibrary
                 }
             }
 
-            // Playlist management functionality removed - playlists are now filters
-            if (false && viewType is PlaylistViewType)
-            {
-                // Only for the ad hoc setlist
-                if (_musicLibrary.CurrentSelection is PlaylistViewType pv && pv.Playlist.Ephemeral)
-                {
-                    CreateItem("AddToPlaylist", () =>
-                    {
-                        _menuState = State.AddToPlaylist;
-                        UpdateForState();
-                    });
-                }
-            }
-
             if (viewType is PlaylistViewType playlistView &&
                 playlistView.Playlist != PlaylistContainer.FavoritesPlaylist)
             {

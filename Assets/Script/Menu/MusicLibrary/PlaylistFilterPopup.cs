@@ -128,11 +128,6 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        public HashSet<string> GetSelectedPlaylists()
-        {
-            return new HashSet<string>(_selectedPlaylists);
-        }
-
         public void ClearSelection()
         {
             _selectedPlaylists.Clear();
