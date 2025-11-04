@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace YARG.Menu.Dialogs
 {
@@ -7,20 +9,23 @@ namespace YARG.Menu.Dialogs
     /// </summary>
     public class ImageDialog : MessageDialog
     {
+        [FormerlySerializedAs("_imageContainer")]
         [Space]
         [SerializeField]
-        private GameObject _imageContainer;
+        protected GameObject ImageContainer;
+        [SerializeField]
+        protected Image Image;
 
         public override void ClearDialog()
         {
             base.ClearDialog();
 
-            if (_imageContainer == null)
+            if (ImageContainer == null)
             {
                 return;
             }
 
-            _imageContainer.SetActive(false);
+            ImageContainer.SetActive(false);
         }
     }
 }
