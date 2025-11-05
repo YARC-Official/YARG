@@ -4,9 +4,11 @@ using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using YARG.Core;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Menu;
 using YARG.Menu.Data;
 using YARG.Menu.DifficultySelect;
 using YARG.Menu.Persistent;
@@ -112,7 +114,7 @@ namespace YARG.Menu.Multiplayer
         [SerializeField]
         private GameObject _createLobbyPasswordRow;
         [SerializeField]
-        private Button _createLobbySubmitButton;
+        private ColoredButton _createLobbySubmitButton;
         [SerializeField]
         private Button _createLobbyCancelButton;
 
@@ -128,9 +130,9 @@ namespace YARG.Menu.Multiplayer
         [SerializeField]
         private GameObject _hostedLobbyPasswordRow;
         [SerializeField]
-        private Button _hostedLobbyHostButton;
+        private ColoredButton _hostedLobbyHostButton;
         [SerializeField]
-        private Button _hostedLobbyDeleteButton;
+        private ColoredButton _hostedLobbyDeleteButton;
 
         [Header("Direct Connect Form")]
         [SerializeField]
@@ -138,7 +140,7 @@ namespace YARG.Menu.Multiplayer
         [SerializeField]
         private TMP_InputField _directConnectPasswordInput;
         [SerializeField]
-        private Button _directConnectSubmitButton;
+        private ColoredButton _directConnectSubmitButton;
         [SerializeField]
         private Button _directConnectCancelButton;
 
@@ -155,6 +157,7 @@ namespace YARG.Menu.Multiplayer
         private bool _hostToggleAvailable;
         private bool _hasPassword;
         private bool _passwordToggleAvailable;
+        private TMP_InputField _passwordEditInputField;
         private bool _suppressHostedFieldCallbacks;
         private EditableField? _activeEditField;
         private YargNetworkManager.LobbyPrivacyMode _currentPrivacyMode = YargNetworkManager.LobbyPrivacyMode.Public;
@@ -200,6 +203,7 @@ namespace YARG.Menu.Multiplayer
             _menu = menu;
 
             EnsureContainerReferences();
+            ApplyButtonColors();
 
             if (!_listenersRegistered)
             {
@@ -214,7 +218,7 @@ namespace YARG.Menu.Multiplayer
         private void RegisterButtonListeners()
         {
             if (_createLobbySubmitButton != null)
-                _createLobbySubmitButton.onClick.AddListener(SubmitCreateLobbyForm);
+                _createLobbySubmitButton.OnClick.AddListener(SubmitCreateLobbyForm);
 
             if (_createLobbyCancelButton != null)
                 _createLobbyCancelButton.onClick.AddListener(ClearLobby);
@@ -256,20 +260,39 @@ namespace YARG.Menu.Multiplayer
             }
 
             if (_hostedLobbyHostButton != null)
-                _hostedLobbyHostButton.onClick.AddListener(HandleHostedHost);
+                _hostedLobbyHostButton.OnClick.AddListener(HandleHostedHost);
 
             if (_hostedLobbyDeleteButton != null)
-                _hostedLobbyDeleteButton.onClick.AddListener(HandleHostedDelete);
+                _hostedLobbyDeleteButton.OnClick.AddListener(HandleHostedDelete);
 
             if (_directConnectSubmitButton != null)
-                _directConnectSubmitButton.onClick.AddListener(SubmitDirectConnectForm);
+                _directConnectSubmitButton.OnClick.AddListener(SubmitDirectConnectForm);
 
             if (_directConnectCancelButton != null)
                 _directConnectCancelButton.onClick.AddListener(ClearLobby);
 
-            AttachEditableInputHandlers(_lobbyNameEditContainer, ConfirmLobbyNameEdit);
-            AttachEditableInputHandlers(_hostAddressEditContainer, ConfirmHostAddressEdit);
-            AttachEditableInputHandlers(_passwordEditContainer, ConfirmPasswordEdit);
+            AttachEditableInputHandlers(_lobbyNameEditContainer, ConfirmLobbyNameEdit, EditableField.LobbyName);
+            AttachEditableInputHandlers(_hostAddressEditContainer, ConfirmHostAddressEdit, EditableField.HostAddress);
+            AttachEditableInputHandlers(_passwordEditContainer, ConfirmPasswordEdit, EditableField.Password);
+        }
+
+        private void ApplyButtonColors()
+        {
+            var colors = MenuData.Colors;
+            if (colors == null)
+                return;
+
+            if (_createLobbySubmitButton != null)
+                _createLobbySubmitButton.SetBackgroundAndTextColor(colors.ConfirmButton);
+
+            if (_hostedLobbyHostButton != null)
+                _hostedLobbyHostButton.SetBackgroundAndTextColor(colors.ConfirmButton);
+
+            if (_hostedLobbyDeleteButton != null)
+                _hostedLobbyDeleteButton.SetBackgroundAndTextColor(colors.CancelButton);
+
+            if (_directConnectSubmitButton != null)
+                _directConnectSubmitButton.SetBackgroundAndTextColor(colors.ConfirmButton);
         }
 
         private void PopulateDropdowns()
@@ -306,12 +329,22 @@ namespace YARG.Menu.Multiplayer
             }
         }
 
-        private void AttachEditableInputHandlers(GameObject container, Action confirmAction)
+        private void AttachEditableInputHandlers(GameObject container, Action confirmAction, EditableField? field = null)
         {
             if (container == null || confirmAction == null)
                 return;
 
-            var input = container.GetComponentInChildren<TMP_InputField>(true);
+            TMP_InputField input = null;
+
+            if (field == EditableField.Password)
+            {
+                input = EnsurePasswordEditInputField();
+            }
+            else
+            {
+                input = container.GetComponentInChildren<TMP_InputField>(true);
+            }
+
             if (input == null)
                 return;
 
@@ -323,7 +356,7 @@ namespace YARG.Menu.Multiplayer
 
         #region Public API
 
-        public void SetLobby(YargNetworkManager.LobbyInfo lobby)
+        public void SetLobby(YargNetworkManager.LobbyInfo lobby, LobbyBookmark bookmarkOverride = null)
         {
             if (lobby == null)
             {
@@ -336,10 +369,13 @@ namespace YARG.Menu.Multiplayer
             ExitAllEditModes();
             _currentLobby = lobby;
             _activePreset = null;
-            _activeBookmark = store.GetFavorite(lobby.ipAddress, lobby.port) ?? store.GetRecent(lobby.ipAddress, lobby.port);
+            _activeBookmark = bookmarkOverride
+                ?? store.GetFavorite(lobby.ipAddress, lobby.port)
+                ?? store.GetRecent(lobby.ipAddress, lobby.port);
 
             ShowMode(SidebarMode.Lobby);
             PopulateLobbyInfo(lobby);
+            ApplyBookmarkOverlayData(_activeBookmark);
             UpdatePlayerList(lobby);
             RefreshEditableButtons();
         }
@@ -381,14 +417,36 @@ namespace YARG.Menu.Multiplayer
 
         public void ShowCreateLobbyForm(HostedLobbyPreset preset, bool focusFirstField = false)
         {
-            _activePreset = preset?.Clone();
+            bool wasCreateMode = _currentMode == SidebarMode.CreateLobby;
+            bool presetChanged = !HostedPresetsEquivalent(_activePreset, preset);
+            bool shouldReset = !wasCreateMode || focusFirstField || presetChanged;
+
+            if (shouldReset)
+            {
+                _activePreset = preset?.Clone();
+                ExitAllEditModes();
+            }
+
             _currentLobby = null;
             _activeBookmark = null;
 
-            ExitAllEditModes();
             ShowMode(SidebarMode.CreateLobby);
 
-            string suggestedName = preset?.lobbyName;
+            if (!shouldReset)
+            {
+                if (focusFirstField && _createLobbyNameInput != null)
+                {
+                    FocusInput(_createLobbyNameInput);
+                }
+
+                UpdateCreateLobbyPasswordVisibility();
+                RefreshEditableButtons();
+                return;
+            }
+
+            var sourcePreset = _activePreset;
+
+            string suggestedName = sourcePreset?.lobbyName;
             if (string.IsNullOrWhiteSpace(suggestedName))
             {
                 string player = YargNetworkManager.Instance != null ? YargNetworkManager.Instance.PlayerName : "YARG";
@@ -397,11 +455,10 @@ namespace YARG.Menu.Multiplayer
 
             if (_createLobbyNameInput != null)
             {
-                _createLobbyNameInput.text = suggestedName;
+                SetInputFieldText(_createLobbyNameInput, suggestedName);
                 if (focusFirstField)
                 {
-                    _createLobbyNameInput.Select();
-                    _createLobbyNameInput.ActivateInputField();
+                    FocusInput(_createLobbyNameInput);
                 }
             }
 
@@ -409,9 +466,9 @@ namespace YARG.Menu.Multiplayer
             {
                 int optionIndex = -1;
 
-                if (preset != null && preset.maxPlayers > 0)
+                if (sourcePreset != null && sourcePreset.maxPlayers > 0)
                 {
-                    optionIndex = FindMaxPlayersOptionIndex(_createLobbyMaxPlayersDropdown, preset.maxPlayers);
+                    optionIndex = FindMaxPlayersOptionIndex(_createLobbyMaxPlayersDropdown, sourcePreset.maxPlayers);
                 }
                 else if (_createLobbyMaxPlayersDropdown.options != null && _createLobbyMaxPlayersDropdown.options.Count > 0)
                 {
@@ -427,13 +484,13 @@ namespace YARG.Menu.Multiplayer
 
             if (_createLobbyPrivacyDropdown != null)
             {
-                int privacyIndex = Mathf.Clamp((int)(preset?.PrivacyMode ?? YargNetworkManager.LobbyPrivacyMode.Public), 0, 2);
+                int privacyIndex = Mathf.Clamp((int)(sourcePreset?.PrivacyMode ?? YargNetworkManager.LobbyPrivacyMode.Public), 0, 2);
                 _createLobbyPrivacyDropdown.value = privacyIndex;
             }
 
             if (_createLobbyPasswordInput != null)
             {
-                _createLobbyPasswordInput.text = preset?.password ?? string.Empty;
+                SetInputFieldText(_createLobbyPasswordInput, sourcePreset?.password ?? string.Empty);
             }
 
             UpdateCreateLobbyPasswordVisibility();
@@ -451,17 +508,16 @@ namespace YARG.Menu.Multiplayer
 
             if (_directConnectAddressInput != null)
             {
-                _directConnectAddressInput.text = string.Empty;
+                SetInputFieldText(_directConnectAddressInput, string.Empty);
                 if (focusFirstField)
                 {
-                    _directConnectAddressInput.Select();
-                    _directConnectAddressInput.ActivateInputField();
+                    FocusInput(_directConnectAddressInput);
                 }
             }
 
             if (_directConnectPasswordInput != null)
             {
-                _directConnectPasswordInput.text = string.Empty;
+                SetInputFieldText(_directConnectPasswordInput, string.Empty);
             }
             RefreshEditableButtons();
         }
@@ -559,6 +615,23 @@ namespace YARG.Menu.Multiplayer
             _currentPrivacyMode = lobby.privacyMode;
             SetPasswordValue(lobby.password, hasPassword, hasPassword);
             RefreshEditableButtons();
+        }
+
+        private void ApplyBookmarkOverlayData(LobbyBookmark bookmark)
+        {
+            if (bookmark == null)
+                return;
+
+            bool storedHasPassword = !string.IsNullOrEmpty(bookmark.password);
+            if (storedHasPassword || !_hasPassword)
+            {
+                SetPasswordValue(bookmark.password, storedHasPassword || _hasPassword, true);
+            }
+
+            if (_passwordIcon != null && storedHasPassword && !_passwordIcon.activeSelf)
+            {
+                _passwordIcon.SetActive(true);
+            }
         }
 
         private void PopulateBookmarkInfo(LobbyBookmark bookmark)
@@ -1032,14 +1105,7 @@ namespace YARG.Menu.Multiplayer
             _suppressHostedFieldCallbacks = true;
 
             string lobbyName = preset?.lobbyName ?? string.Empty;
-            if (_hostedLobbyNameInput != null)
-            {
-                _hostedLobbyNameInput.SetTextWithoutNotify(lobbyName);
-                if (_hostedLobbyNameInput.isActiveAndEnabled && _hostedLobbyNameInput.gameObject.activeInHierarchy)
-                {
-                    _hostedLobbyNameInput.caretPosition = lobbyName.Length;
-                }
-            }
+            SetInputFieldText(_hostedLobbyNameInput, lobbyName);
 
             if (_hostedLobbyMaxPlayersDropdown != null)
             {
@@ -1066,11 +1132,7 @@ namespace YARG.Menu.Multiplayer
                 string password = preset != null && preset.PrivacyMode == YargNetworkManager.LobbyPrivacyMode.Private
                     ? preset.password ?? string.Empty
                     : string.Empty;
-                _hostedLobbyPasswordInput.SetTextWithoutNotify(password);
-                if (_hostedLobbyPasswordInput.isActiveAndEnabled && _hostedLobbyPasswordInput.gameObject.activeInHierarchy)
-                {
-                    _hostedLobbyPasswordInput.caretPosition = password.Length;
-                }
+                SetInputFieldText(_hostedLobbyPasswordInput, password);
             }
 
             _suppressHostedFieldCallbacks = false;
@@ -1082,8 +1144,7 @@ namespace YARG.Menu.Multiplayer
         {
             _suppressHostedFieldCallbacks = true;
 
-            if (_hostedLobbyNameInput != null)
-                _hostedLobbyNameInput.SetTextWithoutNotify(string.Empty);
+            SetInputFieldText(_hostedLobbyNameInput, string.Empty);
 
             if (_hostedLobbyMaxPlayersDropdown != null)
             {
@@ -1103,8 +1164,7 @@ namespace YARG.Menu.Multiplayer
                 _hostedLobbyPrivacyDropdown.RefreshShownValue();
             }
 
-            if (_hostedLobbyPasswordInput != null)
-                _hostedLobbyPasswordInput.SetTextWithoutNotify(string.Empty);
+            SetInputFieldText(_hostedLobbyPasswordInput, string.Empty);
 
             _suppressHostedFieldCallbacks = false;
 
@@ -1281,6 +1341,11 @@ namespace YARG.Menu.Multiplayer
                 return;
             }
 
+            if (field == EditableField.Password)
+            {
+                EnsurePasswordEditInputField();
+            }
+
             var state = GetEditableFieldState(field);
             if (state.ViewContainer == null || state.EditContainer == null)
             {
@@ -1296,17 +1361,31 @@ namespace YARG.Menu.Multiplayer
                 ExitAllEditModes();
                 _activeEditField = field;
 
+                if (state.EditContainer != null)
+                    EnsureContainerHierarchyActive(state.EditContainer);
+
+                if (state.ViewContainer != null)
+                    EnsureContainerHierarchyActive(state.ViewContainer);
+
                 SetEditContainers(state.ViewContainer, state.EditContainer, true);
 
                 var input = state.GetInputField();
                 if (input != null)
                 {
-                    input.SetTextWithoutNotify(GetCurrentEditableValue(field));
-                    input.caretPosition = input.text.Length;
-                    FocusInput(input);
+                    input.interactable = true;
+                    input.readOnly = false;
+
+                    string initialValue = GetCurrentEditableValue(field);
+                    SetInputFieldText(input, initialValue);
                 }
 
                 UpdatePasswordContainersVisibility();
+
+                if (input != null)
+                {
+                    FocusInput(input);
+                    MoveCaretToEnd(input);
+                }
                 return;
             }
 
@@ -1423,11 +1502,13 @@ namespace YARG.Menu.Multiplayer
             if (editContainer == null)
                 return;
 
-            var input = editContainer.GetComponentInChildren<TMP_InputField>(true);
+            TMP_InputField input = editContainer == _passwordEditContainer
+                ? EnsurePasswordEditInputField()
+                : editContainer.GetComponentInChildren<TMP_InputField>(true);
             if (input == null)
                 return;
 
-            input.SetTextWithoutNotify(GetCurrentEditableValue(field));
+            SetInputFieldText(input, GetCurrentEditableValue(field));
         }
 
         private void RefreshEditableButtons()
@@ -1473,9 +1554,20 @@ namespace YARG.Menu.Multiplayer
             {
                 EditableField.LobbyName => bookmark.displayName ?? string.Empty,
                 EditableField.HostAddress => FormatBookmarkEndpoint(bookmark),
-                EditableField.Password => bookmark.password ?? string.Empty,
+                EditableField.Password => GetPasswordEditableValue(bookmark),
                 _ => string.Empty
             };
+        }
+
+        private string GetPasswordEditableValue(LobbyBookmark bookmark)
+        {
+            if (!string.IsNullOrEmpty(_currentPassword))
+                return _currentPassword;
+
+            if (bookmark != null && !string.IsNullOrEmpty(bookmark.password))
+                return bookmark.password;
+
+            return string.Empty;
         }
 
         private string FormatBookmarkEndpoint(LobbyBookmark bookmark)
@@ -1493,7 +1585,7 @@ namespace YARG.Menu.Multiplayer
             {
                 EditableField.LobbyName => new EditableFieldState(_lobbyNameViewContainer, _lobbyNameEditContainer),
                 EditableField.HostAddress => new EditableFieldState(_hostAddressViewContainer, _hostAddressEditContainer),
-                EditableField.Password => new EditableFieldState(_passwordViewContainer, _passwordEditContainer),
+                EditableField.Password => new EditableFieldState(_passwordViewContainer, _passwordEditContainer, EnsurePasswordEditInputField()),
                 _ => default
             };
         }
@@ -1502,15 +1594,20 @@ namespace YARG.Menu.Multiplayer
         {
             public readonly GameObject ViewContainer;
             public readonly GameObject EditContainer;
+            private readonly TMP_InputField _explicitInput;
 
-            public EditableFieldState(GameObject viewContainer, GameObject editContainer)
+            public EditableFieldState(GameObject viewContainer, GameObject editContainer, TMP_InputField explicitInput = null)
             {
                 ViewContainer = viewContainer;
                 EditContainer = editContainer;
+                _explicitInput = explicitInput;
             }
 
             public TMP_InputField GetInputField()
             {
+                if (_explicitInput != null)
+                    return _explicitInput;
+
                 if (EditContainer == null)
                     return null;
 
@@ -1518,30 +1615,82 @@ namespace YARG.Menu.Multiplayer
             }
         }
 
-        private void UpdatePasswordContainersVisibility()
+        private TMP_InputField EnsurePasswordEditInputField()
         {
-            bool show = _currentMode == SidebarMode.Lobby && _currentPrivacyMode == YargNetworkManager.LobbyPrivacyMode.Private;
+            if (_passwordEditInputField != null)
+                return _passwordEditInputField;
 
-            if (!show && _activeEditField == EditableField.Password)
+            if (_passwordEditContainer == null)
+                return null;
+
+            _passwordEditInputField = _passwordEditContainer.GetComponentInChildren<TMP_InputField>(true);
+            if (_passwordEditInputField == null)
             {
-                _activeEditField = null;
+                Debug.LogWarning("[LobbyBrowserSidebar] Password edit container is missing a TMP_InputField. Please assign it in the prefab.");
             }
 
+            return _passwordEditInputField;
+        }
+
+        private void UpdatePasswordContainersVisibility()
+        {
             bool editing = _activeEditField == EditableField.Password;
+            if (editing)
+            {
+                if (_passwordViewContainer != null)
+                    _passwordViewContainer.SetActive(false);
+
+                if (_passwordEditContainer != null)
+                    _passwordEditContainer.SetActive(true);
+
+                if (_passwordEditButton != null)
+                    _passwordEditButton.gameObject.SetActive(false);
+
+                if (_passwordVisibilityToggle != null)
+                {
+                    _passwordVisibilityToggle.gameObject.SetActive(false);
+                    _passwordVisibilityToggle.interactable = false;
+                }
+
+                return;
+            }
+
+            bool showRow = false;
+
+            if (_currentMode == SidebarMode.Lobby)
+            {
+                if (_currentPrivacyMode == YargNetworkManager.LobbyPrivacyMode.Private)
+                {
+                    showRow = true;
+                }
+                else if (_hasPassword || !string.IsNullOrEmpty(_currentPassword))
+                {
+                    showRow = true;
+                }
+                else if (_activeBookmark != null && !string.IsNullOrEmpty(_activeBookmark.password))
+                {
+                    showRow = true;
+                }
+            }
 
             if (_passwordViewContainer != null)
-                _passwordViewContainer.SetActive(show && !editing);
+                _passwordViewContainer.SetActive(showRow);
 
             if (_passwordEditContainer != null)
-                _passwordEditContainer.SetActive(show && editing);
+                _passwordEditContainer.SetActive(false);
 
             if (_passwordEditButton != null)
-                _passwordEditButton.gameObject.SetActive(show && CanEditSelectedBookmark());
+            {
+                bool canEditBookmark = CanEditSelectedBookmark();
+                _passwordEditButton.gameObject.SetActive(showRow && canEditBookmark);
+                _passwordEditButton.interactable = canEditBookmark;
+            }
 
             if (_passwordVisibilityToggle != null)
             {
-                _passwordVisibilityToggle.gameObject.SetActive(show);
-                _passwordVisibilityToggle.interactable = _passwordToggleAvailable;
+                bool toggleVisible = showRow && _hasPassword;
+                _passwordVisibilityToggle.gameObject.SetActive(toggleVisible);
+                _passwordVisibilityToggle.interactable = toggleVisible && _passwordToggleAvailable;
             }
         }
 
@@ -1774,13 +1923,80 @@ namespace YARG.Menu.Multiplayer
             DirectConnectSubmitted?.Invoke(form);
         }
 
+        private static void SetInputFieldText(TMP_InputField field, string value)
+        {
+            if (field == null)
+                return;
+
+            string sanitized = value ?? string.Empty;
+            string current = field.text ?? string.Empty;
+            bool changed = !string.Equals(current, sanitized, StringComparison.Ordinal);
+
+            int caret = -1;
+            int anchor = -1;
+            int focus = -1;
+
+            if (field.isFocused)
+            {
+                caret = field.caretPosition;
+                anchor = field.selectionAnchorPosition;
+                focus = field.selectionFocusPosition;
+            }
+
+            if (changed)
+            {
+                field.SetTextWithoutNotify(sanitized);
+            }
+
+            field.ForceLabelUpdate();
+
+            if (caret < 0)
+                return;
+
+            int length = field.text?.Length ?? sanitized.Length;
+            caret = Mathf.Clamp(caret, 0, length);
+            anchor = Mathf.Clamp(anchor, 0, length);
+            focus = Mathf.Clamp(focus, 0, length);
+
+            field.caretPosition = caret;
+            field.selectionAnchorPosition = anchor;
+            field.selectionFocusPosition = focus;
+        }
+
         private static void FocusInput(TMP_InputField field)
         {
             if (field == null)
                 return;
 
+            var eventSystem = EventSystem.current;
+            if (eventSystem != null)
+            {
+                if (eventSystem.currentSelectedGameObject != field.gameObject)
+                {
+                    eventSystem.SetSelectedGameObject(null);
+                    eventSystem.SetSelectedGameObject(field.gameObject);
+                }
+                else
+                {
+                    field.OnSelect(new BaseEventData(eventSystem));
+                }
+            }
+
             field.Select();
             field.ActivateInputField();
+        }
+
+        private static void MoveCaretToEnd(TMP_InputField field)
+        {
+            if (field == null)
+                return;
+
+            field.MoveTextEnd(false);
+
+            int length = field.text?.Length ?? 0;
+            field.caretPosition = length;
+            field.selectionAnchorPosition = length;
+            field.selectionFocusPosition = length;
         }
 
         private static void EnsureMaxPlayersDropdownOptions(TMP_Dropdown dropdown)
@@ -1816,6 +2032,21 @@ namespace YARG.Menu.Multiplayer
                     "Friends Only"
                 });
             }
+        }
+
+        private static bool HostedPresetsEquivalent(HostedLobbyPreset currentPreset, HostedLobbyPreset targetPreset)
+        {
+            if (ReferenceEquals(currentPreset, targetPreset))
+                return true;
+
+            if (currentPreset == null || targetPreset == null)
+                return currentPreset == null && targetPreset == null;
+
+            return string.Equals(currentPreset.id ?? string.Empty, targetPreset.id ?? string.Empty, StringComparison.Ordinal)
+                && string.Equals(currentPreset.lobbyName ?? string.Empty, targetPreset.lobbyName ?? string.Empty, StringComparison.Ordinal)
+                && currentPreset.maxPlayers == targetPreset.maxPlayers
+                && currentPreset.PrivacyMode == targetPreset.PrivacyMode
+                && string.Equals(currentPreset.password ?? string.Empty, targetPreset.password ?? string.Empty, StringComparison.Ordinal);
         }
 
         private static int FindMaxPlayersOptionIndex(TMP_Dropdown dropdown, int desiredPlayers)

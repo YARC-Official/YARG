@@ -427,7 +427,7 @@ namespace YARG.Menu.Multiplayer
 
                 if (delta <= TimeSpan.FromSeconds(2))
                 {
-                    label = "Live";
+                    label = "ONLINE";
                     color = new Color(0.35f, 0.92f, 0.55f);
                 }
                 else if (delta <= TimeSpan.FromSeconds(10))
@@ -586,7 +586,7 @@ namespace YARG.Menu.Multiplayer
             _menu?.ShowHostedLobbyEditor(_preset);
         }
 
-        public string GetMaxPlayersLabel()
+        public string GetMaxPlayersLabel(bool selected)
         {
             if (_preset == null)
             {
@@ -594,7 +594,8 @@ namespace YARG.Menu.Multiplayer
             }
 
             int clamped = Mathf.Max(1, _preset.maxPlayers);
-            return clamped == 1 ? "Max 1 player" : string.Concat("Max ", clamped, " players");
+            string label = clamped == 1 ? "Max 1 player" : string.Concat("Max ", clamped, " players");
+            return FormatAs(label, TextType.Secondary, selected);
         }
 
         public string GetPrivacyLabel()
@@ -627,14 +628,15 @@ namespace YARG.Menu.Multiplayer
             return _preset.PrivacyMode == YargNetworkManager.LobbyPrivacyMode.Private;
         }
 
-        public string GetHostedRecencyText()
+        public string GetHostedRecencyText(bool selected)
         {
             if (_preset == null)
             {
                 return string.Empty;
             }
 
-            return _preset.lastHostedAt > 0 ? BuildRelativeTimeString(_preset.lastHostedAt) : "Never hosted";
+            string recency = _preset.lastHostedAt > 0 ? BuildRelativeTimeString(_preset.lastHostedAt) : "Never hosted";
+            return FormatAs(recency, TextType.Secondary, selected);
         }
 
         private static string BuildRelativeTimeString(long unixSeconds)

@@ -15,7 +15,7 @@ namespace YARG.Menu.DifficultySelect
     public class MultiplayerPlayerEntry : MonoBehaviour
     {
         [Header("UI Components")]
-        [SerializeField] private TextMeshProUGUI _iconsText; // Combined instrument + difficulty
+        [SerializeField] private TextMeshProUGUI _iconsText;
         [SerializeField] private TextMeshProUGUI _playerNameText;
         [SerializeField] private Image _readyStatusIcon;
         

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -23,6 +24,21 @@ namespace YARG.Menu.Multiplayer
         [SerializeField] private TextMeshProUGUI playerCountText;
         [SerializeField] private TextMeshProUGUI lobbyCodeText;
         [SerializeField] private TextMeshProUGUI connectionInfoText;
+        [SerializeField] private RectTransform hostAddressPanelParent;
+        [SerializeField] private GameObject hostAddressPanel;
+        [SerializeField] private GameObject lanAddressRow;
+        [SerializeField] private TextMeshProUGUI lanAddressValueText;
+        [SerializeField] private Button lanVisibilityToggleButton;
+        [SerializeField] private TextMeshProUGUI lanVisibilityToggleLabel;
+        [SerializeField] private Button lanCopyButton;
+        [SerializeField] private GameObject wanAddressRow;
+        [SerializeField] private TextMeshProUGUI wanAddressValueText;
+        [SerializeField] private Button wanVisibilityToggleButton;
+        [SerializeField] private TextMeshProUGUI wanVisibilityToggleLabel;
+        [SerializeField] private Button wanCopyButton;
+        [Header("Visibility Icons")]
+        [SerializeField] private Sprite visibilityVisibleSprite;
+        [SerializeField] private Sprite visibilityHiddenSprite;
         
         [Header("Player List")]
         [SerializeField] private Transform playerListContainer;
@@ -39,10 +55,17 @@ namespace YARG.Menu.Multiplayer
         private System.Collections.Generic.Dictionary<NetworkPlayerData, PlayerView> playerViews = new System.Collections.Generic.Dictionary<NetworkPlayerData, PlayerView>();
         private bool _waitingForSongSync;
         private string _defaultWaitingForHostText;
+        private bool _hostPanelListenersBound;
+        private string _lanAddress = string.Empty;
+        private string _wanAddress = string.Empty;
+        private bool _lanVisible;
+        private bool _wanVisible;
 
         private void Start()
         {
             Debug.Log("[LobbyRoomMenu] Start called - subscribing to events");
+
+            EnsureHostAddressPanel();
             
             // Wire up button onClick events
             if (browseSongsButton != null)
@@ -150,6 +173,26 @@ namespace YARG.Menu.Multiplayer
                 YargNetworkManager.Instance.OnNetworkError -= OnNetworkError;
                 YargNetworkManager.Instance.OnLobbyJoined -= OnLobbyInfoUpdated;
                 YargNetworkManager.Instance.OnSharedSongSyncStateChanged -= OnSharedSongSyncStateChanged;
+            }
+
+            if (lanVisibilityToggleButton != null)
+            {
+                lanVisibilityToggleButton.onClick.RemoveListener(ToggleLanVisibility);
+            }
+
+            if (lanCopyButton != null)
+            {
+                lanCopyButton.onClick.RemoveListener(CopyLanAddress);
+            }
+
+            if (wanVisibilityToggleButton != null)
+            {
+                wanVisibilityToggleButton.onClick.RemoveListener(ToggleWanVisibility);
+            }
+
+            if (wanCopyButton != null)
+            {
+                wanCopyButton.onClick.RemoveListener(CopyWanAddress);
             }
         }
         
@@ -314,6 +357,7 @@ namespace YARG.Menu.Multiplayer
         private void RefreshLobbyInfo()
         {
             Debug.Log("[LobbyRoomMenu] RefreshLobbyInfo called");
+            EnsureHostAddressPanel();
             
             // Don't crash if called during scene init when LobbyRoomMenu is active by default
             if (YargNetworkManager.Instance == null)
@@ -333,6 +377,9 @@ namespace YARG.Menu.Multiplayer
             
             isHost = YargNetworkManager.Instance.IsHosting;
             Debug.Log($"[LobbyRoomMenu] IsHost: {isHost}");
+
+            // Capture the network manager reference for reuse
+            var networkManager = YargNetworkManager.Instance;
 
             // Update lobby info display
             if (lobbyNameText != null)
@@ -367,15 +414,30 @@ namespace YARG.Menu.Multiplayer
 
             var connectionTextTarget = connectionInfoText != null ? connectionInfoText : lobbyCodeText;
 
+            int fallbackPort = lobby.port > 0
+                ? lobby.port
+                : (YargNetworkManager.Instance != null ? YargNetworkManager.Instance.DefaultPort : NetworkTransportDefaults.DefaultUdpPort);
+
+            string lanSourceAddress = lobby.ipAddress;
+            if (isHost && networkManager != null && !string.IsNullOrWhiteSpace(networkManager.networkAddress))
+            {
+                lanSourceAddress = networkManager.networkAddress;
+            }
+
+            string wanSourceAddress = lobby.publicAddress;
+            if (isHost && networkManager != null && networkManager.CurrentLobby != null &&
+                !string.IsNullOrWhiteSpace(networkManager.CurrentLobby.publicAddress))
+            {
+                wanSourceAddress = networkManager.CurrentLobby.publicAddress;
+            }
+
+            string lanEndpoint = FormatEndpoint(lanSourceAddress, lobby.port, fallbackPort);
+            string wanEndpoint = FormatEndpoint(wanSourceAddress, lobby.publicPort, fallbackPort);
+
+            bool hostPanelVisible = UpdateHostAddressPanel(lanEndpoint, wanEndpoint);
+
             if (connectionTextTarget != null)
             {
-                int fallbackPort = lobby.port > 0
-                    ? lobby.port
-                    : (YargNetworkManager.Instance != null ? YargNetworkManager.Instance.DefaultPort : NetworkTransportDefaults.DefaultUdpPort);
-
-                string lanEndpoint = FormatEndpoint(lobby.ipAddress, lobby.port, fallbackPort);
-                string wanEndpoint = FormatEndpoint(lobby.publicAddress, lobby.publicPort, fallbackPort);
-
                 string connectLabel = string.Empty;
 
                 if (!string.IsNullOrEmpty(lanEndpoint))
@@ -399,6 +461,10 @@ namespace YARG.Menu.Multiplayer
                 }
 
                 string finalLabel = connectLabel;
+                if (isHost && hostPanelVisible)
+                {
+                    finalLabel = "Direct connect details are shown below.";
+                }
                 if (connectionTextTarget == playerCountText && playerCountText != null)
                 {
                     string baseText = playerCountText.text;
@@ -442,6 +508,267 @@ namespace YARG.Menu.Multiplayer
 
             int finalPort = port > 0 ? port : fallbackPort;
             return finalPort > 0 ? $"{address}:{finalPort}" : address;
+        }
+
+        private bool EnsureHostAddressPanel()
+        {
+            if (!HasPrefabHostPanel())
+            {
+                Debug.LogWarning("[LobbyRoomMenu] Host address UI references are missing. The prefab now owns this layout.");
+                return false;
+            }
+
+            BindHostPanelButtons();
+            return true;
+        }
+
+        private bool HasPrefabHostPanel()
+        {
+            return hostAddressPanel != null &&
+                   lanAddressRow != null &&
+                   lanAddressValueText != null &&
+                   lanVisibilityToggleButton != null &&
+                   lanCopyButton != null &&
+                   wanAddressRow != null &&
+                   wanAddressValueText != null &&
+                   wanVisibilityToggleButton != null &&
+                   wanCopyButton != null;
+        }
+
+        private void BindHostPanelButtons()
+        {
+            if (_hostPanelListenersBound)
+            {
+                return;
+            }
+
+            if (lanVisibilityToggleButton != null)
+            {
+                lanVisibilityToggleButton.onClick.AddListener(ToggleLanVisibility);
+            }
+            if (lanCopyButton != null)
+            {
+                lanCopyButton.onClick.AddListener(CopyLanAddress);
+            }
+            if (wanVisibilityToggleButton != null)
+            {
+                wanVisibilityToggleButton.onClick.AddListener(ToggleWanVisibility);
+            }
+            if (wanCopyButton != null)
+            {
+                wanCopyButton.onClick.AddListener(CopyWanAddress);
+            }
+
+            _hostPanelListenersBound = true;
+        }
+
+        private bool UpdateHostAddressPanel(string lanEndpoint, string wanEndpoint)
+        {
+            if (!EnsureHostAddressPanel())
+            {
+                return false;
+            }
+
+            if (!isHost)
+            {
+                SetHostSidebarActive(false);
+                return false;
+            }
+
+            ApplyEndpointRow(ref _lanAddress, lanEndpoint, ref _lanVisible, lanAddressRow, lanAddressValueText, lanVisibilityToggleButton, lanVisibilityToggleLabel, lanCopyButton);
+            ApplyEndpointRow(ref _wanAddress, wanEndpoint, ref _wanVisible, wanAddressRow, wanAddressValueText, wanVisibilityToggleButton, wanVisibilityToggleLabel, wanCopyButton);
+
+            SetHostSidebarActive(true);
+
+            return true;
+        }
+
+        private void SetHostSidebarActive(bool active)
+        {
+            if (hostAddressPanel != null)
+            {
+                hostAddressPanel.SetActive(active);
+            }
+
+            var container = hostAddressPanelParent != null
+                ? hostAddressPanelParent.gameObject
+                : hostAddressPanel != null ? hostAddressPanel.transform.parent?.gameObject : null;
+
+            if (container != null && container != hostAddressPanel)
+            {
+                if (active)
+                {
+                    container.SetActive(true);
+                }
+            }
+        }
+
+        private bool ApplyEndpointRow(ref string cachedValue, string incomingValue, ref bool isVisible, GameObject row, TextMeshProUGUI valueLabel, Button toggleButton, TextMeshProUGUI toggleLabel, Button copyButton)
+        {
+            string previousValue = cachedValue ?? string.Empty;
+            string sanitized = SanitizeEndpoint(incomingValue, previousValue);
+
+            bool valueChanged = !string.Equals(previousValue, sanitized, StringComparison.Ordinal);
+            cachedValue = sanitized;
+
+            bool hasValue = !string.IsNullOrEmpty(sanitized);
+
+            if (row != null)
+            {
+                row.SetActive(true);
+            }
+
+            if (copyButton != null)
+            {
+                copyButton.interactable = hasValue;
+            }
+
+            if (!hasValue || valueChanged)
+            {
+                isVisible = false;
+            }
+
+            RefreshEndpointDisplay(sanitized, isVisible, valueLabel, toggleLabel, toggleButton, hasValue);
+
+            return hasValue;
+        }
+
+        private static string SanitizeEndpoint(string incomingValue, string fallback)
+        {
+            if (!string.IsNullOrWhiteSpace(incomingValue))
+            {
+                return incomingValue.Trim();
+            }
+
+            return string.IsNullOrWhiteSpace(fallback) ? string.Empty : fallback.Trim();
+        }
+
+        private void RefreshEndpointDisplay(string endpoint, bool isVisible, TextMeshProUGUI valueLabel, TextMeshProUGUI toggleLabel, Button toggleButton, bool toggleAvailable)
+        {
+            if (valueLabel != null)
+            {
+                if (!toggleAvailable)
+                {
+                    valueLabel.text = "Resolving...";
+                }
+                else
+                {
+                    valueLabel.text = isVisible ? endpoint : "****";
+                }
+            }
+
+            if (toggleButton != null)
+            {
+                toggleButton.interactable = toggleAvailable;
+            }
+
+            if (toggleLabel != null)
+            {
+                toggleLabel.text = toggleAvailable
+                    ? (isVisible ? "Hide" : "Show")
+                    : "Show";
+            }
+
+            UpdateVisibilityToggleIcon(toggleButton, toggleAvailable ? (bool?) isVisible : null);
+        }
+
+        private void UpdateVisibilityToggleIcon(Button toggleButton, bool? isVisible)
+        {
+            if (toggleButton == null)
+                return;
+
+            var image = toggleButton.image;
+            if (image == null || (visibilityVisibleSprite == null && visibilityHiddenSprite == null))
+                return;
+
+            if (!isVisible.HasValue)
+            {
+                if (visibilityHiddenSprite != null)
+                {
+                    image.enabled = true;
+                    image.sprite = visibilityHiddenSprite;
+                }
+                else if (visibilityVisibleSprite != null)
+                {
+                    image.enabled = true;
+                    image.sprite = visibilityVisibleSprite;
+                }
+                else
+                {
+                    image.enabled = false;
+                }
+
+                return;
+            }
+
+            if (isVisible.Value)
+            {
+                if (visibilityVisibleSprite != null)
+                {
+                    image.enabled = true;
+                    image.sprite = visibilityVisibleSprite;
+                }
+                else
+                {
+                    image.enabled = false;
+                }
+            }
+            else
+            {
+                if (visibilityHiddenSprite != null)
+                {
+                    image.enabled = true;
+                    image.sprite = visibilityHiddenSprite;
+                }
+                else
+                {
+                    image.enabled = false;
+                }
+            }
+        }
+
+        private void ToggleEndpointVisibility(ref bool visibility, string endpoint, TextMeshProUGUI valueLabel, TextMeshProUGUI toggleLabel, Button toggleButton)
+        {
+            if (string.IsNullOrEmpty(endpoint))
+            {
+                ToastManager.ToastWarning("No address is available yet to show.");
+                return;
+            }
+
+            visibility = !visibility;
+            RefreshEndpointDisplay(endpoint, visibility, valueLabel, toggleLabel, toggleButton, true);
+        }
+
+        private void ToggleLanVisibility()
+        {
+            ToggleEndpointVisibility(ref _lanVisible, _lanAddress, lanAddressValueText, lanVisibilityToggleLabel, lanVisibilityToggleButton);
+        }
+
+        private void ToggleWanVisibility()
+        {
+            ToggleEndpointVisibility(ref _wanVisible, _wanAddress, wanAddressValueText, wanVisibilityToggleLabel, wanVisibilityToggleButton);
+        }
+
+        private void CopyLanAddress()
+        {
+            CopyEndpointToClipboard(_lanAddress, "LAN");
+        }
+
+        private void CopyWanAddress()
+        {
+            CopyEndpointToClipboard(_wanAddress, "WAN");
+        }
+
+        private void CopyEndpointToClipboard(string endpoint, string label)
+        {
+            if (string.IsNullOrEmpty(endpoint))
+            {
+                ToastManager.ToastWarning($"No {label} address available yet.");
+                return;
+            }
+
+            GUIUtility.systemCopyBuffer = endpoint;
+            ToastManager.ToastInformation($"{label} address copied to clipboard.");
         }
 
         private void UpdateControlsForRole()

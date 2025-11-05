@@ -55,6 +55,11 @@ namespace YARG.Networking
         {
             YARG.Song.SongContainer.SongsRefreshed -= OnSongContainerRefreshed;
 
+            if (YargNetworkManager.Instance != null && !NetworkServer.active)
+            {
+                YargNetworkManager.Instance.ClientUnregisterPlayer(this);
+            }
+
             if (_songLibraryUploadRoutine != null)
             {
                 StopCoroutine(_songLibraryUploadRoutine);
@@ -298,6 +303,10 @@ namespace YARG.Networking
             if (isClient && (isOwned || isLocalPlayer))
             {
                 EnsureSongLibraryUpload(restart: false);
+            }
+            if (YargNetworkManager.Instance != null && NetworkClient.active && !NetworkServer.active)
+            {
+                YargNetworkManager.Instance.ClientRegisterPlayer(this);
             }
         }
 

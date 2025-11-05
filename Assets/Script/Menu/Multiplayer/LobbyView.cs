@@ -3,7 +3,10 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
+using YARG.Helpers.Extensions;
+using YARG.Menu.Data;
 using YARG.Menu.ListMenu;
+using YARG.Networking;
 
 namespace YARG.Menu.Multiplayer
 {
@@ -152,6 +155,127 @@ namespace YARG.Menu.Multiplayer
             }
         }
 
+        private static Color GetOfflinePingColor()
+        {
+            return MenuData.Colors.PrimaryText.WithAlpha(0.45f);
+        }
+
+        private static Color ResolvePingIconColor(YargNetworkManager.LobbyInfo lobby)
+        {
+            if (lobby == null)
+            {
+                return GetOfflinePingColor();
+            }
+
+            long lastSeen = lobby.lastSeen;
+            if (lastSeen <= 0)
+            {
+                return GetOfflinePingColor();
+            }
+
+            long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            long delta = Math.Max(0, now - lastSeen);
+
+            if (delta > PING_OFFLINE_THRESHOLD_MS)
+            {
+                return GetOfflinePingColor();
+            }
+
+            float approximatePing = delta / 20f;
+            if (approximatePing < 50f)
+            {
+                return PING_GOOD_COLOR;
+            }
+
+            if (approximatePing < 100f)
+            {
+                return PING_AVERAGE_COLOR;
+            }
+
+            return PING_POOR_COLOR;
+        }
+
+        private void HideAllPingIcons()
+        {
+            if (_normalPingIcon != null)
+            {
+                _normalPingIcon.gameObject.SetActive(false);
+            }
+
+            if (_offlinePingIcon != null)
+            {
+                _offlinePingIcon.gameObject.SetActive(false);
+            }
+
+            if (_pingIcon != null)
+            {
+                _pingIcon.gameObject.SetActive(false);
+            }
+        }
+
+        private void UpdatePingIcon(LobbyViewType viewType)
+        {
+            switch (viewType)
+            {
+                case LobbyCategoryViewType:
+                case LobbyEmptyViewType:
+                    HideAllPingIcons();
+                    return;
+                case LobbyActionViewType:
+                case MyLobbyViewType:
+                    HideAllPingIcons();
+                    return;
+            }
+
+            UnityEngine.UI.Image targetIcon = null;
+
+            if (_appliedDisplayState == DisplayState.Normal && _normalPingIcon != null)
+            {
+                targetIcon = _normalPingIcon;
+            }
+            else if (_appliedDisplayState == DisplayState.Offline && _offlinePingIcon != null)
+            {
+                targetIcon = _offlinePingIcon;
+            }
+            else if (_pingIcon != null)
+            {
+                targetIcon = _pingIcon;
+            }
+
+            if (targetIcon == null)
+            {
+                return;
+            }
+
+            Color targetColor = GetOfflinePingColor();
+
+            switch (viewType)
+            {
+                case DiscoveredLobbyViewType discovered:
+                    targetColor = ResolvePingIconColor(discovered.LobbyInfo);
+                    break;
+                case SavedLobbyViewType saved when saved.LiveInfo != null:
+                    targetColor = ResolvePingIconColor(saved.LiveInfo);
+                    break;
+                case SavedLobbyViewType:
+                    targetColor = GetOfflinePingColor();
+                    break;
+            }
+
+            if (!targetIcon.gameObject.activeSelf)
+            {
+                targetIcon.gameObject.SetActive(true);
+            }
+
+            if (!targetIcon.enabled)
+            {
+                targetIcon.enabled = true;
+            }
+
+            targetIcon.color = targetColor;
+            EnsureUIVisible(targetIcon);
+        }
+
         [Header("Prefab-driven state containers (optional)")]
         [SerializeField]
         private GameObject _stateContainerNormal;
@@ -186,6 +310,8 @@ namespace YARG.Menu.Multiplayer
         [SerializeField]
         private TextMeshProUGUI _normalPing;
         [SerializeField]
+        private UnityEngine.UI.Image _normalPingIcon;
+        [SerializeField]
         private TextMeshProUGUI _normalPrivacy;
 
         [Header("Offline / Saved")]
@@ -197,6 +323,8 @@ namespace YARG.Menu.Multiplayer
         private TextMeshProUGUI _offlinePlayerCount;
         [SerializeField]
         private TextMeshProUGUI _offlinePing;
+        [SerializeField]
+        private UnityEngine.UI.Image _offlinePingIcon;
         [SerializeField]
         private TextMeshProUGUI _offlinePrivacy;
 
@@ -422,6 +550,11 @@ namespace YARG.Menu.Multiplayer
                     _normalPing.gameObject.SetActive(state == DisplayState.Normal);
                     if (state == DisplayState.Normal) EnsureUIVisible(_normalPing);
                 }
+                if (_normalPingIcon != null)
+                {
+                    _normalPingIcon.gameObject.SetActive(state == DisplayState.Normal);
+                    if (state == DisplayState.Normal) EnsureUIVisible(_normalPingIcon);
+                }
                 if (_normalPrivacyIcon != null)
                 {
                     _normalPrivacyIcon.gameObject.SetActive(state == DisplayState.Normal);
@@ -438,6 +571,11 @@ namespace YARG.Menu.Multiplayer
                 {
                     _offlinePing.gameObject.SetActive(state == DisplayState.Offline);
                     if (state == DisplayState.Offline) EnsureUIVisible(_offlinePing);
+                }
+                if (_offlinePingIcon != null)
+                {
+                    _offlinePingIcon.gameObject.SetActive(state == DisplayState.Offline);
+                    if (state == DisplayState.Offline) EnsureUIVisible(_offlinePingIcon);
                 }
                 if (_offlinePrivacyIcon != null)
                 {
@@ -497,6 +635,12 @@ namespace YARG.Menu.Multiplayer
                     bool showGlobalPing = state == DisplayState.Normal && _normalPing == null && _offlinePing == null;
                     _pingText.gameObject.SetActive(showGlobalPing);
                     if (showGlobalPing) EnsureUIVisible(_pingText);
+                }
+                if (_pingIcon != null)
+                {
+                    bool showGlobalPingIcon = state == DisplayState.Normal && _normalPingIcon == null && _offlinePingIcon == null;
+                    _pingIcon.gameObject.SetActive(showGlobalPingIcon);
+                    if (showGlobalPingIcon) EnsureUIVisible(_pingIcon);
                 }
 
                 // Password icon is used for discovered normal rows; hide it otherwise
@@ -916,6 +1060,15 @@ namespace YARG.Menu.Multiplayer
         private GameObject _favoriteButtonContainerSelected;
         [SerializeField]
         private Image[] _favoriteButtons;
+
+        [Header("Ping Icon Fallback")]
+        [SerializeField]
+        private UnityEngine.UI.Image _pingIcon;
+
+        private static readonly Color PING_GOOD_COLOR = new Color(0.3f, 1f, 0.3f);
+        private static readonly Color PING_AVERAGE_COLOR = new Color(1f, 1f, 0.3f);
+        private static readonly Color PING_POOR_COLOR = new Color(1f, 0.3f, 0.3f);
+        private const float PING_OFFLINE_THRESHOLD_MS = 5000f;
         
         [Header("Sprites")]
         [SerializeField]
@@ -1365,7 +1518,7 @@ namespace YARG.Menu.Multiplayer
                             Debug.LogWarning($"[LobbyView] Lobby Name not wired for hosted view and fallback failed in '{activeContainer.name}'.");
                         }
 
-                        var hostedRecency = m.GetHostedRecencyText();
+                        var hostedRecency = m.GetHostedRecencyText(selected);
                         if (_hostedLastHosted != null)
                         {
                             _hostedLastHosted.text = hostedRecency;
@@ -1376,7 +1529,7 @@ namespace YARG.Menu.Multiplayer
                             Debug.LogWarning($"[LobbyView] Last Connected not wired for hosted view and fallback failed in '{activeContainer.name}'.");
                         }
 
-                        var maxPlayers = m.GetMaxPlayersLabel();
+                        var maxPlayers = m.GetMaxPlayersLabel(selected);
                         if (_hostedMaxPlayers != null)
                         {
                             _hostedMaxPlayers.text = maxPlayers;
@@ -1559,6 +1712,15 @@ namespace YARG.Menu.Multiplayer
             catch (Exception ex)
             {
                 Debug.LogWarning($"[LobbyView] Exception while populating text fields: {ex}");
+            }
+
+            try
+            {
+                UpdatePingIcon(viewType);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LobbyView] Exception while updating ping icon color: {ex}");
             }
         }
 

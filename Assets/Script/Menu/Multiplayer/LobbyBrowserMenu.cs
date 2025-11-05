@@ -101,6 +101,16 @@ namespace YARG.Menu.Multiplayer
         private float _lastPingStartedAt = float.NegativeInfinity;
         private float _nextAutomaticPingAt;
 
+        private bool _pendingPasswordSaveRequested;
+        private string _pendingPasswordAddress;
+        private int _pendingPasswordPort;
+        private string _pendingPasswordDisplayName;
+        private string _pendingPasswordValue;
+        private readonly HashSet<string> _passwordFailures = new(StringComparer.OrdinalIgnoreCase);
+        private YargNetworkManager.LobbyInfo _lastPasswordAttemptLobby;
+        private string _lastPasswordAttemptKey;
+        private bool _lastPasswordAttemptWasAuto;
+
         protected override int ExtraListViewPadding => 15;
 
         protected override void Awake()
@@ -134,7 +144,11 @@ namespace YARG.Menu.Multiplayer
             EnsureSidebar();
 
             if (YargNetworkManager.Instance != null)
+            {
                 YargNetworkManager.Instance.OnLobbyListUpdated += OnLobbyListUpdated;
+                YargNetworkManager.Instance.OnLobbyJoined += HandleLobbyJoined;
+                YargNetworkManager.Instance.OnNetworkError += HandleNetworkError;
+            }
 
             // Wire discovery callbacks so direct ping responses update saved entries
             if (YargNetworkManager.Instance != null)
@@ -190,7 +204,16 @@ namespace YARG.Menu.Multiplayer
             _lastNavigationHelpSignature = null;
 
             if (YargNetworkManager.Instance != null)
+            {
                 YargNetworkManager.Instance.OnLobbyListUpdated -= OnLobbyListUpdated;
+                YargNetworkManager.Instance.OnLobbyJoined -= HandleLobbyJoined;
+                YargNetworkManager.Instance.OnNetworkError -= HandleNetworkError;
+            }
+
+            ClearPendingPasswordUpdate();
+            _lastPasswordAttemptLobby = null;
+            _lastPasswordAttemptKey = null;
+            _lastPasswordAttemptWasAuto = false;
 
             if (_discovery != null)
             {
@@ -549,9 +572,24 @@ namespace YARG.Menu.Multiplayer
 
         public void JoinLobby(YargNetworkManager.LobbyInfo lobby)
         {
-            if (lobby == null) return;
-            if (lobby.hasPassword) ShowPasswordDialog(lobby);
-            else JoinLobbyWithPassword(lobby, string.Empty);
+            if (lobby == null)
+            {
+                return;
+            }
+
+            if (lobby.hasPassword)
+            {
+                if (TryAutoJoinWithStoredPassword(lobby))
+                {
+                    return;
+                }
+
+                ShowPasswordDialog(lobby);
+                return;
+            }
+
+            _lastPasswordAttemptWasAuto = false;
+            JoinLobbyWithPassword(lobby, string.Empty);
         }
 
         private void ShowPasswordDialog(YargNetworkManager.LobbyInfo lobby)
@@ -570,6 +608,7 @@ namespace YARG.Menu.Multiplayer
                     return;
                 }
 
+                _lastPasswordAttemptWasAuto = false;
                 JoinLobbyWithPassword(lobby, submitted);
             });
 
@@ -593,7 +632,216 @@ namespace YARG.Menu.Multiplayer
 
         private void JoinLobbyWithPassword(YargNetworkManager.LobbyInfo lobby, string password)
         {
+            TrackPasswordSubmission(lobby, password);
             YargNetworkManager.Instance?.JoinDiscoveredLobby(lobby, password);
+        }
+
+        private bool TryAutoJoinWithStoredPassword(YargNetworkManager.LobbyInfo lobby)
+        {
+            if (lobby == null || _favorites == null)
+            {
+                return false;
+            }
+
+            int port = ResolveLobbyPort(lobby);
+            LobbyBookmark bookmark = null;
+
+            if (!string.IsNullOrWhiteSpace(lobby.ipAddress))
+            {
+                bookmark = _favorites.FindBookmark(lobby.ipAddress, port);
+            }
+
+            if (bookmark == null && !string.IsNullOrWhiteSpace(lobby.publicAddress))
+            {
+                bookmark = _favorites.FindBookmark(lobby.publicAddress, port);
+            }
+
+            if (bookmark == null)
+            {
+                return false;
+            }
+
+            string storedPassword = bookmark.password;
+            if (string.IsNullOrWhiteSpace(storedPassword))
+            {
+                return false;
+            }
+
+            string address = !string.IsNullOrWhiteSpace(bookmark.address)
+                ? bookmark.address.Trim()
+                : (!string.IsNullOrWhiteSpace(lobby.ipAddress) ? lobby.ipAddress.Trim() : lobby.publicAddress?.Trim());
+
+            int finalPort = bookmark.port > 0 ? bookmark.port : port;
+
+            if (string.IsNullOrWhiteSpace(address))
+            {
+                return false;
+            }
+
+            string endpointKey = LobbyBookmarkUtility.BuildKey(address, finalPort);
+            if (_passwordFailures.Contains(endpointKey))
+            {
+                return false;
+            }
+
+            _lastPasswordAttemptWasAuto = true;
+            JoinLobbyWithPassword(lobby, storedPassword);
+            return true;
+        }
+
+        private void TrackPasswordSubmission(YargNetworkManager.LobbyInfo lobby, string password)
+        {
+            if (lobby == null || string.IsNullOrWhiteSpace(password))
+            {
+                ClearPendingPasswordUpdate();
+                return;
+            }
+
+            lobby.hasPassword = true;
+            lobby.password = password;
+
+            int port = ResolveLobbyPort(lobby);
+
+            LobbyBookmark matchingBookmark = null;
+            if (_favorites != null)
+            {
+                if (!string.IsNullOrWhiteSpace(lobby.ipAddress))
+                {
+                    matchingBookmark = _favorites.FindBookmark(lobby.ipAddress, port);
+                }
+
+                if (matchingBookmark == null && !string.IsNullOrWhiteSpace(lobby.publicAddress))
+                {
+                    matchingBookmark = _favorites.FindBookmark(lobby.publicAddress, port);
+                }
+            }
+
+            if (matchingBookmark != null)
+            {
+                _pendingPasswordAddress = matchingBookmark.address?.Trim();
+                _pendingPasswordPort = matchingBookmark.port > 0 ? matchingBookmark.port : port;
+                _pendingPasswordDisplayName = string.IsNullOrWhiteSpace(matchingBookmark.displayName)
+                    ? matchingBookmark.address
+                    : matchingBookmark.displayName;
+            }
+            else
+            {
+                string chosenAddress = !string.IsNullOrWhiteSpace(lobby.ipAddress)
+                    ? lobby.ipAddress.Trim()
+                    : lobby.publicAddress?.Trim();
+
+                if (string.IsNullOrWhiteSpace(chosenAddress))
+                {
+                    ClearPendingPasswordUpdate();
+                    return;
+                }
+
+                _pendingPasswordAddress = chosenAddress;
+                _pendingPasswordPort = port;
+                _pendingPasswordDisplayName = !string.IsNullOrWhiteSpace(lobby.lobbyName)
+                    ? lobby.lobbyName
+                    : _pendingPasswordAddress;
+            }
+
+            _pendingPasswordValue = password;
+            _pendingPasswordSaveRequested = true;
+
+            _lastPasswordAttemptLobby = CloneLobbyInfo(lobby);
+            if (!string.IsNullOrWhiteSpace(_pendingPasswordAddress) && _pendingPasswordPort > 0)
+            {
+                _lastPasswordAttemptKey = LobbyBookmarkUtility.BuildKey(_pendingPasswordAddress, _pendingPasswordPort);
+            }
+            else
+            {
+                _lastPasswordAttemptKey = null;
+            }
+        }
+
+        private static int ResolveLobbyPort(YargNetworkManager.LobbyInfo lobby)
+        {
+            if (lobby == null)
+            {
+                return YargNetworkManager.Instance?.SuggestedDirectConnectPort ?? NetworkTransportDefaults.DefaultUdpPort;
+            }
+
+            if (lobby.port > 0)
+            {
+                return lobby.port;
+            }
+
+            if (lobby.publicPort > 0)
+            {
+                return lobby.publicPort;
+            }
+
+            return YargNetworkManager.Instance?.SuggestedDirectConnectPort ?? NetworkTransportDefaults.DefaultUdpPort;
+        }
+
+        private void HandleLobbyJoined(YargNetworkManager.LobbyInfo lobby)
+        {
+            if (!_pendingPasswordSaveRequested)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(_pendingPasswordAddress))
+            {
+                ClearPendingPasswordUpdate();
+                return;
+            }
+
+            string displayName = !string.IsNullOrWhiteSpace(_pendingPasswordDisplayName)
+                ? _pendingPasswordDisplayName
+                : (!string.IsNullOrWhiteSpace(lobby?.lobbyName) ? lobby.lobbyName : _pendingPasswordAddress);
+
+            var attemptKey = _lastPasswordAttemptKey;
+            LobbyBookmarkStore.Instance.RecordConnection(
+                _pendingPasswordAddress,
+                _pendingPasswordPort,
+                displayName,
+                _pendingPasswordValue ?? string.Empty);
+
+            if (!string.IsNullOrEmpty(attemptKey))
+            {
+                _passwordFailures.Remove(attemptKey);
+            }
+
+            ClearPendingPasswordUpdate();
+        }
+
+        private void HandleNetworkError(string error)
+        {
+            if (!string.Equals(error, "Incorrect password", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(_lastPasswordAttemptKey))
+            {
+                _passwordFailures.Add(_lastPasswordAttemptKey);
+            }
+
+            var lobbyClone = _lastPasswordAttemptLobby != null ? CloneLobbyInfo(_lastPasswordAttemptLobby) : null;
+            bool wasAuto = _lastPasswordAttemptWasAuto;
+
+            ClearPendingPasswordUpdate();
+
+            if (wasAuto && lobbyClone != null)
+            {
+                ShowPasswordDialog(lobbyClone);
+            }
+        }
+
+        private void ClearPendingPasswordUpdate()
+        {
+            _pendingPasswordSaveRequested = false;
+            _pendingPasswordAddress = null;
+            _pendingPasswordDisplayName = null;
+            _pendingPasswordValue = null;
+            _pendingPasswordPort = 0;
+            _lastPasswordAttemptLobby = null;
+            _lastPasswordAttemptKey = null;
+            _lastPasswordAttemptWasAuto = false;
         }
 
         private void Back() => MenuManager.Instance.PopMenu();
@@ -701,7 +949,7 @@ namespace YARG.Menu.Multiplayer
 
             entries.Add(new NavigationScheme.Entry(MenuAction.Blue, "Menu.Common.Refresh", TriggerRefreshAction));
 
-            return new NavigationScheme(entries, false);
+            return new NavigationScheme(entries, true);
         }
 
         private bool CanPerformGreenAction(LobbyViewType view)
@@ -1122,7 +1370,7 @@ namespace YARG.Menu.Multiplayer
                 if (live != null)
                 {
                     _selectedLobby = live;
-                    _sidebar.SetLobby(_selectedLobby);
+                    _sidebar.SetLobby(_selectedLobby, bookmark);
                     return;
                 }
 

@@ -101,6 +101,7 @@ namespace YARG.Networking
         private UpnpPortMappingHandle _tcpPortMapping;
         private UpnpPortMappingHandle _udpPortMapping;
         private CancellationTokenSource _portMappingCts;
+        private CancellationTokenSource _publicEndpointResolveCts;
         private bool _clientJoinPending;
         private bool _localSlotSyncPending;
 
@@ -143,6 +144,7 @@ namespace YARG.Networking
         private bool _isTransitioningToHost;
         private bool _clientStopPending;
         private bool _suppressClientDisconnectNotification;
+        private readonly HashSet<uint> _clientNotifiedPlayers = new();
 
         private UniTaskCompletionSource<double> _clientGameplayStartTcs;
         private bool _clientReadyReported;
@@ -717,6 +719,7 @@ namespace YARG.Networking
             // Host will also trigger OnClientConnect which will fire OnLobbyJoined for navigation
 
             TrySetupPortMapping(transportPort);
+            BeginPublicEndpointResolution(transportPort);
 
             return _currentLobby;
         }
@@ -913,6 +916,7 @@ namespace YARG.Networking
                     LogInfo("[YargNetworkManager] MultiplayerShowPlaylist destroyed and reference cleared");
                 }
                 
+                CancelPublicEndpointResolution();
                 StopHost();
                 _isHost = false;
 
@@ -1329,6 +1333,32 @@ namespace YARG.Networking
             return string.Empty;
         }
 
+        internal void ClientRegisterPlayer(NetworkPlayerData playerData)
+        {
+            if (playerData == null || NetworkServer.active || !NetworkClient.active)
+            {
+                return;
+            }
+
+            if (_clientNotifiedPlayers.Add(playerData.netId))
+            {
+                OnPlayerJoined?.Invoke(playerData);
+            }
+        }
+
+        internal void ClientUnregisterPlayer(NetworkPlayerData playerData)
+        {
+            if (playerData == null || NetworkServer.active)
+            {
+                return;
+            }
+
+            if (_clientNotifiedPlayers.Remove(playerData.netId))
+            {
+                OnPlayerLeft?.Invoke(playerData);
+            }
+        }
+
         private static bool IsInterfaceExcluded(NetworkInterface nic)
         {
             string description = nic.Description ?? string.Empty;
@@ -1439,6 +1469,114 @@ namespace YARG.Networking
             _portMappingCts = CancellationTokenSource.CreateLinkedTokenSource(destroyToken);
             bool mapTcp = Transport.active is not KcpTransport;
             SetupPortMappingsAsync(transportPort, mapTcp, _portMappingCts.Token).Forget();
+        }
+
+        private void BeginPublicEndpointResolution(int transportPort)
+        {
+            CancelPublicEndpointResolution();
+
+            if (!_isHost || _currentLobby == null)
+            {
+                return;
+            }
+
+            if (transportPort <= 0)
+            {
+                return;
+            }
+
+            var destroyToken = this.GetCancellationTokenOnDestroy();
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(destroyToken);
+            _publicEndpointResolveCts = cts;
+            string lobbyId = _currentLobby.lobbyId ?? string.Empty;
+            ResolvePublicEndpointAsync(transportPort, lobbyId, cts).Forget();
+        }
+
+        private void CancelPublicEndpointResolution()
+        {
+            var cts = _publicEndpointResolveCts;
+            if (cts == null)
+            {
+                return;
+            }
+
+            _publicEndpointResolveCts = null;
+
+            try
+            {
+                cts.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+                // Already disposed by resolver.
+            }
+            catch (AggregateException)
+            {
+                // Ignore cancellation aggregate during shutdown.
+            }
+        }
+
+        private async UniTaskVoid ResolvePublicEndpointAsync(int transportPort, string lobbyId, CancellationTokenSource cts)
+        {
+            try
+            {
+                string address = await StunUtility.TryResolvePublicAddressAsync(cts.Token);
+                if (string.IsNullOrEmpty(address))
+                {
+                    LogWarning("[YargNetworkManager] STUN lookup did not return a public address.");
+                    return;
+                }
+
+                await UniTask.SwitchToMainThread();
+
+                if (_currentLobby == null || string.IsNullOrEmpty(_currentLobby.lobbyId) || !string.Equals(_currentLobby.lobbyId, lobbyId, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                bool changed = false;
+
+                if (!string.Equals(_currentLobby.publicAddress, address, StringComparison.OrdinalIgnoreCase))
+                {
+                    _currentLobby.publicAddress = address;
+                    changed = true;
+                }
+
+                if (transportPort > 0 && _currentLobby.publicPort != transportPort)
+                {
+                    _currentLobby.publicPort = transportPort;
+                    changed = true;
+                }
+
+                if (!changed)
+                {
+                    return;
+                }
+
+                LogInfo($"[YargNetworkManager] Resolved public endpoint via STUN: {address}:{transportPort}");
+
+                var discovery = GetComponent<YargNetworkDiscovery>();
+                discovery?.AdvertiseServer(_currentLobby);
+
+                TriggerLobbyJoinedEvent(_currentLobby);
+            }
+            catch (OperationCanceledException)
+            {
+                LogInfo("[YargNetworkManager] Public endpoint resolution canceled.");
+            }
+            catch (Exception ex)
+            {
+                LogWarning($"[YargNetworkManager] Failed to resolve public endpoint: {ex.Message}");
+            }
+            finally
+            {
+                if (_publicEndpointResolveCts == cts)
+                {
+                    _publicEndpointResolveCts = null;
+                }
+
+                cts.Dispose();
+            }
         }
 
         private async UniTaskVoid SetupPortMappingsAsync(int transportPort, bool includeTcp, CancellationToken token)
@@ -2233,6 +2371,7 @@ namespace YARG.Networking
             ResetSharedSongState();
             _probeConnectionIds.Clear();
             _clientStopPending = false;
+            _clientNotifiedPlayers.Clear();
         }
 
         public override void OnStopHost()
@@ -3613,6 +3752,7 @@ namespace YARG.Networking
         {
             _isQuitting = true;
             LogInfo("[YargNetworkManager] OnApplicationQuit called, setting _isQuitting = true");
+            CancelPublicEndpointResolution();
             TeardownPortMappingsAsync().Forget();
             base.OnApplicationQuit();
         }
@@ -3627,6 +3767,7 @@ namespace YARG.Networking
                 PlayerContainer.PlayerRemoved -= OnLocalPlayerRemovedFromContainer;
                 Instance = null;
             }
+            CancelPublicEndpointResolution();
             TeardownPortMappingsAsync().Forget();
             base.OnDestroy();
         }
