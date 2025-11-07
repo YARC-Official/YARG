@@ -24,6 +24,12 @@ namespace YARG
 
         private async void Start()
         {
+            if (GlobalVariables.Instance != null && GlobalVariables.Instance.IsHeadlessEnvironment)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
             using var context = new LoadingContext();
 
             // Load language

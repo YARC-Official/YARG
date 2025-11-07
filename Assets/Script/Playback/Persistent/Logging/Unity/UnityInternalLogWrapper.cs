@@ -20,6 +20,8 @@ namespace YARG.Logging.Unity
         private static FieldInfo s_LoggerField;
 
         private static ILogger _originalUnityLogger;
+        private static UnityInternalLog _nativeUnityLog;
+        private static Func<LogType, string, bool> _logFilter;
 
         public static void OverwriteUnityInternals()
         {
@@ -36,7 +38,8 @@ namespace YARG.Logging.Unity
             var extractStackTrace = typeof(StackTraceUtility).GetMethod("ExtractFormattedStackTrace", flags);
             var extractStackTraceDelegate = extractStackTrace.CreateDelegate(typeof(UnityInternalExtractFormattedStackTrace));
 
-            UnityInternalLogDelegate = (UnityInternalLog) logDelegate;
+            _nativeUnityLog = (UnityInternalLog) logDelegate;
+            UnityInternalLogDelegate = ForwardingLog;
             UnityInternalLogExceptionDelegate = (UnityInternalLogException) logExceptionDelegate;
             UnityInternalExtractFormattedStackTraceDelegate = (UnityInternalExtractFormattedStackTrace) extractStackTraceDelegate;
 
@@ -72,6 +75,33 @@ namespace YARG.Logging.Unity
 
                 loggerField.SetValue(null, logger);
             }
+
+            _logFilter = null;
+            UnityInternalLogDelegate = _nativeUnityLog;
+        }
+
+        public static void SetLogFilter(Func<LogType, string, bool> filter)
+        {
+            _logFilter = filter;
+            if (filter != null && UnityInternalLogDelegate != ForwardingLog)
+            {
+                UnityInternalLogDelegate = ForwardingLog;
+            }
+            else if (filter == null)
+            {
+                UnityInternalLogDelegate = _nativeUnityLog;
+            }
+        }
+
+        private static void ForwardingLog(LogType level, LogOption options, string msg, Object obj)
+        {
+            var filter = _logFilter;
+            if (filter != null && filter(level, msg))
+            {
+                return;
+            }
+
+            _nativeUnityLog?.Invoke(level, options, msg, obj);
         }
 
         public delegate void UnityInternalLog(LogType level, LogOption options, string msg, Object obj);

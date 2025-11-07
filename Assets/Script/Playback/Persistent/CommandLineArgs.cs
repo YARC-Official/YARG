@@ -40,6 +40,9 @@ namespace YARG
         private const string DEDICATED_MAX_PLAYERS_ARG = "-max-players";
         private const string DEDICATED_PRIVACY_ARG = "-privacy";
         private const string DEDICATED_PASSWORD_ARG = "-password";
+        private const string DEDICATED_PORT_ARG = "-dedicated-port";
+        private const string DEDICATED_DISCOVERY_PORT_ARG = "-dedicated-discovery-port";
+        private const string DEDICATED_DISABLE_DISCOVERY_ARG = "-dedicated-disable-discovery";
 
         public static bool Offline { get; private set; }
 
@@ -54,6 +57,9 @@ namespace YARG
         public static string DedicatedMaxPlayers  { get; private set; }
         public static string DedicatedPrivacyMode { get; private set; }
         public static string DedicatedPassword    { get; private set; }
+        public static string DedicatedPort        { get; private set; }
+        public static string DedicatedDiscoveryPort { get; private set; }
+        public static bool   DedicatedDisableDiscovery { get; private set; }
 
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
@@ -130,6 +136,25 @@ namespace YARG
                             DedicatedPassword = args[i];
                         }
 
+                        break;
+                    case DEDICATED_PORT_ARG:
+                        i++;
+                        if (i < args.Length)
+                        {
+                            DedicatedPort = args[i];
+                        }
+
+                        break;
+                    case DEDICATED_DISCOVERY_PORT_ARG:
+                        i++;
+                        if (i < args.Length)
+                        {
+                            DedicatedDiscoveryPort = args[i];
+                        }
+
+                        break;
+                    case DEDICATED_DISABLE_DISCOVERY_ARG:
+                        DedicatedDisableDiscovery = true;
                         break;
                 }
             }

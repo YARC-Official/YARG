@@ -629,7 +629,7 @@ namespace YARG.Networking
         /// Called by server after spawning the player.
         /// </summary>
         [TargetRpc]
-        public void TargetSyncLobbyInfo(string lobbyName, string hostName, int maxPlayers, bool hasPassword, int privacyMode)
+        public void TargetSyncLobbyInfo(string lobbyName, string hostName, int maxPlayers, bool hasPassword, int privacyMode, int currentPlayers)
         {
             Debug.Log($"[NetworkPlayerData] TargetSyncLobbyInfo CALLED! Lobby: {lobbyName}, Host: {hostName}, MaxPlayers: {maxPlayers}");
             
@@ -653,7 +653,7 @@ namespace YARG.Networking
             lobby.maxPlayers = maxPlayers;
             lobby.hasPassword = hasPassword;
             lobby.privacyMode = (YargNetworkManager.LobbyPrivacyMode)privacyMode;
-            lobby.currentPlayers = NetworkServer.active ? NetworkServer.connections.Count : 2;
+            lobby.currentPlayers = Mathf.Clamp(currentPlayers, 0, maxPlayers);
             
             Debug.Log($"[NetworkPlayerData] After update - Lobby name: {lobby.lobbyName}");
             Debug.Log($"[NetworkPlayerData] Triggering TriggerLobbyJoinedEvent...");
@@ -871,6 +871,11 @@ namespace YARG.Networking
             }
 
             playerName = newName;
+
+            if (YargNetworkManager.Instance != null && Mirror.NetworkServer.active)
+            {
+                YargNetworkManager.Instance.ServerOnPlayerRenamed(this);
+            }
         }
 
         [Command]

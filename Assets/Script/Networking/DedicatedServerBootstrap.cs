@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace YARG.Networking
 {
@@ -16,6 +17,8 @@ namespace YARG.Networking
             {
                 return;
             }
+
+            ApplyHeadlessGraphicsSettings();
 
             var go = new GameObject(nameof(DedicatedServerBootstrap));
             DontDestroyOnLoad(go);
@@ -41,13 +44,52 @@ namespace YARG.Networking
                 yield return null;
             }
 
-            YargNetworkManager.Instance.LaunchDedicatedServer(_config);
+            var manager = YargNetworkManager.Instance;
+            manager.ConfigureDedicatedServerNetworking(_config.TransportPortOverride, _config.DiscoveryPortOverride, _config.AdvertiseDiscovery);
+            manager.LaunchDedicatedServer(_config);
+        }
+
+        private static void ApplyHeadlessGraphicsSettings()
+        {
+            try
+            {
+                if (GraphicsSettings.renderPipelineAsset != null)
+                {
+                    GraphicsSettings.renderPipelineAsset = null;
+                }
+
+                if (GraphicsSettings.defaultRenderPipeline != null)
+                {
+                    GraphicsSettings.defaultRenderPipeline = null;
+                }
+
+                if (QualitySettings.renderPipeline != null)
+                {
+                    QualitySettings.renderPipeline = null;
+                }
+
+                QualitySettings.anisotropicFiltering = AnisotropicFiltering.Disable;
+                QualitySettings.vSyncCount = 0;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[DedicatedServer] Failed to adjust graphics settings for headless mode: {ex.Message}");
+            }
         }
     }
 
     internal readonly struct DedicatedServerConfig
     {
-        private DedicatedServerConfig(bool enabled, string lobbyName, string hostName, int maxPlayers, YargNetworkManager.LobbyPrivacyMode privacyMode, string password)
+        private DedicatedServerConfig(
+            bool enabled,
+            string lobbyName,
+            string hostName,
+            int maxPlayers,
+            YargNetworkManager.LobbyPrivacyMode privacyMode,
+            string password,
+            bool advertiseDiscovery,
+            int? transportPortOverride,
+            int? discoveryPortOverride)
         {
             Enabled = enabled;
             LobbyName = lobbyName;
@@ -55,6 +97,9 @@ namespace YARG.Networking
             MaxPlayers = maxPlayers;
             PrivacyMode = privacyMode;
             Password = password;
+            AdvertiseDiscovery = advertiseDiscovery;
+            TransportPortOverride = transportPortOverride;
+            DiscoveryPortOverride = discoveryPortOverride;
         }
 
         public bool Enabled { get; }
@@ -63,6 +108,9 @@ namespace YARG.Networking
         public int MaxPlayers { get; }
         public YargNetworkManager.LobbyPrivacyMode PrivacyMode { get; }
         public string Password { get; }
+        public bool AdvertiseDiscovery { get; }
+        public int? TransportPortOverride { get; }
+        public int? DiscoveryPortOverride { get; }
 
         public static DedicatedServerConfig CreateFromSources()
         {
@@ -95,7 +143,19 @@ namespace YARG.Networking
                 Debug.LogWarning("[DedicatedServer] Private lobby requested without password. Generated random password.");
             }
 
-            return new DedicatedServerConfig(true, lobbyName, hostName, maxPlayers, privacyMode, password);
+            bool discoveryEnabled = DetermineDiscoveryEnabled();
+            int? transportPortOverride = ParseOptionalPort(FirstNonEmpty(CommandLineArgs.DedicatedPort ?? string.Empty,
+                Environment.GetEnvironmentVariable("YARG_SERVER_PORT") ?? string.Empty,
+                Environment.GetEnvironmentVariable("YARG_PORT") ?? string.Empty), "transport");
+            int? discoveryPortOverride = ParseOptionalPort(FirstNonEmpty(CommandLineArgs.DedicatedDiscoveryPort ?? string.Empty,
+                Environment.GetEnvironmentVariable("YARG_DISCOVERY_PORT") ?? string.Empty), "discovery");
+
+            if (!discoveryPortOverride.HasValue && transportPortOverride.HasValue)
+            {
+                discoveryPortOverride = transportPortOverride;
+            }
+
+            return new DedicatedServerConfig(true, lobbyName, hostName, maxPlayers, privacyMode, password, discoveryEnabled, transportPortOverride, discoveryPortOverride);
         }
 
         private static bool IsEnvTrue(string value)
@@ -124,6 +184,28 @@ namespace YARG.Networking
             return string.Empty;
         }
 
+        private static bool DetermineDiscoveryEnabled()
+        {
+            if (CommandLineArgs.DedicatedDisableDiscovery)
+            {
+                return false;
+            }
+
+            string disableEnv = Environment.GetEnvironmentVariable("YARG_DISABLE_DISCOVERY") ?? string.Empty;
+            if (IsEnvTrue(disableEnv))
+            {
+                return false;
+            }
+
+            string discoveryToggle = Environment.GetEnvironmentVariable("YARG_DISCOVERY") ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(discoveryToggle))
+            {
+                return IsEnvTrue(discoveryToggle);
+            }
+
+            return true;
+        }
+
         private static int ParseMaxPlayers(string value)
         {
             int[] allowed = { 2, 4, 8 };
@@ -141,6 +223,23 @@ namespace YARG.Networking
 
             Debug.LogWarning($"[DedicatedServer] Unsupported max player count '{value}', using {fallback} instead.");
             return fallback;
+        }
+
+        private static int? ParseOptionalPort(string value, string label)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            value = value.Trim();
+            if (int.TryParse(value, out int parsed) && parsed > 0 && parsed <= ushort.MaxValue)
+            {
+                return parsed;
+            }
+
+            Debug.LogWarning($"[DedicatedServer] Ignoring invalid {label} port '{value}'. Must be 1-{ushort.MaxValue}.");
+            return null;
         }
 
         private static YargNetworkManager.LobbyPrivacyMode ParsePrivacy(string value)

@@ -206,6 +206,11 @@ namespace YARG.Networking
             transport = kcpTransport;
             Transport.active = kcpTransport;
 
+            if (GetComponent<YargNetworkDiscovery>() == null)
+            {
+                gameObject.AddComponent<YargNetworkDiscovery>();
+            }
+
             if (TryGetComponent<TelepathyTransport>(out var telepathyTransport))
             {
                 if (telepathyTransport.enabled)
@@ -254,6 +259,88 @@ namespace YARG.Networking
 
             PlayerContainer.PlayerAdded += OnLocalPlayerAddedToContainer;
             PlayerContainer.PlayerRemoved += OnLocalPlayerRemovedFromContainer;
+        }
+
+        public NetworkPlayerData GetLocalPrimaryPlayerData()
+        {
+            if (NetworkClient.active)
+            {
+                var identity = NetworkClient.localPlayer;
+                if (identity != null && identity.TryGetComponent(out NetworkPlayerData localData))
+                {
+                    return localData;
+                }
+
+                foreach (var spawned in NetworkClient.spawned.Values)
+                {
+                    if (spawned != null && spawned.TryGetComponent(out NetworkPlayerData candidate) && candidate.IsLocalUser)
+                    {
+                        return candidate;
+                    }
+                }
+            }
+
+            if (NetworkServer.active && NetworkServer.localConnection != null)
+            {
+                if (_connectedPlayers.TryGetValue(NetworkServer.localConnection, out var players) && players != null)
+                {
+                    foreach (var player in players)
+                    {
+                        if (player != null)
+                        {
+                            return player;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public NetworkPlayerData GetCurrentHostPlayer()
+        {
+            if (NetworkServer.active)
+            {
+                foreach (var kvp in _connectedPlayers)
+                {
+                    if (kvp.Value == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var player in kvp.Value)
+                    {
+                        if (player != null && player.IsHost)
+                        {
+                            return player;
+                        }
+                    }
+                }
+            }
+
+            if (NetworkClient.active)
+            {
+                foreach (var identity in NetworkClient.spawned.Values)
+                {
+                    if (identity != null && identity.TryGetComponent(out NetworkPlayerData data) && data.IsHost)
+                    {
+                        return data;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public bool LocalUserIsHost()
+        {
+            if (_isHost && NetworkServer.active && !NetworkClient.active)
+            {
+                return true;
+            }
+
+            var localPlayer = GetLocalPrimaryPlayerData();
+            return localPlayer != null && localPlayer.IsHost;
         }
         // Use a consistent hash for the MultiplayerShowPlaylist spawnable
         private const uint PLAYLIST_ASSET_HASH = 0x12345678;
@@ -333,12 +420,6 @@ namespace YARG.Networking
         public override void Start()
         {
             base.Start();
-
-            // Set up discovery for LAN/P2P
-            if (GetComponent<YargNetworkDiscovery>() == null)
-            {
-                gameObject.AddComponent<YargNetworkDiscovery>();
-            }
         }
 
         /// <summary>
@@ -762,6 +843,20 @@ namespace YARG.Networking
 
             CreateLobby(lobbyName, config.MaxPlayers, privacyMode, lobbyPassword);
             LogInfo($"[YargNetworkManager] Dedicated server initialized. Lobby='{lobbyName}', maxPlayers={this.maxPlayers}, privacy={privacyMode}");
+        }
+
+        internal void ConfigureDedicatedServerNetworking(int? transportPortOverride, int? discoveryPortOverride, bool advertiseDiscovery)
+        {
+            if (transportPortOverride.HasValue && transportPortOverride.Value > 0)
+            {
+                SetTransportPort(transportPortOverride.Value);
+            }
+
+            var discovery = GetComponent<YargNetworkDiscovery>();
+            if (discovery != null)
+            {
+                discovery.ConfigureDiscoveryOptions(advertiseDiscovery, discoveryPortOverride);
+            }
         }
 
         /// <summary>
@@ -2025,8 +2120,9 @@ namespace YARG.Networking
         {
             NetworkConnectionToClient hostConnection = DetermineHostConnection();
             int newHostId = hostConnection?.connectionId ?? -1;
+            bool hostChanged = _hostConnectionId != newHostId;
 
-            if (_hostConnectionId != newHostId)
+            if (hostChanged)
             {
                 if (newHostId >= 0)
                 {
@@ -2040,6 +2136,8 @@ namespace YARG.Networking
                 _hostConnectionId = newHostId;
             }
 
+            string resolvedHostName = string.Empty;
+
             foreach (var kvp in _connectedPlayers)
             {
                 bool isHostConnection = hostConnection != null && kvp.Key == hostConnection;
@@ -2051,7 +2149,48 @@ namespace YARG.Networking
 
                 foreach (var player in kvp.Value)
                 {
-                    player?.SetIsHostServer(isHostConnection);
+                    if (player == null)
+                    {
+                        continue;
+                    }
+
+                    player.SetIsHostServer(isHostConnection);
+
+                    if (isHostConnection && string.IsNullOrWhiteSpace(resolvedHostName) && !string.IsNullOrWhiteSpace(player.PlayerName))
+                    {
+                        resolvedHostName = player.PlayerName;
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(resolvedHostName) && hostConnection != null)
+            {
+                resolvedHostName = _playerName;
+            }
+
+            if (_currentLobby != null && !string.IsNullOrWhiteSpace(resolvedHostName))
+            {
+                if (!string.Equals(_currentLobby.hostName, resolvedHostName, StringComparison.Ordinal))
+                {
+                    _currentLobby.hostName = resolvedHostName;
+                    if (NetworkServer.active)
+                    {
+                        _currentLobby.currentPlayers = Mathf.Clamp(GetTotalPlayerCount(), 0, _currentLobby.maxPlayers);
+                        BroadcastLobbyInfoSnapshot();
+                    }
+                }
+            }
+            else if (_currentLobby != null && hostConnection == null)
+            {
+                string fallbackHost = _playerName;
+                if (!string.Equals(_currentLobby.hostName, fallbackHost, StringComparison.Ordinal))
+                {
+                    _currentLobby.hostName = fallbackHost;
+                    if (NetworkServer.active)
+                    {
+                        _currentLobby.currentPlayers = Mathf.Clamp(GetTotalPlayerCount(), 0, _currentLobby.maxPlayers);
+                        BroadcastLobbyInfoSnapshot();
+                    }
                 }
             }
         }
@@ -2099,6 +2238,58 @@ namespace YARG.Networking
             }
 
             return localHost ?? firstRemote;
+        }
+
+        private void BroadcastLobbyInfoSnapshot()
+        {
+            if (!NetworkServer.active || _currentLobby == null)
+            {
+                return;
+            }
+
+            int privacy = (int)_currentLobby.privacyMode;
+
+            foreach (var kvp in _connectedPlayers)
+            {
+                if (kvp.Value == null)
+                {
+                    continue;
+                }
+
+                foreach (var player in kvp.Value)
+                {
+                    if (player == null)
+                    {
+                        continue;
+                    }
+
+                    player.TargetSyncLobbyInfo(
+                        _currentLobby.lobbyName,
+                        _currentLobby.hostName,
+                        _currentLobby.maxPlayers,
+                        _currentLobby.hasPassword,
+                        privacy,
+                        _currentLobby.currentPlayers);
+                }
+            }
+        }
+
+        internal void ServerOnPlayerRenamed(NetworkPlayerData playerData)
+        {
+            if (!NetworkServer.active || playerData == null || _currentLobby == null)
+            {
+                return;
+            }
+
+            if (playerData.IsHost && !string.IsNullOrWhiteSpace(playerData.PlayerName))
+            {
+                if (!string.Equals(_currentLobby.hostName, playerData.PlayerName, StringComparison.Ordinal))
+                {
+                    _currentLobby.hostName = playerData.PlayerName;
+                    _currentLobby.currentPlayers = Mathf.Clamp(GetTotalPlayerCount(), 0, _currentLobby.maxPlayers);
+                    BroadcastLobbyInfoSnapshot();
+                }
+            }
         }
 
         #region Mirror Callbacks
@@ -2568,8 +2759,9 @@ namespace YARG.Networking
                 if (_currentLobby != null && conn is not LocalConnectionToClient)
                 {
                     LogInfo($"[YargNetworkManager] Syncing lobby info to client {conn.connectionId}");
-                    playerData.TargetSyncLobbyInfo(_currentLobby.lobbyName, _currentLobby.hostName, 
-                        _currentLobby.maxPlayers, _currentLobby.hasPassword, (int)_currentLobby.privacyMode);
+                    int currentPlayers = Mathf.Clamp(_currentLobby.currentPlayers, 0, _currentLobby.maxPlayers);
+                    playerData.TargetSyncLobbyInfo(_currentLobby.lobbyName, _currentLobby.hostName,
+                        _currentLobby.maxPlayers, _currentLobby.hasPassword, (int)_currentLobby.privacyMode, currentPlayers);
                 }
                 RefreshHostOwnership();
             }

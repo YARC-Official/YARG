@@ -163,17 +163,107 @@ namespace Mirror.Discovery
 
             StopDiscovery();
 
-            // Setup port -- may throw exception
-            serverUdpClient = new UdpClient(serverBroadcastListenPort)
+            // Attempt to bind with port sharing enabled so transports that
+            // already occupy the port (e.g. KCP server) can coexist with
+            // discovery. Fallback to legacy binding behaviour if necessary.
+            try
             {
-                EnableBroadcast = true,
-                MulticastLoopback = false
-            };
+                serverUdpClient = CreateServerUdpClient(serverBroadcastListenPort);
+            }
+            catch (Exception)
+            {
+                // Re-throw original exception if the old behaviour also fails
+                try
+                {
+                    serverUdpClient = new UdpClient(serverBroadcastListenPort)
+                    {
+                        EnableBroadcast = true,
+                        MulticastLoopback = false
+                    };
+                }
+                catch
+                {
+                    // Ensure socket is cleaned up before bubbling the error
+                    Shutdown();
+                    throw;
+                }
+            }
 
             //Debug.Log($"Discovery: Advertising Server {Dns.GetHostName()}");
 
             // listen for client pings
             _ = ServerListenAsync();
+        }
+
+        static UdpClient CreateServerUdpClient(int port)
+        {
+            Exception lastError = null;
+
+            // Prefer IPv4 for broadcast, but fall back to IPv6 if required by
+            // the runtime configuration.
+            foreach (AddressFamily family in new[] { AddressFamily.InterNetwork, AddressFamily.InterNetworkV6 })
+            {
+                try
+                {
+                    UdpClient udpClient = new UdpClient(family);
+                    Socket socket = udpClient.Client;
+
+                    try
+                    {
+                        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                    }
+                    catch (SocketException)
+                    {
+                        // Some platforms (notably older mobile targets) do not
+                        // support toggling reuse semantics. Continue without
+                        // failing; the bind will throw if reuse is mandatory.
+                    }
+
+                    try
+                    {
+                        socket.ExclusiveAddressUse = false;
+                    }
+                    catch (SocketException)
+                    {
+                        // Ignore platforms that do not expose ExclusiveAddressUse.
+                    }
+
+                    IPEndPoint bindEndPoint = family == AddressFamily.InterNetwork
+                        ? new IPEndPoint(IPAddress.Any, port)
+                        : new IPEndPoint(IPAddress.IPv6Any, port);
+
+                    socket.Bind(bindEndPoint);
+
+                    try
+                    {
+                        udpClient.EnableBroadcast = family == AddressFamily.InterNetwork;
+                    }
+                    catch (SocketException)
+                    {
+                        // Some platforms throw if broadcast is toggled on
+                        // non-IPv4 sockets. Ignore the error so discovery can
+                        // still operate via direct queries.
+                    }
+
+                    try
+                    {
+                        udpClient.MulticastLoopback = false;
+                    }
+                    catch (SocketException)
+                    {
+                        // Ignore platforms that do not expose loopback control.
+                    }
+                    return udpClient;
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                }
+            }
+
+            // If both attempts failed, surface the last error to preserve the
+            // original failure semantics.
+            throw lastError ?? new InvalidOperationException("Failed to bind discovery UDP client.");
         }
 
         public async Task ServerListenAsync()

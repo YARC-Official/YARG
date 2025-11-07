@@ -235,6 +235,17 @@
             "Search": "Search",
             "CreateLobby": "Create Lobby",
             "DirectConnect": "Direct Connect",
+            "FavoritesSuffix": "{0} {1}",
+            "SectionCreateLobby": "Create Lobby",
+            "SectionDirectConnect": "Direct Connect",
+            "SectionFavorites": "Favorites",
+            "SectionMyLobbies": "My Lobbies",
+            "SectionRecents": "Recent Lobbies",
+            "SectionDiscovered": "Discovered Lobbies",
+            "EmptyFavorites": "No favorite lobbies yet",
+            "EmptyMyLobbies": "You have not hosted any lobbies yet",
+            "EmptyRecents": "No recent lobbies",
+            "EmptyDiscovered": "No LAN lobbies detected",
             "Back": "Back"
         },
         "MusicLibrary": {

@@ -366,7 +366,8 @@ namespace YARG.Menu.Multiplayer
                 return;
             }
             
-            var lobby = YargNetworkManager.Instance.CurrentLobby;
+            var networkManager = YargNetworkManager.Instance;
+            var lobby = networkManager.CurrentLobby;
             if (lobby == null)
             {
                 Debug.LogWarning("[LobbyRoomMenu] No current lobby, skipping refresh");
@@ -375,11 +376,16 @@ namespace YARG.Menu.Multiplayer
 
             Debug.Log($"[LobbyRoomMenu] Lobby data: {lobby.lobbyName}, Host: {lobby.hostName}, Players: {lobby.currentPlayers}/{lobby.maxPlayers}");
             
-            isHost = YargNetworkManager.Instance.IsHosting;
+            isHost = networkManager.LocalUserIsHost();
             Debug.Log($"[LobbyRoomMenu] IsHost: {isHost}");
 
             // Capture the network manager reference for reuse
-            var networkManager = YargNetworkManager.Instance;
+            string hostDisplayName = lobby.hostName;
+            var hostPlayer = networkManager.GetCurrentHostPlayer();
+            if (hostPlayer != null && !string.IsNullOrWhiteSpace(hostPlayer.PlayerName))
+            {
+                hostDisplayName = hostPlayer.PlayerName;
+            }
 
             // Update lobby info display
             if (lobbyNameText != null)
@@ -394,8 +400,8 @@ namespace YARG.Menu.Multiplayer
             
             if (hostNameText != null)
             {
-                hostNameText.text = $"Host: {lobby.hostName}";
-                Debug.Log($"[LobbyRoomMenu] Set hostNameText to: Host: {lobby.hostName}");
+                hostNameText.text = $"Host: {hostDisplayName}";
+                Debug.Log($"[LobbyRoomMenu] Set hostNameText to: Host: {hostDisplayName}");
             }
             else
             {

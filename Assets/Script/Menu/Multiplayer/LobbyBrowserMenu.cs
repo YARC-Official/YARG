@@ -262,10 +262,49 @@ namespace YARG.Menu.Multiplayer
         {
             var viewTypes = new List<LobbyViewType>();
 
-            var discoveredLookup = _currentLobbies
-                .Where(lobby => IsLobbyLive(lobby))
-                .GroupBy(lobby => LobbyBookmarkUtility.BuildKey(lobby.ipAddress, lobby.port))
-                .ToDictionary(group => group.Key, group => group.First());
+            var discoveredLookup = new Dictionary<string, YargNetworkManager.LobbyInfo>(StringComparer.Ordinal);
+
+            foreach (var lobby in _currentLobbies)
+            {
+                if (!IsLobbyLive(lobby))
+                {
+                    continue;
+                }
+
+                void TryAdd(string address, int port)
+                {
+                    if (string.IsNullOrWhiteSpace(address) || port <= 0)
+                    {
+                        return;
+                    }
+
+                    string key = LobbyBookmarkUtility.BuildKey(address, port);
+                    if (string.IsNullOrEmpty(key))
+                    {
+                        return;
+                    }
+
+                    if (!discoveredLookup.ContainsKey(key))
+                    {
+                        discoveredLookup[key] = lobby;
+                    }
+                }
+
+                TryAdd(lobby.ipAddress, lobby.port);
+                TryAdd(lobby.publicAddress, lobby.publicPort);
+
+                if (lobby.port == NetworkTransportDefaults.DefaultUdpPort)
+                {
+                    TryAdd(lobby.ipAddress, NetworkTransportDefaults.DefaultTcpPort);
+                    TryAdd(lobby.publicAddress, NetworkTransportDefaults.DefaultTcpPort);
+                }
+
+                if (lobby.publicPort == NetworkTransportDefaults.DefaultUdpPort)
+                {
+                    TryAdd(lobby.ipAddress, NetworkTransportDefaults.DefaultUdpPort);
+                    TryAdd(lobby.publicAddress, NetworkTransportDefaults.DefaultUdpPort);
+                }
+            }
 
             var usedEndpointKeys = new HashSet<string>();
             foreach (var bookmark in _favorites.GetFavorites())
@@ -370,23 +409,23 @@ namespace YARG.Menu.Multiplayer
                 discoveredSection.Add(new DiscoveredLobbyViewType(lobby, this, _favorites));
             }
 
-            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionCreateLobby")));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionCreateLobby"), "SectionCreateLobby"));
 
-            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionDirectConnect")));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionDirectConnect"), "SectionDirectConnect"));
 
-            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionFavorites")));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionFavorites"), "SectionFavorites"));
             if (favoritesSection.Count > 0) viewTypes.AddRange(favoritesSection);
             else viewTypes.Add(new LobbyEmptyViewType(Localize.Key("Menu", "LobbyBrowser", "EmptyFavorites")));
 
-            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionMyLobbies")));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionMyLobbies"), "SectionMyLobbies"));
             if (myLobbiesSection.Count > 0) viewTypes.AddRange(myLobbiesSection);
             else viewTypes.Add(new LobbyEmptyViewType(Localize.Key("Menu", "LobbyBrowser", "EmptyMyLobbies")));
 
-            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionRecents")));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionRecents"), "SectionRecents"));
             if (recentsSection.Count > 0) viewTypes.AddRange(recentsSection);
             else viewTypes.Add(new LobbyEmptyViewType(Localize.Key("Menu", "LobbyBrowser", "EmptyRecents")));
 
-            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionDiscovered")));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionDiscovered"), "SectionDiscovered"));
             if (discoveredSection.Count > 0) viewTypes.AddRange(discoveredSection);
             else viewTypes.Add(new LobbyEmptyViewType(Localize.Key("Menu", "LobbyBrowser", "EmptyDiscovered")));
 
@@ -1327,16 +1366,38 @@ namespace YARG.Menu.Multiplayer
             if (view is LobbyCategoryViewType category)
             {
                 _selectedLobby = null;
-                string name = category.CategoryName;
-                if (!string.IsNullOrEmpty(name))
+
+                string key = category.CategoryKey;
+                if (!string.IsNullOrEmpty(key))
                 {
-                    if (string.Equals(name, "CREATE A LOBBY", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(key, "SectionCreateLobby", StringComparison.Ordinal))
                     {
                         _sidebar.ShowCreateLobbyForm(null, false);
                         return;
                     }
 
-                    if (string.Equals(name, "ADD NEW CONNECTION", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(key, "SectionDirectConnect", StringComparison.Ordinal))
+                    {
+                        _sidebar.ShowDirectConnectForm();
+                        return;
+                    }
+
+                    return;
+                }
+
+                string name = category.CategoryName;
+                if (!string.IsNullOrEmpty(name))
+                {
+                    // Fallback for legacy prefabs without category keys.
+                    if (string.Equals(name, Localize.Key("Menu", "LobbyBrowser", "SectionCreateLobby"), StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(name, "CREATE A LOBBY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _sidebar.ShowCreateLobbyForm(null, false);
+                        return;
+                    }
+
+                    if (string.Equals(name, Localize.Key("Menu", "LobbyBrowser", "SectionDirectConnect"), StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(name, "ADD NEW CONNECTION", StringComparison.OrdinalIgnoreCase))
                     {
                         _sidebar.ShowDirectConnectForm();
                         return;

@@ -6,6 +6,8 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
+using YARG.Audio.Headless;
 using YARG.Audio.BASS;
 using YARG.Core;
 using YARG.Core.Logging;
@@ -24,6 +26,8 @@ using YARG.Scores;
 using YARG.Settings;
 using YARG.Settings.Customization;
 using YARG.Song;
+using YARG.Logging;
+using YARG.Logging.Unity;
 
 namespace YARG
 {
@@ -52,10 +56,22 @@ namespace YARG
 
         public string CurrentVersion { get; private set; } = "v0.13.1";
 
+        private bool _isHeadlessEnvironment;
+        private bool _inputInitialized;
+
+        public bool IsHeadlessEnvironment => _isHeadlessEnvironment;
+
         protected override void SingletonAwake()
         {
             CurrentVersion = LoadVersion();
             YargLogger.LogFormatInfo("YARG {0}", CurrentVersion);
+
+            _isHeadlessEnvironment = DetectHeadlessEnvironment();
+            if (_isHeadlessEnvironment)
+            {
+                UnityInternalLogWrapper.SetLogFilter(HeadlessLogFilter.ShouldSuppress);
+                YargLogger.LogInfo("[DedicatedServer] Headless environment detected; skipping presentation subsystems.");
+            }
 
             // Command line arguments
 
@@ -92,21 +108,38 @@ namespace YARG
             int savedCount = PlayerContainer.SaveProfiles(false);
             YargLogger.LogFormatInfo("Saved {0} profiles", savedCount);
 
-            GlobalAudioHandler.Initialize<BassAudioManager>();
+            if (_isHeadlessEnvironment)
+            {
+                GlobalAudioHandler.Initialize<NullAudioManager>();
+            }
+            else
+            {
+                GlobalAudioHandler.Initialize<BassAudioManager>();
+            }
 
             Players = new List<YargPlayer>();
 
             // Set alpha fading (on the tracks) to on
             // (this is mostly for the editor, but just in case)
-            Shader.SetGlobalFloat("_IsFading", 1f);
+            if (!_isHeadlessEnvironment)
+            {
+                Shader.SetGlobalFloat("_IsFading", 1f);
+            }
         }
 
         private void Start()
         {
             SettingsManager.LoadSettings();
-            InputManager.Initialize();
-
-            LoadScene(SceneIndex.Menu);
+            if (!_isHeadlessEnvironment)
+            {
+                InputManager.Initialize();
+                _inputInitialized = true;
+                LoadScene(SceneIndex.Menu);
+            }
+            else
+            {
+                YargLogger.LogInfo("[DedicatedServer] Menu scene load skipped in headless mode.");
+            }
         }
 
 #if UNITY_EDITOR
@@ -135,13 +168,24 @@ namespace YARG
 
             ReplayContainer.Destroy();
             ScoreContainer.Destroy();
-            InputManager.Destroy();
+            if (_inputInitialized)
+            {
+                InputManager.Destroy();
+            }
             PlayerContainer.Destroy();
             GlobalAudioHandler.Close();
 
+            if (_isHeadlessEnvironment)
+            {
+                UnityInternalLogWrapper.SetLogFilter(null);
+            }
+
 #if UNITY_EDITOR
             // Set alpha fading (on the tracks) to off
-            Shader.SetGlobalFloat("_IsFading", 0f);
+            if (!_isHeadlessEnvironment)
+            {
+                Shader.SetGlobalFloat("_IsFading", 0f);
+            }
 #endif
         }
 
@@ -310,6 +354,33 @@ namespace YARG
 #else
             return $"{branch} b{commitCount} ({commit})";
 #endif
+        }
+
+        private static bool DetectHeadlessEnvironment()
+        {
+            if (Application.isBatchMode || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
+            {
+                return true;
+            }
+
+            if (CommandLineArgs.DedicatedServer)
+            {
+                return true;
+            }
+
+            string env = Environment.GetEnvironmentVariable("YARG_DEDICATED") ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(env))
+            {
+                env = env.Trim();
+                if (env.Equals("1", StringComparison.OrdinalIgnoreCase) ||
+                    env.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+                    env.Equals("yes", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

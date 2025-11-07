@@ -94,6 +94,7 @@ namespace YARG.Networking
 
         private KcpTransport _sharedPortTransport;
         private bool _sharedPortHooked;
+        private bool _allowAdvertisement = true;
 
         public IReadOnlyDictionary<long, YargNetworkManager.LobbyInfo> DiscoveredLobbies => _discoveredLobbies;
 
@@ -113,11 +114,36 @@ namespace YARG.Networking
         /// <summary>
         /// Start discovering lobbies on the network.
         /// </summary>
+        public override void Start()
+        {
+            base.Start();
+
+            if (!_allowAdvertisement)
+            {
+                StopDiscovery();
+            }
+        }
+
         public new void StartDiscovery()
         {
             _discoveredLobbies.Clear();
             base.StartDiscovery();
-            Debug.Log("Started lobby discovery");
+            Debug.Log($"Started lobby discovery (port {serverBroadcastListenPort})");
+        }
+
+        public void ConfigureDiscoveryOptions(bool enableAdvertisement, int? portOverride)
+        {
+            _allowAdvertisement = enableAdvertisement;
+            if (!enableAdvertisement)
+            {
+                DisableSharedPortDiscovery();
+                StopDiscovery();
+            }
+
+            if (portOverride.HasValue && portOverride.Value > 0)
+            {
+                serverBroadcastListenPort = (ushort)Mathf.Clamp(portOverride.Value, 1, ushort.MaxValue);
+            }
         }
 
         /// <summary>
@@ -136,17 +162,47 @@ namespace YARG.Networking
         public void AdvertiseServer(YargNetworkManager.LobbyInfo lobby)
         {
             _advertisedLobby = lobby;
-            AdvertiseServer();
-            EnableSharedPortDiscovery();
-            Debug.Log($"Advertising lobby: {lobby.lobbyName}");
+            if (!_allowAdvertisement)
+            {
+                Debug.Log("[YargNetworkDiscovery] Discovery disabled by configuration; skipping advertisement.");
+                return;
+            }
+
+            try
+            {
+                base.AdvertiseServer();
+                EnableSharedPortDiscovery();
+                Debug.Log($"Advertising lobby: {lobby.lobbyName} (discovery port {serverBroadcastListenPort})");
+            }
+            catch (SocketException ex)
+            {
+                Debug.LogWarning($"[YargNetworkDiscovery] Failed to bind discovery UDP port {serverBroadcastListenPort}: {ex.Message}. Discovery will be disabled.");
+                DisableSharedPortDiscovery();
+                _allowAdvertisement = false;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[YargNetworkDiscovery] Unexpected error while advertising lobby: {ex.Message}");
+            }
         }
 
         #region Server (Host)
 
+        protected override void ProcessClientRequest(ServerRequest request, System.Net.IPEndPoint endpoint)
+        {
+            if (_advertisedLobby == null || !_advertisedLobby.isActive)
+            {
+                return;
+            }
+
+            base.ProcessClientRequest(request, endpoint);
+        }
+
         protected override ServerResponse ProcessRequest(ServerRequest request, System.Net.IPEndPoint endpoint)
         {
             // Host responds to discovery requests
-            if (_advertisedLobby == null || !_advertisedLobby.isActive)
+            var lobbySnapshot = _advertisedLobby;
+            if (lobbySnapshot == null || !lobbySnapshot.isActive)
             {
                 return default;
             }
@@ -154,7 +210,7 @@ namespace YARG.Networking
             // Don't advertise private lobbies unless they provide a password (we allow
             // password-protected private lobbies to be discoverable so clients can get
             // basic stats and prompt for a password when joining).
-            if (_advertisedLobby.privacyMode == YargNetworkManager.LobbyPrivacyMode.Private && !_advertisedLobby.hasPassword)
+            if (lobbySnapshot.privacyMode == YargNetworkManager.LobbyPrivacyMode.Private && !lobbySnapshot.hasPassword)
             {
                 return default;
             }
@@ -174,18 +230,18 @@ namespace YARG.Networking
 
             ServerResponse response = new ServerResponse
             {
-                lobbyId = _advertisedLobby.lobbyId,
-                lobbyName = _advertisedLobby.lobbyName,
-                hostName = _advertisedLobby.hostName,
+                lobbyId = lobbySnapshot.lobbyId,
+                lobbyName = lobbySnapshot.lobbyName,
+                hostName = lobbySnapshot.hostName,
                 currentPlayers = YargNetworkManager.Instance != null ? YargNetworkManager.Instance.GetTotalPlayerCount() : 0,
-                maxPlayers = _advertisedLobby.maxPlayers,
-                hasPassword = _advertisedLobby.hasPassword,
-                privacyMode = (int)_advertisedLobby.privacyMode,
+                maxPlayers = lobbySnapshot.maxPlayers,
+                hasPassword = lobbySnapshot.hasPassword,
+                privacyMode = (int)lobbySnapshot.privacyMode,
                 serverId = ServerId,
-                publicAddress = _advertisedLobby.publicAddress,
-                port = (ushort)Mathf.Clamp(_advertisedLobby.port, 0, ushort.MaxValue),
-                publicPort = (ushort)Mathf.Clamp(_advertisedLobby.publicPort, 0, ushort.MaxValue),
-                transportId = _advertisedLobby.transportId ?? string.Empty,
+                publicAddress = lobbySnapshot.publicAddress,
+                port = (ushort)Mathf.Clamp(lobbySnapshot.port, 0, ushort.MaxValue),
+                publicPort = (ushort)Mathf.Clamp(lobbySnapshot.publicPort, 0, ushort.MaxValue),
+                transportId = lobbySnapshot.transportId ?? string.Empty,
                 playerNames = playerNames,
                 playerInstruments = playerInstruments
             };
@@ -201,6 +257,18 @@ namespace YARG.Networking
         protected override void ProcessResponse(ServerResponse response, System.Net.IPEndPoint endpoint)
         {
             // Client receives lobby information
+            int resolvedPort = response.port;
+            if (resolvedPort <= 0)
+            {
+                resolvedPort = NetworkTransportDefaults.DefaultUdpPort;
+            }
+
+            int resolvedPublicPort = response.publicPort;
+            if (resolvedPublicPort <= 0)
+            {
+                resolvedPublicPort = resolvedPort;
+            }
+
             YargNetworkManager.LobbyInfo lobby = new YargNetworkManager.LobbyInfo
             {
                 lobbyId = response.lobbyId,
@@ -214,8 +282,8 @@ namespace YARG.Networking
                 isActive = true,
                 // Use milliseconds for lastSeen to match other code expectations
                 lastSeen = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                port = response.port != 0 ? response.port : NetworkTransportDefaults.DefaultTcpPort,
-                publicPort = response.publicPort != 0 ? response.publicPort : response.port,
+                port = (ushort)Mathf.Clamp(resolvedPort, 0, ushort.MaxValue),
+                publicPort = (ushort)Mathf.Clamp(resolvedPublicPort, 0, ushort.MaxValue),
                 publicAddress = string.IsNullOrWhiteSpace(response.publicAddress) ? endpoint.Address.ToString() : response.publicAddress,
                 transportId = response.transportId ?? string.Empty,
                 playerNames = response.playerNames,

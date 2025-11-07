@@ -198,14 +198,17 @@ namespace YARG.Menu.Multiplayer
     public class LobbyCategoryViewType : LobbyViewType
     {
         private readonly string _categoryName;
+        private readonly string _categoryKey;
         
         public override BackgroundType Background => BackgroundType.Category;
 
         public string CategoryName => _categoryName;
+        public string CategoryKey => _categoryKey;
         
-        public LobbyCategoryViewType(string categoryName)
+        public LobbyCategoryViewType(string categoryName, string categoryKey = null)
         {
             _categoryName = categoryName;
+            _categoryKey = string.IsNullOrWhiteSpace(categoryKey) ? null : categoryKey;
         }
         
         public override string GetPrimaryText(bool selected)
@@ -227,6 +230,11 @@ namespace YARG.Menu.Multiplayer
 
         public override string GetSelectionKey()
         {
+            if (!string.IsNullOrEmpty(_categoryKey))
+            {
+                return string.Concat("category:", _categoryKey);
+            }
+
             return string.Concat("category:", _categoryName ?? string.Empty);
         }
     }
