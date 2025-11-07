@@ -255,6 +255,11 @@ namespace YARG.Venue.VenueCamera
 
         private void ResetCameraEffect()
         {
+            if (PreviousEffect == null)
+            {
+                return;
+            }
+
             switch (PreviousEffect.Type)
             {
                 case PostProcessingType.Default:
@@ -448,8 +453,8 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            slowFPS.SkipFrames.value = enabled ? divisor : 1;
-            slowFPS.SkipFrames.overrideState = enabled;
+            slowFPS.Divisor.value = enabled ? divisor : 1;
+            slowFPS.Divisor.overrideState = enabled;
             slowFPS.active = enabled;
         }
 
@@ -962,7 +967,7 @@ namespace YARG.Venue.VenueCamera
             // Check for a change in post processing type, if we have a volume to work with in the first place
             if (_volumeSet)
             {
-                if (_currentEventIndex < _postProcessingEvents.Count &&
+                while (_currentEventIndex < _postProcessingEvents.Count &&
                     _postProcessingEvents[_currentEventIndex].Time <= GameManager.VisualTime)
                 {
                     var effect = _postProcessingEvents[_currentEventIndex];
@@ -983,6 +988,42 @@ namespace YARG.Venue.VenueCamera
                     _currentEventIndex++;
                     SetCameraPostProcessing(effect);
                 }
+            }
+        }
+
+        private void ResetPostProcessing(double time)
+        {
+            ResetCameraEffect();
+
+            _currentEventIndex = 0;
+            while (_currentEventIndex < _postProcessingEvents.Count && _postProcessingEvents[_currentEventIndex].Time < time)
+            {
+                _currentEventIndex++;
+            }
+
+            // Fix up CurrentEffect, PreviousEffect, and NextEffect
+            if (_currentEventIndex > 0)
+            {
+                PreviousEffect = _postProcessingEvents[_currentEventIndex - 1];
+            }
+            else
+            {
+                PreviousEffect = null;
+            }
+
+            if (_currentEventIndex + 1 < _postProcessingEvents.Count)
+            {
+                NextEffect = _postProcessingEvents[_currentEventIndex + 1];
+            }
+            else
+            {
+                NextEffect = null;
+            }
+
+            if (_currentEventIndex < _postProcessingEvents.Count)
+            {
+                CurrentEffect = _postProcessingEvents[_currentEventIndex];
+                SetCameraPostProcessing(CurrentEffect);
             }
         }
     }

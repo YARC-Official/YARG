@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Engine.Keys;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
@@ -141,6 +142,15 @@ namespace YARG.Gameplay.Visuals
             base.OnStarPowerUpdated();
 
             UpdateColor();
+        }
+
+        protected override bool CalcStarPowerVisible()
+        {
+            if (!NoteRef.IsStarPower)
+            {
+                return false;
+            }
+            return !(((KeysEngineParameters) Player.BaseParameters).NoStarPowerOverlap && Player.BaseStats.IsStarPowerActive);
         }
 
         private void UpdateSustain()

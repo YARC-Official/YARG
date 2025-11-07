@@ -1670,6 +1670,7 @@ GameObject:
   - component: {fileID: 1937505655}
   - component: {fileID: 1937505656}
   - component: {fileID: 1937505657}
+  - component: {fileID: 1937505658}
   m_Layer: 0
   m_Name: Menu Manager
   m_TagString: Untagged

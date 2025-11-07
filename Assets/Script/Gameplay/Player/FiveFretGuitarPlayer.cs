@@ -135,6 +135,7 @@ namespace YARG.Gameplay.Player
             engine.OnSoloEnd += OnSoloEnd;
 
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
+            engine.OnStarPowerPhraseMissed += OnStarPowerPhraseMissed;
             engine.OnStarPowerStatus += OnStarPowerStatus;
 
             engine.OnCountdownChange += OnCountdownChange;
@@ -479,6 +480,15 @@ namespace YARG.Gameplay.Player
             {
                 WhammyFactor = 0;
                 GameManager.ChangeStemWhammyPitch(_stem, 0);
+            }
+        }
+
+        protected override void OnStarPowerPhraseMissed()
+        {
+            base.OnStarPowerPhraseMissed();
+            foreach (var note in NotePool.AllSpawned)
+            {
+                (note as FiveFretGuitarNoteElement)?.OnStarPowerUpdated();
             }
         }
 

@@ -40,8 +40,8 @@ namespace YARG.Gameplay.Visuals
         private GameManager  _gameManager;
         private CameraPreset _preset;
 
-        private Tweener _punchLeft;
-        private Tweener _punchRight;
+        private Sequence _punchLeft;
+        private Sequence _punchRight;
 
         private Sequence _scoop;
         private Sequence _raise;
@@ -106,7 +106,7 @@ namespace YARG.Gameplay.Visuals
             _globalAnimDelay = Mathf.Clamp((float) latestStart, 0f, MAX_ANIM_DELAY);
 
             // Animate the highway raise
-            if (!_gameManager.IsPractice && SettingsManager.Settings.EnableHighwayRaise.Value)
+            if (!_gameManager.IsPractice && SettingsManager.Settings.EnableHighwayAnimation.Value)
             {
                 if (_highwayRaised)
                 {
@@ -154,6 +154,18 @@ namespace YARG.Gameplay.Visuals
 
         private void InitializeSequences()
         {
+            if (!SettingsManager.Settings.EnableHighwayAnimation.Value)
+            {
+                // If animations are disabled, just make empty sequences
+                _raise = DOTween.Sequence().SetAutoKill(false).Pause();
+                _lower = DOTween.Sequence().SetAutoKill(false).Pause();
+                _bounce = DOTween.Sequence().SetAutoKill(false).Pause();
+                _punchLeft = DOTween.Sequence().SetAutoKill(false).Pause();
+                _punchRight = DOTween.Sequence().SetAutoKill(false).Pause();
+                _scoop = DOTween.Sequence().SetAutoKill(false).Pause();
+                return;
+            }
+
             _raise = DOTween.Sequence()
                 .Append(transform
                     .DORotate(new Vector3().WithX(_preset.Rotation + ANIM_PEAK_ROTATION), ANIM_BASE_TO_PEAK_INTERVAL)
@@ -179,11 +191,13 @@ namespace YARG.Gameplay.Visuals
             var leftVector = new Vector3(-PUNCH_DISTANCE, 0f, 0f);
             var rightVector = new Vector3(PUNCH_DISTANCE, 0f, 0f);
 
-            _punchLeft = transform.DOPunchPosition(leftVector, PUNCH_ANIM_DURATION, 1, 1f, false)
+            _punchLeft = DOTween.Sequence()
+                .Append(transform.DOPunchPosition(leftVector, PUNCH_ANIM_DURATION, 1, 1f, false))
                 .SetAutoKill(false)
                 .Pause();
 
-            _punchRight = transform.DOPunchPosition(rightVector, PUNCH_ANIM_DURATION, 1, 1f, false)
+            _punchRight = DOTween.Sequence()
+                .Append(transform.DOPunchPosition(rightVector, PUNCH_ANIM_DURATION, 1, 1f, false))
                 .SetAutoKill(false)
                 .Pause();
 
