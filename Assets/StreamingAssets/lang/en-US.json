@@ -301,7 +301,6 @@
             "Privacy": "Privacy: {0}",
             "PrivacyPublic": "Public",
             "PrivacyPrivate": "Private",
-            "PrivacyFriendsOnly": "Friends Only",
             "NoPlayersInLobby": "No players in lobby",
             "PlayersInLobby": "{0} {1} in lobby",
             "Player": "player",

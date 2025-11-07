@@ -42,8 +42,7 @@ namespace YARG.Menu.Multiplayer
                 privacyModeDropdown.AddOptions(new System.Collections.Generic.List<string>
                 {
                     "Public",
-                    "Private (Password)",
-                    "Friends Only"
+                    "Private (Password)"
                 });
                 privacyModeDropdown.onValueChanged.AddListener(OnPrivacyModeChanged);
             }

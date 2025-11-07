@@ -86,11 +86,13 @@ namespace YARG.Networking
         [SerializeField] private bool enableAutomaticPortMapping = true;
 
         private Dictionary<NetworkConnectionToClient, List<NetworkPlayerData>> _connectedPlayers = new Dictionary<NetworkConnectionToClient, List<NetworkPlayerData>>();
+        private int _hostConnectionId = -1;
         private static readonly object ProbeConnectionToken = new();
         private readonly HashSet<int> _probeConnectionIds = new();
         private LobbyInfo _currentLobby;
         private string _playerName;
         private bool _isHost = false;
+        private bool _isDedicatedServer = false;
         private YARG.Multiplayer.MultiplayerShowPlaylist _multiplayerShowPlaylist;
         private static bool _isQuitting = false;
         private string _lastJoinAddress;
@@ -154,6 +156,7 @@ namespace YARG.Networking
         public LobbyInfo CurrentLobby => _currentLobby;
         public string PlayerName => _playerName;
         public bool IsHosting => _isHost;
+        public bool IsDedicatedServer => _isDedicatedServer;
         public Dictionary<NetworkConnectionToClient, List<NetworkPlayerData>> ConnectedPlayers => _connectedPlayers;
         public bool IsConnected => isNetworkActive && !_isHost;
         public YARG.Multiplayer.MultiplayerShowPlaylist MultiplayerShowPlaylist => _multiplayerShowPlaylist;
@@ -177,8 +180,7 @@ namespace YARG.Networking
         public enum LobbyPrivacyMode
         {
             Public,
-            Private,
-            FriendsOnly
+            Private
         }
 
         public override void Awake()
@@ -550,7 +552,6 @@ namespace YARG.Networking
                 }
 
                 NetworkServer.Spawn(playerGO, conn);
-                additionalData.SetIsHostServer(conn.connectionId == 0);
                 playersForConnection.Add(additionalData);
                 OnPlayerJoined?.Invoke(additionalData);
             }
@@ -606,6 +607,8 @@ namespace YARG.Networking
             {
                 _currentLobby.currentPlayers = GetTotalPlayerCount();
             }
+
+            RefreshHostOwnership();
         }
 
         /// <summary>
@@ -683,13 +686,27 @@ namespace YARG.Networking
                 _isTransitioningToHost = true;
                 try
                 {
-                    StartHost();
+                    if (_isDedicatedServer)
+                    {
+                        StartServer();
+                    }
+                    else
+                    {
+                        StartHost();
+                    }
                     _isHost = true;
                 }
                 catch
                 {
                     _isTransitioningToHost = false;
                     throw;
+                }
+                finally
+                {
+                    if (NetworkServer.active)
+                    {
+                        _isTransitioningToHost = false;
+                    }
                 }
             }
             else
@@ -722,6 +739,29 @@ namespace YARG.Networking
             BeginPublicEndpointResolution(transportPort);
 
             return _currentLobby;
+        }
+
+        internal void LaunchDedicatedServer(DedicatedServerConfig config)
+        {
+            if (!config.Enabled)
+            {
+                return;
+            }
+
+            if (isNetworkActive || NetworkServer.active)
+            {
+                LogWarning("[YargNetworkManager] Dedicated server launch requested while network is already active.");
+                return;
+            }
+
+            _isDedicatedServer = true;
+            lobbyName = config.LobbyName;
+            privacyMode = config.PrivacyMode;
+            lobbyPassword = config.PrivacyMode == LobbyPrivacyMode.Private ? config.Password : string.Empty;
+            SetPlayerName(config.HostName);
+
+            CreateLobby(lobbyName, config.MaxPlayers, privacyMode, lobbyPassword);
+            LogInfo($"[YargNetworkManager] Dedicated server initialized. Lobby='{lobbyName}', maxPlayers={this.maxPlayers}, privacy={privacyMode}");
         }
 
         /// <summary>
@@ -937,6 +977,7 @@ namespace YARG.Networking
 
             _currentLobby = null;
             _connectedPlayers.Clear();
+            _hostConnectionId = -1;
             ResetJoinTracking();
             _clientJoinPending = false;
 
@@ -1783,7 +1824,7 @@ namespace YARG.Networking
                     currentPlayers = response.currentPlayers,
                     maxPlayers = response.maxPlayers,
                     hasPassword = response.hasPassword,
-                    privacyMode = (LobbyPrivacyMode)Mathf.Clamp(response.privacyMode, 0, (int)LobbyPrivacyMode.FriendsOnly),
+                    privacyMode = (LobbyPrivacyMode)Mathf.Clamp(response.privacyMode, 0, (int)LobbyPrivacyMode.Private),
                     port = response.port,
                     publicPort = response.publicPort,
                     isActive = true,
@@ -1978,6 +2019,86 @@ namespace YARG.Networking
             }
 
             return totalPlayers;
+        }
+
+        private void RefreshHostOwnership()
+        {
+            NetworkConnectionToClient hostConnection = DetermineHostConnection();
+            int newHostId = hostConnection?.connectionId ?? -1;
+
+            if (_hostConnectionId != newHostId)
+            {
+                if (newHostId >= 0)
+                {
+                    LogInfo($"[YargNetworkManager] Host connection reassigned to {newHostId}.");
+                }
+                else
+                {
+                    LogInfo("[YargNetworkManager] Host connection cleared; no eligible players remain.");
+                }
+
+                _hostConnectionId = newHostId;
+            }
+
+            foreach (var kvp in _connectedPlayers)
+            {
+                bool isHostConnection = hostConnection != null && kvp.Key == hostConnection;
+
+                if (kvp.Value == null)
+                {
+                    continue;
+                }
+
+                foreach (var player in kvp.Value)
+                {
+                    player?.SetIsHostServer(isHostConnection);
+                }
+            }
+        }
+
+        private NetworkConnectionToClient DetermineHostConnection()
+        {
+            NetworkConnectionToClient localHost = null;
+            NetworkConnectionToClient firstRemote = null;
+
+            foreach (var kvp in _connectedPlayers)
+            {
+                NetworkConnectionToClient conn = kvp.Key;
+                List<NetworkPlayerData> players = kvp.Value;
+
+                if (conn == null || players == null || players.Count == 0)
+                {
+                    continue;
+                }
+
+                bool hasValidPlayer = false;
+                for (int i = 0; i < players.Count; i++)
+                {
+                    if (players[i] != null)
+                    {
+                        hasValidPlayer = true;
+                        break;
+                    }
+                }
+
+                if (!hasValidPlayer)
+                {
+                    continue;
+                }
+
+                if (conn is LocalConnectionToClient)
+                {
+                    localHost = conn;
+                    break;
+                }
+
+                if (firstRemote == null || conn.connectionId < firstRemote.connectionId)
+                {
+                    firstRemote = conn;
+                }
+            }
+
+            return localHost ?? firstRemote;
         }
 
         #region Mirror Callbacks
@@ -2189,6 +2310,7 @@ namespace YARG.Networking
                 _probeConnectionIds.Remove(conn.connectionId);
             }
 
+            RefreshHostOwnership();
             RecalculateSharedSongs();
         }
 
@@ -2351,6 +2473,7 @@ namespace YARG.Networking
 
             _currentLobby = null;
             _connectedPlayers.Clear();
+            _hostConnectionId = -1;
             _hasTriggeredJoinEvent = false;
             _clientJoinPending = false;
             ResetJoinTracking();
@@ -2380,6 +2503,8 @@ namespace YARG.Networking
             TeardownPortMappingsAsync().Forget();
             ResetSharedSongState();
             _probeConnectionIds.Clear();
+            _hostConnectionId = -1;
+            _isDedicatedServer = false;
         }
 
         public override void OnStopServer()
@@ -2388,6 +2513,8 @@ namespace YARG.Networking
             TeardownPortMappingsAsync().Forget();
             ResetSharedSongState();
             _probeConnectionIds.Clear();
+            _hostConnectionId = -1;
+            _isDedicatedServer = false;
         }
 
         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
@@ -2413,9 +2540,6 @@ namespace YARG.Networking
                 // Commands can only be called by the client that owns the object
                 playerData.SetPlayerNameServer(_playerName);
                 
-                // Set host flag (connection 0 is always the host)
-                playerData.SetIsHostServer(conn.connectionId == 0);
-
                 // Add to connected players list
                 if (_connectedPlayers.ContainsKey(conn))
                 {
@@ -2447,6 +2571,7 @@ namespace YARG.Networking
                     playerData.TargetSyncLobbyInfo(_currentLobby.lobbyName, _currentLobby.hostName, 
                         _currentLobby.maxPlayers, _currentLobby.hasPassword, (int)_currentLobby.privacyMode);
                 }
+                RefreshHostOwnership();
             }
             else
             {

@@ -35,6 +35,12 @@ namespace YARG
 
         private const string PERSISTENT_DATA_PATH_ARG = "-persistent-data-path";
 
+        private const string DEDICATED_ARG = "-dedicated";
+        private const string DEDICATED_LOBBY_NAME_ARG = "-lobby-name";
+        private const string DEDICATED_MAX_PLAYERS_ARG = "-max-players";
+        private const string DEDICATED_PRIVACY_ARG = "-privacy";
+        private const string DEDICATED_PASSWORD_ARG = "-password";
+
         public static bool Offline { get; private set; }
 
         public static bool VerboseReplays { get; private set; }
@@ -42,6 +48,12 @@ namespace YARG
         public static string Language           { get; private set; }
         public static string DownloadLocation   { get; private set; }
         public static string PersistentDataPath { get; private set; }
+
+        public static bool DedicatedServer { get; private set; }
+        public static string DedicatedLobbyName   { get; private set; }
+        public static string DedicatedMaxPlayers  { get; private set; }
+        public static string DedicatedPrivacyMode { get; private set; }
+        public static string DedicatedPassword    { get; private set; }
 
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
@@ -81,6 +93,41 @@ namespace YARG
                         if (i < args.Length)
                         {
                             PersistentDataPath = args[i];
+                        }
+
+                        break;
+                    case DEDICATED_ARG:
+                        DedicatedServer = true;
+                        break;
+                    case DEDICATED_LOBBY_NAME_ARG:
+                        i++;
+                        if (i < args.Length)
+                        {
+                            DedicatedLobbyName = args[i];
+                        }
+
+                        break;
+                    case DEDICATED_MAX_PLAYERS_ARG:
+                        i++;
+                        if (i < args.Length)
+                        {
+                            DedicatedMaxPlayers = args[i];
+                        }
+
+                        break;
+                    case DEDICATED_PRIVACY_ARG:
+                        i++;
+                        if (i < args.Length)
+                        {
+                            DedicatedPrivacyMode = args[i];
+                        }
+
+                        break;
+                    case DEDICATED_PASSWORD_ARG:
+                        i++;
+                        if (i < args.Length)
+                        {
+                            DedicatedPassword = args[i];
                         }
 
                         break;

@@ -555,12 +555,7 @@ namespace YARG.Menu.Multiplayer
                 return string.Empty;
             }
 
-            string privacy = _preset.PrivacyMode switch
-            {
-                YargNetworkManager.LobbyPrivacyMode.Private => "Private",
-                YargNetworkManager.LobbyPrivacyMode.FriendsOnly => "Friends Only",
-                _ => "Public"
-            };
+            string privacy = _preset.PrivacyMode == YargNetworkManager.LobbyPrivacyMode.Private ? "Private" : "Public";
 
             string hosted = _preset.lastHostedAt > 0
                 ? BuildRelativeTimeString(_preset.lastHostedAt)
@@ -605,12 +600,7 @@ namespace YARG.Menu.Multiplayer
                 return string.Empty;
             }
 
-            return _preset.PrivacyMode switch
-            {
-                YargNetworkManager.LobbyPrivacyMode.Private => "Private",
-                YargNetworkManager.LobbyPrivacyMode.FriendsOnly => "Friends Only",
-                _ => "Public"
-            };
+            return _preset.PrivacyMode == YargNetworkManager.LobbyPrivacyMode.Private ? "Private" : "Public";
         }
 
         public bool IsPasswordProtected()

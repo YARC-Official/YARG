@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -6,6 +7,7 @@ using YARG.Core.Logging;
 using YARG.Networking;
 using YARG.Menu.Persistent;
 using YARG.Menu.Navigation;
+using YARG.Localization;
 
 namespace YARG.Menu.Multiplayer
 {
@@ -26,6 +28,7 @@ namespace YARG.Menu.Multiplayer
         private int _focusedFieldCount;
         private bool _navigationSuppressed;
         private bool _isConnecting;
+        private Dictionary<string, TextMeshProUGUI> _textLookup;
 
         private void OnEnable()
         {
@@ -50,12 +53,15 @@ namespace YARG.Menu.Multiplayer
                 hasPasswordToggle.onValueChanged.AddListener(OnPasswordToggleChanged);
             }
 
+            ApplyLocalization();
+
             // Set default IP
             if (ipAddressInput != null)
             {
+                string defaultAddress = Localize.Key("Menu", "LobbyBrowser", "DirectConnectDefaultAddress");
                 if (string.IsNullOrWhiteSpace(ipAddressInput.text))
                 {
-                    ipAddressInput.text = "127.0.0.1"; // sensible default
+                    ipAddressInput.text = defaultAddress;
                 }
 
                 ipAddressInput.onSelect.AddListener(OnIpFieldSelected);
@@ -121,7 +127,7 @@ namespace YARG.Menu.Multiplayer
             {
                 if (!string.IsNullOrEmpty(errorMessage) && DialogManager.Instance != null)
                 {
-                    DialogManager.Instance.ShowMessage("Invalid Endpoint", errorMessage);
+                    DialogManager.Instance.ShowMessage(Localize.Key("Menu", "LobbyBrowser", "InvalidEndpointTitle"), errorMessage);
                 }
                 return;
             }
@@ -140,8 +146,8 @@ namespace YARG.Menu.Multiplayer
             if (DialogManager.Instance != null && !DialogManager.Instance.IsDialogShowing)
             {
                 DialogManager.Instance.ShowMessage(
-                    "Connecting",
-                    $"Attempting to connect to {normalizedEndpoint}...\nPlease wait."
+                    Localize.Key("Menu", "LobbyBrowser", "ConnectingTitle"),
+                    Localize.KeyFormat(("Menu", "LobbyBrowser", "ConnectingDescription"), normalizedEndpoint)
                 );
             }
 
@@ -287,6 +293,88 @@ namespace YARG.Menu.Multiplayer
             {
                 connectButton.interactable = interactable;
             }
+        }
+
+        private void ApplyLocalization()
+        {
+            SetText("Title", Localize.Key("Menu", "LobbyBrowser", "DirectConnectTitle"));
+            SetText("IPAddressLabel", Localize.Key("Menu", "LobbyBrowser", "IpAddressLabel"));
+            SetText("PasswordLabel", Localize.Key("Menu", "LobbyBrowser", "PasswordLabel"));
+
+            SetPlaceholder(ipAddressInput, Localize.Key("Menu", "LobbyBrowser", "DirectConnectPlaceholder"));
+            SetPlaceholder(passwordInput, Localize.Key("Menu", "LobbyBrowser", "PasswordPlaceholder"));
+
+            if (connectButton != null)
+            {
+                var text = connectButton.GetComponentInChildren<TextMeshProUGUI>(true);
+                if (text != null)
+                {
+                    text.text = Localize.Key("Menu", "LobbyBrowser", "ConnectButton");
+                }
+            }
+
+            if (cancelButton != null)
+            {
+                var text = cancelButton.GetComponentInChildren<TextMeshProUGUI>(true);
+                if (text != null)
+                {
+                    text.text = Localize.Key("Menu", "Common", "Cancel");
+                }
+            }
+        }
+
+        private void SetText(string objectName, string value)
+        {
+            if (string.IsNullOrEmpty(objectName) || string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            var textComponent = FindText(objectName);
+            if (textComponent != null)
+            {
+                textComponent.text = value;
+            }
+        }
+
+        private void SetPlaceholder(TMP_InputField input, string value)
+        {
+            if (input == null || string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            if (input.placeholder is TextMeshProUGUI placeholder)
+            {
+                placeholder.text = value;
+            }
+        }
+
+        private TextMeshProUGUI FindText(string objectName)
+        {
+            if (string.IsNullOrEmpty(objectName))
+            {
+                return null;
+            }
+
+            _textLookup ??= BuildTextLookup();
+            return _textLookup != null && _textLookup.TryGetValue(objectName, out var text)
+                ? text
+                : null;
+        }
+
+        private Dictionary<string, TextMeshProUGUI> BuildTextLookup()
+        {
+            var lookup = new Dictionary<string, TextMeshProUGUI>(StringComparer.OrdinalIgnoreCase);
+            foreach (var text in GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (text != null && !string.IsNullOrEmpty(text.gameObject.name))
+                {
+                    lookup[text.gameObject.name] = text;
+                }
+            }
+
+            return lookup;
         }
     }
 }

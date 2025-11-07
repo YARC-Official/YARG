@@ -6,6 +6,7 @@ using YARG.Core.Logging;
 using YARG.Networking;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Localization;
 
 namespace YARG.Menu.Multiplayer
 {
@@ -162,12 +163,12 @@ namespace YARG.Menu.Multiplayer
                     DialogManager.Instance.ClearDialog();
                 }
 
-                DialogManager.Instance.ShowMessage("Connection Error", error);
+                DialogManager.Instance.ShowMessage(Localize.Key("Menu", "LobbyBrowser", "ConnectionErrorTitle"), error);
             }
 
             if (connectionStatusText != null)
             {
-                connectionStatusText.text = $"Error: {error}";
+                connectionStatusText.text = Localize.KeyFormat(("Menu", "LobbyBrowser", "StatusError"), error);
                 connectionStatusText.color = Color.red;
             }
         }
@@ -178,18 +179,18 @@ namespace YARG.Menu.Multiplayer
 
             if (YargNetworkManager.Instance.IsHosting)
             {
-                connectionStatusText.text = "Hosting Lobby";
+                connectionStatusText.text = Localize.Key("Menu", "LobbyBrowser", "StatusHosting");
                 connectionStatusText.color = Color.green;
             }
             else if (YargNetworkManager.Instance.CurrentLobby != null)
             {
                 // Check if we're connected by seeing if we have a current lobby
-                connectionStatusText.text = "Connected to Lobby";
+                connectionStatusText.text = Localize.Key("Menu", "LobbyBrowser", "StatusConnected");
                 connectionStatusText.color = Color.green;
             }
             else
             {
-                connectionStatusText.text = "Not Connected";
+                connectionStatusText.text = Localize.Key("Menu", "LobbyBrowser", "StatusNotConnected");
                 connectionStatusText.color = Color.white;
             }
         }

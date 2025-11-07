@@ -484,7 +484,7 @@ namespace YARG.Menu.Multiplayer
 
             if (_createLobbyPrivacyDropdown != null)
             {
-                int privacyIndex = Mathf.Clamp((int)(sourcePreset?.PrivacyMode ?? YargNetworkManager.LobbyPrivacyMode.Public), 0, 2);
+                int privacyIndex = Mathf.Clamp((int)(sourcePreset?.PrivacyMode ?? YargNetworkManager.LobbyPrivacyMode.Public), 0, 1);
                 _createLobbyPrivacyDropdown.value = privacyIndex;
             }
 
@@ -598,13 +598,7 @@ namespace YARG.Menu.Multiplayer
 
             if (_privacyText != null)
             {
-                string privacyMode = lobby.privacyMode switch
-                {
-                    YargNetworkManager.LobbyPrivacyMode.Public => "Public",
-                    YargNetworkManager.LobbyPrivacyMode.Private => "Private",
-                    YargNetworkManager.LobbyPrivacyMode.FriendsOnly => "Friends Only",
-                    _ => "Unknown"
-                };
+                string privacyMode = lobby.privacyMode == YargNetworkManager.LobbyPrivacyMode.Private ? "Private" : "Public";
                 _privacyText.text = ZString.Format("Privacy: {0}", privacyMode);
             }
 
@@ -1122,7 +1116,7 @@ namespace YARG.Menu.Multiplayer
             if (_hostedLobbyPrivacyDropdown != null)
             {
                 EnsurePrivacyDropdownOptions(_hostedLobbyPrivacyDropdown);
-                int privacyIndex = Mathf.Clamp((int)(preset?.PrivacyMode ?? YargNetworkManager.LobbyPrivacyMode.Public), 0, 2);
+                int privacyIndex = Mathf.Clamp((int)(preset?.PrivacyMode ?? YargNetworkManager.LobbyPrivacyMode.Public), 0, 1);
                 _hostedLobbyPrivacyDropdown.value = privacyIndex;
                 _hostedLobbyPrivacyDropdown.RefreshShownValue();
             }
@@ -1222,7 +1216,7 @@ namespace YARG.Menu.Multiplayer
             string name = _hostedLobbyNameInput != null ? _hostedLobbyNameInput.text?.Trim() ?? string.Empty : _activePreset.lobbyName;
             int players = GetSelectedMaxPlayers(_hostedLobbyMaxPlayersDropdown);
             var privacy = _hostedLobbyPrivacyDropdown != null
-                ? (YargNetworkManager.LobbyPrivacyMode)Mathf.Clamp(_hostedLobbyPrivacyDropdown.value, 0, 2)
+                ? (YargNetworkManager.LobbyPrivacyMode)Mathf.Clamp(_hostedLobbyPrivacyDropdown.value, 0, 1)
                 : _activePreset.PrivacyMode;
             string password = _hostedLobbyPasswordInput != null ? _hostedLobbyPasswordInput.text ?? string.Empty : _activePreset.password;
 
@@ -1252,7 +1246,7 @@ namespace YARG.Menu.Multiplayer
             if (_suppressHostedFieldCallbacks)
                 return;
 
-            var privacy = (YargNetworkManager.LobbyPrivacyMode)Mathf.Clamp(optionIndex, 0, 2);
+            var privacy = (YargNetworkManager.LobbyPrivacyMode)Mathf.Clamp(optionIndex, 0, 1);
             string password = _hostedLobbyPasswordInput != null ? _hostedLobbyPasswordInput.text : string.Empty;
 
             CommitHostedPreset(privacyMode: privacy, password: password);
@@ -2028,8 +2022,7 @@ namespace YARG.Menu.Multiplayer
                 dropdown.AddOptions(new List<string>
                 {
                     "Public",
-                    "Private (Password)",
-                    "Friends Only"
+                    "Private (Password)"
                 });
             }
         }
@@ -2097,7 +2090,7 @@ namespace YARG.Menu.Multiplayer
             if (_createLobbyPrivacyDropdown == null)
                 return YargNetworkManager.LobbyPrivacyMode.Public;
 
-            return (YargNetworkManager.LobbyPrivacyMode)Mathf.Clamp(_createLobbyPrivacyDropdown.value, 0, 2);
+            return (YargNetworkManager.LobbyPrivacyMode)Mathf.Clamp(_createLobbyPrivacyDropdown.value, 0, 1);
         }
 
         #endregion

@@ -694,8 +694,6 @@ MonoBehaviour:
       m_Image: {fileID: 21300000, guid: 48325f0fcb67ed9498cc50f6ed0a2915, type: 3}
     - m_Text: Private
       m_Image: {fileID: 21300000, guid: e8f6adeede6e2cb4c92d217cf7f9b07c, type: 3}
-    - m_Text: Friends Only
-      m_Image: {fileID: 21300000, guid: 1dbfab1cb12a01340a8283fbf381deaa, type: 3}
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []

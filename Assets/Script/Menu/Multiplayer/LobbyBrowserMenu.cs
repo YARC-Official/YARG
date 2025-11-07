@@ -12,6 +12,7 @@ using YARG.Menu.Persistent;
 using YARG.Networking;
 using YARG.Networking.Bookmarks;
 using Cysharp.Threading.Tasks;
+using YARG.Localization;
 
 namespace YARG.Menu.Multiplayer
 {
@@ -369,25 +370,25 @@ namespace YARG.Menu.Multiplayer
                 discoveredSection.Add(new DiscoveredLobbyViewType(lobby, this, _favorites));
             }
 
-            viewTypes.Add(new LobbyCategoryViewType("CREATE A LOBBY"));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionCreateLobby")));
 
-            viewTypes.Add(new LobbyCategoryViewType("ADD NEW CONNECTION"));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionDirectConnect")));
 
-            viewTypes.Add(new LobbyCategoryViewType("★ FAVORITES"));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionFavorites")));
             if (favoritesSection.Count > 0) viewTypes.AddRange(favoritesSection);
-            else viewTypes.Add(new LobbyEmptyViewType("No favorites yet. Press Yellow on a lobby to save it."));
+            else viewTypes.Add(new LobbyEmptyViewType(Localize.Key("Menu", "LobbyBrowser", "EmptyFavorites")));
 
-            viewTypes.Add(new LobbyCategoryViewType("MY LOBBIES"));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionMyLobbies")));
             if (myLobbiesSection.Count > 0) viewTypes.AddRange(myLobbiesSection);
-            else viewTypes.Add(new LobbyEmptyViewType("Create a lobby to keep reusable presets here."));
+            else viewTypes.Add(new LobbyEmptyViewType(Localize.Key("Menu", "LobbyBrowser", "EmptyMyLobbies")));
 
-            viewTypes.Add(new LobbyCategoryViewType("RECENT CONNECTIONS"));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionRecents")));
             if (recentsSection.Count > 0) viewTypes.AddRange(recentsSection);
-            else viewTypes.Add(new LobbyEmptyViewType("Recently joined servers will show up here."));
+            else viewTypes.Add(new LobbyEmptyViewType(Localize.Key("Menu", "LobbyBrowser", "EmptyRecents")));
 
-            viewTypes.Add(new LobbyCategoryViewType("DISCOVERED LOBBIES"));
+            viewTypes.Add(new LobbyCategoryViewType(Localize.Key("Menu", "LobbyBrowser", "SectionDiscovered")));
             if (discoveredSection.Count > 0) viewTypes.AddRange(discoveredSection);
-            else viewTypes.Add(new LobbyEmptyViewType("No lobbies found. Press Blue to refresh or create one yourself."));
+            else viewTypes.Add(new LobbyEmptyViewType(Localize.Key("Menu", "LobbyBrowser", "EmptyDiscovered")));
 
             RebuildSectionCache(viewTypes);
             UpdateStatusText(favoritesSection.Count, myLobbiesSection.Count, recentsSection.Count, discoveredSection.Count);
@@ -496,7 +497,7 @@ namespace YARG.Menu.Multiplayer
 
         public void RefreshLobbies()
         {
-            if (_statusText != null) _statusText.text = "Searching for lobbies...";
+            if (_statusText != null) _statusText.text = Localize.Key("Menu", "LobbyBrowser", "SearchingForLobbies");
             YargNetworkManager.Instance?.RefreshLobbyList();
         }
 
@@ -505,12 +506,20 @@ namespace YARG.Menu.Multiplayer
             _currentLobbies = lobbies;
             if (_statusText != null)
             {
-                if (lobbies.Count == 0) _statusText.text = "No lobbies found";
+                if (lobbies.Count == 0) _statusText.text = Localize.Key("Menu", "LobbyBrowser", "NoLobbiesFound");
                 else
                 {
                     int favoriteCount = lobbies.Count(l => _favorites.IsFavorited(l.ipAddress, l.port));
-                    if (favoriteCount > 0) _statusText.text = $"{lobbies.Count} {(lobbies.Count == 1 ? "lobby" : "lobbies")} found ({favoriteCount} favorite{(favoriteCount == 1 ? "" : "s")})";
-                    else _statusText.text = $"{lobbies.Count} {(lobbies.Count == 1 ? "lobby" : "lobbies")} found";
+                    string lobbyWord = Localize.Key("Menu", "LobbyBrowser", lobbies.Count == 1 ? "Lobby" : "Lobbies");
+                    string status = Localize.KeyFormat(("Menu", "LobbyBrowser", "LobbiesFound"), lobbies.Count, lobbyWord);
+                    if (favoriteCount > 0)
+                    {
+                        string favoriteWord = Localize.Key("Menu", "LobbyBrowser", favoriteCount == 1 ? "Favorite" : "Favorites");
+                        string suffix = Localize.KeyFormat(("Menu", "LobbyBrowser", "FavoritesSuffix"), favoriteCount, favoriteWord);
+                        status = string.Concat(status, " (", suffix, ")");
+                    }
+
+                    _statusText.text = status;
                 }
             }
 
