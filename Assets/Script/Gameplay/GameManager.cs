@@ -23,6 +23,8 @@ using YARG.Player;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
+using YARG.Venue.Characters;
+using YARG.Venue.VenueCamera;
 
 namespace YARG.Gameplay
 {
@@ -70,8 +72,10 @@ namespace YARG.Gameplay
         /// This is not initialized on awake, but rather, in
         /// <see cref="GameplayBehaviour.OnChartLoaded"/>.
         /// </remarks>
-        public BeatEventHandler BeatEventHandler { get; private set; }
-        public CrowdEventHandler CrowdEventHandler { get; private set; }
+        public BeatEventHandler BeatEventHandler { get;    private set; }
+        public CrowdEventHandler CrowdEventHandler  { get; private set; }
+        public CameraManager     VenueCameraManager { get; private set; }
+        public CharacterManager  VenueCharacterManager { get; private set; }
 
         public PracticeManager  PracticeManager  { get; private set; }
         public BackgroundManager BackgroundManager { get; private set; }
@@ -260,7 +264,7 @@ namespace YARG.Gameplay
 
                 totalScore += player.Score;
                 totalScore += player.BandBonusScore;
-                totalStars += player.Stars;               
+                totalStars += player.Stars;
             }
 
             if (GlobalVariables.VerboseReplays)
@@ -287,6 +291,8 @@ namespace YARG.Gameplay
 
             BeatEventHandler.Reset();
             BackgroundManager.SetTime(_songRunner.SongTime + Song.SongOffsetSeconds);
+            VenueCameraManager?.ResetTime(time);
+            VenueCharacterManager?.ResetTime(time);
         }
 
         public void SetSongSpeed(float speed)
@@ -562,6 +568,16 @@ namespace YARG.Gameplay
         {
             GlobalVariables.State = PersistentState.Default;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+        }
+
+        public void SetVenueCameraManager(CameraManager cameraManager)
+        {
+            VenueCameraManager = cameraManager;
+        }
+
+        public void SetVenueCharacterManager(CharacterManager characterManager)
+        {
+            VenueCharacterManager = characterManager;
         }
 
         public void SetEditHUD(bool on)

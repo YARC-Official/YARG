@@ -6,6 +6,7 @@ using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using YARG.Gameplay.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -120,7 +121,7 @@ namespace YARG.Gameplay.Visuals
             _renderCamera.orthographicSize = Math.Max(25, (maxWorld - minWorld) / 2);
         }
 
-        private static float CalculateScale(int count)
+        public static float CalculateScale(int count)
         {
             // This equation calculates a good scale for all of the tracks.
             // It was made with experimentation; there's probably a "real" formula for this.
@@ -257,6 +258,11 @@ namespace YARG.Gameplay.Visuals
             for (int i = 0; i < _cameras.Count; ++i)
             {
                 var camera = _cameras[i];
+
+                float multiplayerXOffset = GetMultiplayerXOffset(i, _cameras.Count,
+                    -1f * SettingsManager.Settings.HighwayTiltMultiplier.Value);
+                OffsetLocalPosition(camera.transform, multiplayerXOffset);
+
                 _camViewMatrices[i] = camera.worldToCameraMatrix;
                 _camInvViewMatrices[i] = camera.cameraToWorldMatrix;
             }
@@ -296,7 +302,8 @@ namespace YARG.Gameplay.Visuals
             // Divide screen into N equal regions: [-1, 1] => 2.0 width
             float laneWidth = 2.0f / highwayCount; // NDC horizontal span is [-1, 1] → 2.0
             float centerX = -1.0f + laneWidth * (index + 0.5f);
-            float offsetX = centerX;
+            float offsetX = centerX + GetMultiplayerXOffset(index, highwayCount,
+                -1f * SettingsManager.Settings.HighwayTiltMultiplier.Value / highwayCount);
             float offsetY = -1.0f + highwayScale; // Offset down if scaled vertically
 
             // This matrix modifies the output of clip space before perspective divide
@@ -360,6 +367,27 @@ namespace YARG.Gameplay.Visuals
 
                 CommandBufferPool.Release(cmd);
             }
+        }
+
+        // Offset is defined from -1f to 1f
+        public static float GetMultiplayerXOffset(int playerIndex, int totalPlayers, float magnitude)
+        {
+            // No need to offset if only one or fewer players
+            if (totalPlayers < 2)
+            {
+                return 0f;
+            }
+
+            // Take segments = (n - 1); e.g., if 3 players, have 3 highways with 2 separations
+            float segmentSize = 2f / (totalPlayers - 1);
+
+            // Offset so that the second player out three players is centered
+            return magnitude * (-1f + playerIndex * segmentSize);
+        }
+
+        public static void OffsetLocalPosition(Transform transform, float xOffset)
+        {
+            transform.localPosition = new Vector3(xOffset, transform.localPosition.y, transform.localPosition.z);
         }
     }
 }

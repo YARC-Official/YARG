@@ -1182,8 +1182,8 @@ MonoBehaviour:
   _lightEffect: {fileID: 1811260302183972900}
   _grooveSunburstColor: {r: 0, g: 0.8509804, b: 1, a: 1}
   _grooveLightColor: {r: 0, g: 0.5372549, b: 1, a: 1}
-  _starpowerSunburstColor: {r: 1, g: 0.9882353, b: 0.5647059, a: 1}
-  _starpowerLightColor: {r: 1, g: 0.8745098, b: 0, a: 1}
+  _starpowerSunburstColor: {r: 1, g: 0.84067374, b: 0.4669811, a: 1}
+  _starpowerLightColor: {r: 1, g: 0.69870925, b: 0, a: 1}
 --- !u!1 &4315058809814086876
 GameObject:
   m_ObjectHideFlags: 0

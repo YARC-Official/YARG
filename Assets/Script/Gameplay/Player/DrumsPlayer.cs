@@ -84,7 +84,7 @@ namespace YARG.Gameplay.Player
                 EngineParams = (DrumsEngineParameters) Player.EngineParameterOverride;
             }
 
-            var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot, Player.Profile.GameMode is GameMode.EliteDrums);
             EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
@@ -104,6 +104,7 @@ namespace YARG.Gameplay.Player
             engine.OnSoloEnd += OnSoloEnd;
 
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
+            engine.OnStarPowerPhraseMissed += OnStarPowerPhraseMissed;
             engine.OnStarPowerStatus += OnStarPowerStatus;
 
             engine.OnCountdownChange += OnCountdownChange;
@@ -308,6 +309,14 @@ namespace YARG.Gameplay.Player
         {
             base.OnStarPowerPhraseHit();
 
+            foreach (var note in NotePool.AllSpawned)
+            {
+                (note as DrumsNoteElement)?.OnStarPowerUpdated();
+            }
+        }
+
+        protected override void OnStarPowerPhraseMissed()
+        {
             foreach (var note in NotePool.AllSpawned)
             {
                 (note as DrumsNoteElement)?.OnStarPowerUpdated();

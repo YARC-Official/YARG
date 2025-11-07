@@ -500,6 +500,8 @@ MonoBehaviour:
     type: 3}
   _difficultyRedPrefab: {fileID: 3092605043918072569, guid: 71c91d33532d65b41b618d77343257ce,
     type: 3}
+  _difficultyItemSmallRedPrefab: {fileID: 3092605043918072569, guid: 71c91d33532d65b41b618d77343257ce,
+    type: 3}
   _modifierItemPrefab: {fileID: 3419815060514877507, guid: 6c928df38839ed24eaa659f76c62da6b,
     type: 3}
 --- !u!1 &2177612344681018170

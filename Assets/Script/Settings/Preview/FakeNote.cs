@@ -84,10 +84,14 @@ namespace YARG.Settings.Preview
         {
             var cameraPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
             var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
+            var highwayPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.HighwayPresets);
 
             // Update color
             var color = FakeTrackPlayer.CurrentGameModeInfo.NoteColorProvider(colorProfile, NoteRef);
             _currentNoteGroup.SetColorWithEmission(color, color);
+
+            // Update height
+            transform.localScale = new Vector3(1f, highwayPreset.NoteHeight, 1f);
         }
 
         protected void Update()

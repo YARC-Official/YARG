@@ -241,6 +241,11 @@ namespace YARG.Player
                 player.Bindings.OnDeviceAdded(device);
             }
 
+            if (!SettingsManager.Settings.AutoCreateProfiles.Value)
+            {
+                return;
+            }
+
             _ = TryCreateProfile(device);
         }
 
@@ -255,7 +260,7 @@ namespace YARG.Player
         private static async UniTask<bool> TryCreateProfile(InputDevice device)
         {
             // Some devices don't appear in their final form immediately, so we have to wait a bit
-            await UniTask.Delay(500, true);
+            await UniTask.Delay(1000, true);
 
             if (IsDeviceTaken(device))
             {

@@ -231,7 +231,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ModifierIcons_6
+      name: NoStarPowerOverlap
       rect:
         serializedVersion: 2
         x: 1024
@@ -460,8 +460,8 @@ TextureImporter:
       InfiniteFrontEnd: -1660463282
       ModifierIcons_4: 1692867385
       ModifierIcons_5: -1436843964
-      ModifierIcons_6: 1497401919
       NoKicks: -1200274759
+      NoStarPowerOverlap: 1497401919
       NoVocalPercussion: 1841026791
       RangeCompress: -1355680061
       SoloTaps: -1638818548

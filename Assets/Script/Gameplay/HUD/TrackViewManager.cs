@@ -73,14 +73,5 @@ namespace YARG.Gameplay.HUD
             _horizontalLayoutGroup.padding.top = (int)(rectRect.height * (1.0f - _highwayCameraRendering.Scale));
             _horizontalLayoutGroup.enabled = true;
         }
-
-        public void SetAllHUDPositions()
-        {
-            // The positions of the track view have probably not updated yet at this point
-            Canvas.ForceUpdateCanvases();
-
-            foreach (var view in _trackViews)
-                view.UpdateHUDPosition();
-        }
     }
 }

@@ -658,6 +658,9 @@ namespace YARG.Gameplay
             {
                 using var text = ZString.CreateStringBuilder(true);
 
+                text.AppendFormat("Target Venue FPS: {0:00}\n", VenueCameraRenderer.TargetFPS);
+                text.AppendFormat("Actual Venue FPS: {0:00}\n", VenueCameraRenderer.ActualFPS);
+
                 text.AppendFormat("Lighting index: {0:000}/{1:000}\n",
                     MasterLightingGameplayMonitor.LightingIndex,
                     MasterLightingGameplayMonitor.Venue.Lighting.Count

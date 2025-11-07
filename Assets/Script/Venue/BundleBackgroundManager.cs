@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using UnityEngine;
 using YARG.Gameplay;
+using YARG.Venue.VenueCamera;
 
 #if UNITY_EDITOR
 using System.Linq;
@@ -37,7 +38,13 @@ namespace YARG.Venue
 
         public void SetupVenueCamera(GameObject bgInstance)
         {
-            mainCamera.gameObject.AddComponent<VenueCameraManager>();
+            // If venue has a CameraManager, don't add VenueCameraRenderer, it will be taken care of
+            if (bgInstance.GetComponentInChildren<CameraManager>() == null)
+            {
+                mainCamera.gameObject.AddComponent<VenueCameraRenderer>();
+            }
+
+            // TODO: This will not actually work with multi-camera venues
             var fsrManager = mainCamera.GetComponent<FSRCameraManager>();
             if (fsrManager != null)
             {

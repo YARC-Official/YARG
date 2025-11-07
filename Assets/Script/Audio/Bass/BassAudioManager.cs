@@ -136,6 +136,15 @@ namespace YARG.Audio.BASS
             int deviceCount = Bass.DeviceCount;
             YargLogger.LogFormatInfo("Devices found: {0}", deviceCount);
 
+#if UNITY_EDITOR
+            // Free BASS if it's already initialized (happens when stopping play mode in editor)
+            if (Bass.CurrentDevice != -1)
+            {
+                YargLogger.LogInfo("BASS already initialized, cleaning up first");
+                Bass.PluginFree(0);
+                Bass.Free();
+            }
+#endif
             if (!Bass.Init(-1, 44100, DeviceInitFlags.Default | DeviceInitFlags.Latency, IntPtr.Zero))
             {
                 var error = Bass.LastError;
