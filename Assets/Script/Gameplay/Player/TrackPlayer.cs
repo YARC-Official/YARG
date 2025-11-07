@@ -923,7 +923,7 @@ namespace YARG.Gameplay.Player
             for (int i = 0; i < countdowns.Count; i++)
             {
                 var countdown = countdowns[i];
-                if (songTime >= countdown.Time && songTime < countdown.DeactivateTime)
+                if (songTime >= countdown.Time && songTime < countdown.TimeEnd)
                 {
                     OnCountdownChange(countdown.TimeLength, countdown.TimeEnd);
                     break;
