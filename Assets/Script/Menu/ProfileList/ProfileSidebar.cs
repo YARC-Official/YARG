@@ -366,10 +366,16 @@ namespace YARG.Menu.ProfileList
         public void ChangeSplitProTomsAndCymbals()
         {
             _profile.SplitProTomsAndCymbals = _splitProTomsAndCymbals.isOn;
-            if (_profile.GameMode == GameMode.FourLaneDrums)
+
+            switch (_profile.GameMode)
             {
-                _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
-                _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_CRASH_AND_RIDE).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+                case GameMode.FourLaneDrums:
+                    _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+                    _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_CRASH_AND_RIDE).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+                    break;
+                case GameMode.EliteDrums:
+                    _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_CRASH_AND_RIDE).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+                    break;
             }
         }
 

@@ -58,6 +58,14 @@ namespace YARG.Helpers.Extensions
                     ProfileSettingStrings.LEFTY_FLIP,
                     ProfileSettingStrings.RANGE_DISABLE,
                 },
+                GameMode.EliteDrums => new List<string>
+                {
+                    ProfileSettingStrings.LEFTY_FLIP,
+                    ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS,
+                    ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE,
+                    ProfileSettingStrings.USE_CYMBAL_MODELS,
+                    ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT,
+                },
                 GameMode.FourLaneDrums => new List<string>
                 {
                     ProfileSettingStrings.LEFTY_FLIP,
@@ -104,6 +112,10 @@ namespace YARG.Helpers.Extensions
 
             Dictionary<string, (string dependencyName, Func<object, bool> dependencyCondition)> conditionalGameModeOptions = gameMode switch
             {
+                GameMode.EliteDrums => new()
+                {
+                    { ProfileSettingStrings.SWAP_CRASH_AND_RIDE, (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, (object value)=>(bool)value) }
+                },
                 GameMode.FourLaneDrums => new()
                 {
                     { ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT, (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, (object value)=>(bool)value) },

@@ -442,7 +442,7 @@ namespace YARG.Gameplay.Player
         private bool ShouldSwapSnareAndHiHat()
         {
             if (
-                (Player.Profile.GameMode is GameMode.FiveLaneDrums) ||
+                (Player.Profile.CurrentInstrument is Instrument.FiveLaneDrums) ||
                 (Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals)
             )
             {
