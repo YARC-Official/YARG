@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Sustain
-  m_Shader: {fileID: -6465566751694194690, guid: 03960ab34a3039445b3bfa8743305b5f,
+  m_Shader: {fileID: -6465566751694194690, guid: 3edcc544976f240fcb743fd3e09893f8,
     type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
@@ -45,8 +45,24 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Fade_Texture:
+        m_Texture: {fileID: 2800000, guid: 3a7b5e0f1167007468ed04ef880893ce, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _GlowTexture:
         m_Texture: {fileID: 2800000, guid: 7d9c2c4e463b9924eab5e37457fd6f51, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer_2_Texture:
+        m_Texture: {fileID: 2800000, guid: 98b8b19da466ee346b67113ba7cd79e9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer_3_Texture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer_4_Texture:
+        m_Texture: {fileID: 2800000, guid: e349c5c40c8fa2f4d97e8c7fcfa96c47, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -69,8 +85,28 @@ Material:
         m_Texture: {fileID: 2800000, guid: 342e33d746f923d49819aa62c4aa3534, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Solo_Texture:
+        m_Texture: {fileID: 2800000, guid: a28aa2a5fa147a145bb2e3df0d9b2f49, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Starpower_Texture:
+        m_Texture: {fileID: 2800000, guid: 539dd2580c8d17e43a43c760f489fd72, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SustainWave_92ec6e0a65ae46b0b94f3e2e02ce3580_MainTex_1492724380:
+        m_Texture: {fileID: 2800000, guid: fecf9fecf4644b643a35395dfd7635cf, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SustainWave_ff1ec8740cbc49fe9f832cf077fc4071_MainTex_1492724380:
+        m_Texture: {fileID: 2800000, guid: 342e33d746f923d49819aa62c4aa3534, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Tex1:
+        m_Texture: {fileID: 2800000, guid: fecf9fecf4644b643a35395dfd7635cf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ThinTexture:
@@ -107,13 +143,28 @@ Material:
     - _DstBlendAlpha: 10
     - _EmissionStrength: 1
     - _EnvironmentReflections: 1
+    - _Fade_Offset: 0
     - _ForwardOffset: 23.210754
+    - _Freq: 8
     - _Frequency: 5
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _GlowAmount: 0
+    - _IsActive: 1
+    - _Layer_2_Parallax: 0.6
+    - _Layer_2_Wavy_Amount: 0.01
+    - _Layer_3_Parallax: 1
+    - _Layer_3_Wavy_Amount: 0
+    - _Layer_4_Parallax: 1
+    - _Layer_4_Wavy_Amount: 0.01
+    - _LineFreq: 8
+    - _LineSpeed: 0.25
+    - _MaxAmp: 0.8
+    - _Max_LineAmp: 0.8
     - _Metallic: 0
+    - _MinAmp: 0.1
+    - _MinLineAmp: 0.1
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _PrimaryAmplitude: 0.18
@@ -121,22 +172,40 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: -24
     - _ReceiveShadows: 1
+    - _Scroll: 0
     - _SecondaryAmplitude: 0.47380185
     - _SecondaryFrequency: 10
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
+    - _Solo_Offset: 0
+    - _Solo_State: 1
     - _SpecularHighlights: 1
+    - _Speed: 0.25
+    - _SqueezeFreq: 3
+    - _SqueezeMult: 0.6666667
     - _SrcBlend: 5
     - _SrcBlendAlpha: 1
+    - _Starpower_Emission_Amount: 4
+    - _Starpower_Offset: 0
+    - _Starpower_State: 0
     - _Surface: 1
     - _TertiaryAmplitude: 0.07968688
+    - _Waviness: 1
+    - _Whammy: 0
+    - _WhammyAmount: 0
     - _WorkflowMode: 1
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 0.011764707, b: 0, a: 1}
     - _EmissionColor: {r: 1, g: 0, b: 0, a: 1}
+    - _Layer_1_Color: {r: 0.058823504, g: 0.058823504, b: 0.058823504, a: 1}
+    - _Layer_2_Color: {r: 1, g: 1, b: 1, a: 0.1490196}
+    - _Layer_3_Color: {r: 1, g: 1, b: 1, a: 0}
+    - _Layer_4_Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Solo_Color: {r: 0, g: 0.7058824, b: 1, a: 0.1019608}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _Starpower_Color: {r: 1, g: 0.7533744, b: 0, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &3472690068137638158
 MonoBehaviour:
