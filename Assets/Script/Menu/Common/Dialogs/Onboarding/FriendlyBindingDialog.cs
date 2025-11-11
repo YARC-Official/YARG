@@ -124,6 +124,7 @@ namespace YARG.Menu.Dialogs
         protected virtual async UniTask<bool> BindingLoop(GameMode mode)
         {
             _state = State.Waiting;
+            var bindingHelper = InputControlBindingHelper.GetOrCreateInstance();
 
             foreach (var bind in _bindingCollection)
             {
@@ -154,7 +155,7 @@ namespace YARG.Menu.Dialogs
                     _bindingTokenSource = new CancellationTokenSource();
                     highlight.gameObject.SetActive(true);
                     possibleControls =
-                        await InputControlBindingHelper.Instance.GetControl(_player, _bindingTokenSource.Token, bind);
+                        await bindingHelper.GetControl(_player, _bindingTokenSource.Token, bind);
                 }
                 catch (OperationCanceledException)
                 {
