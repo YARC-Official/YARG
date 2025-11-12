@@ -68,6 +68,9 @@ namespace YARG.Settings
                 nameof(Settings.WrapAroundNavigation),
                 nameof(Settings.DiscordRichPresence),
                 nameof(Settings.AmIAwesome),
+
+                new HeaderMetadata("Networking"),
+                nameof(Settings.NetworkPort),
             },
             new SongManagerTab("SongManager", icon: "Songs")
             {

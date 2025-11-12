@@ -23,7 +23,7 @@ namespace YARG.Menu.Multiplayer
     /// </summary>
     public class LobbyBrowserSidebar : MonoBehaviour
     {
-        private const int DefaultDirectConnectPort = NetworkTransportDefaults.DefaultUdpPort;
+        private static int DefaultDirectConnectPort => NetworkTransportDefaults.DefaultUdpPort;
         private static int GetSuggestedPort()
         {
             return YargNetworkManager.Instance != null

@@ -17,12 +17,14 @@ using YARG.Menu;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
+using YARG.Networking;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
+using kcp2k;
 using static FidelityFX.FSR3.Fsr3Upscaler;
 
 namespace YARG.Settings
@@ -111,6 +113,12 @@ namespace YARG.Settings
                 };
 
             public ToggleSetting AmIAwesome { get; } = new(false);
+
+            #endregion
+
+            #region Networking
+
+            public IntSetting NetworkPort { get; } = new(7777, 1024, 65535, NetworkPortCallback);
 
             #endregion
 
@@ -484,6 +492,19 @@ namespace YARG.Settings
             #endregion
 
             #region Callbacks
+
+            private static void NetworkPortCallback(int value)
+            {
+                if (YargNetworkManager.Instance == null)
+                {
+                    return;
+                }
+
+                if (YargNetworkManager.Instance.TryGetComponent<KcpTransport>(out var kcpTransport))
+                {
+                    kcpTransport.Port = (ushort) value;
+                }
+            }
 
             private static void SetLogLevelCallback(LogLevel level)
             {

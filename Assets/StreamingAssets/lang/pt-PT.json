@@ -599,7 +599,10 @@
             "AdvancedDMXChannels": "Advanced DMX Channels",
             "StatusBar": "Status Bar",
             "AdvancedDMXSettings": "Advanced sACN and DMX settings",
-            "Experimental": "Experimental"
+            "Experimental": "Experimental",
+            "HUD": "HUD",
+            "Gameplay": "Gameplay",
+            "Networking": "Networking"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
@@ -1075,6 +1078,10 @@
             "WrapAroundNavigation": {
                 "Name": "Wrap-Around Navigation",
                 "Description": "Allow menus to jump to the bottom of a list when scrolling past the top, or jump to the top of a list when scrolling past the bottom."
+            },
+            "NetworkPort": {
+                "Name": "Network Port",
+                "Description": "Default UDP port used when hosting and connecting to lobbies. Update this if you forward a different port on your router."
             },
             "ReduceNoteSpeedByDifficulty": {
                 "Name": "Reduce Note Speed by Difficulty",
