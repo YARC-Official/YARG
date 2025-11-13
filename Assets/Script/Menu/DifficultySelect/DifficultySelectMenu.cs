@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Mirror;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -74,6 +75,8 @@ namespace YARG.Menu.DifficultySelect
         private Transform _songQueueContent;
         [SerializeField]
         private GameObject _songQueueEntryPrefab;
+
+        private bool _pendingGameplayStart;
 
         [Space]
         [SerializeField]
@@ -1380,16 +1383,27 @@ namespace YARG.Menu.DifficultySelect
             // Only check on host
             if (!Networking.YargNetworkManager.Instance.LocalUserIsHost())
             {
+                _pendingGameplayStart = false;
                 return;
             }
             
             // Check if all players are ready
             if (Networking.YargNetworkManager.Instance.AreAllPlayersReady())
             {
+                if (_pendingGameplayStart)
+                {
+                    return;
+                }
+
                 Debug.Log("[DifficultySelect] All players ready - auto-starting gameplay");
+                _pendingGameplayStart = true;
                 
                 // Small delay to show "All players ready!" message
                 StartCoroutine(AutoStartGameplayAfterDelay());
+            }
+            else
+            {
+                _pendingGameplayStart = false;
             }
         }
         
@@ -1398,7 +1412,22 @@ namespace YARG.Menu.DifficultySelect
             yield return new WaitForSeconds(1.0f);
             
             // Start gameplay for all players
-            Networking.YargNetworkManager.Instance.StartMultiplayerGameplay();
+            var manager = Networking.YargNetworkManager.Instance;
+            if (manager == null)
+            {
+                _pendingGameplayStart = false;
+                yield break;
+            }
+
+            if (NetworkServer.active)
+            {
+                manager.StartMultiplayerGameplay();
+            }
+            else if (!RequestServerStartGameplay())
+            {
+                Debug.LogWarning("[DifficultySelect] Failed to relay gameplay start request to server");
+                _pendingGameplayStart = false;
+            }
         }
         
         private System.Collections.IEnumerator DelayedUpdateMultiplayerPlayerList()
@@ -1850,6 +1879,28 @@ namespace YARG.Menu.DifficultySelect
             }
             
             return null;
+        }
+
+        private bool RequestServerStartGameplay()
+        {
+            var manager = Networking.YargNetworkManager.Instance;
+            if (manager == null)
+            {
+                return false;
+            }
+
+            foreach (var player in manager.GetAllPlayers())
+            {
+                if (player != null && player.IsLocalUser && player.IsHost)
+                {
+                    Debug.Log("[DifficultySelect] Requesting dedicated server to start gameplay");
+                    player.CmdRequestStartGameplay();
+                    return true;
+                }
+            }
+
+            Debug.LogWarning("[DifficultySelect] No local host NetworkPlayerData found to issue start request");
+            return false;
         }
     }
 }

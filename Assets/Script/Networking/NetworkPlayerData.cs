@@ -1011,6 +1011,40 @@ namespace YARG.Networking
         }
 
         [Command]
+        public void CmdRequestStartGameplay()
+        {
+            if (!NetworkServer.active || YargNetworkManager.Instance == null)
+            {
+                return;
+            }
+
+            if (!isHost)
+            {
+                Debug.LogWarning($"[NetworkPlayerData] {playerName} attempted to start gameplay without host privileges.");
+                return;
+            }
+
+            YargNetworkManager.Instance.StartMultiplayerGameplay();
+        }
+
+        [Command]
+        public void CmdRequestAdvanceAfterScore()
+        {
+            if (!NetworkServer.active || YargNetworkManager.Instance == null)
+            {
+                return;
+            }
+
+            if (!isHost)
+            {
+                Debug.LogWarning($"[NetworkPlayerData] {playerName} attempted to advance score screen without host privileges.");
+                return;
+            }
+
+            YargNetworkManager.Instance.AdvanceAfterScoreScreen();
+        }
+
+        [Command]
         public void CmdRequestKickPlayer(uint targetNetId)
         {
             if (!NetworkServer.active || YargNetworkManager.Instance == null)

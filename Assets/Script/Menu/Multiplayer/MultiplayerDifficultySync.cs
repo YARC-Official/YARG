@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Mirror;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
@@ -173,12 +174,20 @@ namespace YARG.Menu.Multiplayer
             if (_isHost)
             {
                 // Host checks if all network players are ready
-                if (YargNetworkManager.Instance.AreAllPlayersReady())
+                var manager = YargNetworkManager.Instance;
+                if (manager != null && manager.AreAllPlayersReady())
                 {
                     Debug.Log("[MultiplayerDifficultySync] All players ready - starting gameplay");
                     // StartMultiplayerGameplay sends TargetStartGameplay RPC to ALL clients (including host)
-                    // So we DON'T load the scene locally - let the RPC handler do it for everyone
-                    YargNetworkManager.Instance.StartMultiplayerGameplay();
+                    // In listen-server scenarios the local host can call it directly; otherwise request the dedicated server
+                    if (NetworkServer.active)
+                    {
+                        manager.StartMultiplayerGameplay();
+                    }
+                    else if (!RequestServerStartGameplay())
+                    {
+                        Debug.LogWarning("[MultiplayerDifficultySync] Failed to relay start request to server - waiting");
+                    }
                 }
                 else
                 {
@@ -265,6 +274,38 @@ namespace YARG.Menu.Multiplayer
             }
 
             return null;
+        }
+
+        private NetworkPlayerData FindLocalHostNetworkData()
+        {
+            if (YargNetworkManager.Instance == null)
+            {
+                return null;
+            }
+
+            foreach (var playerData in YargNetworkManager.Instance.GetAllPlayers())
+            {
+                if (playerData != null && playerData.IsLocalUser && playerData.IsHost)
+                {
+                    return playerData;
+                }
+            }
+
+            return null;
+        }
+
+        private bool RequestServerStartGameplay()
+        {
+            var localHostData = FindLocalHostNetworkData();
+            if (localHostData == null)
+            {
+                Debug.LogWarning("[MultiplayerDifficultySync] Unable to request gameplay start - missing local host data");
+                return false;
+            }
+
+            Debug.Log("[MultiplayerDifficultySync] Requesting dedicated server to start gameplay");
+            localHostData.CmdRequestStartGameplay();
+            return true;
         }
     }
 }

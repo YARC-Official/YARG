@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Mirror;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -662,7 +663,16 @@ namespace YARG.Menu.ScoreScreen
             {
                 _advancing = true;
                 ToastManager.ToastSuccess(Localize.Key("Menu.ScoreScreen.AllReady"));
-                YargNetworkManager.Instance.AdvanceAfterScoreScreen();
+
+                if (NetworkServer.active)
+                {
+                    YargNetworkManager.Instance.AdvanceAfterScoreScreen();
+                }
+                else if (!RequestServerAdvanceAfterScore())
+                {
+                    Debug.LogWarning("[ScoreScreenMenu] Failed to relay score advance request to server");
+                    _advancing = false;
+                }
             }
         }
 
@@ -715,6 +725,27 @@ namespace YARG.Menu.ScoreScreen
             buttons.Add(_scrollDownEntry);
 
             Navigator.Instance.PushScheme(new(buttons, true));
+        }
+
+        private bool RequestServerAdvanceAfterScore()
+        {
+            if (YargNetworkManager.Instance == null)
+            {
+                return false;
+            }
+
+            foreach (var player in YargNetworkManager.Instance.GetAllPlayers())
+            {
+                if (player != null && player.IsLocalUser && player.IsHost)
+                {
+                    Debug.Log("[ScoreScreenMenu] Requesting dedicated server to advance after score");
+                    player.CmdRequestAdvanceAfterScore();
+                    return true;
+                }
+            }
+
+            Debug.LogWarning("[ScoreScreenMenu] No local host NetworkPlayerData found to advance after score");
+            return false;
         }
     }
 }
