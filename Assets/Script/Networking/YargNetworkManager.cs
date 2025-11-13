@@ -25,6 +25,7 @@ using YARG.Core.Game;
 using YARG.Core;
 using YARG;
 using YARG.Menu.Persistent;
+using YARG.Song;
 
 namespace YARG.Networking
 {
@@ -4097,52 +4098,147 @@ namespace YARG.Networking
                 player?.SetReadyStateServer(false);
             }
 
-            var currentPlaylist = GlobalVariables.State.ShowSongs;
-            var completedSong = (GlobalVariables.State.PlayingAShow &&
-                                 currentPlaylist != null &&
-                                 currentPlaylist.Count > 0 &&
-                                 GlobalVariables.State.ShowIndex >= 0 &&
-                                 GlobalVariables.State.ShowIndex < currentPlaylist.Count)
-                ? currentPlaylist[GlobalVariables.State.ShowIndex]
-                : null;
-
-            if (completedSong != null)
+            if (_multiplayerShowPlaylist == null)
             {
+                _multiplayerShowPlaylist = FindObjectOfType<YARG.Multiplayer.MultiplayerShowPlaylist>();
                 if (_multiplayerShowPlaylist == null)
                 {
-                    _multiplayerShowPlaylist = FindObjectOfType<YARG.Multiplayer.MultiplayerShowPlaylist>();
-                }
-
-                if (_multiplayerShowPlaylist != null)
-                {
-                    _multiplayerShowPlaylist.HostRemoveSong(completedSong);
-                }
-                else if (currentPlaylist != null)
-                {
-                    GlobalVariables.State.ShowSongs = currentPlaylist
-                        .Where((song, index) => index != GlobalVariables.State.ShowIndex)
-                        .ToList();
+                    LogWarning("[YargNetworkManager] AdvanceAfterScoreScreen could not locate MultiplayerShowPlaylist instance.");
                 }
             }
 
-            currentPlaylist = GlobalVariables.State.ShowSongs;
-            bool hasNextSong = GlobalVariables.State.PlayingAShow &&
-                               currentPlaylist != null &&
-                               currentPlaylist.Count > 0;
+            var playlistComponent = _multiplayerShowPlaylist;
+            var playlist = playlistComponent?.ShowPlaylist;
+            int playlistCount = playlist?.Count ?? 0;
 
-            if (hasNextSong)
+            int showIndex = GlobalVariables.State.ShowIndex;
+            if (playlistCount > 0)
             {
-                GlobalVariables.State.ShowIndex = Mathf.Clamp(
-                    GlobalVariables.State.ShowIndex,
-                    0,
-                    currentPlaylist.Count - 1);
+                showIndex = Mathf.Clamp(showIndex, 0, playlistCount - 1);
+            }
+            else if (GlobalVariables.State.PlayingAShow &&
+                     GlobalVariables.State.ShowSongs != null &&
+                     GlobalVariables.State.ShowSongs.Count > 0)
+            {
+                showIndex = Mathf.Clamp(GlobalVariables.State.ShowIndex, 0, GlobalVariables.State.ShowSongs.Count - 1);
+            }
+            else
+            {
+                showIndex = Mathf.Max(0, showIndex);
+            }
 
-                var nextSong = currentPlaylist[GlobalVariables.State.ShowIndex];
-                GlobalVariables.State.CurrentSong = nextSong;
+            HashWrapper currentHash = default;
+            bool haveCurrentHash = false;
+
+            if (playlistCount > 0 && showIndex >= 0 && showIndex < playlistCount)
+            {
+                currentHash = playlist.SongHashes[showIndex];
+                haveCurrentHash = true;
+            }
+            else if (GlobalVariables.State.PlayingAShow &&
+                     GlobalVariables.State.ShowSongs != null &&
+                     GlobalVariables.State.ShowIndex >= 0 &&
+                     GlobalVariables.State.ShowIndex < GlobalVariables.State.ShowSongs.Count &&
+                     GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex] != null)
+            {
+                currentHash = GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex].Hash;
+                haveCurrentHash = true;
+            }
+
+            bool removalSucceeded = false;
+
+            if (haveCurrentHash && playlistComponent != null)
+            {
+                removalSucceeded = playlistComponent.HostRemoveSong(currentHash);
+                if (!removalSucceeded)
+                {
+                    LogWarning($"[YargNetworkManager] Failed to remove completed show entry with hash {currentHash}.");
+                }
+            }
+            else if (haveCurrentHash && GlobalVariables.State.ShowSongs != null &&
+                     GlobalVariables.State.ShowSongs.Count > 0 &&
+                     GlobalVariables.State.ShowIndex >= 0 &&
+                     GlobalVariables.State.ShowIndex < GlobalVariables.State.ShowSongs.Count)
+            {
+                GlobalVariables.State.ShowSongs.RemoveAt(GlobalVariables.State.ShowIndex);
+                removalSucceeded = true;
+            }
+            else
+            {
+                LogWarning("[YargNetworkManager] AdvanceAfterScoreScreen could not determine completed playlist entry; ending show.");
+            }
+
+            if (!removalSucceeded)
+            {
+                GlobalVariables.State.PlayingAShow = false;
+                GlobalVariables.State.ShowIndex = 0;
+                GlobalVariables.State.CurrentSong = null;
+
+                SetMenuNavigationAfterSceneLoad(Menu.MenuManager.Menu.OnlineMultiplayer,
+                    Menu.MenuManager.Menu.LobbyRoom,
+                    Menu.MenuManager.Menu.MusicLibrary);
 
                 foreach (var player in players)
                 {
-                    player?.TargetBeginNextShowSong(nextSong.Hash.ToString(), GlobalVariables.State.ShowIndex);
+                    player?.TargetReturnToMusicLibraryAfterScore();
+                }
+
+                return;
+            }
+
+            int updatedCount = playlistComponent?.ShowPlaylist?.Count ?? GlobalVariables.State.ShowSongs?.Count ?? 0;
+            if (updatedCount > 0)
+            {
+                int nextIndex = Mathf.Clamp(showIndex, 0, updatedCount - 1);
+                HashWrapper nextHash = default;
+                bool haveNextHash = false;
+
+                if (playlistComponent != null && playlistComponent.ShowPlaylist.Count > 0 &&
+                    nextIndex >= 0 && nextIndex < playlistComponent.ShowPlaylist.Count)
+                {
+                    nextHash = playlistComponent.ShowPlaylist.SongHashes[nextIndex];
+                    haveNextHash = true;
+                }
+                else if (GlobalVariables.State.ShowSongs != null &&
+                         nextIndex >= 0 && nextIndex < GlobalVariables.State.ShowSongs.Count &&
+                         GlobalVariables.State.ShowSongs[nextIndex] != null)
+                {
+                    nextHash = GlobalVariables.State.ShowSongs[nextIndex].Hash;
+                    haveNextHash = true;
+                }
+
+                if (haveNextHash)
+                {
+                    SongEntry nextSong = null;
+                    if (SongContainer.SongsByHash.TryGetValue(nextHash, out var nextList) && nextList.Count > 0)
+                    {
+                        nextSong = nextList[0];
+                    }
+
+                    GlobalVariables.State.PlayingAShow = true;
+                    GlobalVariables.State.ShowIndex = nextIndex;
+                    GlobalVariables.State.CurrentSong = nextSong;
+
+                    foreach (var player in players)
+                    {
+                        player?.TargetBeginNextShowSong(nextHash.ToString(), nextIndex);
+                    }
+                }
+                else
+                {
+                    LogWarning("[YargNetworkManager] AdvanceAfterScoreScreen could not resolve next song hash; ending show.");
+                    GlobalVariables.State.PlayingAShow = false;
+                    GlobalVariables.State.ShowIndex = 0;
+                    GlobalVariables.State.CurrentSong = null;
+
+                    SetMenuNavigationAfterSceneLoad(Menu.MenuManager.Menu.OnlineMultiplayer,
+                        Menu.MenuManager.Menu.LobbyRoom,
+                        Menu.MenuManager.Menu.MusicLibrary);
+
+                    foreach (var player in players)
+                    {
+                        player?.TargetReturnToMusicLibraryAfterScore();
+                    }
                 }
             }
             else

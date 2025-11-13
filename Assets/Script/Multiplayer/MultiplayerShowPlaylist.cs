@@ -401,21 +401,39 @@ namespace YARG.Multiplayer
             ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
         }
 
-        public void HostRemoveSong(SongEntry song)
+        public bool HostRemoveSong(SongEntry song)
         {
-            if (!isServer || song == null)
+            if (song == null)
             {
-                return;
+                return false;
             }
 
-            if (!_localShowPlaylist.ContainsSong(song))
+            return HostRemoveSong(song.Hash);
+        }
+
+        public bool HostRemoveSong(HashWrapper hash)
+        {
+            if (!isServer)
             {
-                return;
+                return false;
             }
 
-            _localShowPlaylist.RemoveSong(song);
+            if (!_localShowPlaylist.ContainsSong(hash))
+            {
+                Debug.LogWarning($"[MultiplayerShowPlaylist] Attempted to remove song hash {hash} that is not in the show playlist.");
+                return false;
+            }
+
+            if (!_localShowPlaylist.RemoveSong(hash))
+            {
+                Debug.LogWarning($"[MultiplayerShowPlaylist] Failed to remove song hash {hash} from the show playlist.");
+                return false;
+            }
+
             ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
             SyncShowPlaylistToClients();
+            Debug.Log($"[MultiplayerShowPlaylist] Host removed song hash {hash}; playlist now has {_localShowPlaylist.Count} songs");
+            return true;
         }
     }
 }
