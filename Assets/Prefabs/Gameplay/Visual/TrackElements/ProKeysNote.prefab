@@ -93,6 +93,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _sustainMaterial: {fileID: 2100000, guid: d48ab1d390f77c245be4530d285c3c67, type: 2}
-  _sustainWidth: 0.1
+  _sustainWidth: 0.2
   _subdivisions: 10
   _setShaderProperties: 1
