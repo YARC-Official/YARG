@@ -36,7 +36,7 @@ namespace YARG.Menu.Multiplayer
                 return;
             }
 
-            _isHost = YargNetworkManager.Instance.IsHosting;
+            _isHost = YargNetworkManager.Instance.LocalUserIsHost();
 
             // Show multiplayer panel
             if (multiplayerPanel != null)

@@ -339,8 +339,8 @@ namespace YARG.Menu.Multiplayer
 
         private bool IsHost()
         {
-            return YargNetworkManager.Instance != null && 
-                   YargNetworkManager.Instance.IsHosting;
+            return YargNetworkManager.Instance != null &&
+                   YargNetworkManager.Instance.LocalUserIsHost();
         }
 
         private void OnLobbyLeft()

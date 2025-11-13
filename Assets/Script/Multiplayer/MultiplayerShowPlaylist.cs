@@ -6,6 +6,7 @@ using YARG.Core.Song;
 using YARG.Playback;
 using YARG.Playlists;
 using YARG.Song;
+using YARG.Networking;
 
 namespace YARG.Multiplayer
 {
@@ -57,6 +58,13 @@ namespace YARG.Multiplayer
         private void OnShowPlaylistChanged(string oldValue, string newValue)
         {
             Debug.Log($"[MultiplayerShowPlaylist] OnShowPlaylistChanged hook fired. Old: '{oldValue}', New: '{newValue}'");
+
+            if (!isClient)
+            {
+                Debug.Log("[MultiplayerShowPlaylist] Running on server-only instance; skipping client-side deserialization");
+                return;
+            }
+
             DeserializeShowPlaylist(newValue);
             _hasReceivedInitialSync = true;
             ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
@@ -155,35 +163,55 @@ namespace YARG.Multiplayer
         /// </summary>
         public bool IsInPlaylist(string songHash)
         {
-            var hash = YARG.Core.Song.HashWrapper.FromString(songHash);
-            return _localShowPlaylist.SongHashes.Contains(hash);
+            var hash = HashWrapper.FromString(songHash);
+            return _localShowPlaylist.ContainsSong(hash);
         }
 
         public bool HasReceivedInitialSync => _hasReceivedInitialSync;
 
         [Command(requiresAuthority = false)]
-        public void CmdAddSongToShow(string songHash, string playerName)
+        public void CmdAddSongToShow(string songHash, string playerName, string songName, string songArtist)
         {
             Debug.Log($"[MultiplayerShowPlaylist] CmdAddSongToShow received for hash: {songHash} from player: {playerName}");
-            var hashWrapper = YARG.Core.Song.HashWrapper.FromString(songHash);
-            if (!_localShowPlaylist.SongHashes.Contains(hashWrapper))
+            var hashWrapper = HashWrapper.FromString(songHash);
+            if (!_localShowPlaylist.ContainsSong(hashWrapper))
             {
+                string resolvedName = songName;
+                string resolvedArtist = songArtist;
+
                 if (SongContainer.SongsByHash.TryGetValue(hashWrapper, out var songList) && songList.Count > 0)
                 {
-                    _localShowPlaylist.AddSong(songList[0]);
-                    Debug.Log($"[MultiplayerShowPlaylist] Added song '{songList[0].Name}' to show playlist (now {_localShowPlaylist.Count} songs)");
-                    ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
-                    SyncShowPlaylistToClients();
-                    
-                    // Notify all players via toast
-                    RpcNotifySongAdded(playerName, songList[0].Name, songList[0].Artist);
-                    
-                    Debug.Log($"[MultiplayerShowPlaylist] Synced playlist to clients: {showPlaylistSerialized}");
+                    var song = songList[0];
+                    _localShowPlaylist.AddSong(song);
+                    resolvedName = song.Name;
+                    resolvedArtist = song.Artist;
+                    Debug.Log($"[MultiplayerShowPlaylist] Added song '{resolvedName}' to show playlist (now {_localShowPlaylist.Count} songs)");
+                }
+                else if (_localShowPlaylist.AddSong(hashWrapper))
+                {
+                    Debug.LogWarning($"[MultiplayerShowPlaylist] Song hash {songHash} not found on server. Added by hash only.");
+                    if (string.IsNullOrWhiteSpace(resolvedName))
+                    {
+                        resolvedName = songHash;
+                    }
                 }
                 else
                 {
-                    Debug.LogWarning($"[MultiplayerShowPlaylist] Song hash {songHash} not found in SongContainer");
+                    Debug.LogWarning($"[MultiplayerShowPlaylist] Failed to add song hash {songHash}; already present or invalid.");
+                    return;
                 }
+
+                ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
+                SyncShowPlaylistToClients();
+
+                // Notify all players via toast
+                if (string.IsNullOrWhiteSpace(resolvedArtist))
+                {
+                    resolvedArtist = "Unknown Artist";
+                }
+                RpcNotifySongAdded(playerName, resolvedName, resolvedArtist);
+                
+                Debug.Log($"[MultiplayerShowPlaylist] Synced playlist to clients: {showPlaylistSerialized}");
             }
             else
             {
@@ -195,31 +223,49 @@ namespace YARG.Multiplayer
         /// Called by any player to remove a song from the show (networked)
         /// </summary>
         [Command(requiresAuthority = false)]
-        public void CmdRemoveSongFromShow(string songHash, string playerName)
+        public void CmdRemoveSongFromShow(string songHash, string playerName, string songName, string songArtist)
         {
             Debug.Log($"[MultiplayerShowPlaylist] CmdRemoveSongFromShow received for hash: {songHash} from player: {playerName}");
-            var hashWrapper = YARG.Core.Song.HashWrapper.FromString(songHash);
-            if (_localShowPlaylist.SongHashes.Contains(hashWrapper))
+            var hashWrapper = HashWrapper.FromString(songHash);
+            if (_localShowPlaylist.ContainsSong(hashWrapper))
             {
                 // Find the song entry and use proper RemoveSong method
+                string resolvedName = songName;
+                string resolvedArtist = songArtist;
+
                 if (SongContainer.SongsByHash.TryGetValue(hashWrapper, out var songList) && songList.Count > 0)
                 {
-                    var songName = songList[0].Name;
-                    var artist = songList[0].Artist;
-                    _localShowPlaylist.RemoveSong(songList[0]);
-                    Debug.Log($"[MultiplayerShowPlaylist] Removed song '{songName}' from show playlist (now {_localShowPlaylist.Count} songs)");
-                    ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
-                    SyncShowPlaylistToClients();
-                    
-                    // Notify all players via toast
-                    RpcNotifySongRemoved(playerName, songName, artist);
-                    
-                    Debug.Log($"[MultiplayerShowPlaylist] Synced playlist to clients: {showPlaylistSerialized}");
+                    var song = songList[0];
+                    resolvedName = song.Name;
+                    resolvedArtist = song.Artist;
+                    _localShowPlaylist.RemoveSong(song);
+                    Debug.Log($"[MultiplayerShowPlaylist] Removed song '{resolvedName}' from show playlist (now {_localShowPlaylist.Count} songs)");
+                }
+                else if (_localShowPlaylist.RemoveSong(hashWrapper))
+                {
+                    Debug.LogWarning($"[MultiplayerShowPlaylist] Song hash {songHash} not found on server. Removed by hash only.");
+                    if (string.IsNullOrWhiteSpace(resolvedName))
+                    {
+                        resolvedName = songHash;
+                    }
                 }
                 else
                 {
-                    Debug.LogWarning($"[MultiplayerShowPlaylist] Song hash {songHash} not found in SongContainer for removal");
+                    Debug.LogWarning($"[MultiplayerShowPlaylist] Failed to remove song hash {songHash}; not present.");
+                    return;
                 }
+
+                ApplyPlaylistToGlobalState(GlobalVariables.State.PlayingAShow);
+                SyncShowPlaylistToClients();
+                
+                // Notify all players via toast
+                if (string.IsNullOrWhiteSpace(resolvedArtist))
+                {
+                    resolvedArtist = "Unknown Artist";
+                }
+                RpcNotifySongRemoved(playerName, resolvedName, resolvedArtist);
+                
+                Debug.Log($"[MultiplayerShowPlaylist] Synced playlist to clients: {showPlaylistSerialized}");
             }
             else
             {
@@ -233,8 +279,14 @@ namespace YARG.Multiplayer
         [Command(requiresAuthority = false)]
         public void CmdStartShow(NetworkConnectionToClient sender = null)
         {
-            // Verify sender is the host
-            if (sender != null && sender != NetworkServer.localConnection)
+            var networkManager = YargNetworkManager.Instance;
+            if (networkManager == null)
+            {
+                Debug.LogError("[MultiplayerShowPlaylist] Cannot verify host - network manager missing");
+                return;
+            }
+
+            if (!networkManager.ConnectionIsHost(sender))
             {
                 Debug.LogWarning("[MultiplayerShowPlaylist] Non-host tried to start show");
                 return;
@@ -247,8 +299,18 @@ namespace YARG.Multiplayer
                 // Ensure latest playlist serialization before notifying clients
                 SyncShowPlaylistToClients();
 
-                // Navigate host to difficulty select
-                NavigateToDifficultySelect();
+                // Navigate host to difficulty select, but skip menu interaction on dedicated servers
+                if (networkManager.IsDedicatedServer)
+                {
+                    Debug.Log("[MultiplayerShowPlaylist] Dedicated server starting show without local navigation");
+                    GlobalVariables.State.PlayingAShow = true;
+                    GlobalVariables.State.ShowIndex = 0;
+                    ApplyPlaylistToGlobalState(updateCurrentSong: true);
+                }
+                else
+                {
+                    NavigateToDifficultySelect();
+                }
 
                 // Navigate all clients to difficulty select with explicit playlist data
                 RpcStartShow(showPlaylistSerialized);
@@ -318,8 +380,21 @@ namespace YARG.Multiplayer
         /// Clear the show playlist (host only)
         /// </summary>
         [Command(requiresAuthority = false)]
-        public void CmdClearShowPlaylist()
+        public void CmdClearShowPlaylist(NetworkConnectionToClient sender = null)
         {
+            var networkManager = YargNetworkManager.Instance;
+            if (networkManager == null)
+            {
+                Debug.LogError("[MultiplayerShowPlaylist] Cannot clear playlist - network manager missing");
+                return;
+            }
+
+            if (!networkManager.ConnectionIsHost(sender))
+            {
+                Debug.LogWarning("[MultiplayerShowPlaylist] Non-host tried to clear the show playlist");
+                return;
+            }
+
             _localShowPlaylist.Clear();
             SyncShowPlaylistToClients();
             Debug.Log("[MultiplayerShowPlaylist] Cleared show playlist");

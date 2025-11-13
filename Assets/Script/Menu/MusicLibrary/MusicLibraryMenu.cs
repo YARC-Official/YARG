@@ -657,10 +657,10 @@ namespace YARG.Menu.MusicLibrary
             // Sync menu navigation in multiplayer
             if (Networking.YargNetworkManager.Instance != null && 
                 Networking.YargNetworkManager.Instance.isNetworkActive &&
-                Networking.YargNetworkManager.Instance.IsHosting)
+                Networking.YargNetworkManager.Instance.LocalUserIsHost())
             {
                 Debug.Log("[MusicLibraryMenu] Host exiting library - syncing to clients");
-                Networking.YargNetworkManager.Instance.SyncMenuNavigation(popMenu: true);
+                Networking.YargNetworkManager.Instance.RequestSyncMenuNavigation(popMenu: true);
                 Debug.Log("[MusicLibraryMenu] Sync complete, now popping menu locally");
                 
                 // If navigation stack is incomplete (< 4 menus), we came from gameplay after disconnect

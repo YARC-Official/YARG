@@ -423,6 +423,7 @@ namespace kcp2k
         // process incoming messages. should be called before updating the world.
         // virtual because relay may need to inject their own ping or similar.
         readonly HashSet<int> connectionsToRemove = new HashSet<int>();
+        readonly List<int> connectionTickList = new List<int>();
         public virtual void TickIncoming()
         {
             // input all received messages into kcp
@@ -433,9 +434,20 @@ namespace kcp2k
 
             // process inputs for all server connections
             // (even if we didn't receive anything. need to tick ping etc.)
-            foreach (KcpServerConnection connection in connections.Values)
+            connectionTickList.Clear();
+            // Copy ids first so we can tolerate connections being added/removed during TickIncoming.
+            foreach (int connectionId in connections.Keys)
             {
-                connection.TickIncoming();
+                connectionTickList.Add(connectionId);
+            }
+
+            for (int i = 0; i < connectionTickList.Count; ++i)
+            {
+                int connectionId = connectionTickList[i];
+                if (connections.TryGetValue(connectionId, out KcpServerConnection connection))
+                {
+                    connection.TickIncoming();
+                }
             }
 
             // remove disconnected connections

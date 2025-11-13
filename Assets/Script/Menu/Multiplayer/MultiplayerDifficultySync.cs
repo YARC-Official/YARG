@@ -91,7 +91,7 @@ namespace YARG.Menu.Multiplayer
             if (manager != null && manager.isNetworkActive)
             {
                 _isMultiplayer = true;
-                _isHost = manager.IsHosting;
+                _isHost = manager.LocalUserIsHost();
 
                 if (!wasMultiplayer || wasHost != _isHost)
                 {

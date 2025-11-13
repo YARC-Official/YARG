@@ -64,7 +64,7 @@ namespace YARG.Menu.Multiplayer
             }
 
             gameObject.SetActive(true);
-            _isHost = YargNetworkManager.Instance.IsHosting;
+            _isHost = YargNetworkManager.Instance != null && YargNetworkManager.Instance.LocalUserIsHost();
 
             // Update host controls visibility
             if (hostControlsPanel != null)

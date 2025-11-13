@@ -44,28 +44,49 @@ namespace YARG.Playlists
 
         public void AddSong(SongEntry song)
         {
-            if (!ContainsSong(song))
-            {
-                SongHashes.Add(song.Hash);
-                if (!Ephemeral)
-                {
-                    PlaylistContainer.SavePlaylist(this);
-                }
-            }
+            AddSong(song.Hash);
         }
 
-        public void RemoveSong(SongEntry song)
+        public bool AddSong(HashWrapper hash)
         {
-            SongHashes.Remove(song.Hash);
+            if (SongHashes.Contains(hash))
+            {
+                return false;
+            }
+
+            SongHashes.Add(hash);
             if (!Ephemeral)
             {
                 PlaylistContainer.SavePlaylist(this);
             }
+
+            return true;
+        }
+
+        public void RemoveSong(SongEntry song)
+        {
+            RemoveSong(song.Hash);
+        }
+
+        public bool RemoveSong(HashWrapper hash)
+        {
+            bool removed = SongHashes.Remove(hash);
+            if (removed && !Ephemeral)
+            {
+                PlaylistContainer.SavePlaylist(this);
+            }
+
+            return removed;
         }
 
         public bool ContainsSong(SongEntry song)
         {
             return SongHashes.Contains(song.Hash);
+        }
+
+        public bool ContainsSong(HashWrapper hash)
+        {
+            return SongHashes.Contains(hash);
         }
 
         public List<SongEntry> ToList()

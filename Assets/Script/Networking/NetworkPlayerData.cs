@@ -994,6 +994,76 @@ namespace YARG.Networking
         }
 
         [Command]
+        public void CmdRequestStartSongSelection()
+        {
+            if (!NetworkServer.active || YargNetworkManager.Instance == null)
+            {
+                return;
+            }
+
+            if (!isHost)
+            {
+                Debug.LogWarning($"[NetworkPlayerData] {playerName} attempted to request song selection without host privileges.");
+                return;
+            }
+
+            YargNetworkManager.Instance.StartSongSelection();
+        }
+
+        [Command]
+        public void CmdRequestKickPlayer(uint targetNetId)
+        {
+            if (!NetworkServer.active || YargNetworkManager.Instance == null)
+            {
+                return;
+            }
+
+            if (!isHost)
+            {
+                Debug.LogWarning($"[NetworkPlayerData] {playerName} attempted to kick a player without host privileges.");
+                return;
+            }
+
+            if (!NetworkServer.spawned.TryGetValue(targetNetId, out var identity) || identity == null)
+            {
+                Debug.LogWarning($"[NetworkPlayerData] {playerName} requested kick for unknown player netId {targetNetId}.");
+                return;
+            }
+
+            if (!identity.TryGetComponent(out NetworkPlayerData targetPlayer) || targetPlayer == null)
+            {
+                Debug.LogWarning($"[NetworkPlayerData] {playerName} requested kick for netId {targetNetId} but no NetworkPlayerData was found.");
+                return;
+            }
+
+            if (targetPlayer == this)
+            {
+                Debug.LogWarning("[NetworkPlayerData] Host cannot kick themselves.");
+                return;
+            }
+
+            YargNetworkManager.Instance.KickPlayer(targetPlayer.connectionToClient);
+        }
+
+        [Command]
+        public void CmdRequestSyncMenuNavigation(bool popMenu, int targetMenu)
+        {
+            if (!NetworkServer.active || YargNetworkManager.Instance == null)
+            {
+                return;
+            }
+
+            if (!isHost)
+            {
+                Debug.LogWarning($"[NetworkPlayerData] {playerName} attempted to sync menu navigation without host privileges.");
+                return;
+            }
+
+            var menuEnum = (Menu.MenuManager.Menu)targetMenu;
+            YargNetworkManager.Instance.SyncMenuNavigation(popMenu, menuEnum);
+        }
+
+        [Command]
         public void CmdSubmitGameplaySnapshot(int score, int combo, int streak, bool starPowerActiveState,
             float starPowerCharge, int authoritativeStarPowerPhrasesHit, int authoritativeTotalStarPowerPhrases,
             int authoritativeNotesHit, int authoritativeNotesMissed,

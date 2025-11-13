@@ -311,15 +311,16 @@ namespace YARG.Menu.DifficultySelect
                 else if (_playerIndex == 0)
                 {
                     // Check if in multiplayer
-                    if (Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive)
+                    var networkManager = Networking.YargNetworkManager.Instance;
+                    if (networkManager != null && networkManager.isNetworkActive)
                     {
                         // Host can go back (takes everyone with them), client shows confirmation
-                        if (Networking.YargNetworkManager.Instance.IsHosting)
+                        if (networkManager.LocalUserIsHost())
                         {
                             Debug.Log($"[DifficultySelectMenu] Host pressing back - Menu stack count: {MenuManager.Instance.MenuStackCount}");
 
                             // Sync menu navigation to all clients first
-                            Networking.YargNetworkManager.Instance.SyncMenuNavigation(popMenu: true);
+                            networkManager.RequestSyncMenuNavigation(popMenu: true);
 
                             Debug.Log("[DifficultySelectMenu] Host synced, now navigating locally");
 
@@ -1377,7 +1378,7 @@ namespace YARG.Menu.DifficultySelect
             }
             
             // Only check on host
-            if (!Networking.YargNetworkManager.Instance.IsHosting)
+            if (!Networking.YargNetworkManager.Instance.LocalUserIsHost())
             {
                 return;
             }

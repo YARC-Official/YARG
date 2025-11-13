@@ -106,6 +106,9 @@ namespace YARG.Networking
         private CancellationTokenSource _publicEndpointResolveCts;
         private bool _clientJoinPending;
         private bool _localSlotSyncPending;
+        private int _clientSessionCounter;
+        private int _activeClientSessionId;
+        private int _activeProbeSessionId;
 
         // Transient connection used to probe lobby info without joining.
         private bool _probeConnectionPending;
@@ -758,7 +761,6 @@ namespace YARG.Networking
                 publicAddress = networkAddress,
                 transportId = Transport.active != null ? Transport.active.GetType().Name : "Unknown"
             };
-
             LogInfo($"[YargNetworkManager] Creating lobby '{lobbyName}' on {connectionInfo}");
 
             // Start hosting (guard against double-start which Mirror logs as "Server or Client already started")
@@ -936,6 +938,8 @@ namespace YARG.Networking
                     await UniTask.NextFrame(destroyToken);
                 }
 
+                CancelActiveProbe("Joining lobby");
+
                 ParseEndpoint(endpoint, out var address, out var port);
                 if (string.IsNullOrWhiteSpace(address))
                 {
@@ -978,7 +982,7 @@ namespace YARG.Networking
                 LogInfo($"[YargNetworkManager] Attempting to join lobby at {address}:{port}");
                 LogInfo($"[YargNetworkManager] networkAddress is now set to: {networkAddress}");
 
-                StartClient();
+                StartClientAndTrack();
                 startClientCalled = true;
 
                 LogInfo("[YargNetworkManager] JoinLobby: StartClient() called");
@@ -1126,9 +1130,16 @@ namespace YARG.Networking
             _probeConnectionPending = true;
             _probePreviousAddress = networkAddress;
             _probePreviousPort = ResolveTransportPort();
+            int probeSessionId = 0;
 
             try
             {
+                networkAddress = address.Trim();
+                SetTransportPort(Mathf.Clamp(port, 1, ushort.MaxValue));
+
+                probeSessionId = StartClientAndTrack();
+                _activeProbeSessionId = probeSessionId;
+
                 _probeCancellationRegistration = linkedToken.Register(() =>
                 {
                     UniTask.Post(() =>
@@ -1138,24 +1149,12 @@ namespace YARG.Networking
                             CompleteProbe(null, ProbeCompletionState.Canceled);
                         }
 
-                        if (NetworkClient.isConnected)
+                        if (_activeClientSessionId == probeSessionId && NetworkClient.isConnected)
                         {
                             NetworkClient.Disconnect();
                         }
                     });
                 });
-            }
-            catch (Exception ex)
-            {
-                LogWarning($"[YargNetworkManager] Failed to register probe cancellation callback: {ex.Message}");
-            }
-
-            try
-            {
-                networkAddress = address.Trim();
-                SetTransportPort(Mathf.Clamp(port, 1, ushort.MaxValue));
-
-                StartClient();
             }
             catch (Exception ex)
             {
@@ -1170,6 +1169,11 @@ namespace YARG.Networking
                 _probeConnectionPending = false;
                 networkAddress = _probePreviousAddress;
                 SetTransportPort(_probePreviousPort);
+                if (probeSessionId != 0 && _activeClientSessionId == probeSessionId)
+                {
+                    _activeClientSessionId = 0;
+                }
+                _activeProbeSessionId = 0;
                 return null;
             }
 
@@ -1192,7 +1196,7 @@ namespace YARG.Networking
             if (completedTask == timeoutTask && _probeCompletionSource != null)
             {
                 CompleteProbe(null, ProbeCompletionState.Timeout);
-                if (NetworkClient.isConnected)
+                if (_activeClientSessionId == probeSessionId && NetworkClient.isConnected)
                 {
                     NetworkClient.Disconnect();
                 }
@@ -1208,9 +1212,9 @@ namespace YARG.Networking
                 // Wait until the probe connection has fully torn down to avoid stomping real connection state.
                 await UniTask.WaitUntil(() => !_probeConnectionPending && !_probeConnectionActive);
 
-                if (NetworkClient.active)
+                if (probeSessionId != 0)
                 {
-                    StopActiveClient("Probe completed");
+                    StopActiveClient("Probe completed", probeSessionId);
                 }
             }
 
@@ -1931,7 +1935,7 @@ namespace YARG.Networking
                 CompleteProbe(info, ProbeCompletionState.Success);
             }
 
-            if (NetworkClient.isConnected)
+            if (_activeProbeSessionId != 0 && _activeProbeSessionId == _activeClientSessionId && NetworkClient.isConnected)
             {
                 NetworkClient.Disconnect();
             }
@@ -1962,7 +1966,7 @@ namespace YARG.Networking
             }
         }
 
-        private void FinalizeProbeConnection()
+        private void FinalizeProbeConnection(int sessionId = 0)
         {
             try
             {
@@ -1978,18 +1982,41 @@ namespace YARG.Networking
             _probeConnectionActive = false;
             _probeHasCompleted = false;
 
-            if (!string.IsNullOrEmpty(_probePreviousAddress))
-            {
-                networkAddress = _probePreviousAddress;
-            }
+            bool allowRestore = sessionId == 0 || _activeClientSessionId == 0 || _activeClientSessionId == sessionId;
 
-            if (_probePreviousPort > 0)
+            if (allowRestore)
             {
-                SetTransportPort(_probePreviousPort);
+                if (!string.IsNullOrEmpty(_probePreviousAddress))
+                {
+                    networkAddress = _probePreviousAddress;
+                }
+
+                if (_probePreviousPort > 0)
+                {
+                    SetTransportPort(_probePreviousPort);
+                }
             }
 
             _probePreviousAddress = string.Empty;
             _probePreviousPort = 0;
+
+            if (sessionId == 0 || _activeProbeSessionId == sessionId)
+            {
+                _activeProbeSessionId = 0;
+            }
+
+            if (sessionId != 0 && _activeClientSessionId == sessionId)
+            {
+                _activeClientSessionId = 0;
+            }
+        }
+
+        private int StartClientAndTrack()
+        {
+            int sessionId = unchecked(++_clientSessionCounter);
+            _activeClientSessionId = sessionId;
+            base.StartClient();
+            return sessionId;
         }
 
         private void CancelActiveProbe(string reason)
@@ -2017,7 +2044,7 @@ namespace YARG.Networking
 
             _probeCancellationRegistration = default;
 
-            if (NetworkClient.isConnected)
+            if (_activeClientSessionId == _activeProbeSessionId && NetworkClient.isConnected)
             {
                 try
                 {
@@ -2030,17 +2057,26 @@ namespace YARG.Networking
                 }
             }
 
-            StopActiveClient("Canceled probe");
+            StopActiveClient("Canceled probe", _activeProbeSessionId);
 
             _probeConnectionPending = false;
             _probeConnectionActive = false;
             _probeHasCompleted = false;
 
-            FinalizeProbeConnection();
+            FinalizeProbeConnection(_activeProbeSessionId);
         }
 
-        private void StopActiveClient(string reason)
+        private void StopActiveClient(string reason, int sessionId = 0)
         {
+            if (sessionId != 0 && _activeClientSessionId != sessionId)
+            {
+                if (NetworkClient.active)
+                {
+                    LogInfo($"[YargNetworkManager] StopClient skipped for session mismatch (reason: {reason}). Active session: {_activeClientSessionId}, requested: {sessionId}");
+                }
+                return;
+            }
+
             if (!NetworkClient.active)
             {
                 return;
@@ -2054,6 +2090,7 @@ namespace YARG.Networking
 
             LogInfo($"[YargNetworkManager] StopClient requested: {reason}");
             _clientStopPending = true;
+            _activeClientSessionId = 0;
             StopClient();
         }
 
@@ -2114,6 +2151,57 @@ namespace YARG.Networking
             }
 
             return totalPlayers;
+        }
+
+        private bool ConnectionHasActivePlayers(NetworkConnectionToClient conn)
+        {
+            if (conn == null || !conn.isAuthenticated)
+            {
+                return false;
+            }
+
+            if (conn.identity != null)
+            {
+                return true;
+            }
+
+            if (!_connectedPlayers.TryGetValue(conn, out var list) || list == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private NetworkConnectionToClient FindConnectionById(int connectionId)
+        {
+            if (connectionId < 0)
+            {
+                return null;
+            }
+
+            foreach (var kvp in _connectedPlayers)
+            {
+                if (kvp.Key != null && kvp.Key.connectionId == connectionId)
+                {
+                    return kvp.Key;
+                }
+            }
+
+            if (NetworkServer.active && NetworkServer.connections.TryGetValue(connectionId, out var directConn))
+            {
+                return directConn;
+            }
+
+            return null;
         }
 
         private void RefreshHostOwnership()
@@ -2193,6 +2281,32 @@ namespace YARG.Networking
                     }
                 }
             }
+        }
+
+        internal bool ConnectionIsHost(NetworkConnectionToClient conn)
+        {
+            if (NetworkServer.active && conn is LocalConnectionToClient)
+            {
+                return _isHost;
+            }
+
+            if (conn == null)
+            {
+                return NetworkServer.active && _isHost;
+            }
+
+            if (conn.connectionId == _hostConnectionId)
+            {
+                return true;
+            }
+
+            var resolved = FindConnectionById(_hostConnectionId);
+            if (resolved != null && resolved == conn)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private NetworkConnectionToClient DetermineHostConnection()
@@ -2520,7 +2634,6 @@ namespace YARG.Networking
                     {
                         clientVersion = Application.version
                     };
-
                     NetworkClient.Send(request);
                     LogInfo($"[YargNetworkManager] Sent lobby probe request to {networkAddress}:{ResolveTransportPort()}");
                 }
@@ -2528,7 +2641,7 @@ namespace YARG.Networking
                 {
                     LogWarning($"[YargNetworkManager] Failed to send lobby probe request: {ex.Message}");
                     CompleteProbe(null, ProbeCompletionState.Failed);
-                    if (NetworkClient.isConnected)
+                    if (_activeProbeSessionId != 0 && _activeProbeSessionId == _activeClientSessionId && NetworkClient.isConnected)
                     {
                         NetworkClient.Disconnect();
                     }
@@ -2633,11 +2746,16 @@ namespace YARG.Networking
                     CompleteProbe(null, ProbeCompletionState.Failed);
                 }
 
-                FinalizeProbeConnection();
+                FinalizeProbeConnection(_activeProbeSessionId);
                 return;
             }
 
             base.OnClientDisconnect();
+
+            if (!NetworkClient.active)
+            {
+                _activeClientSessionId = 0;
+            }
 
             PasswordAuthenticator.HandleClientDisconnectFallback();
 
@@ -2686,6 +2804,8 @@ namespace YARG.Networking
             _probeConnectionIds.Clear();
             _clientStopPending = false;
             _clientNotifiedPlayers.Clear();
+            _activeClientSessionId = 0;
+            _activeProbeSessionId = 0;
         }
 
         public override void OnStopHost()
@@ -3346,6 +3466,48 @@ namespace YARG.Networking
             conn.Disconnect();
         }
 
+        public void RequestKickPlayer(NetworkPlayerData targetPlayer)
+        {
+            if (targetPlayer == null)
+            {
+                LogWarning("[YargNetworkManager] RequestKickPlayer called with null target.");
+                return;
+            }
+
+            if (NetworkServer.active && _isHost)
+            {
+                KickPlayer(targetPlayer.connectionToClient);
+                return;
+            }
+
+            if (!NetworkClient.active)
+            {
+                LogWarning("[YargNetworkManager] Cannot request kick; client is not active.");
+                return;
+            }
+
+            var localPlayer = GetLocalPrimaryPlayerData();
+            if (localPlayer == null)
+            {
+                LogWarning("[YargNetworkManager] Cannot request kick; no local player data found.");
+                return;
+            }
+
+            if (!localPlayer.IsHost)
+            {
+                LogWarning("[YargNetworkManager] Local player is not host; kick request ignored.");
+                return;
+            }
+
+            if (targetPlayer.connectionToClient == null)
+            {
+                LogWarning("[YargNetworkManager] Cannot request kick; target connection is invalid.");
+                return;
+            }
+
+            localPlayer.CmdRequestKickPlayer(targetPlayer.netId);
+        }
+
         /// <summary>
         /// Event fired when host starts song selection. All clients should listen to this.
         /// </summary>
@@ -3371,6 +3533,66 @@ namespace YARG.Networking
             }
 
             BroadcastSongSelectionNavigation();
+        }
+
+        public void RequestStartSongSelection()
+        {
+            if (NetworkServer.active && _isHost)
+            {
+                StartSongSelection();
+                return;
+            }
+
+            if (!NetworkClient.active)
+            {
+                LogWarning("[YargNetworkManager] Cannot request song selection; client is not active.");
+                return;
+            }
+
+            var localPlayer = GetLocalPrimaryPlayerData();
+            if (localPlayer == null)
+            {
+                LogWarning("[YargNetworkManager] Cannot request song selection; no local player data found.");
+                return;
+            }
+
+            if (!localPlayer.IsHost)
+            {
+                LogWarning("[YargNetworkManager] Local player is not host; song selection request ignored.");
+                return;
+            }
+
+            localPlayer.CmdRequestStartSongSelection();
+        }
+
+        public void RequestSyncMenuNavigation(bool popMenu, Menu.MenuManager.Menu targetMenu = Menu.MenuManager.Menu.None)
+        {
+            if (NetworkServer.active && _isHost)
+            {
+                SyncMenuNavigation(popMenu, targetMenu);
+                return;
+            }
+
+            if (!NetworkClient.active)
+            {
+                LogWarning("[YargNetworkManager] Cannot request menu sync; client is not active.");
+                return;
+            }
+
+            var localPlayer = GetLocalPrimaryPlayerData();
+            if (localPlayer == null)
+            {
+                LogWarning("[YargNetworkManager] Cannot request menu sync; no local player data found.");
+                return;
+            }
+
+            if (!localPlayer.IsHost)
+            {
+                LogWarning("[YargNetworkManager] Local player is not host; menu sync request ignored.");
+                return;
+            }
+
+            localPlayer.CmdRequestSyncMenuNavigation(popMenu, (int)targetMenu);
         }
 
         [Server]

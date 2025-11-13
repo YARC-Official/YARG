@@ -197,7 +197,7 @@ namespace YARG.Gameplay.HUD
         {
             var manager = YargNetworkManager.Instance;
             _isMultiplayer = manager != null && manager.isNetworkActive;
-            _isHost = _isMultiplayer && manager.IsHosting;
+            _isHost = _isMultiplayer && manager != null && manager.LocalUserIsHost();
         }
 
         private void RestoreSinglePlayerLayout()

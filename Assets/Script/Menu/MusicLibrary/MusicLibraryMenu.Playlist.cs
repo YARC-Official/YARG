@@ -64,7 +64,7 @@ namespace YARG.Menu.MusicLibrary
                     _multiplayerShowPlaylist.OnPlaylistUpdated += OnMultiplayerPlaylistUpdated;
                     
                     // Wait for initial sync on clients
-                    if (!Networking.YargNetworkManager.Instance.IsHosting && !_multiplayerShowPlaylist.HasReceivedInitialSync)
+                    if (!Networking.YargNetworkManager.Instance.LocalUserIsHost() && !_multiplayerShowPlaylist.HasReceivedInitialSync)
                     {
                         UnityEngine.Debug.Log($"[MusicLibraryMenu] Client waiting for initial playlist sync...");
                         StartCoroutine(WaitForInitialSync());
@@ -129,9 +129,17 @@ namespace YARG.Menu.MusicLibrary
                 {
                     playerName = PlayerContainer.Players[0].Profile.Name;
                 }
+                string displayName = songHash;
+                string displayArtist = string.Empty;
+                var hashWrapper = YARG.Core.Song.HashWrapper.FromString(songHash);
+                if (SongContainer.SongsByHash.TryGetValue(hashWrapper, out var songList) && songList.Count > 0)
+                {
+                    displayName = songList[0].Name;
+                    displayArtist = songList[0].Artist;
+                }
                 
                 UnityEngine.Debug.Log($"[MusicLibraryMenu] Calling CmdAddSongToShow for hash: {songHash} from player: {playerName}");
-                _multiplayerShowPlaylist.CmdAddSongToShow(songHash, playerName);
+                _multiplayerShowPlaylist.CmdAddSongToShow(songHash, playerName, displayName, displayArtist);
             }
             else
             {
@@ -150,15 +158,24 @@ namespace YARG.Menu.MusicLibrary
                 {
                     playerName = PlayerContainer.Players[0].Profile.Name;
                 }
-                
-                _multiplayerShowPlaylist.CmdRemoveSongFromShow(songHash, playerName);
+                string displayName = songHash;
+                string displayArtist = string.Empty;
+                var hashWrapper = YARG.Core.Song.HashWrapper.FromString(songHash);
+                if (SongContainer.SongsByHash.TryGetValue(hashWrapper, out var songList) && songList.Count > 0)
+                {
+                    displayName = songList[0].Name;
+                    displayArtist = songList[0].Artist;
+                }
+
+                _multiplayerShowPlaylist.CmdRemoveSongFromShow(songHash, playerName, displayName, displayArtist);
             }
         }
 
         public void StartMultiplayerShow()
         {
             EnsureMultiplayerShowPlaylist();
-            if (_multiplayerShowPlaylist != null && Networking.YargNetworkManager.Instance.IsHosting)
+            var networkManager = Networking.YargNetworkManager.Instance;
+            if (_multiplayerShowPlaylist != null && networkManager != null && networkManager.LocalUserIsHost())
             {
                 _multiplayerShowPlaylist.CmdStartShow();
             }
@@ -408,12 +425,13 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
             
-            bool isMultiplayer = Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive;
+            var networkManager = Networking.YargNetworkManager.Instance;
+            bool isMultiplayer = networkManager != null && networkManager.isNetworkActive;
             
             if (isMultiplayer)
             {
                 // In multiplayer, only host can start
-                if (Networking.YargNetworkManager.Instance.IsHosting)
+                if (networkManager.LocalUserIsHost())
                 {
                     UnityEngine.Debug.Log($"[MusicLibraryMenu] Host starting show with {ShowPlaylist.Count} songs from MusicLibrary");
                     ToastManager.ToastInformation($"Starting show with {ShowPlaylist.Count} songs!");
@@ -441,7 +459,8 @@ namespace YARG.Menu.MusicLibrary
 
         private void AddToPlaylist()
         {
-            bool isMultiplayer = Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive;
+            var networkManager = Networking.YargNetworkManager.Instance;
+            bool isMultiplayer = networkManager != null && networkManager.isNetworkActive;
             
             if (CurrentSelection is PlaylistViewType playlist)
             {
@@ -521,7 +540,8 @@ namespace YARG.Menu.MusicLibrary
         private void QuickStartShow()
         {
             // Quick start for multiplayer - starts the show immediately if there are songs
-            bool isMultiplayer = Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive;
+            var networkManager = Networking.YargNetworkManager.Instance;
+            bool isMultiplayer = networkManager != null && networkManager.isNetworkActive;
             
             if (!isMultiplayer)
             {
@@ -543,7 +563,7 @@ namespace YARG.Menu.MusicLibrary
             }
             
             // Only host can start the show
-            if (!Networking.YargNetworkManager.Instance.IsHosting)
+            if (!networkManager.LocalUserIsHost())
             {
                 ToastManager.ToastWarning("Only the host can start the show");
                 return;
@@ -558,12 +578,13 @@ namespace YARG.Menu.MusicLibrary
         {
             if (ShowPlaylist.Count > 0 && PlayerContainer.Players.Count > 0)
             {
-                bool isMultiplayer = Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive;
+                var networkManager = Networking.YargNetworkManager.Instance;
+                bool isMultiplayer = networkManager != null && networkManager.isNetworkActive;
                 
                 if (isMultiplayer)
                 {
                     // In multiplayer, only host can start
-                    if (Networking.YargNetworkManager.Instance.IsHosting)
+                    if (networkManager.LocalUserIsHost())
                     {
                         StartMultiplayerShow();
                     }

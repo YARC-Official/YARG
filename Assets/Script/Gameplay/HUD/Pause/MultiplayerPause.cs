@@ -30,7 +30,7 @@ namespace YARG.Gameplay.HUD
         {
             // Don't call base.OnEnable() - we'll set up our own navigation scheme
             
-            _isHost = YargNetworkManager.Instance != null && YargNetworkManager.Instance.IsHosting;
+            _isHost = YargNetworkManager.Instance != null && YargNetworkManager.Instance.LocalUserIsHost();
             
             // Show/hide buttons based on role
             UpdateButtonVisibility();

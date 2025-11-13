@@ -494,7 +494,7 @@ namespace YARG.Menu.ScoreScreen
             }
 
             _isMultiplayer = true;
-            _isHost = YargNetworkManager.Instance.IsHosting;
+            _isHost = YargNetworkManager.Instance != null && YargNetworkManager.Instance.LocalUserIsHost();
             _advancing = false;
 
             _networkPlayers.Clear();

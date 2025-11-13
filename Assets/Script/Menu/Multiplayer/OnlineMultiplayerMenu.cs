@@ -177,12 +177,14 @@ namespace YARG.Menu.Multiplayer
         {
             if (connectionStatusText == null) return;
 
-            if (YargNetworkManager.Instance.IsHosting)
+            var networkManager = YargNetworkManager.Instance;
+
+            if (networkManager != null && networkManager.LocalUserIsHost())
             {
                 connectionStatusText.text = Localize.Key("Menu", "LobbyBrowser", "StatusHosting");
                 connectionStatusText.color = Color.green;
             }
-            else if (YargNetworkManager.Instance.CurrentLobby != null)
+            else if (networkManager != null && networkManager.CurrentLobby != null)
             {
                 // Check if we're connected by seeing if we have a current lobby
                 connectionStatusText.text = Localize.Key("Menu", "LobbyBrowser", "StatusConnected");

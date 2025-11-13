@@ -1015,7 +1015,7 @@ namespace YARG.Menu.Multiplayer
                 OnSharedSongSyncStateChanged(false);
             }
 
-            YargNetworkManager.Instance.StartSongSelection();
+            YargNetworkManager.Instance.RequestStartSongSelection();
         }
 
         public void OnLeaveLobbyClicked()
@@ -1085,11 +1085,7 @@ namespace YARG.Menu.Multiplayer
             
             Debug.Log($"[LobbyRoomMenu] Kicking player: {player.PlayerName}");
             
-            // Disconnect the specific player's connection
-            if (Mirror.NetworkServer.active && player.connectionToClient != null)
-            {
-                player.connectionToClient.Disconnect();
-            }
+            YargNetworkManager.Instance?.RequestKickPlayer(player);
             
             selectedPlayer = null;
             UpdateNavigationScheme();
@@ -1099,7 +1095,7 @@ namespace YARG.Menu.Multiplayer
         {
             if (DialogManager.Instance == null) return;
             
-            bool isHost = YargNetworkManager.Instance != null && YargNetworkManager.Instance.IsHosting;
+            bool isHost = YargNetworkManager.Instance != null && YargNetworkManager.Instance.LocalUserIsHost();
             
             string title = isHost ? "Close Lobby?" : "Leave Lobby?";
             string message = isHost
@@ -1124,10 +1120,11 @@ namespace YARG.Menu.Multiplayer
             // If host, sync menu navigation to clients before disconnecting
             if (YargNetworkManager.Instance != null && 
                 YargNetworkManager.Instance.isNetworkActive &&
-                YargNetworkManager.Instance.IsHosting)
+                Mirror.NetworkServer.active &&
+                YargNetworkManager.Instance.LocalUserIsHost())
             {
                 Debug.Log("[LobbyRoomMenu] Host closing lobby - syncing clients to lobby browser");
-                YargNetworkManager.Instance.SyncMenuNavigation(popMenu: true);
+                YargNetworkManager.Instance.RequestSyncMenuNavigation(popMenu: true);
             }
             
             // Return to menu
