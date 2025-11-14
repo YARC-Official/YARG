@@ -104,9 +104,6 @@ namespace YARG.Gameplay.Player
 
         protected EngineManager.EngineContainer EngineContainer;
 
-        // Represents the count of all players, both vocal and instrumental
-        protected static int TotalPlayers;
-
         protected override void GameplayAwake()
         {
             _replayInputs = new List<GameInput>();
@@ -129,14 +126,13 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected void Initialize(int totalPlayers, int index, YargPlayer player, SongChart chart, int? lastHighScore)
+        protected void Initialize(int index, YargPlayer player, SongChart chart, int? lastHighScore)
         {
             if (IsInitialized)
             {
                 return;
             }
 
-            TotalPlayers = totalPlayers;
             HighwayIndex = index;
             Player = player;
 
