@@ -30,57 +30,71 @@ namespace YARG.Helpers.Extensions
             };
         }
 
-        // Returns a list of valid settings for a given game mode
-        public static List<string> PossibleProfileSettings(this GameMode gameMode, Dictionary<string, object> dependencyNamesAndValues)
+        // Returns a list of valid settings for a given game mode. Each setting can optionally
+        // come with override text, for settings that should have different names between profile
+        // types
+        public static List<(string setting, string? overrideText)> PossibleProfileSettings(
+            this GameMode gameMode, Dictionary<string, object> dependencyNamesAndValues)
         {
-            List<string> unconditionallyValidInAllModes = new List<string>
+            List<(string setting, string? overrideText)> unconditionallyValidInAllModes = new()
             {
-                ProfileSettingStrings.INSTRUMENT_SELECT,
-                ProfileSettingStrings.ENGINE_PRESET,
-                ProfileSettingStrings.ROCK_METER_PRESET,
-                ProfileSettingStrings.INPUT_CALIBRATION,
+                (ProfileSettingStrings.INSTRUMENT_SELECT, null),
+                (ProfileSettingStrings.ENGINE_PRESET, null),
+                (ProfileSettingStrings.ROCK_METER_PRESET, null),
+                (ProfileSettingStrings.INPUT_CALIBRATION, null),
             };
 
-            List<string> unconditionallyValidInAllModesExceptVocals = new List<string>
+            List<(string setting, string? overrideText)> unconditionallyValidInAllModesExceptVocals = new()
             {
-                ProfileSettingStrings.THEME_SELECT,
-                ProfileSettingStrings.COLOR_PROFILE_SELECT,
-                ProfileSettingStrings.CAMERA_PRESET,
-                ProfileSettingStrings.HIGHWAY_PRESET,
-                ProfileSettingStrings.INPUT_CALIBRATION,
-                ProfileSettingStrings.NOTE_SPEED_AND_HIGHWAY_LENGTH,
+                (ProfileSettingStrings.THEME_SELECT, null),
+                (ProfileSettingStrings.COLOR_PROFILE_SELECT, null),
+                (ProfileSettingStrings.CAMERA_PRESET, null),
+                (ProfileSettingStrings.HIGHWAY_PRESET, null),
+                (ProfileSettingStrings.INPUT_CALIBRATION, null),
+                (ProfileSettingStrings.NOTE_SPEED_AND_HIGHWAY_LENGTH, null),
             };
 
-            List<string> unconditionalOptionsPerGameMode = gameMode switch
+            List<(string setting, string? overrideText)> unconditionalOptionsPerGameMode = gameMode switch
             {
-                GameMode.FiveFretGuitar => new List<string>
+                GameMode.FiveFretGuitar => new()
                 {
-                    ProfileSettingStrings.LEFTY_FLIP,
-                    ProfileSettingStrings.RANGE_DISABLE,
+                    (ProfileSettingStrings.LEFTY_FLIP, null),
+                    (ProfileSettingStrings.RANGE_DISABLE, "RANGE SHIFT MARKERS"),
                 },
-                GameMode.FourLaneDrums => new List<string>
+                GameMode.EliteDrums => new()
                 {
-                    ProfileSettingStrings.LEFTY_FLIP,
-                    ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS,
-                    ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE,
+                    (ProfileSettingStrings.LEFTY_FLIP, null),
+                    (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, null),
+                    (ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE, null),
+                    (ProfileSettingStrings.USE_CYMBAL_MODELS, "USE CYMBAL MODELS IN 5-LANE"),
+                    (ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT,
+                        (bool)dependencyNamesAndValues[ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS] ?
+                        "SWAP SNARE AND HI-HAT LANES" : "SWAP SNARE AND HI-HAT LANES IN 5-LANE"
+                    ),
                 },
-                GameMode.FiveLaneDrums => new List<string>
+                GameMode.FourLaneDrums => new()
                 {
-                    ProfileSettingStrings.LEFTY_FLIP,
-                    ProfileSettingStrings.USE_CYMBAL_MODELS,
-                    ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT,
-                    ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE,
+                    (ProfileSettingStrings.LEFTY_FLIP, null),
+                    (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, null),
+                    (ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE, null),
                 },
-                GameMode.SixFretGuitar => new List<string>
+                GameMode.FiveLaneDrums => new()
                 {
-                    ProfileSettingStrings.LEFTY_FLIP,
-                    ProfileSettingStrings.RANGE_DISABLE,
+                    (ProfileSettingStrings.LEFTY_FLIP, null),
+                    (ProfileSettingStrings.USE_CYMBAL_MODELS, "USE CYMBAL MODELS"),
+                    (ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT, "SWAP SNARE AND HI-HAT LANES"),
+                    (ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE, null),
                 },
-                GameMode.ProKeys => new List<string>
+                GameMode.SixFretGuitar => new()
                 {
-                    ProfileSettingStrings.RANGE_DISABLE
+                    (ProfileSettingStrings.LEFTY_FLIP, null),
+                    (ProfileSettingStrings.RANGE_DISABLE, "5-LANE RANGE SHIFT MARKERS"),
                 },
-                _ => new List<string>()
+                GameMode.ProKeys => new()
+                {
+                    (ProfileSettingStrings.RANGE_DISABLE, "5-LANE RANGE SHIFT MARKERS")
+                },
+                _ => new()
             };
 
             var possibleOptions = unconditionallyValidInAllModes;
@@ -98,34 +112,59 @@ namespace YARG.Helpers.Extensions
             return possibleOptions;
         }
 
-        private static List<string> ConditionalGameModeSettings(GameMode gameMode, Dictionary<string, object> dependencyNamesAndValues)
+        private static List<(string setting, string? overrideText)> ConditionalGameModeSettings(GameMode gameMode, Dictionary<string, object> dependencyNamesAndValues)
         {
-            var conditionalSettings = new List<string>();
+            var conditionalSettings = new List<(string setting, string? overrideText)>();
 
-            Dictionary<string, (string dependencyName, Func<object, bool> dependencyCondition)> conditionalGameModeOptions = gameMode switch
+            Dictionary<string, (string dependencyName, Func<object, bool> dependencyCondition, string overrideText)> conditionalGameModeOptions = gameMode switch
             {
+                GameMode.EliteDrums => new()
+                {
+                    {
+                        ProfileSettingStrings.SWAP_CRASH_AND_RIDE,
+                        (
+                            ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS,
+                            (object value)=>(bool)value,
+                            "SWAP CRASH AND RIDE LANES IN PRO DRUMS"
+                        )
+                    }
+                },
                 GameMode.FourLaneDrums => new()
                 {
-                    { ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT, (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, (object value)=>(bool)value) },
-                    { ProfileSettingStrings.SWAP_CRASH_AND_RIDE, (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, (object value)=>(bool)value) }
+                    {
+                        ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT,
+                        (
+                            ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS,
+                            (object value)=>(bool)value,
+                            "SWAP SNARE AND HI-HAT LANES"
+                        )
+                    },
+                    {
+                        ProfileSettingStrings.SWAP_CRASH_AND_RIDE,
+                        (
+                            ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS,
+                            (object value)=>(bool)value,
+                            "SWAP CRASH AND RIDE LANES IN PRO DRUMS"
+                        )
+                    }
                 },
                 _ => new()
             };
 
             // Some settings should only show if a different setting's value meets some condition. For each one of those...
-            foreach ((var dependentSetting, var dependencyNameAndCondition) in conditionalGameModeOptions)
+            foreach ((var dependentSetting, var dependencyData) in conditionalGameModeOptions)
             {
                 // ...if we received information about the dependency...
-                if (dependencyNamesAndValues.ContainsKey(dependencyNameAndCondition.dependencyName))
+                if (dependencyNamesAndValues.ContainsKey(dependencyData.dependencyName))
                 {
-                    (var dependencyName, var dependencyCondition) = (dependencyNameAndCondition.dependencyName, dependencyNameAndCondition.dependencyCondition);
+                    (var dependencyName, var dependencyCondition) = (dependencyData.dependencyName, dependencyData.dependencyCondition);
                     var dependencyValue = dependencyNamesAndValues[dependencyName];
 
                     // ...and the dependency's value satisfies the condition...
                     if (dependencyCondition(dependencyValue))
                     {
                         // ...then add the dependent setting as a possible option!
-                        conditionalSettings.Add(dependentSetting);
+                        conditionalSettings.Add((dependentSetting, dependencyData.overrideText));
                     }
                 }
             }

@@ -95,7 +95,7 @@ namespace YARG.Gameplay.Player
 
         protected float SongLength;
 
-        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
+        public virtual void Initialize(int totalPlayers, int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
         {
             if (IsInitialized)
@@ -103,7 +103,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            Initialize(index, player, chart, lastHighScore);
+            Initialize(totalPlayers, index, player, chart, lastHighScore);
 
             TrackView = trackView;
 
@@ -191,7 +191,7 @@ namespace YARG.Gameplay.Player
 
         protected SongChart Chart;
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
+        public override void Initialize(int totalPlayers, int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
         {
             if (IsInitialized)
@@ -213,7 +213,7 @@ namespace YARG.Gameplay.Player
             // Consolidate tracks into a parent object for animation purposes
             transform.SetParent(GameObject.Find("Visuals").transform);
 
-            base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
+            base.Initialize(totalPlayers, index, player, chart, trackView, mixer, currentHighScore);
 
             SetupTheme();
 

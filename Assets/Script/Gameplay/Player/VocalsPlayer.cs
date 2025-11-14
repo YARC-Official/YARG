@@ -64,7 +64,7 @@ namespace YARG.Gameplay.Player
 
         private SongChart _chart;
 
-        public void Initialize(int index, int vocalIndex, YargPlayer player, SongChart chart,
+        public void Initialize(int totalPlayers, int index, int vocalIndex, YargPlayer player, SongChart chart,
             VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore, float trackSpeed)
         {
             if (IsInitialized)
@@ -72,7 +72,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            base.Initialize(index, player, chart, lastHighScore);
+            base.Initialize(totalPlayers, index, player, chart, lastHighScore);
 
             // Save the chart
             _chart = chart;

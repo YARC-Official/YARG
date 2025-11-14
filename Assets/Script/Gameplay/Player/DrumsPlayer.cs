@@ -47,12 +47,12 @@ namespace YARG.Gameplay.Player
 
         private Dictionary<int, float> _fretToLastPressedTimeDelta = new Dictionary<int, float>();
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
+        public override void Initialize(int totalPlayers, int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
             int? currentHighScore)
         {
             // Before we do anything, see if we're in five lane mode or not
             _fiveLaneMode = player.Profile.CurrentInstrument == Instrument.FiveLaneDrums;
-            base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
+            base.Initialize(totalPlayers, index, player, chart, trackView, mixer, currentHighScore);
         }
 
         protected override InstrumentDifficulty<DrumNote> GetNotes(SongChart chart)
@@ -451,7 +451,7 @@ namespace YARG.Gameplay.Player
         private bool ShouldSwapSnareAndHiHat()
         {
             if (
-                (Player.Profile.GameMode is GameMode.FiveLaneDrums) ||
+                (Player.Profile.CurrentInstrument is Instrument.FiveLaneDrums) ||
                 (Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals)
             )
             {

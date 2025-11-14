@@ -239,14 +239,27 @@ namespace YARG.Menu.ProfileList
             {
                 // Disable if the child's gameObject.name is not found in possibleSettings
                 var child = _sidebarContent.transform.GetChild(i);
-                if (possibleSettings.Contains(child.gameObject.name))
+
+                (string setting, string? overrideText)? settingInfo = null;
+
+                foreach (var possibleSetting in possibleSettings)
                 {
-                    child.gameObject.SetActive(true);
+                    if (possibleSetting.setting == child.gameObject.name)
+                    {
+                        settingInfo = possibleSetting;
+                        break;
+                    }
                 }
 
-                else
+                if (settingInfo is null)
                 {
                     child.gameObject.SetActive(false);
+                } else {
+                    child.gameObject.SetActive(true);
+                    if (settingInfo.Value.overrideText is not null)
+                    {
+                        child.gameObject.transform.Find("Option Name").GetComponent<TextMeshProUGUI>().text = settingInfo.Value.overrideText;
+                    }
                 }
             }
         }
@@ -366,10 +379,29 @@ namespace YARG.Menu.ProfileList
         public void ChangeSplitProTomsAndCymbals()
         {
             _profile.SplitProTomsAndCymbals = _splitProTomsAndCymbals.isOn;
-            if (_profile.GameMode == GameMode.FourLaneDrums)
+
+            switch (_profile.GameMode)
             {
-                _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
-                _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_CRASH_AND_RIDE).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+                case GameMode.FourLaneDrums:
+                    _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+                    _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_CRASH_AND_RIDE).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+                    if (_profile.SplitProTomsAndCymbals)
+                    {
+                        _sidebarContent.transform
+                            .Find(ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT)
+                            .Find("Option Name")
+                            .GetComponent<TextMeshProUGUI>()
+                            .text = "SWAP SNARE AND HI-HAT LANES";
+                    }
+                    break;
+                case GameMode.EliteDrums:
+                    _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_CRASH_AND_RIDE).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
+                    _sidebarContent.transform
+                            .Find(ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT)
+                            .Find("Option Name")
+                            .GetComponent<TextMeshProUGUI>()
+                            .text = _profile.SplitProTomsAndCymbals ? "SWAP SNARE AND HI-HAT LANES" : "SWAP SNARE AND HI-HAT LANES IN 5-LANE";
+                    break;
             }
         }
 
