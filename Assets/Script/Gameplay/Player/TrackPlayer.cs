@@ -431,12 +431,6 @@ namespace YARG.Gameplay.Player
                 CameraPositioner.Scoop();
             }
 
-            if (SettingsManager.Settings.EnableTrackEffects.Value && currentStarPowerAmount > _previousStarPowerAmount)
-            {
-                StarPowerEffect.gameObject.SetActive(true);
-                StarPowerEffect.PlayAnimation();
-            }
-
             _previousStarPowerAmount = currentStarPowerAmount;
             _wasStarPowerActive = stats.IsStarPowerActive;
 
@@ -855,6 +849,12 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnStarPowerPhraseHit(TNote note)
         {
+            if (SettingsManager.Settings.EnableTrackEffects.Value)
+            {
+                StarPowerEffect.gameObject.SetActive(true);
+                StarPowerEffect.PlayAnimation();
+            }
+
             OnStarPowerPhraseHit();
         }
 
