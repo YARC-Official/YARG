@@ -64,7 +64,7 @@ namespace YARG.Gameplay.Player
 
         private SongChart _chart;
 
-        public void Initialize(int index, int vocalIndex, YargPlayer player, SongChart chart,
+        public void Initialize(int totalPlayers, int index, int vocalIndex, YargPlayer player, SongChart chart,
             VocalsPlayerHUD hud, VocalPercussionTrack percussionTrack, int? lastHighScore, float trackSpeed)
         {
             if (IsInitialized)
@@ -72,7 +72,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            base.Initialize(index, player, chart, lastHighScore);
+            base.Initialize(totalPlayers, index, player, chart, lastHighScore);
 
             // Save the chart
             _chart = chart;
@@ -201,9 +201,9 @@ namespace YARG.Gameplay.Player
                 {
                     IsFc = false;
                 }
-                
+
                 LastCombo = Combo;
-                
+
                 ShowTextNotifications(isLastPhrase);
 
                 // Order is important here. ShowVocalPhraseResult() will skip showing AWESOME! if other, more important notifications are already showing.
@@ -303,8 +303,15 @@ namespace YARG.Gameplay.Player
                 fill /= (float) EngineParams.PhraseHitPercent;
             }
 
+            // In multiplayer, don't double the score multiplier in the strikeline element
+            // Otherwise, it looks like the band multiplier applies on top of the score multiplier
+            var engineStats = Engine.EngineStats;
+            int displayMultiplier = TotalPlayers > 1 && engineStats.IsStarPowerActive
+                ? engineStats.ScoreMultiplier / 2
+                : engineStats.ScoreMultiplier;
+
             // Update HUD
-            _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier,
+            _hud.UpdateInfo(fill, displayMultiplier,
                 (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
         }
 
