@@ -62,6 +62,8 @@ namespace YARG.Gameplay
         /// </summary>
         public IReadOnlyList<YargPlayer> YargPlayers { get; private set;}
 
+        public int TotalPlayers => YargPlayers.Count(player => !player.SittingOut);
+
         private List<BasePlayer> _players;
 
         public bool IsSongStarted { get; private set; } = false;
