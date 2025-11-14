@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core;
@@ -377,6 +378,9 @@ namespace YARG.Gameplay
             {
                 _players = new List<BasePlayer>();
 
+                // Get total players (needed for setting UI values)
+                int totalPlayers = YargPlayers.Count(player => !player.SittingOut);
+
                 bool vocalTrackInitialized = false;
 
                 int index = -1;
@@ -433,7 +437,7 @@ namespace YARG.Gameplay
                         // Setup player
                         var trackPlayer = playerObject.GetComponent<TrackPlayer>();
                         var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
-                        trackPlayer.Initialize(highwayIndex, player, Chart, trackView, _mixer, lastHighScore);
+                        trackPlayer.Initialize(totalPlayers, highwayIndex, player, Chart, trackView, _mixer, lastHighScore);
 
                         _players.Add(trackPlayer);
                         _trackViewManager._highwayCameraRendering.AddTrackPlayer(trackPlayer);
@@ -465,7 +469,7 @@ namespace YARG.Gameplay
 
                         var percussionTrack = VocalTrack.CreatePercussionTrack();
                         percussionTrack.TrackSpeed = VocalTrack.TrackSpeed;
-                        vocalsPlayer.Initialize(index, vocalIndex, player, Chart, playerHud, percussionTrack, lastHighScore, VocalTrack.TrackSpeed);
+                        vocalsPlayer.Initialize(totalPlayers, index, vocalIndex, player, Chart, playerHud, percussionTrack, lastHighScore, VocalTrack.TrackSpeed);
 
                         _players.Add(vocalsPlayer);
                     }
