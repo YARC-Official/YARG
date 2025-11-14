@@ -378,9 +378,6 @@ namespace YARG.Gameplay
             {
                 _players = new List<BasePlayer>();
 
-                // Get total players (needed for setting UI values)
-                int totalPlayers = YargPlayers.Count(player => !player.SittingOut);
-
                 bool vocalTrackInitialized = false;
 
                 int index = -1;
