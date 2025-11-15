@@ -45,7 +45,8 @@ namespace YARG.Gameplay.Player
         private int[] _drumSoundEffectRoundRobin = new int[8];
         private float _drumSoundEffectAccentThreshold;
 
-        private Dictionary<int, float> _fretToLastPressedTimeDelta = new Dictionary<int, float>();
+        private Dictionary<int, float> _fretToLastPressedTimeDelta                                         = new();
+        private Dictionary<Fret.AnimType, Dictionary<int, float>> _animTypeToFretToLastPressedDelta = new();
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
             int? currentHighScore)
@@ -157,6 +158,9 @@ namespace YARG.Gameplay.Player
 
             // Initialize hit timestamps
             InitializeHitTimes();
+
+            // Initialize animation types
+            InitializeAnimTypes();
 
             base.FinishInitialization();
         }
@@ -302,7 +306,9 @@ namespace YARG.Gameplay.Player
 
             (NotePool.GetByKey(note) as DrumsNoteElement)?.HitNote();
 
-            AnimateFret(note.Pad);
+            // The AnimType doesn't actually matter here
+            // We handle the animation in OnPadHit instead
+            AnimateFret(note.Pad, Fret.AnimType.CorrectNormal);
         }
 
         protected override void OnNoteMissed(int index, DrumNote note)
@@ -342,12 +348,24 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void OnPadHit(DrumsAction action, bool wasNoteHit, float velocity)
+        private void OnPadHit(DrumsAction action, bool wasNoteHit, bool wasNoteHitCorrectly, DrumNoteType type, float velocity)
         {
             // Update last hit times for fret flashing animation
             if (action is not DrumsAction.Kick)
             {
-                ZeroOutHitTime(action);
+                // Play the correct hit animation based on dynamics
+                Fret.AnimType animType = Fret.AnimType.CorrectNormal;
+
+                if (DrumNoteType.Accent == type)
+                {
+                    animType = wasNoteHitCorrectly ? Fret.AnimType.CorrectHard : Fret.AnimType.TooHard;
+                }
+                else if (DrumNoteType.Ghost == type)
+                {
+                    animType = wasNoteHitCorrectly ? Fret.AnimType.CorrectSoft : Fret.AnimType.TooSoft;
+                }
+
+                ZeroOutHitTime(action, animType);
             }
 
             // Skip if a note was hit, because we have different logic for that below
@@ -470,6 +488,7 @@ namespace YARG.Gameplay.Player
         {
             base.UpdateVisuals(visualTime);
             UpdateHitTimes();
+            UpdateAnimTimes();
             UpdateFretArray();
         }
 
@@ -481,11 +500,25 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        private void InitializeAnimTypes()
+        {
+            foreach (Fret.AnimType animType in Enum.GetValues(typeof(Fret.AnimType)))
+            {
+                _animTypeToFretToLastPressedDelta[animType] = new Dictionary<int, float>();
+
+                for (int fret = 0; fret < _fretArray.FretCount; fret++)
+                {
+                    _animTypeToFretToLastPressedDelta[animType][fret] = float.MaxValue;
+                }
+            }
+        }
+
         // i.e., flash this fret by making it seem pressed
-        private void ZeroOutHitTime(DrumsAction action)
+        private void ZeroOutHitTime(DrumsAction action, Fret.AnimType animType)
         {
             int fret = GetFret(action);
             _fretToLastPressedTimeDelta[fret] = 0f;
+            _animTypeToFretToLastPressedDelta[animType][fret] = 0f;
         }
 
         private void UpdateHitTimes()
@@ -496,12 +529,50 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        private void UpdateAnimTimes()
+        {
+            foreach (Fret.AnimType animType in Enum.GetValues(typeof(Fret.AnimType)))
+            {
+                for (int fret = 0; fret < _fretArray.FretCount; fret++)
+                {
+                    _animTypeToFretToLastPressedDelta[animType][fret] += Time.deltaTime;
+                }
+            }
+        }
+
         private void UpdateFretArray()
         {
             for (int fret = 0; fret < _fretArray.FretCount; fret++)
             {
-                _fretArray.SetPressed(fret, _fretToLastPressedTimeDelta[fret] < DRUM_PAD_FLASH_HOLD_DURATION);
+                _fretArray.SetPressedDrum(fret, _fretToLastPressedTimeDelta[fret] < DRUM_PAD_FLASH_HOLD_DURATION, GetAnimType(fret));
+                _fretArray.UpdateAccentColorState(fret,
+                    _animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectHard][fret] <
+                    DRUM_PAD_FLASH_HOLD_DURATION);
             }
+        }
+
+        private Fret.AnimType GetAnimType(int fret)
+        {
+            // Prioritize the length of certain animations
+            if (_animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectNormal][fret] < DRUM_PAD_FLASH_HOLD_DURATION)
+            {
+                return Fret.AnimType.CorrectNormal;
+            }
+
+            // Don't hold an accent over a normal note
+            if (_animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectHard][fret] < DRUM_PAD_FLASH_HOLD_DURATION)
+            {
+                return Fret.AnimType.CorrectHard;
+            }
+
+            // Don't cut a bright anim short if a ghost is played
+            if (_animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectSoft][fret] < DRUM_PAD_FLASH_HOLD_DURATION)
+            {
+                return Fret.AnimType.CorrectSoft;
+            }
+
+            // TODO: Add visuals for wrong amounts of velocity
+            return Fret.AnimType.CorrectNormal;
         }
 
         private void AnimateAction(DrumsAction action)
@@ -535,7 +606,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void AnimateFret(int pad)
+        private void AnimateFret(int pad, Fret.AnimType animType)
         {
             // Four and five lane drums have the same kick value
             if (pad == (int) FourLaneDrumPad.Kick)

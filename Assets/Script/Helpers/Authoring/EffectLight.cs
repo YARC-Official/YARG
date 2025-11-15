@@ -35,7 +35,12 @@ namespace YARG.Helpers.Authoring
         private Light _light;
 
         private float _initialIntensity;
-        private bool  _playing;
+
+        private float BrightIntensity => _initialIntensity * 5;
+
+        public bool IsBrightened { get; set; }
+
+        private bool _playing;
 
         private float _totalDuration;
         private float _timeRemaining;
@@ -61,7 +66,7 @@ namespace YARG.Helpers.Authoring
             // Normal mode
             if (_mode == Mode.Normal && _light.intensity > 0f)
             {
-                _light.intensity = _initialIntensity * (_timeRemaining > 0f ? 1f : 0f);
+                _light.intensity = GetIntensity() * (_timeRemaining > 0f ? 1f : 0f);
                 _timeRemaining -= Time.deltaTime;
             }
 
@@ -75,13 +80,13 @@ namespace YARG.Helpers.Authoring
             if (_mode == Mode.Wavy && _playing)
             {
                 // TODO: Maybe allow customizing this?
-                _light.intensity = _initialIntensity +
+                _light.intensity = GetIntensity() +
                     Mathf.Sin(Time.time * 30f) * 0.075f +
                     Mathf.Sin(Time.time * 40f) * 0.075f;
             }
         }
 
-        public void SetColor(Color c)
+        public void InitializeColor(Color c)
         {
             if (!_allowColoring) return;
 
@@ -90,7 +95,7 @@ namespace YARG.Helpers.Authoring
 
         public void Play()
         {
-            _light.intensity = _initialIntensity;
+            _light.intensity = GetIntensity();
             _timeRemaining = _totalDuration;
             _playing = true;
         }
@@ -103,6 +108,11 @@ namespace YARG.Helpers.Authoring
             }
 
             _playing = false;
+        }
+
+        private float GetIntensity()
+        {
+            return IsBrightened ? BrightIntensity : _initialIntensity;
         }
     }
 }
