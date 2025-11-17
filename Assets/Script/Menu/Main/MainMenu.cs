@@ -4,6 +4,7 @@ using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Localization;
+using YARG.Menu.Dialogs;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Settings;
 using YARG.Menu.Navigation;
@@ -17,6 +18,7 @@ namespace YARG.Menu.Main
     {
         private static bool _antiPiracyDialogShown;
         private static bool _blurbPlayed;
+        private static OneTimeMessageDialog _antiPiracyDialog;
 
         [SerializeField]
         private TextMeshProUGUI _versionText;
@@ -29,7 +31,7 @@ namespace YARG.Menu.Main
             // Also only show it once per game launch
             if (!_antiPiracyDialogShown && SettingsManager.Settings.ShowAntiPiracyDialog)
             {
-                DialogManager.Instance.ShowOneTimeMessage(
+                _antiPiracyDialog = DialogManager.Instance.ShowOneTimeMessage(
                     "Menu.Dialog.AntiPiracy",
                     () =>
                     {
@@ -54,9 +56,15 @@ namespace YARG.Menu.Main
                 new NavigationScheme.Entry(MenuAction.Select, "Menu.Main.GoToCurrentlyPlaying", CurrentlyPlaying),
             }, true));
 
-            await UniTask.WaitUntil(() => !LoadingScreen.IsActive);
             if (!_blurbPlayed)
             {
+                await UniTask.WaitUntil(() => !LoadingScreen.IsActive);
+                if (_antiPiracyDialog != null)
+                {
+                    await _antiPiracyDialog.WaitUntilClosed();
+                    _antiPiracyDialog = null;
+                }
+                
                 _blurbPlayed = true;
                 GlobalAudioHandler.PlayVoxSample(VoxSample.YargTitleBlurb);
             }
@@ -80,8 +88,6 @@ namespace YARG.Menu.Main
             MusicLibraryMenu.LibraryMode = MusicLibraryMode.QuickPlay;
 
             menu.gameObject.SetActive(true);
-
-            //GlobalAudioHandler.PlayVoxSample(VoxSample.MenuLibrary);
         }
 
         public void Practice()
@@ -91,8 +97,6 @@ namespace YARG.Menu.Main
             MusicLibraryMenu.LibraryMode = MusicLibraryMode.Practice;
 
             menu.gameObject.SetActive(true);
-
-            //GlobalAudioHandler.PlayVoxSample(VoxSample.MenuLibrary);
         }
 
         public void Profiles()
