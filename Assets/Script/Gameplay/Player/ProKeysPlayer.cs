@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -12,6 +13,7 @@ using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Visuals;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
@@ -142,6 +144,9 @@ namespace YARG.Gameplay.Player
             engine.OnKeyStateChange += OnKeyStateChange;
 
             engine.OnCountdownChange += OnCountdownChange;
+
+            // Enable note timing statistics if the setting is enabled
+            engine.EngineStats.RecordTimingStatistics = SettingsManager.Settings.EnableAdvancedStatisticsOnScorecard.Value;
 
             return engine;
         }

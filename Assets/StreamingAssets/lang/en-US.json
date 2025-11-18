@@ -993,6 +993,10 @@
                 "PauseName": "Master",
                 "Description": "Adjusts the song's volume as a whole."
             },
+            "EnableAdvancedStatisticsOnScorecard": {
+                "Name": "Enable Advanced Statistics on Scorecard",
+                "Description": "If enabled, displays advanced timing statistics (accuracy, deviation, grade counts) on the score screen."
+            },
             "MinimumLogLevel": {
                 "Name": "Minimum Log Level",
                 "Description": "Controls how much information is written to log files.",
@@ -1744,6 +1748,22 @@
                 "HitWindow": {
                     "Name": "Hit Window",
                     "Description": "The size of the hit window, in milliseconds. Higher values allow notes to be hit earlier/later, smaller values require more precise timing."
+                },
+                "PerfectThresholdPercent": {
+                    "Name": "Perfect Threshold (%)",
+                    "Description": "The percentage of the hit window (from center) considered a Perfect hit. Lower values require more precision."
+                },
+                "GreatThresholdPercent": {
+                    "Name": "Great Threshold (%)",
+                    "Description": "The percentage of the hit window (from center) considered a Great hit. Must be greater than Perfect threshold."
+                },
+                "GoodThresholdPercent": {
+                    "Name": "Good Threshold (%)",
+                    "Description": "The percentage of the hit window (from center) considered a Good hit. Must be greater than Great threshold."
+                },
+                "PoorThresholdPercent": {
+                    "Name": "Poor Threshold (%)",
+                    "Description": "The percentage of the hit window (from center) considered a Poor hit. Must be greater than Good threshold."
                 },
                 "HopoLeniency": {
                     "Name": "HOPO Leniency",

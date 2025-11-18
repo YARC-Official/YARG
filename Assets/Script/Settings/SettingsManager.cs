@@ -226,6 +226,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
+                nameof(Settings.EnableAdvancedStatisticsOnScorecard),
             }
         };
 

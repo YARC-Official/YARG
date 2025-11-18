@@ -10,6 +10,7 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Settings;
 using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
@@ -295,6 +296,14 @@ namespace YARG.Menu.Settings
             if (!_ready)
             {
                 return;
+            }
+
+            // Validate all presets
+            var validationErrors = CustomContentManager.ValidateAll();
+            if (validationErrors.Count > 0)
+            {
+                // Show first validation error
+                DialogManager.Instance.ShowMessage("Invalid Preset Settings", validationErrors[0]);
             }
 
             // Set the current tab back to null to avoid calling OnTabExit twice

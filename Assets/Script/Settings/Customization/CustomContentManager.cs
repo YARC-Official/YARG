@@ -65,5 +65,18 @@ namespace YARG.Settings.Customization
                 content.SaveAll();
             }
         }
+
+        /// <summary>
+        /// Validates all custom presets. Returns a list of error messages for invalid presets.
+        /// </summary>
+        public static List<string> ValidateAll()
+        {
+            var errors = new List<string>();
+            foreach (var content in CustomContentContainers)
+            {
+                errors.AddRange(content.ValidateAll());
+            }
+            return errors;
+        }
     }
 }

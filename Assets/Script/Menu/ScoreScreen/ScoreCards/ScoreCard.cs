@@ -9,6 +9,7 @@ using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Localization;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -62,6 +63,26 @@ namespace YARG.Menu.ScoreScreen
         private TextMeshProUGUI _starpowerPhrases;
         [SerializeField]
         private TextMeshProUGUI _bandBonusScore;
+
+        [Space]
+        [Header("Advanced Stats")]
+        [SerializeField]
+        private GameObject _advancedStatsContainer;
+        [SerializeField]
+        private GameObject _advancedStatsSeparator;
+        [SerializeField]
+        private TextMeshProUGUI _timingAccuracy;
+        [SerializeField]
+        private TextMeshProUGUI _timingPrecision;
+
+        [SerializeField]
+        private TextMeshProUGUI _perfectNotesCount;
+        [SerializeField]
+        private TextMeshProUGUI _greatNotesCount;
+        [SerializeField]
+        private TextMeshProUGUI _goodNotesCount;
+        [SerializeField]
+        private TextMeshProUGUI _poorNotesCount;
 
         private ScoreCardColorizer _colorizer;
 
@@ -155,6 +176,50 @@ namespace YARG.Menu.ScoreScreen
 
                 var icon = Instantiate(_modifierIconPrefab, _modifierIconContainer);
                 icon.InitializeForModifier(modifier);
+            }
+
+            // Advanced timing stats (optional UI fields)
+            // Show/hide based on setting
+            bool showAdvancedStats = SettingsManager.Settings.EnableAdvancedStatisticsOnScorecard.Value;
+            
+            if (_advancedStatsContainer != null)
+            {
+                _advancedStatsContainer.SetActive(showAdvancedStats);
+            }
+            
+            if (_advancedStatsSeparator != null)
+            {
+                _advancedStatsSeparator.SetActive(showAdvancedStats);
+            }
+
+            if (_timingAccuracy != null)
+            {
+                _timingAccuracy.text = $"{Stats.GetAverageOffset():+0.00;-0.00;0.00} ms";
+            }
+
+            if (_timingPrecision != null)
+            {
+                _timingPrecision.text = $"{Stats.GetStandardDeviation():0.00} ms";
+            }
+
+            if (_perfectNotesCount != null)
+            {
+                _perfectNotesCount.text = $"{Stats.NotesPerfect}";
+            }
+
+            if (_greatNotesCount != null)
+            {
+                _greatNotesCount.text = $"{Stats.NotesGreat}";
+            }
+
+            if (_goodNotesCount != null)
+            {
+                _goodNotesCount.text = $"{Stats.NotesGood}";
+            }
+
+            if (_poorNotesCount != null)
+            {
+                _poorNotesCount.text = $"{Stats.NotesPoor}";
             }
         }
 

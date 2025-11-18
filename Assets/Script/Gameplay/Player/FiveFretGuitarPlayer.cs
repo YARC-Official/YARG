@@ -140,6 +140,9 @@ namespace YARG.Gameplay.Player
 
             engine.OnCountdownChange += OnCountdownChange;
 
+            // Enable note timing statistics if the setting is enabled
+            engine.EngineStats.RecordTimingStatistics = SettingsManager.Settings.EnableAdvancedStatisticsOnScorecard.Value;
+
             return engine;
         }
 

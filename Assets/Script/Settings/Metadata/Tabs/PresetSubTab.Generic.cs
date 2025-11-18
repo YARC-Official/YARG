@@ -323,9 +323,13 @@ namespace YARG.Settings.Metadata
                 // Create the other fields
                 foreach (var windowField in _hitWindowFields)
                 {
-                    // Every field should not be added if it is not a dynamic window (except for the ratio)
+                    // Every field should not be added if it is not a dynamic window (except for the ratio and timing thresholds)
                     if (!hitWindow.IsDynamic &&
-                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.FrontToBackRatio))
+                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.FrontToBackRatio) &&
+                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.PerfectThresholdPercent) &&
+                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.GreatThresholdPercent) &&
+                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.GoodThresholdPercent) &&
+                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.PoorThresholdPercent))
                     {
                         continue;
                     }

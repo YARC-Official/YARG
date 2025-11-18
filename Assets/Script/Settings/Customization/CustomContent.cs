@@ -45,6 +45,8 @@ namespace YARG.Settings.Customization
 
         public abstract void SaveAll();
 
+        public abstract List<string> ValidateAll();
+
         public abstract BasePreset GetBasePresetById(Guid guid);
         public abstract bool HasPresetId(Guid guid);
 
@@ -295,6 +297,21 @@ namespace YARG.Settings.Customization
                     YargLogger.LogException(ex, $"Failed to save preset file '{preset.Name}'");
                 }
             }
+        }
+
+        public override List<string> ValidateAll()
+        {
+            var errors = new List<string>();
+            foreach (var preset in CustomPresets)
+            {
+                var error = preset.Validate();
+                if (error != null)
+                {
+                    YargLogger.LogError($"Failed to validate preset file '{preset.Name}': {error}");
+                    errors.Add($"Failed to validate preset '{preset.Name}': {error}");
+                }
+            }
+            return errors;
         }
 
         public T GetPresetById(Guid guid)

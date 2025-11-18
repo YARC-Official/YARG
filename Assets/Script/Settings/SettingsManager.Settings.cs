@@ -481,6 +481,8 @@ namespace YARG.Settings
                 BandComboType.Strict
             };
 
+            public ToggleSetting EnableAdvancedStatisticsOnScorecard { get; } = new(false);
+
             #endregion
 
             #region Callbacks
