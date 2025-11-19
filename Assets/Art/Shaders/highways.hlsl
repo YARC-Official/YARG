@@ -108,7 +108,7 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
     // (x', y', z') = sin(d / R) * (R + y - t_y) / d * (x - t_x, 0, z - t_z) + (t_x, cos(d / R) * (R + y - t_y) - R + t_y, t_z)
     // Where (x', y', z') is the transformation of (x, y, z) when curving the world around a sphere with radius R whose top is at (t_x, t_y, t_z).
     //
-    // Adjusting for the circle (removing Z) we get
+    // Adjusting for the circle (removing Z) we get`
     // d = sqrt((x - t_x) * (x - t_x))
     // (x', y') = sin(d / R) * (R + y - t_y) / d * (x - t_x, 0) + (t_x, cos(d / R) * (R + y - t_y) - R + t_y)
 

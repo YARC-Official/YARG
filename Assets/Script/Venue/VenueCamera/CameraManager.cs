@@ -61,6 +61,8 @@ namespace YARG.Venue.VenueCamera
             Behind
         }
 
+        public CameraCutEvent CurrentCut { get; private set; }
+
         private readonly HashSet<CameraLocation> _validLocations = new();
 
         private readonly Dictionary<CameraCutEvent.CameraCutSubject, CameraLocation> _cameraLocationLookup = new()
@@ -204,6 +206,11 @@ namespace YARG.Venue.VenueCamera
             var firstEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
             CurrentEffect = firstEffect;
 
+            if (_cameraCuts.Count > 0)
+            {
+                CurrentCut = _cameraCuts[0];
+            }
+
             InitializePostProcessing();
             InitializeVolume();
 
@@ -259,8 +266,9 @@ namespace YARG.Venue.VenueCamera
             while (_currentCutIndex < _cameraCuts.Count && _cameraCuts[_currentCutIndex].Time <= GameManager.VisualTime)
             {
                 var cut = _cameraCuts[_currentCutIndex];
-                if (GameManager.VisualTime >= cut.Time) // && GameManager.VisualTime <= cut.TimeEnd)
+                if (GameManager.VisualTime >= cut.Time)
                 {
+                    CurrentCut = cut;
                     SwitchCamera(MapSubjectToValidCamera(cut));
                 }
 

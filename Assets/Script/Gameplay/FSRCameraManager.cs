@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using FidelityFX;
 using FidelityFX.FSR3;
@@ -396,7 +397,7 @@ namespace YARG.Gameplay
         {
             cmd = CommandBufferPool.Get("fsr3_execute");
 
-            _fsr._dispatchDescription.Color = new FidelityFX.ResourceView(renderingData.cameraData.renderer.cameraColorTarget, RenderTextureSubElement.Color);
+            _fsr._dispatchDescription.Color = new FidelityFX.ResourceView(renderingData.cameraData.renderer.cameraColorTargetHandle, RenderTextureSubElement.Color);
             _fsr._dispatchDescription.Depth = new FidelityFX.ResourceView(Shader.GetGlobalTexture(motionTexturePropertyID), RenderTextureSubElement.Depth);
             _fsr._dispatchDescription.MotionVectors = new FidelityFX.ResourceView(Shader.GetGlobalTexture(motionTexturePropertyID));
 
@@ -422,7 +423,7 @@ namespace YARG.Gameplay
     // This is executed after everything is already rendered
     // Note that render pipeline will do its own upscaling and blit and we're
     // overwriting that basically. I don't believe there is a way to remove that builtin blit
-    // without using our own render pipeline 
+    // without using our own render pipeline
     class BlitPass : ScriptableRenderPass
     {
         private CommandBuffer cmd;
@@ -433,6 +434,7 @@ namespace YARG.Gameplay
             renderPassEvent = RenderPassEvent.AfterRendering + 5;
         }
 
+        [Obsolete]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             cmd = CommandBufferPool.Get("FSR Blit");
@@ -456,7 +458,7 @@ namespace YARG.Gameplay
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             cmd = CommandBufferPool.Get("FSR CopyColorOpaque");
-            Blit(cmd, renderingData.cameraData.renderer.cameraColorTarget, _fsr._opaqueOnlyColorBuffer);
+            Blit(cmd, renderingData.cameraData.renderer.cameraColorTargetHandle, _fsr._opaqueOnlyColorBuffer);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -476,7 +478,7 @@ namespace YARG.Gameplay
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             cmd = CommandBufferPool.Get("FSR CopyColorTrans");
-            Blit(cmd, renderingData.cameraData.renderer.cameraColorTarget, _fsr._afterOpaqueOnlyColorBuffer);
+            Blit(cmd, renderingData.cameraData.renderer.cameraColorTargetHandle, _fsr._afterOpaqueOnlyColorBuffer);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
