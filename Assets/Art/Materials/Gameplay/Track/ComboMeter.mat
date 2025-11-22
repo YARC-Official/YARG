@@ -10,15 +10,20 @@ Material:
   m_Name: ComboMeter
   m_Shader: {fileID: -6465566751694194690, guid: 79e7405a02986a6488920e8d984f9a32,
     type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
+  - _EMISSION
   - _SURFACE_TYPE_TRANSPARENT
-  m_LightmapFlags: 0
+  m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 3025
   stringTagMap: {}
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -58,6 +63,7 @@ Material:
     - _GhostingColor: {r: 0.83599997, g: 0.390945, b: 0.073048525, a: 0}
     - _MultiplierColor: {r: 0, g: 0.49657398, b: 0.6886792, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &5244806678584741943
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -70,4 +76,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 7
+  version: 10

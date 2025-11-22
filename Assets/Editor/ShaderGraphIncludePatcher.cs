@@ -3,75 +3,78 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-[InitializeOnLoad]
-public static class ShaderGraphIncludePatcher
+namespace YARG.Editor
 {
-    static ShaderGraphIncludePatcher()
+    [InitializeOnLoad]
+    public static class ShaderGraphIncludePatcher
     {
-        PatchIncludeCollection();
-    }
-
-    static void PatchIncludeCollection()
-    {
-        try
+        static ShaderGraphIncludePatcher()
         {
-            // Find the UniversalTarget type
-            var shaderGraphAssembly = typeof(UnityEditor.Rendering.Universal.ShaderGraph.MaterialType).Assembly;
+            PatchIncludeCollection();
+        }
 
-            var targetType = shaderGraphAssembly.GetType("UnityEditor.Rendering.Universal.ShaderGraph.CoreIncludes");
-            if (targetType == null)
+        static void PatchIncludeCollection()
+        {
+            try
             {
-                Debug.LogError("UniversalTarget type not found");
-                return;
-            }
+                // Find the UniversalTarget type
+                var shaderGraphAssembly = typeof(UnityEditor.Rendering.Universal.ShaderGraph.MaterialType).Assembly;
 
-            var guid = AssetDatabase.AssetPathToGUID("Assets/Art/Shaders/ShaderGraph/Includes/Varyings.hlsl");
-
-            foreach (var f in targetType.GetFields(BindingFlags.Public | BindingFlags.Static))
-            {
-                if (f.FieldType.Name != "IncludeCollection")
+                var targetType = shaderGraphAssembly.GetType("UnityEditor.Rendering.Universal.ShaderGraph.CoreIncludes");
+                if (targetType == null)
                 {
-                    continue;
+                    Debug.LogError("UniversalTarget type not found");
+                    return;
                 }
-                var value = f.GetValue(null);
 
-                if (value != null)
+                var guid = AssetDatabase.AssetPathToGUID("Assets/Art/Shaders/ShaderGraph/Includes/Varyings.hlsl");
+
+                foreach (var f in targetType.GetFields(BindingFlags.Public | BindingFlags.Static))
                 {
-                    // Get the internal list
-                    var listField = value.GetType().GetField("includes", BindingFlags.NonPublic | BindingFlags.Instance);
-                    if (listField == null)
+                    if (f.FieldType.Name != "IncludeCollection")
                     {
-                        Debug.LogError("IncludeCollection.includes field not found");
                         continue;
                     }
+                    var value = f.GetValue(null);
 
-                    var includes = listField.GetValue(value) as System.Collections.IList;
-                    if (includes == null)
+                    if (value != null)
                     {
-                        Debug.LogError("Includes list is null");
-                        continue;
-                    }
-
-                    foreach (var include in includes)
-                    {
-                        var includeType = include.GetType();
-                        var guidField = includeType.GetField("_guid", BindingFlags.NonPublic | BindingFlags.Instance);
-                        var pathField = includeType.GetField("_path", BindingFlags.NonPublic | BindingFlags.Instance);
-                        Debug.Assert(guidField != null && pathField != null);
-                        if (pathField.GetValue(include) as string == "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl")
+                        // Get the internal list
+                        var listField = value.GetType().GetField("includes", BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (listField == null)
                         {
-                            guidField.SetValue(include, guid);
-                            Debug.LogFormat("✅ Patched {0} to use custom Varyings.hlsl", f.Name);
+                            Debug.LogError("IncludeCollection.includes field not found");
+                            continue;
+                        }
+
+                        var includes = listField.GetValue(value) as System.Collections.IList;
+                        if (includes == null)
+                        {
+                            Debug.LogError("Includes list is null");
+                            continue;
+                        }
+
+                        foreach (var include in includes)
+                        {
+                            var includeType = include.GetType();
+                            var guidField = includeType.GetField("_guid", BindingFlags.NonPublic | BindingFlags.Instance);
+                            var pathField = includeType.GetField("_path", BindingFlags.NonPublic | BindingFlags.Instance);
+                            Debug.Assert(guidField != null && pathField != null);
+                            if (pathField.GetValue(include) as string == "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl")
+                            {
+                                guidField.SetValue(include, guid);
+                                Debug.LogFormat("✅ Patched {0} to use custom Varyings.hlsl", f.Name);
+                            }
+
                         }
 
                     }
-
                 }
             }
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError("ShaderGraph patch failed: " + ex);
+            catch (Exception ex)
+            {
+                Debug.LogError("ShaderGraph patch failed: " + ex);
+            }
         }
     }
 }

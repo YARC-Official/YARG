@@ -292,12 +292,25 @@ namespace YARG.Gameplay.Player
         private void ShowOutOfRangeFlasher(int key)
         {
             var currentRange = _rangeShifts[_rangeShiftIndex-1];
-            if (key < currentRange.Key)
+
+            var (minimumKeyInRange, maximumKeyInRange) = currentRange.Key switch
+            {
+                ProKeysUtilities.LOW_C => (ProKeysUtilities.LOW_C, ProKeysUtilities.HIGH_E),
+                ProKeysUtilities.LOW_D => (ProKeysUtilities.LOW_C_SHARP, ProKeysUtilities.HIGH_F_SHARP),
+                ProKeysUtilities.LOW_E => (ProKeysUtilities.LOW_D_SHARP, ProKeysUtilities.HIGH_G_SHARP),
+                ProKeysUtilities.LOW_F => (ProKeysUtilities.LOW_F, ProKeysUtilities.HIGH_A_SHARP),
+                ProKeysUtilities.LOW_G => (ProKeysUtilities.LOW_F_SHARP, ProKeysUtilities.HIGH_B),
+                ProKeysUtilities.LOW_A => (ProKeysUtilities.LOW_G_SHARP, ProKeysUtilities.HIGH_C),
+                _ => (currentRange.Key, currentRange.Key + 16) // Should never happen, but might as well have a naive fallback
+            };
+
+            if (key < minimumKeyInRange)
             {
                 _leftOutOfRangeTween.Restart();
             }
-            else if (key > currentRange.Key + 16)
+            else if (key > maximumKeyInRange)
             {
+
                 _rightOutOfRangeTween.Restart();
             }
         }

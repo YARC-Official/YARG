@@ -22,7 +22,7 @@ namespace YARG.Gameplay
         protected void Awake()
         {
             // Retrieve the game manager
-            GameManager = FindObjectOfType<GameManager>();
+            GameManager = FindAnyObjectByType<GameManager>();
             if (GameManager == null)
             {
                 YargLogger.LogFormatWarning("Gameplay object {0} was instantiated outside of the gameplay scene!", gameObject.name);

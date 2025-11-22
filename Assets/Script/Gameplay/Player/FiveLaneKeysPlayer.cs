@@ -314,6 +314,18 @@ namespace YARG.Assets.Script.Gameplay.Player
             return false;
         }
 
+        protected override void OnInputQueued(GameInput input)
+        {
+            base.OnInputQueued(input);
+
+            // Update the whammy factor
+            if (_sustainCount > 0 && input.GetAction<ProKeysAction>() == ProKeysAction.TouchEffects)
+            {
+                WhammyFactor = Mathf.Clamp01(input.Axis);
+                GameManager.ChangeStemWhammyPitch(_stem, WhammyFactor);
+            }
+        }
+
         protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
         {
             ((FiveLaneKeysNoteElement) poolable).NoteRef = note;
@@ -382,6 +394,14 @@ namespace YARG.Assets.Script.Gameplay.Player
             if (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote)
             {
                 _fretArray.SetSustained((int) note.FiveLaneKeysAction, false);
+            }
+
+            _sustainCount--;
+
+            if (_sustainCount == 0)
+            {
+                WhammyFactor = 0;
+                GameManager.ChangeStemWhammyPitch(_stem, 0);
             }
         }
 

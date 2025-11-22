@@ -14,7 +14,7 @@ namespace YARG.Gameplay.Visuals
     [RequireComponent(typeof(Camera))]
     public class HighwayCameraRendering : MonoBehaviour
     {
-        public const int MAX_MATRICES = 128;
+        public const int MAX_MATRICES = 32;
 
         [SerializeField]
         private RawImage _highwaysOutput;

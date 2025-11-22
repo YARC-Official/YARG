@@ -83,6 +83,18 @@ namespace YARG.Menu.ProfileList
                 _moveUpButton.colors = upOriginal;
                 _moveDownButton.colors = downOriginal;
             }
+            else if (!_profileListMenu.CanConnectProfile)
+            {
+                // Make the connect button gray if we have reached the connected profile cap
+                var connectButton = _connectGroup.GetComponentInChildren<ColoredButton>();
+                connectButton.DisableButton();
+            }
+            else
+            {
+                // In case the button was disabled before
+                var connectButton = _connectGroup.GetComponentInChildren<ColoredButton>();
+                connectButton.EnableButton();
+            }
 
             _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
         }
@@ -314,7 +326,10 @@ namespace YARG.Menu.ProfileList
 
         public void ConnectButtonAction()
         {
-            Connect(true).Forget();
+            if (_profileListMenu.CanConnectProfile)
+            {
+                Connect(true).Forget();
+            }
         }
 
         public async UniTask Connect(bool resolveDevices)

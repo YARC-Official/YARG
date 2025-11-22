@@ -70,6 +70,8 @@ namespace YARG.Gameplay
 
         private List<BasePlayer> _players;
 
+        public int TotalPlayers => _players.Count;
+
         public bool IsSongStarted { get; private set; } = false;
 
         private SongRunner _songRunner;

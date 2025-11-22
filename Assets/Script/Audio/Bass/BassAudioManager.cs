@@ -21,7 +21,6 @@ namespace YARG.Audio.BASS
         public static StreamHandle? Create(int sourceStream, int[] indices)
         {
             const BassFlags splitFlags = BassFlags.Decode | BassFlags.SplitPosition;
-            const BassFlags tempoFlags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
 
             int[]? channelMap = null;
 #nullable disable
@@ -41,11 +40,11 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to create split stream: {0}!", Bass.LastError);
                 return null;
             }
-            return new StreamHandle(BassFx.TempoCreate(streamSplit, tempoFlags));
+            return new StreamHandle(streamSplit);
         }
 
-        private bool _disposed;
-        public readonly int Stream;
+        private          bool _disposed;
+        public readonly  int  Stream;
 
         public int CompressorFX;
         public int PitchFX;
@@ -400,7 +399,7 @@ namespace YARG.Audio.BASS
         {
             // The float flag allows >0dB signals.
             // Note that the compressor attempts to normalize signals >-2dB, but some mixes will pierce through.
-            mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Float);
+            mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Float | BassFlags.Decode);
             if (mixerHandle == 0)
             {
                 YargLogger.LogFormatError("Failed to create mixer: {0}!", Bass.LastError);
@@ -447,21 +446,21 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        internal static void SetSpeed(float speed, int streamHandle, int reverbHandle, bool shiftPitch)
+        internal static void SetSpeed(float speed, int streamHandle, bool shiftPitch)
         {
             // Gets relative speed from 100% (so 1.05f = 5% increase)
             float percentageSpeed = speed * 100;
             float relativeSpeed = percentageSpeed - 100;
 
-            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Tempo, relativeSpeed) ||
-                !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Tempo, relativeSpeed))
+
+            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Tempo, relativeSpeed))
             {
                 YargLogger.LogFormatError("Failed to set channel speed: {0}!", Bass.LastError);
             }
 
             if (GlobalAudioHandler.IsChipmunkSpeedup && shiftPitch)
             {
-                SetChipmunking(speed, streamHandle, reverbHandle);
+                SetChipmunking(speed, streamHandle);
             }
         }
 
@@ -499,21 +498,14 @@ namespace YARG.Audio.BASS
                     SetupPitchBend(pitchParams, reverbHandles);
                 }
             }
-
-            speed = (float) Math.Clamp(speed, 0.05, 50);
-            if (!Mathf.Approximately(speed, 1))
-            {
-                SetSpeed(speed, streamHandles.Stream, reverbHandles.Stream, true);
-            }
             return pitchParams;
         }
 
-        internal static void SetChipmunking(float speed, int streamHandle, int reverbHandle)
+        internal static void SetChipmunking(float speed, int streamHandle)
         {
             double accurateSemitoneShift = 12 * Math.Log(speed, 2);
             float finalSemitoneShift = (float) Math.Clamp(accurateSemitoneShift, -60, 60);
-            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Pitch, finalSemitoneShift) ||
-                !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Pitch, finalSemitoneShift))
+            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Pitch, finalSemitoneShift))
             {
                 YargLogger.LogFormatError("Failed to set channel pitch: {0}!", Bass.LastError);
             }
@@ -527,9 +519,6 @@ namespace YARG.Audio.BASS
                 YargLogger.LogError("Failed to set up pitch bend for main stream!");
                 return false;
             }
-
-            // Adjust the position to account for inherent pitch fx delay
-            Bass.ChannelSetPosition(handles.Stream, GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2);
 
             return true;
         }

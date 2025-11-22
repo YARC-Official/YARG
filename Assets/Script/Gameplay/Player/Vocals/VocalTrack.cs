@@ -238,7 +238,7 @@ namespace YARG.Gameplay.Player
             // to increase the speed to keep the lyrics from being pushed too far out of sync.
             else if (!SettingsManager.Settings.StaticVocalsMode.Value)
             {
-                scalingFactor = GetScrollSpeedScalingFactor(vocalsTrack.Parts); ;
+                scalingFactor = GetScrollSpeedScalingFactor(vocalsTrack.Parts);
             }
 
             // If we're in static lyrics mode, we don't need to worry about checking the lyric offsets.
@@ -641,6 +641,7 @@ namespace YARG.Gameplay.Player
         }
 
         // Necessary for combining HARM2 and HARM3 in two-lane view
+        #nullable enable
         public struct VocalPhrasePair
         {
             public double Tick;
@@ -678,7 +679,7 @@ namespace YARG.Gameplay.Player
             // Percussion is only valid on Solo Vocals and HARM1, so the merged phrase can be assumed false
             public readonly bool IsPercussion => MainPhrase?.IsPercussion ?? false;
 
-            public readonly bool IsStarPower => MainPhrase?.IsStarPower ?? MergedPhrase.IsStarPower;
+            public readonly bool IsStarPower => MainPhrase?.IsStarPower ?? MergedPhrase!.IsStarPower;
 
             public double Duration => GetLastNoteTotalEndTime() - GetFirstNoteStartTime();
 
@@ -686,7 +687,7 @@ namespace YARG.Gameplay.Player
             {
                 if (MergedPhrase is null)
                 {
-                    return MainPhrase.PhraseParentNote.Time;
+                    return MainPhrase!.PhraseParentNote.Time;
                 }
                 if (MainPhrase is null)
                 {
@@ -701,7 +702,7 @@ namespace YARG.Gameplay.Player
             {
                 if (MergedPhrase is null)
                 {
-                    return MainPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
+                    return MainPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
                 }
                 if (MainPhrase is null)
                 {
@@ -759,5 +760,6 @@ namespace YARG.Gameplay.Player
 
             return phrasePairs;
         }
+        #nullable disable
     }
 }

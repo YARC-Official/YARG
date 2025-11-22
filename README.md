@@ -123,7 +123,7 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="0719", MODE="0666"
       - the main repository's URL (`https://github.com/YARC-Official/YARG`) if you just want to build the game.
       - A complete example using the main repository's URL is `git clone -b dev --recursive https://github.com/YARC-Official/YARG.git`.
    6. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
-4. Install Unity 2021.3.45f2. Easiest method will be using Unity Hub:
+4. Install Unity 6000.2.10f1. Easiest method will be using Unity Hub:
    1. Download and install [Unity Hub](https://unity.com/download).
    2. Sign-in/create an account with a personal license (free).
    3. In Unity Hub, hit the arrow next to Add and select `Add project from disk`, then select the folder you cloned YARG to.
@@ -139,35 +139,6 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="0719", MODE="0666"
 7. Click on `NuGet` on the top menu bar, then click on `Restore Packages`.
    - This should be performed automatically when Unity starts up, but it can be performend manually if needed.
 8. You're ready to go!
-
-### Linux
-
-On certain distributions of Linux, Unity 2021.3.36f1 editor is broken and the YARG project (or any other project for that matter) cannot be imported. When trying to open the project, Unity will freeze during the import process.
-
-   ![](Images/Contributing/Unity_Project_Import_Hang.png)
-
-To fix this issue, follow the steps below:
-
-1. Locate the Editor installation directory. By default, it is `${HOME}/Unity/Hub/Editor`, but it can be reconfigured in Unity Hub.
-2. Enter the `2021.3.36f1/Editor/Data` directory.
-3. Rename the `bee_backend` executable file to `bee_backend_real`.
-4. Create a new text file named `bee_backend`.
-5. Paste the following script into the `bee_backend` file:
-  ```bash
-  #!/bin/bash
-
-  args=("$@")
-  for ((i=0; i<"${#args[@]}"; ++i))
-  do
-      case ${args[i]} in
-          --stdin-canary)
-              unset args[i];
-              break;;
-      esac
-  done
-  ${0}_real "${args[@]}"
-  ```
-6. Launching the project should now work properly.
 
 ### Unity YAML Merge Tool
 

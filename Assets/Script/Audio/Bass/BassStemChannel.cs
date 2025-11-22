@@ -8,21 +8,19 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassStemChannel : StemChannel
     {
-        private int _sourceHandle;
-        private StreamHandle _streamHandles;
-        private StreamHandle _reverbHandles;
-        private PitchShiftParametersStruct _pitchParams;
+        private readonly int                        _sourceHandle;
+        private          StreamHandle               _streamHandles;
+        private          StreamHandle               _reverbHandles;
+        private          PitchShiftParametersStruct _pitchParams;
 
         private          double _volume;
         private          bool   _isReverbing;
         private readonly long   _length;
 
-        internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume,
-            in PitchShiftParametersStruct pitchParams, int sourceHandle, in StreamHandle streamHandles,
-            in StreamHandle reverbHandles)
+        internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume, int sourceStream, in PitchShiftParametersStruct pitchParams, in StreamHandle streamHandles, in StreamHandle reverbHandles)
             : base(manager, stem, clampStemVolume)
         {
-            _sourceHandle = sourceHandle;
+            _sourceHandle = sourceStream;
             _streamHandles = streamHandles;
             _reverbHandles = reverbHandles;
             _pitchParams = pitchParams;
@@ -75,7 +73,10 @@ namespace YARG.Audio.BASS
 
         protected override void SetPosition_Internal(double position)
         {
-            BassMix.SplitStreamReset(_sourceHandle);
+            if (_sourceHandle != 0)
+            {
+                BassMix.SplitStreamReset(_sourceHandle);
+            }
 
             long bytes = Bass.ChannelSeconds2Bytes(_streamHandles.Stream, position);
             if (bytes < 0)
@@ -90,52 +91,12 @@ namespace YARG.Audio.BASS
                 bytes = _length - 1;
             }
 
-            if (_streamHandles.PitchFX != 0)
-            {
-                //Account for inherent pitch shift delay
-                bytes += GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2;
-            }
 
             bool success = BassMix.ChannelSetPosition(_streamHandles.Stream, bytes, PositionFlags.Bytes | PositionFlags.MixerReset);
             if (!success)
             {
                 YargLogger.LogFormatError("Failed to seek to position {0} (bytes {1}, length {2}!", position, bytes, _length);
             }
-        }
-
-        protected override double GetPosition_Internal()
-        {
-            if (_streamHandles.Stream == 0)
-            {
-                return 0.0;
-            }
-
-            long position = BassMix.ChannelGetPosition(_streamHandles.Stream);
-            if (position < 0)
-            {
-                YargLogger.LogFormatError("Failed to get byte position: {0}!", Bass.LastError);
-                return 0.0;
-            }
-
-            if (_streamHandles.PitchFX != 0)
-            {
-                //Account for inherent pitch shift delay
-                position -= GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2;
-            }
-
-            double seconds = Bass.ChannelBytes2Seconds(_streamHandles.Stream, position);
-            if (seconds < 0)
-            {
-                YargLogger.LogFormatError("Failed to convert bytes to seconds: {0}!", Bass.LastError);
-                return 0.0;
-            }
-
-            return seconds;
-        }
-
-        protected override void SetSpeed_Internal(float speed, bool shiftPitch)
-        {
-            BassAudioManager.SetSpeed(speed, _streamHandles.Stream, _reverbHandles.Stream, shiftPitch);
         }
 
         protected override void SetVolume_Internal(double volume)
@@ -217,11 +178,6 @@ namespace YARG.Audio.BASS
         {
             _streamHandles.Dispose();
             _reverbHandles.Dispose();
-            if (_sourceHandle != 0)
-            {
-                if (!Bass.StreamFree(_sourceHandle) && Bass.LastError != Errors.Handle)
-                    YargLogger.LogFormatError("Failed to free file stream (THIS WILL LEAK MEMORY): {0}!", Bass.LastError);
-            }
         }
     }
 }
