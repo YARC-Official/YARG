@@ -67,6 +67,28 @@ namespace YARG.Gameplay.Visuals
         public bool Overlaps(TrackEffect other) => Time < other.TimeEnd && other.Time < TimeEnd;
         public bool Contains(TrackEffect other) => Time <= other.Time && other.TimeEnd <= TimeEnd;
 
+
+        public static void ExtendEffect(int effectIndex, double endTime, float noteSpeed, ref List<TrackEffect> effects)
+        {
+            var effect = effects[effectIndex];
+            effects[effectIndex].TimeEnd = endTime;
+
+            // Check if there is now overlap with the next effect
+            if (effectIndex + 1 < effects.Count)
+            {
+                var nextEffect = effects[effectIndex + 1];
+                if (effect.Overlaps(nextEffect))
+                {
+                    // There is overlap, so we need to slice the effect. Next doesn't have its end changed, so we don't have to worry about that
+                    var slicedEffects = SliceEffects(noteSpeed, effects.GetRange(effectIndex, 2));
+
+                    // Remove current and next from the list, and insert the sliced effects in their place
+                    effects.RemoveRange(effectIndex, 2);
+                    effects.InsertRange(effectIndex, slicedEffects);
+                }
+            }
+        }
+
         // Takes a list of track effects, sorts, slices, and dices, chops,
         // and blends in order to create just the right combination
         // of non-overlapping effects to delight and surprise users

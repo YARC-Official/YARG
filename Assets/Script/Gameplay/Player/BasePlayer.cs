@@ -108,7 +108,9 @@ namespace YARG.Gameplay.Player
         {
             _replayInputs = new List<GameInput>();
 
-            InputViewer = FindObjectOfType<BaseInputViewer>();
+            // TODO: Couldn't there be more than one input viewer?
+            //  We were using FindObjectOfType<BaseInputViewer> before anyway, so we're no worse off in that respect
+            InputViewer = FindFirstObjectByType<BaseInputViewer>();
 
             IsFc = true;
         }

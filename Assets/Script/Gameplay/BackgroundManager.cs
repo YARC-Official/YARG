@@ -307,7 +307,7 @@ namespace YARG.Gameplay
             if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
                 player.Play();
 
-            enabled = double.IsNaN(_videoEndTime);
+            enabled = !double.IsNaN(_videoEndTime);
             _videoSeeking = false;
         }
 

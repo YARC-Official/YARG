@@ -42,7 +42,7 @@ namespace YARG.Gameplay.HUD
 
         protected override void OnSongStarted()
         {
-            _failMeter = FindObjectOfType<FailMeter>();
+            _failMeter = FindAnyObjectByType<FailMeter>();
             _noFailText = _noFailButton.GetComponentInChildren<TextMeshProUGUI>();
             _editHudButton.gameObject.SetActive(GameManager.Players.Count <= 1);
         }

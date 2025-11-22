@@ -163,5 +163,29 @@ namespace YARG.Gameplay
         {
             UpdateFFT(_pixelData);
         }
+
+        protected override void GameplayDestroy()
+        {
+            // Dispose FFT stuff, but only after the FFT update has completed
+            _ = Destroy_Async();
+        }
+
+        private async UniTaskVoid Destroy_Async()
+        {
+            try
+            {
+                await _updateTask;
+            }
+            finally
+            {
+                if (_pixelData.IsCreated)
+                {
+                    _pixelData.Dispose();
+                }
+            }
+
+            Destroy(_soundTexture);
+            _soundTexture = null;
+        }
     }
 }

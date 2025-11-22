@@ -61,6 +61,8 @@ namespace YARG.Venue.VenueCamera
             Behind
         }
 
+        public CameraCutEvent CurrentCut { get; private set; }
+
         private readonly HashSet<CameraLocation> _validLocations = new();
 
         private readonly Dictionary<CameraCutEvent.CameraCutSubject, CameraLocation> _cameraLocationLookup = new()
@@ -111,6 +113,8 @@ namespace YARG.Venue.VenueCamera
         private List<Camera> _farCameras = new();
         private List<Camera> _frontCameras = new();
         private List<Camera> _behindCameras = new();
+
+        private bool _useCameraTimer;
 
         private float _cameraTimer;
         private int   _cameraIndex;
@@ -202,10 +206,17 @@ namespace YARG.Venue.VenueCamera
             var firstEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
             CurrentEffect = firstEffect;
 
+            if (_cameraCuts.Count > 0)
+            {
+                CurrentCut = _cameraCuts[0];
+            }
+
             InitializePostProcessing();
             InitializeVolume();
 
-            SwitchCamera(_currentCamera, _cameraCuts.Count < 1);
+            _useCameraTimer = _cameraCuts.Count < 1;
+
+            SwitchCamera(_currentCamera, _useCameraTimer);
 
             GameManager.SetVenueCameraManager(this);
         }
@@ -255,12 +266,18 @@ namespace YARG.Venue.VenueCamera
             while (_currentCutIndex < _cameraCuts.Count && _cameraCuts[_currentCutIndex].Time <= GameManager.VisualTime)
             {
                 var cut = _cameraCuts[_currentCutIndex];
-                if (GameManager.VisualTime >= cut.Time && GameManager.VisualTime <= cut.TimeEnd)
+                if (GameManager.VisualTime >= cut.Time)
                 {
+                    CurrentCut = cut;
                     SwitchCamera(MapSubjectToValidCamera(cut));
                 }
 
                 _currentCutIndex++;
+            }
+
+            if (!_useCameraTimer)
+            {
+                return;
             }
 
             // Update the camera timer

@@ -1,6 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.UI;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings.Visuals;
 using YARG.Settings.Types;
@@ -47,6 +48,11 @@ namespace YARG.Settings.Metadata
         {
             if (PreviewBuilder is not null)
             {
+                var image = uiContainer.GetComponent<Image>();
+                if (image != null)
+                {
+                    image.enabled = true;
+                }
                 return PreviewBuilder.BuildPreviewUI(uiContainer);
             }
 

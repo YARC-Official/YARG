@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using UnityEngine;
 using YARG.Helpers;
 using YARG.Localization;
@@ -37,7 +36,8 @@ namespace YARG.Settings.Types
                 var v2 = value.Value;
                 return v1.height == v2.height &&
                     v1.width == v2.width &&
-                    v1.refreshRate == v2.refreshRate;
+                    v1.refreshRateRatio.numerator == v2.refreshRateRatio.numerator &&
+                    v1.refreshRateRatio.denominator == v2.refreshRateRatio.denominator;
             }
 
             return value.HasValue == Value.HasValue;

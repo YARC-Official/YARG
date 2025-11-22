@@ -100,7 +100,7 @@ namespace YARG.Gameplay.HUD
 
 
             // attach the slider instances to the scene and apply the correct icon
-            for (int i = 0; i < _players.Count; i++)
+            for (int i = _players.Count - 1; i >= 0; i--)
             {
                 _playerSliders[i] = Instantiate(_sliderPrefab, _sliderContainer);
                 _needleSliders[i] = Instantiate(_needlePrefab, _sliderContainer);
@@ -152,11 +152,11 @@ namespace YARG.Gameplay.HUD
                 UpdateMeterFill();
             }
 
-            for (var i = 0; i < _players.Count; i++)
+            for (var i = _players.Count - 1; i >= 0; i--)
             {
                 int overlap = 0;
                 // Check if we will overlap another icon
-                for (var j = i; j < _players.Count; j++)
+                for (var j = i; j >= 0; j--)
                 {
                     if (j == i)
                     {

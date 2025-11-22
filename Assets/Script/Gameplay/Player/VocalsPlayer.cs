@@ -201,9 +201,9 @@ namespace YARG.Gameplay.Player
                 {
                     IsFc = false;
                 }
-                
+
                 LastCombo = Combo;
-                
+
                 ShowTextNotifications(isLastPhrase);
 
                 // Order is important here. ShowVocalPhraseResult() will skip showing AWESOME! if other, more important notifications are already showing.
@@ -303,8 +303,15 @@ namespace YARG.Gameplay.Player
                 fill /= (float) EngineParams.PhraseHitPercent;
             }
 
+            // In multiplayer, don't double the score multiplier in the strikeline element
+            // Otherwise, it looks like the band multiplier applies on top of the score multiplier
+            var engineStats = Engine.EngineStats;
+            int displayMultiplier = GameManager.TotalPlayers > 1 && engineStats.IsStarPowerActive
+                ? engineStats.ScoreMultiplier / 2
+                : engineStats.ScoreMultiplier;
+
             // Update HUD
-            _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier,
+            _hud.UpdateInfo(fill, displayMultiplier,
                 (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
         }
 

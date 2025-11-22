@@ -30,7 +30,7 @@ namespace YARG.Gameplay.Visuals
         {
             _zOffset = transform.localPosition.z;
 
-            _gameManager = FindObjectOfType<GameManager>();
+            _gameManager = FindAnyObjectByType<GameManager>();
 
             // If there is no game manager, we are in preview mode and none of this should happen
             if (_gameManager == null)

@@ -11,9 +11,10 @@ namespace YARG.Gameplay.Visuals
     {
         // TODO: MOST OF THIS CLASS IS TEMPORARY UNTIL THE TRACK TEXTURE SETTINGS ARE IN
 
-        private static readonly int _scrollProperty = Shader.PropertyToID("_Scroll");
+        private static readonly int _scrollProperty         = Shader.PropertyToID("_Scroll");
         private static readonly int _starpowerStateProperty = Shader.PropertyToID("_Starpower_State");
-        private static readonly int _wavinessProperty = Shader.PropertyToID("_Waviness");
+        private static readonly int _starpowerTimeProperty  = Shader.PropertyToID("_Starpower_Start_Time");
+        private static readonly int _wavinessProperty       = Shader.PropertyToID("_Waviness");
 
         private static readonly int _layer1ColorProperty = Shader.PropertyToID("_Layer_1_Color");
         private static readonly int _layer2ColorProperty = Shader.PropertyToID("_Layer_2_Color");
@@ -78,8 +79,22 @@ namespace YARG.Gameplay.Visuals
 
         [HideInInspector]
         public bool GrooveMode;
+
+        private bool _starpowerMode;
         [HideInInspector]
-        public bool StarpowerMode;
+        public bool StarpowerMode
+        {
+            get => _starpowerMode;
+            // When going from false to true, also set the starpower time
+            set
+            {
+                if (value && !_starpowerMode)
+                {
+                    _material.SetFloat(_starpowerTimeProperty, Time.time);
+                }
+                _starpowerMode = value;
+            }
+        }
         private GameManager _gameManager;
 
         public float StarpowerState
@@ -143,7 +158,7 @@ namespace YARG.Gameplay.Visuals
 
             if (StarpowerMode && SettingsManager.Settings.StarPowerHighwayFx.Value is StarPowerHighwayFxMode.On)
             {
-                StarpowerState = Mathf.Lerp(StarpowerState, 1f, Time.deltaTime * 2f);
+                StarpowerState = 1.0f;
             }
             else
             {
