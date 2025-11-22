@@ -16,15 +16,6 @@
       },
       "url": "https://package.openupm.com"
     },
-    "com.coplaydev.unity-mcp": {
-      "version": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "3.0.2"
-      },
-      "hash": "3a9ec4f1a6719b620c18f90ea9395c50348b9858"
-    },
     "com.cysharp.csprojmodifier": {
       "version": "https://github.com/Cysharp/CsprojModifier.git?path=src/CsprojModifier/Assets/CsprojModifier",
       "depth": 0,
@@ -355,16 +346,6 @@
     },
     "com.unity.toolchain.linux-x86_64": {
       "version": "2.0.10",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.sysroot": "2.0.10",
-        "com.unity.sysroot.linux-x86_64": "2.0.9"
-      },
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.toolchain.macos-arm64-linux-x86_64": {
-      "version": "2.0.5",
       "depth": 0,
       "source": "registry",
       "dependencies": {

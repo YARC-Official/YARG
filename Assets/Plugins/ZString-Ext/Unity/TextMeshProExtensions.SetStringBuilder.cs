@@ -1,5 +1,4 @@
-﻿#if ZSTRING_TEXTMESHPRO_SUPPORT
-using System;
+﻿using System;
 using TMPro;
 
 namespace Cysharp.Text
@@ -13,4 +12,3 @@ namespace Cysharp.Text
         }
     }
 }
-#endif

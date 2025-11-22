@@ -53,9 +53,9 @@ namespace YARG.Networking
         {
             try
             {
-                if (GraphicsSettings.renderPipelineAsset != null)
+                if (GraphicsSettings.defaultRenderPipeline != null)
                 {
-                    GraphicsSettings.renderPipelineAsset = null;
+                    GraphicsSettings.defaultRenderPipeline = null;
                 }
 
                 if (GraphicsSettings.defaultRenderPipeline != null)
