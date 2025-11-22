@@ -383,6 +383,13 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "com.veriorpies.parrelsync": {
+      "version": "https://github.com/VeriorPies/ParrelSync.git?path=/ParrelSync",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "610157ad762084380380148ba8ce14e266a6da97"
+    },
     "fidelityfx.fsr": {
       "version": "https://github.com/ndepoel/FSR3Unity.git?path=/Packages/fidelityfx.fsr",
       "depth": 0,

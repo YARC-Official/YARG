@@ -74,7 +74,7 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        public void BackToLibrary()
+        public virtual void BackToLibrary()
         {
             PauseMenuManager.Quit();
         }

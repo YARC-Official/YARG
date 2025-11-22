@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -22,6 +23,12 @@ namespace YARG.Gameplay.Player
         public int HighwayIndex { get; private set; }
 
         public YargPlayer Player { get; private set; }
+        
+        /// <summary>
+        /// Network player data for multiplayer. Only set for multiplayer games.
+        /// </summary>
+        private Networking.NetworkPlayerData _networkPlayerData;
+        private IRemotePlayerSimulation _remoteSimulation;
 
         public float NoteSpeed
         {
@@ -96,6 +103,8 @@ namespace YARG.Gameplay.Player
         protected int  LastCombo;
         protected bool IsStemMuted;
 
+        protected bool IsRemotePlayer => Player.Bindings == null;
+
         private List<GameInput> _replayInputs;
 
         private int _replayInputIndex;
@@ -166,6 +175,9 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            // All players (local and remote) now process inputs:
+            // - Local players: inputs from controller (via OnGameInput callback)
+            // - Remote players: inputs from network queue (via UpdateInputs)
             UpdateInputs(GameManager.InputTime);
             UpdateVisuals(GameManager.VisualTime);
         }
@@ -224,8 +236,12 @@ namespace YARG.Gameplay.Player
             // Video offset is already accounted for
             time += InputCalibration;
 
+            double evaluationTime = time;
+            bool runEngineUpdate = true;
+
             if (Player.IsReplay && GameManager.ReplayInfo != null)
             {
+                // REPLAY MODE: Process replay inputs
                 while (_replayInputIndex < ReplayInputs.Count)
                 {
                     var input = ReplayInputs[_replayInputIndex];
@@ -242,12 +258,27 @@ namespace YARG.Gameplay.Player
                     _replayInputIndex++;
                 }
             }
+            else if (Player.Bindings == null)
+            {
+                // Remote multiplayer players are simulated locally via NetworkPlayerData snapshots.
+                // Skip engine input processing to avoid generating artificial misses.
+                _remoteSimulation?.ApplyRemoteState(time);
+                evaluationTime = time;
+                runEngineUpdate = false;
+            }
+            // If Player.Bindings != null, inputs are queued via OnGameInput callback
 
-            BaseEngine.Update(time);
+            if (runEngineUpdate)
+            {
+                BaseEngine.Update(evaluationTime);
+            }
         }
 
         private void SubscribeToInputEvents()
         {
+            // Remote multiplayer players don't have Bindings (inputs are on their own machines)
+            if (Player.Bindings == null) return;
+            
             Player.Bindings.SubscribeToGameplayInputs(Player.Profile.GameMode, OnGameInput);
 
             Player.Bindings.DeviceAdded += OnDeviceAdded;
@@ -256,6 +287,9 @@ namespace YARG.Gameplay.Player
 
         private void UnsubscribeFromInputEvents()
         {
+            // Remote multiplayer players don't have Bindings (inputs are on their own machines)
+            if (Player.Bindings == null) return;
+            
             Player.Bindings.UnsubscribeFromGameplayInputs(Player.Profile.GameMode, OnGameInput);
 
             Player.Bindings.DeviceAdded -= OnDeviceAdded;
@@ -293,7 +327,53 @@ namespace YARG.Gameplay.Player
 
             InputsToSendOnResume.Clear();
         }
+        
+        /// <summary>
+        /// Sets the NetworkPlayerData reference for this player (used in multiplayer).
+        /// </summary>
+        public void SetNetworkPlayerData(Networking.NetworkPlayerData networkPlayerData)
+        {
+            _networkPlayerData = networkPlayerData;
+        }
 
+        internal Networking.NetworkPlayerData NetworkPlayerData => _networkPlayerData;
+
+        internal void RegisterRemoteSimulation(IRemotePlayerSimulation simulation)
+        {
+            _remoteSimulation = simulation;
+        }
+
+        /// <summary>
+        /// Find the NetworkPlayerData that corresponds to this BasePlayer.
+        /// Used for remote players to receive network inputs.
+        /// </summary>
+        private Networking.NetworkPlayerData FindNetworkPlayerDataForThisPlayer()
+        {
+            if (Networking.YargNetworkManager.Instance == null) return null;
+            
+            var allNetworkPlayers = Networking.YargNetworkManager.Instance.GetAllPlayers();
+            var allGamePlayers = GameManager.Players;
+            
+            // Find our index in the GameManager.Players list
+            int ourIndex = -1;
+            for (int i = 0; i < allGamePlayers.Count; i++)
+            {
+                if (allGamePlayers[i] == this)
+                {
+                    ourIndex = i;
+                    break;
+                }
+            }
+            
+            // Return corresponding NetworkPlayerData (same index)
+            if (ourIndex >= 0 && ourIndex < allNetworkPlayers.Count)
+            {
+                return allNetworkPlayers[ourIndex];
+            }
+            
+            return null;
+        }
+        
         protected void OnGameInput(ref GameInput input)
         {
             // Ignore completely if the song hasn't started yet or player failed

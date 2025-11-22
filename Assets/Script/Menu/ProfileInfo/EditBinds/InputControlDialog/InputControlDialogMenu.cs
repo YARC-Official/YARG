@@ -55,7 +55,8 @@ namespace YARG.Menu.ProfileInfo
 
             try
             {
-                var possibleControls = await InputControlBindingHelper.Instance.GetControl(player, bindingToken, _binding);
+                var bindingHelper = InputControlBindingHelper.GetOrCreateInstance();
+                var possibleControls = await bindingHelper.GetControl(player, bindingToken, _binding);
                 _waitingContainer.SetActive(false);
                 _controlChooseContainer.SetActive(true);
 

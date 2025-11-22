@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 using YARG.Core.Logging;
 using YARG.Menu.Settings;
 using YARG.Settings;
@@ -13,6 +14,12 @@ namespace YARG.Helpers
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
+            {
+                // Dedicated/headless builds do not expose a window; skip resolution monitoring.
+                return;
+            }
+
             UnityEngine.InputSystem.InputSystem.onBeforeUpdate += () =>
             {
                 if (SettingsManager.Settings == null)
@@ -58,6 +65,23 @@ namespace YARG.Helpers
         /// </summary>
         public static Resolution GetScreenResolution()
         {
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
+            {
+                // Headless server without a window. Provide a sane default resolution and reuse the
+                // last known settings when available to avoid crashing on APIs that expect a surface.
+                if (SettingsManager.Settings?.Resolution.Value is Resolution existingResolution)
+                {
+                    return existingResolution;
+                }
+
+                return new Resolution
+                {
+                    width = 1920,
+                    height = 1080,
+                    refreshRate = 60,
+                };
+            }
+
             var screenInfo = Screen.mainWindowDisplayInfo;
             return new Resolution()
             {
@@ -72,6 +96,12 @@ namespace YARG.Helpers
         /// </summary>
         public static void SetResolution(Resolution resolution)
         {
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
+            {
+                // No window to resize in headless mode.
+                return;
+            }
+
             YargLogger.LogFormatDebug("Changing screen resolution to {0}", resolution);
             var fullscreenMode = SettingsManager.Settings?.FullscreenMode.Value ?? FullScreenMode.FullScreenWindow;
             Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRateRatio);

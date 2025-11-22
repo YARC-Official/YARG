@@ -99,6 +99,11 @@ namespace YARG.Menu.Main
             SettingsMenu.Instance.gameObject.SetActive(true);
         }
 
+        public void OnlineMultiplayer()
+        {
+            MenuManager.Instance.PushMenu(MenuManager.Menu.OnlineMultiplayer);
+        }
+
         public void Exit()
         {
 #if UNITY_EDITOR
@@ -106,7 +111,7 @@ namespace YARG.Menu.Main
             UnityEditor.EditorApplication.isPlaying = false;
 
 #else
-			Application.Quit();
+            Application.Quit();
 
 #endif
         }

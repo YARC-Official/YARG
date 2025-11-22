@@ -15,11 +15,11 @@ using YARG.Localization;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Multiplayer;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Settings;
 using YARG.Song;
-using static YARG.Menu.Navigation.Navigator;
 using Random = UnityEngine.Random;
 
 namespace YARG.Menu.MusicLibrary
@@ -104,7 +104,26 @@ namespace YARG.Menu.MusicLibrary
         private List<int> _sectionHeaderIndices = new();
         public List<(string, int)> Shortcuts { get; private set; } = new();
 
-        private List<HoldContext> _heldInputs = new();
+        private sealed class MenuButtonHold
+        {
+            public MenuButtonHold(NavigationContext context)
+            {
+                Context = context;
+                Duration = 0f;
+                UsedAsModifier = false;
+                Triggered = false;
+            }
+
+            public NavigationContext Context { get; }
+            public float Duration { get; set; }
+            public bool UsedAsModifier { get; set; }
+            public bool Triggered { get; set; }
+        }
+
+        private readonly List<MenuButtonHold> _heldInputs = new();
+
+        private const float MORE_OPTIONS_ACTIVATION_DELAY = 0.35f;
+        private float _moreOptionsActivationTimer;
 
         // Doesn't go through PlaylistContainer because it is ephemeral
 
@@ -120,6 +139,84 @@ namespace YARG.Menu.MusicLibrary
 
         private int _primaryHeaderIndex;
 
+        // Multiplayer song queue integration
+        private YARG.Multiplayer.MultiplayerSongQueue _songQueue;
+
+        private void EnsureSongQueue()
+        {
+            if (_songQueue == null)
+            {
+                _songQueue = FindObjectOfType<YARG.Multiplayer.MultiplayerSongQueue>();
+                if (_songQueue == null && YARG.Networking.YargNetworkManager.Instance != null && YARG.Networking.YargNetworkManager.Instance.isNetworkActive)
+                {
+                    var go = new GameObject("MultiplayerSongQueue");
+                    _songQueue = go.AddComponent<YARG.Multiplayer.MultiplayerSongQueue>();
+                }
+            }
+        }
+
+        // Add a song to the multiplayer queue (host only)
+        public void AddSongToMultiplayerQueue(string songId, string songName)
+        {
+            EnsureSongQueue();
+            if (_songQueue != null && _songQueue.isServer)
+            {
+                var entry = new YARG.Multiplayer.SongQueueEntry { songId = songId, songName = songName };
+                _songQueue.AddSongToQueue(entry);
+            }
+        }
+
+        // Remove a song from the multiplayer queue (host only)
+        public void RemoveSongFromMultiplayerQueue(int index)
+        {
+            EnsureSongQueue();
+            if (_songQueue != null && _songQueue.isServer)
+            {
+                _songQueue.RemoveSongFromQueue(index);
+            }
+        }
+
+        // Clear the multiplayer queue (host only)
+        public void ClearMultiplayerQueue()
+        {
+            EnsureSongQueue();
+            if (_songQueue != null && _songQueue.isServer)
+            {
+                _songQueue.ClearQueue();
+            }
+        }
+
+        // Start the set (host only)
+        public void StartMultiplayerSet()
+        {
+            EnsureSongQueue();
+            if (_songQueue != null && _songQueue.isServer)
+            {
+                _songQueue.StartSet();
+            }
+        }
+
+        // Get the current queue (all clients)
+        public IReadOnlyList<YARG.Multiplayer.SongQueueEntry> GetMultiplayerQueue()
+        {
+            EnsureSongQueue();
+            return _songQueue?.Queue ?? new List<YARG.Multiplayer.SongQueueEntry>();
+        }
+
+        // Get current song index (all clients)
+        public int GetCurrentQueueSongIndex()
+        {
+            EnsureSongQueue();
+            return _songQueue?.currentSongIndex ?? -1;
+        }
+
+        // Is set active (all clients)
+        public bool IsMultiplayerSetActive()
+        {
+            EnsureSongQueue();
+            return _songQueue?.isSetActive ?? false;
+        }
+
         protected override void Awake()
         {
             base.Awake();
@@ -133,9 +230,16 @@ namespace YARG.Menu.MusicLibrary
             // Set navigation scheme
             SetNavigationScheme();
 
+            // Initialize multiplayer show playlist if in multiplayer
+            if (Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive)
+            {
+                EnsureMultiplayerShowPlaylist();
+            }
+
             // Restore search
             _searchField.Restore();
             _searchField.OnSearchQueryUpdated += UpdateSearch;
+            MultiplayerSongFilter.SharedSongsUpdated += OnSharedSongsUpdated;
 
             if (CurrentlyPlaying != null)
             {
@@ -246,6 +350,11 @@ namespace YARG.Menu.MusicLibrary
                 Navigator.Instance.PopScheme();
             }
 
+            if (MenuState != MenuState.Show)
+            {
+                _moreOptionsActivationTimer = 0f;
+            }
+
             NavigationScheme.Entry leftEntry = default;
             NavigationScheme.Entry rightEntry = default;
 
@@ -260,14 +369,21 @@ namespace YARG.Menu.MusicLibrary
                 rightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.SkipSection", GoToNextSection);
             }
 
+            // Check if we're in multiplayer mode
+            bool isMultiplayer = Networking.YargNetworkManager.Instance != null && Networking.YargNetworkManager.Instance.isNetworkActive;
+            
             if (ShowPlaylist.Count == 0)
             {
+                // Yellow button behavior: in multiplayer it's for quick-start, otherwise add to set
+                string yellowLabel = isMultiplayer ? "Menu.MusicLibrary.QuickStart" : "Menu.MusicLibrary.AddToSet";
+                System.Action yellowAction = isMultiplayer ? (System.Action)QuickStartShow : AddToPlaylist;
+                
                 Navigator.Instance.PushScheme(new NavigationScheme(new()
                 {
                     new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                         ctx =>
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange, true))
                             {
                                 GoToPreviousSection();
                             }
@@ -280,7 +396,7 @@ namespace YARG.Menu.MusicLibrary
                     new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
                         ctx =>
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange, true))
                             {
                                 GoToNextSection();
                             }
@@ -295,8 +411,7 @@ namespace YARG.Menu.MusicLibrary
                     new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                         () => CurrentSelection?.PrimaryButtonClick()),
                     new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToSet",
-                        AddToPlaylist),
+                    new NavigationScheme.Entry(MenuAction.Yellow, yellowLabel, yellowAction),
                     new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.PlayShow",
                         EnterShowMode),
                     new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
@@ -305,12 +420,20 @@ namespace YARG.Menu.MusicLibrary
             }
             else
             {
+                // Yellow button behavior: in multiplayer it's for quick-start, otherwise add to set
+                string yellowLabel = isMultiplayer ? "Menu.MusicLibrary.QuickStart" : "Menu.MusicLibrary.AddToSet";
+                System.Action yellowAction = isMultiplayer ? (System.Action)QuickStartShow : AddToPlaylist;
+                
+                // Blue button behavior: in multiplayer go to setlist management, in single player start show
+                string blueLabel = isMultiplayer ? "Menu.MusicLibrary.ViewSetlist" : "Menu.MusicLibrary.StartSet";
+                System.Action blueAction = isMultiplayer ? (System.Action)EnterShowMode : StartSetlist;
+                
                 Navigator.Instance.PushScheme(new NavigationScheme(new()
                 {
                     new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                         ctx =>
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange, true))
                             {
                                 GoToPreviousSection();
                             }
@@ -323,7 +446,7 @@ namespace YARG.Menu.MusicLibrary
                     new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
                         ctx =>
                         {
-                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                            if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange, true))
                             {
                                 GoToNextSection();
                             }
@@ -338,10 +461,8 @@ namespace YARG.Menu.MusicLibrary
                     new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                         () => CurrentSelection?.PrimaryButtonClick()),
                     new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.AddToSet",
-                        AddToPlaylist),
-                    new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.StartSet",
-                        StartSetlist),
+                    new NavigationScheme.Entry(MenuAction.Yellow, yellowLabel, yellowAction),
+                    new NavigationScheme.Entry(MenuAction.Blue, blueLabel, blueAction),
                     new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                         OnButtonHit, OnButtonRelease),
                 }, false));
@@ -532,7 +653,28 @@ namespace YARG.Menu.MusicLibrary
             _previewContext?.Dispose();
             _previewContext = null;
             StemSettings.ApplySettings = true;
+            
+            // Sync menu navigation in multiplayer
+            if (Networking.YargNetworkManager.Instance != null && 
+                Networking.YargNetworkManager.Instance.isNetworkActive &&
+                Networking.YargNetworkManager.Instance.LocalUserIsHost())
+            {
+                Debug.Log("[MusicLibraryMenu] Host exiting library - syncing to clients");
+                Networking.YargNetworkManager.Instance.RequestSyncMenuNavigation(popMenu: true);
+                Debug.Log("[MusicLibraryMenu] Sync complete, now popping menu locally");
+                
+                // If navigation stack is incomplete (< 4 menus), we came from gameplay after disconnect
+                // In this case, close the lobby directly since LobbyRoom isn't in the stack
+                if (MenuManager.Instance != null && !MenuManager.Instance.IsMenuInStack(MenuManager.Menu.LobbyRoom))
+                {
+                    Debug.Log("[MusicLibraryMenu] LobbyRoom menu missing from stack - closing lobby directly");
+                    Networking.YargNetworkManager.Instance.LeaveLobby();
+                }
+            }
+            
+            Debug.Log($"[MusicLibraryMenu] Calling PopMenu - MenuManager.Instance null? {MenuManager.Instance == null}");
             MenuManager.Instance.PopMenu();
+            Debug.Log("[MusicLibraryMenu] PopMenu complete");
         }
 
         private void CalculateCategoryHeaderIndices(List<ViewType> list)
@@ -568,12 +710,44 @@ namespace YARG.Menu.MusicLibrary
         {
             if (SongContainer.Count > RecommendedSongs.RECOMMEND_SONGS_COUNT)
             {
-                _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
+                var songs = RecommendedSongs.GetRecommendedSongs();
+                if (songs.Length > 0)
+                {
+                    var filtered = MultiplayerSongFilter.FilterSongs(songs);
+                    _recommendedSongs = filtered.Length > 0 ? filtered : null;
+                }
+                else
+                {
+                    _recommendedSongs = null;
+                }
             }
             else
             {
                 _recommendedSongs = null;
             }
+        }
+
+        private void ApplyMultiplayerSongFilter()
+        {
+            if (_sortedSongs == null)
+            {
+                return;
+            }
+
+            _sortedSongs = MultiplayerSongFilter.FilterCategories(_sortedSongs);
+        }
+
+        private void OnSharedSongsUpdated()
+        {
+            SetReload(MusicLibraryReloadState.Partial);
+
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
+
+            SetRecommendedSongs();
+            UpdateSearch(true);
         }
 
         private void Refresh()
@@ -618,6 +792,8 @@ namespace YARG.Menu.MusicLibrary
                 _searchField.gameObject.SetActive(false);
             }
 
+            ApplyMultiplayerSongFilter();
+
             RequestViewListUpdate();
 
             if (_reloadState != MusicLibraryReloadState.Partial)
@@ -657,7 +833,27 @@ namespace YARG.Menu.MusicLibrary
         protected override void Update()
         {
             foreach (var heldInput in _heldInputs)
-                heldInput.Timer -= Time.unscaledDeltaTime;
+            {
+                heldInput.Duration += Time.unscaledDeltaTime;
+
+                if (heldInput.Context.Player == null && heldInput.Context.Action == MenuAction.Orange && !heldInput.Triggered)
+                {
+                    if (_moreOptionsActivationTimer <= 0f)
+                    {
+                        if (!_popupMenu.gameObject.activeSelf)
+                        {
+                            _popupMenu.gameObject.SetActive(true);
+                        }
+
+                        heldInput.Triggered = true;
+                    }
+                }
+            }
+
+            if (_moreOptionsActivationTimer > 0f)
+            {
+                _moreOptionsActivationTimer -= Time.unscaledDeltaTime;
+            }
 
             base.Update();
         }
@@ -697,9 +893,18 @@ namespace YARG.Menu.MusicLibrary
             _previewCanceller?.Cancel();
             _previewContext?.Stop();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
+            MultiplayerSongFilter.SharedSongsUpdated -= OnSharedSongsUpdated;
 
             PlayerContainer.PlayerAdded -= OnPlayerAdded;
             PlayerContainer.PlayerRemoved -= OnPlayerRemoved;
+
+            _heldInputs.Clear();
+
+            // Unsubscribe from multiplayer playlist updates
+            if (_multiplayerShowPlaylist != null)
+            {
+                _multiplayerShowPlaylist.OnPlaylistUpdated -= OnMultiplayerPlaylistUpdated;
+            }
         }
 
         private void OnDestroy()
@@ -735,22 +940,48 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button)
+        private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button, bool markAsModifier = false)
         {
-            return _heldInputs.Any(i => i.Context.Player == player && i.Context.Action == button);
+            foreach (var hold in _heldInputs)
+            {
+                if (hold.Context.Player == player && hold.Context.Action == button)
+                {
+                    if (markAsModifier)
+                    {
+                        hold.UsedAsModifier = true;
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void OnButtonHit(NavigationContext ctx)
         {
-            _heldInputs.Add(new HoldContext(ctx));
+            _heldInputs.Add(new MenuButtonHold(ctx));
         }
 
         private void OnButtonRelease(NavigationContext ctx)
         {
             var holdContext = _heldInputs.FirstOrDefault(i => i.Context.IsSameAs(ctx));
 
-            if (ctx.Action == MenuAction.Orange && (holdContext?.Timer > 0 || ctx.Player is null))
-                _popupMenu.gameObject.SetActive(true);
+            if (ctx.Action == MenuAction.Orange && holdContext != null)
+            {
+                bool triggeredByInstrument = ctx.Player != null;
+                bool usedAsModifier = holdContext.UsedAsModifier;
+
+                if (!holdContext.Triggered && _moreOptionsActivationTimer <= 0f && (!triggeredByInstrument || !usedAsModifier))
+                {
+                    if (!_popupMenu.gameObject.activeSelf)
+                    {
+                        _popupMenu.gameObject.SetActive(true);
+                    }
+
+                    holdContext.Triggered = true;
+                }
+            }
 
             _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
         }

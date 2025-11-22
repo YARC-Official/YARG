@@ -10,23 +10,23 @@ namespace YARG.Menu.ListMenu
         where TViewType : BaseViewType
     {
         [SerializeField]
-        private CanvasGroup _canvasGroup;
+        protected CanvasGroup _canvasGroup;
 
         [Space]
         [SerializeField]
-        private GameObject _normalBackground;
+        protected GameObject _normalBackground;
         [SerializeField]
-        private GameObject _selectedBackground;
+        protected GameObject _selectedBackground;
         [SerializeField]
-        private GameObject _categoryBackground;
+        protected GameObject _categoryBackground;
 
         [Space]
         [SerializeField]
-        private Image _icon;
+        protected Image _icon;
         [SerializeField]
-        private List<TextMeshProUGUI> _primaryText;
+        protected List<TextMeshProUGUI> _primaryText;
         [SerializeField]
-        private List<TextMeshProUGUI> _secondaryText;
+        protected List<TextMeshProUGUI> _secondaryText;
 
         protected bool Showing { get; private set; }
 
@@ -42,17 +42,33 @@ namespace YARG.Menu.ListMenu
             SetBackground(selected, viewType.Background);
 
             // Set text
-            foreach(var i in _primaryText)
+            if (_primaryText != null)
             {
-                i.text = viewType.GetPrimaryText(selected);
-            }
-            foreach(var i in _secondaryText)
-            {
-                i.text = viewType.GetSecondaryText(selected);
+                foreach (var i in _primaryText)
+                {
+                    if (i != null)
+                    {
+                        i.text = viewType.GetPrimaryText(selected);
+                    }
+                }
             }
 
-            _icon.sprite = viewType.GetIcon();
-            _icon.gameObject.SetActive(_icon.sprite != null);
+            if (_secondaryText != null)
+            {
+                foreach (var i in _secondaryText)
+                {
+                    if (i != null)
+                    {
+                        i.text = viewType.GetSecondaryText(selected);
+                    }
+                }
+            }
+
+            if (_icon != null)
+            {
+                _icon.sprite = viewType.GetIcon();
+                _icon.gameObject.SetActive(_icon.sprite != null);
+            }
         }
 
         public virtual void Hide()

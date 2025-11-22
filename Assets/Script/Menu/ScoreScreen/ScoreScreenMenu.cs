@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Mirror;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,6 +18,7 @@ using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
 using YARG.Localization;
+using YARG.Networking;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -70,6 +72,13 @@ namespace YARG.Menu.ScoreScreen
         private bool _restartingSong;
 
         private readonly List<IScoreCard<BaseStats>> _scoreCards = new();
+
+        private bool _isMultiplayer;
+        private bool _isHost;
+        private bool _advancing;
+        private NetworkPlayerData _localNetworkPlayer;
+        private readonly List<NetworkPlayerData> _networkPlayers = new();
+        private TextMeshProUGUI _readyStatusLabel;
 
         private void OnEnable()
         {
@@ -140,10 +149,14 @@ namespace YARG.Menu.ScoreScreen
 
             //set restarting state
             _restartingSong = false;
+
+            InitializeMultiplayerReady();
         }
 
         private void OnDisable()
         {
+            CleanupMultiplayerReady();
+
             MusicLibraryMenu.CurrentlyPlaying = GlobalVariables.State.CurrentSong;
             if (!GlobalVariables.State.PlayingAShow && !_restartingSong)
             {
@@ -473,6 +486,196 @@ namespace YARG.Menu.ScoreScreen
             card?.ScrollStats(delta);
         }
 
+        private void InitializeMultiplayerReady()
+        {
+            if (YargNetworkManager.Instance == null || !YargNetworkManager.Instance.isNetworkActive)
+            {
+                _isMultiplayer = false;
+                return;
+            }
+
+            _isMultiplayer = true;
+            _isHost = YargNetworkManager.Instance != null && YargNetworkManager.Instance.LocalUserIsHost();
+            _advancing = false;
+
+            _networkPlayers.Clear();
+
+            var players = YargNetworkManager.Instance.GetAllPlayers();
+            foreach (var player in players)
+            {
+                if (player == null)
+                {
+                    continue;
+                }
+
+                _networkPlayers.Add(player);
+                player.OnReadyStateChangedEvent += HandleReadyStateChanged;
+
+                if (player.IsLocalUser)
+                {
+                    _localNetworkPlayer = player;
+                }
+            }
+
+            if (_localNetworkPlayer != null && _localNetworkPlayer.IsReady)
+            {
+                _localNetworkPlayer.CmdSetReady(false);
+            }
+
+            CreateReadyStatusLabel();
+            UpdateReadyStatusLabel();
+
+            if (_isMultiplayer)
+            {
+                ToastManager.ToastInformation(Localize.Key("Menu.ScoreScreen.ReadyPrompt"));
+                UpdateNavigationScheme(true);
+            }
+        }
+
+        private void CleanupMultiplayerReady()
+        {
+            if (!_isMultiplayer)
+            {
+                return;
+            }
+
+            foreach (var player in _networkPlayers)
+            {
+                if (player != null)
+                {
+                    player.OnReadyStateChangedEvent -= HandleReadyStateChanged;
+                }
+            }
+
+            _networkPlayers.Clear();
+            _localNetworkPlayer = null;
+            _isMultiplayer = false;
+            _isHost = false;
+            _advancing = false;
+
+            if (_readyStatusLabel != null)
+            {
+                Destroy(_readyStatusLabel.gameObject);
+                _readyStatusLabel = null;
+            }
+        }
+
+        private void CreateReadyStatusLabel()
+        {
+            if (!_isMultiplayer || _readyStatusLabel != null)
+            {
+                return;
+            }
+
+            var anchorParent = _bandScore != null ? _bandScore.transform.parent : transform;
+            var labelObject = new GameObject("ReadyStatus", typeof(RectTransform));
+            labelObject.transform.SetParent(anchorParent, false);
+
+            var rect = labelObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 32f);
+
+            _readyStatusLabel = labelObject.AddComponent<TextMeshProUGUI>();
+            _readyStatusLabel.alignment = TextAlignmentOptions.Center;
+            _readyStatusLabel.enableWordWrapping = false;
+            _readyStatusLabel.text = string.Empty;
+
+            if (_bandScore != null)
+            {
+                _readyStatusLabel.font = _bandScore.font;
+                _readyStatusLabel.fontSize = _bandScore.fontSize;
+                _readyStatusLabel.color = _bandScore.color;
+            }
+        }
+
+        private void UpdateReadyStatusLabel()
+        {
+            if (!_isMultiplayer || _readyStatusLabel == null)
+            {
+                return;
+            }
+
+            int totalPlayers = 0;
+            int readyPlayers = 0;
+
+            foreach (var player in _networkPlayers)
+            {
+                if (player == null)
+                {
+                    continue;
+                }
+
+                totalPlayers++;
+                if (player.IsReady)
+                {
+                    readyPlayers++;
+                }
+            }
+
+            if (totalPlayers == 0)
+            {
+                _readyStatusLabel.text = string.Empty;
+                return;
+            }
+
+            _readyStatusLabel.text = Localize.KeyFormat("Menu.ScoreScreen.ReadyStatus", readyPlayers, totalPlayers);
+        }
+
+        private NavigationScheme.Entry CreateReadyEntry()
+        {
+            string localizationKey = (_localNetworkPlayer != null && _localNetworkPlayer.IsReady)
+                ? "Menu.ScoreScreen.Unready"
+                : "Menu.ScoreScreen.ReadyUp";
+
+            return new NavigationScheme.Entry(MenuAction.Green, localizationKey, ToggleReady);
+        }
+
+        private void ToggleReady()
+        {
+            if (!_isMultiplayer || _localNetworkPlayer == null || _advancing)
+            {
+                return;
+            }
+
+            bool targetState = !_localNetworkPlayer.IsReady;
+            _localNetworkPlayer.CmdSetReady(targetState);
+            UpdateNavigationScheme(true);
+        }
+
+        private void HandleReadyStateChanged(bool _)
+        {
+            if (!_isMultiplayer)
+            {
+                return;
+            }
+
+            UpdateReadyStatusLabel();
+            UpdateNavigationScheme(true);
+
+            if (!_isHost || _advancing || YargNetworkManager.Instance == null)
+            {
+                return;
+            }
+
+            if (YargNetworkManager.Instance.AreAllPlayersReady())
+            {
+                _advancing = true;
+                ToastManager.ToastSuccess(Localize.Key("Menu.ScoreScreen.AllReady"));
+
+                if (NetworkServer.active)
+                {
+                    YargNetworkManager.Instance.AdvanceAfterScoreScreen();
+                }
+                else if (!RequestServerAdvanceAfterScore())
+                {
+                    Debug.LogWarning("[ScoreScreenMenu] Failed to relay score advance request to server");
+                    _advancing = false;
+                }
+            }
+        }
+
         private void UpdateNavigationScheme(bool reset = false)
         {
             if (reset)
@@ -480,11 +683,29 @@ namespace YARG.Menu.ScoreScreen
                 Navigator.Instance.PopScheme();
             }
 
-            List<NavigationScheme.Entry> buttons = new()
+            var buttons = new List<NavigationScheme.Entry>();
+
+            if (_isMultiplayer)
             {
-                _continueButtonEntry,
-                _restartButtonEntry
-            };
+                buttons.Add(CreateReadyEntry());
+
+                if (_isHost && GlobalVariables.State.PlayingAShow &&
+                    GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
+                {
+                    buttons.Add(_endEarlyButtonEntry);
+                }
+            }
+            else
+            {
+                buttons.Add(_continueButtonEntry);
+                buttons.Add(_restartButtonEntry);
+
+                if (GlobalVariables.State.PlayingAShow &&
+                    GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
+                {
+                    buttons.Insert(1, _endEarlyButtonEntry);
+                }
+            }
 
             var song = GlobalVariables.State.CurrentSong;
             var isFavorited = PlaylistContainer.FavoritesPlaylist.ContainsSong(song);
@@ -498,17 +719,33 @@ namespace YARG.Menu.ScoreScreen
                 buttons.Add(_addFavoriteButtonEntry);
             }
 
-            if (GlobalVariables.State.PlayingAShow &&
-                GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
-            {
-                buttons.Insert(1, _endEarlyButtonEntry);
-            }
-
             buttons.Add(_scrollLeftEntry);
             buttons.Add(_scrollRightEntry);
             buttons.Add(_scrollUpEntry);
             buttons.Add(_scrollDownEntry);
+
             Navigator.Instance.PushScheme(new(buttons, true));
+        }
+
+        private bool RequestServerAdvanceAfterScore()
+        {
+            if (YargNetworkManager.Instance == null)
+            {
+                return false;
+            }
+
+            foreach (var player in YargNetworkManager.Instance.GetAllPlayers())
+            {
+                if (player != null && player.IsLocalUser && player.IsHost)
+                {
+                    Debug.Log("[ScoreScreenMenu] Requesting dedicated server to advance after score");
+                    player.CmdRequestAdvanceAfterScore();
+                    return true;
+                }
+            }
+
+            Debug.LogWarning("[ScoreScreenMenu] No local host NetworkPlayerData found to advance after score");
+            return false;
         }
     }
 }

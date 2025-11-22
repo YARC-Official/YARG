@@ -128,12 +128,23 @@ namespace YARG.Helpers
             // Get the launcher paths
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             // Thanks Apple
-            var localAppdata = Path.Combine(Environment.GetEnvironmentVariable("HOME"),
-                "Library", "Application Support");
+            var home = Environment.GetEnvironmentVariable("HOME");
+            string localAppdata = string.IsNullOrWhiteSpace(home)
+                ? null
+                : Path.Combine(home, "Library", "Application Support");
 #else
-            var localAppdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string localAppdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 #endif
-            LauncherPath = Path.Join(localAppdata, "YARC", "Launcher");
+            if (string.IsNullOrWhiteSpace(localAppdata))
+            {
+                YargLogger.LogWarning("Failed to resolve local application data folder. Launcher integration disabled for this session.");
+                LauncherPath = null;
+            }
+            else
+            {
+                localAppdata = SanitizePath(localAppdata);
+                LauncherPath = Path.Join(localAppdata, "YARC", "Launcher");
+            }
 
             // Get official setlist path
             // (this is replaced by the launch argument if it is set)
@@ -142,6 +153,11 @@ namespace YARG.Helpers
 
         private static (string, string) FindLauncherPaths()
         {
+            if (string.IsNullOrWhiteSpace(LauncherPath))
+            {
+                return (null, null);
+            }
+
             // Use the launcher settings to find the setlist path
             string settingsPath = Path.Join(LauncherPath, "settings.json");
             if (!File.Exists(settingsPath))
@@ -179,6 +195,14 @@ namespace YARG.Helpers
 
         public static void SetPathsFromDownloadLocation(string downloadLocation)
         {
+            if (string.IsNullOrWhiteSpace(downloadLocation))
+            {
+                SetlistPath = null;
+                VenuePath = null;
+                return;
+            }
+
+            downloadLocation = SanitizePath(downloadLocation);
             SetlistPath = Path.Join(downloadLocation, "Setlists");
             VenuePath = Path.Join(downloadLocation, "Venues");
         }
@@ -273,6 +297,11 @@ namespace YARG.Helpers
 
         public static string SanitizePath(string path)
         {
+            if (string.IsNullOrEmpty(path))
+            {
+                return path;
+            }
+
             // this is to handle a strange edge case in path naming in windows.
             // modern windows can handle / or \ in path names with seemingly one exception,
             // if there is a space in the user name then try forward slash appdata, it will break at the first space so:

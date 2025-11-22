@@ -15,6 +15,18 @@ namespace YARG.Input
     /// </summary>
     public class InputControlBindingHelper : MonoSingleton<InputControlBindingHelper>
     {
+        public static InputControlBindingHelper GetOrCreateInstance()
+        {
+            if (Instance != null)
+            {
+                return Instance;
+            }
+
+            var helperObject = new GameObject(nameof(InputControlBindingHelper));
+            UnityEngine.Object.DontDestroyOnLoad(helperObject);
+            return helperObject.AddComponent<InputControlBindingHelper>();
+        }
+
         private enum State
         {
             Waiting,

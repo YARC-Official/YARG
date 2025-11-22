@@ -148,7 +148,8 @@
             "Reset": "Reset",
             "ResetAll": "Reset All",
 
-			"Scroll" : "Scroll"
+			"Scroll" : "Scroll",
+			"Refresh": "Refresh"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",
@@ -265,6 +266,7 @@
             "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.14 nightlies!</b></size></align>\n\nv0.14 is a major update that adds 5 Lane Keys, a new MIDI Drums profile type, easier instrument setup, support for 3D venue events, performance improvements when using multiple highways, many visual improvements, and uses a newer version of Unity that should improve Linux support.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "Quickplay",
+                "OnlineMultiplayer": "Online",
                 "Practice": "Practice",
                 "Profiles": "Profiles",
                 "History": "History",
@@ -273,6 +275,48 @@
                 "Exit": "Exit"
             },
             "GoToCurrentlyPlaying": "Go To Currently Playing"
+        },
+        "LobbyBrowser": {
+            "Name": "Lobby Browser",
+            "NoLobbiesFound": "NO LOBBIES FOUND",
+            "SearchingForLobbies": "Searching for lobbies...",
+            "LobbiesFound": "{0} {1} found",
+            "Lobby": "lobby",
+            "Lobbies": "lobbies",
+            "FavoriteLobbies": "★ FAVORITE LOBBIES",
+            "AllLobbies": "ALL LOBBIES",
+            "AvailableLobbies": "AVAILABLE LOBBIES",
+            "SelectLobby": "Select a lobby to view details",
+            "JoinLobby": "Join Lobby",
+            "AddToFavorites": "Add To Favorites",
+            "RemoveFromFavorites": "Remove From Favorites",
+            "Refresh": "Refresh",
+            "CreateLobby": "Create Lobby",
+            "DirectConnect": "Direct Connect",
+            "FavoritesSuffix": "{0} {1}",
+            "SectionCreateLobby": "Create Lobby",
+            "SectionDirectConnect": "Direct Connect",
+            "SectionFavorites": "Favorites",
+            "SectionMyLobbies": "My Lobbies",
+            "SectionRecents": "Recent Lobbies",
+            "SectionDiscovered": "Discovered Lobbies",
+            "EmptyFavorites": "No favorite lobbies yet",
+            "EmptyMyLobbies": "You have not hosted any lobbies yet",
+            "EmptyRecents": "No recent lobbies",
+            "EmptyDiscovered": "No LAN lobbies detected",
+            "Back": "Back",
+            "PasswordRequired": "Password Required",
+            "PasswordRequiredMessage": "The lobby '{0}' requires a password.\nPassword input dialog coming soon!",
+            "PlayerCount": "{0}/{1} Players",
+            "Ping": "Ping: {0}ms",
+            "Privacy": "Privacy: {0}",
+            "PrivacyPublic": "Public",
+            "PrivacyPrivate": "Private",
+            "NoPlayersInLobby": "No players in lobby",
+            "PlayersInLobby": "{0} {1} in lobby",
+            "Player": "player",
+            "Players": "players",
+            "Host": "Host: {0}"
         },
         "MusicLibrary": {
             "Name": "Music Library",
@@ -314,6 +358,7 @@
             "Search": "Search",
             "SkipSection": "<align=left><size=80%>Navigate<br>Sections</size></align>",
             "MoveInPlaylist": "Move Song",
+            "AddToFavorites": "Add To Favorites",
             "CurrentSetlist": "Current Setlist",
             "AddToSet": "Add To Setlist",
             "AddedToSet": "Added To Setlist",
@@ -362,7 +407,13 @@
         "ScoreScreen" : {
             "BandScoreNotSaved" : "(Score not saved)",
             "RestartSong" : "Restart Song",
-            "EndSetlistEarly" : "End Setlist"
+            "EndSetlistEarly" : "End Setlist",
+            "ReadyUp" : "Ready Up",
+            "Unready" : "Cancel Ready",
+            "ReadyStatus" : "Ready {0}/{1}",
+            "ReadyPrompt" : "Press Green to ready up.",
+            "AllReady" : "Everyone's ready!",
+            "WaitingForPlayers" : "Waiting for other players..."
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
@@ -747,7 +798,8 @@
             "AdvancedDMXSettings": "Advanced sACN and DMX settings",
             "Experimental": "Experimental",
             "HUD": "HUD",
-            "Gameplay": "Gameplay"
+            "Gameplay": "Gameplay",
+            "Networking": "Networking"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
@@ -1325,6 +1377,10 @@
             "WrapAroundNavigation": {
                 "Name": "Wrap-Around Navigation",
                 "Description": "Allow menus to jump to the bottom of a list when scrolling past the top, or jump to the top of a list when scrolling past the bottom."
+            },
+            "NetworkPort": {
+                "Name": "Network Port",
+                "Description": "Default UDP port used when hosting and connecting to lobbies. Update this if you forward a different port on your router."
             },
             "ReduceNoteSpeedByDifficulty": {
                 "Name": "Reduce Note Speed by Difficulty",

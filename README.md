@@ -43,6 +43,7 @@ YARG (a.k.a. Yet Another Rhythm Game) is a free, open-source, plastic guitar gam
 - [🔨 Building/Contributing](#-buildingcontributing)
   - [Setup Instructions](#setup-instructions)
   - [Unity YAML Merge Tool](#unity-yaml-merge-tool)
+- [🖥️ Hosting a Dedicated Server](#-hosting-a-dedicated-server)
 - [✍️ Contributing and Credits](#️-contributing-and-credits)
 - [🛡️ License](#️-license)
 - [🧰 External Licenses](#-external-licenses)
@@ -161,6 +162,45 @@ Resolving conflicts:
 1. Start the merge/cherry-pick which is causing conflicts.
 2. If the conflict doesn't resolve automatically, open the command prompt and use `git merge-tool`.
 3. Verify that the conflict was resolved correctly, then commit/continue the merge.
+
+## 🖥️ Hosting a Dedicated Server
+
+- Trigger the `Builds - Dedicated Server (Linux)` GitHub workflow or run the Unity build method `Editor.Build.DedicatedServerBuild.BuildLinuxServer` to generate a headless build under `Build/DedicatedServer`.
+- The workflow publishes a multi-use artifact and can push a ready-to-run Docker image to `ghcr.io/<namespace>/yarg-dedicated` when launched with Docker publishing enabled.
+
+### Using Docker
+
+- Pull the latest image: `docker pull ghcr.io/<namespace>/yarg-dedicated:latest`.
+- Run the container while exposing the transport port:
+  ```sh
+  docker run -d --name yarg-server \
+    -p 7777:7777/udp -p 7777:7777/tcp \
+    -e YARG_MAX_PLAYERS=4 \
+    -e YARG_PRIVACY=private \
+    -e YARG_PASSWORD=changeme \
+    -e YARG_LOBBY_NAME="Setlist Night" \
+    ghcr.io/<namespace>/yarg-dedicated:latest
+  ```
+- Supported environment variables (all optional):
+  - `YARG_MAX_PLAYERS` (2, 4, or 8; default 8)
+  - `YARG_PRIVACY` (`public` or `private`; default `public`)
+  - `YARG_PASSWORD` (required when privacy is `private`)
+  - `YARG_LOBBY_NAME` (displayed lobby name)
+  - `YARG_HOST_NAME` (name shown for the server owner)
+
+You can override or extend the defaults by passing command-line arguments after the image name (for example `-max-players 8 -privacy public`).
+
+### Building Locally
+
+- From the repository root, run `Unity -batchmode -nographics -quit -projectPath "$(pwd)" -executeMethod Editor.Build.DedicatedServerBuild.BuildLinuxServer` to create the server build without opening the editor.
+- Copy the contents of `Build/DedicatedServer` to a Linux machine and launch `./YARGServer -batchmode -nographics -dedicated`.
+- Provide optional flags at launch time:
+  - `-max-players <2|4|8>`
+  - `-privacy <public|private>`
+  - `-password <value>`
+  - `-lobby-name "Custom Name"`
+
+Private lobbies must include a password; if none is supplied the server will generate one and log it to the console output.
 
 ## ✍️ Contributing and Credits
 

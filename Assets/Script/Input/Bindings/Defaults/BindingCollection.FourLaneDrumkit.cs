@@ -48,6 +48,9 @@ namespace YARG.Input
             AddBinding(MenuAction.Blue, drums.blueCymbal);
             AddBinding(MenuAction.Green, drums.greenCymbal);
 
+            AddBinding(MenuAction.Up, drums.yellowCymbal);
+            AddBinding(MenuAction.Down, drums.blueCymbal);
+
             AddBinding(MenuAction.Orange, drums.kick1);
 
             AddBinding(MenuAction.Up, drums.dpad.up);

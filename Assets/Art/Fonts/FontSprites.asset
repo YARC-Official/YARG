@@ -168,6 +168,12 @@ MonoBehaviour:
     m_Scale: 1
     m_Name: eliteDrums
     m_HashCode: 1717386476
+  - m_ElementType: 2
+    m_Unicode: 65534
+    m_GlyphIndex: 15
+    m_Scale: 1
+    m_Name: group
+    m_HashCode: 98728261
   m_SpriteGlyphTable:
   - m_Index: 0
     m_Metrics:
@@ -409,5 +415,22 @@ MonoBehaviour:
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 1405555635, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
+  - m_Index: 15
+    m_Metrics:
+      m_Width: 512
+      m_Height: 512
+      m_HorizontalBearingX: 0
+      m_HorizontalBearingY: 375
+      m_HorizontalAdvance: 600
+    m_GlyphRect:
+      m_X: 0
+      m_Y: 0
+      m_Width: 512
+      m_Height: 512
+    m_Scale: 1.3
+    m_AtlasIndex: 0
+    m_ClassDefinitionType: 0
+    sprite: {fileID: 21300000, guid: 1dbfab1cb12a01340a8283fbf381deaa, type: 3}
   spriteInfoList: []
-  fallbackSpriteAssets: []
+  fallbackSpriteAssets:
+  - {fileID: 11400000, guid: 4fe54f44a04e7364db2baafd68cda60c, type: 2}

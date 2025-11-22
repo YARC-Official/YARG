@@ -262,6 +262,21 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d61b57863fe4fc742a1234c2896ca0cd
+    m_Address: AssortedIcons
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 44e20bd3ac8b99942844ca532d12fc1c
+    m_Address: CloseIcon
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4fe54f44a04e7364db2baafd68cda60c
+    m_Address: Assets/Art/Fonts/DifficultySprites.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: e05274e5aee7ff54bb550557e8a635f2, type: 2}
   m_SchemaSet:

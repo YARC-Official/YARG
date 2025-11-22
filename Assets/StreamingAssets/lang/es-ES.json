@@ -219,6 +219,7 @@
             "MessageOfTheDay": "<align=center><size=32><b>Welcome to the v0.13 Nightly!</b></size></align>\n\nv0.13 adds Pro Keys to the game, as well as reintroducing Pro Guitar/Bass after it was removed in v0.12 due to time constraints. Please let us know how these instruments feel, as well as any bugs you find and missing features.\n\nInstrument engine code has once again gone through major changes to facilitate producing replays with 1:1 results to the original gameplay. <b>If you encounter any inconsistent replay results, report it to the YARG team on Discord or GitHub.</b>\n\nIf you previously played on the v0.12 nightly, all of your settings will be reset. This is due to nightly builds now using a separate location for data storage. Your nightly settings/scores will not persist to stable versions of YARG, and vice versa.\n\nAs we previously announced, <b>we do not recommend playing nightly full time, instead only for testing.</b> Nightly is now going to be much more unstable with many more bugs and unfinished systems.\n\n<b>If you have any feedback, please let us know on Discord or GitHub.</b>\n\nHave fun!",
             "Options": {
                 "Quickplay": "Quickplay",
+                "OnlineMultiplayer": "Online",
                 "Practice": "Practice",
                 "Profiles": "Profiles",
                 "History": "History",
@@ -227,6 +228,25 @@
                 "Exit": "Exit"
             },
             "GoToCurrentlyPlaying": "Go To Currently Playing"
+        },
+        "LobbyBrowser": {
+            "Name": "Lobby Browser",
+            "NoLobbiesFound": "NO LOBBIES FOUND",
+            "Search": "Search",
+            "CreateLobby": "Create Lobby",
+            "DirectConnect": "Direct Connect",
+            "FavoritesSuffix": "{0} {1}",
+            "SectionCreateLobby": "Create Lobby",
+            "SectionDirectConnect": "Direct Connect",
+            "SectionFavorites": "Favorites",
+            "SectionMyLobbies": "My Lobbies",
+            "SectionRecents": "Recent Lobbies",
+            "SectionDiscovered": "Discovered Lobbies",
+            "EmptyFavorites": "No favorite lobbies yet",
+            "EmptyMyLobbies": "You have not hosted any lobbies yet",
+            "EmptyRecents": "No recent lobbies",
+            "EmptyDiscovered": "No LAN lobbies detected",
+            "Back": "Back"
         },
         "MusicLibrary": {
             "Name": "Music Library",
@@ -278,6 +298,17 @@
             "AddProfile": "Add Profile",
             "Bots": "Bots",
             "Players": "Players"
+        },
+        "ScoreScreen": {
+            "BandScoreNotSaved": "(Score not saved)",
+            "RestartSong": "Restart Song",
+            "EndSetlistEarly": "End Setlist",
+            "ReadyUp": "Ready Up",
+            "Unready": "Cancel Ready",
+            "ReadyStatus": "Ready {0}/{1}",
+            "ReadyPrompt": "Press Green to ready up.",
+            "AllReady": "Everyone's ready!",
+            "WaitingForPlayers": "Waiting for other players..."
         },
         "Settings": {
             "NoFolder": "<i>No Folder</i>",
@@ -469,7 +500,10 @@
             "AdvancedDMXChannels": "Advanced DMX Channels",
             "StatusBar": "Status Bar",
             "AdvancedDMXSettings": "Advanced sACN and DMX settings",
-            "Experimental": "Experimental"
+            "Experimental": "Experimental",
+            "HUD": "HUD",
+            "Gameplay": "Gameplay",
+            "Networking": "Networking"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
@@ -945,6 +979,10 @@
             "WrapAroundNavigation": {
                 "Name": "Wrap-Around Navigation",
                 "Description": "Allow menus to jump to the bottom of a list when scrolling past the top, or jump to the top of a list when scrolling past the bottom."
+            },
+            "NetworkPort": {
+                "Name": "Network Port",
+                "Description": "Default UDP port used when hosting and connecting to lobbies. Update this if you forward a different port on your router."
             },
             "ReduceNoteSpeedByDifficulty": {
                 "Name": "Reduce Note Speed by Difficulty",

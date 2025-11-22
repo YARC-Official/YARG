@@ -20,6 +20,26 @@ namespace YARG.Gameplay.Player
 {
     public abstract class TrackPlayer : BasePlayer
     {
+        protected internal readonly struct SoloSyncSnapshot
+        {
+            public readonly bool IsActive;
+            public readonly int Sequence;
+            public readonly int NoteCount;
+            public readonly int NotesHit;
+            public readonly int LastBonus;
+            public readonly int TotalBonus;
+
+            public SoloSyncSnapshot(bool isActive, int sequence, int noteCount, int notesHit, int lastBonus, int totalBonus)
+            {
+                IsActive = isActive;
+                Sequence = sequence;
+                NoteCount = noteCount;
+                NotesHit = notesHit;
+                LastBonus = lastBonus;
+                TotalBonus = totalBonus;
+            }
+        }
+
         public const float STRIKE_LINE_POS       = -2f;
         public const float DEFAULT_ZERO_FADE_POS = 3f;
         public const float NOTE_SPAWN_OFFSET     = 5f;
@@ -34,7 +54,7 @@ namespace YARG.Gameplay.Player
 
         public double SpawnTimeOffset => (ZeroFadePosition + _spawnAheadDelay + -STRIKE_LINE_POS) / NoteSpeed;
 
-        protected TrackView TrackView { get; private set; }
+        protected internal TrackView TrackView { get; private set; }
 
         [field: Header("Visuals")]
         [field: SerializeField]
@@ -92,6 +112,18 @@ namespace YARG.Gameplay.Player
         protected bool IsBass { get; private set; }
 
         private float _spawnAheadDelay;
+
+        protected SoloSection _activeSoloSection;
+        protected SoloSyncState _soloSyncState = new() { Sequence = -1 };
+
+        protected struct SoloSyncState
+        {
+            public int Sequence;
+            public bool IsActive;
+            public int NoteCount;
+            public int NotesHit;
+            public int LastBonus;
+        }
 
         protected float SongLength;
 
@@ -155,6 +187,48 @@ namespace YARG.Gameplay.Player
 
             HitWindowDisplay.SetHitWindowSize();
         }
+
+        internal virtual int GetRemoteNoteCount()
+        {
+            return 0;
+        }
+
+        internal virtual bool ResolveRemoteNote(ref int cursor, bool wasHit, double localSongTime,
+            double remoteSongTime, double localLeadSeconds, double remoteLeadSeconds,
+            out int resolvedWeight)
+        {
+            resolvedWeight = 0;
+            return false;
+        }
+
+        internal virtual void ResetRemoteSimulationState()
+        {
+        }
+
+        internal virtual int GetResolvedMissCount()
+        {
+            return 0;
+        }
+
+        internal SoloSyncSnapshot GetSoloSyncSnapshot()
+        {
+            if (_activeSoloSection != null)
+            {
+                _soloSyncState.NotesHit = Mathf.Clamp(_activeSoloSection.NotesHit, 0, _soloSyncState.NoteCount);
+            }
+
+            int totalBonus = Mathf.Max(0, BaseStats.SoloBonuses);
+            return new SoloSyncSnapshot(_soloSyncState.IsActive, _soloSyncState.Sequence,
+                _soloSyncState.NoteCount, _soloSyncState.NotesHit, _soloSyncState.LastBonus, totalBonus);
+        }
+
+        internal virtual void ApplyRemoteStarPowerState(bool isActive)
+        {
+        }
+
+        internal virtual void UpdateRemoteCountdown()
+        {
+        }
     }
 
     public abstract class TrackPlayer<TEngine, TNote> : TrackPlayer
@@ -183,6 +257,7 @@ namespace YARG.Gameplay.Player
         private double _previousStarPowerAmount;
 
         private bool _wasStarPowerActive;
+        private bool _remoteStarPowerActive;
         private bool _didLowerTrack;
 
         private Queue<TrackEffect> _upcomingEffects = new();
@@ -341,6 +416,16 @@ namespace YARG.Gameplay.Player
         {
             NoteIndex = 0;
             TotalNotes = Notes.Sum(i => Engine.GetNumberOfNotes(i));
+
+            _activeSoloSection = null;
+            _soloSyncState = new SoloSyncState
+            {
+                Sequence = -1,
+                IsActive = false,
+                NoteCount = 0,
+                NotesHit = 0,
+                LastBonus = 0
+            };
         }
 
         public override void ResetPracticeSection()
@@ -801,6 +886,159 @@ namespace YARG.Gameplay.Player
             LastCombo = Combo;
         }
 
+        internal override void ApplyRemoteStarPowerState(bool isActive)
+        {
+            if (!IsRemotePlayer)
+            {
+                return;
+            }
+
+            if (_remoteStarPowerActive == isActive)
+            {
+                return;
+            }
+
+            _remoteStarPowerActive = isActive;
+
+            EngineContainer?.SyncRemoteStarPowerState(isActive);
+            OnStarPowerStatus(isActive);
+        }
+
+        private void ApplyRemoteNoteResolution(TNote note, bool wasHit)
+        {
+            if (!IsRemotePlayer || EngineContainer == null)
+            {
+                return;
+            }
+
+            int noteWeight = Engine.GetNumberOfNotes(note);
+            if (noteWeight <= 0)
+            {
+                noteWeight = 1;
+            }
+
+            EngineContainer.ApplyRemoteNoteResult(noteWeight, wasHit);
+        }
+
+        internal override void UpdateRemoteCountdown()
+        {
+            if (!IsRemotePlayer)
+            {
+                return;
+            }
+
+            var countdowns = Engine.WaitCountdownsReadOnly;
+            if (countdowns == null || countdowns.Count == 0)
+            {
+                return;
+            }
+
+            double songTime = GameManager.SongTime;
+            for (int i = 0; i < countdowns.Count; i++)
+            {
+                var countdown = countdowns[i];
+                if (songTime >= countdown.Time && songTime < countdown.TimeEnd)
+                {
+                    OnCountdownChange(countdown.TimeLength, countdown.TimeEnd);
+                    break;
+                }
+            }
+        }
+
+        internal override bool ResolveRemoteNote(ref int cursor, bool wasHit, double localSongTime,
+            double remoteSongTime, double localLeadSeconds, double remoteLeadSeconds,
+            out int resolvedWeight)
+        {
+            resolvedWeight = 0;
+
+            while (cursor < Notes.Count && Notes[cursor].ParentOrSelf.WasFullyHitOrMissed())
+            {
+                cursor++;
+            }
+
+            if (cursor >= Notes.Count)
+            {
+                return false;
+            }
+
+            var note = Notes[cursor].ParentOrSelf;
+            double noteTime = note.Time;
+
+            if (noteTime > localSongTime + localLeadSeconds)
+            {
+                return false;
+            }
+
+            if (noteTime > remoteSongTime + remoteLeadSeconds)
+            {
+                return false;
+            }
+
+            resolvedWeight = Engine.GetNumberOfNotes(note);
+            if (resolvedWeight <= 0)
+            {
+                resolvedWeight = 1;
+            }
+
+            if (wasHit)
+            {
+                note.SetHitState(true, true);
+                OnNoteHit(cursor, note);
+            }
+            else
+            {
+                note.SetMissState(true, true);
+                OnNoteMissed(cursor, note);
+            }
+
+            if (IsRemotePlayer)
+            {
+                ApplyRemoteNoteResolution(note, wasHit);
+            }
+
+            cursor++;
+            return true;
+        }
+
+        internal override void ResetRemoteSimulationState()
+        {
+            foreach (var note in Notes)
+            {
+                note.SetHitState(false, true);
+                note.SetMissState(false, true);
+            }
+        }
+
+        internal override int GetResolvedMissCount()
+        {
+            if (Notes == null || Notes.Count == 0)
+            {
+                return 0;
+            }
+
+            int missCount = 0;
+
+            foreach (var note in Notes)
+            {
+                if (!note.IsParent)
+                {
+                    continue;
+                }
+
+                if (note.WasFullyMissed())
+                {
+                    missCount += Engine.GetNumberOfNotes(note);
+                }
+            }
+
+            return missCount;
+        }
+
+        internal override int GetRemoteNoteCount()
+        {
+            return Notes.Count;
+        }
+
         protected virtual void OnOverhit()
         {
             if (IsFc)
@@ -819,6 +1057,13 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloStart(SoloSection solo)
         {
+            _activeSoloSection = solo;
+            _soloSyncState.Sequence = unchecked(_soloSyncState.Sequence + 1);
+            _soloSyncState.IsActive = true;
+            _soloSyncState.NoteCount = solo.NoteCount;
+            _soloSyncState.NotesHit = 0;
+            _soloSyncState.LastBonus = 0;
+
             TrackView.StartSolo(solo);
 
             foreach (var haptic in SantrollerHaptics)
@@ -829,6 +1074,15 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloEnd(SoloSection solo)
         {
+            if (_activeSoloSection != null)
+            {
+                _soloSyncState.NotesHit = Mathf.Clamp(_activeSoloSection.NotesHit, 0, _soloSyncState.NoteCount);
+            }
+
+            _soloSyncState.IsActive = false;
+            _soloSyncState.LastBonus = Mathf.Max(0, solo.SoloBonus);
+            _activeSoloSection = null;
+
             TrackView.EndSolo(solo.SoloBonus);
 
             foreach (var haptic in SantrollerHaptics)

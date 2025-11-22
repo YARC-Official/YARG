@@ -1002,6 +1002,7 @@ GameObject:
   - component: {fileID: 4030813025219603265}
   - component: {fileID: 8056469617016179532}
   - component: {fileID: 4030813025219603277}
+  - component: {fileID: 8840364423887984487}
   m_Layer: 5
   m_Name: MusicLibraryMenu
   m_TagString: Untagged
@@ -1131,6 +1132,22 @@ MonoBehaviour:
   _sidebar: {fileID: 5958352451011471034}
   _noPlayerWarning: {fileID: 3731235360306283306}
   _popupMenu: {fileID: 6261760643625431320}
+--- !u!114 &8840364423887984487
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4030813025219603270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c2a4b8d9e6f4a5c8b7d9e6f4a5c8b7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  multiplayerPanel: {fileID: 0}
+  selectedSongText: {fileID: 0}
+  startSongButton: {fileID: 0}
+  waitingText: {fileID: 0}
 --- !u!1 &4030813025972567529
 GameObject:
   m_ObjectHideFlags: 0
@@ -3854,7 +3871,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 34.75
+  m_fontSize: 57.1
   m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -4263,8 +4280,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 418
-  m_PreferredHeight: 836
+  m_PreferredWidth: 686.7138
+  m_PreferredHeight: 1373.4276
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -4452,8 +4469,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 417
-  m_PreferredHeight: 417
+  m_PreferredWidth: 685.7138
+  m_PreferredHeight: 685.7138
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -5875,7 +5892,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: -0.000011444092}
+  m_AnchoredPosition: {x: 0, y: -0.000015258789}
   m_SizeDelta: {x: 0, y: 2}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &2859412333280554570
