@@ -92,8 +92,11 @@ namespace YARG.Gameplay.Visuals
 
         private void RecreateHighwayOutputTexture()
         {
-            HighwaysOutputTexture?.Release();
-            HighwaysOutputTexture?.DiscardContents();
+            if (HighwaysOutputTexture != null)
+            {
+                HighwaysOutputTexture.Release();
+                HighwaysOutputTexture.DiscardContents();
+            }
 
             var descriptor = new RenderTextureDescriptor(Screen.width, Screen.height, RenderTextureFormat.DefaultHDR)
             {
@@ -279,7 +282,11 @@ namespace YARG.Gameplay.Visuals
 
         private void ResetHighwayAlphaTexture()
         {
-            _highwaysAlphaTexture?.Release();
+            if (_highwaysAlphaTexture != null)
+            {
+                _highwaysAlphaTexture.Release();
+            }
+
             float scaling = 1.0f;
             var descriptor = new RenderTextureDescriptor(
                 (int) (Screen.width * scaling), (int) (Screen.height * scaling),
