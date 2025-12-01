@@ -128,7 +128,7 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="0719", MODE="0666"
    3. In Unity Hub, hit the arrow next to Add and select `Add project from disk`, then select the folder you cloned YARG to.
    4. Click on the added entry for YARG. It will warn you about a missing editor version, select 2021.3.36f1 and install it.
       - Unselect Visual Studio in the list of modules if you wish to use another editor or already have it installed.
-5. Install the [.NET SDK](https://dotnet.microsoft.com/en-us/download/visual-studio-sdks). This is required to develop and build the submodules.
+5. Install the [.NET SDK](https://dotnet.microsoft.com/en-us/download/visual-studio-sdks). This is required to develop the submodules and their supporting projects.
    - You will need the SDK specifically, not the runtime!
 6. Open the project in Unity. When prompted about Safe Mode, click "Ignore".
    - Do *not* enter Safe Mode, otherwise scripts necessary to build/install dependencies will not run, and the errors will not resolve.
