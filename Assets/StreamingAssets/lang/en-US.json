@@ -1171,6 +1171,10 @@
                     "FSR3": "FSR3"
                 }
             },
+            "VenuePostProcessing": {
+                "Name": "Venue Post-Processing",
+                "Description": "Determines if post-processing effects are applied to venue backgrounds."
+            },
             "VenueRenderingQuality": {
                 "Name": "Venue Rendering Quality",
                 "Description": "The quality/resolution to use for venue backgrounds.",

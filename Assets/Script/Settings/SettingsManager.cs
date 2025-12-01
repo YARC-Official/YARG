@@ -140,6 +140,7 @@ namespace YARG.Settings
                 nameof(Settings.SongBackgroundOpacity),
                 nameof(Settings.VenueRenderingQuality),
                 nameof(Settings.VenueAntiAliasing),
+                nameof(Settings.VenuePostProcessing),
 
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.StaticVocalsMode),

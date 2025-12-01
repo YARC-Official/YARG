@@ -268,6 +268,7 @@ namespace YARG.Settings
                      YARG.VenueAntiAliasingMethod.MSAA,
                  };
 
+            public ToggleSetting VenuePostProcessing { get; } = new(true, VenuePostProcessingCallback);
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting FpsStats { get; } = new(false, FpsCounterCallback);
 
@@ -610,6 +611,11 @@ namespace YARG.Settings
                 }
 
                 GraphicsManager.Instance.VenueRenderScale = 1.0f / GetUpscaleRatioFromQualityMode(value);
+            }
+
+            private static void VenuePostProcessingCallback(bool value)
+            {
+                GraphicsManager.Instance.VenuePostProcessing = value;
             }
 
             private static void ResolutionCallback(Resolution? value)

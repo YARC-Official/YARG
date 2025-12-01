@@ -100,6 +100,12 @@ namespace YARG.Venue.VenueCamera
             // Reset any existing effects, because they aren't supposed to stack
             ResetCameraEffect();
 
+            //exit early if Post processing disabled
+            if (!GraphicsManager.Instance.VenuePostProcessing)
+            {
+                return;
+            }
+
             if (newEffect.Type == PreviousEffect.Type && NextEffect != null)
             {
                 // In this case, we start animating toward NextEffect now

@@ -31,6 +31,8 @@ namespace YARG.Gameplay.HUD
         [Space]
         [SerializeField]
         private GameObject _noFailButton;
+        [SerializeField]
+        private GameObject _venuePostProcessingButton;
 
         [FormerlySerializedAs("_pauseVolumeSettingPrefab")]
         [Space]
@@ -39,11 +41,13 @@ namespace YARG.Gameplay.HUD
 
         private FailMeter _failMeter;
         private TextMeshProUGUI _noFailText;
+        private TextMeshProUGUI _venuePostProcessingText;
 
         protected override void OnSongStarted()
         {
             _failMeter = FindAnyObjectByType<FailMeter>();
             _noFailText = _noFailButton.GetComponentInChildren<TextMeshProUGUI>();
+            _venuePostProcessingText = _venuePostProcessingButton.GetComponentInChildren<TextMeshProUGUI>();
             _editHudButton.gameObject.SetActive(GameManager.Players.Count <= 1);
         }
 
@@ -55,6 +59,9 @@ namespace YARG.Gameplay.HUD
             _subSettingsObject.SetActive(false);
             // _noFailButton.SetActive(!SettingsManager.Settings.NoFailMode.Value);
             _noFailText.text = SettingsManager.Settings.NoFailMode.Value ? "Disable No Fail" : "Enable No Fail";
+            _venuePostProcessingText.text = SettingsManager.Settings.VenuePostProcessing.Value
+                ? "Disable Venue Post Processing"
+                : "Enable Venue Post Processing";
         }
 
         public override void Back()
@@ -79,6 +86,14 @@ namespace YARG.Gameplay.HUD
 
             // Disappear the fail meter
             _failMeter.SetActive(!SettingsManager.Settings.NoFailMode.Value);
+        }
+
+        public void ToggleVenuePostProcessing()
+        {
+            SettingsManager.Settings.VenuePostProcessing.Value = !SettingsManager.Settings.VenuePostProcessing.Value;
+            _venuePostProcessingText.text = SettingsManager.Settings.VenuePostProcessing.Value
+                ? "Disable Venue Post Processing"
+                : "Enable Venue Post Processing";
         }
 
         private void OpenSubSettings(List<string> settings)
