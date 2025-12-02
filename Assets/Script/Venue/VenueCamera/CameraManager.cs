@@ -120,6 +120,8 @@ namespace YARG.Venue.VenueCamera
         private int   _cameraIndex;
         private bool  _volumeSet;
 
+        private bool _isPostProcessingEnabled;
+
         protected override void OnChartLoaded(SongChart chart)
         {
             _volumeSet = _profile != null;
@@ -506,6 +508,8 @@ namespace YARG.Venue.VenueCamera
         {
             // Enable the camera in case it happens to be disabled
             _currentCamera.enabled = true;
+
+            SettingsManager.Settings.VenuePostProcessing.OnChange -= SetPostProcessingEnabled;
             base.GameplayDestroy();
         }
 
