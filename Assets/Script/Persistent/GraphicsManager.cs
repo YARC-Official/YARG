@@ -49,8 +49,6 @@ namespace YARG
             get => QualitySettings.GetQualityLevel() == 0;
         }
 
-        public bool VenuePostProcessing { get; set; }
-
         protected override void SingletonAwake()
         {
             if (!postProcessingProfile.TryGet(out bloom))
