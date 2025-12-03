@@ -91,6 +91,9 @@ namespace YARG.Venue.VenueCamera
             _invertCurveParam = new TextureCurveParameter(_invertCurve, true);
             _copierCurveParam = new TextureCurveParameter(_copierCurve, true);
             _brightCurveParam = new TextureCurveParameter(_brightCurve, true);
+
+            _isPostProcessingEnabled = SettingsManager.Settings.VenuePostProcessing.Value;
+            SettingsManager.Settings.VenuePostProcessing.OnChange += SetPostProcessingEnabled;
         }
 
         public void SetCameraPostProcessing(PostProcessingEvent newEffect)
