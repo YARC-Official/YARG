@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -305,9 +305,15 @@ namespace YARG.Audio.BASS
                     out var reverbHandles))
                 {
                     YargLogger.LogFormatError("Failed to load stem {0}: {1}!", stemInfo.Stem, Bass.LastError);
-                    return false;
+                    continue;
                 }
                 stemDatas.Add(new StemData(stemInfo.Stem, stemInfo.GetVolumeMatrix(), streamHandles!, reverbHandles!));
+            }
+
+            if (!stemDatas.Any())
+            {
+                YargLogger.LogError("Failed to load any stems!");
+                return false;
             }
 
             if (!AddChannelsToMixer(stemDatas))
