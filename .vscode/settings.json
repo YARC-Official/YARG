@@ -1,15 +1,14 @@
 {
-    "files.exclude":
-    {
-        "**/.DS_Store":true,
-        "**/.git":true,
-        "**/*.meta":true,
-        "build/":true,
-        "Build/":true,
-        "obj/":true,
-        "Obj/":true,
-        "temp/":true,
-        "Temp/":true
+    "files.exclude": {
+        "**/.DS_Store": true,
+        "**/.git": true,
+        "**/*.meta": true,
+        "build/": true,
+        "Build/": true,
+        "obj/": true,
+        "Obj/": true,
+        "temp/": true,
+        "Temp/": true
     },
-    "dotnet.defaultSolution": "YARG.sln",
+    "dotnet.defaultSolution": "YARG.slnx"
 }
