@@ -51,7 +51,7 @@ namespace YARG.Gameplay
             // We don't need to update unless we're using a video
             enabled = false;
 
-            using var result = VenueLoader.GetVenue(GameManager.Song, out _source);
+            var result = VenueLoader.GetVenue(GameManager.Song, out _source);
             if (result == null)
             {
                 return;
@@ -138,6 +138,20 @@ namespace YARG.Gameplay
                     // Destroy the default camera (venue has its own)
                     Destroy(_videoPlayer.targetCamera.gameObject);
 
+                    if (textureManager.VideoTexFound())
+                    {
+                        //set up videoPlayer to render to venue texture
+                        _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+                        _videoPlayer.targetTexture = textureManager.GetVideoTexture();
+                        //overwrite result of GetVenue with Song Background
+                        result = GameManager.Song.LoadBackground();
+                        //if song background is found and is a video load it as if it was the background
+                        if (result?.Type == BackgroundType.Video)
+                        {
+                            goto case BackgroundType.Video;
+                        }
+                    }
+
                     break;
                 case BackgroundType.Video:
                     switch (result.Stream)
@@ -173,6 +187,8 @@ namespace YARG.Gameplay
                     _backgroundImage.gameObject.SetActive(true);
                     break;
             }
+            //dispose of result manually since no no longer using "using" keyword
+            result?.Dispose();
         }
 
         private void Update()

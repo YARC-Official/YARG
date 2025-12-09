@@ -23,11 +23,14 @@ namespace YARG.Gameplay
         private Texture2D _sourceIcon = null;
         private Texture2D _albumCover = null;
         private Texture2D _soundTexture = null;
+        private RenderTexture _videoTexture = null;
         private float[] _fft = new float[FFT_SIZE / 2];
         private float[] _wave = new float[FFT_TEXTURE_WIDTH];
         private float[] _prevFft = new float[FFT_SIZE / 2];
         private float[] _rawFft = new float[FFT_SIZE * 2];
         private float[] _rawWave = new float[FFT_SIZE];
+
+        private bool _videoTexFound = false;
 
         private UniTask           _updateTask = UniTask.CompletedTask;
         private NativeArray<byte> _pixelData;
@@ -35,6 +38,7 @@ namespace YARG.Gameplay
         private static int _soundTexId = Shader.PropertyToID("_Yarg_SoundTex");
         private static int _sourceIconId = Shader.PropertyToID("_Yarg_SourceIcon");
         private static int _albumCoverId = Shader.PropertyToID("_Yarg_AlbumCover");
+        private static int _videoTexId = Shader.PropertyToID("_Yarg_VideoTex");
 
         private const double MIN_DB = -100.0;
         private const double MAX_DB = -30.0;
@@ -42,6 +46,8 @@ namespace YARG.Gameplay
         private const int FFT_SIZE_LOG = 11 /* aka log2(2048) */;
         private const int FFT_SIZE = 1 << FFT_SIZE_LOG;
         private const int FFT_TEXTURE_WIDTH = 512;
+        private const int VIDEO_TEX_WIDTH = 1280;
+        private const int VIDEO_TEX_HEIGHT = 720;
 
         // TODO: Get the number of active channels from the mixer instead of assuming
         //  Note that this won't _break_ if there are more channels, it will just make
@@ -86,6 +92,22 @@ namespace YARG.Gameplay
             return _soundTexture;
         }
 
+        public RenderTexture GetVideoTexture()
+        {
+            if (_videoTexture == null)
+            {
+                _videoTexture = new RenderTexture(VIDEO_TEX_WIDTH, VIDEO_TEX_HEIGHT, 0);
+                _videoTexture.Create();
+                _videoTexFound = true;
+            }
+            return _videoTexture;
+        }
+
+        public bool VideoTexFound()
+        {
+            return _videoTexFound;
+        }
+
         public void ProcessMaterial(Material m)
         {
             if (m.HasTexture(_sourceIconId))
@@ -99,6 +121,10 @@ namespace YARG.Gameplay
             if (m.HasTexture(_albumCoverId))
             {
                 m.SetTexture(_albumCoverId, GetAlbumArt());
+            }
+            if (m.HasTexture(_videoTexId))
+            {
+                m.SetTexture(_videoTexId, GetVideoTexture());
             }
         }
 
