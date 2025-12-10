@@ -148,6 +148,7 @@ namespace YARG.Gameplay
                         //if song background is found and is a video load it as if it was the background
                         if (result?.Type == BackgroundType.Video)
                         {
+                            _source = VenueSource.Song;
                             goto case BackgroundType.Video;
                         }
                     }
