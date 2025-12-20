@@ -134,6 +134,7 @@ namespace YARG.Gameplay
                     bundleBackgroundManager.Bundle = bundle;
                     bundleBackgroundManager.ShaderBundle = shaderBundle;
                     bundleBackgroundManager.SetupVenueCamera(bgInstance);
+                    bundleBackgroundManager.LimitVenueLights(bgInstance);
 
                     // Destroy the default camera (venue has its own)
                     Destroy(_videoPlayer.targetCamera.gameObject);
