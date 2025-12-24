@@ -168,11 +168,11 @@ namespace YARG.Gameplay.Visuals
                 var x = position.x;
                 if (float.IsNaN(maxWorld) || maxWorld < x + 1)
                 {
-                    maxWorld = x + 1;
+                    maxWorld = x + 5;
                 }
                 if (float.IsNaN(minWorld) || minWorld > x - 1)
                 {
-                    minWorld = x - 1;
+                    minWorld = x - 5;
                 }
             }
 
