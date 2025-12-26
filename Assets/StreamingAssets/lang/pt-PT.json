@@ -678,6 +678,11 @@
                 "PauseName": "Master",
                 "Description": "Adjusts the song's volume as a whole."
             },
+            "MetronomeVolume": {
+                "Name": "Metronome Volume",
+                "PauseName": "Metronome",
+                "Description": "Adjusts the volume of the metronome."
+            },
             "MinimumLogLevel": {
                 "Name": "Minimum Log Level",
                 "Description": "Controls how much information is written to log files.",

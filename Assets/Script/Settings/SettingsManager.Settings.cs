@@ -182,6 +182,9 @@ namespace YARG.Settings
             public VolumeSetting DrumSfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.DrumSfx, v));
 
+            public VolumeSetting MetronomeVolume { get; } =
+                new(0f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Metronome, v));
+
             public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring { get; } = new(0.7f, VocalMonitoringCallback);

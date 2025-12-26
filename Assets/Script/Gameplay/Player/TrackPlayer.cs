@@ -233,6 +233,8 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
+            GameManager.BeatEventHandler.Visual.Subscribe(MetronomeTick, BeatEventType.Measure);
+            GameManager.BeatEventHandler.Visual.Subscribe(MetronomeTock, BeatEventType.QuarterNote);
             GameManager.BeatEventHandler.Visual.Subscribe(SunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
             InitializeTrackEffects();
 
@@ -245,6 +247,8 @@ namespace YARG.Gameplay.Player
 
         protected override void FinishDestruction()
         {
+            GameManager.BeatEventHandler.Visual.Unsubscribe(MetronomeTick);
+            GameManager.BeatEventHandler.Visual.Unsubscribe(MetronomeTock);
             GameManager.BeatEventHandler.Visual.Unsubscribe(SunburstEffects.PulseSunburst);
 
             base.FinishDestruction();
@@ -852,6 +856,16 @@ namespace YARG.Gameplay.Player
                 _newHighScoreShown = true;
                 TrackView.ShowNewHighScore();
             }
+        }
+
+        public void MetronomeTick()
+        {
+            GlobalAudioHandler.PlayMetronomeSoundEffect(MetronomeSample.QuartzHi);
+        }
+
+        public void MetronomeTock()
+        {
+            GlobalAudioHandler.PlayMetronomeSoundEffect(MetronomeSample.QuartzLo);
         }
     }
 }

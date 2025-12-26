@@ -157,6 +157,7 @@ namespace YARG.Audio.BASS
             LoadSfx();
             LoadDrumSfx(); // TODO: move drum sfx loading/disposal to song start/end respectively IF there are any drum players
             LoadVox();
+            LoadMetronome();
 
             var info = Bass.Info;
             PlaybackLatency = info.Latency + Bass.DeviceBufferLength + devPeriod;
@@ -335,6 +336,36 @@ namespace YARG.Audio.BASS
             }
 
             YargLogger.LogInfo("Finished loading VOX");
+        }
+
+        private void LoadMetronome()
+        {
+            YargLogger.LogInfo("Loading Metronome");
+            string metronomeFolder = Path.Combine(Application.streamingAssetsPath, "metronome");
+
+            foreach (var sample in AudioHelpers.MetronomeSamples)
+            {
+                string metronomeBase = Path.Combine(metronomeFolder, sample.File);
+                foreach (string format in SupportedFormats)
+                {
+                    string metronomePath = metronomeBase + format;
+                    if (File.Exists(metronomePath))
+                    {
+                        var metronomeSample = sample.Kind;
+                        var metronome = BassMetronomeSampleChannel.Create(metronomeSample, metronomePath);
+
+                        if (metronome != null)
+                        {
+                            MetronomeSamples[(int) metronomeSample] = metronome;
+                            YargLogger.LogFormatInfo("Loaded {0}", sample.File);
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            YargLogger.LogInfo("Finished loading Metronome");
         }
 
         protected override void SetMasterVolume(double volume)
