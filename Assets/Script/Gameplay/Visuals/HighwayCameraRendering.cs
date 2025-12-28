@@ -7,7 +7,6 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using YARG.Core.Logging;
 using YARG.Gameplay.Player;
-using YARG.Helpers;
 using YARG.Helpers.UI;
 using YARG.Settings;
 
@@ -302,6 +301,18 @@ namespace YARG.Gameplay.Visuals
         {
             RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRender;
+
+            if (HighwaysOutputTexture != null)
+            {
+                HighwaysOutputTexture.Release();
+                HighwaysOutputTexture.DiscardContents();
+                HighwaysOutputTexture = null;
+            }
+            if (_highwaysAlphaTexture != null)
+            {
+                _highwaysAlphaTexture.Release();
+                _highwaysAlphaTexture = null;
+            }
         }
 
         private void OnEndCameraRender(ScriptableRenderContext ctx, Camera cam)
