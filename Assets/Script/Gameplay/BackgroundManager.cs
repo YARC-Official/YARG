@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.IO;
@@ -30,6 +29,9 @@ namespace YARG.Gameplay
 
         [SerializeField]
         private Image _backgroundDimmer;
+
+        [SerializeField]
+        private RawImage _venueOutput;
 
         private BackgroundType _type;
         private VenueSource _source;
@@ -68,6 +70,7 @@ namespace YARG.Gameplay
                     var bundle = AssetBundle.LoadFromStream(result.Stream);
                     AssetBundle shaderBundle = null;
 
+                    _venueOutput.gameObject.SetActive(true);
                     // KEEP THIS PATH LOWERCASE
                     // Breaks things for other platforms, because Unity
                     var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
@@ -134,6 +137,7 @@ namespace YARG.Gameplay
                     bundleBackgroundManager.Bundle = bundle;
                     bundleBackgroundManager.ShaderBundle = shaderBundle;
                     bundleBackgroundManager.SetupVenueCamera(bgInstance);
+                    bundleBackgroundManager.LimitVenueLights(bgInstance);
 
                     // Destroy the default camera (venue has its own)
                     Destroy(_videoPlayer.targetCamera.gameObject);
@@ -307,7 +311,7 @@ namespace YARG.Gameplay
             if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
                 player.Play();
 
-            enabled = double.IsNaN(_videoEndTime);
+            enabled = !double.IsNaN(_videoEndTime);
             _videoSeeking = false;
         }
 

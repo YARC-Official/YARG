@@ -1,4 +1,6 @@
-#define MAX_MATRICES 128
+#ifndef YARG_HIGHWAYS_INCLUDED
+#define YARG_HIGHWAYS_INCLUDED
+#define MAX_MATRICES 32
 uniform int _YargHighwaysN;
 uniform float4x4 _YargCamViewMatrices[MAX_MATRICES];
 uniform float4x4 _YargCamInvViewMatrices[MAX_MATRICES];
@@ -82,19 +84,6 @@ inline float3 YargWorldSpaceViewDir(float4 localPos)
 }
 #endif
 
-#ifdef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
-// Computes the world space view direction (pointing towards the viewer).
-inline float3 YargGetWorldSpaceViewDir(float3 positionWS)
-{
-    if (_YargHighwaysN > 0)
-    {
-        return YargWorldSpaceCameraPos(positionWS).xyz - positionWS;
-    } else {
-        return GetWorldSpaceViewDir(positionWS);
-    }
-}
-#endif
-
 // Tranforms position from world to homogenous space
 inline float4 YargTransformWorldToHClip(float3 positionWS)
 {
@@ -108,7 +97,7 @@ inline float4 YargTransformWorldToHClip(float3 positionWS)
     // (x', y', z') = sin(d / R) * (R + y - t_y) / d * (x - t_x, 0, z - t_z) + (t_x, cos(d / R) * (R + y - t_y) - R + t_y, t_z)
     // Where (x', y', z') is the transformation of (x, y, z) when curving the world around a sphere with radius R whose top is at (t_x, t_y, t_z).
     //
-    // Adjusting for the circle (removing Z) we get
+    // Adjusting for the circle (removing Z) we get`
     // d = sqrt((x - t_x) * (x - t_x))
     // (x', y') = sin(d / R) * (R + y - t_y) / d * (x - t_x, 0) + (t_x, cos(d / R) * (R + y - t_y) - R + t_y)
 
@@ -181,4 +170,4 @@ inline float4 YargObjectToClipPos( in float3 pos )
 {
     return YargTransformWorldToHClip(mul(unity_ObjectToWorld, float4(pos, 1.0)).xyz);
 }
-
+#endif

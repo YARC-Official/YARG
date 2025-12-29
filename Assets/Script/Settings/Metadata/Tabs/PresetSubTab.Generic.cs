@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using UnityEngine;
 using YARG.Core;
@@ -270,6 +271,15 @@ namespace YARG.Settings.Metadata
                     // Keep the setting variable null because this method will deal with spawning itself
                     BuildSpecialSetting(container, navGroup, field, preset);
 
+                    break;
+                }
+                case SettingType.FileInfo:
+                {
+                    var settingName = field.Field.Name;
+                    setting = new FileInfoSetting(field.GetValue<FileInfo>(preset), preset, settingName, (value) =>
+                    {
+                        field.SetValue(preset, value);
+                    });
                     break;
                 }
             }

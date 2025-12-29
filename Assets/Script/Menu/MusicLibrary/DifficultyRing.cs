@@ -49,7 +49,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void Awake()
         {
-            _songSearchingField = FindObjectOfType<SongSearchingField>();
+            _songSearchingField = FindFirstObjectByType<SongSearchingField>();
         }
 
         public void SetInfo(string assetName, Instrument instrument, PartValues values)

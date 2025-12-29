@@ -8,12 +8,8 @@ namespace YARG.Settings.Metadata
     public class SongManagerTab : MetadataTab
     {
         // Prefabs needed for this tab type
-        private static readonly GameObject _songManagerHeader = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/SongManagerHeader")
-            .WaitForCompletion();
-        private static readonly GameObject _songManagerDirectory = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/SongManagerDirectory")
-            .WaitForCompletion();
+        private static GameObject _songManagerHeader;
+        private static GameObject _songManagerDirectory;
 
         public SongManagerTab(string name, string icon = "Generic") : base(name, icon)
         {
@@ -21,6 +17,19 @@ namespace YARG.Settings.Metadata
 
         public override void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup)
         {
+            if (_songManagerHeader == null)
+            {
+                 _songManagerHeader = Addressables
+                    .LoadAssetAsync<GameObject>("SettingTab/SongManagerHeader")
+                    .WaitForCompletion();
+            }
+            if (_songManagerDirectory == null)
+            {
+                 _songManagerDirectory = Addressables
+                    .LoadAssetAsync<GameObject>("SettingTab/SongManagerDirectory")
+                    .WaitForCompletion();
+            }
+
             // Spawn in the special header
             Object.Instantiate(_songManagerHeader, settingContainer);
 

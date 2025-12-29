@@ -17,18 +17,10 @@ namespace YARG.Settings.Metadata
     public class PresetsTab : Tab
     {
         // Prefabs needed for this tab type
-        private static readonly GameObject _presetTypeDropdown = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/PresetTypeDropdown")
-            .WaitForCompletion();
-        private static readonly GameObject _presetDropdown = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/PresetDropdown")
-            .WaitForCompletion();
-        private static readonly GameObject _presetActions = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/PresetActions")
-            .WaitForCompletion();
-        private static readonly GameObject _presetDefaultText = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/PresetDefaultText")
-            .WaitForCompletion();
+        private static GameObject _presetTypeDropdown;
+        private static GameObject _presetDropdown;
+        private static GameObject _presetActions;
+        private static GameObject _presetDefaultText;
 
         // We essentially need to create sub-tabs for each preset
         private static readonly List<PresetSubTab> _presetTabs = new()
@@ -168,6 +160,31 @@ namespace YARG.Settings.Metadata
 
         public override void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup)
         {
+            if (_presetTypeDropdown == null)
+            {
+                _presetTypeDropdown = Addressables
+                    .LoadAssetAsync<GameObject>("SettingTab/PresetTypeDropdown")
+                    .WaitForCompletion();
+            }
+            if (_presetDropdown == null)
+            {
+                 _presetDropdown = Addressables
+                    .LoadAssetAsync<GameObject>("SettingTab/PresetDropdown")
+                    .WaitForCompletion();
+            }
+            if (_presetActions == null)
+            {
+                 _presetActions = Addressables
+                    .LoadAssetAsync<GameObject>("SettingTab/PresetActions")
+                    .WaitForCompletion();
+            }
+            if (_presetDefaultText == null)
+            {
+                 _presetDefaultText = Addressables
+                    .LoadAssetAsync<GameObject>("SettingTab/PresetDefaultText")
+                    .WaitForCompletion();
+            }
+
             // Try to get the preset, and if unsuccessful, load the default one instead
             var preset = SelectedPreset;
             if (preset is null)

@@ -9,9 +9,7 @@ namespace YARG.Settings.Metadata
     public abstract class PresetSubTab : Tab
     {
         // Prefabs needed for this tab type
-        private static readonly GameObject _headerPrefab = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/Header")
-            .WaitForCompletion();
+        private static GameObject _headerPrefab;
 
         public abstract CustomContent CustomContent { get; }
 
@@ -24,6 +22,11 @@ namespace YARG.Settings.Metadata
 
         protected static void SpawnHeader(Transform container, string unlocalizedText)
         {
+            if (_headerPrefab == null) {
+                _headerPrefab = Addressables
+                    .LoadAssetAsync<GameObject>("SettingTab/Header")
+                    .WaitForCompletion();
+            }
             // Spawn in the header
             var go = Object.Instantiate(_headerPrefab, container);
 

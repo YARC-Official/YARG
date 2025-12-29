@@ -6,6 +6,7 @@ using UnityEngine.Rendering.Universal;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Gameplay;
+using YARG.Settings;
 using YARG.Venue.VolumeComponents;
 using Random = UnityEngine.Random;
 
@@ -90,6 +91,9 @@ namespace YARG.Venue.VenueCamera
             _invertCurveParam = new TextureCurveParameter(_invertCurve, true);
             _copierCurveParam = new TextureCurveParameter(_copierCurve, true);
             _brightCurveParam = new TextureCurveParameter(_brightCurve, true);
+
+            _isPostProcessingEnabled = SettingsManager.Settings.VenuePostProcessing.Value;
+            SettingsManager.Settings.VenuePostProcessing.OnChange += SetPostProcessingEnabled;
         }
 
         public void SetCameraPostProcessing(PostProcessingEvent newEffect)
@@ -99,6 +103,12 @@ namespace YARG.Venue.VenueCamera
 
             // Reset any existing effects, because they aren't supposed to stack
             ResetCameraEffect();
+
+            //exit early if Post processing disabled
+            if (!_isPostProcessingEnabled)
+            {
+                return;
+            }
 
             if (newEffect.Type == PreviousEffect.Type && NextEffect != null)
             {
@@ -389,6 +399,40 @@ namespace YARG.Venue.VenueCamera
 					SetPsychRB(false);
 					break;
             }
+        }
+
+        private void ResetAllEffects()
+        {
+            _colorAnimations.Clear();
+            _curveAnimations.Clear();
+            _floatAnimations.Clear();
+            _clampedFloatAnimations.Clear();
+            _clampedIntAnimations.Clear();
+            SetLowFrameRate(false);
+            SetBloom(false);
+            SetBrightness(false);
+            SetContrast(false);
+            SetPosterize(false);
+            SetInvertedColors(false);
+            SetMirror(false);
+            SetBlackAndWhite(false);
+            SetGrainy(false);
+            SetScanline(false);
+            SetSepiaTone(false);
+            SetSilverTone(false);
+            SetBlueTint(false);
+            SetGreenTint(false);
+            SetExposure(false);
+            SetChromaticAberration(false);
+            SetDesaturation(false);
+            SetDesaturatedRed(false);
+            SetDesaturatedBlue(false);
+            SetTrail(false);
+            SetPhotoNegativeRedAndBlack(false);
+            SetContrastGreen(false);
+            SetContrastBlue(false);
+            SetContrastRed(false);
+            SetPsychRB(false);
         }
 
         private void SetContrastGreen(bool enabled)
@@ -1024,6 +1068,20 @@ namespace YARG.Venue.VenueCamera
             {
                 CurrentEffect = _postProcessingEvents[_currentEventIndex];
                 SetCameraPostProcessing(CurrentEffect);
+            }
+        }
+
+        private void SetPostProcessingEnabled(bool value)
+        {
+            _isPostProcessingEnabled = value;
+            if (!value)
+            {
+                YargLogger.LogInfo("trying to remove pp");
+                ResetAllEffects();
+            }
+            else if (CurrentEffect != null)
+            {
+                SetCameraPostProcessing(new PostProcessingEvent(CurrentEffect.Type, GameManager.VisualTime, CurrentEffect.Tick));
             }
         }
     }

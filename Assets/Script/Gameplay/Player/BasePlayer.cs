@@ -10,6 +10,7 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Helpers.Extensions;
+using YARG.Helpers.UI;
 using YARG.Input;
 using YARG.Playback;
 using YARG.Player;
@@ -108,9 +109,20 @@ namespace YARG.Gameplay.Player
         {
             _replayInputs = new List<GameInput>();
 
-            InputViewer = FindObjectOfType<BaseInputViewer>();
+            // TODO: Couldn't there be more than one input viewer?
+            //  We were using FindObjectOfType<BaseInputViewer> before anyway, so we're no worse off in that respect
+            InputViewer = FindFirstObjectByType<BaseInputViewer>();
 
             IsFc = true;
+        }
+
+        private void Update()
+        {
+            //Ensure hud elements get repositioned on screen size change
+            if (ScreenSizeDetector.HasScreenSizeChanged)
+            {
+                UpdateVisuals(GameManager.VisualTime);
+            }
         }
 
         protected void Start()
@@ -342,6 +354,11 @@ namespace YARG.Gameplay.Player
             {
                 GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerAward);
             }
+        }
+
+        protected virtual void OnStarPowerPhraseMissed()
+        {
+
         }
 
         protected virtual void OnStarPowerStatus(bool active)

@@ -25,7 +25,7 @@ namespace YARG.Gameplay.HUD
 
         private CanvasGroup _canvasGroup;
 
-        public float DisplayTime = 5f;
+        public float DisplayTime = 3.0f;
         public float FadeDuration = 0.5f;
 
         protected override void GameplayAwake()

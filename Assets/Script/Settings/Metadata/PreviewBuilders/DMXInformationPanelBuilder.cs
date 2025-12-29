@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
@@ -9,9 +9,7 @@ namespace YARG.Settings.Metadata
     public class DMXInformationPanelBuilder : IPreviewBuilder
     {
         // Prefabs needed for this tab type
-        private static readonly GameObject _information = Addressables
-            .LoadAssetAsync<GameObject>("SettingPreviews/DMXInformationPanelUI")
-            .WaitForCompletion();
+        private static GameObject _information;
 
         public GameMode? StartingGameMode { get; set; }
 
@@ -27,6 +25,12 @@ namespace YARG.Settings.Metadata
 
         public UniTask BuildPreviewUI(Transform uiContainer)
         {
+            if (_information == null)
+            {
+                 _information = Addressables
+                    .LoadAssetAsync<GameObject>("SettingPreviews/DMXInformationPanelUI")
+                    .WaitForCompletion();
+            }
             var go = Object.Instantiate(_information, uiContainer);
             return UniTask.CompletedTask;
         }

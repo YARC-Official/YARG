@@ -269,6 +269,7 @@ namespace YARG.Settings
                      YARG.VenueAntiAliasingMethod.MSAA,
                  };
 
+            public ToggleSetting VenuePostProcessing { get; } = new(true);
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting FpsStats { get; } = new(false, FpsCounterCallback);
 

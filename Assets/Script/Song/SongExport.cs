@@ -19,6 +19,9 @@ namespace YARG.Song
             [JsonProperty("Album")]
             public string album;
 
+            [JsonProperty("Playlist")]
+            public string playlist;
+
             [JsonProperty("Genre")]
             public string genre;
 
@@ -46,7 +49,16 @@ namespace YARG.Song
                 {
                     string artist = RichTextUtils.StripRichTextTags(song.Artist);
                     string name = RichTextUtils.StripRichTextTags(song.Name);
-                    output.WriteLine($"{artist} - {name}");
+                    string playlist = RichTextUtils.StripRichTextTags(song.Playlist);
+
+                    if (playlist == "Unknown Playlist")
+                    {
+                        output.WriteLine($"{artist} - {name}");
+                    }
+                    else
+                    {
+                        output.WriteLine($"{artist} - {name} from {playlist}");
+                    }
                 }
                 output.WriteLine("");
             }
@@ -60,20 +72,40 @@ namespace YARG.Song
             // Convert SongInfo to OuvertSongData
             foreach (var song in SongContainer.Songs)
             {
-                songs.Add(new OuvertSongData
+                if(RichTextUtils.StripRichTextTags(song.Playlist) == "Unknown Playlist")
                 {
-                    songName = RichTextUtils.StripRichTextTags(song.Name),
-                    artistName = RichTextUtils.StripRichTextTags(song.Artist),
-                    album = RichTextUtils.StripRichTextTags(song.Album),
-                    genre = RichTextUtils.StripRichTextTags(song.Genre),
-                    charter = RichTextUtils.StripRichTextTags(song.Charter),
-                    year = RichTextUtils.StripRichTextTags(song.UnmodifiedYear),
-                    songLength = (ulong)song.SongLengthMilliseconds
-                });
+                    songs.Add(new OuvertSongData
+                    {
+                        songName = RichTextUtils.StripRichTextTags(song.Name),
+                        artistName = RichTextUtils.StripRichTextTags(song.Artist),
+                        album = RichTextUtils.StripRichTextTags(song.Album),
+                        genre = RichTextUtils.StripRichTextTags(song.Genre),
+                        charter = RichTextUtils.StripRichTextTags(song.Charter),
+                        year = RichTextUtils.StripRichTextTags(song.UnmodifiedYear),
+                        songLength = (ulong)song.SongLengthMilliseconds
+                    });
+                }
+                else
+                {
+                    songs.Add(new OuvertSongData
+                    {
+                        songName = RichTextUtils.StripRichTextTags(song.Name),
+                        artistName = RichTextUtils.StripRichTextTags(song.Artist),
+                        album = RichTextUtils.StripRichTextTags(song.Album),
+                        playlist = RichTextUtils.StripRichTextTags(song.Playlist),
+                        genre = RichTextUtils.StripRichTextTags(song.Genre),
+                        charter = RichTextUtils.StripRichTextTags(song.Charter),
+                        year = RichTextUtils.StripRichTextTags(song.UnmodifiedYear),
+                        songLength = (ulong)song.SongLengthMilliseconds
+                    });
+                }
             }
 
             // Create file
-            var json = JsonConvert.SerializeObject(songs, Formatting.Indented);
+            var json = JsonConvert.SerializeObject(songs, Formatting.Indented, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
             File.WriteAllText(path, json);
         }
     }

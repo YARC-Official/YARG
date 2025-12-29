@@ -1,24 +1,19 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System;
+using UnityEngine;
 using YARG.Core.Engine;
-using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
-using YARG.Helpers.UI;
-using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
     public class TrackView : MonoBehaviour
     {
         [SerializeField]
-        private AspectRatioFitter _aspectRatioFitter;
-        [SerializeField]
-        private ScaleByParentSize _UIScaler;
-        [SerializeField]
         private RectTransform _topElementContainer;
         [SerializeField]
         private RectTransform _centerElementContainer;
+        [SerializeField]
+        private RectTransform _scaleContainer;
 
         [Space]
         [SerializeField]
@@ -30,41 +25,31 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private PlayerNameDisplay _playerNameDisplay;
 
-        private TrackPlayer _trackPlayer;
+        private HighwayCameraRendering      _highwayRenderer;
+        private Vector3 _lastTrackPlayerPosition;
 
-        private void Start()
-        {
-            _aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
-            _UIScaler.Initialize();
-        }
+        private const float CENTER_ELEMENT_DEPTH = 0.35f;
 
-        public void Initialize(TrackPlayer trackPlayer)
+        public void Initialize(HighwayCameraRendering highwayRenderer)
         {
-            _trackPlayer = trackPlayer;
+            _highwayRenderer = highwayRenderer;
         }
 
         public void UpdateHUDPosition(int highwayIndex, int highwayCount)
         {
-            var rect = GetComponent<RectTransform>();
-            var topViewportPos = _trackPlayer.HUDTopElementViewportPosition;
-            var centerViewportPos = _trackPlayer.HUDCenterElementViewportPosition;
+            //Scale ui according to number of highways,
+            //1 highway = 1.0 scale, 2 highways = 0.9 scale, 3 highways = 0.8 scale, etc, minimum of 0.5
+            var newScale = Math.Max(0.5f, 1.1f - (0.1f * highwayCount));
+            _scaleContainer.localScale = _scaleContainer.localScale.WithX(newScale).WithY(newScale);
 
-            // Caching this is faster
-            var rectRect = rect.rect;
+            //Set center element position
+            Vector2 position = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, CENTER_ELEMENT_DEPTH);
+            _centerElementContainer.transform.position = position;
 
-            // Divide tilt by 4; if highway tilt is maxed out, we want the bounds to be (-0.25, 0.25)
-            float hudOffset = HighwayCameraRendering.GetMultiplayerXOffset(highwayIndex, highwayCount,
-                SettingsManager.Settings.HighwayTiltMultiplier.Value / 4);
-
-            // Adjust the screen's viewport position to the rect's viewport position
-            // -0.5f as our position is relative to center, not the corner
-            _topElementContainer.localPosition = _topElementContainer.localPosition
-                .WithX(rectRect.width * (topViewportPos.x - 0.5f - hudOffset))
-                .WithY(rectRect.height * (topViewportPos.y - 0.5f));
-
-            _centerElementContainer.localPosition = _centerElementContainer.localPosition
-                .WithX(rectRect.width * (centerViewportPos.x - 0.5f - hudOffset))
-                .WithY(rectRect.height * (centerViewportPos.y - 0.5f));
+            // Place top elements at 100% depth plus screen independent units up to avoid highway overlap
+            var extraOffset = 8 * Screen.height / 1000f;
+            Vector2 position2 = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 1.0f).AddY(extraOffset);
+            _topElementContainer.position = position2;
         }
 
         public void UpdateCountdown(double countdownLength, double endTime)

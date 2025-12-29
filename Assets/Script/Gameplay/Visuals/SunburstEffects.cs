@@ -60,31 +60,31 @@ namespace YARG.Gameplay.Visuals
             _sunburstPulseTween = _sunburstEffect.transform.DOScale(_originalScale * 0.85f, 0.25f).SetAutoKill(false)
                 .SetEase(Ease.OutSine).Pause();
 
-            _multiplierIncreaseSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause();
+            _multiplierIncreaseSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause().SetLink(_sunburstEffect);
             _multiplierIncreaseSequence.Append(_sunburstEffect.transform.DOScale(0.045f, TRANSITION_DURATION).SetEase(Ease.InSine)).
                 Join(_light.DOIntensity(0.0f, TRANSITION_DURATION).SetEase(Ease.InCubic)).
                 AppendCallback(SetGrooveSunburst);
 
-            _multiplierDecreaseSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause();
+            _multiplierDecreaseSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause().SetLink(_sunburstEffect);
             _multiplierDecreaseSequence.Append(_light.DOColor(Color.red, 0.000001f)).
                 Join(_sunburstMaterial.DOColor(Color.red, 0.000001f)).
                 Append(_sunburstEffect.transform.DOScale(0.045f, TRANSITION_DURATION).SetEase(Ease.InSine)).
                 Join(_light.DOIntensity(0.0f, TRANSITION_DURATION).SetEase(Ease.InCubic)).
                 AppendCallback(SetGrooveSunburst);
 
-            _grooveStartSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause();
+            _grooveStartSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause().SetLink(_sunburstEffect);
             _grooveStartSequence.Append(_sunburstEffect.transform.DOScale(_originalScale, TRANSITION_DURATION)).
                 Join(_sunburstMaterial.DOColor(_grooveSunburstColor, TRANSITION_DURATION)).
                 Join(_light.DOColor(_grooveLightColor, TRANSITION_DURATION)).
                 Join(_light.DOIntensity(_lightIntensity, TRANSITION_DURATION));
 
-            _starpowerStartSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause();
+            _starpowerStartSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause().SetLink(_sunburstEffect);
             _starpowerStartSequence.Append(_sunburstEffect.transform.DOScale(_originalScale, TRANSITION_DURATION)).
                 Join(_sunburstMaterial.DOColor(_starpowerSunburstColor, TRANSITION_DURATION)).
                 Join(_light.DOColor(_starpowerLightColor, TRANSITION_DURATION)).
                 Join(_light.DOIntensity(_lightIntensity, TRANSITION_DURATION));
 
-            _sunburstDisableSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause();
+            _sunburstDisableSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause().SetLink(_sunburstEffect);
             _sunburstDisableSequence.Append(_sunburstEffect.transform.DOScale(_originalScale * 0.4f, TRANSITION_DURATION))
                 .Join(_light.DOIntensity(0.0f, TRANSITION_DURATION)).
                 AppendCallback(DisableSunburst);
@@ -256,16 +256,6 @@ namespace YARG.Gameplay.Visuals
         {
             _sunburstEffect.SetActive(false);
             _lightEffect.SetActive(false);
-        }
-
-        private void OnDestroy()
-        {
-            _sunburstPulseTween?.Kill();
-            _multiplierIncreaseSequence?.Kill();
-            _multiplierDecreaseSequence?.Kill();
-            _grooveStartSequence?.Kill();
-            _starpowerStartSequence?.Kill();
-            _sunburstDisableSequence?.Kill();
         }
     }
 }

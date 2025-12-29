@@ -7,7 +7,8 @@ using UnityEngine.Serialization;
 namespace YARG.Venue.VolumeComponents
 {
     [Serializable]
-    [VolumeComponentMenuForRenderPipeline("Venue/Slow FPS", typeof(UniversalRenderPipeline))]
+    [VolumeComponentMenu("Venue/Slow FPS")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public class SlowFPSComponent: VolumeComponent, IPostProcessComponent
     {
         [FormerlySerializedAs("SkipFrames")]

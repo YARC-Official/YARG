@@ -11,7 +11,7 @@ namespace YARG.Gameplay.Visuals
     public abstract class DrumsNoteElement : NoteElement<DrumNote, DrumsPlayer>, IThemeNoteCreator
     {
         private const float SPLIT_LANE_SCALE_FACTOR = 4f / 7f;
-        private Vector3 _splitScale = new Vector3(SPLIT_LANE_SCALE_FACTOR, 1f, SPLIT_LANE_SCALE_FACTOR);
+        private Vector3 _splitScale = new Vector3(SPLIT_LANE_SCALE_FACTOR, SPLIT_LANE_SCALE_FACTOR, SPLIT_LANE_SCALE_FACTOR);
 
         protected enum NoteType
         {

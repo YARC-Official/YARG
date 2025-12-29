@@ -77,7 +77,7 @@ namespace YARG.Gameplay.Visuals
         public virtual void OnStarPowerUpdated()
         {
             // If we did have star power and the user lost it (or vice versa), then swap the model out
-            int index = Array.IndexOf(IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups, NoteGroup);
+            int index = Array.IndexOf(IsStarPowerVisible ? NoteGroups : StarPowerNoteGroups, NoteGroup);
             if (index != -1)
             {
                 // Disable the old note group
@@ -85,8 +85,16 @@ namespace YARG.Gameplay.Visuals
 
                 // Enable the new one
                 NoteGroup = (IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups)[index];
-                NoteGroup.SetActive(true);
-                NoteGroup.Initialize();
+
+                // TODO: We really should just not be getting this far if we're updating because
+                //  starpower state changed and not because the player missed a note in an SP phrase
+                //  brain is too fried rn to untangle that mess, though
+                // If the note was already hit, don't reinitialize it
+                if (!NoteRef.WasHit)
+                {
+                    NoteGroup.SetActive(true);
+                    NoteGroup.Initialize();
+                }
             }
         }
 

@@ -26,7 +26,7 @@ jobs:
 
           create_pull_request: true
           pull_request_title: 'Translation Updates'
-          pull_request_body: 'This week''s localization/translation updates from [the YARG Crowdin project](https://crowdin.com/project/yarg)!'
+          pull_request_body: 'This week''s localization/translation updates from [the YARG Crowdin project](https://crowdin.com/project/yarglocalization)!'
           pull_request_base_branch_name: 'dev'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

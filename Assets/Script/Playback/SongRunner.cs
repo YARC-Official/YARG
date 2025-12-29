@@ -393,7 +393,7 @@ namespace YARG.Playback
 
                     if (_mixer.IsPaused)
                     {
-                        _mixer.Play(false);
+                        _mixer.Play();
                     }
 
                     if (SyncAudioTime >= _mixer.Length)
@@ -559,7 +559,7 @@ namespace YARG.Playback
                 {
                     _mixer.SetPosition(seekTime);
                     if (!Paused)
-                        _mixer.Play(true);
+                        _mixer.Play();
                 }
 
                 UpdateTimes();

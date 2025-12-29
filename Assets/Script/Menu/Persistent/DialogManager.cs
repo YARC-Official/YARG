@@ -39,6 +39,10 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private FriendlyBindingDialog _friendlyDrumsBindingDialog;
         [SerializeField]
+        private FriendlyBindingDialog _friendly5LaneDrumsBindingDialog;
+        [SerializeField]
+        private FriendlyBindingDialog _friendlyMidiDrumsBindingDialog;
+        [SerializeField]
         private SongPickerListDialog _playAShowDialog;
 
         private Dialog _currentDialog;
@@ -88,7 +92,7 @@ namespace YARG.Menu.Persistent
             return dialog;
         }
 
-        public FriendlyBindingDialog ShowFriendlyBindingDialog(YargProfile profile)
+        public FriendlyBindingDialog ShowFriendlyBindingDialog(YargProfile profile, GameMode gameMode)
         {
             YargPlayer player = null;
             var players = PlayerContainer.Players;
@@ -116,10 +120,12 @@ namespace YARG.Menu.Persistent
 
             var device = player.Bindings.InputDevices[0];
 
-            var prefab = player.Profile.GameMode switch
+            var prefab = gameMode switch
             {
                 GameMode.ProKeys        => _friendlyKeysBindingDialog,
                 GameMode.FourLaneDrums  => _friendlyDrumsBindingDialog,
+                GameMode.FiveLaneDrums  => _friendly5LaneDrumsBindingDialog,
+                GameMode.EliteDrums     => _friendlyMidiDrumsBindingDialog,
                 _                       => null
             };
 
@@ -130,7 +136,7 @@ namespace YARG.Menu.Persistent
             }
 
             var dialog = ShowDialog(prefab);
-            dialog.SetParameters((device, player));
+            dialog.SetParameters((device, player, gameMode));
             dialog.Initialize();
             return dialog;
         }

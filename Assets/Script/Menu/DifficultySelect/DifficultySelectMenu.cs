@@ -336,7 +336,17 @@ namespace YARG.Menu.DifficultySelect
                 bool selected = CurrentPlayer.Profile.CurrentInstrument == instrument;
                 CreateItem(instrument.ToLocalizedName(), selected, () =>
                 {
+                    var preferredInstrument = CurrentPlayer.Profile.PreferredInstrument;
                     CurrentPlayer.Profile.CurrentInstrument = instrument;
+
+                    // What we are doing here is resetting preferred instrument only if the current preferred instrument
+                    // was an option for this chart. This ensures that preferred instrument does not change when the
+                    // player is forced to use a different instrument.
+                    if (instrument != preferredInstrument && _possibleInstruments.Contains(preferredInstrument))
+                    {
+                        CurrentPlayer.Profile.PreferredInstrument = instrument;
+                    }
+
                     UpdatePossibleDifficulties();
                     UpdatePossibleModifiers();
 
@@ -537,6 +547,12 @@ namespace YARG.Menu.DifficultySelect
                 {
                     _possibleInstruments.Add(instrument);
                 }
+            }
+
+            // If the player's preferred instrument is available, set CurrentInstrument to that
+            if (_possibleInstruments.Contains(profile.PreferredInstrument))
+            {
+                profile.CurrentInstrument = profile.PreferredInstrument;
             }
 
             // Set the instrument to a valid one

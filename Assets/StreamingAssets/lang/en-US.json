@@ -20,8 +20,8 @@
             "FiveFretGuitar": "Guitar (5-Fret)",
             "SixFretGuitar": "Guitar (6-Fret)",
             "EliteDrums": "MIDI Drumkit",
-            "FourLaneDrums": "Drums (4-Lane, Pro)",
-            "FiveLaneDrums": "Drums (5-Lane)",
+            "FourLaneDrums": "Drumkit (4-Lane, Pro)",
+            "FiveLaneDrums": "Drumkit (5-Lane)",
             "ProGuitar": "Pro Guitar (17-Fret, 22-Fret)",
             "ProKeys": "Keys (5-Lane, Pro)",
             "Menu": "Menu",
@@ -37,9 +37,9 @@
             "SixFretBass": "Bass",
             "SixFretRhythm": "Rhythm",
             "SixFretCoopGuitar": "Co-op",
-            "FourLaneDrums": "Drums",
+            "FourLaneDrums": "4-Lane Drums",
             "ProDrums": "Pro Drums",
-            "FiveLaneDrums": "Drums",
+            "FiveLaneDrums": "5-Lane Drums",
             "EliteDrums": "Elite Drums",
             "ProGuitar_17Fret": "Pro Guitar (17-Fret)",
             "ProGuitar_22Fret": "Pro Guitar (22-Fret)",
@@ -149,7 +149,10 @@
             "Reset": "Reset",
             "ResetAll": "Reset All",
 
-			"Scroll" : "Scroll"
+			"Scroll" : "Scroll",
+
+            "Enabled": "Enabled",
+            "Disabled": "Disabled"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",
@@ -167,7 +170,8 @@
                 "DocContributor": "Doc Contributor",
                 "Moderator": "Moderator",
                 "QATester": "QA Tester",
-                "SFXArtist": "SFX Artist"
+                "SFXArtist": "SFX Artist",
+                "Translator": "Translator"
             },
             "Header": {
                 "Contributors": "Contributors",
@@ -263,7 +267,7 @@
             "PlayWithReplay": "Play With Replay"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.13!</b></size></align>\n\nv0.13 is a major update that adds Pro Keys, brings major engine improvements for all instruments, along with a ton of quality of life features, performance improvements, and more.\n\n<b>If you have any feedback, or find any bugs, please let us know on Discord or GitHub.</b>\n\nHave fun!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.14 nightlies!</b></size></align>\n\nv0.14 is a major update that adds 5 Lane Keys, a new MIDI Drums profile type, easier instrument setup, support for 3D venue events, performance improvements when using multiple highways, many visual improvements, and uses a newer version of Unity that should improve Linux support.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "Quickplay",
                 "Practice": "Practice",
@@ -1247,6 +1251,10 @@
                     "FSR3": "FSR3"
                 }
             },
+            "VenuePostProcessing": {
+                "Name": "Venue Post-Processing",
+                "Description": "Determines if post-processing effects are applied to venue backgrounds."
+            },
             "VenueRenderingQuality": {
                 "Name": "Venue Rendering Quality",
                 "Description": "The quality/resolution to use for venue backgrounds.",
@@ -1932,6 +1940,18 @@
                 },
                 "NoteHeight": {
                     "Name": "Note Height"
+                },
+                "BackgroundImage": {
+                    "Name": "Custom Background Texture"
+                },
+                "SideImage": {
+                    "Name": "Custom Side Texture (Highlighted in SP)"
+                },
+                "BaseWaviness": {
+                    "Name": "Base Texture Waviness"
+                },
+                "SideWaviness": {
+                    "Name": "Side Texture Waviness"
                 }
             },
 			"RockMeterPreset" : {

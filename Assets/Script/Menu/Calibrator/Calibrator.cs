@@ -50,6 +50,8 @@ namespace YARG.Menu.Calibrator
         private double _time;
 #nullable disable
 
+        private bool wasWhammyEnabled = SettingsManager.Settings.UseWhammyFx.Value;
+
         private void Start()
         {
             UpdateForState();
@@ -138,13 +140,20 @@ namespace YARG.Menu.Calibrator
                     const float SPEED = 1f;
                     const double VOLUME = 1.0;
                     var file = Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg");
+
+                    //Temporarily disable whammy so we don't have to deal with pitch shift delay
+                    SettingsManager.Settings.UseWhammyFx.Value = false;
+
                     _mixer = GlobalAudioHandler.LoadCustomFile(file, SPEED, VOLUME);
                     _mixer.SongEnd += OnAudioEnd;
-                    _mixer.Play(true);
+                    _mixer.Play();
                     _time = Time.realtimeSinceStartupAsDouble;
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;
                 case State.AudioDone:
+                    //Restore whammy settings
+                    SettingsManager.Settings.UseWhammyFx.Value = wasWhammyEnabled;
+
                     _audioCalibrateContainer.SetActive(true);
                     CalculateAudioLatency();
                     SetBackNavigation();

@@ -20,6 +20,10 @@ namespace YARG.Venue
         public const string BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
         public const string BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
 
+        private const string VENUE_LAYER_NAME = "Venue";
+
+        private int _venueLayerNumber = -1;
+
         // DO NOT CHANGE the name of this! I *know* it doesn't follow naming conventions, but it will also break existing
         // venues if we do change it.
         //
@@ -34,6 +38,7 @@ namespace YARG.Venue
         {
             // Move object out of the way, so its effects don't collide with the tracks
             transform.position += Vector3.forward * 10_000f;
+            _venueLayerNumber = LayerMask.NameToLayer(VENUE_LAYER_NAME);
         }
 
         public void SetupVenueCamera(GameObject bgInstance)
@@ -51,6 +56,23 @@ namespace YARG.Venue
                 fsrManager.enabled = false;
                 fsrManager.textureParentObject = bgInstance;
                 fsrManager.enabled = true;
+            }
+        }
+
+        public void LimitVenueLights(GameObject bgInstance)
+        {
+            if (_venueLayerNumber == -1)
+            {
+                return;
+            }
+
+            int venueLayer = 1 << _venueLayerNumber;
+
+            Light[] lights = bgInstance.GetComponentsInChildren<Light>(true);
+
+            foreach (var light in lights)
+            {
+                light.cullingMask = venueLayer;
             }
         }
 

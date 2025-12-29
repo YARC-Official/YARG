@@ -71,7 +71,7 @@ namespace YARG.Gameplay.HUD
         private int _bandScore;
         private int _bandCombo;
         private int _bandMultiplier;
-        
+
         private bool _songHasHours;
         private string _songLengthTime;
         private string _timeFormat;
@@ -89,18 +89,14 @@ namespace YARG.Gameplay.HUD
                 .Append(
                     _bandMultiplierObject.transform
                     .DOScaleX(1f, 0.5f)
-                    .SetEase(Ease.OutBack) 
+                    .SetEase(Ease.OutBack)
                 )
                 .Join(
                     _bandMultiplierBackgroundImage.DOFade(1f, 0.5f)
                 )
                 .SetAutoKill(false)
-                .Pause();
-        }
-
-        protected override void GameplayDestroy()
-        {
-            _multiplierShowTweener?.Kill();
+                .Pause()
+                .SetLink(gameObject);
         }
 
         private void Start()
@@ -116,7 +112,7 @@ namespace YARG.Gameplay.HUD
         {
             _bandComboObject.SetActive(SettingsManager.Settings.BandComboTypeSetting.Value != BandComboType.Off);
             _vocalsOnly = PlayerContainer.Players.All(e => e.SittingOut || e.Profile.GameMode == GameMode.Vocals);
-            _singlePlayer = PlayerContainer.Players.Count(e => !e.SittingOut) == 1;
+            _singlePlayer = PlayerContainer.Players.Count(e => !e.SittingOut) == 1 && !GlobalVariables.State.PlayingWithReplay;
         }
 
         protected override void OnSongStarted()
@@ -208,7 +204,7 @@ namespace YARG.Gameplay.HUD
             else
             {
                 _multiplierShowTweener.PlayBackwards();
-            }         
+            }
         }
     }
 }

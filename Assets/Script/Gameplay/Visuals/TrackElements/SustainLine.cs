@@ -1,21 +1,24 @@
 ﻿using UnityEngine;
-using YARG.Core.Engine.Guitar;
-using YARG.Core.Engine.Keys;
+using YARG.Assets.Script.Gameplay.Player;
 using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.Visuals
 {
     public class SustainLine : MonoBehaviour
     {
-        private const float GLOW_THRESHOLD = 0.15f;
+        private const float MINIMUM_ALLOWED_LUMINANCE = 0.3f;
+        private const float MISSED_NOTE_LUMINANCE = 0.25f;
 
-        private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
-        private static readonly int _glowAmount = Shader.PropertyToID("_GlowAmount");
+        private static readonly Color MissedNoteColor = new(
+            MISSED_NOTE_LUMINANCE,
+            MISSED_NOTE_LUMINANCE,
+            MISSED_NOTE_LUMINANCE,
+            1f
+        );
 
-        private static readonly int _primaryAmplitude = Shader.PropertyToID("_PrimaryAmplitude");
-        private static readonly int _secondaryAmplitude = Shader.PropertyToID("_SecondaryAmplitude");
-        private static readonly int _tertiaryAmplitude = Shader.PropertyToID("_TertiaryAmplitude");
-        private static readonly int _forwardOffset = Shader.PropertyToID("_ForwardOffset");
+        private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
+        private static readonly int IsActive      = Shader.PropertyToID("_IsActive");
+        private static readonly int WhammyAmount  = Shader.PropertyToID("_WhammyAmount");
 
         [SerializeField]
         private Material _sustainMaterial;
@@ -68,10 +71,6 @@ namespace YARG.Gameplay.Visuals
 
             // Create the mesh
             CreateSustainMesh();
-        }
-
-        private void Start()
-        {
         }
 
         private void CreateSustainMesh()
@@ -168,26 +167,24 @@ namespace YARG.Gameplay.Visuals
 
             if (_materialInstance == null) return;
 
-            // Get the glow value based on the value of the color
-            Color.RGBToHSV(c, out _, out _, out float value);
-            float glow = Mathf.Max((GLOW_THRESHOLD - value) / GLOW_THRESHOLD, 0f);
+            Color color = GetBrighterColorIfTooDark(c);
 
             switch (state)
             {
                 case SustainState.Waiting:
-                    _materialInstance.color = c;
-                    _materialInstance.SetColor(_emissionColor, c);
-                    _materialInstance.SetFloat(_glowAmount, glow * 0.9f);
+                    _materialInstance.color = color;
+                    _materialInstance.SetColor(EmissionColor, color);
+                    _materialInstance.SetInt(IsActive, 0);
                     break;
                 case SustainState.Hitting:
-                    _materialInstance.color = c;
-                    _materialInstance.SetColor(_emissionColor, c * 3f);
-                    _materialInstance.SetFloat(_glowAmount, glow);
+                    _materialInstance.color = color;
+                    _materialInstance.SetColor(EmissionColor, color * 3f);
+                    _materialInstance.SetInt(IsActive, 1);
                     break;
                 case SustainState.Missed:
-                    _materialInstance.color = new Color(0f, 0f, 0f, 1f);
-                    _materialInstance.SetColor(_emissionColor, new Color(0.1f, 0.1f, 0.1f, 1f));
-                    _materialInstance.SetFloat(_glowAmount, 0f);
+                    _materialInstance.color = MissedNoteColor;
+                    _materialInstance.SetColor(EmissionColor, MissedNoteColor * 0.4f);
+                    _materialInstance.SetInt(IsActive, 0);
                     ResetAmplitudes();
                     break;
             }
@@ -197,20 +194,13 @@ namespace YARG.Gameplay.Visuals
         {
             if (!_setShaderProperties || _materialInstance == null) return;
 
-            _materialInstance.SetFloat(_primaryAmplitude, 0f);
-            _materialInstance.SetFloat(_secondaryAmplitude, 0f);
-            _materialInstance.SetFloat(_tertiaryAmplitude, 0f);
-
             _whammyFactor = 0f;
-
-            _secondaryAmplitudeTime = 0f;
-            _tertiaryAmplitudeTime = 0f;
         }
 
-        public void UpdateSustainLine(float noteSpeed)
+        public void UpdateSustainLine()
         {
             UpdateLengthForHit();
-            UpdateAnimation(noteSpeed);
+            UpdateAnimation();
         }
 
         private void UpdateLengthForHit()
@@ -231,10 +221,8 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        private void UpdateAnimation(float noteSpeed)
+        private void UpdateAnimation()
         {
-            // TODO: Reduce the amount of magic numbers lol
-
             if (!_setShaderProperties || _hitState != SustainState.Hitting || _materialInstance == null)
             {
                 return;
@@ -247,20 +235,15 @@ namespace YARG.Gameplay.Visuals
                 _whammyFactor = Mathf.Lerp(_whammyFactor, guitarPlayer.WhammyFactor, Time.deltaTime * 6f);
             }
 
-            float whammy = _whammyFactor * 1.5f;
-
-            // Update the amplitude times
-            _secondaryAmplitudeTime += Time.deltaTime * (4f + whammy);
-            _tertiaryAmplitudeTime += Time.deltaTime * (1.7f + whammy);
+            // Update whammy factor
+            if (_player is FiveLaneKeysPlayer keysPlayer)
+            {
+                // Make sure to lerp it to prevent jumps
+                _whammyFactor = Mathf.Lerp(_whammyFactor, keysPlayer.WhammyFactor, Time.deltaTime * 6f);
+            }
 
             // Change line amplitude
-            _materialInstance.SetFloat(_primaryAmplitude, 0.18f + whammy * 0.2f);
-            _materialInstance.SetFloat(_secondaryAmplitude, Mathf.Sin(_secondaryAmplitudeTime) * (whammy + 0.5f));
-            _materialInstance.SetFloat(_tertiaryAmplitude, Mathf.Sin(_tertiaryAmplitudeTime) * (whammy * 0.1f + 0.1f));
-
-            // Move line forward
-            float forwardSub = Time.deltaTime * 2.0f * (1f + whammy * 0.1f);
-            _materialInstance.SetFloat(_forwardOffset, _materialInstance.GetFloat(_forwardOffset) + forwardSub);
+            _materialInstance.SetFloat(WhammyAmount, _whammyFactor);
         }
 
         private void UpdateMeshGeometry()
@@ -315,6 +298,43 @@ namespace YARG.Gameplay.Visuals
             {
                 DestroyImmediate(_sustainMesh);
             }
+        }
+
+        private static Color GetBrighterColorIfTooDark(Color color)
+        {
+            var resultingColor = new Color(color.r, color.g, color.b, color.a);
+
+            // Magic numbers rooted in color theory
+            double perceivedLuminance
+                = 0.2126 * color.r
+                + 0.7152 * color.g
+                + 0.0722 * color.b;
+
+            // No adjustment needed
+            if (perceivedLuminance > MINIMUM_ALLOWED_LUMINANCE)
+            {
+                return resultingColor;
+            }
+
+            // In the case that the color is literally solid black
+            if (perceivedLuminance <= 0f)
+            {
+                resultingColor.r = MINIMUM_ALLOWED_LUMINANCE;
+                resultingColor.g = MINIMUM_ALLOWED_LUMINANCE;
+                resultingColor.b = MINIMUM_ALLOWED_LUMINANCE;
+
+                return resultingColor;
+            }
+
+            // If the color isn't literally black, we won't have a divide by 0 issue
+            float scale = MINIMUM_ALLOWED_LUMINANCE / (float) perceivedLuminance;
+
+            // Apply the scale uniformly
+            resultingColor.r = Mathf.Clamp01(color.r * scale);
+            resultingColor.g = Mathf.Clamp01(color.g * scale);
+            resultingColor.b = Mathf.Clamp01(color.b * scale);
+
+            return resultingColor;
         }
     }
 }

@@ -5,7 +5,8 @@ using UnityEngine.Rendering.Universal;
 namespace YARG.Venue.VolumeComponents
 {
     [Serializable]
-    [VolumeComponentMenuForRenderPipeline("Venue/Posterize", typeof(UniversalRenderPipeline))]
+    [VolumeComponentMenu("Venue/Posterize")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public class PosterizeComponent : VolumeComponent, IPostProcessComponent
     {
         public ClampedIntParameter Steps = new(0, 0, 100);
