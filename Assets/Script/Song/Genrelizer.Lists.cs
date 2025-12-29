@@ -67,9 +67,10 @@ namespace YARG.Song
         private const string PSYCHEDELIC = "psychedelic";
         private const string PUNK = "punk";
         private const string RNB_SOUL_FUNK = "r&b/soul/funk";
-        private const string REGGAE_SKA = "reggae/ska";
+        private const string REGGAE = "reggae";
         private const string ROCK = "rock";
         private const string ROCK_AND_ROLL = "rock & roll";
+        private const string SKA = "ska";
         private const string SOUNDTRACK = "soundtrack";
         private const string SOUTHERN_ROCK = "southern rock";
         private const string SURF_ROCK = "surf rock";
@@ -86,6 +87,7 @@ namespace YARG.Song
         private const string METAL = "metal";
         private const string POP_DANCE_ELECTRONIC = "pop/dance/electronic";
         private const string PROG = "prog";
+        private const string REGGAE_SKA = "reggae/ska";
 
         
 
@@ -151,9 +153,10 @@ namespace YARG.Song
             { PSYCHEDELIC, "Psychedelic" },
             { PUNK, "Punk"},
             { RNB_SOUL_FUNK, "RnbSoulFunk"},
-            { REGGAE_SKA, "ReggaeSka"},
+            { REGGAE, "Reggae"},
             { ROCK, "Rock"},
             { ROCK_AND_ROLL, "RockAndRoll"},
+            { SKA, "Ska" },
             { SOUNDTRACK, "Soundtrack"},
             { SOUTHERN_ROCK, "SouthernRock"},
             { SURF_ROCK, "SurfRock"},
@@ -254,7 +257,8 @@ namespace YARG.Song
             { (RNB_SOUL_FUNK, "disco"), (DISCO, null) },
             { (RNB_SOUL_FUNK, "other"), (RNB_SOUL_FUNK, null) },
 
-            { (REGGAE_SKA, "other"), (REGGAE_SKA, null) },
+            { (REGGAE_SKA, "reggae"),   (REGGAE, null) },
+            { (REGGAE_SKA, "ska"),      (SKA, null) },
 
             { (ROCK, "arena"),          (ROCK, "Arena Rock") },
             { (ROCK, "blues"),          (ROCK, "Blues Rock") },

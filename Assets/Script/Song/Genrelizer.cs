@@ -44,7 +44,7 @@ namespace YARG.Song
             {
                 foreach (var songEntry in list.Value)
                 {
-                    var mapping = GetGenresOrDefault(songEntry.Genre, songEntry.Subgenre);
+                    var mapping = GetGenresOrDefault(songEntry.Genre, songEntry.Subgenre, songEntry.Artist);
                     songEntry.Genre = mapping.Genre;
                     songEntry.Subgenre = mapping.Subgenre;
                 }
@@ -326,7 +326,7 @@ namespace YARG.Song
             }
         }
 
-        public static Mapping GetGenresOrDefault(string? rawGenre, string? rawSubgenre)
+        public static Mapping GetGenresOrDefault(string? rawGenre, string? rawSubgenre, string artist)
         {
             if (string.IsNullOrEmpty(rawGenre))
             {
@@ -340,19 +340,25 @@ namespace YARG.Song
                 }
 
                 // If only a subgenre is provided (not expected), treat it as the genre
-                return HandleLoneGenre(rawSubgenre);
+                return HandleLoneGenre(rawSubgenre, artist);
             }
 
             if (string.IsNullOrEmpty(rawSubgenre))
             {
-                return HandleLoneGenre(rawGenre);
+                return HandleLoneGenre(rawGenre, artist);
             }
 
-            return HandleGenreSubgenrePair(rawGenre, rawSubgenre);
+            return HandleGenreSubgenrePair(rawGenre, rawSubgenre, artist);
         }
 
-        private static Mapping HandleLoneGenre(string rawGenre) {
-            
+        private static Mapping HandleLoneGenre(string rawGenre, string artist) {
+
+            // Scan up front for the Reggae/Ska special case
+            if (rawGenre.ToLower() is REGGAE_SKA)
+            {
+                return HandleReggaeSkaSpecialCase(artist);
+            }
+
 
             if (_mappings.ContainsKey(rawGenre))
             {
@@ -378,10 +384,10 @@ namespace YARG.Song
                  * Applying the same logic to Pattern B strings doesn't yield results though: in the given examples,
                  * we would wind up with "Melodic" and "Smooth", neither of which is a genre of any kind. In this case,
                  * we care more about the noun at the end of the string ("Metal" and "Jazz"). So if Pattern A didn't
-                 * yield results, we'll try matching the content that comes after the *last* string. This yields
+                 * yield results, we'll try matching the content that comes after the *last* slash. This yields
                  * "Neoclassical Metal" and "Soft Jazz", which are each mapped subgenres.
                  * 
-                 * If neither of these options works out, it probably isn't worth trying stuff between slashes
+                 * If neither of these options work out, it probably isn't worth trying stuff between slashes, so give up
                  */
 
                 // Attempt Pattern A
@@ -419,8 +425,15 @@ namespace YARG.Song
             );
         }
 
-        private static Mapping HandleGenreSubgenrePair(string rawGenre, string rawSubgenre)
+        private static Mapping HandleGenreSubgenrePair(string rawGenre, string rawSubgenre, string artist)
         {
+            // Scan up front for the Reggae/Ska special case
+            if (rawGenre.ToLower() is REGGAE_SKA && rawSubgenre is "other")
+            {
+                return HandleReggaeSkaSpecialCase(artist);
+            }
+
+
             // Check if this is a telltale value pair from Magma, for which we have a ready-to-go mapping
             if (MAGMA_MAPPINGS.TryGetValue((rawGenre, rawSubgenre), out var magmaMapping))
             {
@@ -430,7 +443,7 @@ namespace YARG.Song
             // Identical genre/subgenre pairs get treated as just a genre
             if (rawGenre == rawSubgenre)
             {
-                return HandleLoneGenre(rawGenre);
+                return HandleLoneGenre(rawGenre, artist);
             }
 
             // Handle the genre first. We're going to pass it through the Genrelizer data, but we
@@ -448,12 +461,12 @@ namespace YARG.Song
             //
             //  -If it doesn't even match a subgenre, then we'll get Other back. The subgenre will
             //      get a chance to override that value later, but for now it's our fallback
-            var genre = HandleLoneGenre(rawGenre).Genre;
+            var genre = HandleLoneGenre(rawGenre, artist).Genre;
 
 
             // Now the subgenre. Pass that through the Genrelizer data too. This time we care about
             // both returned fields
-            var subgenreMapping = HandleLoneGenre(rawSubgenre);
+            var subgenreMapping = HandleLoneGenre(rawSubgenre, artist);
 
             // The subgenre is a little more complicated
             string subgenre;
@@ -524,6 +537,15 @@ namespace YARG.Song
             }
 
             return new(genre, subgenre);
+        }
+
+        private static Mapping HandleReggaeSkaSpecialCase(string artist)
+        {
+            if (artist is "UB40" or "Zing Experience" || artist.Contains("Bob Marley"))
+            {
+                return new(REGGAE, null);
+            }
+            return new(SKA, null);
         }
 
         private static string _sanitize(string subgenre)
