@@ -259,6 +259,7 @@ namespace YARG.Song
 
             { (REGGAE_SKA, "reggae"),   (REGGAE, null) },
             { (REGGAE_SKA, "ska"),      (SKA, null) },
+            // (REGGAE_SKA, "other") requires extra information to resolve, and is caught earlier as a special case
 
             { (ROCK, "arena"),          (ROCK, "Arena Rock") },
             { (ROCK, "blues"),          (ROCK, "Blues Rock") },
