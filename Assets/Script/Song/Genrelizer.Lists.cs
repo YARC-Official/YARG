@@ -267,10 +267,10 @@ namespace YARG.Song
             { (ROCK, "funk"),           (RNB_SOUL_FUNK, "Funk") },
             { (ROCK, "garage"),         (ROCK, "Garage Rock") },
             { (ROCK, "psychedelic"),    (ROCK, "Psychedelic Rock") },
-            { (ROCK, "reggae"),         (REGGAE_SKA, "Reggae") },
+            { (ROCK, "reggae"),         (REGGAE, null) },
             { (ROCK, "rockabilly"),     (ROCK_AND_ROLL, "Rockabilly") },
             { (ROCK, "rock and roll"),  (ROCK_AND_ROLL, null) },
-            { (ROCK, "ska"),            (REGGAE_SKA, "Ska") },
+            { (ROCK, "ska"),            (SKA, null) },
             { (ROCK, "surf"),           (SURF_ROCK, null) },
             { (ROCK, "other"),          (ROCK, null) },
 
