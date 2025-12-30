@@ -172,53 +172,67 @@ namespace YARG.Song
 
         public static Dictionary<(string magmaGenre, string magmaSubgenre), (string genre, string subgenre)> MAGMA_MAPPINGS = new(new TupleStringComparer())
         {
-            { (ALTERNATIVE, "college"), (ALTERNATIVE, "College Rock") },
-            { (ALTERNATIVE, "other"),   (ALTERNATIVE, null) },
+            { (ALTERNATIVE, "college"),                 (ALTERNATIVE, "College Rock") },
+            { (ALTERNATIVE, "other"),                   (ALTERNATIVE, null) },
 
-            { (BLUES, "acoustic"),      (BLUES, "Acoustic Blues") },
-            { (BLUES, "chicago"),       (BLUES, "Chicago Blues") },
-            { (BLUES, "classic"),       (BLUES, "Classic Blues") },
-            { (BLUES, "contemporary"),  (BLUES, "Contemporary Blues") },
-            { (BLUES, "country"),       (BLUES, "Country Blues") },
-            { (BLUES, "delta"),         (BLUES, "Delta Blues") },
-            { (BLUES, "electric"),      (BLUES, "Electric Blues") },
-            { (BLUES, "other"),         (BLUES, null) },
+            { (BLUES, "acoustic"),                      (BLUES, "Acoustic Blues") },
+            { (BLUES, "chicago"),                       (BLUES, "Chicago Blues") },
+            { (BLUES, "classic"),                       (BLUES, "Classic Blues") },
+            { (BLUES, "contemporary"),                  (BLUES, "Contemporary Blues") },
+            { (BLUES, "country"),                       (BLUES, "Country Blues") },
+            { (BLUES, "delta"),                         (BLUES, "Delta Blues") },
+            { (BLUES, "electric"),                      (BLUES, "Electric Blues") },
+            { (BLUES, "other"),                         (BLUES, null) },
 
-            { (COUNTRY, "alternative"),         (COUNTRY, "Alternative Country") },
-            { (COUNTRY, "contemporary"),        (COUNTRY, "Contemporary Country") },
-            { (COUNTRY, "outlaw"),              (COUNTRY, "Outlaw Country") },
-            { (COUNTRY, "traditional folk"),    (FOLK, "Traditional Folk") },
-            { (COUNTRY, "other"),               (COUNTRY, null) },
+            { (COUNTRY, "alternative"),                 (COUNTRY, "Alternative Country") },
+            //(COUNTRY, "bluegrass")                    unchanged
+            { (COUNTRY, "contemporary"),                (COUNTRY, "Contemporary Country") },
+            //(COUNTRY, "honky tonk")                   unchanged
+            { (COUNTRY, "outlaw"),                      (COUNTRY, "Outlaw Country") },
+            { (COUNTRY, "traditional folk"),            (FOLK, "Traditional Folk") },
+            { (COUNTRY, "other"),                       (COUNTRY, null) },
 
-            { (GLAM, "other"), (GLAM, null) },
+            //(GLAM, "goth")                            unchanged
+            { (GLAM, "other"),                          (GLAM, null) },
 
-            { (HIP_HOP_RAP, "gangsta"), (HIP_HOP_RAP, "Gangsta Rap") },
-            { (HIP_HOP_RAP, "other"),   (HIP_HOP_RAP, null) },
+            //(HIP_HOP_RAP, "alternative rap")          unchanged
+            { (HIP_HOP_RAP, "gangsta"),                 (HIP_HOP_RAP, "Gangsta Rap") },
+            //(HIP_HOP_RAP, "hardcore rap")             unchanged
+            { (HIP_HOP_RAP, "other"),                   (HIP_HOP_RAP, null) },
+            //(HIP_HOP_RAP, "rap")                      unchanged
+            //(HIP_HOP_RAP, "trip hop")                 unchanged
+            //(HIP_HOP_RAP, "underground rap")          unchanged
 
-            { (INDIE_ROCK, "math rock"),    (MATH_ROCK, null) },
-            { (INDIE_ROCK, "noise"),        (NOISE, "Noise Rock") },
-            { (INDIE_ROCK, "other"),        (INDIE_ROCK, null) },
+            //(INDIE_ROCK, "lo-fi")                     unchanged
+            { (INDIE_ROCK, "math rock"),                (MATH_ROCK, null) },
+            { (INDIE_ROCK, "noise"),                    (NOISE, "Noise Rock") },
+            { (INDIE_ROCK, "other"),                    (INDIE_ROCK, null) },
+            //(INDIE_ROCK, "post rock")                 unchanged
 
-            { (JAZZ, "contemporary"),   (JAZZ, "Contemporary Jazz") },
-            { (JAZZ, "experimental"),   (JAZZ, "Experimental Jazz") },
-            { (JAZZ, "smooth"),         (JAZZ, "Smooth Jazz") },
-            { (JAZZ, "other"),          (JAZZ, null) },
+            //(JAZZ, "acid jazz")                       unchanged
+            { (JAZZ, "contemporary"),                   (JAZZ, "Contemporary Jazz") },
+            { (JAZZ, "experimental"),                   (JAZZ, "Experimental Jazz") },
+            //(JAZZ, "ragtime")                         unchanged
+            { (JAZZ, "smooth"),                         (JAZZ, "Smooth Jazz") },
+            { (JAZZ, "other"),                          (JAZZ, null) },
 
-            { (METAL, "alternative"),   (HEAVY_METAL, "Alternative Metal") },
-            { (METAL, "black"),         (DEATH_BLACK_METAL, "Black Metal") },
-            { (METAL, "core"),          (METALCORE, null) },
-            { (METAL, "death"),         (DEATH_BLACK_METAL, "Death Metal") },
-            { (METAL, "hair"),          (HEAVY_METAL, "Hair Metal") },
-            { (METAL, "industrial"),    (INDUSTRIAL, "Industrial Metal") },
-            { (METAL, "metal"),         (HEAVY_METAL, null) },
-            { (METAL, "power"),         (MELODIC_POWER_METAL, "Power Metal") },
-            { (METAL, "prog"),          (HEAVY_METAL, "Progressive Metal") },
-            { (METAL, "speed"),         (THRASH_SPEED_METAL, "Speed Metal") },
-            { (METAL, "thrash"),        (THRASH_SPEED_METAL, "Thrash Metal") },
-            { (METAL, "other"),         (HEAVY_METAL, null) },
+            { (METAL, "alternative"),                   (HEAVY_METAL, "Alternative Metal") },
+            { (METAL, "black"),                         (DEATH_BLACK_METAL, "Black Metal") },
+            { (METAL, "core"),                          (METALCORE, null) },
+            { (METAL, "death"),                         (DEATH_BLACK_METAL, "Death Metal") },
+            { (METAL, "hair"),                          (HEAVY_METAL, "Hair Metal") },
+            { (METAL, "industrial"),                    (INDUSTRIAL, "Industrial Metal") },
+            { (METAL, "metal"),                         (HEAVY_METAL, null) },
+            { (METAL, "power"),                         (MELODIC_POWER_METAL, "Power Metal") },
+            { (METAL, "prog"),                          (HEAVY_METAL, "Progressive Metal") },
+            { (METAL, "speed"),                         (THRASH_SPEED_METAL, "Speed Metal") },
+            { (METAL, "thrash"),                        (THRASH_SPEED_METAL, "Thrash Metal") },
+            { (METAL, "other"),                         (HEAVY_METAL, null) },
 
-            { (NEW_WAVE, "synthpop"),   (SYNTHPOP_ELECTROPOP, "Synthpop") },
-            { (NEW_WAVE, "other"),      (NEW_WAVE, null) },
+            { (NEW_WAVE, "dark wave"),                  (NEW_WAVE, "Darkwave") },
+            //(NEW)WAVE, "electroclash)                 unchanged
+            { (NEW_WAVE, "synthpop"),                   (SYNTHPOP_ELECTROPOP, "Synthpop") },
+            { (NEW_WAVE, "other"),                      (NEW_WAVE, null) },
 
             { (POP_DANCE_ELECTRONIC, "ambient"),        (AMBIENT_DRONE, "Ambient") },
             { (POP_DANCE_ELECTRONIC, "breakbeat"),      (DNB_BREAKBEAT_JUNGLE, "Breakbeat") },
@@ -236,71 +250,80 @@ namespace YARG.Song
             { (POP_DANCE_ELECTRONIC, "trance"),         (TRANCE, "") },
             { (POP_DANCE_ELECTRONIC, "other"),          (ELECTRONIC, null) },
 
-            { (POP_ROCK, "contemporary"),       (POP_ROCK, "Contemporary Pop-Rock") },
-            { (POP_ROCK, "disco"),              (DISCO, null) },
-            { (POP_ROCK, "motown"),             (RNB_SOUL_FUNK, "Motown") },
-            { (POP_ROCK, "pop"),                (POP, "PopRock") },
-            { (POP_ROCK, "rhythm and blues"),   (RNB_SOUL_FUNK, "Rhythm And Blues") },
-            { (POP_ROCK, "soul"),               (RNB_SOUL_FUNK, "Soul") },
-            { (POP_ROCK, "teen"),               (POP, "Teen Pop") },
-            { (POP_ROCK, "other"),              (POP_ROCK, null) },
+            { (POP_ROCK, "contemporary"),               (POP_ROCK, "Contemporary Pop-Rock") },
+            { (POP_ROCK, "disco"),                      (DISCO, null) },
+            { (POP_ROCK, "motown"),                     (RNB_SOUL_FUNK, "Motown") },
+            { (POP_ROCK, "pop"),                        (POP, "PopRock") },
+            { (POP_ROCK, "rhythm and blues"),           (RNB_SOUL_FUNK, "Rhythm and Blues") },
+            //(POP_ROCK, "soft rock")                   unchanged
+            { (POP_ROCK, "soul"),                       (RNB_SOUL_FUNK, "Soul") },
+            { (POP_ROCK, "teen"),                       (POP, "Teen Pop") },
+            { (POP_ROCK, "other"),                      (POP_ROCK, null) },
 
-            { (PROG, "prog rock"), (PROGRESSIVE, null) },
+            { (PROG, "prog rock"),                      (PROGRESSIVE, null) },
 
-            { (PUNK, "alternative"),    (PUNK, "Alternative Punk Rock") },
-            { (PUNK, "classic"),        (PUNK, "Classic Punk Rock") },
-            { (PUNK, "garage"),         (PUNK, "Garage Punk") },
-            { (PUNK, "hardcore"),       (PUNK, "Hardcore Punk") },
-            { (PUNK, "pop"),            (POP_PUNK, null) },
-            { (PUNK, "other"),          (PUNK, null) },
+            { (PUNK, "alternative"),                    (PUNK, "Alternative Punk Rock") },
+            { (PUNK, "classic"),                        (PUNK, "Classic Punk Rock") },
+            { (PUNK, "garage"),                         (PUNK, "Garage Punk") },
+            { (PUNK, "hardcore"),                       (PUNK, "Hardcore Punk") },
+            { (PUNK, "pop"),                            (POP_PUNK, null) },
+            { (PUNK, "other"),                          (PUNK, null) },
 
-            { (RNB_SOUL_FUNK, "disco"), (DISCO, null) },
-            { (RNB_SOUL_FUNK, "other"), (RNB_SOUL_FUNK, null) },
+            { (RNB_SOUL_FUNK, "disco"),                 (DISCO, null) },
+            //(RNB_SOUL_FUNK, "funk")                   unchanged
+            //(RNB_SOUL_FUNK, "motown")                 unchanged
+            { (RNB_SOUL_FUNK, "other"),                 (RNB_SOUL_FUNK, null) },
+            //(RNB_SOUL_FUNK, "rhythm and blues")       unchanged
+            //(RNB_SOUL_FUNK, "soul")                   unchanged
 
-            { (REGGAE_SKA, "reggae"),   (REGGAE, null) },
-            { (REGGAE_SKA, "ska"),      (SKA, null) },
-            // (REGGAE_SKA, "other") requires extra information to resolve, and is caught earlier as a special case
+            { (REGGAE_SKA, "reggae"),                   (REGGAE, null) },
+            { (REGGAE_SKA, "ska"),                      (SKA, null) },
+            { (REGGAE_SKA, "other"),                    (SKA, null) }, // Belt & suspenders; should've been caught earlier as a special case
 
-            { (ROCK, "arena"),          (ROCK, "Arena Rock") },
-            { (ROCK, "blues"),          (ROCK, "Blues Rock") },
-            { (ROCK, "folk rock"),      (FOLK, "Folk Rock") },
-            { (ROCK, "funk"),           (RNB_SOUL_FUNK, "Funk") },
-            { (ROCK, "garage"),         (ROCK, "Garage Rock") },
-            { (ROCK, "psychedelic"),    (ROCK, "Psychedelic Rock") },
-            { (ROCK, "reggae"),         (REGGAE, null) },
-            { (ROCK, "rockabilly"),     (ROCK_AND_ROLL, "Rockabilly") },
-            { (ROCK, "rock and roll"),  (ROCK_AND_ROLL, null) },
-            { (ROCK, "ska"),            (SKA, null) },
-            { (ROCK, "surf"),           (SURF_ROCK, null) },
-            { (ROCK, "other"),          (ROCK, null) },
+            { (ROCK, "arena"),                          (ROCK, "Arena Rock") },
+            { (ROCK, "blues"),                          (ROCK, "Blues Rock") },
+            { (ROCK, "folk rock"),                      (FOLK, "Folk Rock") },
+            { (ROCK, "funk"),                           (RNB_SOUL_FUNK, "Funk") },
+            { (ROCK, "garage"),                         (ROCK, "Garage Rock") },
+            { (ROCK, "psychedelic"),                    (ROCK, "Psychedelic Rock") },
+            { (ROCK, "reggae"),                         (REGGAE, null) },
+            { (ROCK, "rockabilly"),                     (ROCK_AND_ROLL, "Rockabilly") },
+            { (ROCK, "rock and roll"),                  (ROCK_AND_ROLL, null) },
+            { (ROCK, "ska"),                            (SKA, null) },
+            { (ROCK, "surf"),                           (SURF_ROCK, null) },
+            { (ROCK, "other"),                          (ROCK, null) },
 
-            { (URBAN, "alternative rap"),       (HIP_HOP_RAP, "Alternative Rap") },
-            { (URBAN, "downtempo"),             (ELECTRONIC, "Downtempo") },
-            { (URBAN, "drum and bass"),         (DNB_BREAKBEAT_JUNGLE, "Drum and Bass") },
-            { (URBAN, "dub"),                   (DUBSTEP, null) },
-            { (URBAN, "electronica"),           (ELECTRONIC, "Electronica") },
-            { (URBAN, "gangsta"),               (HIP_HOP_RAP, "Gangsta Rap") },
-            { (URBAN, "garage"),                (ELECTRONIC, "Garage") },
-            { (URBAN, "hardcore dance"),        (HARDCORE_EDM, "Hardcore Dance") },
-            { (URBAN, "hardcore rap"),          (HIP_HOP_RAP, "Hardcore Rap") },
-            { (URBAN, "hip hop"),               (HIP_HOP_RAP, "Hip-Hop") },
-            { (URBAN, "industrial"),            (INDUSTRIAL, null) },
-            { (URBAN, "old school hip hop"),    (HIP_HOP_RAP, "Oldschool Hip-Hop") },
-            { (URBAN, "rap"),                   (HIP_HOP_RAP, "Rap") },
-            { (URBAN, "trip hop"),              (HIP_HOP_RAP, "Trip Hop") },
-            { (URBAN, "underground rap"),       (HIP_HOP_RAP, "Underground Rap") },
-            { (URBAN, "other"),                 (URBAN, null) },
+            { (URBAN, "alternative rap"),               (HIP_HOP_RAP, "Alternative Rap") },
+            { (URBAN, "downtempo"),                     (ELECTRONIC, "Downtempo") },
+            { (URBAN, "drum and bass"),                 (DNB_BREAKBEAT_JUNGLE, "Drum and Bass") },
+            { (URBAN, "dub"),                           (REGGAE, "dub") },
+            { (URBAN, "electronica"),                   (ELECTRONIC, "Electronica") },
+            { (URBAN, "gangsta"),                       (HIP_HOP_RAP, "Gangsta Rap") },
+            { (URBAN, "garage"),                        (ELECTRONIC, "Garage") },
+            { (URBAN, "hardcore dance"),                (HARDCORE_EDM, "Hardcore Dance") },
+            { (URBAN, "hardcore rap"),                  (HIP_HOP_RAP, "Hardcore Rap") },
+            { (URBAN, "hip hop"),                       (HIP_HOP_RAP, "Hip-Hop") },
+            { (URBAN, "industrial"),                    (INDUSTRIAL, null) },
+            { (URBAN, "old school hip hop"),            (HIP_HOP_RAP, "Oldschool Hip-Hop") },
+            { (URBAN, "rap"),                           (HIP_HOP_RAP, "Rap") },
+            { (URBAN, "trip hop"),                      (HIP_HOP_RAP, "Trip Hop") },
+            { (URBAN, "underground rap"),               (HIP_HOP_RAP, "Underground Rap") },
+            { (URBAN, "other"),                         (URBAN, null) },
 
-            { (OTHER, "ambient"),           (AMBIENT_DRONE, "Ambient") },
-            { (OTHER, "breakbeat"),         (DNB_BREAKBEAT_JUNGLE, "Breakbeat") },
-            { (OTHER, "chiptune"),          (CHIPTUNE, null) },
-            { (OTHER, "classical"),         (CLASSICAL, null) },
-            { (OTHER, "contemporary folk"), (FOLK, "Contemporary Folk") },
-            { (OTHER, "dance"),             (DANCE, null) },
-            { (OTHER, "electronica"),       (ELECTRONIC, "Electronica") },
-            { (OTHER, "house"),             (HOUSE, null) },
-            { (OTHER, "techno"),            (TECHNO, null) },
-            { (OTHER, "trance"),            (TRANCE, null) },
+            //(OTHER, "a capella")                      unchanged
+            //(OTHER, "acoustic")                       unchanged
+            { (OTHER, "ambient"),                       (AMBIENT_DRONE, "Ambient") },
+            { (OTHER, "breakbeat"),                     (DNB_BREAKBEAT_JUNGLE, "Breakbeat") },
+            { (OTHER, "chiptune"),                      (CHIPTUNE, null) },
+            { (OTHER, "classical"),                     (CLASSICAL, null) },
+            { (OTHER, "contemporary folk"),             (FOLK, "Contemporary Folk") },
+            { (OTHER, "dance"),                         (DANCE, null) },
+            { (OTHER, "electronica"),                   (ELECTRONIC, "Electronica") },
+            //(OTHER, "experimental")                   unchanged
+            { (OTHER, "house"),                         (HOUSE, null) },
+            //(OTHER, "oldies")                         unchanged
+            { (OTHER, "techno"),                        (TECHNO, null) },
+            { (OTHER, "trance"),                        (TRANCE, null) },
         };
 
         private class TupleStringComparer : IEqualityComparer<(string genre, string subgenre)>
