@@ -506,6 +506,12 @@ namespace YARG.Venue.VenueCamera
 
         protected override void GameplayDestroy()
         {
+            // These need to be explicitly released
+            _invertCurveParam.Release();
+            _defaultCurveParam.Release();
+            _brightCurveParam.Release();
+            _copierCurveParam.Release();
+
             // Enable the camera in case it happens to be disabled
             _currentCamera.enabled = true;
 
