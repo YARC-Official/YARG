@@ -751,7 +751,8 @@
             "AdvancedDMXSettings": "Advanced sACN and DMX settings",
             "Experimental": "Experimental",
             "HUD": "HUD",
-            "Gameplay": "Gameplay"
+            "Gameplay": "Gameplay",
+            "OutputConfiguration": "Output Configuration"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
@@ -1041,6 +1042,10 @@
                     "Frequent": "50, 100, 200, 300, ...",
                     "Sparse": "50, 100, 250, 500, 750, ..."
                 }
+            },
+            "OutputDevice": {
+                "Name": "Output Device",
+                "Description": "The interface to use when playing sounds."
             },
             "PlayAShowTimeout": {
                 "Name": "Show Selection Timeout",

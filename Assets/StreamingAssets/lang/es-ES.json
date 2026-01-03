@@ -469,7 +469,8 @@
             "AdvancedDMXChannels": "Advanced DMX Channels",
             "StatusBar": "Status Bar",
             "AdvancedDMXSettings": "Advanced sACN and DMX settings",
-            "Experimental": "Experimental"
+            "Experimental": "Experimental",
+            "OutputConfiguration": "Output Configuration"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
@@ -718,6 +719,10 @@
                     "Frequent": "50, 100, 200, 300, ...",
                     "Sparse": "50, 100, 250, 500, 750, ..."
                 }
+            },
+            "OutputDevice": {
+                "Name": "Output Device",
+                "Description": "The interface to use when playing sounds."
             },
             "PreviewVolume": {
                 "Name": "Preview Volume",

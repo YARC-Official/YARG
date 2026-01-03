@@ -94,6 +94,7 @@ namespace YARG.Audio.BASS
         protected override ReadOnlySpan<string> SupportedFormats => FORMATS;
 
         private readonly int _opusHandle = 0;
+        private BassOutputDevice _currentDevice;
 
         public BassAudioManager()
         {
@@ -144,15 +145,8 @@ namespace YARG.Audio.BASS
                 Bass.Free();
             }
 #endif
-            if (!Bass.Init(-1, 44100, DeviceInitFlags.Default | DeviceInitFlags.Latency, IntPtr.Zero))
-            {
-                var error = Bass.LastError;
-                if (error == Errors.Already)
-                    YargLogger.LogError("BASS is already initialized! An error has occurred somewhere and Unity must be restarted!");
-                else
-                    YargLogger.LogFormatError("Failed to initialize BASS: {0}!", error);
-                return;
-            }
+
+            SetOutputDevice("Default");
 
             LoadSfx();
             LoadDrumSfx(); // TODO: move drum sfx loading/disposal to song start/end respectively IF there are any drum players
@@ -167,7 +161,28 @@ namespace YARG.Audio.BASS
             YargLogger.LogFormatInfo("BASS: {0} - BASS.FX: {1} - BASS.Mix: {2}", Bass.Version, BassFx.Version, BassMix.Version);
             YargLogger.LogFormatInfo("Update Period: {0}ms. Device Buffer Length: {1}ms. Playback Buffer Length: {2}ms. Device Playback Latency: {3}ms",
                 Bass.UpdatePeriod, Bass.DeviceBufferLength, Bass.PlaybackBufferLength, PlaybackLatency);
+
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
+        }
+
+        protected override void SetOutputDevice(string name)
+        {
+            int currentDevice = Bass.CurrentDevice;
+
+            OutputDevice? device = GetOutputDevice(name);
+            if (device == null || device is not BassOutputDevice bassDevice || bassDevice.DeviceId == currentDevice)
+            {
+                return;
+            }
+
+            YargLogger.LogFormatInfo("Changing BASS Device to: {0}", bassDevice.DisplayName);
+
+            base.SetOutputDevice(bassDevice.DisplayName);
+
+            _currentDevice?.Dispose();
+            _currentDevice = bassDevice.Use();
+
+            YargLogger.LogFormatInfo("Current BASS Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
         }
 
 #nullable enable
@@ -200,7 +215,7 @@ namespace YARG.Audio.BASS
                 // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
                 if (info.Name == "Default" || info.Name != name) continue;
 
-                return CreateDevice(deviceIndex, name);
+                return CreateInputDevice(deviceIndex, name);
             }
             return null;
         }
@@ -242,12 +257,58 @@ namespace YARG.Audio.BASS
         }
 
 #nullable enable
-        protected override MicDevice? CreateDevice(int deviceId, string name)
+        protected override MicDevice? CreateInputDevice(int deviceId, string name)
 #nullable disable
         {
             var device = BassMicDevice.Create(deviceId, name);
             device?.SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Value);
             return device;
+        }
+
+#nullable enable
+        protected override OutputDevice? CreateOutputDevice(int deviceId, string name)
+#nullable disable
+        {
+            return BassOutputDevice.Create(deviceId, name);
+        }
+
+        protected override List<(int id, string name)> GetAllOutputDevices()
+        {
+            var devices = new List<(int id, string name)>();
+
+            for (int deviceIndex = 1; Bass.GetDeviceInfo(deviceIndex, out var info); deviceIndex++)
+            {
+                // Ignore disabled devices
+                if (!info.IsEnabled) continue;
+
+                // Ignore loopback devices, they're potentially confusing and can cause feedback loops
+                if (info.IsLoopback) continue;
+
+                devices.Add((deviceIndex, info.Name));
+            }
+
+            return devices;
+        }
+
+#nullable enable
+        protected override OutputDevice? GetOutputDevice(string name)
+#nullable disable
+        {
+            for (int deviceIndex = 0; Bass.GetDeviceInfo(deviceIndex, out var info); deviceIndex++)
+            {
+                // Ignore disabled devices
+                if (!info.IsEnabled) continue;
+
+                // Ignore loopback devices, they're potentially confusing and can cause feedback loops
+                if (info.IsLoopback) continue;
+
+                // Ensure device names match
+                if (info.Name != name) continue;
+
+                return CreateOutputDevice(deviceIndex, name);
+            }
+
+            return null;
         }
 
         private void LoadSfx()

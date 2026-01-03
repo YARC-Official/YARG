@@ -482,6 +482,7 @@ namespace YARG.Settings
                 BandComboType.Strict
             };
 
+            public OutputDeviceSetting OutputDevice { get; } = new("Default", OutputDeviceCallback);
             #endregion
 
             #region Callbacks
@@ -680,6 +681,17 @@ namespace YARG.Settings
                     YargLogger.LogFormatInfo("Description for device {0}:\n{1}\n", device.displayName,
                         item2: device.description.ToJson());
                 }
+            }
+
+            private static void OutputDeviceCallback(string name)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                GlobalAudioHandler.SetOutputDevice(name);
             }
             #endregion
         }
