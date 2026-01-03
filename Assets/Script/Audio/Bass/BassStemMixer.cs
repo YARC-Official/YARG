@@ -335,6 +335,13 @@ namespace YARG.Audio.BASS
             return true;
         }
 
+#nullable enable
+        protected override void SetOutputChannel_Internal(OutputChannel? channel)
+#nullable disable
+        {
+            BassHelpers.UpdateOutputChannels(_tempoStreamHandle, channel);
+        }
+
         protected override void SetOutputDevice_Internal(OutputDevice device)
         {
             if (device is not BassOutputDevice bassDevice)

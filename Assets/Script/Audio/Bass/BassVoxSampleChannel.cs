@@ -122,6 +122,13 @@ namespace YARG.Audio.BASS
             }
         }
 
+        #nullable enable
+        protected override void SetOutputChannel_Internal(OutputChannel? channel)
+#nullable disable
+        {
+            BassHelpers.UpdateOutputChannels(_channel, channel);
+        }
+
         protected override bool IsPlaying_Internal()
         {
             return Bass.ChannelIsActive(_channel) == PlaybackState.Playing;

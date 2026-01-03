@@ -720,6 +720,27 @@
                     "Sparse": "50, 100, 250, 500, 750, ..."
                 }
             },
+            "OutputChannelDefault": {
+                "Name": "Default Channel(s)",
+                "Description": "The default output channel(s) to use for instruments and sounds."
+            },
+            "OutputChannelDrumSfx": {
+                "Name": "Drum SFX",
+                "Description": "The output channel(s) to use for drum sound effects."
+            },
+            "OutputChannelSfx": {
+                "Name": "SFX",
+                "Description": "The output channel(s) to use for other sound effects."
+            },
+            "OutputChannelVox": {
+                "Name": "Vox Samples",
+                "Description": "The output channel(s) to use for score screen sound effects."
+            },
+            "OutputChannels": {
+                "Default": "Use Default Channel(s)",
+                "Mono": "{0}",
+                "Stereo": "{0} & {1}"
+            },
             "OutputDevice": {
                 "Name": "Output Device",
                 "Description": "The interface to use when playing sounds."

@@ -3,6 +3,7 @@ using ManagedBass;
 using ManagedBass.DirectX8;
 using ManagedBass.Fx;
 using UnityEngine;
+using YARG.Core.Audio;
 using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS
@@ -147,6 +148,47 @@ namespace YARG.Audio.BASS
             }
 
             return true;
+        }
+
+        public static int GetOutputChannelCount()
+        {
+            Bass.GetInfo(out BassInfo info);
+
+            return info.SpeakerCount;
+        }
+
+#nullable enable
+        public static void UpdateOutputChannels(int stream, OutputChannel? channel)
+#nullable disable
+        {
+            BassFlags allChannels = BassFlags.SpeakerPair1
+                | BassFlags.SpeakerPair2
+                | BassFlags.SpeakerPair3
+                | BassFlags.SpeakerPair4
+                | BassFlags.SpeakerPair5
+                | BassFlags.SpeakerPair6
+                | BassFlags.SpeakerPair7
+                | BassFlags.SpeakerPair8
+                | BassFlags.SpeakerPair9
+                | BassFlags.SpeakerPair10
+                | BassFlags.SpeakerPair11
+                | BassFlags.SpeakerPair12
+                | BassFlags.SpeakerPair13
+                | BassFlags.SpeakerPair14
+                | BassFlags.SpeakerPair15
+            ;
+
+            // Reset all output channels - do this before determining if channel is null to catch
+            // switching from a valid channel back to all channels
+            Bass.ChannelFlags(stream, 0, allChannels);
+
+            if (channel == null || channel is not BassOutputChannel bassChannel)
+            {
+                return;
+            }
+
+            // Add channel(s)
+            Bass.ChannelFlags(stream, bassChannel.Flags, bassChannel.Flags);
         }
     }
 }

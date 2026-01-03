@@ -483,6 +483,32 @@ namespace YARG.Settings
             };
 
             public OutputDeviceSetting OutputDevice { get; } = new("Default", OutputDeviceCallback);
+            public OutputChannelDefaultSetting OutputChannelDefault { get; } = new(1, OutputChannelDefaultCallback);
+            public OutputChannelSetting OutputChannelDrumSfx { get; } = new(-1, OutputChannelDrumSfxCallback);
+            public OutputChannelSetting OutputChannelSfx { get; } = new(-1, OutputChannelSfxCallback);
+            public OutputChannelSetting OutputChannelVox { get; } = new(-1, OutputChannelVoxCallback);
+            #endregion
+
+            #region Helpers
+            private static void resetChannelSetting(OutputChannelSetting channelSetting, SongStem stem, int defaultValue = -1)
+            {
+                channelSetting.UpdateValues();
+
+                // Only change value if the current value exceeds the number of available channels on the device
+                int currentValue = channelSetting.Value;
+                if (currentValue > GlobalAudioHandler.GetOutputChannelCount())
+                {
+                    channelSetting.Value = defaultValue;
+                    setOutputChannel(channelSetting, stem);
+                }
+
+                SettingsMenu.Instance.RefreshAndKeepPosition();
+            }
+
+            private static void setOutputChannel(OutputChannelSetting channelSetting, SongStem stem)
+            {
+                GlobalAudioHandler.SetOutputChannel(stem, channelSetting.Value == -1 ? Settings.OutputChannelDefault.Value : channelSetting.Value);
+            }
             #endregion
 
             #region Callbacks
@@ -692,6 +718,55 @@ namespace YARG.Settings
                 }
 
                 GlobalAudioHandler.SetOutputDevice(name);
+
+                resetChannelSetting(Settings.OutputChannelDefault, SongStem.Master, 1);
+                resetChannelSetting(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
+                resetChannelSetting(Settings.OutputChannelSfx, SongStem.Sfx);
+                resetChannelSetting(Settings.OutputChannelVox, SongStem.VoxSample);
+            }
+
+            private static void OutputChannelDefaultCallback(int channelId)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                GlobalAudioHandler.SetOutputChannel(SongStem.Master, channelId);
+            }
+
+            private static void OutputChannelDrumSfxCallback(int channelId)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                setOutputChannel(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
+            }
+
+            private static void OutputChannelSfxCallback(int channelId)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                setOutputChannel(Settings.OutputChannelSfx, SongStem.Sfx);
+            }
+
+            private static void OutputChannelVoxCallback(int channelId)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                setOutputChannel(Settings.OutputChannelVox, SongStem.VoxSample);
             }
             #endregion
         }

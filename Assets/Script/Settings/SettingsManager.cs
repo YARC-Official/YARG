@@ -229,6 +229,10 @@ namespace YARG.Settings
                 nameof(Settings.DataStreamEnable),
                 new HeaderMetadata("OutputConfiguration"),
                 nameof(Settings.OutputDevice),
+                nameof(Settings.OutputChannelDefault),
+                nameof(Settings.OutputChannelDrumSfx),
+                nameof(Settings.OutputChannelSfx),
+                nameof(Settings.OutputChannelVox),
             }
         };
 

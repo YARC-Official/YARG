@@ -56,6 +56,13 @@ namespace YARG.Audio.BASS
             }
         }
 
+#nullable enable
+        protected override void SetOutputChannel_Internal(OutputChannel? channel)
+#nullable disable
+        {
+            BassHelpers.UpdateOutputChannels(_channel, channel);
+        }
+
         protected override void DisposeUnmanagedResources()
         {
             Bass.SampleFree(_sfxHandle);

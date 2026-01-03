@@ -266,6 +266,13 @@ namespace YARG.Audio.BASS
         }
 
 #nullable enable
+        protected override OutputChannel? CreateOutputChannel(int channelId)
+#nullable disable
+        {
+            return BassOutputChannel.Create(channelId);
+        }
+
+#nullable enable
         protected override OutputDevice? CreateOutputDevice(int deviceId, string name)
 #nullable disable
         {
@@ -288,6 +295,11 @@ namespace YARG.Audio.BASS
             }
 
             return devices;
+        }
+
+        protected override int GetOutputChannelCount()
+        {
+            return BassHelpers.GetOutputChannelCount();
         }
 
 #nullable enable
