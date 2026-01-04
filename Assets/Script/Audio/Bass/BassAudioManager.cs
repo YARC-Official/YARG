@@ -148,10 +148,6 @@ namespace YARG.Audio.BASS
 
             SetOutputDevice("Default");
 
-            LoadSfx();
-            LoadDrumSfx(); // TODO: move drum sfx loading/disposal to song start/end respectively IF there are any drum players
-            LoadVox();
-
             var info = Bass.Info;
             PlaybackLatency = info.Latency + Bass.DeviceBufferLength + devPeriod;
             MinimumBufferLength = info.MinBufferLength + Bass.UpdatePeriod;
@@ -183,6 +179,11 @@ namespace YARG.Audio.BASS
             _currentDevice = bassDevice.Use();
 
             YargLogger.LogFormatInfo("Current BASS Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
+
+            // Load/reload samples
+            LoadSfx();
+            LoadDrumSfx(); // TODO: move drum sfx loading/disposal to song start/end respectively IF there are any drum players
+            LoadVox();
         }
 
 #nullable enable
@@ -197,7 +198,8 @@ namespace YARG.Audio.BASS
             {
                 return null;
             }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume);
+            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume,
+                CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0));
         }
 
         protected override MicDevice? GetInputDevice(string name)
@@ -327,6 +329,8 @@ namespace YARG.Audio.BASS
         {
             YargLogger.LogInfo("Loading SFX");
 
+            SfxSamples = new SampleChannel[AudioHelpers.SfxSamples.Count];
+
             string sfxFolder = Path.Combine(Application.streamingAssetsPath, "sfx");
 
             foreach (var sample in AudioHelpers.SfxSamples)
@@ -339,7 +343,8 @@ namespace YARG.Audio.BASS
                     if (File.Exists(sfxPath))
                     {
                         var sfxSample = sample.Kind;
-                        var sfx = BassSampleChannel.Create(sfxSample, sfxPath, 8, sample.CanLoop);
+                        var sfx = BassSampleChannel.Create(sfxSample, sfxPath, 8,
+                            CreateOutputChannel(SettingsManager.Settings?.OutputChannelSfx.Value ?? 0), sample.CanLoop);
                         if (sfx != null)
                         {
                             SfxSamples[(int) sfxSample] = sfx;
@@ -357,6 +362,8 @@ namespace YARG.Audio.BASS
         {
             YargLogger.LogInfo("Loading Drum SFX");
 
+            DrumSfxSamples = new DrumSampleChannel[AudioHelpers.DrumSamples.Count];
+
             string sfxFolder = Path.Combine(Application.streamingAssetsPath, "drumSfx");
 
             foreach (var sample in AudioHelpers.DrumSamples)
@@ -368,7 +375,8 @@ namespace YARG.Audio.BASS
                     if (File.Exists(sfxPath))
                     {
                         var sfxSample = sample.Kind;
-                        var sfx = BassDrumSampleChannel.Create(sfxSample, sfxPath, 8);
+                        var sfx = BassDrumSampleChannel.Create(sfxSample, sfxPath, 8,
+                            CreateOutputChannel(SettingsManager.Settings?.OutputChannelDrumSfx.Value ?? 0));
                         if (sfx != null)
                         {
                             DrumSfxSamples[(int) sfxSample] = sfx;
@@ -384,6 +392,9 @@ namespace YARG.Audio.BASS
         private void LoadVox()
         {
             YargLogger.LogInfo("Loading VOX");
+
+            VoxSamples = new VoxSampleChannel[AudioHelpers.VoxSamples.Count];
+
             string voxFolder = Path.Combine(Application.streamingAssetsPath, "vox");
 
             foreach (var sample in AudioHelpers.VoxSamples)
@@ -395,7 +406,8 @@ namespace YARG.Audio.BASS
                     if (File.Exists(voxPath))
                     {
                         var voxSample = sample.Kind;
-                        var vox = BassVoxSampleChannel.Create(voxSample, voxPath);
+                        var vox = BassVoxSampleChannel.Create(voxSample, voxPath,
+                            CreateOutputChannel(SettingsManager.Settings?.OutputChannelVox.Value ?? 0));
 
                         if (vox != null)
                         {

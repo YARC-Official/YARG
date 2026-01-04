@@ -50,6 +50,10 @@ namespace YARG.Audio.BASS
         private readonly List<StemData> _stemDatas = new();
         private          int            _longestHandle;
 
+#nullable enable
+        private OutputChannel? _outputChannel;
+#nullable disable
+
         public override event Action SongEnd
         {
             add
@@ -76,8 +80,10 @@ namespace YARG.Audio.BASS
             }
         }
 
-        internal BassStemMixer(string name, BassAudioManager manager, float speed, double volume, int handle, bool clampStemVolume)
+#nullable enable
+        internal BassStemMixer(string name, BassAudioManager manager, float speed, double volume, int handle, bool clampStemVolume, OutputChannel? outputChannel)
             : base(name, manager, clampStemVolume)
+#nullable disable
         {
             _tempoStreamHandle = BassFx.TempoCreate(handle, BassFlags.SampleOverrideLowestVolume);
             if (_tempoStreamHandle == 0)
@@ -88,6 +94,7 @@ namespace YARG.Audio.BASS
 
             _mixerHandle = handle;
             _whammySyncTimer = new Timer();
+            SetOutputChannel_Internal(outputChannel);
             SetVolume_Internal(volume);
             SetSpeed_Internal(speed, true);
         }
@@ -339,6 +346,8 @@ namespace YARG.Audio.BASS
         protected override void SetOutputChannel_Internal(OutputChannel? channel)
 #nullable disable
         {
+            _outputChannel = channel;
+
             BassHelpers.UpdateOutputChannels(_tempoStreamHandle, channel);
         }
 
