@@ -734,6 +734,10 @@ namespace YARG.Settings
                 }
 
                 GlobalAudioHandler.SetOutputChannel(SongStem.Master, channelId);
+
+                setOutputChannel(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
+                setOutputChannel(Settings.OutputChannelSfx, SongStem.Sfx);
+                setOutputChannel(Settings.OutputChannelVox, SongStem.VoxSample);
             }
 
             private static void OutputChannelDrumSfxCallback(int channelId)
