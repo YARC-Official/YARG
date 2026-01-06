@@ -140,7 +140,7 @@ namespace YARG.Gameplay
 
                     if (textureManager.VideoTexFound())
                     {
-                        SetUpVideoTexture();
+                        SetUpVideoTexture(bgInstance);
                     }
 
                     break;
@@ -180,20 +180,25 @@ namespace YARG.Gameplay
             }
         }
 
-        private void SetUpVideoTexture()
+        private void SetUpVideoTexture(GameObject bginstance)
         {
             var textureManager = GetComponent<TextureManager>();
             var result = GameManager.Song.LoadBackground();
-            if (result == null)
+            if (result == null || result.Type == BackgroundType.Yarground)
             {
-                //no song specific background to render
                 return;
+            }
+            //assign background textures after confirming there is a background to render
+            var renderers = bginstance.GetComponentsInChildren<Renderer>(true);
+            foreach (var renderer in renderers)
+            {
+                foreach (var material in renderer.sharedMaterials)
+                {
+                    textureManager.AssignBackgroundTextures(material);
+                }
             }
             switch (result.Type)
             {
-                case BackgroundType.Yarground:
-                    //return because only 1 yarground is supported at a time
-                    return;
                 case BackgroundType.Video:
                     //set venue source to song to enable video seeking/pausing features
                     _source = VenueSource.Song;

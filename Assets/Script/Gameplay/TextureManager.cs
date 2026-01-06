@@ -98,7 +98,6 @@ namespace YARG.Gameplay
             {
                 _videoTexture = new RenderTexture(VIDEO_TEX_WIDTH, VIDEO_TEX_HEIGHT, 0);
                 _videoTexture.Create();
-                _videoTexFound = true;
             }
             return _videoTexture;
         }
@@ -122,6 +121,14 @@ namespace YARG.Gameplay
             {
                 m.SetTexture(_albumCoverId, GetAlbumArt());
             }
+            if (m.HasTexture(_videoTexId))
+            {
+                _videoTexFound = true;
+            }
+        }
+
+        public void AssignBackgroundTextures(Material m)
+        {
             if (m.HasTexture(_videoTexId))
             {
                 m.SetTexture(_videoTexId, GetVideoTexture());
