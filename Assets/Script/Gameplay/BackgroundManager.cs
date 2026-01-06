@@ -51,7 +51,7 @@ namespace YARG.Gameplay
             // We don't need to update unless we're using a video
             enabled = false;
 
-            var result = VenueLoader.GetVenue(GameManager.Song, out _source);
+            using var result = VenueLoader.GetVenue(GameManager.Song, out _source);
             if (result == null)
             {
                 return;
@@ -178,8 +178,6 @@ namespace YARG.Gameplay
                     _backgroundImage.gameObject.SetActive(true);
                     break;
             }
-            //dispose of result manually since no no longer using "using" keyword
-            result?.Dispose();
         }
 
         private void SetUpVideoTexture()
