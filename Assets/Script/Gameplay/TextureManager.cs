@@ -192,6 +192,12 @@ namespace YARG.Gameplay
 
         protected override void GameplayDestroy()
         {
+            if (_videoTexture != null)
+            {
+                _videoTexture.Release();
+                _videoTexture.DiscardContents();
+                _videoTexture = null;
+            }
             // Dispose FFT stuff, but only after the FFT update has completed
             _ = Destroy_Async();
         }
