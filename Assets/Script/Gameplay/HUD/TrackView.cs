@@ -29,10 +29,14 @@ namespace YARG.Gameplay.HUD
         private Vector3 _lastTrackPlayerPosition;
 
         private const float CENTER_ELEMENT_DEPTH = 0.35f;
+        private const float TOP_ELEMENT_EXTRA_OFFSET = 8f;
+
+        private DraggableHudElement _topDraggable;
 
         public void Initialize(HighwayCameraRendering highwayRenderer)
         {
             _highwayRenderer = highwayRenderer;
+            _topDraggable = _topElementContainer.GetComponent<DraggableHudElement>();
         }
 
         public void UpdateHUDPosition(int highwayIndex, int highwayCount)
@@ -46,10 +50,13 @@ namespace YARG.Gameplay.HUD
             Vector2 position = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, CENTER_ELEMENT_DEPTH);
             _centerElementContainer.transform.position = position;
 
-            // Place top elements at 100% depth plus screen independent units up to avoid highway overlap
-            var extraOffset = 8 * Screen.height / 1000f;
-            Vector2 position2 = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 1.0f).AddY(extraOffset);
-            _topElementContainer.position = position2;
+            if (_topDraggable != null && _topDraggable.HasCustomPosition == false)
+            {
+                // Place top elements at 100% depth plus n screen independent units up to avoid highway overlap
+                var extraOffset = TOP_ELEMENT_EXTRA_OFFSET * Screen.height / 1000f;
+                Vector2 position2 = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 1.0f).AddY(extraOffset);
+                _topElementContainer.position = position2;
+            }
         }
 
         public void UpdateCountdown(double countdownLength, double endTime)
