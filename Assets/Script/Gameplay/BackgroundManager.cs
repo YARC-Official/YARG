@@ -140,17 +140,7 @@ namespace YARG.Gameplay
 
                     if (textureManager.VideoTexFound())
                     {
-                        //set up videoPlayer to render to venue texture
-                        _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
-                        _videoPlayer.targetTexture = textureManager.GetVideoTexture();
-                        //overwrite result of GetVenue with Song Background
-                        result = GameManager.Song.LoadBackground();
-                        //if song background is found and is a video load it as if it was the background
-                        if (result?.Type == BackgroundType.Video)
-                        {
-                            _source = VenueSource.Song;
-                            goto case BackgroundType.Video;
-                        }
+                        SetUpVideoTexture();
                     }
 
                     break;
@@ -190,6 +180,64 @@ namespace YARG.Gameplay
             }
             //dispose of result manually since no no longer using "using" keyword
             result?.Dispose();
+        }
+
+        private void SetUpVideoTexture()
+        {
+            var textureManager = GetComponent<TextureManager>();
+            var result = GameManager.Song.LoadBackground();
+            if (result == null)
+            {
+                //no song specific background to render
+                return;
+            }
+            switch (result.Type)
+            {
+                case BackgroundType.Yarground:
+                    //return because only 1 yarground is supported at a time
+                    return;
+                case BackgroundType.Video:
+                    //set venue source to song to enable video seeking/pausing features
+                    _source = VenueSource.Song;
+
+                    switch (result.Stream)
+                    {
+                        case FileStream fs:
+                        {
+                            _videoPlayer.url = fs.Name;
+                            break;
+                        }
+                        case SngFileStream sngStream:
+                        {
+                            // UNFORTUNATELY, Videoplayer can't use streams, so video files
+                            // MUST BE FULLY DECRYPTED
+
+                            VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
+                            using var tmp = File.OpenWrite(VIDEO_PATH);
+                            File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
+                            result.Stream.CopyTo(tmp);
+                            _videoPlayer.url = VIDEO_PATH;
+                            break;
+                        }
+                    }
+                    //set up videoPlayer to render to venue texture
+                    _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+                    _videoPlayer.targetTexture = textureManager.GetVideoTexture();
+
+                    _videoPlayer.enabled = true;
+                    _videoPlayer.prepareCompleted += OnVideoPrepared;
+                    _videoPlayer.seekCompleted += OnVideoSeeked;
+                    _videoPlayer.Prepare();
+                    enabled = true;
+                    break;
+                case BackgroundType.Image:
+                    var songTex = result.Image.LoadTexture(false);
+                    //render image background flipped to match video
+                    Graphics.Blit(songTex, textureManager.GetVideoTexture(), new Vector2(1, -1), new Vector2(0, 1));
+                    //clean up unused texture
+                    Destroy(songTex);
+                    return;
+            }
         }
 
         private void Update()
