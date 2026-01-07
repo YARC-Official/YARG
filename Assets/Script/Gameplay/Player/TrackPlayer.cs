@@ -860,12 +860,12 @@ namespace YARG.Gameplay.Player
 
         public void MetronomeTick()
         {
-            GlobalAudioHandler.PlayMetronomeSoundEffect(MetronomeSample.SquareHi);
+            GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Hi);
         }
 
         public void MetronomeTock()
         {
-            GlobalAudioHandler.PlayMetronomeSoundEffect(MetronomeSample.SquareLo);
+            GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Lo);
         }
     }
 }

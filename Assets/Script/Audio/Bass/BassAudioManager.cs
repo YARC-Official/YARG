@@ -345,22 +345,32 @@ namespace YARG.Audio.BASS
 
             foreach (var sample in AudioHelpers.MetronomeSamples)
             {
-                string metronomeBase = Path.Combine(metronomeFolder, sample.File);
+                string metronomeHi = Path.Combine(metronomeFolder, sample.File);
+                string metronomeLo = Path.Combine(metronomeFolder, sample.AlternateFile);
+
+                string metronomeHiPath = "";
+                string metronomeLoPath = "";
+
                 foreach (string format in SupportedFormats)
                 {
-                    string metronomePath = metronomeBase + format;
-                    if (File.Exists(metronomePath))
+                    if (File.Exists(metronomeHi + format))
                     {
-                        var metronomeSample = sample.Kind;
-                        var metronome = BassMetronomeSampleChannel.Create(metronomeSample, metronomePath);
+                        metronomeHiPath = metronomeHi + format;
+                    }
 
-                        if (metronome != null)
-                        {
-                            MetronomeSamples[(int) metronomeSample] = metronome;
-                            YargLogger.LogFormatInfo("Loaded {0}", sample.File);
-                        }
+                    if (File.Exists(metronomeLo + format))
+                    {
+                        metronomeLoPath = metronomeLo + format;
+                    }
+                }
 
-                        break;
+                if (!String.IsNullOrEmpty(metronomeHiPath) && !String.IsNullOrEmpty(metronomeLoPath))
+                {
+                    var metronomeSample = sample.Kind;
+                    var metronome = BassMetronomeSampleChannel.Create(metronomeSample, metronomeHiPath, metronomeLoPath);
+                    if (metronome != null)
+                    {
+                        MetronomeSamples[(int) metronomeSample] = metronome;
                     }
                 }
             }
