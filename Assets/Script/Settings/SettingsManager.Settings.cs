@@ -88,6 +88,8 @@ namespace YARG.Settings
 
             public ToggleSetting ReduceNoteSpeedByDifficulty { get; } = new(true);
 
+            public ToggleSetting LearningGuides { get; } = new(true);
+
             public SliderSetting ShowCursorTimer      { get; } = new(2f, 0f, 5f);
 
             public ToggleSetting PauseOnDeviceDisconnect { get; } = new(true);

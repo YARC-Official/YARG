@@ -12,6 +12,7 @@ using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Visuals;
+using YARG.Settings;
 using TMPro;
 
 namespace YARG.Gameplay.Visuals
@@ -46,6 +47,7 @@ namespace YARG.Gameplay.Visuals
         string[] chord_call = {};
 
         int chord_qnty = 0;
+        int[] chord_notes = new int[25];
 
         protected override void InitializeElement()
         {
@@ -81,15 +83,92 @@ namespace YARG.Gameplay.Visuals
             _leftModel.localPosition = _leftModel.localPosition.WithX(minPos - _endOffsets);
             _rightModel.localPosition = _rightModel.localPosition.WithX(maxPos + _endOffsets);
 
+            if (SettingsManager.Settings.LearningGuides.Value) {
+                ShowChordName();
+            }
+            else
+            {
+                _leftText.text = "";
+            }
+            // Update the container to the proper range shift offset
+            UpdateXPosition();
+        }
+
+        public void UpdateXPosition()
+        {
+            _container.localPosition = _container.localPosition.WithX(Player.RangeShiftOffset);
+        }
+
+        public void CheckForChordHit()
+        {
+            // If the note was fully hit, remove the chord bar
+            if (NoteRef.WasFullyHit())
+            {
+                ParentPool.Return(this);
+            }
+        }
+
+        public void ShowChordName()
+        {
             //Chordname
             string chord_name;
             _leftText.text = "";
             _leftText.textStyle = TMP_Style.NormalStyle;
+            //Use the first note of the array to find the root
+            string GetRoot(int note_slot)
+            {
+                string root = "";
+                switch (chord_notes[note_slot] % 12)
+                {
+                    case 0:
+                        root = "C";
+                        break;
+                    case 1:
+                        root = "C#";
+                        break;
+                    case 2:
+                        root = "D";
+                        break;
+                    case 3:
+                        root = "Eb";
+                        break;
+                    case 4:
+                        root = "E";
+                        break;
+                    case 5:
+                        root = "F";
+                        break;
+                    case 6:
+                        root = "F#";
+                        break;
+                    case 7:
+                        root = "G";
+                        break;
+                    case 8:
+                        root = "G#";
+                        break;
+                    case 9:
+                        root = "A";
+                        break;
+                    case 10:
+                        root = "Bb";
+                        break;
+                    case 11:
+                        root = "B";
+                        break;
+                    default:
+                        root = "X";
+                        break;
+                }
+                return root;
+            }
             foreach (var note in NoteRef.AllNotes)
             {
+                for (int i = 0; i < 4; i++)
+                {
+                    chord_notes[i] = 0;
+                }
                 Array.Resize(ref chord_call, chord_call.Length + 1);
-
-                int[] chord_notes = new int[25];
 
                 foreach (var child in note.AllNotes)
                 {
@@ -100,65 +179,15 @@ namespace YARG.Gameplay.Visuals
                         chord_notes[chord_qnty - 1] = child.Key;
                     }
                 }
-                /*if (chord_qnty <= 2)
+                if (chord_qnty <= 2)
                 {
-                    YargLogger.LogInfo("Not a full chord.");
+                    //YargLogger.LogInfo("Not a full chord.");
                 }
                 else
                 {
-                    YargLogger.LogInfo(chord_notes[0] + ", " + chord_notes[1] + ", " + chord_notes[2] + ", " + chord_notes[3] + " will turn into...");
+                    //YargLogger.LogInfo(chord_notes[0] + ", " + chord_notes[1] + ", " + chord_notes[2] + ", " + chord_notes[3] + " will turn into...");
                     Array.Sort(chord_notes, 0, chord_qnty);
-                    YargLogger.LogInfo(chord_notes[0] + ", " + chord_notes[1] + ", " + chord_notes[2] + ", " + chord_notes[3]);
-                }*/
-                
-
-                //Use the first note of the array to find the root
-                string GetRoot(int note_slot)
-                {
-                    string root = "";
-                    switch (chord_notes[note_slot] % 12)
-                    {
-                        case 0:
-                            root = "C";
-                            break;
-                        case 1:
-                            root = "C#";
-                            break;
-                        case 2:
-                            root = "D";
-                            break;
-                        case 3:
-                            root = "Eb";
-                            break;
-                        case 4:
-                            root = "E";
-                            break;
-                        case 5:
-                            root = "F";
-                            break;
-                        case 6:
-                            root = "F#";
-                            break;
-                        case 7:
-                            root = "G";
-                            break;
-                        case 8:
-                            root = "G#";
-                            break;
-                        case 9:
-                            root = "A";
-                            break;
-                        case 10:
-                            root = "Bb";
-                            break;
-                        case 11:
-                            root = "B";
-                            break;
-                        default:
-                            root = "X";
-                            break;
-                    }
-                    return root;
+                    //YargLogger.LogInfo(chord_notes[0] + ", " + chord_notes[1] + ", " + chord_notes[2] + ", " + chord_notes[3]);
                 }
 
                 //Using the lowest note, find the first and second interval for three note chords
@@ -212,6 +241,7 @@ namespace YARG.Gameplay.Visuals
                             switch (chord_notes[2] - chord_notes[1])
                             {
                                 case 3: //major
+                                    chord_name += "";
                                     break;
                                 case 4: //augmented
                                     chord_name += "<sup>aug</sup>";
@@ -382,7 +412,7 @@ namespace YARG.Gameplay.Visuals
                                             break;
                                     }
                                     break;
-                                case 7: //This could be anything, probably best to hide it
+                                case 7: 
                                     chord_name = "";
                                     break;
                                 default:
@@ -443,10 +473,10 @@ namespace YARG.Gameplay.Visuals
                                             chord_name += "m<sup>6</sup>";
                                             break;
                                         case 3:
-                                            chord_name += "m<sup>7</sup>/";
+                                            chord_name += "m<sup>7</sup>";
                                             break;
                                         case 4:
-                                            chord_name += "mM<sup>7</sup>/";
+                                            chord_name += "mM<sup>7</sup>";
                                             break;
                                         case 5:
                                             chord_name += "m";
@@ -461,10 +491,10 @@ namespace YARG.Gameplay.Visuals
                                     switch (chord_notes[3] - chord_notes[2])
                                     {
                                         case 1:
-                                            chord_name = GetRoot(2) + "<sup>add9</sup>/" + GetRoot(0);
+                                            chord_name = GetRoot(2) + "<sup>addb9</sup>/" + GetRoot(0);
                                             break;
                                         case 2:
-                                            chord_name += "m<sup>6</sup>";
+                                            chord_name = GetRoot(2) + "<sup>add9</sup>/" + GetRoot(0);
                                             break;
                                         case 3:
                                             chord_name = GetRoot(2);
@@ -493,7 +523,28 @@ namespace YARG.Gameplay.Visuals
                         case 4: //major 3rd
                             switch (chord_notes[2] - chord_notes[1])
                             {
-                                case 3: //major
+                                case 1: //C E F
+                                    switch (chord_notes[3] - chord_notes[2])
+                                    {
+                                        case 2:
+                                            chord_name += "4";
+                                            break;
+                                        case 4:
+                                            chord_name = GetRoot(2) + "M<sup>7</sup>/" + GetRoot(0);
+                                            break;
+                                        case 6:
+                                            chord_name += "<sup>b9no7</sup>";
+                                            break;
+                                        case 7:
+                                            chord_name += "M<sup>7add9no5</sup>";
+                                            break;
+                                        default:
+                                            //chord_name = "an unlisted minor 2nd interval chord.";
+                                            chord_name += "???";
+                                            break;
+                                    }
+                                    break;
+                                case 3: //C E G
                                     switch (chord_notes[3] - chord_notes[2])
                                     {
                                         case 2:
@@ -506,6 +557,7 @@ namespace YARG.Gameplay.Visuals
                                             chord_name += "M<sup>7</sup>";
                                             break;
                                         case 5:
+                                            chord_name += "";
                                             break;
                                         case 6:
                                             chord_name += "<sup>b9no7</sup>";
@@ -590,29 +642,17 @@ namespace YARG.Gameplay.Visuals
                     YargLogger.LogInfo("This chord is " + chord_name);
                     _leftText.text = chord_name;
                 }
-                if (chord_notes[3] - chord_notes[0] > 12)
+                else if (chord_qnty > 4)
+                {
+                    _leftText.text = "!!!";
+                }
+
+                if (chord_notes[3] - chord_notes[0] > 12 || chord_notes[2] - chord_notes[0] > 12)
                 {
                     _leftText.text = ">8va (" + (chord_notes[3] - chord_notes[0]) + ")";
                 }
 
                 chord_qnty = 0;
-            }
-
-            // Update the container to the proper range shift offset
-            UpdateXPosition();
-        }
-
-        public void UpdateXPosition()
-        {
-            _container.localPosition = _container.localPosition.WithX(Player.RangeShiftOffset);
-        }
-
-        public void CheckForChordHit()
-        {
-            // If the note was fully hit, remove the chord bar
-            if (NoteRef.WasFullyHit())
-            {
-                ParentPool.Return(this);
             }
         }
 
