@@ -218,7 +218,7 @@ namespace YARG.Gameplay
                     }
                     //set up videoPlayer to render to venue texture
                     _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
-                    _videoPlayer.targetTexture = textureManager.GetVideoTexture();
+                    _videoPlayer.targetTexture = textureManager.GetVideoTexture(0, 0);
 
                     _videoPlayer.enabled = true;
                     _videoPlayer.prepareCompleted += OnVideoPrepared;
@@ -229,7 +229,7 @@ namespace YARG.Gameplay
                 case BackgroundType.Image:
                     var songTex = songBackGround.Image.LoadTexture(false);
                     //render image background flipped to match video
-                    Graphics.Blit(songTex, textureManager.GetVideoTexture(), new Vector2(1, -1), new Vector2(0, 1));
+                    Graphics.Blit(songTex, textureManager.GetVideoTexture(0, 0), new Vector2(1, -1), new Vector2(0, 1));
                     //clean up unused texture
                     Destroy(songTex);
                     return;

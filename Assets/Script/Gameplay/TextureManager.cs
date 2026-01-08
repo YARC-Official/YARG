@@ -49,8 +49,8 @@ namespace YARG.Gameplay
         private const int FFT_SIZE_LOG = 11 /* aka log2(2048) */;
         private const int FFT_SIZE = 1 << FFT_SIZE_LOG;
         private const int FFT_TEXTURE_WIDTH = 512;
-        private const int VIDEO_TEX_WIDTH = 1280;
-        private const int VIDEO_TEX_HEIGHT = 720;
+        private int _videoTexWidth = 256;
+        private int _videoTexHeight = 144;
 
         // TODO: Get the number of active channels from the mixer instead of assuming
         //  Note that this won't _break_ if there are more channels, it will just make
@@ -95,12 +95,20 @@ namespace YARG.Gameplay
             return _soundTexture;
         }
 
-        public RenderTexture GetVideoTexture()
+        public RenderTexture GetVideoTexture(int width, int height)
         {
             if (_videoTexture == null)
             {
-                _videoTexture = new RenderTexture(VIDEO_TEX_WIDTH, VIDEO_TEX_HEIGHT, 0);
+                _videoTexture = new RenderTexture(_videoTexWidth, _videoTexHeight, 0);
                 _videoTexture.Create();
+            }
+            if (width > _videoTexture.width)
+            {
+                _videoTexture.width = width;
+            }
+            if (height > _videoTexture.height)
+            {
+                _videoTexture.width = height;
             }
             return _videoTexture;
         }
@@ -126,17 +134,20 @@ namespace YARG.Gameplay
             }
             if (m.HasTexture(_videoTexId) && songBackgroundType is BackgroundType.Video)
             {
-                m.SetTexture(_videoTexId, GetVideoTexture());
+                var matTex = m.GetTexture(_videoTexId);
+                m.SetTexture(_videoTexId, GetVideoTexture(matTex.width, matTex.height));
                 _videoTexFound = true;
             }
             if (m.HasTexture(_imageTexId) && songBackgroundType is BackgroundType.Image)
             {
-                m.SetTexture(_imageTexId, GetVideoTexture());
+                var matTex = m.GetTexture(_imageTexId);
+                m.SetTexture(_imageTexId, GetVideoTexture(matTex.width, matTex.height));
                 _videoTexFound = true;
             }
             if (m.HasTexture(_backgroundTexId) && songBackgroundType is BackgroundType.Image or BackgroundType.Video)
             {
-                m.SetTexture(_backgroundTexId, GetVideoTexture());
+                var matTex = m.GetTexture(_backgroundTexId);
+                m.SetTexture(_backgroundTexId, GetVideoTexture(matTex.width, matTex.height));
                 _videoTexFound = true;
             }
         }
