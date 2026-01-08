@@ -218,7 +218,7 @@ namespace YARG.Gameplay.Visuals
                                     chord_name += "<sup>b5</sup>";
                                     break;
                                 case 3: //major
-                                    chord_name = "";
+                                    chord_name += "";
                                     break;
                                 case 4: //augmented
                                     chord_name += "<sup>aug</sup>";
