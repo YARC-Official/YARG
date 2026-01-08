@@ -7,6 +7,7 @@ using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.IO;
+using YARG.Core.Song;
 using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
@@ -121,11 +122,13 @@ namespace YARG.Gameplay
 #endif
                     // Hookup song-specific textures
                     var textureManager = GetComponent<TextureManager>();
+                    // Load SongBackground here to determine if textures need to be replaced
+                    var songBackground = GameManager.Song.LoadBackground();
                     foreach (var renderer in renderers)
                     {
                         foreach (var material in renderer.sharedMaterials)
                         {
-                            textureManager.ProcessMaterial(material);
+                            textureManager.ProcessMaterial(material, songBackground?.Type);
                         }
                     }
 
@@ -140,7 +143,7 @@ namespace YARG.Gameplay
 
                     if (textureManager.VideoTexFound())
                     {
-                        SetUpVideoTexture(bgInstance);
+                        SetUpVideoTexture(songBackground);
                     }
 
                     break;
@@ -180,30 +183,20 @@ namespace YARG.Gameplay
             }
         }
 
-        private void SetUpVideoTexture(GameObject bginstance)
+        private void SetUpVideoTexture(BackgroundResult songBackGround)
         {
             var textureManager = GetComponent<TextureManager>();
-            var result = GameManager.Song.LoadBackground();
-            if (result == null || result.Type == BackgroundType.Yarground)
+            if (songBackGround == null || songBackGround.Type == BackgroundType.Yarground)
             {
                 return;
             }
-            //assign background textures after confirming there is a background to render
-            var renderers = bginstance.GetComponentsInChildren<Renderer>(true);
-            foreach (var renderer in renderers)
-            {
-                foreach (var material in renderer.sharedMaterials)
-                {
-                    textureManager.AssignBackgroundTextures(material);
-                }
-            }
-            switch (result.Type)
+            switch (songBackGround.Type)
             {
                 case BackgroundType.Video:
                     //set venue source to song to enable video seeking/pausing features
                     _source = VenueSource.Song;
 
-                    switch (result.Stream)
+                    switch (songBackGround.Stream)
                     {
                         case FileStream fs:
                         {
@@ -218,7 +211,7 @@ namespace YARG.Gameplay
                             VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
                             using var tmp = File.OpenWrite(VIDEO_PATH);
                             File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
-                            result.Stream.CopyTo(tmp);
+                            songBackGround.Stream.CopyTo(tmp);
                             _videoPlayer.url = VIDEO_PATH;
                             break;
                         }
@@ -234,7 +227,7 @@ namespace YARG.Gameplay
                     enabled = true;
                     break;
                 case BackgroundType.Image:
-                    var songTex = result.Image.LoadTexture(false);
+                    var songTex = songBackGround.Image.LoadTexture(false);
                     //render image background flipped to match video
                     Graphics.Blit(songTex, textureManager.GetVideoTexture(), new Vector2(1, -1), new Vector2(0, 1));
                     //clean up unused texture

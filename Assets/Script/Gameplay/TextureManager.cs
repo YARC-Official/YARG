@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using Unity.Collections;
 using UnityEngine;
+using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
 using YARG.Song;
 
@@ -39,6 +40,8 @@ namespace YARG.Gameplay
         private static int _sourceIconId = Shader.PropertyToID("_Yarg_SourceIcon");
         private static int _albumCoverId = Shader.PropertyToID("_Yarg_AlbumCover");
         private static int _videoTexId = Shader.PropertyToID("_Yarg_VideoTex");
+        private static int _imageTexId = Shader.PropertyToID("_Yarg_ImageTex");
+        private static int _backgroundTexId = Shader.PropertyToID("_Yarg_BackgroundTex");
 
         private const double MIN_DB = -100.0;
         private const double MAX_DB = -30.0;
@@ -107,7 +110,7 @@ namespace YARG.Gameplay
             return _videoTexFound;
         }
 
-        public void ProcessMaterial(Material m)
+        public void ProcessMaterial(Material m, BackgroundType? songBackgroundType)
         {
             if (m.HasTexture(_sourceIconId))
             {
@@ -121,17 +124,20 @@ namespace YARG.Gameplay
             {
                 m.SetTexture(_albumCoverId, GetAlbumArt());
             }
-            if (m.HasTexture(_videoTexId))
-            {
-                _videoTexFound = true;
-            }
-        }
-
-        public void AssignBackgroundTextures(Material m)
-        {
-            if (m.HasTexture(_videoTexId))
+            if (m.HasTexture(_videoTexId) && songBackgroundType is BackgroundType.Video)
             {
                 m.SetTexture(_videoTexId, GetVideoTexture());
+                _videoTexFound = true;
+            }
+            if (m.HasTexture(_imageTexId) && songBackgroundType is BackgroundType.Image)
+            {
+                m.SetTexture(_imageTexId, GetVideoTexture());
+                _videoTexFound = true;
+            }
+            if (m.HasTexture(_backgroundTexId) && songBackgroundType is BackgroundType.Image or BackgroundType.Video)
+            {
+                m.SetTexture(_backgroundTexId, GetVideoTexture());
+                _videoTexFound = true;
             }
         }
 
