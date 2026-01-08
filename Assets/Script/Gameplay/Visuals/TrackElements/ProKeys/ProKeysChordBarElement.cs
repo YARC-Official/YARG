@@ -114,54 +114,29 @@ namespace YARG.Gameplay.Visuals
             string chord_name;
             _leftText.text = "";
             _leftText.textStyle = TMP_Style.NormalStyle;
+
             //Use the first note of the array to find the root
-            string GetRoot(int note_slot)
+            string GetRoot(int note_slot) //note_slot being the note's position
             {
-                string root = "";
-                switch (chord_notes[note_slot] % 12)
+                return (chord_notes[note_slot] % 12) switch 
                 {
-                    case 0:
-                        root = "C";
-                        break;
-                    case 1:
-                        root = "C#";
-                        break;
-                    case 2:
-                        root = "D";
-                        break;
-                    case 3:
-                        root = "Eb";
-                        break;
-                    case 4:
-                        root = "E";
-                        break;
-                    case 5:
-                        root = "F";
-                        break;
-                    case 6:
-                        root = "F#";
-                        break;
-                    case 7:
-                        root = "G";
-                        break;
-                    case 8:
-                        root = "G#";
-                        break;
-                    case 9:
-                        root = "A";
-                        break;
-                    case 10:
-                        root = "Bb";
-                        break;
-                    case 11:
-                        root = "B";
-                        break;
-                    default:
-                        root = "X";
-                        break;
-                }
-                return root;
+                    0 => "C",
+                    1 => "C♯",
+                    2 => "D",
+                    3 => "E♭",
+                    4 => "E",
+                    5 => "F",
+                    6 => "F♯",
+                    7 => "G",
+                    8 => "G♯",
+                    9 => "A",
+                    10 => "B♭",
+                    11 => "B",
+
+                    _ => "X"
+                };
             }
+
             foreach (var note in NoteRef.AllNotes)
             {
                 for (int i = 0; i < 4; i++)
@@ -199,14 +174,13 @@ namespace YARG.Gameplay.Visuals
                         case 2: //major 2nd
                             switch (chord_notes[2] - chord_notes[1])
                             {
-                                case 5: //sus2
-                                    chord_name += "<sup>sus2</sup>";
+                                case 5: //diminished
+                                    chord_name += "sus2";
                                     break;
-                                default:
-                                    //chord_name = "an unlisted minor 2nd interval chord.";
+                                default: //minor
                                     chord_name = "";
                                     break;
-                            }
+                            };
                             break;
                         case 3: //minor 3rd
                             switch (chord_notes[2] - chord_notes[1])
@@ -218,11 +192,11 @@ namespace YARG.Gameplay.Visuals
                                     chord_name += "m";
                                     break;
                                 case 5: //major, 1st inversion
-                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(2);
                                     break;
                                 case 6: //major, 1st inversion
-                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(2) + "dim";
                                     break;
                                 case 7: //minor 7 no 5
@@ -240,14 +214,17 @@ namespace YARG.Gameplay.Visuals
                         case 4: //major 3rd
                             switch (chord_notes[2] - chord_notes[1])
                             {
+                                case 2:
+                                    chord_name += "<sup>b5</sup>";
+                                    break;
                                 case 3: //major
-                                    chord_name += "";
+                                    chord_name = "";
                                     break;
                                 case 4: //augmented
                                     chord_name += "<sup>aug</sup>";
                                     break;
                                 case 5: //minor, 1st inversion
-                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(2) + "m";
                                     break;
                                 case 6:
@@ -271,15 +248,15 @@ namespace YARG.Gameplay.Visuals
                                     chord_name += "<sup>sus4</sup>";
                                     break;
                                 case 3: //minor, 2nd inversion
-                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(1) + "m";
                                     break;
                                 case 4: //major, 2nd inversion
-                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(1);
                                     break;
                                 case 5: //sus2 inversion
-                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(2) + "sus2";
                                     break;
                                 case 7: //POWER!! 5
@@ -575,7 +552,7 @@ namespace YARG.Gameplay.Visuals
                                     chord_name += "<sup>aug</sup>";
                                     break;
                                 case 5: //major, 1st inversion
-                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(2) + "m";
                                     break;
                                 default:
@@ -590,15 +567,15 @@ namespace YARG.Gameplay.Visuals
                                     chord_name += "<sup>sus4</sup>";
                                     break;
                                 case 3: //minor, 2nd inversion
-                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(1) + "m";
                                     break;
                                 case 4: //major, 2nd inversion
-                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(1) + "M";
                                     break;
                                 case 5: //sus2 inversion
-                                    YargLogger.LogInfo("This chord is an inversion!");
+                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(2) + "M";
                                     break;
                                 default:
