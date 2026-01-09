@@ -148,32 +148,7 @@ namespace YARG.Gameplay
 
                     break;
                 case BackgroundType.Video:
-                    switch (result.Stream)
-                    {
-                        case FileStream fs:
-                        {
-                            _videoPlayer.url = fs.Name;
-                            break;
-                        }
-                        case SngFileStream sngStream:
-                        {
-                            // UNFORTUNATELY, Videoplayer can't use streams, so video files
-                            // MUST BE FULLY DECRYPTED
-
-                            VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
-                            using var tmp = File.OpenWrite(VIDEO_PATH);
-                            File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
-                            result.Stream.CopyTo(tmp);
-                            _videoPlayer.url = VIDEO_PATH;
-                            break;
-                        }
-                    }
-
-                    _videoPlayer.enabled = true;
-                    _videoPlayer.prepareCompleted += OnVideoPrepared;
-                    _videoPlayer.seekCompleted += OnVideoSeeked;
-                    _videoPlayer.Prepare();
-                    enabled = true;
+                    LoadVideoBackground(result);
                     break;
                 case BackgroundType.Image:
                     _backgroundImage.texture = result.Image.LoadTexture(false);
@@ -195,36 +170,11 @@ namespace YARG.Gameplay
                 case BackgroundType.Video:
                     //set venue source to song to enable video seeking/pausing features
                     _source = VenueSource.Song;
-
-                    switch (songBackGround.Stream)
-                    {
-                        case FileStream fs:
-                        {
-                            _videoPlayer.url = fs.Name;
-                            break;
-                        }
-                        case SngFileStream sngStream:
-                        {
-                            // UNFORTUNATELY, Videoplayer can't use streams, so video files
-                            // MUST BE FULLY DECRYPTED
-
-                            VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
-                            using var tmp = File.OpenWrite(VIDEO_PATH);
-                            File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
-                            songBackGround.Stream.CopyTo(tmp);
-                            _videoPlayer.url = VIDEO_PATH;
-                            break;
-                        }
-                    }
                     //set up videoPlayer to render to venue texture
                     _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
                     _videoPlayer.targetTexture = textureManager.GetVideoTexture(0, 0);
 
-                    _videoPlayer.enabled = true;
-                    _videoPlayer.prepareCompleted += OnVideoPrepared;
-                    _videoPlayer.seekCompleted += OnVideoSeeked;
-                    _videoPlayer.Prepare();
-                    enabled = true;
+                    LoadVideoBackground(songBackGround);
                     break;
                 case BackgroundType.Image:
                     var songTex = songBackGround.Image.LoadTexture(false);
@@ -234,6 +184,36 @@ namespace YARG.Gameplay
                     Destroy(songTex);
                     return;
             }
+        }
+
+        private void LoadVideoBackground(BackgroundResult bg)
+        {
+            switch (bg.Stream)
+            {
+                case FileStream fs:
+                {
+                    _videoPlayer.url = fs.Name;
+                    break;
+                }
+                case SngFileStream sngStream:
+                {
+                    // UNFORTUNATELY, Videoplayer can't use streams, so video files
+                    // MUST BE FULLY DECRYPTED
+
+                    VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
+                    using var tmp = File.OpenWrite(VIDEO_PATH);
+                    File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
+                    bg.Stream.CopyTo(tmp);
+                    _videoPlayer.url = VIDEO_PATH;
+                    break;
+                }
+            }
+
+            _videoPlayer.enabled = true;
+            _videoPlayer.prepareCompleted += OnVideoPrepared;
+            _videoPlayer.seekCompleted += OnVideoSeeked;
+            _videoPlayer.Prepare();
+            enabled = true;
         }
 
         private void Update()
