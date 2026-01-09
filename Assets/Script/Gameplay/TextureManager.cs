@@ -49,8 +49,8 @@ namespace YARG.Gameplay
         private const int FFT_SIZE_LOG = 11 /* aka log2(2048) */;
         private const int FFT_SIZE = 1 << FFT_SIZE_LOG;
         private const int FFT_TEXTURE_WIDTH = 512;
-        private int _videoTexWidth = 256;
-        private int _videoTexHeight = 144;
+        private const int VIDEO_TEX_WIDTH = 256;
+        private const int VIDEO_TEX_HEIGHT = 144;
 
         // TODO: Get the number of active channels from the mixer instead of assuming
         //  Note that this won't _break_ if there are more channels, it will just make
@@ -99,7 +99,7 @@ namespace YARG.Gameplay
         {
             if (_videoTexture == null)
             {
-                _videoTexture = new RenderTexture(_videoTexWidth, _videoTexHeight, 0);
+                _videoTexture = new RenderTexture(VIDEO_TEX_WIDTH, VIDEO_TEX_HEIGHT, 0);
                 _videoTexture.Create();
             }
             if (width > _videoTexture.width)
@@ -108,7 +108,7 @@ namespace YARG.Gameplay
             }
             if (height > _videoTexture.height)
             {
-                _videoTexture.width = height;
+                _videoTexture.height = height;
             }
             return _videoTexture;
         }
