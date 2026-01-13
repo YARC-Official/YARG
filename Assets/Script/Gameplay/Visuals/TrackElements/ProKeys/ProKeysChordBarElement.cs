@@ -319,7 +319,7 @@ namespace YARG.Gameplay.Visuals
                                             chord_name += "<sup>add9#5</sup>";
                                             break;
                                         case 5:
-                                            chord_name += GetRoot(2) + "msus4";
+                                            chord_name = GetRoot(2) + "msus4";
                                             break;
                                         case 6:
                                             chord_name += "<sup>7add9no5</sup>";
@@ -343,7 +343,7 @@ namespace YARG.Gameplay.Visuals
                                             chord_name = GetRoot(1) + "m<sup>7</sup>/" + GetRoot(0);
                                             break;
                                         case 5:
-                                            chord_name += GetRoot(3) + "msus4/" + GetRoot(0);
+                                            chord_name = GetRoot(3) + "msus4/" + GetRoot(0);
                                             break;
                                         default:
                                             //chord_name = "an unlisted minor 2nd interval chord.";
@@ -361,10 +361,10 @@ namespace YARG.Gameplay.Visuals
                                             chord_name = GetRoot(1) + "<sup>7</sup>/" + GetRoot(0);
                                             break;
                                         case 4:
-                                            chord_name += GetRoot(1) + "7#5/" + GetRoot(0);
+                                            chord_name = GetRoot(1) + "7#5/" + GetRoot(0);
                                             break;
                                         case 5:
-                                            chord_name += GetRoot(3) + "m<sup>b9</sup>/" + GetRoot(0);
+                                            chord_name = GetRoot(3) + "m<sup>b9</sup>/" + GetRoot(0);
                                             break;
                                         default:
                                             chord_name = "";
