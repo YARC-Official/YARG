@@ -22,6 +22,8 @@ namespace YARG.Gameplay.Visuals
         [Space]
         [SerializeField]
         private SustainLine _sustainLine;
+        [SerializeField]
+        private TextMeshPro _upperText;
 
         // Make sure the remove it later if it has a sustain
         protected override float RemovePointOffset => (float) NoteRef.TimeLength * Player.NoteSpeed;
