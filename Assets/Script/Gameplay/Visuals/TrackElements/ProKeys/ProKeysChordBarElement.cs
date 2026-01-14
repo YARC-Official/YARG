@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -123,14 +123,14 @@ namespace YARG.Gameplay.Visuals
                     0 => "C",
                     1 => "C♯",
                     2 => "D",
-                    3 => "E♭",
+                    3 => "Eb",
                     4 => "E",
                     5 => "F",
                     6 => "F♯",
                     7 => "G",
                     8 => "G♯",
                     9 => "A",
-                    10 => "B♭",
+                    10 => "Bb",
                     11 => "B",
 
                     _ => "X"
@@ -156,13 +156,10 @@ namespace YARG.Gameplay.Visuals
                 }
                 if (chord_qnty <= 2)
                 {
-                    //YargLogger.LogInfo("Not a full chord.");
                 }
                 else
                 {
-                    //YargLogger.LogInfo(chord_notes[0] + ", " + chord_notes[1] + ", " + chord_notes[2] + ", " + chord_notes[3] + " will turn into...");
                     Array.Sort(chord_notes, 0, chord_qnty);
-                    //YargLogger.LogInfo(chord_notes[0] + ", " + chord_notes[1] + ", " + chord_notes[2] + ", " + chord_notes[3]);
                 }
 
                 //Using the lowest note, find the first and second interval for three note chords
@@ -175,7 +172,7 @@ namespace YARG.Gameplay.Visuals
                             switch (chord_notes[2] - chord_notes[1])
                             {
                                 case 5: //diminished
-                                    chord_name += "sus2";
+                                    chord_name += "<sup>sus2</sup>";
                                     break;
                                 default: //minor
                                     chord_name = "";
@@ -192,11 +189,9 @@ namespace YARG.Gameplay.Visuals
                                     chord_name += "m";
                                     break;
                                 case 5: //major, 1st inversion
-                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(2);
                                     break;
                                 case 6: //major, 1st inversion
-                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(2) + "dim";
                                     break;
                                 case 7: //minor 7 no 5
@@ -224,7 +219,6 @@ namespace YARG.Gameplay.Visuals
                                     chord_name += "<sup>aug</sup>";
                                     break;
                                 case 5: //minor, 1st inversion
-                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(2) + "m";
                                     break;
                                 case 6:
@@ -248,15 +242,12 @@ namespace YARG.Gameplay.Visuals
                                     chord_name += "<sup>sus4</sup>";
                                     break;
                                 case 3: //minor, 2nd inversion
-                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(1) + "m";
                                     break;
                                 case 4: //major, 2nd inversion
-                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(1);
                                     break;
                                 case 5: //sus2 inversion
-                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(2) + "sus2";
                                     break;
                                 case 7: //POWER!! 5
@@ -271,7 +262,10 @@ namespace YARG.Gameplay.Visuals
                             switch (chord_notes[2] - chord_notes[1])
                             {
                                 case 3:
-                                    chord_name += "dim";
+                                    chord_name += "dim7";
+                                    break;
+                                case 4:
+                                    chord_name += "m7b5";
                                     break;
                                 default:
                                     chord_name += "";
@@ -299,7 +293,6 @@ namespace YARG.Gameplay.Visuals
                             chord_name = "";
                             break;
                     }
-                    YargLogger.LogInfo("This chord is " + chord_name);
                     _leftText.text = chord_name;
                 }
                 else if (chord_qnty == 4)
@@ -319,7 +312,7 @@ namespace YARG.Gameplay.Visuals
                                             chord_name += "<sup>add9#5</sup>";
                                             break;
                                         case 5:
-                                            chord_name = GetRoot(2) + "msus4";
+                                            chord_name = GetRoot(2) + "m<sup>sus4<sup>";
                                             break;
                                         case 6:
                                             chord_name += "<sup>7add9no5</sup>";
@@ -337,13 +330,13 @@ namespace YARG.Gameplay.Visuals
                                     switch (chord_notes[3] - chord_notes[2])
                                     {
                                         case 3:
-                                            chord_name = GetRoot(1) + "m<sup>7b5</sup>/" + GetRoot(0);
+                                            chord_name = GetRoot(1) + "m7b5/" + GetRoot(0);
                                             break;
                                         case 4:
-                                            chord_name = GetRoot(1) + "m<sup>7</sup>/" + GetRoot(0);
+                                            chord_name = GetRoot(1) + "m7/" + GetRoot(0);
                                             break;
                                         case 5:
-                                            chord_name = GetRoot(3) + "msus4/" + GetRoot(0);
+                                            chord_name = GetRoot(3) + "m<sup>sus4</sup>/" + GetRoot(0);
                                             break;
                                         default:
                                             //chord_name = "an unlisted minor 2nd interval chord.";
@@ -375,13 +368,13 @@ namespace YARG.Gameplay.Visuals
                                     switch (chord_notes[3] - chord_notes[2])
                                     {
                                         case 3:
-                                            chord_name += "sus2<sup>7</sup>";
+                                            chord_name += "7<sup>sus2</sup>";
                                             break;
                                         case 4:
-                                            chord_name += "sus2M<sup>7</sup>";
+                                            chord_name += "M7<sup>sus2</sup>";
                                             break;
                                         case 5:
-                                            chord_name += "sus2";
+                                            chord_name += "<sup>sus2</sup>";
                                             break;
                                         default:
                                             //chord_name = "an unlisted minor 2nd interval chord.";
@@ -426,13 +419,13 @@ namespace YARG.Gameplay.Visuals
                                             chord_name = GetRoot(3) + "<sup>7</sup>/" + GetRoot(0);
                                             break;
                                         case 3:
-                                            chord_name += "dim<sup>7</sup>/";
+                                            chord_name += "dim7";
                                             break;
                                         case 4:
-                                            chord_name += "m<sup>7b5</sup>/";
+                                            chord_name += "m7b5";
                                             break;
                                         case 5:
-                                            chord_name += "mM<sup>7b5</sup>/";
+                                            chord_name += "mM7b5";
                                             break;
                                         default:
                                             //chord_name = "an unlisted minor 2nd interval chord.";
@@ -552,7 +545,6 @@ namespace YARG.Gameplay.Visuals
                                     chord_name += "<sup>aug</sup>";
                                     break;
                                 case 5: //major, 1st inversion
-                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(2) + "m";
                                     break;
                                 default:
@@ -563,20 +555,17 @@ namespace YARG.Gameplay.Visuals
                         case 5: //perfect fourth
                             switch (chord_notes[2] - chord_notes[1])
                             {
-                                case 2: //minor, 2nd inversion
+                                case 2: //sus4
                                     chord_name += "<sup>sus4</sup>";
                                     break;
                                 case 3: //minor, 2nd inversion
-                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(1) + "m";
                                     break;
                                 case 4: //major, 2nd inversion
-                                    //YargLogger.LogInfo("This chord is an inversion!");
                                     chord_name = GetRoot(1) + "M";
                                     break;
                                 case 5: //sus2 inversion
-                                    //YargLogger.LogInfo("This chord is an inversion!");
-                                    chord_name = GetRoot(2) + "M";
+                                    chord_name = GetRoot(2) + "<sup>sus2</sup>";
                                     break;
                                 default:
                                     //chord_name = "an unlisted minor perfect 4th chord.";
@@ -616,7 +605,6 @@ namespace YARG.Gameplay.Visuals
                             chord_name = "";
                             break;
                     }
-                    YargLogger.LogInfo("This chord is " + chord_name);
                     _leftText.text = chord_name;
                 }
                 else if (chord_qnty > 4)
