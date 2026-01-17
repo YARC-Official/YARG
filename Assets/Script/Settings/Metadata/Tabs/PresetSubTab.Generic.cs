@@ -219,6 +219,12 @@ namespace YARG.Settings.Metadata
                 {
                     foreach (var field in _fields)
                     {
+                        if (field.ParentField is null)
+                        {
+                            YargLogger.LogFormatDebug("Unexpected null parent field for {0}", field.Field);
+                            continue;
+                        }
+
                         if (_subSection is not null && field.ParentField.Name != _subSection)
                         {
                             continue;
