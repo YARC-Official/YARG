@@ -100,7 +100,6 @@ namespace YARG.Gameplay
             if (_videoTexture == null)
             {
                 _videoTexture = new RenderTexture(VIDEO_TEX_WIDTH, VIDEO_TEX_HEIGHT, 0);
-                _videoTexture.Create();
             }
             if (width > _videoTexture.width)
             {
@@ -116,6 +115,14 @@ namespace YARG.Gameplay
         public bool VideoTexFound()
         {
             return _videoTexFound;
+        }
+
+        public void CreateVideoTexture()
+        {
+            if (_videoTexture != null && !_videoTexture.IsCreated())
+            {
+                _videoTexture.Create();
+            }
         }
 
         public void ProcessMaterial(Material m, BackgroundType? songBackgroundType)

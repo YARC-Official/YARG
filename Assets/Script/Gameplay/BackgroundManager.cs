@@ -161,6 +161,7 @@ namespace YARG.Gameplay
         private void SetUpVideoTexture(BackgroundResult songBackGround)
         {
             var textureManager = GetComponent<TextureManager>();
+            textureManager.CreateVideoTexture();
             if (songBackGround == null || songBackGround.Type == BackgroundType.Yarground)
             {
                 return;
