@@ -481,6 +481,7 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
+            public ToggleSetting SaveScoresWithBots { get; } = new(false);
 
             public ToggleSetting EnableNormalization { get; } = new(false);
 

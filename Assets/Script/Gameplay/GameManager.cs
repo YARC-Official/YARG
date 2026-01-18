@@ -514,6 +514,10 @@ namespace YARG.Gameplay
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
 
+            // Calculate band score from human players only (excludes bots)
+            int humanBandScore = 0;
+            float humanBandStars = 0f;
+
             foreach (var player in _players)
             {
                 var profile = player.Player.Profile;
@@ -523,6 +527,9 @@ namespace YARG.Gameplay
                 {
                     continue;
                 }
+
+                humanBandScore += player.Score;
+                humanBandStars += player.Stars;
 
                 playerEntries.Add(new PlayerScoreRecord
                 {
@@ -545,7 +552,13 @@ namespace YARG.Gameplay
                 });
             }
 
-            // Record the score into the database (but only if there are no bots, and Song Speed is at least 100%)
+            // Calculate band stars by taking average stars for human players
+            int humanCount = playerEntries.Count;
+            var bandStars = humanCount > 0
+                ? StarAmountHelper.GetStarsFromInt((int) (humanBandStars / humanCount))
+                : StarAmount.None;
+
+            // Record the score into the database
             ScoreContainer.RecordScore(new GameRecord
             {
                 Date = DateTime.Now,
@@ -558,8 +571,8 @@ namespace YARG.Gameplay
                 ReplayFileName = replayInfo?.ReplayName,
                 ReplayChecksum = replayInfo?.ReplayChecksum.HashBytes,
 
-                BandScore = BandScore,
-                BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
+                BandScore = humanBandScore,
+                BandStars = bandStars,
 
                 SongSpeed = SongSpeed,
                 PlayedWithReplay = GlobalVariables.State.PlayingWithReplay,
