@@ -264,7 +264,7 @@ namespace YARG.Gameplay
         {
             var stack = VolumeManager.instance.stack;
 
-            var descriptor = new RenderTextureDescriptor(_venueTexture.width, _venueTexture.height, _venueTexture.format);
+            var descriptor = new RenderTextureDescriptor(_venueTexture.width, _venueTexture.height, _venueTexture.format, 32, 0);
             var rt1 = RenderTexture.GetTemporary(descriptor);
             var rt2 = RenderTexture.GetTemporary(descriptor);
 

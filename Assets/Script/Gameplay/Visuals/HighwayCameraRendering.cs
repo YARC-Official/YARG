@@ -98,10 +98,7 @@ namespace YARG.Gameplay.Visuals
                 HighwaysOutputTexture.DiscardContents();
             }
 
-            var descriptor = new RenderTextureDescriptor(Screen.width, Screen.height, RenderTextureFormat.DefaultHDR)
-            {
-                mipCount = 0,
-            };
+            var descriptor = new RenderTextureDescriptor(Screen.width, Screen.height, RenderTextureFormat.DefaultHDR, 32, 0);
 
             HighwaysOutputTexture = new RenderTexture(descriptor);
             if (_highwaysOutput != null)
