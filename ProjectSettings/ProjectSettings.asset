@@ -873,7 +873,7 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Standalone: ZSTRING_TEXTMESHPRO_SUPPORT;URP_COMPATIBILITY_MODE
+    Standalone: ZSTRING_TEXTMESHPRO_SUPPORT
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
