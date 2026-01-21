@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEngine;
 using YARG.Gameplay.Player;
 using YARG.Core;
-using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.ProKeys;
 using YARG.Core.Engine.ProKeys.Engines;
@@ -14,6 +13,7 @@ using YARG.Core.Replays;
 using YARG.Gameplay.Visuals;
 using YARG.Settings;
 using TMPro;
+using Cysharp.Text;
 using System.Text;
 
 namespace YARG.Gameplay.Visuals
@@ -112,7 +112,7 @@ namespace YARG.Gameplay.Visuals
         public void ShowChordName()
         {
             //Chordname
-            StringBuilder chord_name = new StringBuilder(8);
+            using var chord_name = new Utf16ValueStringBuilder(true);
             _leftText.text = "";
             _leftText.textStyle = TMP_Style.NormalStyle;
 
@@ -253,6 +253,7 @@ namespace YARG.Gameplay.Visuals
                                     chord_name.Append(GetRoot(1));
                                     break;
                                 case 5: //sus2 inversion
+                                    chord_name.Clear();
                                     chord_name.Append(GetRoot(2) + "sus2");
                                     break;
                                 case 7: //POWER!! 5
@@ -299,7 +300,7 @@ namespace YARG.Gameplay.Visuals
                             chord_name.Clear();
                             break;
                     }
-                    _leftText.text = chord_name.ToString();
+                    _leftText.SetText(chord_name);
                 }
                 else if (chord_qnty == 4)
                 {
@@ -629,7 +630,7 @@ namespace YARG.Gameplay.Visuals
                             chord_name.Clear();
                             break;
                     }
-                    _leftText.text = chord_name.ToString();
+                    _leftText.SetText(chord_name);
                 }
                 else if (chord_qnty > 4)
                 {
