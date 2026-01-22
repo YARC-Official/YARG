@@ -628,7 +628,7 @@ namespace YARG.Menu.MusicLibrary
                     newPositionStartIndex = _primaryHeaderIndex;
                 }
 
-                if (_searchField.IsUpdatedSearchLonger || _currentSong == null ||
+                if (_currentSong == null ||
                     !SetIndexTo(i => i is SongViewType view && view.SongEntry.SortBasedLocation == _currentSong.SortBasedLocation, newPositionStartIndex))
                 {
                     // Note: it may look like this is expensive, but the whole loop should only last for 4-5 iterations

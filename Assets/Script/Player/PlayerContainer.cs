@@ -12,6 +12,7 @@ using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;
+using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Settings;
@@ -260,7 +261,7 @@ namespace YARG.Player
         private static async UniTask<bool> TryCreateProfile(InputDevice device)
         {
             // Some devices don't appear in their final form immediately, so we have to wait a bit
-            await UniTask.Delay(1000, true);
+            await UniTask.Delay(2500, true);
 
             if (IsDeviceTaken(device))
             {
@@ -466,15 +467,8 @@ namespace YARG.Player
                 return false;
             }
 
-            if (device is not (FiveFretGuitar or FourLaneDrumkit or FiveLaneDrumkit or ProKeyboard))
-            {
-                // Add a check for the default Keyboard/Mouse/whatever devices here so we can enable the toast
-                // ToastManager.ToastWarning("Automatic profile creation is not supported for this device!");
-                return false;
-            }
-
             GameMode gameMode = default;
-            string profileName = String.Empty;
+            string profileName = string.Empty;
 
             if (device is FiveFretGuitar)
             {
@@ -495,6 +489,19 @@ namespace YARG.Player
             {
                 gameMode = GameMode.ProKeys;
                 profileName = "New Keys Profile";
+            }
+            else
+            {
+                // Filter out keyboard and mouse devices for the purposes of this message, otherwise we're just
+                // making noise about nothing for most players
+                if (device is Keyboard or Mouse or Pen)
+                {
+                    return false;
+                }
+
+                var failMessage = Localize.KeyFormat("Menu.Toast.UnsupportedDevice", device.displayName);
+                ToastManager.ToastWarning(failMessage);
+                return false;
             }
 
             var newProfile = new YargProfile
@@ -521,7 +528,8 @@ namespace YARG.Player
                 player.Bindings.SetDefaultBinds(device);
             }
 
-            ToastManager.ToastSuccess("Profile created for new device.\nTime to do some YARGin!");
+            var successMessage = Localize.KeyFormat("Menu.Toast.ProfileCreated", device.displayName);
+            ToastManager.ToastSuccess(successMessage);
             return true;
         }
     }

@@ -487,6 +487,8 @@ namespace YARG.Settings
             public OutputChannelSetting OutputChannelDrumSfx { get; } = new(-1, OutputChannelDrumSfxCallback);
             public OutputChannelSetting OutputChannelSfx { get; } = new(-1, OutputChannelSfxCallback);
             public OutputChannelSetting OutputChannelVox { get; } = new(-1, OutputChannelVoxCallback);
+
+            public ToggleSetting EnableNormalization { get; } = new(false);
             #endregion
 
             #region Helpers

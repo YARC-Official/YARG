@@ -121,7 +121,8 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="0719", MODE="0666"
       - your fork's URL if you made one, or
       - the main repository's URL (`https://github.com/YARC-Official/YARG`) if you just want to build the game.
       - A complete example using the main repository's URL is `git clone -b dev --recursive https://github.com/YARC-Official/YARG.git`.
-   6. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
+   6. Assets are stored in LFS, if you receive an error that assets can not be loaded or assets are missing, you may need to change into the YARG directory and retrieve assets from LFS by typing in `git lfs fetch` followed by `git lfs checkout` to use them when things get updated.
+   7. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
 4. Install Unity 6000.2.12f1. Easiest method will be using Unity Hub:
    1. Download and install [Unity Hub](https://unity.com/download).
    2. Sign-in/create an account with a personal license (free).

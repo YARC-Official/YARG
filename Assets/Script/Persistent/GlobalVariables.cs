@@ -1,29 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using YARG.Audio.BASS;
-using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Core.Audio;
-using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Integration;
 using YARG.Localization;
 using YARG.Menu.Navigation;
-using YARG.Menu.ScoreScreen;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
 using YARG.Settings.Customization;
-using YARG.Song;
 
 namespace YARG
 {
@@ -145,20 +138,20 @@ namespace YARG
 #endif
         }
 
-        private void LoadSceneAdditive(SceneIndex scene)
+        private async void LoadSceneAdditive(SceneIndex scene)
         {
-            var asyncOp = SceneManager.LoadSceneAsync((int) scene, LoadSceneMode.Additive);
-
             CurrentScene = scene;
 
             GameStateFetcher.SetSceneIndex(scene);
 
-            asyncOp.completed += _ =>
-            {
-                // When complete, set the newly loaded scene to the active one
-                SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex((int) scene));
-                Navigator.Instance.DisableMenuInputs = false;
-            };
+            await SceneManager.LoadSceneAsync((int) scene, LoadSceneMode.Additive);
+
+            // When complete, set the newly loaded scene to the active one
+            SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex((int) scene));
+            Navigator.Instance.DisableMenuInputs = false;
+
+            await Resources.UnloadUnusedAssets();
+            GC.Collect();
         }
 
         public void LoadScene(SceneIndex scene)
@@ -177,7 +170,6 @@ namespace YARG
             {
                 LoadSceneAdditive(scene);
             }
-            GC.Collect();
         }
 
         // Due to the preprocessor, it doesn't know that an instance variable is being used

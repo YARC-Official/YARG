@@ -227,6 +227,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
+                nameof(Settings.EnableNormalization),
                 new HeaderMetadata("OutputConfiguration"),
                 nameof(Settings.OutputDevice),
                 nameof(Settings.OutputChannelDefault),

@@ -533,7 +533,7 @@ namespace YARG.Gameplay.Player
             }
 
             // Now that we know there is at least one range shift, figure out if it is after the first note
-            if (_allRangeShiftEvents[0].Time > Notes[0].Time)
+            if (Notes.Count > 0 && _allRangeShiftEvents[0].Time > Notes[0].Time)
             {
                 firstShiftAfterFirstNote = true;
             }

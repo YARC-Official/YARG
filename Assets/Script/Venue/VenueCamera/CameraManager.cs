@@ -207,6 +207,7 @@ namespace YARG.Venue.VenueCamera
             // Make up a PostProcessingEvent of type default to start us off
             var firstEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
             CurrentEffect = firstEffect;
+            PreviousEffect = firstEffect;
 
             if (_cameraCuts.Count > 0)
             {
@@ -506,6 +507,12 @@ namespace YARG.Venue.VenueCamera
 
         protected override void GameplayDestroy()
         {
+            // These need to be explicitly released
+            _invertCurveParam.Release();
+            _defaultCurveParam.Release();
+            _brightCurveParam.Release();
+            _copierCurveParam.Release();
+
             // Enable the camera in case it happens to be disabled
             _currentCamera.enabled = true;
 

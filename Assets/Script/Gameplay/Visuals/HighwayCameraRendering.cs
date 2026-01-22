@@ -7,7 +7,6 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using YARG.Core.Logging;
 using YARG.Gameplay.Player;
-using YARG.Helpers;
 using YARG.Helpers.UI;
 using YARG.Settings;
 
@@ -302,6 +301,18 @@ namespace YARG.Gameplay.Visuals
         {
             RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRender;
+
+            if (HighwaysOutputTexture != null)
+            {
+                HighwaysOutputTexture.Release();
+                HighwaysOutputTexture.DiscardContents();
+                HighwaysOutputTexture = null;
+            }
+            if (_highwaysAlphaTexture != null)
+            {
+                _highwaysAlphaTexture.Release();
+                _highwaysAlphaTexture = null;
+            }
         }
 
         private void OnEndCameraRender(ScriptableRenderContext ctx, Camera cam)
@@ -440,16 +451,27 @@ namespace YARG.Gameplay.Visuals
                 {
                     cmd.SetRenderTarget(_highwayCameraRendering._highwaysAlphaTexture);
                     var shaderTagIds = new[] { new ShaderTagId("UniversalForward") };
+                    // Draw transparents first
                     var desc = new RendererListDesc(shaderTagIds, renderingData.cullResults, renderingData.cameraData.camera)
                     {
                         sortingCriteria = SortingCriteria.RenderQueue,
-                        renderQueueRange = RenderQueueRange.all,
+                        renderQueueRange = RenderQueueRange.transparent,
                         overrideMaterial = _material
                     };
 
                     var rendererList = context.CreateRendererList(desc);
-                    //The RenderingUtils.fullscreenMesh argument specifies that the mesh to draw is a quad.
                     cmd.DrawRendererList(rendererList);
+
+                    // Now opaques
+                    var opaqueDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, renderingData.cameraData.camera)
+                    {
+                        sortingCriteria = SortingCriteria.RenderQueue,
+                        renderQueueRange = RenderQueueRange.opaque,
+                        overrideMaterial = _material
+                    };
+
+                    var opaqueRendererList = context.CreateRendererList(opaqueDesc);
+                    cmd.DrawRendererList(opaqueRendererList);
                 }
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

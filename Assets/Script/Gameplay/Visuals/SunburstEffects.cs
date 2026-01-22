@@ -1,4 +1,4 @@
-using DG.Tweening;
+﻿using DG.Tweening;
 using UnityEngine;
 using YARG.Playback;
 using YARG.Settings;
@@ -236,10 +236,18 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            // Ensure that the disable tween isn't still running
+            // Ensure that any tweens that hide the sunburst are not still running
             if (_sunburstDisableSequence.IsPlaying())
             {
                 _sunburstDisableSequence.Complete(false);
+            }
+            if (_multiplierIncreaseSequence.IsPlaying())
+            {
+                _multiplierIncreaseSequence.Complete(false);
+            }
+            if (_multiplierDecreaseSequence.IsPlaying())
+            {
+                _multiplierDecreaseSequence.Complete(false);
             }
 
             // We need to make sure that we're set up for starpower before we start the sequence
