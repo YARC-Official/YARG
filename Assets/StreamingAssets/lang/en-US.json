@@ -1002,6 +1002,24 @@
                 "PauseName": "Master",
                 "Description": "Adjusts the song's volume as a whole."
             },
+            "MetronomeVolume": {
+                "Name": "Metronome Volume",
+                "PauseName": "Metronome",
+                "Description": "Adjusts the volume of the metronome."
+            },
+            "MetronomeSound": {
+                "Name": "Metronome Sound",
+                "Description": "The sample to use for metronome clicks.",
+                "Dropdown": {
+                    "Castanet": "Castanet",
+                    "Clap": "Clap",
+                    "Party": "Party",
+                    "Quartz": "Quartz",
+                    "Sine": "Sine",
+                    "Square": "Square",
+                    "Trashcan": "Trashcan"
+                }
+            },
             "MinimumLogLevel": {
                 "Name": "Minimum Log Level",
                 "Description": "Controls how much information is written to log files.",

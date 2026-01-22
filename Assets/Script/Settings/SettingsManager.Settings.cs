@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
@@ -48,6 +49,8 @@ namespace YARG.Settings
             public SortAttribute PreviousLibrarySort = SortAttribute.Name;
 
             public Dictionary<string, HUDPositionProfile> HUDPositionProfiles = new();
+
+            private static MetronomeSample? _previousMetronomeSound;
 
             #endregion
 
@@ -182,6 +185,9 @@ namespace YARG.Settings
             public VolumeSetting DrumSfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.DrumSfx, v));
 
+            public VolumeSetting MetronomeVolume { get; } =
+                new(0f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Metronome, v));
+
             public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring { get; } = new(0.7f, VocalMonitoringCallback);
@@ -228,6 +234,18 @@ namespace YARG.Settings
             public ToggleSetting ApplyVolumesInMusicLibrary { get; } = new(true);
 
             public ToggleSetting EnableVoxSamples { get; } = new(true);
+
+            public DropdownSetting<MetronomeSample> MetronomeSound { get; }
+                = new(MetronomeSample.Square, MetronomePreviewCallback)
+                {
+                    MetronomeSample.Castanet,
+                    MetronomeSample.Clap,
+                    MetronomeSample.Party,
+                    MetronomeSample.Quartz,
+                    MetronomeSample.Sine,
+                    MetronomeSample.Square,
+                    MetronomeSample.Trashcan
+                };
 
             #endregion
 
@@ -773,6 +791,34 @@ namespace YARG.Settings
                 }
 
                 setOutputChannel(Settings.OutputChannelVox, SongStem.VoxSample);
+            }
+
+            private static void MetronomePreviewCallback(MetronomeSample sample)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                // Only play sound if this isn't the initial settings load to avoid beeping on start up
+                if (_previousMetronomeSound != null)
+                {
+                    _ = metronomePreview(sample);
+                }
+
+                _previousMetronomeSound = sample;
+            }
+
+            private static async Task metronomePreview(MetronomeSample sample)
+            {
+                GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Hi);
+                await Task.Delay(200);
+                GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Lo);
+                await Task.Delay(200);
+                GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Lo);
+                await Task.Delay(200);
+                GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Lo);
             }
             #endregion
         }

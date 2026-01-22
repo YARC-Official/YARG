@@ -184,6 +184,7 @@ namespace YARG.Audio.BASS
             LoadSfx();
             LoadDrumSfx(); // TODO: move drum sfx loading/disposal to song start/end respectively IF there are any drum players
             LoadVox();
+            LoadMetronome();
         }
 
 #nullable enable
@@ -420,6 +421,46 @@ namespace YARG.Audio.BASS
             }
 
             YargLogger.LogInfo("Finished loading VOX");
+        }
+
+        private void LoadMetronome()
+        {
+            YargLogger.LogInfo("Loading Metronome");
+            string metronomeFolder = Path.Combine(Application.streamingAssetsPath, "metronome");
+
+            foreach (var sample in AudioHelpers.MetronomeSamples)
+            {
+                string metronomeHi = Path.Combine(metronomeFolder, sample.File);
+                string metronomeLo = Path.Combine(metronomeFolder, sample.AlternateFile);
+
+                string metronomeHiPath = "";
+                string metronomeLoPath = "";
+
+                foreach (string format in SupportedFormats)
+                {
+                    if (File.Exists(metronomeHi + format))
+                    {
+                        metronomeHiPath = metronomeHi + format;
+                    }
+
+                    if (File.Exists(metronomeLo + format))
+                    {
+                        metronomeLoPath = metronomeLo + format;
+                    }
+                }
+
+                if (!String.IsNullOrEmpty(metronomeHiPath) && !String.IsNullOrEmpty(metronomeLoPath))
+                {
+                    var metronomeSample = sample.Kind;
+                    var metronome = BassMetronomeSampleChannel.Create(metronomeSample, metronomeHiPath, metronomeLoPath);
+                    if (metronome != null)
+                    {
+                        MetronomeSamples[(int) metronomeSample] = metronome;
+                    }
+                }
+            }
+
+            YargLogger.LogInfo("Finished loading Metronome");
         }
 
         protected override void SetMasterVolume(double volume)
