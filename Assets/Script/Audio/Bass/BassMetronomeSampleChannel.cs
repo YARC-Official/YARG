@@ -8,7 +8,10 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassMetronomeSampleChannel : MetronomeSampleChannel
     {
-        public static BassMetronomeSampleChannel? Create(MetronomeSample sample, string hiPath, string loPath)
+#nullable enable
+        public static BassMetronomeSampleChannel? Create(MetronomeSample sample, string hiPath, string loPath,
+             OutputChannel? outputChannel)
+#nullable disable
         {
             int hiHandle = Bass.SampleLoad(hiPath, 0, 0, 1, BassFlags.Decode);
             if (hiHandle == 0)
@@ -40,7 +43,7 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            return new BassMetronomeSampleChannel(sample, hiHandle, hiChannel, hiPath, loHandle, loChannel, loPath);
+            return new BassMetronomeSampleChannel(sample, hiHandle, hiChannel, hiPath, loHandle, loChannel, loPath, outputChannel);
         }
 
         private readonly int _hiHandle;
@@ -48,13 +51,17 @@ namespace YARG.Audio.BASS
         private readonly int _loHandle;
         private readonly int _loChannel;
 
-        private BassMetronomeSampleChannel(MetronomeSample sample, int hiHandle, int hiChannel, string hiPath, int loHandle, int loChannel, string loPath)
+#nullable enable
+        private BassMetronomeSampleChannel(MetronomeSample sample, int hiHandle, int hiChannel, string hiPath, int loHandle, int loChannel, string loPath,
+            OutputChannel? outputChannel)
             : base(sample, hiPath, loPath)
+#nullable disable
         {
             _hiHandle = hiHandle;
             _hiChannel = hiChannel;
             _loHandle = loHandle;
             _loChannel = loChannel;
+            SetOutputChannel_Internal(outputChannel);
         }
 
         protected override void PlayHi_Internal()
@@ -84,6 +91,14 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to set {0} lo volume: {1}!", Sample, Bass.LastError);
             }
+        }
+
+#nullable enable
+        protected override void SetOutputChannel_Internal(OutputChannel? channel)
+#nullable disable
+        {
+            BassHelpers.UpdateOutputChannels(_hiChannel, channel);
+            BassHelpers.UpdateOutputChannels(_loChannel, channel);
         }
 
         protected override void DisposeUnmanagedResources()

@@ -505,6 +505,7 @@ namespace YARG.Settings
             public OutputChannelSetting OutputChannelDrumSfx { get; } = new(-1, OutputChannelDrumSfxCallback);
             public OutputChannelSetting OutputChannelSfx { get; } = new(-1, OutputChannelSfxCallback);
             public OutputChannelSetting OutputChannelVox { get; } = new(-1, OutputChannelVoxCallback);
+            public OutputChannelSetting OutputChannelMetronome { get; } = new(-1, OutputChannelMetronomeCallback);
 
             public ToggleSetting EnableNormalization { get; } = new(false);
             #endregion
@@ -743,6 +744,7 @@ namespace YARG.Settings
                 resetChannelSetting(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
                 resetChannelSetting(Settings.OutputChannelSfx, SongStem.Sfx);
                 resetChannelSetting(Settings.OutputChannelVox, SongStem.VoxSample);
+                resetChannelSetting(Settings.OutputChannelMetronome, SongStem.Metronome);
             }
 
             private static void OutputChannelDefaultCallback(int channelId)
@@ -758,6 +760,7 @@ namespace YARG.Settings
                 setOutputChannel(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
                 setOutputChannel(Settings.OutputChannelSfx, SongStem.Sfx);
                 setOutputChannel(Settings.OutputChannelVox, SongStem.VoxSample);
+                setOutputChannel(Settings.OutputChannelMetronome, SongStem.Metronome);
             }
 
             private static void OutputChannelDrumSfxCallback(int channelId)
@@ -769,6 +772,17 @@ namespace YARG.Settings
                 }
 
                 setOutputChannel(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
+            }
+
+            private static void OutputChannelMetronomeCallback(int channelId)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                GlobalAudioHandler.SetOutputChannel(SongStem.Metronome, channelId);
             }
 
             private static void OutputChannelSfxCallback(int channelId)

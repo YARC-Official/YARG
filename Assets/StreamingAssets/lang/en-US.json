@@ -1073,6 +1073,10 @@
                 "Name": "Drum SFX",
                 "Description": "The output channel(s) to use for drum sound effects."
             },
+            "OutputChannelMetronome": {
+                "Name": "Metronome",
+                "Description": "The output channel(s) to use for metronome clicks."
+            },
             "OutputChannelSfx": {
                 "Name": "SFX",
                 "Description": "The output channel(s) to use for other sound effects."

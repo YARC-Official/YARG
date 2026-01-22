@@ -452,7 +452,8 @@ namespace YARG.Audio.BASS
                 if (!String.IsNullOrEmpty(metronomeHiPath) && !String.IsNullOrEmpty(metronomeLoPath))
                 {
                     var metronomeSample = sample.Kind;
-                    var metronome = BassMetronomeSampleChannel.Create(metronomeSample, metronomeHiPath, metronomeLoPath);
+                    var metronome = BassMetronomeSampleChannel.Create(metronomeSample, metronomeHiPath, metronomeLoPath,
+                        CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0));
                     if (metronome != null)
                     {
                         MetronomeSamples[(int) metronomeSample] = metronome;

@@ -234,6 +234,7 @@ namespace YARG.Settings
                 nameof(Settings.OutputDevice),
                 nameof(Settings.OutputChannelDefault),
                 nameof(Settings.OutputChannelDrumSfx),
+                nameof(Settings.OutputChannelMetronome),
                 nameof(Settings.OutputChannelSfx),
                 nameof(Settings.OutputChannelVox),
             }
