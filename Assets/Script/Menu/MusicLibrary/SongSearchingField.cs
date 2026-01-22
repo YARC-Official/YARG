@@ -46,7 +46,6 @@ namespace YARG.Menu.MusicLibrary
 
         public bool IsSearching => !string.IsNullOrEmpty(_fullSearchQuery);
         public bool IsCurrentSearchInField => _searchQueries[_currentSearchFilter] == _searchField.text;
-        public bool IsUpdatedSearchLonger => _searchField.text.Length > _currentSearchText.Length;
         public bool IsUnspecified => _searchContext.IsUnspecified();
 
         public event Action<bool> OnSearchQueryUpdated;

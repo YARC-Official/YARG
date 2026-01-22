@@ -200,6 +200,10 @@
                 "By": "By: {0}"
             }
         },
+        "Toast": {
+            "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
+            "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
+        },
         "Dialog": {
             "DontShowAgain": "Don't Show Again",
 
@@ -1379,6 +1383,10 @@
             "EnableVoxSamples": {
                 "Name": "Enable Vox Samples",
                 "Description": "If enabled, the game might make some noises at you on the score screen."
+            },
+            "EnableNormalization": {
+                "Name": "Normalize Audio",
+                "Description": "If enabled, normalizes audio so that all songs are approximately the same volume.  Increases memory and performance requirements."
             }
         },
         "PresetType": {

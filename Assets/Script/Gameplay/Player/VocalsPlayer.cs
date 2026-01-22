@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
@@ -392,7 +392,7 @@ namespace YARG.Gameplay.Player
             const float NEEDLE_ROT_LERP = 25f;
 
             // Get the appropriate sing time
-            var singTime = GameManager.InputTime - Player.Profile.InputCalibrationSeconds;
+            var singTime = GameManager.InputTime;
 
             // Get whether or not the player has sang within the time threshold.
             // We gotta use a threshold here because microphone inputs are passed every X seconds,
@@ -528,7 +528,7 @@ namespace YARG.Gameplay.Player
                     totalTime += note.TotalTickLength;
                 }
 
-                _hud.SetHUDShowing(totalTime != 0);
+                _hud.SetHUDShowing(!hasPercussion);
                 _percussionTrack.ShowPercussionFret(hasPercussion);
                 _shouldHideNeedle = hasPercussion;
             }

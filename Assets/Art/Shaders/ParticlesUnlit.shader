@@ -61,6 +61,9 @@ Shader "YargParticlesUnlit"
     //Particle shaders rely on "write" to CB syntax which is not supported by DXC
     #pragma never_use_dxc
 
+    // This is required on Metal in all passes to avoid compilation errors
+    #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+
     ENDHLSL
 
     SubShader
